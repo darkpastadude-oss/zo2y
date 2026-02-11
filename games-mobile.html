@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zo2y - Games</title>
+  <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <style>
+    :root {
+      --bg: #0b1633;
+      --card: #132347;
+      --muted: #8ca3c7;
+      --accent: #f59e0b;
+      --glass: rgba(255,255,255,0.03);
+      --white: #ffffff;
+      --border: rgba(255,255,255,0.1);
+      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      --surface: rgba(19, 35, 71, 0.6);
+      --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+      --shadow: 0 10px 30px rgba(0,0,0,0.3);
+      --info: #3b82f6;
+      --success: #10b981;
+      --error: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: -20% 0 0 0;
+      background: var(--radial-glow);
+      pointer-events: none;
+      z-index: -2;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0 12px, rgba(255, 184, 77, 0) 12px 24px);
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: -3;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding: 12px 12px;
+      backdrop-filter: blur(10px) saturate(180%);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      gap: 10px;
+    }
+
+    .logo {
+      height: 34px;
+      width: auto;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .logo:hover { transform: scale(1.05); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav a.ghost {
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .nav a.ghost:hover { color: var(--accent); background: rgba(245, 158, 11, 0.05); }
+
+    .account-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--white);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .account-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .account-btn.logged-in {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: var(--accent);
+    }
+
+    .hero {
+      max-width: 1200px;
+      margin: 16px auto 0;
+      padding: 0 12px;
+    }
+
+    .hero h1 {
+      font-size: 20px;
+      margin: 0 0 6px 0;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .controls {
+      max-width: 1200px;
+      margin: 12px auto 0;
+      padding: 0 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .search-input,
+    .filter-select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1f40;
+      color: var(--white);
+      outline: none;
+      font-size: 12px;
+    }
+
+    .full-span { grid-column: 1 / -1; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--white);
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 12px;
+      transition: all 0.2s ease;
+      justify-content: center;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .chip-row {
+      max-width: 1200px;
+      margin: 8px auto 0;
+      padding: 0 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      padding: 5px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .chip.active { border-color: var(--accent); color: var(--accent); }
+
+    .grid {
+      max-width: 1200px;
+      margin: 16px auto 40px;
+      padding: 0 12px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      background: #0f1f40;
+    }
+
+    .card-body {
+      padding: 8px 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 700;
+      margin: 0;
+      line-height: 1.3;
+      min-height: 32px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-meta {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .menu-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(19, 35, 71, 0.9);
+      color: var(--white);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      z-index: 2;
+    }
+
+    .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .list-menu {
+      position: absolute;
+      right: 6px;
+      top: 42px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px;
+      min-width: 200px;
+      box-shadow: var(--shadow);
+      display: none;
+      z-index: 3;
+    }
+
+    .list-menu.open { display: block; }
+
+    .list-menu-title { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+
+    .list-action {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--white);
+      border-radius: 10px;
+      padding: 7px 9px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: all 0.2s ease;
+      margin-bottom: 6px;
+    }
+
+    .list-action:last-child { margin-bottom: 0; }
+    .list-action:hover { border-color: var(--accent); color: var(--accent); }
+    .list-action.active {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .empty {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 12px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .pagination {
+      max-width: 1200px;
+      margin: 0 auto 40px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .page-btn {
+      min-width: 40px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--white);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .page-info { color: var(--muted); font-size: 12px; }
+
+    .notification {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      z-index: 2000;
+      box-shadow: var(--shadow);
+    }
+    .notification.success { background: var(--success); color: white; }
+    .notification.error { background: var(--error); color: white; }
+    .notification.info { background: var(--info); color: white; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      padding: 16px;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .modal-title { font-size: 16px; font-weight: 700; }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 22px;
+      cursor: pointer;
+    }
+    .modal-list {
+      display: grid;
+      gap: 8px;
+      max-height: 240px;
+      overflow: auto;
+      margin-bottom: 10px;
+    }
+    .modal-list-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .modal-list-actions { display: inline-flex; gap: 6px; align-items: center; }
+    .list-edit-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .list-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .modal-list-item.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(245, 158, 11, 0.12);
+    }
+    .modal-input {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .modal-input input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1f40;
+      color: var(--white);
+      outline: none;
+      font-size: 12px;
+    }
+    .icon-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .icon-option {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .icon-option.selected { border-color: var(--accent); color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header class="nav" role="banner">
+    <div class="nav-container">
+      <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'" width="140" height="34" decoding="async" fetchpriority="high">
+      <div class="nav-right">
+        <a class="ghost" href="games.html">Games</a>
+        <a class="ghost" href="restraunts.html">Restaurants</a>
+        <a class="ghost" href="index.html">Home</a>
+        <button class="account-btn" id="userAccountBtn"><i class="fas fa-user"></i><span>Account</span></button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>Popular Games</h1>
+    <p>Discover trending games powered by RAWG.</p>
+  </section>
+
+  <div class="controls">
+    <input id="searchInput" class="search-input full-span" type="text" placeholder="Search games...">
+    <select id="genreSelect" class="filter-select">
+      <option value="">All Genres</option>
+    </select>
+    <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year">
+    <button class="btn full-span" id="refreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
+  </div>
+  <div id="activeFilters" class="chip-row"></div>
+
+  <div id="gamesGrid" class="grid"></div>
+  <div id="emptyState" class="empty" style="display:none;">No games found.</div>
+  <div class="pagination">
+    <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
+    <div class="page-info" id="pageInfo">Page 1</div>
+    <button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
+  </div>
+
+  <div class="modal" id="gameListsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Custom Game Lists</div>
+        <button class="modal-close" id="closeGameListsBtn">&times;</button>
+      </div>
+      <div class="modal-list" id="gameListsContainer"></div>
+      <div class="modal-input">
+        <input type="text" id="newGameListName" placeholder="New list name..." maxlength="50">
+        <button class="btn" id="createGameListBtn">Create</button>
+      </div>
+      <div class="icon-options" id="gameListIconOptions">
+        <button class="icon-option selected" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
+        <button class="icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+        <button class="icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+        <button class="icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+        <button class="icon-option" data-icon="fas fa-eye"><i class="fas fa-eye"></i></button>
+      </div>
+      <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn" id="saveGameListsBtn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+      const RAWG_BASE = 'https://api.rawg.io/api';
+      const RAWG_KEY = '83b2a55ac54c4c1db7099212e740f680';
+      const state = {
+        genres: [],
+        activeGenre: '',
+        query: '',
+        year: '',
+        page: 1,
+        totalPages: 1,
+        currentUser: null,
+        listStatusMap: new Map(),
+        customLists: [],
+        activeGameId: null,
+        modalSelectedLists: new Set(),
+        selectedIcon: 'fas fa-gamepad'
+      };
+
+      let supabaseClient = null;
+
+      async function rawgFetch(path, params = {}) {
+        const url = new URL(RAWG_BASE + path);
+        url.searchParams.set('key', RAWG_KEY);
+        Object.entries(params).forEach(([k, v]) => {
+          if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
+        });
+        const res = await fetch(url.toString());
+        if (!res.ok) throw new Error(`RAWG error ${res.status}`);
+        return res.json();
+      }
+
+      function showNotification(message, type = 'info', duration = 3000) {
+        const existing = document.querySelectorAll('.notification');
+        existing.forEach(n => n.remove());
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), duration);
+      }
+
+      function renderListIcon(icon) {
+        if (!icon) return '<i class="fas fa-gamepad"></i>';
+        if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
+        return icon;
+      }
+
+      async function initSupabase() {
+        if (typeof supabase === 'undefined') {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        if (typeof supabase === 'undefined') return null;
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        return supabaseClient;
+      }
+
+      async function initAuth() {
+        if (!supabaseClient) return;
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        state.currentUser = user || null;
+        updateAccountButton();
+        await loadUserListStatus();
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+          state.currentUser = session?.user || null;
+          updateAccountButton();
+          loadUserListStatus();
+        });
+      }
+
+      function updateAccountButton() {
+        const btn = document.getElementById('userAccountBtn');
+        if (!btn) return;
+        if (state.currentUser) {
+          btn.classList.add('logged-in');
+          btn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+          btn.onclick = () => window.location.href = 'profile.html';
+        } else {
+          btn.classList.remove('logged-in');
+          btn.innerHTML = '<i class="fas fa-user"></i><span>Account</span>';
+          btn.onclick = () => window.location.href = 'login.html';
+        }
+      }
+
+      async function loadUserListStatus() {
+        state.listStatusMap = new Map();
+        if (!supabaseClient || !state.currentUser) return;
+        const { data, error } = await supabaseClient
+          .from('game_list_items')
+          .select('game_id, list_type')
+          .eq('user_id', state.currentUser.id);
+        if (error) return;
+        (data || []).forEach(row => {
+          if (!state.listStatusMap.has(row.game_id)) {
+            state.listStatusMap.set(row.game_id, { favorites: false, watched: false, watchlist: false });
+          }
+          if (row.list_type && state.listStatusMap.get(row.game_id)[row.list_type] !== undefined) {
+            state.listStatusMap.get(row.game_id)[row.list_type] = true;
+          }
+        });
+        updateAllCardMenus();
+      }
+
+      function updateAllCardMenus() {
+        document.querySelectorAll('.card').forEach(card => {
+          const gameId = Number(card.getAttribute('data-game-id'));
+          if (!gameId) return;
+          updateCardMenuUI(card, gameId);
+        });
+      }
+
+      function updateCardMenuUI(card, gameId) {
+        const status = state.listStatusMap.get(gameId) || { favorites: false, watched: false, watchlist: false };
+        card.querySelectorAll('.list-action').forEach(btn => {
+          const listType = btn.getAttribute('data-list');
+          if (!listType) return;
+          const isActive = !!status[listType];
+          btn.classList.toggle('active', isActive);
+          const stateEl = btn.querySelector('.list-action-state');
+          if (stateEl) stateEl.textContent = isActive ? 'Saved' : 'Add';
+        });
+      }
+
+      function renderFilters() {
+        const row = document.getElementById('activeFilters');
+        if (!row) return;
+        row.innerHTML = '';
+        const items = [];
+        if (state.activeGenre) items.push({ label: state.activeGenre, type: 'genre' });
+        if (state.query) items.push({ label: state.query, type: 'query' });
+        if (state.year) items.push({ label: state.year, type: 'year' });
+        items.forEach(item => {
+          const chip = document.createElement('div');
+          chip.className = 'chip active';
+          chip.textContent = item.label;
+          chip.onclick = () => {
+            if (item.type === 'genre') state.activeGenre = '';
+            if (item.type === 'query') state.query = '';
+            if (item.type === 'year') state.year = '';
+            document.getElementById('searchInput').value = state.query;
+            document.getElementById('genreSelect').value = state.activeGenre;
+            document.getElementById('yearInput').value = state.year;
+            renderFilters();
+            state.page = 1;
+            loadGames();
+          };
+          row.appendChild(chip);
+        });
+      }
+
+      async function loadGenres() {
+        const data = await rawgFetch('/genres', { page_size: 50 });
+        state.genres = data.results || [];
+        const select = document.getElementById('genreSelect');
+        if (!select) return;
+        state.genres.forEach(g => {
+          const opt = document.createElement('option');
+          opt.value = String(g.slug || g.id);
+          opt.textContent = g.name;
+          select.appendChild(opt);
+        });
+      }
+
+      async function loadGames() {
+        const grid = document.getElementById('gamesGrid');
+        const empty = document.getElementById('emptyState');
+        if (!grid) return;
+
+        let data;
+        const pageSize = 20;
+        try {
+          const params = {
+            page: state.page,
+            page_size: pageSize,
+            ordering: '-rating'
+          };
+          if (state.query) params.search = state.query;
+          if (state.activeGenre) params.genres = state.activeGenre;
+          if (state.year) params.dates = `${state.year}-01-01,${state.year}-12-31`;
+          data = await rawgFetch('/games', params);
+        } catch (e) {
+          if (empty) empty.style.display = 'block';
+          return;
+        }
+
+        const results = data.results || [];
+
+        if (!results.length) {
+          if (empty) empty.style.display = 'block';
+          grid.innerHTML = '';
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        results.forEach(item => {
+          const gameTitle = item.name || item.slug || 'Untitled';
+          const gameDate = item.released || '';
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.setAttribute('data-game-id', item.id);
+          card.innerHTML = `
+            <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
+            <div class="list-menu">
+              <div class="list-menu-title">Save to list</div>
+              <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Played </span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Backlog </span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
+            </div>
+            <img src="${item.background_image ? item.background_image : 'images/placeholder.jpg'}" alt="${gameTitle}">
+            <div class="card-body">
+              <h3 class="card-title">${gameTitle}</h3>
+              <div class="card-meta">${gameDate}</div>
+            </div>
+          `;
+          card.onclick = (e) => {
+            if (e.target.closest('.menu-btn') || e.target.closest('.list-menu')) return;
+            window.location.href = `game.html?id=${item.id}`;
+          };
+          wireCardMenu(card, item.id);
+          updateCardMenuUI(card, item.id);
+          fragment.appendChild(card);
+        });
+        grid.innerHTML = '';
+        grid.appendChild(fragment);
+        if (empty) empty.style.display = 'none';
+
+        const totalCount = data.count || results.length || 0;
+        state.totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+        updatePagination();
+      }
+
+      function wireCardMenu(card, gameId) {
+        const menuBtn = card.querySelector('.menu-btn');
+        const menu = card.querySelector('.list-menu');
+        if (!menuBtn || !menu) return;
+        menuBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          document.querySelectorAll('.list-menu.open').forEach(m => m.classList.remove('open'));
+          menu.classList.toggle('open');
+        });
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.list-menu') && !e.target.closest('.menu-btn')) {
+            menu.classList.remove('open');
+          }
+        });
+        menu.querySelectorAll('.list-action').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const listType = btn.getAttribute('data-list');
+            if (listType === 'custom') {
+              openGameListsModal(gameId);
+              return;
+            }
+            await toggleDefaultList(gameId, listType, card);
+          });
+        });
+      }
+
+      async function toggleDefaultList(gameId, listType, card) {
+        if (!state.currentUser) {
+          showNotification('Please sign in to save games', 'info');
+          return;
+        }
+        if (!supabaseClient) return;
+        const status = state.listStatusMap.get(gameId) || { favorites: false, watched: false, watchlist: false };
+        const isInList = !!status[listType];
+        if (isInList) {
+          const { error } = await supabaseClient
+            .from('game_list_items')
+            .delete()
+            .eq('user_id', state.currentUser.id)
+            .eq('game_id', gameId)
+            .eq('list_type', listType);
+          if (!error) {
+            status[listType] = false;
+            state.listStatusMap.set(gameId, status);
+            updateCardMenuUI(card, gameId);
+            showNotification('Removed from list', 'info');
+          }
+        } else {
+          const { error } = await supabaseClient
+            .from('game_list_items')
+            .insert({ user_id: state.currentUser.id, game_id: gameId, list_type: listType });
+          if (!error) {
+            status[listType] = true;
+            state.listStatusMap.set(gameId, status);
+            updateCardMenuUI(card, gameId);
+            showNotification('Saved to list', 'success');
+          }
+        }
+      }
+
+      async function loadCustomLists() {
+        if (!supabaseClient || !state.currentUser) return [];
+        const { data, error } = await supabaseClient
+          .from('game_lists')
+          .select('*')
+          .eq('user_id', state.currentUser.id)
+          .order('created_at', { ascending: false });
+        if (error) return [];
+        return data || [];
+      }
+
+      async function openGameListsModal(gameId) {
+        if (!state.currentUser) {
+          showNotification('Please sign in to manage lists', 'info');
+          return;
+        }
+        state.activeGameId = gameId;
+        const modal = document.getElementById('gameListsModal');
+        const container = document.getElementById('gameListsContainer');
+        if (!modal || !container) return;
+        container.innerHTML = '<div class="chip">Loading...</div>';
+        state.customLists = await loadCustomLists();
+        const listIds = state.customLists.map(l => l.id);
+        state.modalSelectedLists = new Set();
+        if (listIds.length) {
+          const { data } = await supabaseClient
+            .from('game_list_items')
+            .select('list_id')
+            .eq('user_id', state.currentUser.id)
+            .eq('game_id', gameId)
+            .in('list_id', listIds);
+          (data || []).forEach(row => state.modalSelectedLists.add(row.list_id));
+        }
+        container.innerHTML = '';
+        if (!state.customLists.length) {
+          container.innerHTML = '<div class="chip">No custom lists yet.</div>';
+        } else {
+          state.customLists.forEach(list => {
+            const item = document.createElement('div');
+            item.className = 'modal-list-item' + (state.modalSelectedLists.has(list.id) ? ' active' : '');
+            item.innerHTML = `
+              <span>${renderListIcon(list.icon)} ${list.title}</span>
+              <span class="modal-list-actions">
+                <span>${state.modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>
+                <button class="list-edit-btn" aria-label="Rename list"><i class="fas fa-pen"></i></button>
+              </span>
+            `;
+            item.onclick = () => {
+              if (state.modalSelectedLists.has(list.id)) {
+                state.modalSelectedLists.delete(list.id);
+              } else {
+                state.modalSelectedLists.add(list.id);
+              }
+              item.classList.toggle('active');
+              item.querySelector('.modal-list-actions span').textContent = state.modalSelectedLists.has(list.id) ? 'Saved' : 'Add';
+            };
+            const editBtn = item.querySelector('.list-edit-btn');
+            if (editBtn) {
+              editBtn.onclick = (e) => {
+                e.stopPropagation();
+                renameGameList(list.id, list.title);
+              };
+            }
+            container.appendChild(item);
+          });
+        }
+        modal.classList.add('active');
+      }
+
+      async function saveGameListChanges() {
+        if (!supabaseClient || !state.currentUser || !state.activeGameId) return;
+        const listIds = state.customLists.map(l => l.id);
+        if (listIds.length) {
+          await supabaseClient
+            .from('game_list_items')
+            .delete()
+            .eq('user_id', state.currentUser.id)
+            .eq('game_id', state.activeGameId)
+            .in('list_id', listIds);
+        }
+        const inserts = [...state.modalSelectedLists].map(listId => ({
+          user_id: state.currentUser.id,
+          game_id: state.activeGameId,
+          list_id: listId
+        }));
+        if (inserts.length) {
+          await supabaseClient.from('game_list_items').insert(inserts);
+        }
+        showNotification('Lists updated', 'success');
+        closeGameListsModal();
+      }
+
+      function closeGameListsModal() {
+        const modal = document.getElementById('gameListsModal');
+        if (modal) modal.classList.remove('active');
+        state.activeGameId = null;
+      }
+
+      async function createGameList() {
+        const input = document.getElementById('newGameListName');
+        if (!input || !input.value.trim()) return;
+        if (!supabaseClient || !state.currentUser) return;
+        const title = input.value.trim();
+        const { data, error } = await supabaseClient
+          .from('game_lists')
+          .insert({ user_id: state.currentUser.id, title, icon: state.selectedIcon || 'fas fa-gamepad' })
+          .select('*')
+          .single();
+        if (error) {
+          showNotification('Could not create list', 'error');
+          return;
+        }
+        input.value = '';
+        state.customLists.unshift(data);
+        openGameListsModal(state.activeGameId);
+      }
+
+      async function renameGameList(listId, currentTitle) {
+        const nextTitle = prompt('Rename list', currentTitle || '');
+        if (!nextTitle || !nextTitle.trim()) return;
+        if (!supabaseClient || !state.currentUser) return;
+        const { error } = await supabaseClient
+          .from('game_lists')
+          .update({ title: nextTitle.trim() })
+          .eq('id', listId)
+          .eq('user_id', state.currentUser.id);
+        if (error) {
+          showNotification('Could not rename list', 'error');
+          return;
+        }
+        state.customLists = state.customLists.map(l => l.id === listId ? { ...l, title: nextTitle.trim() } : l);
+        openGameListsModal(state.activeGameId);
+      }
+
+      function wireUI() {
+        const searchInput = document.getElementById('searchInput');
+        const genreSelect = document.getElementById('genreSelect');
+        const yearInput = document.getElementById('yearInput');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+        const closeListsBtn = document.getElementById('closeGameListsBtn');
+        const saveListsBtn = document.getElementById('saveGameListsBtn');
+        const createListBtn = document.getElementById('createGameListBtn');
+        const iconOptions = document.querySelectorAll('#gameListIconOptions .icon-option');
+
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            state.query = e.target.value.trim();
+            renderFilters();
+            state.page = 1;
+            loadGames();
+          });
+        }
+        if (genreSelect) {
+          genreSelect.addEventListener('change', (e) => {
+            state.activeGenre = e.target.value;
+            renderFilters();
+            state.page = 1;
+            loadGames();
+          });
+        }
+        if (yearInput) {
+          yearInput.addEventListener('input', (e) => {
+            state.year = e.target.value.trim();
+            renderFilters();
+            state.page = 1;
+            loadGames();
+          });
+        }
+        if (refreshBtn) refreshBtn.addEventListener('click', () => loadGames());
+        if (prevBtn) {
+          prevBtn.addEventListener('click', () => {
+            if (state.page > 1) {
+              state.page -= 1;
+              loadGames();
+            }
+          });
+        }
+        if (nextBtn) {
+          nextBtn.addEventListener('click', () => {
+            if (state.page < state.totalPages) {
+              state.page += 1;
+              loadGames();
+            }
+          });
+        }
+        if (closeListsBtn) closeListsBtn.addEventListener('click', closeGameListsModal);
+        if (saveListsBtn) saveListsBtn.addEventListener('click', saveGameListChanges);
+        if (createListBtn) createListBtn.addEventListener('click', createGameList);
+        iconOptions.forEach(btn => {
+          btn.addEventListener('click', () => {
+            iconOptions.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            state.selectedIcon = btn.getAttribute('data-icon') || 'fas fa-gamepad';
+          });
+        });
+      }
+
+      function updatePagination() {
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+        const info = document.getElementById('pageInfo');
+        if (prevBtn) prevBtn.disabled = state.page <= 1;
+        if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
+        if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+      }
+
+      (async function init() {
+        await initSupabase();
+        wireUI();
+        await Promise.all([loadGenres(), initAuth()]);
+        renderFilters();
+        loadGames();
+      })();
+    })();
+  </script>
+</body>
+</html>
