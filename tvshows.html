@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zo2y — Movies</title>
+  <title>Zo2y - TV Shows</title>
   <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -694,7 +694,7 @@
       }
 
       function updateCardMenuUI(card, tvId) {
-        const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };
+        const status = state.listStatusMap.get(tvId) || { favorites: false, watched: false, watchlist: false };
         card.querySelectorAll('.list-action').forEach(btn => {
           const listType = btn.getAttribute('data-list');
           if (!listType) return;
@@ -1137,4 +1137,5 @@
   </script>
 </body>
 </html>
+
 
