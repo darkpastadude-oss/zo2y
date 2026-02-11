@@ -2858,6 +2858,9 @@ header, .top-stripe, .section-nav {
                 <div class="nav-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')">
                     <i class="fas fa-film"></i> Movies
                 </div>
+                <div class="nav-tab" data-tab="books" onclick="ProfileManager.showTab('books')">
+                    <i class="fas fa-book"></i> <span id="booksTabText">Books</span>
+                </div>
                 <div class="nav-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
                     <i class="fas fa-users"></i> Community
                     <span class="nav-tab-badge d-none" id="followersBadge">0</span>
@@ -2978,6 +2981,65 @@ header, .top-stripe, .section-nav {
                         </div>
                     </div>
                     <div id="movieItemsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Books Tab Content -->
+            <div class="tab-content" id="books-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="booksTitle">My Books</h2>
+                            <p class="section-subtitle" id="booksSubtitle">Organize your favorite books</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createBookListBtn" onclick="ProfileManager.createBookList()">
+                                <i class="fas fa-plus"></i> New Collection
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='books.html'">
+                                <i class="fas fa-book"></i> Browse Books
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="booksGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon">📚</div>
+                            <h3 class="empty-title">No Books Yet</h3>
+                            <p class="empty-description">Save books to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='books.html'">
+                                <i class="fas fa-book"></i> Explore Books
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Book Detail View -->
+            <div class="tab-content" id="book-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideBookDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="bookDetailTitle">
+                                <span id="bookDetailIcon"></span>
+                                <span id="bookDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="bookDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-detail-actions" id="bookDetailActions" style="display: none;">
+                            <button class="btn btn-secondary btn-sm" id="bookListRenameBtn">
+                                <i class="fas fa-pen"></i> Rename
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="bookListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="bookItemsContainer"></div>
                 </div>
             </div>
 
@@ -3125,6 +3187,10 @@ header, .top-stripe, .section-nav {
                 <i class="fas fa-film"></i>
                 <span>Movies</span>
             </div>
+            <div class="mobile-tab" data-tab="books" onclick="ProfileManager.showTab('books')">
+                <i class="fas fa-book"></i>
+                <span id="mobileTabBooks">Books</span>
+            </div>
             <div class="mobile-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
                 <i class="fas fa-users"></i>
                 <span>Community</span>
@@ -3223,6 +3289,52 @@ header, .top-stripe, .section-nav {
                         </button>
                     </div>
                     <div id="mobileMovieItems"></div>
+                </div>
+            </div>
+
+            <!-- Books Section -->
+            <div class="mobile-section" id="mobileBooksSection">
+                <div class="mobile-section-title">
+                    <span id="mobileBooksTitle">My Books</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn secondary" id="mobileCreateBookListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createBookList()">
+                            <i class="fas fa-plus"></i> New
+                        </button>
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='books.html'">
+                            <i class="fas fa-book"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileBooksSubtitle">Organize your favorite books</div>
+
+                <div class="collection-grid" id="mobileBooksGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon">📚</div>
+                        <div class="mobile-empty-title">No Books Yet</div>
+                        <div class="mobile-empty-description">Save books to see them here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='books.html'">
+                            <i class="fas fa-book"></i> Explore Books
+                        </button>
+                    </div>
+                </div>
+
+                <div id="mobileBookDetailSection" style="display:none; margin-top: 16px;">
+                    <div class="mobile-section-title">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideBookDetail()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <span id="mobileBookDetailTitle">Collection</span>
+                    </div>
+                    <div class="mobile-section-subtitle" id="mobileBookDetailDescription"></div>
+                    <div id="mobileBookDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px;">
+                        <button class="mobile-action-btn secondary" id="mobileBookListRenameBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-pen"></i> Rename
+                        </button>
+                        <button class="mobile-action-btn secondary" id="mobileBookListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                    <div id="mobileBookItems"></div>
                 </div>
             </div>
 
@@ -3563,6 +3675,8 @@ header, .top-stripe, .section-nav {
             const TMDB_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s";
             const TMDB_BASE = "https://api.themoviedb.org/3";
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
+            const GOOGLE_BOOKS_KEY = "AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s";
+            const GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1";
 
             // Initialize Supabase client
             let supabase = null;
@@ -3588,7 +3702,9 @@ header, .top-stripe, .section-nav {
             let currentSearchDebounce = null;
             let isSubmittingList = false;
             let movieCache = new Map();
+            let bookCache = new Map();
             let renderMoviesToken = 0;
+            let renderBooksToken = 0;
             let renderRestaurantsToken = 0;
 
             // Food icons for avatar selection
@@ -3780,6 +3896,8 @@ header, .top-stripe, .section-nav {
                 const addJournalBtn = document.getElementById('addJournalBtn');
                 const createMovieListBtn = document.getElementById('createMovieListBtn');
                 const mobileCreateMovieListBtn = document.getElementById('mobileCreateMovieListBtn');
+                const createBookListBtn = document.getElementById('createBookListBtn');
+                const mobileCreateBookListBtn = document.getElementById('mobileCreateBookListBtn');
                 
                 if (editProfileBtn) editProfileBtn.style.display = 'flex';
                 if (settingsBtn) settingsBtn.style.display = 'flex';
@@ -3792,6 +3910,8 @@ header, .top-stripe, .section-nav {
                 if (addJournalBtn) addJournalBtn.style.display = 'flex';
                 if (createMovieListBtn) createMovieListBtn.style.display = 'inline-flex';
                 if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'inline-flex';
+                if (createBookListBtn) createBookListBtn.style.display = 'inline-flex';
+                if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'inline-flex';
 
                 // Load profile - use cached if available
                 if (!userProfile) {
@@ -3816,6 +3936,8 @@ header, .top-stripe, .section-nav {
                 const addJournalBtn = document.getElementById('addJournalBtn');
                 const createMovieListBtn = document.getElementById('createMovieListBtn');
                 const mobileCreateMovieListBtn = document.getElementById('mobileCreateMovieListBtn');
+                const createBookListBtn = document.getElementById('createBookListBtn');
+                const mobileCreateBookListBtn = document.getElementById('mobileCreateBookListBtn');
                 
                 if (editProfileBtn) editProfileBtn.style.display = 'none';
                 if (settingsBtn) settingsBtn.style.display = 'none';
@@ -3828,6 +3950,8 @@ header, .top-stripe, .section-nav {
                 if (addJournalBtn) addJournalBtn.style.display = 'none';
                 if (createMovieListBtn) createMovieListBtn.style.display = 'none';
                 if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'none';
+                if (createBookListBtn) createBookListBtn.style.display = 'none';
+                if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'none';
 
                 const { data: profile, error } = await supabase
                     .from('user_profiles')
@@ -3913,22 +4037,28 @@ header, .top-stripe, .section-nav {
             function updateTabTitlesForOtherUser(userName) {
                 const journalTabText = document.getElementById('journalTabText');
                 const restaurantsTabText = document.getElementById('restaurantsTabText');
+                const booksTabText = document.getElementById('booksTabText');
                 const journalTitle = document.getElementById('journalTitle');
                 const restaurantsTitle = document.getElementById('restaurantsTitle');
+                const booksTitle = document.getElementById('booksTitle');
                 const communityTitle = document.getElementById('communityTitle');
                 const journalSubtitle = document.getElementById('journalSubtitle');
                 const restaurantsSubtitle = document.getElementById('restaurantsSubtitle');
+                const booksSubtitle = document.getElementById('booksSubtitle');
                 const communitySubtitle = document.getElementById('communitySubtitle');
                 const followersSectionTitle = document.getElementById('followersSectionTitle');
                 const followingSectionTitle = document.getElementById('followingSectionTitle');
                 
                 if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
                 if (restaurantsTabText) restaurantsTabText.textContent = `${userName}'s Restaurants`;
+                if (booksTabText) booksTabText.textContent = `${userName}'s Books`;
                 if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
                 if (restaurantsTitle) restaurantsTitle.textContent = `${userName}'s Restaurants`;
+                if (booksTitle) booksTitle.textContent = `${userName}'s Books`;
                 if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
                 if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
+                if (booksSubtitle) booksSubtitle.textContent = `${userName}'s favorite books`;
                 if (communitySubtitle) communitySubtitle.textContent = `${userName}'s food community connections`;
                 if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
                 if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
@@ -3936,21 +4066,27 @@ header, .top-stripe, .section-nav {
                 const mobileJournalTabText = document.getElementById('mobileJournalTabText');
                 const mobileTabJournal = document.getElementById('mobileTabJournal');
                 const mobileTabRestaurants = document.getElementById('mobileTabRestaurants');
+                const mobileTabBooks = document.getElementById('mobileTabBooks');
                 const mobileJournalTitle = document.getElementById('mobileJournalTitle');
                 const mobileRestaurantsTitle = document.getElementById('mobileRestaurantsTitle');
+                const mobileBooksTitle = document.getElementById('mobileBooksTitle');
                 const mobileCommunityTitle = document.getElementById('mobileCommunityTitle');
                 const mobileJournalSubtitle = document.getElementById('mobileJournalSubtitle');
                 const mobileRestaurantsSubtitle = document.getElementById('mobileRestaurantsSubtitle');
+                const mobileBooksSubtitle = document.getElementById('mobileBooksSubtitle');
                 const mobileCommunitySubtitle = document.getElementById('mobileCommunitySubtitle');
                 
                 if (mobileJournalTabText) mobileJournalTabText.textContent = `${userName}'s Journal`;
                 if (mobileTabJournal) mobileTabJournal.textContent = `${userName}'s Journal`;
                 if (mobileTabRestaurants) mobileTabRestaurants.textContent = `${userName}'s Restaurants`;
+                if (mobileTabBooks) mobileTabBooks.textContent = `${userName}'s Books`;
                 if (mobileJournalTitle) mobileJournalTitle.textContent = `${userName}'s Food Journal`;
                 if (mobileRestaurantsTitle) mobileRestaurantsTitle.textContent = `${userName}'s Restaurants`;
+                if (mobileBooksTitle) mobileBooksTitle.textContent = `${userName}'s Books`;
                 if (mobileCommunityTitle) mobileCommunityTitle.textContent = `${userName}'s Community`;
                 if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (mobileRestaurantsSubtitle) mobileRestaurantsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
+                if (mobileBooksSubtitle) mobileBooksSubtitle.textContent = `${userName}'s favorite books`;
                 if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s food community connections`;
             }
 
@@ -6278,6 +6414,9 @@ header, .top-stripe, .section-nav {
                         case 'movies':
                             renderMovies();
                             break;
+                        case 'books':
+                            renderBooks();
+                            break;
                         case 'community':
                             showCommunitySection('followers');
                             break;
@@ -6307,6 +6446,9 @@ header, .top-stripe, .section-nav {
                             break;
                         case 'movies':
                             renderMovies();
+                            break;
+                        case 'books':
+                            renderBooks();
                             break;
                         case 'community':
                             showCommunitySection('followers');
@@ -6483,11 +6625,102 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            async function fetchBookDetails(bookId) {
+                if (bookCache.has(bookId)) return bookCache.get(bookId);
+                try {
+                    const url = `${GOOGLE_BOOKS_BASE}/volumes/${encodeURIComponent(bookId)}?key=${encodeURIComponent(GOOGLE_BOOKS_KEY)}`;
+                    const res = await fetch(url);
+                    if (!res.ok) return null;
+                    const data = await res.json();
+                    bookCache.set(bookId, data);
+                    return data;
+                } catch (error) {
+                    console.error('Error fetching book details:', error);
+                    return null;
+                }
+            }
+
+            function getBookThumbnail(book) {
+                const thumb = book?.volumeInfo?.imageLinks?.thumbnail || book?.volumeInfo?.imageLinks?.smallThumbnail || '';
+                if (!thumb) return 'images/placeholder.jpg';
+                return thumb.startsWith('http:') ? thumb.replace('http:', 'https:') : thumb;
+            }
+
+            async function renderBooks() {
+                const isMobile = window.innerWidth <= 768;
+                const grid = isMobile ? document.getElementById('mobileBooksGrid') : document.getElementById('booksGrid');
+                if (!grid) return;
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                const renderToken = ++renderBooksToken;
+
+                try {
+                    const defaultLists = [
+                        { id: 'favorites', title: 'Favorites', icon: '❤️', description: 'Books you love', type: 'default' },
+                        { id: 'read', title: 'Read', icon: '✅', description: 'Books you finished', type: 'default' },
+                        { id: 'readlist', title: 'Readlist', icon: '📍', description: 'Books to read', type: 'default' }
+                    ];
+
+                    const { data: customLists, error: customError } = await supabase
+                        .from('book_lists')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false });
+                    if (customError) throw customError;
+                    if (renderToken !== renderBooksToken) return;
+
+                    const { data: allItems } = await supabase
+                        .from('book_list_items')
+                        .select('book_id, list_type, list_id')
+                        .eq('user_id', userId);
+                    const items = allItems || [];
+
+                    for (const list of defaultLists) {
+                        list.bookIds = items.filter(i => i.list_type === list.id).map(i => i.book_id);
+                    }
+
+                    for (const list of (customLists || [])) {
+                        list.bookIds = items.filter(i => i.list_id === list.id).map(i => i.book_id);
+                        list.type = 'custom';
+                    }
+
+                    const allLists = [...defaultLists, ...(customLists || [])];
+                    if (!allLists.length) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">📚</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Books Yet</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save books to see them here.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    grid.innerHTML = '';
+                    for (const list of allLists) {
+                        const card = await createCollectionCard(list, 'book', isMobile);
+                        grid.appendChild(card);
+                    }
+                } catch (error) {
+                    console.error('Error loading books:', error);
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">⚠️</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Books</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your books</p>
+                        </div>
+                    `;
+                }
+            }
+
             async function createCollectionCard(list, contentType, isMobile) {
                 const card = document.createElement('div');
                 card.className = 'collection-card';
 
-                const itemIds = contentType === 'restaurant' ? (list.restaurantIds || []) : (list.movieIds || []);
+                const itemIds = contentType === 'restaurant'
+                    ? (list.restaurantIds || [])
+                    : (contentType === 'movie' ? (list.movieIds || []) : (list.bookIds || []));
                 const count = itemIds.length;
 
                 const previewItems = await getPreviewItems(itemIds.slice(0, 4), contentType);
@@ -6503,7 +6736,7 @@ header, .top-stripe, .section-nav {
                     } else {
                         previewHtml += `
                             <div class="collection-preview-item">
-                                <div class="collection-preview-item-empty">${contentType === 'restaurant' ? '🍽️' : '🎬'}</div>
+                                <div class="collection-preview-item-empty">${contentType === 'restaurant' ? '🍽️' : (contentType === 'movie' ? '🎬' : '📚')}</div>
                             </div>
                         `;
                     }
@@ -6530,10 +6763,10 @@ header, .top-stripe, .section-nav {
                     ${kebabHtml}
                     <div class="collection-card-header">
                         <div class="collection-card-title-group">
-                            <div class="collection-card-icon">${list.icon || (contentType === 'restaurant' ? '🍽️' : '🎬')}</div>
+                            <div class="collection-card-icon">${list.icon || (contentType === 'restaurant' ? '🍽️' : (contentType === 'movie' ? '🎬' : '📚'))}</div>
                             <div class="collection-card-info">
                                 <div class="collection-card-title">${list.title}</div>
-                                <div class="collection-card-count">${count} ${contentType === 'restaurant' ? 'restaurant' : 'movie'}${count !== 1 ? 's' : ''}</div>
+                                <div class="collection-card-count">${count} ${contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : 'book')}${count !== 1 ? 's' : ''}</div>
                             </div>
                         </div>
                     </div>
@@ -6568,6 +6801,12 @@ header, .top-stripe, .section-nav {
                         return restaurant?.image ? `images/${restaurant.image}` : null;
                     }));
                 }
+                if (contentType === 'book') {
+                    return Promise.all(ids.map(async id => {
+                        const book = await fetchBookDetails(id);
+                        return getBookThumbnail(book);
+                    }));
+                }
                 return Promise.all(ids.map(async id => {
                     const movie = await fetchMovieDetails(id);
                     return movie?.poster_path ? `${TMDB_POSTER}${movie.poster_path}` : null;
@@ -6579,8 +6818,10 @@ header, .top-stripe, .section-nav {
 
                 if (contentType === 'restaurant') {
                     await showRestaurantDetail(listId, isMobile);
-                } else {
+                } else if (contentType === 'movie') {
                     await showMovieDetail(listId, listType, isMobile);
+                } else {
+                    await showBookDetail(listId, listType, isMobile);
                 }
             }
 
@@ -6834,6 +7075,217 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            async function showBookDetail(listId, listType, isMobile) {
+                if (isMobile) {
+                    const mainSection = document.getElementById('mobileBooksSection');
+                    const detailSection = document.getElementById('mobileBookDetailSection');
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileBooksGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
+                    if (detailSection) {
+                        detailSection.style.display = 'block';
+                        detailSection.classList.add('active');
+                    }
+                } else {
+                    const mainTab = document.getElementById('books-tab');
+                    const detailView = document.getElementById('book-detail-view');
+                    if (mainTab) mainTab.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'block';
+                        detailView.classList.add('active');
+                    }
+                }
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                let list = null;
+
+                if (listType === 'default') {
+                    const titles = { favorites: 'Favorites', read: 'Read', readlist: 'Readlist' };
+                    const icons = { favorites: '❤️', read: '✅', readlist: '📍' };
+                    const descriptions = { favorites: 'Books you love', read: 'Books you finished', readlist: 'Books to read' };
+                    list = { id: listId, title: titles[listId], icon: icons[listId], description: descriptions[listId], type: 'default' };
+                } else {
+                    const { data, error } = await supabase.from('book_lists').select('*').eq('id', listId).single();
+                    if (error || !data) {
+                        showToast('Collection not found', 'error');
+                        return;
+                    }
+                    list = { ...data, type: 'custom' };
+                }
+
+                const { data: items } = await supabase
+                    .from('book_list_items')
+                    .select('book_id')
+                    .eq('user_id', userId)
+                    .eq(listType === 'default' ? 'list_type' : 'list_id', listId);
+
+                const bookIds = items ? items.map(i => i.book_id) : [];
+
+                if (isMobile) {
+                    const titleEl = document.getElementById('mobileBookDetailTitle');
+                    const descEl = document.getElementById('mobileBookDetailDescription');
+                    const actions = document.getElementById('mobileBookDetailActions');
+                    const renameBtn = document.getElementById('mobileBookListRenameBtn');
+                    const deleteBtn = document.getElementById('mobileBookListDeleteBtn');
+                    if (titleEl) titleEl.textContent = list.title;
+                    if (descEl) descEl.textContent = list.description || '';
+                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (renameBtn) renameBtn.onclick = () => renameBookList(listId, list.title);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteBookList(listId);
+                } else {
+                    const iconEl = document.getElementById('bookDetailIcon');
+                    const nameEl = document.getElementById('bookDetailName');
+                    const descEl = document.getElementById('bookDetailDescription');
+                    const actions = document.getElementById('bookDetailActions');
+                    const renameBtn = document.getElementById('bookListRenameBtn');
+                    const deleteBtn = document.getElementById('bookListDeleteBtn');
+                    if (iconEl) iconEl.textContent = list.icon || '📚';
+                    if (nameEl) nameEl.textContent = list.title;
+                    if (descEl) descEl.textContent = list.description || '';
+                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (renameBtn) renameBtn.onclick = () => renameBookList(listId, list.title);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteBookList(listId);
+                }
+
+                await renderBookItems(bookIds, listId, listType, isMobile);
+            }
+
+            async function renderBookItems(bookIds, listId, listType, isMobile) {
+                const container = isMobile ? document.getElementById('mobileBookItems') : document.getElementById('bookItemsContainer');
+                if (!container) return;
+
+                if (!bookIds || bookIds.length === 0) {
+                    container.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">📚</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Books Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add books to this collection!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                const books = await Promise.all(bookIds.map(id => fetchBookDetails(id)));
+                container.innerHTML = '';
+
+                for (const book of books) {
+                    if (!book) continue;
+                    const info = book.volumeInfo || {};
+                    const title = info.title || 'Untitled';
+                    const subtitle = (info.authors || []).join(', ') || (info.publisher || 'Unknown');
+                    const metaYear = info.publishedDate ? String(info.publishedDate).slice(0, 4) : 'N/A';
+                    const image = getBookThumbnail(book);
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'collection-item-card';
+                    itemCard.onclick = () => window.location.href = `book.html?id=${encodeURIComponent(book.id)}`;
+
+                    itemCard.innerHTML = `
+                        <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy">
+                        <div class="collection-item-body">
+                            <h3 class="collection-item-title">${title}</h3>
+                            <div class="collection-item-meta">
+                                <span><i class="fas fa-user"></i> ${subtitle}</span>
+                                <span><i class="fas fa-calendar"></i> ${metaYear}</span>
+                            </div>
+                        </div>
+                        ${isViewingOwnProfile ? `
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${book.id}', '${listId}', 'book', '${listType}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    `;
+                    container.appendChild(itemCard);
+                }
+            }
+
+            function hideBookDetail() {
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    const detailSection = document.getElementById('mobileBookDetailSection');
+                    const mainSection = document.getElementById('mobileBooksSection');
+                    if (detailSection) detailSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileBooksGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
+                    }
+                } else {
+                    const detailView = document.getElementById('book-detail-view');
+                    const mainTab = document.getElementById('books-tab');
+                    if (detailView) detailView.style.display = 'none';
+                    if (mainTab) {
+                        mainTab.style.display = 'block';
+                        mainTab.classList.add('active');
+                    }
+                }
+            }
+
+            async function createBookList() {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const title = prompt('New book list name');
+                if (!title || !title.trim()) return;
+                const { error } = await supabase
+                    .from('book_lists')
+                    .insert({
+                        user_id: currentUser.id,
+                        title: title.trim(),
+                        description: '',
+                        icon: '📚',
+                        created_at: new Date().toISOString()
+                    });
+                if (error) {
+                    showToast('Could not create list', 'error');
+                    return;
+                }
+                await renderBooks();
+                showToast('Book list created', 'success');
+            }
+
+            async function renameBookList(listId, currentTitle) {
+                if (!supabase || !currentUser) return;
+                const nextTitle = prompt('Rename list', currentTitle || '');
+                if (!nextTitle || !nextTitle.trim()) return;
+                const { error } = await supabase
+                    .from('book_lists')
+                    .update({ title: nextTitle.trim() })
+                    .eq('id', listId)
+                    .eq('user_id', currentUser.id);
+                if (error) {
+                    showToast('Could not rename list', 'error');
+                    return;
+                }
+                await renderBooks();
+            }
+
+            async function deleteBookList(listId) {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                if (!confirm('Delete this book list? This cannot be undone.')) return;
+                const userId = currentUser.id;
+                await supabase.from('book_list_items').delete().eq('user_id', userId).eq('list_id', listId);
+                const { error } = await supabase.from('book_lists').delete().eq('id', listId).eq('user_id', userId);
+                if (error) {
+                    showToast('Could not delete list', 'error');
+                    return;
+                }
+                hideBookDetail();
+                await renderBooks();
+                showToast('List deleted', 'success');
+            }
+
             function hideRestaurantDetail() {
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
@@ -6905,7 +7357,7 @@ header, .top-stripe, .section-nav {
 
                         showToast('Removed from collection', 'success');
                         await showRestaurantDetail(collectionId, window.innerWidth <= 768);
-                    } else {
+                    } else if (type === 'movie') {
                         if (listType === 'default') {
                             await supabase
                                 .from('movie_list_items')
@@ -6924,12 +7376,32 @@ header, .top-stripe, .section-nav {
 
                         showToast('Removed from collection', 'success');
                         await showMovieDetail(collectionId, listType, window.innerWidth <= 768);
+                    } else {
+                        if (listType === 'default') {
+                            await supabase
+                                .from('book_list_items')
+                                .delete()
+                                .eq('user_id', userId)
+                                .eq('book_id', itemId)
+                                .eq('list_type', collectionId);
+                        } else {
+                            await supabase
+                                .from('book_list_items')
+                                .delete()
+                                .eq('user_id', userId)
+                                .eq('book_id', itemId)
+                                .eq('list_id', collectionId);
+                        }
+                        showToast('Removed from collection', 'success');
+                        await showBookDetail(collectionId, listType, window.innerWidth <= 768);
                     }
 
                     if (type === 'restaurant') {
                         await renderRestaurants();
-                    } else {
+                    } else if (type === 'movie') {
                         await renderMovies();
+                    } else {
+                        await renderBooks();
                     }
                 } catch (error) {
                     console.error('Error removing item:', error);
@@ -6943,10 +7415,16 @@ header, .top-stripe, .section-nav {
                         ProfileManager.prepareEditList(id);
                         return;
                     }
-                } else {
+                } else if (type === 'movie') {
                     const list = await supabase.from('movie_lists').select('title').eq('id', id).single();
                     if (list?.data?.title) {
                         await renameMovieList(id, list.data.title);
+                        return;
+                    }
+                } else {
+                    const list = await supabase.from('book_lists').select('title').eq('id', id).single();
+                    if (list?.data?.title) {
+                        await renameBookList(id, list.data.title);
                         return;
                     }
                 }
@@ -6962,9 +7440,12 @@ header, .top-stripe, .section-nav {
                             if (type === 'restaurant') {
                                 await supabase.from('lists_restraunts').delete().eq('list_id', id);
                                 await supabase.from('lists').delete().eq('id', id);
-                            } else {
+                            } else if (type === 'movie') {
                                 await supabase.from('movie_list_items').delete().eq('list_id', id);
                                 await supabase.from('movie_lists').delete().eq('id', id);
+                            } else {
+                                await supabase.from('book_list_items').delete().eq('list_id', id);
+                                await supabase.from('book_lists').delete().eq('id', id);
                             }
 
                             showToast('Collection deleted', 'success');
@@ -6972,9 +7453,12 @@ header, .top-stripe, .section-nav {
                             if (type === 'restaurant') {
                                 hideRestaurantDetail();
                                 await renderRestaurants();
-                            } else {
+                            } else if (type === 'movie') {
                                 hideMovieDetail();
                                 await renderMovies();
+                            } else {
+                                hideBookDetail();
+                                await renderBooks();
                             }
                         } catch (error) {
                             console.error('Error deleting collection:', error);
@@ -7418,10 +7902,15 @@ header, .top-stripe, .section-nav {
                 hideMobileRestaurantDetail: hideRestaurantDetail,
                 hideMovieDetail,
                 hideMobileMovieDetail: hideMovieDetail,
+                hideBookDetail,
+                hideMobileBookDetail: hideBookDetail,
                 toggleCollectionMenu,
                 createMovieList,
+                createBookList,
                 renameMovieList,
                 deleteMovieList,
+                renameBookList,
+                deleteBookList,
                 removeFromCollection,
                 editCollection,
                 deleteCollection,
