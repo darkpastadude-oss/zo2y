@@ -515,7 +515,7 @@
 
   <section class="hero">
     <h1>Popular Books</h1>
-    <p>Book data sourced from Google Books and cached in Supabase.</p>
+    <p>Book data sourced from Open Library and cached in Supabase.</p>
   </section>
 
   <div class="controls">
@@ -565,8 +565,8 @@
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      const GOOGLE_BOOKS_KEY = 'AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s';
-      const GOOGLE_BOOKS_BASE = 'https://www.googleapis.com/books/v1';
+      const OPEN_LIBRARY_BASE = 'https://openlibrary.org/api';
+      const OPEN_LIBRARY_COVERS = 'https://covers.openlibrary.org/b';
       const FALLBACK_BOOK_IMAGE = 'images/logo.png';
       const BOOKS_PER_PAGE = 20;
       const CATEGORY_OPTIONS = [
@@ -601,9 +601,8 @@
       let supabaseClient = null;
 
       async function booksFetch(path, params = {}) {
-        const url = new URL(GOOGLE_BOOKS_BASE + path);
-        const merged = { ...params, key: GOOGLE_BOOKS_KEY };
-        Object.entries(merged).forEach(([k, v]) => {
+        const url = new URL(OPEN_LIBRARY_BASE + path);
+        Object.entries(params).forEach(([k, v]) => {
           if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
         });
         const res = await fetch(url.toString());
@@ -611,29 +610,16 @@
         return res.json();
       }
 
-      function normalizeThumbnail(url) {
-        if (!url) return null;
-        let safe = String(url).trim();
-        if (safe.startsWith('//')) safe = `https:${safe}`;
-        if (safe.startsWith('http:')) safe = safe.replace(/^http:/i, 'https:');
-        safe = safe.replace(/&edge=curl/gi, '');
-        if (!/[?&]zoom=/i.test(safe)) {
-          safe += (safe.includes('?') ? '&' : '?') + 'zoom=2';
-        }
-        return safe;
+      function getBookCoverUrl(coverId) {
+        if (!coverId) return null;
+        return `${OPEN_LIBRARY_COVERS}/id/${coverId}-M.jpg`;
       }
 
-      function getPreferredBookImage(info) {
-        const links = info?.imageLinks || {};
-        return (
-          normalizeThumbnail(links.extraLarge) ||
-          normalizeThumbnail(links.large) ||
-          normalizeThumbnail(links.medium) ||
-          normalizeThumbnail(links.small) ||
-          normalizeThumbnail(links.thumbnail) ||
-          normalizeThumbnail(links.smallThumbnail) ||
-          null
-        );
+      function getPreferredBookImage(doc) {
+        if (doc?.cover_id) {
+          return getBookCoverUrl(doc.cover_id);
+        }
+        return null;
       }
 
       function stripHtml(html) {
@@ -792,24 +778,23 @@
         if (!state.year) return items;
         const year = String(state.year);
         return (items || []).filter(item => {
-          const date = item.volumeInfo?.publishedDate || '';
-          return date.startsWith(year);
+          const date = item.first_publish_year || '';
+          return String(date).startsWith(year);
         });
       }
 
       async function upsertBookRecord(book) {
         if (!supabaseClient || !book) return;
-        const info = book.volumeInfo || {};
         const payload = {
-          id: book.id,
-          title: info.title || '',
-          authors: info.authors || [],
-          thumbnail: getPreferredBookImage(info) || '',
-          published_date: info.publishedDate || null,
-          categories: info.categories || [],
-          description: stripHtml(info.description || ''),
-          page_count: info.pageCount || null,
-          publisher: info.publisher || null,
+          id: book.key.replace(/^\/works\//i, ''),
+          title: book.title || '',
+          authors: (book.author_name || []).join(', '),
+          thumbnail: getPreferredBookImage(book) || '',
+          published_date: book.first_publish_year ? `${book.first_publish_year}-01-01` : null,
+          categories: book.subject || [],
+          description: '',
+          page_count: null,
+          publisher: book.publisher ? book.publisher[0] : null,
           updated_at: new Date().toISOString()
         };
         await supabaseClient.from('books').upsert(payload, { onConflict: 'id' });
@@ -823,18 +808,17 @@
         let data;
         try {
           const q = buildQuery();
-          data = await booksFetch('/volumes', {
+          data = await booksFetch('/search.json', {
             q,
-            startIndex: (state.page - 1) * BOOKS_PER_PAGE,
-            maxResults: BOOKS_PER_PAGE,
-            printType: 'books'
+            page: state.page,
+            limit: BOOKS_PER_PAGE
           });
         } catch (e) {
           if (empty) empty.style.display = 'block';
           return;
         }
 
-        let results = data.items || [];
+        let results = data.docs || [];
         results = filterByYear(results);
 
         if (!results.length) {
@@ -846,16 +830,16 @@
         const fragment = document.createDocumentFragment();
         state.bookIndex.clear();
         results.forEach(item => {
-          const info = item.volumeInfo || {};
-          const authors = info.authors ? info.authors.join(', ') : 'Unknown author';
-          const year = info.publishedDate ? info.publishedDate.split('-')[0] : '';
-          const desc = truncateText(stripHtml(info.description || ''), 140) || 'No description available.';
-          const thumb = getPreferredBookImage(info);
-          state.bookIndex.set(item.id, item);
+          const authors = item.author_name ? item.author_name.join(', ') : 'Unknown author';
+          const year = item.first_publish_year || '';
+          const desc = truncateText(item.title || '', 140) || 'No description available.';
+          const thumb = getPreferredBookImage(item);
+          const bookId = item.key.replace(/^\/works\//i, '');
+          state.bookIndex.set(bookId, item);
 
           const card = document.createElement('div');
           card.className = 'card';
-          card.setAttribute('data-book-id', item.id);
+          card.setAttribute('data-book-id', bookId);
           card.innerHTML = `
             <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
             <div class="list-menu">
@@ -867,28 +851,28 @@
             </div>
             <img
               src="${thumb || FALLBACK_BOOK_IMAGE}"
-              alt="${info.title || 'Book'}"
+              alt="${item.title || 'Book'}"
               loading="lazy"
               onerror="this.onerror=null;this.src='images/logo.png';">
             <div class="card-body">
-              <h3 class="card-title">${info.title || 'Untitled'}</h3>
+              <h3 class="card-title">${item.title || 'Untitled'}</h3>
               <div class="card-meta">${authors}${year ? ` • ${year}` : ''}</div>
               <div class="card-desc">${desc}</div>
             </div>
           `;
           card.onclick = (e) => {
             if (e.target.closest('.menu-btn') || e.target.closest('.list-menu')) return;
-            window.location.href = `book.html?id=${item.id}`;
+            window.location.href = `book.html?id=${bookId}`;
           };
-          wireCardMenu(card, item.id);
-          updateCardMenuUI(card, item.id);
+          wireCardMenu(card, bookId);
+          updateCardMenuUI(card, bookId);
           fragment.appendChild(card);
         });
         grid.innerHTML = '';
         grid.appendChild(fragment);
         if (empty) empty.style.display = 'none';
 
-        const totalItems = data.totalItems || 0;
+        const totalItems = data.numFound || 0;
         state.totalPages = Math.max(1, Math.min(Math.ceil(totalItems / BOOKS_PER_PAGE), 500));
         updatePagination();
       }
