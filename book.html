@@ -686,12 +686,13 @@
 
       async function load() {
         if (!id) return;
+        let info = {};
         try {
           // OpenLibrary work endpoint: /works/{id}.json (id may already be like OL123W or /works/OL123W)
           const normalizedId = id.startsWith('/works/') ? id.replace('/works/', '') : id;
           const work = await booksFetch(`/works/${encodeURIComponent(normalizedId)}.json`);
 
-          const info = work || {};
+          info = work || {};
           // description can be a string or object
           let description = '';
           if (info.description) description = typeof info.description === 'string' ? info.description : info.description.value || '';
@@ -923,7 +924,7 @@
             .in('list_id', listIds);
           if (error) {
             console.error('Error clearing list items', error);
-            showNotification('Could not update lists', 'error');
+            showNotification(`Could not update lists: ${error.message || JSON.stringify(error)}`, 'error');
             return;
           }
         }
@@ -933,10 +934,10 @@
           list_id: listId
         }));
         if (inserts.length) {
-          const { error } = await supabaseClient.from('book_list_items').insert(inserts);
+          const { data: insertData, error } = await supabaseClient.from('book_list_items').insert(inserts).select('*');
           if (error) {
             console.error('Error inserting list items', error);
-            showNotification('Could not save lists', 'error');
+            showNotification(`Could not save lists: ${error.message || JSON.stringify(error)}`, 'error');
             return;
           }
         }
@@ -1013,7 +1014,7 @@
             .eq('list_type', listType);
           if (error) {
             console.error('Error removing from list', error);
-            showNotification('Could not remove from list', 'error');
+            showNotification(`Could not remove from list: ${error.message || JSON.stringify(error)}`, 'error');
             return;
           }
           listStatus[listType] = false;
@@ -1022,10 +1023,11 @@
         } else {
           const { data, error } = await supabaseClient
             .from('book_list_items')
-            .insert({ user_id: currentUser.id, book_id: bookId, list_type: listType });
+            .insert({ user_id: currentUser.id, book_id: bookId, list_type: listType })
+            .select('*');
           if (error) {
             console.error('Error adding to list', error);
-            showNotification('Could not save to list', 'error');
+            showNotification(`Could not save to list: ${error.message || JSON.stringify(error)}`, 'error');
             return;
           }
           listStatus[listType] = true;

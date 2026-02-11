@@ -83,3 +83,43 @@ CREATE TRIGGER books_touch_updated_at
 BEFORE UPDATE ON books
 FOR EACH ROW
 EXECUTE FUNCTION touch_updated_at();
+
+-- Create reviews table for books
+CREATE TABLE IF NOT EXISTS book_reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  book_id TEXT NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_book_reviews_book ON book_reviews (book_id);
+CREATE INDEX IF NOT EXISTS idx_book_reviews_user ON book_reviews (user_id);
+
+-- Row Level Security (RLS) and policies
+-- Enable RLS and allow public selects for browsing, restrict writes to owners
+ALTER TABLE books ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public select on books" ON books FOR SELECT USING (true);
+
+ALTER TABLE book_lists ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public select on book_lists" ON book_lists FOR SELECT USING (true);
+CREATE POLICY "Insert own book_lists" ON book_lists FOR INSERT WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Update own book_lists" ON book_lists FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Delete own book_lists" ON book_lists FOR DELETE USING (user_id = auth.uid());
+
+ALTER TABLE book_list_items ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public select on book_list_items" ON book_list_items FOR SELECT USING (true);
+CREATE POLICY "Insert own book_list_items" ON book_list_items FOR INSERT WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Update own book_list_items" ON book_list_items FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Delete own book_list_items" ON book_list_items FOR DELETE USING (user_id = auth.uid());
+
+ALTER TABLE book_reviews ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public select on book_reviews" ON book_reviews FOR SELECT USING (true);
+CREATE POLICY "Insert own book_reviews" ON book_reviews FOR INSERT WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Update own book_reviews" ON book_reviews FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Delete own book_reviews" ON book_reviews FOR DELETE USING (user_id = auth.uid());
+
+-- Notes: Public SELECT policies make lists and reviews readable by anyone (anonymous).
+-- If you prefer private lists, change the SELECT policies to restrict by user_id = auth.uid().
