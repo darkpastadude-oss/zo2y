@@ -702,7 +702,11 @@
           .from('book_list_items')
           .select('book_id, list_type')
           .eq('user_id', state.currentUser.id);
-        if (error) return;
+        if (error) {
+          console.error('Error loading list status', error);
+          showNotification('Could not load saved lists', 'error');
+          return;
+        }
         (data || []).forEach(row => {
           if (!state.listStatusMap.has(row.book_id)) {
             state.listStatusMap.set(row.book_id, { favorites: false, read: false, readlist: false });
@@ -805,9 +809,14 @@
           description: '',
           page_count: null,
           publisher: book.publisher ? book.publisher[0] : null,
-          updated_at: new Date().toISOString()
-        };
-        await supabaseClient.from('books').upsert(payload, { onConflict: 'id' });
+            updated_at: new Date().toISOString()
+          };
+          const { data, error } = await supabaseClient.from('books').upsert(payload, { onConflict: 'id' });
+          if (error) {
+            console.error('Upsert book error', error);
+            showNotification('Could not save book record', 'error');
+          }
+          return { data, error };
       }
 
       async function loadBooks() {
@@ -931,23 +940,29 @@
             .eq('user_id', state.currentUser.id)
             .eq('book_id', bookId)
             .eq('list_type', listType);
-          if (!error) {
-            status[listType] = false;
-            state.listStatusMap.set(bookId, status);
-            updateCardMenuUI(card, bookId);
-            showNotification('Removed from list', 'info');
+          if (error) {
+            console.error('Error removing from list', error);
+            showNotification('Could not remove from list', 'error');
+            return;
           }
+          status[listType] = false;
+          state.listStatusMap.set(bookId, status);
+          updateCardMenuUI(card, bookId);
+          showNotification('Removed from list', 'info');
         } else {
           await upsertBookRecord(state.bookIndex.get(bookId));
-          const { error } = await supabaseClient
+          const { data, error } = await supabaseClient
             .from('book_list_items')
             .insert({ user_id: state.currentUser.id, book_id: bookId, list_type: listType });
-          if (!error) {
-            status[listType] = true;
-            state.listStatusMap.set(bookId, status);
-            updateCardMenuUI(card, bookId);
-            showNotification('Saved to list', 'success');
+          if (error) {
+            console.error('Error adding to list', error);
+            showNotification('Could not save to list', 'error');
+            return;
           }
+          status[listType] = true;
+          state.listStatusMap.set(bookId, status);
+          updateCardMenuUI(card, bookId);
+          showNotification('Saved to list', 'success');
         }
       }
 
@@ -958,7 +973,11 @@
           .select('*')
           .eq('user_id', state.currentUser.id)
           .order('created_at', { ascending: false });
-        if (error) return [];
+        if (error) {
+          console.error('Error loading custom lists', error);
+          showNotification('Could not load custom lists', 'error');
+          return [];
+        }
         return data || [];
       }
 
@@ -976,13 +995,18 @@
         const listIds = state.customLists.map(l => l.id);
         state.modalSelectedLists = new Set();
         if (listIds.length) {
-          const { data } = await supabaseClient
+          const { data, error } = await supabaseClient
             .from('book_list_items')
             .select('list_id')
             .eq('user_id', state.currentUser.id)
             .eq('book_id', bookId)
             .in('list_id', listIds);
-          (data || []).forEach(row => state.modalSelectedLists.add(row.list_id));
+          if (error) {
+            console.error('Error loading list membership', error);
+            showNotification('Could not load list membership', 'error');
+          } else {
+            (data || []).forEach(row => state.modalSelectedLists.add(row.list_id));
+          }
         }
         container.innerHTML = '';
         if (!state.customLists.length) {
