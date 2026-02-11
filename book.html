@@ -613,6 +613,8 @@
       let currentRating = 0;
       let editingReviewId = null;
       let reviews = [];
+      let bookInfo = null;
+      let bookCoverUrl = null;
       let currentSort = 'latest';
       const listStatus = { favorites: false, read: false, readlist: false };
       let customLists = [];
@@ -655,6 +657,31 @@
         return supabaseClient;
       }
 
+      async function upsertBookRecordLocal() {
+        if (!supabaseClient || !bookId) return null;
+        const normalizedId = bookId.startsWith('/works/') ? bookId.replace('/works/', '') : bookId;
+        const payload = {
+          id: normalizedId,
+          title: (bookInfo && bookInfo.title) ? bookInfo.title : (document.getElementById('title')?.textContent || 'Untitled'),
+          authors: Array.isArray(bookInfo?.authors) ? bookInfo.authors.map(a => (a.name || a.author?.key || '')).join(', ') : null,
+          thumbnail: bookCoverUrl || (document.getElementById('poster')?.src || null),
+          published_date: bookInfo?.first_publish_date || null,
+          updated_at: new Date().toISOString()
+        };
+        try {
+          const { data, error } = await supabaseClient.from('books').upsert(payload, { onConflict: 'id' }).select('id').maybeSingle();
+          if (error) {
+            console.error('Upsert book error', error);
+            showNotification(`Could not ensure book record: ${error.message || JSON.stringify(error)}`, 'error');
+            return null;
+          }
+          return data;
+        } catch (e) {
+          console.error('Upsert book exception', e);
+          return null;
+        }
+      }
+
       async function initAuth() {
         if (!supabaseClient) return;
         const { data: { user } } = await supabaseClient.auth.getUser();
@@ -686,42 +713,42 @@
 
       async function load() {
         if (!id) return;
-        let info = {};
+        bookInfo = {};
         try {
           // OpenLibrary work endpoint: /works/{id}.json (id may already be like OL123W or /works/OL123W)
           const normalizedId = id.startsWith('/works/') ? id.replace('/works/', '') : id;
           const work = await booksFetch(`/works/${encodeURIComponent(normalizedId)}.json`);
 
-          info = work || {};
+          bookInfo = work || {};
           // description can be a string or object
           let description = '';
-          if (info.description) description = typeof info.description === 'string' ? info.description : info.description.value || '';
-          const publishedYear = (info.first_publish_date || info.created?.value || '') ? String((info.first_publish_date || info.created?.value || '')).slice(0,4) : '';
+          if (bookInfo.description) description = typeof bookInfo.description === 'string' ? bookInfo.description : bookInfo.description.value || '';
+          const publishedYear = (bookInfo.first_publish_date || bookInfo.created?.value || '') ? String((bookInfo.first_publish_date || bookInfo.created?.value || '')).slice(0,4) : '';
 
           // pick a cover id (work.covers is array of numeric ids)
-          let coverUrl = '';
-          if (Array.isArray(info.covers) && info.covers.length) {
-            coverUrl = `${OPEN_LIBRARY_COVERS}/id/${info.covers[0]}-L.jpg`;
+          bookCoverUrl = '';
+          if (Array.isArray(bookInfo.covers) && bookInfo.covers.length) {
+            bookCoverUrl = `${OPEN_LIBRARY_COVERS}/id/${bookInfo.covers[0]}-L.jpg`;
           }
 
-          document.getElementById('title').textContent = info.title || 'Untitled';
+          document.getElementById('title').textContent = bookInfo.title || 'Untitled';
           document.getElementById('overview').textContent = (description || 'No description available.').replace(/<[^>]+>/g, '');
           document.getElementById('meta').textContent = `${publishedYear || ''}` + '';
-          document.getElementById('poster').src = coverUrl || 'images/logo.png';
+          document.getElementById('poster').src = bookCoverUrl || 'images/logo.png';
 
           // categories/tags: subjects
           const tags = document.getElementById('tags');
-          if (tags && Array.isArray(info.subjects)) {
-            tags.innerHTML = info.subjects.slice(0,12).map(c => `<span class="tag">${c}</span>`).join('');
+          if (tags && Array.isArray(bookInfo.subjects)) {
+            tags.innerHTML = bookInfo.subjects.slice(0,12).map(c => `<span class="tag">${c}</span>`).join('');
           }
 
           // meta grid (authors/publisher/page info may require fetching an edition)
           const metaGrid = document.getElementById('metaGrid');
           if (metaGrid) {
             const items = [];
-            if (Array.isArray(info.authors) && info.authors.length) {
+            if (Array.isArray(bookInfo.authors) && bookInfo.authors.length) {
               // authors array contains objects with author key, need to fetch or show placeholder
-              items.push(`Author: ${info.authors.map(a => (a.name || a.author?.key || 'Author')).join(', ')}`);
+              items.push(`Author: ${bookInfo.authors.map(a => (a.name || a.author?.key || 'Author')).join(', ')}`);
             }
             metaGrid.innerHTML = items.map(i => `<div class="meta-item">${i}</div>`).join('');
           }
@@ -735,34 +762,34 @@
         }
 
         const tags = document.getElementById('tags');
-        if (tags && Array.isArray(info.categories)) {
-          tags.innerHTML = info.categories.map(c => `<span class="tag">${c}</span>`).join('');
+        if (tags && Array.isArray(bookInfo.categories)) {
+          tags.innerHTML = bookInfo.categories.map(c => `<span class="tag">${c}</span>`).join('');
         }
 
         const metaGrid = document.getElementById('metaGrid');
         if (metaGrid) {
           const items = [];
-          if (Array.isArray(info.authors) && info.authors.length) items.push(`Author: ${info.authors.join(', ')}`);
-          if (info.publisher) items.push(`Publisher: ${info.publisher}`);
-          if (info.publishedDate) items.push(`Published: ${info.publishedDate}`);
-          if (typeof info.pageCount === 'number') items.push(`Pages: ${info.pageCount}`);
-          if (info.language) items.push(`Language: ${String(info.language).toUpperCase()}`);
-          if (info.maturityRating) items.push(`Maturity: ${info.maturityRating}`);
-          if (info.averageRating) items.push(`Rating: ${info.averageRating} (${info.ratingsCount || 0})`);
+          if (Array.isArray(bookInfo.authors) && bookInfo.authors.length) items.push(`Author: ${bookInfo.authors.join(', ')}`);
+          if (bookInfo.publisher) items.push(`Publisher: ${bookInfo.publisher}`);
+          if (bookInfo.publishedDate) items.push(`Published: ${bookInfo.publishedDate}`);
+          if (typeof bookInfo.pageCount === 'number') items.push(`Pages: ${bookInfo.pageCount}`);
+          if (bookInfo.language) items.push(`Language: ${String(bookInfo.language).toUpperCase()}`);
+          if (bookInfo.maturityRating) items.push(`Maturity: ${bookInfo.maturityRating}`);
+          if (bookInfo.averageRating) items.push(`Rating: ${bookInfo.averageRating} (${bookInfo.ratingsCount || 0})`);
           metaGrid.innerHTML = items.map(i => `<div class="meta-item">${i}</div>`).join('');
         }
 
         const detailsEl = document.getElementById('details');
         if (detailsEl) {
           const detailRows = [];
-          if (info.subtitle) detailRows.push(`<div class="list-row"><span class="list-label">Subtitle:</span> ${info.subtitle}</div>`);
-          if (info.publishedDate) detailRows.push(`<div class="list-row"><span class="list-label">Published:</span> ${info.publishedDate}</div>`);
-          if (info.printType) detailRows.push(`<div class="list-row"><span class="list-label">Type:</span> ${info.printType}</div>`);
-          if (info.industryIdentifiers?.length) {
-            detailRows.push(`<div class="list-row"><span class="list-label">Identifiers:</span> ${info.industryIdentifiers.map(x => `${x.type}: ${x.identifier}`).join(', ')}</div>`);
+          if (bookInfo.subtitle) detailRows.push(`<div class="list-row"><span class="list-label">Subtitle:</span> ${bookInfo.subtitle}</div>`);
+          if (bookInfo.publishedDate) detailRows.push(`<div class="list-row"><span class="list-label">Published:</span> ${bookInfo.publishedDate}</div>`);
+          if (bookInfo.printType) detailRows.push(`<div class="list-row"><span class="list-label">Type:</span> ${bookInfo.printType}</div>`);
+          if (bookInfo.industryIdentifiers?.length) {
+            detailRows.push(`<div class="list-row"><span class="list-label">Identifiers:</span> ${bookInfo.industryIdentifiers.map(x => `${x.type}: ${x.identifier}`).join(', ')}</div>`);
           }
-          if (info.infoLink) {
-            detailRows.push(`<div class="list-row"><span class="list-label">Google Books:</span> <a class="tag" href="${info.infoLink}" target="_blank" rel="noopener">Open</a></div>`);
+          if (bookInfo.infoLink) {
+            detailRows.push(`<div class="list-row"><span class="list-label">Google Books:</span> <a class="tag" href="${bookInfo.infoLink}" target="_blank" rel="noopener">Open</a></div>`);
           }
           detailsEl.innerHTML = detailRows.length ? detailRows.join('') : '<div class="list-row">No extra details available.</div>';
         }
@@ -771,7 +798,7 @@
         if (trailerEl) {
           trailerEl.innerHTML = '<div class="meta-item">No trailer available for books.</div>';
         }
-        const authors = (info.authors || []).slice(0, 12);
+        const authors = (bookInfo.authors || []).slice(0, 12);
         const authorsEl = document.getElementById('directors');
         const contributorsEl = document.getElementById('writers');
         const subjectsEl = document.getElementById('cast');
@@ -782,7 +809,7 @@
           contributorsEl.innerHTML = authors.length ? authors.map(p => `<span class="person-chip">${p}</span>`).join('') : '<span class="person-chip">N/A</span>';
         }
         if (subjectsEl) {
-          const categories = (info.categories || []).slice(0, 12);
+          const categories = (bookInfo.categories || []).slice(0, 12);
           subjectsEl.innerHTML = categories.length ? categories.map(p => `<span class="person-chip">${p}</span>`).join('') : '<span class="person-chip">N/A</span>';
         }
       }
@@ -1041,6 +1068,8 @@
             if (e && e.message && !/No rows/.test(e.message)) console.warn('Check existing error', e);
           }
 
+          // ensure book exists first to avoid FK violation
+          await upsertBookRecordLocal();
           const { data, error } = await supabaseClient
             .from('book_list_items')
             .insert({ user_id: currentUser.id, book_id: bookId, list_type: listType })

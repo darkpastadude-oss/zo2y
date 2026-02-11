@@ -988,8 +988,7 @@
               .from('book_list_items')
               .select('id')
               .match({ user_id: state.currentUser.id, book_id: bookId, list_type: listType })
-              .limit(1)
-              .single();
+              .maybeSingle();
             if (existing && existing.id) {
               console.warn('List item already exists', existing);
               status[listType] = true;

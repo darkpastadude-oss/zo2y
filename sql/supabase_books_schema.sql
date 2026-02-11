@@ -49,6 +49,9 @@ CREATE INDEX IF NOT EXISTS idx_books_authors ON books USING gin (to_tsvector('en
 CREATE INDEX IF NOT EXISTS idx_book_list_items_user ON book_list_items (user_id);
 CREATE INDEX IF NOT EXISTS idx_book_list_items_book ON book_list_items (book_id);
 
+-- Prevent exact duplicate list rows per user/book/list_type/list_id
+CREATE UNIQUE INDEX IF NOT EXISTS ux_book_list_items_unique ON book_list_items (user_id, book_id, list_type, list_id);
+
 -- Example seed rows (replace with your own). Thumbnails use Open Library cover API when available.
 INSERT INTO books (id, title, authors, thumbnail, published_date, categories, description, page_count, publisher)
 VALUES
@@ -101,21 +104,34 @@ CREATE INDEX IF NOT EXISTS idx_book_reviews_user ON book_reviews (user_id);
 -- Row Level Security (RLS) and policies
 -- Enable RLS and allow public selects for browsing, restrict writes to owners
 ALTER TABLE books ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public select on books" ON books;
 CREATE POLICY "Public select on books" ON books FOR SELECT USING (true);
 
 ALTER TABLE book_lists ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public select on book_lists" ON book_lists;
+DROP POLICY IF EXISTS "Insert own book_lists" ON book_lists;
+DROP POLICY IF EXISTS "Update own book_lists" ON book_lists;
+DROP POLICY IF EXISTS "Delete own book_lists" ON book_lists;
 CREATE POLICY "Public select on book_lists" ON book_lists FOR SELECT USING (true);
 CREATE POLICY "Insert own book_lists" ON book_lists FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Update own book_lists" ON book_lists FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Delete own book_lists" ON book_lists FOR DELETE USING (user_id = auth.uid());
 
 ALTER TABLE book_list_items ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public select on book_list_items" ON book_list_items;
+DROP POLICY IF EXISTS "Insert own book_list_items" ON book_list_items;
+DROP POLICY IF EXISTS "Update own book_list_items" ON book_list_items;
+DROP POLICY IF EXISTS "Delete own book_list_items" ON book_list_items;
 CREATE POLICY "Public select on book_list_items" ON book_list_items FOR SELECT USING (true);
 CREATE POLICY "Insert own book_list_items" ON book_list_items FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Update own book_list_items" ON book_list_items FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Delete own book_list_items" ON book_list_items FOR DELETE USING (user_id = auth.uid());
 
 ALTER TABLE book_reviews ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public select on book_reviews" ON book_reviews;
+DROP POLICY IF EXISTS "Insert own book_reviews" ON book_reviews;
+DROP POLICY IF EXISTS "Update own book_reviews" ON book_reviews;
+DROP POLICY IF EXISTS "Delete own book_reviews" ON book_reviews;
 CREATE POLICY "Public select on book_reviews" ON book_reviews FOR SELECT USING (true);
 CREATE POLICY "Insert own book_reviews" ON book_reviews FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Update own book_reviews" ON book_reviews FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
