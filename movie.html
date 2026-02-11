@@ -374,6 +374,12 @@
       font-size: 0.9rem;
     }
     .reviewer-name { font-weight: 600; color: var(--white); margin-bottom: 2px; }
+    .reviewer-link {
+      color: var(--white);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    .reviewer-link:hover { color: var(--accent); text-decoration: underline; }
     .review-date { font-size: 0.8rem; color: var(--text2); }
     .review-rating { color: #FF9800; font-size: 1.1rem; white-space: nowrap; }
     .review-actions { display: flex; gap: 8px; margin-top: 12px; }
@@ -478,7 +484,15 @@
     }
     .sort-select:hover { border-color: var(--accent); }
     .sort-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1); }
-    @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } .poster { max-width: 360px; } }
+    @media (max-width: 900px) {
+      .wrap { grid-template-columns: 1fr; }
+      .poster {
+        width: min(62vw, 240px);
+        max-width: 240px;
+        margin: 0 auto 6px;
+        justify-self: center;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1101,24 +1115,34 @@
             .in('id', userIds);
           (users || []).forEach(u => { userMap[u.id] = u; });
         }
+        const escapeHtml = (v) => String(v ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
         container.innerHTML = reviewsToDisplay.map(review => {
           const user = userMap[review.user_id];
-          const displayName = user?.display_name || user?.username || 'User';
-          const initials = displayName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+          const username = String(user?.username || '').trim();
+          const fallbackName = String(user?.display_name || 'User').trim();
+          const displayName = username ? `@${username}` : fallbackName;
+          const initialsBase = username || fallbackName;
+          const initials = initialsBase.split(/\s+/).map(n => n[0]).slice(0, 2).join('').toUpperCase();
+          const profileHref = `profile.html?id=${encodeURIComponent(review.user_id)}`;
           const canEditDelete = currentUser && currentUser.id === review.user_id;
           return `
             <div class="review-card" id="review-${review.id}">
               <div class="review-header">
                 <div class="reviewer-info">
-                  <div class="reviewer-avatar">${initials}</div>
+                  <a class="reviewer-avatar reviewer-link" href="${profileHref}" aria-label="View ${escapeHtml(displayName)} profile">${escapeHtml(initials)}</a>
                   <div>
-                    <div class="reviewer-name">${displayName}</div>
+                    <div class="reviewer-name"><a class="reviewer-link" href="${profileHref}">${escapeHtml(displayName)}</a></div>
                     <div class="review-date">${new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
                   </div>
                 </div>
-                <div class="review-rating">${'?'.repeat(review.rating)}${'?'.repeat(5 - review.rating)}</div>
+                <div class="review-rating">${'\u2605'.repeat(review.rating)}${'\u2606'.repeat(5 - review.rating)}</div>
               </div>
-              <p class="review-comment">${review.comment || ''}</p>
+              <p class="review-comment">${escapeHtml(review.comment || '')}</p>
               ${canEditDelete ? `
                 <div class="review-actions">
                   <button class="review-edit" onclick="editReview('${review.id}')">Edit</button>
