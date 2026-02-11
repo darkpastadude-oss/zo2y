@@ -679,7 +679,7 @@
         existing.forEach(n => n.remove());
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
-        notification.textContent = message;
+        notification.textContent = (typeof message === 'string') ? message : JSON.stringify(message);
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), duration);
       }
@@ -982,12 +982,33 @@
           showNotification('Removed from list', 'info');
         } else {
           await upsertBookRecord(state.bookIndex.get(bookId));
+          // Defensive: check for existing identical item (avoid 409)
+          try {
+            const { data: existing } = await supabaseClient
+              .from('book_list_items')
+              .select('id')
+              .match({ user_id: state.currentUser.id, book_id: bookId, list_type: listType })
+              .limit(1)
+              .single();
+            if (existing && existing.id) {
+              console.warn('List item already exists', existing);
+              status[listType] = true;
+              state.listStatusMap.set(bookId, status);
+              updateCardMenuUI(card, bookId);
+              showNotification('Already saved', 'info');
+              return;
+            }
+          } catch (e) {
+            if (e && e.message && !/No rows/.test(e.message)) console.warn('Check existing error', e);
+          }
+
           const { data, error } = await supabaseClient
             .from('book_list_items')
-            .insert({ user_id: state.currentUser.id, book_id: bookId, list_type: listType });
+            .insert({ user_id: state.currentUser.id, book_id: bookId, list_type: listType })
+            .select('*');
           if (error) {
             console.error('Error adding to list', error);
-            showNotification('Could not save to list', 'error');
+            showNotification(error?.message || error || JSON.stringify(error), 'error');
             return;
           }
           status[listType] = true;
@@ -1074,12 +1095,17 @@
         if (!supabaseClient || !state.currentUser || !state.activeBookId) return;
         const listIds = state.customLists.map(l => l.id);
         if (listIds.length) {
-          await supabaseClient
+          const { error } = await supabaseClient
             .from('book_list_items')
             .delete()
             .eq('user_id', state.currentUser.id)
             .eq('book_id', state.activeBookId)
             .in('list_id', listIds);
+          if (error) {
+            console.error('Error clearing list items', error);
+            showNotification(`Could not update lists: ${error.message || JSON.stringify(error)}`, 'error');
+            return;
+          }
         }
         await upsertBookRecord(state.bookIndex.get(state.activeBookId));
         const inserts = [...state.modalSelectedLists].map(listId => ({
@@ -1088,7 +1114,12 @@
           list_id: listId
         }));
         if (inserts.length) {
-          await supabaseClient.from('book_list_items').insert(inserts);
+          const { data: insertData, error } = await supabaseClient.from('book_list_items').insert(inserts).select('*');
+          if (error) {
+            console.error('Error inserting list items', error);
+            showNotification(`Could not save lists: ${error.message || JSON.stringify(error)}`, 'error');
+            return;
+          }
         }
         showNotification('Lists updated', 'success');
         closeBookListsModal();
