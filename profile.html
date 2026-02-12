@@ -212,7 +212,7 @@
         }
 
         .collection-preview-item {
-            aspect-ratio: 2 / 3;
+            aspect-ratio: 4 / 3;
             background: var(--card);
             border-radius: 6px;
             overflow: hidden;
@@ -220,6 +220,14 @@
             align-items: center;
             justify-content: center;
             position: relative;
+        }
+
+        .collection-preview-item.is-portrait {
+            aspect-ratio: 2 / 3;
+        }
+
+        .collection-preview-item.is-landscape {
+            aspect-ratio: 16 / 10;
         }
 
         .collection-preview-item img {
@@ -1523,7 +1531,7 @@
         }
 
         .list-preview-item {
-            height: 80px;
+            aspect-ratio: 4 / 3;
             background: var(--bg);
             border-radius: var(--radius-sm);
             overflow: hidden;
@@ -1532,10 +1540,18 @@
             justify-content: center;
         }
 
+        .list-preview-item.is-portrait {
+            aspect-ratio: 2 / 3;
+        }
+
+        .list-preview-item.is-landscape {
+            aspect-ratio: 16 / 10;
+        }
+
         .list-preview-item img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
         }
 
         .list-card-footer {
@@ -2376,11 +2392,19 @@
 
             .mobile-preview-item {
                 width: 100%;
-                aspect-ratio: 2 / 3;
+                aspect-ratio: 4 / 3;
                 position: relative;
                 background: var(--bg);
                 border-radius: var(--radius-sm);
                 overflow: hidden;
+            }
+
+            .mobile-preview-item.is-portrait {
+                aspect-ratio: 2 / 3;
+            }
+
+            .mobile-preview-item.is-landscape {
+                aspect-ratio: 16 / 10;
             }
 
             .mobile-preview-item img {
@@ -2799,11 +2823,12 @@ h3 { font-size: var(--ds-title-sm); line-height: 1.3; }
 }
 
 /* Normalize image aspect ratios where cards have images */
-.card-image img, .list-preview-item img {
+.card-image img {
   object-fit: cover;
 }
 
 /* Keep list preview images uncropped */
+.list-preview-item img,
 .mobile-preview-item img {
   object-fit: contain;
 }
@@ -4219,6 +4244,23 @@ header, .top-stripe, .section-nav {
                 }, duration);
             }
 
+            function applyPreviewImageOrientation(img) {
+                if (!img) return;
+                const tile = img.closest('.collection-preview-item, .mobile-preview-item, .list-preview-item');
+                if (!tile) return;
+
+                const width = img.naturalWidth || 0;
+                const height = img.naturalHeight || 0;
+                if (!width || !height) return;
+
+                tile.classList.remove('is-portrait', 'is-landscape');
+                if (width > height * 1.08) {
+                    tile.classList.add('is-landscape');
+                } else if (height > width * 1.08) {
+                    tile.classList.add('is-portrait');
+                }
+            }
+
             // ===== CUSTOM CONFIRMATION MODAL =====
             function showConfirmModal(title, message, onConfirm) {
                 const modal = document.getElementById('confirmModal');
@@ -5004,7 +5046,7 @@ header, .top-stripe, .section-nav {
                                 if (restaurant) {
                                     previewItems.push(`
                                         <div class="list-preview-item">
-                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy" onload="ProfileManager.applyPreviewImageOrientation(this)">
                                         </div>
                                     `);
                                 } else {
@@ -5134,7 +5176,7 @@ header, .top-stripe, .section-nav {
                                 if (restaurant) {
                                     previewItems.push(`
                                         <div class="mobile-preview-item">
-                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy" onload="ProfileManager.applyPreviewImageOrientation(this)">
                                         </div>
                                     `);
                                 } else {
@@ -6582,7 +6624,7 @@ header, .top-stripe, .section-nav {
                         <div class="list-preview-grid">
                             ${previewData.map(m => `
                                 <div class="list-preview-item">
-                                    <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="Preview">
+                                    <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="Preview" loading="lazy" onload="ProfileManager.applyPreviewImageOrientation(this)">
                                 </div>
                             `).join('')}
                         </div>
@@ -7629,7 +7671,7 @@ header, .top-stripe, .section-nav {
                     if (previewItems[i]) {
                         previewHtml += `
                             <div class="collection-preview-item">
-                                <img src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
+                                <img src="${previewItems[i]}" alt="Preview" loading="lazy" onload="ProfileManager.applyPreviewImageOrientation(this)" onerror="this.onerror=null;this.src='images/logo.png';">
                             </div>
                         `;
                     } else {
@@ -9403,6 +9445,7 @@ header, .top-stripe, .section-nav {
                 showMobileMenu,
                 showCreateListTypeModal,
                 createListForType,
+                applyPreviewImageOrientation,
                 logout,
                 removeFromList,
                 escapeHtml
