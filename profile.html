@@ -2065,11 +2065,18 @@
                 position: sticky;
                 top: 60px;
                 z-index: 900;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                scroll-snap-type: x mandatory;
+                scroll-padding-inline: 12px;
+                gap: 4px;
+                padding: 0 12px;
             }
 
             .mobile-tab {
-                flex: 1;
-                padding: 16px;
+                flex: 0 0 clamp(84px, 22vw, 104px);
+                padding: 12px 8px;
                 text-align: center;
                 font-weight: 500;
                 color: var(--muted);
@@ -2080,6 +2087,7 @@
                 flex-direction: column;
                 align-items: center;
                 gap: 4px;
+                scroll-snap-align: center;
             }
 
             .mobile-tab.active {
@@ -2093,7 +2101,12 @@
             }
 
             .mobile-tab span {
-                font-size: 12px;
+                font-size: 11px;
+                white-space: nowrap;
+            }
+
+            .mobile-tabs::-webkit-scrollbar {
+                display: none;
             }
 
             .mobile-tab-badge {
@@ -2982,6 +2995,9 @@ header, .top-stripe, .section-nav {
                             <button class="btn btn-secondary btn-sm" id="movieListRenameBtn">
                                 <i class="fas fa-pen"></i> Rename
                             </button>
+                            <button class="btn btn-secondary btn-sm" id="movieListIconBtn">
+                                <i class="fas fa-icons"></i> Change Icon
+                            </button>
                             <button class="btn btn-secondary btn-sm" id="movieListDeleteBtn">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
@@ -3040,6 +3056,9 @@ header, .top-stripe, .section-nav {
                         <div class="collection-detail-actions" id="tvDetailActions" style="display: none;">
                             <button class="btn btn-secondary btn-sm" id="tvListRenameBtn">
                                 <i class="fas fa-pen"></i> Rename
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="tvListIconBtn">
+                                <i class="fas fa-icons"></i> Change Icon
                             </button>
                             <button class="btn btn-secondary btn-sm" id="tvListDeleteBtn">
                                 <i class="fas fa-trash"></i> Delete
@@ -3100,6 +3119,9 @@ header, .top-stripe, .section-nav {
                             <button class="btn btn-secondary btn-sm" id="gameListRenameBtn">
                                 <i class="fas fa-pen"></i> Rename
                             </button>
+                            <button class="btn btn-secondary btn-sm" id="gameListIconBtn">
+                                <i class="fas fa-icons"></i> Change Icon
+                            </button>
                             <button class="btn btn-secondary btn-sm" id="gameListDeleteBtn">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
@@ -3158,6 +3180,9 @@ header, .top-stripe, .section-nav {
                         <div class="collection-detail-actions" id="bookDetailActions" style="display: none;">
                             <button class="btn btn-secondary btn-sm" id="bookListRenameBtn">
                                 <i class="fas fa-pen"></i> Rename
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="bookListIconBtn">
+                                <i class="fas fa-icons"></i> Change Icon
                             </button>
                             <button class="btn btn-secondary btn-sm" id="bookListDeleteBtn">
                                 <i class="fas fa-trash"></i> Delete
@@ -3417,6 +3442,9 @@ header, .top-stripe, .section-nav {
                         <button class="mobile-action-btn secondary" id="mobileMovieListRenameBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-pen"></i> Rename
                         </button>
+                        <button class="mobile-action-btn secondary" id="mobileMovieListIconBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-icons"></i> Icon
+                        </button>
                         <button class="mobile-action-btn secondary" id="mobileMovieListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-trash"></i> Delete
                         </button>
@@ -3462,6 +3490,9 @@ header, .top-stripe, .section-nav {
                     <div id="mobileTvDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px; display: none;">
                         <button class="mobile-action-btn secondary" id="mobileTvListRenameBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-pen"></i> Rename
+                        </button>
+                        <button class="mobile-action-btn secondary" id="mobileTvListIconBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-icons"></i> Icon
                         </button>
                         <button class="mobile-action-btn secondary" id="mobileTvListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-trash"></i> Delete
@@ -3509,6 +3540,9 @@ header, .top-stripe, .section-nav {
                         <button class="mobile-action-btn secondary" id="mobileGameListRenameBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-pen"></i> Rename
                         </button>
+                        <button class="mobile-action-btn secondary" id="mobileGameListIconBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-icons"></i> Icon
+                        </button>
                         <button class="mobile-action-btn secondary" id="mobileGameListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-trash"></i> Delete
                         </button>
@@ -3554,6 +3588,9 @@ header, .top-stripe, .section-nav {
                     <div id="mobileBookDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px;">
                         <button class="mobile-action-btn secondary" id="mobileBookListRenameBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-pen"></i> Rename
+                        </button>
+                        <button class="mobile-action-btn secondary" id="mobileBookListIconBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-icons"></i> Icon
                         </button>
                         <button class="mobile-action-btn secondary" id="mobileBookListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-trash"></i> Delete
@@ -6636,6 +6673,38 @@ header, .top-stripe, .section-nav {
                 await renderMovies();
             }
 
+            const CUSTOM_LIST_ICON_CHOICES = ['heart', 'check', 'bookmark', 'movie', 'tv', 'game', 'book', 'restaurant', 'list'];
+
+            function promptForCustomListIcon(currentIcon, fallback = 'list') {
+                const currentKey = normalizeIconKey(currentIcon, fallback);
+                const promptText = `Choose icon key: ${CUSTOM_LIST_ICON_CHOICES.join(', ')}`;
+                const input = prompt(promptText, currentKey);
+                if (input === null) return null;
+                const nextKey = normalizeIconKey(input.trim(), fallback);
+                if (!CUSTOM_LIST_ICON_CHOICES.includes(nextKey)) {
+                    showToast('Invalid icon key', 'error');
+                    return null;
+                }
+                return nextKey;
+            }
+
+            async function updateCustomListIcon(tableName, listId, currentIcon, fallback = 'list', successMessage = 'Icon updated') {
+                if (!supabase || !currentUser || !listId) return false;
+                const nextIcon = promptForCustomListIcon(currentIcon, fallback);
+                if (!nextIcon) return false;
+                const { error } = await supabase
+                    .from(tableName)
+                    .update({ icon: nextIcon })
+                    .eq('id', listId)
+                    .eq('user_id', currentUser.id);
+                if (error) {
+                    showToast('Could not update icon', 'error');
+                    return false;
+                }
+                showToast(successMessage, 'success');
+                return true;
+            }
+
             async function renameMovieList(listId, currentTitle) {
                 if (!supabase || !currentUser) return;
                 const nextTitle = prompt('Rename list', currentTitle || '');
@@ -6650,6 +6719,11 @@ header, .top-stripe, .section-nav {
                     return;
                 }
                 await loadMovieLists();
+            }
+
+            async function updateMovieListIcon(listId, currentIcon) {
+                const didUpdate = await updateCustomListIcon('movie_lists', listId, currentIcon, 'movie', 'Movie list icon updated');
+                if (didUpdate) await renderMovies();
             }
 
             async function createMovieList() {
@@ -6712,6 +6786,11 @@ header, .top-stripe, .section-nav {
                 await renderTvShows();
             }
 
+            async function updateTvListIcon(listId, currentIcon) {
+                const didUpdate = await updateCustomListIcon('tv_lists', listId, currentIcon, 'tv', 'TV list icon updated');
+                if (didUpdate) await renderTvShows();
+            }
+
             async function createTvList() {
                 if (!supabase || !currentUser || !isViewingOwnProfile) return;
                 const title = prompt('New TV show list name');
@@ -6771,6 +6850,11 @@ header, .top-stripe, .section-nav {
                 await renderGames();
             }
 
+            async function updateGameListIcon(listId, currentIcon) {
+                const didUpdate = await updateCustomListIcon('game_lists', listId, currentIcon, 'game', 'Game list icon updated');
+                if (didUpdate) await renderGames();
+            }
+
             async function createGameList() {
                 if (!supabase || !currentUser || !isViewingOwnProfile) return;
                 const title = prompt('New game list name');
@@ -6814,6 +6898,16 @@ header, .top-stripe, .section-nav {
                 showToast('List deleted', 'success');
             }
 
+            function scrollActiveMobileTabIntoView(tabName) {
+                const activeTab = document.querySelector(`.mobile-tab[data-tab="${tabName}"]`);
+                if (!activeTab) return;
+                activeTab.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'center'
+                });
+            }
+
             function showTab(tabName) {
                 const isMobile = window.innerWidth <= 768;
                 
@@ -6837,6 +6931,7 @@ header, .top-stripe, .section-nav {
                     if (activeTab) {
                         activeTab.classList.add('active');
                     }
+                    scrollActiveMobileTabIntoView(tabName);
                     
                     currentTab = tabName;
                     
@@ -7686,11 +7781,13 @@ header, .top-stripe, .section-nav {
                     const descEl = document.getElementById('mobileMovieDetailDescription');
                     const actions = document.getElementById('mobileMovieDetailActions');
                     const renameBtn = document.getElementById('mobileMovieListRenameBtn');
+                    const iconBtn = document.getElementById('mobileMovieListIconBtn');
                     const deleteBtn = document.getElementById('mobileMovieListDeleteBtn');
                     if (titleEl) titleEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (renameBtn) renameBtn.onclick = () => renameMovieList(listId, list.title);
+                    if (iconBtn) iconBtn.onclick = () => updateMovieListIcon(listId, list.icon);
                     if (deleteBtn) deleteBtn.onclick = () => deleteMovieList(listId);
                 } else {
                     const iconEl = document.getElementById('movieDetailIcon');
@@ -7698,12 +7795,14 @@ header, .top-stripe, .section-nav {
                     const descEl = document.getElementById('movieDetailDescription');
                     const actions = document.getElementById('movieDetailActions');
                     const renameBtn = document.getElementById('movieListRenameBtn');
+                    const iconBtn = document.getElementById('movieListIconBtn');
                     const deleteBtn = document.getElementById('movieListDeleteBtn');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'list');
                     if (nameEl) nameEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (renameBtn) renameBtn.onclick = () => renameMovieList(listId, list.title);
+                    if (iconBtn) iconBtn.onclick = () => updateMovieListIcon(listId, list.icon);
                     if (deleteBtn) deleteBtn.onclick = () => deleteMovieList(listId);
                 }
 
@@ -7827,11 +7926,13 @@ header, .top-stripe, .section-nav {
                     const descEl = document.getElementById('mobileTvDetailDescription');
                     const actions = document.getElementById('mobileTvDetailActions');
                     const renameBtn = document.getElementById('mobileTvListRenameBtn');
+                    const iconBtn = document.getElementById('mobileTvListIconBtn');
                     const deleteBtn = document.getElementById('mobileTvListDeleteBtn');
                     if (titleEl) titleEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (renameBtn) renameBtn.onclick = () => renameTvList(listId, list.title);
+                    if (iconBtn) iconBtn.onclick = () => updateTvListIcon(listId, list.icon);
                     if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
                 } else {
                     const iconEl = document.getElementById('tvDetailIcon');
@@ -7839,12 +7940,14 @@ header, .top-stripe, .section-nav {
                     const descEl = document.getElementById('tvDetailDescription');
                     const actions = document.getElementById('tvDetailActions');
                     const renameBtn = document.getElementById('tvListRenameBtn');
+                    const iconBtn = document.getElementById('tvListIconBtn');
                     const deleteBtn = document.getElementById('tvListDeleteBtn');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'tv');
                     if (nameEl) nameEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (renameBtn) renameBtn.onclick = () => renameTvList(listId, list.title);
+                    if (iconBtn) iconBtn.onclick = () => updateTvListIcon(listId, list.icon);
                     if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
                 }
 
@@ -7970,11 +8073,13 @@ header, .top-stripe, .section-nav {
                     const descEl = document.getElementById('mobileGameDetailDescription');
                     const actions = document.getElementById('mobileGameDetailActions');
                     const renameBtn = document.getElementById('mobileGameListRenameBtn');
+                    const iconBtn = document.getElementById('mobileGameListIconBtn');
                     const deleteBtn = document.getElementById('mobileGameListDeleteBtn');
                     if (titleEl) titleEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (renameBtn) renameBtn.onclick = () => renameGameList(listId, list.title);
+                    if (iconBtn) iconBtn.onclick = () => updateGameListIcon(listId, list.icon);
                     if (deleteBtn) deleteBtn.onclick = () => deleteGameList(listId);
                 } else {
                     const iconEl = document.getElementById('gameDetailIcon');
@@ -7982,12 +8087,14 @@ header, .top-stripe, .section-nav {
                     const descEl = document.getElementById('gameDetailDescription');
                     const actions = document.getElementById('gameDetailActions');
                     const renameBtn = document.getElementById('gameListRenameBtn');
+                    const iconBtn = document.getElementById('gameListIconBtn');
                     const deleteBtn = document.getElementById('gameListDeleteBtn');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'game');
                     if (nameEl) nameEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (renameBtn) renameBtn.onclick = () => renameGameList(listId, list.title);
+                    if (iconBtn) iconBtn.onclick = () => updateGameListIcon(listId, list.icon);
                     if (deleteBtn) deleteBtn.onclick = () => deleteGameList(listId);
                 }
 
@@ -8103,11 +8210,13 @@ header, .top-stripe, .section-nav {
                     const descEl = document.getElementById('mobileBookDetailDescription');
                     const actions = document.getElementById('mobileBookDetailActions');
                     const renameBtn = document.getElementById('mobileBookListRenameBtn');
+                    const iconBtn = document.getElementById('mobileBookListIconBtn');
                     const deleteBtn = document.getElementById('mobileBookListDeleteBtn');
                     if (titleEl) titleEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (renameBtn) renameBtn.onclick = () => renameBookList(listId, list.title);
+                    if (iconBtn) iconBtn.onclick = () => updateBookListIcon(listId, list.icon);
                     if (deleteBtn) deleteBtn.onclick = () => deleteBookList(listId);
                 } else {
                     const iconEl = document.getElementById('bookDetailIcon');
@@ -8115,12 +8224,14 @@ header, .top-stripe, .section-nav {
                     const descEl = document.getElementById('bookDetailDescription');
                     const actions = document.getElementById('bookDetailActions');
                     const renameBtn = document.getElementById('bookListRenameBtn');
+                    const iconBtn = document.getElementById('bookListIconBtn');
                     const deleteBtn = document.getElementById('bookListDeleteBtn');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'list');
                     if (nameEl) nameEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (renameBtn) renameBtn.onclick = () => renameBookList(listId, list.title);
+                    if (iconBtn) iconBtn.onclick = () => updateBookListIcon(listId, list.icon);
                     if (deleteBtn) deleteBtn.onclick = () => deleteBookList(listId);
                 }
 
@@ -8361,6 +8472,11 @@ header, .top-stripe, .section-nav {
                     console.error('Error renaming book list:', error);
                     showToast('Could not rename list', 'error');
                 }
+            }
+
+            async function updateBookListIcon(listId, currentIcon) {
+                const didUpdate = await updateCustomListIcon('book_lists', listId, currentIcon, 'book', 'Book list icon updated');
+                if (didUpdate) await renderBooks();
             }
 
             async function deleteBookList(listId) {
