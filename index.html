@@ -866,6 +866,19 @@
       statusEl.style.color = isError ? '#fca5a5' : 'var(--ok)';
     }
 
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffleArray(input) {
+      const arr = [...input];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
     function renderRail(railId, items, opts) {
       const rail = document.getElementById(railId);
       if (!rail) return;
@@ -1046,12 +1059,13 @@
     }
 
     async function loadMovies() {
-      const res = await fetch('https://api.themoviedb.org/3/trending/movie/week?language=en-US', {
+      const page = randomInt(1, 5);
+      const res = await fetch(`https://api.themoviedb.org/3/movie/popular?language=en-US&page=${page}`, {
         headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
       });
       if (!res.ok) return [];
       const json = await res.json();
-      const results = Array.isArray(json.results) ? json.results.slice(0, 10) : [];
+      const results = Array.isArray(json.results) ? shuffleArray(json.results).slice(0, 10) : [];
       return results.map(m => ({
         mediaType: 'movie',
         itemId: String(m.id || ''),
@@ -1063,12 +1077,13 @@
     }
 
     async function loadTv() {
-      const res = await fetch('https://api.themoviedb.org/3/trending/tv/week?language=en-US', {
+      const page = randomInt(1, 5);
+      const res = await fetch(`https://api.themoviedb.org/3/tv/popular?language=en-US&page=${page}`, {
         headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
       });
       if (!res.ok) return [];
       const json = await res.json();
-      const results = Array.isArray(json.results) ? json.results.slice(0, 10) : [];
+      const results = Array.isArray(json.results) ? shuffleArray(json.results).slice(0, 10) : [];
       return results.map(t => ({
         mediaType: 'tv',
         itemId: String(t.id || ''),
@@ -1109,13 +1124,22 @@
     }
 
     async function loadBooks() {
-      const query = encodeURIComponent('popular fiction');
-      const url = `https://www.googleapis.com/books/v1/volumes?q=${query}&orderBy=relevance&maxResults=10&key=${GOOGLE_BOOKS_KEY}`;
+      const topics = [
+        'popular fiction',
+        'bestselling mystery',
+        'award winning novels',
+        'top fantasy books',
+        'popular science books',
+        'modern classics'
+      ];
+      const query = encodeURIComponent(topics[randomInt(0, topics.length - 1)]);
+      const startIndex = randomInt(0, 90);
+      const url = `https://www.googleapis.com/books/v1/volumes?q=${query}&orderBy=relevance&maxResults=10&startIndex=${startIndex}&key=${GOOGLE_BOOKS_KEY}`;
       const res = await fetch(url);
       if (!res.ok) return [];
       const json = await res.json();
-      const items = Array.isArray(json.items) ? json.items : [];
-      return items.map(item => {
+      const items = Array.isArray(json.items) ? shuffleArray(json.items) : [];
+      return items.slice(0, 10).map(item => {
         const info = item.volumeInfo || {};
         const image = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '';
         const author = Array.isArray(info.authors) && info.authors.length ? info.authors[0] : 'Book';
