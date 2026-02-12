@@ -271,7 +271,7 @@
 
     .rail::-webkit-scrollbar { height: 7px; }
     .rail::-webkit-scrollbar-thumb { background: rgba(140,163,199,0.55); border-radius: 999px; }
-    .rail.games-rail { grid-auto-columns: 220px; }
+    .rail.games-rail { grid-auto-columns: 248px; }
 
     .card {
       border: 1px solid var(--border);
@@ -1107,16 +1107,17 @@
       const results = Array.isArray(json.results) ? json.results : [];
 
       const seen = new Set();
-      const filtered = [];
+      const candidates = [];
       for (const g of results) {
         const nameKey = String(g.name || '').trim().toLowerCase();
         if (!nameKey || seen.has(nameKey)) continue;
         if (!g.background_image) continue;
         if ((g.ratings_count || 0) < 200) continue;
         seen.add(nameKey);
-        filtered.push(g);
-        if (filtered.length >= 10) break;
+        candidates.push(g);
       }
+
+      const filtered = shuffleArray(candidates).slice(0, 10);
 
       return filtered.map(g => ({
         mediaType: 'game',
