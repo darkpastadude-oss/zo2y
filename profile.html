@@ -208,11 +208,11 @@
             gap: 4px;
             padding: 4px;
             background: var(--bg);
-            min-height: 120px;
+            min-height: 150px;
         }
 
         .collection-preview-item {
-            aspect-ratio: 1;
+            aspect-ratio: 2 / 3;
             background: var(--card);
             border-radius: 6px;
             overflow: hidden;
@@ -225,7 +225,7 @@
         .collection-preview-item img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
         }
 
         .collection-preview-item-empty {
@@ -2376,7 +2376,7 @@
 
             .mobile-preview-item {
                 width: 100%;
-                padding-bottom: 100%;
+                aspect-ratio: 2 / 3;
                 position: relative;
                 background: var(--bg);
                 border-radius: var(--radius-sm);
@@ -2389,7 +2389,7 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-                object-fit: cover;
+                object-fit: contain;
             }
 
             .mobile-list-description {
@@ -2799,8 +2799,13 @@ h3 { font-size: var(--ds-title-sm); line-height: 1.3; }
 }
 
 /* Normalize image aspect ratios where cards have images */
-.card-image img, .list-preview-item img, .mobile-preview-item img {
+.card-image img, .list-preview-item img {
   object-fit: cover;
+}
+
+/* Keep list preview images uncropped */
+.mobile-preview-item img {
+  object-fit: contain;
 }
 
 /* Consistent badge positioning */
