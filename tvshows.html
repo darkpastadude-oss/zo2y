@@ -179,7 +179,9 @@
 
     .search-input {
       flex: 1 1 280px;
-      min-width: 220px;
+      width: min(92vw, 320px);
+      max-height: 70vh;
+      overflow-y: auto;
       padding: 12px 14px;
       border-radius: 10px;
       border: 1px solid var(--border);
@@ -347,20 +349,31 @@
     .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
 
     .list-menu {
-      position: absolute;
-      right: 0;
-      top: calc(100% + 8px);
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 10px;
-      min-width: 220px;
+      width: min(92vw, 320px);
+      max-height: 70vh;
+      overflow-y: auto;
       box-shadow: var(--shadow);
       display: none;
-      z-index: 3;
+      z-index: 3200;
     }
 
     .list-menu.open { display: block; }
+    .list-menu-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 3190;
+      display: none;
+    }
+    .list-menu-backdrop.active { display: block; }
 
     .list-menu-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
 
@@ -884,12 +897,11 @@
         if (!menuBtn || !menu) return;
         menuBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          document.querySelectorAll('.list-menu.open').forEach(m => m.classList.remove('open'));
-          menu.classList.toggle('open');
-        });
-        document.addEventListener('click', (e) => {
-          if (!e.target.closest('.list-menu') && !e.target.closest('.menu-btn')) {
-            menu.classList.remove('open');
+          const wasOpen = menu.classList.contains('open');
+          closeAllListMenus();
+          if (!wasOpen) {
+            menu.classList.add('open');
+            showListMenuBackdrop();
           }
         });
         menu.querySelectorAll('.list-action').forEach(btn => {
@@ -897,12 +909,41 @@
             e.stopPropagation();
             const listType = btn.getAttribute('data-list');
             if (listType === 'custom') {
+              closeAllListMenus();
               openTvListsModal(movieId);
               return;
             }
             await toggleDefaultList(movieId, listType, card);
+            closeAllListMenus();
           });
         });
+      }
+
+      function ensureListMenuBackdrop() {
+        let backdrop = document.getElementById('listMenuBackdrop');
+        if (!backdrop) {
+          backdrop = document.createElement('div');
+          backdrop.id = 'listMenuBackdrop';
+          backdrop.className = 'list-menu-backdrop';
+          backdrop.addEventListener('click', closeAllListMenus);
+          document.body.appendChild(backdrop);
+        }
+        return backdrop;
+      }
+
+      function showListMenuBackdrop() {
+        const backdrop = ensureListMenuBackdrop();
+        backdrop.classList.add('active');
+      }
+
+      function hideListMenuBackdrop() {
+        const backdrop = document.getElementById('listMenuBackdrop');
+        if (backdrop) backdrop.classList.remove('active');
+      }
+
+      function closeAllListMenus() {
+        document.querySelectorAll('.list-menu.open').forEach(m => m.classList.remove('open'));
+        hideListMenuBackdrop();
       }
 
       async function toggleDefaultList(movieId, listType, card) {
@@ -1157,6 +1198,10 @@
         if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
       }
 
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeAllListMenus();
+      });
+
       (async function init() {
         await initSupabase();
         wireUI();
@@ -1171,6 +1216,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
