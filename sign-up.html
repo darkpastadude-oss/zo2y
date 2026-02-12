@@ -1,477 +1,309 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zo2y - Sign Up</title>
-  <link rel="icon" type="image/png" href="images/logo.png">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root {
-      --primary-color: #4285F4;
-      --secondary-color: #f59e0b;
-      --bg-color: #0b1633;
-      --card-color: #132347;
-      --text-primary: #ffffff;
-      --text-secondary: #cbd5e1;
-      --border-color: rgba(255,255,255,0.1);
-      --shadow: 0 10px 30px rgba(0,0,0,0.3);
-      --transition: all 0.3s ease;
-      --google-blue: #4285F4;
-      --google-white: #ffffff;
-      --google-gray: #757575;
-    }
-    
-    * { 
-      margin: 0; 
-      padding: 0; 
-      box-sizing: border-box; 
-      font-family: 'Poppins', sans-serif; 
-    }
-    
-    body {
-      background: var(--bg-color);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: var(--text-primary);
-      padding: 20px;
-      background-image: radial-gradient(circle at 20% 80%, rgba(66, 133, 244, 0.1) 0%, transparent 20%),
-                        radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.1) 0%, transparent 20%);
-    }
-    
-    .signup-container {
-      width: 100%;
-      max-width: 450px;
-      animation: fadeIn 0.5s ease-out;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .logo-header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    
-    .logo-header h1 {
-      color: var(--secondary-color);
-      font-size: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    
-    .logo-header img {
-      height: 40px;
-      border-radius: 8px;
-    }
-    
-    .logo-header p {
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-      opacity: 0.8;
-    }
-    
-    .signup-card {
-      background: var(--card-color);
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    
-    .signup-card h2 {
-      text-align: center;
-      margin-bottom: 30px;
-      font-size: 1.8rem;
-      color: var(--text-primary);
-    }
-    
-    .signup-card form {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-    
-    .input-group {
-      position: relative;
-    }
-    
-    .input-group i {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-secondary);
-      transition: var(--transition);
-    }
-    
-    .input-group input {
-      width: 100%;
-      padding: 16px 15px 16px 50px;
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      background: rgba(11, 22, 51, 0.5);
-      color: var(--text-primary);
-      font-size: 1rem;
-      outline: none;
-      transition: var(--transition);
-    }
-    
-    .input-group input:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
-    }
-    
-    .input-group input:focus + i {
-      color: var(--primary-color);
-    }
-    
-    .submit-btn {
-      padding: 16px;
-      background: linear-gradient(135deg, var(--primary-color), #357ae8);
-      border: none;
-      border-radius: 12px;
-      color: white;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    
-    .submit-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(66, 133, 244, 0.4);
-      background: linear-gradient(135deg, #357ae8, #4285F4);
-    }
-    
-    .submit-btn:active {
-      transform: translateY(0);
-    }
-    
-    /* Standard Google Sign-in Button */
-    .gsi-material-button {
-      -moz-user-select: none;
-      -webkit-user-select: none;
-      -ms-user-select: none;
-      -webkit-appearance: none;
-      background-color: white;
-      background-image: none;
-      border: 1px solid #dadce0;
-      border-radius: 12px;
-      color: #3c4043;
-      cursor: pointer;
-      font-family: 'Roboto', 'Poppins', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      height: 56px;
-      letter-spacing: 0.25px;
-      outline: none;
-      overflow: hidden;
-      padding: 0 12px;
-      position: relative;
-      text-align: center;
-      transition: var(--transition);
-      vertical-align: middle;
-      white-space: nowrap;
-      width: 100%;
-      margin-bottom: 20px;
-    }
-    
-    .gsi-material-button:hover {
-      background-color: #f8f9fa;
-      box-shadow: 0 1px 3px 1px rgba(66, 64, 67, 0.15), 0 1px 2px 0 rgba(60, 64, 67, 0.3);
-      border-color: #d2e3fc;
-    }
-    
-    .gsi-material-button:active {
-      background-color: #e8f0fe;
-    }
-    
-    .gsi-material-button .gsi-material-button-icon {
-      height: 20px;
-      margin-right: 12px;
-      min-width: 20px;
-      width: 20px;
-    }
-    
-    .gsi-material-button .gsi-material-button-content-wrapper {
-      align-items: center;
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      height: 100%;
-      justify-content: center;
-      position: relative;
-      width: 100%;
-    }
-    
-    .gsi-material-button .gsi-material-button-contents {
-      flex-grow: 1;
-      font-family: 'Roboto', 'Poppins', sans-serif;
-      font-weight: 500;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      vertical-align: top;
-    }
-    
-    .divider {
-      display: flex;
-      align-items: center;
-      text-align: center;
-      margin: 25px 0;
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-    }
-    
-    .divider::before,
-    .divider::after {
-      content: '';
-      flex: 1;
-      border-bottom: 1px solid var(--border-color);
-    }
-    
-    .divider span {
-      padding: 0 15px;
-    }
-    
-    .login-link {
-      text-align: center;
-      margin-top: 25px;
-      font-size: 0.95rem;
-      color: var(--text-secondary);
-    }
-    
-    .login-link a {
-      color: var(--secondary-color);
-      text-decoration: none;
-      font-weight: 600;
-      transition: var(--transition);
-    }
-    
-    .login-link a:hover {
-      text-decoration: underline;
-      color: #fbbf24;
-    }
-    
-    @media (max-width: 480px) {
-      .signup-card { 
-        padding: 30px 25px; 
-      }
-      
-      .logo-header h1 { 
-        font-size: 2rem; 
-      }
-      
-      .input-group input {
-        padding: 14px 15px 14px 45px;
-      }
-      
-      .submit-btn,
-      .gsi-material-button {
-        height: 52px;
-      }
-    }
-    
-    /* Loading animation */
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Zo2y - Sign Up</title>
+<link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --primary-color: #4285F4;
+  --secondary-color: #f59e0b;
+  --bg-color: #0b1633;
+  --card-color: #132347;
+  --text-primary: #fff;
+  --text-secondary: #cbd5e1;
+  --border-color: rgba(255,255,255,0.1);
+  --shadow: 0 10px 30px rgba(0,0,0,0.3);
+  --transition: all 0.3s ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{
+  background: var(--bg-color);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:var(--text-primary);
+  padding:20px;
+  background-image: radial-gradient(circle at 20% 80%, rgba(66,133,244,0.1) 0%, transparent 20%),
+                  radial-gradient(circle at 80% 20%, rgba(245,158,11,0.1) 0%, transparent 20%);
+}
+.auth-container{width:100%;max-width:450px;animation:fadeIn 0.5s ease-out;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.logo-header{text-align:center;margin-bottom:30px;}
+.logo-header h1{color:var(--secondary-color);font-size:2.5rem;display:flex;align-items:center;justify-content:center;gap:10px;}
+.logo-header img{height:40px;border-radius:8px;}
+.logo-header p{color:var(--text-secondary);font-size:0.9rem;opacity:0.8;}
+.auth-card{
+  background:var(--card-color);
+  padding:40px;
+  border-radius:20px;
+  box-shadow:var(--shadow);
+  backdrop-filter: blur(10px);
+  border:1px solid rgba(255,255,255,0.05);
+}
+.auth-card h2{text-align:center;margin-bottom:30px;font-size:1.8rem;color:var(--text-primary);}
+.google-btn {
+  width: 100%;
+  padding: 16px;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: #3c4043;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.google-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); background: #f8f9fa; }
+.google-btn:disabled { opacity: .8; cursor: not-allowed; }
+.divider{display:flex;align-items:center;text-align:center;margin:25px 0;color:var(--text-secondary);font-size:0.9rem;}
+.divider::before,.divider::after{content:'';flex:1;border-bottom:1px solid var(--border-color);}
+.divider span{padding:0 15px;}
+.auth-card form{display:flex;flex-direction:column;gap:20px;margin-bottom:30px;}
+.input-group{position:relative;}
+.input-group i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--text-secondary);transition:var(--transition);}
+.input-group input{
+  width:100%;
+  padding:16px 15px 16px 50px;
+  border-radius:12px;
+  border:1px solid var(--border-color);
+  background:rgba(11,22,51,0.5);
+  color:var(--text-primary);
+  font-size:1rem;
+  outline:none;
+  transition:var(--transition);
+}
+.input-group input:focus{border-color:var(--primary-color);box-shadow:0 0 0 3px rgba(66,133,244,0.2);}
+.submit-btn{
+  padding:16px;
+  background:linear-gradient(135deg,var(--primary-color),#357ae8);
+  border:none;
+  border-radius:12px;
+  color:white;
+  font-weight:600;
+  font-size:1rem;
+  cursor:pointer;
+  transition:var(--transition);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+}
+.submit-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(66,133,244,0.4);}
+.submit-btn:disabled{opacity:0.7;cursor:not-allowed;}
+.alt-link{text-align:center;margin-top:25px;font-size:0.95rem;color:var(--text-secondary);}
+.alt-link a{color:var(--secondary-color);text-decoration:none;font-weight:600;}
+.alt-link a:hover{text-decoration:underline;color:#fbbf24;}
+.loading{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.message{padding:12px 16px;border-radius:12px;font-size:0.9rem;margin-bottom:20px;display:none;}
+.message.show{display:block;}
+.message.error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;}
+.message.success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;}
+</style>
 </head>
 <body>
-
-<div class="signup-container">
+<div class="auth-container">
   <div class="logo-header">
-    <h1>
-      <img src="images/logo.png" alt="Zo2y Logo">
-      Zo2y
-    </h1>
-    <p>Join thousands of users who trust Zo2y</p>
+    <h1><img src="images/logo.png" alt="Zo2y Logo">Zo2y</h1>
+    <p>Create your account and get started</p>
   </div>
-  
-  <div class="signup-card">
+
+  <div class="auth-card">
     <h2>Create your account</h2>
-    
-    <!-- Standard Google Sign-in Button -->
-    <button class="gsi-material-button" id="googleSignup">
-      <div class="gsi-material-button-content-wrapper">
-        <div class="gsi-material-button-icon">
-          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="display: block;">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-            <path fill="#4285F4" d="M46.5 24.5c0-1.57-.15-3.09-.38-4.5H24v9h12.64c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.68z"></path>
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-            <path fill="none" d="M0 0h48v48H0z"></path>
-          </svg>
-        </div>
-        <span class="gsi-material-button-contents">Sign up with Google</span>
-      </div>
+    <div id="errorMessage" class="message error"></div>
+    <div id="successMessage" class="message success"></div>
+
+    <button class="google-btn" id="googleAuthBtn">
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Sign up with Google
     </button>
-    
-    <div class="divider">
-      <span>or continue with email</span>
-    </div>
-    
-    <form id="signupForm">
+
+    <div class="divider"><span>or continue with email</span></div>
+
+    <form id="authForm">
       <div class="input-group">
         <i class="fas fa-user"></i>
         <input type="text" placeholder="Full Name" id="fullName" required>
       </div>
-      
       <div class="input-group">
         <i class="fas fa-envelope"></i>
         <input type="email" placeholder="Email" id="email" required>
       </div>
-      
       <div class="input-group">
         <i class="fas fa-lock"></i>
-        <input type="password" placeholder="Password" id="password" required>
+        <input type="password" placeholder="Password" id="password" required minlength="6">
       </div>
-      
-      <button type="submit" class="submit-btn" id="submitBtn">
-        <i class="fas fa-user-plus"></i>
-        <span>Create Account</span>
-      </button>
+      <button type="submit" class="submit-btn" id="submitBtn"><i class="fas fa-user-plus"></i> Create Account</button>
     </form>
-    
-    <div class="login-link">
-      Already have an account? <a href="login.html">Log in now</a>
-    </div>
+
+    <div class="alt-link">Already have an account? <a href="login.html">Log in now</a></div>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.21.0/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // Initialize Supabase
-  const supabaseUrl = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-  
-  // Wait for DOM to load
-  document.addEventListener('DOMContentLoaded', function() {
-    const signupForm = document.getElementById('signupForm');
-    const googleBtn = document.getElementById('googleSignup');
-    const submitBtn = document.getElementById('submitBtn');
-    
-    // Email/password signup
-    signupForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const fullName = document.getElementById('fullName').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const originalBtnText = submitBtn.innerHTML;
-      
-      if(!fullName || !email || !password) {
-        alert('Please fill all fields');
-        return;
-      }
-      
-      // Show loading
-      submitBtn.innerHTML = '<div class="loading"></div>';
-      submitBtn.disabled = true;
-      
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName },
-            emailRedirectTo: window.location.origin + '/index.html'
-          }
-        });
+(function () {
+  'use strict';
 
-        if(error) {
-          alert('Error: ' + error.message);
-          submitBtn.innerHTML = originalBtnText;
-          submitBtn.disabled = false;
-          return;
-        }
-        
-        // Check if user already exists
-        if(data.user && data.user.identities && data.user.identities.length === 0) {
-          alert('A user with this email already exists. Please log in instead.');
-          submitBtn.innerHTML = originalBtnText;
-          submitBtn.disabled = false;
-          return;
-        }
-        
-        if(data.session) {
-          // User is signed in (email confirmations disabled)
-          window.location.href = 'index.html';
-        } else {
-          // Email confirmation required
-          alert('🎉 Sign up successful! Please check your email for the confirmation link.');
-          submitBtn.innerHTML = originalBtnText;
-          submitBtn.disabled = false;
-          signupForm.reset();
-        }
-      } catch (err) {
-        console.error('Signup error:', err);
-        alert('An unexpected error occurred. Please try again.');
-        submitBtn.innerHTML = originalBtnText;
-        submitBtn.disabled = false;
+  const supabase = window.supabase.createClient(
+    'https://gfkhjbztayjyojsgdpgk.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s',
+    {
+      auth: {
+        flowType: 'pkce',
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
       }
-    });
-    
-    // Google OAuth signup
-    googleBtn.addEventListener('click', async () => {
-      googleBtn.disabled = true;
-      const originalText = googleBtn.innerHTML;
-      googleBtn.innerHTML = '<div class="loading"></div>';
-      
-      try {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.origin + '/auth-callback.html?next=index.html',
-            queryParams: {
-              access_type: 'offline',
-              prompt: 'consent'
-            }
-          }
-        });
-        
-        if(error) {
-          alert('Error: ' + error.message);
-          googleBtn.innerHTML = originalText;
-          googleBtn.disabled = false;
-        }
-        // If successful, Supabase will redirect automatically
-      } catch (err) {
-        console.error('Google OAuth error:', err);
-        alert('Failed to sign in with Google. Please try again.');
-        googleBtn.innerHTML = originalText;
-        googleBtn.disabled = false;
-      }
-    });
+    }
+  );
+
+  const form = document.getElementById('authForm');
+  const fullNameInput = document.getElementById('fullName');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const googleBtn = document.getElementById('googleAuthBtn');
+  const submitBtn = document.getElementById('submitBtn');
+  const errorEl = document.getElementById('errorMessage');
+  const successEl = document.getElementById('successMessage');
+
+  const googleDefaultHtml = googleBtn.innerHTML;
+  const submitDefaultHtml = submitBtn.innerHTML;
+
+  function showError(msg) {
+    errorEl.textContent = msg;
+    errorEl.classList.add('show');
+    successEl.classList.remove('show');
+  }
+
+  function showSuccess(msg) {
+    successEl.textContent = msg;
+    successEl.classList.add('show');
+    errorEl.classList.remove('show');
+  }
+
+  function clearMessages() {
+    errorEl.classList.remove('show');
+    successEl.classList.remove('show');
+  }
+
+  function setSubmitLoading(loading) {
+    submitBtn.disabled = loading;
+    submitBtn.innerHTML = loading ? '<div class="loading"></div>' : submitDefaultHtml;
+  }
+
+  function setGoogleLoading(loading, text) {
+    googleBtn.disabled = loading;
+    googleBtn.innerHTML = loading ? `<div class="loading"></div> ${text}` : googleDefaultHtml;
+  }
+
+  async function handleOAuthCallback() {
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get('error_description') || params.get('error');
+    if (oauthError) {
+      showError(`Google signup failed: ${oauthError}`);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+    const code = params.get('code');
+    if (!code) return;
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      showError(`Google signup failed: ${error.message || 'Session exchange failed'}`);
+      return;
+    }
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      showSuccess('Account ready! Redirecting...');
+      setTimeout(() => { window.location.href = 'index.html'; }, 900);
+    }
   });
-</script>
 
+  (async () => {
+    try {
+      await handleOAuthCallback();
+      const { data } = await supabase.auth.getSession();
+      if (data?.session) {
+        window.location.href = 'index.html';
+      }
+    } catch (_) {}
+  })();
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearMessages();
+
+    const fullName = fullNameInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!fullName || !email || !password) {
+      showError('All fields are required.');
+      return;
+    }
+
+    setSubmitLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: window.location.origin + '/index.html'
+        }
+      });
+      if (error) throw error;
+
+      if (data?.session) {
+        showSuccess('Account created! Redirecting...');
+        setTimeout(() => { window.location.href = 'index.html'; }, 900);
+      } else {
+        showSuccess('Sign up successful. Check your email to confirm your account.');
+      }
+    } catch (err) {
+      showError(err?.message || 'Sign up failed.');
+    } finally {
+      setSubmitLoading(false);
+    }
+  });
+
+  googleBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    clearMessages();
+    setGoogleLoading(true, 'Signing up...');
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/auth-callback.html?next=index.html',
+          queryParams: { access_type: 'offline', prompt: 'consent' }
+        }
+      });
+      if (error) throw error;
+    } catch (err) {
+      showError(err?.message || 'Google signup failed.');
+      setGoogleLoading(false);
+    }
+  });
+})();
+</script>
 </body>
 </html>
