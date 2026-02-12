@@ -1243,26 +1243,41 @@
 
     async function initUniversalHome() {
       setStatus('Loading universal feed...', false);
-      const [restaurants, movies, tv, games, books] = await Promise.all([
-        loadRestaurants().catch(() => []),
-        loadMovies().catch(() => []),
-        loadTv().catch(() => []),
-        loadGames().catch(() => []),
-        loadBooks().catch(() => [])
-      ]);
 
-      renderRail('restaurantsRail', restaurants, { landscape: true, sectionHref: 'restraunts.html', typeName: 'restaurant', mediaType: 'restaurant' });
-      renderRail('moviesRail', movies, { landscape: false, sectionHref: 'movies.html', typeName: 'movie', mediaType: 'movie' });
-      renderRail('tvRail', tv, { landscape: false, sectionHref: 'tvshows.html', typeName: 'TV show', mediaType: 'tv' });
-      renderRail('gamesRail', games, { landscape: false, sectionHref: 'games.html', typeName: 'game', mediaType: 'game' });
-      renderRail('booksRail', books, { landscape: false, sectionHref: 'books.html', typeName: 'book', mediaType: 'book' });
+      const rails = [
+        { railId: 'restaurantsRail', loader: loadRestaurants, opts: { landscape: true, sectionHref: 'restraunts.html', typeName: 'restaurant', mediaType: 'restaurant' } },
+        { railId: 'moviesRail', loader: loadMovies, opts: { landscape: false, sectionHref: 'movies.html', typeName: 'movie', mediaType: 'movie' } },
+        { railId: 'tvRail', loader: loadTv, opts: { landscape: false, sectionHref: 'tvshows.html', typeName: 'TV show', mediaType: 'tv' } },
+        { railId: 'gamesRail', loader: loadGames, opts: { landscape: false, sectionHref: 'games.html', typeName: 'game', mediaType: 'game' } },
+        { railId: 'booksRail', loader: loadBooks, opts: { landscape: false, sectionHref: 'books.html', typeName: 'book', mediaType: 'book' } }
+      ];
 
-      const loaded = [restaurants, movies, tv, games, books].filter(x => x.length > 0).length;
-      if (!loaded) {
-        setStatus('Could not load feeds right now. Use top tabs to browse directly.', true);
-        return;
-      }
-      setStatus('Universal feed ready.', false);
+      let completed = 0;
+      let successful = 0;
+
+      rails.forEach((section) => {
+        section.loader()
+          .then((items) => {
+            const list = Array.isArray(items) ? items : [];
+            renderRail(section.railId, list, section.opts);
+            if (list.length > 0) successful += 1;
+          })
+          .catch(() => {
+            renderRail(section.railId, [], section.opts);
+          })
+          .finally(() => {
+            completed += 1;
+            if (completed < rails.length) {
+              setStatus(`Loading feed... ${completed}/${rails.length}`, false);
+              return;
+            }
+            if (!successful) {
+              setStatus('Could not load feeds right now. Use top tabs to browse directly.', true);
+              return;
+            }
+            setStatus('Universal feed ready.', false);
+          });
+      });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
