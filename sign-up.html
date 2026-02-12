@@ -291,6 +291,7 @@ body {
   const emailInput = document.getElementById('email');
   const passwordInput = document.getElementById('password');
   const googleSignup = document.getElementById('googleSignup');
+  const googleSignupDefaultHtml = googleSignup ? googleSignup.innerHTML : '';
   const submitBtn = document.getElementById('submitBtn');
   const errorMessage = document.getElementById('errorMessage');
   const successMessage = document.getElementById('successMessage');
@@ -427,9 +428,11 @@ body {
   async function handleOAuthCallback() {
     try {
       const params = new URLSearchParams(window.location.search);
-      const oauthError = params.get('error_description') || params.get('error');
-      if (oauthError) {
-        showError(`Google signup failed: ${oauthError}`);
+      const errorDesc = params.get('error_description');
+      const oauthError = params.get('error');
+      if (errorDesc || oauthError) {
+        showError(`Google signup failed: ${errorDesc || oauthError}`);
+        window.history.replaceState({}, document.title, window.location.pathname);
         return;
       }
       const code = params.get('code');
@@ -535,9 +538,12 @@ body {
   });
   
   // Google signup
-  googleSignup.addEventListener('click', async () => {
+  googleSignup.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     try {
-      showLoading();
+      googleSignup.disabled = true;
+      googleSignup.innerHTML = '<div class="loading"></div> Signing up...';
       log('Starting Google OAuth...', 'info');
       
       const oauthCallback = `${window.location.origin}/sign-up.html`;
@@ -548,20 +554,23 @@ body {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
-          }
+          },
+          skipBrowserRedirect: false
         }
       });
       
       if (error) {
         log(`Google OAuth error: ${error.message}`, 'error');
         showError('Google signup failed: ' + error.message);
-        hideLoading();
+        googleSignup.disabled = false;
+        googleSignup.innerHTML = googleSignupDefaultHtml;
       }
       
     } catch (error) {
       log(`Google error: ${error.message}`, 'error');
       showError('Google signup failed. Please try again.');
-      hideLoading();
+      googleSignup.disabled = false;
+      googleSignup.innerHTML = googleSignupDefaultHtml;
     }
   });
   

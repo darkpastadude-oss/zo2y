@@ -254,6 +254,7 @@ body{
   const emailInput = document.getElementById('email');
   const passwordInput = document.getElementById('password');
   const googleLogin = document.getElementById('googleLogin');
+  const googleLoginDefaultHtml = googleLogin ? googleLogin.innerHTML : '';
   const loginBtn = document.getElementById('loginBtn');
   const errorMessage = document.getElementById('errorMessage');
   const successMessage = document.getElementById('successMessage');
@@ -422,9 +423,11 @@ body{
   async function handleOAuthCallback() {
     try {
       const params = new URLSearchParams(window.location.search);
-      const oauthError = params.get('error_description') || params.get('error');
-      if (oauthError) {
-        showError(`Google login failed: ${oauthError}`);
+      const errorDesc = params.get('error_description');
+      const oauthError = params.get('error');
+      if (errorDesc || oauthError) {
+        showError(`Google login failed: ${errorDesc || oauthError}`);
+        window.history.replaceState({}, document.title, window.location.pathname);
         return;
       }
       const code = params.get('code');
@@ -516,9 +519,12 @@ body{
   });
   
   // ✅ Google login
-  googleLogin.addEventListener('click', async () => {
+  googleLogin.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     try {
-      showLoading();
+      googleLogin.disabled = true;
+      googleLogin.innerHTML = '<div class="loading"></div> Signing in...';
       
       const oauthCallback = `${window.location.origin}/login.html`;
       const { error } = await supabase.auth.signInWithOAuth({
@@ -528,7 +534,8 @@ body{
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
-          }
+          },
+          skipBrowserRedirect: false
         }
       });
       
@@ -539,12 +546,15 @@ body{
         } else {
           throw error;
         }
+        googleLogin.disabled = false;
+        googleLogin.innerHTML = googleLoginDefaultHtml;
       }
       
     } catch (error) {
       console.error('Google login error:', error);
       showError('Google login failed. Please try again.');
-      hideLoading();
+      googleLogin.disabled = false;
+      googleLogin.innerHTML = googleLoginDefaultHtml;
     }
   });
   
