@@ -6,6 +6,12 @@
   const RAWG_KEY = '83b2a55ac54c4c1db7099212e740f680';
   const GOOGLE_BOOKS_KEY = 'AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s';
 
+  function toHttpsUrl(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    return raw.replace(/^http:\/\//i, 'https://');
+  }
+
   let supabaseClient = null;
 
   function ensureStyles() {
@@ -128,7 +134,14 @@
   async function fetchRestaurants(query) {
     if (!window.supabase || !window.supabase.createClient) return [];
     if (!supabaseClient) {
-      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      supabaseClient = window.__zo2ySupabaseClient || window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: false
+        }
+      });
+      window.__zo2ySupabaseClient = supabaseClient;
     }
     const { data } = await supabaseClient
       .from('restraunts')
@@ -140,7 +153,7 @@
       title: r.name || 'Restaurant',
       sub: r.category || 'Restaurant',
       href: r.id ? `restaurant.html?id=${encodeURIComponent(r.id)}` : 'restraunts.html',
-      image: r.image ? `images/${r.image}` : '',
+      image: r.image ? toHttpsUrl(`images/${r.image}`) : '',
       landscape: true
     }));
   }
@@ -161,7 +174,7 @@
           title: item.title || 'Movie',
           sub: item.release_date ? item.release_date.slice(0, 4) : 'Movie',
           href: item.id ? `movie.html?id=${encodeURIComponent(item.id)}` : 'movies.html',
-          image: item.poster_path ? `${TMDB_POSTER}${item.poster_path}` : '',
+          image: item.poster_path ? toHttpsUrl(`${TMDB_POSTER}${item.poster_path}`) : '',
           landscape: false
         });
       }
@@ -171,7 +184,7 @@
           title: item.name || 'TV Show',
           sub: item.first_air_date ? item.first_air_date.slice(0, 4) : 'TV Show',
           href: item.id ? `tvshow.html?id=${encodeURIComponent(item.id)}` : 'tvshows.html',
-          image: item.poster_path ? `${TMDB_POSTER}${item.poster_path}` : '',
+          image: item.poster_path ? toHttpsUrl(`${TMDB_POSTER}${item.poster_path}`) : '',
           landscape: false
         });
       }
@@ -189,7 +202,7 @@
       title: g.name || 'Game',
       sub: g.released ? g.released.slice(0, 4) : 'Game',
       href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html',
-      image: g.background_image || '',
+      image: toHttpsUrl(g.background_image || ''),
       landscape: true
     }));
   }
@@ -207,7 +220,7 @@
         title: info.title || 'Book',
         sub: author,
         href: item.id ? `book.html?id=${encodeURIComponent(item.id)}` : 'books.html',
-        image: info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '',
+        image: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
         landscape: false
       };
     });
