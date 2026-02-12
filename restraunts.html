@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Zo2y — All Restaurants</title>
+  <title>Zo2y â€” All Restaurants</title>
   
   <!-- OPTIMIZATION: Preconnect to external resources -->
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
@@ -42,7 +42,7 @@
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.zo2y.com/restraunts.html">
-  <meta property="og:title" content="Zo2y — All Restaurants">
+  <meta property="og:title" content="Zo2y â€” All Restaurants">
   <meta property="og:description" content="Browse all restaurants on Zo2y. Discover hidden gems and local favorites based on authentic reviews.">
   <meta property="og:image" content="https://www.zo2y.com/images/logo.png">
   <meta property="og:image:width" content="1200">
@@ -52,13 +52,14 @@
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://www.zo2y.com/restraunts.html">
-  <meta property="twitter:title" content="Zo2y — All Restaurants">
+  <meta property="twitter:title" content="Zo2y â€” All Restaurants">
   <meta property="twitter:description" content="Browse all restaurants on Zo2y. Discover hidden gems and local favorites based on authentic reviews.">
   <meta property="twitter:image" content="https://www.zo2y.com/images/logo.png">
   <meta property="twitter:image:alt" content="Zo2y Logo">
 
   <!-- OPTIMIZATION: Async load external scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/universal-search.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
@@ -1480,7 +1481,7 @@
   }
 
   .list-checkbox.checked::after {
-    content: "✓";
+    content: "âœ“";
     color: #0b1633;
     font-size: 12px;
     font-weight: bold;
@@ -1977,9 +1978,9 @@ header, .top-stripe, .section-nav {
     <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'">
     <div class="toolbar">
       <div class="search-wrapper">
-        <span class="search-icon">🔎</span>
+        <span class="search-icon">ðŸ”Ž</span>
         <input type="text" id="search" class="search" placeholder="Search restaurants..." aria-label="Search restaurants">
-        <button class="clear-search" id="clearSearch" aria-label="Clear search">✕</button>
+        <button class="clear-search" id="clearSearch" aria-label="Clear search">âœ•</button>
       </div>
       <button class="btn" id="resetFilters">Clear Filters</button>
       <button class="btn btn-primary" id="authBtn">Sign In</button>
@@ -1995,9 +1996,9 @@ header, .top-stripe, .section-nav {
     <!-- Quick Filters -->
     <div class="quick-filters" id="quickFilters">
       <button class="filter-chip active" data-filter="all">All Restaurants</button>
-      <button class="filter-chip" data-filter="trending">🔥 Trending</button>
-      <button class="filter-chip" data-filter="top-rated">⭐ Top Rated</button>
-      <button class="filter-chip" data-filter="new">🆕 New</button>
+      <button class="filter-chip" data-filter="trending">ðŸ”¥ Trending</button>
+      <button class="filter-chip" data-filter="top-rated">â­ Top Rated</button>
+      <button class="filter-chip" data-filter="new">ðŸ†• New</button>
     </div>
     
     <div class="controls">
@@ -2099,7 +2100,7 @@ header, .top-stripe, .section-nav {
     <div class="custom-lists-content">
       <div class="lists-header">
         <h3><i class="fas fa-list"></i> Custom Lists</h3>
-        <button class="close-lists-btn" id="closeListsBtn">×</button>
+        <button class="close-lists-btn" id="closeListsBtn">Ã—</button>
       </div>
       
       <div class="lists-list-container" id="listsListContainer">
@@ -2115,14 +2116,14 @@ header, .top-stripe, .section-nav {
           <button class="cancel-edit-btn" id="cancelEditListBtn" type="button">Cancel</button>
         </div>
         <div class="list-icon-options" id="newListIconOptions">
-          <div class="list-icon-option selected" data-icon="📋">📋</div>
-          <div class="list-icon-option" data-icon="❤️">❤️</div>
-          <div class="list-icon-option" data-icon="⭐">⭐</div>
-          <div class="list-icon-option" data-icon="📍">📍</div>
-          <div class="list-icon-option" data-icon="🍽️">🍽️</div>
-          <div class="list-icon-option" data-icon="🔥">🔥</div>
+          <div class="list-icon-option selected" data-icon="ðŸ“‹">ðŸ“‹</div>
+          <div class="list-icon-option" data-icon="â¤ï¸">â¤ï¸</div>
+          <div class="list-icon-option" data-icon="â­">â­</div>
+          <div class="list-icon-option" data-icon="ðŸ“">ðŸ“</div>
+          <div class="list-icon-option" data-icon="ðŸ½ï¸">ðŸ½ï¸</div>
+          <div class="list-icon-option" data-icon="ðŸ”¥">ðŸ”¥</div>
         </div>
-        <input type="hidden" id="newListIcon" value="📋">
+        <input type="hidden" id="newListIcon" value="ðŸ“‹">
         <div class="lists-actions">
           <button class="lists-save-btn" id="saveListsBtn">Save Changes</button>
         </div>
@@ -2177,7 +2178,7 @@ header, .top-stripe, .section-nav {
               detectSessionInUrl: true
             }
           });
-          console.log('✅ Supabase client initialized');
+          console.log('âœ… Supabase client initialized');
           return true;
         }
         return false;
@@ -2215,21 +2216,21 @@ header, .top-stripe, .section-nav {
           },
           
           async init() { 
-            console.log('🔄 Initializing list manager...');
+            console.log('ðŸ”„ Initializing list manager...');
             if (!state.isLoggedIn || !state.currentUser || !supabase) {
-              console.log('❌ List manager not initialized: Not logged in');
+              console.log('âŒ List manager not initialized: Not logged in');
               return;
             }
             
             await this.loadUserLists();
             // Load all restaurant statuses immediately - CRITICAL OPTIMIZATION
             await this.loadAllRestaurantStatuses();
-            console.log('✅ List manager initialized');
+            console.log('âœ… List manager initialized');
           },
           
           async loadUserLists() {
             try {
-              console.log('📋 Loading user lists...');
+              console.log('ðŸ“‹ Loading user lists...');
               if (!state.currentUser || !supabase) return;
 
               const { data: lists, error } = await supabase
@@ -2243,7 +2244,7 @@ header, .top-stripe, .section-nav {
               this.customLists = this.userLists.filter(list => 
                 !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
               );
-              console.log(`📋 Found ${this.userLists.length} lists (${this.customLists.length} custom)`);
+              console.log(`ðŸ“‹ Found ${this.userLists.length} lists (${this.customLists.length} custom)`);
               
               await this.setupDefaultLists();
               await this.loadListRestaurants();
@@ -2281,7 +2282,7 @@ header, .top-stripe, .section-nav {
                   user_id: state.currentUser.id,
                   title: title,
                   description: description,
-                  icon: '📋',
+                  icon: 'ðŸ“‹',
                   is_default: title === 'Favorites' || title === 'Visited' || title === 'Want to Go'
                 }
               ])
@@ -2336,9 +2337,9 @@ header, .top-stripe, .section-nav {
           
           // NEW: Load all restaurant statuses at once - CRITICAL OPTIMIZATION
           async loadAllRestaurantStatuses() {
-            console.log('📊 Loading all restaurant statuses...');
+            console.log('ðŸ“Š Loading all restaurant statuses...');
             if (!supabase || !state.isLoggedIn || !state.currentUser) {
-              console.log('❌ Cannot load statuses: Not authenticated');
+              console.log('âŒ Cannot load statuses: Not authenticated');
               return;
             }
             
@@ -2352,7 +2353,7 @@ header, .top-stripe, .section-nav {
               ].filter(Boolean);
               
               if (listIds.length === 0) {
-                console.log('📊 No lists found for user');
+                console.log('ðŸ“Š No lists found for user');
                 // Initialize empty statuses for all restaurants
                 state.restaurants.forEach(restaurant => {
                   state.restaurantListStatuses.set(restaurant.id, {
@@ -2414,14 +2415,14 @@ header, .top-stripe, .section-nav {
                   status.customLists.push({
                     id: customList.id,
                     name: customList.title,
-                    icon: customList.icon || '📋'
+                    icon: customList.icon || 'ðŸ“‹'
                   });
                 }
                 
                 state.restaurantListStatuses.set(restaurantId, status);
               });
               
-              console.log(`✅ Loaded list statuses for ${state.restaurantListStatuses.size} restaurants`);
+              console.log(`âœ… Loaded list statuses for ${state.restaurantListStatuses.size} restaurants`);
               
               // Immediately update all UI elements
               renderRestaurants();
@@ -2530,7 +2531,7 @@ header, .top-stripe, .section-nav {
                     currentStatus.customLists.push({
                       id: list.id,
                       name: list.title,
-                      icon: list.icon || '📋'
+                      icon: list.icon || 'ðŸ“‹'
                     });
                   }
                 } else {
@@ -2669,7 +2670,7 @@ header, .top-stripe, .section-nav {
         });
       }
       async function ensureUserProfileExists(user, retries = 3) {
-        console.log('🔍 Ensuring profile exists for:', user.id);
+        console.log('ðŸ” Ensuring profile exists for:', user.id);
         
         if (!supabase) return false;
         
@@ -2688,7 +2689,7 @@ header, .top-stripe, .section-nav {
               .maybeSingle();
             
             if (profile) {
-              console.log('✅ Profile exists:', profile);
+              console.log('âœ… Profile exists:', profile);
               return true;
             }
             
@@ -2696,7 +2697,7 @@ header, .top-stripe, .section-nav {
               console.error('Profile check error:', checkError);
             }
             
-            console.log('📝 Creating profile for user...');
+            console.log('ðŸ“ Creating profile for user...');
             
             const userData = user.user_metadata || {};
             const email = user.email || '';
@@ -2718,7 +2719,7 @@ header, .top-stripe, .section-nav {
               id: user.id,
               username: username,
               full_name: userData.full_name || userData.name || username,
-              avatar_icon: '🍔',
+              avatar_icon: 'ðŸ”',
               bio: '',
               location: '',
               is_private: false
@@ -2733,7 +2734,7 @@ header, .top-stripe, .section-nav {
               .maybeSingle();
             
             if (createError) {
-              console.error('❌ Profile creation error:', createError);
+              console.error('âŒ Profile creation error:', createError);
               
               if (createError.code === '23505') {
                 console.log('Profile already exists (created by trigger)');
@@ -2748,7 +2749,7 @@ header, .top-stripe, .section-nav {
             }
             
             if (newProfile) {
-              console.log('✅ Profile created successfully:', newProfile);
+              console.log('âœ… Profile created successfully:', newProfile);
               return true;
             }
             
@@ -2798,7 +2799,7 @@ header, .top-stripe, .section-nav {
       }
       // ---------- OPTIMIZED RESTAURANT DATA LOADING ----------
       async function loadRestaurantsData() {
-        console.log('🍽️ Loading restaurant data...');
+        console.log('ðŸ½ï¸ Loading restaurant data...');
         
         if (!supabase) {
           console.error('Supabase client not initialized');
@@ -2834,7 +2835,7 @@ header, .top-stripe, .section-nav {
               isCloudKitchen: state.cloudKitchens.has(restaurant.id)
             }));
             
-            console.log(`✅ Loaded ${state.restaurants.length} restaurants`);
+            console.log(`âœ… Loaded ${state.restaurants.length} restaurants`);
             
             // Initialize empty statuses for all restaurants
             state.restaurants.forEach(restaurant => {
@@ -2865,7 +2866,7 @@ header, .top-stripe, .section-nav {
           }
           
         } catch (error) {
-          console.error('❌ Error loading restaurants:', error);
+          console.error('âŒ Error loading restaurants:', error);
           showNotification('Failed to load restaurants', 'error');
           showEmptyState();
         }
@@ -3033,16 +3034,16 @@ header, .top-stripe, .section-nav {
       function createFallbackCategories() {
         state.categories.clear();
         const fallbackCategories = [
-          { id: 1, name: 'Burgers', slug: 'burgers', icon: '🍔', sort_order: 1 },
-          { id: 2, name: 'Chicken', slug: 'chicken', icon: '🍗', sort_order: 2 },
-          { id: 3, name: 'Middle Eastern', slug: 'middle-eastern', icon: '🥙', sort_order: 3 },
-          { id: 4, name: 'Pizza', slug: 'pizza', icon: '🍕', sort_order: 4 },
-          { id: 5, name: 'Asian', slug: 'asian', icon: '🍜', sort_order: 5 },
-          { id: 6, name: 'Mexican', slug: 'mexican', icon: '🌮', sort_order: 6 },
-          { id: 7, name: 'Cafe & Bakery', slug: 'cafe-bakery', icon: '☕', sort_order: 7 },
-          { id: 8, name: 'Fast Food', slug: 'fast-food', icon: '🍟', sort_order: 8 },
-          { id: 9, name: 'Seafood', slug: 'seafood', icon: '🐟', sort_order: 9 },
-          { id: 10, name: 'International', slug: 'international', icon: '🌍', sort_order: 10 }
+          { id: 1, name: 'Burgers', slug: 'burgers', icon: 'ðŸ”', sort_order: 1 },
+          { id: 2, name: 'Chicken', slug: 'chicken', icon: 'ðŸ—', sort_order: 2 },
+          { id: 3, name: 'Middle Eastern', slug: 'middle-eastern', icon: 'ðŸ¥™', sort_order: 3 },
+          { id: 4, name: 'Pizza', slug: 'pizza', icon: 'ðŸ•', sort_order: 4 },
+          { id: 5, name: 'Asian', slug: 'asian', icon: 'ðŸœ', sort_order: 5 },
+          { id: 6, name: 'Mexican', slug: 'mexican', icon: 'ðŸŒ®', sort_order: 6 },
+          { id: 7, name: 'Cafe & Bakery', slug: 'cafe-bakery', icon: 'â˜•', sort_order: 7 },
+          { id: 8, name: 'Fast Food', slug: 'fast-food', icon: 'ðŸŸ', sort_order: 8 },
+          { id: 9, name: 'Seafood', slug: 'seafood', icon: 'ðŸŸ', sort_order: 9 },
+          { id: 10, name: 'International', slug: 'international', icon: 'ðŸŒ', sort_order: 10 }
         ];
         
         fallbackCategories.forEach(cat => {
@@ -3067,7 +3068,7 @@ header, .top-stripe, .section-nav {
         sortedCategories.forEach(cat => {
           const option = document.createElement('option');
           option.value = cat.id;
-          option.textContent = `${cat.icon || '🍴'} ${cat.name}`;
+          option.textContent = `${cat.icon || 'ðŸ´'} ${cat.name}`;
           select.appendChild(option);
         });
       }
@@ -3132,7 +3133,7 @@ header, .top-stripe, .section-nav {
         if (status.favorites) {
           listBadges += `
             <div class="list-badge">
-              ❤️
+              â¤ï¸
               <div class="list-badge-tooltip">Favorited</div>
             </div>
           `;
@@ -3141,7 +3142,7 @@ header, .top-stripe, .section-nav {
         if (status.wantToGo) {
           listBadges += `
             <div class="list-badge">
-              📍
+              ðŸ“
               <div class="list-badge-tooltip">Want to go to</div>
             </div>
           `;
@@ -3150,7 +3151,7 @@ header, .top-stripe, .section-nav {
         if (status.visited) {
           listBadges += `
             <div class="list-badge">
-              ✓
+              âœ“
               <div class="list-badge-tooltip">Visited</div>
             </div>
           `;
@@ -3163,7 +3164,7 @@ header, .top-stripe, .section-nav {
           const firstList = status.customLists[0];
           listBadges += `
             <div class="list-badge">
-              ${firstList.icon || '📋'}
+              ${firstList.icon || 'ðŸ“‹'}
               <div class="list-badge-tooltip">
                 <strong>${firstList.name}</strong>
                 ${customListCount > 1 ? `<br>+ ${customListCount - 1} more list${customListCount > 2 ? 's' : ''}` : ''}
@@ -3258,23 +3259,23 @@ header, .top-stripe, .section-nav {
       
       function getCategoryIconFallback(categoryName) {
         const icons = {
-          'Burgers': '🍔',
-          'Chicken': '🍗',
-          'Middle Eastern': '🥙',
-          'Pizza': '🍕',
-          'Asian': '🍜',
-          'Mexican': '🌮',
-          'Cafe & Bakery': '☕',
-          'Fast Food': '🍟',
-          'Seafood': '🐟',
-          'Breakfast': '🥞',
-          'Desserts': '🍰',
-          'Indian': '🍛',
-          'BBQ & Ribs': '🥩',
-          'International': '🌍'
+          'Burgers': 'ðŸ”',
+          'Chicken': 'ðŸ—',
+          'Middle Eastern': 'ðŸ¥™',
+          'Pizza': 'ðŸ•',
+          'Asian': 'ðŸœ',
+          'Mexican': 'ðŸŒ®',
+          'Cafe & Bakery': 'â˜•',
+          'Fast Food': 'ðŸŸ',
+          'Seafood': 'ðŸŸ',
+          'Breakfast': 'ðŸ¥ž',
+          'Desserts': 'ðŸ°',
+          'Indian': 'ðŸ›',
+          'BBQ & Ribs': 'ðŸ¥©',
+          'International': 'ðŸŒ'
         };
         
-        return icons[categoryName] || '🍴';
+        return icons[categoryName] || 'ðŸ´';
       }
       
       // ---------- FILTERING & SORTING ----------
@@ -3633,7 +3634,7 @@ header, .top-stripe, .section-nav {
         notification.innerHTML = `
           <i class="notification-icon ${iconClass}"></i>
           <span class="notification-message">${message}</span>
-          <button class="notification-close" aria-label="Close notification">×</button>
+          <button class="notification-close" aria-label="Close notification">Ã—</button>
         `;
         
         container.appendChild(notification);
@@ -3749,7 +3750,7 @@ header, .top-stripe, .section-nav {
 
         function setSelectedIcon(icon) {
           if (!newListIconInput) return;
-          newListIconInput.value = icon || '📋';
+          newListIconInput.value = icon || 'ðŸ“‹';
           if (iconOptions && iconOptions.length > 0) {
             iconOptions.forEach(option => {
               option.classList.toggle('selected', option.getAttribute('data-icon') === newListIconInput.value);
@@ -3759,7 +3760,7 @@ header, .top-stripe, .section-nav {
 
         function resetListForm() {
           if (newListNameInput) newListNameInput.value = '';
-          setSelectedIcon('📋');
+          setSelectedIcon('ðŸ“‹');
           editingListId = null;
           if (createListBtn) {
             createListBtn.innerHTML = '<i class="fas fa-plus"></i> Create';
@@ -3773,7 +3774,7 @@ header, .top-stripe, .section-nav {
           if (!list || !newListNameInput) return;
           editingListId = list.id;
           newListNameInput.value = list.title || '';
-          setSelectedIcon(list.icon || '📋');
+          setSelectedIcon(list.icon || 'ðŸ“‹');
           if (createListBtn) {
             createListBtn.innerHTML = '<i class="fas fa-save"></i> Update';
           }
@@ -3880,7 +3881,7 @@ header, .top-stripe, .section-nav {
             
             listItem.innerHTML = `
               <div class="list-info">
-                <div class="list-icon">${list.icon || '📋'}</div>
+                <div class="list-icon">${list.icon || 'ðŸ“‹'}</div>
                 <div class="list-name">${list.title}</div>
               </div>
               <div class="list-actions">
@@ -3927,7 +3928,7 @@ header, .top-stripe, .section-nav {
               return;
             }
 
-            const selectedIcon = newListIconInput?.value || '📋';
+            const selectedIcon = newListIconInput?.value || 'ðŸ“‹';
             const existingList = state.listManager.customLists.find(list => 
               list.title?.toLowerCase() === listName.toLowerCase() && list.id !== editingListId
             );
@@ -4057,7 +4058,7 @@ header, .top-stripe, .section-nav {
       
       // ---------- EVENT LISTENERS ----------
       function setupEventListeners() {
-        console.log('🔧 Setting up event listeners...');
+        console.log('ðŸ”§ Setting up event listeners...');
         
         const searchInput = document.getElementById('search');
         const clearSearchBtn = document.getElementById('clearSearch');
@@ -4329,11 +4330,11 @@ header, .top-stripe, .section-nav {
       
       // ---------- OPTIMIZED INIT FUNCTION ----------
       async function init() {
-        console.log('🚀 Initializing restaurants page...');
+        console.log('ðŸš€ Initializing restaurants page...');
         
         // Wait for Supabase to load first
         if (!initSupabase()) {
-          console.warn('⚠️ Supabase not loaded yet, retrying...');
+          console.warn('âš ï¸ Supabase not loaded yet, retrying...');
           setTimeout(init, 100);
           return;
         }
@@ -4341,6 +4342,9 @@ header, .top-stripe, .section-nav {
         try {
           // OPTIMIZATION: Parallel initialization
           setupEventListeners();
+          if (window.initUniversalSearch) {
+            window.initUniversalSearch({ input: '#search', fallbackRoute: null });
+          }
           
           
           showLoadingSkeleton();
@@ -4351,10 +4355,10 @@ header, .top-stripe, .section-nav {
             loadRestaurantsData()
           ]);
           
-          console.log('✅ Restaurants page initialization complete');
+          console.log('âœ… Restaurants page initialization complete');
           
         } catch (error) {
-          console.error('❌ Initialization error:', error);
+          console.error('âŒ Initialization error:', error);
           showNotification('Failed to initialize page', 'error');
           
           const grid = document.getElementById('restaurantGrid');
@@ -4376,6 +4380,9 @@ header, .top-stripe, .section-nav {
   </script>
 </body>
 </html>
+
+
+
 
 
 

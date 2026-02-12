@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/universal-search.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
@@ -298,6 +299,13 @@
     }
 
     .card-meta { padding: 9px; }
+    .card-meta-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
 
     .card-name {
       font-size: 13px;
@@ -308,7 +316,7 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
       min-height: 36px;
-      margin-bottom: 5px;
+      margin-bottom: 0;
     }
 
     .card-sub {
@@ -317,6 +325,69 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .card-menu-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .card-menu-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(19, 35, 71, 0.92);
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .card-menu-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .rail-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      min-width: 170px;
+      border-radius: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 8px;
+      display: none;
+      z-index: 20;
+    }
+
+    .rail-menu.open {
+      display: block;
+    }
+
+    .rail-menu-item {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--white);
+      border-radius: 8px;
+      padding: 8px 9px;
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      margin-bottom: 6px;
+    }
+
+    .rail-menu-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .rail-menu-item:hover {
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
     .empty {
@@ -371,7 +442,7 @@
         <a class="btn" href="restraunts.html">Restaurants</a>
         <a class="btn" href="login.html" id="loginBtn">Login</a>
         <a class="btn btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
-        <a class="btn" href="profile.html" id="profileBtn">Profile</a>
+        <a class="btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
       </div>
     </div>
   </header>
@@ -480,23 +551,65 @@
       }
 
       const landscape = !!opts.landscape;
+      const sectionHref = opts.sectionHref || '#';
+      const typeName = opts.typeName || 'item';
       rail.innerHTML = items.map(item => {
         const title = escapeHtml(item.title);
         const subtitle = escapeHtml(item.subtitle);
         const image = item.image || '';
         const href = item.href || '#';
         return `
-          <a class="card" href="${href}">
+          <article class="card" data-href="${href}">
             <div class="card-media ${landscape ? 'landscape' : ''}">
               ${image ? `<img src="${image}" alt="${title}" loading="lazy">` : '<i class="fa-solid fa-image"></i>'}
             </div>
             <div class="card-meta">
-              <p class="card-name">${title}</p>
+              <div class="card-meta-top">
+                <p class="card-name">${title}</p>
+                <div class="card-menu-wrap">
+                  <button class="card-menu-btn" aria-label="More actions"><i class="fas fa-ellipsis-v"></i></button>
+                  <div class="rail-menu">
+                    <button class="rail-menu-item" data-href="${href}"><i class="fas fa-arrow-up-right-from-square"></i> Open ${typeName}</button>
+                    <button class="rail-menu-item" data-href="${sectionHref}"><i class="fas fa-layer-group"></i> Open ${typeName} page</button>
+                  </div>
+                </div>
+              </div>
               <p class="card-sub">${subtitle}</p>
             </div>
-          </a>
+          </article>
         `;
       }).join('');
+
+      wireHomeCardMenus(rail);
+    }
+
+    function wireHomeCardMenus(scope) {
+      scope.querySelectorAll('.card').forEach((card) => {
+        const href = card.getAttribute('data-href');
+        card.onclick = (e) => {
+          if (e.target.closest('.card-menu-btn') || e.target.closest('.rail-menu')) return;
+          if (href) window.location.href = href;
+        };
+      });
+
+      scope.querySelectorAll('.card-menu-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const menu = btn.parentElement.querySelector('.rail-menu');
+          document.querySelectorAll('.rail-menu.open').forEach((m) => {
+            if (m !== menu) m.classList.remove('open');
+          });
+          if (menu) menu.classList.toggle('open');
+        });
+      });
+
+      scope.querySelectorAll('.rail-menu-item').forEach((item) => {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const href = item.getAttribute('data-href');
+          if (href) window.location.href = href;
+        });
+      });
     }
 
     async function initAuthUi() {
@@ -507,13 +620,27 @@
       const profileBtn = document.getElementById('profileBtn');
       try {
         const { data } = await client.auth.getSession();
-        const isLoggedIn = !!data?.session?.user;
+        const user = data?.session?.user || null;
+        const isLoggedIn = !!user;
         if (isLoggedIn) {
           loginBtn.style.display = 'none';
-          signupBtn.textContent = 'Open Profile';
-          signupBtn.href = 'profile.html';
+          signupBtn.style.display = 'none';
+          let label = 'Profile';
+          try {
+            const { data: profile } = await client
+              .from('user_profiles')
+              .select('username, display_name, full_name')
+              .eq('id', user.id)
+              .single();
+            const raw = profile?.username || profile?.display_name || profile?.full_name || '';
+            const clean = String(raw || '').trim();
+            if (clean) label = clean.startsWith('@') ? clean : `@${clean}`;
+          } catch (_profileErr) {}
+          profileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
           profileBtn.style.display = 'inline-flex';
         } else {
+          loginBtn.style.display = 'inline-flex';
+          signupBtn.style.display = 'inline-flex';
           profileBtn.style.display = 'none';
         }
       } catch (_e) {
@@ -611,11 +738,11 @@
         loadBooks().catch(() => [])
       ]);
 
-      renderRail('restaurantsRail', restaurants, { landscape: true });
-      renderRail('moviesRail', movies, { landscape: false });
-      renderRail('tvRail', tv, { landscape: false });
-      renderRail('gamesRail', games, { landscape: true });
-      renderRail('booksRail', books, { landscape: false });
+      renderRail('restaurantsRail', restaurants, { landscape: true, sectionHref: 'restraunts.html', typeName: 'restaurant' });
+      renderRail('moviesRail', movies, { landscape: false, sectionHref: 'movies.html', typeName: 'movie' });
+      renderRail('tvRail', tv, { landscape: false, sectionHref: 'tvshows.html', typeName: 'TV show' });
+      renderRail('gamesRail', games, { landscape: true, sectionHref: 'games.html', typeName: 'game' });
+      renderRail('booksRail', books, { landscape: false, sectionHref: 'books.html', typeName: 'book' });
 
       const loaded = [restaurants, movies, tv, games, books].filter(x => x.length > 0).length;
       if (!loaded) {
@@ -625,21 +752,19 @@
       setStatus('Universal feed ready.', false);
     }
 
-    function setupSearch() {
-      const input = document.getElementById('globalSearch');
-      if (!input) return;
-      input.addEventListener('keydown', (e) => {
-        if (e.key !== 'Enter') return;
-        const q = input.value.trim();
-        if (!q) return;
-        window.location.href = `restraunts.html?search=${encodeURIComponent(q)}`;
-      });
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
       initAuthUi();
       initUniversalHome();
-      setupSearch();
+      if (window.initUniversalSearch) {
+        window.initUniversalSearch({
+          input: '#globalSearch',
+          fallbackRoute: 'restraunts.html'
+        });
+      }
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('.card-menu-wrap')) return;
+        document.querySelectorAll('.rail-menu.open').forEach((menu) => menu.classList.remove('open'));
+      });
     });
   </script>
 </body>

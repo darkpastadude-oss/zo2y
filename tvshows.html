@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,6 +7,7 @@
   <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/universal-search.js" defer></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -316,10 +317,20 @@
       transition: all 0.2s ease;
     }
 
+    .card-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .card-menu-wrap {
+      position: relative;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
     .menu-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
       width: 36px;
       height: 36px;
       border-radius: 10px;
@@ -331,15 +342,14 @@
       align-items: center;
       justify-content: center;
       transition: all 0.2s ease;
-      z-index: 2;
     }
 
     .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
 
     .list-menu {
       position: absolute;
-      right: 10px;
-      top: 50px;
+      right: 0;
+      top: calc(100% + 8px);
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -549,7 +559,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <div class="modal-title">Custom TV Lists</div>
-        <button class="modal-close" id="closeTvListsBtn">×</button>
+        <button class="modal-close" id="closeTvListsBtn">Ã—</button>
       </div>
       <div class="modal-list" id="tvListsContainer"></div>
       <div class="modal-input">
@@ -652,12 +662,29 @@
         });
       }
 
-      function updateAccountButton() {
+      async function resolveAccountLabel(user) {
+        if (!user || !supabaseClient) return 'Profile';
+        try {
+          const { data } = await supabaseClient
+            .from('user_profiles')
+            .select('username, display_name, full_name')
+            .eq('id', user.id)
+            .single();
+          const raw = data?.username || data?.display_name || data?.full_name || '';
+          const clean = String(raw || '').trim();
+          return clean ? (clean.startsWith('@') ? clean : `@${clean}`) : 'Profile';
+        } catch (_err) {
+          return 'Profile';
+        }
+      }
+
+      async function updateAccountButton() {
         const btn = document.getElementById('userAccountBtn');
         if (!btn) return;
         if (state.currentUser) {
           btn.classList.add('logged-in');
-          btn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+          const label = await resolveAccountLabel(state.currentUser);
+          btn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
           btn.onclick = () => window.location.href = 'profile.html';
         } else {
           btn.classList.remove('logged-in');
@@ -816,18 +843,22 @@
           const showTitle = item.name || item.original_name || item.title || 'Untitled';
           const showDate = item.first_air_date || item.release_date || '';
           card.innerHTML = `
-            <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-            <div class="list-menu">
-              <div class="list-menu-title">Save to list</div>
-              <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
-            </div>
             <img src="${item.poster_path ? POSTER_BASE + item.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}">
             <div class="card-body">
               <h3 class="card-title">${showTitle}</h3>
-              <div class="card-meta">${showDate}</div>
+              <div class="card-meta-row">
+                <div class="card-meta">${showDate}</div>
+                <div class="card-menu-wrap">
+                  <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
+                  <div class="list-menu">
+                    <div class="list-menu-title">Save to list</div>
+                    <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
+                    <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
+                    <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
+                    <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
+                  </div>
+                </div>
+              </div>
               <div class="card-desc">${item.overview || 'No description available.'}</div>
             </div>
           `;
@@ -1129,6 +1160,9 @@
       (async function init() {
         await initSupabase();
         wireUI();
+        if (window.initUniversalSearch) {
+          window.initUniversalSearch({ input: '#searchInput', fallbackRoute: null });
+        }
         await Promise.all([loadGenres(), initAuth()]);
         renderFilters();
         loadMovies();
@@ -1137,5 +1171,9 @@
   </script>
 </body>
 </html>
+
+
+
+
 
 
