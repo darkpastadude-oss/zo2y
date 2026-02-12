@@ -271,6 +271,7 @@
 
     .rail::-webkit-scrollbar { height: 7px; }
     .rail::-webkit-scrollbar-thumb { background: rgba(140,163,199,0.55); border-radius: 999px; }
+    .rail.games-rail { grid-auto-columns: 184px; }
 
     .card {
       border: 1px solid var(--border);
@@ -303,6 +304,7 @@
     }
 
     .card-media.landscape { aspect-ratio: 16/10; }
+    .card-media.game-poster { aspect-ratio: 3/4; }
 
     .card-media img {
       width: 100%;
@@ -867,6 +869,7 @@
     function renderRail(railId, items, opts) {
       const rail = document.getElementById(railId);
       if (!rail) return;
+      rail.classList.toggle('games-rail', String(opts?.mediaType || '').toLowerCase() === 'game');
 
       if (!items || !items.length) {
         rail.innerHTML = '<div class="empty">No items right now.</div>';
@@ -885,7 +888,7 @@
         return `
           <article class="card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${safeImage}">
             <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
-            <div class="card-media ${landscape ? 'landscape' : ''}">
+            <div class="card-media ${landscape ? 'landscape' : ''} ${String(item.mediaType || '').toLowerCase() === 'game' ? 'game-poster' : ''}">
               ${image ? `<img src="${image}" alt="${title}" loading="lazy">` : '<i class="fa-solid fa-image"></i>'}
             </div>
             <div class="card-meta">
@@ -1077,11 +1080,25 @@
     }
 
     async function loadGames() {
-      const res = await fetch(`https://api.rawg.io/api/games?page_size=10&ordering=-rating&key=${RAWG_KEY}`);
+      // Prefer broadly popular, mainstream releases over niche high-rating titles.
+      const res = await fetch(`https://api.rawg.io/api/games?page_size=24&ordering=-added&dates=2015-01-01,2026-12-31&metacritic=70,100&key=${RAWG_KEY}`);
       if (!res.ok) return [];
       const json = await res.json();
       const results = Array.isArray(json.results) ? json.results : [];
-      return results.map(g => ({
+
+      const seen = new Set();
+      const filtered = [];
+      for (const g of results) {
+        const nameKey = String(g.name || '').trim().toLowerCase();
+        if (!nameKey || seen.has(nameKey)) continue;
+        if (!g.background_image) continue;
+        if ((g.ratings_count || 0) < 200) continue;
+        seen.add(nameKey);
+        filtered.push(g);
+        if (filtered.length >= 10) break;
+      }
+
+      return filtered.map(g => ({
         mediaType: 'game',
         itemId: String(g.id || ''),
         title: g.name || 'Game',
@@ -1123,11 +1140,11 @@
         loadBooks().catch(() => [])
       ]);
 
-      renderRail('restaurantsRail', restaurants, { landscape: true, sectionHref: 'restraunts.html', typeName: 'restaurant' });
-      renderRail('moviesRail', movies, { landscape: false, sectionHref: 'movies.html', typeName: 'movie' });
-      renderRail('tvRail', tv, { landscape: false, sectionHref: 'tvshows.html', typeName: 'TV show' });
-      renderRail('gamesRail', games, { landscape: true, sectionHref: 'games.html', typeName: 'game' });
-      renderRail('booksRail', books, { landscape: false, sectionHref: 'books.html', typeName: 'book' });
+      renderRail('restaurantsRail', restaurants, { landscape: true, sectionHref: 'restraunts.html', typeName: 'restaurant', mediaType: 'restaurant' });
+      renderRail('moviesRail', movies, { landscape: false, sectionHref: 'movies.html', typeName: 'movie', mediaType: 'movie' });
+      renderRail('tvRail', tv, { landscape: false, sectionHref: 'tvshows.html', typeName: 'TV show', mediaType: 'tv' });
+      renderRail('gamesRail', games, { landscape: false, sectionHref: 'games.html', typeName: 'game', mediaType: 'game' });
+      renderRail('booksRail', books, { landscape: false, sectionHref: 'books.html', typeName: 'book', mediaType: 'book' });
 
       const loaded = [restaurants, movies, tv, games, books].filter(x => x.length > 0).length;
       if (!loaded) {
