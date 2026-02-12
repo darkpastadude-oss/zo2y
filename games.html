@@ -7,7 +7,6 @@
   <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/universal-search.js" defer></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -1156,6 +1155,15 @@
         if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
       }
 
+      function syncSearchStateFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const search = (params.get('search') || '').trim();
+        if (!search) return;
+        state.query = search;
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.value = search;
+      }
+
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeAllListMenus();
       });
@@ -1163,9 +1171,7 @@
       (async function init() {
         await initSupabase();
         wireUI();
-        if (window.initUniversalSearch) {
-          window.initUniversalSearch({ input: '#searchInput', fallbackRoute: null });
-        }
+        syncSearchStateFromUrl();
         await Promise.all([loadGenres(), initAuth()]);
         renderFilters();
         loadGames();

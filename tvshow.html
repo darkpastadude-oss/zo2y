@@ -90,6 +90,36 @@
       gap: 10px;
       flex-shrink: 0;
     }
+    .nav-search {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-search-input {
+      width: 220px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1f40;
+      color: var(--white);
+      padding: 0 10px;
+      font-size: 13px;
+    }
+    .nav-search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
+    }
+    .nav-search-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--white);
+      cursor: pointer;
+    }
+    .nav-search-btn:hover { border-color: var(--accent); color: var(--accent); }
     .nav a.ghost {
       color: var(--muted);
       padding: 8px 14px;
@@ -485,6 +515,10 @@
     .sort-select:hover { border-color: var(--accent); }
     .sort-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1); }
     @media (max-width: 900px) {
+      .nav-container { flex-wrap: wrap; }
+      .nav-right { width: 100%; flex-wrap: wrap; justify-content: flex-end; }
+      .nav-search { width: 100%; order: 10; }
+      .nav-search-input { width: 100%; }
       .wrap { grid-template-columns: 1fr; }
       .poster {
         width: min(62vw, 240px);
@@ -500,6 +534,10 @@
     <div class="nav-container">
       <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'" width="160" height="40" decoding="async" fetchpriority="high">
       <div class="nav-right">
+        <div class="nav-search">
+          <input id="pageSearchInput" class="nav-search-input" type="search" placeholder="Search TV shows..." aria-label="Search TV shows">
+          <button id="pageSearchBtn" class="nav-search-btn" type="button" aria-label="Search TV shows"><i class="fas fa-search"></i></button>
+        </div>
         <a class="ghost" href="tvshows.html">TV Shows</a>
         <a class="ghost" href="restraunts.html">Restaurants</a>
         <a class="ghost" href="index.html">Home</a>
@@ -1277,8 +1315,28 @@
         if (count) count.textContent = '0';
       }
 
+      function initPageSearch() {
+        const input = document.getElementById('pageSearchInput');
+        const btn = document.getElementById('pageSearchBtn');
+        if (!input || !btn) return;
+        const go = () => {
+          const query = input.value.trim();
+          const url = new URL('tvshows.html', window.location.href);
+          if (query) url.searchParams.set('search', query);
+          window.location.href = `${url.pathname}${url.search}`;
+        };
+        btn.addEventListener('click', go);
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            go();
+          }
+        });
+      }
+
       (async function init() {
         await initSupabase();
+        initPageSearch();
         wireListMenu();
         const closeListsBtn = document.getElementById('closeMovieListsBtn');
         const saveListsBtn = document.getElementById('saveMovieListsBtn');
