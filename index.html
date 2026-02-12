@@ -367,12 +367,12 @@
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-      width: min(92vw, 320px);
-      border-radius: 10px;
+      width: min(94vw, 400px);
+      border-radius: 14px;
       background: var(--card);
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
-      padding: 8px;
+      padding: 12px;
       display: none;
       z-index: 3300;
     }
@@ -398,12 +398,16 @@
       border: 1px solid var(--border);
       background: transparent;
       color: var(--white);
-      border-radius: 8px;
-      padding: 8px 9px;
-      font-size: 12px;
+      border-radius: 11px;
+      padding: 10px 12px;
+      font-size: 13px;
       text-align: left;
       cursor: pointer;
       margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
     }
 
     .rail-menu-item:last-child {
@@ -420,7 +424,19 @@
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.6px;
-      padding: 2px 2px 8px;
+      padding: 2px 2px 10px;
+    }
+
+    .rail-menu-item-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rail-menu-state {
+      color: var(--white);
+      opacity: 0.9;
+      font-weight: 600;
     }
 
     .card-hover-cue {
@@ -617,45 +633,50 @@
       const type = String(mediaType || '').toLowerCase();
       if (type === 'movie') {
         return {
+          customHref: 'movies.html',
           rows: [
-            { key: 'favorites', label: 'Favorites' },
-            { key: 'watched', label: 'Watched' },
-            { key: 'watchlist', label: 'Watchlist' }
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'watched', label: 'Watched', icon: 'fas fa-eye' },
+            { key: 'watchlist', label: 'Watchlist', icon: 'fas fa-bookmark' }
           ]
         };
       }
       if (type === 'tv') {
         return {
+          customHref: 'tvshows.html',
           rows: [
-            { key: 'favorites', label: 'Favorites' },
-            { key: 'watched', label: 'Watched' },
-            { key: 'watchlist', label: 'Watchlist' }
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'watched', label: 'Watched', icon: 'fas fa-eye' },
+            { key: 'watchlist', label: 'Watchlist', icon: 'fas fa-bookmark' }
           ]
         };
       }
       if (type === 'game') {
         return {
+          customHref: 'games.html',
           rows: [
-            { key: 'favorites', label: 'Favorites' },
-            { key: 'watched', label: 'Played' },
-            { key: 'watchlist', label: 'Backlog' }
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'watched', label: 'Played', icon: 'fas fa-eye' },
+            { key: 'watchlist', label: 'Backlog', icon: 'fas fa-bookmark' }
           ]
         };
       }
       if (type === 'book') {
         return {
+          customHref: 'books.html',
           rows: [
-            { key: 'favorites', label: 'Favorites' },
-            { key: 'read', label: 'Read' },
-            { key: 'readlist', label: 'Readlist' }
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'read', label: 'Read', icon: 'fas fa-eye' },
+            { key: 'readlist', label: 'Readlist', icon: 'fas fa-bookmark' }
           ]
         };
       }
       return {
+        customHref: 'restraunts.html',
         rows: [
-          { key: 'favorites', label: 'Favorites' },
-          { key: 'visited', label: 'Visited' },
-          { key: 'wantToGo', label: 'Want to Go' }
+          { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+          { key: 'visited', label: 'Visited', icon: 'fas fa-eye' },
+          { key: 'wantToGo', label: 'Want to Go', icon: 'fas fa-bookmark' }
         ]
       };
     }
@@ -663,11 +684,18 @@
     function buildRailListMenuHtml(item) {
       const cfg = getMediaListConfig(item.mediaType);
       const buttons = cfg.rows.map(row => `
-        <button class="rail-menu-item" data-action="save" data-list="${row.key}"><i class="fas fa-plus"></i> Add to ${row.label}</button>
+        <button class="rail-menu-item" data-action="save" data-list="${row.key}">
+          <span class="rail-menu-item-main"><i class="${row.icon}"></i> ${row.label}</span>
+          <span class="rail-menu-state">Add</span>
+        </button>
       `).join('');
       return `
         <div class="rail-menu-title">Add to list</div>
         ${buttons}
+        <button class="rail-menu-item" data-action="custom" data-href="${cfg.customHref}">
+          <span class="rail-menu-item-main"><i class="fas fa-list"></i> Custom Lists</span>
+          <span class="rail-menu-state">Open</span>
+        </button>
       `;
     }
 
@@ -906,8 +934,8 @@
       scope.querySelectorAll('.rail-menu-item').forEach((item) => {
         item.addEventListener('click', (e) => {
           e.stopPropagation();
-          closeAllRailMenus();
           const action = item.getAttribute('data-action');
+          closeAllRailMenus();
           if (action === 'save') {
             const card = item.closest('.card');
             if (!card) return;
@@ -919,6 +947,11 @@
               subtitle: card.getAttribute('data-subtitle'),
               image: card.getAttribute('data-image')
             });
+            return;
+          }
+          if (action === 'custom') {
+            const href = item.getAttribute('data-href');
+            if (href) window.location.href = href;
           }
         });
       });
