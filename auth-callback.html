@@ -46,14 +46,87 @@
 <body>
   <div class="container">
     <div class="spinner"></div>
-    <h2>Completing Signup...</h2>
-    <p>Please wait while we set up your account.</p>
+    <h2 id="title">Completing Sign In...</h2>
+    <p id="message">Please wait while we verify your account.</p>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // This page handles the OAuth callback
-    setTimeout(() => {
-      window.location.href = "index.html";
-    }, 2000);
+    (async function () {
+      const titleEl = document.getElementById('title');
+      const messageEl = document.getElementById('message');
+
+      function setStatus(title, message) {
+        if (titleEl) titleEl.textContent = title;
+        if (messageEl) messageEl.textContent = message;
+      }
+
+      const supabase = window.supabase.createClient(
+        'https://gfkhjbztayjyojsgdpgk.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s',
+        {
+          auth: {
+            flowType: 'pkce',
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        }
+      );
+
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const oauthError = params.get('error_description') || params.get('error');
+        if (oauthError) {
+          throw new Error(oauthError);
+        }
+
+        const code = params.get('code');
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+          throw new Error('No authenticated session found after Google OAuth.');
+        }
+
+        // Ensure a user profile exists for OAuth users.
+        const user = session.user;
+        const userData = user.user_metadata || {};
+        const derivedUsername =
+          (userData.full_name || userData.name || user.email || `user_${user.id.slice(0, 8)}`)
+            .toLowerCase()
+            .replace(/\s+/g, '_')
+            .replace(/[^a-z0-9_]/g, '')
+            .slice(0, 30) || `user_${user.id.slice(0, 8)}`;
+
+        const { data: existingProfile } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          await supabase.from('user_profiles').upsert({
+            id: user.id,
+            username: derivedUsername,
+            full_name: userData.full_name || userData.name || 'User'
+          }, { onConflict: 'id' });
+        }
+
+        setStatus('Success', 'Authentication complete. Redirecting...');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 700);
+      } catch (err) {
+        console.error('OAuth callback failure:', err);
+        setStatus('Authentication Failed', (err && err.message) ? err.message : 'Could not complete sign in.');
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 2200);
+      }
+    })();
   </script>
 </body>
 </html>

@@ -540,7 +540,7 @@ body {
       showLoading();
       log('Starting Google OAuth...', 'info');
       
-      const oauthCallback = `${window.location.origin}/sign-up.html`;
+      const oauthCallback = `${window.location.origin}/auth-callback.html`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
