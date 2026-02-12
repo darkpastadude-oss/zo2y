@@ -855,14 +855,6 @@
         });
       }
 
-      function buildQuery() {
-        const terms = [];
-        if (state.query) terms.push(state.query);
-        if (state.author) terms.push(`inauthor:${state.author}`);
-        if (state.activeCategory) terms.push(`subject:${state.activeCategory}`);
-        return terms.length ? terms.join(' ') : 'bestseller';
-      }
-
       function filterByYear(items) {
         if (!state.year) return items;
         const year = String(state.year);
@@ -900,7 +892,7 @@
         if (!grid) return;
 
         // Show cached results instantly
-        const cacheKey = `books_search_${state.query}_${state.author}_${state.page}`;
+        const cacheKey = `books_search_${state.query}_${state.author}_${state.activeCategory}_${state.year}_${state.page}`;
         const cached = localStorage.getItem(cacheKey);
         if (cached && state.page !== 1) {
           try {
@@ -919,13 +911,19 @@
 
         let data;
         try {
-          const q = buildQuery();
-          data = await booksFetch('/search.json', {
-            q,
+          const params = {
             page: state.page,
             limit: BOOKS_PER_PAGE,
             lang: 'en'
-          });
+          };
+          if (state.query) params.q = state.query;
+          if (state.author) params.author = state.author;
+          if (state.activeCategory) params.subject = state.activeCategory;
+          if (state.year) params.first_publish_year = state.year;
+          if (!params.q && !params.author && !params.subject && !params.first_publish_year) {
+            params.q = 'bestseller';
+          }
+          data = await booksFetch('/search.json', params);
           // Cache successful results
           localStorage.setItem(cacheKey, JSON.stringify({ docs: data.docs || [], numFound: data.numFound || 0 }));
         } catch (e) {
@@ -1323,7 +1321,7 @@
           });
         }
         if (authorInput) {
-          authorInput.addEventListener('change', (e) => {
+          authorInput.addEventListener('input', (e) => {
             state.author = e.target.value.trim();
             renderFilters();
             state.page = 1;

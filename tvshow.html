@@ -91,6 +91,7 @@
       flex-shrink: 0;
     }
     .nav-search {
+      position: relative;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -120,6 +121,63 @@
       cursor: pointer;
     }
     .nav-search-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .search-suggest {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      z-index: 1200;
+      display: none;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .search-suggest.open { display: block; }
+    .search-suggest-item {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--white);
+      text-align: left;
+      padding: 8px 10px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-suggest-item:last-child { border-bottom: 0; }
+    .search-suggest-item:hover,
+    .search-suggest-item.active { background: rgba(245, 158, 11, 0.14); }
+    .search-suggest-thumb {
+      width: 38px;
+      height: 52px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: #0f1f40;
+      border: 1px solid var(--border);
+    }
+    .search-suggest-title {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .search-suggest-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .nav a.ghost {
       color: var(--muted);
       padding: 8px 14px;
@@ -537,6 +595,7 @@
         <div class="nav-search">
           <input id="pageSearchInput" class="nav-search-input" type="search" placeholder="Search TV shows..." aria-label="Search TV shows">
           <button id="pageSearchBtn" class="nav-search-btn" type="button" aria-label="Search TV shows"><i class="fas fa-search"></i></button>
+          <div id="pageSearchSuggest" class="search-suggest"></div>
         </div>
         <a class="ghost" href="tvshows.html">TV Shows</a>
         <a class="ghost" href="restraunts.html">Restaurants</a>
@@ -1318,19 +1377,105 @@
       function initPageSearch() {
         const input = document.getElementById('pageSearchInput');
         const btn = document.getElementById('pageSearchBtn');
-        if (!input || !btn) return;
+        const suggest = document.getElementById('pageSearchSuggest');
+        if (!input || !btn || !suggest) return;
+        const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        let suggestions = [];
+        let activeIndex = -1;
+        let debounceTimer = null;
         const go = () => {
           const query = input.value.trim();
           const url = new URL('tvshows.html', window.location.href);
           if (query) url.searchParams.set('search', query);
           window.location.href = `${url.pathname}${url.search}`;
         };
+        const closeSuggest = () => {
+          suggest.classList.remove('open');
+          suggest.innerHTML = '';
+          suggestions = [];
+          activeIndex = -1;
+        };
+        const renderSuggest = () => {
+          if (!suggestions.length) {
+            closeSuggest();
+            return;
+          }
+          suggest.innerHTML = suggestions.map((item, idx) => `
+            <button class="search-suggest-item${idx === activeIndex ? ' active' : ''}" data-idx="${idx}" type="button">
+              <img class="search-suggest-thumb" src="${esc(item.image || 'images/logo.png')}" alt="" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
+              <span>
+                <span class="search-suggest-title">${esc(item.title)}</span>
+                <span class="search-suggest-sub">${esc(item.sub)}</span>
+              </span>
+            </button>
+          `).join('');
+          suggest.classList.add('open');
+          suggest.querySelectorAll('.search-suggest-item').forEach((el) => {
+            el.addEventListener('click', () => {
+              const idx = Number(el.getAttribute('data-idx'));
+              const selected = suggestions[idx];
+              if (!selected) return;
+              input.value = selected.title;
+              closeSuggest();
+              window.location.href = `tvshow.html?id=${encodeURIComponent(selected.id)}`;
+            });
+          });
+        };
+        const fetchSuggest = async (query) => {
+          const q = query.trim();
+          if (q.length < 2) {
+            closeSuggest();
+            return;
+          }
+          try {
+            const url = `${TMDB_BASE}/search/tv?query=${encodeURIComponent(q)}&language=en-US&page=1&include_adult=false`;
+            const res = await fetch(url, { headers: { Authorization: `Bearer ${TMDB_TOKEN}` } });
+            if (!res.ok) throw new Error('TMDB suggestions failed');
+            const json = await res.json();
+            suggestions = (json.results || []).slice(0, 6).map((m) => ({
+              id: m.id,
+              title: m.name || 'TV Show',
+              sub: m.first_air_date ? String(m.first_air_date).slice(0, 4) : 'TV Show',
+              image: m.poster_path ? `${POSTER_BASE}${m.poster_path}` : ''
+            }));
+            activeIndex = -1;
+            renderSuggest();
+          } catch (_e) {
+            closeSuggest();
+          }
+        };
         btn.addEventListener('click', go);
+        input.addEventListener('input', () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => fetchSuggest(input.value), 180);
+        });
         input.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowDown') {
+            if (!suggestions.length) return;
+            e.preventDefault();
+            activeIndex = (activeIndex + 1) % suggestions.length;
+            renderSuggest();
+            return;
+          }
+          if (e.key === 'ArrowUp') {
+            if (!suggestions.length) return;
+            e.preventDefault();
+            activeIndex = activeIndex <= 0 ? suggestions.length - 1 : activeIndex - 1;
+            renderSuggest();
+            return;
+          }
           if (e.key === 'Enter') {
             e.preventDefault();
+            if (activeIndex >= 0 && suggestions[activeIndex]) {
+              window.location.href = `tvshow.html?id=${encodeURIComponent(suggestions[activeIndex].id)}`;
+              return;
+            }
             go();
           }
+          if (e.key === 'Escape') closeSuggest();
+        });
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.nav-search')) closeSuggest();
         });
       }
 
