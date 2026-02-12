@@ -494,10 +494,11 @@ body{
     try {
       showLoading();
       
+      const oauthCallback = new URL('login.html', window.location.href).toString();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/index.html',
+          redirectTo: oauthCallback,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
