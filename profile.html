@@ -3268,9 +3268,6 @@ header, .top-stripe, .section-nav {
                                 <div class="empty-icon"><i class="fas fa-list"></i></div>
                                 <h3 class="empty-title">No followers yet</h3>
                                 <p class="empty-description">Share your profile to get followers!</p>
-                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
-                                    <i class="fas fa-user-plus"></i> Find Users
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -3286,9 +3283,6 @@ header, .top-stripe, .section-nav {
                                 <div class="empty-icon"><i class="fas fa-list"></i></div>
                                 <h3 class="empty-title">Not following anyone yet</h3>
                                 <p class="empty-description">Discover and follow other food lovers!</p>
-                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
-                                    <i class="fas fa-user-plus"></i> Find Users
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -3647,6 +3641,9 @@ header, .top-stripe, .section-nav {
                     </div>
                 </div>
                 <div class="mobile-section-subtitle" id="mobileCommunitySubtitle">Connect with other food lovers</div>
+                <button class="mobile-action-btn secondary" style="width: auto; margin: 0 0 12px 0;" onclick="ProfileManager.showModal('communitySearchModal')">
+                    <i class="fas fa-user-plus"></i> Find Users
+                </button>
                 
                 <!-- Followers Tab -->
                 <div class="mobile-community-tab active" id="mobileFollowersTab">
@@ -3655,9 +3652,6 @@ header, .top-stripe, .section-nav {
                             <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
                             <div class="mobile-empty-title">No followers yet</div>
                             <div class="mobile-empty-description">Share your profile to get followers!</div>
-                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
-                                <i class="fas fa-user-plus"></i> Find Users
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -3669,9 +3663,6 @@ header, .top-stripe, .section-nav {
                             <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
                             <div class="mobile-empty-title">Not following anyone</div>
                             <div class="mobile-empty-description">Discover and follow other food lovers!</div>
-                            <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
-                                <i class="fas fa-user-plus"></i> Find Users
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -4144,7 +4135,6 @@ header, .top-stripe, .section-nav {
 
             // ===== MOBILE INITIALIZATION =====
             function initializeMobile() {
-                document.querySelector('.mobile-menu-btn').addEventListener('click', () => showMobileMenu());
                 updateMobileStats();
                 setupMobileTabsHint();
             }
@@ -6088,11 +6078,6 @@ header, .top-stripe, .section-nav {
                                             <div class="mobile-empty-icon">${iconGlyph('list')}</div>
                                             <div class="mobile-empty-title">No followers yet</div>
                                             <div class="mobile-empty-description">${emptyText}</div>
-                                            ${isViewingOwnProfile ? `
-                                                <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
-                                                    <i class="fas fa-user-plus"></i> Find Users
-                                                </button>
-                                            ` : ''}
                                         </div>
                                     `;
                                 } else {
@@ -6101,11 +6086,6 @@ header, .top-stripe, .section-nav {
                                             <div class="empty-icon">${iconGlyph('list')}</div>
                                             <h3 class="empty-title">No followers yet</h3>
                                             <p class="empty-description">${emptyText}</p>
-                                            ${isViewingOwnProfile ? `
-                                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
-                                                    <i class="fas fa-user-plus"></i> Find Users
-                                                </button>
-                                            ` : ''}
                                         </div>
                                     `;
                                 }
@@ -6156,11 +6136,6 @@ header, .top-stripe, .section-nav {
                                             <div class="mobile-empty-icon">${iconGlyph('list')}</div>
                                             <div class="mobile-empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</div>
                                             <div class="mobile-empty-description">${emptyText}</div>
-                                            ${isViewingOwnProfile ? `
-                                                <button class="mobile-action-btn" onclick="ProfileManager.showModal('communitySearchModal')">
-                                                    <i class="fas fa-user-plus"></i> Find Users
-                                                </button>
-                                            ` : ''}
                                         </div>
                                     `;
                                 } else {
@@ -6169,11 +6144,6 @@ header, .top-stripe, .section-nav {
                                             <div class="empty-icon">${iconGlyph('list')}</div>
                                             <h3 class="empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</h3>
                                             <p class="empty-description">${emptyText}</p>
-                                            ${isViewingOwnProfile ? `
-                                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showModal('communitySearchModal')">
-                                                    <i class="fas fa-user-plus"></i> Find Users
-                                                </button>
-                                            ` : ''}
                                         </div>
                                     `;
                                 }
@@ -9338,10 +9308,6 @@ header, .top-stripe, .section-nav {
             }
 
             // ===== UTILITY FUNCTIONS =====
-            function toggleSortLists() {
-                showToast('List sorting feature coming soon!', 'info');
-            }
-
             function updateMobileStats() {
                 // Stats are already updated in updateStatsUI
             }
@@ -9420,7 +9386,6 @@ header, .top-stripe, .section-nav {
                 setRating,
                 toggleFollow,
                 showMobileMenu,
-                toggleSortLists,
                 logout,
                 removeFromList,
                 escapeHtml
