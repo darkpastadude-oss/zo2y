@@ -279,6 +279,13 @@
       background: var(--card-2);
       scroll-snap-align: start;
       min-height: 232px;
+      position: relative;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
     }
 
     .card.menu-open,
@@ -406,6 +413,39 @@
     .rail-menu-item:hover {
       border-color: var(--accent);
       color: var(--accent);
+    }
+
+    .rail-menu-title {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 2px 2px 8px;
+    }
+
+    .card-hover-cue {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      z-index: 8;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      background: rgba(11, 22, 51, 0.88);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      opacity: 0;
+      transform: translateY(-3px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+    }
+
+    .card:hover .card-hover-cue {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .empty {
@@ -544,6 +584,8 @@
     const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
 
     const statusEl = document.getElementById('loadStatus');
+    let homeSupabaseClient = null;
+    let homeCurrentUser = null;
 
     function escapeHtml(value) {
       return String(value || '')
@@ -552,6 +594,241 @@
         .replace(/>/g, '&gt;')
         .replace(/\"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    }
+
+    function showHomeToast(message, isError = false) {
+      const toast = document.createElement('div');
+      toast.style.position = 'fixed';
+      toast.style.top = '16px';
+      toast.style.right = '16px';
+      toast.style.zIndex = '99999';
+      toast.style.background = isError ? '#dc2626' : '#10b981';
+      toast.style.color = '#fff';
+      toast.style.padding = '10px 14px';
+      toast.style.borderRadius = '10px';
+      toast.style.fontSize = '13px';
+      toast.style.boxShadow = '0 10px 24px rgba(0,0,0,0.35)';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2200);
+    }
+
+    function getMediaListConfig(mediaType) {
+      const type = String(mediaType || '').toLowerCase();
+      if (type === 'movie') {
+        return {
+          rows: [
+            { key: 'favorites', label: 'Favorites' },
+            { key: 'watched', label: 'Watched' },
+            { key: 'watchlist', label: 'Watchlist' }
+          ]
+        };
+      }
+      if (type === 'tv') {
+        return {
+          rows: [
+            { key: 'favorites', label: 'Favorites' },
+            { key: 'watched', label: 'Watched' },
+            { key: 'watchlist', label: 'Watchlist' }
+          ]
+        };
+      }
+      if (type === 'game') {
+        return {
+          rows: [
+            { key: 'favorites', label: 'Favorites' },
+            { key: 'watched', label: 'Played' },
+            { key: 'watchlist', label: 'Backlog' }
+          ]
+        };
+      }
+      if (type === 'book') {
+        return {
+          rows: [
+            { key: 'favorites', label: 'Favorites' },
+            { key: 'read', label: 'Read' },
+            { key: 'readlist', label: 'Readlist' }
+          ]
+        };
+      }
+      return {
+        rows: [
+          { key: 'favorites', label: 'Favorites' },
+          { key: 'visited', label: 'Visited' },
+          { key: 'wantToGo', label: 'Want to Go' }
+        ]
+      };
+    }
+
+    function buildRailListMenuHtml(item) {
+      const cfg = getMediaListConfig(item.mediaType);
+      const buttons = cfg.rows.map(row => `
+        <button class="rail-menu-item" data-action="save" data-list="${row.key}"><i class="fas fa-plus"></i> Add to ${row.label}</button>
+      `).join('');
+      return `
+        <div class="rail-menu-title">Add to list</div>
+        ${buttons}
+      `;
+    }
+
+    async function ensureHomeSupabase() {
+      if (homeSupabaseClient) return homeSupabaseClient;
+      if (!window.supabase || !window.supabase.createClient) return null;
+      homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      return homeSupabaseClient;
+    }
+
+    async function ensureRestaurantList(userId, listType) {
+      const client = await ensureHomeSupabase();
+      if (!client) return null;
+      const mapping = {
+        favorites: { title: 'Favorites', description: 'My favorite restaurants', icon: 'heart' },
+        visited: { title: 'Visited', description: 'Places I have been to', icon: 'check' },
+        wantToGo: { title: 'Want to Go', description: 'Places I want to try', icon: 'bookmark' }
+      };
+      const conf = mapping[listType] || mapping.favorites;
+      const { data: existing } = await client
+        .from('lists')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('title', conf.title)
+        .limit(1)
+        .maybeSingle();
+      if (existing?.id) return existing.id;
+      const { data: created, error } = await client
+        .from('lists')
+        .insert({
+          user_id: userId,
+          title: conf.title,
+          description: conf.description,
+          icon: conf.icon
+        })
+        .select('id')
+        .single();
+      if (error) return null;
+      return created?.id || null;
+    }
+
+    async function saveToListFromHome(payload) {
+      const client = await ensureHomeSupabase();
+      if (!client) {
+        showHomeToast('List service unavailable', true);
+        return;
+      }
+      if (!homeCurrentUser?.id) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const mediaType = String(payload.mediaType || '').toLowerCase();
+      const itemId = payload.itemId;
+      const listType = payload.listType;
+      if (!itemId || !listType) return;
+
+      try {
+        if (mediaType === 'movie') {
+          const { data: existing } = await client
+            .from('movie_list_items')
+            .select('id')
+            .eq('user_id', homeCurrentUser.id)
+            .eq('movie_id', itemId)
+            .eq('list_type', listType)
+            .limit(1)
+            .maybeSingle();
+          if (existing?.id) {
+            showHomeToast('Already in list');
+            return;
+          }
+          await client.from('movie_list_items').insert({ user_id: homeCurrentUser.id, movie_id: itemId, list_type: listType });
+          showHomeToast('Added to list');
+          return;
+        }
+
+        if (mediaType === 'tv') {
+          const { data: existing } = await client
+            .from('tv_list_items')
+            .select('id')
+            .eq('user_id', homeCurrentUser.id)
+            .eq('tv_id', itemId)
+            .eq('list_type', listType)
+            .limit(1)
+            .maybeSingle();
+          if (existing?.id) {
+            showHomeToast('Already in list');
+            return;
+          }
+          await client.from('tv_list_items').insert({ user_id: homeCurrentUser.id, tv_id: itemId, list_type: listType });
+          showHomeToast('Added to list');
+          return;
+        }
+
+        if (mediaType === 'game') {
+          const { data: existing } = await client
+            .from('game_list_items')
+            .select('id')
+            .eq('user_id', homeCurrentUser.id)
+            .eq('game_id', itemId)
+            .eq('list_type', listType)
+            .limit(1)
+            .maybeSingle();
+          if (existing?.id) {
+            showHomeToast('Already in list');
+            return;
+          }
+          await client.from('game_list_items').insert({ user_id: homeCurrentUser.id, game_id: itemId, list_type: listType });
+          showHomeToast('Added to list');
+          return;
+        }
+
+        if (mediaType === 'book') {
+          await client.from('books').upsert({
+            id: String(itemId),
+            title: payload.title || '',
+            authors: payload.subtitle || '',
+            thumbnail: payload.image || '',
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+          const { data: existing } = await client
+            .from('book_list_items')
+            .select('id')
+            .eq('user_id', homeCurrentUser.id)
+            .eq('book_id', String(itemId))
+            .eq('list_type', listType)
+            .limit(1)
+            .maybeSingle();
+          if (existing?.id) {
+            showHomeToast('Already in list');
+            return;
+          }
+          await client.from('book_list_items').insert({ user_id: homeCurrentUser.id, book_id: String(itemId), list_type: listType });
+          showHomeToast('Added to list');
+          return;
+        }
+
+        if (mediaType === 'restaurant') {
+          const listId = await ensureRestaurantList(homeCurrentUser.id, listType);
+          if (!listId) {
+            showHomeToast('Could not prepare list', true);
+            return;
+          }
+          const { data: existing } = await client
+            .from('lists_restraunts')
+            .select('id')
+            .eq('list_id', listId)
+            .eq('restraunt_id', itemId)
+            .limit(1)
+            .maybeSingle();
+          if (existing?.id) {
+            showHomeToast('Already in list');
+            return;
+          }
+          await client.from('lists_restraunts').insert({ list_id: listId, restraunt_id: itemId });
+          showHomeToast('Added to list');
+          return;
+        }
+      } catch (_err) {
+        showHomeToast('Could not add to list', true);
+      }
     }
 
     function setStatus(text, isError) {
