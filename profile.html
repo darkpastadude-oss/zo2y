@@ -2132,6 +2132,36 @@
                 display: none;
             }
 
+            .mobile-tabs-swipe-hint {
+                position: sticky;
+                top: 120px;
+                z-index: 899;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                background: var(--card);
+                border-bottom: 1px solid var(--border);
+                padding: 6px 0 8px;
+                color: var(--muted);
+                font-size: 11px;
+                letter-spacing: 0.02em;
+                transition: opacity 0.2s ease, transform 0.2s ease;
+            }
+
+            .mobile-tabs-swipe-hint.hidden {
+                opacity: 0;
+                transform: translateY(-4px);
+                pointer-events: none;
+            }
+
+            .mobile-tabs-swipe-pill {
+                width: 44px;
+                height: 4px;
+                border-radius: 999px;
+                background: linear-gradient(90deg, rgba(148, 163, 184, 0.3), rgba(245, 158, 11, 0.85), rgba(148, 163, 184, 0.3));
+            }
+
             .mobile-tab-badge {
                 background: var(--error);
                 color: white;
@@ -3366,6 +3396,10 @@ header, .top-stripe, .section-nav {
                 <span class="mobile-tab-badge d-none" id="mobileFollowersBadge">0</span>
             </div>
         </div>
+        <div class="mobile-tabs-swipe-hint" id="mobileTabsSwipeHint">
+            <div class="mobile-tabs-swipe-pill"></div>
+            <span>Swipe tabs</span>
+        </div>
 
         <!-- Mobile Content Area -->
         <div class="mobile-content">
@@ -4037,6 +4071,7 @@ header, .top-stripe, .section-nav {
             let renderRestaurantsToken = 0;
             let isCreatingBookList = false;
             let editingMediaList = null;
+            let hasPreloadedTabs = false;
 
             // Avatar/icon palette (unicode escapes to avoid encoding issues)
             const foodIcons = [
@@ -4085,6 +4120,7 @@ header, .top-stripe, .section-nav {
                     
                     // 2. FIX: Update setupEventListeners to prevent multiple bindings
                     setupEventListeners();
+                    preloadCollectionTabs();
                     
                     if (window.innerWidth <= 768) {
                         initializeMobile();
@@ -4110,6 +4146,40 @@ header, .top-stripe, .section-nav {
             function initializeMobile() {
                 document.querySelector('.mobile-menu-btn').addEventListener('click', () => showMobileMenu());
                 updateMobileStats();
+                setupMobileTabsHint();
+            }
+
+            function setupMobileTabsHint() {
+                const tabs = document.querySelector('.mobile-tabs');
+                const hint = document.getElementById('mobileTabsSwipeHint');
+                if (!tabs || !hint) return;
+
+                const updateHintVisibility = () => {
+                    const maxScroll = tabs.scrollWidth - tabs.clientWidth;
+                    if (maxScroll <= 12) {
+                        hint.classList.add('hidden');
+                        return;
+                    }
+                    const hasScrolled = tabs.scrollLeft > 6;
+                    hint.classList.toggle('hidden', hasScrolled);
+                };
+
+                tabs.addEventListener('scroll', updateHintVisibility, { passive: true });
+                setTimeout(updateHintVisibility, 50);
+                setTimeout(updateHintVisibility, 500);
+            }
+
+            function preloadCollectionTabs() {
+                if (hasPreloadedTabs || !currentUser) return;
+                hasPreloadedTabs = true;
+                setTimeout(() => {
+                    Promise.allSettled([
+                        renderMovies(),
+                        renderTvShows(),
+                        renderGames(),
+                        renderBooks()
+                    ]).catch(() => {});
+                }, 80);
             }
 
             // ===== TOAST SYSTEM =====
@@ -6824,11 +6894,49 @@ header, .top-stripe, .section-nav {
                     return;
                 }
 
+                const updatedContext = { ...editingMediaList };
                 closeModal('editMediaListModal');
-                if (typeof editingMediaList.rerender === 'function') {
-                    await editingMediaList.rerender();
+                syncOpenCollectionDetailAfterEdit(updatedContext.type, updatedContext.id, title, icon);
+                if (typeof updatedContext.rerender === 'function') {
+                    await updatedContext.rerender();
                 }
-                showToast(`${editingMediaList.label} list updated`, 'success');
+                showToast(`${updatedContext.label} list updated`, 'success');
+            }
+
+            function syncOpenCollectionDetailAfterEdit(type, listId, title, icon) {
+                const safeTitle = title || '';
+                const safeIcon = icon || 'list';
+                const iconText = iconGlyph(safeIcon, type === 'tv' ? 'tv' : (type === 'game' ? 'game' : (type === 'movie' ? 'movie' : 'book')));
+
+                if (type === 'movie') {
+                    const desktopName = document.getElementById('movieDetailName');
+                    const desktopIcon = document.getElementById('movieDetailIcon');
+                    const mobileName = document.getElementById('mobileMovieDetailTitle');
+                    if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
+                    if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
+                    if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
+                } else if (type === 'tv') {
+                    const desktopName = document.getElementById('tvDetailName');
+                    const desktopIcon = document.getElementById('tvDetailIcon');
+                    const mobileName = document.getElementById('mobileTvDetailTitle');
+                    if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
+                    if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
+                    if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
+                } else if (type === 'game') {
+                    const desktopName = document.getElementById('gameDetailName');
+                    const desktopIcon = document.getElementById('gameDetailIcon');
+                    const mobileName = document.getElementById('mobileGameDetailTitle');
+                    if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
+                    if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
+                    if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
+                } else if (type === 'book') {
+                    const desktopName = document.getElementById('bookDetailName');
+                    const desktopIcon = document.getElementById('bookDetailIcon');
+                    const mobileName = document.getElementById('mobileBookDetailTitle');
+                    if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
+                    if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
+                    if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
+                }
             }
 
             async function renameMovieList(listId) {
@@ -7007,6 +7115,8 @@ header, .top-stripe, .section-nav {
                         activeTab.classList.add('active');
                     }
                     scrollActiveMobileTabIntoView(tabName);
+                    const swipeHint = document.getElementById('mobileTabsSwipeHint');
+                    if (swipeHint) swipeHint.classList.add('hidden');
                     
                     currentTab = tabName;
                     
@@ -7137,22 +7247,28 @@ header, .top-stripe, .section-nav {
                         return new Date(b.created_at) - new Date(a.created_at);
                     });
 
-                    for (const list of lists) {
-                        const { data: items } = await supabase
+                    const listIds = lists.map(list => list.id).filter(Boolean);
+                    const { data: allListItems } = listIds.length
+                        ? await supabase
                             .from('lists_restraunts')
-                            .select('restraunt_id')
-                            .eq('list_id', list.id);
-
-                        list.restaurantIds = items ? items.map(i => i.restraunt_id) : [];
-                    }
+                            .select('list_id, restraunt_id')
+                            .in('list_id', listIds)
+                        : { data: [] };
+                    const itemsByListId = new Map();
+                    (allListItems || []).forEach(item => {
+                        if (!itemsByListId.has(item.list_id)) itemsByListId.set(item.list_id, []);
+                        itemsByListId.get(item.list_id).push(item.restraunt_id);
+                    });
+                    lists.forEach(list => {
+                        list.restaurantIds = itemsByListId.get(list.id) || [];
+                    });
 
                     if (renderToken !== renderRestaurantsToken) return;
+                    const cards = await Promise.all(lists.map(list => createCollectionCard(list, 'restaurant', isMobile)));
                     grid.innerHTML = '';
-
-                    for (const list of lists) {
-                        const card = await createCollectionCard(list, 'restaurant', isMobile);
-                        grid.appendChild(card);
-                    }
+                    const fragment = document.createDocumentFragment();
+                    cards.forEach(card => fragment.appendChild(card));
+                    grid.appendChild(fragment);
                 } catch (error) {
                     console.error('Error loading restaurants:', error);
                     grid.innerHTML = `
@@ -7222,12 +7338,11 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
+                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'movie', isMobile)));
                     grid.innerHTML = '';
-
-                    for (const list of allLists) {
-                        const card = await createCollectionCard(list, 'movie', isMobile);
-                        grid.appendChild(card);
-                    }
+                    const fragment = document.createDocumentFragment();
+                    cards.forEach(card => fragment.appendChild(card));
+                    grid.appendChild(fragment);
                 } catch (error) {
                     console.error('Error loading movies:', error);
                     grid.innerHTML = `
@@ -7297,12 +7412,11 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
+                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'tv', isMobile)));
                     grid.innerHTML = '';
-
-                    for (const list of allLists) {
-                        const card = await createCollectionCard(list, 'tv', isMobile);
-                        grid.appendChild(card);
-                    }
+                    const fragment = document.createDocumentFragment();
+                    cards.forEach(card => fragment.appendChild(card));
+                    grid.appendChild(fragment);
                 } catch (error) {
                     console.error('Error loading TV shows:', error);
                     grid.innerHTML = `
@@ -7372,12 +7486,11 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
+                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'game', isMobile)));
                     grid.innerHTML = '';
-
-                    for (const list of allLists) {
-                        const card = await createCollectionCard(list, 'game', isMobile);
-                        grid.appendChild(card);
-                    }
+                    const fragment = document.createDocumentFragment();
+                    cards.forEach(card => fragment.appendChild(card));
+                    grid.appendChild(fragment);
                 } catch (error) {
                     console.error('Error loading games:', error);
                     grid.innerHTML = `
@@ -7527,11 +7640,11 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
+                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'book', isMobile)));
                     grid.innerHTML = '';
-                    for (const list of allLists) {
-                        const card = await createCollectionCard(list, 'book', isMobile);
-                        grid.appendChild(card);
-                    }
+                    const fragment = document.createDocumentFragment();
+                    cards.forEach(card => fragment.appendChild(card));
+                    grid.appendChild(fragment);
                 } catch (error) {
                     console.error('Error loading books:', error);
                     grid.innerHTML = `
