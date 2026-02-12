@@ -1725,6 +1725,29 @@
             background: var(--bg-hover);
         }
 
+        .edit-list-icon-option {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 20px;
+            border: 1px solid transparent;
+        }
+
+        .edit-list-icon-option:hover {
+            background: var(--bg-hover);
+        }
+
+        .edit-list-icon-option.selected {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
         .avatar-icon-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
@@ -2992,11 +3015,8 @@ header, .top-stripe, .section-nav {
                             <p class="collection-detail-subtitle" id="movieDetailDescription">Collection description</p>
                         </div>
                         <div class="collection-detail-actions" id="movieDetailActions" style="display: none;">
-                            <button class="btn btn-secondary btn-sm" id="movieListRenameBtn">
-                                <i class="fas fa-pen"></i> Rename
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="movieListIconBtn">
-                                <i class="fas fa-icons"></i> Change Icon
+                            <button class="btn btn-secondary btn-sm" id="movieListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
                             </button>
                             <button class="btn btn-secondary btn-sm" id="movieListDeleteBtn">
                                 <i class="fas fa-trash"></i> Delete
@@ -3054,11 +3074,8 @@ header, .top-stripe, .section-nav {
                             <p class="collection-detail-subtitle" id="tvDetailDescription">Collection description</p>
                         </div>
                         <div class="collection-detail-actions" id="tvDetailActions" style="display: none;">
-                            <button class="btn btn-secondary btn-sm" id="tvListRenameBtn">
-                                <i class="fas fa-pen"></i> Rename
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="tvListIconBtn">
-                                <i class="fas fa-icons"></i> Change Icon
+                            <button class="btn btn-secondary btn-sm" id="tvListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
                             </button>
                             <button class="btn btn-secondary btn-sm" id="tvListDeleteBtn">
                                 <i class="fas fa-trash"></i> Delete
@@ -3116,11 +3133,8 @@ header, .top-stripe, .section-nav {
                             <p class="collection-detail-subtitle" id="gameDetailDescription">Collection description</p>
                         </div>
                         <div class="collection-detail-actions" id="gameDetailActions" style="display: none;">
-                            <button class="btn btn-secondary btn-sm" id="gameListRenameBtn">
-                                <i class="fas fa-pen"></i> Rename
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="gameListIconBtn">
-                                <i class="fas fa-icons"></i> Change Icon
+                            <button class="btn btn-secondary btn-sm" id="gameListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
                             </button>
                             <button class="btn btn-secondary btn-sm" id="gameListDeleteBtn">
                                 <i class="fas fa-trash"></i> Delete
@@ -3178,11 +3192,8 @@ header, .top-stripe, .section-nav {
                             <p class="collection-detail-subtitle" id="bookDetailDescription">Collection description</p>
                         </div>
                         <div class="collection-detail-actions" id="bookDetailActions" style="display: none;">
-                            <button class="btn btn-secondary btn-sm" id="bookListRenameBtn">
-                                <i class="fas fa-pen"></i> Rename
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="bookListIconBtn">
-                                <i class="fas fa-icons"></i> Change Icon
+                            <button class="btn btn-secondary btn-sm" id="bookListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
                             </button>
                             <button class="btn btn-secondary btn-sm" id="bookListDeleteBtn">
                                 <i class="fas fa-trash"></i> Delete
@@ -3439,11 +3450,8 @@ header, .top-stripe, .section-nav {
                     </div>
                     <div class="mobile-section-subtitle" id="mobileMovieDetailDescription"></div>
                     <div id="mobileMovieDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px; display: none;">
-                        <button class="mobile-action-btn secondary" id="mobileMovieListRenameBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
-                            <i class="fas fa-pen"></i> Rename
-                        </button>
-                        <button class="mobile-action-btn secondary" id="mobileMovieListIconBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
-                            <i class="fas fa-icons"></i> Icon
+                        <button class="mobile-action-btn secondary" id="mobileMovieListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-pen"></i> Edit
                         </button>
                         <button class="mobile-action-btn secondary" id="mobileMovieListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-trash"></i> Delete
@@ -3488,11 +3496,8 @@ header, .top-stripe, .section-nav {
                     </div>
                     <div class="mobile-section-subtitle" id="mobileTvDetailDescription"></div>
                     <div id="mobileTvDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px; display: none;">
-                        <button class="mobile-action-btn secondary" id="mobileTvListRenameBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
-                            <i class="fas fa-pen"></i> Rename
-                        </button>
-                        <button class="mobile-action-btn secondary" id="mobileTvListIconBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
-                            <i class="fas fa-icons"></i> Icon
+                        <button class="mobile-action-btn secondary" id="mobileTvListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-pen"></i> Edit
                         </button>
                         <button class="mobile-action-btn secondary" id="mobileTvListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-trash"></i> Delete
@@ -3537,11 +3542,8 @@ header, .top-stripe, .section-nav {
                     </div>
                     <div class="mobile-section-subtitle" id="mobileGameDetailDescription"></div>
                     <div id="mobileGameDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px; display: none;">
-                        <button class="mobile-action-btn secondary" id="mobileGameListRenameBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
-                            <i class="fas fa-pen"></i> Rename
-                        </button>
-                        <button class="mobile-action-btn secondary" id="mobileGameListIconBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
-                            <i class="fas fa-icons"></i> Icon
+                        <button class="mobile-action-btn secondary" id="mobileGameListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-pen"></i> Edit
                         </button>
                         <button class="mobile-action-btn secondary" id="mobileGameListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-trash"></i> Delete
@@ -3586,11 +3588,8 @@ header, .top-stripe, .section-nav {
                     </div>
                     <div class="mobile-section-subtitle" id="mobileBookDetailDescription"></div>
                     <div id="mobileBookDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px;">
-                        <button class="mobile-action-btn secondary" id="mobileBookListRenameBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
-                            <i class="fas fa-pen"></i> Rename
-                        </button>
-                        <button class="mobile-action-btn secondary" id="mobileBookListIconBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
-                            <i class="fas fa-icons"></i> Icon
+                        <button class="mobile-action-btn secondary" id="mobileBookListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-pen"></i> Edit
                         </button>
                         <button class="mobile-action-btn secondary" id="mobileBookListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-trash"></i> Delete
@@ -3812,6 +3811,46 @@ header, .top-stripe, .section-nav {
         </div>
     </div>
 
+    <!-- Edit Media List Modal -->
+    <div class="modal" id="editMediaListModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="editMediaListModalTitle">Edit List</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('editMediaListModal')">&times;</button>
+            </div>
+
+            <form id="editMediaListForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">List Name</label>
+                        <input type="text" class="form-input" id="editMediaListName" required placeholder="Enter list name">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Icon</label>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="editMediaListIconGrid">
+                            <div class="edit-list-icon-option" data-icon="heart"><i class="fas fa-heart"></i></div>
+                            <div class="edit-list-icon-option" data-icon="check"><i class="fas fa-check-circle"></i></div>
+                            <div class="edit-list-icon-option" data-icon="bookmark"><i class="fas fa-bookmark"></i></div>
+                            <div class="edit-list-icon-option" data-icon="movie"><i class="fas fa-film"></i></div>
+                            <div class="edit-list-icon-option" data-icon="tv"><i class="fas fa-tv"></i></div>
+                            <div class="edit-list-icon-option" data-icon="game"><i class="fas fa-gamepad"></i></div>
+                            <div class="edit-list-icon-option" data-icon="book"><i class="fas fa-book"></i></div>
+                            <div class="edit-list-icon-option" data-icon="restaurant"><i class="fas fa-utensils"></i></div>
+                            <div class="edit-list-icon-option" data-icon="list"><i class="fas fa-list"></i></div>
+                        </div>
+                        <input type="hidden" id="editMediaListSelectedIcon" value="list">
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('editMediaListModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Avatar Modal -->
     <div class="modal" id="avatarModal">
         <div class="modal-content">
@@ -3976,6 +4015,7 @@ header, .top-stripe, .section-nav {
             let renderBooksToken = 0;
             let renderRestaurantsToken = 0;
             let isCreatingBookList = false;
+            let editingMediaList = null;
 
             // Avatar/icon palette (unicode escapes to avoid encoding issues)
             const foodIcons = [
@@ -4928,7 +4968,7 @@ header, .top-stripe, .section-nav {
                             <div class="list-card-actions">
                                 <button class="kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${list.id}')"><i class="fas fa-ellipsis-v"></i></button>
                                 <div class="kebab-dropdown" id="kebab-${list.id}">
-                                    <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${list.id}')"><i class="fas fa-edit"></i> Rename</div>
+                                    <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${list.id}')"><i class="fas fa-edit"></i> Edit</div>
                                     <div class="kebab-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${list.id}')"><i class="fas fa-trash"></i> Delete</div>
                                 </div>
                             </div>` : '';
@@ -5058,7 +5098,7 @@ header, .top-stripe, .section-nav {
                             <div class="list-card-actions">
                                 <button class="kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${list.id}')"><i class="fas fa-ellipsis-v"></i></button>
                                 <div class="kebab-dropdown" id="kebab-${list.id}">
-                                    <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${list.id}')"><i class="fas fa-edit"></i> Rename</div>
+                                    <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${list.id}')"><i class="fas fa-edit"></i> Edit</div>
                                     <div class="kebab-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${list.id}')"><i class="fas fa-trash"></i> Delete</div>
                                 </div>
                             </div>` : '';
@@ -6497,7 +6537,7 @@ header, .top-stripe, .section-nav {
                     ` : '';
                     const editBtnHtml = list.type === 'custom' ? `
                         <div class="movie-list-actions">
-                            <button class="movie-list-action-btn" onclick="event.stopPropagation(); ProfileManager.renameMovieList('${list.id}', '${list.title.replace(/'/g, "\\'")}')">
+                            <button class="movie-list-action-btn" onclick="event.stopPropagation(); ProfileManager.renameMovieList('${list.id}')">
                                 <i class="fas fa-pen"></i>
                             </button>
                             <button class="movie-list-action-btn danger" onclick="event.stopPropagation(); ProfileManager.deleteMovieList('${list.id}')">
@@ -6539,7 +6579,7 @@ header, .top-stripe, .section-nav {
                 const descEl = document.getElementById('movieListDetailDescription');
                 const listGrid = document.getElementById('movieListsGrid');
                 const actions = document.getElementById('movieListDetailActions');
-                const renameBtn = document.getElementById('movieListRenameBtn');
+                const editBtn = document.getElementById('movieListEditBtn');
                 const deleteBtn = document.getElementById('movieListDeleteBtn');
                 const mobileDetail = document.getElementById('mobileMovieListDetail');
                 const mobileGrid = document.getElementById('mobileMovieListMoviesGrid');
@@ -6547,7 +6587,7 @@ header, .top-stripe, .section-nav {
                 const mobileDesc = document.getElementById('mobileMovieListDetailDescription');
                 const mobileListsGrid = document.getElementById('mobileMovieListsGrid');
                 const mobileActions = document.getElementById('mobileMovieListDetailActions');
-                const mobileRenameBtn = document.getElementById('mobileMovieListRenameBtn');
+                const mobileEditBtn = document.getElementById('mobileMovieListEditBtn');
                 const mobileDeleteBtn = document.getElementById('mobileMovieListDeleteBtn');
                 if (isMobileView) {
                     if (mobileDetail) mobileDetail.style.display = 'block';
@@ -6579,14 +6619,14 @@ header, .top-stripe, .section-nav {
                     if (mobileDesc) mobileDesc.textContent = data?.description || 'Custom list';
                     if (actions) actions.style.display = isViewingOwnProfile ? 'flex' : 'none';
                     if (mobileActions) mobileActions.style.display = isViewingOwnProfile ? 'flex' : 'none';
-                    if (renameBtn) {
-                        renameBtn.onclick = () => ProfileManager.renameMovieList(listId, data?.title || '');
+                    if (editBtn) {
+                        editBtn.onclick = () => ProfileManager.renameMovieList(listId);
                     }
                     if (deleteBtn) {
                         deleteBtn.onclick = () => ProfileManager.deleteMovieList(listId);
                     }
-                    if (mobileRenameBtn) {
-                        mobileRenameBtn.onclick = () => ProfileManager.renameMovieList(listId, data?.title || '');
+                    if (mobileEditBtn) {
+                        mobileEditBtn.onclick = () => ProfileManager.renameMovieList(listId);
                     }
                     if (mobileDeleteBtn) {
                         mobileDeleteBtn.onclick = () => ProfileManager.deleteMovieList(listId);
@@ -6673,57 +6713,96 @@ header, .top-stripe, .section-nav {
                 await renderMovies();
             }
 
-            const CUSTOM_LIST_ICON_CHOICES = ['heart', 'check', 'bookmark', 'movie', 'tv', 'game', 'book', 'restaurant', 'list'];
-
-            function promptForCustomListIcon(currentIcon, fallback = 'list') {
-                const currentKey = normalizeIconKey(currentIcon, fallback);
-                const promptText = `Choose icon key: ${CUSTOM_LIST_ICON_CHOICES.join(', ')}`;
-                const input = prompt(promptText, currentKey);
-                if (input === null) return null;
-                const nextKey = normalizeIconKey(input.trim(), fallback);
-                if (!CUSTOM_LIST_ICON_CHOICES.includes(nextKey)) {
-                    showToast('Invalid icon key', 'error');
-                    return null;
-                }
-                return nextKey;
+            function getMediaListConfig(type) {
+                const configMap = {
+                    movie: { table: 'movie_lists', fallback: 'movie', label: 'Movie', rerender: renderMovies },
+                    tv: { table: 'tv_lists', fallback: 'tv', label: 'TV', rerender: renderTvShows },
+                    game: { table: 'game_lists', fallback: 'game', label: 'Game', rerender: renderGames },
+                    book: { table: 'book_lists', fallback: 'book', label: 'Book', rerender: renderBooks }
+                };
+                return configMap[type] || null;
             }
 
-            async function updateCustomListIcon(tableName, listId, currentIcon, fallback = 'list', successMessage = 'Icon updated') {
-                if (!supabase || !currentUser || !listId) return false;
-                const nextIcon = promptForCustomListIcon(currentIcon, fallback);
-                if (!nextIcon) return false;
-                const { error } = await supabase
-                    .from(tableName)
-                    .update({ icon: nextIcon })
-                    .eq('id', listId)
-                    .eq('user_id', currentUser.id);
-                if (error) {
-                    showToast('Could not update icon', 'error');
-                    return false;
-                }
-                showToast(successMessage, 'success');
-                return true;
+            function setEditMediaListIcon(iconKey) {
+                const selected = normalizeIconKey(iconKey, 'list');
+                const hiddenInput = document.getElementById('editMediaListSelectedIcon');
+                if (hiddenInput) hiddenInput.value = selected;
+                document.querySelectorAll('.edit-list-icon-option').forEach(option => {
+                    option.classList.toggle('selected', option.getAttribute('data-icon') === selected);
+                });
             }
 
-            async function renameMovieList(listId, currentTitle) {
-                if (!supabase || !currentUser) return;
-                const nextTitle = prompt('Rename list', currentTitle || '');
-                if (!nextTitle || !nextTitle.trim()) return;
-                const { error } = await supabase
-                    .from('movie_lists')
-                    .update({ title: nextTitle.trim() })
-                    .eq('id', listId)
-                    .eq('user_id', currentUser.id);
-                if (error) {
-                    showToast('Could not rename list', 'error');
+            async function openMediaListEditor(type, listId, existing = null) {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const config = getMediaListConfig(type);
+                if (!config) return;
+
+                let record = existing;
+                if (!record) {
+                    const { data, error } = await supabase
+                        .from(config.table)
+                        .select('id, title, icon')
+                        .eq('id', listId)
+                        .eq('user_id', currentUser.id)
+                        .single();
+                    if (error || !data) {
+                        showToast('Could not load list', 'error');
+                        return;
+                    }
+                    record = data;
+                }
+
+                editingMediaList = {
+                    type,
+                    id: listId,
+                    table: config.table,
+                    fallback: config.fallback,
+                    label: config.label,
+                    rerender: config.rerender
+                };
+
+                const titleEl = document.getElementById('editMediaListModalTitle');
+                const nameInput = document.getElementById('editMediaListName');
+                if (titleEl) titleEl.textContent = `Edit ${config.label} List`;
+                if (nameInput) nameInput.value = record.title || '';
+                setEditMediaListIcon(record.icon || config.fallback);
+                showModal('editMediaListModal');
+            }
+
+            async function handleEditMediaListSubmit(e) {
+                e.preventDefault();
+                if (!editingMediaList || !supabase || !currentUser) return;
+
+                const nameInput = document.getElementById('editMediaListName');
+                const iconInput = document.getElementById('editMediaListSelectedIcon');
+                const title = (nameInput?.value || '').trim();
+                const icon = normalizeIconKey(iconInput?.value || editingMediaList.fallback, editingMediaList.fallback);
+
+                if (!title) {
+                    showToast('Please enter a list name', 'error');
                     return;
                 }
-                await loadMovieLists();
+
+                const { error } = await supabase
+                    .from(editingMediaList.table)
+                    .update({ title, icon })
+                    .eq('id', editingMediaList.id)
+                    .eq('user_id', currentUser.id);
+
+                if (error) {
+                    showToast('Could not save list changes', 'error');
+                    return;
+                }
+
+                closeModal('editMediaListModal');
+                if (typeof editingMediaList.rerender === 'function') {
+                    await editingMediaList.rerender();
+                }
+                showToast(`${editingMediaList.label} list updated`, 'success');
             }
 
-            async function updateMovieListIcon(listId, currentIcon) {
-                const didUpdate = await updateCustomListIcon('movie_lists', listId, currentIcon, 'movie', 'Movie list icon updated');
-                if (didUpdate) await renderMovies();
+            async function renameMovieList(listId) {
+                await openMediaListEditor('movie', listId);
             }
 
             async function createMovieList() {
@@ -6770,25 +6849,8 @@ header, .top-stripe, .section-nav {
                 showToast('List deleted', 'success');
             }
 
-            async function renameTvList(listId, currentTitle) {
-                if (!supabase || !currentUser) return;
-                const nextTitle = prompt('Rename list', currentTitle || '');
-                if (!nextTitle || !nextTitle.trim()) return;
-                const { error } = await supabase
-                    .from('tv_lists')
-                    .update({ title: nextTitle.trim() })
-                    .eq('id', listId)
-                    .eq('user_id', currentUser.id);
-                if (error) {
-                    showToast('Could not rename list', 'error');
-                    return;
-                }
-                await renderTvShows();
-            }
-
-            async function updateTvListIcon(listId, currentIcon) {
-                const didUpdate = await updateCustomListIcon('tv_lists', listId, currentIcon, 'tv', 'TV list icon updated');
-                if (didUpdate) await renderTvShows();
+            async function renameTvList(listId) {
+                await openMediaListEditor('tv', listId);
             }
 
             async function createTvList() {
@@ -6834,25 +6896,8 @@ header, .top-stripe, .section-nav {
                 showToast('List deleted', 'success');
             }
 
-            async function renameGameList(listId, currentTitle) {
-                if (!supabase || !currentUser) return;
-                const nextTitle = prompt('Rename list', currentTitle || '');
-                if (!nextTitle || !nextTitle.trim()) return;
-                const { error } = await supabase
-                    .from('game_lists')
-                    .update({ title: nextTitle.trim() })
-                    .eq('id', listId)
-                    .eq('user_id', currentUser.id);
-                if (error) {
-                    showToast('Could not rename list', 'error');
-                    return;
-                }
-                await renderGames();
-            }
-
-            async function updateGameListIcon(listId, currentIcon) {
-                const didUpdate = await updateCustomListIcon('game_lists', listId, currentIcon, 'game', 'Game list icon updated');
-                if (didUpdate) await renderGames();
+            async function renameGameList(listId) {
+                await openMediaListEditor('game', listId);
             }
 
             async function createGameList() {
@@ -7509,7 +7554,7 @@ header, .top-stripe, .section-nav {
                         </button>
                         <div class="collection-dropdown" id="collection-${contentType}-${list.id}">
                             <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.editCollection('${list.id}', '${contentType}')">
-                                <i class="fas fa-edit"></i> Rename
+                                <i class="fas fa-edit"></i> Edit
                             </div>
                             <div class="collection-dropdown-item danger" onclick="event.stopPropagation(); ProfileManager.deleteCollection('${list.id}', '${contentType}')">
                                 <i class="fas fa-trash"></i> Delete
@@ -7780,29 +7825,25 @@ header, .top-stripe, .section-nav {
                     const titleEl = document.getElementById('mobileMovieDetailTitle');
                     const descEl = document.getElementById('mobileMovieDetailDescription');
                     const actions = document.getElementById('mobileMovieDetailActions');
-                    const renameBtn = document.getElementById('mobileMovieListRenameBtn');
-                    const iconBtn = document.getElementById('mobileMovieListIconBtn');
+                    const editBtn = document.getElementById('mobileMovieListEditBtn');
                     const deleteBtn = document.getElementById('mobileMovieListDeleteBtn');
                     if (titleEl) titleEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
-                    if (renameBtn) renameBtn.onclick = () => renameMovieList(listId, list.title);
-                    if (iconBtn) iconBtn.onclick = () => updateMovieListIcon(listId, list.icon);
+                    if (editBtn) editBtn.onclick = () => renameMovieList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteMovieList(listId);
                 } else {
                     const iconEl = document.getElementById('movieDetailIcon');
                     const nameEl = document.getElementById('movieDetailName');
                     const descEl = document.getElementById('movieDetailDescription');
                     const actions = document.getElementById('movieDetailActions');
-                    const renameBtn = document.getElementById('movieListRenameBtn');
-                    const iconBtn = document.getElementById('movieListIconBtn');
+                    const editBtn = document.getElementById('movieListEditBtn');
                     const deleteBtn = document.getElementById('movieListDeleteBtn');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'list');
                     if (nameEl) nameEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
-                    if (renameBtn) renameBtn.onclick = () => renameMovieList(listId, list.title);
-                    if (iconBtn) iconBtn.onclick = () => updateMovieListIcon(listId, list.icon);
+                    if (editBtn) editBtn.onclick = () => renameMovieList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteMovieList(listId);
                 }
 
@@ -7925,29 +7966,25 @@ header, .top-stripe, .section-nav {
                     const titleEl = document.getElementById('mobileTvDetailTitle');
                     const descEl = document.getElementById('mobileTvDetailDescription');
                     const actions = document.getElementById('mobileTvDetailActions');
-                    const renameBtn = document.getElementById('mobileTvListRenameBtn');
-                    const iconBtn = document.getElementById('mobileTvListIconBtn');
+                    const editBtn = document.getElementById('mobileTvListEditBtn');
                     const deleteBtn = document.getElementById('mobileTvListDeleteBtn');
                     if (titleEl) titleEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
-                    if (renameBtn) renameBtn.onclick = () => renameTvList(listId, list.title);
-                    if (iconBtn) iconBtn.onclick = () => updateTvListIcon(listId, list.icon);
+                    if (editBtn) editBtn.onclick = () => renameTvList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
                 } else {
                     const iconEl = document.getElementById('tvDetailIcon');
                     const nameEl = document.getElementById('tvDetailName');
                     const descEl = document.getElementById('tvDetailDescription');
                     const actions = document.getElementById('tvDetailActions');
-                    const renameBtn = document.getElementById('tvListRenameBtn');
-                    const iconBtn = document.getElementById('tvListIconBtn');
+                    const editBtn = document.getElementById('tvListEditBtn');
                     const deleteBtn = document.getElementById('tvListDeleteBtn');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'tv');
                     if (nameEl) nameEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
-                    if (renameBtn) renameBtn.onclick = () => renameTvList(listId, list.title);
-                    if (iconBtn) iconBtn.onclick = () => updateTvListIcon(listId, list.icon);
+                    if (editBtn) editBtn.onclick = () => renameTvList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
                 }
 
@@ -8072,29 +8109,25 @@ header, .top-stripe, .section-nav {
                     const titleEl = document.getElementById('mobileGameDetailTitle');
                     const descEl = document.getElementById('mobileGameDetailDescription');
                     const actions = document.getElementById('mobileGameDetailActions');
-                    const renameBtn = document.getElementById('mobileGameListRenameBtn');
-                    const iconBtn = document.getElementById('mobileGameListIconBtn');
+                    const editBtn = document.getElementById('mobileGameListEditBtn');
                     const deleteBtn = document.getElementById('mobileGameListDeleteBtn');
                     if (titleEl) titleEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
-                    if (renameBtn) renameBtn.onclick = () => renameGameList(listId, list.title);
-                    if (iconBtn) iconBtn.onclick = () => updateGameListIcon(listId, list.icon);
+                    if (editBtn) editBtn.onclick = () => renameGameList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteGameList(listId);
                 } else {
                     const iconEl = document.getElementById('gameDetailIcon');
                     const nameEl = document.getElementById('gameDetailName');
                     const descEl = document.getElementById('gameDetailDescription');
                     const actions = document.getElementById('gameDetailActions');
-                    const renameBtn = document.getElementById('gameListRenameBtn');
-                    const iconBtn = document.getElementById('gameListIconBtn');
+                    const editBtn = document.getElementById('gameListEditBtn');
                     const deleteBtn = document.getElementById('gameListDeleteBtn');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'game');
                     if (nameEl) nameEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
-                    if (renameBtn) renameBtn.onclick = () => renameGameList(listId, list.title);
-                    if (iconBtn) iconBtn.onclick = () => updateGameListIcon(listId, list.icon);
+                    if (editBtn) editBtn.onclick = () => renameGameList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteGameList(listId);
                 }
 
@@ -8209,29 +8242,25 @@ header, .top-stripe, .section-nav {
                     const titleEl = document.getElementById('mobileBookDetailTitle');
                     const descEl = document.getElementById('mobileBookDetailDescription');
                     const actions = document.getElementById('mobileBookDetailActions');
-                    const renameBtn = document.getElementById('mobileBookListRenameBtn');
-                    const iconBtn = document.getElementById('mobileBookListIconBtn');
+                    const editBtn = document.getElementById('mobileBookListEditBtn');
                     const deleteBtn = document.getElementById('mobileBookListDeleteBtn');
                     if (titleEl) titleEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
-                    if (renameBtn) renameBtn.onclick = () => renameBookList(listId, list.title);
-                    if (iconBtn) iconBtn.onclick = () => updateBookListIcon(listId, list.icon);
+                    if (editBtn) editBtn.onclick = () => renameBookList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteBookList(listId);
                 } else {
                     const iconEl = document.getElementById('bookDetailIcon');
                     const nameEl = document.getElementById('bookDetailName');
                     const descEl = document.getElementById('bookDetailDescription');
                     const actions = document.getElementById('bookDetailActions');
-                    const renameBtn = document.getElementById('bookListRenameBtn');
-                    const iconBtn = document.getElementById('bookListIconBtn');
+                    const editBtn = document.getElementById('bookListEditBtn');
                     const deleteBtn = document.getElementById('bookListDeleteBtn');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'list');
                     if (nameEl) nameEl.textContent = list.title;
                     if (descEl) descEl.textContent = list.description || '';
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
-                    if (renameBtn) renameBtn.onclick = () => renameBookList(listId, list.title);
-                    if (iconBtn) iconBtn.onclick = () => updateBookListIcon(listId, list.icon);
+                    if (editBtn) editBtn.onclick = () => renameBookList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteBookList(listId);
                 }
 
@@ -8448,35 +8477,8 @@ header, .top-stripe, .section-nav {
                 }
             }
 
-            async function renameBookList(listId, currentTitle) {
-                if (!supabase || !currentUser) return;
-
-                const nextTitle = prompt('Rename list', currentTitle || '');
-                if (!nextTitle || !nextTitle.trim()) return;
-
-                try {
-                    const { error } = await supabase
-                        .from('book_lists')
-                        .update({
-                            title: nextTitle.trim(),
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', listId)
-                        .eq('user_id', currentUser.id);
-
-                    if (error) throw error;
-
-                    await renderBooks();
-                    showToast('List renamed', 'success');
-                } catch (error) {
-                    console.error('Error renaming book list:', error);
-                    showToast('Could not rename list', 'error');
-                }
-            }
-
-            async function updateBookListIcon(listId, currentIcon) {
-                const didUpdate = await updateCustomListIcon('book_lists', listId, currentIcon, 'book', 'Book list icon updated');
-                if (didUpdate) await renderBooks();
+            async function renameBookList(listId) {
+                await openMediaListEditor('book', listId);
             }
 
             async function deleteBookList(listId) {
@@ -8735,34 +8737,11 @@ header, .top-stripe, .section-nav {
                 if (type === 'restaurant') {
                     if (typeof ProfileManager.prepareEditList === 'function') {
                         ProfileManager.prepareEditList(id);
-                        return;
                     }
-                } else if (type === 'movie') {
-                    const list = await supabase.from('movie_lists').select('title').eq('id', id).single();
-                    if (list?.data?.title) {
-                        await renameMovieList(id, list.data.title);
-                        return;
-                    }
-                } else if (type === 'tv') {
-                    const list = await supabase.from('tv_lists').select('title').eq('id', id).single();
-                    if (list?.data?.title) {
-                        await renameTvList(id, list.data.title);
-                        return;
-                    }
-                } else if (type === 'game') {
-                    const list = await supabase.from('game_lists').select('title').eq('id', id).single();
-                    if (list?.data?.title) {
-                        await renameGameList(id, list.data.title);
-                        return;
-                    }
-                } else {
-                    const list = await supabase.from('book_lists').select('title').eq('id', id).single();
-                    if (list?.data?.title) {
-                        await renameBookList(id, list.data.title);
-                        return;
-                    }
+                    return;
                 }
-                showToast('Edit feature coming soon', 'info');
+
+                await openMediaListEditor(type, id);
             }
 
             async function deleteCollection(id, type) {
@@ -8920,6 +8899,7 @@ header, .top-stripe, .section-nav {
                             icon.style.border = '1px solid transparent';
                         });
                     }
+
                 }
             }
 
@@ -8955,6 +8935,17 @@ header, .top-stripe, .section-nav {
                         isEditingList = false;
                         editingListId = null;
                         document.querySelector('#createListModal .modal-title').textContent = "Create New List";
+                    }
+
+                    if (modalId === 'editMediaListModal') {
+                        const form = document.getElementById('editMediaListForm');
+                        if (form) form.reset();
+                        const icon = document.getElementById('editMediaListSelectedIcon');
+                        if (icon) icon.value = 'list';
+                        document.querySelectorAll('.edit-list-icon-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        editingMediaList = null;
                     }
                 }
             }
@@ -9108,6 +9099,17 @@ header, .top-stripe, .section-nav {
                         this.style.border = '1px solid var(--accent)';
                         const selectedIcon = document.getElementById('selectedIcon');
                         if (selectedIcon) selectedIcon.value = this.getAttribute('data-icon');
+                    });
+                });
+
+                const editMediaListForm = document.getElementById('editMediaListForm');
+                if (editMediaListForm) {
+                    editMediaListForm.addEventListener('submit', handleEditMediaListSubmit);
+                }
+
+                document.querySelectorAll('.edit-list-icon-option').forEach(icon => {
+                    icon.addEventListener('click', function() {
+                        setEditMediaListIcon(this.getAttribute('data-icon'));
                     });
                 });
                 
