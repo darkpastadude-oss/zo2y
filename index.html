@@ -633,6 +633,30 @@
     const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
     const FEED_CACHE_KEY = 'zo2y_universal_feed_cache_v1';
     const FEED_CACHE_TTL_MS = 1000 * 60 * 30;
+    const FALLBACK_BOOKS = [
+      { title: 'Atomic Habits', author: 'James Clear', isbn: '9780735211292' },
+      { title: 'The Alchemist', author: 'Paulo Coelho', isbn: '9780061122415' },
+      { title: 'It Ends with Us', author: 'Colleen Hoover', isbn: '9781501110368' },
+      { title: 'The Silent Patient', author: 'Alex Michaelides', isbn: '9781250316776' },
+      { title: 'The Midnight Library', author: 'Matt Haig', isbn: '9780385545969' },
+      { title: 'The Psychology of Money', author: 'Morgan Housel', isbn: '9780857197689' },
+      { title: 'Sapiens', author: 'Yuval Noah Harari', isbn: '9780062316097' },
+      { title: 'The Hobbit', author: 'J.R.R. Tolkien', isbn: '9780261103344' },
+      { title: "Harry Potter and the Sorcerer's Stone", author: 'J.K. Rowling', isbn: '9780590353427' },
+      { title: 'To Kill a Mockingbird', author: 'Harper Lee', isbn: '9780061120084' }
+    ];
+    const FALLBACK_RESTAURANTS = [
+      { id: 'fallback-1', name: 'Popular Picks', category: 'Community', rating: '4.8' },
+      { id: 'fallback-2', name: 'Top Rated Nearby', category: 'Local', rating: '4.7' },
+      { id: 'fallback-3', name: 'Most Saved Spots', category: 'Trending', rating: '4.9' },
+      { id: 'fallback-4', name: 'New This Week', category: 'Fresh', rating: '4.6' },
+      { id: 'fallback-5', name: 'Editor Favorites', category: 'Featured', rating: '4.8' },
+      { id: 'fallback-6', name: 'Casual Essentials', category: 'Everyday', rating: '4.5' },
+      { id: 'fallback-7', name: 'Date Night', category: 'Curated', rating: '4.7' },
+      { id: 'fallback-8', name: 'Late Night Bites', category: 'Open Late', rating: '4.6' },
+      { id: 'fallback-9', name: 'Budget Friendly', category: 'Value', rating: '4.5' },
+      { id: 'fallback-10', name: 'Hidden Gems', category: 'Underrated', rating: '4.7' }
+    ];
     const FALLBACK_GAMES = [
       { title: 'The Witcher 3: Wild Hunt', year: '2015', image: 'https://cdn.akamai.steamstatic.com/steam/apps/292030/header.jpg' },
       { title: 'Red Dead Redemption 2', year: '2018', image: 'https://cdn.akamai.steamstatic.com/steam/apps/1174180/header.jpg' },
@@ -1128,20 +1152,46 @@
 
     async function loadRestaurants() {
       const client = await ensureHomeSupabase();
-      if (!client) return [];
+      if (!client) {
+        return FALLBACK_RESTAURANTS.map(r => ({
+          mediaType: 'restaurant',
+          itemId: String(r.id || ''),
+          title: r.name || 'Restaurant',
+          subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
+          image: '',
+          href: 'restraunts.html'
+        }));
+      }
       const { data, error } = await client
         .from('restraunts')
         .select('id,name,image,category,rating')
         .order('rating', { ascending: false })
         .limit(10);
-      if (error || !data) return [];
-      return data.map(r => ({
+      if (error || !data || !data.length) {
+        return FALLBACK_RESTAURANTS.map(r => ({
+          mediaType: 'restaurant',
+          itemId: String(r.id || ''),
+          title: r.name || 'Restaurant',
+          subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
+          image: '',
+          href: 'restraunts.html'
+        }));
+      }
+      const mapped = data.map(r => ({
         mediaType: 'restaurant',
         itemId: String(r.id || ''),
         title: r.name || 'Restaurant',
         subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
         image: r.image ? toHttpsUrl(`images/${r.image}`) : '',
         href: r.id ? `restaurant.html?id=${encodeURIComponent(r.id)}` : 'restraunts.html'
+      }));
+      return mapped.length ? mapped : FALLBACK_RESTAURANTS.map(r => ({
+        mediaType: 'restaurant',
+        itemId: String(r.id || ''),
+        title: r.name || 'Restaurant',
+        subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
+        image: '',
+        href: 'restraunts.html'
       }));
     }
 
@@ -1247,53 +1297,51 @@
     }
 
     async function loadBooks() {
-      // Popular mainstream books by ISBN to avoid obscure archival results.
-      const popularIsbns = [
-        '9780735211292', // Atomic Habits
-        '9780061122415', // The Alchemist
-        '9781501110368', // It Ends with Us
-        '9781250316776', // The Silent Patient
-        '9780385545969', // The Midnight Library
-        '9780399590504', // The Seven Husbands of Evelyn Hugo
-        '9780399592522', // Educated
-        '9780857197689', // The Psychology of Money
-        '9780062457714', // The Subtle Art of Not Giving a F*ck
-        '9780735219090', // Where the Crawdads Sing
-        '9780060850524', // The Four Agreements
-        '9781612681139', // Rich Dad Poor Dad
-        '9780062316097', // Sapiens
-        '9780374533557', // Thinking, Fast and Slow
-        '9780261103344', // The Hobbit
-        '9780590353427', // Harry Potter and the Sorcerer's Stone
-        '9780743273565', // The Great Gatsby
-        '9780061120084', // To Kill a Mockingbird
-        '9780385490818', // The Handmaid's Tale
-        '9780553382563'  // A Game of Thrones
-      ];
-
-      const pickIsbns = shuffleArray(popularIsbns).slice(0, 10);
-      const requests = pickIsbns.map(async (isbn) => {
-        const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`;
+      // Single request to reduce Google rate limits, then fallback to static popular list.
+      try {
+        const url = `https://www.googleapis.com/books/v1/volumes?q=subject:fiction&orderBy=relevance&maxResults=24&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`;
         const res = await fetch(url);
-        if (!res.ok) return null;
-        const json = await res.json();
-        const item = Array.isArray(json.items) ? json.items[0] : null;
-        if (!item) return null;
-        const info = item.volumeInfo || {};
-        const image = toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '');
-        const author = Array.isArray(info.authors) && info.authors.length ? info.authors[0] : 'Book';
-        return {
-          mediaType: 'book',
-          itemId: String(item.id || ''),
-          title: info.title || 'Book',
-          subtitle: author,
-          image,
-          href: item.id ? `book.html?id=${encodeURIComponent(item.id)}` : 'books.html'
-        };
-      });
+        if (res.ok) {
+          const json = await res.json();
+          const items = Array.isArray(json.items) ? json.items : [];
+          const mapped = items
+            .map((item) => {
+              const info = item.volumeInfo || {};
+              const title = String(info.title || '').trim();
+              if (!title) return null;
+              const author = Array.isArray(info.authors) && info.authors.length ? info.authors[0] : 'Book';
+              const image = toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '');
+              return {
+                mediaType: 'book',
+                itemId: String(item.id || ''),
+                title,
+                subtitle: author,
+                image,
+                href: item.id ? `book.html?id=${encodeURIComponent(item.id)}` : 'books.html'
+              };
+            })
+            .filter(Boolean);
+          const deduped = [];
+          const seen = new Set();
+          for (const book of mapped) {
+            const key = String(book.title || '').toLowerCase();
+            if (!key || seen.has(key)) continue;
+            seen.add(key);
+            deduped.push(book);
+            if (deduped.length >= 10) break;
+          }
+          if (deduped.length) return deduped;
+        }
+      } catch (_err) {}
 
-      const results = (await Promise.all(requests)).filter(Boolean);
-      return results.length ? results : [];
+      return shuffleArray(FALLBACK_BOOKS).slice(0, 10).map((b, idx) => ({
+        mediaType: 'book',
+        itemId: `fallback-book-${idx}`,
+        title: b.title,
+        subtitle: b.author,
+        image: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+        href: 'books.html'
+      }));
     }
 
     async function initUniversalHome() {
