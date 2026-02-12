@@ -217,6 +217,30 @@ body{
     googleBtn.innerHTML = loading ? `<div class="loading"></div> ${text}` : googleDefaultHtml;
   }
 
+  async function withTimeout(promise, ms, timeoutMessage) {
+    let timerId;
+    const timeoutPromise = new Promise((_, reject) => {
+      timerId = setTimeout(() => reject(new Error(timeoutMessage)), ms);
+    });
+    try {
+      return await Promise.race([promise, timeoutPromise]);
+    } finally {
+      clearTimeout(timerId);
+    }
+  }
+
+  function getReadableAuthError(err, fallback) {
+    const msg = String(err?.message || '').toLowerCase();
+    if (!msg) return fallback;
+    if (msg.includes('failed to fetch') || msg.includes('network')) {
+      return 'Auth service is temporarily unreachable. Please try again in a minute.';
+    }
+    if (msg.includes('timed out')) {
+      return 'Auth request timed out. Please try again.';
+    }
+    return err.message || fallback;
+  }
+
   async function handleOAuthCallback() {
     const params = new URLSearchParams(window.location.search);
     const oauthError = params.get('error_description') || params.get('error');
@@ -271,12 +295,16 @@ body{
 
     setSubmitLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await withTimeout(
+        supabase.auth.signInWithPassword({ email, password }),
+        12000,
+        'Auth request timed out'
+      );
       if (error) throw error;
       if (remember.checked) localStorage.setItem('rememberedEmail', email);
       else localStorage.removeItem('rememberedEmail');
     } catch (err) {
-      showError(err?.message || 'Login failed.');
+      showError(getReadableAuthError(err, 'Login failed.'));
     } finally {
       setSubmitLoading(false);
     }
@@ -310,13 +338,17 @@ body{
       return;
     }
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/update-password.html'
-      });
+      const { error } = await withTimeout(
+        supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + '/update-password.html'
+        }),
+        12000,
+        'Password reset request timed out'
+      );
       if (error) throw error;
       showSuccess('Reset email sent. Check your inbox.');
     } catch (err) {
-      showError(err?.message || 'Failed to send reset email.');
+      showError(getReadableAuthError(err, 'Failed to send reset email.'));
     }
   });
 })();
