@@ -4244,21 +4244,9 @@ header, .top-stripe, .section-nav {
                 }, duration);
             }
 
-            function applyPreviewImageOrientation(img) {
-                if (!img) return;
-                const tile = img.closest('.collection-preview-item, .mobile-preview-item, .list-preview-item');
-                if (!tile) return;
-
-                const width = img.naturalWidth || 0;
-                const height = img.naturalHeight || 0;
-                if (!width || !height) return;
-
-                tile.classList.remove('is-portrait', 'is-landscape');
-                if (width > height * 1.08) {
-                    tile.classList.add('is-landscape');
-                } else if (height > width * 1.08) {
-                    tile.classList.add('is-portrait');
-                }
+            function getPreviewOrientationClass(contentType) {
+                const type = String(contentType || '').toLowerCase();
+                return (type === 'restaurant' || type === 'game') ? 'is-landscape' : 'is-portrait';
             }
 
             // ===== CUSTOM CONFIRMATION MODAL =====
@@ -5045,13 +5033,13 @@ header, .top-stripe, .section-nav {
                                 const restaurant = restaurants.find(r => r.id === restaurantId);
                                 if (restaurant) {
                                     previewItems.push(`
-                                        <div class="list-preview-item">
-                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy" onload="ProfileManager.applyPreviewImageOrientation(this)">
+                                        <div class="list-preview-item is-landscape">
+                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
                                         </div>
                                     `);
                                 } else {
                                     previewItems.push(`
-                                        <div class="list-preview-item">
+                                        <div class="list-preview-item is-landscape">
                                             <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
                                                 ${iconGlyph('restaurant')}
                                             </div>
@@ -5060,7 +5048,7 @@ header, .top-stripe, .section-nav {
                                 }
                             } else {
                                 previewItems.push(`
-                                    <div class="list-preview-item">
+                                    <div class="list-preview-item is-landscape">
                                         <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
                                             ${iconGlyph('restaurant')}
                                         </div>
@@ -5175,13 +5163,13 @@ header, .top-stripe, .section-nav {
                                 const restaurant = restaurants.find(r => r.id === restaurantId);
                                 if (restaurant) {
                                     previewItems.push(`
-                                        <div class="mobile-preview-item">
-                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy" onload="ProfileManager.applyPreviewImageOrientation(this)">
+                                        <div class="mobile-preview-item is-landscape">
+                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
                                         </div>
                                     `);
                                 } else {
                                     previewItems.push(`
-                                        <div class="mobile-preview-item">
+                                        <div class="mobile-preview-item is-landscape">
                                             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
                                                 ${iconGlyph('restaurant')}
                                             </div>
@@ -5190,7 +5178,7 @@ header, .top-stripe, .section-nav {
                                 }
                             } else {
                                 previewItems.push(`
-                                    <div class="mobile-preview-item">
+                                    <div class="mobile-preview-item is-landscape">
                                         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
                                             ${iconGlyph('restaurant')}
                                         </div>
@@ -6623,8 +6611,8 @@ header, .top-stripe, .section-nav {
                     const previewHtml = previewIds.length ? `
                         <div class="list-preview-grid">
                             ${previewData.map(m => `
-                                <div class="list-preview-item">
-                                    <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="Preview" loading="lazy" onload="ProfileManager.applyPreviewImageOrientation(this)">
+                                <div class="list-preview-item is-portrait">
+                                    <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="Preview" loading="lazy">
                                 </div>
                             `).join('')}
                         </div>
@@ -7665,18 +7653,19 @@ header, .top-stripe, .section-nav {
                 const count = itemIds.length;
 
                 const previewItems = await getPreviewItems(itemIds.slice(0, 4), contentType);
+                const previewOrientationClass = getPreviewOrientationClass(contentType);
 
                 let previewHtml = '';
                 for (let i = 0; i < 4; i++) {
                     if (previewItems[i]) {
                         previewHtml += `
-                            <div class="collection-preview-item">
-                                <img src="${previewItems[i]}" alt="Preview" loading="lazy" onload="ProfileManager.applyPreviewImageOrientation(this)" onerror="this.onerror=null;this.src='images/logo.png';">
+                            <div class="collection-preview-item ${previewOrientationClass}">
+                                <img src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
                             </div>
                         `;
                     } else {
                         previewHtml += `
-                            <div class="collection-preview-item">
+                            <div class="collection-preview-item ${previewOrientationClass}">
                                 <div class="collection-preview-item-empty">${iconGlyph(contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'game' ? 'game' : 'book'))))}</div>
                             </div>
                         `;
@@ -9445,7 +9434,6 @@ header, .top-stripe, .section-nav {
                 showMobileMenu,
                 showCreateListTypeModal,
                 createListForType,
-                applyPreviewImageOrientation,
                 logout,
                 removeFromList,
                 escapeHtml
