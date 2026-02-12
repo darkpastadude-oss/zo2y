@@ -631,6 +631,25 @@
     const RAWG_KEY = '83b2a55ac54c4c1db7099212e740f680';
     const GOOGLE_BOOKS_KEY = 'AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s';
     const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
+    const FALLBACK_RESTAURANTS = [
+      { id: 'fallback-r1', name: 'Top Rated Picks', category: 'Community', rating: '4.8' },
+      { id: 'fallback-r2', name: 'Most Saved', category: 'Trending', rating: '4.7' },
+      { id: 'fallback-r3', name: 'Local Favorites', category: 'Local', rating: '4.9' },
+      { id: 'fallback-r4', name: 'Date Night', category: 'Curated', rating: '4.7' },
+      { id: 'fallback-r5', name: 'Quick Bites', category: 'Casual', rating: '4.6' }
+    ];
+    const FALLBACK_BOOKS = [
+      { title: 'Atomic Habits', author: 'James Clear', isbn: '9780735211292' },
+      { title: 'The Alchemist', author: 'Paulo Coelho', isbn: '9780061122415' },
+      { title: 'The Silent Patient', author: 'Alex Michaelides', isbn: '9781250316776' },
+      { title: 'Sapiens', author: 'Yuval Noah Harari', isbn: '9780062316097' },
+      { title: 'The Hobbit', author: 'J.R.R. Tolkien', isbn: '9780261103344' },
+      { title: "Harry Potter and the Sorcerer's Stone", author: 'J.K. Rowling', isbn: '9780590353427' },
+      { title: 'To Kill a Mockingbird', author: 'Harper Lee', isbn: '9780061120084' },
+      { title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', isbn: '9780743273565' },
+      { title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', isbn: '9780374533557' },
+      { title: 'The Psychology of Money', author: 'Morgan Housel', isbn: '9780857197689' }
+    ];
 
     const statusEl = document.getElementById('loadStatus');
     let homeSupabaseClient = null;
@@ -643,6 +662,10 @@
         .replace(/>/g, '&gt;')
         .replace(/\"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    }
+
+    function toHttpsUrl(value) {
+      return String(value || '').replace(/^http:\/\//i, 'https://');
     }
 
     function showHomeToast(message, isError = false) {
@@ -735,7 +758,13 @@
     async function ensureHomeSupabase() {
       if (homeSupabaseClient) return homeSupabaseClient;
       if (!window.supabase || !window.supabase.createClient) return null;
-      homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: false
+        }
+      });
       return homeSupabaseClient;
     }
 
@@ -1035,8 +1064,8 @@
     }
 
     async function initAuthUi() {
-      if (!window.supabase || !window.supabase.createClient) return;
-      const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const client = await ensureHomeSupabase();
+      if (!client) return;
       const loginBtn = document.getElementById('loginBtn');
       const signupBtn = document.getElementById('signupBtn');
       const profileBtn = document.getElementById('profileBtn');
@@ -1073,20 +1102,38 @@
     }
 
     async function loadRestaurants() {
-      if (!window.supabase || !window.supabase.createClient) return [];
-      const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const client = await ensureHomeSupabase();
+      if (!client) {
+        return FALLBACK_RESTAURANTS.map((r) => ({
+          mediaType: 'restaurant',
+          itemId: String(r.id),
+          title: r.name,
+          subtitle: `${r.category} | ${r.rating}/5`,
+          image: '',
+          href: 'restraunts.html'
+        }));
+      }
       const { data, error } = await client
         .from('restraunts')
         .select('id,name,image,category,rating')
         .order('rating', { ascending: false })
         .limit(10);
-      if (error || !data) return [];
+      if (error || !data || !data.length) {
+        return FALLBACK_RESTAURANTS.map((r) => ({
+          mediaType: 'restaurant',
+          itemId: String(r.id),
+          title: r.name,
+          subtitle: `${r.category} | ${r.rating}/5`,
+          image: '',
+          href: 'restraunts.html'
+        }));
+      }
       return data.map(r => ({
         mediaType: 'restaurant',
         itemId: String(r.id || ''),
         title: r.name || 'Restaurant',
         subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
-        image: r.image ? `images/${r.image}` : '',
+        image: r.image ? toHttpsUrl(`images/${r.image}`) : '',
         href: r.id ? `restaurant.html?id=${encodeURIComponent(r.id)}` : 'restraunts.html'
       }));
     }
@@ -1159,53 +1206,39 @@
     }
 
     async function loadBooks() {
-      // Popular mainstream books by ISBN to avoid obscure archival results.
-      const popularIsbns = [
-        '9780735211292', // Atomic Habits
-        '9780061122415', // The Alchemist
-        '9781501110368', // It Ends with Us
-        '9781250316776', // The Silent Patient
-        '9780385545969', // The Midnight Library
-        '9780399590504', // The Seven Husbands of Evelyn Hugo
-        '9780399592522', // Educated
-        '9780857197689', // The Psychology of Money
-        '9780062457714', // The Subtle Art of Not Giving a F*ck
-        '9780735219090', // Where the Crawdads Sing
-        '9780060850524', // The Four Agreements
-        '9781612681139', // Rich Dad Poor Dad
-        '9780062316097', // Sapiens
-        '9780374533557', // Thinking, Fast and Slow
-        '9780261103344', // The Hobbit
-        '9780590353427', // Harry Potter and the Sorcerer's Stone
-        '9780743273565', // The Great Gatsby
-        '9780061120084', // To Kill a Mockingbird
-        '9780385490818', // The Handmaid's Tale
-        '9780553382563'  // A Game of Thrones
-      ];
-
-      const pickIsbns = shuffleArray(popularIsbns).slice(0, 10);
-      const requests = pickIsbns.map(async (isbn) => {
-        const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`;
+      // Keep to one request to avoid hitting Google Books 429 rate limits.
+      try {
+        const url = `https://www.googleapis.com/books/v1/volumes?q=subject:fiction&orderBy=relevance&maxResults=24&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`;
         const res = await fetch(url);
-        if (!res.ok) return null;
-        const json = await res.json();
-        const item = Array.isArray(json.items) ? json.items[0] : null;
-        if (!item) return null;
-        const info = item.volumeInfo || {};
-        const image = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '';
-        const author = Array.isArray(info.authors) && info.authors.length ? info.authors[0] : 'Book';
-        return {
-          mediaType: 'book',
-          itemId: String(item.id || ''),
-          title: info.title || 'Book',
-          subtitle: author,
-          image,
-          href: item.id ? `book.html?id=${encodeURIComponent(item.id)}` : 'books.html'
-        };
-      });
+        if (res.ok) {
+          const json = await res.json();
+          const items = Array.isArray(json.items) ? json.items : [];
+          const mapped = items.map((item) => {
+            const info = item.volumeInfo || {};
+            const title = String(info.title || '').trim();
+            if (!title) return null;
+            const author = Array.isArray(info.authors) && info.authors.length ? info.authors[0] : 'Book';
+            return {
+              mediaType: 'book',
+              itemId: String(item.id || ''),
+              title,
+              subtitle: author,
+              image: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
+              href: item.id ? `book.html?id=${encodeURIComponent(item.id)}` : 'books.html'
+            };
+          }).filter(Boolean);
+          if (mapped.length) return mapped.slice(0, 10);
+        }
+      } catch (_e) {}
 
-      const results = (await Promise.all(requests)).filter(Boolean);
-      return results.length ? results : [];
+      return shuffleArray(FALLBACK_BOOKS).slice(0, 10).map((b, idx) => ({
+        mediaType: 'book',
+        itemId: `fallback-book-${idx}`,
+        title: b.title,
+        subtitle: b.author,
+        image: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+        href: 'books.html'
+      }));
     }
 
     async function initUniversalHome() {

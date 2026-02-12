@@ -439,17 +439,22 @@
       }
     });
     
-    // Google OAuth signup - SIMPLE VERSION
+    // Google OAuth signup
     googleBtn.addEventListener('click', async () => {
       googleBtn.disabled = true;
       const originalText = googleBtn.innerHTML;
       googleBtn.innerHTML = '<div class="loading"></div>';
       
       try {
-        // Simple - let Supabase handle everything
         const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google'
-          // No redirectTo - Supabase will use default
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin + '/auth-callback.html?next=index.html',
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent'
+            }
+          }
         });
         
         if(error) {
