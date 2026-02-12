@@ -271,7 +271,7 @@
 
     .rail::-webkit-scrollbar { height: 7px; }
     .rail::-webkit-scrollbar-thumb { background: rgba(140,163,199,0.55); border-radius: 999px; }
-    .rail.games-rail { grid-auto-columns: 196px; }
+    .rail.games-rail { grid-auto-columns: 220px; }
 
     .card {
       border: 1px solid var(--border);
@@ -304,10 +304,11 @@
     }
 
     .card-media.landscape { aspect-ratio: 16/10; }
-    .card-media.game-poster { aspect-ratio: 3/4; }
+    .card-media.game-poster { aspect-ratio: 16/10; }
     .card-media.game-poster img {
-      object-fit: contain;
+      object-fit: contain !important;
       background: #0c1a3b;
+      padding: 4px;
     }
 
     .card-media img {
@@ -1128,32 +1129,33 @@
     }
 
     async function loadBooks() {
-      const popularBooks = [
-        'Atomic Habits James Clear',
-        'The Alchemist Paulo Coelho',
-        'The Seven Husbands of Evelyn Hugo Taylor Jenkins Reid',
-        'A Little Life Hanya Yanagihara',
-        'The Silent Patient Alex Michaelides',
-        'It Ends with Us Colleen Hoover',
-        'The Midnight Library Matt Haig',
-        'Educated Tara Westover',
-        'The Psychology of Money Morgan Housel',
-        'The Subtle Art of Not Giving a F*ck Mark Manson',
-        'Where the Crawdads Sing Delia Owens',
-        'The Song of Achilles Madeline Miller',
-        'The Four Agreements Don Miguel Ruiz',
-        'Rich Dad Poor Dad Robert Kiyosaki',
-        'Sapiens Yuval Noah Harari',
-        'Thinking, Fast and Slow Daniel Kahneman',
-        'The Hobbit J.R.R. Tolkien',
-        'Harry Potter and the Sorcerer\'s Stone J.K. Rowling',
-        'The Great Gatsby F. Scott Fitzgerald',
-        'To Kill a Mockingbird Harper Lee'
+      // Popular mainstream books by ISBN to avoid obscure archival results.
+      const popularIsbns = [
+        '9780735211292', // Atomic Habits
+        '9780061122415', // The Alchemist
+        '9781501110368', // It Ends with Us
+        '9781250316776', // The Silent Patient
+        '9780385545969', // The Midnight Library
+        '9780399590504', // The Seven Husbands of Evelyn Hugo
+        '9780399592522', // Educated
+        '9780857197689', // The Psychology of Money
+        '9780062457714', // The Subtle Art of Not Giving a F*ck
+        '9780735219090', // Where the Crawdads Sing
+        '9780060850524', // The Four Agreements
+        '9781612681139', // Rich Dad Poor Dad
+        '9780062316097', // Sapiens
+        '9780374533557', // Thinking, Fast and Slow
+        '9780261103344', // The Hobbit
+        '9780590353427', // Harry Potter and the Sorcerer's Stone
+        '9780743273565', // The Great Gatsby
+        '9780061120084', // To Kill a Mockingbird
+        '9780385490818', // The Handmaid's Tale
+        '9780553382563'  // A Game of Thrones
       ];
 
-      const pickQueries = shuffleArray(popularBooks).slice(0, 10);
-      const requests = pickQueries.map(async (q) => {
-        const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(`intitle:${q}`)}&maxResults=1&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`;
+      const pickIsbns = shuffleArray(popularIsbns).slice(0, 10);
+      const requests = pickIsbns.map(async (isbn) => {
+        const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`;
         const res = await fetch(url);
         if (!res.ok) return null;
         const json = await res.json();
@@ -1173,7 +1175,7 @@
       });
 
       const results = (await Promise.all(requests)).filter(Boolean);
-      return results;
+      return results.length ? results : [];
     }
 
     async function initUniversalHome() {
