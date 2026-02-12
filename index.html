@@ -631,6 +631,18 @@
     const RAWG_KEY = '83b2a55ac54c4c1db7099212e740f680';
     const GOOGLE_BOOKS_KEY = 'AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s';
     const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
+    const FALLBACK_GAMES = [
+      { title: 'The Witcher 3: Wild Hunt', year: '2015', image: 'https://cdn.akamai.steamstatic.com/steam/apps/292030/header.jpg' },
+      { title: 'Red Dead Redemption 2', year: '2018', image: 'https://cdn.akamai.steamstatic.com/steam/apps/1174180/header.jpg' },
+      { title: 'Grand Theft Auto V', year: '2015', image: 'https://cdn.akamai.steamstatic.com/steam/apps/271590/header.jpg' },
+      { title: 'Elden Ring', year: '2022', image: 'https://cdn.akamai.steamstatic.com/steam/apps/1245620/header.jpg' },
+      { title: 'Cyberpunk 2077', year: '2020', image: 'https://cdn.akamai.steamstatic.com/steam/apps/1091500/header.jpg' },
+      { title: 'God of War', year: '2022', image: 'https://cdn.akamai.steamstatic.com/steam/apps/1593500/header.jpg' },
+      { title: 'Fallout 4', year: '2015', image: 'https://cdn.akamai.steamstatic.com/steam/apps/377160/header.jpg' },
+      { title: 'DOOM (2016)', year: '2016', image: 'https://cdn.akamai.steamstatic.com/steam/apps/379720/header.jpg' },
+      { title: 'Rocket League', year: '2015', image: 'https://cdn.akamai.steamstatic.com/steam/apps/252950/header.jpg' },
+      { title: 'Hades', year: '2020', image: 'https://cdn.akamai.steamstatic.com/steam/apps/1145360/header.jpg' }
+    ];
 
     const statusEl = document.getElementById('loadStatus');
     let homeSupabaseClient = null;
@@ -914,6 +926,25 @@
       statusEl.style.color = isError ? '#fca5a5' : 'var(--ok)';
     }
 
+    async function handleIndexOAuthCallback() {
+      const params = new URLSearchParams(window.location.search);
+      const oauthError = params.get('error_description') || params.get('error');
+      if (oauthError) {
+        setStatus(`Sign-in error: ${oauthError}`, true);
+        return;
+      }
+      const code = params.get('code');
+      if (!code) return;
+      const client = await ensureHomeSupabase();
+      if (!client) return;
+      const { error } = await client.auth.exchangeCodeForSession(code);
+      if (error) {
+        setStatus(`Could not complete sign in: ${error.message || 'OAuth exchange failed'}`, true);
+        return;
+      }
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
@@ -1145,9 +1176,32 @@
     }
 
     async function loadGames() {
+      const useFallback = String(window.location.hostname || '').toLowerCase() === 'www.zo2y.com';
+      if (useFallback) {
+        return shuffleArray(FALLBACK_GAMES).slice(0, 10).map((g, idx) => ({
+          mediaType: 'game',
+          itemId: String(900000 + idx),
+          title: g.title,
+          subtitle: g.year,
+          extra: 'Popular Game',
+          image: toHttpsUrl(g.image),
+          href: 'games.html'
+        }));
+      }
+
       // Prefer broadly popular, mainstream releases over niche high-rating titles.
       const res = await fetch(`https://api.rawg.io/api/games?page_size=24&ordering=-added&dates=2015-01-01,2026-12-31&metacritic=70,100&key=${RAWG_KEY}`);
-      if (!res.ok) return [];
+      if (!res.ok) {
+        return shuffleArray(FALLBACK_GAMES).slice(0, 10).map((g, idx) => ({
+          mediaType: 'game',
+          itemId: String(900000 + idx),
+          title: g.title,
+          subtitle: g.year,
+          extra: 'Popular Game',
+          image: toHttpsUrl(g.image),
+          href: 'games.html'
+        }));
+      }
       const json = await res.json();
       const results = Array.isArray(json.results) ? json.results : [];
 
@@ -1163,6 +1217,17 @@
       }
 
       const filtered = shuffleArray(candidates).slice(0, 10);
+      if (!filtered.length) {
+        return shuffleArray(FALLBACK_GAMES).slice(0, 10).map((g, idx) => ({
+          mediaType: 'game',
+          itemId: String(900000 + idx),
+          title: g.title,
+          subtitle: g.year,
+          extra: 'Popular Game',
+          image: toHttpsUrl(g.image),
+          href: 'games.html'
+        }));
+      }
 
       return filtered.map(g => ({
         mediaType: 'game',
@@ -1250,14 +1315,17 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      initAuthUi();
-      initUniversalHome();
-      if (window.initUniversalSearch) {
-        window.initUniversalSearch({
-          input: '#globalSearch',
-          fallbackRoute: 'restraunts.html'
-        });
-      }
+      (async () => {
+        await handleIndexOAuthCallback();
+        await initAuthUi();
+        await initUniversalHome();
+        if (window.initUniversalSearch) {
+          window.initUniversalSearch({
+            input: '#globalSearch',
+            fallbackRoute: 'restraunts.html'
+          });
+        }
+      })();
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeAllRailMenus();
       });
