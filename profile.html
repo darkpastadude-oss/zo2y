@@ -3792,12 +3792,24 @@ header, .top-stripe, .section-nav {
                     <div class="form-group">
                         <label class="form-label">Icon</label>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <div class="list-icon-option" data-icon="heart"><i class="fas fa-heart"></i></div>
-                            <div class="list-icon-option" data-icon="check"><i class="fas fa-check-circle"></i></div>
-                            <div class="list-icon-option" data-icon="bookmark"><i class="fas fa-bookmark"></i></div>
-                            <div class="list-icon-option" data-icon="restaurant"><i class="fas fa-utensils"></i></div>
-                            <div class="list-icon-option" data-icon="movie"><i class="fas fa-film"></i></div>
-                            <div class="list-icon-option" data-icon="book"><i class="fas fa-book"></i></div>
+                            <div class="list-icon-option" data-icon="heart">❤️</div>
+                            <div class="list-icon-option" data-icon="check">✅</div>
+                            <div class="list-icon-option" data-icon="bookmark">🔖</div>
+                            <div class="list-icon-option" data-icon="restaurant">🍽️</div>
+                            <div class="list-icon-option" data-icon="movie">🎬</div>
+                            <div class="list-icon-option" data-icon="tv">📺</div>
+                            <div class="list-icon-option" data-icon="game">🎮</div>
+                            <div class="list-icon-option" data-icon="book">📚</div>
+                            <div class="list-icon-option" data-icon="list">📋</div>
+                            <div class="list-icon-option" data-icon="star">⭐</div>
+                            <div class="list-icon-option" data-icon="fire">🔥</div>
+                            <div class="list-icon-option" data-icon="sparkles">✨</div>
+                            <div class="list-icon-option" data-icon="rocket">🚀</div>
+                            <div class="list-icon-option" data-icon="trophy">🏆</div>
+                            <div class="list-icon-option" data-icon="gift">🎁</div>
+                            <div class="list-icon-option" data-icon="music">🎵</div>
+                            <div class="list-icon-option" data-icon="camera">📷</div>
+                            <div class="list-icon-option" data-icon="soccer">⚽</div>
                         </div>
                         <input type="hidden" id="selectedIcon" value="heart">
                     </div>
@@ -3829,15 +3841,24 @@ header, .top-stripe, .section-nav {
                     <div class="form-group">
                         <label class="form-label">Icon</label>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="editMediaListIconGrid">
-                            <div class="edit-list-icon-option" data-icon="heart"><i class="fas fa-heart"></i></div>
-                            <div class="edit-list-icon-option" data-icon="check"><i class="fas fa-check-circle"></i></div>
-                            <div class="edit-list-icon-option" data-icon="bookmark"><i class="fas fa-bookmark"></i></div>
-                            <div class="edit-list-icon-option" data-icon="movie"><i class="fas fa-film"></i></div>
-                            <div class="edit-list-icon-option" data-icon="tv"><i class="fas fa-tv"></i></div>
-                            <div class="edit-list-icon-option" data-icon="game"><i class="fas fa-gamepad"></i></div>
-                            <div class="edit-list-icon-option" data-icon="book"><i class="fas fa-book"></i></div>
-                            <div class="edit-list-icon-option" data-icon="restaurant"><i class="fas fa-utensils"></i></div>
-                            <div class="edit-list-icon-option" data-icon="list"><i class="fas fa-list"></i></div>
+                            <div class="edit-list-icon-option" data-icon="heart">❤️</div>
+                            <div class="edit-list-icon-option" data-icon="check">✅</div>
+                            <div class="edit-list-icon-option" data-icon="bookmark">🔖</div>
+                            <div class="edit-list-icon-option" data-icon="restaurant">🍽️</div>
+                            <div class="edit-list-icon-option" data-icon="movie">🎬</div>
+                            <div class="edit-list-icon-option" data-icon="tv">📺</div>
+                            <div class="edit-list-icon-option" data-icon="game">🎮</div>
+                            <div class="edit-list-icon-option" data-icon="book">📚</div>
+                            <div class="edit-list-icon-option" data-icon="list">📋</div>
+                            <div class="edit-list-icon-option" data-icon="star">⭐</div>
+                            <div class="edit-list-icon-option" data-icon="fire">🔥</div>
+                            <div class="edit-list-icon-option" data-icon="sparkles">✨</div>
+                            <div class="edit-list-icon-option" data-icon="rocket">🚀</div>
+                            <div class="edit-list-icon-option" data-icon="trophy">🏆</div>
+                            <div class="edit-list-icon-option" data-icon="gift">🎁</div>
+                            <div class="edit-list-icon-option" data-icon="music">🎵</div>
+                            <div class="edit-list-icon-option" data-icon="camera">📷</div>
+                            <div class="edit-list-icon-option" data-icon="soccer">⚽</div>
                         </div>
                         <input type="hidden" id="editMediaListSelectedIcon" value="list">
                     </div>
@@ -6391,7 +6412,7 @@ header, .top-stripe, .section-nav {
                 if (raw === '???') return 'restaurant';
                 if (raw.includes('fa-tv')) return 'tv';
                 if (raw.includes('fa-gamepad')) return 'game';
-                if (raw === 'heart' || raw === 'check' || raw === 'bookmark' || raw === 'restaurant' || raw === 'movie' || raw === 'book' || raw === 'tv' || raw === 'game' || raw === 'list' || raw === 'user') return raw;
+                if (raw === 'heart' || raw === 'check' || raw === 'bookmark' || raw === 'restaurant' || raw === 'movie' || raw === 'book' || raw === 'tv' || raw === 'game' || raw === 'list' || raw === 'user' || raw === 'star' || raw === 'fire' || raw === 'sparkles' || raw === 'rocket' || raw === 'trophy' || raw === 'gift' || raw === 'music' || raw === 'camera' || raw === 'soccer') return raw;
                 return raw;
             }
 
@@ -6407,7 +6428,16 @@ header, .top-stripe, .section-nav {
                     game: "\u{1F3AE}",
                     book: "\u{1F4DA}",
                     list: "\u{1F4CB}",
-                    user: "\u{1F464}"
+                    user: "\u{1F464}",
+                    star: "\u2B50",
+                    fire: "\u{1F525}",
+                    sparkles: "\u2728",
+                    rocket: "\u{1F680}",
+                    trophy: "\u{1F3C6}",
+                    gift: "\u{1F381}",
+                    music: "\u{1F3B5}",
+                    camera: "\u{1F4F7}",
+                    soccer: "\u26BD"
                 };
                 return map[key] || map[fallback] || map.list;
             }
