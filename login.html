@@ -418,9 +418,35 @@ body{
     }
   });
   
+  // Handle OAuth callback explicitly for PKCE flow
+  async function handleOAuthCallback() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const oauthError = params.get('error_description') || params.get('error');
+      if (oauthError) {
+        showError(`Google login failed: ${oauthError}`);
+        return;
+      }
+      const code = params.get('code');
+      if (!code) return;
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) {
+        console.error('OAuth callback exchange error:', error);
+        showError(`Google login failed: ${error.message || 'Session exchange failed'}`);
+        return;
+      }
+      // Clean callback params from URL after successful exchange.
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (error) {
+      console.error('OAuth callback handling error:', error);
+      showError('Google login callback failed. Please try again.');
+    }
+  }
+  
   // Redirect if already logged in
   (async () => {
     try {
+      await handleOAuthCallback();
       const { data } = await supabase.auth.getSession();
       if (data.session) {
         window.location.href = 'index.html';
@@ -494,7 +520,7 @@ body{
     try {
       showLoading();
       
-      const oauthCallback = new URL('login.html', window.location.href).toString();
+      const oauthCallback = `${window.location.origin}/login.html`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {

@@ -423,8 +423,34 @@ body {
     }
   });
   
+  // Handle OAuth callback explicitly for PKCE flow
+  async function handleOAuthCallback() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const oauthError = params.get('error_description') || params.get('error');
+      if (oauthError) {
+        showError(`Google signup failed: ${oauthError}`);
+        return;
+      }
+      const code = params.get('code');
+      if (!code) return;
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) {
+        log(`OAuth callback exchange error: ${error.message}`, 'error');
+        showError(`Google signup failed: ${error.message || 'Session exchange failed'}`);
+        return;
+      }
+      // Clean callback params from URL after successful exchange.
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (error) {
+      log(`OAuth callback handling error: ${error.message}`, 'error');
+      showError('Google signup callback failed. Please try again.');
+    }
+  }
+  
   // Check if already logged in
   (async () => {
+    await handleOAuthCallback();
     log('Checking for existing session...', 'info');
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -514,7 +540,7 @@ body {
       showLoading();
       log('Starting Google OAuth...', 'info');
       
-      const oauthCallback = new URL('sign-up.html', window.location.href).toString();
+      const oauthCallback = `${window.location.origin}/sign-up.html`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
