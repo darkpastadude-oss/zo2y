@@ -254,6 +254,11 @@
       transform: translateY(-2px);
     }
 
+    .card.menu-open,
+    .card.menu-open:hover {
+      transform: none;
+    }
+
     .card img {
       width: 100%;
       height: 260px;
@@ -1020,6 +1025,7 @@
           closeAllListMenus();
           if (!wasOpen) {
             menu.classList.add('open');
+            card.classList.add('menu-open');
             showListMenuBackdrop();
           }
         });
@@ -1062,6 +1068,7 @@
 
       function closeAllListMenus() {
         document.querySelectorAll('.list-menu.open').forEach(m => m.classList.remove('open'));
+        document.querySelectorAll('.card.menu-open').forEach(c => c.classList.remove('menu-open'));
         hideListMenuBackdrop();
       }
 
@@ -1383,6 +1390,7 @@
   </script>
 </body>
 </html>
+
 
 
 

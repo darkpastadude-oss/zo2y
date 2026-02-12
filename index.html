@@ -281,6 +281,11 @@
       min-height: 232px;
     }
 
+    .card.menu-open,
+    .card.menu-open:hover {
+      transform: none;
+    }
+
     .card-media {
       width: 100%;
       aspect-ratio: 2/3;
@@ -351,20 +356,33 @@
     }
 
     .rail-menu {
-      position: absolute;
-      right: 0;
-      top: calc(100% + 6px);
-      min-width: 170px;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(92vw, 320px);
       border-radius: 10px;
       background: var(--card);
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
       padding: 8px;
       display: none;
-      z-index: 20;
+      z-index: 3300;
     }
 
     .rail-menu.open {
+      display: block;
+    }
+
+    .rail-menu-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 3290;
+      display: none;
+    }
+
+    .rail-menu-backdrop.active {
       display: block;
     }
 
@@ -596,10 +614,14 @@
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           const menu = btn.parentElement.querySelector('.rail-menu');
-          document.querySelectorAll('.rail-menu.open').forEach((m) => {
-            if (m !== menu) m.classList.remove('open');
-          });
-          if (menu) menu.classList.toggle('open');
+          const wasOpen = !!menu?.classList.contains('open');
+          closeAllRailMenus();
+          if (menu && !wasOpen) {
+            menu.classList.add('open');
+            const card = btn.closest('.card');
+            if (card) card.classList.add('menu-open');
+            showRailMenuBackdrop();
+          }
         });
       });
 
@@ -607,9 +629,38 @@
         item.addEventListener('click', (e) => {
           e.stopPropagation();
           const href = item.getAttribute('data-href');
+          closeAllRailMenus();
           if (href) window.location.href = href;
         });
       });
+    }
+
+    function ensureRailMenuBackdrop() {
+      let backdrop = document.getElementById('railMenuBackdrop');
+      if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'railMenuBackdrop';
+        backdrop.className = 'rail-menu-backdrop';
+        backdrop.addEventListener('click', closeAllRailMenus);
+        document.body.appendChild(backdrop);
+      }
+      return backdrop;
+    }
+
+    function showRailMenuBackdrop() {
+      const backdrop = ensureRailMenuBackdrop();
+      backdrop.classList.add('active');
+    }
+
+    function hideRailMenuBackdrop() {
+      const backdrop = document.getElementById('railMenuBackdrop');
+      if (backdrop) backdrop.classList.remove('active');
+    }
+
+    function closeAllRailMenus() {
+      document.querySelectorAll('.rail-menu.open').forEach((menu) => menu.classList.remove('open'));
+      document.querySelectorAll('.card.menu-open').forEach((card) => card.classList.remove('menu-open'));
+      hideRailMenuBackdrop();
     }
 
     async function initAuthUi() {
@@ -761,9 +812,8 @@
           fallbackRoute: 'restraunts.html'
         });
       }
-      document.addEventListener('click', (e) => {
-        if (e.target.closest('.card-menu-wrap')) return;
-        document.querySelectorAll('.rail-menu.open').forEach((menu) => menu.classList.remove('open'));
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeAllRailMenus();
       });
     });
   </script>
