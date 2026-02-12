@@ -846,15 +846,17 @@
       }
 
       const landscape = !!opts.landscape;
-      const sectionHref = opts.sectionHref || '#';
-      const typeName = opts.typeName || 'item';
       rail.innerHTML = items.map(item => {
         const title = escapeHtml(item.title);
         const subtitle = escapeHtml(item.subtitle);
         const image = item.image || '';
         const href = item.href || '#';
+        const mediaType = escapeHtml(item.mediaType || '');
+        const itemId = escapeHtml(item.itemId || '');
+        const safeImage = escapeHtml(item.image || '');
         return `
-          <article class="card" data-href="${href}">
+          <article class="card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${safeImage}">
+            <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
             <div class="card-media ${landscape ? 'landscape' : ''}">
               ${image ? `<img src="${image}" alt="${title}" loading="lazy">` : '<i class="fa-solid fa-image"></i>'}
             </div>
@@ -862,10 +864,9 @@
               <div class="card-meta-top">
                 <p class="card-name">${title}</p>
                 <div class="card-menu-wrap">
-                  <button class="card-menu-btn" aria-label="More actions"><i class="fas fa-ellipsis-v"></i></button>
+                  <button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
                   <div class="rail-menu">
-                    <button class="rail-menu-item" data-href="${href}"><i class="fas fa-arrow-up-right-from-square"></i> Open ${typeName}</button>
-                    <button class="rail-menu-item" data-href="${sectionHref}"><i class="fas fa-layer-group"></i> Open ${typeName} page</button>
+                    ${buildRailListMenuHtml(item)}
                   </div>
                 </div>
               </div>
@@ -905,9 +906,20 @@
       scope.querySelectorAll('.rail-menu-item').forEach((item) => {
         item.addEventListener('click', (e) => {
           e.stopPropagation();
-          const href = item.getAttribute('data-href');
           closeAllRailMenus();
-          if (href) window.location.href = href;
+          const action = item.getAttribute('data-action');
+          if (action === 'save') {
+            const card = item.closest('.card');
+            if (!card) return;
+            saveToListFromHome({
+              mediaType: card.getAttribute('data-media-type'),
+              itemId: card.getAttribute('data-item-id'),
+              listType: item.getAttribute('data-list'),
+              title: card.getAttribute('data-title'),
+              subtitle: card.getAttribute('data-subtitle'),
+              image: card.getAttribute('data-image')
+            });
+          }
         });
       });
     }
@@ -949,6 +961,7 @@
       try {
         const { data } = await client.auth.getSession();
         const user = data?.session?.user || null;
+        homeCurrentUser = user;
         const isLoggedIn = !!user;
         if (isLoggedIn) {
           loginBtn.style.display = 'none';
@@ -972,6 +985,7 @@
           profileBtn.style.display = 'none';
         }
       } catch (_e) {
+        homeCurrentUser = null;
         profileBtn.style.display = 'none';
       }
     }
@@ -986,6 +1000,8 @@
         .limit(10);
       if (error || !data) return [];
       return data.map(r => ({
+        mediaType: 'restaurant',
+        itemId: String(r.id || ''),
         title: r.name || 'Restaurant',
         subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
         image: r.image ? `images/${r.image}` : '',
@@ -1001,6 +1017,8 @@
       const json = await res.json();
       const results = Array.isArray(json.results) ? json.results.slice(0, 10) : [];
       return results.map(m => ({
+        mediaType: 'movie',
+        itemId: String(m.id || ''),
         title: m.title || 'Movie',
         subtitle: m.release_date ? m.release_date.slice(0, 4) : 'Movie',
         image: m.poster_path ? `${TMDB_POSTER}${m.poster_path}` : '',
@@ -1016,6 +1034,8 @@
       const json = await res.json();
       const results = Array.isArray(json.results) ? json.results.slice(0, 10) : [];
       return results.map(t => ({
+        mediaType: 'tv',
+        itemId: String(t.id || ''),
         title: t.name || 'TV Show',
         subtitle: t.first_air_date ? t.first_air_date.slice(0, 4) : 'TV Show',
         image: t.poster_path ? `${TMDB_POSTER}${t.poster_path}` : '',
@@ -1029,6 +1049,8 @@
       const json = await res.json();
       const results = Array.isArray(json.results) ? json.results : [];
       return results.map(g => ({
+        mediaType: 'game',
+        itemId: String(g.id || ''),
         title: g.name || 'Game',
         subtitle: g.released ? g.released.slice(0, 4) : 'Game',
         image: g.background_image || '',
@@ -1048,6 +1070,8 @@
         const image = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '';
         const author = Array.isArray(info.authors) && info.authors.length ? info.authors[0] : 'Book';
         return {
+          mediaType: 'book',
+          itemId: String(item.id || ''),
           title: info.title || 'Book',
           subtitle: author,
           image,
