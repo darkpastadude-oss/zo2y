@@ -926,25 +926,6 @@
       statusEl.style.color = isError ? '#fca5a5' : 'var(--ok)';
     }
 
-    async function handleIndexOAuthCallback() {
-      const params = new URLSearchParams(window.location.search);
-      const oauthError = params.get('error_description') || params.get('error');
-      if (oauthError) {
-        setStatus(`Sign-in error: ${oauthError}`, true);
-        return;
-      }
-      const code = params.get('code');
-      if (!code) return;
-      const client = await ensureHomeSupabase();
-      if (!client) return;
-      const { error } = await client.auth.exchangeCodeForSession(code);
-      if (error) {
-        setStatus(`Could not complete sign in: ${error.message || 'OAuth exchange failed'}`, true);
-        return;
-      }
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
@@ -1316,7 +1297,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       (async () => {
-        await handleIndexOAuthCallback();
         await initAuthUi();
         await initUniversalHome();
         if (window.initUniversalSearch) {
