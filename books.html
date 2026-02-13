@@ -7,6 +7,7 @@
   <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/list-utils.js"></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -712,6 +713,7 @@
       }
 
       function renderListIcon(icon) {
+        if (window.ListUtils) return ListUtils.renderListIcon(icon, 'fas fa-book');
         if (!icon) return '<i class="fas fa-book"></i>';
         if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
         return icon;
@@ -1131,18 +1133,8 @@
       }
 
       async function loadCustomLists() {
-        if (!supabaseClient || !state.currentUser) return [];
-        const { data, error } = await supabaseClient
-          .from('book_lists')
-          .select('*')
-          .eq('user_id', state.currentUser.id)
-          .order('created_at', { ascending: false });
-        if (error) {
-          console.error('Error loading custom lists', error);
-          showNotification('Could not load custom lists', 'error');
-          return [];
-        }
-        return data || [];
+        if (!supabaseClient || !state.currentUser || !window.ListUtils) return [];
+        return await ListUtils.loadCustomLists(supabaseClient, state.currentUser.id, 'book');
       }
 
       async function openBookListsModal(bookId) {
@@ -1157,16 +1149,9 @@
         container.innerHTML = '<div class="chip">Loading...</div>';
         state.customLists = await loadCustomLists();
         const listIds = state.customLists.map(l => l.id);
-        state.modalSelectedLists = new Set();
-        if (listIds.length) {
-          const { data } = await supabaseClient
-            .from('book_list_items')
-            .select('list_id')
-            .eq('user_id', state.currentUser.id)
-            .eq('book_id', bookId)
-            .in('list_id', listIds);
-          (data || []).forEach(row => state.modalSelectedLists.add(row.list_id));
-        }
+        state.modalSelectedLists = window.ListUtils
+          ? await ListUtils.loadCustomListMembership(supabaseClient, state.currentUser.id, 'book', bookId, listIds)
+          : new Set();
         container.innerHTML = '';
         if (!state.customLists.length) {
           container.innerHTML = '<div class="chip">No custom lists yet.</div>';
@@ -1205,33 +1190,23 @@
 
       async function saveBookListChanges() {
         if (!supabaseClient || !state.currentUser || !state.activeBookId) return;
-        const listIds = state.customLists.map(l => l.id);
-        if (listIds.length) {
-          const { error } = await supabaseClient
-            .from('book_list_items')
-            .delete()
-            .eq('user_id', state.currentUser.id)
-            .eq('book_id', state.activeBookId)
-            .in('list_id', listIds);
-          if (error) {
-            console.error('Error clearing list items', error);
-            showNotification(`Could not update lists: ${error.message || JSON.stringify(error)}`, 'error');
-            return;
-          }
-        }
-        await upsertBookRecord(state.bookIndex.get(state.activeBookId));
-        const inserts = [...state.modalSelectedLists].map(listId => ({
-          user_id: state.currentUser.id,
-          book_id: state.activeBookId,
-          list_id: listId
-        }));
-        if (inserts.length) {
-          const { data: insertData, error } = await supabaseClient.from('book_list_items').insert(inserts).select('*');
-          if (error) {
-            console.error('Error inserting list items', error);
-            showNotification(`Could not save lists: ${error.message || JSON.stringify(error)}`, 'error');
-            return;
-          }
+        if (window.ListUtils) {
+          const book = state.bookIndex.get(state.activeBookId);
+          await ListUtils.saveCustomListChanges(
+            supabaseClient,
+            state.currentUser.id,
+            'book',
+            state.activeBookId,
+            [...state.modalSelectedLists],
+            book
+              ? {
+                id: book.key ? book.key.replace(/^\\/works\\//i, '') : state.activeBookId,
+                title: book.title || '',
+                authors: (book.author_name || []).join(', '),
+                thumbnail: getPreferredBookImage(book) || ''
+              }
+              : null
+          );
         }
         showNotification('Lists updated', 'success');
         closeBookListsModal();
@@ -1248,17 +1223,13 @@
         if (!input || !input.value.trim()) return;
         if (!supabaseClient || !state.currentUser) return;
         const title = input.value.trim();
-        const { data, error } = await supabaseClient
-          .from('book_lists')
-          .insert({
-            user_id: state.currentUser.id,
+        const data = window.ListUtils
+          ? await ListUtils.createCustomList(supabaseClient, state.currentUser.id, 'book', {
             title,
-            icon: state.selectedIcon || 'fas fa-book',
-            created_at: new Date().toISOString()
+            icon: state.selectedIcon || 'fas fa-book'
           })
-          .select('*')
-          .single();
-        if (error) {
+          : null;
+        if (!data) {
           showNotification('Could not create list', 'error');
           return;
         }
@@ -1271,12 +1242,10 @@
         const nextTitle = prompt('Rename list', currentTitle || '');
         if (!nextTitle || !nextTitle.trim()) return;
         if (!supabaseClient || !state.currentUser) return;
-        const { error } = await supabaseClient
-          .from('book_lists')
-          .update({ title: nextTitle.trim() })
-          .eq('id', listId)
-          .eq('user_id', state.currentUser.id);
-        if (error) {
+        const ok = window.ListUtils
+          ? await ListUtils.renameCustomList(supabaseClient, state.currentUser.id, 'book', listId, nextTitle.trim())
+          : false;
+        if (!ok) {
           showNotification('Could not rename list', 'error');
           return;
         }
