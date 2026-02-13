@@ -198,7 +198,7 @@
       border: 1px solid var(--border);
       border-radius: 24px;
       overflow: hidden;
-      min-height: 390px;
+      min-height: 360px;
       box-shadow: var(--shadow);
       background: linear-gradient(145deg, #132347, #0f1f43);
       isolation: isolate;
@@ -210,8 +210,7 @@
       background: linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%);
       background-size: cover;
       background-position: center;
-      transform: scale(1.03);
-      transition: background-image 0.35s ease, transform 9s ease;
+      transition: background-image 0.22s ease;
       z-index: -2;
     }
 
@@ -230,31 +229,33 @@
       flex-direction: column;
       gap: 10px;
       padding: clamp(18px, 3.6vw, 34px);
-      min-height: 390px;
+      min-height: 360px;
       justify-content: flex-end;
-      max-width: 58%;
+      max-width: calc(100% - 290px);
       position: relative;
       z-index: 2;
     }
 
     .spotlight-media {
       position: absolute;
-      right: 18px;
-      top: 18px;
-      bottom: 18px;
-      width: min(40%, 500px);
-      border-radius: 18px;
+      right: 22px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: clamp(184px, 22vw, 240px);
+      aspect-ratio: 2/3;
+      border-radius: 14px;
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.15);
       background: rgba(7, 15, 34, 0.55);
       z-index: 1;
-      box-shadow: 0 16px 32px rgba(0,0,0,0.34);
+      box-shadow: 0 14px 28px rgba(0,0,0,0.34);
     }
 
     .spotlight-media img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      background: #0c1a3b;
     }
 
     .spotlight.no-media .spotlight-inner {
@@ -377,7 +378,7 @@
     .rail {
       display: grid;
       grid-auto-flow: column;
-      grid-auto-columns: 186px;
+      grid-auto-columns: 156px;
       gap: 11px;
       overflow-x: auto;
       overflow-y: hidden;
@@ -386,7 +387,7 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    .rail.unified-rail { grid-auto-columns: 206px; }
+    .rail.unified-rail { grid-auto-columns: 156px; }
     .rail::-webkit-scrollbar { height: 7px; }
     .rail::-webkit-scrollbar-thumb { background: rgba(140,163,199,0.55); border-radius: 999px; }
     .rail.games-rail { grid-auto-columns: 248px; }
@@ -847,17 +848,24 @@
         display: none;
       }
 
-      .spotlight { border-radius: 18px; min-height: auto; }
+      .spotlight { border-radius: 18px; min-height: 332px; }
       .spotlight-media {
-        position: relative;
-        right: auto;
-        top: auto;
-        bottom: auto;
-        width: calc(100% - 24px);
-        height: 180px;
-        margin: 12px auto 0;
+        right: 12px;
+        top: 12px;
+        transform: none;
+        width: 122px;
+        margin: 0;
       }
-      .spotlight-inner { min-height: auto; max-width: none; padding: 14px 16px 16px; gap: 9px; }
+      .spotlight-inner {
+        min-height: 332px;
+        max-width: none;
+        padding: 14px 16px 16px;
+        padding-right: 146px;
+        gap: 9px;
+      }
+      .spotlight.no-media .spotlight-inner {
+        padding-right: 16px;
+      }
 
       .spotlight-title {
         font-size: clamp(24px, 8vw, 38px);
@@ -873,8 +881,8 @@
 
       .section { border-radius: 16px; }
       .section-head h2 { font-size: 19px; }
-      .rail { grid-auto-columns: 158px; }
-      .rail.unified-rail { grid-auto-columns: 178px; }
+      .rail { grid-auto-columns: 142px; }
+      .rail.unified-rail { grid-auto-columns: 142px; }
       .rail.games-rail { grid-auto-columns: 208px; }
       .card { min-height: 232px; }
       .card-hover-cue { display: none; }
@@ -970,7 +978,7 @@
     <section class="section">
       <div class="section-head">
         <h2>Culture Stream</h2>
-        <p>One swipeable feed blending movies, TV, games, books, restaurants, and music.</p>
+        <p>One swipeable feed blending movies, TV, games, books, and restaurants.</p>
       </div>
 
       <div class="rail-wrap">
@@ -1010,10 +1018,6 @@
         <div class="rail" id="booksRail"></div>
       </div>
 
-      <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-music"></i> Music</span><a href="https://music.apple.com/us/charts" target="_blank" rel="noopener">Charts</a></div>
-        <div class="rail" id="musicRail"></div>
-      </div>
     </section>
   </main>
 
@@ -1080,20 +1084,12 @@
       { title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', isbn: '9780374533557' },
       { title: 'The Psychology of Money', author: 'Morgan Housel', isbn: '9780857197689' }
     ];
-    const FALLBACK_MUSIC = [
-      { id: 'fallback-m1', title: 'Blinding Lights', artist: 'The Weeknd' },
-      { id: 'fallback-m2', title: 'As It Was', artist: 'Harry Styles' },
-      { id: 'fallback-m3', title: 'Flowers', artist: 'Miley Cyrus' },
-      { id: 'fallback-m4', title: 'Levitating', artist: 'Dua Lipa' },
-      { id: 'fallback-m5', title: 'bad guy', artist: 'Billie Eilish' }
-    ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-utensils', accent: '#f59e0b' },
       movie: { label: 'Movie', icon: 'fa-film', accent: '#ef4444' },
       tv: { label: 'TV', icon: 'fa-tv', accent: '#22c55e' },
       game: { label: 'Game', icon: 'fa-gamepad', accent: '#38bdf8' },
-      book: { label: 'Book', icon: 'fa-book', accent: '#f97316' },
-      music: { label: 'Music', icon: 'fa-music', accent: '#a855f7' }
+      book: { label: 'Book', icon: 'fa-book', accent: '#f97316' }
     };
 
     const statusEl = document.getElementById('loadStatus');
@@ -1108,16 +1104,14 @@
       movie: 1,
       tv: 1,
       game: 1,
-      book: 1,
-      music: 1
+      book: 1
     };
     const homeFeedState = {
       restaurant: [],
       movie: [],
       tv: [],
       game: [],
-      book: [],
-      music: []
+      book: []
     };
     const homeCustomListState = {
       mediaType: null,
@@ -1141,6 +1135,14 @@
 
     function toHttpsUrl(value) {
       return String(value || '').replace(/^http:\/\//i, 'https://');
+    }
+
+    function resolveRestaurantImage(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      if (/^https?:\/\//i.test(raw)) return toHttpsUrl(raw);
+      const normalized = raw.replace(/^\/+/, '');
+      return toHttpsUrl(`images/${normalized}`);
     }
 
     function showHomeToast(message, isError = false) {
@@ -1437,8 +1439,7 @@
         movie: 1,
         tv: 1,
         game: 1,
-        book: 1,
-        music: 1
+        book: 1
       };
       if (!homeCurrentUser?.id) return weights;
 
@@ -2197,7 +2198,7 @@
       }
       const { data, error } = await client
         .from('restraunts')
-        .select('id,name,image,category,rating')
+        .select('id,name,image,category,rating,slug')
         .order('rating', { ascending: false })
         .limit(10);
       if (error || !data || !data.length) {
@@ -2212,15 +2213,38 @@
           href: 'restraunts.html'
         }));
       }
+
+      const slugs = data.map((row) => String(row.slug || '').trim()).filter(Boolean);
+      const coverBySlug = {};
+      if (slugs.length) {
+        const { data: galleryRows } = await client
+          .from('restaurant_gallery')
+          .select('restaurant_slug, image_url, image_type')
+          .in('restaurant_slug', slugs)
+          .eq('image_type', 'cover');
+        if (Array.isArray(galleryRows)) {
+          galleryRows.forEach((row) => {
+            const slug = String(row.restaurant_slug || '').trim();
+            const url = String(row.image_url || '').trim();
+            if (!slug || !url) return;
+            if (!coverBySlug[slug]) coverBySlug[slug] = toHttpsUrl(url);
+          });
+        }
+      }
+
       return data.map(r => ({
         mediaType: 'restaurant',
         itemId: String(r.id || ''),
         title: r.name || 'Restaurant',
         subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
-        image: r.image ? toHttpsUrl(`images/${r.image}`) : '',
-        spotlightImage: r.image ? toHttpsUrl(`images/${r.image}`) : '',
+        image: coverBySlug[r.slug] || resolveRestaurantImage(r.image),
+        spotlightImage: coverBySlug[r.slug] || resolveRestaurantImage(r.image),
         spotlightFit: 'cover',
         href: r.id ? `restaurant.html?id=${encodeURIComponent(r.id)}` : 'restraunts.html'
+      })).map((item) => ({
+        ...item,
+        image: item.image || '',
+        spotlightImage: item.spotlightImage || ''
       }));
     }
 
@@ -2239,7 +2263,7 @@
         itemId: String(m.id || ''),
         title: m.title || 'Movie',
         subtitle: m.release_date ? m.release_date.slice(0, 4) : 'Movie',
-        image: m.poster_path ? `${TMDB_POSTER}${m.poster_path}` : (m.backdrop_path ? `${TMDB_POSTER}${m.backdrop_path}` : ''),
+        image: m.poster_path ? `${TMDB_POSTER}${m.poster_path}` : '',
         href: m.id ? `movie.html?id=${encodeURIComponent(m.id)}` : 'movies.html'
       }));
     }
@@ -2259,7 +2283,7 @@
         itemId: String(t.id || ''),
         title: t.name || 'TV Show',
         subtitle: t.first_air_date ? t.first_air_date.slice(0, 4) : 'TV Show',
-        image: t.poster_path ? `${TMDB_POSTER}${t.poster_path}` : (t.backdrop_path ? `${TMDB_POSTER}${t.backdrop_path}` : ''),
+        image: t.poster_path ? `${TMDB_POSTER}${t.poster_path}` : '',
         href: t.id ? `tvshow.html?id=${encodeURIComponent(t.id)}` : 'tvshows.html'
       }));
     }
@@ -2337,38 +2361,6 @@
       }));
     }
 
-    async function loadMusic() {
-      try {
-        const res = await fetch('https://rss.applemarketingtools.com/api/v2/us/music/most-played/50/songs.json');
-        if (res.ok) {
-          const json = await res.json();
-          const results = Array.isArray(json?.feed?.results) ? json.feed.results : [];
-          const mapped = results.map((song) => ({
-            mediaType: 'music',
-            itemId: String(song.id || ''),
-            title: String(song.name || '').trim() || 'Song',
-            subtitle: String(song.artistName || '').trim() || 'Artist',
-            image: String(song.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
-            spotlightImage: String(song.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
-            spotlightFit: 'cover',
-            href: song.url || 'https://music.apple.com/us/charts'
-          })).filter((song) => song.title);
-          if (mapped.length) return mapped.slice(0, 10);
-        }
-      } catch (_err) {}
-
-      return FALLBACK_MUSIC.map((song, idx) => ({
-        mediaType: 'music',
-        itemId: `${song.id}-${idx}`,
-        title: song.title,
-        subtitle: song.artist,
-        image: '',
-        spotlightImage: '',
-        spotlightFit: 'cover',
-        href: 'https://music.apple.com/us/charts'
-      }));
-    }
-
     async function initUniversalHome() {
       setStatus('Loading spotlight and live feed...', false);
       if (homeSpotlightTimer) {
@@ -2382,8 +2374,7 @@
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' } },
-        { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' } },
-        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' } }
+        { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' } }
       ];
 
       const loaded = await Promise.all(channels.map(async (channel) => {
