@@ -354,6 +354,7 @@
       font-size: 12px;
       color: var(--ok);
       margin-top: 3px;
+      display: none;
     }
 
     .section {
@@ -942,13 +943,15 @@
       }
 
       .spotlight.has-square-media .spotlight-inner {
-        padding-right: 132px;
+        padding-right: 146px;
       }
 
       .spotlight-media.square {
-        width: 108px;
-        aspect-ratio: 1/1;
-        padding: 7px;
+        width: 122px;
+        aspect-ratio: 2/3;
+        padding: 0;
+        border-radius: 14px;
+        background: rgba(7, 15, 34, 0.55);
       }
 
       .spotlight-title {
@@ -1061,7 +1064,7 @@
     <section class="spotlight" id="spotlightSection">
       <div class="spotlight-bg" id="spotlightBackground"></div>
       <div class="spotlight-media" id="spotlightMedia">
-        <img id="spotlightImage" alt="Spotlight artwork" loading="lazy" />
+        <img id="spotlightImage" alt="Spotlight artwork" loading="eager" fetchpriority="high" />
       </div>
       <div class="spotlight-inner" id="spotlightInner">
         <p class="spotlight-kicker" id="spotlightKicker">Live Spotlight</p>
@@ -1197,6 +1200,11 @@
       tv: { label: 'TV', icon: 'fa-tv', accent: '#22c55e' },
       game: { label: 'Game', icon: 'fa-gamepad', accent: '#38bdf8' },
       book: { label: 'Book', icon: 'fa-book', accent: '#f97316' }
+    };
+    const HOME_RESTAURANT_LIST_META = {
+      favorites: { title: 'Favorites', description: 'My favorite restaurants', icon: 'heart' },
+      visited: { title: 'Visited', description: 'Places I have been to', icon: 'check' },
+      wantToGo: { title: 'Want to Go', description: 'Places I want to try', icon: 'bookmark' }
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v1';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
@@ -1436,8 +1444,8 @@
       if (!bg || !spotlightSection || !mediaWrap || !mediaImage || !title || !kicker || !summary || !reason || !trend || !openBtn) return;
 
       const meta = getHomeMediaMeta(item.mediaType);
-      const spotlightBackground = String(item.spotlightImage || item.image || '').trim();
-      const spotlightMediaImage = String(item.spotlightMediaImage || item.image || item.spotlightImage || '').trim();
+      const spotlightBackground = String(item.spotlightImage || item.backgroundImage || item.image || '').trim();
+      const spotlightMediaImage = String(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
       const spotlightMediaFit = String(item.spotlightMediaFit || '').trim() || 'contain';
       const spotlightMediaShape = String(item.spotlightMediaShape || '').trim() || 'poster';
       const usesSquareMedia = spotlightMediaShape === 'square';
@@ -1558,6 +1566,7 @@
       const seed = getSpotlightSeedOffset();
       const offset = seed % shortlist.length;
       homeSpotlightItems = [...shortlist.slice(offset), ...shortlist.slice(0, offset)];
+      warmSpotlightImages(homeSpotlightItems);
       homeSpotlightIndex = 0;
       showSpotlightByIndex(0, false);
       resetSpotlightTimer(true);
@@ -1681,12 +1690,7 @@
     async function ensureRestaurantList(userId, listType) {
       const client = await ensureHomeSupabase();
       if (!client) return null;
-      const mapping = {
-        favorites: { title: 'Favorites', description: 'My favorite restaurants', icon: 'heart' },
-        visited: { title: 'Visited', description: 'Places I have been to', icon: 'check' },
-        wantToGo: { title: 'Want to Go', description: 'Places I want to try', icon: 'bookmark' }
-      };
-      const conf = mapping[listType] || mapping.favorites;
+      const conf = HOME_RESTAURANT_LIST_META[listType] || HOME_RESTAURANT_LIST_META.favorites;
       const { data: existing } = await client
         .from('lists')
         .select('id')
@@ -1740,7 +1744,8 @@
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
-            showHomeToast('Already in list');
+            await client.from('movie_list_items').delete().eq('id', existing.id);
+            showHomeToast('Removed from list');
             return;
           }
           await client.from('movie_list_items').insert({ user_id: homeCurrentUser.id, movie_id: itemId, list_type: listType });
@@ -1758,7 +1763,8 @@
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
-            showHomeToast('Already in list');
+            await client.from('tv_list_items').delete().eq('id', existing.id);
+            showHomeToast('Removed from list');
             return;
           }
           await client.from('tv_list_items').insert({ user_id: homeCurrentUser.id, tv_id: itemId, list_type: listType });
@@ -1776,7 +1782,8 @@
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
-            showHomeToast('Already in list');
+            await client.from('game_list_items').delete().eq('id', existing.id);
+            showHomeToast('Removed from list');
             return;
           }
           await client.from('game_list_items').insert({ user_id: homeCurrentUser.id, game_id: itemId, list_type: listType });
@@ -1801,7 +1808,8 @@
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
-            showHomeToast('Already in list');
+            await client.from('book_list_items').delete().eq('id', existing.id);
+            showHomeToast('Removed from list');
             return;
           }
           await client.from('book_list_items').insert({ user_id: homeCurrentUser.id, book_id: String(itemId), list_type: listType });
@@ -1823,7 +1831,8 @@
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
-            showHomeToast('Already in list');
+            await client.from('lists_restraunts').delete().eq('id', existing.id);
+            showHomeToast('Removed from list');
             return;
           }
           await client.from('lists_restraunts').insert({ list_id: listId, restraunt_id: itemId });
@@ -1833,6 +1842,138 @@
       } catch (_err) {
         showHomeToast('Could not add to list', true);
       }
+    }
+
+    async function getHomeListStatusMap(mediaType, itemId, listKeys) {
+      const status = {};
+      (listKeys || []).forEach((key) => {
+        status[key] = false;
+      });
+      if (!homeCurrentUser?.id || !listKeys?.length) return status;
+      const client = await ensureHomeSupabase();
+      if (!client) return status;
+
+      try {
+        if (mediaType === 'movie') {
+          const { data } = await client
+            .from('movie_list_items')
+            .select('list_type')
+            .eq('user_id', homeCurrentUser.id)
+            .eq('movie_id', itemId)
+            .in('list_type', listKeys);
+          (data || []).forEach((row) => {
+            const key = String(row.list_type || '');
+            if (key in status) status[key] = true;
+          });
+          return status;
+        }
+
+        if (mediaType === 'tv') {
+          const { data } = await client
+            .from('tv_list_items')
+            .select('list_type')
+            .eq('user_id', homeCurrentUser.id)
+            .eq('tv_id', itemId)
+            .in('list_type', listKeys);
+          (data || []).forEach((row) => {
+            const key = String(row.list_type || '');
+            if (key in status) status[key] = true;
+          });
+          return status;
+        }
+
+        if (mediaType === 'game') {
+          const { data } = await client
+            .from('game_list_items')
+            .select('list_type')
+            .eq('user_id', homeCurrentUser.id)
+            .eq('game_id', itemId)
+            .in('list_type', listKeys);
+          (data || []).forEach((row) => {
+            const key = String(row.list_type || '');
+            if (key in status) status[key] = true;
+          });
+          return status;
+        }
+
+        if (mediaType === 'book') {
+          const { data } = await client
+            .from('book_list_items')
+            .select('list_type')
+            .eq('user_id', homeCurrentUser.id)
+            .eq('book_id', String(itemId))
+            .in('list_type', listKeys);
+          (data || []).forEach((row) => {
+            const key = String(row.list_type || '');
+            if (key in status) status[key] = true;
+          });
+          return status;
+        }
+
+        if (mediaType === 'restaurant') {
+          const titleByKey = {};
+          listKeys.forEach((key) => {
+            const conf = HOME_RESTAURANT_LIST_META[key];
+            if (conf?.title) titleByKey[key] = conf.title;
+          });
+          const titles = Object.values(titleByKey);
+          if (!titles.length) return status;
+
+          const { data: lists } = await client
+            .from('lists')
+            .select('id,title')
+            .eq('user_id', homeCurrentUser.id)
+            .in('title', titles);
+
+          const listIdToKey = {};
+          Object.entries(titleByKey).forEach(([key, title]) => {
+            const match = (lists || []).find((row) => String(row.title || '').toLowerCase() === String(title).toLowerCase());
+            if (match?.id) listIdToKey[String(match.id)] = key;
+          });
+
+          const listIds = Object.keys(listIdToKey);
+          if (!listIds.length) return status;
+
+          const { data: links } = await client
+            .from('lists_restraunts')
+            .select('list_id')
+            .eq('restraunt_id', itemId)
+            .in('list_id', listIds);
+
+          (links || []).forEach((row) => {
+            const key = listIdToKey[String(row.list_id)];
+            if (key && key in status) status[key] = true;
+          });
+          return status;
+        }
+      } catch (_err) {}
+
+      return status;
+    }
+
+    async function syncCardMenuListState(card, menu) {
+      if (!card || !menu) return;
+      const mediaType = String(card.getAttribute('data-media-type') || '').toLowerCase();
+      const itemId = card.getAttribute('data-item-id');
+      const cfg = getMediaListConfig(mediaType);
+      if (!cfg || !Array.isArray(cfg.rows) || !cfg.rows.length) return;
+
+      const listKeys = cfg.rows.map((row) => row.key).filter(Boolean);
+      menu.querySelectorAll('.rail-menu-item[data-action="save"]').forEach((btn) => {
+        btn.setAttribute('data-saved', '0');
+        const stateEl = btn.querySelector('.rail-menu-state');
+        if (stateEl) stateEl.textContent = 'Add';
+      });
+
+      if (!homeCurrentUser?.id) return;
+      const status = await getHomeListStatusMap(mediaType, itemId, listKeys);
+      menu.querySelectorAll('.rail-menu-item[data-action="save"]').forEach((btn) => {
+        const key = String(btn.getAttribute('data-list') || '');
+        const saved = !!status[key];
+        btn.setAttribute('data-saved', saved ? '1' : '0');
+        const stateEl = btn.querySelector('.rail-menu-state');
+        if (stateEl) stateEl.textContent = saved ? 'Remove' : 'Add';
+      });
     }
 
     function getHomeListConfig(mediaType) {
@@ -2047,9 +2188,9 @@
       renderHomeListsModal();
     }
 
-    function setStatus(text, isError) {
-      statusEl.textContent = text;
-      statusEl.style.color = isError ? '#fca5a5' : 'var(--ok)';
+    function setStatus(_text, _isError) {
+      if (!statusEl) return;
+      statusEl.textContent = '';
     }
 
     function randomInt(min, max) {
@@ -2065,6 +2206,36 @@
       return arr;
     }
 
+    function preloadImage(url) {
+      const src = String(url || '').trim();
+      if (!src) return;
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = src;
+    }
+
+    function warmHomeFeedImages(feedMap) {
+      const groups = Object.values(feedMap || {});
+      groups.forEach((items) => {
+        if (!Array.isArray(items)) return;
+        items.slice(0, 10).forEach((item) => {
+          preloadImage(item.image);
+          preloadImage(item.logo);
+          preloadImage(item.backgroundImage);
+          preloadImage(item.spotlightImage);
+          preloadImage(item.spotlightMediaImage);
+        });
+      });
+    }
+
+    function warmSpotlightImages(items) {
+      if (!Array.isArray(items)) return;
+      items.slice(0, 10).forEach((item) => {
+        preloadImage(item.spotlightImage || item.backgroundImage || item.image);
+        preloadImage(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage);
+      });
+    }
+
     function buildInstantFallbackFeed() {
       const makeSeedItems = (mediaType, titles, href) => titles.map((title, index) => ({
         mediaType,
@@ -2072,6 +2243,7 @@
         title,
         subtitle: 'Loading live picks',
         image: '',
+        backgroundImage: '',
         spotlightImage: '',
         spotlightMediaImage: '',
         spotlightMediaFit: 'contain',
@@ -2088,6 +2260,7 @@
           subtitle: `${r.category} | ${r.rating}/5`,
           image: '',
           logo: '',
+          backgroundImage: '',
           spotlightImage: '',
           spotlightMediaImage: '',
           spotlightMediaFit: 'contain',
@@ -2104,6 +2277,7 @@
           title: b.title,
           subtitle: b.author,
           image: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+          backgroundImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
           spotlightImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
           spotlightMediaImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
           spotlightMediaFit: 'contain',
@@ -2172,6 +2346,7 @@
 
     function applyHomeFeedMap(feedMap) {
       const channels = getHomeChannels();
+      warmHomeFeedImages(feedMap);
       let activeChannels = 0;
       channels.forEach((channel) => {
         const items = Array.isArray(feedMap?.[channel.key]) ? feedMap[channel.key] : [];
@@ -2182,7 +2357,7 @@
 
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, 32);
-      renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true });
+      renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
       hydrateSpotlightFromPool(scoredPool);
 
       return { activeChannels, scoredPool, channelsCount: channels.length };
@@ -2194,7 +2369,7 @@
       homeTasteWeights = await loadTasteWeights();
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, 32);
-      renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true });
+      renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
       hydrateSpotlightFromPool(scoredPool);
     }
 
@@ -2208,7 +2383,7 @@
         return;
       }
 
-      rail.innerHTML = items.map(item => {
+      rail.innerHTML = items.map((item, index) => {
         const mediaTypeRaw = String(item.mediaType || opts?.mediaType || '').toLowerCase();
         const media = getHomeMediaMeta(mediaTypeRaw);
         const uniformMedia = !!opts?.uniformMedia;
@@ -2226,16 +2401,17 @@
         const itemId = escapeHtml(item.itemId || '');
         const supportsLists = supportsHomeLists(mediaTypeRaw) && !item.isPlaceholder;
         const opensExternal = /^https?:\/\//i.test(String(hrefRaw || ''));
+        const imageLoading = index < 10 ? 'eager' : 'lazy';
         const mediaClasses = ['card-media'];
         if (landscape) mediaClasses.push('landscape');
         if (mediaTypeRaw === 'game' && !uniformMedia) mediaClasses.push('game-poster');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         const mediaHtml = restaurantComposite
           ? `
-              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="lazy">` : '<i class="fa-solid fa-image"></i>'}
-              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="lazy"></span>` : ''}
+              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" decoding="async">` : '<i class="fa-solid fa-image"></i>'}
+              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" decoding="async"></span>` : ''}
             `
-          : `${image ? `<img src="${image}" alt="${title}" loading="lazy">` : '<i class="fa-solid fa-image"></i>'}`;
+          : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" decoding="async">` : '<i class="fa-solid fa-image"></i>'}`;
         const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
         const trailingControl = supportsLists
           ? `
@@ -2279,7 +2455,7 @@
       });
 
       scope.querySelectorAll('.card-menu-btn').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', async (e) => {
           e.stopPropagation();
           const menu = btn.parentElement.querySelector('.rail-menu');
           const wasOpen = !!menu?.classList.contains('open');
@@ -2289,6 +2465,7 @@
             const card = btn.closest('.card');
             if (card) card.classList.add('menu-open');
             showRailMenuBackdrop();
+            await syncCardMenuListState(card, menu);
           }
         });
       });
@@ -2471,6 +2648,7 @@
           subtitle: `${r.category} | ${r.rating}/5`,
           image: '',
           logo: '',
+          backgroundImage: '',
           spotlightImage: '',
           spotlightMediaImage: '',
           spotlightMediaFit: 'contain',
@@ -2491,6 +2669,7 @@
           subtitle: `${r.category} | ${r.rating}/5`,
           image: '',
           logo: '',
+          backgroundImage: '',
           spotlightImage: '',
           spotlightMediaImage: '',
           spotlightMediaFit: 'contain',
@@ -2538,6 +2717,7 @@
           subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
           image: coverImage || logoImage || '',
           logo: logoImage || '',
+          backgroundImage: coverImage || '',
           spotlightImage: coverImage || '',
           spotlightMediaImage: hasLogo ? logoImage : (coverImage || ''),
           spotlightMediaFit: hasLogo ? 'contain' : 'cover',
@@ -2561,6 +2741,7 @@
         title: m.title || 'Movie',
         subtitle: m.release_date ? m.release_date.slice(0, 4) : 'Movie',
         image: m.poster_path ? `${TMDB_POSTER}${m.poster_path}` : '',
+        backgroundImage: m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : '',
         spotlightImage: m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : (m.poster_path ? `${TMDB_SPOT_POSTER}${m.poster_path}` : ''),
         spotlightMediaImage: m.poster_path ? `${TMDB_SPOT_POSTER}${m.poster_path}` : (m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : ''),
         spotlightMediaFit: 'contain',
@@ -2583,6 +2764,7 @@
         title: t.name || 'TV Show',
         subtitle: t.first_air_date ? t.first_air_date.slice(0, 4) : 'TV Show',
         image: t.poster_path ? `${TMDB_POSTER}${t.poster_path}` : '',
+        backgroundImage: t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : '',
         spotlightImage: t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : (t.poster_path ? `${TMDB_SPOT_POSTER}${t.poster_path}` : ''),
         spotlightMediaImage: t.poster_path ? `${TMDB_SPOT_POSTER}${t.poster_path}` : (t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : ''),
         spotlightMediaFit: 'contain',
@@ -2611,19 +2793,28 @@
 
       const filtered = shuffleArray(candidates).slice(0, 10);
 
-      return filtered.map(g => ({
-        mediaType: 'game',
-        itemId: String(g.id || ''),
-        title: g.name || 'Game',
-        subtitle: g.released ? g.released.slice(0, 4) : 'Game',
-        extra: `${Array.isArray(g.genres) && g.genres.length ? g.genres.slice(0, 2).map(x => x?.name).filter(Boolean).join(' | ') : 'Video Game'}${g.rating ? ` | ${Number(g.rating).toFixed(1)}/5` : ''}`,
-        image: g.background_image || '',
-        spotlightImage: g.background_image || '',
-        spotlightMediaImage: g.background_image || '',
-        spotlightMediaFit: 'contain',
-        spotlightMediaShape: 'poster',
-        href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html'
-      }));
+      return filtered.map((g) => {
+        const altBackground = Array.isArray(g.short_screenshots)
+          ? g.short_screenshots
+            .map((shot) => String(shot?.image || '').trim())
+            .find((url) => url && url !== g.background_image)
+          : '';
+        const mainImage = g.background_image || altBackground || '';
+        return {
+          mediaType: 'game',
+          itemId: String(g.id || ''),
+          title: g.name || 'Game',
+          subtitle: g.released ? g.released.slice(0, 4) : 'Game',
+          extra: `${Array.isArray(g.genres) && g.genres.length ? g.genres.slice(0, 2).map(x => x?.name).filter(Boolean).join(' | ') : 'Video Game'}${g.rating ? ` | ${Number(g.rating).toFixed(1)}/5` : ''}`,
+          image: mainImage,
+          backgroundImage: altBackground || mainImage,
+          spotlightImage: altBackground || mainImage,
+          spotlightMediaImage: mainImage,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html'
+        };
+      });
     }
 
     async function loadBooks() {
@@ -2645,6 +2836,7 @@
               title,
               subtitle: author,
               image: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
+              backgroundImage: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
               spotlightImage: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
               spotlightMediaImage: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
               spotlightMediaFit: 'contain',
@@ -2662,6 +2854,7 @@
         title: b.title,
         subtitle: b.author,
         image: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+        backgroundImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
         spotlightImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
         spotlightMediaImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
         spotlightMediaFit: 'contain',
