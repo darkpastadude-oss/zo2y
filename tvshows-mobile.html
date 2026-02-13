@@ -238,10 +238,17 @@
       transform: translateY(-2px);
     }
 
+    .card.menu-open,
+    .card.menu-open:hover {
+      transform: none;
+    }
+
     .card img {
       width: 100%;
-      height: 160px;
+      aspect-ratio: 2 / 3;
+      height: auto;
       object-fit: cover;
+      display: block;
       background: #0f1f40;
     }
 
@@ -249,7 +256,9 @@
       padding: 8px 10px 10px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
+      flex: 1;
+      min-height: 0;
     }
 
     .card-title {
@@ -262,6 +271,7 @@
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      order: 1;
     }
 
     .card-meta {
@@ -269,10 +279,22 @@
       color: var(--muted);
     }
 
+    .card-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      order: 3;
+      margin-top: auto;
+    }
+
+    .card-menu-wrap {
+      position: relative;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
     .menu-btn {
-      position: absolute;
-      top: 6px;
-      right: 6px;
       width: 30px;
       height: 30px;
       border-radius: 8px;
@@ -284,26 +306,36 @@
       align-items: center;
       justify-content: center;
       transition: all 0.2s ease;
-      z-index: 2;
     }
 
     .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
 
     .list-menu {
-      position: absolute;
-      right: 6px;
-      top: 42px;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 8px;
-      min-width: 200px;
+      padding: 10px;
+      width: min(92vw, 300px);
+      max-height: 70vh;
+      overflow-y: auto;
       box-shadow: var(--shadow);
       display: none;
-      z-index: 3;
+      z-index: 3200;
     }
 
     .list-menu.open { display: block; }
+    .list-menu-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 3190;
+      display: none;
+    }
+    .list-menu-backdrop.active { display: block; }
 
     .list-menu-title { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
 
@@ -786,18 +818,22 @@
           const showTitle = item.name || item.original_name || item.title || 'Untitled';
           const showDate = item.first_air_date || item.release_date || '';
           card.innerHTML = `
-            <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-            <div class="list-menu">
-              <div class="list-menu-title">Save to list</div>
-              <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
-            </div>
             <img src="${item.poster_path ? POSTER_BASE + item.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}">
             <div class="card-body">
               <h3 class="card-title">${showTitle}</h3>
-              <div class="card-meta">${showDate}</div>
+              <div class="card-meta-row">
+                <div class="card-meta">${showDate}</div>
+                <div class="card-menu-wrap">
+                  <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
+                  <div class="list-menu">
+                    <div class="list-menu-title">Save to list</div>
+                    <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
+                    <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
+                    <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
+                    <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
+                  </div>
+                </div>
+              </div>
             </div>
           `;
           card.onclick = (e) => {
@@ -822,12 +858,12 @@
         if (!menuBtn || !menu) return;
         menuBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          document.querySelectorAll('.list-menu.open').forEach(m => m.classList.remove('open'));
-          menu.classList.toggle('open');
-        });
-        document.addEventListener('click', (e) => {
-          if (!e.target.closest('.list-menu') && !e.target.closest('.menu-btn')) {
-            menu.classList.remove('open');
+          const wasOpen = menu.classList.contains('open');
+          closeAllListMenus();
+          if (!wasOpen) {
+            menu.classList.add('open');
+            card.classList.add('menu-open');
+            showListMenuBackdrop();
           }
         });
         menu.querySelectorAll('.list-action').forEach(btn => {
@@ -835,12 +871,42 @@
             e.stopPropagation();
             const listType = btn.getAttribute('data-list');
             if (listType === 'custom') {
+              closeAllListMenus();
               openMovieListsModal(movieId);
               return;
             }
             await toggleDefaultList(movieId, listType, card);
+            closeAllListMenus();
           });
         });
+      }
+
+      function ensureListMenuBackdrop() {
+        let backdrop = document.getElementById('listMenuBackdrop');
+        if (!backdrop) {
+          backdrop = document.createElement('div');
+          backdrop.id = 'listMenuBackdrop';
+          backdrop.className = 'list-menu-backdrop';
+          backdrop.addEventListener('click', closeAllListMenus);
+          document.body.appendChild(backdrop);
+        }
+        return backdrop;
+      }
+
+      function showListMenuBackdrop() {
+        const backdrop = ensureListMenuBackdrop();
+        backdrop.classList.add('active');
+      }
+
+      function hideListMenuBackdrop() {
+        const backdrop = document.getElementById('listMenuBackdrop');
+        if (backdrop) backdrop.classList.remove('active');
+      }
+
+      function closeAllListMenus() {
+        document.querySelectorAll('.list-menu.open').forEach(m => m.classList.remove('open'));
+        document.querySelectorAll('.card.menu-open').forEach(c => c.classList.remove('menu-open'));
+        hideListMenuBackdrop();
       }
 
       async function toggleDefaultList(movieId, listType, card) {
@@ -1060,6 +1126,10 @@
             btn.classList.add('selected');
             state.selectedIcon = btn.getAttribute('data-icon') || 'fas fa-film';
           });
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeAllListMenus();
         });
       }
 
