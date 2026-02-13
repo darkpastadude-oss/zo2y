@@ -233,7 +233,7 @@
       margin: 24px auto 60px;
       padding: 0 20px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 16px;
     }
 
@@ -261,8 +261,10 @@
 
     .card img {
       width: 100%;
-      height: 260px;
-      object-fit: cover;
+      aspect-ratio: 16 / 10;
+      height: auto;
+      object-fit: contain;
+      display: block;
       background: #0f1f40;
     }
 
@@ -270,13 +272,16 @@
       padding: 12px 14px 16px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
+      flex: 1;
+      min-height: 0;
     }
 
     .card-title {
       font-size: 16px;
       font-weight: 700;
       margin: 0;
+      order: 1;
     }
 
     .card-meta {
@@ -293,6 +298,8 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
       min-height: 60px;
+      order: 2;
+      flex: 1;
     }
 
     .empty {
@@ -329,6 +336,8 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
+      order: 3;
+      margin-top: auto;
     }
 
     .card-menu-wrap {
