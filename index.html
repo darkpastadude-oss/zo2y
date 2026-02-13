@@ -458,6 +458,42 @@
       transform: scale(1.001);
     }
 
+    .card-media.restaurant-composite {
+      position: relative;
+      display: block;
+      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
+    }
+
+    .card-media.restaurant-composite .restaurant-cover {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .restaurant-logo-badge {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: rgba(11, 22, 51, 0.92);
+      border: 1px solid rgba(245, 158, 11, 0.75);
+      padding: 4px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.35);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .restaurant-logo-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 7px;
+    }
+
     .card-meta {
       padding: 9px;
       display: flex;
@@ -519,6 +555,26 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
       min-height: 32px;
+    }
+
+    .card-extra.placeholder {
+      visibility: hidden;
+    }
+
+    .rail.unified-rail .card {
+      height: 332px;
+      min-height: 332px;
+    }
+
+    .rail.unified-rail .card-media {
+      aspect-ratio: auto;
+      height: 216px;
+    }
+
+    .rail.unified-rail .card-media img {
+      object-fit: cover !important;
+      background: #0c1a3b;
+      padding: 0 !important;
     }
 
     .rail.games-rail .card {
@@ -915,6 +971,27 @@
       .card { min-height: 232px; }
       .card-hover-cue { display: none; }
 
+      .rail.unified-rail .card {
+        height: 314px;
+        min-height: 314px;
+      }
+
+      .rail.unified-rail .card-media {
+        height: 190px;
+      }
+
+      #restaurantsRail .card-media.restaurant-composite {
+        aspect-ratio: 16/10;
+      }
+
+      #restaurantsRail .restaurant-logo-badge {
+        width: 36px;
+        height: 36px;
+        right: 7px;
+        bottom: 7px;
+        border-radius: 9px;
+      }
+
       .mobile-bottom-nav {
         position: fixed;
         left: 10px;
@@ -1121,6 +1198,10 @@
       game: { label: 'Game', icon: 'fa-gamepad', accent: '#38bdf8' },
       book: { label: 'Book', icon: 'fa-book', accent: '#f97316' }
     };
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v1';
+    const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
+    const HOME_CHANNEL_TIMEOUT_MS = 3200;
+    const SPOTLIGHT_ROTATE_MS = 5000;
 
     const statusEl = document.getElementById('loadStatus');
     let homeSupabaseClient = null;
@@ -1405,9 +1486,13 @@
       renderSpotlightItem(homeSpotlightItems[homeSpotlightIndex], shouldAnimate);
     }
 
-    function resetSpotlightTimer() {
+    function resetSpotlightTimer(shouldStart = true) {
       if (homeSpotlightTimer) clearInterval(homeSpotlightTimer);
       homeSpotlightTimer = null;
+      if (!shouldStart || homeSpotlightItems.length < 2) return;
+      homeSpotlightTimer = window.setInterval(() => {
+        showSpotlightByIndex(homeSpotlightIndex + 1, true);
+      }, SPOTLIGHT_ROTATE_MS);
     }
 
     function buildScoredDiscoveryPool(feedMap) {
@@ -1466,6 +1551,7 @@
     function hydrateSpotlightFromPool(pool) {
       if (!Array.isArray(pool) || !pool.length) {
         homeSpotlightItems = [];
+        resetSpotlightTimer(false);
         return;
       }
       const shortlist = pool.slice(0, 10);
@@ -1474,7 +1560,7 @@
       homeSpotlightItems = [...shortlist.slice(offset), ...shortlist.slice(0, offset)];
       homeSpotlightIndex = 0;
       showSpotlightByIndex(0, false);
-      resetSpotlightTimer();
+      resetSpotlightTimer(true);
     }
 
     async function loadTasteWeights() {
@@ -1979,6 +2065,139 @@
       return arr;
     }
 
+    function buildInstantFallbackFeed() {
+      const makeSeedItems = (mediaType, titles, href) => titles.map((title, index) => ({
+        mediaType,
+        itemId: `seed-${mediaType}-${index + 1}`,
+        title,
+        subtitle: 'Loading live picks',
+        image: '',
+        spotlightImage: '',
+        spotlightMediaImage: '',
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
+        href,
+        isPlaceholder: true
+      }));
+
+      return {
+        restaurant: FALLBACK_RESTAURANTS.map((r, index) => ({
+          mediaType: 'restaurant',
+          itemId: `seed-restaurant-${index + 1}`,
+          title: r.name,
+          subtitle: `${r.category} | ${r.rating}/5`,
+          image: '',
+          logo: '',
+          spotlightImage: '',
+          spotlightMediaImage: '',
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'square',
+          href: 'restraunts.html',
+          isPlaceholder: true
+        })),
+        movie: makeSeedItems('movie', ['Popular Movies', 'Now in Theaters', 'Award Winners', 'Critics Picks', 'Weekend Watch'], 'movies.html'),
+        tv: makeSeedItems('tv', ['Top TV Shows', 'Binge Picks', 'New Seasons', 'Global Hits', 'Fan Favorites'], 'tvshows.html'),
+        game: makeSeedItems('game', ['Top Games', 'New Releases', 'Most Played', 'Action Picks', 'Co-op Favorites'], 'games.html'),
+        book: FALLBACK_BOOKS.slice(0, 8).map((b, index) => ({
+          mediaType: 'book',
+          itemId: `seed-book-${index + 1}`,
+          title: b.title,
+          subtitle: b.author,
+          image: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+          spotlightImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+          spotlightMediaImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          href: 'books.html',
+          isPlaceholder: true
+        }))
+      };
+    }
+
+    function getHomeChannels() {
+      return [
+        { key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant', landscape: true, restaurantComposite: true } },
+        { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
+        { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
+        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' } },
+        { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' } }
+      ];
+    }
+
+    function readHomeFeedCache() {
+      try {
+        const raw = localStorage.getItem(HOME_FEED_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed?.savedAt || 0);
+        if (!savedAt || (Date.now() - savedAt) > HOME_FEED_CACHE_MAX_AGE_MS) return null;
+        const feed = parsed?.feed;
+        if (!feed || typeof feed !== 'object') return null;
+        return feed;
+      } catch (_err) {
+        return null;
+      }
+    }
+
+    function writeHomeFeedCache(feedMap) {
+      try {
+        const channels = getHomeChannels();
+        const payload = {};
+        channels.forEach((channel) => {
+          payload[channel.key] = Array.isArray(feedMap?.[channel.key]) ? feedMap[channel.key] : [];
+        });
+        localStorage.setItem(HOME_FEED_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          feed: payload
+        }));
+      } catch (_err) {}
+    }
+
+    async function loadHomeChannelWithTimeout(loader, timeoutMs = HOME_CHANNEL_TIMEOUT_MS) {
+      let timer = null;
+      try {
+        const value = await Promise.race([
+          Promise.resolve().then(() => loader()),
+          new Promise((resolve) => {
+            timer = setTimeout(() => resolve([]), timeoutMs);
+          })
+        ]);
+        return Array.isArray(value) ? value : [];
+      } catch (_err) {
+        return [];
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    }
+
+    function applyHomeFeedMap(feedMap) {
+      const channels = getHomeChannels();
+      let activeChannels = 0;
+      channels.forEach((channel) => {
+        const items = Array.isArray(feedMap?.[channel.key]) ? feedMap[channel.key] : [];
+        homeFeedState[channel.key] = items;
+        renderRail(channel.railId, items, channel.opts);
+        if (items.length) activeChannels += 1;
+      });
+
+      const scoredPool = buildScoredDiscoveryPool(homeFeedState);
+      const unified = buildUnifiedFeed(scoredPool, 32);
+      renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true });
+      hydrateSpotlightFromPool(scoredPool);
+
+      return { activeChannels, scoredPool, channelsCount: channels.length };
+    }
+
+    async function refreshHomePersonalization() {
+      const hasItems = Object.values(homeFeedState).some((items) => Array.isArray(items) && items.length);
+      if (!hasItems) return;
+      homeTasteWeights = await loadTasteWeights();
+      const scoredPool = buildScoredDiscoveryPool(homeFeedState);
+      const unified = buildUnifiedFeed(scoredPool, 32);
+      renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true });
+      hydrateSpotlightFromPool(scoredPool);
+    }
+
     function renderRail(railId, items, opts) {
       const rail = document.getElementById(railId);
       if (!rail) return;
@@ -1992,17 +2211,32 @@
       rail.innerHTML = items.map(item => {
         const mediaTypeRaw = String(item.mediaType || opts?.mediaType || '').toLowerCase();
         const media = getHomeMediaMeta(mediaTypeRaw);
-        const landscape = !!opts?.landscape || mediaTypeRaw === 'restaurant';
+        const uniformMedia = !!opts?.uniformMedia;
+        const landscape = !uniformMedia && (!!opts?.landscape || mediaTypeRaw === 'restaurant');
+        const restaurantComposite = !!opts?.restaurantComposite && mediaTypeRaw === 'restaurant';
         const title = escapeHtml(item.title || 'Untitled');
         const subtitle = escapeHtml(item.subtitle || media.label);
         const extra = escapeHtml(item.extra || '');
         const image = escapeHtml(item.image || '');
+        const logo = escapeHtml(item.logo || '');
+        const coverImage = image || logo;
         const hrefRaw = item.href || '#';
         const href = escapeHtml(hrefRaw);
         const mediaType = escapeHtml(mediaTypeRaw);
         const itemId = escapeHtml(item.itemId || '');
-        const supportsLists = supportsHomeLists(mediaTypeRaw);
+        const supportsLists = supportsHomeLists(mediaTypeRaw) && !item.isPlaceholder;
         const opensExternal = /^https?:\/\//i.test(String(hrefRaw || ''));
+        const mediaClasses = ['card-media'];
+        if (landscape) mediaClasses.push('landscape');
+        if (mediaTypeRaw === 'game' && !uniformMedia) mediaClasses.push('game-poster');
+        if (restaurantComposite) mediaClasses.push('restaurant-composite');
+        const mediaHtml = restaurantComposite
+          ? `
+              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="lazy">` : '<i class="fa-solid fa-image"></i>'}
+              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="lazy"></span>` : ''}
+            `
+          : `${image ? `<img src="${image}" alt="${title}" loading="lazy">` : '<i class="fa-solid fa-image"></i>'}`;
+        const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
         const trailingControl = supportsLists
           ? `
             <div class="card-menu-wrap">
@@ -2016,8 +2250,8 @@
         return `
           <article class="card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}">
             <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
-            <div class="card-media ${landscape ? 'landscape' : ''} ${mediaTypeRaw === 'game' ? 'game-poster' : ''}">
-              ${image ? `<img src="${image}" alt="${title}" loading="lazy">` : '<i class="fa-solid fa-image"></i>'}
+            <div class="${mediaClasses.join(' ')}">
+              ${mediaHtml}
             </div>
             <div class="card-meta">
               <span class="card-type"><i class="fa-solid ${media.icon}"></i> ${escapeHtml(media.label)}</span>
@@ -2026,7 +2260,7 @@
                 ${trailingControl}
               </div>
               <p class="card-sub">${subtitle}</p>
-              ${extra ? `<p class="card-extra">${extra}</p>` : ''}
+              ${extraMarkup}
             </div>
           </article>
         `;
@@ -2143,6 +2377,7 @@
 
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
           void initAuthUi();
+          void refreshHomePersonalization();
         }
       });
     }
@@ -2235,6 +2470,7 @@
           title: r.name,
           subtitle: `${r.category} | ${r.rating}/5`,
           image: '',
+          logo: '',
           spotlightImage: '',
           spotlightMediaImage: '',
           spotlightMediaFit: 'contain',
@@ -2254,6 +2490,7 @@
           title: r.name,
           subtitle: `${r.category} | ${r.rating}/5`,
           image: '',
+          logo: '',
           spotlightImage: '',
           spotlightMediaImage: '',
           spotlightMediaFit: 'contain',
@@ -2299,7 +2536,8 @@
           itemId: String(r.id || ''),
           title: r.name || 'Restaurant',
           subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
-          image: coverImage || '',
+          image: coverImage || logoImage || '',
+          logo: logoImage || '',
           spotlightImage: coverImage || '',
           spotlightMediaImage: hasLogo ? logoImage : (coverImage || ''),
           spotlightMediaFit: hasLogo ? 'contain' : 'cover',
@@ -2310,13 +2548,13 @@
     }
 
     async function loadMovies() {
-      const page = randomInt(1, 5);
+      const page = 1;
       const res = await fetch(`https://api.themoviedb.org/3/movie/popular?language=en-US&page=${page}`, {
         headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
       });
       if (!res.ok) return [];
       const json = await res.json();
-      const results = Array.isArray(json.results) ? shuffleArray(json.results).slice(0, 10) : [];
+      const results = Array.isArray(json.results) ? json.results.slice(0, 10) : [];
       return results.map(m => ({
         mediaType: 'movie',
         itemId: String(m.id || ''),
@@ -2332,13 +2570,13 @@
     }
 
     async function loadTv() {
-      const page = randomInt(1, 5);
+      const page = 1;
       const res = await fetch(`https://api.themoviedb.org/3/tv/popular?language=en-US&page=${page}`, {
         headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
       });
       if (!res.ok) return [];
       const json = await res.json();
-      const results = Array.isArray(json.results) ? shuffleArray(json.results).slice(0, 10) : [];
+      const results = Array.isArray(json.results) ? json.results.slice(0, 10) : [];
       return results.map(t => ({
         mediaType: 'tv',
         itemId: String(t.id || ''),
@@ -2434,40 +2672,34 @@
 
     async function initUniversalHome() {
       setStatus('Loading spotlight and live feed...', false);
-      if (homeSpotlightTimer) {
-        clearInterval(homeSpotlightTimer);
-        homeSpotlightTimer = null;
-      }
-      homeTasteWeights = await loadTasteWeights();
+      resetSpotlightTimer(false);
+      const channels = getHomeChannels();
+      const cachedFeed = readHomeFeedCache();
+      const instantFallbackFeed = cachedFeed ? null : buildInstantFallbackFeed();
+      const baselineFeed = cachedFeed || instantFallbackFeed;
 
-      const channels = [
-        { key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant', landscape: true } },
-        { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
-        { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
-        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' } },
-        { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' } }
-      ];
-
-      const loaded = await Promise.all(channels.map(async (channel) => {
-        try {
-          const items = await channel.loader();
-          return { ...channel, items: Array.isArray(items) ? items : [] };
-        } catch (_err) {
-          return { ...channel, items: [] };
+      if (baselineFeed) {
+        const cachedResult = applyHomeFeedMap(baselineFeed);
+        if (cachedResult.scoredPool.length) {
+          setStatus(cachedFeed ? 'Feed ready from cache. Syncing live data...' : 'Feed ready. Syncing live data...', false);
         }
-      }));
+      }
 
-      let activeChannels = 0;
+      const tastePromise = loadTasteWeights().catch(() => homeTasteWeights);
+      const loaded = await Promise.all(channels.map(async (channel) => ({
+        ...channel,
+        items: await loadHomeChannelWithTimeout(channel.loader)
+      })));
+      homeTasteWeights = await tastePromise;
+
+      const mergedFeed = {};
       loaded.forEach((channel) => {
-        homeFeedState[channel.key] = channel.items;
-        renderRail(channel.railId, channel.items, channel.opts);
-        if (channel.items.length) activeChannels += 1;
+        const freshItems = Array.isArray(channel.items) ? channel.items : [];
+        const cachedItems = Array.isArray(baselineFeed?.[channel.key]) ? baselineFeed[channel.key] : [];
+        mergedFeed[channel.key] = freshItems.length ? freshItems : cachedItems;
       });
 
-      const scoredPool = buildScoredDiscoveryPool(homeFeedState);
-      const unified = buildUnifiedFeed(scoredPool, 32);
-      renderRail('unifiedRail', unified, { mediaType: 'mixed' });
-      hydrateSpotlightFromPool(scoredPool);
+      const { scoredPool, channelsCount } = applyHomeFeedMap(mergedFeed);
 
       if (!scoredPool.length) {
         homeSpotlightItems = [{
@@ -2484,19 +2716,36 @@
           discoveryScore: 0.5
         }];
         showSpotlightByIndex(0, false);
+        resetSpotlightTimer(false);
         setStatus('Could not load live feeds right now. Try again shortly.', true);
         return;
       }
 
-      setStatus(`Live feed ready. ${activeChannels}/${channels.length} channels active.`, false);
+      const freshActiveChannels = loaded.filter((channel) => Array.isArray(channel.items) && channel.items.length).length;
+      if (freshActiveChannels > 0) {
+        writeHomeFeedCache(mergedFeed);
+      }
+      if (freshActiveChannels === channelsCount) {
+        setStatus(`Live feed ready. ${freshActiveChannels}/${channelsCount} channels live.`, false);
+      } else if (freshActiveChannels === 0) {
+        if (cachedFeed) {
+          setStatus('Feed loaded from cache. Live sources are slow right now.', false);
+        } else {
+          setStatus('Showing quick feed while live sources connect...', false);
+        }
+      } else {
+        setStatus(`Live feed ready. ${freshActiveChannels}/${channelsCount} channels live (fallback used for slower channels).`, false);
+      }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      void initUniversalHome();
+
       void (async () => {
         await setupHomeAuthListener();
         await completeHomeOAuthReturnIfNeeded();
         await initAuthUi();
-        await initUniversalHome();
+        await refreshHomePersonalization();
       })();
 
       const closeListsBtn = document.getElementById('closeHomeListsBtn');
@@ -2521,6 +2770,7 @@
       if (nextSpotlightBtn) {
         nextSpotlightBtn.addEventListener('click', () => {
           showSpotlightByIndex(homeSpotlightIndex + 1, true);
+          resetSpotlightTimer(true);
         });
       }
 
@@ -2541,6 +2791,14 @@
         if (e.key === 'Escape') {
           closeAllRailMenus();
           closeHomeListsModal();
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          resetSpotlightTimer(false);
+        } else {
+          resetSpotlightTimer(true);
         }
       });
     });
