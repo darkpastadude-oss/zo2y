@@ -719,6 +719,7 @@
     </div>
   </div>
 
+    <script src="js/list-utils.js"></script>
     <script>
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
@@ -764,6 +765,7 @@
       }
 
       function renderListIcon(icon) {
+        if (window.ListUtils) return ListUtils.renderListIcon(icon, 'fas fa-book');
         if (!icon) return '<i class="fas fa-book"></i>';
         if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
         return icon;
@@ -1044,18 +1046,8 @@
       }
 
       async function loadCustomLists() {
-        if (!supabaseClient || !currentUser) return [];
-        const { data, error } = await supabaseClient
-          .from('book_lists')
-          .select('*')
-          .eq('user_id', currentUser.id)
-          .order('created_at', { ascending: false });
-        if (error) {
-          console.error('Error loading custom lists', error);
-          showNotification('Could not load custom lists', 'error');
-          return [];
-        }
-        return data || [];
+        if (!supabaseClient || !currentUser || !window.ListUtils) return [];
+        return await ListUtils.loadCustomLists(supabaseClient, currentUser.id, 'book');
       }
 
       async function openMovieListsModal() {
@@ -1069,21 +1061,9 @@
         container.innerHTML = '<div class="chip">Loading...</div>';
         customLists = await loadCustomLists();
         const listIds = customLists.map(l => l.id);
-        modalSelectedLists = new Set();
-        if (listIds.length) {
-          const { data, error } = await supabaseClient
-            .from('book_list_items')
-            .select('list_id')
-            .eq('user_id', currentUser.id)
-            .eq('book_id', normalizedBookId)
-            .in('list_id', listIds);
-          if (error) {
-            console.error('Error loading list membership', error);
-            showNotification('Could not load list membership', 'error');
-          } else {
-            (data || []).forEach(row => modalSelectedLists.add(row.list_id));
-          }
-        }
+        modalSelectedLists = window.ListUtils
+          ? await ListUtils.loadCustomListMembership(supabaseClient, currentUser.id, 'book', normalizedBookId, listIds)
+          : new Set();
         container.innerHTML = '';
         if (!customLists.length) {
           container.innerHTML = '<div class="chip">No custom lists yet.</div>';
@@ -1122,32 +1102,21 @@
 
       async function saveMovieListChanges() {
         if (!supabaseClient || !currentUser || !normalizedBookId) return;
-        const listIds = customLists.map(l => l.id);
-        if (listIds.length) {
-          const { error } = await supabaseClient
-            .from('book_list_items')
-            .delete()
-            .eq('user_id', currentUser.id)
-            .eq('book_id', normalizedBookId)
-            .in('list_id', listIds);
-          if (error) {
-            console.error('Error clearing list items', error);
-            showNotification(`Could not update lists: ${error.message || JSON.stringify(error)}`, 'error');
-            return;
-          }
-        }
-        const inserts = [...modalSelectedLists].map(listId => ({
-          user_id: currentUser.id,
-          book_id: normalizedBookId,
-          list_id: listId
-        }));
-        if (inserts.length) {
-          const { data: insertData, error } = await supabaseClient.from('book_list_items').insert(inserts).select('*');
-          if (error) {
-            console.error('Error inserting list items', error);
-            showNotification(`Could not save lists: ${error.message || JSON.stringify(error)}`, 'error');
-            return;
-          }
+        if (window.ListUtils) {
+          const payload = {
+            id: normalizedBookId,
+            title: (bookInfo && bookInfo.title) ? bookInfo.title : (document.getElementById('title')?.textContent || 'Untitled'),
+            authors: Array.isArray(bookInfo?.authors) ? bookInfo.authors.map(a => (a.name || a.author?.key || '')).join(', ') : null,
+            thumbnail: bookCoverUrl || (document.getElementById('poster')?.src || null)
+          };
+          await ListUtils.saveCustomListChanges(
+            supabaseClient,
+            currentUser.id,
+            'book',
+            normalizedBookId,
+            [...modalSelectedLists],
+            payload
+          );
         }
         showNotification('Lists updated', 'success');
         closeMovieListsModal();
@@ -1163,12 +1132,13 @@
         if (!input || !input.value.trim()) return;
         if (!supabaseClient || !currentUser) return;
         const title = input.value.trim();
-        const { data, error } = await supabaseClient
-          .from('book_lists')
-          .insert({ user_id: currentUser.id, title, icon: selectedIcon || 'fas fa-book' })
-          .select('*')
-          .single();
-        if (error) {
+        const data = window.ListUtils
+          ? await ListUtils.createCustomList(supabaseClient, currentUser.id, 'book', {
+            title,
+            icon: selectedIcon || 'fas fa-book'
+          })
+          : null;
+        if (!data) {
           showNotification('Could not create list', 'error');
           return;
         }
@@ -1181,12 +1151,10 @@
         const nextTitle = prompt('Rename list', currentTitle || '');
         if (!nextTitle || !nextTitle.trim()) return;
         if (!supabaseClient || !currentUser) return;
-        const { error } = await supabaseClient
-          .from('book_lists')
-          .update({ title: nextTitle.trim() })
-          .eq('id', listId)
-          .eq('user_id', currentUser.id);
-        if (error) {
+        const ok = window.ListUtils
+          ? await ListUtils.renameCustomList(supabaseClient, currentUser.id, 'book', listId, nextTitle.trim())
+          : false;
+        if (!ok) {
           showNotification('Could not rename list', 'error');
           return;
         }

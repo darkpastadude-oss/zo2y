@@ -718,6 +718,7 @@
     </div>
   </div>
 
+    <script src="js/list-utils.js"></script>
     <script>
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
@@ -758,6 +759,7 @@
       }
 
       function renderListIcon(icon) {
+        if (window.ListUtils) return ListUtils.renderListIcon(icon, 'fas fa-film');
         if (!icon) return '<i class="fas fa-film"></i>';
         if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
         return icon;
@@ -956,14 +958,8 @@
       }
 
       async function loadCustomLists() {
-        if (!supabaseClient || !currentUser) return [];
-        const { data, error } = await supabaseClient
-          .from('movie_lists')
-          .select('*')
-          .eq('user_id', currentUser.id)
-          .order('created_at', { ascending: false });
-        if (error) return [];
-        return data || [];
+        if (!supabaseClient || !currentUser || !window.ListUtils) return [];
+        return await ListUtils.loadCustomLists(supabaseClient, currentUser.id, 'movie');
       }
 
       async function openMovieListsModal() {
@@ -977,16 +973,9 @@
         container.innerHTML = '<div class="chip">Loading...</div>';
         customLists = await loadCustomLists();
         const listIds = customLists.map(l => l.id);
-        modalSelectedLists = new Set();
-        if (listIds.length) {
-          const { data } = await supabaseClient
-            .from('movie_list_items')
-            .select('list_id')
-            .eq('user_id', currentUser.id)
-            .eq('movie_id', movieId)
-            .in('list_id', listIds);
-          (data || []).forEach(row => modalSelectedLists.add(row.list_id));
-        }
+        modalSelectedLists = window.ListUtils
+          ? await ListUtils.loadCustomListMembership(supabaseClient, currentUser.id, 'movie', movieId, listIds)
+          : new Set();
         container.innerHTML = '';
         if (!customLists.length) {
           container.innerHTML = '<div class="chip">No custom lists yet.</div>';
@@ -1025,22 +1014,14 @@
 
       async function saveMovieListChanges() {
         if (!supabaseClient || !currentUser || !movieId) return;
-        const listIds = customLists.map(l => l.id);
-        if (listIds.length) {
-          await supabaseClient
-            .from('movie_list_items')
-            .delete()
-            .eq('user_id', currentUser.id)
-            .eq('movie_id', movieId)
-            .in('list_id', listIds);
-        }
-        const inserts = [...modalSelectedLists].map(listId => ({
-          user_id: currentUser.id,
-          movie_id: movieId,
-          list_id: listId
-        }));
-        if (inserts.length) {
-          await supabaseClient.from('movie_list_items').insert(inserts);
+        if (window.ListUtils) {
+          await ListUtils.saveCustomListChanges(
+            supabaseClient,
+            currentUser.id,
+            'movie',
+            movieId,
+            [...modalSelectedLists]
+          );
         }
         showNotification('Lists updated', 'success');
         closeMovieListsModal();
@@ -1056,12 +1037,13 @@
         if (!input || !input.value.trim()) return;
         if (!supabaseClient || !currentUser) return;
         const title = input.value.trim();
-        const { data, error } = await supabaseClient
-          .from('movie_lists')
-          .insert({ user_id: currentUser.id, title, icon: selectedIcon || 'fas fa-film' })
-          .select('*')
-          .single();
-        if (error) {
+        const data = window.ListUtils
+          ? await ListUtils.createCustomList(supabaseClient, currentUser.id, 'movie', {
+            title,
+            icon: selectedIcon || 'fas fa-film'
+          })
+          : null;
+        if (!data) {
           showNotification('Could not create list', 'error');
           return;
         }
@@ -1074,12 +1056,10 @@
         const nextTitle = prompt('Rename list', currentTitle || '');
         if (!nextTitle || !nextTitle.trim()) return;
         if (!supabaseClient || !currentUser) return;
-        const { error } = await supabaseClient
-          .from('movie_lists')
-          .update({ title: nextTitle.trim() })
-          .eq('id', listId)
-          .eq('user_id', currentUser.id);
-        if (error) {
+        const ok = window.ListUtils
+          ? await ListUtils.renameCustomList(supabaseClient, currentUser.id, 'movie', listId, nextTitle.trim())
+          : false;
+        if (!ok) {
           showNotification('Could not rename list', 'error');
           return;
         }

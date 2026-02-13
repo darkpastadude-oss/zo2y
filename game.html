@@ -718,6 +718,7 @@
     </div>
   </div>
 
+    <script src="js/list-utils.js"></script>
     <script>
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
@@ -760,6 +761,7 @@
       }
 
       function renderListIcon(icon) {
+        if (window.ListUtils) return ListUtils.renderListIcon(icon, 'fas fa-gamepad');
         if (!icon) return '<i class="fas fa-gamepad"></i>';
         if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
         return icon;
@@ -939,14 +941,8 @@
       }
 
       async function loadCustomLists() {
-        if (!supabaseClient || !currentUser) return [];
-        const { data, error } = await supabaseClient
-          .from('game_lists')
-          .select('*')
-          .eq('user_id', currentUser.id)
-          .order('created_at', { ascending: false });
-        if (error) return [];
-        return data || [];
+        if (!supabaseClient || !currentUser || !window.ListUtils) return [];
+        return await ListUtils.loadCustomLists(supabaseClient, currentUser.id, 'game');
       }
 
       async function openGameListsModal() {
@@ -960,16 +956,9 @@
         container.innerHTML = '<div class="chip">Loading...</div>';
         customLists = await loadCustomLists();
         const listIds = customLists.map(l => l.id);
-        modalSelectedLists = new Set();
-        if (listIds.length) {
-          const { data } = await supabaseClient
-            .from('game_list_items')
-            .select('list_id')
-            .eq('user_id', currentUser.id)
-            .eq('game_id', gameId)
-            .in('list_id', listIds);
-          (data || []).forEach(row => modalSelectedLists.add(row.list_id));
-        }
+        modalSelectedLists = window.ListUtils
+          ? await ListUtils.loadCustomListMembership(supabaseClient, currentUser.id, 'game', gameId, listIds)
+          : new Set();
         container.innerHTML = '';
         if (!customLists.length) {
           container.innerHTML = '<div class="chip">No custom lists yet.</div>';
@@ -1008,22 +997,14 @@
 
       async function saveGameListChanges() {
         if (!supabaseClient || !currentUser || !gameId) return;
-        const listIds = customLists.map(l => l.id);
-        if (listIds.length) {
-          await supabaseClient
-            .from('game_list_items')
-            .delete()
-            .eq('user_id', currentUser.id)
-            .eq('game_id', gameId)
-            .in('list_id', listIds);
-        }
-        const inserts = [...modalSelectedLists].map(listId => ({
-          user_id: currentUser.id,
-          game_id: gameId,
-          list_id: listId
-        }));
-        if (inserts.length) {
-          await supabaseClient.from('game_list_items').insert(inserts);
+        if (window.ListUtils) {
+          await ListUtils.saveCustomListChanges(
+            supabaseClient,
+            currentUser.id,
+            'game',
+            gameId,
+            [...modalSelectedLists]
+          );
         }
         showNotification('Lists updated', 'success');
         closeGameListsModal();
@@ -1039,12 +1020,13 @@
         if (!input || !input.value.trim()) return;
         if (!supabaseClient || !currentUser) return;
         const title = input.value.trim();
-        const { data, error } = await supabaseClient
-          .from('game_lists')
-          .insert({ user_id: currentUser.id, title, icon: selectedIcon || 'fas fa-gamepad' })
-          .select('*')
-          .single();
-        if (error) {
+        const data = window.ListUtils
+          ? await ListUtils.createCustomList(supabaseClient, currentUser.id, 'game', {
+            title,
+            icon: selectedIcon || 'fas fa-gamepad'
+          })
+          : null;
+        if (!data) {
           showNotification('Could not create list', 'error');
           return;
         }
@@ -1057,12 +1039,10 @@
         const nextTitle = prompt('Rename list', currentTitle || '');
         if (!nextTitle || !nextTitle.trim()) return;
         if (!supabaseClient || !currentUser) return;
-        const { error } = await supabaseClient
-          .from('game_lists')
-          .update({ title: nextTitle.trim() })
-          .eq('id', listId)
-          .eq('user_id', currentUser.id);
-        if (error) {
+        const ok = window.ListUtils
+          ? await ListUtils.renameCustomList(supabaseClient, currentUser.id, 'game', listId, nextTitle.trim())
+          : false;
+        if (!ok) {
           showNotification('Could not rename list', 'error');
           return;
         }
