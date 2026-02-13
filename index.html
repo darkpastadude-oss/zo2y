@@ -18,14 +18,15 @@
   <style>
     :root {
       --bg: #0b1633;
+      --bg-2: #0f1d40;
       --card: #132347;
       --card-2: #172b58;
       --muted: #8ca3c7;
       --accent: #f59e0b;
       --white: #ffffff;
-      --border: rgba(255,255,255,0.1);
+      --border: rgba(255,255,255,0.12);
       --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      --surface: rgba(19, 35, 71, 0.82);
+      --surface: rgba(12, 26, 57, 0.84);
       --shadow: 0 12px 34px rgba(0,0,0,0.28);
       --ok: #10b981;
     }
@@ -34,10 +35,17 @@
 
     html, body {
       min-height: 100%;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at 18% -8%, rgba(245, 158, 11, 0.16), transparent 35%),
+        radial-gradient(circle at 85% -12%, rgba(88, 130, 255, 0.22), transparent 42%),
+        var(--bg);
       color: var(--white);
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       overflow-x: hidden;
+    }
+
+    body {
+      padding-bottom: 18px;
     }
 
     a { color: inherit; text-decoration: none; }
@@ -118,8 +126,38 @@
       margin-left: auto;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
+    }
+
+    .top-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.92;
+    }
+
+    .nav-pill {
+      border: 1px solid transparent;
+      color: #e2ecff;
+      background: transparent;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 10px;
+      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+    }
+
+    .nav-pill:hover {
+      border-color: var(--border);
+      color: var(--accent);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .auth-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .btn {
@@ -135,9 +173,13 @@
       align-items: center;
       gap: 8px;
       cursor: pointer;
+      transition: border-color 0.2s ease, transform 0.2s ease;
     }
 
-    .btn:hover { border-color: var(--accent); }
+    .btn:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
 
     .btn-primary {
       background: var(--gradient);
@@ -145,94 +187,132 @@
       border: 0;
     }
 
-    .hero {
+    .page-shell {
       margin-top: 18px;
-      background: linear-gradient(145deg, #132347, #0f1f43);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      padding: 24px;
-      position: relative;
-      overflow: hidden;
+      display: grid;
+      gap: 18px;
     }
 
-    .hero::after {
+    .spotlight {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      overflow: hidden;
+      min-height: 360px;
+      box-shadow: var(--shadow);
+      background: linear-gradient(145deg, #132347, #0f1f43);
+      isolation: isolate;
+    }
+
+    .spotlight-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%);
+      background-size: cover;
+      background-position: center;
+      transform: scale(1.03);
+      transition: background-image 0.35s ease, transform 9s ease;
+      z-index: -2;
+    }
+
+    .spotlight::before {
       content: "";
       position: absolute;
-      right: -80px;
-      top: -70px;
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(245,158,11,0.24) 0%, rgba(245,158,11,0) 70%);
-      pointer-events: none;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(100deg, rgba(6, 13, 28, 0.9) 0%, rgba(8, 16, 35, 0.7) 42%, rgba(13, 25, 52, 0.25) 100%),
+        radial-gradient(circle at 80% 22%, rgba(245, 158, 11, 0.24), transparent 40%);
     }
 
-    .hero h1 {
-      font-size: clamp(28px, 4.2vw, 46px);
-      line-height: 1.08;
-      margin-bottom: 10px;
+    .spotlight-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: clamp(18px, 3.6vw, 34px);
+      min-height: 360px;
+      justify-content: flex-end;
+      max-width: 760px;
     }
 
-    .hero p {
-      color: #c9d6f2;
-      font-size: 16px;
-      max-width: 860px;
-      margin-bottom: 14px;
+    .spotlight-kicker {
+      text-transform: uppercase;
+      letter-spacing: 1.1px;
+      color: #cfe0ff;
+      font-size: 12px;
+      font-weight: 700;
+      opacity: 0.92;
     }
 
-    .hero-pills {
+    .spotlight-title {
+      font-size: clamp(31px, 5.2vw, 57px);
+      line-height: 1.03;
+      letter-spacing: -0.4px;
+    }
+
+    .spotlight-summary {
+      color: #d7e4ff;
+      font-size: 15px;
+      line-height: 1.45;
+      max-width: 640px;
+    }
+
+    .spotlight-meta {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 12px;
+      margin-top: 2px;
     }
 
-    .pill {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--border);
+    .chip {
+      padding: 8px 10px;
       border-radius: 999px;
-      padding: 8px 11px;
-      font-size: 13px;
-      color: #e8efff;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.08);
+      color: #d9e7ff;
+      font-size: 12px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
     }
 
-    .status { font-size: 13px; color: var(--ok); }
-
-    .jump-grid {
-      margin-top: 16px;
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .jump-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      transition: transform 0.2s ease;
-    }
-
-    .jump-card:hover { transform: translateY(-3px); border-color: var(--accent); }
-
-    .jump-top {
+    .spotlight-actions {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
-      font-size: 15px;
-      font-weight: 700;
+      gap: 10px;
+      margin-top: 4px;
     }
 
-    .jump-card p { color: var(--muted); font-size: 13px; }
+    .spotlight-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 2px;
+    }
+
+    .spotlight-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 0;
+      background: rgba(255,255,255,0.36);
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .spotlight-dot.active {
+      background: var(--accent);
+      transform: scale(1.2);
+    }
+
+    .status {
+      font-size: 12px;
+      color: var(--ok);
+      margin-top: 3px;
+    }
 
     .section {
-      margin-top: 18px;
-      background: var(--card);
+      background: rgba(19, 35, 71, 0.9);
       border: 1px solid var(--border);
       border-radius: 20px;
       overflow: hidden;
@@ -244,7 +324,11 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .section-head h2 { font-size: 23px; margin-bottom: 3px; }
+    .section-head h2 {
+      font-size: 23px;
+      margin-bottom: 3px;
+      letter-spacing: -0.2px;
+    }
     .section-head p { color: var(--muted); font-size: 13px; }
 
     .rail-wrap { padding: 14px 14px 16px; }
@@ -253,36 +337,44 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 9px;
-      font-size: 16px;
+      margin-bottom: 10px;
+      font-size: 15px;
       font-weight: 700;
     }
 
-    .rail-title a { color: var(--accent); font-size: 13px; }
+    .rail-title a {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+    }
 
     .rail {
       display: grid;
       grid-auto-flow: column;
-      grid-auto-columns: 156px;
-      gap: 10px;
+      grid-auto-columns: 186px;
+      gap: 11px;
       overflow-x: auto;
+      overflow-y: hidden;
       padding-bottom: 6px;
       scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
     }
 
+    .rail.unified-rail { grid-auto-columns: 206px; }
     .rail::-webkit-scrollbar { height: 7px; }
     .rail::-webkit-scrollbar-thumb { background: rgba(140,163,199,0.55); border-radius: 999px; }
-    .rail.games-rail { grid-auto-columns: 248px; }
 
     .card {
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 14px;
       overflow: hidden;
       background: var(--card-2);
       scroll-snap-align: start;
-      min-height: 232px;
+      min-height: 298px;
       position: relative;
       transition: border-color 0.2s ease, transform 0.2s ease;
+      display: flex;
+      flex-direction: column;
     }
 
     .card:hover {
@@ -297,34 +389,49 @@
 
     .card-media {
       width: 100%;
-      aspect-ratio: 2/3;
+      aspect-ratio: 4/5;
       background: #0c1a3b;
       display: grid;
       place-items: center;
       color: var(--muted);
-    }
-
-    .card-media.landscape { aspect-ratio: 16/10; }
-    .card-media.game-poster { aspect-ratio: 16/10; }
-    .card-media.game-poster img {
-      object-fit: contain !important;
-      background: #0c1a3b;
-      padding: 4px;
+      overflow: hidden;
     }
 
     .card-media img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      transform: scale(1.001);
     }
 
-    .card-meta { padding: 9px; }
+    .card-meta {
+      padding: 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex: 1;
+    }
+
     .card-meta-top {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 8px;
-      margin-bottom: 5px;
+      margin-bottom: 2px;
+    }
+
+    .card-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #dbe7ff;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 999px;
+      padding: 3px 8px;
+      margin-bottom: 3px;
+      width: fit-content;
     }
 
     .card-name {
@@ -349,7 +456,7 @@
     }
 
     .card-extra {
-      margin-top: 6px;
+      margin-top: 4px;
       color: #a9b9da;
       font-size: 12px;
       line-height: 1.35;
@@ -358,19 +465,6 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
       min-height: 32px;
-    }
-
-    .rail.games-rail .card {
-      height: 326px;
-      min-height: 326px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .rail.games-rail .card-meta {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
     }
 
     .card-menu-wrap {
@@ -394,6 +488,19 @@
     .card-menu-btn:hover {
       border-color: var(--accent);
       color: var(--accent);
+    }
+
+    .card-open-link {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(19, 35, 71, 0.92);
+      color: #d4e2ff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
     }
 
     .rail-menu {
@@ -607,16 +714,6 @@
       margin-top: 10px;
     }
 
-    .chip {
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.06);
-      color: var(--muted);
-      font-size: 12px;
-      display: inline-block;
-    }
-
     .card-hover-cue {
       position: absolute;
       right: 8px;
@@ -650,26 +747,120 @@
       text-align: center;
       padding: 22px 10px;
       font-size: 13px;
+      width: min(92vw, 240px);
     }
 
-    @media (max-width: 1050px) {
-      .jump-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .mobile-bottom-nav {
+      display: none;
+    }
+
+    .spotlight-fade {
+      animation: spotlightFade 0.32s ease;
+    }
+
+    @keyframes spotlightFade {
+      from { opacity: 0.45; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1100px) {
+      .top-nav {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .top-nav {
+        display: none;
+      }
+      .header-actions {
+        margin-left: auto;
+      }
     }
 
     @media (max-width: 760px) {
+      body {
+        padding-bottom: 86px;
+      }
+
       .container { width: calc(100% - 16px); }
       .header-inner { gap: 10px; }
       .brand { font-size: 18px; }
       .brand img { width: 31px; height: 31px; }
       .search-wrap { order: 3; max-width: none; margin-left: 0; width: 100%; }
-      .header-actions { margin-left: 0; }
-      .hero { padding: 16px; border-radius: 16px; }
-      .hero p { font-size: 14px; }
-      .jump-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .header-actions { margin-left: auto; }
+      .auth-actions .btn {
+        height: 36px;
+        padding: 0 10px;
+        border-radius: 11px;
+      }
+      #profileBtn span {
+        display: none;
+      }
+
+      .spotlight {
+        border-radius: 18px;
+        min-height: 318px;
+      }
+
+      .spotlight-inner {
+        min-height: 318px;
+        padding: 16px;
+        gap: 9px;
+      }
+
+      .spotlight-title {
+        font-size: clamp(24px, 8vw, 38px);
+      }
+
+      .spotlight-summary {
+        font-size: 13px;
+      }
+
+      .spotlight-actions {
+        gap: 8px;
+      }
+
       .section { border-radius: 16px; }
       .section-head h2 { font-size: 19px; }
-      .rail { grid-auto-columns: 142px; }
-      .btn { height: 38px; padding: 0 12px; }
+      .rail { grid-auto-columns: 158px; }
+      .rail.unified-rail { grid-auto-columns: 178px; }
+      .card { min-height: 276px; }
+      .card-hover-cue { display: none; }
+
+      .mobile-bottom-nav {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: rgba(12, 24, 52, 0.95);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 34px rgba(0,0,0,0.35);
+        z-index: 230;
+        padding: 6px;
+      }
+
+      .mobile-nav-item {
+        min-height: 48px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #c8d7f6;
+        font-size: 18px;
+        transition: color 0.2s ease, background 0.2s ease;
+      }
+
+      .mobile-nav-item.active,
+      .mobile-nav-item:hover {
+        color: var(--accent);
+        background: rgba(245, 158, 11, 0.16);
+      }
     }
   </style>
 </head>
@@ -687,59 +878,58 @@
       </div>
 
       <div class="header-actions">
-        <a class="btn" href="movies.html">Movies</a>
-        <a class="btn" href="tvshows.html">TV</a>
-        <a class="btn" href="games.html">Games</a>
-        <a class="btn" href="books.html">Books</a>
-        <a class="btn" href="restraunts.html">Restaurants</a>
-        <a class="btn" href="login.html" id="loginBtn">Login</a>
-        <a class="btn btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
-        <a class="btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+        <nav class="top-nav" aria-label="Browse media">
+          <a class="nav-pill" href="movies.html">Movies</a>
+          <a class="nav-pill" href="tvshows.html">TV</a>
+          <a class="nav-pill" href="games.html">Games</a>
+          <a class="nav-pill" href="books.html">Books</a>
+          <a class="nav-pill" href="restraunts.html">Restaurants</a>
+        </nav>
+        <div class="auth-actions">
+          <a class="btn" href="login.html" id="loginBtn">Login</a>
+          <a class="btn btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+          <a class="btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+        </div>
       </div>
     </div>
   </header>
 
-  <main class="container">
-    <section class="hero">
-      <h1>Discover Everything In One Place</h1>
-      <p>A universal Zo2y homepage with your restaurants, movies, TV shows, games, and books in one familiar layout.</p>
-      <div class="hero-pills">
-        <span class="pill"><i class="fa-solid fa-utensils"></i> Restaurants</span>
-        <span class="pill"><i class="fa-solid fa-film"></i> Movies</span>
-        <span class="pill"><i class="fa-solid fa-tv"></i> TV Shows</span>
-        <span class="pill"><i class="fa-solid fa-gamepad"></i> Games</span>
-        <span class="pill"><i class="fa-solid fa-book"></i> Books</span>
-      </div>
-      <div class="status" id="loadStatus">Loading universal feed...</div>
-
-      <div class="jump-grid">
-        <a class="jump-card" href="restraunts.html">
-          <div class="jump-top"><span>Restaurants</span><i class="fa-solid fa-arrow-right"></i></div>
-          <p>Local picks and community favorites.</p>
-        </a>
-        <a class="jump-card" href="movies.html">
-          <div class="jump-top"><span>Movies</span><i class="fa-solid fa-arrow-right"></i></div>
-          <p>Trending films and watchlist ideas.</p>
-        </a>
-        <a class="jump-card" href="tvshows.html">
-          <div class="jump-top"><span>TV Shows</span><i class="fa-solid fa-arrow-right"></i></div>
-          <p>New series and binge picks.</p>
-        </a>
-        <a class="jump-card" href="games.html">
-          <div class="jump-top"><span>Games</span><i class="fa-solid fa-arrow-right"></i></div>
-          <p>Top games and latest hits.</p>
-        </a>
-        <a class="jump-card" href="books.html">
-          <div class="jump-top"><span>Books</span><i class="fa-solid fa-arrow-right"></i></div>
-          <p>Popular books worth reading.</p>
-        </a>
+  <main class="container page-shell">
+    <section class="spotlight" id="spotlightSection">
+      <div class="spotlight-bg" id="spotlightBackground"></div>
+      <div class="spotlight-inner" id="spotlightInner">
+        <p class="spotlight-kicker" id="spotlightKicker">Live Spotlight</p>
+        <h1 class="spotlight-title" id="spotlightTitle">Loading spotlight...</h1>
+        <p class="spotlight-summary" id="spotlightSummary">Pulling trends and personalization signals.</p>
+        <div class="spotlight-meta">
+          <span class="chip" id="spotlightReason"><i class="fa-solid fa-compass"></i> Discovery engine warming up</span>
+          <span class="chip" id="spotlightTrend"><i class="fa-solid fa-bolt"></i> Global buzz sync</span>
+        </div>
+        <div class="spotlight-actions">
+          <a class="btn btn-primary" href="movies.html" id="spotlightOpenBtn"><i class="fa-solid fa-play"></i> Open</a>
+          <button class="btn" id="spotlightNextBtn" type="button"><i class="fa-solid fa-forward"></i> Next Pulse</button>
+        </div>
+        <div class="spotlight-dots" id="spotlightDots" aria-label="Spotlight items"></div>
+        <div class="status" id="loadStatus">Loading live feed...</div>
       </div>
     </section>
 
     <section class="section">
       <div class="section-head">
-        <h2>Universal Feed</h2>
-        <p>Swipe on mobile, scroll on desktop.</p>
+        <h2>Culture Stream</h2>
+        <p>One swipeable feed blending movies, TV, games, books, restaurants, and music.</p>
+      </div>
+
+      <div class="rail-wrap">
+        <div class="rail-title"><span><i class="fa-solid fa-wave-square"></i> Mixed for you</span><a href="profile.html">Tune taste</a></div>
+        <div class="rail unified-rail" id="unifiedRail"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Trending by Category</h2>
+        <p>Dive into a lane when you want focused browsing.</p>
       </div>
 
       <div class="rail-wrap">
@@ -766,8 +956,22 @@
         <div class="rail-title"><span><i class="fa-solid fa-book"></i> Books</span><a href="books.html">View all</a></div>
         <div class="rail" id="booksRail"></div>
       </div>
+
+      <div class="rail-wrap">
+        <div class="rail-title"><span><i class="fa-solid fa-music"></i> Music</span><a href="https://music.apple.com/us/charts" target="_blank" rel="noopener">Charts</a></div>
+        <div class="rail" id="musicRail"></div>
+      </div>
     </section>
   </main>
+
+  <nav class="mobile-bottom-nav" aria-label="Mobile sections">
+    <a class="mobile-nav-item active" href="index.html" aria-label="Home"><i class="fa-solid fa-house"></i></a>
+    <a class="mobile-nav-item" href="movies.html" aria-label="Movies"><i class="fa-solid fa-film"></i></a>
+    <a class="mobile-nav-item" href="tvshows.html" aria-label="TV Shows"><i class="fa-solid fa-tv"></i></a>
+    <a class="mobile-nav-item" href="games.html" aria-label="Games"><i class="fa-solid fa-gamepad"></i></a>
+    <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
+    <a class="mobile-nav-item" href="restraunts.html" aria-label="Restaurants"><i class="fa-solid fa-utensils"></i></a>
+  </nav>
 
   <div class="modal" id="homeListsModal" aria-hidden="true">
     <div class="modal-content">
@@ -823,11 +1027,45 @@
       { title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', isbn: '9780374533557' },
       { title: 'The Psychology of Money', author: 'Morgan Housel', isbn: '9780857197689' }
     ];
+    const FALLBACK_MUSIC = [
+      { id: 'fallback-m1', title: 'Blinding Lights', artist: 'The Weeknd' },
+      { id: 'fallback-m2', title: 'As It Was', artist: 'Harry Styles' },
+      { id: 'fallback-m3', title: 'Flowers', artist: 'Miley Cyrus' },
+      { id: 'fallback-m4', title: 'Levitating', artist: 'Dua Lipa' },
+      { id: 'fallback-m5', title: 'bad guy', artist: 'Billie Eilish' }
+    ];
+    const HOME_MEDIA_META = {
+      restaurant: { label: 'Restaurant', icon: 'fa-utensils', accent: '#f59e0b' },
+      movie: { label: 'Movie', icon: 'fa-film', accent: '#ef4444' },
+      tv: { label: 'TV', icon: 'fa-tv', accent: '#22c55e' },
+      game: { label: 'Game', icon: 'fa-gamepad', accent: '#38bdf8' },
+      book: { label: 'Book', icon: 'fa-book', accent: '#f97316' },
+      music: { label: 'Music', icon: 'fa-music', accent: '#a855f7' }
+    };
 
     const statusEl = document.getElementById('loadStatus');
     let homeSupabaseClient = null;
     let homeCurrentUser = null;
     let homeAuthListenerReady = false;
+    let homeSpotlightTimer = null;
+    let homeSpotlightItems = [];
+    let homeSpotlightIndex = 0;
+    let homeTasteWeights = {
+      restaurant: 1,
+      movie: 1,
+      tv: 1,
+      game: 1,
+      book: 1,
+      music: 1
+    };
+    const homeFeedState = {
+      restaurant: [],
+      movie: [],
+      tv: [],
+      game: [],
+      book: [],
+      music: []
+    };
     const homeCustomListState = {
       mediaType: null,
       itemId: null,
@@ -867,6 +1105,16 @@
       toast.textContent = message;
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 2200);
+    }
+
+    function getHomeMediaMeta(mediaType) {
+      const type = String(mediaType || '').toLowerCase();
+      return HOME_MEDIA_META[type] || { label: 'Item', icon: 'fa-star', accent: '#f59e0b' };
+    }
+
+    function supportsHomeLists(mediaType) {
+      const type = String(mediaType || '').toLowerCase();
+      return type === 'restaurant' || type === 'movie' || type === 'tv' || type === 'game' || type === 'book';
     }
 
     function getMediaListConfig(mediaType) {
@@ -911,18 +1159,22 @@
           ]
         };
       }
-      return {
-        customHref: 'restraunts.html',
-        rows: [
-          { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-          { key: 'visited', label: 'Visited', icon: 'fas fa-eye' },
-          { key: 'wantToGo', label: 'Want to Go', icon: 'fas fa-bookmark' }
-        ]
-      };
+      if (type === 'restaurant') {
+        return {
+          customHref: 'restraunts.html',
+          rows: [
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'visited', label: 'Visited', icon: 'fas fa-eye' },
+            { key: 'wantToGo', label: 'Want to Go', icon: 'fas fa-bookmark' }
+          ]
+        };
+      }
+      return null;
     }
 
     function buildRailListMenuHtml(item) {
       const cfg = getMediaListConfig(item.mediaType);
+      if (!cfg) return '';
       const buttons = cfg.rows.map(row => `
         <button class="rail-menu-item" data-action="save" data-list="${row.key}">
           <span class="rail-menu-item-main"><i class="${row.icon}"></i> ${row.label}</span>
@@ -937,6 +1189,237 @@
           <span class="rail-menu-state">Open</span>
         </button>
       `;
+    }
+
+    function getSpotlightSeedOffset() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), 0, 0);
+      const diff = now - start;
+      const oneDay = 1000 * 60 * 60 * 24;
+      const dayOfYear = Math.floor(diff / oneDay);
+      const weekOfYear = Math.ceil(dayOfYear / 7);
+      const userSeed = homeCurrentUser?.id ? homeCurrentUser.id.slice(-4).split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0) : 0;
+      return dayOfYear + weekOfYear + userSeed;
+    }
+
+    function hashString(value) {
+      const text = String(value || '');
+      let hash = 0;
+      for (let i = 0; i < text.length; i += 1) {
+        hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+      }
+      return Math.abs(hash);
+    }
+
+    function getDailySignal(value) {
+      const dateKey = new Date().toISOString().slice(0, 10);
+      return (hashString(`${value}|${dateKey}`) % 100) / 100;
+    }
+
+    function getTrendLabel(item) {
+      const buzz = Math.max(52, Math.min(99, Math.round((Number(item.discoveryScore) || 0.62) * 100)));
+      return `<i class="fa-solid fa-fire"></i> Global buzz ${buzz}%`;
+    }
+
+    function getPersonalReason(item) {
+      const type = String(item.mediaType || '').toLowerCase();
+      const meta = getHomeMediaMeta(type);
+      const weight = Number(homeTasteWeights[type] || 1);
+      if (weight >= 1.45) {
+        return `<i class="fa-solid fa-sparkles"></i> Tuned to your ${meta.label.toLowerCase()} taste`;
+      }
+      return `<i class="fa-solid fa-compass"></i> Cross-media discovery pick`;
+    }
+
+    function getSpotlightSummary(item) {
+      const details = [item.subtitle, item.extra].map(v => String(v || '').trim()).filter(Boolean);
+      if (!details.length) return 'Fresh signal from the live discovery engine.';
+      return details.join(' | ');
+    }
+
+    function renderSpotlightDots() {
+      const dotsEl = document.getElementById('spotlightDots');
+      if (!dotsEl) return;
+      dotsEl.innerHTML = homeSpotlightItems.map((item, index) => {
+        const active = index === homeSpotlightIndex ? ' active' : '';
+        const title = escapeHtml(item.title || '');
+        return `<button class="spotlight-dot${active}" type="button" data-spotlight-index="${index}" aria-label="Spotlight ${index + 1}: ${title}"></button>`;
+      }).join('');
+      dotsEl.querySelectorAll('[data-spotlight-index]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.getAttribute('data-spotlight-index'));
+          showSpotlightByIndex(idx, true);
+          resetSpotlightTimer();
+        });
+      });
+    }
+
+    function renderSpotlightItem(item, shouldAnimate = false) {
+      const bg = document.getElementById('spotlightBackground');
+      const title = document.getElementById('spotlightTitle');
+      const kicker = document.getElementById('spotlightKicker');
+      const summary = document.getElementById('spotlightSummary');
+      const reason = document.getElementById('spotlightReason');
+      const trend = document.getElementById('spotlightTrend');
+      const openBtn = document.getElementById('spotlightOpenBtn');
+      const spotlightInner = document.getElementById('spotlightInner');
+      if (!bg || !title || !kicker || !summary || !reason || !trend || !openBtn) return;
+
+      const meta = getHomeMediaMeta(item.mediaType);
+      const image = String(item.image || '').trim();
+      if (image) {
+        bg.style.backgroundImage = `url("${image}")`;
+      } else {
+        bg.style.backgroundImage = `linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%)`;
+      }
+      title.textContent = item.title || 'Spotlight';
+      kicker.textContent = `${meta.label} Spotlight`;
+      summary.textContent = getSpotlightSummary(item);
+      reason.innerHTML = getPersonalReason(item);
+      trend.innerHTML = getTrendLabel(item);
+      openBtn.href = item.href || 'index.html';
+      openBtn.onclick = null;
+
+      if (shouldAnimate && spotlightInner) {
+        spotlightInner.classList.remove('spotlight-fade');
+        requestAnimationFrame(() => spotlightInner.classList.add('spotlight-fade'));
+      }
+      renderSpotlightDots();
+    }
+
+    function showSpotlightByIndex(index, shouldAnimate = false) {
+      if (!homeSpotlightItems.length) return;
+      const normalized = ((Number(index) || 0) % homeSpotlightItems.length + homeSpotlightItems.length) % homeSpotlightItems.length;
+      homeSpotlightIndex = normalized;
+      renderSpotlightItem(homeSpotlightItems[homeSpotlightIndex], shouldAnimate);
+    }
+
+    function resetSpotlightTimer() {
+      if (homeSpotlightTimer) clearInterval(homeSpotlightTimer);
+      if (homeSpotlightItems.length < 2) {
+        homeSpotlightTimer = null;
+        return;
+      }
+      homeSpotlightTimer = window.setInterval(() => {
+        showSpotlightByIndex(homeSpotlightIndex + 1, true);
+      }, 12000);
+    }
+
+    function buildScoredDiscoveryPool(feedMap) {
+      const pool = [];
+      Object.entries(feedMap).forEach(([type, items]) => {
+        const list = Array.isArray(items) ? items : [];
+        const weight = Number(homeTasteWeights[type] || 1);
+        const maxRank = Math.max(1, list.length);
+        list.forEach((item, index) => {
+          const rankWeight = 1 - (index / maxRank);
+          const dailySignal = getDailySignal(`${type}:${item.itemId || item.title || index}`);
+          const trendScore = rankWeight * 0.55 + Math.min(weight, 2.1) * 0.32 + dailySignal * 0.13;
+          pool.push({
+            ...item,
+            mediaType: type,
+            discoveryScore: Number(trendScore.toFixed(4))
+          });
+        });
+      });
+      pool.sort((a, b) => Number(b.discoveryScore || 0) - Number(a.discoveryScore || 0));
+      return pool;
+    }
+
+    function buildUnifiedFeed(pool, limit = 32) {
+      if (!pool.length) return [];
+      const grouped = new Map();
+      pool.forEach((item) => {
+        const key = String(item.mediaType || 'other');
+        if (!grouped.has(key)) grouped.set(key, []);
+        grouped.get(key).push(item);
+      });
+
+      const typeOrder = [...grouped.keys()].sort(
+        (a, b) => Number(homeTasteWeights[b] || 1) - Number(homeTasteWeights[a] || 1)
+      );
+      const stream = [];
+      let guard = 0;
+      while (stream.length < limit && guard < 800) {
+        let addedAny = false;
+        for (const type of typeOrder) {
+          const queue = grouped.get(type);
+          if (!queue || !queue.length) continue;
+          const next = queue.shift();
+          if (next) {
+            stream.push(next);
+            addedAny = true;
+            if (stream.length >= limit) break;
+          }
+        }
+        if (!addedAny) break;
+        guard += 1;
+      }
+      return stream;
+    }
+
+    function hydrateSpotlightFromPool(pool) {
+      if (!Array.isArray(pool) || !pool.length) {
+        homeSpotlightItems = [];
+        return;
+      }
+      const shortlist = pool.slice(0, 10);
+      const seed = getSpotlightSeedOffset();
+      const offset = seed % shortlist.length;
+      homeSpotlightItems = [...shortlist.slice(offset), ...shortlist.slice(0, offset)];
+      homeSpotlightIndex = 0;
+      showSpotlightByIndex(0, false);
+      resetSpotlightTimer();
+    }
+
+    async function loadTasteWeights() {
+      const weights = {
+        restaurant: 1,
+        movie: 1,
+        tv: 1,
+        game: 1,
+        book: 1,
+        music: 1
+      };
+      if (!homeCurrentUser?.id) return weights;
+
+      const client = await ensureHomeSupabase();
+      if (!client) return weights;
+      try {
+        const [movieRes, tvRes, gameRes, bookRes, listRes] = await Promise.all([
+          client.from('movie_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
+          client.from('tv_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
+          client.from('game_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
+          client.from('book_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
+          client.from('lists').select('id').eq('user_id', homeCurrentUser.id)
+        ]);
+
+        const listIds = Array.isArray(listRes?.data) ? listRes.data.map((row) => row.id).filter(Boolean) : [];
+        let restaurantCount = 0;
+        if (listIds.length) {
+          const { count } = await client
+            .from('lists_restraunts')
+            .select('id', { count: 'exact', head: true })
+            .in('list_id', listIds);
+          restaurantCount = Number(count || 0);
+        }
+
+        const counts = {
+          movie: Number(movieRes?.count || 0),
+          tv: Number(tvRes?.count || 0),
+          game: Number(gameRes?.count || 0),
+          book: Number(bookRes?.count || 0),
+          restaurant: restaurantCount
+        };
+        const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
+        if (!total) return weights;
+
+        Object.entries(counts).forEach(([type, value]) => {
+          const share = value / total;
+          weights[type] = Number((1 + Math.min(1.1, share * 3.2)).toFixed(2));
+        });
+      } catch (_err) {}
+      return weights;
     }
 
     async function ensureHomeSupabase() {
@@ -1051,6 +1534,10 @@
       const itemId = payload.itemId;
       const listType = payload.listType;
       if (!itemId || !listType) return;
+      if (!supportsHomeLists(mediaType)) {
+        showHomeToast('Lists are not available for this media yet.');
+        return;
+      }
 
       try {
         if (mediaType === 'movie') {
@@ -1391,38 +1878,46 @@
     function renderRail(railId, items, opts) {
       const rail = document.getElementById(railId);
       if (!rail) return;
-      rail.classList.toggle('games-rail', String(opts?.mediaType || '').toLowerCase() === 'game');
 
       if (!items || !items.length) {
         rail.innerHTML = '<div class="empty">No items right now.</div>';
         return;
       }
 
-      const landscape = !!opts.landscape;
       rail.innerHTML = items.map(item => {
-        const title = escapeHtml(item.title);
-        const subtitle = escapeHtml(item.subtitle);
+        const mediaTypeRaw = String(item.mediaType || opts?.mediaType || '').toLowerCase();
+        const media = getHomeMediaMeta(mediaTypeRaw);
+        const title = escapeHtml(item.title || 'Untitled');
+        const subtitle = escapeHtml(item.subtitle || media.label);
         const extra = escapeHtml(item.extra || '');
-        const image = item.image || '';
-        const href = item.href || '#';
-        const mediaType = escapeHtml(item.mediaType || '');
+        const image = escapeHtml(item.image || '');
+        const hrefRaw = item.href || '#';
+        const href = escapeHtml(hrefRaw);
+        const mediaType = escapeHtml(mediaTypeRaw);
         const itemId = escapeHtml(item.itemId || '');
-        const safeImage = escapeHtml(item.image || '');
+        const supportsLists = supportsHomeLists(mediaTypeRaw);
+        const opensExternal = /^https?:\/\//i.test(String(hrefRaw || ''));
+        const trailingControl = supportsLists
+          ? `
+            <div class="card-menu-wrap">
+              <button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
+              <div class="rail-menu">
+                ${buildRailListMenuHtml(item)}
+              </div>
+            </div>
+          `
+          : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
         return `
-          <article class="card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${safeImage}">
+          <article class="card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}">
             <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
-            <div class="card-media ${landscape ? 'landscape' : ''} ${String(item.mediaType || '').toLowerCase() === 'game' ? 'game-poster' : ''}">
+            <div class="card-media">
               ${image ? `<img src="${image}" alt="${title}" loading="lazy">` : '<i class="fa-solid fa-image"></i>'}
             </div>
             <div class="card-meta">
+              <span class="card-type"><i class="fa-solid ${media.icon}"></i> ${escapeHtml(media.label)}</span>
               <div class="card-meta-top">
                 <p class="card-name">${title}</p>
-                <div class="card-menu-wrap">
-                  <button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
-                  <div class="rail-menu">
-                    ${buildRailListMenuHtml(item)}
-                  </div>
-                </div>
+                ${trailingControl}
               </div>
               <p class="card-sub">${subtitle}</p>
               ${extra ? `<p class="card-extra">${extra}</p>` : ''}
@@ -1438,7 +1933,7 @@
       scope.querySelectorAll('.card').forEach((card) => {
         const href = card.getAttribute('data-href');
         card.onclick = (e) => {
-          if (e.target.closest('.card-menu-btn') || e.target.closest('.rail-menu')) return;
+          if (e.target.closest('.card-menu-btn') || e.target.closest('.rail-menu') || e.target.closest('.card-open-link')) return;
           if (href) window.location.href = href;
         };
       });
@@ -1542,6 +2037,9 @@
 
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
           void initAuthUi();
+        }
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+          void initUniversalHome();
         }
       });
     }
@@ -1765,43 +2263,88 @@
       }));
     }
 
-    async function initUniversalHome() {
-      setStatus('Loading universal feed...', false);
+    async function loadMusic() {
+      try {
+        const res = await fetch('https://rss.applemarketingtools.com/api/v2/us/music/most-played/50/songs.json');
+        if (res.ok) {
+          const json = await res.json();
+          const results = Array.isArray(json?.feed?.results) ? json.feed.results : [];
+          const mapped = results.map((song) => ({
+            mediaType: 'music',
+            itemId: String(song.id || ''),
+            title: String(song.name || '').trim() || 'Song',
+            subtitle: String(song.artistName || '').trim() || 'Artist',
+            image: String(song.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
+            href: song.url || 'https://music.apple.com/us/charts'
+          })).filter((song) => song.title);
+          if (mapped.length) return mapped.slice(0, 10);
+        }
+      } catch (_err) {}
 
-      const rails = [
-        { railId: 'restaurantsRail', loader: loadRestaurants, opts: { landscape: true, sectionHref: 'restraunts.html', typeName: 'restaurant', mediaType: 'restaurant' } },
-        { railId: 'moviesRail', loader: loadMovies, opts: { landscape: false, sectionHref: 'movies.html', typeName: 'movie', mediaType: 'movie' } },
-        { railId: 'tvRail', loader: loadTv, opts: { landscape: false, sectionHref: 'tvshows.html', typeName: 'TV show', mediaType: 'tv' } },
-        { railId: 'gamesRail', loader: loadGames, opts: { landscape: false, sectionHref: 'games.html', typeName: 'game', mediaType: 'game' } },
-        { railId: 'booksRail', loader: loadBooks, opts: { landscape: false, sectionHref: 'books.html', typeName: 'book', mediaType: 'book' } }
+      return FALLBACK_MUSIC.map((song, idx) => ({
+        mediaType: 'music',
+        itemId: `${song.id}-${idx}`,
+        title: song.title,
+        subtitle: song.artist,
+        image: '',
+        href: 'https://music.apple.com/us/charts'
+      }));
+    }
+
+    async function initUniversalHome() {
+      setStatus('Loading spotlight and live feed...', false);
+      if (homeSpotlightTimer) {
+        clearInterval(homeSpotlightTimer);
+        homeSpotlightTimer = null;
+      }
+      homeTasteWeights = await loadTasteWeights();
+
+      const channels = [
+        { key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant' } },
+        { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
+        { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
+        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' } },
+        { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' } },
+        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' } }
       ];
 
-      let completed = 0;
-      let successful = 0;
+      const loaded = await Promise.all(channels.map(async (channel) => {
+        try {
+          const items = await channel.loader();
+          return { ...channel, items: Array.isArray(items) ? items : [] };
+        } catch (_err) {
+          return { ...channel, items: [] };
+        }
+      }));
 
-      rails.forEach((section) => {
-        section.loader()
-          .then((items) => {
-            const list = Array.isArray(items) ? items : [];
-            renderRail(section.railId, list, section.opts);
-            if (list.length > 0) successful += 1;
-          })
-          .catch(() => {
-            renderRail(section.railId, [], section.opts);
-          })
-          .finally(() => {
-            completed += 1;
-            if (completed < rails.length) {
-              setStatus(`Loading feed... ${completed}/${rails.length}`, false);
-              return;
-            }
-            if (!successful) {
-              setStatus('Could not load feeds right now. Use top tabs to browse directly.', true);
-              return;
-            }
-            setStatus('Universal feed ready.', false);
-          });
+      let activeChannels = 0;
+      loaded.forEach((channel) => {
+        homeFeedState[channel.key] = channel.items;
+        renderRail(channel.railId, channel.items, channel.opts);
+        if (channel.items.length) activeChannels += 1;
       });
+
+      const scoredPool = buildScoredDiscoveryPool(homeFeedState);
+      const unified = buildUnifiedFeed(scoredPool, 32);
+      renderRail('unifiedRail', unified, { mediaType: 'mixed' });
+      hydrateSpotlightFromPool(scoredPool);
+
+      if (!scoredPool.length) {
+        homeSpotlightItems = [{
+          mediaType: 'movie',
+          title: 'No live spotlight yet',
+          subtitle: 'We are refreshing your feed',
+          extra: 'Try again in a moment.',
+          image: '',
+          href: 'movies.html',
+          discoveryScore: 0.5
+        }];
+        showSpotlightByIndex(0, false);
+        setStatus('Could not load live feeds right now. Try again shortly.', true);
+        return;
+      }
+
+      setStatus(`Live feed ready. ${activeChannels}/${channels.length} channels active.`, false);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1809,16 +2352,21 @@
         await setupHomeAuthListener();
         await completeHomeOAuthReturnIfNeeded();
         await initAuthUi();
+        await initUniversalHome();
       })();
-      initUniversalHome();
+
       const closeListsBtn = document.getElementById('closeHomeListsBtn');
       const saveListsBtn = document.getElementById('saveHomeListsBtn');
       const createListBtn = document.getElementById('createHomeListBtn');
       const iconOptions = document.querySelectorAll('#homeListIconOptions .icon-option');
       const modal = document.getElementById('homeListsModal');
+      const nextSpotlightBtn = document.getElementById('spotlightNextBtn');
+      const spotlightSection = document.getElementById('spotlightSection');
+
       if (closeListsBtn) closeListsBtn.addEventListener('click', closeHomeListsModal);
       if (saveListsBtn) saveListsBtn.addEventListener('click', saveHomeListChanges);
       if (createListBtn) createListBtn.addEventListener('click', createHomeList);
+
       iconOptions.forEach(btn => {
         btn.addEventListener('click', () => {
           iconOptions.forEach(b => b.classList.remove('selected'));
@@ -1826,17 +2374,44 @@
           homeCustomListState.selectedIcon = btn.getAttribute('data-icon') || 'fas fa-list';
         });
       });
+
+      if (nextSpotlightBtn) {
+        nextSpotlightBtn.addEventListener('click', () => {
+          showSpotlightByIndex(homeSpotlightIndex + 1, true);
+          resetSpotlightTimer();
+        });
+      }
+
+      if (spotlightSection) {
+        spotlightSection.addEventListener('mouseenter', () => {
+          if (homeSpotlightTimer) clearInterval(homeSpotlightTimer);
+        });
+        spotlightSection.addEventListener('mouseleave', () => {
+          resetSpotlightTimer();
+        });
+      }
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          if (homeSpotlightTimer) clearInterval(homeSpotlightTimer);
+          return;
+        }
+        resetSpotlightTimer();
+      });
+
       if (modal) {
         modal.addEventListener('click', (e) => {
           if (e.target === modal) closeHomeListsModal();
         });
       }
+
       if (window.initUniversalSearch) {
         window.initUniversalSearch({
           input: '#globalSearch',
           fallbackRoute: 'restraunts.html'
         });
       }
+
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           closeAllRailMenus();
