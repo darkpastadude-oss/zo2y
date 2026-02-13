@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zo2y — Movie</title>
+  <title>Zo2y - Movie</title>
   <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -284,9 +284,16 @@
     .list-action:last-child { margin-bottom: 0; }
     .list-action:hover { border-color: var(--accent); color: var(--accent); }
     .list-action.active {
-      background: rgba(245, 158, 11, 0.12);
-      border-color: var(--accent);
-      color: var(--accent);
+      background: rgba(239, 68, 68, 0.12);
+      border-color: #f87171;
+      color: #fecaca;
+    }
+    .list-action.active .list-action-state {
+      color: #fff;
+      background: #dc2626;
+      border: 1px solid #ef4444;
+      border-radius: 999px;
+      padding: 2px 8px;
     }
     .section {
       max-width: 1200px;
@@ -698,7 +705,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <div class="modal-title">Custom Movie Lists</div>
-        <button class="modal-close" id="closeMovieListsBtn">×</button>
+        <button class="modal-close" id="closeMovieListsBtn">&times;</button>
       </div>
       <div class="modal-list" id="movieListsContainer"></div>
       <div class="modal-input">
@@ -1075,7 +1082,7 @@
           const isActive = !!listStatus[listType];
           btn.classList.toggle('active', isActive);
           const state = btn.querySelector('.list-action-state');
-          if (state) state.textContent = isActive ? 'Saved' : 'Add';
+          if (state) state.textContent = isActive ? 'Remove' : 'Add';
         });
       }
 

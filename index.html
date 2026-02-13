@@ -262,6 +262,10 @@
       max-width: calc(100% - 270px);
     }
 
+    .spotlight.has-landscape-media .spotlight-inner {
+      max-width: calc(100% - 360px);
+    }
+
     .spotlight-media.square {
       width: clamp(154px, 18vw, 208px);
       aspect-ratio: 1/1;
@@ -273,6 +277,19 @@
     .spotlight-media.square img {
       border-radius: 10px;
       object-fit: contain !important;
+      background: rgba(12, 26, 59, 0.9);
+    }
+
+    .spotlight-media.landscape {
+      width: clamp(224px, 30vw, 320px);
+      aspect-ratio: 16/10;
+      border-radius: 16px;
+      padding: 0;
+      background: rgba(7, 15, 34, 0.64);
+    }
+
+    .spotlight-media.landscape img {
+      object-fit: cover !important;
       background: rgba(12, 26, 59, 0.9);
     }
 
@@ -684,6 +701,23 @@
       color: var(--accent);
     }
 
+    .rail-menu-item[data-saved="1"] {
+      border-color: rgba(248, 113, 113, 0.85);
+      background: rgba(239, 68, 68, 0.12);
+      color: #fecaca;
+    }
+
+    .rail-menu-item[data-saved="1"]:hover {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.18);
+      color: #fecaca;
+    }
+
+    .rail-menu-item[data-saved="1"] .rail-menu-state {
+      color: #fca5a5;
+      opacity: 1;
+    }
+
     .rail-menu-title {
       color: var(--muted);
       font-size: 11px;
@@ -946,6 +980,10 @@
         padding-right: 146px;
       }
 
+      .spotlight.has-landscape-media .spotlight-inner {
+        padding-right: 152px;
+      }
+
       .spotlight-media.square {
         width: 122px;
         aspect-ratio: 2/3;
@@ -954,12 +992,29 @@
         background: rgba(7, 15, 34, 0.55);
       }
 
+      .spotlight-media.landscape {
+        width: 128px;
+        aspect-ratio: 16/10;
+        border-radius: 12px;
+      }
+
       .spotlight-title {
         font-size: clamp(24px, 8vw, 38px);
       }
 
       .spotlight-summary {
         font-size: 13px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .spotlight-meta .chip {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
       }
 
       .spotlight-actions {
@@ -1449,9 +1504,12 @@
       const spotlightMediaFit = String(item.spotlightMediaFit || '').trim() || 'contain';
       const spotlightMediaShape = String(item.spotlightMediaShape || '').trim() || 'poster';
       const usesSquareMedia = spotlightMediaShape === 'square';
+      const usesLandscapeMedia = spotlightMediaShape === 'landscape';
 
       spotlightSection.classList.toggle('has-square-media', usesSquareMedia);
+      spotlightSection.classList.toggle('has-landscape-media', usesLandscapeMedia);
       mediaWrap.classList.toggle('square', usesSquareMedia);
+      mediaWrap.classList.toggle('landscape', usesLandscapeMedia);
 
       if (spotlightBackground) {
         bg.style.backgroundImage = `linear-gradient(120deg, rgba(8, 14, 31, 0.7), rgba(10, 19, 39, 0.42)), url("${spotlightBackground}")`;
@@ -1469,7 +1527,9 @@
         mediaImage.removeAttribute('src');
         mediaWrap.style.display = 'none';
         spotlightSection.classList.remove('has-square-media');
+        spotlightSection.classList.remove('has-landscape-media');
         mediaWrap.classList.remove('square');
+        mediaWrap.classList.remove('landscape');
         spotlightSection.classList.add('no-media');
       }
       title.textContent = item.title || 'Spotlight';
@@ -2264,7 +2324,7 @@
           spotlightImage: '',
           spotlightMediaImage: '',
           spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'square',
+          spotlightMediaShape: 'poster',
           href: 'restraunts.html',
           isPlaceholder: true
         })),
@@ -2652,7 +2712,7 @@
           spotlightImage: '',
           spotlightMediaImage: '',
           spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'square',
+          spotlightMediaShape: 'poster',
           href: 'restraunts.html'
         }));
       }
@@ -2673,7 +2733,7 @@
           spotlightImage: '',
           spotlightMediaImage: '',
           spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'square',
+          spotlightMediaShape: 'poster',
           href: 'restraunts.html'
         }));
       }
@@ -2721,7 +2781,7 @@
           spotlightImage: coverImage || '',
           spotlightMediaImage: hasLogo ? logoImage : (coverImage || ''),
           spotlightMediaFit: hasLogo ? 'contain' : 'cover',
-          spotlightMediaShape: hasLogo ? 'square' : 'poster',
+          spotlightMediaShape: 'poster',
           href: r.id ? `restaurant.html?id=${encodeURIComponent(r.id)}` : 'restraunts.html'
         };
       });
@@ -2809,9 +2869,9 @@
           image: mainImage,
           backgroundImage: altBackground || mainImage,
           spotlightImage: altBackground || mainImage,
-          spotlightMediaImage: mainImage,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
+          spotlightMediaImage: altBackground || mainImage,
+          spotlightMediaFit: 'cover',
+          spotlightMediaShape: 'landscape',
           href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html'
         };
       });
