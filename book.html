@@ -1356,19 +1356,13 @@
         if (userIds.length && supabaseClient) {
           let users = [];
           const profileSelects = [
-            'user_id, id, username, display_name, full_name',
-            'user_id, username, display_name, full_name',
+            'user_id, id, username, full_name',
             'user_id, username, full_name',
-            'user_id, username, display_name',
             'user_id, username',
             'user_id, full_name',
-            'user_id, display_name',
-            'id, username, display_name, full_name',
             'id, username, full_name',
-            'id, username, display_name',
             'id, username',
-            'id, full_name',
-            'id, display_name'
+            'id, full_name'
           ];
           for (const cols of profileSelects) {
             const { data, error } = await supabaseClient
@@ -1397,7 +1391,7 @@
           const isAutoUsername = /^user-[a-f0-9]{6,}$/i.test(reviewUsernameRaw);
           const reviewUsername = isAutoUsername ? '' : reviewUsernameRaw;
           const username = String(user?.username || reviewUsername).trim();
-          const fallbackName = String(user?.display_name || user?.full_name || '').trim();
+          const fallbackName = String(user?.full_name || '').trim();
           const displayName = username ? `@${username}` : (fallbackName || 'User');
           const initialsBase = username || fallbackName || 'User';
           const initials = initialsBase.split(/\s+/).map(n => n[0]).slice(0, 2).join('').toUpperCase();

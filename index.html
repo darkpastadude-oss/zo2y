@@ -1601,10 +1601,10 @@
           try {
             const { data: profile } = await client
               .from('user_profiles')
-              .select('username, display_name, full_name')
+              .select('username, full_name')
               .eq('id', user.id)
               .single();
-            const raw = profile?.username || profile?.display_name || profile?.full_name || '';
+            const raw = profile?.username || profile?.full_name || '';
             const clean = String(raw || '').trim();
             if (clean) label = clean.startsWith('@') ? clean : `@${clean}`;
           } catch (_profileErr) {}

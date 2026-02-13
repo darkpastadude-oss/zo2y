@@ -746,10 +746,10 @@
         try {
           const { data } = await supabaseClient
             .from('user_profiles')
-            .select('username, display_name, full_name')
+            .select('username, full_name')
             .eq('id', user.id)
             .single();
-          const raw = data?.username || data?.display_name || data?.full_name || '';
+          const raw = data?.username || data?.full_name || '';
           const clean = String(raw || '').trim();
           return clean ? (clean.startsWith('@') ? clean : `@${clean}`) : 'Profile';
         } catch (_err) {
