@@ -943,9 +943,10 @@
       if (!window.supabase || !window.supabase.createClient) return null;
       homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
+          flowType: 'pkce',
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: false
+          detectSessionInUrl: true
         }
       });
       return homeSupabaseClient;
@@ -1469,6 +1470,25 @@
       hideRailMenuBackdrop();
     }
 
+    async function setupHomeAuthListener() {
+      const client = await ensureHomeSupabase();
+      if (!client) return;
+
+      client.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          homeCurrentUser = session.user;
+          await initAuthUi();
+        } else if (event === 'SIGNED_OUT') {
+          homeCurrentUser = null;
+          window.location.reload();
+        } else if (event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            homeCurrentUser = session.user;
+          }
+        }
+      });
+    }
+
     async function initAuthUi() {
       const client = await ensureHomeSupabase();
       if (!client) return;
@@ -1687,6 +1707,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      setupHomeAuthListener();
       initAuthUi();
       initUniversalHome();
       const closeListsBtn = document.getElementById('closeHomeListsBtn');
