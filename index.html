@@ -258,6 +258,24 @@
       background: #0c1a3b;
     }
 
+    .spotlight.has-square-media .spotlight-inner {
+      max-width: calc(100% - 270px);
+    }
+
+    .spotlight-media.square {
+      width: clamp(154px, 18vw, 208px);
+      aspect-ratio: 1/1;
+      border-radius: 16px;
+      padding: 10px;
+      background: rgba(7, 15, 34, 0.72);
+    }
+
+    .spotlight-media.square img {
+      border-radius: 10px;
+      object-fit: contain !important;
+      background: rgba(12, 26, 59, 0.9);
+    }
+
     .spotlight.no-media .spotlight-inner {
       max-width: 760px;
     }
@@ -867,6 +885,16 @@
         padding-right: 16px;
       }
 
+      .spotlight.has-square-media .spotlight-inner {
+        padding-right: 132px;
+      }
+
+      .spotlight-media.square {
+        width: 108px;
+        aspect-ratio: 1/1;
+        padding: 7px;
+      }
+
       .spotlight-title {
         font-size: clamp(24px, 8vw, 38px);
       }
@@ -1065,6 +1093,8 @@
     const RAWG_KEY = '83b2a55ac54c4c1db7099212e740f680';
     const GOOGLE_BOOKS_KEY = 'AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s';
     const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
+    const TMDB_SPOT_POSTER = 'https://image.tmdb.org/t/p/w780';
+    const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
     const FALLBACK_RESTAURANTS = [
       { id: 'fallback-r1', name: 'Top Rated Picks', category: 'Community', rating: '4.8' },
       { id: 'fallback-r2', name: 'Most Saved', category: 'Trending', rating: '4.7' },
@@ -1142,6 +1172,7 @@
       if (!raw) return '';
       if (/^https?:\/\//i.test(raw)) return toHttpsUrl(raw);
       const normalized = raw.replace(/^\/+/, '');
+      if (/^images\//i.test(normalized)) return toHttpsUrl(normalized);
       return toHttpsUrl(`images/${normalized}`);
     }
 
@@ -1324,19 +1355,32 @@
       if (!bg || !spotlightSection || !mediaWrap || !mediaImage || !title || !kicker || !summary || !reason || !trend || !openBtn) return;
 
       const meta = getHomeMediaMeta(item.mediaType);
-      const spotlightImage = String(item.spotlightImage || item.image || '').trim();
-      const spotlightFit = String(item.spotlightFit || '').trim() || 'cover';
-      if (spotlightImage) {
-        bg.style.backgroundImage = `linear-gradient(120deg, rgba(8, 14, 31, 0.7), rgba(10, 19, 39, 0.42)), url("${spotlightImage}")`;
-        mediaImage.src = spotlightImage;
-        mediaImage.style.objectFit = spotlightFit;
+      const spotlightBackground = String(item.spotlightImage || item.image || '').trim();
+      const spotlightMediaImage = String(item.spotlightMediaImage || item.image || item.spotlightImage || '').trim();
+      const spotlightMediaFit = String(item.spotlightMediaFit || '').trim() || 'contain';
+      const spotlightMediaShape = String(item.spotlightMediaShape || '').trim() || 'poster';
+      const usesSquareMedia = spotlightMediaShape === 'square';
+
+      spotlightSection.classList.toggle('has-square-media', usesSquareMedia);
+      mediaWrap.classList.toggle('square', usesSquareMedia);
+
+      if (spotlightBackground) {
+        bg.style.backgroundImage = `linear-gradient(120deg, rgba(8, 14, 31, 0.7), rgba(10, 19, 39, 0.42)), url("${spotlightBackground}")`;
+      } else {
+        bg.style.backgroundImage = 'linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%)';
+      }
+
+      if (spotlightMediaImage) {
+        mediaImage.src = spotlightMediaImage;
+        mediaImage.style.objectFit = spotlightMediaFit;
         mediaImage.style.display = 'block';
         mediaWrap.style.display = 'block';
         spotlightSection.classList.remove('no-media');
       } else {
-        bg.style.backgroundImage = `linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%)`;
         mediaImage.removeAttribute('src');
         mediaWrap.style.display = 'none';
+        spotlightSection.classList.remove('has-square-media');
+        mediaWrap.classList.remove('square');
         spotlightSection.classList.add('no-media');
       }
       title.textContent = item.title || 'Spotlight';
@@ -2192,13 +2236,15 @@
           subtitle: `${r.category} | ${r.rating}/5`,
           image: '',
           spotlightImage: '',
-          spotlightFit: 'cover',
+          spotlightMediaImage: '',
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'square',
           href: 'restraunts.html'
         }));
       }
       const { data, error } = await client
         .from('restraunts')
-        .select('id,name,image,category,rating,slug')
+        .select('id,name,image,category,rating,slug,logo_url')
         .order('rating', { ascending: false })
         .limit(10);
       if (error || !data || !data.length) {
@@ -2209,43 +2255,58 @@
           subtitle: `${r.category} | ${r.rating}/5`,
           image: '',
           spotlightImage: '',
-          spotlightFit: 'cover',
+          spotlightMediaImage: '',
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'square',
           href: 'restraunts.html'
         }));
       }
 
       const slugs = data.map((row) => String(row.slug || '').trim()).filter(Boolean);
-      const coverBySlug = {};
+      const galleryBySlug = {};
       if (slugs.length) {
         const { data: galleryRows } = await client
           .from('restaurant_gallery')
           .select('restaurant_slug, image_url, image_type')
-          .in('restaurant_slug', slugs)
-          .eq('image_type', 'cover');
+          .in('restaurant_slug', slugs);
         if (Array.isArray(galleryRows)) {
           galleryRows.forEach((row) => {
             const slug = String(row.restaurant_slug || '').trim();
             const url = String(row.image_url || '').trim();
+            const imageType = String(row.image_type || '').trim().toLowerCase();
             if (!slug || !url) return;
-            if (!coverBySlug[slug]) coverBySlug[slug] = toHttpsUrl(url);
+            if (!galleryBySlug[slug]) {
+              galleryBySlug[slug] = {
+                cover: '',
+                logo: ''
+              };
+            }
+            if (imageType === 'cover' && !galleryBySlug[slug].cover) {
+              galleryBySlug[slug].cover = toHttpsUrl(url);
+            } else if (imageType === 'logo' && !galleryBySlug[slug].logo) {
+              galleryBySlug[slug].logo = toHttpsUrl(url);
+            }
           });
         }
       }
 
-      return data.map(r => ({
-        mediaType: 'restaurant',
-        itemId: String(r.id || ''),
-        title: r.name || 'Restaurant',
-        subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
-        image: coverBySlug[r.slug] || resolveRestaurantImage(r.image),
-        spotlightImage: coverBySlug[r.slug] || resolveRestaurantImage(r.image),
-        spotlightFit: 'cover',
-        href: r.id ? `restaurant.html?id=${encodeURIComponent(r.id)}` : 'restraunts.html'
-      })).map((item) => ({
-        ...item,
-        image: item.image || '',
-        spotlightImage: item.spotlightImage || ''
-      }));
+      return data.map((r) => {
+        const coverImage = galleryBySlug[r.slug]?.cover || resolveRestaurantImage(r.image);
+        const logoImage = galleryBySlug[r.slug]?.logo || resolveRestaurantImage(r.logo_url);
+        const hasLogo = String(logoImage || '').trim().length > 0;
+        return {
+          mediaType: 'restaurant',
+          itemId: String(r.id || ''),
+          title: r.name || 'Restaurant',
+          subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
+          image: coverImage || '',
+          spotlightImage: coverImage || '',
+          spotlightMediaImage: hasLogo ? logoImage : (coverImage || ''),
+          spotlightMediaFit: hasLogo ? 'contain' : 'cover',
+          spotlightMediaShape: hasLogo ? 'square' : 'poster',
+          href: r.id ? `restaurant.html?id=${encodeURIComponent(r.id)}` : 'restraunts.html'
+        };
+      });
     }
 
     async function loadMovies() {
@@ -2257,13 +2318,15 @@
       const json = await res.json();
       const results = Array.isArray(json.results) ? shuffleArray(json.results).slice(0, 10) : [];
       return results.map(m => ({
-        spotlightImage: m.backdrop_path ? `${TMDB_POSTER}${m.backdrop_path}` : (m.poster_path ? `${TMDB_POSTER}${m.poster_path}` : ''),
-        spotlightFit: m.backdrop_path ? 'cover' : 'contain',
         mediaType: 'movie',
         itemId: String(m.id || ''),
         title: m.title || 'Movie',
         subtitle: m.release_date ? m.release_date.slice(0, 4) : 'Movie',
         image: m.poster_path ? `${TMDB_POSTER}${m.poster_path}` : '',
+        spotlightImage: m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : (m.poster_path ? `${TMDB_SPOT_POSTER}${m.poster_path}` : ''),
+        spotlightMediaImage: m.poster_path ? `${TMDB_SPOT_POSTER}${m.poster_path}` : (m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : ''),
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
         href: m.id ? `movie.html?id=${encodeURIComponent(m.id)}` : 'movies.html'
       }));
     }
@@ -2277,13 +2340,15 @@
       const json = await res.json();
       const results = Array.isArray(json.results) ? shuffleArray(json.results).slice(0, 10) : [];
       return results.map(t => ({
-        spotlightImage: t.backdrop_path ? `${TMDB_POSTER}${t.backdrop_path}` : (t.poster_path ? `${TMDB_POSTER}${t.poster_path}` : ''),
-        spotlightFit: t.backdrop_path ? 'cover' : 'contain',
         mediaType: 'tv',
         itemId: String(t.id || ''),
         title: t.name || 'TV Show',
         subtitle: t.first_air_date ? t.first_air_date.slice(0, 4) : 'TV Show',
         image: t.poster_path ? `${TMDB_POSTER}${t.poster_path}` : '',
+        spotlightImage: t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : (t.poster_path ? `${TMDB_SPOT_POSTER}${t.poster_path}` : ''),
+        spotlightMediaImage: t.poster_path ? `${TMDB_SPOT_POSTER}${t.poster_path}` : (t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : ''),
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
         href: t.id ? `tvshow.html?id=${encodeURIComponent(t.id)}` : 'tvshows.html'
       }));
     }
@@ -2316,7 +2381,9 @@
         extra: `${Array.isArray(g.genres) && g.genres.length ? g.genres.slice(0, 2).map(x => x?.name).filter(Boolean).join(' | ') : 'Video Game'}${g.rating ? ` | ${Number(g.rating).toFixed(1)}/5` : ''}`,
         image: g.background_image || '',
         spotlightImage: g.background_image || '',
-        spotlightFit: 'cover',
+        spotlightMediaImage: g.background_image || '',
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
         href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html'
       }));
     }
@@ -2335,13 +2402,15 @@
             if (!title) return null;
             const author = Array.isArray(info.authors) && info.authors.length ? info.authors[0] : 'Book';
             return {
-              spotlightImage: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
-              spotlightFit: 'contain',
               mediaType: 'book',
               itemId: String(item.id || ''),
               title,
               subtitle: author,
               image: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
+              spotlightImage: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
+              spotlightMediaImage: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
+              spotlightMediaFit: 'contain',
+              spotlightMediaShape: 'poster',
               href: item.id ? `book.html?id=${encodeURIComponent(item.id)}` : 'books.html'
             };
           }).filter(Boolean);
@@ -2356,7 +2425,9 @@
         subtitle: b.author,
         image: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
         spotlightImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
-        spotlightFit: 'contain',
+        spotlightMediaImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
         href: 'books.html'
       }));
     }
@@ -2406,7 +2477,9 @@
           extra: 'Try again in a moment.',
           image: '',
           spotlightImage: '',
-          spotlightFit: 'cover',
+          spotlightMediaImage: '',
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
           href: 'movies.html',
           discoveryScore: 0.5
         }];
