@@ -315,10 +315,11 @@ body{
     clearMessages();
     setGoogleLoading(true, 'Signing in...');
     try {
+      localStorage.setItem('postAuthRedirect', 'index.html');
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/auth-callback.html?next=index.html',
+          redirectTo: window.location.origin + '/auth-callback.html',
           queryParams: { access_type: 'offline', prompt: 'consent' }
         }
       });

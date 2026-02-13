@@ -62,7 +62,8 @@
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const statusText = document.getElementById('statusText');
       const errorText = document.getElementById('errorText');
-      const next = new URLSearchParams(window.location.search).get('next') || 'index.html';
+      const storedNext = localStorage.getItem('postAuthRedirect');
+      const next = new URLSearchParams(window.location.search).get('next') || storedNext || 'index.html';
 
       try {
         if (!window.supabase || !window.supabase.createClient) {
@@ -91,13 +92,26 @@
           if (error) throw error;
         } else {
           // Fallback for implicit hash flow
-          const { data } = await client.auth.getSession();
-          if (!data?.session) {
-            throw new Error('No OAuth code or session found');
+          const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : '';
+          const hashParams = new URLSearchParams(hash);
+          const accessToken = hashParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token');
+          if (accessToken && refreshToken) {
+            const { error } = await client.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken
+            });
+            if (error) throw error;
+          } else {
+            const { data } = await client.auth.getSession();
+            if (!data?.session) {
+              throw new Error('No OAuth code or session found');
+            }
           }
         }
 
         statusText.textContent = 'Success! Redirecting...';
+        localStorage.removeItem('postAuthRedirect');
         window.location.replace(next);
       } catch (err) {
         const msg = (err && err.message) ? err.message : 'Authentication failed';
