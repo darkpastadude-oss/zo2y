@@ -472,6 +472,150 @@
       font-weight: 600;
     }
 
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6, 12, 28, 0.72);
+      z-index: 240;
+      padding: 16px;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+      width: min(420px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .modal-list {
+      display: grid;
+      gap: 8px;
+      max-height: 260px;
+      overflow-y: auto;
+      padding: 6px 0;
+    }
+
+    .modal-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .modal-list-item.active {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.12);
+    }
+
+    .modal-list-actions {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .list-edit-btn {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .list-edit-btn:hover { color: var(--accent); }
+
+    .modal-input {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .modal-input input {
+      flex: 1;
+      height: 38px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      color: var(--white);
+      padding: 0 10px;
+    }
+
+    .icon-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .icon-option {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .icon-option.selected {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .chip {
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size: 12px;
+      display: inline-block;
+    }
+
     .card-hover-cue {
       position: absolute;
       right: 8px;
@@ -624,6 +768,34 @@
     </section>
   </main>
 
+  <div class="modal" id="homeListsModal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="homeListsTitle">Custom Lists</div>
+        <button class="modal-close" id="closeHomeListsBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-list" id="homeListsContainer"></div>
+      <div class="modal-input">
+        <input type="text" id="newHomeListName" placeholder="New list name..." maxlength="50">
+        <button class="btn" id="createHomeListBtn">Create</button>
+      </div>
+      <div class="icon-options" id="homeListIconOptions">
+        <button class="icon-option selected" data-icon="fas fa-list" aria-label="List"><i class="fas fa-list"></i></button>
+        <button class="icon-option" data-icon="fas fa-film" aria-label="Movie"><i class="fas fa-film"></i></button>
+        <button class="icon-option" data-icon="fas fa-tv" aria-label="TV"><i class="fas fa-tv"></i></button>
+        <button class="icon-option" data-icon="fas fa-gamepad" aria-label="Game"><i class="fas fa-gamepad"></i></button>
+        <button class="icon-option" data-icon="fas fa-book" aria-label="Book"><i class="fas fa-book"></i></button>
+        <button class="icon-option" data-icon="fas fa-heart" aria-label="Heart"><i class="fas fa-heart"></i></button>
+        <button class="icon-option" data-icon="fas fa-star" aria-label="Star"><i class="fas fa-star"></i></button>
+        <button class="icon-option" data-icon="fas fa-bookmark" aria-label="Bookmark"><i class="fas fa-bookmark"></i></button>
+        <button class="icon-option" data-icon="fas fa-utensils" aria-label="Restaurant"><i class="fas fa-utensils"></i></button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="saveHomeListsBtn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
@@ -654,6 +826,55 @@
     const statusEl = document.getElementById('loadStatus');
     let homeSupabaseClient = null;
     let homeCurrentUser = null;
+    const homeCustomListState = {
+      mediaType: null,
+      itemId: null,
+      title: '',
+      subtitle: '',
+      image: '',
+      customLists: [],
+      selectedIcon: 'fas fa-list',
+      selectedLists: new Set()
+    };
+
+    const HOME_LIST_CONFIG = {
+      movie: {
+        listTable: 'movie_lists',
+        itemsTable: 'movie_list_items',
+        itemIdField: 'movie_id',
+        usesUserId: true,
+        defaultIcon: 'fas fa-film'
+      },
+      tv: {
+        listTable: 'tv_lists',
+        itemsTable: 'tv_list_items',
+        itemIdField: 'tv_id',
+        usesUserId: true,
+        defaultIcon: 'fas fa-tv'
+      },
+      game: {
+        listTable: 'game_lists',
+        itemsTable: 'game_list_items',
+        itemIdField: 'game_id',
+        usesUserId: true,
+        defaultIcon: 'fas fa-gamepad'
+      },
+      book: {
+        listTable: 'book_lists',
+        itemsTable: 'book_list_items',
+        itemIdField: 'book_id',
+        usesUserId: true,
+        defaultIcon: 'fas fa-book'
+      },
+      restaurant: {
+        listTable: 'lists',
+        itemsTable: 'lists_restraunts',
+        itemIdField: 'restraunt_id',
+        usesUserId: false,
+        defaultIcon: 'fas fa-utensils',
+        filterTitles: ['Favorites', 'Visited', 'Want to Go']
+      }
+    };
 
     function escapeHtml(value) {
       return String(value || '')
@@ -921,6 +1142,289 @@
       }
     }
 
+    function getHomeListConfig(mediaType) {
+      return HOME_LIST_CONFIG[String(mediaType || '').toLowerCase()] || null;
+    }
+
+    function coerceHomeItemId(mediaType, itemId) {
+      const type = String(mediaType || '').toLowerCase();
+      if (type === 'movie' || type === 'tv' || type === 'game') {
+        const num = Number(itemId);
+        return Number.isFinite(num) ? num : itemId;
+      }
+      return String(itemId || '');
+    }
+
+    function renderHomeListIcon(icon, fallbackIcon) {
+      const raw = String(icon || '').trim();
+      const fallback = fallbackIcon || 'fas fa-list';
+      if (!raw) return `<i class="${fallback}"></i>`;
+      if (raw.includes('fa-')) return `<i class="${raw}"></i>`;
+      return raw;
+    }
+
+    async function ensureBookRecordFromHome() {
+      const client = await ensureHomeSupabase();
+      if (!client || !homeCustomListState.itemId) return;
+      await client.from('books').upsert({
+        id: String(homeCustomListState.itemId),
+        title: homeCustomListState.title || '',
+        authors: homeCustomListState.subtitle || '',
+        thumbnail: homeCustomListState.image || '',
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+    }
+
+    async function loadHomeCustomLists(mediaType) {
+      const cfg = getHomeListConfig(mediaType);
+      const client = await ensureHomeSupabase();
+      if (!cfg || !client || !homeCurrentUser?.id) return [];
+      const { data, error } = await client
+        .from(cfg.listTable)
+        .select('*')
+        .eq('user_id', homeCurrentUser.id)
+        .order('created_at', { ascending: false });
+      if (error) return [];
+      const lists = data || [];
+      if (cfg.filterTitles && cfg.filterTitles.length) {
+        return lists.filter(list => !cfg.filterTitles.includes(list.title));
+      }
+      return lists;
+    }
+
+    async function loadHomeListMembership(mediaType, itemId, listIds) {
+      const cfg = getHomeListConfig(mediaType);
+      const client = await ensureHomeSupabase();
+      if (!cfg || !client || !listIds.length) return new Set();
+      let query = client
+        .from(cfg.itemsTable)
+        .select('list_id')
+        .eq(cfg.itemIdField, itemId);
+      if (cfg.usesUserId && homeCurrentUser?.id) {
+        query = query.eq('user_id', homeCurrentUser.id);
+      }
+      query = query.in('list_id', listIds);
+      const { data } = await query;
+      const set = new Set();
+      (data || []).forEach(row => set.add(row.list_id));
+      return set;
+    }
+
+    function renderHomeListsModal() {
+      const container = document.getElementById('homeListsContainer');
+      if (!container) return;
+      container.innerHTML = '';
+      if (!homeCustomListState.customLists.length) {
+        container.innerHTML = '<div class="chip">No custom lists yet.</div>';
+        return;
+      }
+      homeCustomListState.customLists.forEach(list => {
+        const item = document.createElement('div');
+        const isActive = homeCustomListState.selectedLists.has(list.id);
+        item.className = `modal-list-item${isActive ? ' active' : ''}`;
+        item.innerHTML = `
+          <span>${renderHomeListIcon(list.icon, homeCustomListState.selectedIcon)} ${list.title}</span>
+          <span class="modal-list-actions">
+            <span>${isActive ? 'Saved' : 'Add'}</span>
+            <button class="list-edit-btn" aria-label="Rename list"><i class="fas fa-pen"></i></button>
+          </span>
+        `;
+        item.onclick = () => {
+          if (homeCustomListState.selectedLists.has(list.id)) {
+            homeCustomListState.selectedLists.delete(list.id);
+          } else {
+            homeCustomListState.selectedLists.add(list.id);
+          }
+          const active = homeCustomListState.selectedLists.has(list.id);
+          item.classList.toggle('active', active);
+          const label = item.querySelector('.modal-list-actions span');
+          if (label) label.textContent = active ? 'Saved' : 'Add';
+        };
+        const editBtn = item.querySelector('.list-edit-btn');
+        if (editBtn) {
+          editBtn.onclick = (e) => {
+            e.stopPropagation();
+            renameHomeList(list.id, list.title);
+          };
+        }
+        container.appendChild(item);
+      });
+    }
+
+    function setHomeModalTitle(mediaType) {
+      const title = document.getElementById('homeListsTitle');
+      if (!title) return;
+      const type = String(mediaType || '').toLowerCase();
+      const map = {
+        movie: 'Custom Movie Lists',
+        tv: 'Custom TV Lists',
+        game: 'Custom Game Lists',
+        book: 'Custom Book Lists',
+        restaurant: 'Custom Restaurant Lists'
+      };
+      title.textContent = map[type] || 'Custom Lists';
+    }
+
+    function syncHomeIconSelection(nextIcon) {
+      const options = document.querySelectorAll('#homeListIconOptions .icon-option');
+      let matched = false;
+      options.forEach(btn => {
+        const icon = btn.getAttribute('data-icon');
+        const selected = icon === nextIcon;
+        btn.classList.toggle('selected', selected);
+        if (selected) matched = true;
+      });
+      if (!matched && options[0]) {
+        options[0].classList.add('selected');
+        homeCustomListState.selectedIcon = options[0].getAttribute('data-icon') || 'fas fa-list';
+      }
+    }
+
+    async function openHomeListsModal(item) {
+      if (!homeCurrentUser?.id) {
+        window.location.href = 'login.html';
+        return;
+      }
+      const cfg = getHomeListConfig(item.mediaType);
+      if (!cfg) return;
+      homeCustomListState.mediaType = String(item.mediaType || '').toLowerCase();
+      homeCustomListState.itemId = coerceHomeItemId(homeCustomListState.mediaType, item.itemId);
+      homeCustomListState.title = item.title || '';
+      homeCustomListState.subtitle = item.subtitle || '';
+      homeCustomListState.image = item.image || '';
+      homeCustomListState.selectedIcon = cfg.defaultIcon || 'fas fa-list';
+      syncHomeIconSelection(homeCustomListState.selectedIcon);
+      setHomeModalTitle(homeCustomListState.mediaType);
+
+      const modal = document.getElementById('homeListsModal');
+      const container = document.getElementById('homeListsContainer');
+      if (!modal || !container) return;
+      container.innerHTML = '<div class="chip">Loading...</div>';
+      homeCustomListState.customLists = await loadHomeCustomLists(homeCustomListState.mediaType);
+      const listIds = homeCustomListState.customLists.map(l => l.id);
+      homeCustomListState.selectedLists = await loadHomeListMembership(
+        homeCustomListState.mediaType,
+        homeCustomListState.itemId,
+        listIds
+      );
+      renderHomeListsModal();
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeHomeListsModal() {
+      const modal = document.getElementById('homeListsModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      homeCustomListState.mediaType = null;
+      homeCustomListState.itemId = null;
+      homeCustomListState.customLists = [];
+      homeCustomListState.selectedLists = new Set();
+    }
+
+    async function saveHomeListChanges() {
+      const cfg = getHomeListConfig(homeCustomListState.mediaType);
+      const client = await ensureHomeSupabase();
+      if (!cfg || !client || !homeCurrentUser?.id || !homeCustomListState.itemId) return;
+
+      if (homeCustomListState.mediaType === 'book') {
+        await ensureBookRecordFromHome();
+      }
+
+      const listIds = homeCustomListState.customLists.map(l => l.id);
+      if (listIds.length) {
+        let deleteQuery = client
+          .from(cfg.itemsTable)
+          .delete()
+          .eq(cfg.itemIdField, homeCustomListState.itemId)
+          .in('list_id', listIds);
+        if (cfg.usesUserId) {
+          deleteQuery = deleteQuery.eq('user_id', homeCurrentUser.id);
+        }
+        await deleteQuery;
+      }
+
+      const inserts = [...homeCustomListState.selectedLists].map(listId => {
+        const row = { list_id: listId };
+        row[cfg.itemIdField] = homeCustomListState.itemId;
+        if (cfg.usesUserId) row.user_id = homeCurrentUser.id;
+        return row;
+      });
+      if (inserts.length) {
+        await client.from(cfg.itemsTable).insert(inserts);
+      }
+      showHomeToast('Lists updated');
+      closeHomeListsModal();
+    }
+
+    async function createHomeList() {
+      const input = document.getElementById('newHomeListName');
+      const cfg = getHomeListConfig(homeCustomListState.mediaType);
+      const client = await ensureHomeSupabase();
+      if (!input || !cfg || !client || !homeCurrentUser?.id) return;
+      const title = input.value.trim();
+      if (!title) return;
+      const exists = homeCustomListState.customLists.some(
+        list => String(list.title || '').trim().toLowerCase() === title.toLowerCase()
+      );
+      if (exists) {
+        showHomeToast('List already exists', true);
+        return;
+      }
+      let payload = {
+        user_id: homeCurrentUser.id,
+        title,
+        icon: homeCustomListState.selectedIcon || cfg.defaultIcon || 'fas fa-list',
+        created_at: new Date().toISOString()
+      };
+      if (cfg.listTable === 'lists') {
+        payload = {
+          ...payload,
+          description: `My ${title} list`,
+          is_default: false
+        };
+      }
+      const { data, error } = await client
+        .from(cfg.listTable)
+        .insert(payload)
+        .select('*')
+        .single();
+      if (error) {
+        showHomeToast('Could not create list', true);
+        return;
+      }
+      input.value = '';
+      homeCustomListState.customLists.unshift(data);
+      renderHomeListsModal();
+    }
+
+    async function renameHomeList(listId, currentTitle) {
+      const nextTitle = prompt('Rename list', currentTitle || '');
+      if (!nextTitle || !nextTitle.trim()) return;
+      const cfg = getHomeListConfig(homeCustomListState.mediaType);
+      const client = await ensureHomeSupabase();
+      if (!cfg || !client || !homeCurrentUser?.id) return;
+      const payload = { title: nextTitle.trim() };
+      if (cfg.listTable === 'lists') {
+        payload.updated_at = new Date().toISOString();
+      }
+      const { error } = await client
+        .from(cfg.listTable)
+        .update(payload)
+        .eq('id', listId)
+        .eq('user_id', homeCurrentUser.id);
+      if (error) {
+        showHomeToast('Could not rename list', true);
+        return;
+      }
+      homeCustomListState.customLists = homeCustomListState.customLists.map(list =>
+        list.id === listId ? { ...list, title: nextTitle.trim() } : list
+      );
+      renderHomeListsModal();
+    }
+
     function setStatus(text, isError) {
       statusEl.textContent = text;
       statusEl.style.color = isError ? '#fca5a5' : 'var(--ok)';
@@ -1028,6 +1532,17 @@
             return;
           }
           if (action === 'custom') {
+            const card = item.closest('.card');
+            if (card) {
+              openHomeListsModal({
+                mediaType: card.getAttribute('data-media-type'),
+                itemId: card.getAttribute('data-item-id'),
+                title: card.getAttribute('data-title'),
+                subtitle: card.getAttribute('data-subtitle'),
+                image: card.getAttribute('data-image')
+              });
+              return;
+            }
             const href = item.getAttribute('data-href');
             if (href) window.location.href = href;
           }
@@ -1283,6 +1798,26 @@
     document.addEventListener('DOMContentLoaded', () => {
       initAuthUi();
       initUniversalHome();
+      const closeListsBtn = document.getElementById('closeHomeListsBtn');
+      const saveListsBtn = document.getElementById('saveHomeListsBtn');
+      const createListBtn = document.getElementById('createHomeListBtn');
+      const iconOptions = document.querySelectorAll('#homeListIconOptions .icon-option');
+      const modal = document.getElementById('homeListsModal');
+      if (closeListsBtn) closeListsBtn.addEventListener('click', closeHomeListsModal);
+      if (saveListsBtn) saveListsBtn.addEventListener('click', saveHomeListChanges);
+      if (createListBtn) createListBtn.addEventListener('click', createHomeList);
+      iconOptions.forEach(btn => {
+        btn.addEventListener('click', () => {
+          iconOptions.forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          homeCustomListState.selectedIcon = btn.getAttribute('data-icon') || 'fas fa-list';
+        });
+      });
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) closeHomeListsModal();
+        });
+      }
       if (window.initUniversalSearch) {
         window.initUniversalSearch({
           input: '#globalSearch',
@@ -1290,7 +1825,10 @@
         });
       }
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeAllRailMenus();
+        if (e.key === 'Escape') {
+          closeAllRailMenus();
+          closeHomeListsModal();
+        }
       });
     });
   </script>
