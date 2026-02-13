@@ -1265,6 +1265,8 @@
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
     const HOME_CHANNEL_TIMEOUT_MS = 3200;
     const SPOTLIGHT_ROTATE_MS = 5000;
+    const HOME_CHANNEL_TARGET_ITEMS = 24;
+    const HOME_SPOTLIGHT_POOL_SIZE = 24;
 
     const statusEl = document.getElementById('loadStatus');
     let homeSupabaseClient = null;
@@ -1622,7 +1624,7 @@
         resetSpotlightTimer(false);
         return;
       }
-      const shortlist = pool.slice(0, 10);
+      const shortlist = pool.slice(0, HOME_SPOTLIGHT_POOL_SIZE);
       const seed = getSpotlightSeedOffset();
       const offset = seed % shortlist.length;
       homeSpotlightItems = [...shortlist.slice(offset), ...shortlist.slice(0, offset)];
@@ -2278,7 +2280,7 @@
       const groups = Object.values(feedMap || {});
       groups.forEach((items) => {
         if (!Array.isArray(items)) return;
-        items.slice(0, 10).forEach((item) => {
+        items.slice(0, HOME_CHANNEL_TARGET_ITEMS).forEach((item) => {
           preloadImage(item.image);
           preloadImage(item.logo);
           preloadImage(item.backgroundImage);
@@ -2290,7 +2292,7 @@
 
     function warmSpotlightImages(items) {
       if (!Array.isArray(items)) return;
-      items.slice(0, 10).forEach((item) => {
+      items.slice(0, HOME_SPOTLIGHT_POOL_SIZE).forEach((item) => {
         preloadImage(item.spotlightImage || item.backgroundImage || item.image);
         preloadImage(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage);
       });
@@ -2720,7 +2722,7 @@
         .from('restraunts')
         .select('id,name,image,category,rating,slug,logo_url')
         .order('rating', { ascending: false })
-        .limit(10);
+        .limit(HOME_CHANNEL_TARGET_ITEMS);
       if (error || !data || !data.length) {
         return FALLBACK_RESTAURANTS.map((r) => ({
           mediaType: 'restaurant',
@@ -2788,13 +2790,25 @@
     }
 
     async function loadMovies() {
-      const page = 1;
-      const res = await fetch(`https://api.themoviedb.org/3/movie/popular?language=en-US&page=${page}`, {
-        headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
-      });
-      if (!res.ok) return [];
-      const json = await res.json();
-      const results = Array.isArray(json.results) ? json.results.slice(0, 10) : [];
+      const pages = [1, 2, 3];
+      const collected = [];
+      for (const page of pages) {
+        const res = await fetch(`https://api.themoviedb.org/3/movie/popular?language=en-US&page=${page}`, {
+          headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
+        });
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (Array.isArray(json.results)) collected.push(...json.results);
+      }
+      const seen = new Set();
+      const results = [];
+      for (const item of collected) {
+        const key = String(item?.id || '').trim();
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        results.push(item);
+        if (results.length >= HOME_CHANNEL_TARGET_ITEMS) break;
+      }
       return results.map(m => ({
         mediaType: 'movie',
         itemId: String(m.id || ''),
@@ -2811,13 +2825,25 @@
     }
 
     async function loadTv() {
-      const page = 1;
-      const res = await fetch(`https://api.themoviedb.org/3/tv/popular?language=en-US&page=${page}`, {
-        headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
-      });
-      if (!res.ok) return [];
-      const json = await res.json();
-      const results = Array.isArray(json.results) ? json.results.slice(0, 10) : [];
+      const pages = [1, 2, 3];
+      const collected = [];
+      for (const page of pages) {
+        const res = await fetch(`https://api.themoviedb.org/3/tv/popular?language=en-US&page=${page}`, {
+          headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
+        });
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (Array.isArray(json.results)) collected.push(...json.results);
+      }
+      const seen = new Set();
+      const results = [];
+      for (const item of collected) {
+        const key = String(item?.id || '').trim();
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        results.push(item);
+        if (results.length >= HOME_CHANNEL_TARGET_ITEMS) break;
+      }
       return results.map(t => ({
         mediaType: 'tv',
         itemId: String(t.id || ''),
@@ -2835,7 +2861,7 @@
 
     async function loadGames() {
       // Prefer broadly popular, mainstream releases over niche high-rating titles.
-      const res = await fetch(`https://api.rawg.io/api/games?page_size=24&ordering=-added&dates=2015-01-01,2026-12-31&metacritic=70,100&key=${RAWG_KEY}`);
+      const res = await fetch(`https://api.rawg.io/api/games?page_size=60&ordering=-added&dates=2015-01-01,2026-12-31&metacritic=70,100&key=${RAWG_KEY}`);
       if (!res.ok) return [];
       const json = await res.json();
       const results = Array.isArray(json.results) ? json.results : [];
@@ -2846,12 +2872,12 @@
         const nameKey = String(g.name || '').trim().toLowerCase();
         if (!nameKey || seen.has(nameKey)) continue;
         if (!g.background_image) continue;
-        if ((g.ratings_count || 0) < 200) continue;
+        if ((g.ratings_count || 0) < 250) continue;
         seen.add(nameKey);
         candidates.push(g);
       }
 
-      const filtered = shuffleArray(candidates).slice(0, 10);
+      const filtered = candidates.slice(0, HOME_CHANNEL_TARGET_ITEMS);
 
       return filtered.map((g) => {
         const altBackground = Array.isArray(g.short_screenshots)
@@ -2880,7 +2906,7 @@
     async function loadBooks() {
       // Keep to one request to avoid hitting Google Books 429 rate limits.
       try {
-        const url = `https://www.googleapis.com/books/v1/volumes?q=subject:fiction&orderBy=relevance&maxResults=24&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`;
+        const url = `https://www.googleapis.com/books/v1/volumes?q=subject:fiction&orderBy=relevance&maxResults=40&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`;
         const res = await fetch(url);
         if (res.ok) {
           const json = await res.json();
@@ -2904,11 +2930,11 @@
               href: item.id ? `book.html?id=${encodeURIComponent(item.id)}` : 'books.html'
             };
           }).filter(Boolean);
-          if (mapped.length) return mapped.slice(0, 10);
+          if (mapped.length) return mapped.slice(0, HOME_CHANNEL_TARGET_ITEMS);
         }
       } catch (_e) {}
 
-      return shuffleArray(FALLBACK_BOOKS).slice(0, 10).map((b, idx) => ({
+      return shuffleArray(FALLBACK_BOOKS).slice(0, HOME_CHANNEL_TARGET_ITEMS).map((b, idx) => ({
         mediaType: 'book',
         itemId: `fallback-book-${idx}`,
         title: b.title,

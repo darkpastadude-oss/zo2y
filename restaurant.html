@@ -2674,16 +2674,16 @@ async function initializeRestaurantPage() {
         }
         
         // Get restaurant slug from URL
-        const restaurantSlug = getRestaurantSlug();
+        const restaurantRoute = getRestaurantRouteParams();
         
-        if (!restaurantSlug) {
+        if (!restaurantRoute.id && !restaurantRoute.slug) {
             console.error('❌ No restaurant slug in URL');
             showNotFoundMessage();
             return;
         }
         
         // Load restaurant data
-        await loadAndRenderRestaurantData(restaurantSlug);
+        await loadAndRenderRestaurantData(restaurantRoute);
         
         // Initialize list manager
         initializeListManager();
@@ -2729,17 +2729,25 @@ async function initSupabase() {
 // ============================================
 // UTILITY FUNCTIONS
 // ============================================
+function getRestaurantIdParam() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const rawId = urlParams.get('id');
+    if (!rawId) return null;
+    const decoded = decodeURIComponent(rawId).trim();
+    return decoded || null;
+}
+
 function getRestaurantSlug() {
     const urlParams = new URLSearchParams(window.location.search);
-    let slug = urlParams.get('slug');
-    
-    if (!slug) {
-        const path = window.location.pathname;
-        const filename = path.split('/').pop();
-        slug = filename.replace('.html', '').toLowerCase();
-    }
-    
+    const slug = urlParams.get('slug');
     return slug ? decodeURIComponent(slug).toLowerCase().trim() : null;
+}
+
+function getRestaurantRouteParams() {
+    return {
+        id: getRestaurantIdParam(),
+        slug: getRestaurantSlug()
+    };
 }
 
 function showNotification(message, type = 'info', duration = 4000) {
@@ -2790,25 +2798,46 @@ function showErrorMessage(message) {
 // ============================================
 // RESTAURANT DATA LOADING
 // ============================================
-async function loadAndRenderRestaurantData(slug) {
+async function loadAndRenderRestaurantData(routeOrSlug) {
     try {
-        console.log('Loading data for slug:', slug);
-        
-        // Load everything in parallel
-        const [restaurantData, menuData, branchesData, imagesData] = await Promise.all([
-            supabaseClient.from('restraunts').select('*').eq('slug', slug).single(),
-            supabaseClient.from('menu_items').select('*').eq('restaurant_slug', slug).order('category'),
-            supabaseClient.from('branches').select('*').eq('restaurant_slug', slug).order('branch_name'),
-            loadRestaurantImages(slug)
-        ]);
-        
-        if (restaurantData.error || !restaurantData.data) {
+        const route = typeof routeOrSlug === 'string'
+            ? { slug: routeOrSlug, id: null }
+            : (routeOrSlug || {});
+        const routeId = route.id ? String(route.id).trim() : '';
+        const routeSlug = route.slug ? String(route.slug).trim().toLowerCase() : '';
+
+        console.log('Loading data for route:', route);
+
+        let restaurantQuery = supabaseClient.from('restraunts').select('*');
+        if (routeId) {
+            const routeIdValue = Number.isFinite(Number(routeId)) ? Number(routeId) : routeId;
+            restaurantQuery = restaurantQuery.eq('id', routeIdValue);
+        } else if (routeSlug) {
+            restaurantQuery = restaurantQuery.eq('slug', routeSlug);
+        } else {
+            throw new Error('Restaurant route missing id/slug');
+        }
+
+        const { data: restaurant, error: restaurantError } = await restaurantQuery.maybeSingle();
+        if (restaurantError || !restaurant) {
             throw new Error('Restaurant not found');
         }
 
+        const restaurantSlug = String(restaurant.slug || routeSlug || '').trim().toLowerCase();
+        if (!restaurantSlug) {
+            throw new Error('Restaurant slug missing');
+        }
+
+        // Load everything in parallel after resolving the canonical slug
+        const [menuData, branchesData, imagesData] = await Promise.all([
+            supabaseClient.from('menu_items').select('*').eq('restaurant_slug', restaurantSlug).order('category'),
+            supabaseClient.from('branches').select('*').eq('restaurant_slug', restaurantSlug).order('branch_name'),
+            loadRestaurantImages(restaurantSlug)
+        ]);
+
         // Render the data
         renderRestaurantData({
-            restaurant: restaurantData.data, 
+            restaurant,
             menuItems: menuData.data || [], 
             branches: branchesData.data || [],
             images: imagesData
@@ -3218,13 +3247,18 @@ function createSectionNavigation() {
 async function updateTalabatDisplay(slug) {
     const statusElement = document.getElementById('talabat-status');
     const warningElement = document.getElementById('availability-warning');
+    const normalizedSlug = String(slug || '').trim().toLowerCase();
     
     try {
+        if (!normalizedSlug) {
+            statusElement.innerHTML = '<span class="status-loading">Availability unknown</span>';
+            return;
+        }
         const { data: restaurant, error } = await supabaseClient
             .from('restraunts')
             .select('talabat')
-            .eq('slug', slug)
-            .single();
+            .eq('slug', normalizedSlug)
+            .maybeSingle();
 
         if (error || !restaurant) {
             statusElement.innerHTML = '<span class="status-loading">Availability unknown</span>';
@@ -3283,10 +3317,16 @@ async function initReviewSystem() {
 }
 
 async function getRestaurantIdFromSlug() {
+    const idParam = getRestaurantIdParam();
+    if (idParam) {
+        const numericId = Number(idParam);
+        return Number.isFinite(numericId) && numericId > 0 ? numericId : idParam;
+    }
+
     const slug = getRestaurantSlug();
     
     if (!slug) {
-        console.error('No slug found in URL');
+        console.error('No restaurant id/slug found in URL');
         return null;
     }
     
@@ -3295,10 +3335,15 @@ async function getRestaurantIdFromSlug() {
             .from('restraunts')
             .select('id')
             .eq('slug', slug)
-            .single();
+            .maybeSingle();
         
         if (error) {
             console.error('Error fetching restaurant ID:', error);
+            return null;
+        }
+
+        if (!data?.id) {
+            console.error('No restaurant row found for slug:', slug);
             return null;
         }
         

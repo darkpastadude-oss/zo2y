@@ -733,6 +733,8 @@
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const OPEN_LIBRARY_BASE = 'https://openlibrary.org';
       const OPEN_LIBRARY_COVERS = 'https://covers.openlibrary.org/b';
+      const GOOGLE_BOOKS_BASE = 'https://www.googleapis.com/books/v1';
+      const GOOGLE_BOOKS_KEY = 'AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s';
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
       const bookId = id || null;
@@ -750,6 +752,17 @@
       let modalSelectedLists = new Set();
       let selectedIcon = 'fas fa-book';
 
+      function toHttpsUrl(value) {
+        return String(value || '').replace(/^http:\/\//i, 'https://');
+      }
+
+      function isOpenLibraryWorkId(value) {
+        const raw = String(value || '').trim();
+        if (!raw) return false;
+        if (raw.startsWith('/works/')) return true;
+        return /^OL\d+W$/i.test(raw);
+      }
+
       async function booksFetch(path, paramsObj = {}) {
         // Use Open Library endpoints. `path` should be like `/works/{id}.json` or similar.
         const url = new URL(path, OPEN_LIBRARY_BASE);
@@ -759,6 +772,40 @@
         const res = await fetch(url.toString());
         if (!res.ok) throw new Error(`Books API error ${res.status}`);
         return res.json();
+      }
+
+      async function fetchGoogleBookVolume(volumeId) {
+        const normalizedId = String(volumeId || '').trim();
+        if (!normalizedId) throw new Error('Missing Google volume ID');
+        const url = new URL(`${GOOGLE_BOOKS_BASE}/volumes/${encodeURIComponent(normalizedId)}`);
+        if (GOOGLE_BOOKS_KEY) url.searchParams.set('key', GOOGLE_BOOKS_KEY);
+        const res = await fetch(url.toString());
+        if (!res.ok) throw new Error(`Google Books API error ${res.status}`);
+        const volume = await res.json();
+        const info = volume?.volumeInfo || {};
+        const imageLinks = info.imageLinks || {};
+        const coverImage = toHttpsUrl(imageLinks.thumbnail || imageLinks.smallThumbnail || '');
+        return {
+          id: String(volume?.id || normalizedId),
+          title: info.title || 'Untitled',
+          description: info.description || '',
+          authors: Array.isArray(info.authors) ? info.authors : [],
+          subjects: Array.isArray(info.categories) ? info.categories : [],
+          categories: Array.isArray(info.categories) ? info.categories : [],
+          subtitle: info.subtitle || '',
+          industryIdentifiers: Array.isArray(info.industryIdentifiers) ? info.industryIdentifiers : [],
+          printType: info.printType || '',
+          infoLink: info.infoLink || '',
+          publisher: info.publisher || '',
+          publishedDate: info.publishedDate || '',
+          first_publish_date: info.publishedDate || '',
+          pageCount: Number(info.pageCount || 0) || null,
+          language: info.language || '',
+          maturityRating: info.maturityRating || '',
+          averageRating: info.averageRating ?? null,
+          ratingsCount: Number(info.ratingsCount || 0) || 0,
+          coverImage
+        };
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -792,7 +839,12 @@
         const payload = {
           id: normalizedBookId,
           title: (bookInfo && bookInfo.title) ? bookInfo.title : (document.getElementById('title')?.textContent || 'Untitled'),
-          authors: Array.isArray(bookInfo?.authors) ? bookInfo.authors.map(a => (a.name || a.author?.key || '')).join(', ') : null,
+          authors: Array.isArray(bookInfo?.authors)
+            ? bookInfo.authors
+              .map(a => (typeof a === 'string' ? a : (a?.name || a?.author?.key || '')))
+              .filter(Boolean)
+              .join(', ')
+            : null,
           thumbnail: bookCoverUrl || (document.getElementById('poster')?.src || null),
           published_date: bookInfo?.first_publish_date || null,
           updated_at: new Date().toISOString()
@@ -857,18 +909,27 @@
         }
 
         try {
-          // OpenLibrary work endpoint: /works/{id}.json (id may already be like OL123W or /works/OL123W)
+          // Prefer OpenLibrary work IDs, fallback to Google Books for non-OL IDs (e.g. lyWOEQAAQBAJ).
           const normalizedId = id.startsWith('/works/') ? id.replace('/works/', '') : id;
-          const work = await booksFetch(`/works/${encodeURIComponent(normalizedId)}.json`);
+          let loadedInfo = null;
+          if (isOpenLibraryWorkId(normalizedId)) {
+            try {
+              loadedInfo = await booksFetch(`/works/${encodeURIComponent(normalizedId)}.json`);
+            } catch (openLibraryErr) {
+              loadedInfo = await fetchGoogleBookVolume(normalizedId);
+            }
+          } else {
+            loadedInfo = await fetchGoogleBookVolume(normalizedId);
+          }
 
-          bookInfo = work || {};
+          bookInfo = loadedInfo || {};
           // Cache successful fetch
           localStorage.setItem(cacheKey, JSON.stringify(bookInfo));
           displayBookInfo(bookInfo);
         } catch (err) {
-          console.error('OpenLibrary fetch error', err);
+          console.error('Book fetch error', err);
           if (!cached) {
-            showNotification('Could not load book details from Open Library', 'error', 4000);
+            showNotification('Could not load book details', 'error', 4000);
             document.getElementById('poster').src = 'images/logo.png';
             document.getElementById('title').textContent = 'Untitled';
             document.getElementById('overview').textContent = 'No description available.';
@@ -883,13 +944,17 @@
         // description can be a string or object
         let description = '';
         if (info.description) description = typeof info.description === 'string' ? info.description : info.description.value || '';
-        const publishedYear = (info.first_publish_date || info.created?.value || '') ? String((info.first_publish_date || info.created?.value || '')).slice(0,4) : '';
+        const publishedBase = info.first_publish_date || info.publishedDate || info.created?.value || '';
+        const publishedYear = publishedBase ? String(publishedBase).slice(0, 4) : '';
 
         // pick a cover id (work.covers is array of numeric ids)
         bookCoverUrl = '';
         if (Array.isArray(info.covers) && info.covers.length) {
           // Medium cover is noticeably faster than large on mobile while still clear.
           bookCoverUrl = `${OPEN_LIBRARY_COVERS}/id/${info.covers[0]}-M.jpg`;
+        }
+        if (!bookCoverUrl && info.coverImage) {
+          bookCoverUrl = toHttpsUrl(info.coverImage);
         }
 
         document.getElementById('title').textContent = info.title || 'Untitled';
@@ -909,7 +974,7 @@
           const items = [];
           if (Array.isArray(info.authors) && info.authors.length) {
             // authors array contains objects with author key, need to fetch or show placeholder
-            items.push(`Author: ${info.authors.map(a => (a.name || a.author?.key || 'Author')).join(', ')}`);
+            items.push(`Author: ${info.authors.map(a => (typeof a === 'string' ? a : (a?.name || a?.author?.key || 'Author'))).join(', ')}`);
           }
           metaGrid.innerHTML = items.map(i => `<div class="meta-item">${i}</div>`).join('');
         }
@@ -951,7 +1016,10 @@
         if (trailerEl) {
           trailerEl.innerHTML = '<div class="meta-item">No trailer available for books.</div>';
         }
-        const authors = (info.authors || []).slice(0, 12);
+        const authors = (Array.isArray(info.authors) ? info.authors : [])
+          .map((a) => (typeof a === 'string' ? a : (a?.name || a?.author?.key || '')))
+          .filter(Boolean)
+          .slice(0, 12);
         const authorsEl = document.getElementById('directors');
         const contributorsEl = document.getElementById('writers');
         const subjectsEl = document.getElementById('cast');
@@ -1113,7 +1181,12 @@
           const payload = {
             id: normalizedBookId,
             title: (bookInfo && bookInfo.title) ? bookInfo.title : (document.getElementById('title')?.textContent || 'Untitled'),
-            authors: Array.isArray(bookInfo?.authors) ? bookInfo.authors.map(a => (a.name || a.author?.key || '')).join(', ') : null,
+            authors: Array.isArray(bookInfo?.authors)
+              ? bookInfo.authors
+                .map(a => (typeof a === 'string' ? a : (a?.name || a?.author?.key || '')))
+                .filter(Boolean)
+                .join(', ')
+              : null,
             thumbnail: bookCoverUrl || (document.getElementById('poster')?.src || null)
           };
           await ListUtils.saveCustomListChanges(
