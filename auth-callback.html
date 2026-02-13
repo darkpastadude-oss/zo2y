@@ -79,11 +79,9 @@
       const statusText = document.getElementById('statusText');
       const errorText = document.getElementById('errorText');
       const debugConsole = document.getElementById('debugConsole');
-      
-      const storedNext = localStorage.getItem('postAuthRedirect');
-      const oauthFlow = localStorage.getItem('oauthFlow');
-      const next = new URLSearchParams(window.location.search).get('next') || storedNext || 'index.html';
 
+      const storedNext = localStorage.getItem('postAuthRedirect');
+      const next = sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || storedNext || 'index.html');
       const debugEnabled = window.location.search.includes('debug=true');
       if (debugEnabled) debugConsole.classList.add('show');
 
@@ -98,9 +96,150 @@
         }
       }
 
+      function sanitizeNextPath(raw) {
+        const value = String(raw || '').trim();
+        if (!value) return 'index.html';
+        if (/^https?:\/\//i.test(value) || value.startsWith('//')) return 'index.html';
+        if (value.startsWith('/')) return value.slice(1) || 'index.html';
+        return value;
+      }
+
+      function getHashParams() {
+        const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : '';
+        return new URLSearchParams(hash);
+      }
+
+      function cleanUsername(value) {
+        const base = String(value || '')
+          .toLowerCase()
+          .replace(/\s+/g, '_')
+          .replace(/[^a-z0-9_]/g, '')
+          .replace(/_+/g, '_')
+          .replace(/^_+|_+$/g, '');
+        return (base || 'user').slice(0, 30);
+      }
+
+      function usernameWithSuffix(base, suffix) {
+        const normalizedSuffix = cleanUsername(suffix).slice(0, 8) || 'user';
+        const limit = Math.max(3, 30 - normalizedSuffix.length - 1);
+        return `${base.slice(0, limit)}_${normalizedSuffix}`;
+      }
+
+      async function waitForVerifiedUser(client) {
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+          const { data: sessionData } = await client.auth.getSession();
+          const session = sessionData?.session || null;
+          if (!session) {
+            if (attempt < 3) {
+              await new Promise((resolve) => setTimeout(resolve, 300));
+              continue;
+            }
+            return null;
+          }
+
+          const { data: userData, error: userError } = await client.auth.getUser();
+          if (!userError && userData?.user) return userData.user;
+
+          const errorMessage = String(userError?.message || '').toLowerCase();
+          const invalidSession =
+            userError?.status === 401 ||
+            errorMessage.includes('jwt') ||
+            errorMessage.includes('token') ||
+            errorMessage.includes('session') ||
+            errorMessage.includes('unauthorized');
+
+          if (invalidSession) {
+            await client.auth.signOut({ scope: 'local' });
+            return null;
+          }
+
+          if (attempt < 3) {
+            await new Promise((resolve) => setTimeout(resolve, 300));
+          }
+        }
+        return null;
+      }
+
+      async function ensureUserProfile(client, user) {
+        try {
+          log('Checking if profile exists...');
+          const { data: existingProfile, error: checkError } = await client
+            .from('user_profiles')
+            .select('id, username, full_name')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (existingProfile) {
+            log(`Profile found: ${existingProfile.username || '(no username)'}`);
+            return true;
+          }
+
+          if (checkError) {
+            log(`Profile lookup warning: ${checkError.message}`, true);
+          }
+
+          const userData = user.user_metadata || {};
+          const emailPrefix = String(user.email || '').split('@')[0] || 'user';
+          const baseUsername = cleanUsername(
+            userData.preferred_username ||
+            userData.user_name ||
+            userData.full_name ||
+            userData.name ||
+            emailPrefix
+          );
+          const displayName = String(userData.full_name || userData.name || emailPrefix || baseUsername).slice(0, 80);
+          const idSuffix = String(user.id || '').replace(/-/g, '').slice(0, 6) || 'user';
+          const usernameCandidates = [
+            baseUsername,
+            usernameWithSuffix(baseUsername, idSuffix),
+            usernameWithSuffix(baseUsername, `${idSuffix}${Date.now().toString().slice(-2)}`)
+          ];
+
+          for (const username of usernameCandidates) {
+            const profileData = {
+              id: user.id,
+              username,
+              full_name: displayName || username
+            };
+
+            const { error: createError } = await client
+              .from('user_profiles')
+              .insert([profileData]);
+
+            if (!createError) {
+              log(`Profile created with username: ${username}`);
+              return true;
+            }
+
+            const createMessage = String(createError.message || '').toLowerCase();
+            const maybeDuplicate = createMessage.includes('duplicate') || createMessage.includes('unique');
+            if (!maybeDuplicate) {
+              log(`Profile creation error: ${createError.message}`, true);
+              return false;
+            }
+
+            const { data: raceProfile } = await client
+              .from('user_profiles')
+              .select('id')
+              .eq('id', user.id)
+              .maybeSingle();
+
+            if (raceProfile?.id) {
+              log('Profile already created by another request.');
+              return true;
+            }
+          }
+
+          log('Could not create a unique username for profile.', true);
+          return false;
+        } catch (error) {
+          log(`Profile setup error: ${error.message}`, true);
+          return false;
+        }
+      }
+
       try {
         log('Initializing auth callback...');
-        
         if (!window.supabase || !window.supabase.createClient) {
           throw new Error('Auth library unavailable');
         }
@@ -110,83 +249,54 @@
             flowType: 'pkce',
             persistSession: true,
             autoRefreshToken: true,
-            detectSessionInUrl: true
+            detectSessionInUrl: false
           }
         });
 
-        log('Checking for OAuth errors...');
         const params = new URLSearchParams(window.location.search);
         const oauthError = params.get('error_description') || params.get('error');
         if (oauthError) {
-          log(`OAuth error: ${oauthError}`, true);
           throw new Error(oauthError);
         }
 
-        log('Looking for auth code...');
         const code = params.get('code');
+        const hashParams = getHashParams();
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+
         if (code) {
-          log('Auth code found, exchanging for session...');
           statusText.textContent = 'Finalizing secure sign-in...';
-          const { data, error } = await client.auth.exchangeCodeForSession(code);
-          
-          if (error) {
-            log(`Exchange error: ${error.message}`, true);
-            throw error;
-          }
-          
-          if (data?.session?.user) {
-            log(`Session created for user: ${data.session.user.id}`);
-            log(`User email: ${data.session.user.email}`);
-            
-            // Create or verify profile
-            statusText.textContent = 'Setting up your profile...';
-            await ensureUserProfile(client, data.session.user);
-            
-            log('Profile ready, redirecting...');
-          }
+          log('Auth code found, exchanging for session...');
+          const { error } = await client.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+        } else if (accessToken && refreshToken) {
+          statusText.textContent = 'Finalizing secure sign-in...';
+          log('Token hash found, setting session...');
+          const { error } = await client.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+          if (error) throw error;
         } else {
-          log('No code found, checking for existing session...');
-          // Fallback for implicit hash flow
-          const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : '';
-          const hashParams = new URLSearchParams(hash);
-          const accessToken = hashParams.get('access_token');
-          const refreshToken = hashParams.get('refresh_token');
-          
-          if (accessToken && refreshToken) {
-            log('Found tokens in hash, setting session...');
-            const { data, error } = await client.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken
-            });
-            if (error) {
-              log(`Set session error: ${error.message}`, true);
-              throw error;
-            }
-            if (data?.session?.user) {
-              log(`Session set for user: ${data.session.user.id}`);
-              await ensureUserProfile(client, data.session.user);
-            }
-          } else {
-            log('Checking for existing session...');
-            const { data } = await client.auth.getSession();
-            if (!data?.session) {
-              log('No session found', true);
-              throw new Error('No OAuth code or session found');
-            }
-            log(`Existing session found for: ${data.session.user.id}`);
-            await ensureUserProfile(client, data.session.user);
-          }
+          log('No code/hash provided, verifying existing session...');
         }
+
+        const user = await waitForVerifiedUser(client);
+        if (!user) {
+          throw new Error('Authentication was not completed. Please sign in again.');
+        }
+
+        log(`Authenticated user: ${user.id}`);
+        statusText.textContent = 'Setting up your profile...';
+        await ensureUserProfile(client, user);
 
         statusText.textContent = 'Success! Redirecting...';
         localStorage.removeItem('postAuthRedirect');
         localStorage.removeItem('oauthFlow');
-        
         log(`Redirecting to: ${next}`);
         setTimeout(() => {
           window.location.replace(next);
-        }, 1000);
-        
+        }, 800);
       } catch (err) {
         const msg = (err && err.message) ? err.message : 'Authentication failed';
         log(`Fatal error: ${msg}`, true);
@@ -195,74 +305,7 @@
         errorText.style.display = 'block';
         setTimeout(() => {
           window.location.replace('login.html');
-        }, 3000);
-      }
-
-      async function ensureUserProfile(client, user) {
-        try {
-          log('Checking if profile exists...');
-          
-          // First check if profile exists
-          const { data: existingProfile, error: checkError } = await client
-            .from('user_profiles')
-            .select('id, username, full_name')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          if (existingProfile) {
-            log(`Profile found: ${existingProfile.username}`);
-            return true;
-          }
-
-          if (checkError && !checkError.message.includes('no rows')) {
-            log(`Profile check error: ${checkError.message}`, true);
-          }
-
-          // Profile doesn't exist, create it
-          log('Profile not found, creating...');
-          
-          const userData = user.user_metadata || {};
-          const email = user.email || '';
-          const baseName = userData.full_name || userData.name || email.split('@')[0] || 'user';
-          
-          // Create a clean username
-          const username = baseName
-            .toLowerCase()
-            .replace(/\s+/g, '_')
-            .replace(/[^a-z0-9_]/g, '')
-            .substring(0, 30);
-
-          const profileData = {
-            id: user.id,
-            username: username,
-            full_name: userData.full_name || userData.name || username,
-            avatar_icon: '🍔'
-          };
-
-          log(`Creating profile: ${JSON.stringify(profileData)}`);
-
-          const { data: newProfile, error: createError } = await client
-            .from('user_profiles')
-            .insert([profileData])
-            .select()
-            .single();
-
-          if (createError) {
-            log(`Profile creation error: ${createError.message}`, true);
-            // Don't throw - profile creation might fail but auth succeeded
-            return false;
-          }
-
-          if (newProfile) {
-            log(`Profile created successfully: ${newProfile.username}`);
-            return true;
-          }
-
-        } catch (error) {
-          log(`Profile setup error: ${error.message}`, true);
-          // Don't throw - continue even if profile creation fails
-          return false;
-        }
+        }, 2500);
       }
     })();
   </script>

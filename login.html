@@ -243,11 +243,23 @@ body{
     return err.message || fallback;
   }
 
+  async function getVerifiedUser() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user) {
+      // Local storage may still have a stale session; clear it.
+      await supabase.auth.signOut({ scope: 'local' });
+      return null;
+    }
+    return userData.user;
+  }
+
   // Check if already logged in
   (async () => {
     try {
-      const { data } = await supabase.auth.getSession();
-      if (data?.session) {
+      const user = await getVerifiedUser();
+      if (user) {
         console.log('User already logged in, redirecting...');
         window.location.href = 'index.html';
       }

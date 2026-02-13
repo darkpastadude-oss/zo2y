@@ -3756,8 +3756,20 @@ class RestaurantListManager {
 
     async checkAuth() {
         try {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            this.currentUser = session?.user || null;
+            const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+            if (userError) {
+                const errorMessage = String(userError.message || '').toLowerCase();
+                const invalidSession =
+                    userError.status === 401 ||
+                    errorMessage.includes('jwt') ||
+                    errorMessage.includes('token') ||
+                    errorMessage.includes('session') ||
+                    errorMessage.includes('unauthorized');
+                if (invalidSession) {
+                    await supabaseClient.auth.signOut({ scope: 'local' });
+                }
+            }
+            this.currentUser = userData?.user || null;
             
             if (this.currentUser) {
                 console.log('📋 User authenticated:', this.currentUser.id);

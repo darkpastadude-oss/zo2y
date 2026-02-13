@@ -277,12 +277,24 @@ body {
     submitBtn.disabled = false;
     submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> <span>Create Account</span>';
   }
+
+  async function getVerifiedUser() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user) {
+      // Local storage may still have a stale session; clear it.
+      await supabase.auth.signOut({ scope: 'local' });
+      return null;
+    }
+    return userData.user;
+  }
   
   // Check if already logged in
   (async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      const user = await getVerifiedUser();
+      if (user) {
         console.log('User already logged in, redirecting...');
         window.location.href = 'index.html';
       }

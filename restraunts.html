@@ -2174,7 +2174,8 @@ header, .top-stripe, .section-nav {
               flowType: 'pkce',
               persistSession: true,
               autoRefreshToken: true,
-              detectSessionInUrl: true
+              // OAuth callback is handled on auth-callback.html.
+              detectSessionInUrl: false
             }
           });
           console.log('âœ… Supabase client initialized');
@@ -2604,6 +2605,29 @@ header, .top-stripe, .section-nav {
         lastScrollPosition: 0,
         sentinelObserver: null
       };
+      async function getVerifiedRestaurantUser() {
+        if (!supabase) return null;
+
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !session?.user) return null;
+
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (!userError && userData?.user) return userData.user;
+
+        const errorMessage = String(userError?.message || '').toLowerCase();
+        const invalidSession =
+          userError?.status === 401 ||
+          errorMessage.includes('jwt') ||
+          errorMessage.includes('token') ||
+          errorMessage.includes('session') ||
+          errorMessage.includes('unauthorized');
+
+        if (invalidSession) {
+          await supabase.auth.signOut({ scope: 'local' });
+        }
+        return null;
+      }
+
       // ---------- OPTIMIZED INITIALIZATION ----------
       async function initializeAuth() {
         console.log('?? Initializing auth...');
@@ -2615,31 +2639,25 @@ header, .top-stripe, .section-nav {
         }
         
         try {
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-          
-          if (sessionError) {
-            console.error('Session error:', sessionError);
-            setGuestState();
-            return;
-          }
-          
-          if (!session?.user) {
+          const user = await getVerifiedRestaurantUser();
+
+          if (!user) {
             console.log('?? No active session, setting guest state');
             setGuestState();
             return;
           }
           
-          console.log('? User found in session:', session.user.email);
-          state.currentUser = session.user;
+          console.log('? User found in session:', user.email);
+          state.currentUser = user;
           state.isLoggedIn = true;
           
-          const profileReady = await ensureUserProfileExists(session.user);
+          const profileReady = await ensureUserProfileExists(user);
           
           if (profileReady) {
             await state.listManager.init();
-            setLoggedInState(session.user);
+            setLoggedInState(user);
           } else {
-            setLoggedInState(session.user);
+            setLoggedInState(user);
           }
           
         } catch (error) {
@@ -2655,7 +2673,7 @@ header, .top-stripe, .section-nav {
             state.isLoggedIn = false;
             state.restaurantListStatuses.clear();
             setGuestState();
-          } else if (event === 'SIGNED_IN' && session?.user) {
+          } else if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
             state.currentUser = session.user;
             state.isLoggedIn = true;
             
