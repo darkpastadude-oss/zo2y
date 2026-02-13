@@ -198,7 +198,7 @@
       border: 1px solid var(--border);
       border-radius: 24px;
       overflow: hidden;
-      min-height: 360px;
+      min-height: 390px;
       box-shadow: var(--shadow);
       background: linear-gradient(145deg, #132347, #0f1f43);
       isolation: isolate;
@@ -230,8 +230,34 @@
       flex-direction: column;
       gap: 10px;
       padding: clamp(18px, 3.6vw, 34px);
-      min-height: 360px;
+      min-height: 390px;
       justify-content: flex-end;
+      max-width: 58%;
+      position: relative;
+      z-index: 2;
+    }
+
+    .spotlight-media {
+      position: absolute;
+      right: 18px;
+      top: 18px;
+      bottom: 18px;
+      width: min(40%, 500px);
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(7, 15, 34, 0.55);
+      z-index: 1;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.34);
+    }
+
+    .spotlight-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .spotlight.no-media .spotlight-inner {
       max-width: 760px;
     }
 
@@ -363,6 +389,7 @@
     .rail.unified-rail { grid-auto-columns: 206px; }
     .rail::-webkit-scrollbar { height: 7px; }
     .rail::-webkit-scrollbar-thumb { background: rgba(140,163,199,0.55); border-radius: 999px; }
+    .rail.games-rail { grid-auto-columns: 248px; }
 
     .card {
       border: 1px solid var(--border);
@@ -370,7 +397,7 @@
       overflow: hidden;
       background: var(--card-2);
       scroll-snap-align: start;
-      min-height: 298px;
+      min-height: 232px;
       position: relative;
       transition: border-color 0.2s ease, transform 0.2s ease;
       display: flex;
@@ -389,12 +416,20 @@
 
     .card-media {
       width: 100%;
-      aspect-ratio: 4/5;
+      aspect-ratio: 2/3;
       background: #0c1a3b;
       display: grid;
       place-items: center;
       color: var(--muted);
       overflow: hidden;
+    }
+
+    .card-media.landscape { aspect-ratio: 16/10; }
+    .card-media.game-poster { aspect-ratio: 16/10; }
+    .card-media.game-poster img {
+      object-fit: contain !important;
+      background: #0c1a3b;
+      padding: 4px;
     }
 
     .card-media img {
@@ -465,6 +500,19 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
       min-height: 32px;
+    }
+
+    .rail.games-rail .card {
+      height: 326px;
+      min-height: 326px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .rail.games-rail .card-meta {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
     }
 
     .card-menu-wrap {
@@ -799,16 +847,17 @@
         display: none;
       }
 
-      .spotlight {
-        border-radius: 18px;
-        min-height: 318px;
+      .spotlight { border-radius: 18px; min-height: auto; }
+      .spotlight-media {
+        position: relative;
+        right: auto;
+        top: auto;
+        bottom: auto;
+        width: calc(100% - 24px);
+        height: 180px;
+        margin: 12px auto 0;
       }
-
-      .spotlight-inner {
-        min-height: 318px;
-        padding: 16px;
-        gap: 9px;
-      }
+      .spotlight-inner { min-height: auto; max-width: none; padding: 14px 16px 16px; gap: 9px; }
 
       .spotlight-title {
         font-size: clamp(24px, 8vw, 38px);
@@ -826,7 +875,8 @@
       .section-head h2 { font-size: 19px; }
       .rail { grid-auto-columns: 158px; }
       .rail.unified-rail { grid-auto-columns: 178px; }
-      .card { min-height: 276px; }
+      .rail.games-rail { grid-auto-columns: 208px; }
+      .card { min-height: 232px; }
       .card-hover-cue { display: none; }
 
       .mobile-bottom-nav {
@@ -897,6 +947,9 @@
   <main class="container page-shell">
     <section class="spotlight" id="spotlightSection">
       <div class="spotlight-bg" id="spotlightBackground"></div>
+      <div class="spotlight-media" id="spotlightMedia">
+        <img id="spotlightImage" alt="Spotlight artwork" loading="lazy" />
+      </div>
       <div class="spotlight-inner" id="spotlightInner">
         <p class="spotlight-kicker" id="spotlightKicker">Live Spotlight</p>
         <h1 class="spotlight-title" id="spotlightTitle">Loading spotlight...</h1>
@@ -1256,6 +1309,9 @@
 
     function renderSpotlightItem(item, shouldAnimate = false) {
       const bg = document.getElementById('spotlightBackground');
+      const spotlightSection = document.getElementById('spotlightSection');
+      const mediaWrap = document.getElementById('spotlightMedia');
+      const mediaImage = document.getElementById('spotlightImage');
       const title = document.getElementById('spotlightTitle');
       const kicker = document.getElementById('spotlightKicker');
       const summary = document.getElementById('spotlightSummary');
@@ -1263,14 +1319,23 @@
       const trend = document.getElementById('spotlightTrend');
       const openBtn = document.getElementById('spotlightOpenBtn');
       const spotlightInner = document.getElementById('spotlightInner');
-      if (!bg || !title || !kicker || !summary || !reason || !trend || !openBtn) return;
+      if (!bg || !spotlightSection || !mediaWrap || !mediaImage || !title || !kicker || !summary || !reason || !trend || !openBtn) return;
 
       const meta = getHomeMediaMeta(item.mediaType);
-      const image = String(item.image || '').trim();
-      if (image) {
-        bg.style.backgroundImage = `url("${image}")`;
+      const spotlightImage = String(item.spotlightImage || item.image || '').trim();
+      const spotlightFit = String(item.spotlightFit || '').trim() || 'cover';
+      if (spotlightImage) {
+        bg.style.backgroundImage = `linear-gradient(120deg, rgba(8, 14, 31, 0.7), rgba(10, 19, 39, 0.42)), url("${spotlightImage}")`;
+        mediaImage.src = spotlightImage;
+        mediaImage.style.objectFit = spotlightFit;
+        mediaImage.style.display = 'block';
+        mediaWrap.style.display = 'block';
+        spotlightSection.classList.remove('no-media');
       } else {
         bg.style.backgroundImage = `linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%)`;
+        mediaImage.removeAttribute('src');
+        mediaWrap.style.display = 'none';
+        spotlightSection.classList.add('no-media');
       }
       title.textContent = item.title || 'Spotlight';
       kicker.textContent = `${meta.label} Spotlight`;
@@ -1296,13 +1361,7 @@
 
     function resetSpotlightTimer() {
       if (homeSpotlightTimer) clearInterval(homeSpotlightTimer);
-      if (homeSpotlightItems.length < 2) {
-        homeSpotlightTimer = null;
-        return;
-      }
-      homeSpotlightTimer = window.setInterval(() => {
-        showSpotlightByIndex(homeSpotlightIndex + 1, true);
-      }, 12000);
+      homeSpotlightTimer = null;
     }
 
     function buildScoredDiscoveryPool(feedMap) {
@@ -1878,6 +1937,7 @@
     function renderRail(railId, items, opts) {
       const rail = document.getElementById(railId);
       if (!rail) return;
+      rail.classList.toggle('games-rail', String(opts?.mediaType || '').toLowerCase() === 'game');
 
       if (!items || !items.length) {
         rail.innerHTML = '<div class="empty">No items right now.</div>';
@@ -1887,6 +1947,7 @@
       rail.innerHTML = items.map(item => {
         const mediaTypeRaw = String(item.mediaType || opts?.mediaType || '').toLowerCase();
         const media = getHomeMediaMeta(mediaTypeRaw);
+        const landscape = !!opts?.landscape || mediaTypeRaw === 'restaurant';
         const title = escapeHtml(item.title || 'Untitled');
         const subtitle = escapeHtml(item.subtitle || media.label);
         const extra = escapeHtml(item.extra || '');
@@ -1910,7 +1971,7 @@
         return `
           <article class="card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}">
             <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
-            <div class="card-media">
+            <div class="card-media ${landscape ? 'landscape' : ''} ${mediaTypeRaw === 'game' ? 'game-poster' : ''}">
               ${image ? `<img src="${image}" alt="${title}" loading="lazy">` : '<i class="fa-solid fa-image"></i>'}
             </div>
             <div class="card-meta">
@@ -2038,9 +2099,6 @@
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
           void initAuthUi();
         }
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-          void initUniversalHome();
-        }
       });
     }
 
@@ -2132,6 +2190,8 @@
           title: r.name,
           subtitle: `${r.category} | ${r.rating}/5`,
           image: '',
+          spotlightImage: '',
+          spotlightFit: 'cover',
           href: 'restraunts.html'
         }));
       }
@@ -2147,6 +2207,8 @@
           title: r.name,
           subtitle: `${r.category} | ${r.rating}/5`,
           image: '',
+          spotlightImage: '',
+          spotlightFit: 'cover',
           href: 'restraunts.html'
         }));
       }
@@ -2156,6 +2218,8 @@
         title: r.name || 'Restaurant',
         subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
         image: r.image ? toHttpsUrl(`images/${r.image}`) : '',
+        spotlightImage: r.image ? toHttpsUrl(`images/${r.image}`) : '',
+        spotlightFit: 'cover',
         href: r.id ? `restaurant.html?id=${encodeURIComponent(r.id)}` : 'restraunts.html'
       }));
     }
@@ -2169,11 +2233,13 @@
       const json = await res.json();
       const results = Array.isArray(json.results) ? shuffleArray(json.results).slice(0, 10) : [];
       return results.map(m => ({
+        spotlightImage: m.backdrop_path ? `${TMDB_POSTER}${m.backdrop_path}` : (m.poster_path ? `${TMDB_POSTER}${m.poster_path}` : ''),
+        spotlightFit: m.backdrop_path ? 'cover' : 'contain',
         mediaType: 'movie',
         itemId: String(m.id || ''),
         title: m.title || 'Movie',
         subtitle: m.release_date ? m.release_date.slice(0, 4) : 'Movie',
-        image: m.poster_path ? `${TMDB_POSTER}${m.poster_path}` : '',
+        image: m.poster_path ? `${TMDB_POSTER}${m.poster_path}` : (m.backdrop_path ? `${TMDB_POSTER}${m.backdrop_path}` : ''),
         href: m.id ? `movie.html?id=${encodeURIComponent(m.id)}` : 'movies.html'
       }));
     }
@@ -2187,11 +2253,13 @@
       const json = await res.json();
       const results = Array.isArray(json.results) ? shuffleArray(json.results).slice(0, 10) : [];
       return results.map(t => ({
+        spotlightImage: t.backdrop_path ? `${TMDB_POSTER}${t.backdrop_path}` : (t.poster_path ? `${TMDB_POSTER}${t.poster_path}` : ''),
+        spotlightFit: t.backdrop_path ? 'cover' : 'contain',
         mediaType: 'tv',
         itemId: String(t.id || ''),
         title: t.name || 'TV Show',
         subtitle: t.first_air_date ? t.first_air_date.slice(0, 4) : 'TV Show',
-        image: t.poster_path ? `${TMDB_POSTER}${t.poster_path}` : '',
+        image: t.poster_path ? `${TMDB_POSTER}${t.poster_path}` : (t.backdrop_path ? `${TMDB_POSTER}${t.backdrop_path}` : ''),
         href: t.id ? `tvshow.html?id=${encodeURIComponent(t.id)}` : 'tvshows.html'
       }));
     }
@@ -2223,6 +2291,8 @@
         subtitle: g.released ? g.released.slice(0, 4) : 'Game',
         extra: `${Array.isArray(g.genres) && g.genres.length ? g.genres.slice(0, 2).map(x => x?.name).filter(Boolean).join(' | ') : 'Video Game'}${g.rating ? ` | ${Number(g.rating).toFixed(1)}/5` : ''}`,
         image: g.background_image || '',
+        spotlightImage: g.background_image || '',
+        spotlightFit: 'cover',
         href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html'
       }));
     }
@@ -2241,6 +2311,8 @@
             if (!title) return null;
             const author = Array.isArray(info.authors) && info.authors.length ? info.authors[0] : 'Book';
             return {
+              spotlightImage: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
+              spotlightFit: 'contain',
               mediaType: 'book',
               itemId: String(item.id || ''),
               title,
@@ -2259,6 +2331,8 @@
         title: b.title,
         subtitle: b.author,
         image: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+        spotlightImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+        spotlightFit: 'contain',
         href: 'books.html'
       }));
     }
@@ -2275,6 +2349,8 @@
             title: String(song.name || '').trim() || 'Song',
             subtitle: String(song.artistName || '').trim() || 'Artist',
             image: String(song.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
+            spotlightImage: String(song.artworkUrl100 || '').replace('100x100bb', '600x600bb'),
+            spotlightFit: 'cover',
             href: song.url || 'https://music.apple.com/us/charts'
           })).filter((song) => song.title);
           if (mapped.length) return mapped.slice(0, 10);
@@ -2287,6 +2363,8 @@
         title: song.title,
         subtitle: song.artist,
         image: '',
+        spotlightImage: '',
+        spotlightFit: 'cover',
         href: 'https://music.apple.com/us/charts'
       }));
     }
@@ -2300,7 +2378,7 @@
       homeTasteWeights = await loadTasteWeights();
 
       const channels = [
-        { key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant' } },
+        { key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant', landscape: true } },
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' } },
@@ -2336,6 +2414,8 @@
           subtitle: 'We are refreshing your feed',
           extra: 'Try again in a moment.',
           image: '',
+          spotlightImage: '',
+          spotlightFit: 'cover',
           href: 'movies.html',
           discoveryScore: 0.5
         }];
@@ -2361,7 +2441,6 @@
       const iconOptions = document.querySelectorAll('#homeListIconOptions .icon-option');
       const modal = document.getElementById('homeListsModal');
       const nextSpotlightBtn = document.getElementById('spotlightNextBtn');
-      const spotlightSection = document.getElementById('spotlightSection');
 
       if (closeListsBtn) closeListsBtn.addEventListener('click', closeHomeListsModal);
       if (saveListsBtn) saveListsBtn.addEventListener('click', saveHomeListChanges);
@@ -2378,26 +2457,8 @@
       if (nextSpotlightBtn) {
         nextSpotlightBtn.addEventListener('click', () => {
           showSpotlightByIndex(homeSpotlightIndex + 1, true);
-          resetSpotlightTimer();
         });
       }
-
-      if (spotlightSection) {
-        spotlightSection.addEventListener('mouseenter', () => {
-          if (homeSpotlightTimer) clearInterval(homeSpotlightTimer);
-        });
-        spotlightSection.addEventListener('mouseleave', () => {
-          resetSpotlightTimer();
-        });
-      }
-
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-          if (homeSpotlightTimer) clearInterval(homeSpotlightTimer);
-          return;
-        }
-        resetSpotlightTimer();
-      });
 
       if (modal) {
         modal.addEventListener('click', (e) => {
