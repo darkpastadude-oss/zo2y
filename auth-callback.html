@@ -47,14 +47,30 @@
       margin-top: 12px;
       font-size: 14px;
     }
+    .debug {
+      margin-top: 20px;
+      padding: 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      font-size: 12px;
+      text-align: left;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: monospace;
+      display: none;
+    }
+    .debug.show { display: block; }
+    .debug-line { margin-bottom: 5px; color: #00ff00; }
+    .debug-error { color: #ff0000; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="spinner"></div>
-    <h2>Completing Signup...</h2>
+    <h2>Completing Authentication...</h2>
     <p id="statusText">Please wait while we set up your account.</p>
     <p id="errorText" class="error" style="display:none;"></p>
+    <div id="debugConsole" class="debug"></div>
   </div>
   <script>
     (async function () {
@@ -62,10 +78,29 @@
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const statusText = document.getElementById('statusText');
       const errorText = document.getElementById('errorText');
+      const debugConsole = document.getElementById('debugConsole');
+      
       const storedNext = localStorage.getItem('postAuthRedirect');
+      const oauthFlow = localStorage.getItem('oauthFlow');
       const next = new URLSearchParams(window.location.search).get('next') || storedNext || 'index.html';
 
+      const debugEnabled = window.location.search.includes('debug=true');
+      if (debugEnabled) debugConsole.classList.add('show');
+
+      function log(msg, isError = false) {
+        console.log(msg);
+        if (debugEnabled) {
+          const line = document.createElement('div');
+          line.className = isError ? 'debug-line debug-error' : 'debug-line';
+          line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+          debugConsole.appendChild(line);
+          debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+      }
+
       try {
+        log('Initializing auth callback...');
+        
         if (!window.supabase || !window.supabase.createClient) {
           throw new Error('Auth library unavailable');
         }
@@ -79,48 +114,155 @@
           }
         });
 
+        log('Checking for OAuth errors...');
         const params = new URLSearchParams(window.location.search);
         const oauthError = params.get('error_description') || params.get('error');
         if (oauthError) {
+          log(`OAuth error: ${oauthError}`, true);
           throw new Error(oauthError);
         }
 
+        log('Looking for auth code...');
         const code = params.get('code');
         if (code) {
+          log('Auth code found, exchanging for session...');
           statusText.textContent = 'Finalizing secure sign-in...';
-          const { error } = await client.auth.exchangeCodeForSession(code);
-          if (error) throw error;
+          const { data, error } = await client.auth.exchangeCodeForSession(code);
+          
+          if (error) {
+            log(`Exchange error: ${error.message}`, true);
+            throw error;
+          }
+          
+          if (data?.session?.user) {
+            log(`Session created for user: ${data.session.user.id}`);
+            log(`User email: ${data.session.user.email}`);
+            
+            // Create or verify profile
+            statusText.textContent = 'Setting up your profile...';
+            await ensureUserProfile(client, data.session.user);
+            
+            log('Profile ready, redirecting...');
+          }
         } else {
+          log('No code found, checking for existing session...');
           // Fallback for implicit hash flow
           const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : '';
           const hashParams = new URLSearchParams(hash);
           const accessToken = hashParams.get('access_token');
           const refreshToken = hashParams.get('refresh_token');
+          
           if (accessToken && refreshToken) {
-            const { error } = await client.auth.setSession({
+            log('Found tokens in hash, setting session...');
+            const { data, error } = await client.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken
             });
-            if (error) throw error;
+            if (error) {
+              log(`Set session error: ${error.message}`, true);
+              throw error;
+            }
+            if (data?.session?.user) {
+              log(`Session set for user: ${data.session.user.id}`);
+              await ensureUserProfile(client, data.session.user);
+            }
           } else {
+            log('Checking for existing session...');
             const { data } = await client.auth.getSession();
             if (!data?.session) {
+              log('No session found', true);
               throw new Error('No OAuth code or session found');
             }
+            log(`Existing session found for: ${data.session.user.id}`);
+            await ensureUserProfile(client, data.session.user);
           }
         }
 
         statusText.textContent = 'Success! Redirecting...';
         localStorage.removeItem('postAuthRedirect');
-        window.location.replace(next);
+        localStorage.removeItem('oauthFlow');
+        
+        log(`Redirecting to: ${next}`);
+        setTimeout(() => {
+          window.location.replace(next);
+        }, 1000);
+        
       } catch (err) {
         const msg = (err && err.message) ? err.message : 'Authentication failed';
+        log(`Fatal error: ${msg}`, true);
         statusText.textContent = 'Could not complete authentication.';
         errorText.textContent = msg;
         errorText.style.display = 'block';
         setTimeout(() => {
           window.location.replace('login.html');
-        }, 2500);
+        }, 3000);
+      }
+
+      async function ensureUserProfile(client, user) {
+        try {
+          log('Checking if profile exists...');
+          
+          // First check if profile exists
+          const { data: existingProfile, error: checkError } = await client
+            .from('user_profiles')
+            .select('id, username, full_name')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (existingProfile) {
+            log(`Profile found: ${existingProfile.username}`);
+            return true;
+          }
+
+          if (checkError && !checkError.message.includes('no rows')) {
+            log(`Profile check error: ${checkError.message}`, true);
+          }
+
+          // Profile doesn't exist, create it
+          log('Profile not found, creating...');
+          
+          const userData = user.user_metadata || {};
+          const email = user.email || '';
+          const baseName = userData.full_name || userData.name || email.split('@')[0] || 'user';
+          
+          // Create a clean username
+          const username = baseName
+            .toLowerCase()
+            .replace(/\s+/g, '_')
+            .replace(/[^a-z0-9_]/g, '')
+            .substring(0, 30);
+
+          const profileData = {
+            id: user.id,
+            username: username,
+            full_name: userData.full_name || userData.name || username,
+            avatar_icon: '🍔'
+          };
+
+          log(`Creating profile: ${JSON.stringify(profileData)}`);
+
+          const { data: newProfile, error: createError } = await client
+            .from('user_profiles')
+            .insert([profileData])
+            .select()
+            .single();
+
+          if (createError) {
+            log(`Profile creation error: ${createError.message}`, true);
+            // Don't throw - profile creation might fail but auth succeeded
+            return false;
+          }
+
+          if (newProfile) {
+            log(`Profile created successfully: ${newProfile.username}`);
+            return true;
+          }
+
+        } catch (error) {
+          log(`Profile setup error: ${error.message}`, true);
+          // Don't throw - continue even if profile creation fails
+          return false;
+        }
       }
     })();
   </script>

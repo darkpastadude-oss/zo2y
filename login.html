@@ -172,7 +172,7 @@ body{
         flowType: 'pkce',
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: false  // Important: Don't auto-detect on login page
       }
     }
   );
@@ -191,12 +191,14 @@ body{
   const submitDefaultHtml = submitBtn.innerHTML;
 
   function showError(msg) {
+    console.error('Error:', msg);
     errorEl.textContent = msg;
     errorEl.classList.add('show');
     successEl.classList.remove('show');
   }
 
   function showSuccess(msg) {
+    console.log('Success:', msg);
     successEl.textContent = msg;
     successEl.classList.add('show');
     errorEl.classList.remove('show');
@@ -241,39 +243,17 @@ body{
     return err.message || fallback;
   }
 
-  async function handleOAuthCallback() {
-    const params = new URLSearchParams(window.location.search);
-    const oauthError = params.get('error_description') || params.get('error');
-    if (oauthError) {
-      showError(`Google login failed: ${oauthError}`);
-      window.history.replaceState({}, document.title, window.location.pathname);
-      return;
-    }
-    const code = params.get('code');
-    if (!code) return;
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) {
-      showError(`Google login failed: ${error.message || 'Session exchange failed'}`);
-      return;
-    }
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-      showSuccess('Login successful! Redirecting...');
-      setTimeout(() => { window.location.href = 'index.html'; }, 900);
-    }
-  });
-
+  // Check if already logged in
   (async () => {
     try {
-      await handleOAuthCallback();
       const { data } = await supabase.auth.getSession();
       if (data?.session) {
+        console.log('User already logged in, redirecting...');
         window.location.href = 'index.html';
       }
-    } catch (_) {}
+    } catch (error) {
+      console.error('Session check error:', error);
+    }
   })();
 
   const rememberedEmail = localStorage.getItem('rememberedEmail');
@@ -295,17 +275,27 @@ body{
 
     setSubmitLoading(true);
     try {
-      const { error } = await withTimeout(
+      console.log('Attempting login...');
+      const { data, error } = await withTimeout(
         supabase.auth.signInWithPassword({ email, password }),
         12000,
         'Auth request timed out'
       );
+      
       if (error) throw error;
+      
+      console.log('Login successful');
       if (remember.checked) localStorage.setItem('rememberedEmail', email);
       else localStorage.removeItem('rememberedEmail');
+      
+      showSuccess('Login successful! Redirecting...');
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 1000);
+      
     } catch (err) {
+      console.error('Login error:', err);
       showError(getReadableAuthError(err, 'Login failed.'));
-    } finally {
       setSubmitLoading(false);
     }
   });
@@ -314,17 +304,34 @@ body{
     e.preventDefault();
     clearMessages();
     setGoogleLoading(true, 'Signing in...');
+    
     try {
+      console.log('Starting Google OAuth...');
+      
+      // Store that this is a login flow
+      localStorage.setItem('oauthFlow', 'login');
       localStorage.setItem('postAuthRedirect', 'index.html');
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/auth-callback.html',
-          queryParams: { access_type: 'offline', prompt: 'consent' }
+          redirectTo: `${window.location.origin}/auth-callback.html`,
+          queryParams: { 
+            access_type: 'offline', 
+            prompt: 'consent' 
+          }
         }
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Google OAuth error:', error);
+        throw error;
+      }
+      
+      // Browser will redirect, so button stays disabled
+      
     } catch (err) {
+      console.error('Google login error:', err);
       showError(err?.message || 'Google login failed.');
       setGoogleLoading(false);
     }
