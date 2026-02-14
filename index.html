@@ -430,7 +430,7 @@
     .rail.unified-rail { grid-auto-columns: 156px; }
     .rail::-webkit-scrollbar { height: 7px; }
     .rail::-webkit-scrollbar-thumb { background: rgba(140,163,199,0.55); border-radius: 999px; }
-    .rail.games-rail { grid-auto-columns: 248px; }
+    .rail.games-rail { grid-auto-columns: 156px; }
 
     .card {
       border: 1px solid var(--border);
@@ -480,7 +480,7 @@
     }
 
     .card-media.game-poster {
-      aspect-ratio: 16/10;
+      aspect-ratio: 2/3;
       padding: 6px;
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
     }
@@ -634,8 +634,8 @@
     }
 
     .rail.games-rail .card {
-      height: 326px;
-      min-height: 326px;
+      height: 332px;
+      min-height: 332px;
       display: flex;
       flex-direction: column;
     }
@@ -647,7 +647,8 @@
     }
 
     .rail.games-rail .card-media.game-poster {
-      aspect-ratio: 16/10;
+      aspect-ratio: 2/3;
+      height: 216px;
       padding: 6px;
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
     }
@@ -1131,7 +1132,7 @@
       .section-head h2 { font-size: 19px; }
       .rail { grid-auto-columns: 142px; }
       .rail.unified-rail { grid-auto-columns: 142px; }
-      .rail.games-rail { grid-auto-columns: 208px; }
+      .rail.games-rail { grid-auto-columns: 142px; }
       .card { min-height: 232px; }
       .card-hover-cue { display: none; }
 
@@ -1152,6 +1153,22 @@
       }
 
       .rail.unified-rail .card-media.game-poster img {
+        object-fit: contain;
+        border-radius: 8px;
+      }
+
+      .rail.games-rail .card {
+        height: 314px;
+        min-height: 314px;
+      }
+
+      .rail.games-rail .card-media.game-poster {
+        height: 190px;
+        aspect-ratio: 2/3;
+        padding: 5px;
+      }
+
+      .rail.games-rail .card-media.game-poster img {
         object-fit: contain;
         border-radius: 8px;
       }
@@ -1384,9 +1401,9 @@
       visited: { title: 'Visited', description: 'Places I have been to', icon: 'check' },
       wantToGo: { title: 'Want to Go', description: 'Places I want to try', icon: 'bookmark' }
     };
-    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v1';
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v2';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_CHANNEL_TIMEOUT_MS = 3200;
+    const HOME_CHANNEL_TIMEOUT_MS = 1400;
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 24;
     const HOME_SPOTLIGHT_POOL_SIZE = 24;
@@ -1664,6 +1681,8 @@
       }
 
       if (spotlightMediaImage) {
+        mediaImage.loading = 'eager';
+        mediaImage.fetchPriority = 'high';
         mediaImage.style.width = '';
         mediaImage.style.height = '';
         mediaImage.style.padding = '';
@@ -2502,9 +2521,7 @@
       if (isbn) {
         return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`;
       }
-      const title = String(item?.title || '').trim();
-      if (!title) return '';
-      return `https://covers.openlibrary.org/b/title/${encodeURIComponent(title)}-L.jpg?default=false`;
+      return '';
     }
 
     function setSpotlightImageWithFallback(imgEl, sources, token) {
@@ -2717,17 +2734,18 @@
         const itemId = escapeHtml(item.itemId || '');
         const supportsLists = supportsHomeLists(mediaTypeRaw) && !item.isPlaceholder;
         const opensExternal = /^https?:\/\//i.test(String(hrefRaw || ''));
-        const imageLoading = index < 10 ? 'eager' : 'lazy';
+        const imageLoading = index < 24 ? 'eager' : 'lazy';
+        const imagePriority = index < 8 ? 'high' : 'auto';
         const mediaClasses = ['card-media'];
         if (landscape) mediaClasses.push('landscape');
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         const mediaHtml = restaurantComposite
           ? `
-              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" decoding="async" data-fallback-image="${fallbackImage || logo}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
-              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" decoding="async" data-fallback-image="${fallbackImage || coverImage}" data-fallback-applied="0"></span>` : ''}
+              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage || logo}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
+              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage || coverImage}" data-fallback-applied="0"></span>` : ''}
             `
-          : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" decoding="async" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
+          : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
         const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
         const trailingControl = supportsLists
           ? `
@@ -3196,7 +3214,7 @@
           title: g.name || 'Game',
           subtitle: g.released ? g.released.slice(0, 4) : 'Game',
           extra: `${Array.isArray(g.genres) && g.genres.length ? g.genres.slice(0, 2).map(x => x?.name).filter(Boolean).join(' | ') : 'Video Game'}${g.rating ? ` | ${Number(g.rating).toFixed(1)}/5` : ''}`,
-          image: mainImage,
+          image: coverImage || backgroundImage,
           backgroundImage,
           spotlightImage: backgroundImage,
           spotlightMediaImage: coverImage || mainImage,
@@ -3245,7 +3263,7 @@
             const isbn = String(rawIsbn || '').replace(/[^0-9Xx]/g, '').trim();
             const fallbackImage = isbn
               ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`
-              : `https://covers.openlibrary.org/b/title/${encodeURIComponent(title)}-L.jpg?default=false`;
+              : 'images/logo.png';
             const primaryImage = toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '') || fallbackImage;
             return {
               mediaType: 'book',
