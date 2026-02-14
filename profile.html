@@ -4481,11 +4481,13 @@ header, .top-stripe, .section-nav {
                 const createTvListBtn = document.getElementById('createTvListBtn');
                 const createGameListBtn = document.getElementById('createGameListBtn');
                 const createBookListBtn = document.getElementById('createBookListBtn');
+                const createMusicListBtn = document.getElementById('createMusicListBtn');
                 const mobileCreateRestaurantListBtn = document.getElementById('mobileCreateRestaurantListBtn');
                 const mobileCreateMovieListBtn = document.getElementById('mobileCreateMovieListBtn');
                 const mobileCreateTvListBtn = document.getElementById('mobileCreateTvListBtn');
                 const mobileCreateGameListBtn = document.getElementById('mobileCreateGameListBtn');
                 const mobileCreateBookListBtn = document.getElementById('mobileCreateBookListBtn');
+                const mobileCreateMusicListBtn = document.getElementById('mobileCreateMusicListBtn');
                 
                 if (editProfileBtn) editProfileBtn.style.display = 'flex';
                 if (settingsBtn) settingsBtn.style.display = 'flex';
@@ -4498,11 +4500,13 @@ header, .top-stripe, .section-nav {
                 if (createTvListBtn) createTvListBtn.style.display = 'inline-flex';
                 if (createGameListBtn) createGameListBtn.style.display = 'inline-flex';
                 if (createBookListBtn) createBookListBtn.style.display = 'inline-flex';
+                if (createMusicListBtn) createMusicListBtn.style.display = 'inline-flex';
                 if (mobileCreateRestaurantListBtn) mobileCreateRestaurantListBtn.style.display = 'inline-flex';
                 if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'inline-flex';
                 if (mobileCreateTvListBtn) mobileCreateTvListBtn.style.display = 'inline-flex';
                 if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'inline-flex';
                 if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'inline-flex';
+                if (mobileCreateMusicListBtn) mobileCreateMusicListBtn.style.display = 'inline-flex';
 
                 // Load profile - use cached if available
                 if (!userProfile) {
@@ -4527,11 +4531,13 @@ header, .top-stripe, .section-nav {
                 const createTvListBtn = document.getElementById('createTvListBtn');
                 const createGameListBtn = document.getElementById('createGameListBtn');
                 const createBookListBtn = document.getElementById('createBookListBtn');
+                const createMusicListBtn = document.getElementById('createMusicListBtn');
                 const mobileCreateRestaurantListBtn = document.getElementById('mobileCreateRestaurantListBtn');
                 const mobileCreateMovieListBtn = document.getElementById('mobileCreateMovieListBtn');
                 const mobileCreateTvListBtn = document.getElementById('mobileCreateTvListBtn');
                 const mobileCreateGameListBtn = document.getElementById('mobileCreateGameListBtn');
                 const mobileCreateBookListBtn = document.getElementById('mobileCreateBookListBtn');
+                const mobileCreateMusicListBtn = document.getElementById('mobileCreateMusicListBtn');
                 
                 if (editProfileBtn) editProfileBtn.style.display = 'none';
                 if (settingsBtn) settingsBtn.style.display = 'none';
@@ -4544,11 +4550,13 @@ header, .top-stripe, .section-nav {
                 if (createTvListBtn) createTvListBtn.style.display = 'none';
                 if (createGameListBtn) createGameListBtn.style.display = 'none';
                 if (createBookListBtn) createBookListBtn.style.display = 'none';
+                if (createMusicListBtn) createMusicListBtn.style.display = 'none';
                 if (mobileCreateRestaurantListBtn) mobileCreateRestaurantListBtn.style.display = 'none';
                 if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'none';
                 if (mobileCreateTvListBtn) mobileCreateTvListBtn.style.display = 'none';
                 if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'none';
                 if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'none';
+                if (mobileCreateMusicListBtn) mobileCreateMusicListBtn.style.display = 'none';
 
                 const { data: profile, error } = await supabase
                     .from('user_profiles')
@@ -4637,17 +4645,20 @@ header, .top-stripe, .section-nav {
                 const tvTabText = document.getElementById('tvTabText');
                 const gamesTabText = document.getElementById('gamesTabText');
                 const booksTabText = document.getElementById('booksTabText');
+                const musicTabText = document.getElementById('musicTabText');
                 const journalTitle = document.getElementById('journalTitle');
                 const restaurantsTitle = document.getElementById('restaurantsTitle');
                 const tvTitle = document.getElementById('tvTitle');
                 const gamesTitle = document.getElementById('gamesTitle');
                 const booksTitle = document.getElementById('booksTitle');
+                const musicTitle = document.getElementById('musicTitle');
                 const communityTitle = document.getElementById('communityTitle');
                 const journalSubtitle = document.getElementById('journalSubtitle');
                 const restaurantsSubtitle = document.getElementById('restaurantsSubtitle');
                 const tvSubtitle = document.getElementById('tvSubtitle');
                 const gamesSubtitle = document.getElementById('gamesSubtitle');
                 const booksSubtitle = document.getElementById('booksSubtitle');
+                const musicSubtitle = document.getElementById('musicSubtitle');
                 const communitySubtitle = document.getElementById('communitySubtitle');
                 const followersSectionTitle = document.getElementById('followersSectionTitle');
                 const followingSectionTitle = document.getElementById('followingSectionTitle');
@@ -4657,17 +4668,20 @@ header, .top-stripe, .section-nav {
                 if (tvTabText) tvTabText.textContent = `${userName}'s TV Shows`;
                 if (gamesTabText) gamesTabText.textContent = `${userName}'s Games`;
                 if (booksTabText) booksTabText.textContent = `${userName}'s Books`;
+                if (musicTabText) musicTabText.textContent = `${userName}'s Music`;
                 if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
                 if (restaurantsTitle) restaurantsTitle.textContent = `${userName}'s Restaurants`;
                 if (tvTitle) tvTitle.textContent = `${userName}'s TV Shows`;
                 if (gamesTitle) gamesTitle.textContent = `${userName}'s Games`;
                 if (booksTitle) booksTitle.textContent = `${userName}'s Books`;
+                if (musicTitle) musicTitle.textContent = `${userName}'s Music`;
                 if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
                 if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
                 if (tvSubtitle) tvSubtitle.textContent = `${userName}'s favorite TV shows`;
                 if (gamesSubtitle) gamesSubtitle.textContent = `${userName}'s favorite games`;
                 if (booksSubtitle) booksSubtitle.textContent = `${userName}'s favorite books`;
+                if (musicSubtitle) musicSubtitle.textContent = `${userName}'s favorite tracks`;
                 if (communitySubtitle) communitySubtitle.textContent = `${userName}'s food community connections`;
                 if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
                 if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
@@ -4678,15 +4692,18 @@ header, .top-stripe, .section-nav {
                 const mobileTabTv = document.getElementById('mobileTabTv');
                 const mobileTabGames = document.getElementById('mobileTabGames');
                 const mobileTabBooks = document.getElementById('mobileTabBooks');
+                const mobileTabMusic = document.getElementById('mobileTabMusic');
                 const mobileJournalTitle = document.getElementById('mobileJournalTitle');
                 const mobileRestaurantsTitle = document.getElementById('mobileRestaurantsTitle');
                 const mobileGamesTitle = document.getElementById('mobileGamesTitle');
                 const mobileBooksTitle = document.getElementById('mobileBooksTitle');
+                const mobileMusicTitle = document.getElementById('mobileMusicTitle');
                 const mobileCommunityTitle = document.getElementById('mobileCommunityTitle');
                 const mobileJournalSubtitle = document.getElementById('mobileJournalSubtitle');
                 const mobileRestaurantsSubtitle = document.getElementById('mobileRestaurantsSubtitle');
                 const mobileGamesSubtitle = document.getElementById('mobileGamesSubtitle');
                 const mobileBooksSubtitle = document.getElementById('mobileBooksSubtitle');
+                const mobileMusicSubtitle = document.getElementById('mobileMusicSubtitle');
                 const mobileCommunitySubtitle = document.getElementById('mobileCommunitySubtitle');
                 
                 if (mobileJournalTabText) mobileJournalTabText.textContent = `${userName}'s Journal`;
@@ -4695,15 +4712,18 @@ header, .top-stripe, .section-nav {
                 if (mobileTabTv) mobileTabTv.textContent = `${userName}'s TV Shows`;
                 if (mobileTabGames) mobileTabGames.textContent = `${userName}'s Games`;
                 if (mobileTabBooks) mobileTabBooks.textContent = `${userName}'s Books`;
+                if (mobileTabMusic) mobileTabMusic.textContent = `${userName}'s Music`;
                 if (mobileJournalTitle) mobileJournalTitle.textContent = `${userName}'s Food Journal`;
                 if (mobileRestaurantsTitle) mobileRestaurantsTitle.textContent = `${userName}'s Restaurants`;
                 if (mobileGamesTitle) mobileGamesTitle.textContent = `${userName}'s Games`;
                 if (mobileBooksTitle) mobileBooksTitle.textContent = `${userName}'s Books`;
+                if (mobileMusicTitle) mobileMusicTitle.textContent = `${userName}'s Music`;
                 if (mobileCommunityTitle) mobileCommunityTitle.textContent = `${userName}'s Community`;
                 if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (mobileRestaurantsSubtitle) mobileRestaurantsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
                 if (mobileGamesSubtitle) mobileGamesSubtitle.textContent = `${userName}'s favorite games`;
                 if (mobileBooksSubtitle) mobileBooksSubtitle.textContent = `${userName}'s favorite books`;
+                if (mobileMusicSubtitle) mobileMusicSubtitle.textContent = `${userName}'s favorite tracks`;
                 if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s food community connections`;
             }
 
@@ -6751,6 +6771,24 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            async function fetchMusicDetails(trackId) {
+                const key = String(trackId || '').trim();
+                if (!key) return null;
+                if (musicCache.has(key)) return musicCache.get(key);
+                try {
+                    const { data, error } = await supabase
+                        .from('tracks')
+                        .select('id, name, artists, album_name, image_url, external_url, preview_url')
+                        .eq('id', key)
+                        .maybeSingle();
+                    if (error || !data) return null;
+                    musicCache.set(key, data);
+                    return data;
+                } catch (_err) {
+                    return null;
+                }
+            }
+
             function renderMovieListIcon(icon) {
                 return iconGlyph(icon, 'movie');
             }
@@ -7010,7 +7048,8 @@ header, .top-stripe, .section-nav {
                     movie: { table: 'movie_lists', fallback: 'movie', label: 'Movie', rerender: renderMovies },
                     tv: { table: 'tv_lists', fallback: 'tv', label: 'TV', rerender: renderTvShows },
                     game: { table: 'game_lists', fallback: 'game', label: 'Game', rerender: renderGames },
-                    book: { table: 'book_lists', fallback: 'book', label: 'Book', rerender: renderBooks }
+                    book: { table: 'book_lists', fallback: 'book', label: 'Book', rerender: renderBooks },
+                    music: { table: 'music_lists', fallback: 'music', label: 'Music', rerender: renderMusic }
                 };
                 return configMap[type] || null;
             }
@@ -7098,7 +7137,16 @@ header, .top-stripe, .section-nav {
             function syncOpenCollectionDetailAfterEdit(type, listId, title, icon) {
                 const safeTitle = title || '';
                 const safeIcon = icon || 'list';
-                const iconText = iconGlyph(safeIcon, type === 'tv' ? 'tv' : (type === 'game' ? 'game' : (type === 'movie' ? 'movie' : 'book')));
+                const iconText = iconGlyph(
+                    safeIcon,
+                    type === 'tv'
+                        ? 'tv'
+                        : (type === 'game'
+                            ? 'game'
+                            : (type === 'movie'
+                                ? 'movie'
+                                : (type === 'music' ? 'music' : 'book')))
+                );
 
                 if (type === 'movie') {
                     const desktopName = document.getElementById('movieDetailName');
@@ -7125,6 +7173,13 @@ header, .top-stripe, .section-nav {
                     const desktopName = document.getElementById('bookDetailName');
                     const desktopIcon = document.getElementById('bookDetailIcon');
                     const mobileName = document.getElementById('mobileBookDetailTitle');
+                    if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
+                    if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
+                    if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
+                } else if (type === 'music') {
+                    const desktopName = document.getElementById('musicDetailName');
+                    const desktopIcon = document.getElementById('musicDetailIcon');
+                    const mobileName = document.getElementById('mobileMusicDetailTitle');
                     if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
                     if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
                     if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
@@ -7328,6 +7383,9 @@ header, .top-stripe, .section-nav {
                         case 'books':
                             renderBooks();
                             break;
+                        case 'music':
+                            renderMusic();
+                            break;
                         case 'community':
                             showCommunitySection('followers');
                             break;
@@ -7366,6 +7424,9 @@ header, .top-stripe, .section-nav {
                             break;
                         case 'books':
                             renderBooks();
+                            break;
+                        case 'music':
+                            renderMusic();
                             break;
                         case 'community':
                             showCommunitySection('followers');
@@ -7767,7 +7828,7 @@ header, .top-stripe, .section-nav {
                 return preferred || FALLBACK_BOOK_IMAGE;
             }
 
-                        async function renderBooks() {
+            async function renderBooks() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileBooksGrid') : document.getElementById('booksGrid');
                 if (!grid) return;
@@ -7859,6 +7920,100 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            async function renderMusic() {
+                const isMobile = window.innerWidth <= 768;
+                const grid = isMobile ? document.getElementById('mobileMusicGrid') : document.getElementById('musicGrid');
+                if (!grid) return;
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                const renderToken = ++renderMusicToken;
+
+                try {
+                    const defaultLists = [
+                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Tracks you love', type: 'default' },
+                        { id: 'listened', title: 'Listened', icon: 'check', description: 'Tracks you already played', type: 'default' },
+                        { id: 'listenlist', title: 'Listenlist', icon: 'bookmark', description: 'Tracks to play later', type: 'default' }
+                    ];
+
+                    const { data: customListsData, error: customError } = await supabase
+                        .from('music_lists')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false });
+                    if (customError) throw customError;
+
+                    const { data: allItemsData, error: itemsError } = await supabase
+                        .from('music_list_items')
+                        .select('track_id, list_type, list_id')
+                        .eq('user_id', userId);
+                    if (itemsError) throw itemsError;
+
+                    if (renderToken !== renderMusicToken) return;
+
+                    const allItems = allItemsData || [];
+                    const reservedTitles = new Set(['favorites', 'listened', 'listenlist']);
+                    const seenCustomIds = new Set();
+                    const customLists = [];
+
+                    for (const raw of (customListsData || [])) {
+                        const id = String(raw.id || '').trim();
+                        if (!id || seenCustomIds.has(id)) continue;
+
+                        const titleNorm = String(raw.title || '').trim().toLowerCase();
+                        if (reservedTitles.has(titleNorm)) continue;
+
+                        seenCustomIds.add(id);
+                        customLists.push({ ...raw, type: 'custom' });
+                    }
+
+                    for (const list of defaultLists) {
+                        list.trackIds = Array.from(new Set(
+                            allItems
+                                .filter((i) => i.list_type === list.id)
+                                .map((i) => String(i.track_id || '').trim())
+                                .filter(Boolean)
+                        ));
+                    }
+
+                    for (const list of customLists) {
+                        list.trackIds = Array.from(new Set(
+                            allItems
+                                .filter((i) => String(i.list_id) === String(list.id))
+                                .map((i) => String(i.track_id || '').trim())
+                                .filter(Boolean)
+                        ));
+                    }
+
+                    const allLists = [...defaultLists, ...customLists];
+                    if (!allLists.length) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Music Yet</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save tracks to see them here.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(list, 'music', isMobile)));
+                    grid.innerHTML = '';
+                    const fragment = document.createDocumentFragment();
+                    cards.forEach((card) => fragment.appendChild(card));
+                    grid.appendChild(fragment);
+                } catch (error) {
+                    console.error('Error loading music:', error);
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Music</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your tracks</p>
+                        </div>
+                    `;
+                }
+            }
+
             async function createCollectionCard(list, contentType, isMobile) {
                 const card = document.createElement('div');
                 card.className = 'collection-card';
@@ -7869,7 +8024,9 @@ header, .top-stripe, .section-nav {
                         ? (list.movieIds || [])
                         : (contentType === 'tv'
                             ? (list.tvIds || [])
-                            : (contentType === 'game' ? (list.gameIds || []) : (list.bookIds || []))));
+                            : (contentType === 'game'
+                                ? (list.gameIds || [])
+                                : (contentType === 'book' ? (list.bookIds || []) : (list.trackIds || [])))));
                 const count = itemIds.length;
 
                 const previewItems = await getPreviewItems(itemIds.slice(0, 4), contentType);
@@ -7886,7 +8043,7 @@ header, .top-stripe, .section-nav {
                     } else {
                         previewHtml += `
                             <div class="collection-preview-item ${previewOrientationClass}">
-                                <div class="collection-preview-item-empty">${iconGlyph(contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'game' ? 'game' : 'book'))))}</div>
+                                <div class="collection-preview-item-empty">${iconGlyph(contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : 'music')))))}</div>
                             </div>
                         `;
                     }
@@ -7913,10 +8070,10 @@ header, .top-stripe, .section-nav {
                     ${kebabHtml}
                     <div class="collection-card-header">
                         <div class="collection-card-title-group">
-                            <div class="collection-card-icon">${iconGlyph(list.icon, contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'game' ? 'game' : 'book'))))}</div>
+                            <div class="collection-card-icon">${iconGlyph(list.icon, contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : 'music')))))}</div>
                             <div class="collection-card-info">
                                 <div class="collection-card-title">${list.title}</div>
-                                <div class="collection-card-count">${count} ${contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'TV show' : (contentType === 'game' ? 'game' : 'book')))}${count !== 1 ? 's' : ''}</div>
+                                <div class="collection-card-count">${count} ${contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'TV show' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : 'track'))))}${count !== 1 ? 's' : ''}</div>
                             </div>
                         </div>
                     </div>
@@ -7960,6 +8117,15 @@ header, .top-stripe, .section-nav {
                     (data || []).forEach(row => fallbackMap.set(row.id, row.thumbnail || null));
                     return ids.map(id => fallbackMap.get(id) || FALLBACK_BOOK_IMAGE);
                 }
+                if (contentType === 'music') {
+                    const { data } = await supabase
+                        .from('tracks')
+                        .select('id, image_url')
+                        .in('id', ids);
+                    const imageMap = new Map();
+                    (data || []).forEach((row) => imageMap.set(String(row.id || ''), row.image_url || null));
+                    return ids.map((id) => imageMap.get(String(id || '')) || 'images/logo.png');
+                }
                 if (contentType === 'game') {
                     return Promise.all(ids.map(async id => {
                         const game = await fetchGameDetails(id);
@@ -7989,6 +8155,8 @@ header, .top-stripe, .section-nav {
                     await showGameDetail(listId, listType, isMobile);
                 } else if (contentType === 'tv') {
                     await showTvDetail(listId, listType, isMobile);
+                } else if (contentType === 'music') {
+                    await showMusicDetail(listId, listType, isMobile);
                 } else {
                     await showBookDetail(listId, listType, isMobile);
                 }
@@ -8712,6 +8880,149 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            async function showMusicDetail(listId, listType, isMobile) {
+                if (isMobile) {
+                    const mainSection = document.getElementById('mobileMusicSection');
+                    const detailSection = document.getElementById('mobileMusicDetailSection');
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileMusicGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
+                    if (detailSection) {
+                        detailSection.style.display = 'block';
+                        detailSection.classList.add('active');
+                    }
+                } else {
+                    const mainTab = document.getElementById('music-tab');
+                    const detailView = document.getElementById('music-detail-view');
+                    if (mainTab) mainTab.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'block';
+                        detailView.classList.add('active');
+                    }
+                }
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                let list = null;
+
+                if (listType === 'default') {
+                    const titles = { favorites: 'Favorites', listened: 'Listened', listenlist: 'Listenlist' };
+                    const icons = { favorites: 'heart', listened: 'check', listenlist: 'bookmark' };
+                    const descriptions = {
+                        favorites: 'Tracks you love',
+                        listened: 'Tracks you already played',
+                        listenlist: 'Tracks to play later'
+                    };
+                    list = { id: listId, title: titles[listId], icon: icons[listId], description: descriptions[listId], type: 'default' };
+                } else {
+                    const { data, error } = await supabase.from('music_lists').select('*').eq('id', listId).single();
+                    if (error || !data) {
+                        showToast('Collection not found', 'error');
+                        return;
+                    }
+                    list = { ...data, type: 'custom' };
+                }
+
+                const { data: items } = await supabase
+                    .from('music_list_items')
+                    .select('track_id')
+                    .eq('user_id', userId)
+                    .eq(listType === 'default' ? 'list_type' : 'list_id', listId);
+
+                const trackIds = items ? items.map((i) => String(i.track_id || '').trim()).filter(Boolean) : [];
+
+                if (isMobile) {
+                    const titleEl = document.getElementById('mobileMusicDetailTitle');
+                    const descEl = document.getElementById('mobileMusicDetailDescription');
+                    const actions = document.getElementById('mobileMusicDetailActions');
+                    const editBtn = document.getElementById('mobileMusicListEditBtn');
+                    const deleteBtn = document.getElementById('mobileMusicListDeleteBtn');
+                    if (titleEl) titleEl.textContent = list.title;
+                    if (descEl) descEl.textContent = list.description || '';
+                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameMusicList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteMusicList(listId);
+                } else {
+                    const iconEl = document.getElementById('musicDetailIcon');
+                    const nameEl = document.getElementById('musicDetailName');
+                    const descEl = document.getElementById('musicDetailDescription');
+                    const actions = document.getElementById('musicDetailActions');
+                    const editBtn = document.getElementById('musicListEditBtn');
+                    const deleteBtn = document.getElementById('musicListDeleteBtn');
+                    if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'music');
+                    if (nameEl) nameEl.textContent = list.title;
+                    if (descEl) descEl.textContent = list.description || '';
+                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameMusicList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteMusicList(listId);
+                }
+
+                await renderMusicItems(trackIds, listId, listType, isMobile);
+            }
+
+            async function renderMusicItems(trackIds, listId, listType, isMobile) {
+                const container = isMobile ? document.getElementById('mobileMusicItems') : document.getElementById('musicItemsContainer');
+                if (!container) return;
+
+                if (!trackIds || trackIds.length === 0) {
+                    container.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Music Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add tracks to this collection!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                const tracks = await Promise.all(trackIds.map((id) => fetchMusicDetails(id)));
+                container.innerHTML = '';
+
+                for (let i = 0; i < trackIds.length; i++) {
+                    const trackId = trackIds[i];
+                    const track = tracks[i];
+                    const title = track?.name || 'Track';
+                    const artists = String(track?.artists || 'Unknown Artist').trim() || 'Unknown Artist';
+                    const album = String(track?.album_name || 'Album').trim() || 'Album';
+                    const image = String(track?.image_url || '').trim() || 'images/logo.png';
+                    const openUrl = String(track?.external_url || '').trim();
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'collection-item-card';
+                    itemCard.onclick = () => {
+                        if (openUrl) {
+                            window.open(openUrl, '_blank', 'noopener');
+                        } else {
+                            window.location.href = 'music.html';
+                        }
+                    };
+
+                    itemCard.innerHTML = `
+                        <img class="collection-item-image" src="${image}" alt="${ProfileManager.escapeHtml(title)}" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
+                        <div class="collection-item-body">
+                            <h3 class="collection-item-title">${ProfileManager.escapeHtml(title)}</h3>
+                            <div class="collection-item-meta">
+                                <span><i class="fas fa-user"></i> ${ProfileManager.escapeHtml(artists)}</span>
+                                <span><i class="fas fa-compact-disc"></i> ${ProfileManager.escapeHtml(album)}</span>
+                            </div>
+                        </div>
+                        ${isViewingOwnProfile ? `
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${trackId}', '${listId}', 'music', '${listType}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    `;
+                    container.appendChild(itemCard);
+                }
+            }
+
             function escapeHtml(text) {
                 if (!text) return '';
                 return String(text)
@@ -8872,6 +9183,91 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            async function createMusicList() {
+                if (!supabase || !currentUser || !isViewingOwnProfile) {
+                    showToast('You cannot create lists for other users', 'error');
+                    return;
+                }
+                if (isCreatingMusicList) return;
+
+                const title = prompt('New music list name');
+                if (!title || !title.trim()) return;
+
+                const trimmedTitle = title.trim();
+                const normalizedTitle = trimmedTitle.toLowerCase();
+                const reservedTitles = new Set(['favorites', 'listened', 'listenlist']);
+                if (reservedTitles.has(normalizedTitle)) {
+                    showToast('That name is reserved for a default list', 'warning');
+                    return;
+                }
+
+                try {
+                    isCreatingMusicList = true;
+                    const { data: existingLists, error: existingError } = await supabase
+                        .from('music_lists')
+                        .select('id, title')
+                        .eq('user_id', currentUser.id);
+                    if (existingError) throw existingError;
+
+                    const alreadyExists = (existingLists || []).some(
+                        (list) => String(list.title || '').trim().toLowerCase() === normalizedTitle
+                    );
+                    if (alreadyExists) {
+                        showToast('A list with this name already exists', 'warning');
+                        return;
+                    }
+
+                    const { error } = await supabase
+                        .from('music_lists')
+                        .insert({
+                            user_id: currentUser.id,
+                            title: trimmedTitle,
+                            icon: 'music',
+                            created_at: new Date().toISOString()
+                        });
+                    if (error) throw error;
+
+                    await renderMusic();
+                    showToast(`Music list "${trimmedTitle}" created`, 'success');
+                } catch (error) {
+                    console.error('Error creating music list:', error);
+                    showToast('Could not create music list', 'error');
+                } finally {
+                    isCreatingMusicList = false;
+                }
+            }
+
+            async function renameMusicList(listId) {
+                await openMediaListEditor('music', listId);
+            }
+
+            async function deleteMusicList(listId) {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                if (!confirm('Delete this music list? This cannot be undone.')) return;
+
+                try {
+                    const userId = currentUser.id;
+                    await supabase
+                        .from('music_list_items')
+                        .delete()
+                        .eq('user_id', userId)
+                        .eq('list_id', listId);
+                    const { error } = await supabase
+                        .from('music_lists')
+                        .delete()
+                        .eq('id', listId)
+                        .eq('user_id', userId);
+                    if (error) throw error;
+
+                    hideMusicDetail();
+                    await renderMusic();
+                    showToast('List deleted', 'success');
+                } catch (error) {
+                    console.error('Error deleting music list:', error);
+                    showToast('Could not delete list', 'error');
+                }
+            }
+
             function hideRestaurantDetail() {
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
@@ -8912,6 +9308,33 @@ header, .top-stripe, .section-nav {
                 } else {
                     const detailView = document.getElementById('movie-detail-view');
                     const mainTab = document.getElementById('movies-tab');
+                    if (detailView) detailView.style.display = 'none';
+                    if (mainTab) {
+                        mainTab.style.display = 'block';
+                        mainTab.classList.add('active');
+                    }
+                }
+            }
+
+            function hideMusicDetail() {
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    const detailSection = document.getElementById('mobileMusicDetailSection');
+                    const mainSection = document.getElementById('mobileMusicSection');
+                    if (detailSection) detailSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileMusicGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
+                    }
+                } else {
+                    const detailView = document.getElementById('music-detail-view');
+                    const mainTab = document.getElementById('music-tab');
                     if (detailView) detailView.style.display = 'none';
                     if (mainTab) {
                         mainTab.style.display = 'block';
@@ -9054,6 +9477,24 @@ header, .top-stripe, .section-nav {
 
                         showToast('Removed from collection', 'success');
                         await showGameDetail(collectionId, listType, window.innerWidth <= 768);
+                    } else if (type === 'music') {
+                        if (listType === 'default') {
+                            await supabase
+                                .from('music_list_items')
+                                .delete()
+                                .eq('user_id', userId)
+                                .eq('track_id', itemId)
+                                .eq('list_type', collectionId);
+                        } else {
+                            await supabase
+                                .from('music_list_items')
+                                .delete()
+                                .eq('user_id', userId)
+                                .eq('track_id', itemId)
+                                .eq('list_id', collectionId);
+                        }
+                        showToast('Removed from collection', 'success');
+                        await showMusicDetail(collectionId, listType, window.innerWidth <= 768);
                     } else {
                         if (listType === 'default') {
                             await supabase
@@ -9082,6 +9523,8 @@ header, .top-stripe, .section-nav {
                         await renderTvShows();
                     } else if (type === 'game') {
                         await renderGames();
+                    } else if (type === 'music') {
+                        await renderMusic();
                     } else {
                         await renderBooks();
                     }
@@ -9120,6 +9563,9 @@ header, .top-stripe, .section-nav {
                             } else if (type === 'game') {
                                 await supabase.from('game_list_items').delete().eq('list_id', id);
                                 await supabase.from('game_lists').delete().eq('id', id);
+                            } else if (type === 'music') {
+                                await supabase.from('music_list_items').delete().eq('list_id', id);
+                                await supabase.from('music_lists').delete().eq('id', id);
                             } else {
                                 await supabase.from('book_list_items').delete().eq('list_id', id);
                                 await supabase.from('book_lists').delete().eq('id', id);
@@ -9139,6 +9585,9 @@ header, .top-stripe, .section-nav {
                             } else if (type === 'game') {
                                 hideGameDetail();
                                 await renderGames();
+                            } else if (type === 'music') {
+                                hideMusicDetail();
+                                await renderMusic();
                             } else {
                                 hideBookDetail();
                                 await renderBooks();
@@ -9342,6 +9791,11 @@ header, .top-stripe, .section-nav {
                 if (normalized === 'books') {
                     showTab('books');
                     createBookList();
+                    return;
+                }
+                if (normalized === 'music') {
+                    showTab('music');
+                    createMusicList();
                 }
             }
 
@@ -9643,11 +10097,14 @@ header, .top-stripe, .section-nav {
                 hideMobileGameDetail: hideGameDetail,
                 hideBookDetail,
                 hideMobileBookDetail: hideBookDetail,
+                hideMusicDetail,
+                hideMobileMusicDetail: hideMusicDetail,
                 toggleCollectionMenu,
                 createMovieList,
                 createTvList,
                 createGameList,
                 createBookList,
+                createMusicList,
                 renameMovieList,
                 deleteMovieList,
                 renameTvList,
@@ -9656,6 +10113,8 @@ header, .top-stripe, .section-nav {
                 deleteGameList,
                 renameBookList,
                 deleteBookList,
+                renameMusicList,
+                deleteMusicList,
                 removeFromCollection,
                 editCollection,
                 deleteCollection,
