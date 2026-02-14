@@ -3,7 +3,7 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
   const TMDB_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s';
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
-  const RAWG_KEY = '83b2a55ac54c4c1db7099212e740f680';
+  const IGDB_PROXY_BASE = '/api/igdb';
   const GOOGLE_BOOKS_KEY = 'AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s';
 
   function toHttpsUrl(value) {
@@ -193,7 +193,7 @@
   }
 
   async function fetchGames(query) {
-    const res = await fetch(`https://api.rawg.io/api/games?search=${encodeURIComponent(query)}&page_size=4&key=${RAWG_KEY}`);
+    const res = await fetch(`${IGDB_PROXY_BASE}/games?search=${encodeURIComponent(query)}&page_size=4`);
     if (!res.ok) return [];
     const json = await res.json();
     const items = Array.isArray(json.results) ? json.results : [];

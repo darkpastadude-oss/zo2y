@@ -730,8 +730,7 @@
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      const RAWG_BASE = 'https://api.rawg.io/api';
-      const RAWG_KEY = '83b2a55ac54c4c1db7099212e740f680';
+      const IGDB_PROXY_BASE = '/api/igdb';
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
       const gameId = id ? Number(id) : null;
@@ -746,14 +745,13 @@
       let modalSelectedLists = new Set();
       let selectedIcon = 'fas fa-gamepad';
 
-      async function rawgFetch(path, params = {}) {
-        const url = new URL(RAWG_BASE + path);
-        url.searchParams.set('key', RAWG_KEY);
+      async function igdbFetch(path, params = {}) {
+        const url = new URL(IGDB_PROXY_BASE + path, window.location.origin);
         Object.entries(params).forEach(([k, v]) => {
           if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
         });
         const res = await fetch(url.toString());
-        if (!res.ok) throw new Error('RAWG error');
+        if (!res.ok) throw new Error('IGDB error');
         return res.json();
       }
 
@@ -814,7 +812,7 @@
 
       async function load() {
         if (!id) return;
-        const data = await rawgFetch(`/games/${id}`);
+        const data = await igdbFetch(`/games/${id}`);
         const description = data.description_raw || (data.description || '').replace(/<[^>]+>/g, '').trim();
         document.getElementById('title').textContent = data.name || 'Untitled';
         document.getElementById('overview').textContent = description || 'No description available.';
@@ -846,9 +844,18 @@
         }
         const trailerEl = document.getElementById('trailer');
         if (trailerEl) {
-          trailerEl.innerHTML = data.clip?.clip
-            ? `<video class="video-frame" controls src="${data.clip.clip}"></video>`
-            : '<div class="meta-item">No trailer available.</div>';
+          if (data.clip?.clip) {
+            trailerEl.innerHTML = `<video class="video-frame" controls src="${data.clip.clip}"></video>`;
+          } else if (data.youtube_url) {
+            const youtubeUrl = String(data.youtube_url || '');
+            const match = youtubeUrl.match(/[?&]v=([^&]+)/) || youtubeUrl.match(/youtu\.be\/([^?&]+)/);
+            const videoId = match ? match[1] : '';
+            trailerEl.innerHTML = videoId
+              ? `<iframe class="video-frame" src="https://www.youtube.com/embed/${encodeURIComponent(videoId)}" title="Game trailer" frameborder="0" allowfullscreen></iframe>`
+              : '<div class="meta-item">No trailer available.</div>';
+          } else {
+            trailerEl.innerHTML = '<div class="meta-item">No trailer available.</div>';
+          }
         }
         const developers = (data.developers || []).map(d => d.name);
         const publishers = (data.publishers || []).map(p => p.name);
@@ -1436,7 +1443,7 @@
             return;
           }
           try {
-            const json = await rawgFetch('/games', { search: q, page_size: 6 });
+            const json = await igdbFetch('/games', { search: q, page_size: 6 });
             suggestions = (json.results || []).slice(0, 6).map((g) => ({
               id: g.id,
               title: g.name || 'Game',

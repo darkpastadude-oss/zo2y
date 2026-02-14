@@ -38,6 +38,8 @@ connectDB();
 // Import auth routes
 import authRoutes from "./routes/auth.js";
 app.use("/api/auth", authRoutes);
+import igdbRoutes from "./routes/igdb.js";
+app.use("/api/igdb", igdbRoutes);
 
 // Serve frontend routes
 app.get("/", (req, res) => {

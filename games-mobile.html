@@ -535,7 +535,7 @@
 
   <section class="hero">
     <h1>Popular Games</h1>
-    <p>Discover trending games powered by RAWG.</p>
+    <p>Discover trending games powered by IGDB.</p>
   </section>
 
   <div class="controls">
@@ -585,8 +585,7 @@
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      const RAWG_BASE = 'https://api.rawg.io/api';
-      const RAWG_KEY = '83b2a55ac54c4c1db7099212e740f680';
+      const IGDB_PROXY_BASE = '/api/igdb';
       const state = {
         genres: [],
         activeGenre: '',
@@ -604,14 +603,13 @@
 
       let supabaseClient = null;
 
-      async function rawgFetch(path, params = {}) {
-        const url = new URL(RAWG_BASE + path);
-        url.searchParams.set('key', RAWG_KEY);
+      async function igdbFetch(path, params = {}) {
+        const url = new URL(IGDB_PROXY_BASE + path, window.location.origin);
         Object.entries(params).forEach(([k, v]) => {
           if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
         });
         const res = await fetch(url.toString());
-        if (!res.ok) throw new Error(`RAWG error ${res.status}`);
+        if (!res.ok) throw new Error(`IGDB error ${res.status}`);
         return res.json();
       }
 
@@ -735,7 +733,7 @@
       }
 
       async function loadGenres() {
-        const data = await rawgFetch('/genres', { page_size: 50 });
+        const data = await igdbFetch('/genres', { page_size: 50 });
         state.genres = data.results || [];
         const select = document.getElementById('genreSelect');
         if (!select) return;
@@ -763,7 +761,7 @@
           if (state.query) params.search = state.query;
           if (state.activeGenre) params.genres = state.activeGenre;
           if (state.year) params.dates = `${state.year}-01-01,${state.year}-12-31`;
-          data = await rawgFetch('/games', params);
+          data = await igdbFetch('/games', params);
         } catch (e) {
           if (empty) empty.style.display = 'block';
           return;

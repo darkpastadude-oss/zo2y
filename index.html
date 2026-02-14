@@ -1329,7 +1329,7 @@
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
     const TMDB_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s';
-    const RAWG_KEY = '83b2a55ac54c4c1db7099212e740f680';
+    const IGDB_PROXY_BASE = '/api/igdb';
     const GOOGLE_BOOKS_KEY = 'AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s';
     const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
     const TMDB_SPOT_POSTER = 'https://image.tmdb.org/t/p/w780';
@@ -3121,7 +3121,7 @@
       const batches = await Promise.all(orderings.map(async (ordering, index) => {
         const dateRange = index % 2 === 0 ? '2010-01-01,2026-12-31' : '2000-01-01,2026-12-31';
         const page = randomInt(1, 2);
-        const url = `https://api.rawg.io/api/games?page_size=40&ordering=${ordering}&dates=${dateRange}&metacritic=65,100&page=${page}&key=${RAWG_KEY}`;
+        const url = `${IGDB_PROXY_BASE}/games?page_size=40&ordering=${encodeURIComponent(ordering)}&dates=${encodeURIComponent(dateRange)}&page=${page}`;
         try {
           const res = await fetch(url);
           if (!res.ok) return [];
