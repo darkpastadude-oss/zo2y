@@ -996,15 +996,16 @@
         right: 12px;
         top: 12px;
         transform: none;
-        width: 122px;
+        width: 108px;
         aspect-ratio: 2/3;
         margin: 0;
+        border-radius: 12px;
       }
       .spotlight-inner {
         min-height: 332px;
         max-width: none;
         padding: 14px 16px 16px;
-        padding-right: 146px;
+        padding-right: 132px;
         gap: 9px;
       }
       .spotlight.no-media .spotlight-inner {
@@ -1012,19 +1013,19 @@
       }
 
       .spotlight.has-square-media .spotlight-inner {
-        padding-right: 146px;
+        padding-right: 122px;
       }
 
       .spotlight.has-landscape-media .spotlight-inner {
         padding-right: 16px;
-        padding-top: 136px;
+        padding-top: 126px;
       }
 
       .spotlight-media.square {
-        width: 122px;
+        width: 98px;
         aspect-ratio: 1/1;
         padding: 0;
-        border-radius: 14px;
+        border-radius: 12px;
         background: transparent;
       }
 
@@ -1038,8 +1039,8 @@
       }
 
       .spotlight-media.landscape {
-        width: min(56vw, 220px);
-        max-width: 220px;
+        width: min(52vw, 208px);
+        max-width: 208px;
         height: auto;
         aspect-ratio: 16/10;
         right: 12px;
@@ -1359,6 +1360,7 @@
     let homeSpotlightTimer = null;
     let homeSpotlightItems = [];
     let homeSpotlightIndex = 0;
+    let homeSpotlightImageToken = 0;
     let homeTasteWeights = {
       restaurant: 1,
       movie: 1,
@@ -1591,6 +1593,7 @@
       const spotlightMediaShape = String(item.spotlightMediaShape || '').trim() || 'poster';
       const usesSquareMedia = spotlightMediaShape === 'square';
       const usesLandscapeMedia = spotlightMediaShape === 'landscape';
+      const mediaToken = ++homeSpotlightImageToken;
 
       spotlightSection.classList.remove('has-square-media', 'has-landscape-media');
       mediaWrap.classList.remove('square', 'landscape');
@@ -1609,7 +1612,6 @@
       }
 
       if (spotlightMediaImage) {
-        mediaImage.src = spotlightMediaImage;
         mediaImage.style.width = '';
         mediaImage.style.height = '';
         mediaImage.style.padding = '';
@@ -1619,7 +1621,26 @@
         mediaImage.style.display = 'block';
         mediaWrap.style.display = 'block';
         spotlightSection.classList.remove('no-media');
+        const fallbackCandidates = [
+          spotlightMediaImage,
+          item.fallbackImage,
+          item.image,
+          item.spotlightImage,
+          item.backgroundImage
+        ];
+        if (String(item.mediaType || '').toLowerCase() === 'book') {
+          fallbackCandidates.push(getBookCoverFallback(item));
+        }
+        setSpotlightImageWithFallback(mediaImage, fallbackCandidates, mediaToken);
       } else {
+        if (mediaImage.__homeSpotlightOnLoad) {
+          mediaImage.removeEventListener('load', mediaImage.__homeSpotlightOnLoad);
+          mediaImage.__homeSpotlightOnLoad = null;
+        }
+        if (mediaImage.__homeSpotlightOnError) {
+          mediaImage.removeEventListener('error', mediaImage.__homeSpotlightOnError);
+          mediaImage.__homeSpotlightOnError = null;
+        }
         mediaImage.removeAttribute('src');
         mediaImage.style.width = '';
         mediaImage.style.height = '';
@@ -1727,7 +1748,29 @@
       const topPool = pool.slice(0, HOME_SPOTLIGHT_POOL_SIZE * 3);
       const mixedCandidates = buildUnifiedFeed(topPool, HOME_SPOTLIGHT_POOL_SIZE * 2);
       const diversified = shuffleArray(mixedCandidates.length ? mixedCandidates : topPool).slice(0, HOME_SPOTLIGHT_POOL_SIZE);
-      const shortlist = diversified.length ? diversified : pool.slice(0, HOME_SPOTLIGHT_POOL_SIZE);
+      let shortlist = diversified.length ? diversified : pool.slice(0, HOME_SPOTLIGHT_POOL_SIZE);
+
+      const gamePool = pool.filter((item) => String(item.mediaType || '').toLowerCase() === 'game');
+      const desiredGameCount = Math.min(gamePool.length, Math.max(6, Math.floor(HOME_SPOTLIGHT_POOL_SIZE * 0.4)));
+      const currentGameCount = shortlist.filter((item) => String(item.mediaType || '').toLowerCase() === 'game').length;
+      if (currentGameCount < desiredGameCount) {
+        const keyOf = (item) => `${String(item.mediaType || '')}:${String(item.itemId || item.title || '')}`;
+        const existingKeys = new Set(shortlist.map((item) => keyOf(item)));
+        const gameAdditions = gamePool.filter((item) => !existingKeys.has(keyOf(item))).slice(0, desiredGameCount - currentGameCount);
+        if (gameAdditions.length) {
+          const boosted = [...shortlist];
+          gameAdditions.forEach((gameItem) => {
+            for (let i = boosted.length - 1; i >= 0; i -= 1) {
+              if (String(boosted[i].mediaType || '').toLowerCase() !== 'game') {
+                boosted[i] = gameItem;
+                break;
+              }
+            }
+          });
+          shortlist = shuffleArray(boosted);
+        }
+      }
+
       const seed = getSpotlightSeedOffset();
       const offset = seed % shortlist.length;
       homeSpotlightItems = [...shortlist.slice(offset), ...shortlist.slice(0, offset)];
@@ -2398,7 +2441,60 @@
       items.slice(0, HOME_SPOTLIGHT_POOL_SIZE).forEach((item) => {
         preloadImage(item.spotlightImage || item.backgroundImage || item.image);
         preloadImage(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage);
+        preloadImage(item.fallbackImage);
       });
+    }
+
+    function getBookCoverFallback(item) {
+      const isbn = String(item?.isbn || '').trim();
+      if (isbn) {
+        return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`;
+      }
+      const title = String(item?.title || '').trim();
+      if (!title) return '';
+      return `https://covers.openlibrary.org/b/title/${encodeURIComponent(title)}-L.jpg?default=false`;
+    }
+
+    function setSpotlightImageWithFallback(imgEl, sources, token) {
+      if (!imgEl) return;
+      if (imgEl.__homeSpotlightOnLoad) {
+        imgEl.removeEventListener('load', imgEl.__homeSpotlightOnLoad);
+      }
+      if (imgEl.__homeSpotlightOnError) {
+        imgEl.removeEventListener('error', imgEl.__homeSpotlightOnError);
+      }
+
+      const candidates = [...new Set((sources || [])
+        .map((value) => String(value || '').trim())
+        .filter(Boolean))];
+
+      if (!candidates.length) {
+        imgEl.removeAttribute('src');
+        return;
+      }
+
+      let pointer = 0;
+      const onLoad = () => {
+        if (token !== homeSpotlightImageToken) return;
+        imgEl.removeAttribute('data-loading');
+      };
+      const onError = () => {
+        if (token !== homeSpotlightImageToken) return;
+        pointer += 1;
+        if (pointer < candidates.length) {
+          imgEl.src = candidates[pointer];
+          return;
+        }
+        imgEl.removeAttribute('src');
+        imgEl.removeAttribute('data-loading');
+      };
+
+      imgEl.__homeSpotlightOnLoad = onLoad;
+      imgEl.__homeSpotlightOnError = onError;
+      imgEl.addEventListener('load', onLoad);
+      imgEl.addEventListener('error', onError);
+      imgEl.setAttribute('data-loading', '1');
+      imgEl.src = candidates[pointer];
     }
 
     function buildInstantFallbackFeed() {
@@ -2447,6 +2543,8 @@
           spotlightMediaImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'poster',
+          fallbackImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+          isbn: b.isbn,
           href: 'books.html',
           isPlaceholder: true
         }))
@@ -2559,6 +2657,7 @@
         const extra = escapeHtml(item.extra || '');
         const image = escapeHtml(item.image || '');
         const logo = escapeHtml(item.logo || '');
+        const fallbackImage = escapeHtml(item.fallbackImage || '');
         const coverImage = image || logo;
         const hrefRaw = item.href || '#';
         const href = escapeHtml(hrefRaw);
@@ -2573,10 +2672,10 @@
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         const mediaHtml = restaurantComposite
           ? `
-              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" decoding="async">` : '<i class="fa-solid fa-image"></i>'}
-              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" decoding="async"></span>` : ''}
+              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" decoding="async" data-fallback-image="${fallbackImage || logo}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
+              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" decoding="async" data-fallback-image="${fallbackImage || coverImage}" data-fallback-applied="0"></span>` : ''}
             `
-          : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" decoding="async">` : '<i class="fa-solid fa-image"></i>'}`;
+          : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" decoding="async" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
         const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
         const trailingControl = supportsLists
           ? `
@@ -2608,6 +2707,20 @@
       }).join('');
 
       wireHomeCardMenus(rail);
+      wireHomeRailImageFallbacks(rail);
+    }
+
+    function wireHomeRailImageFallbacks(scope) {
+      scope.querySelectorAll('img[data-fallback-image]').forEach((img) => {
+        img.addEventListener('error', () => {
+          const fallback = String(img.getAttribute('data-fallback-image') || '').trim();
+          const alreadyApplied = img.getAttribute('data-fallback-applied') === '1';
+          if (!fallback || alreadyApplied) return;
+          img.setAttribute('data-fallback-applied', '1');
+          if (String(img.currentSrc || img.src).trim() === fallback) return;
+          img.src = fallback;
+        });
+      });
     }
 
     function wireHomeCardMenus(scope) {
@@ -3069,17 +3182,29 @@
             if (seenTitles.has(titleKey)) return null;
             seenTitles.add(titleKey);
             const author = Array.isArray(info.authors) && info.authors.length ? info.authors[0] : 'Book';
+            const identifiers = Array.isArray(info.industryIdentifiers) ? info.industryIdentifiers : [];
+            const rawIsbn =
+              identifiers.find((id) => String(id?.type || '') === 'ISBN_13')?.identifier ||
+              identifiers.find((id) => String(id?.type || '') === 'ISBN_10')?.identifier ||
+              '';
+            const isbn = String(rawIsbn || '').replace(/[^0-9Xx]/g, '').trim();
+            const fallbackImage = isbn
+              ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`
+              : `https://covers.openlibrary.org/b/title/${encodeURIComponent(title)}-L.jpg?default=false`;
+            const primaryImage = toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '') || fallbackImage;
             return {
               mediaType: 'book',
               itemId: String(item.id || ''),
               title,
               subtitle: author,
-              image: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
-              backgroundImage: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
-              spotlightImage: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
-              spotlightMediaImage: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
+              image: primaryImage,
+              backgroundImage: primaryImage,
+              spotlightImage: primaryImage,
+              spotlightMediaImage: primaryImage,
               spotlightMediaFit: 'contain',
               spotlightMediaShape: 'poster',
+              fallbackImage,
+              isbn,
               href: item.id ? `book.html?id=${encodeURIComponent(item.id)}` : 'books.html'
             };
           }).filter(Boolean);
@@ -3098,6 +3223,8 @@
         spotlightMediaImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
         spotlightMediaFit: 'contain',
         spotlightMediaShape: 'poster',
+        fallbackImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+        isbn: b.isbn,
         href: 'books.html'
       }));
     }
