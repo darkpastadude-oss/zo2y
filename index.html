@@ -3194,7 +3194,7 @@
         const idKey = String(g.id || '').trim();
         const nameKey = String(g.name || '').trim().toLowerCase();
         if (!idKey || !nameKey || seen.has(idKey)) continue;
-        if (!g.cover && !g.hero && !(Array.isArray(g.screenshots) && g.screenshots.length)) continue;
+        if (!g.cover) continue;
         if (Number.isFinite(Number(g.ratings_count)) && Number(g.ratings_count) < 20) continue;
         seen.add(idKey);
         candidates.push(g);
@@ -3203,23 +3203,20 @@
       const filtered = candidates.slice(0, HOME_CHANNEL_TARGET_ITEMS);
 
       return filtered.map((g) => {
-        const screenshots = Array.isArray(g.screenshots)
-          ? g.screenshots.map((url) => String(url || '').trim()).filter(Boolean)
-          : [];
         const coverImage = String(g.cover || '').trim();
         const heroImage = String(g.hero || '').trim();
-        const backgroundImage = heroImage || screenshots[0] || coverImage || '';
-        const mainImage = coverImage || backgroundImage;
+        const backgroundImage = heroImage || coverImage || '';
+        const mainImage = coverImage || '';
         return {
           mediaType: 'game',
           itemId: String(g.id || ''),
           title: g.name || 'Game',
           subtitle: g.released ? g.released.slice(0, 4) : 'Game',
           extra: `${Array.isArray(g.genres) && g.genres.length ? g.genres.slice(0, 2).map(x => x?.name).filter(Boolean).join(' | ') : 'Video Game'}${g.rating ? ` | ${Number(g.rating).toFixed(1)}/5` : ''}`,
-          image: coverImage || backgroundImage,
+          image: coverImage,
           backgroundImage,
-          spotlightImage: backgroundImage,
-          spotlightMediaImage: coverImage || mainImage,
+          spotlightImage: backgroundImage || coverImage,
+          spotlightMediaImage: coverImage,
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'poster',
           href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html'

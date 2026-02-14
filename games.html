@@ -835,7 +835,8 @@
           return;
         }
 
-        const results = data.results || [];
+        const rawResults = data.results || [];
+        const results = rawResults.filter((item) => String(item?.cover || '').trim());
 
         if (!results.length) {
           if (empty) empty.style.display = 'block';
@@ -847,7 +848,7 @@
         results.forEach(item => {
           const gameTitle = item.name || item.slug || 'Untitled';
           const gameDate = item.released || '';
-          const gameCover = item.cover || item.hero || 'images/placeholder.jpg';
+          const gameCover = item.cover || 'images/placeholder.jpg';
           const card = document.createElement('div');
           card.className = 'card';
           card.setAttribute('data-game-id', item.id);

@@ -6558,14 +6558,8 @@ header, .top-stripe, .section-nav {
 
             function normalizeGameImageSource(game) {
                 if (!game || typeof game !== 'object') return 'images/placeholder.jpg';
-                const screenshots = Array.isArray(game.screenshots)
-                    ? game.screenshots.map((url) => String(url || '').trim()).filter(Boolean)
-                    : [];
                 return String(
                     game.cover ||
-                    game.hero ||
-                    game.background_image ||
-                    screenshots[0] ||
                     ''
                 ).trim() || 'images/placeholder.jpg';
             }
@@ -7807,17 +7801,7 @@ header, .top-stripe, .section-nav {
                 if (contentType === 'game') {
                     return Promise.all(ids.map(async id => {
                         const game = await fetchGameDetails(id);
-                        if (!game) return null;
-                        const shots = Array.isArray(game.screenshots)
-                            ? game.screenshots.map((url) => String(url || '').trim()).filter(Boolean)
-                            : [];
-                        return String(
-                            game.hero ||
-                            game.background_image ||
-                            shots[0] ||
-                            game.cover ||
-                            ''
-                        ).trim() || null;
+                        return game?.cover ? String(game.cover).trim() : null;
                     }));
                 }
                 if (contentType === 'tv') {
