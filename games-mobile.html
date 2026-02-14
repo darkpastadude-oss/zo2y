@@ -279,6 +279,13 @@
       color: var(--muted);
     }
 
+    .card-desc {
+      display: none;
+      font-size: 11px;
+      color: #a9b9da;
+      line-height: 1.3;
+    }
+
     .card-meta-row {
       display: flex;
       align-items: center;
@@ -520,9 +527,20 @@
     .icon-option.selected { border-color: var(--accent); color: var(--accent); }
 
     @media (max-width: 760px) {
+      .card {
+        border: none;
+      }
+
       .card img {
         aspect-ratio: 2 / 3;
         object-fit: cover;
+      }
+
+      .card-desc {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
     }
   </style>
@@ -791,6 +809,12 @@
         results.forEach(item => {
           const gameTitle = item.name || item.slug || 'Untitled';
           const gameDate = item.released || '';
+          const genreText = Array.isArray(item.genres)
+            ? item.genres.map((g) => String(g?.name || '').trim()).filter(Boolean).slice(0, 2).join(' | ')
+            : '';
+          const ratingValue = Number(item.rating || 0);
+          const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
+          const gameDesc = [genreText, ratingText].filter(Boolean).join(' | ') || 'Popular pick';
           const card = document.createElement('div');
           card.className = 'card';
           card.setAttribute('data-game-id', item.id);
@@ -811,6 +835,7 @@
                   </div>
                 </div>
               </div>
+              <p class="card-desc">${gameDesc}</p>
             </div>
           `;
           card.onclick = (e) => {
