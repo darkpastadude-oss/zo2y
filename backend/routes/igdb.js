@@ -322,7 +322,8 @@ router.get("/games", async (req, res) => {
     ];
     if (search) queryParts.push(`search "${escapeIgdbText(search)}";`);
     if (whereClause) queryParts.push(`where ${whereClause};`);
-    queryParts.push(`sort ${ordering};`);
+    // IGDB rejects queries that combine `search` with `sort`.
+    if (!search) queryParts.push(`sort ${ordering};`);
     queryParts.push(`limit ${pageSize};`);
     queryParts.push(`offset ${offset};`);
 
