@@ -3156,7 +3156,7 @@
         const idKey = String(g.id || '').trim();
         const nameKey = String(g.name || '').trim().toLowerCase();
         if (!idKey || !nameKey || seen.has(idKey)) continue;
-        if (!g.background_image) continue;
+        if (!g.cover && !g.hero && !(Array.isArray(g.screenshots) && g.screenshots.length)) continue;
         if ((g.ratings_count || 0) < 120) continue;
         seen.add(idKey);
         candidates.push(g);
@@ -3165,14 +3165,13 @@
       const filtered = candidates.slice(0, HOME_CHANNEL_TARGET_ITEMS);
 
       return filtered.map((g) => {
-        const screenshots = Array.isArray(g.short_screenshots)
-          ? g.short_screenshots
-            .map((shot) => String(shot?.image || '').trim())
-            .filter(Boolean)
+        const screenshots = Array.isArray(g.screenshots)
+          ? g.screenshots.map((url) => String(url || '').trim()).filter(Boolean)
           : [];
-        const backgroundImage = screenshots[0] || g.background_image || '';
-        const foregroundImage = screenshots.find((url) => url !== backgroundImage) || g.background_image || backgroundImage;
-        const mainImage = foregroundImage || backgroundImage;
+        const coverImage = String(g.cover || '').trim();
+        const heroImage = String(g.hero || '').trim();
+        const backgroundImage = heroImage || screenshots[0] || coverImage || '';
+        const mainImage = coverImage || backgroundImage;
         return {
           mediaType: 'game',
           itemId: String(g.id || ''),
@@ -3182,9 +3181,9 @@
           image: mainImage,
           backgroundImage,
           spotlightImage: backgroundImage,
-          spotlightMediaImage: foregroundImage,
-          spotlightMediaFit: 'cover',
-          spotlightMediaShape: 'landscape',
+          spotlightMediaImage: coverImage || mainImage,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
           href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html'
         };
       });

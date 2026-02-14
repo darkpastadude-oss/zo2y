@@ -847,11 +847,12 @@
         results.forEach(item => {
           const gameTitle = item.name || item.slug || 'Untitled';
           const gameDate = item.released || '';
+          const gameCover = item.cover || item.hero || 'images/placeholder.jpg';
           const card = document.createElement('div');
           card.className = 'card';
           card.setAttribute('data-game-id', item.id);
           card.innerHTML = `
-            <img src="${item.background_image ? item.background_image : 'images/placeholder.jpg'}" alt="${gameTitle}">
+            <img src="${gameCover}" alt="${gameTitle}">
             <div class="card-body">
               <h3 class="card-title">${gameTitle}</h3>
               <div class="card-meta-row">

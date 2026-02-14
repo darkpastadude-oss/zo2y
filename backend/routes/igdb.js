@@ -326,11 +326,20 @@ function mergeScreenshotRows(primaryRows, secondaryRows) {
   return merged;
 }
 
+function normalizeImageUrls(values) {
+  return [...new Set((Array.isArray(values) ? values : [])
+    .map((value) => String(value || "").trim())
+    .filter(Boolean))];
+}
+
 function mapRawgListGame(game) {
   const rawgId = Number(game?.id || 0);
   const encodedId = encodeRawgId(rawgId);
   const backgroundImage = pickRawgBackground(game);
   const screenshots = mapRawgScreenshots(game?.short_screenshots || []);
+  const screenshotUrls = normalizeImageUrls(screenshots.map((row) => row.image));
+  const coverImage = backgroundImage || (screenshotUrls[0] || "");
+  const heroImage = screenshotUrls[0] || backgroundImage || coverImage;
 
   return {
     id: encodedId || rawgId,
@@ -338,6 +347,9 @@ function mapRawgListGame(game) {
     name: String(game?.name || "Game"),
     slug: String(game?.slug || ""),
     released: String(game?.released || ""),
+    cover: coverImage || "",
+    hero: heroImage || "",
+    screenshots: screenshotUrls,
     background_image: backgroundImage,
     short_screenshots: screenshots,
     rating: toNumberOrNull(game?.rating),
@@ -356,6 +368,9 @@ function mapRawgDetailGame(game, screenshotRows = []) {
   const detailScreens = mapRawgScreenshots(screenshotRows);
   const screenshots = mergeScreenshotRows(listScreens, detailScreens);
   const bg = pickRawgBackground(game) || (screenshots[0] ? screenshots[0].image : "");
+  const screenshotUrls = normalizeImageUrls(screenshots.map((row) => row.image));
+  const coverImage = bg || (screenshotUrls[0] || "");
+  const heroImage = screenshotUrls[0] || bg || coverImage;
 
   return {
     id: encodedId || rawgId,
@@ -366,6 +381,9 @@ function mapRawgDetailGame(game, screenshotRows = []) {
     description: String(game?.description || game?.description_raw || "").trim(),
     released: String(game?.released || ""),
     playtime: toNumberOrNull(game?.playtime),
+    cover: coverImage || "",
+    hero: heroImage || "",
+    screenshots: screenshotUrls,
     background_image: bg,
     short_screenshots: screenshots,
     genres: mapRawgGenres(game?.genres || []),
@@ -388,10 +406,20 @@ function mapRawgDetailGame(game, screenshotRows = []) {
 
 function mergeGameListRows(igdbRow, rawgRow) {
   if (!rawgRow) return igdbRow;
+  const mergedScreenshots = normalizeImageUrls([
+    ...(Array.isArray(igdbRow?.screenshots) ? igdbRow.screenshots : []),
+    ...(Array.isArray(rawgRow?.screenshots) ? rawgRow.screenshots : []),
+    ...mergeScreenshotRows(igdbRow?.short_screenshots || [], rawgRow?.short_screenshots || []).map((row) => row.image)
+  ]);
+  const coverImage = String(igdbRow?.cover || "").trim() || String(rawgRow?.cover || "").trim() || String(igdbRow?.background_image || "").trim() || String(rawgRow?.background_image || "").trim();
+  const heroImage = String(igdbRow?.hero || "").trim() || String(rawgRow?.hero || "").trim() || mergedScreenshots[0] || String(igdbRow?.background_image || "").trim() || String(rawgRow?.background_image || "").trim() || coverImage;
   return {
     ...igdbRow,
     rawg_id: rawgRow.rawg_id || null,
-    background_image: String(igdbRow?.background_image || "").trim() || String(rawgRow?.background_image || "").trim(),
+    cover: coverImage || "",
+    hero: heroImage || "",
+    screenshots: mergedScreenshots,
+    background_image: heroImage || coverImage || "",
     short_screenshots: mergeScreenshotRows(igdbRow?.short_screenshots || [], rawgRow?.short_screenshots || []),
     metacritic: isFiniteNumber(igdbRow?.metacritic) ? Number(igdbRow.metacritic) : toNumberOrNull(rawgRow?.metacritic),
     rating: isFiniteNumber(igdbRow?.rating) ? Number(igdbRow.rating) : toNumberOrNull(rawgRow?.rating),
@@ -406,6 +434,13 @@ function mergeGameDetailRows(igdbRow, rawgRow) {
 
   const primaryDesc = String(igdbRow?.description_raw || igdbRow?.description || "").trim();
   const fallbackDesc = String(rawgRow?.description_raw || rawgRow?.description || "").trim();
+  const mergedScreenshots = normalizeImageUrls([
+    ...(Array.isArray(igdbRow?.screenshots) ? igdbRow.screenshots : []),
+    ...(Array.isArray(rawgRow?.screenshots) ? rawgRow.screenshots : []),
+    ...mergeScreenshotRows(igdbRow?.short_screenshots || [], rawgRow?.short_screenshots || []).map((row) => row.image)
+  ]);
+  const coverImage = String(igdbRow?.cover || "").trim() || String(rawgRow?.cover || "").trim() || String(igdbRow?.background_image || "").trim() || String(rawgRow?.background_image || "").trim();
+  const heroImage = String(igdbRow?.hero || "").trim() || String(rawgRow?.hero || "").trim() || mergedScreenshots[0] || String(igdbRow?.background_image || "").trim() || String(rawgRow?.background_image || "").trim() || coverImage;
 
   return {
     ...igdbRow,
@@ -413,7 +448,10 @@ function mergeGameDetailRows(igdbRow, rawgRow) {
     description_raw: primaryDesc || fallbackDesc,
     description: String(igdbRow?.description || "").trim() || String(rawgRow?.description || fallbackDesc || "").trim(),
     playtime: igdbRow?.playtime ?? rawgRow?.playtime ?? null,
-    background_image: String(igdbRow?.background_image || "").trim() || String(rawgRow?.background_image || "").trim(),
+    cover: coverImage || "",
+    hero: heroImage || "",
+    screenshots: mergedScreenshots,
+    background_image: heroImage || coverImage || "",
     short_screenshots: mergeScreenshotRows(igdbRow?.short_screenshots || [], rawgRow?.short_screenshots || []),
     genres: mergeGenreRows(igdbRow?.genres || [], rawgRow?.genres || []),
     metacritic: isFiniteNumber(igdbRow?.metacritic) ? Number(igdbRow.metacritic) : toNumberOrNull(rawgRow?.metacritic),
@@ -755,7 +793,7 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
   } catch (_countErr) {}
 
   const queryParts = [
-    "fields id,name,slug,first_release_date,total_rating,total_rating_count,aggregated_rating,aggregated_rating_count,cover,genres,screenshots,artworks;"
+    "fields id,name,slug,first_release_date,total_rating,total_rating_count,aggregated_rating,aggregated_rating_count,cover,cover.image_id,genres,screenshots,screenshots.image_id,artworks,artworks.image_id;"
   ];
   if (search) queryParts.push(`search "${escapeIgdbText(search)}";`);
   if (whereClause) queryParts.push(`where ${whereClause};`);
@@ -776,10 +814,10 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
     fetchMapByIds("artworks", artworkIds, "id,image_id", (row) => imageUrl(row?.image_id, "t_1080p"))
   ]);
 
-  const results = (games || []).map((game) => {
-    const rating100 = Number(game?.total_rating ?? game?.aggregated_rating ?? 0);
-    const ratingCount = Number(game?.total_rating_count ?? game?.aggregated_rating_count ?? 0);
-    const mappedGenres = (game?.genres || [])
+    const results = (games || []).map((game) => {
+      const rating100 = Number(game?.total_rating ?? game?.aggregated_rating ?? 0);
+      const ratingCount = Number(game?.total_rating_count ?? game?.aggregated_rating_count ?? 0);
+      const mappedGenres = (game?.genres || [])
       .map((genreId) => genreData.byId.get(Number(genreId)))
       .filter(Boolean)
       .map((genre) => ({
@@ -788,20 +826,34 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
         slug: genre.slug
       }));
 
-    const screenshotRows = (Array.isArray(game?.screenshots) ? game.screenshots : [])
-      .map((id) => screenshotMap.get(Number(id)))
-      .filter(Boolean)
-      .map((image, index) => ({ id: index + 1, image }))
-      .slice(0, 12);
+      const coverImage = game?.cover?.image_id
+        ? imageUrl(game.cover.image_id, "t_cover_big")
+        : (coverMap.get(Number(game?.cover)) || "");
 
-    return {
-      id: Number(game?.id || 0),
-      name: game?.name || "Game",
-      slug: game?.slug || "",
-      released: toReleaseDate(game?.first_release_date),
-      background_image: pickFirstImage(game, coverMap, screenshotMap, artworkMap),
-      short_screenshots: screenshotRows,
-      rating: rating100 ? Number((rating100 / 20).toFixed(1)) : null,
+      const screenshotRows = (Array.isArray(game?.screenshots) ? game.screenshots : [])
+        .map((entry) => {
+          if (entry && typeof entry === "object" && entry.image_id) {
+            return imageUrl(entry.image_id, "t_screenshot_big");
+          }
+          return screenshotMap.get(Number(entry));
+        })
+        .filter(Boolean)
+        .map((image, index) => ({ id: index + 1, image }))
+        .slice(0, 12);
+      const screenshotUrls = normalizeImageUrls(screenshotRows.map((row) => row.image));
+      const heroImage = screenshotUrls[0] || pickFirstImage(game, coverMap, screenshotMap, artworkMap) || coverImage || "";
+
+      return {
+        id: Number(game?.id || 0),
+        name: game?.name || "Game",
+        slug: game?.slug || "",
+        released: toReleaseDate(game?.first_release_date),
+        cover: coverImage || "",
+        hero: heroImage || "",
+        screenshots: screenshotUrls,
+        background_image: heroImage || coverImage || "",
+        short_screenshots: screenshotRows,
+        rating: rating100 ? Number((rating100 / 20).toFixed(1)) : null,
       ratings_count: ratingCount || 0,
       metacritic: Number.isFinite(Number(game?.aggregated_rating)) ? Math.round(Number(game.aggregated_rating)) : null,
       genres: mappedGenres
@@ -823,7 +875,7 @@ async function fetchIgdbGameDetails(gameId) {
 
   const gameRows = await igdbRequest(
     "games",
-    `fields id,name,slug,summary,storyline,first_release_date,total_rating,total_rating_count,aggregated_rating,aggregated_rating_count,cover,genres,screenshots,artworks,platforms,involved_companies,websites,videos,age_ratings; where id = ${gameId}; limit 1;`
+    `fields id,name,slug,summary,storyline,first_release_date,total_rating,total_rating_count,aggregated_rating,aggregated_rating_count,cover,cover.image_id,genres,screenshots,screenshots.image_id,artworks,artworks.image_id,platforms,involved_companies,websites,videos,age_ratings; where id = ${gameId}; limit 1;`
   );
   const game = Array.isArray(gameRows) ? gameRows[0] : null;
   if (!game) {
@@ -912,14 +964,24 @@ async function fetchIgdbGameDetails(gameId) {
 
   const totalRating = Number(game?.total_rating ?? game?.aggregated_rating ?? 0);
   const totalRatingCount = Number(game?.total_rating_count ?? game?.aggregated_rating_count ?? 0);
-  const backgroundImage = pickFirstImage(game, coverMap, screenshotMap, artworkMap);
+  const coverImage = game?.cover?.image_id
+    ? imageUrl(game.cover.image_id, "t_cover_big")
+    : (coverMap.get(Number(game?.cover)) || "");
+  const backgroundImage = pickFirstImage(game, coverMap, screenshotMap, artworkMap) || coverImage || "";
   const descriptionRaw = String(game?.summary || game?.storyline || "").trim();
 
   const screenshotRows = (Array.isArray(game?.screenshots) ? game.screenshots : [])
-    .map((id) => screenshotMap.get(Number(id)))
+    .map((entry) => {
+      if (entry && typeof entry === "object" && entry.image_id) {
+        return imageUrl(entry.image_id, "t_screenshot_big");
+      }
+      return screenshotMap.get(Number(entry));
+    })
     .filter(Boolean)
     .map((image, index) => ({ id: index + 1, image }))
     .slice(0, 16);
+  const screenshotUrls = normalizeImageUrls(screenshotRows.map((row) => row.image));
+  const heroImage = screenshotUrls[0] || backgroundImage || coverImage || "";
 
   return {
     id: Number(game?.id || 0),
@@ -929,7 +991,10 @@ async function fetchIgdbGameDetails(gameId) {
     description: descriptionRaw,
     released: toReleaseDate(game?.first_release_date),
     playtime: null,
-    background_image: backgroundImage,
+    cover: coverImage || "",
+    hero: heroImage || "",
+    screenshots: screenshotUrls,
+    background_image: heroImage || coverImage || "",
     short_screenshots: screenshotRows,
     genres: mappedGenres,
     rating: totalRating ? Number((totalRating / 20).toFixed(1)) : null,

@@ -211,7 +211,7 @@
       title: g.name || 'Game',
       sub: g.released ? g.released.slice(0, 4) : 'Game',
       href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html',
-      image: toHttpsUrl(g.background_image || ''),
+      image: toHttpsUrl(g.cover || g.hero || ''),
       landscape: true
     }));
   }
