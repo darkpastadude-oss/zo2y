@@ -1403,7 +1403,7 @@
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v2';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_CHANNEL_TIMEOUT_MS = 1400;
+    const HOME_CHANNEL_TIMEOUT_MS = 3800;
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 24;
     const HOME_SPOTLIGHT_POOL_SIZE = 24;
@@ -2734,7 +2734,7 @@
         const itemId = escapeHtml(item.itemId || '');
         const supportsLists = supportsHomeLists(mediaTypeRaw) && !item.isPlaceholder;
         const opensExternal = /^https?:\/\//i.test(String(hrefRaw || ''));
-        const imageLoading = index < 24 ? 'eager' : 'lazy';
+        const imageLoading = index < 12 ? 'eager' : 'lazy';
         const imagePriority = index < 8 ? 'high' : 'auto';
         const mediaClasses = ['card-media'];
         if (landscape) mediaClasses.push('landscape');
@@ -3179,7 +3179,9 @@
             dates: dateRange,
             page
           });
-          return Array.isArray(json.results) ? json.results : [];
+          if (Array.isArray(json?.results)) return json.results;
+          if (Array.isArray(json)) return json;
+          return [];
         } catch (_err) {
           return [];
         }
@@ -3193,7 +3195,7 @@
         const nameKey = String(g.name || '').trim().toLowerCase();
         if (!idKey || !nameKey || seen.has(idKey)) continue;
         if (!g.cover && !g.hero && !(Array.isArray(g.screenshots) && g.screenshots.length)) continue;
-        if ((g.ratings_count || 0) < 120) continue;
+        if (Number.isFinite(Number(g.ratings_count)) && Number(g.ratings_count) < 20) continue;
         seen.add(idKey);
         candidates.push(g);
       }
@@ -3307,8 +3309,7 @@
       resetSpotlightTimer(false);
       const channels = getHomeChannels();
       const cachedFeed = readHomeFeedCache();
-      const instantFallbackFeed = cachedFeed ? null : buildInstantFallbackFeed();
-      const baselineFeed = cachedFeed || instantFallbackFeed;
+      const baselineFeed = cachedFeed || null;
 
       if (baselineFeed) {
         const cachedResult = applyHomeFeedMap(baselineFeed);

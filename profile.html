@@ -237,7 +237,7 @@
         }
 
         .collection-preview-item.is-landscape img {
-            object-fit: contain;
+            object-fit: cover;
         }
 
         .collection-preview-item-empty {
@@ -2425,7 +2425,7 @@
             }
 
             .mobile-preview-item.is-landscape img {
-                object-fit: contain;
+                object-fit: cover;
             }
 
             .mobile-list-description {
@@ -7807,7 +7807,17 @@ header, .top-stripe, .section-nav {
                 if (contentType === 'game') {
                     return Promise.all(ids.map(async id => {
                         const game = await fetchGameDetails(id);
-                        return normalizeGameImageSource(game);
+                        if (!game) return null;
+                        const shots = Array.isArray(game.screenshots)
+                            ? game.screenshots.map((url) => String(url || '').trim()).filter(Boolean)
+                            : [];
+                        return String(
+                            game.hero ||
+                            game.background_image ||
+                            shots[0] ||
+                            game.cover ||
+                            ''
+                        ).trim() || null;
                     }));
                 }
                 if (contentType === 'tv') {
