@@ -259,11 +259,11 @@
     }
 
     .spotlight.has-square-media .spotlight-inner {
-      max-width: calc(100% - 270px);
+      max-width: calc(100% - 232px);
     }
 
     .spotlight.has-landscape-media .spotlight-inner {
-      max-width: calc(100% - 360px);
+      max-width: calc(100% - 292px);
     }
 
     .spotlight-media.square {
@@ -293,7 +293,7 @@
     }
 
     .spotlight-media.landscape img {
-      object-fit: cover !important;
+      object-fit: contain !important;
       background: transparent;
     }
 
@@ -620,13 +620,13 @@
     .rail.unified-rail .card-media.game-poster {
       aspect-ratio: 2/3;
       height: 216px;
-      padding: 0;
+      padding: 6px;
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
     }
 
     .rail.unified-rail .card-media.game-poster img {
-      object-fit: cover;
-      border-radius: 0;
+      object-fit: contain;
+      border-radius: 8px;
     }
 
     .rail.games-rail .card {
@@ -996,7 +996,7 @@
         right: 12px;
         top: 12px;
         transform: none;
-        width: 108px;
+        width: 96px;
         aspect-ratio: 2/3;
         margin: 0;
         border-radius: 12px;
@@ -1005,7 +1005,7 @@
         min-height: 332px;
         max-width: none;
         padding: 14px 16px 16px;
-        padding-right: 132px;
+        padding-right: 120px;
         gap: 9px;
       }
       .spotlight.no-media .spotlight-inner {
@@ -1013,16 +1013,16 @@
       }
 
       .spotlight.has-square-media .spotlight-inner {
-        padding-right: 122px;
+        padding-right: 112px;
       }
 
       .spotlight.has-landscape-media .spotlight-inner {
         padding-right: 16px;
-        padding-top: 126px;
+        padding-top: 118px;
       }
 
       .spotlight-media.square {
-        width: 98px;
+        width: 88px;
         aspect-ratio: 1/1;
         padding: 0;
         border-radius: 12px;
@@ -1039,10 +1039,10 @@
       }
 
       .spotlight-media.landscape {
-        width: min(52vw, 208px);
-        max-width: 208px;
+        width: min(46vw, 184px);
+        max-width: 184px;
         height: auto;
-        aspect-ratio: 16/10;
+        aspect-ratio: 16/9;
         right: 12px;
         left: auto;
         top: 12px;
@@ -1052,7 +1052,7 @@
       }
 
       .spotlight-media.landscape img {
-        object-fit: cover !important;
+        object-fit: contain !important;
         width: 100%;
         height: 100%;
         background: transparent;
@@ -1079,11 +1079,30 @@
         overflow: hidden;
       }
 
+      .spotlight-meta {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+        width: 100%;
+      }
+
       .spotlight-meta .chip {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
+        display: flex;
+        width: 100%;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        max-width: none;
+        font-size: 11px;
+        line-height: 1.25;
+        padding: 7px 9px;
+        align-items: flex-start;
+        gap: 7px;
+      }
+
+      .spotlight-meta .chip i {
+        flex-shrink: 0;
+        margin-top: 1px;
       }
 
       .spotlight-actions {
@@ -1111,12 +1130,12 @@
       .rail.unified-rail .card-media.game-poster {
         height: 190px;
         aspect-ratio: 2/3;
-        padding: 0;
+        padding: 5px;
       }
 
       .rail.unified-rail .card-media.game-poster img {
-        object-fit: cover;
-        border-radius: 0;
+        object-fit: contain;
+        border-radius: 8px;
       }
 
       .rail.unified-rail .card-media.restaurant-composite {
@@ -3044,7 +3063,7 @@
         subtitle: m.release_date ? m.release_date.slice(0, 4) : 'Movie',
         image: m.poster_path ? `${TMDB_POSTER}${m.poster_path}` : '',
         backgroundImage: m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : '',
-        spotlightImage: m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : (m.poster_path ? `${TMDB_SPOT_POSTER}${m.poster_path}` : ''),
+        spotlightImage: m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : '',
         spotlightMediaImage: m.poster_path ? `${TMDB_SPOT_POSTER}${m.poster_path}` : (m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : ''),
         spotlightMediaFit: 'contain',
         spotlightMediaShape: 'poster',
@@ -3089,7 +3108,7 @@
         subtitle: t.first_air_date ? t.first_air_date.slice(0, 4) : 'TV Show',
         image: t.poster_path ? `${TMDB_POSTER}${t.poster_path}` : '',
         backgroundImage: t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : '',
-        spotlightImage: t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : (t.poster_path ? `${TMDB_SPOT_POSTER}${t.poster_path}` : ''),
+        spotlightImage: t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : '',
         spotlightMediaImage: t.poster_path ? `${TMDB_SPOT_POSTER}${t.poster_path}` : (t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : ''),
         spotlightMediaFit: 'contain',
         spotlightMediaShape: 'poster',
@@ -3129,12 +3148,14 @@
       const filtered = candidates.slice(0, HOME_CHANNEL_TARGET_ITEMS);
 
       return filtered.map((g) => {
-        const altBackground = Array.isArray(g.short_screenshots)
+        const screenshots = Array.isArray(g.short_screenshots)
           ? g.short_screenshots
             .map((shot) => String(shot?.image || '').trim())
-            .find((url) => url && url !== g.background_image)
-          : '';
-        const mainImage = g.background_image || altBackground || '';
+            .filter(Boolean)
+          : [];
+        const backgroundImage = screenshots[0] || g.background_image || '';
+        const foregroundImage = screenshots.find((url) => url !== backgroundImage) || g.background_image || backgroundImage;
+        const mainImage = foregroundImage || backgroundImage;
         return {
           mediaType: 'game',
           itemId: String(g.id || ''),
@@ -3142,9 +3163,9 @@
           subtitle: g.released ? g.released.slice(0, 4) : 'Game',
           extra: `${Array.isArray(g.genres) && g.genres.length ? g.genres.slice(0, 2).map(x => x?.name).filter(Boolean).join(' | ') : 'Video Game'}${g.rating ? ` | ${Number(g.rating).toFixed(1)}/5` : ''}`,
           image: mainImage,
-          backgroundImage: altBackground || mainImage,
-          spotlightImage: altBackground || mainImage,
-          spotlightMediaImage: altBackground || mainImage,
+          backgroundImage,
+          spotlightImage: backgroundImage,
+          spotlightMediaImage: foregroundImage,
           spotlightMediaFit: 'cover',
           spotlightMediaShape: 'landscape',
           href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html'
