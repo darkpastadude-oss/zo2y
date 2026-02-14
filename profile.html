@@ -6556,12 +6556,40 @@ header, .top-stripe, .section-nav {
                 return data;
             }
 
+            function normalizeGameImageSource(game) {
+                if (!game || typeof game !== 'object') return 'images/placeholder.jpg';
+                const screenshots = Array.isArray(game.screenshots)
+                    ? game.screenshots.map((url) => String(url || '').trim()).filter(Boolean)
+                    : [];
+                return String(
+                    game.cover ||
+                    game.hero ||
+                    game.background_image ||
+                    screenshots[0] ||
+                    ''
+                ).trim() || 'images/placeholder.jpg';
+            }
+
             async function fetchGameDetails(gameId) {
-                if (gameCache.has(gameId)) return gameCache.get(gameId);
+                const cacheKey = String(gameId || '').trim();
+                if (!cacheKey) return null;
+                if (gameCache.has(cacheKey)) return gameCache.get(cacheKey);
                 try {
-                    const data = await igdbFetch(`/games/${encodeURIComponent(gameId)}`);
-                    gameCache.set(gameId, data);
-                    return data;
+                    const response = await igdbFetch(`/games/${encodeURIComponent(cacheKey)}`);
+                    const raw = Array.isArray(response?.results)
+                        ? response.results[0]
+                        : (Array.isArray(response) ? response[0] : response);
+                    if (!raw || typeof raw !== 'object') return null;
+
+                    const requestedId = Number(cacheKey);
+                    const receivedId = Number(raw.id);
+                    if (Number.isFinite(requestedId) && Number.isFinite(receivedId) && requestedId !== receivedId) {
+                        return null;
+                    }
+
+                    const normalized = { ...raw, id: raw.id ?? cacheKey };
+                    gameCache.set(cacheKey, normalized);
+                    return normalized;
                 } catch (_err) {
                     return null;
                 }
@@ -7470,11 +7498,21 @@ header, .top-stripe, .section-nav {
                     const items = allItems || [];
 
                     for (const list of defaultLists) {
-                        list.gameIds = items.filter(i => i.list_type === list.id).map(i => i.game_id);
+                        list.gameIds = Array.from(new Set(
+                            items
+                                .filter(i => i.list_type === list.id)
+                                .map(i => i.game_id)
+                                .filter((id) => String(id || '').trim() !== '')
+                        ));
                     }
 
                     for (const list of (customLists || [])) {
-                        list.gameIds = items.filter(i => i.list_id === list.id).map(i => i.game_id);
+                        list.gameIds = Array.from(new Set(
+                            items
+                                .filter(i => String(i.list_id || '') === String(list.id || ''))
+                                .map(i => i.game_id)
+                                .filter((id) => String(id || '').trim() !== '')
+                        ));
                         list.type = 'custom';
                     }
 
@@ -7769,7 +7807,7 @@ header, .top-stripe, .section-nav {
                 if (contentType === 'game') {
                     return Promise.all(ids.map(async id => {
                         const game = await fetchGameDetails(id);
-                        return game?.background_image || null;
+                        return normalizeGameImageSource(game);
                     }));
                 }
                 if (contentType === 'tv') {
@@ -8255,7 +8293,11 @@ header, .top-stripe, .section-nav {
                     .eq('user_id', userId)
                     .eq(listType === 'default' ? 'list_type' : 'list_id', listId);
 
-                const gameIds = items ? items.map(i => i.game_id) : [];
+                const gameIds = Array.from(new Set(
+                    (items || [])
+                        .map(i => i.game_id)
+                        .filter((id) => String(id || '').trim() !== '')
+                ));
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileGameDetailTitle');
@@ -8303,21 +8345,29 @@ header, .top-stripe, .section-nav {
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
 
-                const games = await Promise.all(gameIds.map(id => fetchGameDetails(id)));
+                const games = await Promise.all(gameIds.map(async (id) => ({
+                    id: String(id || '').trim(),
+                    game: await fetchGameDetails(id)
+                })));
 
                 container.innerHTML = '';
 
-                for (const game of games) {
+                for (const entry of games) {
+                    const game = entry?.game;
                     if (!game) continue;
 
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
-                    itemCard.onclick = () => window.location.href = `game.html?id=${game.id}`;
+                    const resolvedGameId = String(entry.id || game.id || '').trim();
+                    if (!resolvedGameId) continue;
+                    itemCard.onclick = () => window.location.href = `game.html?id=${encodeURIComponent(resolvedGameId)}`;
 
                     const gameTitle = game.name || game.slug || 'Untitled';
+                    const safeGameId = resolvedGameId.replace(/'/g, "\\'");
+                    const gameImage = normalizeGameImageSource(game);
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${game.background_image || 'images/placeholder.jpg'}" alt="${gameTitle}" loading="lazy">
+                        <img class="collection-item-image" src="${gameImage}" alt="${gameTitle}" loading="lazy">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${gameTitle}</h3>
                             <div class="collection-item-meta">
@@ -8326,7 +8376,7 @@ header, .top-stripe, .section-nav {
                             </div>
                         </div>
                         ${isViewingOwnProfile ? `
-                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${game.id}, '${listId}', 'game', '${listType}')">
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${safeGameId}', '${listId}', 'game', '${listType}')">
                                 <i class="fas fa-times"></i>
                             </button>
                         ` : ''}
