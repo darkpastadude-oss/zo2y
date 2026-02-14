@@ -454,26 +454,36 @@
     .card-media {
       width: 100%;
       aspect-ratio: 2/3;
-      background: #0c1a3b;
+      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
       display: grid;
       place-items: center;
       color: var(--muted);
       overflow: hidden;
-    }
-
-    .card-media.landscape { aspect-ratio: 16/10; }
-    .card-media.game-poster { aspect-ratio: 16/10; }
-    .card-media.game-poster img {
-      object-fit: contain !important;
-      background: #0c1a3b;
-      padding: 4px;
+      position: relative;
     }
 
     .card-media img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       transform: scale(1.001);
+    }
+
+    .card-media.landscape { aspect-ratio: 16/10; }
+
+    .card-media.landscape img {
+      object-fit: cover;
+    }
+
+    .card-media.game-poster {
+      aspect-ratio: 16/10;
+      padding: 6px;
+      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+    }
+
+    .card-media.game-poster img {
+      object-fit: contain;
+      border-radius: 8px;
     }
 
     .card-media.restaurant-composite {
@@ -505,7 +515,7 @@
       z-index: 2;
     }
 
-    .restaurant-logo-badge img {
+    .card-media .restaurant-logo-badge img {
       width: 100%;
       height: 100%;
       object-fit: contain;
@@ -585,14 +595,22 @@
     }
 
     .rail.unified-rail .card-media {
-      aspect-ratio: auto;
+      aspect-ratio: 2/3;
       height: 216px;
+      padding: 0;
     }
 
     .rail.unified-rail .card-media img {
-      object-fit: cover !important;
-      background: #0c1a3b;
-      padding: 0 !important;
+      object-fit: contain;
+      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+    }
+
+    .rail.unified-rail .card-media.restaurant-composite {
+      aspect-ratio: 2/3;
+    }
+
+    .rail.unified-rail .card-media.restaurant-composite .restaurant-cover {
+      object-fit: cover;
     }
 
     .rail.games-rail .card {
@@ -1036,6 +1054,11 @@
 
       .rail.unified-rail .card-media {
         height: 190px;
+        aspect-ratio: 2/3;
+      }
+
+      .rail.unified-rail .card-media.restaurant-composite {
+        aspect-ratio: 2/3;
       }
 
       #restaurantsRail .card-media.restaurant-composite {
