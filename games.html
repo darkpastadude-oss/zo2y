@@ -848,7 +848,7 @@
         results.forEach(item => {
           const gameTitle = item.name || item.slug || 'Untitled';
           const gameDate = item.released || '';
-          const gameCover = item.cover || 'images/placeholder.jpg';
+          const gameCover = item.cover;
           const card = document.createElement('div');
           card.className = 'card';
           card.setAttribute('data-game-id', item.id);

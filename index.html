@@ -3195,7 +3195,6 @@
         const nameKey = String(g.name || '').trim().toLowerCase();
         if (!idKey || !nameKey || seen.has(idKey)) continue;
         if (!g.cover) continue;
-        if (Number.isFinite(Number(g.ratings_count)) && Number(g.ratings_count) < 20) continue;
         seen.add(idKey);
         candidates.push(g);
       }
@@ -3316,10 +3315,19 @@
       }
 
       const tastePromise = loadTasteWeights().catch(() => homeTasteWeights);
-      const loaded = await Promise.all(channels.map(async (channel) => ({
-        ...channel,
-        items: await loadHomeChannelWithTimeout(channel.loader)
-      })));
+      const loaded = await Promise.all(channels.map(async (channel) => {
+        const firstPass = await loadHomeChannelWithTimeout(channel.loader);
+        if (firstPass.length) {
+          return { ...channel, items: firstPass };
+        }
+        // One retry without timeout race to improve reliability on slower APIs.
+        try {
+          const retryItems = await Promise.resolve().then(() => channel.loader());
+          return { ...channel, items: Array.isArray(retryItems) ? retryItems : [] };
+        } catch (_err) {
+          return { ...channel, items: [] };
+        }
+      }));
       homeTasteWeights = await tastePromise;
 
       const mergedFeed = {};
