@@ -3,13 +3,15 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
 
 // Fix for ES modules and __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables
+// Load env from backend/.env regardless of current working directory.
+dotenv.config({ path: path.join(__dirname, ".env") });
+// Optional fallback if someone also keeps a repo-root .env.
 dotenv.config();
 
 const app = express();

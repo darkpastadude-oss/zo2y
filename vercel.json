@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/igdb",
+      "destination": "/api/igdb-handler"
+    },
+    {
+      "source": "/api/igdb/:path*",
+      "destination": "/api/igdb-handler?path=:path*"
+    }
+  ]
+}
