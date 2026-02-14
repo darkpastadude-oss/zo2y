@@ -629,6 +629,7 @@
         year: '',
         page: 1,
         totalPages: 1,
+        requestId: 0,
         currentUser: null,
         listStatusMap: new Map(),
         customLists: [],
@@ -638,6 +639,14 @@
       };
 
       let supabaseClient = null;
+      let loadGamesTimer = null;
+
+      function scheduleGamesLoad(delayMs = 220) {
+        if (loadGamesTimer) clearTimeout(loadGamesTimer);
+        loadGamesTimer = setTimeout(() => {
+          loadGames();
+        }, delayMs);
+      }
 
       async function igdbFetch(path, params = {}) {
         if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
@@ -805,6 +814,7 @@
         const grid = document.getElementById('gamesGrid');
         const empty = document.getElementById('emptyState');
         if (!grid) return;
+        const requestId = ++state.requestId;
 
         let data;
         const pageSize = 20;
@@ -818,7 +828,9 @@
           if (state.activeGenre) params.genres = state.activeGenre;
           if (state.year) params.dates = `${state.year}-01-01,${state.year}-12-31`;
           data = await igdbFetch('/games', params);
+          if (requestId !== state.requestId) return;
         } catch (e) {
+          if (requestId !== state.requestId) return;
           if (empty) empty.style.display = 'block';
           return;
         }
@@ -1094,7 +1106,7 @@
             state.query = e.target.value.trim();
             renderFilters();
             state.page = 1;
-            loadGames();
+            scheduleGamesLoad(240);
           });
         }
         if (genreSelect) {
@@ -1102,7 +1114,7 @@
             state.activeGenre = e.target.value;
             renderFilters();
             state.page = 1;
-            loadGames();
+            scheduleGamesLoad(120);
           });
         }
         if (yearInput) {
@@ -1110,7 +1122,7 @@
             state.year = e.target.value.trim();
             renderFilters();
             state.page = 1;
-            loadGames();
+            scheduleGamesLoad(220);
           });
         }
         if (refreshBtn) {
