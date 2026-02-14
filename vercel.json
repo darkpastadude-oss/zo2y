@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/api/music",
+      "destination": "/api/music-handler"
+    },
+    {
+      "source": "/api/music/:path*",
+      "destination": "/api/music-handler?path=:path*"
+    },
+    {
       "source": "/api/igdb",
       "destination": "/api/igdb-handler"
     },

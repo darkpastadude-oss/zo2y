@@ -5,6 +5,7 @@
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
   const IGDB_PROXY_BASE = '/api/igdb';
   const GOOGLE_BOOKS_KEY = 'AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s';
+  const MUSIC_PROXY_BASE = '/api/music';
 
   function toHttpsUrl(value) {
     const raw = String(value || '').trim();
@@ -235,14 +236,30 @@
     });
   }
 
+  async function fetchMusic(query) {
+    const res = await fetch(`${MUSIC_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=4&market=US`);
+    if (!res.ok) return [];
+    const json = await res.json();
+    const items = Array.isArray(json.results) ? json.results : [];
+    return items.map((track) => ({
+      type: 'Music',
+      title: track.name || 'Track',
+      sub: Array.isArray(track.artists) && track.artists.length ? track.artists.join(', ') : 'Artist',
+      href: track.external_url || 'music.html',
+      image: toHttpsUrl(track.image || ''),
+      landscape: false
+    }));
+  }
+
   async function fetchAllSuggestions(query) {
-    const [restaurants, moviesTv, games, books] = await Promise.all([
+    const [restaurants, moviesTv, games, books, music] = await Promise.all([
       fetchRestaurants(query).catch(() => []),
       fetchMoviesAndTv(query).catch(() => []),
       fetchGames(query).catch(() => []),
-      fetchBooks(query).catch(() => [])
+      fetchBooks(query).catch(() => []),
+      fetchMusic(query).catch(() => [])
     ]);
-    return [...restaurants, ...moviesTv, ...games, ...books].slice(0, 18);
+    return [...restaurants, ...moviesTv, ...games, ...books, ...music].slice(0, 18);
   }
 
   window.initUniversalSearch = function initUniversalSearch(options) {

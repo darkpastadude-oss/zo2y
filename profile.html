@@ -2973,6 +2973,9 @@ header, .top-stripe, .section-nav {
                 <div class="nav-tab" data-tab="books" onclick="ProfileManager.showTab('books')">
                     <i class="fas fa-book"></i> <span id="booksTabText">Books</span>
                 </div>
+                <div class="nav-tab" data-tab="music" onclick="ProfileManager.showTab('music')">
+                    <i class="fas fa-music"></i> <span id="musicTabText">Music</span>
+                </div>
                 <div class="nav-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
                     <i class="fas fa-users"></i> Community
                     <span class="nav-tab-badge d-none" id="followersBadge">0</span>
@@ -3327,6 +3330,65 @@ header, .top-stripe, .section-nav {
                     </div>
                 </div>
             </div>
+
+            <!-- Music Tab Content -->
+            <div class="tab-content" id="music-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="musicTitle">My Music</h2>
+                            <p class="section-subtitle" id="musicSubtitle">Organize your favorite tracks</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createMusicListBtn" onclick="ProfileManager.createMusicList()">
+                                <i class="fas fa-plus"></i> New Collection
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='music.html'">
+                                <i class="fas fa-music"></i> Browse Music
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="musicGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Music Yet</h3>
+                            <p class="empty-description">Save tracks to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='music.html'">
+                                <i class="fas fa-music"></i> Explore Music
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Music Detail View -->
+            <div class="tab-content" id="music-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideMusicDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="musicDetailTitle">
+                                <span id="musicDetailIcon"></span>
+                                <span id="musicDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="musicDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-detail-actions" id="musicDetailActions" style="display: none;">
+                            <button class="btn btn-secondary btn-sm" id="musicListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="musicListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="musicItemsContainer"></div>
+                </div>
+            </div>
         </div>
         
         <!-- Footer -->
@@ -3422,6 +3484,10 @@ header, .top-stripe, .section-nav {
             <div class="mobile-tab" data-tab="books" onclick="ProfileManager.showTab('books')">
                 <i class="fas fa-book"></i>
                 <span id="mobileTabBooks">Books</span>
+            </div>
+            <div class="mobile-tab" data-tab="music" onclick="ProfileManager.showTab('music')">
+                <i class="fas fa-music"></i>
+                <span id="mobileTabMusic">Music</span>
             </div>
             <div class="mobile-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
                 <i class="fas fa-users"></i>
@@ -3705,6 +3771,52 @@ header, .top-stripe, .section-nav {
                     </div>
                 </div>
             </div>
+
+            <!-- Music Section -->
+            <div class="mobile-section" id="mobileMusicSection">
+                <div class="mobile-section-title">
+                    <span id="mobileMusicTitle">My Music</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn" id="mobileCreateMusicListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createMusicList()">
+                            <i class="fas fa-plus"></i> New Collection
+                        </button>
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='music.html'">
+                            <i class="fas fa-music"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileMusicSubtitle">Organize your favorite tracks</div>
+
+                <div class="collection-grid" id="mobileMusicGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <div class="mobile-empty-title">No Music Yet</div>
+                        <div class="mobile-empty-description">Save tracks to see them here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='music.html'">
+                            <i class="fas fa-music"></i> Explore Music
+                        </button>
+                    </div>
+                </div>
+
+                <div id="mobileMusicDetailSection" style="display:none; margin-top: 16px;">
+                    <div class="mobile-section-title">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideMusicDetail()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <span id="mobileMusicDetailTitle">Collection</span>
+                    </div>
+                    <div class="mobile-section-subtitle" id="mobileMusicDetailDescription"></div>
+                    <div id="mobileMusicDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px;">
+                        <button class="mobile-action-btn secondary" id="mobileMusicListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-pen"></i> Edit
+                        </button>
+                        <button class="mobile-action-btn secondary" id="mobileMusicListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                    <div id="mobileMusicItems"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Mobile Bottom Navigation -->
@@ -3900,6 +4012,7 @@ header, .top-stripe, .section-nav {
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('tv')">TV Shows</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('games')">Games</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('books')">Books</button>
+                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('music')">Music</button>
                 </div>
             </div>
         </div>
@@ -4121,12 +4234,15 @@ header, .top-stripe, .section-nav {
             let tvCache = new Map();
             let gameCache = new Map();
             let bookCache = new Map();
+            let musicCache = new Map();
             let renderMoviesToken = 0;
             let renderTvToken = 0;
             let renderGamesToken = 0;
             let renderBooksToken = 0;
+            let renderMusicToken = 0;
             let renderRestaurantsToken = 0;
             let isCreatingBookList = false;
+            let isCreatingMusicList = false;
             let editingMediaList = null;
             let hasPreloadedTabs = false;
 
@@ -4233,7 +4349,8 @@ header, .top-stripe, .section-nav {
                         renderMovies(),
                         renderTvShows(),
                         renderGames(),
-                        renderBooks()
+                        renderBooks(),
+                        renderMusic()
                     ]).catch(() => {});
                 }, 80);
             }

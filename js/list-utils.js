@@ -28,6 +28,13 @@
       usesUserId: true,
       defaultIcon: 'fas fa-book'
     },
+    music: {
+      listTable: 'music_lists',
+      itemsTable: 'music_list_items',
+      itemIdField: 'track_id',
+      usesUserId: true,
+      defaultIcon: 'fas fa-music'
+    },
     restaurant: {
       listTable: 'lists',
       itemsTable: 'lists_restraunts',
@@ -60,6 +67,7 @@
     if (raw.includes('fa-utensils')) return 'restaurant';
     if (raw.includes('fa-film')) return 'movie';
     if (raw.includes('fa-book')) return 'book';
+    if (raw.includes('fa-music')) return 'music';
     if (raw.includes('fa-user')) return 'user';
     if (raw.includes('fa-tv')) return 'tv';
     if (raw.includes('fa-gamepad')) return 'game';
