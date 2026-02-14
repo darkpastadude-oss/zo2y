@@ -1325,6 +1325,7 @@
     </div>
   </div>
 
+  <script src="js/igdb-client.js"></script>
   <script>
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
@@ -1371,6 +1372,20 @@
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 24;
     const HOME_SPOTLIGHT_POOL_SIZE = 24;
+
+    async function homeIgdbFetch(path, params = {}) {
+      if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
+        return window.ZO2Y_IGDB.request(path, params);
+      }
+      const url = new URL(`${IGDB_PROXY_BASE}${path}`, window.location.origin);
+      Object.entries(params || {}).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '') return;
+        url.searchParams.set(key, String(value));
+      });
+      const res = await fetch(url.toString());
+      if (!res.ok) throw new Error(`IGDB error ${res.status}`);
+      return res.json();
+    }
 
     const statusEl = document.getElementById('loadStatus');
     let homeSupabaseClient = null;
@@ -3121,11 +3136,13 @@
       const batches = await Promise.all(orderings.map(async (ordering, index) => {
         const dateRange = index % 2 === 0 ? '2010-01-01,2026-12-31' : '2000-01-01,2026-12-31';
         const page = randomInt(1, 2);
-        const url = `${IGDB_PROXY_BASE}/games?page_size=40&ordering=${encodeURIComponent(ordering)}&dates=${encodeURIComponent(dateRange)}&page=${page}`;
         try {
-          const res = await fetch(url);
-          if (!res.ok) return [];
-          const json = await res.json();
+          const json = await homeIgdbFetch('/games', {
+            page_size: 40,
+            ordering,
+            dates: dateRange,
+            page
+          });
           return Array.isArray(json.results) ? json.results : [];
         } catch (_err) {
           return [];

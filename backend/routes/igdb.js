@@ -270,6 +270,14 @@ function sortClauseFromOrdering(orderingRaw) {
   return "total_rating_count desc";
 }
 
+router.get("/", (_req, res) => {
+  res.json({
+    ok: true,
+    service: "igdb-proxy",
+    routes: ["/genres", "/games", "/games/:id"]
+  });
+});
+
 router.get("/genres", async (req, res) => {
   try {
     const pageSize = clampInt(req.query.page_size, 1, 100, 50);

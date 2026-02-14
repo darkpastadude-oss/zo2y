@@ -612,6 +612,7 @@
     </div>
   </div>
 
+    <script src="js/igdb-client.js"></script>
     <script>
     (function () {
       if (window.innerWidth <= 768) {
@@ -639,6 +640,9 @@
       let supabaseClient = null;
 
       async function igdbFetch(path, params = {}) {
+        if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
+          return window.ZO2Y_IGDB.request(path, params);
+        }
         const url = new URL(IGDB_PROXY_BASE + path, window.location.origin);
         Object.entries(params).forEach(([k, v]) => {
           if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);

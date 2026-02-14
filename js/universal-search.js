@@ -193,9 +193,18 @@
   }
 
   async function fetchGames(query) {
-    const res = await fetch(`${IGDB_PROXY_BASE}/games?search=${encodeURIComponent(query)}&page_size=4`);
-    if (!res.ok) return [];
-    const json = await res.json();
+    let json = null;
+    if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
+      try {
+        json = await window.ZO2Y_IGDB.request('/games', { search: query, page_size: 4 });
+      } catch (_err) {
+        return [];
+      }
+    } else {
+      const res = await fetch(`${IGDB_PROXY_BASE}/games?search=${encodeURIComponent(query)}&page_size=4`);
+      if (!res.ok) return [];
+      json = await res.json();
+    }
     const items = Array.isArray(json.results) ? json.results : [];
     return items.map((g) => ({
       type: 'Games',

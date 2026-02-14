@@ -4048,6 +4048,7 @@ header, .top-stripe, .section-nav {
         </div>
     </div>
 
+    <script src="js/igdb-client.js"></script>
     <script>
         // ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
@@ -4061,6 +4062,20 @@ header, .top-stripe, .section-nav {
             const GOOGLE_BOOKS_KEY = "AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s";
             const GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1";
             const FALLBACK_BOOK_IMAGE = "images/logo.png";
+
+            async function igdbFetch(path, params = {}) {
+                if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === "function") {
+                    return window.ZO2Y_IGDB.request(path, params);
+                }
+                const url = new URL(`${IGDB_PROXY_BASE}${path}`, window.location.origin);
+                Object.entries(params).forEach(([key, value]) => {
+                    if (value === undefined || value === null || value === "") return;
+                    url.searchParams.set(key, String(value));
+                });
+                const res = await fetch(url.toString());
+                if (!res.ok) throw new Error(`IGDB error ${res.status}`);
+                return res.json();
+            }
 
             // Initialize Supabase client
             let supabase = null;
@@ -6543,11 +6558,13 @@ header, .top-stripe, .section-nav {
 
             async function fetchGameDetails(gameId) {
                 if (gameCache.has(gameId)) return gameCache.get(gameId);
-                const res = await fetch(`${IGDB_PROXY_BASE}/games/${encodeURIComponent(gameId)}`);
-                if (!res.ok) return null;
-                const data = await res.json();
-                gameCache.set(gameId, data);
-                return data;
+                try {
+                    const data = await igdbFetch(`/games/${encodeURIComponent(gameId)}`);
+                    gameCache.set(gameId, data);
+                    return data;
+                } catch (_err) {
+                    return null;
+                }
             }
 
             function renderMovieListIcon(icon) {
