@@ -239,7 +239,7 @@
 
     .card {
       background: var(--card);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: 14px;
       overflow: hidden;
       display: flex;
@@ -250,7 +250,6 @@
     }
 
     .card:hover {
-      border-color: var(--accent);
       transform: translateY(-2px);
     }
 
@@ -294,12 +293,11 @@
       color: var(--muted);
       line-height: 1.5;
       display: -webkit-box;
-      -webkit-line-clamp: 3;
+      -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: 60px;
-      order: 2;
-      flex: 1;
+      min-height: 38px;
+      margin-top: 6px;
     }
 
     .empty {
@@ -849,6 +847,13 @@
           const gameTitle = item.name || item.slug || 'Untitled';
           const gameDate = item.released || '';
           const gameCover = item.cover;
+          const genreText = Array.isArray(item.genres)
+            ? item.genres.map((g) => String(g?.name || '').trim()).filter(Boolean).slice(0, 2).join(' | ')
+            : '';
+          const ratingValue = Number(item.rating || 0);
+          const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
+          const summaryText = String(item.description_raw || item.description || '').trim();
+          const gameDescription = [genreText, ratingText].filter(Boolean).join(' | ') || summaryText || 'Popular game';
           const card = document.createElement('div');
           card.className = 'card';
           card.setAttribute('data-game-id', item.id);
@@ -869,7 +874,7 @@
                   </div>
                 </div>
               </div>
-              <div class="card-desc">${item.slug || 'No description available.'}</div>
+              <div class="card-desc">${gameDescription}</div>
             </div>
           `;
           card.onclick = (e) => {
