@@ -1,23 +1,23 @@
-const API_BASE = '/.netlify/functions';
+const API_BASE = '/api/auth';
 
 async function signUp(userData) {
     try {
-        const response = await fetch(`${API_BASE}/auth`, {
+        const response = await fetch(`${API_BASE}/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ ...userData, action: 'signup' })
+            body: JSON.stringify(userData)
         });
 
         const data = await response.json();
         
         if (response.ok) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            return { success: true, message: data.message };
+            if (data?.token) localStorage.setItem('token', data.token);
+            if (data?.user) localStorage.setItem('user', JSON.stringify(data.user));
+            return { success: true, message: data.message || 'Account created successfully.' };
         } else {
-            return { success: false, message: data.message };
+            return { success: false, message: data.message || 'Could not create account.' };
         }
     } catch (error) {
         console.error('Signup error:', error);
@@ -27,22 +27,22 @@ async function signUp(userData) {
 
 async function login(userData) {
     try {
-        const response = await fetch(`${API_BASE}/auth`, {
+        const response = await fetch(`${API_BASE}/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ ...userData, action: 'login' })
+            body: JSON.stringify(userData)
         });
 
         const data = await response.json();
         
         if (response.ok) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            return { success: true, message: data.message };
+            if (data?.token) localStorage.setItem('token', data.token);
+            if (data?.user) localStorage.setItem('user', JSON.stringify(data.user));
+            return { success: true, message: data.message || 'Logged in successfully.' };
         } else {
-            return { success: false, message: data.message };
+            return { success: false, message: data.message || 'Login failed.' };
         }
     } catch (error) {
         console.error('Login error:', error);
