@@ -245,17 +245,17 @@
       aspect-ratio: 2/3;
       border-radius: 14px;
       overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.15);
-      background: rgba(7, 15, 34, 0.55);
+      border: 0;
+      background: transparent;
       z-index: 1;
-      box-shadow: 0 14px 28px rgba(0,0,0,0.34);
+      box-shadow: none;
     }
 
     .spotlight-media img {
       width: 100%;
       height: 100%;
       object-fit: contain;
-      background: #0c1a3b;
+      background: transparent;
     }
 
     .spotlight.has-square-media .spotlight-inner {
@@ -270,20 +270,18 @@
       width: clamp(154px, 18vw, 208px);
       aspect-ratio: 1/1;
       border-radius: 16px;
-      padding: 16px;
-      background: rgba(7, 15, 34, 0.85);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      padding: 0;
+      background: transparent;
+      display: block;
     }
 
     .spotlight-media.square img {
       border-radius: 12px;
       object-fit: contain !important;
-      background: rgba(12, 26, 59, 0.95);
-      width: 85%;
-      height: 85%;
-      padding: 8px;
+      background: transparent;
+      width: 100%;
+      height: 100%;
+      padding: 0;
     }
 
     .spotlight-media.landscape {
@@ -291,12 +289,12 @@
       aspect-ratio: 16/10;
       border-radius: 16px;
       padding: 0;
-      background: rgba(7, 15, 34, 0.64);
+      background: transparent;
     }
 
     .spotlight-media.landscape img {
       object-fit: cover !important;
-      background: rgba(12, 26, 59, 0.9);
+      background: transparent;
     }
 
     .spotlight.no-media .spotlight-inner {
@@ -1018,45 +1016,45 @@
       }
 
       .spotlight.has-landscape-media .spotlight-inner {
-        padding-right: 12px;
-        padding-top: 140px;
+        padding-right: 16px;
+        padding-top: 136px;
       }
 
       .spotlight-media.square {
         width: 122px;
         aspect-ratio: 1/1;
-        padding: 12px;
+        padding: 0;
         border-radius: 14px;
-        background: rgba(7, 15, 34, 0.75);
+        background: transparent;
       }
 
       .spotlight-media.square img {
-        width: 85%;
-        height: 85%;
+        width: 100%;
+        height: 100%;
         object-fit: contain !important;
-        padding: 6px;
-        border-radius: 10px;
-        background: rgba(12, 26, 59, 0.9);
+        padding: 0;
+        border-radius: 12px;
+        background: transparent;
       }
 
       .spotlight-media.landscape {
-        width: calc(100% - 24px);
-        max-width: 100%;
+        width: min(56vw, 220px);
+        max-width: 220px;
         height: auto;
         aspect-ratio: 16/10;
         right: 12px;
-        left: 12px;
+        left: auto;
         top: 12px;
         border-radius: 12px;
         padding: 0;
-        background: rgba(7, 15, 34, 0.64);
+        background: transparent;
       }
 
       .spotlight-media.landscape img {
         object-fit: cover !important;
         width: 100%;
         height: 100%;
-        background: rgba(12, 26, 59, 0.9);
+        background: transparent;
       }
 
       .spotlight.has-landscape-media .spotlight-title {
@@ -1726,7 +1724,10 @@
         resetSpotlightTimer(false);
         return;
       }
-      const shortlist = pool.slice(0, HOME_SPOTLIGHT_POOL_SIZE);
+      const topPool = pool.slice(0, HOME_SPOTLIGHT_POOL_SIZE * 3);
+      const mixedCandidates = buildUnifiedFeed(topPool, HOME_SPOTLIGHT_POOL_SIZE * 2);
+      const diversified = shuffleArray(mixedCandidates.length ? mixedCandidates : topPool).slice(0, HOME_SPOTLIGHT_POOL_SIZE);
+      const shortlist = diversified.length ? diversified : pool.slice(0, HOME_SPOTLIGHT_POOL_SIZE);
       const seed = getSpotlightSeedOffset();
       const offset = seed % shortlist.length;
       homeSpotlightItems = [...shortlist.slice(offset), ...shortlist.slice(0, offset)];
@@ -2820,11 +2821,12 @@
           href: 'restraunts.html'
         }));
       }
+      const fetchLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 3, HOME_CHANNEL_TARGET_ITEMS);
       const { data, error } = await client
         .from('restraunts')
         .select('id,name,image,category,rating,slug,logo_url')
         .order('rating', { ascending: false })
-        .limit(HOME_CHANNEL_TARGET_ITEMS);
+        .limit(fetchLimit);
       if (error || !data || !data.length) {
         return FALLBACK_RESTAURANTS.map((r) => ({
           mediaType: 'restaurant',
@@ -2842,7 +2844,8 @@
         }));
       }
 
-      const slugs = data.map((row) => String(row.slug || '').trim()).filter(Boolean);
+      const selectedRows = shuffleArray(data).slice(0, HOME_CHANNEL_TARGET_ITEMS);
+      const slugs = selectedRows.map((row) => String(row.slug || '').trim()).filter(Boolean);
       const galleryBySlug = {};
       if (slugs.length) {
         const { data: galleryRows } = await client
@@ -2870,7 +2873,7 @@
         }
       }
 
-      return data.map((r) => {
+      return selectedRows.map((r) => {
         const coverImage = galleryBySlug[r.slug]?.cover || resolveRestaurantImage(r.image);
         const logoImage = galleryBySlug[r.slug]?.logo || resolveRestaurantImage(r.logo_url);
         const hasLogo = String(logoImage || '').trim().length > 0;
@@ -2892,21 +2895,31 @@
     }
 
     async function loadMovies() {
-      const pages = [1, 2, 3];
-      const collected = [];
-      for (const page of pages) {
-        const res = await fetch(`https://api.themoviedb.org/3/movie/popular?language=en-US&page=${page}`, {
-          headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
-        });
-        if (!res.ok) continue;
-        const json = await res.json();
-        if (Array.isArray(json.results)) collected.push(...json.results);
-      }
+      const sourceBuilders = shuffleArray([
+        () => `https://api.themoviedb.org/3/movie/popular?language=en-US&page=${randomInt(1, 5)}`,
+        () => `https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=${randomInt(1, 5)}`,
+        () => `https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=${randomInt(1, 4)}`,
+        () => `https://api.themoviedb.org/3/trending/movie/week?page=${randomInt(1, 3)}`
+      ]).slice(0, 3);
+      const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
+        try {
+          const res = await fetch(buildUrl(), {
+            headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
+          });
+          if (!res.ok) return [];
+          const json = await res.json();
+          return Array.isArray(json.results) ? json.results : [];
+        } catch (_err) {
+          return [];
+        }
+      }));
+      const collected = shuffleArray(batches.flat());
       const seen = new Set();
       const results = [];
       for (const item of collected) {
         const key = String(item?.id || '').trim();
         if (!key || seen.has(key)) continue;
+        if (!item?.poster_path && !item?.backdrop_path) continue;
         seen.add(key);
         results.push(item);
         if (results.length >= HOME_CHANNEL_TARGET_ITEMS) break;
@@ -2927,21 +2940,31 @@
     }
 
     async function loadTv() {
-      const pages = [1, 2, 3];
-      const collected = [];
-      for (const page of pages) {
-        const res = await fetch(`https://api.themoviedb.org/3/tv/popular?language=en-US&page=${page}`, {
-          headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
-        });
-        if (!res.ok) continue;
-        const json = await res.json();
-        if (Array.isArray(json.results)) collected.push(...json.results);
-      }
+      const sourceBuilders = shuffleArray([
+        () => `https://api.themoviedb.org/3/tv/popular?language=en-US&page=${randomInt(1, 5)}`,
+        () => `https://api.themoviedb.org/3/tv/top_rated?language=en-US&page=${randomInt(1, 5)}`,
+        () => `https://api.themoviedb.org/3/tv/airing_today?language=en-US&page=${randomInt(1, 4)}`,
+        () => `https://api.themoviedb.org/3/trending/tv/week?page=${randomInt(1, 3)}`
+      ]).slice(0, 3);
+      const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
+        try {
+          const res = await fetch(buildUrl(), {
+            headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
+          });
+          if (!res.ok) return [];
+          const json = await res.json();
+          return Array.isArray(json.results) ? json.results : [];
+        } catch (_err) {
+          return [];
+        }
+      }));
+      const collected = shuffleArray(batches.flat());
       const seen = new Set();
       const results = [];
       for (const item of collected) {
         const key = String(item?.id || '').trim();
         if (!key || seen.has(key)) continue;
+        if (!item?.poster_path && !item?.backdrop_path) continue;
         seen.add(key);
         results.push(item);
         if (results.length >= HOME_CHANNEL_TARGET_ITEMS) break;
@@ -2962,20 +2985,31 @@
     }
 
     async function loadGames() {
-      // Prefer broadly popular, mainstream releases over niche high-rating titles.
-      const res = await fetch(`https://api.rawg.io/api/games?page_size=60&ordering=-added&dates=2015-01-01,2026-12-31&metacritic=70,100&key=${RAWG_KEY}`);
-      if (!res.ok) return [];
-      const json = await res.json();
-      const results = Array.isArray(json.results) ? json.results : [];
+      const orderings = shuffleArray(['-added', '-rating', '-released', '-metacritic']).slice(0, 3);
+      const batches = await Promise.all(orderings.map(async (ordering, index) => {
+        const dateRange = index % 2 === 0 ? '2010-01-01,2026-12-31' : '2000-01-01,2026-12-31';
+        const page = randomInt(1, 2);
+        const url = `https://api.rawg.io/api/games?page_size=40&ordering=${ordering}&dates=${dateRange}&metacritic=65,100&page=${page}&key=${RAWG_KEY}`;
+        try {
+          const res = await fetch(url);
+          if (!res.ok) return [];
+          const json = await res.json();
+          return Array.isArray(json.results) ? json.results : [];
+        } catch (_err) {
+          return [];
+        }
+      }));
+      const results = shuffleArray(batches.flat());
 
       const seen = new Set();
       const candidates = [];
       for (const g of results) {
+        const idKey = String(g.id || '').trim();
         const nameKey = String(g.name || '').trim().toLowerCase();
-        if (!nameKey || seen.has(nameKey)) continue;
+        if (!idKey || !nameKey || seen.has(idKey)) continue;
         if (!g.background_image) continue;
-        if ((g.ratings_count || 0) < 250) continue;
-        seen.add(nameKey);
+        if ((g.ratings_count || 0) < 120) continue;
+        seen.add(idKey);
         candidates.push(g);
       }
 
@@ -3008,15 +3042,32 @@
     async function loadBooks() {
       // Keep to one request to avoid hitting Google Books 429 rate limits.
       try {
-        const url = `https://www.googleapis.com/books/v1/volumes?q=subject:fiction&orderBy=relevance&maxResults=40&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`;
+        const topic = shuffleArray([
+          'subject:fiction',
+          'subject:fantasy',
+          'subject:science fiction',
+          'subject:mystery',
+          'subject:history',
+          'subject:biography',
+          'subject:self-help',
+          'subject:business',
+          'subject:romance'
+        ])[0];
+        const orderBy = Math.random() > 0.55 ? 'newest' : 'relevance';
+        const startIndex = randomInt(0, 6) * 20;
+        const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(topic)}&orderBy=${orderBy}&maxResults=40&startIndex=${startIndex}&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`;
         const res = await fetch(url);
         if (res.ok) {
           const json = await res.json();
           const items = Array.isArray(json.items) ? json.items : [];
-          const mapped = items.map((item) => {
+          const seenTitles = new Set();
+          const mapped = shuffleArray(items).map((item) => {
             const info = item.volumeInfo || {};
             const title = String(info.title || '').trim();
             if (!title) return null;
+            const titleKey = title.toLowerCase();
+            if (seenTitles.has(titleKey)) return null;
+            seenTitles.add(titleKey);
             const author = Array.isArray(info.authors) && info.authors.length ? info.authors[0] : 'Book';
             return {
               mediaType: 'book',
@@ -3032,7 +3083,7 @@
               href: item.id ? `book.html?id=${encodeURIComponent(item.id)}` : 'books.html'
             };
           }).filter(Boolean);
-          if (mapped.length) return mapped.slice(0, HOME_CHANNEL_TARGET_ITEMS);
+          if (mapped.length) return shuffleArray(mapped).slice(0, HOME_CHANNEL_TARGET_ITEMS);
         }
       } catch (_e) {}
 
