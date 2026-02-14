@@ -821,7 +821,7 @@
         document.getElementById('title').textContent = data.name || 'Untitled';
         document.getElementById('overview').textContent = description || 'No description available.';
         document.getElementById('meta').textContent = `${data.released || ''}${data.playtime ? ` • ${data.playtime} hrs` : ''}`;
-        document.getElementById('poster').src = data.cover || data.hero || 'images/placeholder.jpg';
+        document.getElementById('poster').src = data.cover || 'images/placeholder.jpg';
         const tags = document.getElementById('tags');
         if (tags && Array.isArray(data.genres)) {
           tags.innerHTML = data.genres.map(g => `<span class="tag">${g.name}</span>`).join('');
@@ -1452,7 +1452,7 @@
               id: g.id,
               title: g.name || 'Game',
               sub: g.released ? String(g.released).slice(0, 4) : 'Game',
-              image: g.cover || g.hero || ''
+              image: g.cover || ''
             }));
             activeIndex = -1;
             renderSuggest();

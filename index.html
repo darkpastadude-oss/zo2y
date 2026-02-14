@@ -481,17 +481,17 @@
 
     .card-media.game-poster {
       aspect-ratio: 2/3;
-      padding: 6px;
+      padding: 0;
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
     }
 
     .card-media.game-poster img {
-      object-fit: contain;
-      border-radius: 8px;
+      object-fit: cover;
+      border-radius: 0;
     }
 
     .card-media.landscape.game-poster img {
-      object-fit: contain;
+      object-fit: cover;
     }
 
     .card-media.restaurant-composite {
@@ -624,13 +624,13 @@
     .rail.unified-rail .card-media.game-poster {
       aspect-ratio: 2/3;
       height: 216px;
-      padding: 6px;
+      padding: 0;
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
     }
 
     .rail.unified-rail .card-media.game-poster img {
-      object-fit: contain;
-      border-radius: 8px;
+      object-fit: cover;
+      border-radius: 0;
     }
 
     .rail.games-rail .card {
@@ -649,15 +649,15 @@
     .rail.games-rail .card-media.game-poster {
       aspect-ratio: 2/3;
       height: 216px;
-      padding: 6px;
+      padding: 0;
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
     }
 
     .rail.games-rail .card-media.game-poster img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
-      border-radius: 8px;
+      object-fit: cover;
+      border-radius: 0;
       background: transparent;
     }
 
@@ -1149,12 +1149,12 @@
       .rail.unified-rail .card-media.game-poster {
         height: 190px;
         aspect-ratio: 2/3;
-        padding: 5px;
+        padding: 0;
       }
 
       .rail.unified-rail .card-media.game-poster img {
-        object-fit: contain;
-        border-radius: 8px;
+        object-fit: cover;
+        border-radius: 0;
       }
 
       .rail.games-rail .card {
@@ -1165,12 +1165,12 @@
       .rail.games-rail .card-media.game-poster {
         height: 190px;
         aspect-ratio: 2/3;
-        padding: 5px;
+        padding: 0;
       }
 
       .rail.games-rail .card-media.game-poster img {
-        object-fit: contain;
-        border-radius: 8px;
+        object-fit: cover;
+        border-radius: 0;
       }
 
       .rail.unified-rail .card-media.restaurant-composite {
@@ -1388,6 +1388,13 @@
       { title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', isbn: '9780743273565' },
       { title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', isbn: '9780374533557' },
       { title: 'The Psychology of Money', author: 'Morgan Housel', isbn: '9780857197689' }
+    ];
+    const POPULAR_BOOK_QUERIES = [
+      'new york times best sellers books',
+      'popular fiction books',
+      'classic novels everyone should read',
+      'bestselling fantasy books',
+      'bestselling mystery books'
     ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-utensils', accent: '#f59e0b' },
@@ -1834,6 +1841,30 @@
             for (let i = boosted.length - 1; i >= 0; i -= 1) {
               if (String(boosted[i].mediaType || '').toLowerCase() !== 'game') {
                 boosted[i] = gameItem;
+                break;
+              }
+            }
+          });
+          shortlist = shuffleArray(boosted);
+        }
+      }
+
+      const bookPool = pool.filter((item) => String(item.mediaType || '').toLowerCase() === 'book');
+      const desiredBookCount = Math.min(bookPool.length, Math.max(3, Math.floor(HOME_SPOTLIGHT_POOL_SIZE * 0.2)));
+      const currentBookCount = shortlist.filter((item) => String(item.mediaType || '').toLowerCase() === 'book').length;
+      if (currentBookCount < desiredBookCount) {
+        const knownTitles = new Set(FALLBACK_BOOKS.map((b) => String(b.title || '').trim().toLowerCase()));
+        const scoreBook = (item) => (knownTitles.has(String(item.title || '').trim().toLowerCase()) ? 1 : 0);
+        const bookAdditions = [...bookPool]
+          .sort((a, b) => scoreBook(b) - scoreBook(a))
+          .slice(0, desiredBookCount - currentBookCount);
+        if (bookAdditions.length) {
+          const boosted = [...shortlist];
+          bookAdditions.forEach((bookItem) => {
+            for (let i = boosted.length - 1; i >= 0; i -= 1) {
+              const type = String(boosted[i].mediaType || '').toLowerCase();
+              if (type !== 'book' && type !== 'game') {
+                boosted[i] = bookItem;
                 break;
               }
             }
@@ -3226,18 +3257,8 @@
     async function loadBooks() {
       // Keep to one request to avoid hitting Google Books 429 rate limits.
       try {
-        const topic = shuffleArray([
-          'subject:fiction',
-          'subject:fantasy',
-          'subject:science fiction',
-          'subject:mystery',
-          'subject:history',
-          'subject:biography',
-          'subject:self-help',
-          'subject:business',
-          'subject:romance'
-        ])[0];
-        const orderBy = Math.random() > 0.55 ? 'newest' : 'relevance';
+        const topic = shuffleArray(POPULAR_BOOK_QUERIES)[0];
+        const orderBy = 'relevance';
         const startIndex = randomInt(0, 6) * 20;
         const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(topic)}&orderBy=${orderBy}&maxResults=40&startIndex=${startIndex}&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`;
         const res = await fetch(url);
@@ -3249,6 +3270,8 @@
             const info = item.volumeInfo || {};
             const title = String(info.title || '').trim();
             if (!title) return null;
+            const ratingsCount = Number(info.ratingsCount || 0);
+            if (Number.isFinite(ratingsCount) && ratingsCount > 0 && ratingsCount < 10) return null;
             const titleKey = title.toLowerCase();
             if (seenTitles.has(titleKey)) return null;
             seenTitles.add(titleKey);
@@ -3279,7 +3302,32 @@
               href: item.id ? `book.html?id=${encodeURIComponent(item.id)}` : 'books.html'
             };
           }).filter(Boolean);
-          if (mapped.length) return shuffleArray(mapped).slice(0, HOME_CHANNEL_TARGET_ITEMS);
+          const fallbackKnown = FALLBACK_BOOKS.map((b, idx) => ({
+            mediaType: 'book',
+            itemId: `known-book-${idx}`,
+            title: b.title,
+            subtitle: b.author,
+            image: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+            backgroundImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+            spotlightImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+            spotlightMediaImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            fallbackImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+            isbn: b.isbn,
+            href: 'books.html'
+          }));
+
+          const merged = [...mapped, ...fallbackKnown];
+          const deduped = [];
+          const seen = new Set();
+          merged.forEach((entry) => {
+            const key = String(entry.title || '').trim().toLowerCase();
+            if (!key || seen.has(key)) return;
+            seen.add(key);
+            deduped.push(entry);
+          });
+          if (deduped.length) return deduped.slice(0, HOME_CHANNEL_TARGET_ITEMS);
         }
       } catch (_e) {}
 

@@ -1057,75 +1057,16 @@ router.get("/games", async (req, res) => {
     }
     const whereClause = buildWhereClause({ genreIds, startUnix, endUnix });
 
-    const rawgPromise = fetchRawgGamesList({
+    const igdbPayload = await fetchIgdbGamesList({
       page,
       pageSize,
-      ordering: orderingRaw,
+      orderingRaw,
       search,
-      dates: datesRaw,
-      genres: toRawgGenresParam(req.query.genres)
-    }).catch((error) => ({ __error: error }));
+      whereClause
+    });
 
-    let igdbPayload = null;
-    let igdbError = null;
-    try {
-      igdbPayload = await fetchIgdbGamesList({
-        page,
-        pageSize,
-        orderingRaw,
-        search,
-        whereClause
-      });
-    } catch (error) {
-      igdbError = error;
-    }
-
-    const rawgResolved = await rawgPromise;
-    const rawgPayload = rawgResolved && !rawgResolved.__error ? rawgResolved : null;
-    const rawgError = rawgResolved && rawgResolved.__error ? rawgResolved.__error : null;
-
-    if (!igdbPayload && !rawgPayload) {
-      const combinedError = [igdbError?.message, rawgError?.message].filter(Boolean).join(" | ");
-      return res.status(500).json({
-        message: "Failed to load games from Twitch/IGDB and RAWG.",
-        error: combinedError || "Unknown game provider error."
-      });
-    }
-
-    let results = Array.isArray(igdbPayload?.results) ? igdbPayload.results : [];
-    let count = Number(igdbPayload?.count || 0);
-
-    if (rawgPayload?.results?.length) {
-      if (results.length) {
-        const rawgIndex = buildRawgMatchIndexes(rawgPayload.results);
-        const matchedRawgIds = new Set();
-
-        results = results.map((row) => {
-          const match = findRawgMatchForIgdb(row, rawgIndex);
-          if (match?.rawg_id) matchedRawgIds.add(Number(match.rawg_id));
-          return mergeGameListRows(row, match);
-        });
-
-        if (results.length < pageSize) {
-          for (const rawgRow of rawgPayload.results) {
-            const rawgId = Number(rawgRow?.rawg_id || 0);
-            if (rawgId && matchedRawgIds.has(rawgId)) continue;
-            results.push(rawgRow);
-            if (rawgId) matchedRawgIds.add(rawgId);
-            if (results.length >= pageSize) break;
-          }
-        }
-      } else {
-        results = rawgPayload.results;
-      }
-
-      const rawgCount = Number(rawgPayload.count || 0);
-      if (rawgCount > 0) {
-        count = count > 0 ? Math.max(count, rawgCount) : rawgCount;
-      }
-    }
-
-    if (!count) count = results.length;
+    const results = Array.isArray(igdbPayload?.results) ? igdbPayload.results : [];
+    const count = Number(igdbPayload?.count || results.length || 0);
 
     res.json({
       count,
@@ -1133,8 +1074,8 @@ router.get("/games", async (req, res) => {
       page_size: pageSize,
       results,
       sources: {
-        igdb: !!igdbPayload,
-        rawg: !!rawgPayload
+        igdb: true,
+        rawg: false
       }
     });
   } catch (error) {
@@ -1148,50 +1089,12 @@ router.get("/games/:id", async (req, res) => {
     if (!Number.isFinite(requestedId) || requestedId <= 0) {
       return res.status(400).json({ message: "Invalid game id." });
     }
-
-    const encodedRawgId = decodeRawgId(requestedId);
-    if (encodedRawgId) {
-      const rawgOnly = await fetchRawgGameDetailsByRawgId(encodedRawgId);
-      if (!rawgOnly) return res.status(404).json({ message: "Game not found." });
-      rawgOnly.id = requestedId;
-      return res.json(rawgOnly);
-    }
-
-    let igdbPayload = null;
-    let igdbError = null;
-    try {
-      igdbPayload = await fetchIgdbGameDetails(requestedId);
-    } catch (error) {
-      igdbError = error;
-    }
-
-    if (igdbPayload) {
-      let rawgPayload = null;
-      try {
-        rawgPayload = await fetchRawgGameDetailsByName(igdbPayload.name, igdbPayload.released);
-      } catch (_rawgErr) {
-        rawgPayload = null;
-      }
-      if (rawgPayload) {
-        const merged = mergeGameDetailRows(igdbPayload, rawgPayload);
-        merged.id = igdbPayload.id;
-        return res.json(merged);
-      }
-      return res.json(igdbPayload);
-    }
-
-    const rawgFallback = await fetchRawgGameDetailsByRawgId(requestedId).catch(() => null);
-    if (rawgFallback) return res.json(rawgFallback);
-
-    if (igdbError?.code === "NOT_FOUND") {
+    const igdbPayload = await fetchIgdbGameDetails(requestedId);
+    return res.json(igdbPayload);
+  } catch (error) {
+    if (error?.code === "NOT_FOUND") {
       return res.status(404).json({ message: "Game not found." });
     }
-
-    return res.status(500).json({
-      message: "Failed to load game details from Twitch/IGDB and RAWG.",
-      error: String(igdbError?.message || "No provider returned data.")
-    });
-  } catch (error) {
     res.status(500).json({ message: "Failed to load game details.", error: String(error?.message || error) });
   }
 });

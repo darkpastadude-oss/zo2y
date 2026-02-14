@@ -771,7 +771,8 @@
           return;
         }
 
-        const results = data.results || [];
+        const rawResults = data.results || [];
+        const results = rawResults.filter((item) => String(item?.cover || '').trim());
 
         if (!results.length) {
           if (empty) empty.style.display = 'block';
@@ -787,7 +788,7 @@
           card.className = 'card';
           card.setAttribute('data-game-id', item.id);
           card.innerHTML = `
-            <img src="${item.background_image ? item.background_image : 'images/placeholder.jpg'}" alt="${gameTitle}">
+            <img src="${item.cover}" alt="${gameTitle}">
             <div class="card-body">
               <h3 class="card-title">${gameTitle}</h3>
               <div class="card-meta-row">
