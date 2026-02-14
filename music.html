@@ -107,6 +107,29 @@
     .section-head h2 { font-size: 23px; margin-bottom: 3px; }
     .section-head p { color: var(--muted); font-size: 13px; }
 
+    .section-search {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .section-search input {
+      flex: 1;
+      min-width: 220px;
+      height: 38px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      color: var(--white);
+      padding: 0 10px;
+      outline: none;
+    }
+    .section-search input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(29,185,84,0.2);
+    }
+
     .grid {
       padding: 14px;
       display: grid;
@@ -152,9 +175,10 @@
 
     .card-actions {
       display: grid;
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns: auto auto;
       gap: 6px;
       margin-top: 6px;
+      justify-content: end;
     }
     .icon-btn {
       height: 32px; width: 32px; border-radius: 9px; border: 1px solid var(--border);
@@ -269,6 +293,11 @@
       <div class="section-head">
         <h2>Trending Tracks</h2>
         <p>Pulled from Spotify search signals and rotated genres.</p>
+        <div class="section-search">
+          <input id="musicPageSearch" type="text" placeholder="Search songs or artists..." />
+          <button class="btn" id="searchMusicBtn" type="button"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+          <button class="btn" id="clearMusicSearchBtn" type="button"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+        </div>
       </div>
       <div class="grid" id="musicGrid"></div>
     </section>
@@ -307,6 +336,7 @@
     let currentUser = null;
     const state = {
       tracks: [],
+      currentQuery: '',
       listStatusMap: new Map(),
       modalTrack: null,
       customLists: [],
@@ -400,8 +430,9 @@
       }
     }
 
-    async function loadTracks() {
-      const topic = randomTopic();
+    async function loadTracks(queryOverride = '') {
+      const query = String(queryOverride || state.currentQuery || '').trim();
+      const topic = query || randomTopic();
       const q = encodeURIComponent(topic);
       let rows = [];
       let usedFallback = false;
@@ -491,7 +522,6 @@
             <p class="card-sub">${escapeHtml(track.subtitle)}</p>
             <p class="card-extra">${escapeHtml(track.album)} | Popularity ${track.popularity}/100</p>
             <div class="card-actions">
-              <a class="mini-btn" href="song.html?id=${encodeURIComponent(track.id)}">Open</a>
               <button class="icon-btn menu-toggle" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
               ${track.preview_url ? `<button class="icon-btn preview-toggle" data-preview="${escapeHtml(track.preview_url)}" type="button" aria-label="Preview"><i class="fas fa-play"></i></button>` : '<span></span>'}
             </div>
@@ -646,6 +676,15 @@
         });
       });
 
+      document.querySelectorAll('.card').forEach((card) => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.menu') || e.target.closest('.menu-toggle') || e.target.closest('.preview-toggle')) return;
+          const id = String(card.getAttribute('data-id') || '').trim();
+          if (!id) return;
+          window.location.href = `song.html?id=${encodeURIComponent(id)}`;
+        });
+      });
+
       document.querySelectorAll('.menu').forEach((menu) => {
         menu.querySelectorAll('button').forEach((button) => {
           button.addEventListener('click', async (e) => {
@@ -690,7 +729,7 @@
     async function loadPage() {
       try {
         await initAuthUi();
-        await loadTracks();
+        await loadTracks(state.currentQuery);
         await loadListStatus();
         renderGrid();
       } catch (_err) {
@@ -705,6 +744,22 @@
     });
 
     document.getElementById('refreshMusicBtn')?.addEventListener('click', loadPage);
+    document.getElementById('searchMusicBtn')?.addEventListener('click', async () => {
+      state.currentQuery = String(document.getElementById('musicPageSearch')?.value || '').trim();
+      await loadPage();
+    });
+    document.getElementById('clearMusicSearchBtn')?.addEventListener('click', async () => {
+      const input = document.getElementById('musicPageSearch');
+      if (input) input.value = '';
+      state.currentQuery = '';
+      await loadPage();
+    });
+    document.getElementById('musicPageSearch')?.addEventListener('keydown', async (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      state.currentQuery = String(e.target.value || '').trim();
+      await loadPage();
+    });
     document.getElementById('closeMusicListsModal')?.addEventListener('click', closeCustomLists);
     document.getElementById('saveMusicListsBtn')?.addEventListener('click', saveCustomLists);
     document.getElementById('createMusicListBtn')?.addEventListener('click', createCustomList);

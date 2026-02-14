@@ -94,6 +94,17 @@
     .btn-primary:hover { color: #0a213c; }
     .status { margin-top: 10px; color: var(--muted); font-size: 13px; }
     .error { color: #fecaca; }
+    .artist-panel {
+      margin-top: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+    .artist-panel h3 { font-size: 14px; color: #d9e7ff; }
+    .artist-meta { font-size: 12px; color: #c8ddfb; }
     audio { margin-top: 12px; width: 100%; max-width: 520px; }
     @media (max-width: 860px) {
       .top-nav { display: none; }
@@ -137,6 +148,7 @@
           <span class="chip" id="songAlbum"><i class="fa-solid fa-compact-disc"></i> Album</span>
           <span class="chip" id="songDuration"><i class="fa-regular fa-clock"></i> --:--</span>
           <span class="chip" id="songPopularity"><i class="fa-solid fa-fire"></i> Popularity --/100</span>
+          <span class="chip" id="artistFollowers"><i class="fa-solid fa-users"></i> Followers --</span>
         </div>
         <div class="actions">
           <button class="btn btn-primary" id="listenBtn" type="button"><i class="fa-solid fa-play"></i> Listen Now</button>
@@ -146,6 +158,11 @@
           <a class="btn" href="music.html"><i class="fa-solid fa-arrow-left"></i> Back to Music</a>
         </div>
         <audio id="previewPlayer" controls preload="none" style="display:none;"></audio>
+        <div class="artist-panel" id="artistPanel" style="display:none;">
+          <h3 id="artistPanelTitle">Artist Info</h3>
+          <div class="artist-meta" id="artistGenres">Genres: --</div>
+          <div class="artist-meta" id="artistPopularity">Artist popularity: --/100</div>
+        </div>
         <div class="status" id="songStatus">Fetching track details...</div>
       </div>
     </section>
@@ -189,6 +206,14 @@
       return res.json();
     }
 
+    async function fetchSpotifyArtist(id) {
+      const artistId = String(id || '').trim();
+      if (!artistId) return null;
+      const res = await fetch(`/api/music/artists/${encodeURIComponent(artistId)}`);
+      if (!res.ok) return null;
+      return res.json();
+    }
+
     async function fetchItunesTrack(id) {
       const res = await fetch(`https://itunes.apple.com/lookup?id=${encodeURIComponent(id)}&entity=song`);
       if (!res.ok) return null;
@@ -201,6 +226,7 @@
         id: String(row.trackId || row.collectionId || id),
         name: row.trackName || row.collectionName || 'Track',
         artists: [row.artistName || 'Artist'],
+        artist_ids: [],
         album: { name: row.collectionName || 'Album' },
         image: row.artworkUrl100 || row.artworkUrl60 || '',
         preview_url: row.previewUrl || '',
@@ -216,6 +242,7 @@
       qs('songAlbum').innerHTML = `<i class="fa-solid fa-compact-disc"></i> ${data.album?.name || 'Album'}`;
       qs('songDuration').innerHTML = `<i class="fa-regular fa-clock"></i> ${msToMinSec(data.duration_ms)}`;
       qs('songPopularity').innerHTML = `<i class="fa-solid fa-fire"></i> Popularity ${Number(data.popularity || 0)}/100`;
+      qs('artistFollowers').innerHTML = '<i class="fa-solid fa-users"></i> Followers --';
       qs('songCover').src = data.image || 'images/logo.png';
       qs('songStatus').textContent = data.preview_url ? 'Ready to play preview.' : 'Preview not available for this track.';
 
@@ -227,6 +254,23 @@
         audio.removeAttribute('src');
         audio.style.display = 'none';
       }
+    }
+
+    function renderArtist(artist) {
+      if (!artist) return;
+      const panel = qs('artistPanel');
+      const panelTitle = qs('artistPanelTitle');
+      const genresEl = qs('artistGenres');
+      const popEl = qs('artistPopularity');
+      const followersEl = qs('artistFollowers');
+      if (!panel || !panelTitle || !genresEl || !popEl || !followersEl) return;
+
+      panel.style.display = 'grid';
+      panelTitle.textContent = artist.name || 'Artist Info';
+      const genres = Array.isArray(artist.genres) && artist.genres.length ? artist.genres.slice(0, 3).join(', ') : 'Unknown';
+      genresEl.textContent = `Genres: ${genres}`;
+      popEl.textContent = `Artist popularity: ${Number(artist.popularity || 0)}/100`;
+      followersEl.innerHTML = `<i class="fa-solid fa-users"></i> Followers ${Number(artist.followers || 0).toLocaleString()}`;
     }
 
     async function toggleList(listType) {
@@ -297,6 +341,14 @@
       }
 
       renderTrack(data);
+
+      const firstArtistId = Array.isArray(data.artist_ids) && data.artist_ids.length
+        ? String(data.artist_ids[0] || '').trim()
+        : '';
+      if (firstArtistId) {
+        const artist = await fetchSpotifyArtist(firstArtistId);
+        if (artist) renderArtist(artist);
+      }
     }
 
     qs('listenBtn').addEventListener('click', () => {

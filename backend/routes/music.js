@@ -39,6 +39,9 @@ function normalizeTrackRow(track) {
     artists: artists
       .map((artist) => String(artist?.name || "").trim())
       .filter(Boolean),
+    artist_ids: artists
+      .map((artist) => String(artist?.id || "").trim())
+      .filter(Boolean),
     album: {
       id: String(album?.id || ""),
       name: String(album?.name || "").trim(),
@@ -56,6 +59,20 @@ function normalizeTrackRow(track) {
     popularity: Number(track?.popularity || 0),
     duration_ms: Number(track?.duration_ms || 0),
     explicit: !!track?.explicit
+  };
+}
+
+function normalizeArtistRow(artist) {
+  const images = Array.isArray(artist?.images) ? artist.images : [];
+  const genres = Array.isArray(artist?.genres) ? artist.genres : [];
+  return {
+    id: String(artist?.id || ""),
+    name: String(artist?.name || "Artist"),
+    image: String(images?.[0]?.url || "").trim(),
+    genres: genres.map((g) => String(g || "").trim()).filter(Boolean),
+    followers: Number(artist?.followers?.total || 0),
+    popularity: Number(artist?.popularity || 0),
+    external_url: String(artist?.external_urls?.spotify || "").trim()
   };
 }
 
@@ -242,6 +259,26 @@ router.get("/tracks/:id", async (req, res) => {
       return res.status(404).json({ message: "Track not found." });
     }
     return res.status(500).json({ message: "Failed to load track details.", error: message });
+  }
+});
+
+router.get("/artists/:id", async (req, res) => {
+  try {
+    if (!hasSpotifyCredentials()) {
+      return res.status(503).json({ message: "Spotify credentials are not configured on the server." });
+    }
+
+    const id = String(req.params.id || "").trim();
+    if (!id) return res.status(400).json({ message: "Invalid artist id." });
+
+    const json = await spotifyRequest(`/artists/${encodeURIComponent(id)}`);
+    return res.json(normalizeArtistRow(json));
+  } catch (error) {
+    const message = String(error?.message || error);
+    if (message.includes("(404)")) {
+      return res.status(404).json({ message: "Artist not found." });
+    }
+    return res.status(500).json({ message: "Failed to load artist details.", error: message });
   }
 });
 
