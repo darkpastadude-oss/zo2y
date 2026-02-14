@@ -3440,6 +3440,11 @@ header, .top-stripe, .section-nav {
             <div class="mobile-section active" id="mobileRestaurantsSection">
                 <div class="mobile-section-title">
                     <span id="mobileRestaurantsTitle">My Restaurants</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn" id="mobileCreateRestaurantListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.showCreateListModal()">
+                            <i class="fas fa-plus"></i> New Collection
+                        </button>
+                    </div>
                 </div>
                 <div class="mobile-section-subtitle" id="mobileRestaurantsSubtitle">Organize your favorite restaurants</div>
                 
@@ -3481,6 +3486,9 @@ header, .top-stripe, .section-nav {
                 <div class="mobile-section-title">
                     <span>My Movies</span>
                     <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn" id="mobileCreateMovieListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createMovieList()">
+                            <i class="fas fa-plus"></i> New Collection
+                        </button>
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='movies.html'">
                             <i class="fas fa-film"></i> Browse
                         </button>
@@ -3524,6 +3532,9 @@ header, .top-stripe, .section-nav {
                 <div class="mobile-section-title">
                     <span>My TV Shows</span>
                     <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn" id="mobileCreateTvListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createTvList()">
+                            <i class="fas fa-plus"></i> New Collection
+                        </button>
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='tvshows.html'">
                             <i class="fas fa-tv"></i> Browse
                         </button>
@@ -3567,6 +3578,9 @@ header, .top-stripe, .section-nav {
                 <div class="mobile-section-title">
                     <span id="mobileGamesTitle">My Games</span>
                     <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn" id="mobileCreateGameListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createGameList()">
+                            <i class="fas fa-plus"></i> New Collection
+                        </button>
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='games.html'">
                             <i class="fas fa-gamepad"></i> Browse
                         </button>
@@ -3610,6 +3624,9 @@ header, .top-stripe, .section-nav {
                 <div class="mobile-section-title">
                     <span id="mobileBooksTitle">My Books</span>
                     <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn" id="mobileCreateBookListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createBookList()">
+                            <i class="fas fa-plus"></i> New Collection
+                        </button>
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='books.html'">
                             <i class="fas fa-book"></i> Browse
                         </button>
@@ -4344,7 +4361,14 @@ header, .top-stripe, .section-nav {
                 const mobileViewingIndicator = document.getElementById('mobileViewingIndicator');
                 const createListBtn = document.getElementById('createRestaurantListBtn');
                 const createMovieListBtn = document.getElementById('createMovieListBtn');
+                const createTvListBtn = document.getElementById('createTvListBtn');
+                const createGameListBtn = document.getElementById('createGameListBtn');
                 const createBookListBtn = document.getElementById('createBookListBtn');
+                const mobileCreateRestaurantListBtn = document.getElementById('mobileCreateRestaurantListBtn');
+                const mobileCreateMovieListBtn = document.getElementById('mobileCreateMovieListBtn');
+                const mobileCreateTvListBtn = document.getElementById('mobileCreateTvListBtn');
+                const mobileCreateGameListBtn = document.getElementById('mobileCreateGameListBtn');
+                const mobileCreateBookListBtn = document.getElementById('mobileCreateBookListBtn');
                 
                 if (editProfileBtn) editProfileBtn.style.display = 'flex';
                 if (settingsBtn) settingsBtn.style.display = 'flex';
@@ -4354,7 +4378,14 @@ header, .top-stripe, .section-nav {
                 if (mobileViewingIndicator) mobileViewingIndicator.style.display = 'none';
                 if (createListBtn) createListBtn.style.display = 'flex';
                 if (createMovieListBtn) createMovieListBtn.style.display = 'inline-flex';
+                if (createTvListBtn) createTvListBtn.style.display = 'inline-flex';
+                if (createGameListBtn) createGameListBtn.style.display = 'inline-flex';
                 if (createBookListBtn) createBookListBtn.style.display = 'inline-flex';
+                if (mobileCreateRestaurantListBtn) mobileCreateRestaurantListBtn.style.display = 'inline-flex';
+                if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'inline-flex';
+                if (mobileCreateTvListBtn) mobileCreateTvListBtn.style.display = 'inline-flex';
+                if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'inline-flex';
+                if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'inline-flex';
 
                 // Load profile - use cached if available
                 if (!userProfile) {
@@ -4376,7 +4407,14 @@ header, .top-stripe, .section-nav {
                 const mobileViewingIndicator = document.getElementById('mobileViewingIndicator');
                 const createListBtn = document.getElementById('createRestaurantListBtn');
                 const createMovieListBtn = document.getElementById('createMovieListBtn');
+                const createTvListBtn = document.getElementById('createTvListBtn');
+                const createGameListBtn = document.getElementById('createGameListBtn');
                 const createBookListBtn = document.getElementById('createBookListBtn');
+                const mobileCreateRestaurantListBtn = document.getElementById('mobileCreateRestaurantListBtn');
+                const mobileCreateMovieListBtn = document.getElementById('mobileCreateMovieListBtn');
+                const mobileCreateTvListBtn = document.getElementById('mobileCreateTvListBtn');
+                const mobileCreateGameListBtn = document.getElementById('mobileCreateGameListBtn');
+                const mobileCreateBookListBtn = document.getElementById('mobileCreateBookListBtn');
                 
                 if (editProfileBtn) editProfileBtn.style.display = 'none';
                 if (settingsBtn) settingsBtn.style.display = 'none';
@@ -4386,7 +4424,14 @@ header, .top-stripe, .section-nav {
                 if (mobileViewingIndicator) mobileViewingIndicator.style.display = 'flex';
                 if (createListBtn) createListBtn.style.display = 'none';
                 if (createMovieListBtn) createMovieListBtn.style.display = 'none';
+                if (createTvListBtn) createTvListBtn.style.display = 'none';
+                if (createGameListBtn) createGameListBtn.style.display = 'none';
                 if (createBookListBtn) createBookListBtn.style.display = 'none';
+                if (mobileCreateRestaurantListBtn) mobileCreateRestaurantListBtn.style.display = 'none';
+                if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'none';
+                if (mobileCreateTvListBtn) mobileCreateTvListBtn.style.display = 'none';
+                if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'none';
+                if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'none';
 
                 const { data: profile, error } = await supabase
                     .from('user_profiles')
