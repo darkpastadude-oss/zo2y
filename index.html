@@ -485,6 +485,18 @@
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
     }
 
+    .card-media.music-cover {
+      aspect-ratio: 1/1;
+      padding: 0;
+      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+    }
+
+    .card-media.music-cover img {
+      object-fit: cover;
+      border-radius: 0;
+      background: transparent;
+    }
+
     .card-media.game-poster img {
       object-fit: cover;
       border-radius: 0;
@@ -631,6 +643,11 @@
     .rail.unified-rail .card-media.game-poster img {
       object-fit: cover;
       border-radius: 0;
+    }
+
+    .rail.unified-rail .card-media.music-cover img {
+      object-fit: cover;
+      background: transparent;
     }
 
     .rail.games-rail .card {
@@ -1155,6 +1172,10 @@
       .rail.unified-rail .card-media.game-poster img {
         object-fit: cover;
         border-radius: 0;
+      }
+
+      .rail.unified-rail .card-media.music-cover img {
+        object-fit: cover;
       }
 
       .rail.games-rail .card {
@@ -2845,6 +2866,7 @@
         const mediaClasses = ['card-media'];
         if (landscape) mediaClasses.push('landscape');
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
+        if (mediaTypeRaw === 'music') mediaClasses.push('music-cover');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         const mediaHtml = restaurantComposite
           ? `
@@ -3456,7 +3478,7 @@
             spotlightMediaImage: String(track.image || '').trim(),
             spotlightMediaFit: 'cover',
             spotlightMediaShape: 'square',
-            href: String(track.external_url || '').trim() || 'music.html'
+            href: String(track.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
           };
         });
       } catch (_err) {

@@ -237,18 +237,39 @@
   }
 
   async function fetchMusic(query) {
-    const res = await fetch(`${MUSIC_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=4&market=US`);
-    if (!res.ok) return [];
-    const json = await res.json();
-    const items = Array.isArray(json.results) ? json.results : [];
-    return items.map((track) => ({
-      type: 'Music',
-      title: track.name || 'Track',
-      sub: Array.isArray(track.artists) && track.artists.length ? track.artists.join(', ') : 'Artist',
-      href: track.external_url || 'music.html',
-      image: toHttpsUrl(track.image || ''),
-      landscape: false
-    }));
+    try {
+      const res = await fetch(`${MUSIC_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=4&market=US`);
+      if (res.ok) {
+        const json = await res.json();
+        const items = Array.isArray(json.results) ? json.results : [];
+        return items.map((track) => ({
+          type: 'Music',
+          title: track.name || 'Track',
+          sub: Array.isArray(track.artists) && track.artists.length ? track.artists.join(', ') : 'Artist',
+          href: track.id ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html',
+          image: toHttpsUrl(track.image || ''),
+          landscape: false
+        }));
+      }
+    } catch (_err) {}
+
+    // Fallback path when Spotify proxy is unavailable.
+    try {
+      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=4`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      const items = Array.isArray(json.results) ? json.results : [];
+      return items.map((track) => ({
+        type: 'Music',
+        title: track.trackName || 'Track',
+        sub: track.artistName || 'Artist',
+        href: track.trackId ? `song.html?id=${encodeURIComponent(track.trackId)}&source=itunes` : 'music.html',
+        image: toHttpsUrl(track.artworkUrl100 || track.artworkUrl60 || ''),
+        landscape: false
+      }));
+    } catch (_err) {
+      return [];
+    }
   }
 
   async function fetchAllSuggestions(query) {

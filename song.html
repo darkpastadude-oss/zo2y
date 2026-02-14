@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Zo2y - Song</title>
+  <meta name="description" content="Listen to song previews and save tracks to your Zo2y lists." />
+  <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/universal-search.js" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root {
+      --bg: #08182d;
+      --card: #0f2748;
+      --card-2: #123059;
+      --muted: #8fb2dd;
+      --accent: #1db954;
+      --white: #fff;
+      --border: rgba(255,255,255,0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 18% -10%, rgba(29,185,84,0.24), transparent 35%),
+        radial-gradient(circle at 88% -14%, rgba(53,103,194,0.25), transparent 42%),
+        var(--bg);
+      color: var(--white);
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+    }
+    a { color: inherit; text-decoration: none; }
+    .container { width: min(1100px, calc(100% - 28px)); margin: 0 auto; }
+    header {
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(10px) saturate(180%);
+      background: rgba(8,24,45,0.9);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      min-height: 72px; display: flex; align-items: center; gap: 14px;
+      padding: 12px 0; flex-wrap: wrap;
+    }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; }
+    .brand img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
+    .search-wrap { flex: 1; min-width: 210px; max-width: 420px; position: relative; margin-left: 8px; }
+    .search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; }
+    .search {
+      width: 100%; height: 42px; border-radius: 999px; border: 1px solid var(--border); background: var(--card);
+      color: var(--white); padding: 0 14px 0 34px; outline: none;
+    }
+    .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(29,185,84,0.2); }
+    .top-nav { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+    .nav-pill {
+      border: 1px solid transparent; color: #e2ecff; border-radius: 999px; font-size: 12px;
+      font-weight: 600; padding: 8px 10px;
+    }
+    .nav-pill.active, .nav-pill:hover { border-color: var(--border); color: var(--accent); background: rgba(255,255,255,0.04); }
+    .shell {
+      margin-top: 22px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: rgba(15,39,72,0.9);
+      box-shadow: 0 12px 34px rgba(0,0,0,0.22);
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 18px;
+    }
+    .cover {
+      width: 100%;
+      aspect-ratio: 1/1;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #0f2748;
+    }
+    .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .meta h1 { font-size: clamp(28px, 4.2vw, 46px); line-height: 1.06; }
+    .meta p { margin-top: 6px; color: #d4e6ff; }
+    .chips { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      padding: 7px 10px; border-radius: 999px; border: 1px solid var(--border);
+      color: #d9e7ff; font-size: 12px; background: rgba(255,255,255,0.06);
+    }
+    .actions { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn {
+      height: 40px; border-radius: 11px; border: 1px solid var(--border);
+      background: var(--card-2); color: var(--white); padding: 0 12px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 7px; font-weight: 600;
+    }
+    .btn-primary { border: 0; color: #0a213c; background: linear-gradient(135deg, #1db954 0%, #56da84 100%); }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary:hover { color: #0a213c; }
+    .status { margin-top: 10px; color: var(--muted); font-size: 13px; }
+    .error { color: #fecaca; }
+    audio { margin-top: 12px; width: 100%; max-width: 520px; }
+    @media (max-width: 860px) {
+      .top-nav { display: none; }
+      .shell { grid-template-columns: 1fr; }
+      .container { width: calc(100% - 16px); }
+      .search-wrap { order: 3; max-width: none; margin-left: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <img src="images/logo.png" alt="Zo2y" />
+        <span>Zo2y</span>
+      </a>
+      <div class="search-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="search" id="globalSearch" placeholder="Search all media..." />
+      </div>
+      <nav class="top-nav" aria-label="Browse media">
+        <a class="nav-pill" href="movies.html">Movies</a>
+        <a class="nav-pill" href="tvshows.html">TV</a>
+        <a class="nav-pill" href="games.html">Games</a>
+        <a class="nav-pill" href="books.html">Books</a>
+        <a class="nav-pill active" href="music.html">Music</a>
+        <a class="nav-pill" href="restraunts.html">Restaurants</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="shell">
+      <div class="cover">
+        <img id="songCover" src="images/logo.png" alt="Song cover" />
+      </div>
+      <div class="meta">
+        <h1 id="songTitle">Loading song...</h1>
+        <p id="songArtist">Artist</p>
+        <div class="chips">
+          <span class="chip" id="songAlbum"><i class="fa-solid fa-compact-disc"></i> Album</span>
+          <span class="chip" id="songDuration"><i class="fa-regular fa-clock"></i> --:--</span>
+          <span class="chip" id="songPopularity"><i class="fa-solid fa-fire"></i> Popularity --/100</span>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="listenBtn" type="button"><i class="fa-solid fa-play"></i> Listen Now</button>
+          <button class="btn" id="favBtn" type="button"><i class="fa-solid fa-heart"></i> Favorites</button>
+          <button class="btn" id="listenedBtn" type="button"><i class="fa-solid fa-check"></i> Listened</button>
+          <button class="btn" id="listenlistBtn" type="button"><i class="fa-solid fa-bookmark"></i> Listenlist</button>
+          <a class="btn" href="music.html"><i class="fa-solid fa-arrow-left"></i> Back to Music</a>
+        </div>
+        <audio id="previewPlayer" controls preload="none" style="display:none;"></audio>
+        <div class="status" id="songStatus">Fetching track details...</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+    let supabaseClient = null;
+    let currentUser = null;
+    let track = null;
+
+    function qs(id) { return document.getElementById(id); }
+    function msToMinSec(ms) {
+      const total = Math.max(0, Number(ms || 0));
+      const sec = Math.floor(total / 1000);
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    async function ensureSupabase() {
+      if (supabaseClient) return supabaseClient;
+      if (!window.supabase || !window.supabase.createClient) return null;
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+      });
+      return supabaseClient;
+    }
+
+    async function loadAuth() {
+      const client = await ensureSupabase();
+      if (!client) return;
+      const { data } = await client.auth.getUser();
+      currentUser = data?.user || null;
+    }
+
+    async function fetchSpotifyTrack(id) {
+      const res = await fetch(`/api/music/tracks/${encodeURIComponent(id)}?market=US`);
+      if (!res.ok) return null;
+      return res.json();
+    }
+
+    async function fetchItunesTrack(id) {
+      const res = await fetch(`https://itunes.apple.com/lookup?id=${encodeURIComponent(id)}&entity=song`);
+      if (!res.ok) return null;
+      const json = await res.json();
+      const row = Array.isArray(json.results)
+        ? (json.results.find((item) => item.wrapperType === 'track' || item.kind === 'song') || json.results[0])
+        : null;
+      if (!row) return null;
+      return {
+        id: String(row.trackId || row.collectionId || id),
+        name: row.trackName || row.collectionName || 'Track',
+        artists: [row.artistName || 'Artist'],
+        album: { name: row.collectionName || 'Album' },
+        image: row.artworkUrl100 || row.artworkUrl60 || '',
+        preview_url: row.previewUrl || '',
+        popularity: 0,
+        duration_ms: Number(row.trackTimeMillis || 0)
+      };
+    }
+
+    function renderTrack(data) {
+      track = data;
+      qs('songTitle').textContent = data.name || 'Track';
+      qs('songArtist').textContent = Array.isArray(data.artists) && data.artists.length ? data.artists.join(', ') : 'Artist';
+      qs('songAlbum').innerHTML = `<i class="fa-solid fa-compact-disc"></i> ${data.album?.name || 'Album'}`;
+      qs('songDuration').innerHTML = `<i class="fa-regular fa-clock"></i> ${msToMinSec(data.duration_ms)}`;
+      qs('songPopularity').innerHTML = `<i class="fa-solid fa-fire"></i> Popularity ${Number(data.popularity || 0)}/100`;
+      qs('songCover').src = data.image || 'images/logo.png';
+      qs('songStatus').textContent = data.preview_url ? 'Ready to play preview.' : 'Preview not available for this track.';
+
+      const audio = qs('previewPlayer');
+      if (data.preview_url) {
+        audio.src = data.preview_url;
+        audio.style.display = 'block';
+      } else {
+        audio.removeAttribute('src');
+        audio.style.display = 'none';
+      }
+    }
+
+    async function toggleList(listType) {
+      if (!track?.id) return;
+      const client = await ensureSupabase();
+      if (!client || !currentUser?.id) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      await client.from('tracks').upsert({
+        id: String(track.id),
+        name: track.name || '',
+        artists: Array.isArray(track.artists) ? track.artists.join(', ') : '',
+        album_name: track.album?.name || '',
+        image_url: track.image || '',
+        preview_url: track.preview_url || '',
+        popularity: Number(track.popularity || 0),
+        duration_ms: Number(track.duration_ms || 0),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+
+      const { data: existing } = await client
+        .from('music_list_items')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .eq('track_id', String(track.id))
+        .eq('list_type', listType)
+        .limit(1)
+        .maybeSingle();
+
+      if (existing?.id) {
+        await client.from('music_list_items').delete().eq('id', existing.id);
+        qs('songStatus').textContent = 'Removed from list.';
+      } else {
+        await client.from('music_list_items').insert({
+          user_id: currentUser.id,
+          track_id: String(track.id),
+          list_type: listType
+        });
+        qs('songStatus').textContent = 'Added to list.';
+      }
+    }
+
+    async function initSongPage() {
+      await loadAuth();
+      const url = new URL(window.location.href);
+      const id = String(url.searchParams.get('id') || '').trim();
+      const source = String(url.searchParams.get('source') || '').trim().toLowerCase();
+      if (!id) {
+        qs('songStatus').textContent = 'Missing song id.';
+        qs('songStatus').classList.add('error');
+        return;
+      }
+
+      let data = null;
+      if (source === 'itunes') {
+        data = await fetchItunesTrack(id);
+      } else {
+        data = await fetchSpotifyTrack(id);
+        if (!data) data = await fetchItunesTrack(id);
+      }
+
+      if (!data) {
+        qs('songStatus').textContent = 'Could not load this song.';
+        qs('songStatus').classList.add('error');
+        return;
+      }
+
+      renderTrack(data);
+    }
+
+    qs('listenBtn').addEventListener('click', () => {
+      const audio = qs('previewPlayer');
+      if (!audio || !track?.preview_url) return;
+      if (audio.paused) audio.play().catch(() => {});
+      else audio.pause();
+    });
+    qs('favBtn').addEventListener('click', () => toggleList('favorites'));
+    qs('listenedBtn').addEventListener('click', () => toggleList('listened'));
+    qs('listenlistBtn').addEventListener('click', () => toggleList('listenlist'));
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.initUniversalSearch) {
+        window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'music.html' });
+      }
+      initSongPage();
+    });
+  </script>
+</body>
+</html>

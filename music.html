@@ -342,6 +342,27 @@
       return MUSIC_TOPICS[Math.floor(Math.random() * MUSIC_TOPICS.length)];
     }
 
+    async function loadFallbackTracks(query) {
+      try {
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=30`);
+        if (!res.ok) return [];
+        const json = await res.json();
+        const rows = Array.isArray(json.results) ? json.results : [];
+        return rows.map((row) => ({
+          id: String(row.trackId || row.collectionId || ''),
+          name: row.trackName || row.collectionName || 'Track',
+          subtitle: row.artistName || 'Artist',
+          album: row.collectionName || 'Album',
+          image: row.artworkUrl100 || row.artworkUrl60 || '',
+          preview_url: row.previewUrl || '',
+          external_url: row.trackViewUrl || '',
+          popularity: 0
+        })).filter((row) => row.id);
+      } catch (_err) {
+        return [];
+      }
+    }
+
     async function ensureSupabase() {
       if (supabaseClient) return supabaseClient;
       if (!window.supabase || !window.supabase.createClient) return null;
@@ -380,11 +401,33 @@
     }
 
     async function loadTracks() {
-      const q = encodeURIComponent(randomTopic());
-      const res = await fetch(`/api/music/search?q=${q}&limit=30&market=US`);
-      if (!res.ok) throw new Error('Music API unavailable');
-      const json = await res.json();
-      const rows = Array.isArray(json.results) ? json.results : [];
+      const topic = randomTopic();
+      const q = encodeURIComponent(topic);
+      let rows = [];
+      let usedFallback = false;
+
+      try {
+        const res = await fetch(`/api/music/search?q=${q}&limit=30&market=US`);
+        if (res.ok) {
+          const json = await res.json();
+          rows = Array.isArray(json.results) ? json.results : [];
+        } else {
+          usedFallback = true;
+        }
+      } catch (_err) {
+        usedFallback = true;
+      }
+
+      if (usedFallback || !rows.length) {
+        const fallbackRows = await loadFallbackTracks(topic);
+        state.tracks = fallbackRows;
+        if (fallbackRows.length) {
+          showToast('Spotify feed is temporarily unavailable. Showing fallback tracks.', true);
+          return;
+        }
+        throw new Error('Music API unavailable');
+      }
+
       state.tracks = rows.map((row) => {
         const artists = Array.isArray(row.artists) ? row.artists : [];
         return {
@@ -448,7 +491,7 @@
             <p class="card-sub">${escapeHtml(track.subtitle)}</p>
             <p class="card-extra">${escapeHtml(track.album)} | Popularity ${track.popularity}/100</p>
             <div class="card-actions">
-              <a class="mini-btn" href="${escapeHtml(track.external_url || 'music.html')}" target="_blank" rel="noopener">Open</a>
+              <a class="mini-btn" href="song.html?id=${encodeURIComponent(track.id)}">Open</a>
               <button class="icon-btn menu-toggle" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
               ${track.preview_url ? `<button class="icon-btn preview-toggle" data-preview="${escapeHtml(track.preview_url)}" type="button" aria-label="Preview"><i class="fas fa-play"></i></button>` : '<span></span>'}
             </div>

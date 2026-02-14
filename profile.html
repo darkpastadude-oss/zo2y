@@ -8992,16 +8992,12 @@ header, .top-stripe, .section-nav {
                     const artists = String(track?.artists || 'Unknown Artist').trim() || 'Unknown Artist';
                     const album = String(track?.album_name || 'Album').trim() || 'Album';
                     const image = String(track?.image_url || '').trim() || 'images/logo.png';
-                    const openUrl = String(track?.external_url || '').trim();
+                    const openUrl = trackId ? `song.html?id=${encodeURIComponent(trackId)}` : 'music.html';
 
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
                     itemCard.onclick = () => {
-                        if (openUrl) {
-                            window.open(openUrl, '_blank', 'noopener');
-                        } else {
-                            window.location.href = 'music.html';
-                        }
+                        window.location.href = openUrl;
                     };
 
                     itemCard.innerHTML = `

@@ -1,5 +1,9 @@
 import express from "express";
+import dotenv from "dotenv";
 import musicRoutes from "../backend/routes/music.js";
+
+dotenv.config();
+dotenv.config({ path: "backend/.env" });
 
 const app = express();
 app.use("/api/music", musicRoutes);

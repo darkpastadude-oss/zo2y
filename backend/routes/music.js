@@ -59,6 +59,40 @@ function normalizeTrackRow(track) {
   };
 }
 
+function normalizeItunesTrackRow(track) {
+  return {
+    id: String(track?.trackId || track?.collectionId || ""),
+    name: String(track?.trackName || track?.collectionName || "Track"),
+    artists: [String(track?.artistName || "").trim()].filter(Boolean),
+    album: {
+      id: String(track?.collectionId || ""),
+      name: String(track?.collectionName || "").trim(),
+      images: [String(track?.artworkUrl100 || track?.artworkUrl60 || "").trim()]
+        .filter(Boolean)
+        .map((url) => ({ url, width: 100, height: 100 }))
+    },
+    image: String(track?.artworkUrl100 || track?.artworkUrl60 || "").trim(),
+    preview_url: String(track?.previewUrl || "").trim(),
+    external_url: String(track?.trackViewUrl || "").trim(),
+    popularity: 0,
+    duration_ms: Number(track?.trackTimeMillis || 0),
+    explicit: false
+  };
+}
+
+async function searchItunesTracks({ q, limit }) {
+  const url = new URL("https://itunes.apple.com/search");
+  url.searchParams.set("term", String(q || "").trim());
+  url.searchParams.set("media", "music");
+  url.searchParams.set("entity", "song");
+  url.searchParams.set("limit", String(clampInt(limit, 1, 50, 20)));
+  const res = await fetch(url.toString());
+  if (!res.ok) return [];
+  const json = await res.json();
+  const rows = Array.isArray(json?.results) ? json.results : [];
+  return rows.map(normalizeItunesTrackRow).filter((row) => !!row.id);
+}
+
 async function getSpotifyAccessToken(forceRefresh = false) {
   if (!forceRefresh && spotifyTokenCache.accessToken && Date.now() < (spotifyTokenCache.expiresAt - TOKEN_REFRESH_SKEW_MS)) {
     return spotifyTokenCache.accessToken;
@@ -137,19 +171,26 @@ router.get("/", (_req, res) => {
 });
 
 router.get("/search", async (req, res) => {
+  const q = String(req.query.q || "").trim().slice(0, 120);
+  if (!q) {
+    return res.status(400).json({ message: "Missing q query parameter." });
+  }
+
+  const limit = clampInt(req.query.limit, 1, 50, 20);
+  const offset = clampInt(req.query.offset, 0, 500, 0);
+  const market = String(req.query.market || "US").trim().slice(0, 2).toUpperCase() || "US";
+
   try {
     if (!hasSpotifyCredentials()) {
-      return res.status(503).json({ message: "Spotify credentials are not configured on the server." });
+      const fallback = await searchItunesTracks({ q, limit });
+      return res.json({
+        count: fallback.length,
+        limit,
+        offset: 0,
+        source: "itunes-fallback",
+        results: fallback
+      });
     }
-
-    const q = String(req.query.q || "").trim().slice(0, 120);
-    if (!q) {
-      return res.status(400).json({ message: "Missing q query parameter." });
-    }
-
-    const limit = clampInt(req.query.limit, 1, 50, 20);
-    const offset = clampInt(req.query.offset, 0, 500, 0);
-    const market = String(req.query.market || "US").trim().slice(0, 2).toUpperCase() || "US";
 
     const json = await spotifyRequest("/search", {
       q,
@@ -164,10 +205,22 @@ router.get("/search", async (req, res) => {
       count: Number(json?.tracks?.total || tracks.length || 0),
       limit,
       offset,
+      source: "spotify",
       results: tracks.map(normalizeTrackRow)
     });
   } catch (error) {
-    return res.status(500).json({ message: "Failed to search music.", error: String(error?.message || error) });
+    try {
+      const fallback = await searchItunesTracks({ q, limit });
+      return res.json({
+        count: fallback.length,
+        limit,
+        offset: 0,
+        source: "itunes-fallback",
+        results: fallback
+      });
+    } catch (_fallbackError) {
+      return res.status(500).json({ message: "Failed to search music.", error: String(error?.message || error) });
+    }
   }
 });
 
