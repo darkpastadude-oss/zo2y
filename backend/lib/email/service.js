@@ -24,6 +24,8 @@ function baseTemplate({ title, subtitle, bodyHtml, ctaLabel, ctaUrl, footerText 
   const safeFooter = escapeHtml(footerText || "You are receiving this email because you have a Zo2y account.");
   const safeCtaLabel = escapeHtml(ctaLabel || "Open Zo2y");
   const safeCtaUrl = escapeHtml(ctaUrl || process.env.APP_BASE_URL || "https://zo2y.com");
+  const baseUrl = String(process.env.APP_BASE_URL || "https://zo2y.com").replace(/\/+$/, "");
+  const safeLogoUrl = escapeHtml(`${baseUrl}/images/logo.png`);
 
   return `
   <div style="margin:0;padding:24px;background:#061022;font-family:Inter,Segoe UI,Arial,sans-serif;color:#0f172a;">
@@ -31,6 +33,9 @@ function baseTemplate({ title, subtitle, bodyHtml, ctaLabel, ctaUrl, footerText 
       <tr>
         <td style="padding:0;background:linear-gradient(140deg,#132347,#1f3a77 58%,#f59e0b 180%);">
           <div style="padding:28px 28px 18px 28px;color:#ffffff;">
+            <div style="margin-bottom:12px;">
+              <img src="${safeLogoUrl}" alt="Zo2y" width="44" height="44" style="display:block;border-radius:10px;border:1px solid rgba(255,255,255,0.28);" />
+            </div>
             <div style="display:inline-block;padding:6px 10px;border:1px solid rgba(255,255,255,0.28);border-radius:999px;font-size:12px;letter-spacing:.3px;">Zo2y Updates</div>
             <h1 style="margin:14px 0 8px 0;font-size:30px;line-height:1.2;">${safeTitle}</h1>
             <p style="margin:0;color:#dbeafe;font-size:15px;line-height:1.5;">${safeSubtitle}</p>
