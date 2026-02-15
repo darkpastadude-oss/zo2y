@@ -15,6 +15,14 @@
     {
       "source": "/api/igdb/:path*",
       "destination": "/api/igdb-handler?path=:path*"
+    },
+    {
+      "source": "/api/emails",
+      "destination": "/api/emails-handler"
+    },
+    {
+      "source": "/api/emails/:path*",
+      "destination": "/api/emails-handler?path=:path*"
     }
   ]
 }
