@@ -1452,6 +1452,7 @@
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 24;
     const HOME_SPOTLIGHT_POOL_SIZE = 24;
+    const HOME_ONBOARDING_VERSION = 'v1';
 
     async function homeIgdbFetch(path, params = {}) {
       if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
@@ -1475,6 +1476,8 @@
     let homeSpotlightItems = [];
     let homeSpotlightIndex = 0;
     let homeSpotlightImageToken = 0;
+    let homeOnboardingIndex = 0;
+    let homeOnboardingUserId = null;
     let homeTasteWeights = {
       restaurant: 1,
       movie: 1,
@@ -3114,6 +3117,292 @@
       }
     }
 
+    function getOnboardingStorageKey(userId) {
+      return `zo2y_onboarding_seen_${HOME_ONBOARDING_VERSION}_${String(userId || '').trim()}`;
+    }
+
+    function hasSeenOnboarding(userId) {
+      if (!userId) return true;
+      return localStorage.getItem(getOnboardingStorageKey(userId)) === '1';
+    }
+
+    function markOnboardingSeen(userId) {
+      if (!userId) return;
+      localStorage.setItem(getOnboardingStorageKey(userId), '1');
+    }
+
+    function getHomeOnboardingSteps() {
+      return [
+        {
+          title: 'Welcome to Zo2y',
+          body: 'Quick tour: how to add places to lists, create your own lists, and connect with friends.',
+          actionLabel: null,
+          action: null
+        },
+        {
+          title: 'Add Places To Lists',
+          body: 'On any card, tap the three-dot menu. Use quick list buttons, or choose Custom Lists to organize it your way.',
+          actionLabel: 'Open A Card Menu',
+          action: () => {
+            const menuBtn = document.querySelector('.card-menu-btn');
+            if (!menuBtn) {
+              showHomeToast('Cards are still loading. Try again in a moment.', true);
+              return;
+            }
+            closeHomeOnboarding(false);
+            menuBtn.click();
+          }
+        },
+        {
+          title: 'Create Your Own Lists',
+          body: 'In the Custom Lists modal, enter a list name, pick an icon, then press Create.',
+          actionLabel: 'Open Custom Lists',
+          action: () => {
+            const firstCard = document.querySelector('.card[data-media-type][data-item-id]');
+            if (!firstCard) {
+              showHomeToast('Cards are still loading. Try again in a moment.', true);
+              return;
+            }
+            closeHomeOnboarding(false);
+            void openHomeListsModal({
+              mediaType: firstCard.getAttribute('data-media-type') || 'restaurant',
+              itemId: firstCard.getAttribute('data-item-id') || '',
+              title: firstCard.getAttribute('data-title') || '',
+              subtitle: firstCard.getAttribute('data-subtitle') || '',
+              image: firstCard.getAttribute('data-image') || ''
+            });
+          }
+        },
+        {
+          title: 'Add Friends',
+          body: 'Open profiles and tap Follow to build your network. You can manage followers and following from your profile.',
+          actionLabel: 'Go To My Profile',
+          action: () => {
+            closeHomeOnboarding(true);
+            window.location.href = 'profile.html';
+          }
+        }
+      ];
+    }
+
+    function ensureHomeOnboardingUi() {
+      let style = document.getElementById('homeOnboardingStyle');
+      if (!style) {
+        style = document.createElement('style');
+        style.id = 'homeOnboardingStyle';
+        style.textContent = `
+          .home-onboarding-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(6, 12, 28, 0.76);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(6px);
+          }
+          .home-onboarding-overlay.active { display: flex; }
+          .home-onboarding-card {
+            width: min(680px, 96vw);
+            background: linear-gradient(180deg, rgba(19,35,71,0.98), rgba(10,24,54,0.98));
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+            padding: 24px;
+            color: #fff;
+          }
+          .home-onboarding-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.78);
+          }
+          .home-onboarding-skip {
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.78);
+            cursor: pointer;
+            font-weight: 600;
+          }
+          .home-onboarding-skip:hover { color: #fff; }
+          .home-onboarding-title {
+            margin: 6px 0 8px;
+            font-size: clamp(24px, 3vw, 32px);
+            line-height: 1.2;
+          }
+          .home-onboarding-body {
+            color: rgba(255,255,255,0.88);
+            font-size: 16px;
+            line-height: 1.55;
+            min-height: 72px;
+          }
+          .home-onboarding-progress {
+            margin-top: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 8px;
+          }
+          .home-onboarding-dot {
+            height: 6px;
+            flex: 1;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.18);
+          }
+          .home-onboarding-dot.active { background: #f59e0b; }
+          .home-onboarding-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 10px;
+          }
+          .home-onboarding-left, .home-onboarding-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+          }
+          .home-onboarding-btn {
+            border: 1px solid rgba(255,255,255,0.22);
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 600;
+            cursor: pointer;
+          }
+          .home-onboarding-btn:hover { background: rgba(255,255,255,0.14); }
+          .home-onboarding-btn.primary {
+            border-color: rgba(245, 158, 11, 0.9);
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #0b1633;
+          }
+          .home-onboarding-btn.primary:hover {
+            filter: brightness(1.05);
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      let overlay = document.getElementById('homeOnboardingOverlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'homeOnboardingOverlay';
+        overlay.className = 'home-onboarding-overlay';
+        overlay.innerHTML = `
+          <div class="home-onboarding-card" role="dialog" aria-modal="true" aria-labelledby="homeOnboardingTitle">
+            <div class="home-onboarding-top">
+              <span id="homeOnboardingStepText"></span>
+              <button class="home-onboarding-skip" id="homeOnboardingSkipBtn">Skip tour</button>
+            </div>
+            <h2 class="home-onboarding-title" id="homeOnboardingTitle"></h2>
+            <p class="home-onboarding-body" id="homeOnboardingBody"></p>
+            <div class="home-onboarding-progress" id="homeOnboardingProgress"></div>
+            <div class="home-onboarding-actions">
+              <div class="home-onboarding-left">
+                <button class="home-onboarding-btn" id="homeOnboardingBackBtn">Back</button>
+              </div>
+              <div class="home-onboarding-right">
+                <button class="home-onboarding-btn" id="homeOnboardingTryBtn" style="display:none;"></button>
+                <button class="home-onboarding-btn primary" id="homeOnboardingNextBtn">Next</button>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+      }
+    }
+
+    function renderHomeOnboardingStep() {
+      const steps = getHomeOnboardingSteps();
+      const safeIndex = Math.max(0, Math.min(homeOnboardingIndex, steps.length - 1));
+      homeOnboardingIndex = safeIndex;
+      const step = steps[safeIndex];
+      const overlay = document.getElementById('homeOnboardingOverlay');
+      if (!overlay || !step) return;
+
+      const stepText = document.getElementById('homeOnboardingStepText');
+      const title = document.getElementById('homeOnboardingTitle');
+      const body = document.getElementById('homeOnboardingBody');
+      const progress = document.getElementById('homeOnboardingProgress');
+      const backBtn = document.getElementById('homeOnboardingBackBtn');
+      const nextBtn = document.getElementById('homeOnboardingNextBtn');
+      const tryBtn = document.getElementById('homeOnboardingTryBtn');
+      if (!stepText || !title || !body || !progress || !backBtn || !nextBtn || !tryBtn) return;
+
+      stepText.textContent = `Step ${safeIndex + 1} of ${steps.length}`;
+      title.textContent = step.title;
+      body.textContent = step.body;
+      backBtn.disabled = safeIndex === 0;
+      backBtn.style.opacity = safeIndex === 0 ? '0.5' : '1';
+      nextBtn.textContent = safeIndex === steps.length - 1 ? 'Finish' : 'Next';
+
+      if (step.actionLabel && typeof step.action === 'function') {
+        tryBtn.textContent = step.actionLabel;
+        tryBtn.style.display = 'inline-flex';
+      } else {
+        tryBtn.style.display = 'none';
+      }
+
+      progress.innerHTML = '';
+      steps.forEach((_s, idx) => {
+        const dot = document.createElement('span');
+        dot.className = `home-onboarding-dot${idx <= safeIndex ? ' active' : ''}`;
+        progress.appendChild(dot);
+      });
+    }
+
+    function closeHomeOnboarding(markSeen = true) {
+      const overlay = document.getElementById('homeOnboardingOverlay');
+      if (overlay) overlay.classList.remove('active');
+      document.body.style.overflow = '';
+      if (markSeen) markOnboardingSeen(homeOnboardingUserId);
+    }
+
+    function attachHomeOnboardingEvents() {
+      const steps = getHomeOnboardingSteps();
+      const skipBtn = document.getElementById('homeOnboardingSkipBtn');
+      const backBtn = document.getElementById('homeOnboardingBackBtn');
+      const nextBtn = document.getElementById('homeOnboardingNextBtn');
+      const tryBtn = document.getElementById('homeOnboardingTryBtn');
+      if (!skipBtn || !backBtn || !nextBtn || !tryBtn) return;
+
+      skipBtn.onclick = () => closeHomeOnboarding(true);
+      backBtn.onclick = () => {
+        homeOnboardingIndex = Math.max(0, homeOnboardingIndex - 1);
+        renderHomeOnboardingStep();
+      };
+      nextBtn.onclick = () => {
+        if (homeOnboardingIndex >= steps.length - 1) {
+          closeHomeOnboarding(true);
+          showHomeToast('Tour completed. You can start saving now.');
+          return;
+        }
+        homeOnboardingIndex += 1;
+        renderHomeOnboardingStep();
+      };
+      tryBtn.onclick = () => {
+        const current = steps[homeOnboardingIndex];
+        if (!current || typeof current.action !== 'function') return;
+        current.action();
+      };
+    }
+
+    function maybeShowHomeOnboarding() {
+      const userId = homeCurrentUser?.id;
+      if (!userId || hasSeenOnboarding(userId)) return;
+      homeOnboardingUserId = userId;
+      homeOnboardingIndex = 0;
+      ensureHomeOnboardingUi();
+      attachHomeOnboardingEvents();
+      renderHomeOnboardingStep();
+      const overlay = document.getElementById('homeOnboardingOverlay');
+      if (overlay) overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
     async function loadRestaurants() {
       const client = await ensureHomeSupabase();
       if (!client) {
@@ -3569,6 +3858,7 @@
         await setupHomeAuthListener();
         await completeHomeOAuthReturnIfNeeded();
         await initAuthUi();
+        maybeShowHomeOnboarding();
         await refreshHomePersonalization();
       })();
 
