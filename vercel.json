@@ -1,6 +1,15 @@
 {
   "headers": [
     {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "max-image-preview:none, noimageindex"
+        }
+      ]
+    },
+    {
       "source": "/sw.js",
       "headers": [
         {
