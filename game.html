@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -601,6 +601,14 @@
       }
     }
   </style>
+  <meta name="theme-color" content="#0b1633" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zo2y" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/images/logo.png" />
+  <link rel="stylesheet" href="/js/mobile-app.css" />
+  <script src="/js/mobile-webapp.js" defer></script>
 </head>
 <body>
   <header class="nav" role="banner">
@@ -673,11 +681,11 @@
         <div class="rating-input">
           <label>Your Rating:</label>
           <div class="stars-rating">
-            <span class="star" data-rating="1">★</span>
-            <span class="star" data-rating="2">★</span>
-            <span class="star" data-rating="3">★</span>
-            <span class="star" data-rating="4">★</span>
-            <span class="star" data-rating="5">★</span>
+            <span class="star" data-rating="1">â˜…</span>
+            <span class="star" data-rating="2">â˜…</span>
+            <span class="star" data-rating="3">â˜…</span>
+            <span class="star" data-rating="4">â˜…</span>
+            <span class="star" data-rating="5">â˜…</span>
           </div>
           <span class="rating-text" id="ratingText">Select your rating</span>
         </div>
@@ -820,7 +828,7 @@
         const description = data.description_raw || (data.description || '').replace(/<[^>]+>/g, '').trim();
         document.getElementById('title').textContent = data.name || 'Untitled';
         document.getElementById('overview').textContent = description || 'No description available.';
-        document.getElementById('meta').textContent = `${data.released || ''}${data.playtime ? ` • ${data.playtime} hrs` : ''}`;
+        document.getElementById('meta').textContent = `${data.released || ''}${data.playtime ? ` â€¢ ${data.playtime} hrs` : ''}`;
         document.getElementById('poster').src = data.cover || 'images/placeholder.jpg';
         const tags = document.getElementById('tags');
         if (tags && Array.isArray(data.genres)) {
@@ -1524,4 +1532,6 @@
   </script>
 </body>
 </html>
+
+
 

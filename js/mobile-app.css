@@ -1,0 +1,95 @@
+﻿/* Zo2y mobile web app layer */
+:root {
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-radius-xl: 18px;
+  --app-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body.mobile-webapp {
+  overscroll-behavior-y: contain;
+  -webkit-tap-highlight-color: rgba(245, 158, 11, 0.22);
+}
+
+body.app-booting {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+body.app-ready {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+@media (max-width: 900px) {
+  html, body {
+    min-height: 100dvh;
+  }
+
+  body.mobile-webapp {
+    padding-top: max(8px, var(--app-safe-top));
+    padding-bottom: max(12px, var(--app-safe-bottom));
+  }
+
+  .nav,
+  header,
+  .mobile-bottom-nav,
+  .mobile-bottom-nav-item,
+  .mobile-nav-item {
+    backdrop-filter: blur(14px) saturate(170%);
+  }
+
+  .mobile-bottom-nav,
+  nav.mobile-bottom-nav {
+    border-radius: 16px 16px 0 0;
+    box-shadow: var(--app-shadow-soft);
+  }
+
+  .card,
+  .collection-card,
+  .spotlight,
+  .panel,
+  .modal-content {
+    border-radius: var(--app-radius-xl);
+  }
+
+  button,
+  .btn,
+  .chip,
+  .list-action,
+  a.ghost,
+  .mobile-bottom-nav-item,
+  .mobile-nav-item {
+    touch-action: manipulation;
+  }
+}
+
+/* Tiny app-like loading line */
+#appLoadLine {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  z-index: 9999;
+  background: linear-gradient(90deg, #f59e0b, #ffcf7a);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.7);
+  transition: width 280ms ease, opacity 220ms ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.app-loading #appLoadLine {
+  width: min(72%, 72vw);
+  opacity: 1;
+}
+
+body.app-ready #appLoadLine {
+  width: 100%;
+  opacity: 0;
+}
