@@ -44,6 +44,8 @@ import igdbRoutes from "./routes/igdb.js";
 app.use("/api/igdb", igdbRoutes);
 import musicRoutes from "./routes/music.js";
 app.use("/api/music", musicRoutes);
+import emailRoutes from "./routes/emails.js";
+app.use("/api/emails", emailRoutes);
 
 // Serve frontend routes
 app.get("/", (req, res) => {
