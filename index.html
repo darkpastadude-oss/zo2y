@@ -3121,9 +3121,18 @@
       return `zo2y_onboarding_seen_${HOME_ONBOARDING_VERSION}_${String(userId || '').trim()}`;
     }
 
+    function getOnboardingPendingKey(userId) {
+      return `zo2y_onboarding_pending_${HOME_ONBOARDING_VERSION}_${String(userId || '').trim()}`;
+    }
+
     function hasSeenOnboarding(userId) {
       if (!userId) return true;
       return localStorage.getItem(getOnboardingStorageKey(userId)) === '1';
+    }
+
+    function isOnboardingPending(userId) {
+      if (!userId) return false;
+      return localStorage.getItem(getOnboardingPendingKey(userId)) === '1';
     }
 
     function markOnboardingSeen(userId) {
@@ -3131,17 +3140,50 @@
       localStorage.setItem(getOnboardingStorageKey(userId), '1');
     }
 
+    function clearOnboardingPending(userId) {
+      if (!userId) return;
+      localStorage.removeItem(getOnboardingPendingKey(userId));
+    }
+
     function getHomeOnboardingSteps() {
       return [
         {
           title: 'Welcome to Zo2y',
           body: 'Quick tour: how to add places to lists, create your own lists, and connect with friends.',
+          art: `
+            <div class="onboarding-hero">
+              <div class="onboarding-hero-badge"><i class="fas fa-star"></i> Fresh account</div>
+              <div class="onboarding-hero-row">
+                <img src="images/logo.png" alt="Zo2y logo" class="onboarding-hero-logo">
+                <div class="onboarding-hero-cards">
+                  <span><i class="fas fa-utensils"></i> Places</span>
+                  <span><i class="fas fa-film"></i> Movies</span>
+                  <span><i class="fas fa-music"></i> Music</span>
+                </div>
+              </div>
+            </div>
+          `,
           actionLabel: null,
           action: null
         },
         {
           title: 'Add Places To Lists',
           body: 'On any card, tap the three-dot menu. Use quick list buttons, or choose Custom Lists to organize it your way.',
+          art: `
+            <div class="onboarding-illustration">
+              <div class="mini-card">
+                <div class="mini-card-head">
+                  <span><i class="fas fa-utensils"></i> Burger Spot</span>
+                  <i class="fas fa-ellipsis-v"></i>
+                </div>
+                <div class="mini-tags">
+                  <span>Favorites</span>
+                  <span>Want To Go</span>
+                  <span>Custom Lists</span>
+                </div>
+              </div>
+            </div>
+          `,
           actionLabel: 'Open A Card Menu',
           action: () => {
             const menuBtn = document.querySelector('.card-menu-btn');
@@ -3156,6 +3198,19 @@
         {
           title: 'Create Your Own Lists',
           body: 'In the Custom Lists modal, enter a list name, pick an icon, then press Create.',
+          art: `
+            <div class="onboarding-illustration">
+              <div class="mini-card">
+                <div class="mini-input"><i class="fas fa-pen"></i> Date Night Spots</div>
+                <div class="mini-icons">
+                  <span><i class="fas fa-heart"></i></span>
+                  <span><i class="fas fa-star"></i></span>
+                  <span><i class="fas fa-bookmark"></i></span>
+                </div>
+                <div class="mini-create-btn">Create List</div>
+              </div>
+            </div>
+          `,
           actionLabel: 'Open Custom Lists',
           action: () => {
             const firstCard = document.querySelector('.card[data-media-type][data-item-id]');
@@ -3176,6 +3231,15 @@
         {
           title: 'Add Friends',
           body: 'Open profiles and tap Follow to build your network. You can manage followers and following from your profile.',
+          art: `
+            <div class="onboarding-illustration">
+              <div class="mini-card">
+                <div class="friend-row"><span><i class="fas fa-user-circle"></i> @alex</span><span class="friend-pill">Follow</span></div>
+                <div class="friend-row"><span><i class="fas fa-user-circle"></i> @sara</span><span class="friend-pill">Following</span></div>
+                <div class="friend-row"><span><i class="fas fa-user-circle"></i> @mike</span><span class="friend-pill">Follow</span></div>
+              </div>
+            </div>
+          `,
           actionLabel: 'Go To My Profile',
           action: () => {
             closeHomeOnboarding(true);
@@ -3238,7 +3302,130 @@
             color: rgba(255,255,255,0.88);
             font-size: 16px;
             line-height: 1.55;
-            min-height: 72px;
+            min-height: 56px;
+          }
+          .home-onboarding-art {
+            margin-top: 10px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 14px;
+            padding: 14px;
+            background: linear-gradient(145deg, rgba(14,28,58,0.9), rgba(8,18,42,0.9));
+            min-height: 138px;
+          }
+          .onboarding-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(245,158,11,0.2);
+            border: 1px solid rgba(245,158,11,0.4);
+            margin-bottom: 10px;
+          }
+          .onboarding-hero-row {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+          }
+          .onboarding-hero-logo {
+            width: 62px;
+            height: 62px;
+            border-radius: 14px;
+            object-fit: cover;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+          }
+          .onboarding-hero-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+          }
+          .onboarding-hero-cards span {
+            border: 1px solid rgba(255,255,255,0.16);
+            background: rgba(255,255,255,0.06);
+            border-radius: 999px;
+            padding: 7px 10px;
+            font-size: 13px;
+          }
+          .onboarding-illustration {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 108px;
+          }
+          .mini-card {
+            width: min(500px, 100%);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 10px;
+          }
+          .mini-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 13px;
+            opacity: 0.95;
+          }
+          .mini-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+          }
+          .mini-tags span {
+            font-size: 12px;
+            border-radius: 999px;
+            padding: 6px 9px;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.06);
+          }
+          .mini-input {
+            border: 1px solid rgba(255,255,255,0.16);
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            font-size: 13px;
+            padding: 8px;
+          }
+          .mini-icons {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 8px;
+          }
+          .mini-icons span {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.16);
+          }
+          .mini-create-btn {
+            display: inline-block;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #0b1633;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 8px 11px;
+          }
+          .friend-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            padding: 7px 0;
+          }
+          .friend-pill {
+            font-size: 11px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.09);
+            padding: 5px 9px;
           }
           .home-onboarding-progress {
             margin-top: 14px;
@@ -3299,6 +3486,7 @@
             </div>
             <h2 class="home-onboarding-title" id="homeOnboardingTitle"></h2>
             <p class="home-onboarding-body" id="homeOnboardingBody"></p>
+            <div class="home-onboarding-art" id="homeOnboardingArt"></div>
             <div class="home-onboarding-progress" id="homeOnboardingProgress"></div>
             <div class="home-onboarding-actions">
               <div class="home-onboarding-left">
@@ -3326,15 +3514,17 @@
       const stepText = document.getElementById('homeOnboardingStepText');
       const title = document.getElementById('homeOnboardingTitle');
       const body = document.getElementById('homeOnboardingBody');
+      const art = document.getElementById('homeOnboardingArt');
       const progress = document.getElementById('homeOnboardingProgress');
       const backBtn = document.getElementById('homeOnboardingBackBtn');
       const nextBtn = document.getElementById('homeOnboardingNextBtn');
       const tryBtn = document.getElementById('homeOnboardingTryBtn');
-      if (!stepText || !title || !body || !progress || !backBtn || !nextBtn || !tryBtn) return;
+      if (!stepText || !title || !body || !art || !progress || !backBtn || !nextBtn || !tryBtn) return;
 
       stepText.textContent = `Step ${safeIndex + 1} of ${steps.length}`;
       title.textContent = step.title;
       body.textContent = step.body;
+      art.innerHTML = step.art || '';
       backBtn.disabled = safeIndex === 0;
       backBtn.style.opacity = safeIndex === 0 ? '0.5' : '1';
       nextBtn.textContent = safeIndex === steps.length - 1 ? 'Finish' : 'Next';
@@ -3392,9 +3582,16 @@
 
     function maybeShowHomeOnboarding() {
       const userId = homeCurrentUser?.id;
-      if (!userId || hasSeenOnboarding(userId)) return;
+      if (!userId) return;
+      if (!isOnboardingPending(userId)) return;
+      if (hasSeenOnboarding(userId)) {
+        clearOnboardingPending(userId);
+        return;
+      }
       homeOnboardingUserId = userId;
       homeOnboardingIndex = 0;
+      // Ensure this is shown only once on first sign-in.
+      clearOnboardingPending(userId);
       ensureHomeOnboardingUi();
       attachHomeOnboardingEvents();
       renderHomeOnboardingStep();

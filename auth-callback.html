@@ -160,6 +160,10 @@
         return null;
       }
 
+      function getOnboardingPendingKey(userId) {
+        return `zo2y_onboarding_pending_v1_${String(userId || '').trim()}`;
+      }
+
       async function ensureUserProfile(client, user) {
         try {
           log('Checking if profile exists...');
@@ -171,7 +175,7 @@
 
           if (existingProfile) {
             log(`Profile found: ${existingProfile.username || '(no username)'}`);
-            return true;
+            return { ok: true, created: false };
           }
 
           if (checkError) {
@@ -208,14 +212,14 @@
 
             if (!createError) {
               log(`Profile created with username: ${username}`);
-              return true;
+              return { ok: true, created: true };
             }
 
             const createMessage = String(createError.message || '').toLowerCase();
             const maybeDuplicate = createMessage.includes('duplicate') || createMessage.includes('unique');
             if (!maybeDuplicate) {
               log(`Profile creation error: ${createError.message}`, true);
-              return false;
+              return { ok: false, created: false };
             }
 
             const { data: raceProfile } = await client
@@ -226,15 +230,15 @@
 
             if (raceProfile?.id) {
               log('Profile already created by another request.');
-              return true;
+              return { ok: true, created: false };
             }
           }
 
           log('Could not create a unique username for profile.', true);
-          return false;
+          return { ok: false, created: false };
         } catch (error) {
           log(`Profile setup error: ${error.message}`, true);
-          return false;
+          return { ok: false, created: false };
         }
       }
 
@@ -288,7 +292,10 @@
 
         log(`Authenticated user: ${user.id}`);
         statusText.textContent = 'Setting up your profile...';
-        await ensureUserProfile(client, user);
+        const profileResult = await ensureUserProfile(client, user);
+        if (profileResult?.created) {
+          localStorage.setItem(getOnboardingPendingKey(user.id), '1');
+        }
 
         statusText.textContent = 'Success! Redirecting...';
         localStorage.removeItem('postAuthRedirect');

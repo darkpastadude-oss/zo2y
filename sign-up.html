@@ -251,6 +251,10 @@ body {
   const submitBtn = document.getElementById('submitBtn');
   const errorMessage = document.getElementById('errorMessage');
   const successMessage = document.getElementById('successMessage');
+
+  function getOnboardingPendingKey(userId) {
+    return `zo2y_onboarding_pending_v1_${String(userId || '').trim()}`;
+  }
   
   // Helper functions
   function showError(msg) {
@@ -370,6 +374,9 @@ body {
       } else if (data.session) {
         // Auto-login after signup
         console.log('Auto-login successful');
+        if (data.user?.id) {
+          localStorage.setItem(getOnboardingPendingKey(data.user.id), '1');
+        }
         showSuccess('Account created! Redirecting...');
         setTimeout(() => {
           window.location.href = 'index.html';
