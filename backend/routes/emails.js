@@ -6,6 +6,7 @@ import {
 } from "../lib/email/service.js";
 
 const router = express.Router();
+const requestBuckets = new Map();
 
 function requireEmailApiKey(req, res, next) {
   const expected = String(process.env.EMAIL_API_KEY || "").trim();
@@ -25,6 +26,30 @@ function isValidEmail(value) {
   return /\S+@\S+\.\S+/.test(String(value || "").trim());
 }
 
+function enforceRateLimit(req, res, key, maxRequests, windowMs) {
+  const ipRaw =
+    req.headers["x-forwarded-for"] ||
+    req.headers["x-real-ip"] ||
+    req.socket?.remoteAddress ||
+    "unknown";
+  const ip = String(ipRaw).split(",")[0].trim();
+  const bucketKey = `${key}:${ip}`;
+  const now = Date.now();
+  const existing = requestBuckets.get(bucketKey);
+  if (!existing || now - existing.start > windowMs) {
+    requestBuckets.set(bucketKey, { start: now, count: 1 });
+    return true;
+  }
+  existing.count += 1;
+  if (existing.count > maxRequests) {
+    const retryAfter = Math.max(1, Math.ceil((windowMs - (now - existing.start)) / 1000));
+    res.setHeader("Retry-After", String(retryAfter));
+    res.status(429).json({ message: "Rate limit exceeded. Try again shortly." });
+    return false;
+  }
+  return true;
+}
+
 router.get("/health", requireEmailApiKey, (req, res) => {
   res.json({
     configured: emailConfigured(),
@@ -33,6 +58,7 @@ router.get("/health", requireEmailApiKey, (req, res) => {
 });
 
 router.post("/welcome", requireEmailApiKey, async (req, res) => {
+  if (!enforceRateLimit(req, res, "welcome", 5, 60_000)) return;
   try {
     const to = normalizeEmail(req.body?.email);
     const name = String(req.body?.name || "").trim();
@@ -50,6 +76,7 @@ router.post("/welcome", requireEmailApiKey, async (req, res) => {
 });
 
 router.post("/reminder", requireEmailApiKey, async (req, res) => {
+  if (!enforceRateLimit(req, res, "reminder", 5, 60_000)) return;
   try {
     const to = normalizeEmail(req.body?.email);
     const name = String(req.body?.name || "").trim();
@@ -78,6 +105,7 @@ router.post("/reminder", requireEmailApiKey, async (req, res) => {
 });
 
 router.post("/reminders/bulk", requireEmailApiKey, async (req, res) => {
+  if (!enforceRateLimit(req, res, "bulk", 2, 60_000)) return;
   try {
     const recipients = Array.isArray(req.body?.recipients) ? req.body.recipients : [];
     const reminderText = String(req.body?.reminderText || "").trim();

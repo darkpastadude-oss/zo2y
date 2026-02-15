@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Syntax check API handlers
+        run: |
+          node --check api/music-handler.js
+          node --check api/igdb-handler.js
+          node --check api/tmdb-handler.js
+          node --check api/books-handler.js
+          node --check api/_email-utils.js
+          node --check api/emails/health.js
+          node --check api/emails/welcome.js
+          node --check api/emails/reminder.js
+          node --check api/emails/reminders/bulk.js
+
+      - name: Syntax check backend
+        run: |
+          node --check backend/index.js
+          node --check backend/routes/auth.js
+          node --check backend/routes/music.js
+          node --check backend/routes/igdb.js
+          node --check backend/routes/emails.js
+          node --check backend/lib/email/service.js

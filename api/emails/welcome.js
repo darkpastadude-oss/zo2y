@@ -4,12 +4,14 @@ import {
   normalizeEmail,
   readJsonBody,
   requireEmailApiKey,
+  requireEmailRateLimit,
   requirePost,
 } from "../_email-utils.js";
 
 export default async function handler(req, res) {
   if (!requirePost(req, res)) return;
   if (!requireEmailApiKey(req, res)) return;
+  if (!requireEmailRateLimit(req, res, { pathKey: "emails:welcome", maxRequests: 5, windowMs: 60_000 })) return;
 
   try {
     const body = readJsonBody(req);

@@ -17,12 +17,20 @@
       "destination": "/api/igdb-handler?path=:path*"
     },
     {
-      "source": "/api/emails",
-      "destination": "/api/emails-handler"
+      "source": "/api/tmdb",
+      "destination": "/api/tmdb-handler"
     },
     {
-      "source": "/api/emails/:path*",
-      "destination": "/api/emails-handler?path=:path*"
+      "source": "/api/tmdb/:path*",
+      "destination": "/api/tmdb-handler?path=:path*"
+    },
+    {
+      "source": "/api/books",
+      "destination": "/api/books-handler"
+    },
+    {
+      "source": "/api/books/:path*",
+      "destination": "/api/books-handler?path=:path*"
     }
   ]
 }

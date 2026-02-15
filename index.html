@@ -1393,9 +1393,9 @@
   <script>
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-    const TMDB_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s';
     const IGDB_PROXY_BASE = '/api/igdb';
-    const GOOGLE_BOOKS_KEY = 'AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s';
+    const TMDB_PROXY_BASE = '/api/tmdb';
+    const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
     const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
     const TMDB_SPOT_POSTER = 'https://image.tmdb.org/t/p/w780';
     const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
@@ -3693,16 +3693,14 @@
 
     async function loadMovies() {
       const sourceBuilders = shuffleArray([
-        () => `https://api.themoviedb.org/3/movie/popular?language=en-US&page=${randomInt(1, 5)}`,
-        () => `https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=${randomInt(1, 5)}`,
-        () => `https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=${randomInt(1, 4)}`,
-        () => `https://api.themoviedb.org/3/trending/movie/week?page=${randomInt(1, 3)}`
+        () => `${TMDB_PROXY_BASE}/movie/popular?language=en-US&page=${randomInt(1, 5)}`,
+        () => `${TMDB_PROXY_BASE}/movie/top_rated?language=en-US&page=${randomInt(1, 5)}`,
+        () => `${TMDB_PROXY_BASE}/movie/now_playing?language=en-US&page=${randomInt(1, 4)}`,
+        () => `${TMDB_PROXY_BASE}/trending/movie/week?page=${randomInt(1, 3)}`
       ]).slice(0, 3);
       const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
         try {
-          const res = await fetch(buildUrl(), {
-            headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
-          });
+          const res = await fetch(buildUrl());
           if (!res.ok) return [];
           const json = await res.json();
           return Array.isArray(json.results) ? json.results : [];
@@ -3738,16 +3736,14 @@
 
     async function loadTv() {
       const sourceBuilders = shuffleArray([
-        () => `https://api.themoviedb.org/3/tv/popular?language=en-US&page=${randomInt(1, 5)}`,
-        () => `https://api.themoviedb.org/3/tv/top_rated?language=en-US&page=${randomInt(1, 5)}`,
-        () => `https://api.themoviedb.org/3/tv/airing_today?language=en-US&page=${randomInt(1, 4)}`,
-        () => `https://api.themoviedb.org/3/trending/tv/week?page=${randomInt(1, 3)}`
+        () => `${TMDB_PROXY_BASE}/tv/popular?language=en-US&page=${randomInt(1, 5)}`,
+        () => `${TMDB_PROXY_BASE}/tv/top_rated?language=en-US&page=${randomInt(1, 5)}`,
+        () => `${TMDB_PROXY_BASE}/tv/airing_today?language=en-US&page=${randomInt(1, 4)}`,
+        () => `${TMDB_PROXY_BASE}/trending/tv/week?page=${randomInt(1, 3)}`
       ]).slice(0, 3);
       const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
         try {
-          const res = await fetch(buildUrl(), {
-            headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
-          });
+          const res = await fetch(buildUrl());
           if (!res.ok) return [];
           const json = await res.json();
           return Array.isArray(json.results) ? json.results : [];
@@ -3843,7 +3839,7 @@
         const topic = shuffleArray(POPULAR_BOOK_QUERIES)[0];
         const orderBy = 'relevance';
         const startIndex = randomInt(0, 6) * 20;
-        const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(topic)}&orderBy=${orderBy}&maxResults=40&startIndex=${startIndex}&printType=books&langRestrict=en&key=${GOOGLE_BOOKS_KEY}`;
+        const url = `${GOOGLE_BOOKS_PROXY_BASE}/volumes?q=${encodeURIComponent(topic)}&orderBy=${orderBy}&maxResults=40&startIndex=${startIndex}&printType=books&langRestrict=en`;
         const res = await fetch(url);
         if (res.ok) {
           const json = await res.json();

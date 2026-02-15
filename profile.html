@@ -4243,12 +4243,10 @@ header, .top-stripe, .section-nav {
             // Supabase configuration
             const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
             const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s";
-            const TMDB_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s";
-            const TMDB_BASE = "https://api.themoviedb.org/3";
+            const TMDB_PROXY_BASE = "/api/tmdb";
             const IGDB_PROXY_BASE = "/api/igdb";
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
-            const GOOGLE_BOOKS_KEY = "AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s";
-            const GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1";
+            const GOOGLE_BOOKS_PROXY_BASE = "/api/books";
             const FALLBACK_BOOK_IMAGE = "images/logo.png";
 
             async function igdbFetch(path, params = {}) {
@@ -6776,9 +6774,7 @@ header, .top-stripe, .section-nav {
 
             async function fetchMovieDetails(movieId) {
                 if (movieCache.has(movieId)) return movieCache.get(movieId);
-                const res = await fetch(`${TMDB_BASE}/movie/${movieId}?language=en`, {
-                    headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
-                });
+                const res = await fetch(`${TMDB_PROXY_BASE}/movie/${movieId}?language=en`);
                 if (!res.ok) return null;
                 const data = await res.json();
                 movieCache.set(movieId, data);
@@ -6787,9 +6783,7 @@ header, .top-stripe, .section-nav {
 
             async function fetchTvDetails(tvId) {
                 if (tvCache.has(tvId)) return tvCache.get(tvId);
-                const res = await fetch(`${TMDB_BASE}/tv/${tvId}?language=en`, {
-                    headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
-                });
+                const res = await fetch(`${TMDB_PROXY_BASE}/tv/${tvId}?language=en`);
                 if (!res.ok) return null;
                 const data = await res.json();
                 tvCache.set(tvId, data);
@@ -7827,7 +7821,7 @@ header, .top-stripe, .section-nav {
             async function fetchBookDetails(bookId) {
                 if (bookCache.has(bookId)) return bookCache.get(bookId);
                 try {
-                    const url = `${GOOGLE_BOOKS_BASE}/volumes/${encodeURIComponent(bookId)}?key=${encodeURIComponent(GOOGLE_BOOKS_KEY)}`;
+                    const url = `${GOOGLE_BOOKS_PROXY_BASE}/volumes/${encodeURIComponent(bookId)}`;
                     const res = await fetch(url);
                     if (!res.ok) return null;
                     const data = await res.json();
