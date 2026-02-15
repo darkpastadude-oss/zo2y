@@ -1,7 +1,13 @@
 ﻿(() => {
   const isMobileLike = window.matchMedia('(max-width: 900px)').matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const path = window.location.pathname || '/';
+  const base = path === '/' ? 'index.html' : path.split('/').pop();
+  const pageKey = String(base || 'index.html').replace(/\.html?$/i, '').toLowerCase();
 
   document.body?.classList.add('app-booting');
+  if (document.body) {
+    document.body.dataset.zo2yPage = pageKey;
+  }
   if (isMobileLike) {
     document.documentElement.classList.add('mobile-webapp');
     document.body?.classList.add('mobile-webapp');
