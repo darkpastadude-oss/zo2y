@@ -26,9 +26,6 @@ function baseTemplate({ title, subtitle, bodyHtml, ctaLabel, ctaUrl, footerText 
   const safeCtaUrl = escapeHtml(ctaUrl || process.env.APP_BASE_URL || "https://zo2y.com");
   const baseUrl = String(process.env.APP_BASE_URL || "https://zo2y.com").replace(/\/+$/, "");
   const safeLogoUrl = escapeHtml(`${baseUrl}/images/logo.png`);
-  const safeThumbA = escapeHtml(`${baseUrl}/images/interiorabou.jpg`);
-  const safeThumbB = escapeHtml(`${baseUrl}/images/placeholder.jpg`);
-  const safeThumbC = escapeHtml(`${baseUrl}/images/menuu.webp`);
 
   return `
   <html>
@@ -68,8 +65,6 @@ function baseTemplate({ title, subtitle, bodyHtml, ctaLabel, ctaUrl, footerText 
           color: #f8fafc;
           font-size: 15px;
         }
-        .image-strip { padding: 14px 16px; background: #f3f7ff; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; text-align: center; }
-        .thumb { width: 30%; max-width: 180px; height: 96px; object-fit: cover; border-radius: 10px; margin: 0 4px; border: 1px solid #cbd5e1; display: inline-block; }
         .content { padding: 28px 30px 12px 30px; color: #334155; font-size: 24px; line-height: 1.66; }
         .action { padding: 10px 30px 26px 30px; }
         .btn {
@@ -99,8 +94,6 @@ function baseTemplate({ title, subtitle, bodyHtml, ctaLabel, ctaUrl, footerText 
           .hero-title { font-size: 32px !important; line-height: 1.1 !important; }
           .hero-sub { font-size: 17px !important; }
           .chip { font-size: 14px !important; }
-          .image-strip { padding: 12px 8px !important; }
-          .thumb { width: 31.5% !important; height: 84px !important; margin: 0 2px !important; }
           .content { padding: 20px 18px 8px 18px !important; font-size: 21px !important; line-height: 1.6 !important; }
           .action { padding: 10px 18px 18px 18px !important; }
           .grid { padding: 0 18px 18px 18px !important; }
@@ -128,13 +121,6 @@ function baseTemplate({ title, subtitle, bodyHtml, ctaLabel, ctaUrl, footerText 
                   <span class="chip">Books</span>
                 </div>
               </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="image-strip">
-              <img src="${safeThumbA}" alt="Zo2y Highlights" class="thumb" />
-              <img src="${safeThumbB}" alt="Zo2y Highlights" class="thumb" />
-              <img src="${safeThumbC}" alt="Zo2y Highlights" class="thumb" />
             </td>
           </tr>
           <tr>
