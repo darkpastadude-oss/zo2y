@@ -2917,7 +2917,7 @@ header, .top-stripe, .section-nav {
                         <button class="btn btn-outline" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
                             <i class="fas fa-edit"></i> Edit Profile
                         </button>
-                        <button class="btn btn-secondary" id="settingsBtn" onclick="window.location.href='settings.html'">
+                        <button class="btn btn-secondary" id="settingsBtn" onclick="ProfileManager.showModal('accountSettingsModal')">
                             <i class="fas fa-cog"></i> Settings
                         </button>
                         <button class="btn btn-secondary" onclick="ProfileManager.logout()" style="margin-left: auto;">
@@ -3396,7 +3396,7 @@ header, .top-stripe, .section-nav {
             <div class="container">
                 <div class="footer-content">
                     <div class="footer-links">
-                        <a href="#" class="footer-link" onclick="ProfileManager.showModal('editProfileModal'); return false;">Settings</a>
+                        <a href="#" class="footer-link" onclick="ProfileManager.showModal('accountSettingsModal'); return false;">Settings</a>
                         <a href="#" class="footer-link">Privacy</a>
                         <a href="#" class="footer-link">Support</a>
                         <a href="#" class="footer-link">About</a>
@@ -4113,6 +4113,64 @@ header, .top-stripe, .section-nav {
         </div>
     </div>
 
+    <!-- Account Settings Modal -->
+    <div class="modal" id="accountSettingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Account Settings</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('accountSettingsModal')">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Current email</label>
+                    <input type="email" class="form-input" id="settingsCurrentEmail" readonly>
+                </div>
+
+                <form id="accountEmailForm" style="margin-bottom: 18px;">
+                    <div class="form-group">
+                        <label class="form-label" for="settingsNewEmail">Change email</label>
+                        <input type="email" class="form-input" id="settingsNewEmail" placeholder="newemail@example.com" required>
+                        <small style="color: var(--muted); display: block; margin-top: 4px;">Supabase will send a verification email to complete this change.</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-envelope"></i> Update Email
+                    </button>
+                </form>
+
+                <form id="accountPasswordForm" style="margin-bottom: 18px;">
+                    <div class="form-group">
+                        <label class="form-label" for="settingsNewPassword">Change password</label>
+                        <input type="password" class="form-input" id="settingsNewPassword" minlength="8" placeholder="New password (min 8 chars)" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="settingsConfirmPassword">Confirm new password</label>
+                        <input type="password" class="form-input" id="settingsConfirmPassword" minlength="8" placeholder="Confirm new password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-lock"></i> Update Password
+                    </button>
+                </form>
+
+                <div class="form-group">
+                    <label class="form-label">Recovery and sign-in emails</label>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-secondary" id="sendResetPasswordBtn">
+                            <i class="fas fa-key"></i> Forgot Password Email
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="sendMagicLinkBtn">
+                            <i class="fas fa-link"></i> Send Magic Link
+                        </button>
+                    </div>
+                </div>
+
+                <small style="color: var(--muted); display: block; margin-top: 6px;">
+                    Auth emails are delivered through your Supabase custom SMTP (Resend).
+                </small>
+            </div>
+        </div>
+    </div>
+
     <!-- Custom Confirmation Modal -->
     <div class="confirm-modal" id="confirmModal">
         <div class="confirm-content">
@@ -4162,7 +4220,7 @@ header, .top-stripe, .section-nav {
                         <span>Change Avatar</span>
                     </div>
                     
-                    <div class="mobile-menu-item" onclick="window.location.href='settings.html'">
+                    <div class="mobile-menu-item" onclick="ProfileManager.showModal('accountSettingsModal'); ProfileManager.closeModal('mobileMenuModal')">
                         <i class="fas fa-cog"></i>
                         <span>Settings</span>
                     </div>
@@ -9670,6 +9728,13 @@ header, .top-stripe, .section-nav {
                         document.getElementById('editLocation').value = userProfile.location || '';
                         document.getElementById('editIsPrivate').checked = userProfile.is_private || false;
                     }
+
+                    if (modalId === 'accountSettingsModal' && currentUser) {
+                        const currentEmail = document.getElementById('settingsCurrentEmail');
+                        const newEmail = document.getElementById('settingsNewEmail');
+                        if (currentEmail) currentEmail.value = currentUser.email || '';
+                        if (newEmail) newEmail.value = currentUser.email || '';
+                    }
                     
                     // 4. FIX: Update avatar system to use avatar_icon column
                     if (modalId === 'avatarModal') {
@@ -9749,6 +9814,16 @@ header, .top-stripe, .section-nav {
                             opt.classList.remove('selected');
                         });
                         editingMediaList = null;
+                    }
+
+                    if (modalId === 'accountSettingsModal') {
+                        const passwordForm = document.getElementById('accountPasswordForm');
+                        const emailForm = document.getElementById('accountEmailForm');
+                        if (passwordForm) passwordForm.reset();
+                        if (emailForm && currentUser?.email) {
+                            const emailInput = document.getElementById('settingsNewEmail');
+                            if (emailInput) emailInput.value = currentUser.email;
+                        }
                     }
                 }
             }
@@ -9870,6 +9945,108 @@ header, .top-stripe, .section-nav {
                 if (selectedRating) selectedRating.value = stars;
             }
 
+            async function refreshCurrentUserEmail() {
+                try {
+                    const { data: { user }, error } = await supabase.auth.getUser();
+                    if (!error && user) {
+                        currentUser = user;
+                    }
+                } catch (_error) {}
+            }
+
+            async function updateAccountEmail(e) {
+                e.preventDefault();
+                const input = document.getElementById('settingsNewEmail');
+                const nextEmail = String(input?.value || '').trim().toLowerCase();
+                if (!nextEmail || !/\S+@\S+\.\S+/.test(nextEmail)) {
+                    showToast('Enter a valid email address', 'error');
+                    return;
+                }
+                if (nextEmail === String(currentUser?.email || '').toLowerCase()) {
+                    showToast('That is already your current email', 'info');
+                    return;
+                }
+
+                try {
+                    const { error } = await supabase.auth.updateUser({ email: nextEmail });
+                    if (error) throw error;
+                    showToast('Verification email sent. Confirm it to finish changing email.', 'success');
+                    await refreshCurrentUserEmail();
+                    const currentEmail = document.getElementById('settingsCurrentEmail');
+                    if (currentEmail) currentEmail.value = currentUser?.email || nextEmail;
+                } catch (error) {
+                    console.error('Update email error:', error);
+                    showToast(error?.message || 'Could not update email', 'error');
+                }
+            }
+
+            async function updateAccountPassword(e) {
+                e.preventDefault();
+                const password = String(document.getElementById('settingsNewPassword')?.value || '');
+                const confirm = String(document.getElementById('settingsConfirmPassword')?.value || '');
+                if (password.length < 8) {
+                    showToast('Password must be at least 8 characters', 'error');
+                    return;
+                }
+                if (password !== confirm) {
+                    showToast('Passwords do not match', 'error');
+                    return;
+                }
+
+                try {
+                    const { error } = await supabase.auth.updateUser({ password });
+                    if (error) throw error;
+                    showToast('Password updated successfully', 'success');
+                    const form = document.getElementById('accountPasswordForm');
+                    if (form) form.reset();
+                } catch (error) {
+                    console.error('Update password error:', error);
+                    showToast(error?.message || 'Could not update password', 'error');
+                }
+            }
+
+            async function sendPasswordResetEmail() {
+                const email = String(currentUser?.email || '').trim();
+                if (!email) {
+                    showToast('No email found for this account', 'error');
+                    return;
+                }
+
+                try {
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: `${window.location.origin}/login.html`
+                    });
+                    if (error) throw error;
+                    showToast('Password reset email sent', 'success');
+                } catch (error) {
+                    console.error('Reset password email error:', error);
+                    showToast(error?.message || 'Could not send reset email', 'error');
+                }
+            }
+
+            async function sendMagicLinkEmail() {
+                const email = String(currentUser?.email || '').trim();
+                if (!email) {
+                    showToast('No email found for this account', 'error');
+                    return;
+                }
+
+                try {
+                    const { error } = await supabase.auth.signInWithOtp({
+                        email,
+                        options: {
+                            shouldCreateUser: false,
+                            emailRedirectTo: `${window.location.origin}/auth-callback.html`
+                        }
+                    });
+                    if (error) throw error;
+                    showToast('Magic link email sent', 'success');
+                } catch (error) {
+                    console.error('Magic link email error:', error);
+                    showToast(error?.message || 'Could not send magic link', 'error');
+                }
+            }
+
             // ===== SETUP EVENT LISTENERS =====
             function setupEventListeners() {
                 console.log('Setting up event listeners...');
@@ -9919,6 +10096,26 @@ header, .top-stripe, .section-nav {
                         e.preventDefault();
                         await saveProfileChanges();
                     });
+                }
+
+                const accountEmailForm = document.getElementById('accountEmailForm');
+                if (accountEmailForm) {
+                    accountEmailForm.addEventListener('submit', updateAccountEmail);
+                }
+
+                const accountPasswordForm = document.getElementById('accountPasswordForm');
+                if (accountPasswordForm) {
+                    accountPasswordForm.addEventListener('submit', updateAccountPassword);
+                }
+
+                const sendResetPasswordBtn = document.getElementById('sendResetPasswordBtn');
+                if (sendResetPasswordBtn) {
+                    sendResetPasswordBtn.addEventListener('click', sendPasswordResetEmail);
+                }
+
+                const sendMagicLinkBtn = document.getElementById('sendMagicLinkBtn');
+                if (sendMagicLinkBtn) {
+                    sendMagicLinkBtn.addEventListener('click', sendMagicLinkEmail);
                 }
                 
                 // Rating stars
