@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'zo2y-app-v1';
+const CACHE_NAME = 'zo2y-app-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -28,6 +28,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
 
   if (request.method !== 'GET') return;
+  // Never cache cross-origin requests (e.g. Supabase/TMDB APIs).
+  if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
 
   if (request.mode === 'navigate') {
