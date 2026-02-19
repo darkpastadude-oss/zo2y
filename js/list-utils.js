@@ -94,6 +94,17 @@
     }, { onConflict: 'id' });
   }
 
+  async function ensureTrackRecord(client, payload) {
+    if (!client || !payload || !payload.id) return;
+    await client.from('tracks').upsert({
+      id: String(payload.id),
+      name: payload.name || payload.title || '',
+      artists: payload.artists || payload.subtitle || '',
+      image_url: payload.image_url || payload.image || '',
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+  }
+
   async function loadCustomLists(client, userId, type) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return [];
@@ -125,11 +136,14 @@
     return set;
   }
 
-  async function saveCustomListChanges(client, userId, type, itemId, selectedListIds, bookPayload) {
+  async function saveCustomListChanges(client, userId, type, itemId, selectedListIds, itemPayload) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !itemId) return;
-    if (type === 'book' && bookPayload) {
-      await ensureBookRecord(client, bookPayload);
+    if (type === 'book' && itemPayload) {
+      await ensureBookRecord(client, itemPayload);
+    }
+    if (type === 'music' && itemPayload) {
+      await ensureTrackRecord(client, itemPayload);
     }
     const listIds = Array.isArray(selectedListIds) ? selectedListIds : [...(selectedListIds || [])];
     if (listIds.length) {
@@ -194,6 +208,7 @@
     normalizeIconKey,
     renderListIcon,
     ensureBookRecord,
+    ensureTrackRecord,
     loadCustomLists,
     loadCustomListMembership,
     saveCustomListChanges,

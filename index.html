@@ -2172,6 +2172,16 @@
             }, { onConflict: 'id' });
           }
 
+          if (mediaType === 'music') {
+            await client.from('tracks').upsert({
+              id: String(itemId),
+              name: payload.title || '',
+              artists: payload.subtitle || '',
+              image_url: payload.image || '',
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'id' });
+          }
+
           const { data: existing } = await client
             .from(table)
             .select('id')
@@ -2181,13 +2191,21 @@
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
-            await client.from(table).delete().eq('id', existing.id);
+            const { error: deleteError } = await client.from(table).delete().eq('id', existing.id);
+            if (deleteError) {
+              showHomeToast('Could not update list', true);
+              return;
+            }
             showHomeToast('Removed from list');
             return;
           }
           const insertRow = { user_id: homeCurrentUser.id, list_type: listType };
           insertRow[itemField] = itemId;
-          await client.from(table).insert(insertRow);
+          const { error: insertError } = await client.from(table).insert(insertRow);
+          if (insertError && String(insertError.code || '') !== '23505') {
+            showHomeToast('Could not add to list', true);
+            return;
+          }
           showHomeToast('Added to list');
           return;
         }
@@ -2207,11 +2225,19 @@
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
-            await client.from('lists_restraunts').delete().eq('id', existing.id);
+            const { error: deleteError } = await client.from('lists_restraunts').delete().eq('id', existing.id);
+            if (deleteError) {
+              showHomeToast('Could not update list', true);
+              return;
+            }
             showHomeToast('Removed from list');
             return;
           }
-          await client.from('lists_restraunts').insert({ list_id: listId, restraunt_id: restaurantId });
+          const { error: insertError } = await client.from('lists_restraunts').insert({ list_id: listId, restraunt_id: restaurantId });
+          if (insertError && String(insertError.code || '') !== '23505') {
+            showHomeToast('Could not add to list', true);
+            return;
+          }
           showHomeToast('Added to list');
           return;
         }
@@ -2450,20 +2476,30 @@
       const client = await ensureHomeSupabase();
       if (!cfg || !client || !homeCurrentUser?.id || !homeCustomListState.itemId) return;
       if (window.ListUtils) {
+        const mediaType = String(homeCustomListState.mediaType || '').toLowerCase();
+        let itemPayload = null;
+        if (mediaType === 'book') {
+          itemPayload = {
+            id: homeCustomListState.itemId,
+            title: homeCustomListState.title,
+            authors: homeCustomListState.subtitle,
+            thumbnail: homeCustomListState.image
+          };
+        } else if (mediaType === 'music') {
+          itemPayload = {
+            id: homeCustomListState.itemId,
+            name: homeCustomListState.title,
+            artists: homeCustomListState.subtitle,
+            image: homeCustomListState.image
+          };
+        }
         await ListUtils.saveCustomListChanges(
           client,
           homeCurrentUser.id,
           homeCustomListState.mediaType,
           homeCustomListState.itemId,
           [...homeCustomListState.selectedLists],
-          homeCustomListState.mediaType === 'book'
-            ? {
-              id: homeCustomListState.itemId,
-              title: homeCustomListState.title,
-              authors: homeCustomListState.subtitle,
-              thumbnail: homeCustomListState.image
-            }
-            : null
+          itemPayload
         );
       }
       showHomeToast('Lists updated');

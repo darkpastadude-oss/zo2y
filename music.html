@@ -601,6 +601,23 @@
       if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
     }
 
+    async function upsertTrackRecord(client, track) {
+      if (!client || !track?.id) return false;
+      const payload = {
+        id: String(track.id),
+        name: track.name || '',
+        artists: track.subtitle || '',
+        image_url: track.image || '',
+        updated_at: new Date().toISOString()
+      };
+      const { error } = await client.from('tracks').upsert(payload, { onConflict: 'id' });
+      if (error) {
+        console.error('Track upsert failed', error);
+        return false;
+      }
+      return true;
+    }
+
     async function toggleQuickList(track, listType) {
       const client = await ensureSupabase();
       if (!client || !currentUser?.id) {
@@ -620,14 +637,26 @@
         .maybeSingle();
 
       if (existing?.id) {
-        await client.from('music_list_items').delete().eq('id', existing.id);
-        showToast('Removed from list');
+        const { error } = await client.from('music_list_items').delete().eq('id', existing.id);
+        if (!error) {
+          showToast('Removed from list');
+        }
       } else {
-        await client.from('music_list_items').insert({
+        const ok = await upsertTrackRecord(client, track);
+        if (!ok) {
+          showToast('Could not save track', true);
+          return;
+        }
+        const { error } = await client.from('music_list_items').insert({
           user_id: currentUser.id,
           track_id: trackId,
           list_type: listType
         });
+        if (error && String(error.code || '') !== '23505') {
+          console.error('Music list insert failed', error);
+          showToast('Could not add to list', true);
+          return;
+        }
         showToast('Added to list');
       }
 
@@ -686,12 +715,27 @@
     async function saveCustomLists() {
       const client = await ensureSupabase();
       if (!client || !currentUser?.id || !state.modalTrack || !window.ListUtils) return;
+      const ok = await upsertTrackRecord(client, state.modalTrack);
+      if (!ok) {
+        showToast('Could not save track', true);
+        return;
+      }
       await ListUtils.saveCustomListChanges(
         client,
         currentUser.id,
         'music',
         state.modalTrack.id,
-        [...state.selectedLists]
+        [...state.selectedLists],
+        {
+          id: state.modalTrack.id,
+          name: state.modalTrack.name || '',
+          artists: state.modalTrack.subtitle || '',
+          album: state.modalTrack.album || '',
+          image: state.modalTrack.image || '',
+          preview_url: state.modalTrack.preview_url || '',
+          external_url: state.modalTrack.external_url || '',
+          popularity: Number(state.modalTrack.popularity || 0)
+        }
       );
       closeCustomLists();
       showToast('Lists updated');
