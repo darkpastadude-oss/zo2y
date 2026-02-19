@@ -697,29 +697,12 @@
         });
       }
 
-      async function resolveAccountLabel(user) {
-        if (!user || !supabaseClient) return 'Profile';
-        try {
-          const { data } = await supabaseClient
-            .from('user_profiles')
-            .select('username, full_name')
-            .eq('id', user.id)
-            .single();
-          const raw = data?.username || data?.full_name || '';
-          const clean = String(raw || '').trim();
-          return clean ? (clean.startsWith('@') ? clean : `@${clean}`) : 'Profile';
-        } catch (_err) {
-          return 'Profile';
-        }
-      }
-
-      async function updateAccountButton() {
+      function updateAccountButton() {
         const btn = document.getElementById('userAccountBtn');
         if (!btn) return;
         if (state.currentUser) {
           btn.classList.add('logged-in');
-          const label = await resolveAccountLabel(state.currentUser);
-          btn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
+          btn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
           btn.onclick = () => window.location.href = 'profile.html';
         } else {
           btn.classList.remove('logged-in');
@@ -1187,6 +1170,10 @@
             state.selectedIcon = btn.getAttribute('data-icon') || 'fas fa-film';
           });
         });
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeAllListMenus();
+        });
       }
 
       function updatePagination() {
@@ -1206,10 +1193,6 @@
         const searchInput = document.getElementById('searchInput');
         if (searchInput) searchInput.value = search;
       }
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeAllListMenus();
-      });
 
       (async function init() {
         await initSupabase();
