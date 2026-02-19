@@ -757,11 +757,7 @@
           .from('book_list_items')
           .select('book_id, list_type')
           .eq('user_id', state.currentUser.id);
-        if (error) {
-          console.error('Error loading list status', error);
-          showNotification('Could not load saved lists', 'error');
-          return;
-        }
+        if (error) return;
         (data || []).forEach(row => {
           if (!state.listStatusMap.has(row.book_id)) {
             state.listStatusMap.set(row.book_id, { favorites: false, read: false, readlist: false });
@@ -1029,29 +1025,23 @@
             .eq('user_id', state.currentUser.id)
             .eq('book_id', bookId)
             .eq('list_type', listType);
-          if (error) {
-            console.error('Error removing from list', error);
-            showNotification('Could not remove from list', 'error');
-            return;
+          if (!error) {
+            status[listType] = false;
+            state.listStatusMap.set(bookId, status);
+            updateCardMenuUI(card, bookId);
+            showNotification('Removed from list', 'info');
           }
-          status[listType] = false;
-          state.listStatusMap.set(bookId, status);
-          updateCardMenuUI(card, bookId);
-          showNotification('Removed from list', 'info');
         } else {
           await upsertBookRecord(state.bookIndex.get(bookId));
-          const { data, error } = await supabaseClient
+          const { error } = await supabaseClient
             .from('book_list_items')
             .insert({ user_id: state.currentUser.id, book_id: bookId, list_type: listType });
-          if (error) {
-            console.error('Error adding to list', error);
-            showNotification('Could not save to list', 'error');
-            return;
+          if (!error) {
+            status[listType] = true;
+            state.listStatusMap.set(bookId, status);
+            updateCardMenuUI(card, bookId);
+            showNotification('Saved to list', 'success');
           }
-          status[listType] = true;
-          state.listStatusMap.set(bookId, status);
-          updateCardMenuUI(card, bookId);
-          showNotification('Saved to list', 'success');
         }
       }
 

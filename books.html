@@ -725,7 +725,7 @@
         existing.forEach(n => n.remove());
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
-        notification.textContent = (typeof message === 'string') ? message : JSON.stringify(message);
+        notification.textContent = message;
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), duration);
       }
@@ -780,11 +780,7 @@
           .from('book_list_items')
           .select('book_id, list_type')
           .eq('user_id', state.currentUser.id);
-        if (error) {
-          console.error('Error loading list status', error);
-          showNotification('Could not load saved lists', 'error');
-          return;
-        }
+        if (error) return;
         (data || []).forEach(row => {
           if (!state.listStatusMap.has(row.book_id)) {
             state.listStatusMap.set(row.book_id, { favorites: false, read: false, readlist: false });
@@ -1087,49 +1083,23 @@
             .eq('user_id', state.currentUser.id)
             .eq('book_id', bookId)
             .eq('list_type', listType);
-          if (error) {
-            console.error('Error removing from list', error);
-            showNotification('Could not remove from list', 'error');
-            return;
+          if (!error) {
+            status[listType] = false;
+            state.listStatusMap.set(bookId, status);
+            updateCardMenuUI(card, bookId);
+            showNotification('Removed from list', 'info');
           }
-          status[listType] = false;
-          state.listStatusMap.set(bookId, status);
-          updateCardMenuUI(card, bookId);
-          showNotification('Removed from list', 'info');
         } else {
           await upsertBookRecord(state.bookIndex.get(bookId));
-          // Defensive: check for existing identical item (avoid 409)
-          try {
-            const { data: existing } = await supabaseClient
-              .from('book_list_items')
-              .select('id')
-              .match({ user_id: state.currentUser.id, book_id: bookId, list_type: listType })
-              .maybeSingle();
-            if (existing && existing.id) {
-              console.warn('List item already exists', existing);
-              status[listType] = true;
-              state.listStatusMap.set(bookId, status);
-              updateCardMenuUI(card, bookId);
-              showNotification('Already saved', 'info');
-              return;
-            }
-          } catch (e) {
-            if (e && e.message && !/No rows/.test(e.message)) console.warn('Check existing error', e);
-          }
-
-          const { data, error } = await supabaseClient
+          const { error } = await supabaseClient
             .from('book_list_items')
-            .insert({ user_id: state.currentUser.id, book_id: bookId, list_type: listType })
-            .select('*');
-          if (error) {
-            console.error('Error adding to list', error);
-            showNotification(error?.message || error || JSON.stringify(error), 'error');
-            return;
+            .insert({ user_id: state.currentUser.id, book_id: bookId, list_type: listType });
+          if (!error) {
+            status[listType] = true;
+            state.listStatusMap.set(bookId, status);
+            updateCardMenuUI(card, bookId);
+            showNotification('Saved to list', 'success');
           }
-          status[listType] = true;
-          state.listStatusMap.set(bookId, status);
-          updateCardMenuUI(card, bookId);
-          showNotification('Saved to list', 'success');
         }
       }
 
