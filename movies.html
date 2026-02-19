@@ -363,24 +363,34 @@
     .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
 
     .list-menu {
-      /* centered modal like index */
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: min(94vw, 400px);
-      border-radius: 14px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      padding: 12px;
+      /* full-screen overlay; panel centered like restaurants.actions-modal */
       display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: transparent;
       z-index: 3300;
-      max-height: 80vh;
-      overflow-y: auto;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
     }
 
-    .list-menu.open { display: block; }
+    .list-menu.open { display: flex; opacity: 1; }
+    .list-menu-panel {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 20px;
+      max-width: 400px;
+      width: 100%;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
     .list-menu-backdrop {
       position: fixed;
       inset: 0;
@@ -869,11 +879,13 @@
                 <div class="card-menu-wrap">
                   <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
                   <div class="list-menu">
-                    <div class="list-menu-title">Save to list</div>
-                    <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-                    <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
-                    <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
-                    <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
+                    <div class="list-menu-panel">
+                      <div class="list-menu-title">Save to list</div>
+                      <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
+                      <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
+                      <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
+                      <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
+                    </div>
                   </div>
                 </div>
               </div>
