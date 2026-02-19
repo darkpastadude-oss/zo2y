@@ -261,3 +261,102 @@ body.app-ready #appLoadLine {
     box-shadow: var(--app-shadow-soft);
   }
 }
+
+/* Shared list popup shell across desktop + mobile */
+body.zo2y-popup-open {
+  overflow: hidden !important;
+}
+
+.zo2y-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  display: none;
+  background: rgba(3, 10, 25, 0.74);
+  backdrop-filter: blur(4px);
+  z-index: 4490;
+}
+
+.zo2y-popup-backdrop.active {
+  display: block;
+}
+
+.list-menu-backdrop.active,
+.rail-menu-backdrop.active {
+  background: rgba(3, 10, 25, 0.74) !important;
+  backdrop-filter: blur(4px);
+  z-index: 4490 !important;
+}
+
+.list-menu.open,
+.rail-menu.open,
+.menu.open {
+  position: fixed !important;
+  left: 50% !important;
+  top: max(12px, calc(var(--app-safe-top) + 12px)) !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translateX(-50%) !important;
+  width: min(96vw, 460px) !important;
+  max-height: calc(100dvh - max(24px, calc(var(--app-safe-top) + var(--app-safe-bottom) + 24px))) !important;
+  overflow-y: auto !important;
+  border-radius: 16px !important;
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.46) !important;
+  padding-top: 42px !important;
+  z-index: 4500 !important;
+}
+
+.list-menu .list-menu-title,
+.rail-menu .rail-menu-title {
+  padding-right: 38px;
+}
+
+.modal[id*="ListsModal"],
+#customListsModal,
+#actionsModal {
+  z-index: 4400 !important;
+}
+
+.modal[id*="ListsModal"].active,
+#customListsModal.active,
+#actionsModal.active {
+  align-items: flex-start !important;
+  justify-content: center !important;
+  padding: max(12px, calc(var(--app-safe-top) + 12px)) 12px max(12px, calc(var(--app-safe-bottom) + 12px)) !important;
+  overflow-y: auto;
+}
+
+.modal[id*="ListsModal"] .modal-content,
+#customListsModal .custom-lists-content,
+#actionsModal .actions-content {
+  position: relative;
+  width: min(560px, calc(100vw - 24px)) !important;
+  max-height: calc(100dvh - max(24px, calc(var(--app-safe-top) + var(--app-safe-bottom) + 24px))) !important;
+  overflow-y: auto;
+  margin: 0 auto;
+}
+
+.zo2y-popup-close,
+.zo2y-overlay-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(8, 16, 38, 0.95);
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.zo2y-popup-close:hover,
+.zo2y-overlay-close:hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
