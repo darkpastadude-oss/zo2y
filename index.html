@@ -1477,6 +1477,13 @@
       visited: { title: 'Visited', description: 'Places I have been to', icon: 'check' },
       wantToGo: { title: 'Want to Go', description: 'Places I want to try', icon: 'bookmark' }
     };
+    const HOME_DEFAULT_LIST_TABLES = {
+      movie: { table: 'movie_list_items', itemField: 'movie_id' },
+      tv: { table: 'tv_list_items', itemField: 'tv_id' },
+      game: { table: 'game_list_items', itemField: 'game_id' },
+      book: { table: 'book_list_items', itemField: 'book_id' },
+      music: { table: 'music_list_items', itemField: 'track_id' }
+    };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v2';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
     const HOME_CHANNEL_TIMEOUT_MS = 3800;
@@ -2110,6 +2117,25 @@
       return created?.id || null;
     }
 
+    function getHomeDefaultListTable(mediaType) {
+      const type = String(mediaType || '').toLowerCase();
+      return HOME_DEFAULT_LIST_TABLES[type] || null;
+    }
+
+    function normalizeHomeDefaultItemId(mediaType, itemId) {
+      const type = String(mediaType || '').toLowerCase();
+      if (type === 'movie' || type === 'tv' || type === 'game') {
+        const numericId = Number(itemId);
+        return Number.isFinite(numericId) ? numericId : itemId;
+      }
+      return String(itemId || '');
+    }
+
+    function normalizeHomeRestaurantId(itemId) {
+      const numericId = Number(itemId);
+      return Number.isFinite(numericId) ? numericId : itemId;
+    }
+
     async function saveToListFromHome(payload) {
       const client = await ensureHomeSupabase();
       if (!client) {
@@ -2122,125 +2148,52 @@
       }
 
       const mediaType = String(payload.mediaType || '').toLowerCase();
-      const itemId = payload.itemId;
       const listType = payload.listType;
-      if (!itemId || !listType) return;
+      if (!payload.itemId || !listType) return;
       if (!supportsHomeLists(mediaType)) {
         showHomeToast('Lists are not available for this media yet.');
         return;
       }
 
       try {
-        if (mediaType === 'movie') {
-          const { data: existing } = await client
-            .from('movie_list_items')
-            .select('id')
-            .eq('user_id', homeCurrentUser.id)
-            .eq('movie_id', itemId)
-            .eq('list_type', listType)
-            .limit(1)
-            .maybeSingle();
-          if (existing?.id) {
-            await client.from('movie_list_items').delete().eq('id', existing.id);
-            showHomeToast('Removed from list');
-            return;
-          }
-          await client.from('movie_list_items').insert({ user_id: homeCurrentUser.id, movie_id: itemId, list_type: listType });
-          showHomeToast('Added to list');
-          return;
-        }
+        const defaultListTable = getHomeDefaultListTable(mediaType);
+        const itemId = normalizeHomeDefaultItemId(mediaType, payload.itemId);
 
-        if (mediaType === 'tv') {
-          const { data: existing } = await client
-            .from('tv_list_items')
-            .select('id')
-            .eq('user_id', homeCurrentUser.id)
-            .eq('tv_id', itemId)
-            .eq('list_type', listType)
-            .limit(1)
-            .maybeSingle();
-          if (existing?.id) {
-            await client.from('tv_list_items').delete().eq('id', existing.id);
-            showHomeToast('Removed from list');
-            return;
-          }
-          await client.from('tv_list_items').insert({ user_id: homeCurrentUser.id, tv_id: itemId, list_type: listType });
-          showHomeToast('Added to list');
-          return;
-        }
+        if (defaultListTable) {
+          const { table, itemField } = defaultListTable;
 
-        if (mediaType === 'game') {
-          const { data: existing } = await client
-            .from('game_list_items')
-            .select('id')
-            .eq('user_id', homeCurrentUser.id)
-            .eq('game_id', itemId)
-            .eq('list_type', listType)
-            .limit(1)
-            .maybeSingle();
-          if (existing?.id) {
-            await client.from('game_list_items').delete().eq('id', existing.id);
-            showHomeToast('Removed from list');
-            return;
+          if (mediaType === 'book') {
+            await client.from('books').upsert({
+              id: String(itemId),
+              title: payload.title || '',
+              authors: payload.subtitle || '',
+              thumbnail: payload.image || '',
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'id' });
           }
-          await client.from('game_list_items').insert({ user_id: homeCurrentUser.id, game_id: itemId, list_type: listType });
-          showHomeToast('Added to list');
-          return;
-        }
 
-        if (mediaType === 'book') {
-          await client.from('books').upsert({
-            id: String(itemId),
-            title: payload.title || '',
-            authors: payload.subtitle || '',
-            thumbnail: payload.image || '',
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
           const { data: existing } = await client
-            .from('book_list_items')
+            .from(table)
             .select('id')
             .eq('user_id', homeCurrentUser.id)
-            .eq('book_id', String(itemId))
+            .eq(itemField, itemId)
             .eq('list_type', listType)
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
-            await client.from('book_list_items').delete().eq('id', existing.id);
+            await client.from(table).delete().eq('id', existing.id);
             showHomeToast('Removed from list');
             return;
           }
-          await client.from('book_list_items').insert({ user_id: homeCurrentUser.id, book_id: String(itemId), list_type: listType });
-          showHomeToast('Added to list');
-          return;
-        }
-
-        if (mediaType === 'music') {
-          await client.from('tracks').upsert({
-            id: String(itemId),
-            name: payload.title || '',
-            artists: payload.subtitle || '',
-            image_url: payload.image || '',
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
-          const { data: existing } = await client
-            .from('music_list_items')
-            .select('id')
-            .eq('user_id', homeCurrentUser.id)
-            .eq('track_id', String(itemId))
-            .eq('list_type', listType)
-            .limit(1)
-            .maybeSingle();
-          if (existing?.id) {
-            await client.from('music_list_items').delete().eq('id', existing.id);
-            showHomeToast('Removed from list');
-            return;
-          }
-          await client.from('music_list_items').insert({ user_id: homeCurrentUser.id, track_id: String(itemId), list_type: listType });
+          const insertRow = { user_id: homeCurrentUser.id, list_type: listType };
+          insertRow[itemField] = itemId;
+          await client.from(table).insert(insertRow);
           showHomeToast('Added to list');
           return;
         }
 
         if (mediaType === 'restaurant') {
+          const restaurantId = normalizeHomeRestaurantId(payload.itemId);
           const listId = await ensureRestaurantList(homeCurrentUser.id, listType);
           if (!listId) {
             showHomeToast('Could not prepare list', true);
@@ -2250,7 +2203,7 @@
             .from('lists_restraunts')
             .select('id')
             .eq('list_id', listId)
-            .eq('restraunt_id', itemId)
+            .eq('restraunt_id', restaurantId)
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
@@ -2258,7 +2211,7 @@
             showHomeToast('Removed from list');
             return;
           }
-          await client.from('lists_restraunts').insert({ list_id: listId, restraunt_id: itemId });
+          await client.from('lists_restraunts').insert({ list_id: listId, restraunt_id: restaurantId });
           showHomeToast('Added to list');
           return;
         }
@@ -2277,68 +2230,15 @@
       if (!client) return status;
 
       try {
-        if (mediaType === 'movie') {
+        const defaultListTable = getHomeDefaultListTable(mediaType);
+        if (defaultListTable) {
+          const normalizedItemId = normalizeHomeDefaultItemId(mediaType, itemId);
+          const { table, itemField } = defaultListTable;
           const { data } = await client
-            .from('movie_list_items')
+            .from(table)
             .select('list_type')
             .eq('user_id', homeCurrentUser.id)
-            .eq('movie_id', itemId)
-            .in('list_type', listKeys);
-          (data || []).forEach((row) => {
-            const key = String(row.list_type || '');
-            if (key in status) status[key] = true;
-          });
-          return status;
-        }
-
-        if (mediaType === 'tv') {
-          const { data } = await client
-            .from('tv_list_items')
-            .select('list_type')
-            .eq('user_id', homeCurrentUser.id)
-            .eq('tv_id', itemId)
-            .in('list_type', listKeys);
-          (data || []).forEach((row) => {
-            const key = String(row.list_type || '');
-            if (key in status) status[key] = true;
-          });
-          return status;
-        }
-
-        if (mediaType === 'game') {
-          const { data } = await client
-            .from('game_list_items')
-            .select('list_type')
-            .eq('user_id', homeCurrentUser.id)
-            .eq('game_id', itemId)
-            .in('list_type', listKeys);
-          (data || []).forEach((row) => {
-            const key = String(row.list_type || '');
-            if (key in status) status[key] = true;
-          });
-          return status;
-        }
-
-        if (mediaType === 'book') {
-          const { data } = await client
-            .from('book_list_items')
-            .select('list_type')
-            .eq('user_id', homeCurrentUser.id)
-            .eq('book_id', String(itemId))
-            .in('list_type', listKeys);
-          (data || []).forEach((row) => {
-            const key = String(row.list_type || '');
-            if (key in status) status[key] = true;
-          });
-          return status;
-        }
-
-        if (mediaType === 'music') {
-          const { data } = await client
-            .from('music_list_items')
-            .select('list_type')
-            .eq('user_id', homeCurrentUser.id)
-            .eq('track_id', String(itemId))
+            .eq(itemField, normalizedItemId)
             .in('list_type', listKeys);
           (data || []).forEach((row) => {
             const key = String(row.list_type || '');
@@ -2348,6 +2248,7 @@
         }
 
         if (mediaType === 'restaurant') {
+          const restaurantId = normalizeHomeRestaurantId(itemId);
           const titleByKey = {};
           listKeys.forEach((key) => {
             const conf = HOME_RESTAURANT_LIST_META[key];
@@ -2374,7 +2275,7 @@
           const { data: links } = await client
             .from('lists_restraunts')
             .select('list_id')
-            .eq('restraunt_id', itemId)
+            .eq('restraunt_id', restaurantId)
             .in('list_id', listIds);
 
           (links || []).forEach((row) => {
@@ -2981,14 +2882,13 @@
       });
 
       scope.querySelectorAll('.rail-menu-item').forEach((item) => {
-        item.addEventListener('click', (e) => {
+        item.addEventListener('click', async (e) => {
           e.stopPropagation();
           const action = item.getAttribute('data-action');
-          closeAllRailMenus();
           if (action === 'save') {
             const card = item.closest('.card');
             if (!card) return;
-            saveToListFromHome({
+            await saveToListFromHome({
               mediaType: card.getAttribute('data-media-type'),
               itemId: card.getAttribute('data-item-id'),
               listType: item.getAttribute('data-list'),
@@ -2996,10 +2896,12 @@
               subtitle: card.getAttribute('data-subtitle'),
               image: card.getAttribute('data-image')
             });
+            closeAllRailMenus();
             return;
           }
           if (action === 'custom') {
             const card = item.closest('.card');
+            closeAllRailMenus();
             if (card) {
               openHomeListsModal({
                 mediaType: card.getAttribute('data-media-type'),
