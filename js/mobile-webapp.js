@@ -22,6 +22,10 @@
   const LIST_MODAL_SELECTOR = '.modal[id*="ListsModal"], #customListsModal, #actionsModal';
   const NATIVE_MENU_BACKDROP_SELECTOR = '.list-menu-backdrop.active, .rail-menu-backdrop.active';
   let popupObserver = null;
+  let pendingMutationRefreshMenus = false;
+  let pendingMutationRefreshModals = false;
+  let pendingMutationSync = false;
+  let mutationFlushScheduled = false;
 
   const ensurePopupBackdrop = () => {
     if (!document.body) return null;
@@ -155,41 +159,61 @@
       syncPopupState();
     }, true);
 
-    popupObserver = new MutationObserver((mutations) => {
-      let refreshMenus = false;
-      let refreshModals = false;
-      let shouldSync = false;
+    const flushMutationState = () => {
+      mutationFlushScheduled = false;
+      const refreshMenus = pendingMutationRefreshMenus;
+      const refreshModals = pendingMutationRefreshModals;
+      const shouldSync = pendingMutationSync;
+      pendingMutationRefreshMenus = false;
+      pendingMutationRefreshModals = false;
+      pendingMutationSync = false;
 
+      if (refreshMenus) ensureMenuCloseButtons();
+      if (refreshModals) ensureModalCloseButtons();
+      if (shouldSync || refreshMenus || refreshModals) syncPopupState();
+    };
+
+    const scheduleMutationFlush = () => {
+      if (mutationFlushScheduled) return;
+      mutationFlushScheduled = true;
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(flushMutationState);
+      } else {
+        setTimeout(flushMutationState, 16);
+      }
+    };
+
+    popupObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === 'attributes') {
           const target = mutation.target;
           if (!(target instanceof HTMLElement)) return;
           if (target.matches(LIST_MENU_SELECTOR)) {
-            refreshMenus = true;
-            shouldSync = true;
+            pendingMutationRefreshMenus = true;
+            pendingMutationSync = true;
             return;
           }
           if (target.matches(LIST_MODAL_SELECTOR) || target.matches('.list-menu-backdrop, .rail-menu-backdrop')) {
-            shouldSync = true;
+            pendingMutationSync = true;
           }
           return;
         }
 
         if (mutation.type !== 'childList') return;
-        if (mutation.removedNodes.length) shouldSync = true;
+        if (mutation.removedNodes.length) pendingMutationSync = true;
         mutation.addedNodes.forEach((node) => {
           if (!(node instanceof HTMLElement)) return;
-          if (node.matches(LIST_MENU_SELECTOR) || node.querySelector(LIST_MENU_SELECTOR)) refreshMenus = true;
-          if (node.matches(LIST_MODAL_SELECTOR) || node.querySelector(LIST_MODAL_SELECTOR)) refreshModals = true;
+          if (node.matches(LIST_MENU_SELECTOR) || node.querySelector(LIST_MENU_SELECTOR)) pendingMutationRefreshMenus = true;
+          if (node.matches(LIST_MODAL_SELECTOR) || node.querySelector(LIST_MODAL_SELECTOR)) pendingMutationRefreshModals = true;
           if (node.matches('.list-menu-backdrop, .rail-menu-backdrop') || node.querySelector('.list-menu-backdrop, .rail-menu-backdrop')) {
-            shouldSync = true;
+            pendingMutationSync = true;
           }
         });
       });
 
-      if (refreshMenus) ensureMenuCloseButtons();
-      if (refreshModals) ensureModalCloseButtons();
-      if (shouldSync || refreshMenus || refreshModals) syncPopupState();
+      if (pendingMutationSync || pendingMutationRefreshMenus || pendingMutationRefreshModals) {
+        scheduleMutationFlush();
+      }
     });
 
     popupObserver.observe(document.body, {
