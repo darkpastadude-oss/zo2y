@@ -545,6 +545,128 @@
       .grid { gap: 12px; }
       .card img { aspect-ratio: 2 / 3; height: auto; }
     }
+
+    .menu-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .menu-modal.active {
+      display: flex;
+    }
+
+    .menu-modal-content {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 380px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      animation: menuFadeIn 0.2s ease;
+    }
+
+    @keyframes menuFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .menu-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .menu-modal-header h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--white);
+      margin: 0;
+    }
+
+    .menu-modal-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 24px;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .menu-modal-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--white);
+    }
+
+    .menu-modal-body {
+      padding: 16px 20px;
+    }
+
+    .menu-quick-lists {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .menu-custom-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .menu-custom-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .menu-create-list-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .menu-create-list-btn:hover {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: var(--accent);
+    }
+
+    .menu-custom-lists {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
   </style>
   <meta name="theme-color" content="#0b1633" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -886,30 +1008,10 @@
 
       function wireCardMenu(card, gameId) {
         const menuBtn = card.querySelector('.menu-btn');
-        const menu = card.querySelector('.list-menu');
-        if (!menuBtn || !menu) return;
+        if (!menuBtn) return;
         menuBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          const wasOpen = menu.classList.contains('open');
-          closeAllListMenus();
-          if (!wasOpen) {
-            menu.classList.add('open');
-            card.classList.add('menu-open');
-            showListMenuBackdrop();
-          }
-        });
-        menu.querySelectorAll('.list-action').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const listType = btn.getAttribute('data-list');
-            if (listType === 'custom') {
-              closeAllListMenus();
-              openGameListsModal(gameId);
-              return;
-            }
-            await toggleDefaultList(gameId, listType, card);
-            closeAllListMenus();
-          });
+          openItemMenuFromCard(card);
         });
       }
 
@@ -1183,6 +1285,90 @@
         renderFilters();
         loadGames();
       })();
+    })();
+  </script>
+
+  <!-- Index-style item menu modal (copied/adapted) -->
+  <div id="itemMenuModal" class="menu-modal" aria-hidden="true">
+    <div class="menu-modal-content">
+      <div class="menu-modal-header">
+        <h3 id="menuModalTitle">Add to List</h3>
+        <button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">×</button>
+      </div>
+      <div class="menu-modal-body" id="menuModalBody">
+        <div class="menu-quick-lists" id="menuQuickLists">
+          <button class="list-action" data-list="favorites">Favorites</button>
+          <button class="list-action" data-list="watched">Played</button>
+          <button class="list-action" data-list="watchlist">Backlog</button>
+        </div>
+        <div class="menu-custom-section">
+          <div class="menu-custom-header">
+            <span>Your Custom Lists</span>
+            <button class="menu-create-list-btn" id="menuCreateListBtn">New</button>
+          </div>
+          <div class="menu-custom-lists" id="menuCustomLists"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      let modalState = { card: null, gameId: null };
+
+      function openItemMenuFromCard(card){
+        if(!card) return;
+        modalState.card = card;
+        const gameId = card.getAttribute('data-game-id');
+        modalState.gameId = gameId ? Number(gameId) : null;
+        const title = document.getElementById('menuModalTitle');
+        if(title) title.textContent = card.querySelector('.card-title')?.textContent || 'Add to List';
+        const modal = document.getElementById('itemMenuModal');
+        if(modal) {
+          modal.classList.add('active');
+          modal.setAttribute('aria-hidden', 'false');
+        }
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeItemMenuModal(){
+        const modal = document.getElementById('itemMenuModal');
+        if(modal) {
+          modal.classList.remove('active');
+          modal.setAttribute('aria-hidden', 'true');
+        }
+        document.body.style.overflow = '';
+        modalState.card = null;
+        modalState.gameId = null;
+      }
+
+      document.getElementById('closeMenuModalBtn')?.addEventListener('click', closeItemMenuModal);
+      document.getElementById('menuCreateListBtn')?.addEventListener('click', () => {
+        closeItemMenuModal();
+        if(typeof openGameListsModal === 'function') openGameListsModal(modalState.gameId);
+      });
+
+      document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeItemMenuModal(); });
+
+      // delegate quick list actions
+      document.getElementById('menuQuickLists')?.addEventListener('click', async (e)=>{
+        const btn = e.target.closest('.list-action');
+        if(!btn) return;
+        const list = btn.getAttribute('data-list');
+        if(!list) return;
+        if(typeof toggleDefaultList === 'function') {
+          await toggleDefaultList(modalState.gameId, list, modalState.card);
+        }
+        closeItemMenuModal();
+      });
+
+      // close modal when clicking outside content
+      document.getElementById('itemMenuModal')?.addEventListener('click', (e)=>{
+        if(e.target === e.currentTarget) closeItemMenuModal();
+      });
+      // expose for other scripts
+      window.openItemMenuFromCard = openItemMenuFromCard;
+      window.closeItemMenuModal = closeItemMenuModal;
     })();
   </script>
 </body>
