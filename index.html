@@ -795,19 +795,19 @@
     }
 
     .rail-menu-item[data-saved="1"] {
-      border-color: rgba(248, 113, 113, 0.85);
-      background: rgba(239, 68, 68, 0.12);
-      color: #fecaca;
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--accent);
     }
 
     .rail-menu-item[data-saved="1"]:hover {
-      border-color: #ef4444;
-      background: rgba(239, 68, 68, 0.18);
-      color: #fecaca;
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.18);
+      color: var(--accent);
     }
 
     .rail-menu-item[data-saved="1"] .rail-menu-state {
-      color: #fca5a5;
+      color: var(--accent);
       opacity: 1;
     }
 
@@ -2409,7 +2409,7 @@
         const saved = !!status[key];
         btn.setAttribute('data-saved', saved ? '1' : '0');
         const stateEl = btn.querySelector('.rail-menu-state');
-        if (stateEl) stateEl.textContent = saved ? 'Remove' : 'Add';
+        if (stateEl) stateEl.textContent = saved ? 'Saved' : 'Add';
       });
     }
 
