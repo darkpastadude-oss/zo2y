@@ -322,21 +322,21 @@
     .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
 
     .list-menu {
-      /* float the menu next to its button instead of centering it on the screen */
-      position: absolute;
-      top: 100%;
-      right: 0;
-      margin-top: 6px;
+      /* centered modal like index */
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(94vw, 400px);
+      border-radius: 14px;
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px;
-      width: min(92vw, 300px);
-      max-height: 70vh;
-      overflow-y: auto;
       box-shadow: var(--shadow);
+      padding: 12px;
       display: none;
-      z-index: 3200;
+      z-index: 3300;
+      max-height: 80vh;
+      overflow-y: auto;
     }
 
     .list-menu.open { display: block; }
@@ -344,7 +344,7 @@
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.55);
-      z-index: 3190;
+      z-index: 3290;
       display: none;
     }
     .list-menu-backdrop.active { display: block; }
