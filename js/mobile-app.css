@@ -360,3 +360,26 @@ body.zo2y-popup-open {
   border-color: #f59e0b;
   color: #f59e0b;
 }
+
+@media (min-width: 901px) {
+  .list-menu.open,
+  .rail-menu.open,
+  .menu.open {
+    top: 18px !important;
+    width: min(88vw, 560px) !important;
+    max-height: calc(100vh - 36px) !important;
+  }
+
+  .modal[id*="ListsModal"].active,
+  #customListsModal.active,
+  #actionsModal.active {
+    padding: 18px !important;
+  }
+
+  .modal[id*="ListsModal"] .modal-content,
+  #customListsModal .custom-lists-content,
+  #actionsModal .actions-content {
+    width: min(760px, 88vw) !important;
+    max-height: calc(100vh - 36px) !important;
+  }
+}
