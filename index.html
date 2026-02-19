@@ -2,22 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=yes" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y | All Your Interests in One Place</title>
   <meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, games, books, music, and restaurants." />
   <link rel="canonical" href="https://www.zo2y.com/" />
+  
+  <!-- Open Graph / Social Media -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Zo2y" />
   <meta property="og:title" content="Zo2y | All Your Interests in One Place" />
   <meta property="og:description" content="Track favorites, build custom lists, and follow friends across movies, TV, games, books, music, and restaurants." />
   <meta property="og:url" content="https://www.zo2y.com/" />
   <meta property="og:image" content="https://www.zo2y.com/images/zo2y-search-illustration.png" />
-  <meta property="og:image:alt" content="Zo2y illustration with gaming, movies, and TV." />
+  
+  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Zo2y | All Your Interests in One Place" />
   <meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, games, books, music, and restaurants." />
   <meta name="twitter:image" content="https://www.zo2y.com/images/zo2y-search-illustration.png" />
+  
+  <!-- PWA / Mobile -->
+  <meta name="theme-color" content="#0b1633" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zo2y" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/images/logo.png" />
+  
+  <!-- Schema.org -->
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -28,15 +41,28 @@
       "image": "https://www.zo2y.com/images/zo2y-search-illustration.png"
     }
   </script>
+  
+  <!-- Preconnect to external resources -->
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://image.tmdb.org" crossorigin>
+  <link rel="preconnect" href="https://covers.openlibrary.org" crossorigin>
+  
+  <!-- Scripts and Styles -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
+    /* Reset and Variables */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     :root {
       --bg: #0b1633;
       --bg-2: #0f1d40;
@@ -44,38 +70,55 @@
       --card-2: #172b58;
       --muted: #8ca3c7;
       --accent: #f59e0b;
+      --accent-dark: #d97706;
       --white: #ffffff;
       --border: rgba(255,255,255,0.12);
       --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
       --surface: rgba(12, 26, 57, 0.84);
       --shadow: 0 12px 34px rgba(0,0,0,0.28);
-      --ok: #10b981;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
+    /* Base Styles */
     html, body {
       min-height: 100%;
-      background:
+      background: 
         radial-gradient(circle at 18% -8%, rgba(245, 158, 11, 0.16), transparent 35%),
         radial-gradient(circle at 85% -12%, rgba(88, 130, 255, 0.22), transparent 42%),
         var(--bg);
       color: var(--white);
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.5;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
-      padding-bottom: 18px;
+      padding-bottom: 20px;
+      min-height: 100vh;
     }
 
-    a { color: inherit; text-decoration: none; }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    /* Container */
     .container {
-      width: min(1240px, calc(100% - 28px));
+      width: min(1240px, calc(100% - 32px));
       margin: 0 auto;
     }
 
+    /* Header */
     header {
       position: sticky;
       top: 0;
@@ -89,7 +132,7 @@
       min-height: 72px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
       padding: 12px 0;
       flex-wrap: wrap;
     }
@@ -100,7 +143,7 @@
       gap: 10px;
       font-size: 22px;
       font-weight: 800;
-      letter-spacing: 0.2px;
+      letter-spacing: -0.3px;
     }
 
     .brand img {
@@ -110,52 +153,60 @@
       object-fit: cover;
     }
 
+    /* Search */
     .search-wrap {
       flex: 1;
-      min-width: 210px;
+      min-width: 240px;
       max-width: 420px;
       position: relative;
-      margin-left: 8px;
     }
 
     .search-wrap i {
       position: absolute;
-      left: 12px;
+      left: 14px;
       top: 50%;
       transform: translateY(-50%);
       color: var(--muted);
-      font-size: 13px;
+      font-size: 14px;
+      pointer-events: none;
     }
 
     .search {
       width: 100%;
-      height: 42px;
+      height: 44px;
       border-radius: 999px;
       border: 1px solid var(--border);
       background: var(--card);
       color: var(--white);
-      padding: 0 14px 0 34px;
+      padding: 0 16px 0 42px;
+      font-size: 14px;
       outline: none;
+      transition: all 0.2s ease;
     }
 
     .search:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
     }
 
+    .search::placeholder {
+      color: var(--muted);
+      opacity: 0.8;
+    }
+
+    /* Navigation */
     .header-actions {
       margin-left: auto;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
     .top-nav {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      opacity: 0.92;
+      gap: 6px;
     }
 
     .nav-pill {
@@ -163,10 +214,10 @@
       color: #e2ecff;
       background: transparent;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
-      padding: 8px 10px;
-      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+      padding: 8px 12px;
+      transition: all 0.2s ease;
     }
 
     .nav-pill:hover {
@@ -175,26 +226,23 @@
       background: rgba(255,255,255,0.04);
     }
 
-    .auth-actions {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
+    /* Buttons */
     .btn {
       border: 1px solid var(--border);
       background: var(--card);
       color: var(--white);
-      height: 40px;
-      padding: 0 14px;
+      height: 42px;
+      padding: 0 16px;
       border-radius: 12px;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
       cursor: pointer;
-      transition: border-color 0.2s ease, transform 0.2s ease;
+      transition: all 0.2s ease;
+      white-space: nowrap;
     }
 
     .btn:hover {
@@ -202,36 +250,47 @@
       transform: translateY(-1px);
     }
 
+    .btn:active {
+      transform: translateY(0);
+    }
+
     .btn-primary {
       background: var(--gradient);
       color: #0b1633;
-      border: 0;
+      border: none;
+      font-weight: 700;
     }
 
-    .page-shell {
-      margin-top: 18px;
-      display: grid;
-      gap: 18px;
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      border-color: transparent;
     }
 
+    .btn-sm {
+      height: 36px;
+      padding: 0 12px;
+      font-size: 13px;
+    }
+
+    /* Spotlight Section */
     .spotlight {
       position: relative;
       border: 1px solid var(--border);
       border-radius: 24px;
       overflow: hidden;
-      min-height: 360px;
+      min-height: 380px;
       box-shadow: var(--shadow);
       background: linear-gradient(145deg, #132347, #0f1f43);
       isolation: isolate;
+      margin-top: 20px;
     }
 
     .spotlight-bg {
       position: absolute;
       inset: 0;
-      background: linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%);
       background-size: cover;
       background-position: center;
-      transition: background-image 0.22s ease;
+      transition: background-image 0.3s ease;
       z-index: -2;
     }
 
@@ -240,36 +299,35 @@
       position: absolute;
       inset: 0;
       z-index: -1;
-      background:
-        linear-gradient(100deg, rgba(6, 13, 28, 0.9) 0%, rgba(8, 16, 35, 0.7) 42%, rgba(13, 25, 52, 0.25) 100%),
+      background: 
+        linear-gradient(100deg, rgba(6, 13, 28, 0.92) 0%, rgba(8, 16, 35, 0.75) 42%, rgba(13, 25, 52, 0.3) 100%),
         radial-gradient(circle at 80% 22%, rgba(245, 158, 11, 0.24), transparent 40%);
     }
 
     .spotlight-inner {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      padding: clamp(18px, 3.6vw, 34px);
-      min-height: 360px;
+      gap: 12px;
+      padding: clamp(20px, 4vw, 40px);
+      min-height: 380px;
       justify-content: flex-end;
-      max-width: calc(100% - 290px);
+      max-width: calc(100% - 300px);
       position: relative;
       z-index: 2;
     }
 
     .spotlight-media {
       position: absolute;
-      right: 22px;
+      right: 30px;
       top: 50%;
       transform: translateY(-50%);
-      width: clamp(184px, 22vw, 240px);
+      width: clamp(180px, 22vw, 240px);
       aspect-ratio: 2/3;
-      border-radius: 14px;
+      border-radius: 16px;
       overflow: hidden;
-      border: 0;
       background: transparent;
       z-index: 1;
-      box-shadow: none;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
 
     .spotlight-media img {
@@ -279,209 +337,228 @@
       background: transparent;
     }
 
-    .spotlight.has-square-media .spotlight-inner {
-      max-width: calc(100% - 232px);
-    }
-
-    .spotlight.has-landscape-media .spotlight-inner {
-      max-width: calc(100% - 292px);
-    }
-
     .spotlight-media.square {
-      width: clamp(154px, 18vw, 208px);
       aspect-ratio: 1/1;
-      border-radius: 16px;
-      padding: 0;
-      background: transparent;
-      display: block;
-    }
-
-    .spotlight-media.square img {
-      border-radius: 12px;
-      object-fit: contain !important;
-      background: transparent;
-      width: 100%;
-      height: 100%;
-      padding: 0;
+      border-radius: 20px;
     }
 
     .spotlight-media.landscape {
-      width: clamp(224px, 30vw, 320px);
-      aspect-ratio: 16/10;
-      border-radius: 16px;
-      padding: 0;
-      background: transparent;
+      aspect-ratio: 16/9;
+      width: clamp(240px, 28vw, 320px);
     }
 
-    .spotlight-media.landscape img {
-      object-fit: contain !important;
-      background: transparent;
+    .spotlight.has-square-media .spotlight-inner {
+      max-width: calc(100% - 260px);
+    }
+
+    .spotlight.has-landscape-media .spotlight-inner {
+      max-width: calc(100% - 340px);
     }
 
     .spotlight.no-media .spotlight-inner {
-      max-width: 760px;
+      max-width: 800px;
     }
 
     .spotlight-kicker {
       text-transform: uppercase;
-      letter-spacing: 1.1px;
+      letter-spacing: 1.5px;
       color: #cfe0ff;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
-      opacity: 0.92;
+      opacity: 0.95;
     }
 
     .spotlight-title {
-      font-size: clamp(31px, 5.2vw, 57px);
-      line-height: 1.03;
-      letter-spacing: -0.4px;
+      font-size: clamp(32px, 5.5vw, 58px);
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+      font-weight: 800;
     }
 
     .spotlight-summary {
       color: #d7e4ff;
-      font-size: 15px;
-      line-height: 1.45;
-      max-width: 640px;
+      font-size: 16px;
+      line-height: 1.5;
+      max-width: 680px;
+      opacity: 0.9;
     }
 
     .spotlight-meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 2px;
+      gap: 10px;
+      margin-top: 4px;
     }
 
     .chip {
-      padding: 8px 10px;
+      padding: 8px 14px;
       border-radius: 999px;
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.08);
       color: #d9e7ff;
-      font-size: 12px;
+      font-size: 13px;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      backdrop-filter: blur(4px);
     }
 
     .spotlight-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-top: 4px;
+      gap: 12px;
+      margin-top: 8px;
     }
 
     .spotlight-dots {
       display: inline-flex;
       align-items: center;
-      gap: 7px;
-      margin-top: 2px;
+      gap: 8px;
+      margin-top: 12px;
     }
 
     .spotlight-dot {
-      width: 8px;
-      height: 8px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
-      border: 0;
-      background: rgba(255,255,255,0.36);
+      border: none;
+      background: rgba(255,255,255,0.3);
       cursor: pointer;
-      transition: transform 0.2s ease, background 0.2s ease;
+      transition: all 0.2s ease;
+      padding: 0;
+    }
+
+    .spotlight-dot:hover {
+      background: rgba(255,255,255,0.5);
     }
 
     .spotlight-dot.active {
       background: var(--accent);
       transform: scale(1.2);
+      box-shadow: 0 0 10px var(--accent);
     }
 
-    .status {
-      font-size: 12px;
-      color: var(--ok);
-      margin-top: 3px;
-      display: none;
-    }
-
+    /* Sections */
     .section {
-      background: rgba(19, 35, 71, 0.9);
+      background: rgba(19, 35, 71, 0.92);
       border: 1px solid var(--border);
-      border-radius: 20px;
+      border-radius: 24px;
       overflow: hidden;
       box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
     }
 
     .section-head {
-      padding: 14px 16px;
+      padding: 16px 20px;
       border-bottom: 1px solid var(--border);
     }
 
     .section-head h2 {
-      font-size: 23px;
-      margin-bottom: 3px;
-      letter-spacing: -0.2px;
+      font-size: 24px;
+      margin-bottom: 4px;
+      letter-spacing: -0.3px;
     }
-    .section-head p { color: var(--muted); font-size: 13px; }
 
-    .rail-wrap { padding: 14px 14px 16px; }
+    .section-head p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Rails / Carousels */
+    .rail-wrap {
+      padding: 16px 16px 20px;
+    }
 
     .rail-title {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
-      font-size: 15px;
+      margin-bottom: 14px;
+      font-size: 16px;
       font-weight: 700;
     }
 
     .rail-title a {
       color: var(--accent);
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
+      opacity: 0.9;
+      transition: opacity 0.2s;
+    }
+
+    .rail-title a:hover {
+      opacity: 1;
     }
 
     .rail {
       display: grid;
       grid-auto-flow: column;
-      grid-auto-columns: 156px;
-      gap: 11px;
+      grid-auto-columns: 160px;
+      gap: 12px;
       overflow-x: auto;
       overflow-y: hidden;
-      padding-bottom: 6px;
+      padding-bottom: 8px;
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
     }
 
-    .rail.unified-rail { grid-auto-columns: 156px; }
-    .rail::-webkit-scrollbar { height: 7px; }
-    .rail::-webkit-scrollbar-thumb { background: rgba(140,163,199,0.55); border-radius: 999px; }
-    .rail.games-rail { grid-auto-columns: 156px; }
+    .rail::-webkit-scrollbar {
+      height: 8px;
+    }
 
+    .rail::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 999px;
+    }
+
+    .rail::-webkit-scrollbar-thumb {
+      background: rgba(140, 163, 199, 0.4);
+      border-radius: 999px;
+      transition: background 0.2s;
+    }
+
+    .rail::-webkit-scrollbar-thumb:hover {
+      background: rgba(140, 163, 199, 0.6);
+    }
+
+    .rail.unified-rail {
+      grid-auto-columns: 160px;
+    }
+
+    /* Cards */
     .card {
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 16px;
       overflow: hidden;
       background: var(--card-2);
       scroll-snap-align: start;
-      min-height: 232px;
+      min-height: 280px;
       position: relative;
-      transition: border-color 0.2s ease, transform 0.2s ease;
+      transition: all 0.2s ease;
       display: flex;
       flex-direction: column;
+      cursor: pointer;
     }
 
     .card:hover {
       border-color: var(--accent);
-      transform: translateY(-2px);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
     }
 
     .card.menu-open,
     .card.menu-open:hover {
       transform: none;
+      border-color: var(--accent);
     }
 
     .card-media {
       width: 100%;
       aspect-ratio: 2/3;
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: var(--muted);
       overflow: hidden;
       position: relative;
@@ -490,84 +567,56 @@
     .card-media img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
-      transform: scale(1.001);
-    }
-
-    .card-media.landscape { aspect-ratio: 16/10; }
-
-    .card-media.landscape img {
       object-fit: cover;
+      transition: transform 0.3s ease;
     }
 
-    .card-media.game-poster {
-      aspect-ratio: 2/3;
-      padding: 0;
-      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+    .card:hover .card-media img {
+      transform: scale(1.05);
+    }
+
+    .card-media.landscape {
+      aspect-ratio: 16/9;
     }
 
     .card-media.music-cover {
       aspect-ratio: 1/1;
-      padding: 0;
-      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
-    }
-
-    .card-media.music-cover img {
-      object-fit: cover;
-      border-radius: 0;
-      background: transparent;
-    }
-
-    .card-media.game-poster img {
-      object-fit: cover;
-      border-radius: 0;
-    }
-
-    .card-media.landscape.game-poster img {
-      object-fit: cover;
     }
 
     .card-media.restaurant-composite {
       position: relative;
       display: block;
-      background: linear-gradient(135deg, #1a2d5f 0%, #0b1633 100%);
-    }
-
-    .card-media.restaurant-composite .restaurant-cover {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
     }
 
     .restaurant-logo-badge {
       position: absolute;
       right: 8px;
       bottom: 8px;
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
-      background: rgba(11, 22, 51, 0.92);
-      border: 1px solid rgba(245, 158, 11, 0.75);
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(11, 22, 51, 0.95);
+      border: 2px solid var(--accent);
       padding: 4px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.35);
-      display: inline-flex;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      display: flex;
       align-items: center;
       justify-content: center;
       z-index: 2;
     }
 
-    .card-media .restaurant-logo-badge img {
+    .restaurant-logo-badge img {
       width: 100%;
       height: 100%;
       object-fit: contain;
-      border-radius: 7px;
+      border-radius: 6px;
     }
 
     .card-meta {
-      padding: 9px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 4px;
       flex: 1;
     }
 
@@ -588,21 +637,22 @@
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.16);
       border-radius: 999px;
-      padding: 3px 8px;
-      margin-bottom: 3px;
+      padding: 4px 8px;
+      margin-bottom: 4px;
       width: fit-content;
+      text-transform: capitalize;
     }
 
     .card-name {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
-      line-height: 1.35;
+      line-height: 1.4;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: 36px;
-      margin-bottom: 0;
+      min-height: 40px;
+      margin-bottom: 2px;
     }
 
     .card-sub {
@@ -611,118 +661,42 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      min-height: 17px;
     }
 
     .card-extra {
       margin-top: 4px;
       color: #a9b9da;
       font-size: 12px;
-      line-height: 1.35;
+      line-height: 1.4;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: 32px;
+      min-height: 34px;
     }
 
-    .card-extra.placeholder {
-      visibility: hidden;
-    }
-
-    .rail.unified-rail .card {
-      height: 332px;
-      min-height: 332px;
-    }
-
-    .rail.unified-rail .card-media {
-      aspect-ratio: 2/3;
-      height: 216px;
-      padding: 0;
-    }
-
-    .rail.unified-rail .card-media img {
-      object-fit: contain;
-      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
-    }
-
-    .rail.unified-rail .card-media.restaurant-composite {
-      aspect-ratio: 2/3;
-    }
-
-    .rail.unified-rail .card-media.restaurant-composite .restaurant-cover {
-      object-fit: cover;
-    }
-
-    .rail.unified-rail .card-media.game-poster {
-      aspect-ratio: 2/3;
-      height: 216px;
-      padding: 0;
-      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
-    }
-
-    .rail.unified-rail .card-media.game-poster img {
-      object-fit: cover;
-      border-radius: 0;
-    }
-
-    .rail.unified-rail .card-media.music-cover img {
-      object-fit: cover;
-      background: transparent;
-    }
-
-    .rail.games-rail .card {
-      height: 332px;
-      min-height: 332px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .rail.games-rail .card-meta {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-    }
-
-    .rail.games-rail .card-media.game-poster {
-      aspect-ratio: 2/3;
-      height: 216px;
-      padding: 0;
-      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
-    }
-
-    .rail.games-rail .card-media.game-poster img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 0;
-      background: transparent;
-    }
-
+    /* Card Controls */
     .card-menu-wrap {
       position: relative;
       flex-shrink: 0;
     }
 
     .card-menu-btn {
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
       border-radius: 8px;
       border: 1px solid var(--border);
-      background: rgba(19, 35, 71, 0.92);
+      background: rgba(19, 35, 71, 0.95);
       color: var(--white);
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: border-color 0.2s ease, color 0.2s ease;
+      transition: all 0.2s ease;
+      font-size: 14px;
     }
 
-    .card-menu-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
+    .card-menu-btn:hover,
     .card-menu-btn.active {
       border-color: var(--accent);
       color: var(--accent);
@@ -730,48 +704,111 @@
     }
 
     .card-open-link {
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
       border-radius: 8px;
       border: 1px solid var(--border);
-      background: rgba(19, 35, 71, 0.92);
+      background: rgba(19, 35, 71, 0.95);
       color: #d4e2ff;
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
+      font-size: 13px;
+      transition: all 0.2s ease;
     }
 
+    .card-open-link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .card-hover-cue {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      z-index: 5;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      background: rgba(11, 22, 51, 0.95);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      opacity: 0;
+      transform: translateY(-5px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+    }
+
+    .card:hover .card-hover-cue {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Rail Menu (Pop-up) */
     .rail-menu {
       position: fixed;
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-      width: min(94vw, 400px);
-      border-radius: 14px;
+      width: min(420px, 92vw);
+      border-radius: 20px;
       background: var(--card);
       border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      padding: 12px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+      padding: 16px;
       display: none;
       z-index: 3300;
+      max-height: 80vh;
+      overflow-y: auto;
     }
 
     .rail-menu.open {
       display: block;
+      animation: menuFadeIn 0.2s ease;
+    }
+
+    @keyframes menuFadeIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -48%);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
     }
 
     .rail-menu-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
       z-index: 3290;
       display: none;
     }
 
     .rail-menu-backdrop.active {
       display: block;
+      animation: backdropFadeIn 0.2s ease;
+    }
+
+    @keyframes backdropFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .rail-menu-title {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 4px 4px 12px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
     }
 
     .rail-menu-item {
@@ -779,9 +816,10 @@
       border: 1px solid var(--border);
       background: transparent;
       color: var(--white);
-      border-radius: 11px;
-      padding: 12px 14px;
-      font-size: 14px;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 500;
       text-align: left;
       cursor: pointer;
       margin-bottom: 8px;
@@ -799,42 +837,41 @@
     .rail-menu-item:hover {
       border-color: var(--accent);
       background: rgba(245, 158, 11, 0.1);
+      transform: translateX(2px);
     }
 
     .rail-menu-item.saved {
       border-color: var(--accent);
       background: rgba(245, 158, 11, 0.15);
-      color: var(--accent);
     }
 
     .rail-menu-item.saved .rail-menu-state {
       color: var(--accent);
-    }
-
-    .rail-menu-title {
-      color: var(--muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      padding: 2px 2px 10px;
+      background: rgba(245, 158, 11, 0.2);
     }
 
     .rail-menu-item-main {
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+    }
+
+    .rail-menu-item-main i {
+      width: 20px;
+      font-size: 16px;
     }
 
     .rail-menu-state {
       color: var(--white);
-      opacity: 0.9;
-      font-weight: 600;
       font-size: 12px;
-      padding: 2px 8px;
+      font-weight: 600;
+      padding: 4px 10px;
       border-radius: 999px;
       background: rgba(255,255,255,0.1);
+      transition: all 0.2s ease;
     }
 
+    /* Modal */
     .modal {
       position: fixed;
       inset: 0;
@@ -842,20 +879,34 @@
       align-items: center;
       justify-content: center;
       background: rgba(6, 12, 28, 0.85);
-      backdrop-filter: blur(5px);
+      backdrop-filter: blur(8px);
       z-index: 3400;
-      padding: 16px;
+      padding: 20px;
     }
 
-    .modal.active { display: flex; }
+    .modal.active {
+      display: flex;
+      animation: modalFadeIn 0.2s ease;
+    }
+
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
 
     .modal-content {
-      width: min(420px, 100%);
+      width: min(440px, 100%);
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 20px;
+      border-radius: 24px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+      padding: 24px;
       max-height: 85vh;
       overflow-y: auto;
     }
@@ -864,28 +915,30 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
-      padding-bottom: 8px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
     }
 
     .modal-title {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 700;
+      letter-spacing: -0.3px;
     }
 
     .modal-close {
       background: transparent;
-      border: 0;
+      border: none;
       color: var(--muted);
-      font-size: 24px;
+      font-size: 28px;
       cursor: pointer;
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 8px;
+      border-radius: 10px;
+      transition: all 0.2s ease;
     }
 
     .modal-close:hover {
@@ -896,9 +949,9 @@
     .modal-list {
       display: grid;
       gap: 10px;
-      max-height: 300px;
+      max-height: 320px;
       overflow-y: auto;
-      padding: 6px 0;
+      padding: 4px 4px 12px;
       margin-bottom: 16px;
     }
 
@@ -907,8 +960,8 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 12px 14px;
-      border-radius: 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.03);
       cursor: pointer;
@@ -917,7 +970,7 @@
 
     .modal-list-item:hover {
       border-color: var(--accent);
-      background: rgba(245, 158, 11, 0.08);
+      background: rgba(245, 158, 11, 0.1);
     }
 
     .modal-list-item.active {
@@ -925,52 +978,59 @@
       background: rgba(245, 158, 11, 0.15);
     }
 
+    .modal-list-item.active .modal-list-actions span {
+      color: var(--accent);
+    }
+
     .modal-list-actions {
-      display: inline-flex;
-      gap: 8px;
+      display: flex;
+      gap: 12px;
       align-items: center;
       color: var(--muted);
       font-size: 13px;
     }
 
     .list-edit-btn {
-      border: 0;
+      border: none;
       background: transparent;
       color: var(--muted);
       cursor: pointer;
-      width: 30px;
-      height: 30px;
-      border-radius: 6px;
-      display: inline-flex;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.2s ease;
     }
 
-    .list-edit-btn:hover { 
+    .list-edit-btn:hover {
       color: var(--accent);
       background: rgba(255,255,255,0.1);
     }
 
     .modal-input {
       display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
+      gap: 10px;
+      margin-bottom: 20px;
     }
 
     .modal-input input {
       flex: 1;
-      height: 42px;
-      border-radius: 10px;
+      height: 44px;
+      border-radius: 12px;
       border: 1px solid var(--border);
       background: var(--card-2);
       color: var(--white);
-      padding: 0 12px;
+      padding: 0 14px;
       font-size: 14px;
+      outline: none;
+      transition: all 0.2s ease;
     }
 
     .modal-input input:focus {
-      outline: none;
       border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
     }
 
     .icon-options {
@@ -978,71 +1038,177 @@
       flex-wrap: wrap;
       gap: 8px;
       margin-bottom: 20px;
-      padding: 8px 0;
+      padding: 4px 0;
     }
 
     .icon-option {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
       border: 1px solid var(--border);
       background: var(--card-2);
       color: var(--white);
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s ease;
-      font-size: 16px;
+      font-size: 18px;
     }
 
     .icon-option:hover {
       border-color: var(--accent);
       color: var(--accent);
+      transform: scale(1.05);
     }
 
     .icon-option.selected {
       border-color: var(--accent);
       color: var(--accent);
       background: rgba(245, 158, 11, 0.15);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
     }
 
     .modal-actions {
       display: flex;
       justify-content: flex-end;
-      gap: 10px;
-      margin-top: 16px;
-      padding-top: 12px;
+      gap: 12px;
+      margin-top: 20px;
+      padding-top: 16px;
       border-top: 1px solid var(--border);
     }
 
+    /* Empty States */
     .empty-state {
       border: 1px dashed var(--border);
       background: rgba(255,255,255,0.02);
       color: var(--muted);
-      border-radius: 12px;
+      border-radius: 14px;
       text-align: center;
-      padding: 24px 16px;
+      padding: 32px 20px;
       font-size: 14px;
     }
 
+    /* Toast Notifications */
+    .toast-message {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      z-index: 10000;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 14px 28px;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 500;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+      animation: toastSlideUp 2.8s ease forwards;
+      white-space: nowrap;
+      max-width: 90vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      backdrop-filter: blur(10px);
+    }
+
+    .toast-message.success {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .toast-message.error {
+      background: var(--error);
+      border-color: var(--error);
+    }
+
+    @keyframes toastSlideUp {
+      0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      15% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      85% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+      }
+    }
+
+    /* Status Indicator */
+    .status {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+      display: none;
+    }
+
+    /* Mobile Bottom Navigation */
     .mobile-bottom-nav {
       display: none;
     }
 
+    /* Spotlight Animation */
     .spotlight-fade {
-      animation: spotlightFade 0.32s ease;
+      animation: spotlightFade 0.3s ease;
     }
 
     @keyframes spotlightFade {
-      from { opacity: 0.45; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0.5;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
+    /* Loading Skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--card) 25%, var(--card-2) 50%, var(--card) 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Responsive Design */
     @media (max-width: 1100px) {
       .top-nav {
-        flex-wrap: wrap;
-        justify-content: flex-end;
+        gap: 4px;
+      }
+      
+      .nav-pill {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .spotlight-media {
+        width: 160px;
+      }
+      
+      .spotlight.has-square-media .spotlight-inner {
+        max-width: calc(100% - 180px);
+      }
+      
+      .spotlight.has-landscape-media .spotlight-inner {
+        max-width: calc(100% - 220px);
+      }
+      
+      .spotlight-title {
+        font-size: clamp(28px, 4vw, 42px);
       }
     }
 
@@ -1050,6 +1216,7 @@
       .top-nav {
         display: none;
       }
+      
       .header-actions {
         margin-left: auto;
       }
@@ -1057,102 +1224,107 @@
 
     @media (max-width: 760px) {
       body {
-        padding-bottom: 86px;
+        padding-bottom: 90px;
       }
 
-      .container { width: calc(100% - 16px); }
-      .header-inner { gap: 10px; }
-      .brand { font-size: 18px; }
-      .brand img { width: 31px; height: 31px; }
-      .search-wrap { order: 3; max-width: none; margin-left: 0; width: 100%; }
-      .header-actions { margin-left: auto; }
-      .auth-actions .btn {
-        height: 36px;
-        padding: 0 10px;
-        border-radius: 11px;
+      .container {
+        width: calc(100% - 20px);
       }
+      
+      .header-inner {
+        gap: 12px;
+      }
+      
+      .brand {
+        font-size: 20px;
+      }
+      
+      .brand img {
+        width: 32px;
+        height: 32px;
+      }
+      
+      .search-wrap {
+        order: 3;
+        max-width: none;
+        width: 100%;
+      }
+      
+      .header-actions {
+        margin-left: auto;
+      }
+      
+      .auth-actions .btn {
+        height: 38px;
+        padding: 0 12px;
+        border-radius: 10px;
+        font-size: 13px;
+      }
+      
       #profileBtn span {
         display: none;
       }
 
-      .spotlight { border-radius: 18px; min-height: 332px; }
+      /* Spotlight Mobile */
+      .spotlight {
+        border-radius: 20px;
+        min-height: 340px;
+      }
+      
       .spotlight-media {
         right: 12px;
         top: 12px;
         transform: none;
-        width: 96px;
+        width: 100px;
         aspect-ratio: 2/3;
-        margin: 0;
         border-radius: 12px;
       }
+      
       .spotlight-inner {
-        min-height: 332px;
+        min-height: 340px;
         max-width: none;
-        padding: 14px 16px 16px;
+        padding: 16px;
         padding-right: 120px;
-        gap: 9px;
+        gap: 8px;
       }
+      
       .spotlight.no-media .spotlight-inner {
         padding-right: 16px;
       }
 
       .spotlight.has-square-media .spotlight-inner {
-        padding-right: 112px;
+        padding-right: 120px;
       }
 
       .spotlight.has-landscape-media .spotlight-inner {
         padding-right: 16px;
-        padding-top: 118px;
+        padding-top: 120px;
       }
 
       .spotlight-media.square {
-        width: 88px;
+        width: 90px;
         aspect-ratio: 1/1;
-        padding: 0;
-        border-radius: 12px;
-        background: transparent;
-      }
-
-      .spotlight-media.square img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain !important;
-        padding: 0;
-        border-radius: 12px;
-        background: transparent;
       }
 
       .spotlight-media.landscape {
-        width: min(46vw, 184px);
-        max-width: 184px;
-        height: auto;
+        width: 140px;
         aspect-ratio: 16/9;
-        right: 12px;
-        left: auto;
-        top: 12px;
-        border-radius: 12px;
-        padding: 0;
-        background: transparent;
-      }
-
-      .spotlight-media.landscape img {
-        object-fit: contain !important;
-        width: 100%;
-        height: 100%;
-        background: transparent;
       }
 
       .spotlight.has-landscape-media .spotlight-title {
-        font-size: clamp(20px, 6vw, 32px);
+        font-size: clamp(22px, 5vw, 32px);
       }
 
       .spotlight.has-landscape-media .spotlight-summary {
-        font-size: 12px;
+        font-size: 13px;
         -webkit-line-clamp: 2;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
 
       .spotlight-title {
-        font-size: clamp(24px, 8vw, 38px);
+        font-size: clamp(24px, 6vw, 36px);
       }
 
       .spotlight-summary {
@@ -1167,198 +1339,162 @@
         display: grid;
         grid-template-columns: 1fr;
         gap: 6px;
-        width: 100%;
       }
 
       .spotlight-meta .chip {
-        display: flex;
         width: 100%;
-        white-space: normal;
-        overflow: visible;
-        text-overflow: clip;
-        max-width: none;
+        font-size: 12px;
+        padding: 8px 10px;
+      }
+
+      /* Sections Mobile */
+      .section {
+        border-radius: 18px;
+      }
+      
+      .section-head {
+        padding: 14px 16px;
+      }
+      
+      .section-head h2 {
+        font-size: 20px;
+      }
+      
+      .rail {
+        grid-auto-columns: 140px;
+        gap: 10px;
+      }
+      
+      .rail.unified-rail {
+        grid-auto-columns: 140px;
+      }
+      
+      .card {
+        min-height: 260px;
+      }
+      
+      .card-hover-cue {
+        display: none;
+      }
+
+      /* Cards Mobile */
+      .card-media {
+        height: 180px;
+      }
+      
+      .card-name {
+        font-size: 13px;
+        min-height: 36px;
+      }
+      
+      .card-sub {
         font-size: 11px;
-        line-height: 1.25;
-        padding: 7px 9px;
-        align-items: flex-start;
-        gap: 7px;
+      }
+      
+      .card-extra {
+        font-size: 11px;
+        min-height: 30px;
       }
 
-      .spotlight-meta .chip i {
-        flex-shrink: 0;
-        margin-top: 1px;
-      }
-
-      .spotlight-actions {
-        gap: 8px;
-      }
-
-      .section { border-radius: 16px; }
-      .section-head h2 { font-size: 19px; }
-      .rail { grid-auto-columns: 142px; }
-      .rail.unified-rail { grid-auto-columns: 142px; }
-      .rail.games-rail { grid-auto-columns: 142px; }
-      .card { min-height: 232px; }
-      .card-hover-cue { display: none; }
-
-      .rail.unified-rail .card {
-        height: 314px;
-        min-height: 314px;
-      }
-
-      .rail.unified-rail .card-media {
-        height: 190px;
-        aspect-ratio: 2/3;
-      }
-
-      .rail.unified-rail .card-media.game-poster {
-        height: 190px;
-        aspect-ratio: 2/3;
-        padding: 0;
-      }
-
-      .rail.unified-rail .card-media.game-poster img {
-        object-fit: cover;
-        border-radius: 0;
-      }
-
-      .rail.unified-rail .card-media.music-cover img {
-        object-fit: cover;
-      }
-
-      .rail.games-rail .card {
-        height: 314px;
-        min-height: 314px;
-      }
-
-      .rail.games-rail .card-media.game-poster {
-        height: 190px;
-        aspect-ratio: 2/3;
-        padding: 0;
-      }
-
-      .rail.games-rail .card-media.game-poster img {
-        object-fit: cover;
-        border-radius: 0;
-      }
-
-      .rail.unified-rail .card-media.restaurant-composite {
-        aspect-ratio: 2/3;
-      }
-
+      /* Restaurant Cards Mobile */
       #restaurantsRail .card-media.restaurant-composite {
-        aspect-ratio: 16/10;
+        aspect-ratio: 16/9;
       }
 
       #restaurantsRail .restaurant-logo-badge {
         width: 36px;
         height: 36px;
-        right: 7px;
-        bottom: 7px;
-        border-radius: 9px;
+        right: 6px;
+        bottom: 6px;
+        border-radius: 10px;
       }
 
+      /* Mobile Bottom Navigation */
       .mobile-bottom-nav {
         position: fixed;
         left: 10px;
         right: 10px;
         bottom: 10px;
         display: grid;
-        grid-template-columns: repeat(7, minmax(0, 1fr));
+        grid-template-columns: repeat(7, 1fr);
         border: 1px solid var(--border);
-        border-radius: 18px;
+        border-radius: 20px;
         background: rgba(12, 24, 52, 0.95);
         backdrop-filter: blur(12px);
-        box-shadow: 0 10px 34px rgba(0,0,0,0.35);
-        z-index: 230;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        z-index: 300;
         padding: 6px;
+        gap: 2px;
       }
 
       .mobile-nav-item {
         min-height: 48px;
-        border-radius: 12px;
-        display: inline-flex;
+        border-radius: 14px;
+        display: flex;
         align-items: center;
         justify-content: center;
         color: #c8d7f6;
-        font-size: 18px;
-        transition: color 0.2s ease, background 0.2s ease;
+        font-size: 20px;
+        transition: all 0.2s ease;
       }
 
-      .mobile-nav-item.active,
+      .mobile-nav-item.active {
+        color: var(--accent);
+        background: rgba(245, 158, 11, 0.15);
+      }
+
       .mobile-nav-item:hover {
         color: var(--accent);
-        background: rgba(245, 158, 11, 0.16);
+        background: rgba(245, 158, 11, 0.1);
       }
 
+      /* Menu Mobile */
       .rail-menu {
-        width: 90vw;
+        width: 92vw;
         max-width: 380px;
-        padding: 16px;
+        padding: 20px;
       }
 
       .rail-menu-item {
-        padding: 14px 16px;
+        padding: 16px;
         font-size: 15px;
       }
 
+      /* Modal Mobile */
       .modal-content {
-        padding: 16px;
+        padding: 20px;
+      }
+
+      .modal-title {
+        font-size: 18px;
+      }
+
+      .modal-list-item {
+        padding: 12px 14px;
+      }
+
+      .icon-option {
+        width: 40px;
+        height: 40px;
       }
     }
-
-    .toast-message {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10000;
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 12px 24px;
-      border-radius: 999px;
-      font-size: 14px;
-      font-weight: 500;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.35);
-      animation: toastFade 2.5s ease forwards;
-      white-space: nowrap;
-      max-width: 90vw;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .toast-message.success { background: var(--ok); color: white; border-color: var(--ok); }
-    .toast-message.error { background: #dc2626; color: white; border-color: #dc2626; }
-
-    @keyframes toastFade {
-      0% { opacity: 0; transform: translate(-50%, 20px); }
-      15% { opacity: 1; transform: translate(-50%, 0); }
-      85% { opacity: 1; transform: translate(-50%, 0); }
-      100% { opacity: 0; transform: translate(-50%, -20px); }
-    }
   </style>
-  <meta name="theme-color" content="#0b1633" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Zo2y" />
-  <link rel="apple-touch-icon" href="/images/logo.png" />
 </head>
 <body>
   <header>
     <div class="container header-inner">
-      <a class="brand" href="index.html">
-        <img src="images/logo.png" alt="Zo2y" />
+      <a class="brand" href="/">
+        <img src="images/logo.png" alt="Zo2y" loading="eager" />
         <span>Zo2y</span>
       </a>
 
       <div class="search-wrap">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <input class="search" id="globalSearch" placeholder="Search all media..." />
+        <input class="search" id="globalSearch" placeholder="Search movies, TV, games..." autocomplete="off" />
       </div>
 
       <div class="header-actions">
-        <nav class="top-nav" aria-label="Browse media">
+        <nav class="top-nav" aria-label="Browse categories">
           <a class="nav-pill" href="movies.html">Movies</a>
           <a class="nav-pill" href="tvshows.html">TV</a>
           <a class="nav-pill" href="games.html">Games</a>
@@ -1367,110 +1503,165 @@
           <a class="nav-pill" href="restraunts.html">Restaurants</a>
         </nav>
         <div class="auth-actions">
-          <a class="btn" href="login.html" id="loginBtn">Login</a>
-          <a class="btn btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
-          <a class="btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+          <a class="btn" href="login.html" id="loginBtn">Log in</a>
+          <a class="btn btn-primary" href="sign-up.html" id="signupBtn">Sign up</a>
+          <a class="btn" href="profile.html" id="profileBtn" style="display: none;">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+          </a>
         </div>
       </div>
     </div>
   </header>
 
   <main class="container page-shell">
+    <!-- Spotlight Section -->
     <section class="spotlight" id="spotlightSection">
       <div class="spotlight-bg" id="spotlightBackground"></div>
       <div class="spotlight-media" id="spotlightMedia">
-        <img id="spotlightImage" alt="Spotlight artwork" loading="eager" fetchpriority="high" />
+        <img id="spotlightImage" alt="Spotlight" loading="eager" fetchpriority="high" />
       </div>
       <div class="spotlight-inner" id="spotlightInner">
         <p class="spotlight-kicker" id="spotlightKicker">Live Spotlight</p>
-        <h1 class="spotlight-title" id="spotlightTitle">Loading spotlight...</h1>
-        <p class="spotlight-summary" id="spotlightSummary">Pulling trends and personalization signals.</p>
+        <h1 class="spotlight-title" id="spotlightTitle">Loading...</h1>
+        <p class="spotlight-summary" id="spotlightSummary">Discovering trending content for you</p>
         <div class="spotlight-meta">
-          <span class="chip" id="spotlightReason"><i class="fa-solid fa-compass"></i> Discovery engine warming up</span>
-          <span class="chip" id="spotlightTrend"><i class="fa-solid fa-bolt"></i> Global buzz sync</span>
+          <span class="chip" id="spotlightReason">
+            <i class="fa-solid fa-compass"></i> Discovery engine warming up
+          </span>
+          <span class="chip" id="spotlightTrend">
+            <i class="fa-solid fa-bolt"></i> Global buzz
+          </span>
         </div>
         <div class="spotlight-actions">
-          <a class="btn btn-primary" href="movies.html" id="spotlightOpenBtn"><i class="fa-solid fa-play"></i> Open</a>
-          <button class="btn" id="spotlightNextBtn" type="button"><i class="fa-solid fa-forward"></i> Next Pulse</button>
+          <a class="btn btn-primary" href="#" id="spotlightOpenBtn">
+            <i class="fa-solid fa-play"></i> Open
+          </a>
+          <button class="btn" id="spotlightNextBtn" type="button">
+            <i class="fa-solid fa-forward"></i> Next
+          </button>
         </div>
-        <div class="spotlight-dots" id="spotlightDots" aria-label="Spotlight items"></div>
-        <div class="status" id="loadStatus">Loading live feed...</div>
+        <div class="spotlight-dots" id="spotlightDots" aria-label="Spotlight navigation"></div>
+        <div class="status" id="loadStatus"></div>
       </div>
     </section>
 
+    <!-- Culture Stream -->
     <section class="section">
       <div class="section-head">
         <h2>Culture Stream</h2>
-        <p>One swipeable feed blending movies, TV, games, books, music, and restaurants.</p>
+        <p>One feed blending all your interests</p>
       </div>
-
       <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-wave-square"></i> Mixed for you</span><a href="profile.html">Tune taste</a></div>
+        <div class="rail-title">
+          <span><i class="fa-solid fa-wave-square"></i> Mixed for you</span>
+          <a href="profile.html">Personalize</a>
+        </div>
         <div class="rail unified-rail" id="unifiedRail"></div>
       </div>
     </section>
 
+    <!-- Category Rails -->
     <section class="section">
       <div class="section-head">
         <h2>Trending by Category</h2>
-        <p>Dive into a lane when you want focused browsing.</p>
+        <p>Explore what's popular right now</p>
       </div>
 
+      <!-- Restaurants -->
       <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-utensils"></i> Restaurants</span><a href="restraunts.html">View all</a></div>
+        <div class="rail-title">
+          <span><i class="fa-solid fa-utensils"></i> Popular Restaurants</span>
+          <a href="restraunts.html">View all</a>
+        </div>
         <div class="rail" id="restaurantsRail"></div>
       </div>
 
+      <!-- Movies -->
       <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-film"></i> Movies</span><a href="movies.html">View all</a></div>
+        <div class="rail-title">
+          <span><i class="fa-solid fa-film"></i> Top Movies</span>
+          <a href="movies.html">View all</a>
+        </div>
         <div class="rail" id="moviesRail"></div>
       </div>
 
+      <!-- TV Shows -->
       <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-tv"></i> TV Shows</span><a href="tvshows.html">View all</a></div>
+        <div class="rail-title">
+          <span><i class="fa-solid fa-tv"></i> Popular TV Shows</span>
+          <a href="tvshows.html">View all</a>
+        </div>
         <div class="rail" id="tvRail"></div>
       </div>
 
+      <!-- Games -->
       <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-gamepad"></i> Games</span><a href="games.html">View all</a></div>
+        <div class="rail-title">
+          <span><i class="fa-solid fa-gamepad"></i> Trending Games</span>
+          <a href="games.html">View all</a>
+        </div>
         <div class="rail" id="gamesRail"></div>
       </div>
 
+      <!-- Books -->
       <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-book"></i> Books</span><a href="books.html">View all</a></div>
+        <div class="rail-title">
+          <span><i class="fa-solid fa-book"></i> Popular Books</span>
+          <a href="books.html">View all</a>
+        </div>
         <div class="rail" id="booksRail"></div>
       </div>
 
+      <!-- Music -->
       <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-music"></i> Music</span><a href="music.html">View all</a></div>
+        <div class="rail-title">
+          <span><i class="fa-solid fa-music"></i> Trending Music</span>
+          <a href="music.html">View all</a>
+        </div>
         <div class="rail" id="musicRail"></div>
       </div>
-
     </section>
   </main>
 
-  <nav class="mobile-bottom-nav" aria-label="Mobile sections">
-    <a class="mobile-nav-item active" href="index.html" aria-label="Home"><i class="fa-solid fa-house"></i></a>
-    <a class="mobile-nav-item" href="movies.html" aria-label="Movies"><i class="fa-solid fa-film"></i></a>
-    <a class="mobile-nav-item" href="tvshows.html" aria-label="TV Shows"><i class="fa-solid fa-tv"></i></a>
-    <a class="mobile-nav-item" href="games.html" aria-label="Games"><i class="fa-solid fa-gamepad"></i></a>
-    <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
-    <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
-    <a class="mobile-nav-item" href="restraunts.html" aria-label="Restaurants"><i class="fa-solid fa-utensils"></i></a>
+  <!-- Mobile Navigation -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+    <a class="mobile-nav-item active" href="/" aria-label="Home">
+      <i class="fa-solid fa-house"></i>
+    </a>
+    <a class="mobile-nav-item" href="movies.html" aria-label="Movies">
+      <i class="fa-solid fa-film"></i>
+    </a>
+    <a class="mobile-nav-item" href="tvshows.html" aria-label="TV Shows">
+      <i class="fa-solid fa-tv"></i>
+    </a>
+    <a class="mobile-nav-item" href="games.html" aria-label="Games">
+      <i class="fa-solid fa-gamepad"></i>
+    </a>
+    <a class="mobile-nav-item" href="books.html" aria-label="Books">
+      <i class="fa-solid fa-book"></i>
+    </a>
+    <a class="mobile-nav-item" href="music.html" aria-label="Music">
+      <i class="fa-solid fa-music"></i>
+    </a>
+    <a class="mobile-nav-item" href="restraunts.html" aria-label="Restaurants">
+      <i class="fa-solid fa-utensils"></i>
+    </a>
   </nav>
 
-  <div class="modal" id="homeListsModal" aria-hidden="true">
+  <!-- Custom Lists Modal -->
+  <div class="modal" id="customListsModal" aria-hidden="true">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title" id="homeListsTitle">Custom Lists</div>
-        <button class="modal-close" id="closeHomeListsBtn" aria-label="Close">&times;</button>
+        <div class="modal-title" id="customListsTitle">Custom Lists</div>
+        <button class="modal-close" id="closeCustomListsBtn" aria-label="Close">&times;</button>
       </div>
-      <div class="modal-list" id="homeListsContainer"></div>
+      <div class="modal-list" id="customListsContainer"></div>
       <div class="modal-input">
-        <input type="text" id="newHomeListName" placeholder="New list name..." maxlength="50">
-        <button class="btn" id="createHomeListBtn">Create</button>
+        <input type="text" id="newListName" placeholder="New list name..." maxlength="50" />
+        <button class="btn btn-primary" id="createListBtn">Create</button>
       </div>
-      <div class="icon-options" id="homeListIconOptions">
+      <div class="icon-options" id="listIconOptions">
         <button class="icon-option selected" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
         <button class="icon-option" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
         <button class="icon-option" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>
@@ -1481,647 +1672,614 @@
         <button class="icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
         <button class="icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
         <button class="icon-option" data-icon="fas fa-utensils"><i class="fas fa-utensils"></i></button>
+        <button class="icon-option" data-icon="fas fa-crown"><i class="fas fa-crown"></i></button>
+        <button class="icon-option" data-icon="fas fa-rocket"><i class="fas fa-rocket"></i></button>
       </div>
       <div class="modal-actions">
-        <button class="btn" id="saveHomeListsBtn">Save Changes</button>
+        <button class="btn" id="doneCustomListsBtn">Done</button>
       </div>
     </div>
   </div>
 
+  <!-- Rail Menu Backdrop -->
   <div class="rail-menu-backdrop" id="railMenuBackdrop"></div>
 
   <script>
-    // Configuration
-    const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-    const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
-    const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
-    
-    // Global state
-    let supabase = null;
-    let currentUser = null;
-    let spotlightItems = [];
-    let spotlightIndex = 0;
-    let spotlightTimer = null;
-    let menuOpen = false;
-    let activeMenuCard = null;
-    let customListState = {
-      mediaType: null,
-      itemId: null,
-      title: '',
-      subtitle: '',
-      image: '',
-      customLists: [],
-      selectedIcon: 'fas fa-list',
-      selectedLists: new Set()
-    };
-
-    // Initialize Supabase
-    async function initSupabase() {
-      if (supabase) return supabase;
-      if (!window.supabase) {
-        console.error('Supabase not loaded');
+    (function() {
+      // ==================== CONFIGURATION ====================
+      const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+      
+      // API Endpoints
+      const TMDB_API = '/api/tmdb';
+      const IGDB_API = '/api/igdb';
+      const BOOKS_API = '/api/books';
+      const MUSIC_API = '/api/music';
+      
+      // Image URLs
+      const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
+      const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
+      const TMDB_SPOT_POSTER = 'https://image.tmdb.org/t/p/w780';
+      const OPEN_LIBRARY_COVERS = 'https://covers.openlibrary.org/b/isbn';
+      
+      // Constants
+      const SPOTLIGHT_ROTATION_MS = 6000;
+      const CACHE_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
+      const CACHE_KEY = 'zo2y_home_feed_v2';
+      
+      // ==================== GLOBAL STATE ====================
+      let supabase = null;
+      let currentUser = null;
+      let spotlightItems = [];
+      let spotlightIndex = 0;
+      let spotlightTimer = null;
+      let activeMenuCard = null;
+      let menuOpen = false;
+      
+      // Custom lists state
+      let customListState = {
+        mediaType: null,
+        itemId: null,
+        title: '',
+        subtitle: '',
+        image: '',
+        customLists: [],
+        selectedIcon: 'fas fa-list',
+        selectedLists: new Set()
+      };
+      
+      // Media type configurations
+      const MEDIA_CONFIG = {
+        movie: {
+          icon: 'fa-film',
+          label: 'Movie',
+          listTypes: [
+            { key: 'favorites', icon: 'fa-heart', label: 'Favorites' },
+            { key: 'watchlist', icon: 'fa-bookmark', label: 'Watchlist' },
+            { key: 'watched', icon: 'fa-eye', label: 'Watched' }
+          ]
+        },
+        tv: {
+          icon: 'fa-tv',
+          label: 'TV Show',
+          listTypes: [
+            { key: 'favorites', icon: 'fa-heart', label: 'Favorites' },
+            { key: 'watchlist', icon: 'fa-bookmark', label: 'Watchlist' },
+            { key: 'watched', icon: 'fa-eye', label: 'Watched' }
+          ]
+        },
+        game: {
+          icon: 'fa-gamepad',
+          label: 'Game',
+          listTypes: [
+            { key: 'favorites', icon: 'fa-heart', label: 'Favorites' },
+            { key: 'backlog', icon: 'fa-bookmark', label: 'Backlog' },
+            { key: 'played', icon: 'fa-eye', label: 'Played' }
+          ]
+        },
+        book: {
+          icon: 'fa-book',
+          label: 'Book',
+          listTypes: [
+            { key: 'favorites', icon: 'fa-heart', label: 'Favorites' },
+            { key: 'readinglist', icon: 'fa-bookmark', label: 'Want to Read' },
+            { key: 'read', icon: 'fa-eye', label: 'Read' }
+          ]
+        },
+        music: {
+          icon: 'fa-music',
+          label: 'Music',
+          listTypes: [
+            { key: 'favorites', icon: 'fa-heart', label: 'Favorites' },
+            { key: 'playlist', icon: 'fa-bookmark', label: 'Playlist' },
+            { key: 'listened', icon: 'fa-eye', label: 'Listened' }
+          ]
+        },
+        restaurant: {
+          icon: 'fa-utensils',
+          label: 'Restaurant',
+          listTypes: [
+            { key: 'favorites', icon: 'fa-heart', label: 'Favorites' },
+            { key: 'wantToGo', icon: 'fa-bookmark', label: 'Want to Go' },
+            { key: 'visited', icon: 'fa-eye', label: 'Visited' }
+          ]
+        }
+      };
+      
+      // ==================== UTILITY FUNCTIONS ====================
+      
+      // Show toast notification
+      function showToast(message, type = 'success', duration = 2800) {
+        const toast = document.createElement('div');
+        toast.className = `toast-message ${type}`;
+        toast.textContent = message;
+        toast.setAttribute('role', 'alert');
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.remove();
+          }
+        }, duration);
+      }
+      
+      // Show error toast
+      function showError(message) {
+        showToast(message, 'error');
+      }
+      
+      // Escape HTML
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+      
+      // Convert to HTTPS
+      function toHttps(url) {
+        if (!url) return '';
+        return url.replace(/^http:\/\//i, 'https://');
+      }
+      
+      // Get random item from array
+      function randomItem(array) {
+        return array[Math.floor(Math.random() * array.length)];
+      }
+      
+      // Shuffle array
+      function shuffleArray(array) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+      
+      // ==================== SUPABASE INITIALIZATION ====================
+      
+      async function initSupabase() {
+        if (supabase) return supabase;
+        
+        if (!window.supabase) {
+          console.error('Supabase SDK not loaded');
+          return null;
+        }
+        
+        try {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: {
+              flowType: 'pkce',
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: false
+            }
+          });
+          
+          return supabase;
+        } catch (error) {
+          console.error('Error initializing Supabase:', error);
+          return null;
+        }
+      }
+      
+      // ==================== AUTHENTICATION ====================
+      
+      async function getCurrentUser() {
+        const client = await initSupabase();
+        if (!client) return null;
+        
+        try {
+          const { data: { session } } = await client.auth.getSession();
+          if (session?.user) {
+            currentUser = session.user;
+            return currentUser;
+          }
+        } catch (error) {
+          console.error('Error getting current user:', error);
+        }
+        
         return null;
       }
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: {
-          flowType: 'pkce',
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: false
-        }
-      });
-      return supabase;
-    }
-
-    // Toast notification
-    function showToast(message, type = 'success') {
-      const toast = document.createElement('div');
-      toast.className = `toast-message ${type}`;
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 2500);
-    }
-
-    // Get current user
-    async function getCurrentUser() {
-      const client = await initSupabase();
-      if (!client) return null;
       
-      try {
-        const { data: { session } } = await client.auth.getSession();
-        if (session?.user) {
-          currentUser = session.user;
-          return currentUser;
-        }
-      } catch (err) {
-        console.error('Error getting user:', err);
-      }
-      return null;
-    }
-
-    // Update auth UI
-    async function updateAuthUI() {
-      const user = await getCurrentUser();
-      const loginBtn = document.getElementById('loginBtn');
-      const signupBtn = document.getElementById('signupBtn');
-      const profileBtn = document.getElementById('profileBtn');
-      
-      if (user) {
-        if (loginBtn) loginBtn.style.display = 'none';
-        if (signupBtn) signupBtn.style.display = 'none';
-        if (profileBtn) {
-          profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
-          profileBtn.style.display = 'inline-flex';
-        }
-      } else {
-        if (loginBtn) loginBtn.style.display = 'inline-flex';
-        if (signupBtn) signupBtn.style.display = 'inline-flex';
-        if (profileBtn) profileBtn.style.display = 'none';
-      }
-    }
-
-    // Save to list
-    async function saveToList(mediaType, itemId, listType, itemData = {}) {
-      const user = await getCurrentUser();
-      if (!user) {
-        showToast('Please login first', 'error');
-        window.location.href = 'login.html';
-        return false;
-      }
-
-      const client = await initSupabase();
-      if (!client) {
-        showToast('Service unavailable', 'error');
-        return false;
-      }
-
-      try {
-        switch (mediaType) {
-          case 'movie': {
-            const { data: existing } = await client
-              .from('movie_list_items')
-              .select('id')
-              .eq('user_id', user.id)
-              .eq('movie_id', itemId)
-              .eq('list_type', listType)
-              .maybeSingle();
+      async function updateAuthUI() {
+        const user = await getCurrentUser();
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+        const profileBtn = document.getElementById('profileBtn');
+        
+        if (user) {
+          if (loginBtn) loginBtn.style.display = 'none';
+          if (signupBtn) signupBtn.style.display = 'none';
+          if (profileBtn) {
+            profileBtn.style.display = 'inline-flex';
             
-            if (existing) {
-              await client.from('movie_list_items').delete().eq('id', existing.id);
-              showToast('Removed from list');
-            } else {
-              await client.from('movie_list_items').insert({
-                user_id: user.id,
-                movie_id: itemId,
-                list_type: listType
-              });
-              showToast('Added to list');
-            }
-            break;
-          }
-
-          case 'tv': {
-            const { data: existing } = await client
-              .from('tv_list_items')
-              .select('id')
-              .eq('user_id', user.id)
-              .eq('tv_id', itemId)
-              .eq('list_type', listType)
-              .maybeSingle();
-            
-            if (existing) {
-              await client.from('tv_list_items').delete().eq('id', existing.id);
-              showToast('Removed from list');
-            } else {
-              await client.from('tv_list_items').insert({
-                user_id: user.id,
-                tv_id: itemId,
-                list_type: listType
-              });
-              showToast('Added to list');
-            }
-            break;
-          }
-
-          case 'game': {
-            const { data: existing } = await client
-              .from('game_list_items')
-              .select('id')
-              .eq('user_id', user.id)
-              .eq('game_id', itemId)
-              .eq('list_type', listType)
-              .maybeSingle();
-            
-            if (existing) {
-              await client.from('game_list_items').delete().eq('id', existing.id);
-              showToast('Removed from list');
-            } else {
-              await client.from('game_list_items').insert({
-                user_id: user.id,
-                game_id: itemId,
-                list_type: listType
-              });
-              showToast('Added to list');
-            }
-            break;
-          }
-
-          case 'book': {
-            if (itemData.title) {
-              await client.from('books').upsert({
-                id: itemId,
-                title: itemData.title,
-                authors: itemData.subtitle || '',
-                thumbnail: itemData.image || '',
-                updated_at: new Date().toISOString()
-              }, { onConflict: 'id' });
-            }
-            
-            const { data: existing } = await client
-              .from('book_list_items')
-              .select('id')
-              .eq('user_id', user.id)
-              .eq('book_id', itemId)
-              .eq('list_type', listType)
-              .maybeSingle();
-            
-            if (existing) {
-              await client.from('book_list_items').delete().eq('id', existing.id);
-              showToast('Removed from list');
-            } else {
-              await client.from('book_list_items').insert({
-                user_id: user.id,
-                book_id: itemId,
-                list_type: listType
-              });
-              showToast('Added to list');
-            }
-            break;
-          }
-
-          case 'music': {
-            if (itemData.title) {
-              await client.from('tracks').upsert({
-                id: itemId,
-                name: itemData.title,
-                artists: itemData.subtitle || '',
-                image_url: itemData.image || '',
-                updated_at: new Date().toISOString()
-              }, { onConflict: 'id' });
-            }
-            
-            const { data: existing } = await client
-              .from('music_list_items')
-              .select('id')
-              .eq('user_id', user.id)
-              .eq('track_id', itemId)
-              .eq('list_type', listType)
-              .maybeSingle();
-            
-            if (existing) {
-              await client.from('music_list_items').delete().eq('id', existing.id);
-              showToast('Removed from list');
-            } else {
-              await client.from('music_list_items').insert({
-                user_id: user.id,
-                track_id: itemId,
-                list_type: listType
-              });
-              showToast('Added to list');
-            }
-            break;
-          }
-
-          case 'restaurant': {
-            // Get or create list
-            let listId;
-            const listTitle = listType === 'favorites' ? 'Favorites' : 
-                             listType === 'visited' ? 'Visited' : 'Want to Go';
-            
-            const { data: existingList } = await client
-              .from('lists')
-              .select('id')
-              .eq('user_id', user.id)
-              .eq('title', listTitle)
-              .maybeSingle();
-            
-            if (existingList) {
-              listId = existingList.id;
-            } else {
-              const { data: newList } = await client
-                .from('lists')
-                .insert({
-                  user_id: user.id,
-                  title: listTitle,
-                  description: `My ${listTitle.toLowerCase()} restaurants`,
-                  icon: listType
-                })
-                .select('id')
+            // Try to get username
+            try {
+              const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('username, full_name')
+                .eq('id', user.id)
                 .single();
-              listId = newList?.id;
+                
+              if (profile) {
+                const displayName = profile.username || profile.full_name || 'Profile';
+                profileBtn.innerHTML = `<i class="fas fa-user"></i><span>${displayName}</span>`;
+              }
+            } catch (err) {
+              // Keep default
             }
-            
-            if (listId) {
+          }
+        } else {
+          if (loginBtn) loginBtn.style.display = 'inline-flex';
+          if (signupBtn) signupBtn.style.display = 'inline-flex';
+          if (profileBtn) profileBtn.style.display = 'none';
+        }
+      }
+      
+      // ==================== LIST OPERATIONS ====================
+      
+      async function saveToList(mediaType, itemId, listType, itemData = {}) {
+        const user = await getCurrentUser();
+        if (!user) {
+          showError('Please log in first');
+          setTimeout(() => {
+            window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.pathname);
+          }, 1500);
+          return false;
+        }
+        
+        const client = await initSupabase();
+        if (!client) {
+          showError('Service unavailable');
+          return false;
+        }
+        
+        try {
+          switch (mediaType) {
+            case 'movie': {
               const { data: existing } = await client
-                .from('lists_restraunts')
+                .from('movie_list_items')
                 .select('id')
-                .eq('list_id', listId)
-                .eq('restraunt_id', itemId)
+                .eq('user_id', user.id)
+                .eq('movie_id', itemId)
+                .eq('list_type', listType)
                 .maybeSingle();
               
               if (existing) {
-                await client.from('lists_restraunts').delete().eq('id', existing.id);
+                await client.from('movie_list_items').delete().eq('id', existing.id);
                 showToast('Removed from list');
+                return 'removed';
               } else {
-                await client.from('lists_restraunts').insert({
-                  list_id: listId,
-                  restraunt_id: itemId
+                await client.from('movie_list_items').insert({
+                  user_id: user.id,
+                  movie_id: itemId,
+                  list_type: listType
                 });
                 showToast('Added to list');
+                return 'added';
               }
             }
-            break;
-          }
-        }
-        return true;
-      } catch (err) {
-        console.error('Error saving to list:', err);
-        showToast('Error saving to list', 'error');
-        return false;
-      }
-    }
-
-    // Get list status
-    async function getListStatus(mediaType, itemId) {
-      const user = await getCurrentUser();
-      if (!user) return new Set();
-      
-      const client = await initSupabase();
-      if (!client) return new Set();
-      
-      const saved = new Set();
-      
-      try {
-        switch (mediaType) {
-          case 'movie': {
-            const { data } = await client
-              .from('movie_list_items')
-              .select('list_type')
-              .eq('user_id', user.id)
-              .eq('movie_id', itemId);
-            (data || []).forEach(row => saved.add(row.list_type));
-            break;
-          }
-          case 'tv': {
-            const { data } = await client
-              .from('tv_list_items')
-              .select('list_type')
-              .eq('user_id', user.id)
-              .eq('tv_id', itemId);
-            (data || []).forEach(row => saved.add(row.list_type));
-            break;
-          }
-          case 'game': {
-            const { data } = await client
-              .from('game_list_items')
-              .select('list_type')
-              .eq('user_id', user.id)
-              .eq('game_id', itemId);
-            (data || []).forEach(row => saved.add(row.list_type));
-            break;
-          }
-          case 'book': {
-            const { data } = await client
-              .from('book_list_items')
-              .select('list_type')
-              .eq('user_id', user.id)
-              .eq('book_id', itemId);
-            (data || []).forEach(row => saved.add(row.list_type));
-            break;
-          }
-          case 'music': {
-            const { data } = await client
-              .from('music_list_items')
-              .select('list_type')
-              .eq('user_id', user.id)
-              .eq('track_id', itemId);
-            (data || []).forEach(row => saved.add(row.list_type));
-            break;
-          }
-          case 'restaurant': {
-            const { data: lists } = await client
-              .from('lists')
-              .select('id,title')
-              .eq('user_id', user.id);
             
-            const listMap = {};
-            lists?.forEach(list => {
-              if (list.title === 'Favorites') listMap.favorites = list.id;
-              if (list.title === 'Visited') listMap.visited = list.id;
-              if (list.title === 'Want to Go') listMap.wantToGo = list.id;
-            });
-            
-            const listIds = Object.values(listMap);
-            if (listIds.length) {
-              const { data: links } = await client
-                .from('lists_restraunts')
-                .select('list_id')
-                .eq('restraunt_id', itemId)
-                .in('list_id', listIds);
+            case 'tv': {
+              const { data: existing } = await client
+                .from('tv_list_items')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('tv_id', itemId)
+                .eq('list_type', listType)
+                .maybeSingle();
               
-              (links || []).forEach(link => {
-                if (link.list_id === listMap.favorites) saved.add('favorites');
-                if (link.list_id === listMap.visited) saved.add('visited');
-                if (link.list_id === listMap.wantToGo) saved.add('wantToGo');
-              });
+              if (existing) {
+                await client.from('tv_list_items').delete().eq('id', existing.id);
+                showToast('Removed from list');
+                return 'removed';
+              } else {
+                await client.from('tv_list_items').insert({
+                  user_id: user.id,
+                  tv_id: itemId,
+                  list_type: listType
+                });
+                showToast('Added to list');
+                return 'added';
+              }
             }
-            break;
+            
+            case 'game': {
+              const { data: existing } = await client
+                .from('game_list_items')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('game_id', itemId)
+                .eq('list_type', listType)
+                .maybeSingle();
+              
+              if (existing) {
+                await client.from('game_list_items').delete().eq('id', existing.id);
+                showToast('Removed from list');
+                return 'removed';
+              } else {
+                await client.from('game_list_items').insert({
+                  user_id: user.id,
+                  game_id: itemId,
+                  list_type: listType
+                });
+                showToast('Added to list');
+                return 'added';
+              }
+            }
+            
+            case 'book': {
+              // Save book first if we have data
+              if (itemData.title) {
+                await client.from('books').upsert({
+                  id: itemId,
+                  title: itemData.title,
+                  authors: itemData.subtitle || '',
+                  thumbnail: itemData.image || '',
+                  updated_at: new Date().toISOString()
+                }, { onConflict: 'id' });
+              }
+              
+              const { data: existing } = await client
+                .from('book_list_items')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('book_id', itemId)
+                .eq('list_type', listType)
+                .maybeSingle();
+              
+              if (existing) {
+                await client.from('book_list_items').delete().eq('id', existing.id);
+                showToast('Removed from list');
+                return 'removed';
+              } else {
+                await client.from('book_list_items').insert({
+                  user_id: user.id,
+                  book_id: itemId,
+                  list_type: listType
+                });
+                showToast('Added to list');
+                return 'added';
+              }
+            }
+            
+            case 'music': {
+              // Save track first if we have data
+              if (itemData.title) {
+                await client.from('tracks').upsert({
+                  id: itemId,
+                  name: itemData.title,
+                  artists: itemData.subtitle || '',
+                  image_url: itemData.image || '',
+                  updated_at: new Date().toISOString()
+                }, { onConflict: 'id' });
+              }
+              
+              const { data: existing } = await client
+                .from('music_list_items')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('track_id', itemId)
+                .eq('list_type', listType)
+                .maybeSingle();
+              
+              if (existing) {
+                await client.from('music_list_items').delete().eq('id', existing.id);
+                showToast('Removed from list');
+                return 'removed';
+              } else {
+                await client.from('music_list_items').insert({
+                  user_id: user.id,
+                  track_id: itemId,
+                  list_type: listType
+                });
+                showToast('Added to list');
+                return 'added';
+              }
+            }
+            
+            case 'restaurant': {
+              // Get or create list
+              let listId;
+              const listTitle = listType === 'favorites' ? 'Favorites' :
+                               listType === 'wantToGo' ? 'Want to Go' : 'Visited';
+              
+              const { data: existingList } = await client
+                .from('lists')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('title', listTitle)
+                .maybeSingle();
+              
+              if (existingList) {
+                listId = existingList.id;
+              } else {
+                const { data: newList } = await client
+                  .from('lists')
+                  .insert({
+                    user_id: user.id,
+                    title: listTitle,
+                    description: `My ${listTitle.toLowerCase()} restaurants`,
+                    icon: listType
+                  })
+                  .select('id')
+                  .single();
+                listId = newList?.id;
+              }
+              
+              if (listId) {
+                const { data: existing } = await client
+                  .from('lists_restraunts')
+                  .select('id')
+                  .eq('list_id', listId)
+                  .eq('restraunt_id', itemId)
+                  .maybeSingle();
+                
+                if (existing) {
+                  await client.from('lists_restraunts').delete().eq('id', existing.id);
+                  showToast('Removed from list');
+                  return 'removed';
+                } else {
+                  await client.from('lists_restraunts').insert({
+                    list_id: listId,
+                    restraunt_id: itemId
+                  });
+                  showToast('Added to list');
+                  return 'added';
+                }
+              }
+              break;
+            }
           }
+        } catch (error) {
+          console.error('Error saving to list:', error);
+          showError('Failed to save. Please try again.');
+          return false;
         }
-      } catch (err) {
-        console.error('Error getting list status:', err);
       }
       
-      return saved;
-    }
-
-    // Update menu button states
-    async function updateMenuStates(menu, mediaType, itemId) {
-      const saved = await getListStatus(mediaType, itemId);
-      
-      menu.querySelectorAll('.rail-menu-item[data-action="save"]').forEach(btn => {
-        const listType = btn.getAttribute('data-list');
-        const isSaved = saved.has(listType);
-        btn.classList.toggle('saved', isSaved);
-        const stateEl = btn.querySelector('.rail-menu-state');
-        if (stateEl) stateEl.textContent = isSaved ? 'Saved' : 'Add';
-      });
-    }
-
-    // Close all menus
-    function closeAllMenus() {
-      document.querySelectorAll('.rail-menu.open').forEach(menu => {
-        menu.classList.remove('open');
-      });
-      document.querySelectorAll('.card.menu-open').forEach(card => {
-        card.classList.remove('menu-open');
-      });
-      document.querySelectorAll('.card-menu-btn.active').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      document.getElementById('railMenuBackdrop')?.classList.remove('active');
-      menuOpen = false;
-      activeMenuCard = null;
-    }
-
-    // Open menu
-    async function openMenu(btn, card) {
-      if (menuOpen) closeAllMenus();
-      
-      const menu = btn.parentElement.querySelector('.rail-menu');
-      if (!menu) return;
-      
-      btn.classList.add('active');
-      card.classList.add('menu-open');
-      menu.classList.add('open');
-      
-      const mediaType = card.getAttribute('data-media-type');
-      const itemId = card.getAttribute('data-item-id');
-      
-      if (mediaType && itemId) {
-        await updateMenuStates(menu, mediaType, itemId);
-      }
-      
-      document.getElementById('railMenuBackdrop')?.classList.add('active');
-      menuOpen = true;
-      activeMenuCard = card;
-    }
-
-    // Load custom lists
-    async function loadCustomLists(mediaType) {
-      const user = await getCurrentUser();
-      if (!user) return [];
-      
-      const client = await initSupabase();
-      if (!client) return [];
-      
-      try {
-        const { data } = await client
-          .from('lists')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('media_type', mediaType)
-          .order('created_at', { ascending: false });
+      async function getListStatus(mediaType, itemId) {
+        const user = await getCurrentUser();
+        if (!user) return new Set();
         
-        return data || [];
-      } catch (err) {
-        console.error('Error loading custom lists:', err);
-        return [];
-      }
-    }
-
-    // Load custom list membership
-    async function loadCustomListMembership(mediaType, itemId, listIds) {
-      const user = await getCurrentUser();
-      if (!user || !listIds.length) return new Set();
-      
-      const client = await initSupabase();
-      if (!client) return new Set();
-      
-      const saved = new Set();
-      
-      try {
-        const table = mediaType === 'movie' ? 'movie_list_items' :
-                     mediaType === 'tv' ? 'tv_list_items' :
-                     mediaType === 'game' ? 'game_list_items' :
-                     mediaType === 'book' ? 'book_list_items' :
-                     mediaType === 'music' ? 'music_list_items' : null;
+        const client = await initSupabase();
+        if (!client) return new Set();
         
-        if (table) {
-          const { data } = await client
-            .from(table)
-            .select('list_id')
-            .eq('user_id', user.id)
-            .eq(mediaType === 'movie' ? 'movie_id' :
-                mediaType === 'tv' ? 'tv_id' :
-                mediaType === 'game' ? 'game_id' :
-                mediaType === 'book' ? 'book_id' : 'track_id', itemId)
-            .in('list_id', listIds);
-          
-          (data || []).forEach(row => saved.add(row.list_id));
-        } else if (mediaType === 'restaurant') {
-          const { data } = await client
-            .from('lists_restraunts')
-            .select('list_id')
-            .eq('restraunt_id', itemId)
-            .in('list_id', listIds);
-          
-          (data || []).forEach(row => saved.add(row.list_id));
-        }
-      } catch (err) {
-        console.error('Error loading custom list membership:', err);
-      }
-      
-      return saved;
-    }
-
-    // Create custom list
-    async function createCustomList(mediaType, title, icon) {
-      const user = await getCurrentUser();
-      if (!user) {
-        showToast('Please login first', 'error');
-        return null;
-      }
-      
-      const client = await initSupabase();
-      if (!client) return null;
-      
-      try {
-        const { data, error } = await client
-          .from('lists')
-          .insert({
-            user_id: user.id,
-            media_type: mediaType,
-            title: title,
-            icon: icon,
-            description: `My ${title} list`
-          })
-          .select()
-          .single();
+        const saved = new Set();
         
-        if (error) throw error;
-        showToast('List created');
-        return data;
-      } catch (err) {
-        console.error('Error creating list:', err);
-        showToast('Error creating list', 'error');
-        return null;
-      }
-    }
-
-    // Save to custom list
-    async function saveToCustomList(mediaType, listId, itemId, itemData) {
-      const user = await getCurrentUser();
-      if (!user) {
-        showToast('Please login first', 'error');
-        return false;
-      }
-      
-      const client = await initSupabase();
-      if (!client) return false;
-      
-      try {
-        // Save media item first if needed
-        if (mediaType === 'book' && itemData.title) {
-          await client.from('books').upsert({
-            id: itemId,
-            title: itemData.title,
-            authors: itemData.subtitle || '',
-            thumbnail: itemData.image || '',
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
-        } else if (mediaType === 'music' && itemData.title) {
-          await client.from('tracks').upsert({
-            id: itemId,
-            name: itemData.title,
-            artists: itemData.subtitle || '',
-            image_url: itemData.image || '',
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
-        }
-        
-        // Check if already in list
-        let existing;
-        if (mediaType === 'restaurant') {
-          const { data } = await client
-            .from('lists_restraunts')
-            .select('id')
-            .eq('list_id', listId)
-            .eq('restraunt_id', itemId)
-            .maybeSingle();
-          existing = data;
-        } else {
-          const table = mediaType === 'movie' ? 'movie_list_items' :
-                       mediaType === 'tv' ? 'tv_list_items' :
-                       mediaType === 'game' ? 'game_list_items' :
-                       mediaType === 'book' ? 'book_list_items' : 'music_list_items';
-          
-          const idField = mediaType === 'movie' ? 'movie_id' :
-                         mediaType === 'tv' ? 'tv_id' :
-                         mediaType === 'game' ? 'game_id' :
-                         mediaType === 'book' ? 'book_id' : 'track_id';
-          
-          const { data } = await client
-            .from(table)
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('list_id', listId)
-            .eq(idField, itemId)
-            .maybeSingle();
-          existing = data;
-        }
-        
-        if (existing) {
-          // Remove from list
-          if (mediaType === 'restaurant') {
-            await client.from('lists_restraunts').delete().eq('id', existing.id);
-          } else {
-            const table = mediaType === 'movie' ? 'movie_list_items' :
-                         mediaType === 'tv' ? 'tv_list_items' :
-                         mediaType === 'game' ? 'game_list_items' :
-                         mediaType === 'book' ? 'book_list_items' : 'music_list_items';
-            await client.from(table).delete().eq('id', existing.id);
+        try {
+          switch (mediaType) {
+            case 'movie': {
+              const { data } = await client
+                .from('movie_list_items')
+                .select('list_type')
+                .eq('user_id', user.id)
+                .eq('movie_id', itemId);
+              (data || []).forEach(row => saved.add(row.list_type));
+              break;
+            }
+            
+            case 'tv': {
+              const { data } = await client
+                .from('tv_list_items')
+                .select('list_type')
+                .eq('user_id', user.id)
+                .eq('tv_id', itemId);
+              (data || []).forEach(row => saved.add(row.list_type));
+              break;
+            }
+            
+            case 'game': {
+              const { data } = await client
+                .from('game_list_items')
+                .select('list_type')
+                .eq('user_id', user.id)
+                .eq('game_id', itemId);
+              (data || []).forEach(row => saved.add(row.list_type));
+              break;
+            }
+            
+            case 'book': {
+              const { data } = await client
+                .from('book_list_items')
+                .select('list_type')
+                .eq('user_id', user.id)
+                .eq('book_id', itemId);
+              (data || []).forEach(row => saved.add(row.list_type));
+              break;
+            }
+            
+            case 'music': {
+              const { data } = await client
+                .from('music_list_items')
+                .select('list_type')
+                .eq('user_id', user.id)
+                .eq('track_id', itemId);
+              (data || []).forEach(row => saved.add(row.list_type));
+              break;
+            }
+            
+            case 'restaurant': {
+              const { data: lists } = await client
+                .from('lists')
+                .select('id,title')
+                .eq('user_id', user.id);
+              
+              const listMap = {};
+              (lists || []).forEach(list => {
+                if (list.title === 'Favorites') listMap.favorites = list.id;
+                if (list.title === 'Want to Go') listMap.wantToGo = list.id;
+                if (list.title === 'Visited') listMap.visited = list.id;
+              });
+              
+              const listIds = Object.values(listMap).filter(Boolean);
+              if (listIds.length) {
+                const { data: links } = await client
+                  .from('lists_restraunts')
+                  .select('list_id')
+                  .eq('restraunt_id', itemId)
+                  .in('list_id', listIds);
+                
+                (links || []).forEach(link => {
+                  if (link.list_id === listMap.favorites) saved.add('favorites');
+                  if (link.list_id === listMap.wantToGo) saved.add('wantToGo');
+                  if (link.list_id === listMap.visited) saved.add('visited');
+                });
+              }
+              break;
+            }
           }
-          showToast('Removed from list');
-          return 'removed';
-        } else {
-          // Add to list
+        } catch (error) {
+          console.error('Error getting list status:', error);
+        }
+        
+        return saved;
+      }
+      
+      // ==================== CUSTOM LISTS ====================
+      
+      async function loadCustomLists(mediaType) {
+        const user = await getCurrentUser();
+        if (!user) return [];
+        
+        const client = await initSupabase();
+        if (!client) return [];
+        
+        try {
+          const { data } = await client
+            .from('lists')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('media_type', mediaType)
+            .order('created_at', { ascending: false });
+          
+          return data || [];
+        } catch (error) {
+          console.error('Error loading custom lists:', error);
+          return [];
+        }
+      }
+      
+      async function loadCustomListMembership(mediaType, itemId, listIds) {
+        if (!listIds.length) return new Set();
+        
+        const user = await getCurrentUser();
+        if (!user) return new Set();
+        
+        const client = await initSupabase();
+        if (!client) return new Set();
+        
+        const saved = new Set();
+        
+        try {
           if (mediaType === 'restaurant') {
-            await client.from('lists_restraunts').insert({
-              list_id: listId,
-              restraunt_id: itemId
-            });
+            const { data } = await client
+              .from('lists_restraunts')
+              .select('list_id')
+              .eq('restraunt_id', itemId)
+              .in('list_id', listIds);
+            (data || []).forEach(row => saved.add(row.list_id));
           } else {
             const table = mediaType === 'movie' ? 'movie_list_items' :
                          mediaType === 'tv' ? 'tv_list_items' :
@@ -2133,458 +2291,843 @@
                            mediaType === 'game' ? 'game_id' :
                            mediaType === 'book' ? 'book_id' : 'track_id';
             
-            await client.from(table).insert({
-              user_id: user.id,
-              list_id: listId,
-              [idField]: itemId
-            });
+            const { data } = await client
+              .from(table)
+              .select('list_id')
+              .eq('user_id', user.id)
+              .eq(idField, itemId)
+              .in('list_id', listIds);
+            (data || []).forEach(row => saved.add(row.list_id));
           }
-          showToast('Added to list');
-          return 'added';
+        } catch (error) {
+          console.error('Error loading custom list membership:', error);
         }
-      } catch (err) {
-        console.error('Error saving to custom list:', err);
-        showToast('Error saving to list', 'error');
-        return false;
-      }
-    }
-
-    // Open custom lists modal
-    async function openCustomListsModal(mediaType, itemId, title, subtitle, image) {
-      const user = await getCurrentUser();
-      if (!user) {
-        showToast('Please login first', 'error');
-        window.location.href = 'login.html';
-        return;
+        
+        return saved;
       }
       
-      customListState.mediaType = mediaType;
-      customListState.itemId = itemId;
-      customListState.title = title;
-      customListState.subtitle = subtitle;
-      customListState.image = image;
-      
-      // Load custom lists
-      customListState.customLists = await loadCustomLists(mediaType);
-      
-      // Load membership
-      const listIds = customListState.customLists.map(l => l.id);
-      customListState.selectedLists = await loadCustomListMembership(mediaType, itemId, listIds);
-      
-      // Update modal title
-      const titleMap = {
-        movie: 'Custom Movie Lists',
-        tv: 'Custom TV Lists',
-        game: 'Custom Game Lists',
-        book: 'Custom Book Lists',
-        music: 'Custom Music Lists',
-        restaurant: 'Custom Restaurant Lists'
-      };
-      document.getElementById('homeListsTitle').textContent = titleMap[mediaType] || 'Custom Lists';
-      
-      // Render lists
-      renderCustomListsModal();
-      
-      // Show modal
-      document.getElementById('homeListsModal').classList.add('active');
-    }
-
-    // Render custom lists modal
-    function renderCustomListsModal() {
-      const container = document.getElementById('homeListsContainer');
-      if (!container) return;
-      
-      if (!customListState.customLists.length) {
-        container.innerHTML = '<div class="empty-state">No custom lists yet. Create one below.</div>';
-        return;
-      }
-      
-      container.innerHTML = customListState.customLists.map(list => {
-        const isActive = customListState.selectedLists.has(list.id);
-        return `
-          <div class="modal-list-item${isActive ? ' active' : ''}" data-list-id="${list.id}">
-            <span><i class="${list.icon || 'fas fa-list'}"></i> ${list.title}</span>
-            <span class="modal-list-actions">
-              <span>${isActive ? 'Saved' : 'Add'}</span>
-              <button class="list-edit-btn" onclick="event.stopPropagation(); renameList('${list.id}', '${list.title}')">
-                <i class="fas fa-pen"></i>
-              </button>
-            </span>
-          </div>
-        `;
-      }).join('');
-      
-      // Add click handlers
-      container.querySelectorAll('.modal-list-item').forEach(item => {
-        item.addEventListener('click', async () => {
-          const listId = item.getAttribute('data-list-id');
-          const result = await saveToCustomList(
-            customListState.mediaType,
-            listId,
-            customListState.itemId,
-            {
-              title: customListState.title,
-              subtitle: customListState.subtitle,
-              image: customListState.image
-            }
-          );
+      async function createCustomList(mediaType, title, icon) {
+        const user = await getCurrentUser();
+        if (!user) {
+          showError('Please log in first');
+          return null;
+        }
+        
+        const client = await initSupabase();
+        if (!client) return null;
+        
+        try {
+          const { data, error } = await client
+            .from('lists')
+            .insert({
+              user_id: user.id,
+              media_type: mediaType,
+              title: title.trim(),
+              icon: icon,
+              description: `My ${title} list`
+            })
+            .select()
+            .single();
           
-          if (result === 'added') {
-            customListState.selectedLists.add(listId);
-            item.classList.add('active');
-            item.querySelector('.modal-list-actions span').textContent = 'Saved';
-          } else if (result === 'removed') {
-            customListState.selectedLists.delete(listId);
-            item.classList.remove('active');
-            item.querySelector('.modal-list-actions span').textContent = 'Add';
-          }
-        });
-      });
-    }
-
-    // Rename list
-    async function renameList(listId, currentTitle) {
-      const newTitle = prompt('Rename list', currentTitle);
-      if (!newTitle || !newTitle.trim()) return;
-      
-      const user = await getCurrentUser();
-      if (!user) return;
-      
-      const client = await initSupabase();
-      if (!client) return;
-      
-      try {
-        const { error } = await client
-          .from('lists')
-          .update({ title: newTitle.trim() })
-          .eq('id', listId)
-          .eq('user_id', user.id);
-        
-        if (error) throw error;
-        
-        // Update local state
-        const list = customListState.customLists.find(l => l.id === listId);
-        if (list) list.title = newTitle.trim();
-        
-        renderCustomListsModal();
-        showToast('List renamed');
-      } catch (err) {
-        console.error('Error renaming list:', err);
-        showToast('Error renaming list', 'error');
-      }
-    }
-
-    // Setup card interactions
-    function setupCardInteractions(container) {
-      if (!container) container = document;
-      
-      // Card click
-      container.querySelectorAll('.card').forEach(card => {
-        card.addEventListener('click', (e) => {
-          if (e.target.closest('.card-menu-btn') || e.target.closest('.rail-menu') || e.target.closest('.card-open-link')) {
-            return;
-          }
-          const href = card.getAttribute('data-href');
-          if (href) window.location.href = href;
-        });
-      });
-      
-      // Menu button click
-      container.querySelectorAll('.card-menu-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const card = btn.closest('.card');
-          if (!card) return;
+          if (error) throw error;
           
-          if (menuOpen && activeMenuCard === card) {
-            closeAllMenus();
+          showToast('List created');
+          return data;
+        } catch (error) {
+          console.error('Error creating list:', error);
+          showError('Failed to create list');
+          return null;
+        }
+      }
+      
+      async function saveToCustomList(mediaType, listId, itemId, itemData) {
+        const user = await getCurrentUser();
+        if (!user) {
+          showError('Please log in first');
+          return false;
+        }
+        
+        const client = await initSupabase();
+        if (!client) return false;
+        
+        try {
+          // Save media item first if needed
+          if (mediaType === 'book' && itemData.title) {
+            await client.from('books').upsert({
+              id: itemId,
+              title: itemData.title,
+              authors: itemData.subtitle || '',
+              thumbnail: itemData.image || '',
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'id' });
+          } else if (mediaType === 'music' && itemData.title) {
+            await client.from('tracks').upsert({
+              id: itemId,
+              name: itemData.title,
+              artists: itemData.subtitle || '',
+              image_url: itemData.image || '',
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'id' });
+          }
+          
+          // Check if already in list
+          let existing;
+          if (mediaType === 'restaurant') {
+            const { data } = await client
+              .from('lists_restraunts')
+              .select('id')
+              .eq('list_id', listId)
+              .eq('restraunt_id', itemId)
+              .maybeSingle();
+            existing = data;
           } else {
-            await openMenu(btn, card);
+            const table = mediaType === 'movie' ? 'movie_list_items' :
+                         mediaType === 'tv' ? 'tv_list_items' :
+                         mediaType === 'game' ? 'game_list_items' :
+                         mediaType === 'book' ? 'book_list_items' : 'music_list_items';
+            
+            const idField = mediaType === 'movie' ? 'movie_id' :
+                           mediaType === 'tv' ? 'tv_id' :
+                           mediaType === 'game' ? 'game_id' :
+                           mediaType === 'book' ? 'book_id' : 'track_id';
+            
+            const { data } = await client
+              .from(table)
+              .select('id')
+              .eq('user_id', user.id)
+              .eq('list_id', listId)
+              .eq(idField, itemId)
+              .maybeSingle();
+            existing = data;
           }
-        });
-      });
-      
-      // Menu item click
-      container.querySelectorAll('.rail-menu-item[data-action="save"]').forEach(item => {
-        item.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const card = item.closest('.card');
-          if (!card) return;
           
-          const mediaType = card.getAttribute('data-media-type');
-          const itemId = card.getAttribute('data-item-id');
-          const listType = item.getAttribute('data-list');
-          const title = card.getAttribute('data-title');
-          const subtitle = card.getAttribute('data-subtitle');
-          const image = card.getAttribute('data-image');
-          
-          const success = await saveToList(mediaType, itemId, listType, {
-            title,
-            subtitle,
-            image
-          });
-          
-          if (success) {
-            // Update menu state
-            const saved = await getListStatus(mediaType, itemId);
-            const menu = item.closest('.rail-menu');
-            if (menu) {
-              menu.querySelectorAll('.rail-menu-item[data-action="save"]').forEach(btn => {
-                const type = btn.getAttribute('data-list');
-                const isSaved = saved.has(type);
-                btn.classList.toggle('saved', isSaved);
-                btn.querySelector('.rail-menu-state').textContent = isSaved ? 'Saved' : 'Add';
+          if (existing) {
+            // Remove from list
+            if (mediaType === 'restaurant') {
+              await client.from('lists_restraunts').delete().eq('id', existing.id);
+            } else {
+              const table = mediaType === 'movie' ? 'movie_list_items' :
+                           mediaType === 'tv' ? 'tv_list_items' :
+                           mediaType === 'game' ? 'game_list_items' :
+                           mediaType === 'book' ? 'book_list_items' : 'music_list_items';
+              await client.from(table).delete().eq('id', existing.id);
+            }
+            return 'removed';
+          } else {
+            // Add to list
+            if (mediaType === 'restaurant') {
+              await client.from('lists_restraunts').insert({
+                list_id: listId,
+                restraunt_id: itemId
+              });
+            } else {
+              const table = mediaType === 'movie' ? 'movie_list_items' :
+                           mediaType === 'tv' ? 'tv_list_items' :
+                           mediaType === 'game' ? 'game_list_items' :
+                           mediaType === 'book' ? 'book_list_items' : 'music_list_items';
+              
+              const idField = mediaType === 'movie' ? 'movie_id' :
+                             mediaType === 'tv' ? 'tv_id' :
+                             mediaType === 'game' ? 'game_id' :
+                             mediaType === 'book' ? 'book_id' : 'track_id';
+              
+              await client.from(table).insert({
+                user_id: user.id,
+                list_id: listId,
+                [idField]: itemId
               });
             }
+            return 'added';
           }
-          
-          closeAllMenus();
+        } catch (error) {
+          console.error('Error saving to custom list:', error);
+          showError('Failed to save to list');
+          return false;
+        }
+      }
+      
+      // ==================== MENU FUNCTIONS ====================
+      
+      function closeAllMenus() {
+        document.querySelectorAll('.rail-menu.open').forEach(menu => {
+          menu.classList.remove('open');
         });
-      });
-      
-      // Custom lists menu item
-      container.querySelectorAll('.rail-menu-item[data-action="custom"]').forEach(item => {
-        item.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const card = item.closest('.card');
-          if (!card) return;
-          
-          const mediaType = card.getAttribute('data-media-type');
-          const itemId = card.getAttribute('data-item-id');
-          const title = card.getAttribute('data-title');
-          const subtitle = card.getAttribute('data-subtitle');
-          const image = card.getAttribute('data-image');
-          
-          closeAllMenus();
-          openCustomListsModal(mediaType, itemId, title, subtitle, image);
-        });
-      });
-    }
-
-    // Render rails
-    function renderRails() {
-      // Sample data - replace with actual API calls
-      const sampleMovies = [
-        { id: '1', title: 'Dune: Part Two', year: '2024', image: 'https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg' },
-        { id: '2', title: 'Oppenheimer', year: '2023', image: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg' },
-        { id: '3', title: 'Poor Things', year: '2023', image: 'https://image.tmdb.org/t/p/w500/kCGlIMHnOm8JPXq3rXM6c5wMxcT.jpg' }
-      ];
-      
-      const rails = [
-        { id: 'moviesRail', type: 'movie', items: sampleMovies },
-        { id: 'tvRail', type: 'tv', items: sampleMovies },
-        { id: 'gamesRail', type: 'game', items: sampleMovies },
-        { id: 'booksRail', type: 'book', items: sampleMovies },
-        { id: 'musicRail', type: 'music', items: sampleMovies },
-        { id: 'restaurantsRail', type: 'restaurant', items: sampleMovies },
-        { id: 'unifiedRail', type: 'mixed', items: [...sampleMovies, ...sampleMovies] }
-      ];
-      
-      rails.forEach(rail => {
-        const element = document.getElementById(rail.id);
-        if (!element) return;
         
-        element.innerHTML = rail.items.map((item, index) => {
-          const icon = rail.type === 'movie' ? 'fa-film' :
-                      rail.type === 'tv' ? 'fa-tv' :
-                      rail.type === 'game' ? 'fa-gamepad' :
-                      rail.type === 'book' ? 'fa-book' :
-                      rail.type === 'music' ? 'fa-music' :
-                      rail.type === 'restaurant' ? 'fa-utensils' : 'fa-star';
+        document.querySelectorAll('.card.menu-open').forEach(card => {
+          card.classList.remove('menu-open');
+        });
+        
+        document.querySelectorAll('.card-menu-btn.active').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        
+        const backdrop = document.getElementById('railMenuBackdrop');
+        if (backdrop) backdrop.classList.remove('active');
+        
+        menuOpen = false;
+        activeMenuCard = null;
+      }
+      
+      async function openMenu(button, card) {
+        if (menuOpen) closeAllMenus();
+        
+        const menu = button.parentElement.querySelector('.rail-menu');
+        if (!menu) return;
+        
+        button.classList.add('active');
+        card.classList.add('menu-open');
+        menu.classList.add('open');
+        
+        const mediaType = card.getAttribute('data-media-type');
+        const itemId = card.getAttribute('data-item-id');
+        
+        if (mediaType && itemId) {
+          const saved = await getListStatus(mediaType, itemId);
           
+          menu.querySelectorAll('.rail-menu-item[data-action="save"]').forEach(btn => {
+            const listType = btn.getAttribute('data-list');
+            const isSaved = saved.has(listType);
+            btn.classList.toggle('saved', isSaved);
+            
+            const stateEl = btn.querySelector('.rail-menu-state');
+            if (stateEl) {
+              stateEl.textContent = isSaved ? 'Saved' : 'Add';
+            }
+          });
+        }
+        
+        const backdrop = document.getElementById('railMenuBackdrop');
+        if (backdrop) backdrop.classList.add('active');
+        
+        menuOpen = true;
+        activeMenuCard = card;
+      }
+      
+      // ==================== CUSTOM LISTS MODAL ====================
+      
+      async function openCustomListsModal(mediaType, itemId, title, subtitle, image) {
+        const user = await getCurrentUser();
+        if (!user) {
+          showError('Please log in first');
+          setTimeout(() => {
+            window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.pathname);
+          }, 1500);
+          return;
+        }
+        
+        customListState.mediaType = mediaType;
+        customListState.itemId = itemId;
+        customListState.title = title || '';
+        customListState.subtitle = subtitle || '';
+        customListState.image = image || '';
+        
+        // Load custom lists
+        customListState.customLists = await loadCustomLists(mediaType);
+        
+        // Load membership
+        const listIds = customListState.customLists.map(l => l.id);
+        customListState.selectedLists = await loadCustomListMembership(mediaType, itemId, listIds);
+        
+        // Update modal title
+        const titleMap = {
+          movie: 'Movie Lists',
+          tv: 'TV Show Lists',
+          game: 'Game Lists',
+          book: 'Book Lists',
+          music: 'Music Lists',
+          restaurant: 'Restaurant Lists'
+        };
+        document.getElementById('customListsTitle').textContent = titleMap[mediaType] || 'Custom Lists';
+        
+        // Render lists
+        renderCustomListsModal();
+        
+        // Reset icon selection
+        document.querySelectorAll('#listIconOptions .icon-option').forEach(btn => {
+          btn.classList.remove('selected');
+        });
+        document.querySelector('#listIconOptions .icon-option[data-icon="fas fa-list"]')?.classList.add('selected');
+        customListState.selectedIcon = 'fas fa-list';
+        
+        // Show modal
+        document.getElementById('customListsModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      
+      function renderCustomListsModal() {
+        const container = document.getElementById('customListsContainer');
+        if (!container) return;
+        
+        if (!customListState.customLists.length) {
+          container.innerHTML = '<div class="empty-state">No custom lists yet. Create one below.</div>';
+          return;
+        }
+        
+        container.innerHTML = customListState.customLists.map(list => {
+          const isActive = customListState.selectedLists.has(list.id);
           return `
-            <article class="card" 
-              data-href="${rail.type}.html?id=${item.id}"
-              data-media-type="${rail.type}"
-              data-item-id="${item.id}"
-              data-title="${item.title}"
-              data-subtitle="${item.year || rail.type}"
-              data-image="${item.image || ''}">
-              <div class="card-media ${rail.type === 'restaurant' ? 'restaurant-composite' : ''}">
-                ${item.image ? `<img src="${item.image}" alt="${item.title}" loading="lazy">` : '<i class="fa-solid fa-image"></i>'}
-              </div>
-              <div class="card-meta">
-                <span class="card-type"><i class="fa-solid ${icon}"></i> ${rail.type}</span>
-                <div class="card-meta-top">
-                  <p class="card-name">${item.title}</p>
-                  <div class="card-menu-wrap">
-                    <button class="card-menu-btn"><i class="fas fa-ellipsis-v"></i></button>
-                    <div class="rail-menu">
-                      <div class="rail-menu-title">Add to list</div>
-                      <button class="rail-menu-item" data-action="save" data-list="favorites">
-                        <span class="rail-menu-item-main"><i class="fas fa-heart"></i> Favorites</span>
-                        <span class="rail-menu-state">Add</span>
-                      </button>
-                      <button class="rail-menu-item" data-action="save" data-list="watchlist">
-                        <span class="rail-menu-item-main"><i class="fas fa-bookmark"></i> Watchlist</span>
-                        <span class="rail-menu-state">Add</span>
-                      </button>
-                      <button class="rail-menu-item" data-action="save" data-list="watched">
-                        <span class="rail-menu-item-main"><i class="fas fa-eye"></i> Watched</span>
-                        <span class="rail-menu-state">Add</span>
-                      </button>
-                      <button class="rail-menu-item" data-action="custom">
-                        <span class="rail-menu-item-main"><i class="fas fa-list"></i> Custom Lists</span>
-                        <span class="rail-menu-state">Open</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <p class="card-sub">${item.year || rail.type}</p>
-              </div>
-            </article>
+            <div class="modal-list-item${isActive ? ' active' : ''}" data-list-id="${list.id}">
+              <span><i class="${list.icon || 'fas fa-list'}"></i> ${escapeHtml(list.title)}</span>
+              <span class="modal-list-actions">
+                <span>${isActive ? 'Saved' : 'Add'}</span>
+                <button class="list-edit-btn" onclick="event.stopPropagation(); window.renameList('${list.id}', '${escapeHtml(list.title)}')">
+                  <i class="fas fa-pen"></i>
+                </button>
+              </span>
+            </div>
           `;
         }).join('');
         
-        setupCardInteractions(element);
-      });
-    }
-
-    // Spotlight
-    function setupSpotlight() {
-      spotlightItems = [
-        {
-          type: 'movie',
-          title: 'Dune: Part Two',
-          summary: 'The saga continues as Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.',
-          image: 'https://image.tmdb.org/t/p/w1280/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg',
-          backdrop: 'https://image.tmdb.org/t/p/w1280/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg'
-        },
-        {
-          type: 'tv',
-          title: 'Shōgun',
-          summary: 'Set in feudal Japan, a British sailor is shipwrecked and becomes entangled in the political machinations of two powerful warlords.',
-          image: 'https://image.tmdb.org/t/p/w500/7O4iVfOMQmdCSxhOg1WnzG1AgFm.jpg',
-          backdrop: 'https://image.tmdb.org/t/p/w1280/7I6VtP8pHp9iUR4vH4pP6kKq9zF.jpg'
-        },
-        {
-          type: 'game',
-          title: 'Final Fantasy VII Rebirth',
-          summary: 'Cloud and his friends escape the city of Midgar and venture into the wide world, pursuing Sephiroth across the planet.',
-          image: 'https://image.api.playstation.com/vulcan/ap/rnd/202309/1312/1f8c5b6c3a4b5c6d7e8f9a0b1c2d3e4f.jpg',
-          backdrop: 'https://image.api.playstation.com/vulcan/ap/rnd/202309/1312/9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d.jpg'
-        }
-      ];
-      
-      let index = 0;
-      
-      function showSpotlight(i) {
-        const item = spotlightItems[i];
-        document.getElementById('spotlightTitle').textContent = item.title;
-        document.getElementById('spotlightSummary').textContent = item.summary;
-        document.getElementById('spotlightKicker').textContent = `${item.type} Spotlight`;
-        document.getElementById('spotlightBackground').style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.7), rgba(10,19,39,0.42)), url("${item.backdrop}")`;
-        document.getElementById('spotlightImage').src = item.image;
-        document.getElementById('spotlightOpenBtn').href = `${item.type}.html`;
-        
-        document.querySelectorAll('.spotlight-dot').forEach((dot, idx) => {
-          dot.classList.toggle('active', idx === i);
+        // Add click handlers
+        container.querySelectorAll('.modal-list-item').forEach(item => {
+          item.addEventListener('click', async () => {
+            const listId = item.getAttribute('data-list-id');
+            
+            const result = await saveToCustomList(
+              customListState.mediaType,
+              listId,
+              customListState.itemId,
+              {
+                title: customListState.title,
+                subtitle: customListState.subtitle,
+                image: customListState.image
+              }
+            );
+            
+            if (result === 'added') {
+              customListState.selectedLists.add(listId);
+              item.classList.add('active');
+              const span = item.querySelector('.modal-list-actions span');
+              if (span) span.textContent = 'Saved';
+            } else if (result === 'removed') {
+              customListState.selectedLists.delete(listId);
+              item.classList.remove('active');
+              const span = item.querySelector('.modal-list-actions span');
+              if (span) span.textContent = 'Add';
+            }
+          });
         });
       }
       
-      document.getElementById('spotlightDots').innerHTML = spotlightItems.map((_, i) => 
-        `<button class="spotlight-dot${i === 0 ? ' active' : ''}" data-index="${i}"></button>`
-      ).join('');
-      
-      document.querySelectorAll('.spotlight-dot').forEach(dot => {
-        dot.addEventListener('click', () => {
-          index = parseInt(dot.dataset.index);
-          showSpotlight(index);
-          resetSpotlightTimer();
-        });
-      });
-      
-      document.getElementById('spotlightNextBtn').addEventListener('click', () => {
-        index = (index + 1) % spotlightItems.length;
-        showSpotlight(index);
-        resetSpotlightTimer();
-      });
-      
-      function resetSpotlightTimer() {
-        if (spotlightTimer) clearInterval(spotlightTimer);
-        spotlightTimer = setInterval(() => {
-          index = (index + 1) % spotlightItems.length;
-          showSpotlight(index);
-        }, 5000);
-      }
-      
-      resetSpotlightTimer();
-    }
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', async () => {
-      await initSupabase();
-      await updateAuthUI();
-      
-      renderRails();
-      setupSpotlight();
-      
-      // Setup auth
-      supabase?.auth.onAuthStateChange(() => {
-        updateAuthUI();
-      });
-      
-      // Modal close
-      document.getElementById('closeHomeListsBtn').addEventListener('click', () => {
-        document.getElementById('homeListsModal').classList.remove('active');
-      });
-      
-      document.getElementById('homeListsModal').addEventListener('click', (e) => {
-        if (e.target === document.getElementById('homeListsModal')) {
-          document.getElementById('homeListsModal').classList.remove('active');
-        }
-      });
-      
-      // Create list
-      document.getElementById('createHomeListBtn').addEventListener('click', async () => {
-        const input = document.getElementById('newHomeListName');
-        const name = input.value.trim();
-        if (!name) return;
+      window.renameList = async function(listId, currentTitle) {
+        const newTitle = prompt('Rename list', currentTitle);
+        if (!newTitle || !newTitle.trim() || newTitle === currentTitle) return;
         
-        const icon = document.querySelector('#homeListIconOptions .icon-option.selected')?.getAttribute('data-icon') || 'fas fa-list';
+        const user = await getCurrentUser();
+        if (!user) return;
         
-        const newList = await createCustomList(customListState.mediaType, name, icon);
-        if (newList) {
-          customListState.customLists.unshift(newList);
+        const client = await initSupabase();
+        if (!client) return;
+        
+        try {
+          const { error } = await client
+            .from('lists')
+            .update({ title: newTitle.trim() })
+            .eq('id', listId)
+            .eq('user_id', user.id);
+          
+          if (error) throw error;
+          
+          // Update local state
+          const list = customListState.customLists.find(l => l.id === listId);
+          if (list) list.title = newTitle.trim();
+          
           renderCustomListsModal();
-          input.value = '';
+          showToast('List renamed');
+        } catch (error) {
+          console.error('Error renaming list:', error);
+          showError('Failed to rename list');
         }
-      });
+      };
       
-      // Icon selection
-      document.querySelectorAll('#homeListIconOptions .icon-option').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('#homeListIconOptions .icon-option').forEach(b => b.classList.remove('selected'));
-          btn.classList.add('selected');
+      // ==================== CARD SETUP ====================
+      
+      function setupCardInteractions(container) {
+        if (!container) container = document;
+        
+        // Card click
+        container.querySelectorAll('.card').forEach(card => {
+          card.addEventListener('click', (e) => {
+            if (e.target.closest('.card-menu-btn') || 
+                e.target.closest('.rail-menu') || 
+                e.target.closest('.card-open-link') ||
+                e.target.closest('.rail-menu-item')) {
+              return;
+            }
+            
+            const href = card.getAttribute('data-href');
+            if (href && href !== '#') {
+              window.location.href = href;
+            }
+          });
         });
-      });
+        
+        // Menu button click
+        container.querySelectorAll('.card-menu-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const card = btn.closest('.card');
+            if (!card) return;
+            
+            await openMenu(btn, card);
+          });
+        });
+        
+        // Menu item click (save to list)
+        container.querySelectorAll('.rail-menu-item[data-action="save"]').forEach(item => {
+          item.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const card = item.closest('.card');
+            if (!card) return;
+            
+            const mediaType = card.getAttribute('data-media-type');
+            const itemId = card.getAttribute('data-item-id');
+            const listType = item.getAttribute('data-list');
+            const title = card.getAttribute('data-title');
+            const subtitle = card.getAttribute('data-subtitle');
+            const image = card.getAttribute('data-image');
+            
+            const result = await saveToList(mediaType, itemId, listType, {
+              title,
+              subtitle,
+              image
+            });
+            
+            if (result) {
+              // Update menu state
+              const saved = await getListStatus(mediaType, itemId);
+              const menu = item.closest('.rail-menu');
+              
+              if (menu) {
+                menu.querySelectorAll('.rail-menu-item[data-action="save"]').forEach(btn => {
+                  const type = btn.getAttribute('data-list');
+                  const isSaved = saved.has(type);
+                  btn.classList.toggle('saved', isSaved);
+                  
+                  const stateEl = btn.querySelector('.rail-menu-state');
+                  if (stateEl) {
+                    stateEl.textContent = isSaved ? 'Saved' : 'Add';
+                  }
+                });
+              }
+            }
+          });
+        });
+        
+        // Custom lists menu item
+        container.querySelectorAll('.rail-menu-item[data-action="custom"]').forEach(item => {
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const card = item.closest('.card');
+            if (!card) return;
+            
+            const mediaType = card.getAttribute('data-media-type');
+            const itemId = card.getAttribute('data-item-id');
+            const title = card.getAttribute('data-title');
+            const subtitle = card.getAttribute('data-subtitle');
+            const image = card.getAttribute('data-image');
+            
+            closeAllMenus();
+            openCustomListsModal(mediaType, itemId, title, subtitle, image);
+          });
+        });
+      }
       
-      // Backdrop click
-      document.getElementById('railMenuBackdrop').addEventListener('click', closeAllMenus);
+      // ==================== SPOTLIGHT ====================
       
-      // Escape key
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          closeAllMenus();
-          document.getElementById('homeListsModal').classList.remove('active');
-        }
-      });
-      
-      // Pause spotlight when tab not visible
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-          if (spotlightTimer) clearInterval(spotlightTimer);
-        } else {
-          if (spotlightTimer) {
-            clearInterval(spotlightTimer);
-            spotlightTimer = setInterval(() => {
-              index = (index + 1) % spotlightItems.length;
-              showSpotlight(index);
-            }, 5000);
+      function setupSpotlight() {
+        // Sample spotlight items (replace with API data)
+        spotlightItems = [
+          {
+            type: 'movie',
+            title: 'Dune: Part Two',
+            summary: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.',
+            image: 'https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg',
+            backdrop: 'https://image.tmdb.org/t/p/w1280/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg',
+            href: 'movie.html?id=693134'
+          },
+          {
+            type: 'tv',
+            title: 'Shōgun',
+            summary: 'In feudal Japan, an English sailor is shipwrecked and becomes entangled in the political machinations of two powerful warlords.',
+            image: 'https://image.tmdb.org/t/p/w500/7O4iVfOMQmdCSxhOg1WnzG1AgFm.jpg',
+            backdrop: 'https://image.tmdb.org/t/p/w1280/7I6VtP8pHp9iUR4vH4pP6kKq9zF.jpg',
+            href: 'tvshow.html?id=126308'
+          },
+          {
+            type: 'game',
+            title: 'Final Fantasy VII Rebirth',
+            summary: 'Cloud and his friends escape Midgar and venture into the wide world, pursuing Sephiroth across the planet.',
+            image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co6r8p.png',
+            backdrop: 'https://images.igdb.com/igdb/image/upload/t_screenshot_huge/scp4x9.jpg',
+            href: 'game.html?id=111111'
+          },
+          {
+            type: 'book',
+            title: 'House of Flame and Shadow',
+            summary: 'The highly anticipated third book in the Crescent City series continues Bryce Quinlans journey through worlds.',
+            image: 'https://covers.openlibrary.org/b/isbn/9781635574104-L.jpg',
+            backdrop: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c',
+            href: 'book.html?id=OL1234567W'
+          },
+          {
+            type: 'music',
+            title: 'Eternal Sunshine',
+            summary: 'Ariana Grande returns with her seventh studio album, blending pop and R&B with introspective lyrics.',
+            image: 'https://i.scdn.co/image/ab67616d0000b2733f7a4b0b8c9c0d8e7f6a5b4c',
+            backdrop: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f',
+            href: 'song.html?id=12345678'
           }
+        ];
+        
+        let index = 0;
+        
+        function showSpotlight(i) {
+          const item = spotlightItems[i];
+          if (!item) return;
+          
+          const titleEl = document.getElementById('spotlightTitle');
+          const summaryEl = document.getElementById('spotlightSummary');
+          const kickerEl = document.getElementById('spotlightKicker');
+          const bgEl = document.getElementById('spotlightBackground');
+          const imageEl = document.getElementById('spotlightImage');
+          const openBtn = document.getElementById('spotlightOpenBtn');
+          const mediaWrap = document.getElementById('spotlightMedia');
+          const section = document.getElementById('spotlightSection');
+          
+          if (titleEl) titleEl.textContent = item.title;
+          if (summaryEl) summaryEl.textContent = item.summary;
+          if (kickerEl) kickerEl.textContent = `${item.type} Spotlight`;
+          if (bgEl) bgEl.style.backgroundImage = `linear-gradient(120deg, rgba(6,13,28,0.8), rgba(8,16,35,0.6)), url("${item.backdrop}")`;
+          if (imageEl) imageEl.src = item.image;
+          if (openBtn) openBtn.href = item.href || '#';
+          
+          // Update media shape based on type
+          if (mediaWrap && section) {
+            mediaWrap.className = 'spotlight-media';
+            section.className = 'spotlight';
+            
+            if (item.type === 'music') {
+              mediaWrap.classList.add('square');
+              section.classList.add('has-square-media');
+            } else if (item.type === 'game') {
+              mediaWrap.classList.add('square');
+              section.classList.add('has-square-media');
+            } else {
+              // Default poster shape
+            }
+          }
+          
+          // Update dots
+          document.querySelectorAll('.spotlight-dot').forEach((dot, idx) => {
+            dot.classList.toggle('active', idx === i);
+          });
+        }
+        
+        // Create dots
+        const dotsContainer = document.getElementById('spotlightDots');
+        if (dotsContainer) {
+          dotsContainer.innerHTML = spotlightItems.map((_, i) => 
+            `<button class="spotlight-dot${i === 0 ? ' active' : ''}" data-index="${i}" aria-label="Go to slide ${i + 1}"></button>`
+          ).join('');
+          
+          dotsContainer.querySelectorAll('.spotlight-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+              index = parseInt(dot.getAttribute('data-index'), 10);
+              showSpotlight(index);
+              resetSpotlightTimer();
+            });
+          });
+        }
+        
+        // Next button
+        const nextBtn = document.getElementById('spotlightNextBtn');
+        if (nextBtn) {
+          nextBtn.addEventListener('click', () => {
+            index = (index + 1) % spotlightItems.length;
+            showSpotlight(index);
+            resetSpotlightTimer();
+          });
+        }
+        
+        function resetSpotlightTimer() {
+          if (spotlightTimer) clearInterval(spotlightTimer);
+          spotlightTimer = setInterval(() => {
+            index = (index + 1) % spotlightItems.length;
+            showSpotlight(index);
+          }, SPOTLIGHT_ROTATION_MS);
+        }
+        
+        // Initial show
+        showSpotlight(0);
+        resetSpotlightTimer();
+        
+        // Pause when tab not visible
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden) {
+            if (spotlightTimer) clearInterval(spotlightTimer);
+          } else {
+            resetSpotlightTimer();
+          }
+        });
+      }
+      
+      // ==================== RAIL RENDERING ====================
+      
+      function renderRails() {
+        // Sample data for each rail
+        const movies = [
+          { id: '693134', title: 'Dune: Part Two', year: '2024', image: 'https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg', type: 'movie' },
+          { id: '872585', title: 'Oppenheimer', year: '2023', image: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', type: 'movie' },
+          { id: '792307', title: 'Poor Things', year: '2023', image: 'https://image.tmdb.org/t/p/w500/kCGlIMHnOm8JPXq3rXM6c5wMxcT.jpg', type: 'movie' },
+          { id: '929590', title: 'Civil War', year: '2024', image: 'https://image.tmdb.org/t/p/w500/sh7Rg8Er3tFcN9BpKIPOMvALgZd.jpg', type: 'movie' },
+          { id: '573435', title: 'Bad Boys 4', year: '2024', image: 'https://image.tmdb.org/t/p/w500/nq6uH25eUZ9oFoyy3xT4jQnWv8k.jpg', type: 'movie' }
+        ];
+        
+        const tvShows = [
+          { id: '126308', title: 'Shōgun', year: '2024', image: 'https://image.tmdb.org/t/p/w500/7O4iVfOMQmdCSxhOg1WnzG1AgFm.jpg', type: 'tv' },
+          { id: '94954', title: 'The Gentlemen', year: '2024', image: 'https://image.tmdb.org/t/p/w500/4zYydRfwHjlFLZwEJCDhHjDxMqV.jpg', type: 'tv' },
+          { id: '1416', title: 'Grey\'s Anatomy', year: '2005', image: 'https://image.tmdb.org/t/p/w500/ekYEZQj9xSMrv4lQHgS6h2ZUK0N.jpg', type: 'tv' },
+          { id: '1668', title: 'Friends', year: '1994', image: 'https://image.tmdb.org/t/p/w500/2koX1xLkpTQM4F9lU9gjsW55jz0.jpg', type: 'tv' },
+          { id: '1396', title: 'Breaking Bad', year: '2008', image: 'https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg', type: 'tv' }
+        ];
+        
+        const games = [
+          { id: '111111', title: 'Final Fantasy VII Rebirth', year: '2024', image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co6r8p.png', type: 'game' },
+          { id: '222222', title: 'Helldivers 2', year: '2024', image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co6v9k.png', type: 'game' },
+          { id: '333333', title: 'Like a Dragon: Infinite Wealth', year: '2024', image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co6pyk.png', type: 'game' },
+          { id: '444444', title: 'Tekken 8', year: '2024', image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co6m6f.png', type: 'game' },
+          { id: '555555', title: 'Palworld', year: '2024', image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co6tnj.png', type: 'game' }
+        ];
+        
+        const books = [
+          { id: 'OL1234567W', title: 'House of Flame and Shadow', author: 'Sarah J. Maas', image: 'https://covers.openlibrary.org/b/isbn/9781635574104-L.jpg', type: 'book' },
+          { id: 'OL7654321W', title: 'The Women', author: 'Kristin Hannah', image: 'https://covers.openlibrary.org/b/isbn/9781250178633-L.jpg', type: 'book' },
+          { id: 'OL2345678W', title: 'Fourth Wing', author: 'Rebecca Yarros', image: 'https://covers.openlibrary.org/b/isbn/9781649374042-L.jpg', type: 'book' },
+          { id: 'OL3456789W', title: 'Iron Flame', author: 'Rebecca Yarros', image: 'https://covers.openlibrary.org/b/isbn/9781649374172-L.jpg', type: 'book' },
+          { id: 'OL4567890W', title: 'The Heaven & Earth Grocery Store', author: 'James McBride', image: 'https://covers.openlibrary.org/b/isbn/9780593422946-L.jpg', type: 'book' }
+        ];
+        
+        const music = [
+          { id: '12345678', title: 'Eternal Sunshine', artist: 'Ariana Grande', image: 'https://i.scdn.co/image/ab67616d0000b2733f7a4b0b8c9c0d8e7f6a5b4c', type: 'music' },
+          { id: '23456789', title: 'Cowboy Carter', artist: 'Beyoncé', image: 'https://i.scdn.co/image/ab67616d0000b2732b3c4d5e6f7a8b9c0d1e2f3a', type: 'music' },
+          { id: '34567890', title: 'The Tortured Poets Department', artist: 'Taylor Swift', image: 'https://i.scdn.co/image/ab67616d0000b2734c5d6e7f8a9b0c1d2e3f4a5b', type: 'music' },
+          { id: '45678901', title: 'We Don\'t Trust You', artist: 'Future & Metro Boomin', image: 'https://i.scdn.co/image/ab67616d0000b2735d6e7f8a9b0c1d2e3f4a5b6c', type: 'music' },
+          { id: '56789012', title: 'Vultures 2', artist: 'Kanye West & Ty Dolla $ign', image: 'https://i.scdn.co/image/ab67616d0000b2736e7f8a9b0c1d2e3f4a5b6c7d', type: 'music' }
+        ];
+        
+        const restaurants = [
+          { id: 'r1', title: 'Carbone', category: 'Italian', rating: '4.8', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5', logo: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5', type: 'restaurant' },
+          { id: 'r2', title: 'Katz\'s Delicatessen', category: 'Jewish Deli', rating: '4.7', image: 'https://images.unsplash.com/photo-1572448866139-e36662b6207b', logo: 'https://images.unsplash.com/photo-1572448866139-e36662b6207b', type: 'restaurant' },
+          { id: 'r3', title: 'Peter Luger', category: 'Steakhouse', rating: '4.8', image: 'https://images.unsplash.com/photo-1546833999-b9f8a6f4e3c3', logo: 'https://images.unsplash.com/photo-1546833999-b9f8a6f4e3c3', type: 'restaurant' },
+          { id: 'r4', title: 'Eleven Madison Park', category: 'Fine Dining', rating: '4.9', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4', logo: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4', type: 'restaurant' },
+          { id: 'r5', title: 'Joe\'s Pizza', category: 'Pizza', rating: '4.6', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38', logo: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38', type: 'restaurant' }
+        ];
+        
+        // Rail configurations
+        const rails = [
+          { id: 'moviesRail', type: 'movie', items: movies },
+          { id: 'tvRail', type: 'tv', items: tvShows },
+          { id: 'gamesRail', type: 'game', items: games },
+          { id: 'booksRail', type: 'book', items: books },
+          { id: 'musicRail', type: 'music', items: music },
+          { id: 'restaurantsRail', type: 'restaurant', items: restaurants },
+          { id: 'unifiedRail', type: 'mixed', items: shuffleArray([...movies, ...tvShows, ...games, ...books, ...music, ...restaurants]).slice(0, 20) }
+        ];
+        
+        rails.forEach(rail => {
+          const element = document.getElementById(rail.id);
+          if (!element) return;
+          
+          // Generate HTML
+          element.innerHTML = rail.items.map(item => {
+            const config = MEDIA_CONFIG[rail.type] || MEDIA_CONFIG[item.type] || { icon: 'fa-star', label: 'Item', listTypes: [] };
+            const icon = config.icon;
+            const typeLabel = config.label;
+            const subtitle = item.year || item.author || item.artist || item.category || typeLabel;
+            const extra = item.rating ? `⭐ ${item.rating}/5` : '';
+            
+            // Build menu HTML
+            const menuItems = config.listTypes.map(list => `
+              <button class="rail-menu-item" data-action="save" data-list="${list.key}">
+                <span class="rail-menu-item-main"><i class="fas ${list.icon}"></i> ${list.label}</span>
+                <span class="rail-menu-state">Add</span>
+              </button>
+            `).join('');
+            
+            const href = item.type === 'movie' ? `movie.html?id=${item.id}` :
+                        item.type === 'tv' ? `tvshow.html?id=${item.id}` :
+                        item.type === 'game' ? `game.html?id=${item.id}` :
+                        item.type === 'book' ? `book.html?id=${item.id}` :
+                        item.type === 'music' ? `song.html?id=${item.id}` :
+                        item.type === 'restaurant' ? `restaurant.html?id=${item.id}` : '#';
+            
+            const mediaClasses = ['card-media'];
+            if (rail.type === 'restaurant') mediaClasses.push('restaurant-composite');
+            if (rail.type === 'music') mediaClasses.push('music-cover');
+            if (rail.type === 'game') mediaClasses.push('game-poster');
+            
+            const mediaHtml = rail.type === 'restaurant'
+              ? `
+                  <img class="restaurant-cover" src="${item.image}" alt="${item.title}" loading="lazy">
+                  <span class="restaurant-logo-badge">
+                    <img src="${item.logo || item.image}" alt="${item.title} logo" loading="lazy">
+                  </span>
+                `
+              : `<img src="${item.image}" alt="${item.title}" loading="lazy">`;
+            
+            return `
+              <article class="card" 
+                data-href="${href}"
+                data-media-type="${rail.type}"
+                data-item-id="${item.id}"
+                data-title="${escapeHtml(item.title)}"
+                data-subtitle="${escapeHtml(subtitle)}"
+                data-image="${item.image}">
+                <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
+                <div class="${mediaClasses.join(' ')}">
+                  ${mediaHtml}
+                </div>
+                <div class="card-meta">
+                  <span class="card-type"><i class="fas ${icon}"></i> ${typeLabel}</span>
+                  <div class="card-meta-top">
+                    <p class="card-name">${escapeHtml(item.title)}</p>
+                    <div class="card-menu-wrap">
+                      <button class="card-menu-btn" aria-label="Options"><i class="fas fa-ellipsis-v"></i></button>
+                      <div class="rail-menu">
+                        <div class="rail-menu-title">Add to list</div>
+                        ${menuItems}
+                        <button class="rail-menu-item" data-action="custom">
+                          <span class="rail-menu-item-main"><i class="fas fa-list"></i> Custom Lists</span>
+                          <span class="rail-menu-state">Open</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="card-sub">${escapeHtml(subtitle)}</p>
+                  ${extra ? `<p class="card-extra">${escapeHtml(extra)}</p>` : '<p class="card-extra placeholder">&nbsp;</p>'}
+                </div>
+              </article>
+            `;
+          }).join('');
+          
+          // Setup interactions for this rail
+          setupCardInteractions(element);
+        });
+      }
+      
+      // ==================== INITIALIZATION ====================
+      
+      document.addEventListener('DOMContentLoaded', async () => {
+        // Initialize Supabase
+        await initSupabase();
+        
+        // Update auth UI
+        await updateAuthUI();
+        
+        // Setup auth listener
+        if (supabase) {
+          supabase.auth.onAuthStateChange(() => {
+            updateAuthUI();
+          });
+        }
+        
+        // Render content
+        renderRails();
+        setupSpotlight();
+        
+        // Setup modal close buttons
+        const closeModalBtn = document.getElementById('closeCustomListsBtn');
+        if (closeModalBtn) {
+          closeModalBtn.addEventListener('click', () => {
+            document.getElementById('customListsModal').classList.remove('active');
+            document.body.style.overflow = '';
+          });
+        }
+        
+        const doneModalBtn = document.getElementById('doneCustomListsBtn');
+        if (doneModalBtn) {
+          doneModalBtn.addEventListener('click', () => {
+            document.getElementById('customListsModal').classList.remove('active');
+            document.body.style.overflow = '';
+          });
+        }
+        
+        // Close modal on backdrop click
+        const modal = document.getElementById('customListsModal');
+        if (modal) {
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+              modal.classList.remove('active');
+              document.body.style.overflow = '';
+            }
+          });
+        }
+        
+        // Create list button
+        const createListBtn = document.getElementById('createListBtn');
+        if (createListBtn) {
+          createListBtn.addEventListener('click', async () => {
+            const input = document.getElementById('newListName');
+            const name = input.value.trim();
+            if (!name) return;
+            
+            const selectedIcon = document.querySelector('#listIconOptions .icon-option.selected');
+            const icon = selectedIcon ? selectedIcon.getAttribute('data-icon') : 'fas fa-list';
+            
+            const newList = await createCustomList(customListState.mediaType, name, icon);
+            if (newList) {
+              customListState.customLists.unshift(newList);
+              renderCustomListsModal();
+              input.value = '';
+            }
+          });
+        }
+        
+        // Icon selection
+        document.querySelectorAll('#listIconOptions .icon-option').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('#listIconOptions .icon-option').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            customListState.selectedIcon = btn.getAttribute('data-icon');
+          });
+        });
+        
+        // Backdrop click
+        const backdrop = document.getElementById('railMenuBackdrop');
+        if (backdrop) {
+          backdrop.addEventListener('click', closeAllMenus);
+        }
+        
+        // Escape key
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            closeAllMenus();
+            document.getElementById('customListsModal').classList.remove('active');
+            document.body.style.overflow = '';
+          }
+        });
+        
+        // Search (placeholder)
+        const searchInput = document.getElementById('globalSearch');
+        if (searchInput) {
+          searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              const query = searchInput.value.trim();
+              if (query) {
+                window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+              }
+            }
+          });
         }
       });
-    });
+    })();
   </script>
 </body>
 </html>
