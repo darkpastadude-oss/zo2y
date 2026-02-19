@@ -835,18 +835,20 @@
                 <div class="card-menu-wrap">
                   <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
                   <div class="list-menu">
-                    <div class="list-menu-title">Save to list</div>
-                    <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-                    <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
-                    <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
-                    <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
+                    <div class="list-menu-panel">
+                      <div class="list-menu-title">Save to list</div>
+                      <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
+                      <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
+                      <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
+                      <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           `;
           card.onclick = (e) => {
-            if (e.target.closest('.menu-btn') || e.target.closest('.list-menu')) return;
+            if (e.target.closest('.menu-btn') || e.target.closest('.list-menu-panel')) return;
             window.location.href = `movie.html?id=${item.id}`;
           };
           wireCardMenu(card, item.id);
