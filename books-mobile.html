@@ -242,6 +242,7 @@
     .card.menu-open,
     .card.menu-open:hover {
       transform: none;
+      overflow: visible;
     }
 
     .card img {
@@ -343,10 +344,11 @@
     .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
 
     .list-menu {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
+      /* float the menu next to its button instead of centering it on the screen */
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 6px;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
