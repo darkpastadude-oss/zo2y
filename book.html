@@ -729,6 +729,7 @@
   </div>
 
     <script src="js/list-utils.js"></script>
+    <script src="js/index-list-menu-adapter.js"></script>
     <script>
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
@@ -1270,17 +1271,17 @@
         });
       }
 
-      async function toggleList(listType) {
+      async function toggleList(listType, forcedNextSaved) {
         if (!currentUser) {
           showNotification('Please sign in to save books', 'info');
-          return;
+          return { ok: false, saved: false };
         }
-        if (!normalizedBookId || !(listType in listStatus)) return;
+        if (!normalizedBookId || !(listType in listStatus)) return { ok: false, saved: false };
         const opKey = `${String(normalizedBookId)}:${listType}`;
-        if (pendingListOps.has(opKey)) return;
+        if (pendingListOps.has(opKey)) return { ok: false, saved: !!listStatus[listType] };
 
         const previousSaved = !!listStatus[listType];
-        const nextSaved = !previousSaved;
+        const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
         pendingListOps.add(opKey);
         listStatus[listType] = nextSaved;
         updateListMenuUI();
@@ -1303,13 +1304,51 @@
             if (error) throw error;
             showNotification('Removed from list', 'info');
           }
+          return { ok: true, saved: nextSaved };
         } catch (error) {
           listStatus[listType] = previousSaved;
           showNotification('Could not update list', 'error');
+          return { ok: false, saved: previousSaved };
         } finally {
           pendingListOps.delete(opKey);
           updateListMenuUI();
         }
+      }
+
+      function bindUnifiedListMenu() {
+        const menuBtn = document.getElementById('movieMenuBtn');
+        if (!menuBtn || !normalizedBookId || !window.initIndexStyleListMenu) return;
+
+        window.initIndexStyleListMenu({
+          mediaType: 'book',
+          itemIdAttr: 'data-item-id',
+          getVisibleItemIds: () => normalizedBookId ? [normalizedBookId] : [],
+          getQuickStatusForItem: (itemId) => {
+            if (String(itemId || '') !== String(normalizedBookId || '')) return null;
+            return { ...listStatus };
+          },
+          getItemFromCard: () => ({
+            mediaType: 'book',
+            itemId: normalizedBookId,
+            title: String(document.getElementById('title')?.textContent || 'Book').trim(),
+            subtitle: String(document.getElementById('meta')?.textContent || '').trim(),
+            image: String(document.getElementById('poster')?.getAttribute('src') || '').trim()
+          }),
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            return initSupabase();
+          },
+          getCurrentUser: () => currentUser,
+          notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
+          toggleDefaultList: async ({ listType, nextSaved }) => toggleList(listType, nextSaved)
+        });
+
+        menuBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(menuBtn);
+          }
+        });
       }
 
       async function initReviewSystem() {
@@ -1704,7 +1743,7 @@
       (async function init() {
         await initSupabase();
         initPageSearch();
-        wireListMenu();
+        bindUnifiedListMenu();
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') closeAllListMenus();
         });

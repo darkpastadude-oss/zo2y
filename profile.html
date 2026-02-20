@@ -1192,6 +1192,116 @@
             padding: 20px;
         }
 
+        /* Unified custom-list modal (matches index/menu adapter UI) */
+        #createListModal.menu-modal {
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+        }
+
+        #createListModal .menu-modal-content {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 380px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 12px 34px rgba(0,0,0,0.28);
+        }
+
+        @keyframes profileListModalFlyUp {
+            from { opacity: 0; transform: translateY(22px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        #createListModal.active .menu-modal-content {
+            animation: profileListModalFlyUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        #createListModal .menu-modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        #createListModal .menu-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        #createListModal .menu-modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            color: var(--muted);
+        }
+
+        #createListModal .menu-modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+        }
+
+        #createListModal .menu-modal-body {
+            padding: 16px 20px 20px;
+        }
+
+        #createListModal .menu-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--white);
+            font-size: 14px;
+        }
+
+        #createListModal .menu-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        #createListModal .menu-icon-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        #createListModal .menu-icon-option {
+            aspect-ratio: 1;
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--white);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            padding: 0;
+        }
+
+        #createListModal .menu-icon-option:hover {
+            border-color: var(--accent);
+            transform: scale(1.04);
+        }
+
+        #createListModal .menu-icon-option.selected {
+            border-color: var(--accent);
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent);
+        }
+
+        #createListModal .menu-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
         /* === FORMS === */
         .form-group {
             margin-bottom: 20px;
@@ -3954,51 +4064,51 @@ header, .top-stripe, .section-nav {
     </div>
 
     <!-- Create List Modal -->
-    <div class="modal" id="createListModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Create New List</h3>
-                <button class="modal-close" onclick="ProfileManager.closeModal('createListModal')">&times;</button>
+    <div class="modal menu-modal" id="createListModal">
+        <div class="modal-content menu-modal-content">
+            <div class="modal-header menu-modal-header">
+                <h3 class="modal-title menu-modal-title">Create New List</h3>
+                <button class="modal-close menu-modal-close" onclick="ProfileManager.closeModal('createListModal')">&times;</button>
             </div>
-            
+
             <form id="createListForm">
-                <div class="modal-body">
+                <div class="modal-body menu-modal-body">
                     <div class="form-group">
                         <label class="form-label">List Name</label>
-                        <input type="text" class="form-input" id="listName" required placeholder="e.g., Date Night Spots">
+                        <input type="text" class="form-input menu-input" id="listName" required placeholder="e.g., Date Night Spots">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Description</label>
-                        <textarea class="form-textarea" id="listDescription" rows="2" placeholder="What's this list about?"></textarea>
+                        <textarea class="form-textarea menu-input" id="listDescription" rows="2" placeholder="What's this list about?"></textarea>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">Icon</label>
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <div class="list-icon-option" data-icon="heart">â¤ï¸</div>
-                            <div class="list-icon-option" data-icon="check">âœ…</div>
-                            <div class="list-icon-option" data-icon="bookmark">ðŸ”–</div>
-                            <div class="list-icon-option" data-icon="restaurant">ðŸ½ï¸</div>
-                            <div class="list-icon-option" data-icon="movie">ðŸŽ¬</div>
-                            <div class="list-icon-option" data-icon="tv">ðŸ“º</div>
-                            <div class="list-icon-option" data-icon="game">ðŸŽ®</div>
-                            <div class="list-icon-option" data-icon="book">ðŸ“š</div>
-                            <div class="list-icon-option" data-icon="list">ðŸ“‹</div>
-                            <div class="list-icon-option" data-icon="star">â­</div>
-                            <div class="list-icon-option" data-icon="fire">ðŸ”¥</div>
-                            <div class="list-icon-option" data-icon="sparkles">âœ¨</div>
-                            <div class="list-icon-option" data-icon="rocket">ðŸš€</div>
-                            <div class="list-icon-option" data-icon="trophy">ðŸ†</div>
-                            <div class="list-icon-option" data-icon="gift">ðŸŽ</div>
-                            <div class="list-icon-option" data-icon="music">ðŸŽµ</div>
-                            <div class="list-icon-option" data-icon="camera">ðŸ“·</div>
-                            <div class="list-icon-option" data-icon="soccer">âš½</div>
+                        <div class="menu-icon-grid">
+                            <button type="button" class="list-icon-option menu-icon-option selected" data-icon="heart"><i class="fas fa-heart"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="check"><i class="fas fa-check"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="bookmark"><i class="fas fa-bookmark"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="restaurant"><i class="fas fa-utensils"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="movie"><i class="fas fa-film"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="tv"><i class="fas fa-tv"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="game"><i class="fas fa-gamepad"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="book"><i class="fas fa-book"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="list"><i class="fas fa-list"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="star"><i class="fas fa-star"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="fire"><i class="fas fa-fire"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="sparkles"><i class="fas fa-sparkles"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="rocket"><i class="fas fa-rocket"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="trophy"><i class="fas fa-trophy"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="gift"><i class="fas fa-gift"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="music"><i class="fas fa-music"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="camera"><i class="fas fa-camera"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="soccer"><i class="fas fa-futbol"></i></button>
                         </div>
                         <input type="hidden" id="selectedIcon" value="heart">
                     </div>
-                    
-                    <div class="form-actions">
+
+                    <div class="form-actions menu-modal-actions">
                         <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('createListModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">Create List</button>
                     </div>
@@ -6708,12 +6818,8 @@ header, .top-stripe, .section-nav {
                 document.getElementById('selectedIcon').value = normalizeIconKey(list.icon, 'list');
                 
                 document.querySelectorAll('.list-icon-option').forEach(icon => {
-                    icon.style.background = 'transparent';
-                    icon.style.border = '1px solid transparent';
-                    if (icon.getAttribute('data-icon') === normalizeIconKey(list.icon, 'list')) {
-                        icon.style.background = 'rgba(245, 158, 11, 0.1)';
-                        icon.style.border = '1px solid var(--accent)';
-                    }
+                    const isSelected = icon.getAttribute('data-icon') === normalizeIconKey(list.icon, 'list');
+                    icon.classList.toggle('selected', isSelected);
                 });
                 
                 document.querySelector('#createListModal .modal-title').textContent = "Edit List";
@@ -9713,6 +9819,7 @@ header, .top-stripe, .section-nav {
                 if (modal) {
                     modal.classList.add('active');
                     document.body.style.overflow = 'hidden';
+                    document.documentElement.style.overflow = 'hidden';
                     
                     if (modalId === 'addEntryModal') {
                         const visitDate = document.getElementById('visitDate');
@@ -9765,9 +9872,10 @@ header, .top-stripe, .section-nav {
                     }
                     
                     if (modalId === 'createListModal') {
+                        const selectedValue = String(document.getElementById('selectedIcon')?.value || 'heart');
                         document.querySelectorAll('.list-icon-option').forEach(icon => {
-                            icon.style.background = 'transparent';
-                            icon.style.border = '1px solid transparent';
+                            const isSelected = icon.getAttribute('data-icon') === selectedValue;
+                            icon.classList.toggle('selected', isSelected);
                         });
                     }
 
@@ -9779,6 +9887,7 @@ header, .top-stripe, .section-nav {
                 if (modal) {
                     modal.classList.remove('active');
                     document.body.style.overflow = '';
+                    document.documentElement.style.overflow = '';
                     
                     if (modalId === 'addEntryModal') {
                         const form = document.getElementById('journalEntryForm');
@@ -9796,11 +9905,12 @@ header, .top-stripe, .section-nav {
                     if (modalId === 'createListModal') {
                         const form = document.getElementById('createListForm');
                         if (form) form.reset();
-                        document.getElementById('selectedIcon').value = 'heart';
-                        
+                        const selectedInput = document.getElementById('selectedIcon');
+                        if (selectedInput) selectedInput.value = 'heart';
+
                         document.querySelectorAll('.list-icon-option').forEach(icon => {
-                            icon.style.background = 'transparent';
-                            icon.style.border = '1px solid transparent';
+                            const isSelected = icon.getAttribute('data-icon') === 'heart';
+                            icon.classList.toggle('selected', isSelected);
                         });
                         
                         isEditingList = false;
@@ -10133,11 +10243,9 @@ header, .top-stripe, .section-nav {
                 document.querySelectorAll('.list-icon-option').forEach(icon => {
                     icon.addEventListener('click', function() {
                         document.querySelectorAll('.list-icon-option').forEach(i => {
-                            i.style.background = 'transparent';
-                            i.style.border = '1px solid transparent';
+                            i.classList.remove('selected');
                         });
-                        this.style.background = 'rgba(245, 158, 11, 0.1)';
-                        this.style.border = '1px solid var(--accent)';
+                        this.classList.add('selected');
                         const selectedIcon = document.getElementById('selectedIcon');
                         if (selectedIcon) selectedIcon.value = this.getAttribute('data-icon');
                     });
