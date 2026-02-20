@@ -45,6 +45,19 @@
     }
   };
 
+  const LIST_META_STORAGE_KEY = 'zo2y_list_meta_v1';
+  const TIER_RANK_STORAGE_KEY = 'zo2y_tier_ranks_v1';
+  const KNOWN_TIER_CREATE_MODAL_SELECTORS = [
+    '#movieListsModal',
+    '#tvListsModal',
+    '#gameListsModal',
+    '#bookListsModal',
+    '#musicListsModal',
+    '#createListModal',
+    '#homeListsModal',
+    '#editMediaListModal'
+  ];
+
   function getListConfig(type) {
     return LIST_CONFIG[String(type || '').toLowerCase()] || null;
   }
@@ -83,6 +96,171 @@
     return raw;
   }
 
+  function safeJsonParse(raw, fallbackValue) {
+    try {
+      return raw ? JSON.parse(raw) : fallbackValue;
+    } catch (_error) {
+      return fallbackValue;
+    }
+  }
+
+  function readStorageObject(key) {
+    if (typeof window === 'undefined' || !window.localStorage) return {};
+    const parsed = safeJsonParse(window.localStorage.getItem(key), {});
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  }
+
+  function writeStorageObject(key, value) {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value || {}));
+    } catch (_error) {}
+  }
+
+  function toListMetaKey(type, listId) {
+    const safeType = String(type || '').trim().toLowerCase();
+    const safeListId = String(listId || '').trim();
+    if (!safeType || !safeListId) return '';
+    return `${safeType}:${safeListId}`;
+  }
+
+  function normalizeListKindValue(value, fallback = 'standard') {
+    const raw = String(value || '').trim().toLowerCase();
+    if (!raw) return fallback;
+    if (raw === 'tier' || raw === 'tierlist' || raw === 'tier_list') return 'tier';
+    if (raw === 'standard' || raw === 'list' || raw === 'custom' || raw === 'default') return 'standard';
+    if (
+      raw === 'movie' ||
+      raw === 'tv' ||
+      raw === 'game' ||
+      raw === 'book' ||
+      raw === 'music' ||
+      raw === 'restaurant'
+    ) {
+      return 'standard';
+    }
+    return fallback;
+  }
+
+  function normalizeTierMaxRank(value) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) return null;
+    return Math.max(1, Math.floor(parsed));
+  }
+
+  function setListMeta(type, listId, payload = {}) {
+    const key = toListMetaKey(type, listId);
+    if (!key) return;
+    const store = readStorageObject(LIST_META_STORAGE_KEY);
+    const listKind = normalizeListKindValue(payload.listKind, 'standard');
+    const maxRank = normalizeTierMaxRank(payload.maxRank);
+    store[key] = {
+      listKind,
+      maxRank
+    };
+    writeStorageObject(LIST_META_STORAGE_KEY, store);
+  }
+
+  function getListMeta(type, listId) {
+    const key = toListMetaKey(type, listId);
+    if (!key) return { listKind: 'standard', maxRank: null };
+    const store = readStorageObject(LIST_META_STORAGE_KEY);
+    const row = store[key] || {};
+    return {
+      listKind: normalizeListKindValue(row.listKind, 'standard'),
+      maxRank: normalizeTierMaxRank(row.maxRank)
+    };
+  }
+
+  function resolveListMeta(type, list = null, itemsCount = 0) {
+    const row = list && typeof list === 'object' ? list : {};
+    const listId = row.id || row.list_id || null;
+    const meta = listId ? getListMeta(type, listId) : { listKind: 'standard', maxRank: null };
+    const rowKind = normalizeListKindValue(
+      row.__listKind || row.__zo2yListKind || row.list_kind,
+      meta.listKind
+    );
+    const listKind = rowKind === 'tier' || meta.listKind === 'tier' ? 'tier' : 'standard';
+    const maxRank = normalizeTierMaxRank(
+      row.__tierMaxRank || row.__zo2yTierMaxRank || row.tier_max_rank || row.max_rank || meta.maxRank
+    );
+    return {
+      listKind,
+      isTier: listKind === 'tier',
+      maxRank: maxRank || (listKind === 'tier' ? Math.max(1, Number(itemsCount) || 1) : null)
+    };
+  }
+
+  function applyListMeta(type, list = null) {
+    if (!list || typeof list !== 'object') return list;
+    const resolved = resolveListMeta(type, list, 0);
+    return {
+      ...list,
+      __listKind: resolved.listKind,
+      __tierMaxRank: resolved.maxRank
+    };
+  }
+
+  function isTierList(type, list = null) {
+    return !!resolveListMeta(type, list, 0).isTier;
+  }
+
+  function toTierRankKey(type, listId) {
+    return toListMetaKey(type, listId);
+  }
+
+  function getTierRankMap(type, listId) {
+    const key = toTierRankKey(type, listId);
+    if (!key) return {};
+    const store = readStorageObject(TIER_RANK_STORAGE_KEY);
+    const row = store[key];
+    if (!row || typeof row !== 'object') return {};
+    return row;
+  }
+
+  function writeTierRankMap(type, listId, rankMap = {}) {
+    const key = toTierRankKey(type, listId);
+    if (!key) return;
+    const store = readStorageObject(TIER_RANK_STORAGE_KEY);
+    store[key] = rankMap;
+    writeStorageObject(TIER_RANK_STORAGE_KEY, store);
+  }
+
+  function getTierRank(type, listId, itemId) {
+    const map = getTierRankMap(type, listId);
+    const key = String(itemId || '').trim();
+    if (!key) return null;
+    return normalizeTierMaxRank(map[key]);
+  }
+
+  function setTierRank(type, listId, itemId, rankValue) {
+    const key = String(itemId || '').trim();
+    if (!key) return;
+    const map = { ...getTierRankMap(type, listId) };
+    const nextRank = normalizeTierMaxRank(rankValue);
+    if (!nextRank) {
+      delete map[key];
+    } else {
+      map[key] = nextRank;
+    }
+    writeTierRankMap(type, listId, map);
+  }
+
+  function sortIdsByTierRank(type, listId, itemIds = []) {
+    const ids = Array.isArray(itemIds) ? [...itemIds] : [];
+    if (!ids.length) return ids;
+    const indexed = ids.map((itemId, index) => ({ itemId, index }));
+    indexed.sort((a, b) => {
+      const aRank = getTierRank(type, listId, a.itemId);
+      const bRank = getTierRank(type, listId, b.itemId);
+      const safeARank = Number.isFinite(aRank) ? aRank : Number.POSITIVE_INFINITY;
+      const safeBRank = Number.isFinite(bRank) ? bRank : Number.POSITIVE_INFINITY;
+      if (safeARank !== safeBRank) return safeARank - safeBRank;
+      return a.index - b.index;
+    });
+    return indexed.map((entry) => entry.itemId);
+  }
+
   const LIST_UX_STYLE_ID = 'zo2yListUxStyle';
   let listUxBound = false;
 
@@ -100,6 +278,64 @@
       .zo2y-list-click-lift {
         animation: zo2yListSlideUpClick 280ms cubic-bezier(0.22, 1, 0.36, 1);
         will-change: transform;
+      }
+      .zo2y-tier-create {
+        margin-top: 10px;
+        margin-bottom: 12px;
+        display: grid;
+        gap: 8px;
+      }
+      .zo2y-tier-label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.75);
+      }
+      .zo2y-tier-kind-row {
+        display: inline-flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .zo2y-tier-kind-btn {
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.04);
+        color: #ffffff;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 7px 12px;
+        cursor: pointer;
+        transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+      }
+      .zo2y-tier-kind-btn.active {
+        border-color: rgba(245, 158, 11, 0.82);
+        background: rgba(245, 158, 11, 0.16);
+        color: #f59e0b;
+      }
+      .zo2y-tier-max-wrap {
+        display: grid;
+        gap: 6px;
+      }
+      .zo2y-tier-max-wrap.hidden {
+        display: none;
+      }
+      .zo2y-tier-max-input {
+        width: 100%;
+        max-width: 190px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.04);
+        color: #ffffff;
+        padding: 0 10px;
+        font-size: 13px;
+      }
+      .zo2y-tier-max-input:focus {
+        outline: none;
+        border-color: #f59e0b;
+      }
+      .zo2y-tier-hint {
+        margin: 0;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.62);
       }
     `;
     document.head.appendChild(style);
@@ -141,10 +377,115 @@
     });
   }
 
+  function setTierCreateKind(block, nextKind) {
+    if (!block) return;
+    const normalizedKind = normalizeListKindValue(nextKind, 'standard');
+    const hiddenInput = block.querySelector('.zo2y-tier-kind-value');
+    if (hiddenInput) hiddenInput.value = normalizedKind;
+    block.querySelectorAll('.zo2y-tier-kind-btn').forEach((button) => {
+      const buttonKind = normalizeListKindValue(button.getAttribute('data-list-kind'), 'standard');
+      button.classList.toggle('active', buttonKind === normalizedKind);
+    });
+    const maxWrap = block.querySelector('.zo2y-tier-max-wrap');
+    if (maxWrap) {
+      maxWrap.classList.toggle('hidden', normalizedKind !== 'tier');
+    }
+  }
+
+  function ensureTierCreateControl(modal) {
+    if (!modal || typeof modal.querySelector !== 'function') return null;
+    let block = modal.querySelector('.zo2y-tier-create');
+    if (block) return block;
+    const firstInput = modal.querySelector('input[id^="new"][id$="ListName"], #newListNameInput, #editMediaListName, #listName');
+    if (!firstInput) return null;
+
+    const anchor = modal.querySelector('.icon-options, .menu-icon-grid, .menu-modal-actions, .modal-actions, .form-actions');
+    block = document.createElement('div');
+    block.className = 'zo2y-tier-create';
+    block.innerHTML = `
+      <div class="zo2y-tier-label">List Type</div>
+      <input type="hidden" class="zo2y-tier-kind-value" value="standard">
+      <div class="zo2y-tier-kind-row">
+        <button type="button" class="zo2y-tier-kind-btn active" data-list-kind="standard">Standard</button>
+        <button type="button" class="zo2y-tier-kind-btn" data-list-kind="tier">Tier List</button>
+      </div>
+      <div class="zo2y-tier-max-wrap hidden">
+        <div class="zo2y-tier-label">Max Rank (optional)</div>
+        <input type="number" class="zo2y-tier-max-input" min="1" step="1" placeholder="Auto by item count">
+        <p class="zo2y-tier-hint">Leave empty to use the number of items in the list.</p>
+      </div>
+    `;
+
+    if (anchor && anchor.parentNode) {
+      anchor.parentNode.insertBefore(block, anchor);
+    } else {
+      const host = firstInput.closest('.modal-content, .menu-modal-body, .modal-body') || modal;
+      host.appendChild(block);
+    }
+
+    block.querySelectorAll('.zo2y-tier-kind-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        setTierCreateKind(block, button.getAttribute('data-list-kind'));
+      });
+    });
+
+    setTierCreateKind(block, 'standard');
+    return block;
+  }
+
+  function readTierCreateState(modal) {
+    const block = ensureTierCreateControl(modal);
+    if (!block) return { listKind: 'standard', maxRank: null };
+    const kindValue = block.querySelector('.zo2y-tier-kind-value')?.value;
+    const listKind = normalizeListKindValue(kindValue, 'standard');
+    const maxInput = block.querySelector('.zo2y-tier-max-input');
+    const maxRank = listKind === 'tier' ? normalizeTierMaxRank(maxInput?.value) : null;
+    return { listKind, maxRank };
+  }
+
+  function setTierCreateState(modal, state = {}) {
+    const block = ensureTierCreateControl(modal);
+    if (!block) return;
+    const listKind = normalizeListKindValue(state.listKind, 'standard');
+    const maxRank = normalizeTierMaxRank(state.maxRank);
+    setTierCreateKind(block, listKind);
+    const maxInput = block.querySelector('.zo2y-tier-max-input');
+    if (maxInput) {
+      maxInput.value = maxRank ? String(maxRank) : '';
+    }
+  }
+
+  function resetTierCreateState(modal) {
+    setTierCreateState(modal, { listKind: 'standard', maxRank: null });
+  }
+
+  function ensureKnownTierCreateControls(scope = document) {
+    if (!scope || typeof scope.querySelectorAll !== 'function') return;
+    KNOWN_TIER_CREATE_MODAL_SELECTORS.forEach((selector) => {
+      scope.querySelectorAll(selector).forEach((modal) => {
+        ensureTierCreateControl(modal);
+      });
+    });
+  }
+
   function bindGlobalListUx() {
     if (listUxBound || typeof document === 'undefined' || typeof window === 'undefined') return;
     listUxBound = true;
     ensureListUxStyles();
+    ensureKnownTierCreateControls(document);
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (!(node instanceof HTMLElement)) return;
+          if (KNOWN_TIER_CREATE_MODAL_SELECTORS.some((selector) => node.matches?.(selector))) {
+            ensureTierCreateControl(node);
+          }
+          ensureKnownTierCreateControls(node);
+        });
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 
     document.addEventListener('click', (event) => {
       playListClickLift(event.target);
@@ -193,10 +534,11 @@
       .order('created_at', { ascending: false });
     if (error) return [];
     const lists = data || [];
+    const enhanced = lists.map((list) => applyListMeta(type, list));
     if (cfg.filterTitles && cfg.filterTitles.length) {
-      return lists.filter(list => !cfg.filterTitles.includes(list.title));
+      return enhanced.filter(list => !cfg.filterTitles.includes(list.title));
     }
-    return lists;
+    return enhanced;
   }
 
   async function loadCustomListMembership(client, userId, type, itemId, listIds) {
@@ -245,10 +587,15 @@
   async function createCustomList(client, userId, type, payload) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return null;
+    const normalizedType = String(type || '').toLowerCase();
+    const listKind = normalizeListKindValue(payload?.listKind, 'standard');
+    const maxRank = normalizeTierMaxRank(payload?.maxRank);
+    const dbListKind = listKind === 'tier' ? 'tier' : normalizedType;
     let insertPayload = {
       user_id: userId,
       title: payload.title,
       icon: payload.icon || cfg.defaultIcon || 'fas fa-list',
+      list_kind: dbListKind,
       created_at: new Date().toISOString()
     };
     if (cfg.listTable === 'lists') {
@@ -258,13 +605,32 @@
         is_default: false
       };
     }
-    const { data, error } = await client
+    let data = null;
+    let error = null;
+
+    const insertOnce = async (nextPayload) => client
       .from(cfg.listTable)
-      .insert(insertPayload)
+      .insert(nextPayload)
       .select('*')
       .single();
-    if (error) return null;
-    return data || null;
+
+    ({ data, error } = await insertOnce(insertPayload));
+    const message = String(error?.message || '').toLowerCase();
+    const details = String(error?.details || '').toLowerCase();
+    const missingListKindColumn = !!error && (
+      message.includes('list_kind') ||
+      details.includes('list_kind') ||
+      error.code === '42703'
+    );
+    if (missingListKindColumn) {
+      const retryPayload = { ...insertPayload };
+      delete retryPayload.list_kind;
+      ({ data, error } = await insertOnce(retryPayload));
+    }
+    if (error || !data) return null;
+
+    setListMeta(normalizedType, data.id, { listKind, maxRank });
+    return applyListMeta(normalizedType, data);
   }
 
   async function renameCustomList(client, userId, type, listId, title) {
@@ -285,6 +651,21 @@
     coerceItemId,
     normalizeIconKey,
     renderListIcon,
+    normalizeListKindValue,
+    normalizeTierMaxRank,
+    setListMeta,
+    getListMeta,
+    resolveListMeta,
+    applyListMeta,
+    isTierList,
+    getTierRank,
+    setTierRank,
+    sortIdsByTierRank,
+    ensureTierCreateControl,
+    readTierCreateState,
+    setTierCreateState,
+    resetTierCreateState,
+    ensureKnownTierCreateControls,
     ensureListUxStyles,
     playListClickLift,
     syncActiveMenuModals,

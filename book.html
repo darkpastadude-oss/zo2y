@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -676,11 +676,11 @@
         <div class="rating-input">
           <label>Your Rating:</label>
           <div class="stars-rating">
-            <span class="star" data-rating="1">â˜…</span>
-            <span class="star" data-rating="2">â˜…</span>
-            <span class="star" data-rating="3">â˜…</span>
-            <span class="star" data-rating="4">â˜…</span>
-            <span class="star" data-rating="5">â˜…</span>
+            <span class="star" data-rating="1">★</span>
+            <span class="star" data-rating="2">★</span>
+            <span class="star" data-rating="3">★</span>
+            <span class="star" data-rating="4">★</span>
+            <span class="star" data-rating="5">★</span>
           </div>
           <span class="rating-text" id="ratingText">Select your rating</span>
         </div>
@@ -1216,10 +1216,16 @@
         if (!input || !input.value.trim()) return;
         if (!supabaseClient || !currentUser) return;
         const title = input.value.trim();
+        const modal = document.getElementById('movieListsModal');
+        const tierState = window.ListUtils && modal
+          ? ListUtils.readTierCreateState(modal)
+          : { listKind: 'standard', maxRank: null };
         const data = window.ListUtils
           ? await ListUtils.createCustomList(supabaseClient, currentUser.id, 'book', {
             title,
-            icon: selectedIcon || 'fas fa-book'
+            icon: selectedIcon || 'fas fa-book',
+          listKind: tierState.listKind,
+          maxRank: tierState.maxRank
           })
           : null;
         if (!data) {
@@ -1227,6 +1233,7 @@
           return;
         }
         input.value = '';
+        if (window.ListUtils && modal) ListUtils.resetTierCreateState(modal);
         customLists.unshift(data);
         openMovieListsModal();
       }

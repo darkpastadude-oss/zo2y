@@ -404,6 +404,50 @@
             gap: 12px;
         }
 
+        .tier-list-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(245, 158, 11, 0.45);
+            background: rgba(245, 158, 11, 0.14);
+            color: #f59e0b;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 9px;
+            margin-top: 6px;
+            width: fit-content;
+        }
+
+        .collection-item-rank {
+            margin-top: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .collection-item-rank-label {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .collection-item-rank-select {
+            min-width: 98px;
+            height: 30px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: rgba(15, 26, 52, 0.95);
+            color: var(--white);
+            font-size: 12px;
+            padding: 0 8px;
+            cursor: pointer;
+        }
+
+        .collection-item-rank-select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
         .collection-item-remove {
             position: absolute;
             top: 12px;
@@ -4361,6 +4405,7 @@ header, .top-stripe, .section-nav {
         </div>
     </div>
 
+    <script src="js/list-utils.js"></script>
     <script src="js/igdb-client.js"></script>
     <script>
         // ===== GLOBAL PROFILE MANAGER =====
@@ -4423,6 +4468,7 @@ header, .top-stripe, .section-nav {
             let renderMusicToken = 0;
             let renderRestaurantsToken = 0;
             let editingMediaList = null;
+            let currentMediaDetail = null;
             let hasPreloadedTabs = false;
             let tabSwitchToken = 0;
             const VALID_PROFILE_TABS = new Set(['restaurants', 'movies', 'tv', 'games', 'books', 'music', 'community']);
@@ -5618,6 +5664,17 @@ header, .top-stripe, .section-nav {
                 const title = document.getElementById('listName').value.trim();
                 const description = document.getElementById('listDescription').value.trim();
                 const icon = document.getElementById('selectedIcon').value;
+                const createListModal = document.getElementById('createListModal');
+                const tierState = window.ListUtils && createListModal
+                    ? ListUtils.readTierCreateState(createListModal)
+                    : { listKind: 'standard', maxRank: null };
+                const normalizedListKind = window.ListUtils
+                    ? ListUtils.normalizeListKindValue(tierState.listKind, 'standard')
+                    : (String(tierState.listKind || '').toLowerCase() === 'tier' ? 'tier' : 'standard');
+                const normalizedMaxRank = window.ListUtils
+                    ? ListUtils.normalizeTierMaxRank(tierState.maxRank)
+                    : null;
+                const dbListKind = normalizedListKind === 'tier' ? 'tier' : 'restaurant';
                 
                 if (!title) {
                     showToast('Please enter a list name', 'error');
@@ -5647,18 +5704,49 @@ header, .top-stripe, .section-nav {
                     if (isEditingList && editingListId) {
                         // UPDATE existing list
                         console.log('Updating list:', editingListId);
-                        
-                        const { error } = await supabase
+
+                        const updatePayload = {
+                            title: title,
+                            description: description,
+                            icon: icon,
+                            list_kind: dbListKind,
+                            updated_at: new Date().toISOString()
+                        };
+                        const hasListKindColumnError = (error) => {
+                            const message = String(error?.message || '').toLowerCase();
+                            const details = String(error?.details || '').toLowerCase();
+                            return !!error && (
+                                error.code === '42703' ||
+                                message.includes('list_kind') ||
+                                details.includes('list_kind')
+                            );
+                        };
+
+                        let { error } = await supabase
                             .from('lists')
-                            .update({ 
-                                title: title, 
-                                description: description, 
-                                icon: icon,
-                                updated_at: new Date().toISOString()
-                            })
+                            .update(updatePayload)
                             .eq('id', editingListId);
 
+                        if (hasListKindColumnError(error)) {
+                            ({ error } = await supabase
+                                .from('lists')
+                                .update({
+                                    title: title,
+                                    description: description,
+                                    icon: icon,
+                                    updated_at: new Date().toISOString()
+                                })
+                                .eq('id', editingListId));
+                        }
+
                         if (error) throw error;
+
+                        if (window.ListUtils) {
+                            ListUtils.setListMeta('restaurant', editingListId, {
+                                listKind: normalizedListKind,
+                                maxRank: normalizedMaxRank
+                            });
+                        }
                         
                         // Update in local arrays
                         const listIndex = customLists.findIndex(l => l.id === editingListId);
@@ -5667,7 +5755,8 @@ header, .top-stripe, .section-nav {
                                 ...customLists[listIndex], 
                                 title, 
                                 description, 
-                                icon 
+                                icon,
+                                list_kind: dbListKind
                             };
                         }
                         
@@ -5677,7 +5766,8 @@ header, .top-stripe, .section-nav {
                                 ...listManager.userLists[userListIndex], 
                                 title, 
                                 description, 
-                                icon 
+                                icon,
+                                list_kind: dbListKind
                             };
                         }
                         
@@ -5686,8 +5776,8 @@ header, .top-stripe, .section-nav {
                     } else {
                         // CREATE new list
                         console.log('Creating new list:', title);
-                        
-                        const { data: newList, error } = await supabase
+
+                        let { data: newList, error } = await supabase
                             .from('lists')
                             .insert([{
                                 user_id: currentUser.id,
@@ -5695,12 +5785,45 @@ header, .top-stripe, .section-nav {
                                 description: description,
                                 is_default: false,
                                 icon: icon,
+                                list_kind: dbListKind,
                                 created_at: new Date().toISOString()
                             }])
                             .select()
                             .single();
+
+                        const hasListKindColumnError = (err) => {
+                            const message = String(err?.message || '').toLowerCase();
+                            const details = String(err?.details || '').toLowerCase();
+                            return !!err && (
+                                err.code === '42703' ||
+                                message.includes('list_kind') ||
+                                details.includes('list_kind')
+                            );
+                        };
+                        if (hasListKindColumnError(error)) {
+                            ({ data: newList, error } = await supabase
+                                .from('lists')
+                                .insert([{
+                                    user_id: currentUser.id,
+                                    title: title,
+                                    description: description,
+                                    is_default: false,
+                                    icon: icon,
+                                    created_at: new Date().toISOString()
+                                }])
+                                .select()
+                                .single());
+                        }
                         
                         if (error) throw error;
+
+                        if (window.ListUtils && newList?.id) {
+                            ListUtils.setListMeta('restaurant', newList.id, {
+                                listKind: normalizedListKind,
+                                maxRank: normalizedMaxRank
+                            });
+                            newList = ListUtils.applyListMeta('restaurant', newList);
+                        }
                         
                         console.log('List created:', newList);
                         
@@ -5716,6 +5839,9 @@ header, .top-stripe, .section-nav {
                     
                     if (form) form.reset();
                     document.getElementById('selectedIcon').value = 'heart';
+                    if (window.ListUtils && createListModal) {
+                        ListUtils.resetTierCreateState(createListModal);
+                    }
                     
                     // Reset editing state
                     isEditingList = false;
@@ -7238,6 +7364,71 @@ header, .top-stripe, .section-nav {
                 return new Set(map[type] || []);
             }
 
+            function getTierMetaForList(type, list, itemsCount = 0) {
+                if (!window.ListUtils) {
+                    return { listKind: 'standard', isTier: false, maxRank: null };
+                }
+                const safeType = String(type || '').toLowerCase();
+                const safeList = list && typeof list === 'object' ? list : {};
+                const resolved = ListUtils.resolveListMeta(safeType, safeList, itemsCount);
+                return resolved || { listKind: 'standard', isTier: false, maxRank: null };
+            }
+
+            function getCollectionTitleWithKind(type, list, listType) {
+                const baseTitle = String(list?.title || '');
+                if (listType !== 'custom') return baseTitle;
+                const tierMeta = getTierMetaForList(type, list, 0);
+                if (!tierMeta.isTier) return baseTitle;
+                return `${baseTitle} • Tier List`;
+            }
+
+            function buildTierRankControlMarkup(maxRank, currentRank) {
+                const safeMax = Math.max(1, Number(maxRank) || 1);
+                const selectedRank = Number.isFinite(Number(currentRank)) ? Number(currentRank) : null;
+                const options = ['<option value="">Unranked</option>'];
+                for (let rank = 1; rank <= safeMax; rank += 1) {
+                    options.push(`<option value="${rank}"${selectedRank === rank ? ' selected' : ''}>#${rank}</option>`);
+                }
+                return `
+                    <div class="collection-item-rank" onclick="event.stopPropagation()">
+                        <span class="collection-item-rank-label">Rank</span>
+                        <select class="collection-item-rank-select">
+                            ${options.join('')}
+                        </select>
+                    </div>
+                `;
+            }
+
+            function wireTierRankControl(card, mediaType, listId, itemId) {
+                if (!card || !window.ListUtils) return;
+                const select = card.querySelector('.collection-item-rank-select');
+                if (!select) return;
+                select.dataset.mediaType = String(mediaType || '').toLowerCase();
+                select.dataset.listId = String(listId || '');
+                select.dataset.itemId = String(itemId || '');
+                select.addEventListener('click', (e) => e.stopPropagation());
+                select.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    const target = e.currentTarget;
+                    if (!(target instanceof HTMLSelectElement)) return;
+                    void updateTierRank(
+                        target.dataset.mediaType,
+                        target.dataset.listId,
+                        target.dataset.itemId,
+                        target.value
+                    );
+                });
+            }
+
+            async function updateTierRank(mediaType, listId, itemId, nextRank) {
+                if (!isViewingOwnProfile || !window.ListUtils) return;
+                const safeType = String(mediaType || '').toLowerCase();
+                const safeListId = String(listId || '').trim();
+                const safeItemId = String(itemId || '').trim();
+                if (!safeType || !safeListId || !safeItemId) return;
+                ListUtils.setTierRank(safeType, safeListId, safeItemId, nextRank);
+            }
+
             function setEditMediaListModalMode(config, isCreate = false) {
                 const titleEl = document.getElementById('editMediaListModalTitle');
                 const submitBtn = document.querySelector('#editMediaListForm button[type="submit"]');
@@ -7275,7 +7466,9 @@ header, .top-stripe, .section-nav {
                     fallback: config.fallback,
                     label: config.label,
                     rerender: config.rerender,
-                    isCreate: true
+                    isCreate: true,
+                    listKind: 'standard',
+                    maxRank: null
                 };
 
                 const nameInput = document.getElementById('editMediaListName');
@@ -7283,6 +7476,10 @@ header, .top-stripe, .section-nav {
                 setEditMediaListIcon(config.fallback);
                 setEditMediaListModalMode(config, true);
                 showModal('editMediaListModal');
+                const editModal = document.getElementById('editMediaListModal');
+                if (window.ListUtils && editModal) {
+                    ListUtils.setTierCreateState(editModal, { listKind: 'standard', maxRank: null });
+                }
             }
 
             async function openMediaListEditor(type, listId, existing = null) {
@@ -7292,12 +7489,27 @@ header, .top-stripe, .section-nav {
 
                 let record = existing;
                 if (!record) {
-                    const { data, error } = await supabase
+                    let { data, error } = await supabase
                         .from(config.table)
-                        .select('id, title, icon')
+                        .select('id, title, icon, list_kind')
                         .eq('id', listId)
                         .eq('user_id', currentUser.id)
                         .single();
+                    const message = String(error?.message || '').toLowerCase();
+                    const details = String(error?.details || '').toLowerCase();
+                    const missingListKindColumn = !!error && (
+                        error.code === '42703' ||
+                        message.includes('list_kind') ||
+                        details.includes('list_kind')
+                    );
+                    if (missingListKindColumn) {
+                        ({ data, error } = await supabase
+                            .from(config.table)
+                            .select('id, title, icon')
+                            .eq('id', listId)
+                            .eq('user_id', currentUser.id)
+                            .single());
+                    }
                     if (error || !data) {
                         showToast('Could not load list', 'error');
                         return;
@@ -7312,7 +7524,9 @@ header, .top-stripe, .section-nav {
                     fallback: config.fallback,
                     label: config.label,
                     rerender: config.rerender,
-                    isCreate: false
+                    isCreate: false,
+                    listKind: getTierMetaForList(type, record, 0).listKind,
+                    maxRank: getTierMetaForList(type, record, 0).maxRank
                 };
 
                 const nameInput = document.getElementById('editMediaListName');
@@ -7320,15 +7534,23 @@ header, .top-stripe, .section-nav {
                 setEditMediaListIcon(record.icon || config.fallback);
                 setEditMediaListModalMode(config, false);
                 showModal('editMediaListModal');
+                const editModal = document.getElementById('editMediaListModal');
+                if (window.ListUtils && editModal) {
+                    const tierMeta = getTierMetaForList(type, record, 0);
+                    ListUtils.setTierCreateState(editModal, {
+                        listKind: tierMeta.listKind,
+                        maxRank: tierMeta.maxRank
+                    });
+                }
             }
 
-            async function createMediaListRecord(context, title, icon) {
+            async function createMediaListRecord(context, title, icon, listKind = 'standard', maxRank = null) {
                 const trimmedTitle = String(title || '').trim();
                 const normalizedTitle = trimmedTitle.toLowerCase();
                 const reservedTitles = getReservedMediaListTitles(context.type);
                 if (reservedTitles.has(normalizedTitle)) {
                     showToast('That name is reserved for a default list', 'warning');
-                    return false;
+                    return null;
                 }
 
                 const { data: existingLists, error: existingError } = await supabase
@@ -7337,7 +7559,7 @@ header, .top-stripe, .section-nav {
                     .eq('user_id', currentUser.id);
                 if (existingError) {
                     showToast('Could not verify existing lists', 'error');
-                    return false;
+                    return null;
                 }
 
                 const alreadyExists = (existingLists || []).some((list) =>
@@ -7345,42 +7567,80 @@ header, .top-stripe, .section-nav {
                 );
                 if (alreadyExists) {
                     showToast('A list with this name already exists', 'warning');
-                    return false;
+                    return null;
                 }
+
+                const normalizedKind = window.ListUtils
+                    ? ListUtils.normalizeListKindValue(listKind, 'standard')
+                    : (String(listKind || '').toLowerCase() === 'tier' ? 'tier' : 'standard');
+                const normalizedMaxRank = window.ListUtils
+                    ? ListUtils.normalizeTierMaxRank(maxRank)
+                    : null;
+                const dbListKind = normalizedKind === 'tier' ? 'tier' : context.type;
 
                 const insertBase = {
                     user_id: currentUser.id,
                     title: trimmedTitle,
                     icon,
+                    list_kind: dbListKind,
                     created_at: new Date().toISOString()
                 };
 
-                let insertError = null;
-                const { error: firstInsertError } = await supabase
+                const insertRow = async (payload, includeListKind = true) => supabase
                     .from(context.table)
-                    .insert(insertBase);
-                insertError = firstInsertError || null;
+                    .insert(payload)
+                    .select(includeListKind ? 'id,title,icon,list_kind' : 'id,title,icon')
+                    .single();
+
+                const hasListKindColumnError = (error) => {
+                    const message = String(error?.message || '').toLowerCase();
+                    const details = String(error?.details || '').toLowerCase();
+                    return !!error && (
+                        error.code === '42703' ||
+                        message.includes('list_kind') ||
+                        details.includes('list_kind')
+                    );
+                };
+
+                let insertPayload = { ...insertBase };
+                let { data: createdList, error: insertError } = await insertRow(insertPayload, true);
+
+                if (hasListKindColumnError(insertError)) {
+                    delete insertPayload.list_kind;
+                    ({ data: createdList, error: insertError } = await insertRow(insertPayload, false));
+                }
 
                 if (insertError) {
-                    const withId = {
-                        ...insertBase,
+                    insertPayload = {
+                        ...insertPayload,
                         id: (window.crypto && typeof window.crypto.randomUUID === 'function')
                             ? window.crypto.randomUUID()
                             : `${Date.now()}-${Math.random().toString(16).slice(2)}`
                     };
-                    const { error: retryError } = await supabase
-                        .from(context.table)
-                        .insert(withId);
-                    insertError = retryError || null;
+                    ({ data: createdList, error: insertError } = await insertRow(insertPayload, true));
+
+                    if (hasListKindColumnError(insertError)) {
+                        const fallbackPayload = { ...insertPayload };
+                        delete fallbackPayload.list_kind;
+                        ({ data: createdList, error: insertError } = await insertRow(fallbackPayload, false));
+                    }
                 }
 
-                if (insertError) {
+                if (insertError || !createdList) {
                     showToast(`Could not create ${context.label.toLowerCase()} list`, 'error');
-                    return false;
+                    return null;
+                }
+
+                if (window.ListUtils && createdList.id) {
+                    ListUtils.setListMeta(context.type, createdList.id, {
+                        listKind: normalizedKind,
+                        maxRank: normalizedMaxRank
+                    });
+                    createdList = ListUtils.applyListMeta(context.type, createdList);
                 }
 
                 showToast(`${context.label} list "${trimmedTitle}" created`, 'success');
-                return true;
+                return createdList;
             }
 
             async function handleEditMediaListSubmit(e) {
@@ -7389,8 +7649,15 @@ header, .top-stripe, .section-nav {
 
                 const nameInput = document.getElementById('editMediaListName');
                 const iconInput = document.getElementById('editMediaListSelectedIcon');
+                const editModal = document.getElementById('editMediaListModal');
                 const title = (nameInput?.value || '').trim();
                 const icon = normalizeIconKey(iconInput?.value || editingMediaList.fallback, editingMediaList.fallback);
+                const tierState = window.ListUtils && editModal
+                    ? ListUtils.readTierCreateState(editModal)
+                    : {
+                        listKind: editingMediaList.listKind || 'standard',
+                        maxRank: editingMediaList.maxRank || null
+                    };
 
                 if (!title) {
                     showToast('Please enter a list name', 'error');
@@ -7398,28 +7665,82 @@ header, .top-stripe, .section-nav {
                 }
 
                 if (editingMediaList.isCreate || !editingMediaList.id) {
-                    const created = await createMediaListRecord(editingMediaList, title, icon);
+                    const created = await createMediaListRecord(
+                        editingMediaList,
+                        title,
+                        icon,
+                        tierState.listKind,
+                        tierState.maxRank
+                    );
                     if (!created) return;
-                    const createdContext = { ...editingMediaList };
+                    const createdContext = {
+                        ...editingMediaList,
+                        listKind: tierState.listKind,
+                        maxRank: tierState.maxRank
+                    };
                     closeModal('editMediaListModal');
+                    if (window.ListUtils && editModal) {
+                        ListUtils.resetTierCreateState(editModal);
+                    }
                     if (typeof createdContext.rerender === 'function') {
                         await createdContext.rerender();
                     }
                     return;
                 }
 
-                const { error } = await supabase
+                const normalizedKind = window.ListUtils
+                    ? ListUtils.normalizeListKindValue(tierState.listKind, 'standard')
+                    : (String(tierState.listKind || '').toLowerCase() === 'tier' ? 'tier' : 'standard');
+                const normalizedMaxRank = window.ListUtils
+                    ? ListUtils.normalizeTierMaxRank(tierState.maxRank)
+                    : null;
+                const updatePayload = {
+                    title,
+                    icon,
+                    list_kind: normalizedKind === 'tier' ? 'tier' : editingMediaList.type
+                };
+                const hasListKindColumnError = (error) => {
+                    const message = String(error?.message || '').toLowerCase();
+                    const details = String(error?.details || '').toLowerCase();
+                    return !!error && (
+                        error.code === '42703' ||
+                        message.includes('list_kind') ||
+                        details.includes('list_kind')
+                    );
+                };
+
+                let { error } = await supabase
                     .from(editingMediaList.table)
-                    .update({ title, icon })
+                    .update(updatePayload)
                     .eq('id', editingMediaList.id)
                     .eq('user_id', currentUser.id);
+
+                if (hasListKindColumnError(error)) {
+                    const fallbackPayload = { title, icon };
+                    ({ error } = await supabase
+                        .from(editingMediaList.table)
+                        .update(fallbackPayload)
+                        .eq('id', editingMediaList.id)
+                        .eq('user_id', currentUser.id));
+                }
 
                 if (error) {
                     showToast('Could not save list changes', 'error');
                     return;
                 }
 
-                const updatedContext = { ...editingMediaList };
+                if (window.ListUtils) {
+                    ListUtils.setListMeta(editingMediaList.type, editingMediaList.id, {
+                        listKind: normalizedKind,
+                        maxRank: normalizedMaxRank
+                    });
+                }
+
+                const updatedContext = {
+                    ...editingMediaList,
+                    listKind: normalizedKind,
+                    maxRank: normalizedMaxRank
+                };
                 closeModal('editMediaListModal');
                 syncOpenCollectionDetailAfterEdit(updatedContext.type, updatedContext.id, title, icon);
                 if (typeof updatedContext.rerender === 'function') {
@@ -8436,13 +8757,19 @@ header, .top-stripe, .section-nav {
                     .eq('list_id', listId);
 
                 const restaurantIds = items ? items.map(i => i.restraunt_id) : [];
+                const listType = list.is_default ? 'default' : 'custom';
+                const tierMeta = getTierMetaForList('restaurant', list, restaurantIds.length);
+                const detailTitle = getCollectionTitleWithKind('restaurant', list, listType);
+                const detailDescription = tierMeta.isTier
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked from 1 to ${tierMeta.maxRank}.`
+                    : (list.description || '');
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileRestaurantDetailTitle');
                     const descEl = document.getElementById('mobileRestaurantDetailDescription');
                     const addBtn = document.getElementById('mobileAddToRestaurantListBtn');
-                    if (titleEl) titleEl.textContent = list.title;
-                    if (descEl) descEl.textContent = list.description || '';
+                    if (titleEl) titleEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
                     if (addBtn) addBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
                 } else {
                     const iconEl = document.getElementById('restaurantDetailIcon');
@@ -8450,17 +8777,18 @@ header, .top-stripe, .section-nav {
                     const descEl = document.getElementById('restaurantDetailDescription');
                     const actions = document.getElementById('restaurantDetailActions');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'restaurant');
-                    if (nameEl) nameEl.textContent = list.title;
-                    if (descEl) descEl.textContent = list.description || '';
+                    if (nameEl) nameEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = isViewingOwnProfile && !list.is_default ? 'flex' : 'none';
                 }
 
-                await renderRestaurantItems(restaurantIds, listId, isMobile);
+                await renderRestaurantItems(restaurantIds, listId, isMobile, list, listType);
 
-                currentActiveList = { ...list, id: listId, restaurantIds };
+                currentActiveList = { ...list, id: listId, restaurantIds, listType };
+                currentMediaDetail = { mediaType: 'restaurant', listId, listType, isMobile };
             }
 
-            async function renderRestaurantItems(restaurantIds, listId, isMobile) {
+            async function renderRestaurantItems(restaurantIds, listId, isMobile, list = null, listType = 'custom') {
                 const container = isMobile ? document.getElementById('mobileRestaurantItems') : document.getElementById('restaurantItemsContainer');
                 if (!container) return;
 
@@ -8482,12 +8810,30 @@ header, .top-stripe, .section-nav {
 
                 container.innerHTML = '';
 
-                const restaurantsData = restaurants.filter(r => restaurantIds.includes(r.id));
+                const tierMeta = getTierMetaForList('restaurant', list, restaurantIds.length);
+                const orderedRestaurantIds = (tierMeta.isTier && window.ListUtils)
+                    ? ListUtils.sortIdsByTierRank('restaurant', listId, restaurantIds)
+                    : [...restaurantIds];
+
+                const restaurantMap = new Map();
+                (restaurants || []).forEach((row) => {
+                    restaurantMap.set(String(row.id), row);
+                });
+                const restaurantsData = orderedRestaurantIds
+                    .map((id) => restaurantMap.get(String(id)))
+                    .filter(Boolean);
 
                 for (const restaurant of restaurantsData) {
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
                     itemCard.onclick = () => window.location.href = `restaurant.html?slug=${restaurant.slug}`;
+                    const canRank = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const rankMarkup = canRank
+                        ? buildTierRankControlMarkup(
+                            tierMeta.maxRank,
+                            window.ListUtils ? ListUtils.getTierRank('restaurant', listId, restaurant.id) : null
+                        )
+                        : '';
 
                     itemCard.innerHTML = `
                         <img class="collection-item-image" src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
@@ -8497,6 +8843,7 @@ header, .top-stripe, .section-nav {
                                 <span><i class="fas fa-utensils"></i> ${restaurant.category}</span>
                                 <span><i class="fas fa-star"></i> ${restaurant.rating}</span>
                             </div>
+                            ${rankMarkup}
                         </div>
                         ${isViewingOwnProfile ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${restaurant.id}, '${listId}', 'restaurant')">
@@ -8506,6 +8853,9 @@ header, .top-stripe, .section-nav {
                     `;
 
                     container.appendChild(itemCard);
+                    if (canRank) {
+                        wireTierRankControl(itemCard, 'restaurant', listId, restaurant.id);
+                    }
                 }
             }
 
@@ -8572,6 +8922,11 @@ header, .top-stripe, .section-nav {
                     .eq(listType === 'default' ? 'list_type' : 'list_id', listId);
 
                 const movieIds = items ? items.map(i => i.movie_id) : [];
+                const tierMeta = getTierMetaForList('movie', list, movieIds.length);
+                const detailTitle = getCollectionTitleWithKind('movie', list, listType);
+                const detailDescription = tierMeta.isTier
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked from 1 to ${tierMeta.maxRank}.`
+                    : (list.description || '');
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileMovieDetailTitle');
@@ -8579,8 +8934,8 @@ header, .top-stripe, .section-nav {
                     const actions = document.getElementById('mobileMovieDetailActions');
                     const editBtn = document.getElementById('mobileMovieListEditBtn');
                     const deleteBtn = document.getElementById('mobileMovieListDeleteBtn');
-                    if (titleEl) titleEl.textContent = list.title;
-                    if (descEl) descEl.textContent = list.description || '';
+                    if (titleEl) titleEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameMovieList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteMovieList(listId);
@@ -8592,17 +8947,18 @@ header, .top-stripe, .section-nav {
                     const editBtn = document.getElementById('movieListEditBtn');
                     const deleteBtn = document.getElementById('movieListDeleteBtn');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'list');
-                    if (nameEl) nameEl.textContent = list.title;
-                    if (descEl) descEl.textContent = list.description || '';
+                    if (nameEl) nameEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameMovieList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteMovieList(listId);
                 }
 
-                await renderMovieItems(movieIds, listId, listType, isMobile);
+                currentMediaDetail = { mediaType: 'movie', listId, listType, isMobile };
+                await renderMovieItems(movieIds, listId, listType, isMobile, list);
             }
 
-            async function renderMovieItems(movieIds, listId, listType, isMobile) {
+            async function renderMovieItems(movieIds, listId, listType, isMobile, list = null) {
                 const container = isMobile ? document.getElementById('mobileMovieItems') : document.getElementById('movieItemsContainer');
                 if (!container) return;
 
@@ -8618,13 +8974,26 @@ header, .top-stripe, .section-nav {
                 }
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                const tierMeta = getTierMetaForList('movie', list, movieIds.length);
+                const rankedMovieIds = (tierMeta.isTier && window.ListUtils)
+                    ? ListUtils.sortIdsByTierRank('movie', listId, movieIds)
+                    : [...movieIds];
 
-                const movies = await Promise.all(movieIds.map(id => fetchMovieDetails(id)));
+                const movies = await Promise.all(rankedMovieIds.map(id => fetchMovieDetails(id)));
 
                 container.innerHTML = '';
 
-                for (const movie of movies) {
+                for (let index = 0; index < movies.length; index += 1) {
+                    const movie = movies[index];
                     if (!movie) continue;
+                    const movieIdValue = rankedMovieIds[index] ?? movie.id;
+                    const canRank = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const rankMarkup = canRank
+                        ? buildTierRankControlMarkup(
+                            tierMeta.maxRank,
+                            window.ListUtils ? ListUtils.getTierRank('movie', listId, movieIdValue) : null
+                        )
+                        : '';
 
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
@@ -8638,14 +9007,18 @@ header, .top-stripe, .section-nav {
                                 <span><i class="fas fa-calendar"></i> ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</span>
                                 ${movie.vote_average ? `<span><i class="fas fa-star"></i> ${movie.vote_average.toFixed(1)}</span>` : ''}
                             </div>
+                            ${rankMarkup}
                         </div>
                         ${isViewingOwnProfile ? `
-                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movie.id}, '${listId}', 'movie', '${listType}')">
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')">
                                 <i class="fas fa-times"></i>
                             </button>
                         ` : ''}
                     `;
 
+                    if (canRank) {
+                        wireTierRankControl(itemCard, 'movie', listId, movieIdValue);
+                    }
                     container.appendChild(itemCard);
                 }
             }
@@ -8713,6 +9086,11 @@ header, .top-stripe, .section-nav {
                     .eq(listType === 'default' ? 'list_type' : 'list_id', listId);
 
                 const tvIds = items ? items.map(i => i.tv_id) : [];
+                const tierMeta = getTierMetaForList('tv', list, tvIds.length);
+                const detailTitle = getCollectionTitleWithKind('tv', list, listType);
+                const detailDescription = tierMeta.isTier
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked from 1 to ${tierMeta.maxRank}.`
+                    : (list.description || '');
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileTvDetailTitle');
@@ -8720,8 +9098,8 @@ header, .top-stripe, .section-nav {
                     const actions = document.getElementById('mobileTvDetailActions');
                     const editBtn = document.getElementById('mobileTvListEditBtn');
                     const deleteBtn = document.getElementById('mobileTvListDeleteBtn');
-                    if (titleEl) titleEl.textContent = list.title;
-                    if (descEl) descEl.textContent = list.description || '';
+                    if (titleEl) titleEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameTvList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
@@ -8733,17 +9111,18 @@ header, .top-stripe, .section-nav {
                     const editBtn = document.getElementById('tvListEditBtn');
                     const deleteBtn = document.getElementById('tvListDeleteBtn');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'tv');
-                    if (nameEl) nameEl.textContent = list.title;
-                    if (descEl) descEl.textContent = list.description || '';
+                    if (nameEl) nameEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameTvList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
                 }
 
-                await renderTvItems(tvIds, listId, listType, isMobile);
+                currentMediaDetail = { mediaType: 'tv', listId, listType, isMobile };
+                await renderTvItems(tvIds, listId, listType, isMobile, list);
             }
 
-            async function renderTvItems(tvIds, listId, listType, isMobile) {
+            async function renderTvItems(tvIds, listId, listType, isMobile, list = null) {
                 const container = isMobile ? document.getElementById('mobileTvItems') : document.getElementById('tvItemsContainer');
                 if (!container) return;
 
@@ -8759,13 +9138,26 @@ header, .top-stripe, .section-nav {
                 }
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                const tierMeta = getTierMetaForList('tv', list, tvIds.length);
+                const rankedTvIds = (tierMeta.isTier && window.ListUtils)
+                    ? ListUtils.sortIdsByTierRank('tv', listId, tvIds)
+                    : [...tvIds];
 
-                const shows = await Promise.all(tvIds.map(id => fetchTvDetails(id)));
+                const shows = await Promise.all(rankedTvIds.map(id => fetchTvDetails(id)));
 
                 container.innerHTML = '';
 
-                for (const show of shows) {
+                for (let index = 0; index < shows.length; index += 1) {
+                    const show = shows[index];
                     if (!show) continue;
+                    const tvIdValue = rankedTvIds[index] ?? show.id;
+                    const canRank = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const rankMarkup = canRank
+                        ? buildTierRankControlMarkup(
+                            tierMeta.maxRank,
+                            window.ListUtils ? ListUtils.getTierRank('tv', listId, tvIdValue) : null
+                        )
+                        : '';
 
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
@@ -8781,14 +9173,18 @@ header, .top-stripe, .section-nav {
                                 <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
                                 <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
                             </div>
+                            ${rankMarkup}
                         </div>
                         ${isViewingOwnProfile ? `
-                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${show.id}, '${listId}', 'tv', '${listType}')">
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')">
                                 <i class="fas fa-times"></i>
                             </button>
                         ` : ''}
                     `;
 
+                    if (canRank) {
+                        wireTierRankControl(itemCard, 'tv', listId, tvIdValue);
+                    }
                     container.appendChild(itemCard);
                 }
             }
@@ -8860,6 +9256,11 @@ header, .top-stripe, .section-nav {
                         .map(i => i.game_id)
                         .filter((id) => String(id || '').trim() !== '')
                 ));
+                const tierMeta = getTierMetaForList('game', list, gameIds.length);
+                const detailTitle = getCollectionTitleWithKind('game', list, listType);
+                const detailDescription = tierMeta.isTier
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked from 1 to ${tierMeta.maxRank}.`
+                    : (list.description || '');
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileGameDetailTitle');
@@ -8867,8 +9268,8 @@ header, .top-stripe, .section-nav {
                     const actions = document.getElementById('mobileGameDetailActions');
                     const editBtn = document.getElementById('mobileGameListEditBtn');
                     const deleteBtn = document.getElementById('mobileGameListDeleteBtn');
-                    if (titleEl) titleEl.textContent = list.title;
-                    if (descEl) descEl.textContent = list.description || '';
+                    if (titleEl) titleEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameGameList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteGameList(listId);
@@ -8880,17 +9281,18 @@ header, .top-stripe, .section-nav {
                     const editBtn = document.getElementById('gameListEditBtn');
                     const deleteBtn = document.getElementById('gameListDeleteBtn');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'game');
-                    if (nameEl) nameEl.textContent = list.title;
-                    if (descEl) descEl.textContent = list.description || '';
+                    if (nameEl) nameEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameGameList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteGameList(listId);
                 }
 
-                await renderGameItems(gameIds, listId, listType, isMobile);
+                currentMediaDetail = { mediaType: 'game', listId, listType, isMobile };
+                await renderGameItems(gameIds, listId, listType, isMobile, list);
             }
 
-            async function renderGameItems(gameIds, listId, listType, isMobile) {
+            async function renderGameItems(gameIds, listId, listType, isMobile, list = null) {
                 const container = isMobile ? document.getElementById('mobileGameItems') : document.getElementById('gameItemsContainer');
                 if (!container) return;
 
@@ -8906,8 +9308,12 @@ header, .top-stripe, .section-nav {
                 }
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                const tierMeta = getTierMetaForList('game', list, gameIds.length);
+                const rankedGameIds = (tierMeta.isTier && window.ListUtils)
+                    ? ListUtils.sortIdsByTierRank('game', listId, gameIds)
+                    : [...gameIds];
 
-                const games = await Promise.all(gameIds.map(async (id) => ({
+                const games = await Promise.all(rankedGameIds.map(async (id) => ({
                     id: String(id || '').trim(),
                     game: await fetchGameDetails(id)
                 })));
@@ -8927,6 +9333,13 @@ header, .top-stripe, .section-nav {
                     const gameTitle = game.name || game.slug || 'Untitled';
                     const safeGameId = resolvedGameId.replace(/'/g, "\\'");
                     const gameImage = normalizeGameImageSource(game);
+                    const canRank = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const rankMarkup = canRank
+                        ? buildTierRankControlMarkup(
+                            tierMeta.maxRank,
+                            window.ListUtils ? ListUtils.getTierRank('game', listId, resolvedGameId) : null
+                        )
+                        : '';
 
                     itemCard.innerHTML = `
                         <img class="collection-item-image" src="${gameImage}" alt="${gameTitle}" loading="lazy">
@@ -8936,6 +9349,7 @@ header, .top-stripe, .section-nav {
                                 <span><i class="fas fa-calendar"></i> ${game.released ? new Date(game.released).getFullYear() : 'N/A'}</span>
                                 <span><i class="fas fa-star"></i> ${game.rating ? game.rating.toFixed(1) : 'N/A'}</span>
                             </div>
+                            ${rankMarkup}
                         </div>
                         ${isViewingOwnProfile ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${safeGameId}', '${listId}', 'game', '${listType}')">
@@ -8944,6 +9358,9 @@ header, .top-stripe, .section-nav {
                         ` : ''}
                     `;
 
+                    if (canRank) {
+                        wireTierRankControl(itemCard, 'game', listId, resolvedGameId);
+                    }
                     container.appendChild(itemCard);
                 }
             }
@@ -9001,6 +9418,11 @@ header, .top-stripe, .section-nav {
                     .eq(listType === 'default' ? 'list_type' : 'list_id', listId === 'favorites' || listId === 'read' || listId === 'readlist' ? listId : listId);
 
                 const bookIds = items ? items.map(i => i.book_id) : [];
+                const tierMeta = getTierMetaForList('book', list, bookIds.length);
+                const detailTitle = getCollectionTitleWithKind('book', list, listType);
+                const detailDescription = tierMeta.isTier
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked from 1 to ${tierMeta.maxRank}.`
+                    : (list.description || '');
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileBookDetailTitle');
@@ -9008,8 +9430,8 @@ header, .top-stripe, .section-nav {
                     const actions = document.getElementById('mobileBookDetailActions');
                     const editBtn = document.getElementById('mobileBookListEditBtn');
                     const deleteBtn = document.getElementById('mobileBookListDeleteBtn');
-                    if (titleEl) titleEl.textContent = list.title;
-                    if (descEl) descEl.textContent = list.description || '';
+                    if (titleEl) titleEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameBookList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteBookList(listId);
@@ -9021,17 +9443,18 @@ header, .top-stripe, .section-nav {
                     const editBtn = document.getElementById('bookListEditBtn');
                     const deleteBtn = document.getElementById('bookListDeleteBtn');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'list');
-                    if (nameEl) nameEl.textContent = list.title;
-                    if (descEl) descEl.textContent = list.description || '';
+                    if (nameEl) nameEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameBookList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteBookList(listId);
                 }
 
-                await renderBookItems(bookIds, listId, listType, isMobile);
+                currentMediaDetail = { mediaType: 'book', listId, listType, isMobile };
+                await renderBookItems(bookIds, listId, listType, isMobile, list);
             }
 
-            async function renderBookItems(bookIds, listId, listType, isMobile) {
+            async function renderBookItems(bookIds, listId, listType, isMobile, list = null) {
                 const container = isMobile ? document.getElementById('mobileBookItems') : document.getElementById('bookItemsContainer');
                 if (!container) return;
 
@@ -9046,8 +9469,13 @@ header, .top-stripe, .section-nav {
                     return;
                 }
 
+                const tierMeta = getTierMetaForList('book', list, bookIds.length);
+                const rankedBookIds = (tierMeta.isTier && window.ListUtils)
+                    ? ListUtils.sortIdsByTierRank('book', listId, bookIds)
+                    : [...bookIds];
+
                 // Check cache first
-                const cacheKey = `profile_books_${listId}_${bookIds.join(',')}`;
+                const cacheKey = `profile_books_${listId}_${rankedBookIds.join(',')}`;
                 const cached = localStorage.getItem(cacheKey);
                 let bookData = null;
                 
@@ -9067,7 +9495,7 @@ header, .top-stripe, .section-nav {
                     const { data } = await supabase
                         .from('books')
                         .select('id, title, authors, published_date, thumbnail, publisher')
-                        .in('id', bookIds);
+                        .in('id', rankedBookIds);
                     
                     bookData = data || [];
                     // Cache the results
@@ -9079,8 +9507,8 @@ header, .top-stripe, .section-nav {
                 
                 container.innerHTML = '';
 
-                for (let i = 0; i < bookIds.length; i++) {
-                    const id = bookIds[i];
+                for (let i = 0; i < rankedBookIds.length; i++) {
+                    const id = rankedBookIds[i];
                     const row = bookMap.get(id);
                     const title = row?.title || 'Untitled';
                     const rawAuthors = row?.authors;
@@ -9094,6 +9522,13 @@ header, .top-stripe, .section-nav {
                     }
                     const metaYear = row?.published_date ? String(row.published_date).slice(0, 4) : 'N/A';
                     const image = row?.thumbnail || FALLBACK_BOOK_IMAGE;
+                    const canRank = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const rankMarkup = canRank
+                        ? buildTierRankControlMarkup(
+                            tierMeta.maxRank,
+                            window.ListUtils ? ListUtils.getTierRank('book', listId, id) : null
+                        )
+                        : '';
 
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
@@ -9107,6 +9542,7 @@ header, .top-stripe, .section-nav {
                                 <span><i class="fas fa-user"></i> ${ProfileManager.escapeHtml(subtitle)}</span>
                                 <span><i class="fas fa-calendar"></i> ${ProfileManager.escapeHtml(metaYear)}</span>
                             </div>
+                            ${rankMarkup}
                         </div>
                         ${isViewingOwnProfile ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${id}', '${listId}', 'book', '${listType}')">
@@ -9114,6 +9550,9 @@ header, .top-stripe, .section-nav {
                             </button>
                         ` : ''}
                     `;
+                    if (canRank) {
+                        wireTierRankControl(itemCard, 'book', listId, id);
+                    }
                     container.appendChild(itemCard);
                 }
             }
@@ -9174,6 +9613,11 @@ header, .top-stripe, .section-nav {
                     .eq(listType === 'default' ? 'list_type' : 'list_id', listId);
 
                 const trackIds = items ? items.map((i) => String(i.track_id || '').trim()).filter(Boolean) : [];
+                const tierMeta = getTierMetaForList('music', list, trackIds.length);
+                const detailTitle = getCollectionTitleWithKind('music', list, listType);
+                const detailDescription = tierMeta.isTier
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked from 1 to ${tierMeta.maxRank}.`
+                    : (list.description || '');
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileMusicDetailTitle');
@@ -9181,8 +9625,8 @@ header, .top-stripe, .section-nav {
                     const actions = document.getElementById('mobileMusicDetailActions');
                     const editBtn = document.getElementById('mobileMusicListEditBtn');
                     const deleteBtn = document.getElementById('mobileMusicListDeleteBtn');
-                    if (titleEl) titleEl.textContent = list.title;
-                    if (descEl) descEl.textContent = list.description || '';
+                    if (titleEl) titleEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameMusicList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteMusicList(listId);
@@ -9194,17 +9638,18 @@ header, .top-stripe, .section-nav {
                     const editBtn = document.getElementById('musicListEditBtn');
                     const deleteBtn = document.getElementById('musicListDeleteBtn');
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'music');
-                    if (nameEl) nameEl.textContent = list.title;
-                    if (descEl) descEl.textContent = list.description || '';
+                    if (nameEl) nameEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameMusicList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteMusicList(listId);
                 }
 
-                await renderMusicItems(trackIds, listId, listType, isMobile);
+                currentMediaDetail = { mediaType: 'music', listId, listType, isMobile };
+                await renderMusicItems(trackIds, listId, listType, isMobile, list);
             }
 
-            async function renderMusicItems(trackIds, listId, listType, isMobile) {
+            async function renderMusicItems(trackIds, listId, listType, isMobile, list = null) {
                 const container = isMobile ? document.getElementById('mobileMusicItems') : document.getElementById('musicItemsContainer');
                 if (!container) return;
 
@@ -9220,17 +9665,28 @@ header, .top-stripe, .section-nav {
                 }
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
-                const tracks = await Promise.all(trackIds.map((id) => fetchMusicDetails(id)));
+                const tierMeta = getTierMetaForList('music', list, trackIds.length);
+                const rankedTrackIds = (tierMeta.isTier && window.ListUtils)
+                    ? ListUtils.sortIdsByTierRank('music', listId, trackIds)
+                    : [...trackIds];
+                const tracks = await Promise.all(rankedTrackIds.map((id) => fetchMusicDetails(id)));
                 container.innerHTML = '';
 
-                for (let i = 0; i < trackIds.length; i++) {
-                    const trackId = trackIds[i];
+                for (let i = 0; i < rankedTrackIds.length; i++) {
+                    const trackId = rankedTrackIds[i];
                     const track = tracks[i];
                     const title = track?.name || 'Track';
                     const artists = String(track?.artists || 'Unknown Artist').trim() || 'Unknown Artist';
                     const album = String(track?.album_name || 'Album').trim() || 'Album';
                     const image = String(track?.image_url || '').trim() || 'images/logo.png';
                     const openUrl = trackId ? `song.html?id=${encodeURIComponent(trackId)}` : 'music.html';
+                    const canRank = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const rankMarkup = canRank
+                        ? buildTierRankControlMarkup(
+                            tierMeta.maxRank,
+                            window.ListUtils ? ListUtils.getTierRank('music', listId, trackId) : null
+                        )
+                        : '';
 
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
@@ -9246,6 +9702,7 @@ header, .top-stripe, .section-nav {
                                 <span><i class="fas fa-user"></i> ${ProfileManager.escapeHtml(artists)}</span>
                                 <span><i class="fas fa-compact-disc"></i> ${ProfileManager.escapeHtml(album)}</span>
                             </div>
+                            ${rankMarkup}
                         </div>
                         ${isViewingOwnProfile ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${trackId}', '${listId}', 'music', '${listType}')">
@@ -9253,6 +9710,9 @@ header, .top-stripe, .section-nav {
                             </button>
                         ` : ''}
                     `;
+                    if (canRank) {
+                        wireTierRankControl(itemCard, 'music', listId, trackId);
+                    }
                     container.appendChild(itemCard);
                 }
             }
@@ -9268,6 +9728,7 @@ header, .top-stripe, .section-nav {
             }
 
             function hideBookDetail() {
+                currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileBookDetailSection');
@@ -9371,6 +9832,7 @@ header, .top-stripe, .section-nav {
             }
 
             function hideRestaurantDetail() {
+                currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileRestaurantDetailSection');
@@ -9392,6 +9854,7 @@ header, .top-stripe, .section-nav {
             }
 
             function hideMovieDetail() {
+                currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileMovieDetailSection');
@@ -9419,6 +9882,7 @@ header, .top-stripe, .section-nav {
             }
 
             function hideMusicDetail() {
+                currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileMusicDetailSection');
@@ -9446,6 +9910,7 @@ header, .top-stripe, .section-nav {
             }
 
             function hideTvDetail() {
+                currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileTvDetailSection');
@@ -9473,6 +9938,7 @@ header, .top-stripe, .section-nav {
             }
 
             function hideGameDetail() {
+                currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileGameDetailSection');
@@ -10362,6 +10828,7 @@ header, .top-stripe, .section-nav {
                 deleteBookList,
                 renameMusicList,
                 deleteMusicList,
+                updateTierRank,
                 removeFromCollection,
                 editCollection,
                 deleteCollection,

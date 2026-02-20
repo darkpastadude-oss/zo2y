@@ -798,15 +798,22 @@
       if (!title || !window.ListUtils || !currentUser?.id) return;
       const client = await ensureSupabase();
       if (!client) return;
+      const modal = document.getElementById('musicListsModal');
+      const tierState = modal
+        ? ListUtils.readTierCreateState(modal)
+        : { listKind: 'standard', maxRank: null };
       const created = await ListUtils.createCustomList(client, currentUser.id, 'music', {
         title,
-        icon: 'fas fa-music'
+        icon: 'fas fa-music',
+        listKind: tierState.listKind,
+        maxRank: tierState.maxRank
       });
       if (!created) {
         showToast('Could not create list', true);
         return;
       }
       input.value = '';
+      if (modal) ListUtils.resetTierCreateState(modal);
       state.customLists.unshift(created);
       renderMusicListsModal();
     }

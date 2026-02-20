@@ -1002,6 +1002,7 @@
     if (createModal) {
       createModal.classList.add('active');
       createModal.setAttribute('aria-hidden', 'false');
+      if (window.ListUtils) ListUtils.resetTierCreateState(createModal);
       syncMenuModalViewport(createModal);
       const content = createModal.querySelector('.menu-modal-content');
       if (content) {
@@ -1026,16 +1027,23 @@
       notify('Please enter a list name', true);
       return;
     }
+    const createModal = document.getElementById('createListModal');
+    const tierState = window.ListUtils && createModal
+      ? ListUtils.readTierCreateState(createModal)
+      : { listKind: 'standard', maxRank: null };
     const client = await ensureClient();
     if (!client) return;
     const created = await ListUtils.createCustomList(client, user.id, getMediaType(), {
       title,
-      icon: STATE.selectedIcon || 'fas fa-list'
+      icon: STATE.selectedIcon || 'fas fa-list',
+      listKind: tierState.listKind,
+      maxRank: tierState.maxRank
     });
     if (!created?.id) {
       notify('Could not create list', true);
       return;
     }
+    if (window.ListUtils && createModal) ListUtils.resetTierCreateState(createModal);
     STATE.customLists = [created, ...STATE.customLists.filter((list) => String(list.id) !== String(created.id))];
     STATE.selectedCustomLists.add(created.id);
     writeCachedCustomLists(STATE.customLists);

@@ -1024,10 +1024,16 @@
         if (!input || !input.value.trim()) return;
         if (!supabaseClient || !state.currentUser) return;
         const title = input.value.trim();
+        const modal = document.getElementById('gameListsModal');
+        const tierState = window.ListUtils && modal
+          ? ListUtils.readTierCreateState(modal)
+          : { listKind: 'standard', maxRank: null };
         const data = window.ListUtils
           ? await ListUtils.createCustomList(supabaseClient, state.currentUser.id, 'game', {
             title,
-            icon: state.selectedIcon || 'fas fa-gamepad'
+            icon: state.selectedIcon || 'fas fa-gamepad',
+          listKind: tierState.listKind,
+          maxRank: tierState.maxRank
           })
           : null;
         if (!data) {
@@ -1035,6 +1041,7 @@
           return;
         }
         input.value = '';
+        if (window.ListUtils && modal) ListUtils.resetTierCreateState(modal);
         state.customLists.unshift(data);
         openGameListsModal(state.activeGameId);
       }
