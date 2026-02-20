@@ -973,8 +973,8 @@
       z-index: 10000;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100dvw;
+      height: 100dvh;
       background: rgba(0, 0, 0, 0.75);
       backdrop-filter: blur(5px);
       padding: 0;
@@ -1069,6 +1069,11 @@
     .menu-quick-item.active {
       border-color: var(--accent);
       background: rgba(245, 158, 11, 0.15);
+    }
+
+    .menu-quick-item[aria-busy="true"] {
+      opacity: 0.72;
+      pointer-events: none;
     }
 
     .menu-quick-left {
@@ -2462,23 +2467,47 @@
     }
 
     async function saveToListFromHome(payload) {
+      const result = { ok: false, saved: null };
       const client = await ensureHomeSupabase();
       if (!client) {
         showHomeToast('List service unavailable', true);
-        return;
+        return result;
       }
       if (!homeCurrentUser?.id) {
         window.location.href = 'login.html';
-        return;
+        return result;
       }
 
       const mediaType = String(payload.mediaType || '').toLowerCase();
       const listType = payload.listType;
-      if (!payload.itemId || !listType) return;
+      const nextSaved = typeof payload.nextSaved === 'boolean' ? payload.nextSaved : null;
+      if (!payload.itemId || !listType) return result;
       if (!supportsHomeLists(mediaType)) {
         showHomeToast('Lists are not available for this media yet.');
-        return;
+        return result;
       }
+
+      const ensureLinkedMediaRecord = async (itemId) => {
+        if (mediaType === 'book') {
+          await client.from('books').upsert({
+            id: String(itemId),
+            title: payload.title || '',
+            authors: payload.subtitle || '',
+            thumbnail: payload.image || '',
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+        }
+
+        if (mediaType === 'music') {
+          await client.from('tracks').upsert({
+            id: String(itemId),
+            name: payload.title || '',
+            artists: payload.subtitle || '',
+            image_url: payload.image || '',
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+        }
+      };
 
       try {
         const defaultListTable = getHomeDefaultListTable(mediaType);
@@ -2487,24 +2516,36 @@
         if (defaultListTable) {
           const { table, itemField } = defaultListTable;
 
-          if (mediaType === 'book') {
-            await client.from('books').upsert({
-              id: String(itemId),
-              title: payload.title || '',
-              authors: payload.subtitle || '',
-              thumbnail: payload.image || '',
-              updated_at: new Date().toISOString()
-            }, { onConflict: 'id' });
+          if (nextSaved === false) {
+            const { error: deleteError } = await client
+              .from(table)
+              .delete()
+              .eq('user_id', homeCurrentUser.id)
+              .eq(itemField, itemId)
+              .eq('list_type', listType);
+            if (deleteError) {
+              showHomeToast('Could not update list', true);
+              return result;
+            }
+            showHomeToast('Removed from list');
+            result.ok = true;
+            result.saved = false;
+            return result;
           }
 
-          if (mediaType === 'music') {
-            await client.from('tracks').upsert({
-              id: String(itemId),
-              name: payload.title || '',
-              artists: payload.subtitle || '',
-              image_url: payload.image || '',
-              updated_at: new Date().toISOString()
-            }, { onConflict: 'id' });
+          if (nextSaved === true) {
+            await ensureLinkedMediaRecord(itemId);
+            const insertRow = { user_id: homeCurrentUser.id, list_type: listType };
+            insertRow[itemField] = itemId;
+            const { error: insertError } = await client.from(table).insert(insertRow);
+            if (insertError && String(insertError.code || '') !== '23505') {
+              showHomeToast('Could not add to list', true);
+              return result;
+            }
+            showHomeToast('Added to list');
+            result.ok = true;
+            result.saved = true;
+            return result;
           }
 
           const { data: existing } = await client
@@ -2519,20 +2560,26 @@
             const { error: deleteError } = await client.from(table).delete().eq('id', existing.id);
             if (deleteError) {
               showHomeToast('Could not update list', true);
-              return;
+              return result;
             }
             showHomeToast('Removed from list');
-            return;
+            result.ok = true;
+            result.saved = false;
+            return result;
           }
+
+          await ensureLinkedMediaRecord(itemId);
           const insertRow = { user_id: homeCurrentUser.id, list_type: listType };
           insertRow[itemField] = itemId;
           const { error: insertError } = await client.from(table).insert(insertRow);
           if (insertError && String(insertError.code || '') !== '23505') {
             showHomeToast('Could not add to list', true);
-            return;
+            return result;
           }
           showHomeToast('Added to list');
-          return;
+          result.ok = true;
+          result.saved = true;
+          return result;
         }
 
         if (mediaType === 'restaurant') {
@@ -2540,8 +2587,39 @@
           const listId = await ensureRestaurantList(homeCurrentUser.id, listType);
           if (!listId) {
             showHomeToast('Could not prepare list', true);
-            return;
+            return result;
           }
+
+          if (nextSaved === false) {
+            const { error: deleteError } = await client
+              .from('lists_restraunts')
+              .delete()
+              .eq('list_id', listId)
+              .eq('restraunt_id', restaurantId);
+            if (deleteError) {
+              showHomeToast('Could not update list', true);
+              return result;
+            }
+            showHomeToast('Removed from list');
+            result.ok = true;
+            result.saved = false;
+            return result;
+          }
+
+          if (nextSaved === true) {
+            const { error: insertError } = await client
+              .from('lists_restraunts')
+              .insert({ list_id: listId, restraunt_id: restaurantId });
+            if (insertError && String(insertError.code || '') !== '23505') {
+              showHomeToast('Could not add to list', true);
+              return result;
+            }
+            showHomeToast('Added to list');
+            result.ok = true;
+            result.saved = true;
+            return result;
+          }
+
           const { data: existing } = await client
             .from('lists_restraunts')
             .select('id')
@@ -2553,22 +2631,29 @@
             const { error: deleteError } = await client.from('lists_restraunts').delete().eq('id', existing.id);
             if (deleteError) {
               showHomeToast('Could not update list', true);
-              return;
+              return result;
             }
             showHomeToast('Removed from list');
-            return;
+            result.ok = true;
+            result.saved = false;
+            return result;
           }
-          const { error: insertError } = await client.from('lists_restraunts').insert({ list_id: listId, restraunt_id: restaurantId });
+          const { error: insertError } = await client
+            .from('lists_restraunts')
+            .insert({ list_id: listId, restraunt_id: restaurantId });
           if (insertError && String(insertError.code || '') !== '23505') {
             showHomeToast('Could not add to list', true);
-            return;
+            return result;
           }
           showHomeToast('Added to list');
-          return;
+          result.ok = true;
+          result.saved = true;
+          return result;
         }
       } catch (_err) {
         showHomeToast('Could not add to list', true);
       }
+      return result;
     }
 
     async function getHomeListStatusMap(mediaType, itemId, listKeys) {
@@ -2677,10 +2762,29 @@
       currentItem: null,
       quickRows: [],
       quickStatus: {},
+      pendingQuickKeys: new Set(),
       customLists: [],
       selectedCustomLists: new Set(),
       selectedIcon: 'fas fa-list'
     };
+
+    function syncMenuModalViewport(modal) {
+      if (!modal || !modal.classList.contains('active')) return;
+      const visual = window.visualViewport;
+      const top = (visual?.offsetTop || 0) + window.scrollY;
+      const left = (visual?.offsetLeft || 0) + window.scrollX;
+      const width = Math.max(0, Math.ceil(visual?.width || window.innerWidth || document.documentElement.clientWidth || 0));
+      const height = Math.max(0, Math.ceil(visual?.height || window.innerHeight || document.documentElement.clientHeight || 0));
+      modal.style.top = `${top}px`;
+      modal.style.left = `${left}px`;
+      modal.style.width = `${width}px`;
+      modal.style.height = `${height}px`;
+    }
+
+    function syncActiveMenuModalViewports() {
+      syncMenuModalViewport(document.getElementById('itemMenuModal'));
+      syncMenuModalViewport(document.getElementById('createListModal'));
+    }
 
     function syncMenuModalBodyLock() {
       const itemModal = document.getElementById('itemMenuModal');
@@ -2688,6 +2792,7 @@
       const anyActive = !!(itemModal?.classList.contains('active') || createModal?.classList.contains('active'));
       const onboardingActive = !!document.getElementById('homeOnboardingOverlay')?.classList.contains('active');
       if (anyActive) {
+        syncActiveMenuModalViewports();
         document.body.style.overflow = 'hidden';
       } else if (!onboardingActive) {
         document.body.style.overflow = '';
@@ -2700,6 +2805,7 @@
         itemModal.classList.remove('active');
         itemModal.setAttribute('aria-hidden', 'true');
       }
+      homeItemMenuState.pendingQuickKeys = new Set();
       syncMenuModalBodyLock();
     }
 
@@ -2766,8 +2872,9 @@
       }
       quickContainer.innerHTML = homeItemMenuState.quickRows.map((row) => {
         const isActive = !!homeItemMenuState.quickStatus[row.key];
+        const isBusy = homeItemMenuState.pendingQuickKeys.has(row.key);
         return `
-          <div class="menu-quick-item ${isActive ? 'active' : ''}" data-quick-key="${row.key}">
+          <div class="menu-quick-item ${isActive ? 'active' : ''}" data-quick-key="${row.key}" aria-busy="${isBusy ? 'true' : 'false'}">
             <div class="menu-quick-left">
               <i class="${row.icon}"></i>
               <span>${row.label}</span>
@@ -2781,10 +2888,21 @@
         node.addEventListener('click', async () => {
           const key = node.getAttribute('data-quick-key');
           if (!key) return;
+          if (homeItemMenuState.pendingQuickKeys.has(key)) return;
           const payload = buildItemMenuPayload();
           if (!payload) return;
-          await saveToListFromHome({ ...payload, listType: key });
-          await refreshItemMenuQuickStatus();
+          const previousSaved = !!homeItemMenuState.quickStatus[key];
+          const nextSaved = !previousSaved;
+          homeItemMenuState.pendingQuickKeys.add(key);
+          homeItemMenuState.quickStatus[key] = nextSaved;
+          renderItemMenuQuickLists();
+          const saveResult = await saveToListFromHome({ ...payload, listType: key, nextSaved });
+          if (!saveResult?.ok) {
+            homeItemMenuState.quickStatus[key] = previousSaved;
+          } else if (typeof saveResult.saved === 'boolean') {
+            homeItemMenuState.quickStatus[key] = saveResult.saved;
+          }
+          homeItemMenuState.pendingQuickKeys.delete(key);
           renderItemMenuQuickLists();
         });
       });
@@ -2835,6 +2953,7 @@
       const item = homeItemMenuState.currentItem;
       if (!item) return;
       homeItemMenuState.quickRows = getQuickRowsForMenu(item.mediaType);
+      homeItemMenuState.pendingQuickKeys = new Set();
       await refreshItemMenuQuickStatus();
 
       const cfg = getHomeListConfig(item.mediaType);
@@ -2876,6 +2995,7 @@
       };
       homeItemMenuState.quickRows = getQuickRowsForMenu(mediaType);
       homeItemMenuState.quickStatus = {};
+      homeItemMenuState.pendingQuickKeys = new Set();
       homeItemMenuState.customLists = [];
       homeItemMenuState.selectedCustomLists = new Set();
 
@@ -2891,6 +3011,7 @@
         itemModal.style.left = `${window.scrollX}px`;
         itemModal.classList.add('active');
         itemModal.setAttribute('aria-hidden', 'false');
+        syncMenuModalViewport(itemModal);
         // Center the modal content
         const content = itemModal.querySelector('.menu-modal-content');
         if (content) {
@@ -2956,6 +3077,7 @@
       if (createModal) {
         createModal.classList.add('active');
         createModal.setAttribute('aria-hidden', 'false');
+        syncMenuModalViewport(createModal);
       }
       syncMenuModalBodyLock();
     }
@@ -2987,6 +3109,7 @@
       if (itemModal) {
         itemModal.classList.add('active');
         itemModal.setAttribute('aria-hidden', 'false');
+        syncMenuModalViewport(itemModal);
       }
       syncMenuModalBodyLock();
       await loadItemMenuData();
@@ -4686,6 +4809,16 @@
           resetSpotlightTimer(true);
         }
       });
+
+      const syncModalViewportOnViewportChange = () => {
+        syncActiveMenuModalViewports();
+      };
+      window.addEventListener('scroll', syncModalViewportOnViewportChange, { passive: true });
+      window.addEventListener('resize', syncModalViewportOnViewportChange);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('scroll', syncModalViewportOnViewportChange);
+        window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
+      }
     });
   </script>
 </body>
