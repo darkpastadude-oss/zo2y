@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -611,6 +611,7 @@
   </div>
 
   <script src="js/list-utils.js"></script>
+  <script src="js/index-list-menu-adapter.js"></script>
   <script src="js/igdb-client.js"></script>
   <script>
     (function () {
@@ -832,22 +833,13 @@
                 <div class="card-meta">${gameDate}</div>
                 <div class="card-menu-wrap">
                   <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-                  <div class="list-menu">
-                    <div class="list-menu-panel">
-                      <div class="list-menu-title">Save to list</div>
-                      <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-                      <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Played</span><span class="list-action-state">Add</span></button>
-                      <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Backlog</span><span class="list-action-state">Add</span></button>
-                      <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
-                    </div>
-                  </div>
                 </div>
               </div>
               <p class="card-desc">${gameDesc}</p>
             </div>
           `;
           card.onclick = (e) => {
-            if (e.target.closest('.menu-btn') || e.target.closest('.list-menu-panel')) return;
+            if (e.target.closest('.menu-btn')) return;
             window.location.href = `game.html?id=${item.id}`;
           };
           wireCardMenu(card, item.id);
@@ -865,30 +857,12 @@
 
       function wireCardMenu(card, gameId) {
         const menuBtn = card.querySelector('.menu-btn');
-        const menu = card.querySelector('.list-menu');
-        if (!menuBtn || !menu) return;
+        if (!menuBtn) return;
         menuBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          const wasOpen = menu.classList.contains('open');
-          closeAllListMenus();
-          if (!wasOpen) {
-            menu.classList.add('open');
-            card.classList.add('menu-open');
-            showListMenuBackdrop();
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(card);
           }
-        });
-        menu.querySelectorAll('.list-action').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const listType = btn.getAttribute('data-list');
-            if (listType === 'custom') {
-              closeAllListMenus();
-              openGameListsModal(gameId);
-              return;
-            }
-            await toggleDefaultList(gameId, listType, card);
-            closeAllListMenus();
-          });
         });
       }
 
@@ -920,7 +894,7 @@
         hideListMenuBackdrop();
       }
 
-      async function toggleDefaultList(gameId, listType, card) {
+      async function toggleDefaultList(gameId, listType, card, forcedNextSaved) {
         if (!state.currentUser) {
           showNotification('Please sign in to save games', 'info');
           return { ok: false, saved: false };
@@ -928,7 +902,7 @@
         if (!supabaseClient) return { ok: false, saved: false };
         const status = state.listStatusMap.get(gameId) || { favorites: false, watched: false, watchlist: false };
         const previousSaved = !!status[listType];
-        const nextSaved = !previousSaved;
+        const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
         const opKey = `${gameId}:${listType}`;
         if (state.pendingDefaultOps.has(opKey)) {
           return { ok: false, saved: previousSaved };
@@ -1156,6 +1130,22 @@
         if (prevBtn) prevBtn.disabled = state.page <= 1;
         if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
         if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+      }
+
+      if (window.initIndexStyleListMenu) {
+        window.initIndexStyleListMenu({
+          mediaType: 'game',
+          itemIdAttr: 'data-game-id',
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            await initSupabase();
+            return supabaseClient;
+          },
+          getCurrentUser: () => state.currentUser,
+          notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved)
+        });
       }
 
       (async function init() {

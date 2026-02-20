@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/list-utils.js"></script>
+  <script src="js/index-list-menu-adapter.js"></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -843,7 +844,7 @@
       function truncateText(text, maxLen) {
         if (!text) return '';
         if (text.length <= maxLen) return text;
-        return `${text.slice(0, maxLen - 1)}â€¦`;
+        return `${text.slice(0, maxLen - 1)}…`;
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -1105,25 +1106,16 @@
             <div class="card-body">
               <h3 class="card-title">${item.title || 'Untitled'}</h3>
               <div class="card-meta-row">
-                <div class="card-meta">${authors}${year ? ` ï¿½ ${year}` : ''}</div>
+                <div class="card-meta">${authors}${year ? ` � ${year}` : ''}</div>
                 <div class="card-menu-wrap">
                   <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-                  <div class="list-menu">
-                    <div class="list-menu-panel">
-                      <div class="list-menu-title">Save to list</div>
-                      <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-                      <button class="list-action" data-list="read"><span><i class="fas fa-eye"></i> Read</span><span class="list-action-state">Add</span></button>
-                      <button class="list-action" data-list="readlist"><span><i class="fas fa-bookmark"></i> Readlist</span><span class="list-action-state">Add</span></button>
-                      <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
-                    </div>
-                  </div>
                 </div>
               </div>
               <div class="card-desc">${desc}</div>
             </div>
           `;
           card.onclick = (e) => {
-            if (e.target.closest('.menu-btn') || e.target.closest('.list-menu-panel')) return;
+            if (e.target.closest('.menu-btn')) return;
             window.location.href = `book.html?id=${bookId}`;
           };
           wireCardMenu(card, bookId);
@@ -1144,7 +1136,9 @@
         if (!menuBtn) return;
         menuBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          openItemMenuFromCard(card);
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(card);
+          }
         });
       }
 
@@ -1176,7 +1170,7 @@
         hideListMenuBackdrop();
       }
 
-      async function toggleDefaultList(bookId, listType, card) {
+      async function toggleDefaultList(bookId, listType, card, forcedNextSaved) {
         if (!state.currentUser) {
           showNotification('Please sign in to save books', 'info');
           return { ok: false, saved: false };
@@ -1184,7 +1178,7 @@
         if (!supabaseClient) return { ok: false, saved: false };
         const status = state.listStatusMap.get(bookId) || { favorites: false, read: false, readlist: false };
         const previousSaved = !!status[listType];
-        const nextSaved = !previousSaved;
+        const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
         const opKey = `${bookId}:${listType}`;
         if (state.pendingDefaultOps.has(opKey)) {
           return { ok: false, saved: previousSaved };
@@ -1443,9 +1437,21 @@
         if (searchInput) searchInput.value = search;
       }
 
-      // Expose list actions for the shared item-menu adapter block below.
-      window.toggleDefaultList = toggleDefaultList;
-      window.openBookListsModal = openBookListsModal;
+      if (window.initIndexStyleListMenu) {
+        window.initIndexStyleListMenu({
+          mediaType: 'book',
+          itemIdAttr: 'data-book-id',
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            await initSupabase();
+            return supabaseClient;
+          },
+          getCurrentUser: () => state.currentUser,
+          notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved)
+        });
+      }
 
       (async function init() {
         await initSupabase();
@@ -1456,90 +1462,6 @@
         renderFilters();
         loadBooks();
       })();
-    })();
-  </script>
-
-  <!-- Index-style item menu modal (copied/adapted) -->
-  <div id="itemMenuModal" class="menu-modal" aria-hidden="true">
-    <div class="menu-modal-content">
-      <div class="menu-modal-header">
-        <h3 id="menuModalTitle">Add to List</h3>
-        <button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">×</button>
-      </div>
-      <div class="menu-modal-body" id="menuModalBody">
-        <div class="menu-quick-lists" id="menuQuickLists">
-          <button class="list-action" data-list="favorites">Favorites</button>
-          <button class="list-action" data-list="read">Read</button>
-          <button class="list-action" data-list="readlist">Readlist</button>
-        </div>
-        <div class="menu-custom-section">
-          <div class="menu-custom-header">
-            <span>Your Custom Lists</span>
-            <button class="menu-create-list-btn" id="menuCreateListBtn">New</button>
-          </div>
-          <div class="menu-custom-lists" id="menuCustomLists"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    (function(){
-      let modalState = { card: null, bookId: null };
-
-      function openItemMenuFromCard(card){
-        if(!card) return;
-        modalState.card = card;
-        const bookId = card.getAttribute('data-book-id');
-        modalState.bookId = bookId ? String(bookId) : null;
-        const title = document.getElementById('menuModalTitle');
-        if(title) title.textContent = card.querySelector('.card-title')?.textContent || 'Add to List';
-        const modal = document.getElementById('itemMenuModal');
-        if(modal) {
-          modal.classList.add('active');
-          modal.setAttribute('aria-hidden', 'false');
-        }
-        document.body.style.overflow = 'hidden';
-      }
-
-      function closeItemMenuModal(){
-        const modal = document.getElementById('itemMenuModal');
-        if(modal) {
-          modal.classList.remove('active');
-          modal.setAttribute('aria-hidden', 'true');
-        }
-        document.body.style.overflow = '';
-        modalState.card = null;
-        modalState.bookId = null;
-      }
-
-      document.getElementById('closeMenuModalBtn')?.addEventListener('click', closeItemMenuModal);
-      document.getElementById('menuCreateListBtn')?.addEventListener('click', () => {
-        closeItemMenuModal();
-        if(typeof openBookListsModal === 'function') openBookListsModal(modalState.bookId);
-      });
-
-      document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeItemMenuModal(); });
-
-      // delegate quick list actions
-      document.getElementById('menuQuickLists')?.addEventListener('click', async (e)=>{
-        const btn = e.target.closest('.list-action');
-        if(!btn) return;
-        const list = btn.getAttribute('data-list');
-        if(!list) return;
-        if(typeof toggleDefaultList === 'function') {
-          await toggleDefaultList(modalState.bookId, list, modalState.card);
-        }
-        closeItemMenuModal();
-      });
-
-      // close modal when clicking outside content
-      document.getElementById('itemMenuModal')?.addEventListener('click', (e)=>{
-        if(e.target === e.currentTarget) closeItemMenuModal();
-      });
-      // expose for other scripts
-      window.openItemMenuFromCard = openItemMenuFromCard;
-      window.closeItemMenuModal = closeItemMenuModal;
     })();
   </script>
 </body>
