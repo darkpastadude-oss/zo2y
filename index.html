@@ -971,17 +971,19 @@
       display: none;
       position: absolute;
       z-index: 10000;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
       background: rgba(0, 0, 0, 0.75);
       backdrop-filter: blur(5px);
       padding: 0;
-      align-items: flex-start;
-      justify-content: flex-start;
-      width: auto;
-      height: auto;
+      align-items: center;
+      justify-content: center;
     }
 
     .menu-modal.active {
-      display: block;
+      display: flex;
     }
 
     .menu-modal-content {
@@ -2883,20 +2885,20 @@
       renderItemMenuCustomLists();
 
       const itemModal = document.getElementById('itemMenuModal');
-      if (itemModal && card) {
-        // Use the triggerBtn if provided, else fallback to card
-        let rect;
-        if (triggerBtn) {
-          rect = triggerBtn.getBoundingClientRect();
-        } else {
-          const btn = card.querySelector('.card-menu-btn');
-          rect = btn ? btn.getBoundingClientRect() : card.getBoundingClientRect();
-        }
-        // Position the modal near the button
-        itemModal.style.top = `${window.scrollY + rect.bottom + 8}px`;
-        itemModal.style.left = `${window.scrollX + rect.left}px`;
+      if (itemModal) {
+        // Center the modal in the viewport using absolute positioning
+        itemModal.style.top = `${window.scrollY}px`;
+        itemModal.style.left = `${window.scrollX}px`;
         itemModal.classList.add('active');
         itemModal.setAttribute('aria-hidden', 'false');
+        // Center the modal content
+        const content = itemModal.querySelector('.menu-modal-content');
+        if (content) {
+          content.style.position = 'absolute';
+          content.style.top = '50%';
+          content.style.left = '50%';
+          content.style.transform = 'translate(-50%, -50%)';
+        }
       }
       syncMenuModalBodyLock();
       await loadItemMenuData();
