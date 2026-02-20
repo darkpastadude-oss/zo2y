@@ -674,8 +674,10 @@
         }
 
         .mobile-viewing-indicator {
-            position: sticky;
+            position: fixed;
             top: 60px;
+            left: 0;
+            right: 0;
             z-index: 900;
             background: linear-gradient(135deg, var(--accent) 0%, #e69500 100%);
             color: #0b1633;
@@ -2347,8 +2349,11 @@
                 display: flex;
                 background: var(--card);
                 border-bottom: 1px solid var(--border);
-                position: sticky;
+                position: fixed;
                 top: 60px;
+                left: 0;
+                right: 0;
+                width: 100%;
                 z-index: 900;
                 overflow-x: auto;
                 overflow-y: hidden;
@@ -2357,6 +2362,10 @@
                 scroll-padding-inline: 12px;
                 gap: 4px;
                 padding: 0 12px;
+            }
+
+            body.mobile-viewing-other .mobile-tabs {
+                top: 114px;
             }
 
             .mobile-tab {
@@ -2423,8 +2432,12 @@
 
             /* Mobile Content Sections */
             .mobile-content {
-                padding: 16px;
+                padding: 74px 16px 80px;
                 padding-bottom: 80px;
+            }
+
+            body.mobile-viewing-other .mobile-content {
+                padding-top: 128px;
             }
 
             .mobile-section {
@@ -4802,6 +4815,7 @@ header, .top-stripe, .section-nav {
                 if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'inline-flex';
                 if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'inline-flex';
                 if (mobileCreateMusicListBtn) mobileCreateMusicListBtn.style.display = 'inline-flex';
+                document.body.classList.remove('mobile-viewing-other');
 
                 // Load profile - use cached if available
                 if (!userProfile) {
@@ -4852,6 +4866,7 @@ header, .top-stripe, .section-nav {
                 if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'none';
                 if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'none';
                 if (mobileCreateMusicListBtn) mobileCreateMusicListBtn.style.display = 'none';
+                document.body.classList.add('mobile-viewing-other');
 
                 const { data: profile, error } = await supabase
                     .from('user_profiles')
@@ -7572,13 +7587,21 @@ header, .top-stripe, .section-nav {
                 let isPersisting = false;
                 let orderDirty = false;
                 let previousTouchAction = '';
-                let pendingCard = null;
-                let pendingPointerId = null;
-                let pendingStartX = 0;
-                let pendingStartY = 0;
-                const MOUSE_DRAG_THRESHOLD = 6;
+                let dragMoved = false;
+                let dragStartX = 0;
+                let dragStartY = 0;
+                const DRAG_MOVE_THRESHOLD = 4;
                 const DRAG_CLICK_SUPPRESS_MS = 320;
+                const TOUCH_HOLD_DELAY_MS = 160;
+                const TOUCH_HOLD_CANCEL_DISTANCE = 10;
                 const supportsPointer = typeof window !== 'undefined' && ('PointerEvent' in window);
+                const pendingTouch = {
+                    card: null,
+                    touchId: null,
+                    startX: 0,
+                    startY: 0,
+                    timerId: null
+                };
 
                 const getContainerOrder = () => getCards()
                     .map((card) => String(card.dataset.tierItemId || '').trim())
@@ -7620,22 +7643,29 @@ header, .top-stripe, .section-nav {
                     }
                 };
 
-                const clearPendingDrag = () => {
-                    pendingCard = null;
-                    pendingPointerId = null;
-                    pendingStartX = 0;
-                    pendingStartY = 0;
+                const clearPendingTouch = () => {
+                    if (pendingTouch.timerId) {
+                        clearTimeout(pendingTouch.timerId);
+                    }
+                    pendingTouch.card = null;
+                    pendingTouch.touchId = null;
+                    pendingTouch.startX = 0;
+                    pendingTouch.startY = 0;
+                    pendingTouch.timerId = null;
                 };
 
                 const setDragUiState = (isDragging) => {
                     document.body.classList.toggle('tier-drag-active', !!isDragging);
                 };
 
-                const beginDrag = (card, { pointerId = null, touchId = null } = {}) => {
+                const beginDrag = (card, { pointerId = null, touchId = null, clientX = 0, clientY = 0 } = {}) => {
                     if (activeCard) return;
                     activeCard = card;
                     activePointerId = Number.isInteger(pointerId) ? pointerId : null;
                     activeTouchId = Number.isInteger(touchId) ? touchId : null;
+                    dragStartX = Number(clientX || 0);
+                    dragStartY = Number(clientY || 0);
+                    dragMoved = false;
                     startOrderKey = getContainerOrder().join('|');
                     orderDirty = false;
                     previousTouchAction = container.style.touchAction || '';
@@ -7643,7 +7673,7 @@ header, .top-stripe, .section-nav {
                     card.classList.add('is-dragging');
                     card.style.pointerEvents = 'none';
                     setDragUiState(true);
-                    clearPendingDrag();
+                    clearPendingTouch();
                     if (activePointerId !== null && typeof card.setPointerCapture === 'function') {
                         try {
                             card.setPointerCapture(activePointerId);
@@ -7653,6 +7683,11 @@ header, .top-stripe, .section-nav {
 
                 const moveActiveCardToPointer = (clientX, clientY) => {
                     if (!activeCard) return;
+                    const dx = Math.abs(Number(clientX || 0) - dragStartX);
+                    const dy = Math.abs(Number(clientY || 0) - dragStartY);
+                    if (!dragMoved && Math.max(dx, dy) >= DRAG_MOVE_THRESHOLD) {
+                        dragMoved = true;
+                    }
 
                     const siblings = getCards().filter((card) => card !== activeCard);
                     let insertBeforeNode = null;
@@ -7678,6 +7713,7 @@ header, .top-stripe, .section-nav {
 
                     if (moved) {
                         orderDirty = true;
+                        dragMoved = true;
                         refreshRankBadges();
                     }
                 };
@@ -7686,17 +7722,6 @@ header, .top-stripe, .section-nav {
                     if (activeCard && activePointerId !== null && event.pointerId === activePointerId) {
                         event.preventDefault();
                         moveActiveCardToPointer(event.clientX, event.clientY);
-                        return;
-                    }
-
-                    if (!activeCard && pendingCard && pendingPointerId !== null && event.pointerId === pendingPointerId) {
-                        const dx = Math.abs(Number(event.clientX || 0) - pendingStartX);
-                        const dy = Math.abs(Number(event.clientY || 0) - pendingStartY);
-                        if (Math.max(dx, dy) >= MOUSE_DRAG_THRESHOLD) {
-                            event.preventDefault();
-                            beginDrag(pendingCard, { pointerId: event.pointerId });
-                            moveActiveCardToPointer(event.clientX, event.clientY);
-                        }
                     }
                 };
 
@@ -7710,54 +7735,75 @@ header, .top-stripe, .section-nav {
                 };
 
                 const onTouchMove = (event) => {
-                    if (!activeCard || activeTouchId === null) return;
-                    const touch = resolveTouchById(event.touches, activeTouchId)
-                        || resolveTouchById(event.changedTouches, activeTouchId);
-                    if (!touch) return;
-                    event.preventDefault();
-                    moveActiveCardToPointer(touch.clientX, touch.clientY);
+                    if (activeCard && activeTouchId !== null) {
+                        const touch = resolveTouchById(event.touches, activeTouchId)
+                            || resolveTouchById(event.changedTouches, activeTouchId);
+                        if (!touch) return;
+                        event.preventDefault();
+                        moveActiveCardToPointer(touch.clientX, touch.clientY);
+                        return;
+                    }
+
+                    if (pendingTouch.card && pendingTouch.touchId !== null) {
+                        const touch = resolveTouchById(event.touches, pendingTouch.touchId);
+                        if (!touch) return;
+                        const dx = Math.abs(Number(touch.clientX || 0) - pendingTouch.startX);
+                        const dy = Math.abs(Number(touch.clientY || 0) - pendingTouch.startY);
+                        if (Math.max(dx, dy) >= TOUCH_HOLD_CANCEL_DISTANCE) {
+                            clearPendingTouch();
+                        }
+                    }
                 };
 
                 const finishDrag = async () => {
-                    if (!activeCard) {
-                        clearPendingDrag();
-                        return;
-                    }
+                    clearPendingTouch();
+                    if (!activeCard) return;
                     activeCard.classList.remove('is-dragging');
                     activeCard.style.pointerEvents = '';
                     const finalOrderKey = getContainerOrder().join('|');
                     const changed = finalOrderKey !== startOrderKey || orderDirty;
+                    const shouldSuppressClick = changed || dragMoved || activeTouchId !== null;
                     activeCard = null;
                     activePointerId = null;
                     activeTouchId = null;
                     startOrderKey = '';
                     orderDirty = false;
+                    dragMoved = false;
+                    dragStartX = 0;
+                    dragStartY = 0;
                     container.style.touchAction = previousTouchAction;
                     previousTouchAction = '';
                     setDragUiState(false);
-                    container.__tierSuppressClickUntil = Date.now() + DRAG_CLICK_SUPPRESS_MS;
+                    if (shouldSuppressClick) {
+                        container.__tierSuppressClickUntil = Date.now() + DRAG_CLICK_SUPPRESS_MS;
+                    }
                     if (changed) {
                         await persistCurrentOrder();
                     }
                 };
 
                 const onPointerUp = (event) => {
-                    if (activePointerId !== null && event.pointerId === activePointerId) {
+                    if (activeCard && activePointerId !== null && event.pointerId === activePointerId) {
                         event.preventDefault();
                         void finishDrag();
-                        return;
-                    }
-                    if (pendingPointerId !== null && event.pointerId === pendingPointerId) {
-                        clearPendingDrag();
                     }
                 };
 
                 const onTouchEnd = (event) => {
-                    if (activeTouchId === null) return;
-                    const finishedTouch = resolveTouchById(event.changedTouches, activeTouchId);
-                    if (!finishedTouch) return;
-                    event.preventDefault();
-                    void finishDrag();
+                    if (activeCard && activeTouchId !== null) {
+                        const finishedTouch = resolveTouchById(event.changedTouches, activeTouchId);
+                        if (!finishedTouch) return;
+                        event.preventDefault();
+                        void finishDrag();
+                        return;
+                    }
+
+                    if (pendingTouch.touchId !== null) {
+                        const pendingEndedTouch = resolveTouchById(event.changedTouches, pendingTouch.touchId);
+                        if (pendingEndedTouch) {
+                            clearPendingTouch();
+                        }
+                    }
                 };
 
                 if (supportsPointer) {
@@ -7796,6 +7842,9 @@ header, .top-stripe, .section-nav {
                     if (typeof card.__tierCardPointerDownHandler === 'function') {
                         card.removeEventListener('pointerdown', card.__tierCardPointerDownHandler);
                     }
+                    if (typeof card.__tierCardTouchStartHandler === 'function') {
+                        card.removeEventListener('touchstart', card.__tierCardTouchStartHandler);
+                    }
                     if (typeof card.__tierCardClickCaptureHandler === 'function') {
                         card.removeEventListener('click', card.__tierCardClickCaptureHandler, true);
                     }
@@ -7823,10 +7872,38 @@ header, .top-stripe, .section-nav {
                         if (targetEl && targetEl.closest('.collection-item-remove, .tier-drag-handle, a, button, input, select, textarea, [role="button"]')) {
                             return;
                         }
-                        pendingCard = card;
-                        pendingPointerId = event.pointerId;
-                        pendingStartX = Number(event.clientX || 0);
-                        pendingStartY = Number(event.clientY || 0);
+                        event.preventDefault();
+                        beginDrag(card, {
+                            pointerId: event.pointerId,
+                            clientX: event.clientX,
+                            clientY: event.clientY
+                        });
+                        moveActiveCardToPointer(event.clientX, event.clientY);
+                    };
+                    const cardTouchStartHandler = (event) => {
+                        if (activeCard) return;
+                        const targetEl = event.target instanceof Element ? event.target : null;
+                        if (targetEl && targetEl.closest('.collection-item-remove, a, button, input, select, textarea, [role="button"]')) {
+                            return;
+                        }
+                        const touch = event.changedTouches && event.changedTouches.length
+                            ? event.changedTouches[0]
+                            : (event.touches && event.touches.length ? event.touches[0] : null);
+                        if (!touch) return;
+                        clearPendingTouch();
+                        pendingTouch.card = card;
+                        pendingTouch.touchId = touch.identifier;
+                        pendingTouch.startX = Number(touch.clientX || 0);
+                        pendingTouch.startY = Number(touch.clientY || 0);
+                        pendingTouch.timerId = setTimeout(() => {
+                            if (!pendingTouch.card || pendingTouch.touchId === null) return;
+                            beginDrag(pendingTouch.card, {
+                                touchId: pendingTouch.touchId,
+                                clientX: pendingTouch.startX,
+                                clientY: pendingTouch.startY
+                            });
+                            moveActiveCardToPointer(pendingTouch.startX, pendingTouch.startY);
+                        }, TOUCH_HOLD_DELAY_MS);
                     };
                     const handleClickHandler = (event) => {
                         event.preventDefault();
@@ -7837,7 +7914,11 @@ header, .top-stripe, .section-nav {
                         if (event.pointerType === 'mouse' && event.button !== 0) return;
                         event.preventDefault();
                         event.stopPropagation();
-                        beginDrag(card, { pointerId: event.pointerId });
+                        beginDrag(card, {
+                            pointerId: event.pointerId,
+                            clientX: event.clientX,
+                            clientY: event.clientY
+                        });
                         moveActiveCardToPointer(event.clientX, event.clientY);
                     };
                     const handleTouchStartHandler = (event) => {
@@ -7846,20 +7927,26 @@ header, .top-stripe, .section-nav {
                         const touch = event.touches[0];
                         event.preventDefault();
                         event.stopPropagation();
-                        beginDrag(card, { touchId: touch.identifier });
+                        beginDrag(card, {
+                            touchId: touch.identifier,
+                            clientX: touch.clientX,
+                            clientY: touch.clientY
+                        });
                         moveActiveCardToPointer(touch.clientX, touch.clientY);
                     };
 
                     card.__tierCardPointerDownHandler = cardPointerDownHandler;
+                    card.__tierCardTouchStartHandler = cardTouchStartHandler;
                     card.__tierCardClickCaptureHandler = cardClickCaptureHandler;
                     handle.__tierPointerDownHandler = handlePointerDownHandler;
                     handle.__tierTouchStartHandler = handleTouchStartHandler;
                     handle.__tierClickHandler = handleClickHandler;
 
                     if (supportsPointer) {
-                        card.addEventListener('pointerdown', cardPointerDownHandler, { passive: true });
+                        card.addEventListener('pointerdown', cardPointerDownHandler, { passive: false });
                         handle.addEventListener('pointerdown', handlePointerDownHandler, { passive: false });
                     }
+                    card.addEventListener('touchstart', cardTouchStartHandler, { passive: true });
                     handle.addEventListener('touchstart', handleTouchStartHandler, { passive: false });
                     card.addEventListener('click', cardClickCaptureHandler, true);
                     handle.addEventListener('click', handleClickHandler);
