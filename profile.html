@@ -4424,6 +4424,8 @@ header, .top-stripe, .section-nav {
             let renderRestaurantsToken = 0;
             let editingMediaList = null;
             let hasPreloadedTabs = false;
+            let tabSwitchToken = 0;
+            const VALID_PROFILE_TABS = new Set(['restaurants', 'movies', 'tv', 'games', 'books', 'music', 'community']);
 
             // Avatar/icon palette (unicode escapes to avoid encoding issues)
             const foodIcons = [
@@ -7581,8 +7583,39 @@ header, .top-stripe, .section-nav {
                 });
             }
 
+            function normalizeProfileTab(tabName) {
+                const safeTab = String(tabName || '').trim().toLowerCase();
+                return VALID_PROFILE_TABS.has(safeTab) ? safeTab : 'restaurants';
+            }
+
+            function requestTabRender(tabName, requestToken) {
+                const handlers = {
+                    restaurants: () => renderRestaurants(),
+                    movies: () => renderMovies(),
+                    games: () => renderGames(),
+                    tv: () => renderTvShows(),
+                    books: () => renderBooks(),
+                    music: () => renderMusic(),
+                    community: () => showCommunitySection('followers')
+                };
+                const handler = handlers[tabName] || handlers.restaurants;
+                Promise.resolve()
+                    .then(() => handler())
+                    .catch((error) => {
+                        if (requestToken !== tabSwitchToken) return;
+                        console.error(`Tab render failed (${tabName}):`, error);
+                        showToast('Could not load this tab right now', 'error');
+                    });
+            }
+
             function showTab(tabName) {
+                const safeTab = normalizeProfileTab(tabName);
+                const requestToken = ++tabSwitchToken;
                 const isMobile = window.innerWidth <= 768;
+                const alreadyActive = isMobile
+                    ? !!document.querySelector(`.mobile-tab[data-tab="${safeTab}"]`)?.classList.contains('active')
+                    : !!document.querySelector(`.nav-tab[data-tab="${safeTab}"]`)?.classList.contains('active');
+                if (safeTab === currentTab && alreadyActive) return;
                 
                 if (isMobile) {
                     document.querySelectorAll('.mobile-section').forEach(section => {
@@ -7594,51 +7627,34 @@ header, .top-stripe, .section-nav {
                         tab.classList.remove('active');
                     });
                     
-                    const activeSection = document.getElementById(`mobile${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Section`);
+                    const activeSection =
+                        document.getElementById(`mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Section`) ||
+                        document.getElementById('mobileRestaurantsSection');
                     if (activeSection) {
                         activeSection.style.display = 'block';
                         activeSection.classList.add('active');
                     }
                     
-                    const activeTab = document.querySelector(`.mobile-tab[data-tab="${tabName}"]`);
+                    const activeTab =
+                        document.querySelector(`.mobile-tab[data-tab="${safeTab}"]`) ||
+                        document.querySelector('.mobile-tab[data-tab="restaurants"]');
                     if (activeTab) {
                         activeTab.classList.add('active');
                     }
-                    scrollActiveMobileTabIntoView(tabName);
+                    scrollActiveMobileTabIntoView(safeTab);
                     const swipeHint = document.getElementById('mobileTabsSwipeHint');
                     if (swipeHint) swipeHint.classList.add('hidden');
                     
-                    currentTab = tabName;
-                    
-                    switch(tabName) {
-                        case 'restaurants':
-                            renderRestaurants();
-                            break;
-                        case 'movies':
-                            renderMovies();
-                            break;
-                        case 'games':
-                            renderGames();
-                            break;
-                        case 'tv':
-                            renderTvShows();
-                            break;
-                        case 'books':
-                            renderBooks();
-                            break;
-                        case 'music':
-                            renderMusic();
-                            break;
-                        case 'community':
-                            showCommunitySection('followers');
-                            break;
-                    }
+                    currentTab = safeTab;
+                    requestTabRender(safeTab, requestToken);
                 } else {
                     document.querySelectorAll('.tab-content').forEach(tab => {
                         tab.classList.remove('active');
                     });
                     
-                    const tabElement = document.getElementById(`${tabName}-tab`);
+                    const tabElement =
+                        document.getElementById(`${safeTab}-tab`) ||
+                        document.getElementById('restaurants-tab');
                     if (tabElement) {
                         tabElement.classList.add('active');
                     }
@@ -7647,34 +7663,13 @@ header, .top-stripe, .section-nav {
                         btn.classList.remove('active');
                     });
                     
-                    const activeButton = document.querySelector(`.nav-tab[data-tab="${tabName}"]`);
+                    const activeButton =
+                        document.querySelector(`.nav-tab[data-tab="${safeTab}"]`) ||
+                        document.querySelector('.nav-tab[data-tab="restaurants"]');
                     if (activeButton) activeButton.classList.add('active');
                     
-                    currentTab = tabName;
-                    
-                    switch(tabName) {
-                        case 'restaurants':
-                            renderRestaurants();
-                            break;
-                        case 'movies':
-                            renderMovies();
-                            break;
-                        case 'games':
-                            renderGames();
-                            break;
-                        case 'tv':
-                            renderTvShows();
-                            break;
-                        case 'books':
-                            renderBooks();
-                            break;
-                        case 'music':
-                            renderMusic();
-                            break;
-                        case 'community':
-                            showCommunitySection('followers');
-                            break;
-                    }
+                    currentTab = safeTab;
+                    requestTabRender(safeTab, requestToken);
                 }
             }
 

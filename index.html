@@ -1585,11 +1585,12 @@
     }
   </style>
   <meta name="theme-color" content="#0b1633" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="/images/logo.png" />
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
   <link rel="stylesheet" href="/js/mobile-app.css" />
   <script src="/js/mobile-webapp.js" defer></script>
 </head>
@@ -1823,8 +1824,8 @@
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v2';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_CHANNEL_TIMEOUT_MS = 3200;
-    const HOME_BOOKS_FETCH_TIMEOUT_MS = 1600;
+    const HOME_CHANNEL_TIMEOUT_MS = 2800;
+    const HOME_BOOKS_FETCH_TIMEOUT_MS = 1200;
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 24;
     const HOME_SPOTLIGHT_POOL_SIZE = 24;
@@ -4942,6 +4943,14 @@
       const channels = getHomeChannels();
       const cachedFeed = readHomeFeedCache();
       const baselineFeed = cachedFeed || null;
+
+      if (!baselineFeed) {
+        const quickFeed = buildInstantFallbackFeed();
+        const quickResult = applyHomeFeedMap(quickFeed);
+        if (quickResult.scoredPool.length) {
+          setStatus('Quick feed ready. Syncing live data...', false);
+        }
+      }
 
       if (baselineFeed) {
         const cachedResult = applyHomeFeedMap(baselineFeed);
