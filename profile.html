@@ -507,7 +507,9 @@
 
         .collection-item-card.tier-draggable.is-dragging {
             opacity: 0.55;
-            transform: scale(0.995);
+            transform: scale(1.01);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+            z-index: 5;
         }
 
         .collection-item-remove {
@@ -7626,24 +7628,34 @@ header, .top-stripe, .section-nav {
                     } catch (_error) {}
                 };
 
-                const moveActiveCardToPointer = (clientY) => {
+                const moveActiveCardToPointer = (clientX, clientY) => {
                     if (!activeCard) return;
-                    const siblings = getCards().filter((card) => card !== activeCard);
-                    let placed = false;
-                    for (const sibling of siblings) {
-                        const rect = sibling.getBoundingClientRect();
-                        const midpoint = rect.top + (rect.height / 2);
-                        if (clientY < midpoint) {
-                            if (activeCard !== sibling.previousElementSibling) {
-                                container.insertBefore(activeCard, sibling);
-                                orderDirty = true;
-                                refreshRankBadges();
-                            }
-                            placed = true;
-                            break;
+
+                    const targetElement = document.elementFromPoint(clientX, clientY);
+                    const targetCard = targetElement instanceof Element
+                        ? targetElement.closest('.collection-item-card[data-tier-item-id]')
+                        : null;
+
+                    if (targetCard && targetCard !== activeCard && targetCard.parentElement === container) {
+                        const rect = targetCard.getBoundingClientRect();
+                        const before = clientY < (rect.top + (rect.height / 2));
+                        const referenceNode = before ? targetCard : targetCard.nextElementSibling;
+                        if (referenceNode !== activeCard && activeCard.nextElementSibling !== referenceNode) {
+                            container.insertBefore(activeCard, referenceNode);
+                            orderDirty = true;
+                            refreshRankBadges();
                         }
+                        return;
                     }
-                    if (!placed && container.lastElementChild !== activeCard) {
+
+                    const containerRect = container.getBoundingClientRect();
+                    if (clientY < containerRect.top && container.firstElementChild !== activeCard) {
+                        container.insertBefore(activeCard, container.firstElementChild);
+                        orderDirty = true;
+                        refreshRankBadges();
+                        return;
+                    }
+                    if (clientY > containerRect.bottom && container.lastElementChild !== activeCard) {
                         container.appendChild(activeCard);
                         orderDirty = true;
                         refreshRankBadges();
@@ -7653,7 +7665,7 @@ header, .top-stripe, .section-nav {
                 const onPointerMove = (event) => {
                     if (activeCard && activePointerId !== null && event.pointerId === activePointerId) {
                         event.preventDefault();
-                        moveActiveCardToPointer(event.clientY);
+                        moveActiveCardToPointer(event.clientX, event.clientY);
                         return;
                     }
 
@@ -7663,7 +7675,7 @@ header, .top-stripe, .section-nav {
                         if (Math.max(dx, dy) >= MOUSE_DRAG_THRESHOLD) {
                             event.preventDefault();
                             beginDrag(pendingCard, event);
-                            moveActiveCardToPointer(event.clientY);
+                            moveActiveCardToPointer(event.clientX, event.clientY);
                         }
                     }
                 };
@@ -7682,8 +7694,8 @@ header, .top-stripe, .section-nav {
                     orderDirty = false;
                     container.style.touchAction = previousTouchAction;
                     previousTouchAction = '';
-                    container.__tierSuppressClickUntil = Date.now() + 260;
                     if (changed) {
+                        container.__tierSuppressClickUntil = Date.now() + 260;
                         await persistCurrentOrder();
                     }
                 };
