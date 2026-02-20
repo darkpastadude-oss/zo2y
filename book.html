@@ -750,6 +750,7 @@
       let bookCoverUrl = null;
       let currentSort = 'latest';
       const listStatus = { favorites: false, read: false, readlist: false };
+      const pendingListOps = new Set();
       let customLists = [];
       let modalSelectedLists = new Set();
       let selectedIcon = 'fas fa-book';
@@ -1249,10 +1250,23 @@
         if (!menu) return;
         menu.querySelectorAll('.list-action').forEach(btn => {
           const listType = btn.getAttribute('data-list');
-          const isActive = !!listStatus[listType];
-          btn.classList.toggle('active', isActive);
           const state = btn.querySelector('.list-action-state');
+          if (listType === 'custom') {
+            btn.classList.remove('active');
+            btn.removeAttribute('aria-busy');
+            btn.style.pointerEvents = '';
+            btn.style.opacity = '';
+            if (state) state.textContent = 'Open';
+            return;
+          }
+          const isActive = !!listStatus[listType];
+          const opKey = `${String(normalizedBookId || '')}:${listType}`;
+          const isPending = pendingListOps.has(opKey);
+          btn.classList.toggle('active', isActive);
           if (state) state.textContent = isActive ? 'Saved' : 'Add';
+          btn.setAttribute('aria-busy', isPending ? 'true' : 'false');
+          btn.style.pointerEvents = isPending ? 'none' : '';
+          btn.style.opacity = isPending ? '0.72' : '';
         });
       }
 
@@ -1261,58 +1275,40 @@
           showNotification('Please sign in to save books', 'info');
           return;
         }
-        if (!normalizedBookId) return;
-        const isInList = listStatus[listType];
-        if (isInList) {
-          const { error } = await supabaseClient
-            .from('book_list_items')
-            .delete()
-            .eq('user_id', currentUser.id)
-            .eq('book_id', normalizedBookId)
-            .eq('list_type', listType);
-          if (error) {
-            console.error('Error removing from list', error);
-            showNotification(`Could not remove from list: ${error.message || JSON.stringify(error)}`, 'error');
-            return;
-          }
-          listStatus[listType] = false;
-          updateListMenuUI();
-          showNotification('Removed from list', 'info');
-        } else {
-          // Defensive: check if an identical item already exists to avoid conflicts (409)
-          try {
-            const { data: existing } = await supabaseClient
-              .from('book_list_items')
-              .select('id')
-              .match({ user_id: currentUser.id, book_id: normalizedBookId, list_type: listType })
-              .limit(1)
-              .single();
-            if (existing && existing.id) {
-              console.warn('List item already exists', existing);
-              listStatus[listType] = true;
-              updateListMenuUI();
-              showNotification('Already saved', 'info');
-              return;
-            }
-          } catch (e) {
-            // ignore single() not found error and continue to insert
-            if (e && e.message && !/No rows/.test(e.message)) console.warn('Check existing error', e);
-          }
+        if (!normalizedBookId || !(listType in listStatus)) return;
+        const opKey = `${String(normalizedBookId)}:${listType}`;
+        if (pendingListOps.has(opKey)) return;
 
-          // ensure book exists first to avoid FK violation
-          await upsertBookRecordLocal();
-          const { data, error } = await supabaseClient
-            .from('book_list_items')
-            .insert({ user_id: currentUser.id, book_id: normalizedBookId, list_type: listType })
-            .select('*');
-          if (error) {
-            console.error('Error adding to list', error);
-            showNotification(error?.message || error || JSON.stringify(error), 'error');
-            return;
+        const previousSaved = !!listStatus[listType];
+        const nextSaved = !previousSaved;
+        pendingListOps.add(opKey);
+        listStatus[listType] = nextSaved;
+        updateListMenuUI();
+
+        try {
+          if (nextSaved) {
+            await upsertBookRecordLocal();
+            const { error } = await supabaseClient
+              .from('book_list_items')
+              .insert({ user_id: currentUser.id, book_id: normalizedBookId, list_type: listType });
+            if (error && String(error.code || '') !== '23505') throw error;
+            showNotification('Saved to list', 'success');
+          } else {
+            const { error } = await supabaseClient
+              .from('book_list_items')
+              .delete()
+              .eq('user_id', currentUser.id)
+              .eq('book_id', normalizedBookId)
+              .eq('list_type', listType);
+            if (error) throw error;
+            showNotification('Removed from list', 'info');
           }
-          listStatus[listType] = true;
+        } catch (error) {
+          listStatus[listType] = previousSaved;
+          showNotification('Could not update list', 'error');
+        } finally {
+          pendingListOps.delete(opKey);
           updateListMenuUI();
-          showNotification('Saved to list', 'success');
         }
       }
 

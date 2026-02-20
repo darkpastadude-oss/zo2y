@@ -387,6 +387,7 @@
       page: 1,
       totalPages: 1,
       listStatusMap: new Map(),
+      pendingQuickOps: new Set(),
       modalTrack: null,
       customLists: [],
       selectedLists: new Set()
@@ -547,12 +548,47 @@
       });
     }
 
+    function getTrackListStatus(trackId) {
+      const id = String(trackId || '').trim();
+      const empty = { favorites: false, listened: false, listenlist: false };
+      if (!id) return empty;
+      if (!state.listStatusMap.has(id)) {
+        state.listStatusMap.set(id, { ...empty });
+      }
+      return state.listStatusMap.get(id);
+    }
+
+    function updateTrackMenuButtons(trackId) {
+      const id = String(trackId || '').trim();
+      if (!id) return;
+      const status = getTrackListStatus(id);
+      const card = Array.from(document.querySelectorAll('.card'))
+        .find((node) => String(node.getAttribute('data-id') || '').trim() === id);
+      if (!card) return;
+      const menu = card.querySelector('.menu');
+      if (!menu) return;
+      ['favorites', 'listened', 'listenlist'].forEach((listType) => {
+        const btn = menu.querySelector(`button[data-list="${listType}"]`);
+        if (!btn) return;
+        const isSaved = !!status[listType];
+        const isBusy = state.pendingQuickOps.has(`${id}:${listType}`);
+        btn.setAttribute('data-saved', isSaved ? '1' : '0');
+        btn.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+        btn.disabled = isBusy;
+        btn.style.opacity = isBusy ? '0.72' : '';
+      });
+    }
+
     function cardMenuHtml(track) {
-      const status = state.listStatusMap.get(track.id) || { favorites: false, listened: false, listenlist: false };
+      const trackId = String(track.id || '').trim();
+      const status = getTrackListStatus(trackId);
+      const favoritesBusy = state.pendingQuickOps.has(`${trackId}:favorites`);
+      const listenedBusy = state.pendingQuickOps.has(`${trackId}:listened`);
+      const listenlistBusy = state.pendingQuickOps.has(`${trackId}:listenlist`);
       return `
-        <button data-list="favorites" data-saved="${status.favorites ? '1' : '0'}"><i class="fas fa-heart"></i> Favorites</button>
-        <button data-list="listened" data-saved="${status.listened ? '1' : '0'}"><i class="fas fa-check"></i> Listened</button>
-        <button data-list="listenlist" data-saved="${status.listenlist ? '1' : '0'}"><i class="fas fa-bookmark"></i> Listenlist</button>
+        <button data-list="favorites" data-saved="${status.favorites ? '1' : '0'}" aria-busy="${favoritesBusy ? 'true' : 'false'}" ${favoritesBusy ? 'disabled' : ''}><i class="fas fa-heart"></i> Favorites</button>
+        <button data-list="listened" data-saved="${status.listened ? '1' : '0'}" aria-busy="${listenedBusy ? 'true' : 'false'}" ${listenedBusy ? 'disabled' : ''}><i class="fas fa-check"></i> Listened</button>
+        <button data-list="listenlist" data-saved="${status.listenlist ? '1' : '0'}" aria-busy="${listenlistBusy ? 'true' : 'false'}" ${listenlistBusy ? 'disabled' : ''}><i class="fas fa-bookmark"></i> Listenlist</button>
         <button data-action="custom"><i class="fas fa-list"></i> Custom Lists</button>
       `;
     }
@@ -626,42 +662,46 @@
       }
       const trackId = String(track.id || '');
       if (!trackId) return;
+      const bucket = getTrackListStatus(trackId);
+      if (!(listType in bucket)) return;
+      const opKey = `${trackId}:${listType}`;
+      if (state.pendingQuickOps.has(opKey)) return;
 
-      const { data: existing } = await client
-        .from('music_list_items')
-        .select('id')
-        .eq('user_id', currentUser.id)
-        .eq('track_id', trackId)
-        .eq('list_type', listType)
-        .limit(1)
-        .maybeSingle();
+      const previousSaved = !!bucket[listType];
+      const nextSaved = !previousSaved;
+      state.pendingQuickOps.add(opKey);
+      bucket[listType] = nextSaved;
+      updateTrackMenuButtons(trackId);
 
-      if (existing?.id) {
-        const { error } = await client.from('music_list_items').delete().eq('id', existing.id);
-        if (!error) {
+      try {
+        if (nextSaved) {
+          const ok = await upsertTrackRecord(client, track);
+          if (!ok) throw new Error('Track upsert failed');
+          const { error } = await client.from('music_list_items').insert({
+            user_id: currentUser.id,
+            track_id: trackId,
+            list_type: listType
+          });
+          if (error && String(error.code || '') !== '23505') throw error;
+          showToast('Added to list');
+        } else {
+          const { error } = await client
+            .from('music_list_items')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('track_id', trackId)
+            .eq('list_type', listType);
+          if (error) throw error;
           showToast('Removed from list');
         }
-      } else {
-        const ok = await upsertTrackRecord(client, track);
-        if (!ok) {
-          showToast('Could not save track', true);
-          return;
-        }
-        const { error } = await client.from('music_list_items').insert({
-          user_id: currentUser.id,
-          track_id: trackId,
-          list_type: listType
-        });
-        if (error && String(error.code || '') !== '23505') {
-          console.error('Music list insert failed', error);
-          showToast('Could not add to list', true);
-          return;
-        }
-        showToast('Added to list');
+      } catch (error) {
+        console.error('Music list toggle failed', error);
+        bucket[listType] = previousSaved;
+        showToast('Could not update list', true);
+      } finally {
+        state.pendingQuickOps.delete(opKey);
+        updateTrackMenuButtons(trackId);
       }
-
-      await loadListStatus();
-      renderGrid();
     }
 
     async function openCustomLists(track) {

@@ -760,7 +760,8 @@
         customLists: [],
         activeGameId: null,
         modalSelectedLists: new Set(),
-        selectedIcon: 'fas fa-gamepad'
+        selectedIcon: 'fas fa-gamepad',
+        pendingDefaultOps: new Set()
       };
 
       let supabaseClient = null;
@@ -1046,34 +1047,48 @@
       async function toggleDefaultList(gameId, listType, card) {
         if (!state.currentUser) {
           showNotification('Please sign in to save games', 'info');
-          return;
+          return { ok: false, saved: false };
         }
-        if (!supabaseClient) return;
+        if (!supabaseClient) return { ok: false, saved: false };
         const status = state.listStatusMap.get(gameId) || { favorites: false, watched: false, watchlist: false };
-        const isInList = !!status[listType];
-        if (isInList) {
-          const { error } = await supabaseClient
-            .from('game_list_items')
-            .delete()
-            .eq('user_id', state.currentUser.id)
-            .eq('game_id', gameId)
-            .eq('list_type', listType);
-          if (!error) {
-            status[listType] = false;
-            state.listStatusMap.set(gameId, status);
-            updateCardMenuUI(card, gameId);
+        const previousSaved = !!status[listType];
+        const nextSaved = !previousSaved;
+        const opKey = `${gameId}:${listType}`;
+        if (state.pendingDefaultOps.has(opKey)) {
+          return { ok: false, saved: previousSaved };
+        }
+        state.pendingDefaultOps.add(opKey);
+
+        status[listType] = nextSaved;
+        state.listStatusMap.set(gameId, status);
+        if (card) updateCardMenuUI(card, gameId);
+
+        try {
+          if (nextSaved) {
+            const { error } = await supabaseClient
+              .from('game_list_items')
+              .insert({ user_id: state.currentUser.id, game_id: gameId, list_type: listType });
+            if (error) throw error;
+            showNotification('Saved to list', 'success');
+          } else {
+            const { error } = await supabaseClient
+              .from('game_list_items')
+              .delete()
+              .eq('user_id', state.currentUser.id)
+              .eq('game_id', gameId)
+              .eq('list_type', listType);
+            if (error) throw error;
             showNotification('Removed from list', 'info');
           }
-        } else {
-          const { error } = await supabaseClient
-            .from('game_list_items')
-            .insert({ user_id: state.currentUser.id, game_id: gameId, list_type: listType });
-          if (!error) {
-            status[listType] = true;
-            state.listStatusMap.set(gameId, status);
-            updateCardMenuUI(card, gameId);
-            showNotification('Saved to list', 'success');
-          }
+          return { ok: true, saved: nextSaved };
+        } catch (_err) {
+          status[listType] = previousSaved;
+          state.listStatusMap.set(gameId, status);
+          if (card) updateCardMenuUI(card, gameId);
+          showNotification('Could not update list', 'error');
+          return { ok: false, saved: previousSaved };
+        } finally {
+          state.pendingDefaultOps.delete(opKey);
         }
       }
 
@@ -1276,6 +1291,10 @@
         const searchInput = document.getElementById('searchInput');
         if (searchInput) searchInput.value = search;
       }
+
+      // Expose list actions for the shared item-menu adapter block below.
+      window.toggleDefaultList = toggleDefaultList;
+      window.openGameListsModal = openGameListsModal;
 
       (async function init() {
         await initSupabase();

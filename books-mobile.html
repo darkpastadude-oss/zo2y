@@ -785,6 +785,7 @@
         activeBookId: null,
         modalSelectedLists: new Set(),
         selectedIcon: 'fas fa-book',
+        pendingDefaultOps: new Set(),
         bookIndex: new Map()
       };
 
@@ -1144,35 +1145,49 @@
       async function toggleDefaultList(bookId, listType, card) {
         if (!state.currentUser) {
           showNotification('Please sign in to save books', 'info');
-          return;
+          return { ok: false, saved: false };
         }
-        if (!supabaseClient) return;
+        if (!supabaseClient) return { ok: false, saved: false };
         const status = state.listStatusMap.get(bookId) || { favorites: false, read: false, readlist: false };
-        const isInList = !!status[listType];
-        if (isInList) {
-          const { error } = await supabaseClient
-            .from('book_list_items')
-            .delete()
-            .eq('user_id', state.currentUser.id)
-            .eq('book_id', bookId)
-            .eq('list_type', listType);
-          if (!error) {
-            status[listType] = false;
-            state.listStatusMap.set(bookId, status);
-            updateCardMenuUI(card, bookId);
+        const previousSaved = !!status[listType];
+        const nextSaved = !previousSaved;
+        const opKey = `${bookId}:${listType}`;
+        if (state.pendingDefaultOps.has(opKey)) {
+          return { ok: false, saved: previousSaved };
+        }
+        state.pendingDefaultOps.add(opKey);
+
+        status[listType] = nextSaved;
+        state.listStatusMap.set(bookId, status);
+        if (card) updateCardMenuUI(card, bookId);
+
+        try {
+          if (nextSaved) {
+            await upsertBookRecord(state.bookIndex.get(bookId));
+            const { error } = await supabaseClient
+              .from('book_list_items')
+              .insert({ user_id: state.currentUser.id, book_id: bookId, list_type: listType });
+            if (error) throw error;
+            showNotification('Saved to list', 'success');
+          } else {
+            const { error } = await supabaseClient
+              .from('book_list_items')
+              .delete()
+              .eq('user_id', state.currentUser.id)
+              .eq('book_id', bookId)
+              .eq('list_type', listType);
+            if (error) throw error;
             showNotification('Removed from list', 'info');
           }
-        } else {
-          await upsertBookRecord(state.bookIndex.get(bookId));
-          const { error } = await supabaseClient
-            .from('book_list_items')
-            .insert({ user_id: state.currentUser.id, book_id: bookId, list_type: listType });
-          if (!error) {
-            status[listType] = true;
-            state.listStatusMap.set(bookId, status);
-            updateCardMenuUI(card, bookId);
-            showNotification('Saved to list', 'success');
-          }
+          return { ok: true, saved: nextSaved };
+        } catch (_err) {
+          status[listType] = previousSaved;
+          state.listStatusMap.set(bookId, status);
+          if (card) updateCardMenuUI(card, bookId);
+          showNotification('Could not update list', 'error');
+          return { ok: false, saved: previousSaved };
+        } finally {
+          state.pendingDefaultOps.delete(opKey);
         }
       }
 

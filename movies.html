@@ -763,7 +763,8 @@
         customLists: [],
         activeMovieId: null,
         modalSelectedLists: new Set(),
-        selectedIcon: 'fas fa-film'
+        selectedIcon: 'fas fa-film',
+        pendingDefaultOps: new Set()
       };
 
       let supabaseClient = null;
@@ -1061,34 +1062,48 @@
       async function toggleDefaultList(movieId, listType, card) {
         if (!state.currentUser) {
           showNotification('Please sign in to save movies', 'info');
-          return;
+          return { ok: false, saved: false };
         }
-        if (!supabaseClient) return;
+        if (!supabaseClient) return { ok: false, saved: false };
         const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };
-        const isInList = !!status[listType];
-        if (isInList) {
-          const { error } = await supabaseClient
-            .from('movie_list_items')
-            .delete()
-            .eq('user_id', state.currentUser.id)
-            .eq('movie_id', movieId)
-            .eq('list_type', listType);
-          if (!error) {
-            status[listType] = false;
-            state.listStatusMap.set(movieId, status);
-            updateCardMenuUI(card, movieId);
+        const previousSaved = !!status[listType];
+        const nextSaved = !previousSaved;
+        const opKey = `${movieId}:${listType}`;
+        if (state.pendingDefaultOps.has(opKey)) {
+          return { ok: false, saved: previousSaved };
+        }
+        state.pendingDefaultOps.add(opKey);
+
+        status[listType] = nextSaved;
+        state.listStatusMap.set(movieId, status);
+        if (card) updateCardMenuUI(card, movieId);
+
+        try {
+          if (nextSaved) {
+            const { error } = await supabaseClient
+              .from('movie_list_items')
+              .insert({ user_id: state.currentUser.id, movie_id: movieId, list_type: listType });
+            if (error) throw error;
+            showNotification('Saved to list', 'success');
+          } else {
+            const { error } = await supabaseClient
+              .from('movie_list_items')
+              .delete()
+              .eq('user_id', state.currentUser.id)
+              .eq('movie_id', movieId)
+              .eq('list_type', listType);
+            if (error) throw error;
             showNotification('Removed from list', 'info');
           }
-        } else {
-          const { error } = await supabaseClient
-            .from('movie_list_items')
-            .insert({ user_id: state.currentUser.id, movie_id: movieId, list_type: listType });
-          if (!error) {
-            status[listType] = true;
-            state.listStatusMap.set(movieId, status);
-            updateCardMenuUI(card, movieId);
-            showNotification('Saved to list', 'success');
-          }
+          return { ok: true, saved: nextSaved };
+        } catch (_err) {
+          status[listType] = previousSaved;
+          state.listStatusMap.set(movieId, status);
+          if (card) updateCardMenuUI(card, movieId);
+          showNotification('Could not update list', 'error');
+          return { ok: false, saved: previousSaved };
+        } finally {
+          state.pendingDefaultOps.delete(opKey);
         }
       }
 
@@ -1300,6 +1315,10 @@
         const searchInput = document.getElementById('searchInput');
         if (searchInput) searchInput.value = search;
       }
+
+      // Expose list actions for the shared item-menu adapter block below.
+      window.toggleDefaultList = toggleDefaultList;
+      window.openMovieListsModal = openMovieListsModal;
 
       (async function init() {
         await initSupabase();

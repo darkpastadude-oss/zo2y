@@ -744,6 +744,7 @@
       let reviews = [];
       let currentSort = 'latest';
       const listStatus = { favorites: false, watched: false, watchlist: false };
+      const pendingListOps = new Set();
       let customLists = [];
       let modalSelectedLists = new Set();
       let selectedIcon = 'fas fa-gamepad';
@@ -1075,10 +1076,23 @@
         if (!menu) return;
         menu.querySelectorAll('.list-action').forEach(btn => {
           const listType = btn.getAttribute('data-list');
-          const isActive = !!listStatus[listType];
-          btn.classList.toggle('active', isActive);
           const state = btn.querySelector('.list-action-state');
+          if (listType === 'custom') {
+            btn.classList.remove('active');
+            btn.removeAttribute('aria-busy');
+            btn.style.pointerEvents = '';
+            btn.style.opacity = '';
+            if (state) state.textContent = 'Open';
+            return;
+          }
+          const isActive = !!listStatus[listType];
+          const opKey = `${String(gameId || '')}:${listType}`;
+          const isPending = pendingListOps.has(opKey);
+          btn.classList.toggle('active', isActive);
           if (state) state.textContent = isActive ? 'Saved' : 'Add';
+          btn.setAttribute('aria-busy', isPending ? 'true' : 'false');
+          btn.style.pointerEvents = isPending ? 'none' : '';
+          btn.style.opacity = isPending ? '0.72' : '';
         });
       }
 
@@ -1087,29 +1101,39 @@
           showNotification('Please sign in to save games', 'info');
           return;
         }
-        if (!gameId) return;
-        const isInList = listStatus[listType];
-        if (isInList) {
-          const { error } = await supabaseClient
-            .from('game_list_items')
-            .delete()
-            .eq('user_id', currentUser.id)
-            .eq('game_id', gameId)
-            .eq('list_type', listType);
-          if (!error) {
-            listStatus[listType] = false;
-            updateListMenuUI();
+        if (!gameId || !(listType in listStatus)) return;
+        const opKey = `${String(gameId)}:${listType}`;
+        if (pendingListOps.has(opKey)) return;
+
+        const previousSaved = !!listStatus[listType];
+        const nextSaved = !previousSaved;
+        pendingListOps.add(opKey);
+        listStatus[listType] = nextSaved;
+        updateListMenuUI();
+
+        try {
+          if (nextSaved) {
+            const { error } = await supabaseClient
+              .from('game_list_items')
+              .insert({ user_id: currentUser.id, game_id: gameId, list_type: listType });
+            if (error && String(error.code || '') !== '23505') throw error;
+            showNotification('Saved to list', 'success');
+          } else {
+            const { error } = await supabaseClient
+              .from('game_list_items')
+              .delete()
+              .eq('user_id', currentUser.id)
+              .eq('game_id', gameId)
+              .eq('list_type', listType);
+            if (error) throw error;
             showNotification('Removed from list', 'info');
           }
-        } else {
-          const { error } = await supabaseClient
-            .from('game_list_items')
-            .insert({ user_id: currentUser.id, game_id: gameId, list_type: listType });
-          if (!error) {
-            listStatus[listType] = true;
-            updateListMenuUI();
-            showNotification('Saved to list', 'success');
-          }
+        } catch (error) {
+          listStatus[listType] = previousSaved;
+          showNotification('Could not update list', 'error');
+        } finally {
+          pendingListOps.delete(opKey);
+          updateListMenuUI();
         }
       }
 

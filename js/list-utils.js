@@ -83,6 +83,84 @@
     return raw;
   }
 
+  const LIST_UX_STYLE_ID = 'zo2yListUxStyle';
+  let listUxBound = false;
+
+  function ensureListUxStyles() {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById(LIST_UX_STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = LIST_UX_STYLE_ID;
+    style.textContent = `
+      @keyframes zo2yListSlideUpClick {
+        0% { transform: translateY(0) scale(1); }
+        55% { transform: translateY(-8px) scale(1.03); }
+        100% { transform: translateY(0) scale(1); }
+      }
+      .zo2y-list-click-lift {
+        animation: zo2yListSlideUpClick 280ms cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: transform;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function playListClickLift(node) {
+    if (!node || typeof node.closest !== 'function') return;
+    const target = node.closest(
+      '.list-action, .menu-quick-item, .menu-custom-item, .rail-menu-item, .card-menu-btn, .menu-btn, .menu-create-list-btn, .menu-btn-primary, .menu-btn-secondary, button[data-list], button[data-action=\"custom\"], .action-btn-modal, .list-item'
+    );
+    if (!target) return;
+    target.classList.remove('zo2y-list-click-lift');
+    // Restart the animation when users click repeatedly.
+    // eslint-disable-next-line no-unused-expressions
+    target.offsetWidth;
+    target.classList.add('zo2y-list-click-lift');
+  }
+
+  function syncAbsoluteMenuModalViewport(modal) {
+    if (!modal || !modal.classList.contains('active')) return;
+    if (typeof window === 'undefined' || typeof getComputedStyle !== 'function') return;
+    const position = getComputedStyle(modal).position;
+    if (position !== 'absolute') return;
+    const visual = window.visualViewport;
+    const top = (visual?.offsetTop || 0) + window.scrollY;
+    const left = (visual?.offsetLeft || 0) + window.scrollX;
+    const width = Math.max(0, Math.ceil(visual?.width || window.innerWidth || document.documentElement.clientWidth || 0));
+    const height = Math.max(0, Math.ceil(visual?.height || window.innerHeight || document.documentElement.clientHeight || 0));
+    modal.style.top = `${top}px`;
+    modal.style.left = `${left}px`;
+    modal.style.width = `${width}px`;
+    modal.style.height = `${height}px`;
+  }
+
+  function syncActiveMenuModals() {
+    if (typeof document === 'undefined') return;
+    document.querySelectorAll('.menu-modal.active').forEach((modal) => {
+      syncAbsoluteMenuModalViewport(modal);
+    });
+  }
+
+  function bindGlobalListUx() {
+    if (listUxBound || typeof document === 'undefined' || typeof window === 'undefined') return;
+    listUxBound = true;
+    ensureListUxStyles();
+
+    document.addEventListener('click', (event) => {
+      playListClickLift(event.target);
+      window.requestAnimationFrame(syncActiveMenuModals);
+    }, true);
+
+    const sync = () => syncActiveMenuModals();
+    window.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('scroll', sync);
+      window.visualViewport.addEventListener('resize', sync);
+    }
+    sync();
+  }
+
   async function ensureBookRecord(client, payload) {
     if (!client || !payload || !payload.id) return;
     await client.from('books').upsert({
@@ -207,6 +285,10 @@
     coerceItemId,
     normalizeIconKey,
     renderListIcon,
+    ensureListUxStyles,
+    playListClickLift,
+    syncActiveMenuModals,
+    bindGlobalListUx,
     ensureBookRecord,
     ensureTrackRecord,
     loadCustomLists,
@@ -215,4 +297,12 @@
     createCustomList,
     renameCustomList
   };
+
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bindGlobalListUx, { once: true });
+    } else {
+      bindGlobalListUx();
+    }
+  }
 })();

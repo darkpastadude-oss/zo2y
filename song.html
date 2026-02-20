@@ -8,6 +8,7 @@
   <meta name="description" content="Listen to song previews and save tracks to your Zo2y lists." />
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/list-utils.js" defer></script>
   <script src="js/universal-search.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
@@ -93,6 +94,15 @@
     .btn-primary { border: 0; color: #0a213c; background: linear-gradient(135deg, #1db954 0%, #56da84 100%); }
     .btn:hover { border-color: var(--accent); color: var(--accent); }
     .btn-primary:hover { color: #0a213c; }
+    .btn[data-saved="1"] {
+      border-color: rgba(29,185,84,0.85);
+      background: rgba(29,185,84,0.18);
+      color: #d1fae5;
+    }
+    .btn[aria-busy="true"] {
+      opacity: 0.72;
+      pointer-events: none;
+    }
     .status { margin-top: 10px; color: var(--muted); font-size: 13px; }
     .error { color: #fecaca; }
     .artist-panel {
@@ -161,9 +171,9 @@
         </div>
         <div class="actions">
           <button class="btn btn-primary" id="listenBtn" type="button"><i class="fa-solid fa-play"></i> Listen Now</button>
-          <button class="btn" id="favBtn" type="button"><i class="fa-solid fa-heart"></i> Favorites</button>
-          <button class="btn" id="listenedBtn" type="button"><i class="fa-solid fa-check"></i> Listened</button>
-          <button class="btn" id="listenlistBtn" type="button"><i class="fa-solid fa-bookmark"></i> Listenlist</button>
+          <button class="btn" id="favBtn" data-list="favorites" type="button"><i class="fa-solid fa-heart"></i> Favorites</button>
+          <button class="btn" id="listenedBtn" data-list="listened" type="button"><i class="fa-solid fa-check"></i> Listened</button>
+          <button class="btn" id="listenlistBtn" data-list="listenlist" type="button"><i class="fa-solid fa-bookmark"></i> Listenlist</button>
           <a class="btn" href="music.html"><i class="fa-solid fa-arrow-left"></i> Back to Music</a>
         </div>
         <audio id="previewPlayer" controls preload="none" style="display:none;"></audio>
@@ -183,6 +193,8 @@
     let supabaseClient = null;
     let currentUser = null;
     let track = null;
+    const trackListStatus = { favorites: false, listened: false, listenlist: false };
+    const pendingListOps = new Set();
 
     function qs(id) { return document.getElementById(id); }
     function msToMinSec(ms) {
@@ -254,6 +266,7 @@
       qs('artistFollowers').innerHTML = '<i class="fa-solid fa-users"></i> Followers --';
       qs('songCover').src = data.image || 'images/logo.png';
       qs('songStatus').textContent = data.preview_url ? 'Ready to play preview.' : 'Preview not available for this track.';
+      qs('songStatus').classList.remove('error');
 
       const audio = qs('previewPlayer');
       if (data.preview_url) {
@@ -282,45 +295,109 @@
       followersEl.innerHTML = `<i class="fa-solid fa-users"></i> Followers ${Number(artist.followers || 0).toLocaleString()}`;
     }
 
+    function updateListButtonsUi() {
+      const map = {
+        favorites: 'favBtn',
+        listened: 'listenedBtn',
+        listenlist: 'listenlistBtn'
+      };
+      const trackId = String(track?.id || '').trim();
+      Object.entries(map).forEach(([listType, buttonId]) => {
+        const btn = qs(buttonId);
+        if (!btn) return;
+        const isSaved = !!trackListStatus[listType];
+        const isPending = pendingListOps.has(`${trackId}:${listType}`);
+        btn.setAttribute('data-saved', isSaved ? '1' : '0');
+        btn.setAttribute('aria-busy', isPending ? 'true' : 'false');
+        btn.disabled = isPending;
+        btn.title = isSaved ? `Remove from ${listType}` : `Add to ${listType}`;
+      });
+    }
+
+    async function loadTrackListStatus() {
+      trackListStatus.favorites = false;
+      trackListStatus.listened = false;
+      trackListStatus.listenlist = false;
+      if (!track?.id || !currentUser?.id) {
+        updateListButtonsUi();
+        return;
+      }
+      const client = await ensureSupabase();
+      if (!client) return;
+      const { data, error } = await client
+        .from('music_list_items')
+        .select('list_type')
+        .eq('user_id', currentUser.id)
+        .eq('track_id', String(track.id));
+      if (!error) {
+        (data || []).forEach((row) => {
+          const key = String(row.list_type || '');
+          if (key in trackListStatus) {
+            trackListStatus[key] = true;
+          }
+        });
+      }
+      updateListButtonsUi();
+    }
+
     async function toggleList(listType) {
       if (!track?.id) return;
+      if (!(listType in trackListStatus)) return;
       const client = await ensureSupabase();
       if (!client || !currentUser?.id) {
         window.location.href = 'login.html';
         return;
       }
+      const trackId = String(track.id);
+      const opKey = `${trackId}:${listType}`;
+      if (pendingListOps.has(opKey)) return;
 
-      await client.from('tracks').upsert({
-        id: String(track.id),
-        name: track.name || '',
-        artists: Array.isArray(track.artists) ? track.artists.join(', ') : '',
-        album_name: track.album?.name || '',
-        image_url: track.image || '',
-        preview_url: track.preview_url || '',
-        popularity: Number(track.popularity || 0),
-        duration_ms: Number(track.duration_ms || 0),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'id' });
+      const previousSaved = !!trackListStatus[listType];
+      const nextSaved = !previousSaved;
+      pendingListOps.add(opKey);
+      trackListStatus[listType] = nextSaved;
+      updateListButtonsUi();
 
-      const { data: existing } = await client
-        .from('music_list_items')
-        .select('id')
-        .eq('user_id', currentUser.id)
-        .eq('track_id', String(track.id))
-        .eq('list_type', listType)
-        .limit(1)
-        .maybeSingle();
+      try {
+        if (nextSaved) {
+          await client.from('tracks').upsert({
+            id: trackId,
+            name: track.name || '',
+            artists: Array.isArray(track.artists) ? track.artists.join(', ') : '',
+            album_name: track.album?.name || '',
+            image_url: track.image || '',
+            preview_url: track.preview_url || '',
+            popularity: Number(track.popularity || 0),
+            duration_ms: Number(track.duration_ms || 0),
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
 
-      if (existing?.id) {
-        await client.from('music_list_items').delete().eq('id', existing.id);
-        qs('songStatus').textContent = 'Removed from list.';
-      } else {
-        await client.from('music_list_items').insert({
-          user_id: currentUser.id,
-          track_id: String(track.id),
-          list_type: listType
-        });
-        qs('songStatus').textContent = 'Added to list.';
+          const { error } = await client.from('music_list_items').insert({
+            user_id: currentUser.id,
+            track_id: trackId,
+            list_type: listType
+          });
+          if (error && String(error.code || '') !== '23505') throw error;
+          qs('songStatus').textContent = 'Added to list.';
+          qs('songStatus').classList.remove('error');
+        } else {
+          const { error } = await client
+            .from('music_list_items')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('track_id', trackId)
+            .eq('list_type', listType);
+          if (error) throw error;
+          qs('songStatus').textContent = 'Removed from list.';
+          qs('songStatus').classList.remove('error');
+        }
+      } catch (_error) {
+        trackListStatus[listType] = previousSaved;
+        qs('songStatus').textContent = 'Could not update list.';
+        qs('songStatus').classList.add('error');
+      } finally {
+        pendingListOps.delete(opKey);
+        updateListButtonsUi();
       }
     }
 
@@ -350,6 +427,7 @@
       }
 
       renderTrack(data);
+      await loadTrackListStatus();
 
       const firstArtistId = Array.isArray(data.artist_ids) && data.artist_ids.length
         ? String(data.artist_ids[0] || '').trim()
