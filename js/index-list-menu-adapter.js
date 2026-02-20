@@ -10,6 +10,12 @@
     selectedCustomLists: new Set(),
     selectedIcon: 'fas fa-list'
   };
+  const CACHE = {
+    quickStatusByItem: new Map(),
+    customListsByScope: new Map(),
+    customMembershipByItem: new Map(),
+    primingScopes: new Set()
+  };
 
   let bridge = null;
   let listenersBound = false;
@@ -405,6 +411,100 @@
     return QUICK_ROWS_BY_TYPE[getMediaType()] || [];
   }
 
+  function normalizeItemIdValue(itemId) {
+    const mediaType = getMediaType();
+    if (window.ListUtils) return ListUtils.coerceItemId(mediaType, itemId);
+    return itemId;
+  }
+
+  function normalizeItemIdKey(itemId) {
+    return String(normalizeItemIdValue(itemId));
+  }
+
+  function getScopeKey() {
+    const userId = String(getCurrentUser()?.id || '').trim();
+    const mediaType = getMediaType();
+    if (!userId || !mediaType) return '';
+    return `${userId}:${mediaType}`;
+  }
+
+  function getScopeItemKey(itemId) {
+    const scopeKey = getScopeKey();
+    if (!scopeKey) return '';
+    return `${scopeKey}:${normalizeItemIdKey(itemId)}`;
+  }
+
+  function buildBlankQuickStatus(listKeys) {
+    const status = {};
+    (listKeys || []).forEach((key) => {
+      status[key] = false;
+    });
+    return status;
+  }
+
+  function cloneQuickStatus(status, listKeys) {
+    const cloned = buildBlankQuickStatus(listKeys);
+    if (!status || typeof status !== 'object') return cloned;
+    Object.keys(cloned).forEach((key) => {
+      cloned[key] = !!status[key];
+    });
+    return cloned;
+  }
+
+  function readBridgeQuickStatus(itemId, listKeys) {
+    if (!bridge || typeof bridge.getQuickStatusForItem !== 'function') return null;
+    try {
+      const raw = bridge.getQuickStatusForItem(normalizeItemIdValue(itemId), listKeys);
+      if (!raw || typeof raw !== 'object') return null;
+      return cloneQuickStatus(raw, listKeys);
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function readCachedQuickStatus(itemId, listKeys) {
+    const fromBridge = readBridgeQuickStatus(itemId, listKeys);
+    if (fromBridge) return fromBridge;
+    const cacheKey = getScopeItemKey(itemId);
+    if (!cacheKey || !CACHE.quickStatusByItem.has(cacheKey)) {
+      return buildBlankQuickStatus(listKeys);
+    }
+    return cloneQuickStatus(CACHE.quickStatusByItem.get(cacheKey), listKeys);
+  }
+
+  function writeCachedQuickStatus(itemId, status, listKeys) {
+    const cacheKey = getScopeItemKey(itemId);
+    if (!cacheKey) return;
+    CACHE.quickStatusByItem.set(cacheKey, cloneQuickStatus(status, listKeys));
+  }
+
+  function readCachedCustomLists() {
+    const scopeKey = getScopeKey();
+    if (!scopeKey || !CACHE.customListsByScope.has(scopeKey)) return [];
+    const rows = CACHE.customListsByScope.get(scopeKey);
+    return Array.isArray(rows) ? [...rows] : [];
+  }
+
+  function writeCachedCustomLists(lists) {
+    const scopeKey = getScopeKey();
+    if (!scopeKey) return;
+    CACHE.customListsByScope.set(scopeKey, Array.isArray(lists) ? [...lists] : []);
+  }
+
+  function readCachedMembership(itemId) {
+    const cacheKey = getScopeItemKey(itemId);
+    if (!cacheKey || !CACHE.customMembershipByItem.has(cacheKey)) return new Set();
+    const rows = CACHE.customMembershipByItem.get(cacheKey);
+    return new Set(Array.isArray(rows) ? rows : []);
+  }
+
+  function writeCachedMembership(itemId, membership) {
+    const cacheKey = getScopeItemKey(itemId);
+    if (!cacheKey) return;
+    const listIds = Array.from(membership || []).filter(Boolean);
+    CACHE.customMembershipByItem.set(cacheKey, listIds);
+  }
+
   function notify(message, isError) {
     if (bridge && typeof bridge.notify === 'function') {
       bridge.notify(message, !!isError);
@@ -504,6 +604,95 @@
     return status;
   }
 
+  async function primeScopeCaches() {
+    const scopeKey = getScopeKey();
+    const mediaType = getMediaType();
+    const user = getCurrentUser();
+    if (!scopeKey || !mediaType || !user?.id) return;
+    if (CACHE.primingScopes.has(scopeKey)) return;
+    CACHE.primingScopes.add(scopeKey);
+
+    try {
+      const client = await ensureClient();
+      if (!client) return;
+
+      const quickRows = getQuickRowsForMenu();
+      const listKeys = quickRows.map((row) => row.key).filter(Boolean);
+
+      const rawVisibleIds = bridge && typeof bridge.getVisibleItemIds === 'function'
+        ? bridge.getVisibleItemIds()
+        : [];
+      const visibleIds = [...new Set((Array.isArray(rawVisibleIds) ? rawVisibleIds : [])
+        .map((id) => normalizeItemIdValue(id))
+        .filter((id) => String(id ?? '').trim()))];
+      const visibleItemKeySet = new Set(visibleIds.map((id) => String(id)));
+
+      const defaultTable = DEFAULT_TABLE_BY_MEDIA[mediaType];
+      if (defaultTable && listKeys.length && visibleIds.length) {
+        const { data } = await client
+          .from(defaultTable.table)
+          .select(`${defaultTable.itemField},list_type`)
+          .eq('user_id', user.id)
+          .in(defaultTable.itemField, visibleIds)
+          .in('list_type', listKeys);
+
+        const statusByItem = new Map();
+        visibleIds.forEach((id) => {
+          statusByItem.set(String(id), buildBlankQuickStatus(listKeys));
+        });
+        (data || []).forEach((row) => {
+          const itemKey = String(row?.[defaultTable.itemField] ?? '');
+          const listType = String(row?.list_type || '');
+          const current = statusByItem.get(itemKey);
+          if (!current || !(listType in current)) return;
+          current[listType] = true;
+        });
+        statusByItem.forEach((statusRow, itemKey) => {
+          writeCachedQuickStatus(itemKey, statusRow, listKeys);
+        });
+      }
+
+      if (!window.ListUtils) return;
+      let customLists = readCachedCustomLists();
+      if (!customLists.length) {
+        customLists = await ListUtils.loadCustomLists(client, user.id, mediaType);
+        writeCachedCustomLists(customLists);
+      }
+
+      const cfg = ListUtils.getListConfig(mediaType);
+      const listIds = customLists.map((list) => list.id).filter(Boolean);
+      if (!cfg || !listIds.length || !visibleIds.length) return;
+
+      let query = client
+        .from(cfg.itemsTable)
+        .select(`list_id,${cfg.itemIdField}`)
+        .in('list_id', listIds)
+        .in(cfg.itemIdField, visibleIds);
+      if (cfg.usesUserId && user.id) query = query.eq('user_id', user.id);
+      const { data } = await query;
+
+      const membershipByItem = new Map();
+      visibleIds.forEach((id) => {
+        membershipByItem.set(String(id), new Set());
+      });
+
+      (data || []).forEach((row) => {
+        const itemKey = String(row?.[cfg.itemIdField] ?? '');
+        if (!visibleItemKeySet.has(itemKey)) return;
+        if (!membershipByItem.has(itemKey)) membershipByItem.set(itemKey, new Set());
+        membershipByItem.get(itemKey).add(row.list_id);
+      });
+
+      membershipByItem.forEach((membership, itemKey) => {
+        writeCachedMembership(itemKey, membership);
+      });
+    } catch (_err) {
+      // keep UI responsive even if warm-up fails
+    } finally {
+      CACHE.primingScopes.delete(scopeKey);
+    }
+  }
+
   function syncMenuModalViewport(modal) {
     if (!modal || !modal.classList.contains('active')) return;
     const visual = window.visualViewport;
@@ -529,8 +718,10 @@
     if (anyActive) {
       syncActiveMenuModalViewports();
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     }
   }
 
@@ -593,8 +784,10 @@
         if (!item) return;
         const previousSaved = !!STATE.quickStatus[key];
         const nextSaved = !previousSaved;
+        const listKeys = STATE.quickRows.map((row) => row.key).filter(Boolean);
         STATE.pendingQuickKeys.add(key);
         STATE.quickStatus[key] = nextSaved;
+        writeCachedQuickStatus(item.itemId, STATE.quickStatus, listKeys);
         renderItemMenuQuickLists();
 
         let saveResult = null;
@@ -614,6 +807,7 @@
         } else if (typeof saveResult.saved === 'boolean') {
           STATE.quickStatus[key] = saveResult.saved;
         }
+        writeCachedQuickStatus(item.itemId, STATE.quickStatus, listKeys);
         STATE.pendingQuickKeys.delete(key);
         renderItemMenuQuickLists();
       });
@@ -659,6 +853,7 @@
     if (!item) return;
     const listKeys = STATE.quickRows.map((row) => row.key).filter(Boolean);
     STATE.quickStatus = await getDefaultListStatusMap(item.itemId, listKeys);
+    writeCachedQuickStatus(item.itemId, STATE.quickStatus, listKeys);
   }
 
   async function loadItemMenuData() {
@@ -666,7 +861,14 @@
     if (!item) return;
     STATE.quickRows = getQuickRowsForMenu();
     STATE.pendingQuickKeys = new Set();
-    await refreshItemMenuQuickStatus();
+    const listKeys = STATE.quickRows.map((row) => row.key).filter(Boolean);
+    STATE.quickStatus = readCachedQuickStatus(item.itemId, listKeys);
+    if (!STATE.customLists.length) {
+      STATE.customLists = readCachedCustomLists();
+      STATE.selectedCustomLists = readCachedMembership(item.itemId);
+    }
+    renderItemMenuQuickLists();
+    renderItemMenuCustomLists();
 
     const user = getCurrentUser();
     const mediaType = getMediaType();
@@ -687,7 +889,15 @@
       return;
     }
 
-    STATE.customLists = await ListUtils.loadCustomLists(client, user.id, mediaType);
+    const [quickStatus, loadedLists] = await Promise.all([
+      getDefaultListStatusMap(item.itemId, listKeys),
+      ListUtils.loadCustomLists(client, user.id, mediaType)
+    ]);
+
+    STATE.quickStatus = quickStatus;
+    writeCachedQuickStatus(item.itemId, STATE.quickStatus, listKeys);
+    STATE.customLists = Array.isArray(loadedLists) ? loadedLists : [];
+    writeCachedCustomLists(STATE.customLists);
     const listIds = STATE.customLists.map((l) => l.id).filter(Boolean);
     STATE.selectedCustomLists = await ListUtils.loadCustomListMembership(
       client,
@@ -696,6 +906,7 @@
       item.itemId,
       listIds
     );
+    writeCachedMembership(item.itemId, STATE.selectedCustomLists);
     renderItemMenuQuickLists();
     renderItemMenuCustomLists();
   }
@@ -710,10 +921,11 @@
     STATE.currentCard = card;
     STATE.currentItem = item;
     STATE.quickRows = getQuickRowsForMenu();
-    STATE.quickStatus = {};
+    const listKeys = STATE.quickRows.map((row) => row.key).filter(Boolean);
+    STATE.quickStatus = readCachedQuickStatus(item.itemId, listKeys);
     STATE.pendingQuickKeys = new Set();
-    STATE.customLists = [];
-    STATE.selectedCustomLists = new Set();
+    STATE.customLists = readCachedCustomLists();
+    STATE.selectedCustomLists = readCachedMembership(item.itemId);
 
     const titleEl = document.getElementById('menuModalTitle');
     if (titleEl) titleEl.textContent = item.title || 'Add to List';
@@ -733,7 +945,8 @@
       }
     }
     syncMenuModalBodyLock();
-    await loadItemMenuData();
+    void primeScopeCaches();
+    void loadItemMenuData();
   }
 
   async function toggleMenuCustomList(listId) {
@@ -750,6 +963,7 @@
     else next.add(listId);
     const previous = STATE.selectedCustomLists;
     STATE.selectedCustomLists = next;
+    writeCachedMembership(item.itemId, STATE.selectedCustomLists);
     renderItemMenuCustomLists();
     try {
       await ListUtils.saveCustomListChanges(
@@ -762,6 +976,7 @@
       );
     } catch (_err) {
       STATE.selectedCustomLists = previous;
+      writeCachedMembership(item.itemId, STATE.selectedCustomLists);
       renderItemMenuCustomLists();
       notify('Could not update custom list', true);
     }
@@ -821,6 +1036,10 @@
       notify('Could not create list', true);
       return;
     }
+    STATE.customLists = [created, ...STATE.customLists.filter((list) => String(list.id) !== String(created.id))];
+    STATE.selectedCustomLists.add(created.id);
+    writeCachedCustomLists(STATE.customLists);
+    writeCachedMembership(item.itemId, STATE.selectedCustomLists);
     closeCreateListModal();
     const itemModal = document.getElementById('itemMenuModal');
     if (itemModal) {
@@ -903,6 +1122,7 @@
     ensureStyles();
     ensureMarkup();
     bindListeners();
+    void primeScopeCaches();
   }
 
   window.initIndexStyleListMenu = init;

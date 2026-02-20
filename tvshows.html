@@ -1323,6 +1323,16 @@
         window.initIndexStyleListMenu({
           mediaType: 'tv',
           itemIdAttr: 'data-tv-id',
+          getVisibleItemIds: () =>
+            Array.from(document.querySelectorAll('.card[data-tv-id]'))
+              .map((card) => card.getAttribute('data-tv-id'))
+              .filter(Boolean),
+          getQuickStatusForItem: (itemId) => {
+            const numeric = Number(itemId);
+            const key = Number.isFinite(numeric) ? numeric : itemId;
+            const status = state.listStatusMap.get(key);
+            return status ? { ...status } : null;
+          },
           ensureClient: async () => {
             if (supabaseClient) return supabaseClient;
             await initSupabase();

@@ -1268,6 +1268,16 @@
         window.initIndexStyleListMenu({
           mediaType: 'movie',
           itemIdAttr: 'data-movie-id',
+          getVisibleItemIds: () =>
+            Array.from(document.querySelectorAll('.card[data-movie-id]'))
+              .map((card) => card.getAttribute('data-movie-id'))
+              .filter(Boolean),
+          getQuickStatusForItem: (itemId) => {
+            const numeric = Number(itemId);
+            const key = Number.isFinite(numeric) ? numeric : itemId;
+            const status = state.listStatusMap.get(key);
+            return status ? { ...status } : null;
+          },
           ensureClient: async () => {
             if (supabaseClient) return supabaseClient;
             await initSupabase();

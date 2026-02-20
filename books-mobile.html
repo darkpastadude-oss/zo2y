@@ -1378,6 +1378,15 @@
         window.initIndexStyleListMenu({
           mediaType: 'book',
           itemIdAttr: 'data-book-id',
+          getVisibleItemIds: () =>
+            Array.from(document.querySelectorAll('.card[data-book-id]'))
+              .map((card) => card.getAttribute('data-book-id'))
+              .filter(Boolean),
+          getQuickStatusForItem: (itemId) => {
+            const key = String(itemId || '');
+            const status = state.listStatusMap.get(key);
+            return status ? { ...status } : null;
+          },
           ensureClient: async () => {
             if (supabaseClient) return supabaseClient;
             await initSupabase();

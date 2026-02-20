@@ -987,6 +987,10 @@
     }
 
     .menu-modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -995,12 +999,15 @@
       max-height: 80vh;
       overflow-y: auto;
       box-shadow: var(--shadow);
-      animation: menuFadeIn 0.2s ease;
     }
 
-    @keyframes menuFadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
+    @keyframes menuModalFlyUp {
+      from { opacity: 0; transform: translate(-50%, calc(-50% + 24px)) scale(0.98); }
+      to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    .menu-modal-content.menu-modal-fly-up {
+      animation: menuModalFlyUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .menu-modal-header {
@@ -2767,6 +2774,193 @@
       selectedCustomLists: new Set(),
       selectedIcon: 'fas fa-list'
     };
+    const homeItemMenuCache = {
+      quickStatusByItem: new Map(),
+      customListsByMediaType: new Map(),
+      customMembershipByItem: new Map(),
+      primingScopes: new Set()
+    };
+
+    function getHomeMenuItemCacheKey(mediaType, itemId) {
+      const type = String(mediaType || '').toLowerCase();
+      const normalized = coerceHomeItemId(type, itemId);
+      return `${type}:${String(normalized)}`;
+    }
+
+    function buildHomeMenuBlankQuickStatus(rows) {
+      const status = {};
+      (rows || []).forEach((row) => {
+        const key = String(row?.key || '').trim();
+        if (!key) return;
+        status[key] = false;
+      });
+      return status;
+    }
+
+    function cloneHomeMenuQuickStatus(status, rows) {
+      const cloned = buildHomeMenuBlankQuickStatus(rows);
+      if (!status || typeof status !== 'object') return cloned;
+      Object.keys(cloned).forEach((key) => {
+        cloned[key] = !!status[key];
+      });
+      return cloned;
+    }
+
+    function readHomeMenuQuickStatusCache(mediaType, itemId, rows) {
+      const key = getHomeMenuItemCacheKey(mediaType, itemId);
+      if (!homeItemMenuCache.quickStatusByItem.has(key)) {
+        return buildHomeMenuBlankQuickStatus(rows);
+      }
+      return cloneHomeMenuQuickStatus(homeItemMenuCache.quickStatusByItem.get(key), rows);
+    }
+
+    function writeHomeMenuQuickStatusCache(mediaType, itemId, status, rows) {
+      const key = getHomeMenuItemCacheKey(mediaType, itemId);
+      homeItemMenuCache.quickStatusByItem.set(key, cloneHomeMenuQuickStatus(status, rows));
+    }
+
+    function readHomeMenuCustomListsCache(mediaType) {
+      const type = String(mediaType || '').toLowerCase();
+      const rows = homeItemMenuCache.customListsByMediaType.get(type);
+      return Array.isArray(rows) ? [...rows] : [];
+    }
+
+    function writeHomeMenuCustomListsCache(mediaType, rows) {
+      const type = String(mediaType || '').toLowerCase();
+      homeItemMenuCache.customListsByMediaType.set(type, Array.isArray(rows) ? [...rows] : []);
+    }
+
+    function readHomeMenuMembershipCache(mediaType, itemId) {
+      const key = getHomeMenuItemCacheKey(mediaType, itemId);
+      const rows = homeItemMenuCache.customMembershipByItem.get(key);
+      return new Set(Array.isArray(rows) ? rows : []);
+    }
+
+    function writeHomeMenuMembershipCache(mediaType, itemId, membership) {
+      const key = getHomeMenuItemCacheKey(mediaType, itemId);
+      homeItemMenuCache.customMembershipByItem.set(
+        key,
+        Array.from(membership || []).filter(Boolean)
+      );
+    }
+
+    function getVisibleHomeItemIdsByType(mediaType) {
+      const type = String(mediaType || '').toLowerCase();
+      if (!type) return [];
+      const cards = document.querySelectorAll(`.card[data-media-type="${type}"][data-item-id]`);
+      const seen = new Set();
+      const ids = [];
+      cards.forEach((card) => {
+        const raw = card.getAttribute('data-item-id');
+        if (!raw) return;
+        const normalized = coerceHomeItemId(type, raw);
+        const key = String(normalized);
+        if (seen.has(key)) return;
+        seen.add(key);
+        ids.push(normalized);
+      });
+      return ids;
+    }
+
+    async function primeHomeMenuCachesForType(mediaType) {
+      const type = String(mediaType || '').toLowerCase();
+      if (!type || !homeCurrentUser?.id || !window.ListUtils || !supportsHomeLists(type)) return;
+      const scopeKey = `${homeCurrentUser.id}:${type}`;
+      if (homeItemMenuCache.primingScopes.has(scopeKey)) return;
+      homeItemMenuCache.primingScopes.add(scopeKey);
+
+      try {
+        const client = await ensureHomeSupabase();
+        if (!client) return;
+
+        const cfg = getMediaListConfig(type);
+        const quickRows = Array.isArray(cfg?.rows) ? cfg.rows : [];
+        const listKeys = quickRows.map((row) => row.key).filter(Boolean);
+        const visibleItemIds = getVisibleHomeItemIdsByType(type);
+
+        const defaultTable = getHomeDefaultListTable(type);
+        if (defaultTable && visibleItemIds.length && listKeys.length) {
+          const { table, itemField } = defaultTable;
+          const { data } = await client
+            .from(table)
+            .select(`${itemField},list_type`)
+            .eq('user_id', homeCurrentUser.id)
+            .in(itemField, visibleItemIds)
+            .in('list_type', listKeys);
+          const grouped = new Map();
+          visibleItemIds.forEach((id) => {
+            grouped.set(String(id), buildHomeMenuBlankQuickStatus(quickRows));
+          });
+          (data || []).forEach((row) => {
+            const itemKey = String(row?.[itemField] ?? '');
+            const listType = String(row?.list_type || '');
+            const status = grouped.get(itemKey);
+            if (!status || !(listType in status)) return;
+            status[listType] = true;
+          });
+          grouped.forEach((status, itemKey) => {
+            writeHomeMenuQuickStatusCache(type, itemKey, status, quickRows);
+          });
+        } else if (type === 'restaurant' && visibleItemIds.length && listKeys.length) {
+          await Promise.all(visibleItemIds.map(async (id) => {
+            const status = await getHomeListStatusMap(type, id, listKeys);
+            writeHomeMenuQuickStatusCache(type, id, status, quickRows);
+          }));
+        }
+
+        let customLists = readHomeMenuCustomListsCache(type);
+        if (!customLists.length) {
+          customLists = await ListUtils.loadCustomLists(client, homeCurrentUser.id, type);
+          writeHomeMenuCustomListsCache(type, customLists);
+        }
+
+        const listCfg = ListUtils.getListConfig(type);
+        const listIds = customLists.map((list) => list.id).filter(Boolean);
+        if (!listCfg || !listIds.length || !visibleItemIds.length) return;
+
+        let query = client
+          .from(listCfg.itemsTable)
+          .select(`list_id,${listCfg.itemIdField}`)
+          .in('list_id', listIds)
+          .in(listCfg.itemIdField, visibleItemIds);
+        if (listCfg.usesUserId && homeCurrentUser.id) {
+          query = query.eq('user_id', homeCurrentUser.id);
+        }
+        const { data: membershipRows } = await query;
+        const byItem = new Map();
+        visibleItemIds.forEach((id) => {
+          byItem.set(String(id), new Set());
+        });
+        (membershipRows || []).forEach((row) => {
+          const itemKey = String(row?.[listCfg.itemIdField] ?? '');
+          if (!byItem.has(itemKey)) byItem.set(itemKey, new Set());
+          byItem.get(itemKey).add(row.list_id);
+        });
+        byItem.forEach((membership, itemKey) => {
+          writeHomeMenuMembershipCache(type, itemKey, membership);
+        });
+      } catch (_err) {
+        // Keep opening fast even if cache warm-up fails.
+      } finally {
+        homeItemMenuCache.primingScopes.delete(scopeKey);
+      }
+    }
+
+    async function primeAllHomeMenuCaches() {
+      const types = ['restaurant', 'movie', 'tv', 'game', 'book', 'music'];
+      await Promise.all(types.map((type) => primeHomeMenuCachesForType(type)));
+    }
+
+    function playHomeMenuModalFlyUp(modal) {
+      if (!modal) return;
+      const content = modal.querySelector('.menu-modal-content');
+      if (!content) return;
+      content.classList.remove('menu-modal-fly-up');
+      // Restart animation for repeated opens.
+      // eslint-disable-next-line no-unused-expressions
+      content.offsetWidth;
+      content.classList.add('menu-modal-fly-up');
+    }
 
     function syncMenuModalViewport(modal) {
       if (!modal || !modal.classList.contains('active')) return;
@@ -2794,8 +2988,10 @@
       if (anyActive) {
         syncActiveMenuModalViewports();
         document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
       } else if (!onboardingActive) {
         document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
       }
     }
 
@@ -2893,8 +3089,10 @@
           if (!payload) return;
           const previousSaved = !!homeItemMenuState.quickStatus[key];
           const nextSaved = !previousSaved;
+          const quickRows = homeItemMenuState.quickRows;
           homeItemMenuState.pendingQuickKeys.add(key);
           homeItemMenuState.quickStatus[key] = nextSaved;
+          writeHomeMenuQuickStatusCache(payload.mediaType, payload.itemId, homeItemMenuState.quickStatus, quickRows);
           renderItemMenuQuickLists();
           const saveResult = await saveToListFromHome({ ...payload, listType: key, nextSaved });
           if (!saveResult?.ok) {
@@ -2902,6 +3100,7 @@
           } else if (typeof saveResult.saved === 'boolean') {
             homeItemMenuState.quickStatus[key] = saveResult.saved;
           }
+          writeHomeMenuQuickStatusCache(payload.mediaType, payload.itemId, homeItemMenuState.quickStatus, quickRows);
           homeItemMenuState.pendingQuickKeys.delete(key);
           renderItemMenuQuickLists();
         });
@@ -2947,6 +3146,7 @@
       if (!item) return;
       const listKeys = homeItemMenuState.quickRows.map((row) => row.key).filter(Boolean);
       homeItemMenuState.quickStatus = await getHomeListStatusMap(item.mediaType, item.itemId, listKeys);
+      writeHomeMenuQuickStatusCache(item.mediaType, item.itemId, homeItemMenuState.quickStatus, homeItemMenuState.quickRows);
     }
 
     async function loadItemMenuData() {
@@ -2954,7 +3154,19 @@
       if (!item) return;
       homeItemMenuState.quickRows = getQuickRowsForMenu(item.mediaType);
       homeItemMenuState.pendingQuickKeys = new Set();
-      await refreshItemMenuQuickStatus();
+      homeItemMenuState.quickStatus = readHomeMenuQuickStatusCache(
+        item.mediaType,
+        item.itemId,
+        homeItemMenuState.quickRows
+      );
+      if (!homeItemMenuState.customLists.length) {
+        homeItemMenuState.customLists = readHomeMenuCustomListsCache(item.mediaType);
+      }
+      if (!homeItemMenuState.selectedCustomLists.size) {
+        homeItemMenuState.selectedCustomLists = readHomeMenuMembershipCache(item.mediaType, item.itemId);
+      }
+      renderItemMenuQuickLists();
+      renderItemMenuCustomLists();
 
       const cfg = getHomeListConfig(item.mediaType);
       if (!homeCurrentUser?.id || !cfg || !window.ListUtils) {
@@ -2967,7 +3179,14 @@
 
       const client = await ensureHomeSupabase();
       if (!client) return;
-      homeItemMenuState.customLists = await ListUtils.loadCustomLists(client, homeCurrentUser.id, item.mediaType);
+      const [statusMap, customLists] = await Promise.all([
+        getHomeListStatusMap(item.mediaType, item.itemId, homeItemMenuState.quickRows.map((row) => row.key).filter(Boolean)),
+        ListUtils.loadCustomLists(client, homeCurrentUser.id, item.mediaType)
+      ]);
+      homeItemMenuState.quickStatus = statusMap;
+      writeHomeMenuQuickStatusCache(item.mediaType, item.itemId, homeItemMenuState.quickStatus, homeItemMenuState.quickRows);
+      homeItemMenuState.customLists = Array.isArray(customLists) ? customLists : [];
+      writeHomeMenuCustomListsCache(item.mediaType, homeItemMenuState.customLists);
       const listIds = homeItemMenuState.customLists.map((l) => l.id).filter(Boolean);
       homeItemMenuState.selectedCustomLists = await ListUtils.loadCustomListMembership(
         client,
@@ -2976,6 +3195,7 @@
         item.itemId,
         listIds
       );
+      writeHomeMenuMembershipCache(item.mediaType, item.itemId, homeItemMenuState.selectedCustomLists);
       renderItemMenuQuickLists();
       renderItemMenuCustomLists();
     }
@@ -2994,10 +3214,17 @@
         image: card.getAttribute('data-image') || ''
       };
       homeItemMenuState.quickRows = getQuickRowsForMenu(mediaType);
-      homeItemMenuState.quickStatus = {};
+      homeItemMenuState.quickStatus = readHomeMenuQuickStatusCache(
+        mediaType,
+        homeItemMenuState.currentItem.itemId,
+        homeItemMenuState.quickRows
+      );
       homeItemMenuState.pendingQuickKeys = new Set();
-      homeItemMenuState.customLists = [];
-      homeItemMenuState.selectedCustomLists = new Set();
+      homeItemMenuState.customLists = readHomeMenuCustomListsCache(mediaType);
+      homeItemMenuState.selectedCustomLists = readHomeMenuMembershipCache(
+        mediaType,
+        homeItemMenuState.currentItem.itemId
+      );
 
       const titleEl = document.getElementById('menuModalTitle');
       if (titleEl) titleEl.textContent = homeItemMenuState.currentItem.title || 'Add to List';
@@ -3020,9 +3247,11 @@
           content.style.left = '50%';
           content.style.transform = 'translate(-50%, -50%)';
         }
+        playHomeMenuModalFlyUp(itemModal);
       }
       syncMenuModalBodyLock();
-      await loadItemMenuData();
+      void primeHomeMenuCachesForType(mediaType);
+      void loadItemMenuData();
     }
 
     window.openItemMenu = openItemMenu;
@@ -3040,6 +3269,7 @@
       else next.add(listId);
       const previous = homeItemMenuState.selectedCustomLists;
       homeItemMenuState.selectedCustomLists = next;
+      writeHomeMenuMembershipCache(item.mediaType, item.itemId, homeItemMenuState.selectedCustomLists);
       renderItemMenuCustomLists();
       try {
         await ListUtils.saveCustomListChanges(
@@ -3052,6 +3282,7 @@
         );
       } catch (_err) {
         homeItemMenuState.selectedCustomLists = previous;
+        writeHomeMenuMembershipCache(item.mediaType, item.itemId, homeItemMenuState.selectedCustomLists);
         renderItemMenuCustomLists();
         showHomeToast('Could not update custom list', true);
       }
@@ -3078,6 +3309,7 @@
         createModal.classList.add('active');
         createModal.setAttribute('aria-hidden', 'false');
         syncMenuModalViewport(createModal);
+        playHomeMenuModalFlyUp(createModal);
       }
       syncMenuModalBodyLock();
     }
@@ -3104,12 +3336,20 @@
         showHomeToast('Could not create list', true);
         return;
       }
+      homeItemMenuState.customLists = [
+        created,
+        ...homeItemMenuState.customLists.filter((list) => String(list.id) !== String(created.id))
+      ];
+      homeItemMenuState.selectedCustomLists.add(created.id);
+      writeHomeMenuCustomListsCache(item.mediaType, homeItemMenuState.customLists);
+      writeHomeMenuMembershipCache(item.mediaType, item.itemId, homeItemMenuState.selectedCustomLists);
       closeCreateListModal();
       const itemModal = document.getElementById('itemMenuModal');
       if (itemModal) {
         itemModal.classList.add('active');
         itemModal.setAttribute('aria-hidden', 'false');
         syncMenuModalViewport(itemModal);
+        playHomeMenuModalFlyUp(itemModal);
       }
       syncMenuModalBodyLock();
       await loadItemMenuData();
@@ -3575,6 +3815,9 @@
       const unified = buildUnifiedFeed(scoredPool, 32);
       renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
       hydrateSpotlightFromPool(scoredPool);
+      if (homeCurrentUser?.id) {
+        void primeAllHomeMenuCaches();
+      }
     }
 
     function renderRail(railId, items, opts) {
@@ -4237,6 +4480,7 @@
       const overlay = document.getElementById('homeOnboardingOverlay');
       if (overlay) overlay.classList.remove('active');
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
       if (markSeen) markOnboardingSeen(homeOnboardingUserId);
     }
 
@@ -4722,6 +4966,9 @@
       } else {
         setStatus(`Live feed ready. ${freshActiveChannels}/${channelsCount} channels live (fallback used for slower channels).`, false);
       }
+      if (homeCurrentUser?.id) {
+        void primeAllHomeMenuCaches();
+      }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -4733,6 +4980,7 @@
         await initAuthUi();
         maybeShowHomeOnboarding();
         await refreshHomePersonalization();
+        await primeAllHomeMenuCaches();
       })();
 
       const itemMenuModal = document.getElementById('itemMenuModal');
