@@ -426,26 +426,75 @@
             gap: 8px;
         }
 
-        .collection-item-rank-label {
-            font-size: 11px;
-            color: var(--muted);
+        .collection-item-rank-pill {
+            min-width: 56px;
+            height: 30px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
         }
 
-        .collection-item-rank-select {
-            min-width: 98px;
+        .collection-item-rank-pill.rank-gold {
+            color: #ffd96a;
+            border-color: rgba(255, 217, 106, 0.75);
+            background: linear-gradient(180deg, rgba(255, 217, 106, 0.36), rgba(245, 158, 11, 0.22));
+            box-shadow: inset 0 0 12px rgba(255, 217, 106, 0.18);
+        }
+
+        .collection-item-rank-pill.rank-silver {
+            color: #e9edf4;
+            border-color: rgba(233, 237, 244, 0.72);
+            background: linear-gradient(180deg, rgba(233, 237, 244, 0.3), rgba(148, 163, 184, 0.22));
+        }
+
+        .collection-item-rank-pill.rank-bronze {
+            color: #ffd1b1;
+            border-color: rgba(205, 127, 50, 0.74);
+            background: linear-gradient(180deg, rgba(205, 127, 50, 0.34), rgba(154, 94, 44, 0.22));
+        }
+
+        .collection-item-rank-pill.rank-default {
+            color: #ffffff;
+        }
+
+        .collection-item-rank-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tier-rank-move-btn {
+            width: 30px;
             height: 30px;
-            border-radius: 9px;
+            border-radius: 8px;
             border: 1px solid var(--border);
-            background: rgba(15, 26, 52, 0.95);
+            background: rgba(255, 255, 255, 0.05);
             color: var(--white);
             font-size: 12px;
-            padding: 0 8px;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
         }
 
-        .collection-item-rank-select:focus {
-            outline: none;
-            border-color: var(--accent);
+        .tier-rank-move-btn:hover:not(:disabled) {
+            border-color: rgba(245, 158, 11, 0.55);
+            color: #f59e0b;
+            transform: translateY(-1px);
+        }
+
+        .tier-rank-move-btn:disabled {
+            opacity: 0.38;
+            cursor: not-allowed;
         }
 
         .collection-item-remove {
@@ -7438,54 +7487,89 @@ header, .top-stripe, .section-nav {
                 return `${baseTitle} • Tier List`;
             }
 
-            function buildTierRankControlMarkup(maxRank, currentRank) {
-                const safeMax = Math.max(1, Number(maxRank) || 1);
-                const selectedRank = Number.isFinite(Number(currentRank)) ? Number(currentRank) : null;
-                const options = ['<option value="">Unranked</option>'];
-                for (let rank = 1; rank <= safeMax; rank += 1) {
-                    options.push(`<option value="${rank}"${selectedRank === rank ? ' selected' : ''}>#${rank}</option>`);
-                }
+            function buildTierRankControlMarkup(rankPosition, totalCount, canReorder = false) {
+                const safeRank = Math.max(1, Number(rankPosition) || 1);
+                const safeTotal = Math.max(1, Number(totalCount) || 1);
+                const rankToneClass = safeRank === 1
+                    ? 'rank-gold'
+                    : (safeRank === 2 ? 'rank-silver' : (safeRank === 3 ? 'rank-bronze' : 'rank-default'));
+                const upDisabled = !canReorder || safeRank <= 1;
+                const downDisabled = !canReorder || safeRank >= safeTotal;
+
                 return `
                     <div class="collection-item-rank" onclick="event.stopPropagation()">
-                        <span class="collection-item-rank-label">Rank</span>
-                        <select class="collection-item-rank-select">
-                            ${options.join('')}
-                        </select>
+                        <span class="collection-item-rank-pill ${rankToneClass}">#${safeRank}</span>
+                        ${canReorder ? `
+                            <div class="collection-item-rank-actions">
+                                <button type="button" class="tier-rank-move-btn tier-rank-up"${upDisabled ? ' disabled' : ''} aria-label="Move up">
+                                    <i class="fas fa-arrow-up"></i>
+                                </button>
+                                <button type="button" class="tier-rank-move-btn tier-rank-down"${downDisabled ? ' disabled' : ''} aria-label="Move down">
+                                    <i class="fas fa-arrow-down"></i>
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             }
 
-            function wireTierRankControl(card, mediaType, listId, itemId) {
-                if (!card || !window.ListUtils) return;
-                const select = card.querySelector('.collection-item-rank-select');
-                if (!select) return;
-                select.dataset.mediaType = String(mediaType || '').toLowerCase();
-                select.dataset.listId = String(listId || '');
-                select.dataset.itemId = String(itemId || '');
-                select.addEventListener('click', (e) => e.stopPropagation());
-                select.addEventListener('change', (e) => {
-                    e.stopPropagation();
-                    const target = e.currentTarget;
-                    if (!(target instanceof HTMLSelectElement)) return;
-                    void updateTierRank(
-                        target.dataset.mediaType,
-                        target.dataset.listId,
-                        target.dataset.itemId,
-                        target.value
-                    );
-                });
+            async function persistTierOrder(mediaType, listId, orderedItemIds = []) {
+                if (!window.ListUtils || !isViewingOwnProfile) return;
+                const safeType = String(mediaType || '').toLowerCase();
+                const safeListId = String(listId || '').trim();
+                if (!safeType || !safeListId) return;
+
+                const normalizedIds = Array.from(new Set(
+                    (Array.isArray(orderedItemIds) ? orderedItemIds : [])
+                        .map((id) => String(id || '').trim())
+                        .filter(Boolean)
+                ));
+                for (let index = 0; index < normalizedIds.length; index += 1) {
+                    await ListUtils.setTierRank(safeType, safeListId, normalizedIds[index], index + 1, {
+                        client: supabase,
+                        userId: currentUser?.id
+                    });
+                }
             }
 
-            async function updateTierRank(mediaType, listId, itemId, nextRank) {
-                if (!isViewingOwnProfile || !window.ListUtils) return;
+            async function moveTierRankItem(mediaType, listId, itemId, direction, orderedItemIds, listType = 'custom') {
+                if (!window.ListUtils || !isViewingOwnProfile) return;
                 const safeType = String(mediaType || '').toLowerCase();
                 const safeListId = String(listId || '').trim();
                 const safeItemId = String(itemId || '').trim();
                 if (!safeType || !safeListId || !safeItemId) return;
-                await ListUtils.setTierRank(safeType, safeListId, safeItemId, nextRank, {
-                    client: supabase,
-                    userId: currentUser?.id
-                });
+
+                const normalizedIds = (Array.isArray(orderedItemIds) ? orderedItemIds : [])
+                    .map((id) => String(id || '').trim())
+                    .filter(Boolean);
+                const currentIndex = normalizedIds.indexOf(safeItemId);
+                if (currentIndex < 0) return;
+
+                const targetIndex = currentIndex + Number(direction || 0);
+                if (targetIndex < 0 || targetIndex >= normalizedIds.length) return;
+
+                const nextOrder = [...normalizedIds];
+                [nextOrder[currentIndex], nextOrder[targetIndex]] = [nextOrder[targetIndex], nextOrder[currentIndex]];
+
+                await persistTierOrder(safeType, safeListId, nextOrder);
+                await showCollectionDetail(safeListId, safeType, listType || 'custom');
+            }
+
+            function wireTierRankControl(card, mediaType, listId, itemId, orderedItemIds = [], listType = 'custom') {
+                if (!card || !window.ListUtils) return;
+                const upBtn = card.querySelector('.tier-rank-up');
+                const downBtn = card.querySelector('.tier-rank-down');
+                const bindMove = (button, delta) => {
+                    if (!button) return;
+                    button.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (button.disabled) return;
+                        void moveTierRankItem(mediaType, listId, itemId, delta, orderedItemIds, listType);
+                    });
+                };
+                bindMove(upBtn, -1);
+                bindMove(downBtn, 1);
             }
 
             function setEditMediaListModalMode(config, isCreate = false) {
@@ -8962,19 +9046,20 @@ header, .top-stripe, .section-nav {
                 (restaurants || []).forEach((row) => {
                     restaurantMap.set(String(row.id), row);
                 });
-                const restaurantsData = orderedRestaurantIds
-                    .map((id) => restaurantMap.get(String(id)))
-                    .filter(Boolean);
 
-                for (const restaurant of restaurantsData) {
+                for (let index = 0; index < orderedRestaurantIds.length; index += 1) {
+                    const rankedRestaurantId = String(orderedRestaurantIds[index] || '').trim();
+                    const restaurant = restaurantMap.get(rankedRestaurantId);
+                    if (!restaurant) continue;
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
                     itemCard.onclick = () => window.location.href = `restaurant.html?slug=${restaurant.slug}`;
-                    const canRank = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
-                    const rankMarkup = canRank
+                    const canReorder = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
-                            tierMeta.maxRank,
-                            window.ListUtils ? ListUtils.getTierRank('restaurant', listId, restaurant.id) : null
+                            index + 1,
+                            orderedRestaurantIds.length,
+                            canReorder
                         )
                         : '';
 
@@ -8996,8 +9081,8 @@ header, .top-stripe, .section-nav {
                     `;
 
                     container.appendChild(itemCard);
-                    if (canRank) {
-                        wireTierRankControl(itemCard, 'restaurant', listId, restaurant.id);
+                    if (canReorder) {
+                        wireTierRankControl(itemCard, 'restaurant', listId, rankedRestaurantId, orderedRestaurantIds, listType);
                     }
                 }
             }
@@ -9146,11 +9231,12 @@ header, .top-stripe, .section-nav {
                     const movie = movies[index];
                     if (!movie) continue;
                     const movieIdValue = rankedMovieIds[index] ?? movie.id;
-                    const canRank = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
-                    const rankMarkup = canRank
+                    const canReorder = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
-                            tierMeta.maxRank,
-                            window.ListUtils ? ListUtils.getTierRank('movie', listId, movieIdValue) : null
+                            index + 1,
+                            rankedMovieIds.length,
+                            canReorder
                         )
                         : '';
 
@@ -9175,8 +9261,8 @@ header, .top-stripe, .section-nav {
                         ` : ''}
                     `;
 
-                    if (canRank) {
-                        wireTierRankControl(itemCard, 'movie', listId, movieIdValue);
+                    if (canReorder) {
+                        wireTierRankControl(itemCard, 'movie', listId, movieIdValue, rankedMovieIds, listType);
                     }
                     container.appendChild(itemCard);
                 }
@@ -9326,11 +9412,12 @@ header, .top-stripe, .section-nav {
                     const show = shows[index];
                     if (!show) continue;
                     const tvIdValue = rankedTvIds[index] ?? show.id;
-                    const canRank = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
-                    const rankMarkup = canRank
+                    const canReorder = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
-                            tierMeta.maxRank,
-                            window.ListUtils ? ListUtils.getTierRank('tv', listId, tvIdValue) : null
+                            index + 1,
+                            rankedTvIds.length,
+                            canReorder
                         )
                         : '';
 
@@ -9357,8 +9444,8 @@ header, .top-stripe, .section-nav {
                         ` : ''}
                     `;
 
-                    if (canRank) {
-                        wireTierRankControl(itemCard, 'tv', listId, tvIdValue);
+                    if (canReorder) {
+                        wireTierRankControl(itemCard, 'tv', listId, tvIdValue, rankedTvIds, listType);
                     }
                     container.appendChild(itemCard);
                 }
@@ -9511,7 +9598,8 @@ header, .top-stripe, .section-nav {
 
                 container.innerHTML = '';
 
-                for (const entry of games) {
+                for (let index = 0; index < games.length; index += 1) {
+                    const entry = games[index];
                     const game = entry?.game;
                     if (!game) continue;
 
@@ -9524,11 +9612,12 @@ header, .top-stripe, .section-nav {
                     const gameTitle = game.name || game.slug || 'Untitled';
                     const safeGameId = resolvedGameId.replace(/'/g, "\\'");
                     const gameImage = normalizeGameImageSource(game);
-                    const canRank = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
-                    const rankMarkup = canRank
+                    const canReorder = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
-                            tierMeta.maxRank,
-                            window.ListUtils ? ListUtils.getTierRank('game', listId, resolvedGameId) : null
+                            index + 1,
+                            rankedGameIds.length,
+                            canReorder
                         )
                         : '';
 
@@ -9549,8 +9638,8 @@ header, .top-stripe, .section-nav {
                         ` : ''}
                     `;
 
-                    if (canRank) {
-                        wireTierRankControl(itemCard, 'game', listId, resolvedGameId);
+                    if (canReorder) {
+                        wireTierRankControl(itemCard, 'game', listId, resolvedGameId, rankedGameIds, listType);
                     }
                     container.appendChild(itemCard);
                 }
@@ -9729,11 +9818,12 @@ header, .top-stripe, .section-nav {
                     }
                     const metaYear = row?.published_date ? String(row.published_date).slice(0, 4) : 'N/A';
                     const image = row?.thumbnail || FALLBACK_BOOK_IMAGE;
-                    const canRank = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
-                    const rankMarkup = canRank
+                    const canReorder = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
-                            tierMeta.maxRank,
-                            window.ListUtils ? ListUtils.getTierRank('book', listId, id) : null
+                            i + 1,
+                            rankedBookIds.length,
+                            canReorder
                         )
                         : '';
 
@@ -9757,8 +9847,8 @@ header, .top-stripe, .section-nav {
                             </button>
                         ` : ''}
                     `;
-                    if (canRank) {
-                        wireTierRankControl(itemCard, 'book', listId, id);
+                    if (canReorder) {
+                        wireTierRankControl(itemCard, 'book', listId, id, rankedBookIds, listType);
                     }
                     container.appendChild(itemCard);
                 }
@@ -9903,11 +9993,12 @@ header, .top-stripe, .section-nav {
                     const album = String(track?.album_name || 'Album').trim() || 'Album';
                     const image = String(track?.image_url || '').trim() || 'images/logo.png';
                     const openUrl = trackId ? `song.html?id=${encodeURIComponent(trackId)}` : 'music.html';
-                    const canRank = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
-                    const rankMarkup = canRank
+                    const canReorder = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
-                            tierMeta.maxRank,
-                            window.ListUtils ? ListUtils.getTierRank('music', listId, trackId) : null
+                            i + 1,
+                            rankedTrackIds.length,
+                            canReorder
                         )
                         : '';
 
@@ -9933,8 +10024,8 @@ header, .top-stripe, .section-nav {
                             </button>
                         ` : ''}
                     `;
-                    if (canRank) {
-                        wireTierRankControl(itemCard, 'music', listId, trackId);
+                    if (canReorder) {
+                        wireTierRankControl(itemCard, 'music', listId, trackId, rankedTrackIds, listType);
                     }
                     container.appendChild(itemCard);
                 }
