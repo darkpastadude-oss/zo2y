@@ -537,33 +537,6 @@
         background: rgba(245, 158, 11, 0.16);
         color: #f59e0b;
       }
-      .zo2y-tier-max-wrap {
-        display: grid;
-        gap: 6px;
-      }
-      .zo2y-tier-max-wrap.hidden {
-        display: none;
-      }
-      .zo2y-tier-max-input {
-        width: 100%;
-        max-width: 190px;
-        height: 36px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        background: rgba(255, 255, 255, 0.04);
-        color: #ffffff;
-        padding: 0 10px;
-        font-size: 13px;
-      }
-      .zo2y-tier-max-input:focus {
-        outline: none;
-        border-color: #f59e0b;
-      }
-      .zo2y-tier-hint {
-        margin: 0;
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.62);
-      }
     `;
     document.head.appendChild(style);
   }
@@ -613,10 +586,6 @@
       const buttonKind = normalizeListKindValue(button.getAttribute('data-list-kind'), 'standard');
       button.classList.toggle('active', buttonKind === normalizedKind);
     });
-    const maxWrap = block.querySelector('.zo2y-tier-max-wrap');
-    if (maxWrap) {
-      maxWrap.classList.toggle('hidden', normalizedKind !== 'tier');
-    }
   }
 
   function ensureTierCreateControl(modal) {
@@ -635,11 +604,6 @@
       <div class="zo2y-tier-kind-row">
         <button type="button" class="zo2y-tier-kind-btn active" data-list-kind="standard">Standard</button>
         <button type="button" class="zo2y-tier-kind-btn" data-list-kind="tier">Tier List</button>
-      </div>
-      <div class="zo2y-tier-max-wrap hidden">
-        <div class="zo2y-tier-label">Max Rank (optional)</div>
-        <input type="number" class="zo2y-tier-max-input" min="1" step="1" placeholder="Auto by item count">
-        <p class="zo2y-tier-hint">Leave empty to use the number of items in the list.</p>
       </div>
     `;
 
@@ -665,21 +629,14 @@
     if (!block) return { listKind: 'standard', maxRank: null };
     const kindValue = block.querySelector('.zo2y-tier-kind-value')?.value;
     const listKind = normalizeListKindValue(kindValue, 'standard');
-    const maxInput = block.querySelector('.zo2y-tier-max-input');
-    const maxRank = listKind === 'tier' ? normalizeTierMaxRank(maxInput?.value) : null;
-    return { listKind, maxRank };
+    return { listKind, maxRank: null };
   }
 
   function setTierCreateState(modal, state = {}) {
     const block = ensureTierCreateControl(modal);
     if (!block) return;
     const listKind = normalizeListKindValue(state.listKind, 'standard');
-    const maxRank = normalizeTierMaxRank(state.maxRank);
     setTierCreateKind(block, listKind);
-    const maxInput = block.querySelector('.zo2y-tier-max-input');
-    if (maxInput) {
-      maxInput.value = maxRank ? String(maxRank) : '';
-    }
   }
 
   function resetTierCreateState(modal) {

@@ -4445,7 +4445,7 @@ header, .top-stripe, .section-nav {
         </div>
     </div>
 
-    <script src="js/list-utils.js?v=20260220"></script>
+    <script src="js/list-utils.js?v=20260220b"></script>
     <script src="js/igdb-client.js"></script>
     <script>
         // ===== GLOBAL PROFILE MANAGER =====
@@ -8850,7 +8850,7 @@ header, .top-stripe, .section-nav {
                 const isCustom = contentType === 'restaurant' ? !list.is_default : list.type === 'custom';
                 const tierMeta = isCustom ? getTierMetaForList(contentType, list, count) : { listKind: 'standard', isTier: false, maxRank: null };
                 const tierBadgeHtml = (isCustom && tierMeta.isTier)
-                    ? `<div class="tier-list-badge"><i class="fas fa-layer-group"></i> Tier List${tierMeta.maxRank ? ` • 1-${tierMeta.maxRank}` : ''}</div>`
+                    ? `<div class="tier-list-badge"><i class="fas fa-layer-group"></i> Tier List</div>`
                     : '';
 
                 const previewItems = await getPreviewItems(itemIds.slice(0, 4), contentType);
@@ -9036,7 +9036,7 @@ header, .top-stripe, .section-nav {
                 const tierMeta = getTierMetaForList('restaurant', list, restaurantIds.length);
                 const detailTitle = getCollectionTitleWithKind('restaurant', list, listType);
                 const detailDescription = tierMeta.isTier
-                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked from 1 to ${tierMeta.maxRank}.`
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
                     : (list.description || '');
 
                 if (isMobile) {
@@ -9221,7 +9221,7 @@ header, .top-stripe, .section-nav {
                 const tierMeta = getTierMetaForList('movie', list, movieIds.length);
                 const detailTitle = getCollectionTitleWithKind('movie', list, listType);
                 const detailDescription = tierMeta.isTier
-                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked from 1 to ${tierMeta.maxRank}.`
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
                     : (list.description || '');
 
                 if (isMobile) {
@@ -9406,7 +9406,7 @@ header, .top-stripe, .section-nav {
                 const tierMeta = getTierMetaForList('tv', list, tvIds.length);
                 const detailTitle = getCollectionTitleWithKind('tv', list, listType);
                 const detailDescription = tierMeta.isTier
-                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked from 1 to ${tierMeta.maxRank}.`
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
                     : (list.description || '');
 
                 if (isMobile) {
@@ -9597,7 +9597,7 @@ header, .top-stripe, .section-nav {
                 const tierMeta = getTierMetaForList('game', list, gameIds.length);
                 const detailTitle = getCollectionTitleWithKind('game', list, listType);
                 const detailDescription = tierMeta.isTier
-                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked from 1 to ${tierMeta.maxRank}.`
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
                     : (list.description || '');
 
                 if (isMobile) {
@@ -9781,7 +9781,7 @@ header, .top-stripe, .section-nav {
                 const tierMeta = getTierMetaForList('book', list, bookIds.length);
                 const detailTitle = getCollectionTitleWithKind('book', list, listType);
                 const detailDescription = tierMeta.isTier
-                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked from 1 to ${tierMeta.maxRank}.`
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
                     : (list.description || '');
 
                 if (isMobile) {
@@ -9997,7 +9997,7 @@ header, .top-stripe, .section-nav {
                 const tierMeta = getTierMetaForList('music', list, trackIds.length);
                 const detailTitle = getCollectionTitleWithKind('music', list, listType);
                 const detailDescription = tierMeta.isTier
-                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked from 1 to ${tierMeta.maxRank}.`
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
                     : (list.description || '');
 
                 if (isMobile) {
