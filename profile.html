@@ -4416,8 +4416,6 @@ header, .top-stripe, .section-nav {
             let renderBooksToken = 0;
             let renderMusicToken = 0;
             let renderRestaurantsToken = 0;
-            let isCreatingBookList = false;
-            let isCreatingMusicList = false;
             let editingMediaList = null;
             let hasPreloadedTabs = false;
 
@@ -7221,6 +7219,30 @@ header, .top-stripe, .section-nav {
                 return configMap[type] || null;
             }
 
+            function getReservedMediaListTitles(type) {
+                const map = {
+                    movie: ['favorites', 'watched', 'watchlist'],
+                    tv: ['favorites', 'watched', 'watchlist'],
+                    game: ['favorites', 'watched', 'watchlist'],
+                    book: ['favorites', 'read', 'readlist'],
+                    music: ['favorites', 'listened', 'listenlist']
+                };
+                return new Set(map[type] || []);
+            }
+
+            function setEditMediaListModalMode(config, isCreate = false) {
+                const titleEl = document.getElementById('editMediaListModalTitle');
+                const submitBtn = document.querySelector('#editMediaListForm button[type="submit"]');
+                if (titleEl) {
+                    titleEl.textContent = isCreate
+                        ? `Create ${config.label} List`
+                        : `Edit ${config.label} List`;
+                }
+                if (submitBtn) {
+                    submitBtn.textContent = isCreate ? 'Create List' : 'Save Changes';
+                }
+            }
+
             function setEditMediaListIcon(iconKey) {
                 const selected = normalizeIconKey(iconKey, 'list');
                 const hiddenInput = document.getElementById('editMediaListSelectedIcon');
@@ -7228,6 +7250,31 @@ header, .top-stripe, .section-nav {
                 document.querySelectorAll('.edit-list-icon-option').forEach(option => {
                     option.classList.toggle('selected', option.getAttribute('data-icon') === selected);
                 });
+            }
+
+            async function openMediaListCreator(type) {
+                if (!supabase || !currentUser || !isViewingOwnProfile) {
+                    showToast('You cannot create lists for other users', 'error');
+                    return;
+                }
+                const config = getMediaListConfig(type);
+                if (!config) return;
+
+                editingMediaList = {
+                    type,
+                    id: null,
+                    table: config.table,
+                    fallback: config.fallback,
+                    label: config.label,
+                    rerender: config.rerender,
+                    isCreate: true
+                };
+
+                const nameInput = document.getElementById('editMediaListName');
+                if (nameInput) nameInput.value = '';
+                setEditMediaListIcon(config.fallback);
+                setEditMediaListModalMode(config, true);
+                showModal('editMediaListModal');
             }
 
             async function openMediaListEditor(type, listId, existing = null) {
@@ -7256,15 +7303,76 @@ header, .top-stripe, .section-nav {
                     table: config.table,
                     fallback: config.fallback,
                     label: config.label,
-                    rerender: config.rerender
+                    rerender: config.rerender,
+                    isCreate: false
                 };
 
-                const titleEl = document.getElementById('editMediaListModalTitle');
                 const nameInput = document.getElementById('editMediaListName');
-                if (titleEl) titleEl.textContent = `Edit ${config.label} List`;
                 if (nameInput) nameInput.value = record.title || '';
                 setEditMediaListIcon(record.icon || config.fallback);
+                setEditMediaListModalMode(config, false);
                 showModal('editMediaListModal');
+            }
+
+            async function createMediaListRecord(context, title, icon) {
+                const trimmedTitle = String(title || '').trim();
+                const normalizedTitle = trimmedTitle.toLowerCase();
+                const reservedTitles = getReservedMediaListTitles(context.type);
+                if (reservedTitles.has(normalizedTitle)) {
+                    showToast('That name is reserved for a default list', 'warning');
+                    return false;
+                }
+
+                const { data: existingLists, error: existingError } = await supabase
+                    .from(context.table)
+                    .select('id,title')
+                    .eq('user_id', currentUser.id);
+                if (existingError) {
+                    showToast('Could not verify existing lists', 'error');
+                    return false;
+                }
+
+                const alreadyExists = (existingLists || []).some((list) =>
+                    String(list.title || '').trim().toLowerCase() === normalizedTitle
+                );
+                if (alreadyExists) {
+                    showToast('A list with this name already exists', 'warning');
+                    return false;
+                }
+
+                const insertBase = {
+                    user_id: currentUser.id,
+                    title: trimmedTitle,
+                    icon,
+                    created_at: new Date().toISOString()
+                };
+
+                let insertError = null;
+                const { error: firstInsertError } = await supabase
+                    .from(context.table)
+                    .insert(insertBase);
+                insertError = firstInsertError || null;
+
+                if (insertError) {
+                    const withId = {
+                        ...insertBase,
+                        id: (window.crypto && typeof window.crypto.randomUUID === 'function')
+                            ? window.crypto.randomUUID()
+                            : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+                    };
+                    const { error: retryError } = await supabase
+                        .from(context.table)
+                        .insert(withId);
+                    insertError = retryError || null;
+                }
+
+                if (insertError) {
+                    showToast(`Could not create ${context.label.toLowerCase()} list`, 'error');
+                    return false;
+                }
+
+                showToast(`${context.label} list "${trimmedTitle}" created`, 'success');
+                return true;
             }
 
             async function handleEditMediaListSubmit(e) {
@@ -7278,6 +7386,17 @@ header, .top-stripe, .section-nav {
 
                 if (!title) {
                     showToast('Please enter a list name', 'error');
+                    return;
+                }
+
+                if (editingMediaList.isCreate || !editingMediaList.id) {
+                    const created = await createMediaListRecord(editingMediaList, title, icon);
+                    if (!created) return;
+                    const createdContext = { ...editingMediaList };
+                    closeModal('editMediaListModal');
+                    if (typeof createdContext.rerender === 'function') {
+                        await createdContext.rerender();
+                    }
                     return;
                 }
 
@@ -7358,24 +7477,7 @@ header, .top-stripe, .section-nav {
             }
 
             async function createMovieList() {
-                if (!supabase || !currentUser || !isViewingOwnProfile) return;
-                const title = prompt('New movie list name');
-                if (!title || !title.trim()) return;
-                const { error } = await supabase
-                    .from('movie_lists')
-                    .insert({
-                        user_id: currentUser.id,
-                        title: title.trim(),
-                        description: '',
-                        icon: 'movie',
-                        created_at: new Date().toISOString()
-                    });
-                if (error) {
-                    showToast('Could not create list', 'error');
-                    return;
-                }
-                await renderMovies();
-                showToast('Movie list created', 'success');
+                await openMediaListCreator('movie');
             }
 
             async function deleteMovieList(listId) {
@@ -7406,23 +7508,7 @@ header, .top-stripe, .section-nav {
             }
 
             async function createTvList() {
-                if (!supabase || !currentUser || !isViewingOwnProfile) return;
-                const title = prompt('New TV show list name');
-                if (!title || !title.trim()) return;
-                const { error } = await supabase
-                    .from('tv_lists')
-                    .insert({
-                        user_id: currentUser.id,
-                        title: title.trim(),
-                        icon: 'tv',
-                        created_at: new Date().toISOString()
-                    });
-                if (error) {
-                    showToast('Could not create list', 'error');
-                    return;
-                }
-                await renderTvShows();
-                showToast('TV list created', 'success');
+                await openMediaListCreator('tv');
             }
 
             async function deleteTvList(listId) {
@@ -7453,23 +7539,7 @@ header, .top-stripe, .section-nav {
             }
 
             async function createGameList() {
-                if (!supabase || !currentUser || !isViewingOwnProfile) return;
-                const title = prompt('New game list name');
-                if (!title || !title.trim()) return;
-                const { error } = await supabase
-                    .from('game_lists')
-                    .insert({
-                        user_id: currentUser.id,
-                        title: title.trim(),
-                        icon: 'game',
-                        created_at: new Date().toISOString()
-                    });
-                if (error) {
-                    showToast('Could not create list', 'error');
-                    return;
-                }
-                await renderGames();
-                showToast('Game list created', 'success');
+                await openMediaListCreator('game');
             }
 
             async function deleteGameList(listId) {
@@ -9224,89 +9294,7 @@ header, .top-stripe, .section-nav {
             }
             // ===== CREATE/RENAME/DELETE BOOK LIST (OVERRIDES) =====
                         async function createBookList() {
-                if (!supabase || !currentUser || !isViewingOwnProfile) {
-                    showToast('You cannot create lists for other users', 'error');
-                    return;
-                }
-                if (isCreatingBookList) return;
-
-                const title = prompt('New book list name');
-                if (!title || !title.trim()) return;
-
-                const trimmedTitle = title.trim();
-                const normalizedTitle = trimmedTitle.toLowerCase();
-                const reservedTitles = new Set(['favorites', 'read', 'readlist']);
-                if (reservedTitles.has(normalizedTitle)) {
-                    showToast('That name is reserved for a default list', 'warning');
-                    return;
-                }
-
-                try {
-                    isCreatingBookList = true;
-                    console.log('Creating book list:', trimmedTitle);
-
-                    const { data: existingLists, error: existingError } = await supabase
-                        .from('book_lists')
-                        .select('id, title')
-                        .eq('user_id', currentUser.id);
-                    if (existingError) throw existingError;
-
-                    const alreadyExists = (existingLists || []).some(
-                        list => String(list.title || '').trim().toLowerCase() === normalizedTitle
-                    );
-                    if (alreadyExists) {
-                        showToast('A list with this name already exists', 'warning');
-                        return;
-                    }
-
-                    const insertData = {
-                        id: crypto.randomUUID(),
-                        user_id: currentUser.id,
-                        title: trimmedTitle,
-                        icon: 'book',
-                        created_at: new Date().toISOString()
-                    };
-
-                    let newList = null;
-                    const { data, error } = await supabase
-                        .from('book_lists')
-                        .insert([insertData])
-                        .select()
-                        .single();
-
-                    if (error) {
-                        if (error.message?.includes('id') || error.code === '23502') {
-                            delete insertData.id;
-
-                            const { data: retryData, error: retryError } = await supabase
-                                .from('book_lists')
-                                .insert([{
-                                    user_id: currentUser.id,
-                                    title: trimmedTitle,
-                                    icon: 'book',
-                                    created_at: new Date().toISOString()
-                                }])
-                                .select()
-                                .single();
-
-                            if (retryError) throw retryError;
-                            newList = retryData;
-                        } else {
-                            throw error;
-                        }
-                    } else {
-                        newList = data;
-                    }
-
-                    console.log('Book list created successfully:', newList);
-                    await renderBooks();
-                    showToast(`Book list "${trimmedTitle}" created`, 'success');
-                } catch (error) {
-                    console.error('Error creating book list:', error);
-                    showToast('Could not create book list: ' + error.message, 'error');
-                } finally {
-                    isCreatingBookList = false;
-                }
+                await openMediaListCreator('book');
             }
 
             async function renameBookList(listId) {
@@ -9347,57 +9335,7 @@ header, .top-stripe, .section-nav {
             }
 
             async function createMusicList() {
-                if (!supabase || !currentUser || !isViewingOwnProfile) {
-                    showToast('You cannot create lists for other users', 'error');
-                    return;
-                }
-                if (isCreatingMusicList) return;
-
-                const title = prompt('New music list name');
-                if (!title || !title.trim()) return;
-
-                const trimmedTitle = title.trim();
-                const normalizedTitle = trimmedTitle.toLowerCase();
-                const reservedTitles = new Set(['favorites', 'listened', 'listenlist']);
-                if (reservedTitles.has(normalizedTitle)) {
-                    showToast('That name is reserved for a default list', 'warning');
-                    return;
-                }
-
-                try {
-                    isCreatingMusicList = true;
-                    const { data: existingLists, error: existingError } = await supabase
-                        .from('music_lists')
-                        .select('id, title')
-                        .eq('user_id', currentUser.id);
-                    if (existingError) throw existingError;
-
-                    const alreadyExists = (existingLists || []).some(
-                        (list) => String(list.title || '').trim().toLowerCase() === normalizedTitle
-                    );
-                    if (alreadyExists) {
-                        showToast('A list with this name already exists', 'warning');
-                        return;
-                    }
-
-                    const { error } = await supabase
-                        .from('music_lists')
-                        .insert({
-                            user_id: currentUser.id,
-                            title: trimmedTitle,
-                            icon: 'music',
-                            created_at: new Date().toISOString()
-                        });
-                    if (error) throw error;
-
-                    await renderMusic();
-                    showToast(`Music list "${trimmedTitle}" created`, 'success');
-                } catch (error) {
-                    console.error('Error creating music list:', error);
-                    showToast('Could not create music list', 'error');
-                } finally {
-                    isCreatingMusicList = false;
-                }
+                await openMediaListCreator('music');
             }
 
             async function renameMusicList(listId) {
@@ -9923,6 +9861,10 @@ header, .top-stripe, .section-nav {
                         if (form) form.reset();
                         const icon = document.getElementById('editMediaListSelectedIcon');
                         if (icon) icon.value = 'list';
+                        const titleEl = document.getElementById('editMediaListModalTitle');
+                        if (titleEl) titleEl.textContent = 'Edit List';
+                        const submitBtn = document.querySelector('#editMediaListForm button[type="submit"]');
+                        if (submitBtn) submitBtn.textContent = 'Save Changes';
                         document.querySelectorAll('.edit-list-icon-option').forEach(opt => {
                             opt.classList.remove('selected');
                         });
