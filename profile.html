@@ -465,36 +465,26 @@
             color: #ffffff;
         }
 
-        .collection-item-rank-actions {
+        .collection-item-rank-drag-hint {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
+            font-size: 11px;
+            color: var(--muted);
+            opacity: 0.9;
         }
 
-        .tier-rank-move-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--white);
-            font-size: 12px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
+        .collection-item-card.tier-draggable {
+            cursor: grab;
         }
 
-        .tier-rank-move-btn:hover:not(:disabled) {
-            border-color: rgba(245, 158, 11, 0.55);
-            color: #f59e0b;
-            transform: translateY(-1px);
+        .collection-item-card.tier-draggable .collection-item-rank {
+            cursor: grab;
         }
 
-        .tier-rank-move-btn:disabled {
-            opacity: 0.38;
-            cursor: not-allowed;
+        .collection-item-card.tier-draggable.is-dragging {
+            opacity: 0.55;
+            transform: scale(0.995);
         }
 
         .collection-item-remove {
@@ -3068,10 +3058,11 @@ header, .top-stripe, .section-nav {
 </style>
     <link rel="icon" type="image/png" href="images/logo.png">
   <meta name="theme-color" content="#0b1633" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
-  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="manifest" href="/manifest.webmanifest?v=20260220" />
   <link rel="apple-touch-icon" href="/images/logo.png" />
   <link rel="stylesheet" href="/js/mobile-app.css" />
   <script src="/js/mobile-webapp.js" defer></script>
@@ -4359,11 +4350,11 @@ header, .top-stripe, .section-nav {
                 <form id="accountPasswordForm" style="margin-bottom: 18px;">
                     <div class="form-group">
                         <label class="form-label" for="settingsNewPassword">Change password</label>
-                        <input type="password" class="form-input" id="settingsNewPassword" minlength="8" placeholder="New password (min 8 chars)" required>
+                        <input type="password" class="form-input" id="settingsNewPassword" minlength="8" placeholder="New password (min 8 chars)" autocomplete="new-password" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="settingsConfirmPassword">Confirm new password</label>
-                        <input type="password" class="form-input" id="settingsConfirmPassword" minlength="8" placeholder="Confirm new password" required>
+                        <input type="password" class="form-input" id="settingsConfirmPassword" minlength="8" placeholder="Confirm new password" autocomplete="new-password" required>
                     </div>
                     <button type="submit" class="btn btn-primary" style="width: 100%;">
                         <i class="fas fa-lock"></i> Update Password
@@ -7489,25 +7480,18 @@ header, .top-stripe, .section-nav {
 
             function buildTierRankControlMarkup(rankPosition, totalCount, canReorder = false) {
                 const safeRank = Math.max(1, Number(rankPosition) || 1);
-                const safeTotal = Math.max(1, Number(totalCount) || 1);
                 const rankToneClass = safeRank === 1
                     ? 'rank-gold'
                     : (safeRank === 2 ? 'rank-silver' : (safeRank === 3 ? 'rank-bronze' : 'rank-default'));
-                const upDisabled = !canReorder || safeRank <= 1;
-                const downDisabled = !canReorder || safeRank >= safeTotal;
 
                 return `
                     <div class="collection-item-rank" onclick="event.stopPropagation()">
                         <span class="collection-item-rank-pill ${rankToneClass}">#${safeRank}</span>
                         ${canReorder ? `
-                            <div class="collection-item-rank-actions">
-                                <button type="button" class="tier-rank-move-btn tier-rank-up"${upDisabled ? ' disabled' : ''} aria-label="Move up">
-                                    <i class="fas fa-arrow-up"></i>
-                                </button>
-                                <button type="button" class="tier-rank-move-btn tier-rank-down"${downDisabled ? ' disabled' : ''} aria-label="Move down">
-                                    <i class="fas fa-arrow-down"></i>
-                                </button>
-                            </div>
+                            <span class="collection-item-rank-drag-hint">
+                                <i class="fas fa-grip-vertical"></i>
+                                Drag
+                            </span>
                         ` : ''}
                     </div>
                 `;
@@ -7532,44 +7516,116 @@ header, .top-stripe, .section-nav {
                 }
             }
 
-            async function moveTierRankItem(mediaType, listId, itemId, direction, orderedItemIds, listType = 'custom') {
-                if (!window.ListUtils || !isViewingOwnProfile) return;
+            function wireTierDragAndDrop(container, mediaType, listId, listType = 'custom') {
+                if (!container || !window.ListUtils || !isViewingOwnProfile) return;
                 const safeType = String(mediaType || '').toLowerCase();
                 const safeListId = String(listId || '').trim();
-                const safeItemId = String(itemId || '').trim();
-                if (!safeType || !safeListId || !safeItemId) return;
+                if (!safeType || !safeListId) return;
 
-                const normalizedIds = (Array.isArray(orderedItemIds) ? orderedItemIds : [])
-                    .map((id) => String(id || '').trim())
+                const cards = Array.from(container.querySelectorAll('.collection-item-card[data-tier-item-id]'));
+                if (cards.length < 2) return;
+
+                let activeCard = null;
+                let didDrop = false;
+                let isPersisting = false;
+
+                const getContainerOrder = () => Array.from(container.querySelectorAll('.collection-item-card[data-tier-item-id]'))
+                    .map((card) => String(card.dataset.tierItemId || '').trim())
                     .filter(Boolean);
-                const currentIndex = normalizedIds.indexOf(safeItemId);
-                if (currentIndex < 0) return;
 
-                const targetIndex = currentIndex + Number(direction || 0);
-                if (targetIndex < 0 || targetIndex >= normalizedIds.length) return;
-
-                const nextOrder = [...normalizedIds];
-                [nextOrder[currentIndex], nextOrder[targetIndex]] = [nextOrder[targetIndex], nextOrder[currentIndex]];
-
-                await persistTierOrder(safeType, safeListId, nextOrder);
-                await showCollectionDetail(safeListId, safeType, listType || 'custom');
-            }
-
-            function wireTierRankControl(card, mediaType, listId, itemId, orderedItemIds = [], listType = 'custom') {
-                if (!card || !window.ListUtils) return;
-                const upBtn = card.querySelector('.tier-rank-up');
-                const downBtn = card.querySelector('.tier-rank-down');
-                const bindMove = (button, delta) => {
-                    if (!button) return;
-                    button.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (button.disabled) return;
-                        void moveTierRankItem(mediaType, listId, itemId, delta, orderedItemIds, listType);
+                const getTargetCard = (event, draggingCard) => {
+                    const y = Number(event?.clientY || 0);
+                    let best = null;
+                    let bestOffset = Number.NEGATIVE_INFINITY;
+                    const candidates = Array.from(container.querySelectorAll('.collection-item-card[data-tier-item-id]'))
+                        .filter((card) => card !== draggingCard);
+                    candidates.forEach((candidate) => {
+                        const rect = candidate.getBoundingClientRect();
+                        const offset = y - rect.top - (rect.height / 2);
+                        if (offset < 0 && offset > bestOffset) {
+                            bestOffset = offset;
+                            best = candidate;
+                        }
                     });
+                    return best;
                 };
-                bindMove(upBtn, -1);
-                bindMove(downBtn, 1);
+
+                const persistAndRefresh = async () => {
+                    if (isPersisting) return;
+                    isPersisting = true;
+                    try {
+                        const nextOrder = getContainerOrder();
+                        if (nextOrder.length > 1) {
+                            await persistTierOrder(safeType, safeListId, nextOrder);
+                            await showCollectionDetail(safeListId, safeType, listType || 'custom');
+                        }
+                    } finally {
+                        isPersisting = false;
+                    }
+                };
+
+                cards.forEach((card) => {
+                    card.setAttribute('draggable', 'true');
+                    card.classList.add('tier-draggable');
+
+                    card.addEventListener('dragstart', (event) => {
+                        activeCard = card;
+                        didDrop = false;
+                        card.classList.add('is-dragging');
+                        if (event.dataTransfer) {
+                            event.dataTransfer.effectAllowed = 'move';
+                            event.dataTransfer.setData('text/plain', String(card.dataset.tierItemId || ''));
+                        }
+                    });
+
+                    card.addEventListener('dragover', (event) => {
+                        event.preventDefault();
+                        if (!activeCard) return;
+                        const targetCard = getTargetCard(event, activeCard);
+                        if (!targetCard) {
+                            container.appendChild(activeCard);
+                            return;
+                        }
+                        container.insertBefore(activeCard, targetCard);
+                    });
+
+                    card.addEventListener('drop', (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        didDrop = true;
+                        void persistAndRefresh();
+                    });
+
+                    card.addEventListener('dragend', () => {
+                        card.classList.remove('is-dragging');
+                        activeCard = null;
+                    });
+                });
+
+                if (typeof container.__tierDndDragOverHandler === 'function') {
+                    container.removeEventListener('dragover', container.__tierDndDragOverHandler);
+                }
+                if (typeof container.__tierDndDropHandler === 'function') {
+                    container.removeEventListener('drop', container.__tierDndDropHandler);
+                }
+
+                const dragOverHandler = (event) => {
+                    event.preventDefault();
+                };
+
+                const dropHandler = (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (!didDrop) {
+                        didDrop = true;
+                        void persistAndRefresh();
+                    }
+                };
+
+                container.__tierDndDragOverHandler = dragOverHandler;
+                container.__tierDndDropHandler = dropHandler;
+                container.addEventListener('dragover', dragOverHandler);
+                container.addEventListener('drop', dropHandler);
             }
 
             function setEditMediaListModalMode(config, isCreate = false) {
@@ -9082,8 +9138,12 @@ header, .top-stripe, .section-nav {
 
                     container.appendChild(itemCard);
                     if (canReorder) {
-                        wireTierRankControl(itemCard, 'restaurant', listId, rankedRestaurantId, orderedRestaurantIds, listType);
+                        itemCard.dataset.tierItemId = rankedRestaurantId;
                     }
+                }
+
+                if (tierMeta.isTier && isViewingOwnProfile && listType === 'custom') {
+                    wireTierDragAndDrop(container, 'restaurant', listId, listType);
                 }
             }
 
@@ -9262,9 +9322,13 @@ header, .top-stripe, .section-nav {
                     `;
 
                     if (canReorder) {
-                        wireTierRankControl(itemCard, 'movie', listId, movieIdValue, rankedMovieIds, listType);
+                        itemCard.dataset.tierItemId = String(movieIdValue || '').trim();
                     }
                     container.appendChild(itemCard);
+                }
+
+                if (tierMeta.isTier && isViewingOwnProfile && listType === 'custom') {
+                    wireTierDragAndDrop(container, 'movie', listId, listType);
                 }
             }
 
@@ -9445,9 +9509,13 @@ header, .top-stripe, .section-nav {
                     `;
 
                     if (canReorder) {
-                        wireTierRankControl(itemCard, 'tv', listId, tvIdValue, rankedTvIds, listType);
+                        itemCard.dataset.tierItemId = String(tvIdValue || '').trim();
                     }
                     container.appendChild(itemCard);
+                }
+
+                if (tierMeta.isTier && isViewingOwnProfile && listType === 'custom') {
+                    wireTierDragAndDrop(container, 'tv', listId, listType);
                 }
             }
 
@@ -9639,9 +9707,13 @@ header, .top-stripe, .section-nav {
                     `;
 
                     if (canReorder) {
-                        wireTierRankControl(itemCard, 'game', listId, resolvedGameId, rankedGameIds, listType);
+                        itemCard.dataset.tierItemId = resolvedGameId;
                     }
                     container.appendChild(itemCard);
+                }
+
+                if (tierMeta.isTier && isViewingOwnProfile && listType === 'custom') {
+                    wireTierDragAndDrop(container, 'game', listId, listType);
                 }
             }
 
@@ -9848,9 +9920,13 @@ header, .top-stripe, .section-nav {
                         ` : ''}
                     `;
                     if (canReorder) {
-                        wireTierRankControl(itemCard, 'book', listId, id, rankedBookIds, listType);
+                        itemCard.dataset.tierItemId = String(id || '').trim();
                     }
                     container.appendChild(itemCard);
+                }
+
+                if (tierMeta.isTier && isViewingOwnProfile && listType === 'custom') {
+                    wireTierDragAndDrop(container, 'book', listId, listType);
                 }
             }
 
@@ -10025,9 +10101,13 @@ header, .top-stripe, .section-nav {
                         ` : ''}
                     `;
                     if (canReorder) {
-                        wireTierRankControl(itemCard, 'music', listId, trackId, rankedTrackIds, listType);
+                        itemCard.dataset.tierItemId = String(trackId || '').trim();
                     }
                     container.appendChild(itemCard);
+                }
+
+                if (tierMeta.isTier && isViewingOwnProfile && listType === 'custom') {
+                    wireTierDragAndDrop(container, 'music', listId, listType);
                 }
             }
 
@@ -11142,7 +11222,6 @@ header, .top-stripe, .section-nav {
                 deleteBookList,
                 renameMusicList,
                 deleteMusicList,
-                updateTierRank,
                 removeFromCollection,
                 editCollection,
                 deleteCollection,
