@@ -4499,6 +4499,9 @@ header, .top-stripe, .section-nav {
                     }
                     
                     currentUser = user;
+                    if (window.ListUtils) {
+                        ListUtils.setTierSyncContext(supabase, currentUser.id);
+                    }
                     
                     // 5. FIX: Optimized initialization to load faster
                     await loadProfile();
@@ -7426,7 +7429,10 @@ header, .top-stripe, .section-nav {
                 const safeListId = String(listId || '').trim();
                 const safeItemId = String(itemId || '').trim();
                 if (!safeType || !safeListId || !safeItemId) return;
-                ListUtils.setTierRank(safeType, safeListId, safeItemId, nextRank);
+                await ListUtils.setTierRank(safeType, safeListId, safeItemId, nextRank, {
+                    client: supabase,
+                    userId: currentUser?.id
+                });
             }
 
             function setEditMediaListModalMode(config, isCreate = false) {
@@ -8722,6 +8728,7 @@ header, .top-stripe, .section-nav {
             }
 
             async function showRestaurantDetail(listId, isMobile) {
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileRestaurantsSection');
                     const detailSection = document.getElementById('mobileRestaurantDetailSection');
@@ -8749,6 +8756,15 @@ header, .top-stripe, .section-nav {
                 if (error || !list) {
                     showToast('Collection not found', 'error');
                     return;
+                }
+
+                if (window.ListUtils) {
+                    const [hydrated] = await ListUtils.hydrateListMetaForLists('restaurant', [list], {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId: userId
+                    });
+                    if (hydrated) list = hydrated;
                 }
 
                 const { data: items } = await supabase
@@ -8782,13 +8798,13 @@ header, .top-stripe, .section-nav {
                     if (actions) actions.style.display = isViewingOwnProfile && !list.is_default ? 'flex' : 'none';
                 }
 
-                await renderRestaurantItems(restaurantIds, listId, isMobile, list, listType);
+                await renderRestaurantItems(restaurantIds, listId, isMobile, list, listType, userId);
 
                 currentActiveList = { ...list, id: listId, restaurantIds, listType };
                 currentMediaDetail = { mediaType: 'restaurant', listId, listType, isMobile };
             }
 
-            async function renderRestaurantItems(restaurantIds, listId, isMobile, list = null, listType = 'custom') {
+            async function renderRestaurantItems(restaurantIds, listId, isMobile, list = null, listType = 'custom', ownerUserId = null) {
                 const container = isMobile ? document.getElementById('mobileRestaurantItems') : document.getElementById('restaurantItemsContainer');
                 if (!container) return;
 
@@ -8811,6 +8827,13 @@ header, .top-stripe, .section-nav {
                 container.innerHTML = '';
 
                 const tierMeta = getTierMetaForList('restaurant', list, restaurantIds.length);
+                if (tierMeta.isTier && window.ListUtils) {
+                    await ListUtils.hydrateTierRanksForList('restaurant', listId, {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId
+                    });
+                }
                 const orderedRestaurantIds = (tierMeta.isTier && window.ListUtils)
                     ? ListUtils.sortIdsByTierRank('restaurant', listId, restaurantIds)
                     : [...restaurantIds];
@@ -8915,6 +8938,15 @@ header, .top-stripe, .section-nav {
                     list = { ...data, type: 'custom' };
                 }
 
+                if (listType === 'custom' && window.ListUtils) {
+                    const [hydrated] = await ListUtils.hydrateListMetaForLists('movie', [list], {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId: userId
+                    });
+                    if (hydrated) list = hydrated;
+                }
+
                 const { data: items } = await supabase
                     .from('movie_list_items')
                     .select('movie_id')
@@ -8955,10 +8987,10 @@ header, .top-stripe, .section-nav {
                 }
 
                 currentMediaDetail = { mediaType: 'movie', listId, listType, isMobile };
-                await renderMovieItems(movieIds, listId, listType, isMobile, list);
+                await renderMovieItems(movieIds, listId, listType, isMobile, list, userId);
             }
 
-            async function renderMovieItems(movieIds, listId, listType, isMobile, list = null) {
+            async function renderMovieItems(movieIds, listId, listType, isMobile, list = null, ownerUserId = null) {
                 const container = isMobile ? document.getElementById('mobileMovieItems') : document.getElementById('movieItemsContainer');
                 if (!container) return;
 
@@ -8975,6 +9007,13 @@ header, .top-stripe, .section-nav {
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
                 const tierMeta = getTierMetaForList('movie', list, movieIds.length);
+                if (tierMeta.isTier && window.ListUtils) {
+                    await ListUtils.hydrateTierRanksForList('movie', listId, {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId
+                    });
+                }
                 const rankedMovieIds = (tierMeta.isTier && window.ListUtils)
                     ? ListUtils.sortIdsByTierRank('movie', listId, movieIds)
                     : [...movieIds];
@@ -9079,6 +9118,15 @@ header, .top-stripe, .section-nav {
                     list = { ...data, type: 'custom' };
                 }
 
+                if (listType === 'custom' && window.ListUtils) {
+                    const [hydrated] = await ListUtils.hydrateListMetaForLists('tv', [list], {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId: userId
+                    });
+                    if (hydrated) list = hydrated;
+                }
+
                 const { data: items } = await supabase
                     .from('tv_list_items')
                     .select('tv_id')
@@ -9119,10 +9167,10 @@ header, .top-stripe, .section-nav {
                 }
 
                 currentMediaDetail = { mediaType: 'tv', listId, listType, isMobile };
-                await renderTvItems(tvIds, listId, listType, isMobile, list);
+                await renderTvItems(tvIds, listId, listType, isMobile, list, userId);
             }
 
-            async function renderTvItems(tvIds, listId, listType, isMobile, list = null) {
+            async function renderTvItems(tvIds, listId, listType, isMobile, list = null, ownerUserId = null) {
                 const container = isMobile ? document.getElementById('mobileTvItems') : document.getElementById('tvItemsContainer');
                 if (!container) return;
 
@@ -9139,6 +9187,13 @@ header, .top-stripe, .section-nav {
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
                 const tierMeta = getTierMetaForList('tv', list, tvIds.length);
+                if (tierMeta.isTier && window.ListUtils) {
+                    await ListUtils.hydrateTierRanksForList('tv', listId, {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId
+                    });
+                }
                 const rankedTvIds = (tierMeta.isTier && window.ListUtils)
                     ? ListUtils.sortIdsByTierRank('tv', listId, tvIds)
                     : [...tvIds];
@@ -9245,6 +9300,15 @@ header, .top-stripe, .section-nav {
                     list = { ...data, type: 'custom' };
                 }
 
+                if (listType === 'custom' && window.ListUtils) {
+                    const [hydrated] = await ListUtils.hydrateListMetaForLists('game', [list], {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId: userId
+                    });
+                    if (hydrated) list = hydrated;
+                }
+
                 const { data: items } = await supabase
                     .from('game_list_items')
                     .select('game_id')
@@ -9289,10 +9353,10 @@ header, .top-stripe, .section-nav {
                 }
 
                 currentMediaDetail = { mediaType: 'game', listId, listType, isMobile };
-                await renderGameItems(gameIds, listId, listType, isMobile, list);
+                await renderGameItems(gameIds, listId, listType, isMobile, list, userId);
             }
 
-            async function renderGameItems(gameIds, listId, listType, isMobile, list = null) {
+            async function renderGameItems(gameIds, listId, listType, isMobile, list = null, ownerUserId = null) {
                 const container = isMobile ? document.getElementById('mobileGameItems') : document.getElementById('gameItemsContainer');
                 if (!container) return;
 
@@ -9309,6 +9373,13 @@ header, .top-stripe, .section-nav {
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
                 const tierMeta = getTierMetaForList('game', list, gameIds.length);
+                if (tierMeta.isTier && window.ListUtils) {
+                    await ListUtils.hydrateTierRanksForList('game', listId, {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId
+                    });
+                }
                 const rankedGameIds = (tierMeta.isTier && window.ListUtils)
                     ? ListUtils.sortIdsByTierRank('game', listId, gameIds)
                     : [...gameIds];
@@ -9410,6 +9481,15 @@ header, .top-stripe, .section-nav {
                     list = { ...data, type: 'custom' };
                 }
 
+                if (listType === 'custom' && window.ListUtils) {
+                    const [hydrated] = await ListUtils.hydrateListMetaForLists('book', [list], {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId: userId
+                    });
+                    if (hydrated) list = hydrated;
+                }
+
                 // Query with proper field name based on list type
                 const { data: items } = await supabase
                     .from('book_list_items')
@@ -9451,10 +9531,10 @@ header, .top-stripe, .section-nav {
                 }
 
                 currentMediaDetail = { mediaType: 'book', listId, listType, isMobile };
-                await renderBookItems(bookIds, listId, listType, isMobile, list);
+                await renderBookItems(bookIds, listId, listType, isMobile, list, userId);
             }
 
-            async function renderBookItems(bookIds, listId, listType, isMobile, list = null) {
+            async function renderBookItems(bookIds, listId, listType, isMobile, list = null, ownerUserId = null) {
                 const container = isMobile ? document.getElementById('mobileBookItems') : document.getElementById('bookItemsContainer');
                 if (!container) return;
 
@@ -9470,6 +9550,13 @@ header, .top-stripe, .section-nav {
                 }
 
                 const tierMeta = getTierMetaForList('book', list, bookIds.length);
+                if (tierMeta.isTier && window.ListUtils) {
+                    await ListUtils.hydrateTierRanksForList('book', listId, {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId
+                    });
+                }
                 const rankedBookIds = (tierMeta.isTier && window.ListUtils)
                     ? ListUtils.sortIdsByTierRank('book', listId, bookIds)
                     : [...bookIds];
@@ -9606,6 +9693,15 @@ header, .top-stripe, .section-nav {
                     list = { ...data, type: 'custom' };
                 }
 
+                if (listType === 'custom' && window.ListUtils) {
+                    const [hydrated] = await ListUtils.hydrateListMetaForLists('music', [list], {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId: userId
+                    });
+                    if (hydrated) list = hydrated;
+                }
+
                 const { data: items } = await supabase
                     .from('music_list_items')
                     .select('track_id')
@@ -9646,10 +9742,10 @@ header, .top-stripe, .section-nav {
                 }
 
                 currentMediaDetail = { mediaType: 'music', listId, listType, isMobile };
-                await renderMusicItems(trackIds, listId, listType, isMobile, list);
+                await renderMusicItems(trackIds, listId, listType, isMobile, list, userId);
             }
 
-            async function renderMusicItems(trackIds, listId, listType, isMobile, list = null) {
+            async function renderMusicItems(trackIds, listId, listType, isMobile, list = null, ownerUserId = null) {
                 const container = isMobile ? document.getElementById('mobileMusicItems') : document.getElementById('musicItemsContainer');
                 if (!container) return;
 
@@ -9666,6 +9762,13 @@ header, .top-stripe, .section-nav {
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
                 const tierMeta = getTierMetaForList('music', list, trackIds.length);
+                if (tierMeta.isTier && window.ListUtils) {
+                    await ListUtils.hydrateTierRanksForList('music', listId, {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId
+                    });
+                }
                 const rankedTrackIds = (tierMeta.isTier && window.ListUtils)
                     ? ListUtils.sortIdsByTierRank('music', listId, trackIds)
                     : [...trackIds];

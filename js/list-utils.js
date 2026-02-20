@@ -47,6 +47,8 @@
 
   const LIST_META_STORAGE_KEY = 'zo2y_list_meta_v1';
   const TIER_RANK_STORAGE_KEY = 'zo2y_tier_ranks_v1';
+  const TIER_META_TABLE = 'list_tier_meta';
+  const TIER_RANK_TABLE = 'list_tier_ranks';
   const KNOWN_TIER_CREATE_MODAL_SELECTORS = [
     '#movieListsModal',
     '#tvListsModal',
@@ -57,6 +59,12 @@
     '#homeListsModal',
     '#editMediaListModal'
   ];
+  const tierSyncContext = {
+    client: null,
+    userId: null
+  };
+  let tierMetaServerSupported = null;
+  let tierRankServerSupported = null;
 
   function getListConfig(type) {
     return LIST_CONFIG[String(type || '').toLowerCase()] || null;
@@ -117,6 +125,40 @@
     } catch (_error) {}
   }
 
+  function setTierSyncContext(client, userId) {
+    if (client) tierSyncContext.client = client;
+    const safeUserId = String(userId || '').trim();
+    if (safeUserId) tierSyncContext.userId = safeUserId;
+  }
+
+  function getTierSyncContext(options = {}) {
+    const safeUserId = String(options.userId || tierSyncContext.userId || '').trim();
+    const safeOwnerUserId = String(options.ownerUserId || '').trim();
+    return {
+      client: options.client || tierSyncContext.client || null,
+      userId: safeUserId || null,
+      ownerUserId: safeOwnerUserId || null
+    };
+  }
+
+  function isTierServerMissingError(error) {
+    const code = String(error?.code || '').trim();
+    const message = String(error?.message || '').toLowerCase();
+    const details = String(error?.details || '').toLowerCase();
+    if (code === '42P01') return true;
+    if (message.includes('does not exist') && (message.includes(TIER_META_TABLE) || message.includes(TIER_RANK_TABLE))) return true;
+    if (details.includes('does not exist') && (details.includes(TIER_META_TABLE) || details.includes(TIER_RANK_TABLE))) return true;
+    return false;
+  }
+
+  function isTierServerPermissionError(error) {
+    const code = String(error?.code || '').trim();
+    const message = String(error?.message || '').toLowerCase();
+    if (code === '42501') return true;
+    if (message.includes('permission denied') || message.includes('row-level security')) return true;
+    return false;
+  }
+
   function toListMetaKey(type, listId) {
     const safeType = String(type || '').trim().toLowerCase();
     const safeListId = String(listId || '').trim();
@@ -148,7 +190,7 @@
     return Math.max(1, Math.floor(parsed));
   }
 
-  function setListMeta(type, listId, payload = {}) {
+  function setListMeta(type, listId, payload = {}, options = {}) {
     const key = toListMetaKey(type, listId);
     if (!key) return;
     const store = readStorageObject(LIST_META_STORAGE_KEY);
@@ -159,6 +201,11 @@
       maxRank
     };
     writeStorageObject(LIST_META_STORAGE_KEY, store);
+
+    if (options?.skipRemote) return;
+    const { client, userId } = getTierSyncContext(options);
+    if (!client || !userId || tierMetaServerSupported === false) return;
+    void upsertListMetaRemote(type, listId, { listKind, maxRank }, { client, userId });
   }
 
   function getListMeta(type, listId) {
@@ -201,6 +248,91 @@
     };
   }
 
+  async function upsertListMetaRemote(type, listId, payload = {}, options = {}) {
+    const safeType = String(type || '').trim().toLowerCase();
+    const safeListId = String(listId || '').trim();
+    if (!safeType || !safeListId) return false;
+    if (tierMetaServerSupported === false) return false;
+    const { client, userId } = getTierSyncContext(options);
+    if (!client || !userId) return false;
+
+    const listKind = normalizeListKindValue(payload.listKind, 'standard');
+    const maxRank = normalizeTierMaxRank(payload.maxRank);
+    const { error } = await client
+      .from(TIER_META_TABLE)
+      .upsert({
+        user_id: userId,
+        media_type: safeType,
+        list_id: safeListId,
+        list_kind: listKind,
+        max_rank: maxRank,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id,media_type,list_id'
+      });
+    if (error) {
+      if (isTierServerMissingError(error) || isTierServerPermissionError(error)) {
+        tierMetaServerSupported = false;
+      }
+      return false;
+    }
+    tierMetaServerSupported = true;
+    return true;
+  }
+
+  async function hydrateListMetaForLists(type, lists = [], options = {}) {
+    const listRows = Array.isArray(lists) ? lists : [];
+    if (!listRows.length) return listRows.map((row) => applyListMeta(type, row));
+    if (tierMetaServerSupported === false) return listRows.map((row) => applyListMeta(type, row));
+
+    const safeType = String(type || '').trim().toLowerCase();
+    const safeListIds = [...new Set(listRows
+      .map((row) => String(row?.id || row?.list_id || '').trim())
+      .filter(Boolean))];
+    if (!safeType || !safeListIds.length) return listRows.map((row) => applyListMeta(type, row));
+
+    const { client, userId, ownerUserId } = getTierSyncContext(options);
+    if (!client) return listRows.map((row) => applyListMeta(type, row));
+
+    let query = client
+      .from(TIER_META_TABLE)
+      .select('user_id,list_id,list_kind,max_rank')
+      .eq('media_type', safeType)
+      .in('list_id', safeListIds);
+    const ownerId = String(ownerUserId || userId || '').trim();
+    if (ownerId) {
+      query = query.eq('user_id', ownerId);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      if (isTierServerMissingError(error) || isTierServerPermissionError(error)) {
+        tierMetaServerSupported = false;
+      }
+      return listRows.map((row) => applyListMeta(type, row));
+    }
+
+    tierMetaServerSupported = true;
+    const byListId = new Map();
+    (data || []).forEach((row) => {
+      const key = String(row?.list_id || '').trim();
+      if (!key) return;
+      byListId.set(key, {
+        listKind: normalizeListKindValue(row?.list_kind, 'standard'),
+        maxRank: normalizeTierMaxRank(row?.max_rank)
+      });
+    });
+
+    listRows.forEach((row) => {
+      const key = String(row?.id || row?.list_id || '').trim();
+      if (!key) return;
+      const meta = byListId.get(key);
+      if (!meta) return;
+      setListMeta(safeType, key, meta, { skipRemote: true });
+    });
+    return listRows.map((row) => applyListMeta(type, row));
+  }
+
   function isTierList(type, list = null) {
     return !!resolveListMeta(type, list, 0).isTier;
   }
@@ -233,9 +365,99 @@
     return normalizeTierMaxRank(map[key]);
   }
 
-  function setTierRank(type, listId, itemId, rankValue) {
+  async function persistTierRankRemote(type, listId, itemId, rankValue, options = {}) {
+    const safeType = String(type || '').trim().toLowerCase();
+    const safeListId = String(listId || '').trim();
+    const safeItemId = String(itemId || '').trim();
+    if (!safeType || !safeListId || !safeItemId) return false;
+    if (tierRankServerSupported === false) return false;
+
+    const { client, userId } = getTierSyncContext(options);
+    if (!client || !userId) return false;
+    const nextRank = normalizeTierMaxRank(rankValue);
+
+    if (!nextRank) {
+      const { error } = await client
+        .from(TIER_RANK_TABLE)
+        .delete()
+        .eq('user_id', userId)
+        .eq('media_type', safeType)
+        .eq('list_id', safeListId)
+        .eq('item_id', safeItemId);
+      if (error) {
+        if (isTierServerMissingError(error) || isTierServerPermissionError(error)) {
+          tierRankServerSupported = false;
+        }
+        return false;
+      }
+      tierRankServerSupported = true;
+      return true;
+    }
+
+    const { error } = await client
+      .from(TIER_RANK_TABLE)
+      .upsert({
+        user_id: userId,
+        media_type: safeType,
+        list_id: safeListId,
+        item_id: safeItemId,
+        rank: nextRank,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id,media_type,list_id,item_id'
+      });
+    if (error) {
+      if (isTierServerMissingError(error) || isTierServerPermissionError(error)) {
+        tierRankServerSupported = false;
+      }
+      return false;
+    }
+    tierRankServerSupported = true;
+    return true;
+  }
+
+  async function hydrateTierRanksForList(type, listId, options = {}) {
+    const safeType = String(type || '').trim().toLowerCase();
+    const safeListId = String(listId || '').trim();
+    if (!safeType || !safeListId) return getTierRankMap(type, listId);
+    if (tierRankServerSupported === false) return getTierRankMap(type, listId);
+
+    const { client, userId, ownerUserId } = getTierSyncContext(options);
+    if (!client) return getTierRankMap(type, listId);
+
+    let query = client
+      .from(TIER_RANK_TABLE)
+      .select('user_id,item_id,rank')
+      .eq('media_type', safeType)
+      .eq('list_id', safeListId);
+    const ownerId = String(ownerUserId || userId || '').trim();
+    if (ownerId) {
+      query = query.eq('user_id', ownerId);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      if (isTierServerMissingError(error) || isTierServerPermissionError(error)) {
+        tierRankServerSupported = false;
+      }
+      return getTierRankMap(type, listId);
+    }
+
+    tierRankServerSupported = true;
+    const map = {};
+    (data || []).forEach((row) => {
+      const itemKey = String(row?.item_id || '').trim();
+      const rank = normalizeTierMaxRank(row?.rank);
+      if (!itemKey || !rank) return;
+      map[itemKey] = rank;
+    });
+    writeTierRankMap(safeType, safeListId, map);
+    return map;
+  }
+
+  function setTierRank(type, listId, itemId, rankValue, options = {}) {
     const key = String(itemId || '').trim();
-    if (!key) return;
+    if (!key) return Promise.resolve(false);
     const map = { ...getTierRankMap(type, listId) };
     const nextRank = normalizeTierMaxRank(rankValue);
     if (!nextRank) {
@@ -244,6 +466,11 @@
       map[key] = nextRank;
     }
     writeTierRankMap(type, listId, map);
+
+    if (options?.skipRemote) return Promise.resolve(true);
+    const { client, userId } = getTierSyncContext(options);
+    if (!client || !userId || tierRankServerSupported === false) return Promise.resolve(true);
+    return persistTierRankRemote(type, listId, itemId, nextRank, { client, userId });
   }
 
   function sortIdsByTierRank(type, listId, itemIds = []) {
@@ -527,6 +754,7 @@
   async function loadCustomLists(client, userId, type) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return [];
+    setTierSyncContext(client, userId);
     const { data, error } = await client
       .from(cfg.listTable)
       .select('*')
@@ -534,7 +762,7 @@
       .order('created_at', { ascending: false });
     if (error) return [];
     const lists = data || [];
-    const enhanced = lists.map((list) => applyListMeta(type, list));
+    const enhanced = await hydrateListMetaForLists(type, lists, { client, userId, ownerUserId: userId });
     if (cfg.filterTitles && cfg.filterTitles.length) {
       return enhanced.filter(list => !cfg.filterTitles.includes(list.title));
     }
@@ -559,6 +787,7 @@
   async function saveCustomListChanges(client, userId, type, itemId, selectedListIds, itemPayload) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !itemId) return;
+    if (userId) setTierSyncContext(client, userId);
     if (type === 'book' && itemPayload) {
       await ensureBookRecord(client, itemPayload);
     }
@@ -587,6 +816,7 @@
   async function createCustomList(client, userId, type, payload) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return null;
+    setTierSyncContext(client, userId);
     const normalizedType = String(type || '').toLowerCase();
     const listKind = normalizeListKindValue(payload?.listKind, 'standard');
     const maxRank = normalizeTierMaxRank(payload?.maxRank);
@@ -629,13 +859,14 @@
     }
     if (error || !data) return null;
 
-    setListMeta(normalizedType, data.id, { listKind, maxRank });
+    setListMeta(normalizedType, data.id, { listKind, maxRank }, { client, userId });
     return applyListMeta(normalizedType, data);
   }
 
   async function renameCustomList(client, userId, type, listId, title) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId || !listId) return false;
+    setTierSyncContext(client, userId);
     const payload = { title };
     if (cfg.listTable === 'lists') payload.updated_at = new Date().toISOString();
     const { error } = await client
@@ -651,16 +882,19 @@
     coerceItemId,
     normalizeIconKey,
     renderListIcon,
+    setTierSyncContext,
     normalizeListKindValue,
     normalizeTierMaxRank,
     setListMeta,
     getListMeta,
     resolveListMeta,
     applyListMeta,
+    hydrateListMetaForLists,
     isTierList,
     getTierRank,
     setTierRank,
     sortIdsByTierRank,
+    hydrateTierRanksForList,
     ensureTierCreateControl,
     readTierCreateState,
     setTierCreateState,
