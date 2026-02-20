@@ -465,21 +465,44 @@
             color: #ffffff;
         }
 
-        .collection-item-rank-drag-hint {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 11px;
-            color: var(--muted);
-            opacity: 0.9;
-        }
-
         .collection-item-card.tier-draggable {
             cursor: grab;
         }
 
         .collection-item-card.tier-draggable .collection-item-rank {
             cursor: grab;
+        }
+
+        .collection-item-card.tier-draggable .collection-item-body {
+            padding-right: 44px;
+        }
+
+        .tier-drag-handle {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            color: var(--accent);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            z-index: 4;
+            opacity: 0.95;
+            touch-action: none;
+        }
+
+        .tier-drag-handle i {
+            pointer-events: none;
+            font-size: 17px;
+        }
+
+        .tier-drag-handle:active {
+            cursor: grabbing;
         }
 
         .collection-item-card.tier-draggable.is-dragging {
@@ -7487,11 +7510,6 @@ header, .top-stripe, .section-nav {
                 return `
                     <div class="collection-item-rank" onclick="event.stopPropagation()">
                         <span class="collection-item-rank-pill ${rankToneClass}">#${safeRank}</span>
-                        ${canReorder ? `
-                            <span class="collection-item-rank-drag-hint" title="Drag to reorder">
-                                <i class="fas fa-grip-vertical"></i>
-                            </span>
-                        ` : ''}
                     </div>
                 `;
             }
@@ -7521,110 +7539,175 @@ header, .top-stripe, .section-nav {
                 const safeListId = String(listId || '').trim();
                 if (!safeType || !safeListId) return;
 
-                const cards = Array.from(container.querySelectorAll('.collection-item-card[data-tier-item-id]'));
+                if (typeof container.__tierPointerMoveHandler === 'function') {
+                    window.removeEventListener('pointermove', container.__tierPointerMoveHandler);
+                }
+                if (typeof container.__tierPointerUpHandler === 'function') {
+                    window.removeEventListener('pointerup', container.__tierPointerUpHandler);
+                }
+                if (typeof container.__tierPointerCancelHandler === 'function') {
+                    window.removeEventListener('pointercancel', container.__tierPointerCancelHandler);
+                }
+
+                const getCards = () => Array.from(container.querySelectorAll('.collection-item-card[data-tier-item-id]'));
+                const cards = getCards();
                 if (cards.length < 2) return;
 
                 let activeCard = null;
-                let didDrop = false;
+                let activePointerId = null;
+                let startOrderKey = '';
                 let isPersisting = false;
+                let orderDirty = false;
+                let previousTouchAction = '';
 
-                const getContainerOrder = () => Array.from(container.querySelectorAll('.collection-item-card[data-tier-item-id]'))
+                const getContainerOrder = () => getCards()
                     .map((card) => String(card.dataset.tierItemId || '').trim())
                     .filter(Boolean);
 
-                const getTargetCard = (event, draggingCard) => {
-                    const y = Number(event?.clientY || 0);
-                    let best = null;
-                    let bestOffset = Number.NEGATIVE_INFINITY;
-                    const candidates = Array.from(container.querySelectorAll('.collection-item-card[data-tier-item-id]'))
-                        .filter((card) => card !== draggingCard);
-                    candidates.forEach((candidate) => {
-                        const rect = candidate.getBoundingClientRect();
-                        const offset = y - rect.top - (rect.height / 2);
-                        if (offset < 0 && offset > bestOffset) {
-                            bestOffset = offset;
-                            best = candidate;
-                        }
-                    });
-                    return best;
+                const applyRankTone = (pill, rankValue) => {
+                    if (!pill) return;
+                    const rank = Math.max(1, Number(rankValue) || 1);
+                    pill.textContent = `#${rank}`;
+                    pill.classList.remove('rank-gold', 'rank-silver', 'rank-bronze', 'rank-default');
+                    if (rank === 1) {
+                        pill.classList.add('rank-gold');
+                    } else if (rank === 2) {
+                        pill.classList.add('rank-silver');
+                    } else if (rank === 3) {
+                        pill.classList.add('rank-bronze');
+                    } else {
+                        pill.classList.add('rank-default');
+                    }
                 };
 
-                const persistAndRefresh = async () => {
+                const refreshRankBadges = () => {
+                    getCards().forEach((card, index) => {
+                        const pill = card.querySelector('.collection-item-rank-pill');
+                        applyRankTone(pill, index + 1);
+                    });
+                };
+
+                const persistCurrentOrder = async () => {
                     if (isPersisting) return;
                     isPersisting = true;
                     try {
                         const nextOrder = getContainerOrder();
                         if (nextOrder.length > 1) {
                             await persistTierOrder(safeType, safeListId, nextOrder);
-                            await showCollectionDetail(safeListId, safeType, listType || 'custom');
                         }
                     } finally {
                         isPersisting = false;
                     }
                 };
 
-                cards.forEach((card) => {
-                    card.setAttribute('draggable', 'true');
-                    card.classList.add('tier-draggable');
-
-                    card.addEventListener('dragstart', (event) => {
-                        activeCard = card;
-                        didDrop = false;
-                        card.classList.add('is-dragging');
-                        if (event.dataTransfer) {
-                            event.dataTransfer.effectAllowed = 'move';
-                            event.dataTransfer.setData('text/plain', String(card.dataset.tierItemId || ''));
+                const moveActiveCardToPointer = (clientY) => {
+                    if (!activeCard) return;
+                    const siblings = getCards().filter((card) => card !== activeCard);
+                    let placed = false;
+                    for (const sibling of siblings) {
+                        const rect = sibling.getBoundingClientRect();
+                        const midpoint = rect.top + (rect.height / 2);
+                        if (clientY < midpoint) {
+                            if (activeCard !== sibling.previousElementSibling) {
+                                container.insertBefore(activeCard, sibling);
+                                orderDirty = true;
+                                refreshRankBadges();
+                            }
+                            placed = true;
+                            break;
                         }
-                    });
-
-                    card.addEventListener('dragover', (event) => {
-                        event.preventDefault();
-                        if (!activeCard) return;
-                        const targetCard = getTargetCard(event, activeCard);
-                        if (!targetCard) {
-                            container.appendChild(activeCard);
-                            return;
-                        }
-                        container.insertBefore(activeCard, targetCard);
-                    });
-
-                    card.addEventListener('drop', (event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        didDrop = true;
-                        void persistAndRefresh();
-                    });
-
-                    card.addEventListener('dragend', () => {
-                        card.classList.remove('is-dragging');
-                        activeCard = null;
-                    });
-                });
-
-                if (typeof container.__tierDndDragOverHandler === 'function') {
-                    container.removeEventListener('dragover', container.__tierDndDragOverHandler);
-                }
-                if (typeof container.__tierDndDropHandler === 'function') {
-                    container.removeEventListener('drop', container.__tierDndDropHandler);
-                }
-
-                const dragOverHandler = (event) => {
-                    event.preventDefault();
-                };
-
-                const dropHandler = (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    if (!didDrop) {
-                        didDrop = true;
-                        void persistAndRefresh();
+                    }
+                    if (!placed && container.lastElementChild !== activeCard) {
+                        container.appendChild(activeCard);
+                        orderDirty = true;
+                        refreshRankBadges();
                     }
                 };
 
-                container.__tierDndDragOverHandler = dragOverHandler;
-                container.__tierDndDropHandler = dropHandler;
-                container.addEventListener('dragover', dragOverHandler);
-                container.addEventListener('drop', dropHandler);
+                const onPointerMove = (event) => {
+                    if (!activeCard || activePointerId === null || event.pointerId !== activePointerId) return;
+                    event.preventDefault();
+                    moveActiveCardToPointer(event.clientY);
+                };
+
+                const finishDrag = async () => {
+                    if (!activeCard) return;
+                    activeCard.classList.remove('is-dragging');
+                    const finalOrderKey = getContainerOrder().join('|');
+                    const changed = finalOrderKey !== startOrderKey || orderDirty;
+                    activeCard = null;
+                    activePointerId = null;
+                    startOrderKey = '';
+                    orderDirty = false;
+                    container.style.touchAction = previousTouchAction;
+                    previousTouchAction = '';
+                    if (changed) {
+                        await persistCurrentOrder();
+                    }
+                };
+
+                const onPointerUp = (event) => {
+                    if (activePointerId === null || event.pointerId !== activePointerId) return;
+                    event.preventDefault();
+                    void finishDrag();
+                };
+
+                container.__tierPointerMoveHandler = onPointerMove;
+                container.__tierPointerUpHandler = onPointerUp;
+                container.__tierPointerCancelHandler = onPointerUp;
+                window.addEventListener('pointermove', onPointerMove, { passive: false });
+                window.addEventListener('pointerup', onPointerUp);
+                window.addEventListener('pointercancel', onPointerUp);
+
+                cards.forEach((card) => {
+                    card.classList.add('tier-draggable');
+                    card.removeAttribute('draggable');
+
+                    let handle = card.querySelector('.tier-drag-handle');
+                    if (!handle) {
+                        handle = document.createElement('button');
+                        handle.type = 'button';
+                        handle.className = 'tier-drag-handle';
+                        handle.setAttribute('aria-label', 'Drag to reorder');
+                        handle.setAttribute('title', 'Drag to reorder');
+                        handle.innerHTML = '<i class="fas fa-sort"></i>';
+                        card.appendChild(handle);
+                    }
+
+                    if (typeof handle.__tierPointerDownHandler === 'function') {
+                        handle.removeEventListener('pointerdown', handle.__tierPointerDownHandler);
+                    }
+                    if (typeof handle.__tierClickHandler === 'function') {
+                        handle.removeEventListener('click', handle.__tierClickHandler);
+                    }
+
+                    const clickHandler = (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    };
+                    const pointerDownHandler = (event) => {
+                        if (event.pointerType === 'mouse' && event.button !== 0) return;
+                        event.preventDefault();
+                        event.stopPropagation();
+                        activeCard = card;
+                        activePointerId = event.pointerId;
+                        startOrderKey = getContainerOrder().join('|');
+                        orderDirty = false;
+                        previousTouchAction = container.style.touchAction || '';
+                        container.style.touchAction = 'none';
+                        card.classList.add('is-dragging');
+                        try {
+                            handle.setPointerCapture(event.pointerId);
+                        } catch (_error) {}
+                    };
+
+                    handle.__tierPointerDownHandler = pointerDownHandler;
+                    handle.__tierClickHandler = clickHandler;
+                    handle.addEventListener('pointerdown', pointerDownHandler, { passive: false });
+                    handle.addEventListener('click', clickHandler);
+                });
+
+                refreshRankBadges();
             }
 
             function setEditMediaListModalMode(config, isCreate = false) {
