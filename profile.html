@@ -4405,7 +4405,7 @@ header, .top-stripe, .section-nav {
         </div>
     </div>
 
-    <script src="js/list-utils.js"></script>
+    <script src="js/list-utils.js?v=20260220"></script>
     <script src="js/igdb-client.js"></script>
     <script>
         // ===== GLOBAL PROFILE MANAGER =====
@@ -4499,7 +4499,7 @@ header, .top-stripe, .section-nav {
                     }
                     
                     currentUser = user;
-                    if (window.ListUtils) {
+                    if (window.ListUtils && typeof ListUtils.setTierSyncContext === 'function') {
                         ListUtils.setTierSyncContext(supabase, currentUser.id);
                     }
                     
@@ -5744,10 +5744,13 @@ header, .top-stripe, .section-nav {
 
                         if (error) throw error;
 
-                        if (window.ListUtils) {
+                        if (window.ListUtils && typeof ListUtils.setListMeta === 'function') {
                             ListUtils.setListMeta('restaurant', editingListId, {
                                 listKind: normalizedListKind,
                                 maxRank: normalizedMaxRank
+                            }, {
+                                client: supabase,
+                                userId: currentUser?.id
                             });
                         }
                         
@@ -5820,12 +5823,17 @@ header, .top-stripe, .section-nav {
                         
                         if (error) throw error;
 
-                        if (window.ListUtils && newList?.id) {
+                        if (window.ListUtils && newList?.id && typeof ListUtils.setListMeta === 'function') {
                             ListUtils.setListMeta('restaurant', newList.id, {
                                 listKind: normalizedListKind,
                                 maxRank: normalizedMaxRank
+                            }, {
+                                client: supabase,
+                                userId: currentUser?.id
                             });
-                            newList = ListUtils.applyListMeta('restaurant', newList);
+                            if (typeof ListUtils.applyListMeta === 'function') {
+                                newList = ListUtils.applyListMeta('restaurant', newList);
+                            }
                         }
                         
                         console.log('List created:', newList);
@@ -7368,13 +7376,58 @@ header, .top-stripe, .section-nav {
             }
 
             function getTierMetaForList(type, list, itemsCount = 0) {
-                if (!window.ListUtils) {
-                    return { listKind: 'standard', isTier: false, maxRank: null };
-                }
                 const safeType = String(type || '').toLowerCase();
                 const safeList = list && typeof list === 'object' ? list : {};
-                const resolved = ListUtils.resolveListMeta(safeType, safeList, itemsCount);
-                return resolved || { listKind: 'standard', isTier: false, maxRank: null };
+                const fallbackNormalizeListKind = (value, fallback = 'standard') => {
+                    const raw = String(value || '').trim().toLowerCase();
+                    if (!raw) return fallback;
+                    if (raw === 'tier' || raw === 'tierlist' || raw === 'tier_list') return 'tier';
+                    if (raw === 'standard' || raw === 'list' || raw === 'custom' || raw === 'default') return 'standard';
+                    if (raw === 'movie' || raw === 'tv' || raw === 'game' || raw === 'book' || raw === 'music' || raw === 'restaurant') {
+                        return 'standard';
+                    }
+                    return fallback;
+                };
+                const fallbackNormalizeMaxRank = (value) => {
+                    const parsed = Number(value);
+                    if (!Number.isFinite(parsed) || parsed <= 0) return null;
+                    return Math.max(1, Math.floor(parsed));
+                };
+
+                if (window.ListUtils && typeof ListUtils.resolveListMeta === 'function') {
+                    const resolved = ListUtils.resolveListMeta(safeType, safeList, itemsCount);
+                    if (resolved && typeof resolved === 'object') {
+                        const resolvedKind = fallbackNormalizeListKind(resolved.listKind, 'standard');
+                        const resolvedMaxRank = fallbackNormalizeMaxRank(resolved.maxRank);
+                        return {
+                            listKind: resolvedKind,
+                            isTier: resolvedKind === 'tier',
+                            maxRank: resolvedMaxRank || (resolvedKind === 'tier' ? Math.max(1, Number(itemsCount) || 1) : null)
+                        };
+                    }
+                }
+
+                const safeListId = String(safeList.id || safeList.list_id || '').trim();
+                const storedMeta = (window.ListUtils && typeof ListUtils.getListMeta === 'function' && safeListId)
+                    ? ListUtils.getListMeta(safeType, safeListId)
+                    : { listKind: 'standard', maxRank: null };
+                const rowKind = fallbackNormalizeListKind(
+                    safeList.__listKind || safeList.__zo2yListKind || safeList.list_kind,
+                    fallbackNormalizeListKind(storedMeta?.listKind, 'standard')
+                );
+                const listKind = rowKind === 'tier' || fallbackNormalizeListKind(storedMeta?.listKind, 'standard') === 'tier'
+                    ? 'tier'
+                    : 'standard';
+                const rawMaxRank = safeList.__tierMaxRank || safeList.__zo2yTierMaxRank || safeList.tier_max_rank || safeList.max_rank || storedMeta?.maxRank;
+                const maxRank = (window.ListUtils && typeof ListUtils.normalizeTierMaxRank === 'function')
+                    ? ListUtils.normalizeTierMaxRank(rawMaxRank)
+                    : fallbackNormalizeMaxRank(rawMaxRank);
+
+                return {
+                    listKind,
+                    isTier: listKind === 'tier',
+                    maxRank: maxRank || (listKind === 'tier' ? Math.max(1, Number(itemsCount) || 1) : null)
+                };
             }
 
             function getCollectionTitleWithKind(type, list, listType) {
@@ -7637,12 +7690,17 @@ header, .top-stripe, .section-nav {
                     return null;
                 }
 
-                if (window.ListUtils && createdList.id) {
+                if (window.ListUtils && createdList.id && typeof ListUtils.setListMeta === 'function') {
                     ListUtils.setListMeta(context.type, createdList.id, {
                         listKind: normalizedKind,
                         maxRank: normalizedMaxRank
+                    }, {
+                        client: supabase,
+                        userId: currentUser?.id
                     });
-                    createdList = ListUtils.applyListMeta(context.type, createdList);
+                    if (typeof ListUtils.applyListMeta === 'function') {
+                        createdList = ListUtils.applyListMeta(context.type, createdList);
+                    }
                 }
 
                 showToast(`${context.label} list "${trimmedTitle}" created`, 'success');
@@ -7735,10 +7793,13 @@ header, .top-stripe, .section-nav {
                     return;
                 }
 
-                if (window.ListUtils) {
+                if (window.ListUtils && typeof ListUtils.setListMeta === 'function') {
                     ListUtils.setListMeta(editingMediaList.type, editingMediaList.id, {
                         listKind: normalizedKind,
                         maxRank: normalizedMaxRank
+                    }, {
+                        client: supabase,
+                        userId: currentUser?.id
                     });
                 }
 
@@ -8011,7 +8072,7 @@ header, .top-stripe, .section-nav {
                 const renderToken = ++renderRestaurantsToken;
 
                 try {
-                    const { data: lists, error } = await supabase
+                    const { data: listsData, error } = await supabase
                         .from('lists')
                         .select('*')
                         .eq('user_id', userId)
@@ -8019,8 +8080,17 @@ header, .top-stripe, .section-nav {
 
                     if (error) throw error;
                     if (renderToken !== renderRestaurantsToken) return;
+                    let lists = Array.isArray(listsData) ? listsData : [];
+                    if (window.ListUtils && lists.length && typeof ListUtils.hydrateListMetaForLists === 'function') {
+                        lists = await ListUtils.hydrateListMetaForLists('restaurant', lists, {
+                            client: supabase,
+                            userId: currentUser?.id,
+                            ownerUserId: userId
+                        });
+                    }
+                    if (renderToken !== renderRestaurantsToken) return;
 
-                    if (!lists || lists.length === 0) {
+                    if (!lists.length) {
                         grid.innerHTML = `
                             <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
                                 <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
@@ -8115,13 +8185,22 @@ header, .top-stripe, .section-nav {
                         { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Movies to watch', type: 'default' }
                     ];
 
-                    const { data: customLists, error: customError } = await supabase
+                    const { data: customListsData, error: customError } = await supabase
                         .from('movie_lists')
                         .select('*')
                         .eq('user_id', userId)
                         .order('created_at', { ascending: false });
 
                     if (customError) throw customError;
+                    if (renderToken !== renderMoviesToken) return;
+                    let customLists = Array.isArray(customListsData) ? customListsData : [];
+                    if (window.ListUtils && customLists.length && typeof ListUtils.hydrateListMetaForLists === 'function') {
+                        customLists = await ListUtils.hydrateListMetaForLists('movie', customLists, {
+                            client: supabase,
+                            userId: currentUser?.id,
+                            ownerUserId: userId
+                        });
+                    }
                     if (renderToken !== renderMoviesToken) return;
 
                     const { data: allItems } = await supabase
@@ -8135,12 +8214,12 @@ header, .top-stripe, .section-nav {
                         list.movieIds = items.filter(i => i.list_type === list.id).map(i => i.movie_id);
                     }
 
-                    for (const list of (customLists || [])) {
+                    for (const list of customLists) {
                         list.movieIds = items.filter(i => i.list_id === list.id).map(i => i.movie_id);
                         list.type = 'custom';
                     }
 
-                    const allLists = [...defaultLists, ...(customLists || [])];
+                    const allLists = [...defaultLists, ...customLists];
 
                     if (allLists.length === 0) {
                         grid.innerHTML = `
@@ -8189,13 +8268,22 @@ header, .top-stripe, .section-nav {
                         { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Shows to watch', type: 'default' }
                     ];
 
-                    const { data: customLists, error: customError } = await supabase
+                    const { data: customListsData, error: customError } = await supabase
                         .from('tv_lists')
                         .select('*')
                         .eq('user_id', userId)
                         .order('created_at', { ascending: false });
 
                     if (customError) throw customError;
+                    if (renderToken !== renderTvToken) return;
+                    let customLists = Array.isArray(customListsData) ? customListsData : [];
+                    if (window.ListUtils && customLists.length && typeof ListUtils.hydrateListMetaForLists === 'function') {
+                        customLists = await ListUtils.hydrateListMetaForLists('tv', customLists, {
+                            client: supabase,
+                            userId: currentUser?.id,
+                            ownerUserId: userId
+                        });
+                    }
                     if (renderToken !== renderTvToken) return;
 
                     const { data: allItems } = await supabase
@@ -8209,12 +8297,12 @@ header, .top-stripe, .section-nav {
                         list.tvIds = items.filter(i => i.list_type === list.id).map(i => i.tv_id);
                     }
 
-                    for (const list of (customLists || [])) {
+                    for (const list of customLists) {
                         list.tvIds = items.filter(i => i.list_id === list.id).map(i => i.tv_id);
                         list.type = 'custom';
                     }
 
-                    const allLists = [...defaultLists, ...(customLists || [])];
+                    const allLists = [...defaultLists, ...customLists];
 
                     if (allLists.length === 0) {
                         grid.innerHTML = `
@@ -8263,13 +8351,22 @@ header, .top-stripe, .section-nav {
                         { id: 'watchlist', title: 'Backlog', icon: 'bookmark', description: 'Games to play', type: 'default' }
                     ];
 
-                    const { data: customLists, error: customError } = await supabase
+                    const { data: customListsData, error: customError } = await supabase
                         .from('game_lists')
                         .select('*')
                         .eq('user_id', userId)
                         .order('created_at', { ascending: false });
 
                     if (customError) throw customError;
+                    if (renderToken !== renderGamesToken) return;
+                    let customLists = Array.isArray(customListsData) ? customListsData : [];
+                    if (window.ListUtils && customLists.length && typeof ListUtils.hydrateListMetaForLists === 'function') {
+                        customLists = await ListUtils.hydrateListMetaForLists('game', customLists, {
+                            client: supabase,
+                            userId: currentUser?.id,
+                            ownerUserId: userId
+                        });
+                    }
                     if (renderToken !== renderGamesToken) return;
 
                     const { data: allItems } = await supabase
@@ -8288,7 +8385,7 @@ header, .top-stripe, .section-nav {
                         ));
                     }
 
-                    for (const list of (customLists || [])) {
+                    for (const list of customLists) {
                         list.gameIds = Array.from(new Set(
                             items
                                 .filter(i => String(i.list_id || '') === String(list.id || ''))
@@ -8298,7 +8395,7 @@ header, .top-stripe, .section-nav {
                         list.type = 'custom';
                     }
 
-                    const allLists = [...defaultLists, ...(customLists || [])];
+                    const allLists = [...defaultLists, ...customLists];
 
                     if (allLists.length === 0) {
                         grid.innerHTML = `
@@ -8427,7 +8524,7 @@ header, .top-stripe, .section-nav {
                     const allItems = allItemsData || [];
                     const reservedTitles = new Set(['favorites', 'read', 'readlist']);
                     const seenCustomIds = new Set();
-                    const customLists = [];
+                    let customLists = [];
 
                     for (const raw of (customListsData || [])) {
                         const id = String(raw.id || '').trim();
@@ -8439,6 +8536,15 @@ header, .top-stripe, .section-nav {
                         seenCustomIds.add(id);
                         customLists.push({ ...raw, type: 'custom' });
                     }
+
+                    if (window.ListUtils && customLists.length && typeof ListUtils.hydrateListMetaForLists === 'function') {
+                        customLists = await ListUtils.hydrateListMetaForLists('book', customLists, {
+                            client: supabase,
+                            userId: currentUser?.id,
+                            ownerUserId: userId
+                        });
+                    }
+                    if (renderToken !== renderBooksToken) return;
 
                     for (const list of defaultLists) {
                         list.bookIds = Array.from(new Set(
@@ -8519,7 +8625,7 @@ header, .top-stripe, .section-nav {
                     const allItems = allItemsData || [];
                     const reservedTitles = new Set(['favorites', 'listened', 'listenlist']);
                     const seenCustomIds = new Set();
-                    const customLists = [];
+                    let customLists = [];
 
                     for (const raw of (customListsData || [])) {
                         const id = String(raw.id || '').trim();
@@ -8531,6 +8637,15 @@ header, .top-stripe, .section-nav {
                         seenCustomIds.add(id);
                         customLists.push({ ...raw, type: 'custom' });
                     }
+
+                    if (window.ListUtils && customLists.length && typeof ListUtils.hydrateListMetaForLists === 'function') {
+                        customLists = await ListUtils.hydrateListMetaForLists('music', customLists, {
+                            client: supabase,
+                            userId: currentUser?.id,
+                            ownerUserId: userId
+                        });
+                    }
+                    if (renderToken !== renderMusicToken) return;
 
                     for (const list of defaultLists) {
                         list.trackIds = Array.from(new Set(
@@ -8593,6 +8708,11 @@ header, .top-stripe, .section-nav {
                                 ? (list.gameIds || [])
                                 : (contentType === 'book' ? (list.bookIds || []) : (list.trackIds || [])))));
                 const count = itemIds.length;
+                const isCustom = contentType === 'restaurant' ? !list.is_default : list.type === 'custom';
+                const tierMeta = isCustom ? getTierMetaForList(contentType, list, count) : { listKind: 'standard', isTier: false, maxRank: null };
+                const tierBadgeHtml = (isCustom && tierMeta.isTier)
+                    ? `<div class="tier-list-badge"><i class="fas fa-layer-group"></i> Tier List${tierMeta.maxRank ? ` • 1-${tierMeta.maxRank}` : ''}</div>`
+                    : '';
 
                 const previewItems = await getPreviewItems(itemIds.slice(0, 4), contentType);
                 const previewOrientationClass = getPreviewOrientationClass(contentType);
@@ -8614,7 +8734,6 @@ header, .top-stripe, .section-nav {
                     }
                 }
 
-                const isCustom = contentType === 'restaurant' ? !list.is_default : list.type === 'custom';
                 const kebabHtml = (isViewingOwnProfile && isCustom) ? `
                     <div class="collection-card-actions">
                         <button class="collection-kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleCollectionMenu('${list.id}', '${contentType}')">
@@ -8639,6 +8758,7 @@ header, .top-stripe, .section-nav {
                             <div class="collection-card-info">
                                 <div class="collection-card-title">${list.title}</div>
                                 <div class="collection-card-count">${count} ${contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'TV show' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : 'track'))))}${count !== 1 ? 's' : ''}</div>
+                                ${tierBadgeHtml}
                             </div>
                         </div>
                     </div>
@@ -8747,7 +8867,7 @@ header, .top-stripe, .section-nav {
                     }
                 }
 
-                const { data: list, error } = await supabase
+                let { data: list, error } = await supabase
                     .from('lists')
                     .select('*')
                     .eq('id', listId)
