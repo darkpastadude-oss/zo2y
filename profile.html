@@ -7488,9 +7488,8 @@ header, .top-stripe, .section-nav {
                     <div class="collection-item-rank" onclick="event.stopPropagation()">
                         <span class="collection-item-rank-pill ${rankToneClass}">#${safeRank}</span>
                         ${canReorder ? `
-                            <span class="collection-item-rank-drag-hint">
+                            <span class="collection-item-rank-drag-hint" title="Drag to reorder">
                                 <i class="fas fa-grip-vertical"></i>
-                                Drag
                             </span>
                         ` : ''}
                     </div>
