@@ -7559,6 +7559,11 @@ header, .top-stripe, .section-nav {
                 let isPersisting = false;
                 let orderDirty = false;
                 let previousTouchAction = '';
+                let pendingCard = null;
+                let pendingPointerId = null;
+                let pendingStartX = 0;
+                let pendingStartY = 0;
+                const MOUSE_DRAG_THRESHOLD = 6;
 
                 const getContainerOrder = () => getCards()
                     .map((card) => String(card.dataset.tierItemId || '').trim())
@@ -7600,6 +7605,27 @@ header, .top-stripe, .section-nav {
                     }
                 };
 
+                const clearPendingDrag = () => {
+                    pendingCard = null;
+                    pendingPointerId = null;
+                    pendingStartX = 0;
+                    pendingStartY = 0;
+                };
+
+                const beginDrag = (card, event) => {
+                    activeCard = card;
+                    activePointerId = event.pointerId;
+                    startOrderKey = getContainerOrder().join('|');
+                    orderDirty = false;
+                    previousTouchAction = container.style.touchAction || '';
+                    container.style.touchAction = 'none';
+                    card.classList.add('is-dragging');
+                    clearPendingDrag();
+                    try {
+                        card.setPointerCapture(event.pointerId);
+                    } catch (_error) {}
+                };
+
                 const moveActiveCardToPointer = (clientY) => {
                     if (!activeCard) return;
                     const siblings = getCards().filter((card) => card !== activeCard);
@@ -7625,13 +7651,28 @@ header, .top-stripe, .section-nav {
                 };
 
                 const onPointerMove = (event) => {
-                    if (!activeCard || activePointerId === null || event.pointerId !== activePointerId) return;
-                    event.preventDefault();
-                    moveActiveCardToPointer(event.clientY);
+                    if (activeCard && activePointerId !== null && event.pointerId === activePointerId) {
+                        event.preventDefault();
+                        moveActiveCardToPointer(event.clientY);
+                        return;
+                    }
+
+                    if (!activeCard && pendingCard && pendingPointerId !== null && event.pointerId === pendingPointerId) {
+                        const dx = Math.abs(Number(event.clientX || 0) - pendingStartX);
+                        const dy = Math.abs(Number(event.clientY || 0) - pendingStartY);
+                        if (Math.max(dx, dy) >= MOUSE_DRAG_THRESHOLD) {
+                            event.preventDefault();
+                            beginDrag(pendingCard, event);
+                            moveActiveCardToPointer(event.clientY);
+                        }
+                    }
                 };
 
                 const finishDrag = async () => {
-                    if (!activeCard) return;
+                    if (!activeCard) {
+                        clearPendingDrag();
+                        return;
+                    }
                     activeCard.classList.remove('is-dragging');
                     const finalOrderKey = getContainerOrder().join('|');
                     const changed = finalOrderKey !== startOrderKey || orderDirty;
@@ -7641,15 +7682,21 @@ header, .top-stripe, .section-nav {
                     orderDirty = false;
                     container.style.touchAction = previousTouchAction;
                     previousTouchAction = '';
+                    container.__tierSuppressClickUntil = Date.now() + 260;
                     if (changed) {
                         await persistCurrentOrder();
                     }
                 };
 
                 const onPointerUp = (event) => {
-                    if (activePointerId === null || event.pointerId !== activePointerId) return;
-                    event.preventDefault();
-                    void finishDrag();
+                    if (activePointerId !== null && event.pointerId === activePointerId) {
+                        event.preventDefault();
+                        void finishDrag();
+                        return;
+                    }
+                    if (pendingPointerId !== null && event.pointerId === pendingPointerId) {
+                        clearPendingDrag();
+                    }
                 };
 
                 container.__tierPointerMoveHandler = onPointerMove;
@@ -7674,6 +7721,12 @@ header, .top-stripe, .section-nav {
                         card.appendChild(handle);
                     }
 
+                    if (typeof card.__tierCardPointerDownHandler === 'function') {
+                        card.removeEventListener('pointerdown', card.__tierCardPointerDownHandler);
+                    }
+                    if (typeof card.__tierCardClickCaptureHandler === 'function') {
+                        card.removeEventListener('click', card.__tierCardClickCaptureHandler, true);
+                    }
                     if (typeof handle.__tierPointerDownHandler === 'function') {
                         handle.removeEventListener('pointerdown', handle.__tierPointerDownHandler);
                     }
@@ -7681,30 +7734,44 @@ header, .top-stripe, .section-nav {
                         handle.removeEventListener('click', handle.__tierClickHandler);
                     }
 
-                    const clickHandler = (event) => {
+                    const cardClickCaptureHandler = (event) => {
+                        const suppressUntil = Number(container.__tierSuppressClickUntil || 0);
+                        if (Date.now() <= suppressUntil) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                    };
+                    const cardPointerDownHandler = (event) => {
+                        if (event.pointerType !== 'mouse' || event.button !== 0) return;
+                        const targetEl = event.target instanceof Element ? event.target : null;
+                        if (targetEl && targetEl.closest('.collection-item-remove, .tier-drag-handle, a, button, input, select, textarea, [role="button"]')) {
+                            return;
+                        }
+                        pendingCard = card;
+                        pendingPointerId = event.pointerId;
+                        pendingStartX = Number(event.clientX || 0);
+                        pendingStartY = Number(event.clientY || 0);
+                    };
+                    const handleClickHandler = (event) => {
                         event.preventDefault();
                         event.stopPropagation();
                     };
-                    const pointerDownHandler = (event) => {
+                    const handlePointerDownHandler = (event) => {
                         if (event.pointerType === 'mouse' && event.button !== 0) return;
                         event.preventDefault();
                         event.stopPropagation();
-                        activeCard = card;
-                        activePointerId = event.pointerId;
-                        startOrderKey = getContainerOrder().join('|');
-                        orderDirty = false;
-                        previousTouchAction = container.style.touchAction || '';
-                        container.style.touchAction = 'none';
-                        card.classList.add('is-dragging');
-                        try {
-                            handle.setPointerCapture(event.pointerId);
-                        } catch (_error) {}
+                        beginDrag(card, event);
                     };
 
-                    handle.__tierPointerDownHandler = pointerDownHandler;
-                    handle.__tierClickHandler = clickHandler;
-                    handle.addEventListener('pointerdown', pointerDownHandler, { passive: false });
-                    handle.addEventListener('click', clickHandler);
+                    card.__tierCardPointerDownHandler = cardPointerDownHandler;
+                    card.__tierCardClickCaptureHandler = cardClickCaptureHandler;
+                    handle.__tierPointerDownHandler = handlePointerDownHandler;
+                    handle.__tierClickHandler = handleClickHandler;
+
+                    card.addEventListener('pointerdown', cardPointerDownHandler, { passive: true });
+                    card.addEventListener('click', cardClickCaptureHandler, true);
+                    handle.addEventListener('pointerdown', handlePointerDownHandler, { passive: false });
+                    handle.addEventListener('click', handleClickHandler);
                 });
 
                 refreshRankBadges();
