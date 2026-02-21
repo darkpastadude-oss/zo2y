@@ -636,6 +636,8 @@
     .rail.unified-rail .card {
       height: 332px;
       min-height: 332px;
+      border: 0;
+      box-shadow: none;
     }
 
     .rail.unified-rail .card-media {
@@ -647,6 +649,12 @@
     .rail.unified-rail .card-media img {
       object-fit: contain;
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+    }
+
+    .rail.unified-rail .card-media.landscape img,
+    .rail.unified-rail .card-media.game-poster img,
+    .rail.unified-rail .card-media.music-cover img {
+      object-fit: contain;
     }
 
     .rail.unified-rail .card-media.restaurant-composite {
@@ -665,13 +673,17 @@
     }
 
     .rail.unified-rail .card-media.game-poster img {
-      object-fit: cover;
       border-radius: 0;
     }
 
     .rail.unified-rail .card-media.music-cover img {
-      object-fit: cover;
       background: transparent;
+    }
+
+    .rail.unified-rail .card-type,
+    .rail.unified-rail .card-menu-btn,
+    .rail.unified-rail .card-open-link {
+      border: 0;
     }
 
     .rail.games-rail .card {
@@ -1496,6 +1508,8 @@
       .rail.unified-rail .card {
         height: 314px;
         min-height: 314px;
+        border: 0;
+        box-shadow: none;
       }
 
       .rail.unified-rail .card-media {
@@ -1509,13 +1523,14 @@
         padding: 0;
       }
 
-      .rail.unified-rail .card-media.game-poster img {
-        object-fit: cover;
-        border-radius: 0;
+      .rail.unified-rail .card-media.landscape img,
+      .rail.unified-rail .card-media.game-poster img,
+      .rail.unified-rail .card-media.music-cover img {
+        object-fit: contain;
       }
 
-      .rail.unified-rail .card-media.music-cover img {
-        object-fit: cover;
+      .rail.unified-rail .card-media.game-poster img {
+        border-radius: 0;
       }
 
       .rail.games-rail .card {
@@ -1822,8 +1837,9 @@
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v2';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_CHANNEL_TIMEOUT_MS = 2800;
+    const HOME_CHANNEL_TIMEOUT_MS = 1600;
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 1200;
+    const HOME_LOCAL_FALLBACK_IMAGE = 'images/logo.png';
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 24;
     const HOME_SPOTLIGHT_POOL_SIZE = 24;
@@ -3667,17 +3683,19 @@
     }
 
     function buildInstantFallbackFeed() {
+      const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE;
       const makeSeedItems = (mediaType, titles, href) => titles.map((title, index) => ({
         mediaType,
         itemId: `seed-${mediaType}-${index + 1}`,
         title,
         subtitle: 'Loading live picks',
-        image: '',
-        backgroundImage: '',
-        spotlightImage: '',
-        spotlightMediaImage: '',
+        image: fallbackImage,
+        backgroundImage: fallbackImage,
+        spotlightImage: fallbackImage,
+        spotlightMediaImage: fallbackImage,
         spotlightMediaFit: 'contain',
         spotlightMediaShape: 'poster',
+        fallbackImage,
         href,
         isPlaceholder: true
       }));
@@ -3689,14 +3707,15 @@
             itemId: `seed-restaurant-${index + 1}`,
             title: r.name,
             subtitle: `${r.category} | ${r.rating}/5`,
-            image: '',
+            image: fallbackImage,
             logo: '',
-            backgroundImage: '',
-            spotlightImage: '',
-            spotlightMediaImage: '',
+            backgroundImage: fallbackImage,
+            spotlightImage: fallbackImage,
+            spotlightMediaImage: fallbackImage,
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
             href: 'restraunts.html',
+            fallbackImage,
             isPlaceholder: true
           }))
         } : {}),
@@ -3709,13 +3728,13 @@
           itemId: `seed-book-${index + 1}`,
           title: b.title,
           subtitle: b.author,
-          image: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
-          backgroundImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
-          spotlightImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
-          spotlightMediaImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+          image: fallbackImage,
+          backgroundImage: fallbackImage,
+          spotlightImage: fallbackImage,
+          spotlightMediaImage: fallbackImage,
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'poster',
-          fallbackImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+          fallbackImage,
           isbn: b.isbn,
           href: 'books.html',
           isPlaceholder: true
@@ -4956,11 +4975,15 @@
       }
 
       const tastePromise = loadTasteWeights().catch(() => homeTasteWeights);
+      void tastePromise.then((weights) => {
+        if (weights && typeof weights === 'object') {
+          homeTasteWeights = weights;
+        }
+      }).catch(() => {});
       const loaded = await Promise.all(channels.map(async (channel) => {
         const items = await loadHomeChannelWithTimeout(channel.loader);
         return { ...channel, items };
       }));
-      homeTasteWeights = await tastePromise;
 
       const mergedFeed = {};
       loaded.forEach((channel) => {
