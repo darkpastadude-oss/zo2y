@@ -1590,6 +1590,46 @@
         background: transparent;
       }
 
+      /* Force uniform, borderless cards across all mobile rails */
+      .rail .card {
+        height: 314px;
+        min-height: 314px;
+        border: 0 !important;
+        box-shadow: none !important;
+      }
+
+      .rail .card-media,
+      .rail .card-media.game-poster,
+      .rail .card-media.music-cover,
+      .rail .card-media.landscape,
+      .rail .card-media.restaurant-composite {
+        height: 190px;
+        aspect-ratio: 2/3;
+        padding: 0;
+        background: transparent !important;
+      }
+
+      .rail .card-media img,
+      .rail .card-media.game-poster img,
+      .rail .card-media.music-cover img,
+      .rail .card-media.landscape img,
+      .rail .card-media.restaurant-composite .restaurant-cover {
+        width: 100%;
+        height: 100%;
+        object-fit: contain !important;
+        border-radius: 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+      }
+
+      .rail .card-type,
+      .rail .card-menu-btn,
+      .rail .card-open-link,
+      .rail .restaurant-logo-badge {
+        border: 0 !important;
+        box-shadow: none !important;
+      }
+
       .rail.unified-rail .card-media.restaurant-composite {
         aspect-ratio: 2/3;
       }
