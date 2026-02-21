@@ -3838,7 +3838,7 @@
         ...(ENABLE_RESTAURANTS ? [{ key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant', landscape: true, restaurantComposite: true } }] : []),
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
-        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' } },
+        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 3500 },
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' } },
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' } }
       ];
@@ -5133,11 +5133,12 @@
       const channels = getHomeChannels();
       const cachedFeed = readHomeFeedCache();
       const baselineFeed = cachedFeed || null;
+      let quickFallbackFeed = null;
       const precomputedFeedPromise = loadPrecomputedHomeFeed().catch(() => null);
 
       if (!baselineFeed) {
-        const quickFeed = buildInstantFallbackFeed();
-        const quickResult = applyHomeFeedMap(quickFeed);
+        quickFallbackFeed = buildInstantFallbackFeed();
+        const quickResult = applyHomeFeedMap(quickFallbackFeed);
         if (quickResult.scoredPool.length) {
           setStatus('Quick feed ready. Syncing live data...', false);
         }
@@ -5157,10 +5158,10 @@
         }
       }).catch(() => {});
       const loadedPromise = Promise.all(channels.map(async (channel) => {
-        const items = await loadHomeChannelWithTimeout(channel.loader);
+        const items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
         return { ...channel, items };
       }));
-      let mergeBaselineFeed = baselineFeed;
+      let mergeBaselineFeed = baselineFeed || quickFallbackFeed;
       const precomputedFeed = await precomputedFeedPromise;
       if (precomputedFeed) {
         const precomputedActiveChannels = countActiveHomeChannels(precomputedFeed);
