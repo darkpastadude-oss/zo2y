@@ -1670,6 +1670,81 @@
         border-radius: 9px;
       }
 
+      /* Match mobile card logic from movies/tv/books/games/music pages */
+      .rail .card {
+        background: var(--card) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 14px !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 320px !important;
+        height: 320px !important;
+      }
+
+      .rail .card-media {
+        width: 100% !important;
+        aspect-ratio: 2 / 3 !important;
+        height: 220px !important;
+        background: #0f1f40 !important;
+        overflow: hidden !important;
+      }
+
+      .rail .card-media img {
+        width: 100% !important;
+        height: 100% !important;
+        display: block !important;
+        object-fit: cover !important;
+        background: #0f1f40 !important;
+      }
+
+      .rail .card-type {
+        border: 1px solid rgba(255,255,255,0.16) !important;
+      }
+
+      .rail .card-menu-btn,
+      .rail .card-open-link {
+        border: 1px solid var(--border) !important;
+        box-shadow: none !important;
+      }
+
+      /* games.html mobile logic */
+      #gamesRail .card,
+      .rail.unified-rail .card[data-media-type="game"] {
+        border: none !important;
+      }
+
+      #gamesRail .card .card-media,
+      .rail.unified-rail .card[data-media-type="game"] .card-media {
+        aspect-ratio: 2 / 3 !important;
+        height: 220px !important;
+        background: #0f1f40 !important;
+      }
+
+      #gamesRail .card .card-media img,
+      .rail.unified-rail .card[data-media-type="game"] .card-media img {
+        object-fit: contain !important;
+      }
+
+      /* music.html mobile logic */
+      #musicRail .card,
+      .rail.unified-rail .card[data-media-type="music"] {
+        min-height: 300px !important;
+        height: 300px !important;
+      }
+
+      #musicRail .card .card-media,
+      .rail.unified-rail .card[data-media-type="music"] .card-media {
+        aspect-ratio: 1 / 1 !important;
+        height: auto !important;
+        background: linear-gradient(135deg, #102545 0%, #0b1c35 100%) !important;
+      }
+
+      #musicRail .card .card-media img,
+      .rail.unified-rail .card[data-media-type="music"] .card-media img {
+        object-fit: cover !important;
+      }
+
       .mobile-bottom-nav {
         position: fixed;
         left: 10px;
