@@ -8240,6 +8240,32 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            async function checkMutualFollow(userAId, userBId) {
+                const a = String(userAId || '').trim();
+                const b = String(userBId || '').trim();
+                if (!a || !b || a === b || !supabase) return false;
+                try {
+                    const [{ data: ab, error: abError }, { data: ba, error: baError }] = await Promise.all([
+                        supabase
+                            .from('follows')
+                            .select('follower_id')
+                            .eq('follower_id', a)
+                            .eq('followed_id', b)
+                            .maybeSingle(),
+                        supabase
+                            .from('follows')
+                            .select('follower_id')
+                            .eq('follower_id', b)
+                            .eq('followed_id', a)
+                            .maybeSingle()
+                    ]);
+                    if (abError || baError) return false;
+                    return !!ab && !!ba;
+                } catch (_error) {
+                    return false;
+                }
+            }
+
             function persistCollectionViewModes() {
                 try {
                     localStorage.setItem(COLLECTION_VIEW_STORAGE_KEY, JSON.stringify(collectionViewModes));
@@ -10210,6 +10236,12 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
+                    const hasMutualFollow = await checkMutualFollow(ownerId, collaboratorId);
+                    if (!hasMutualFollow) {
+                        showToast('You can only add collaborators when both users follow each other', 'warning');
+                        return;
+                    }
+
                     const exists = editingMediaCollaborators.some(
                         (row) => String(row.collaborator_id || '').trim() === collaboratorId
                     );
@@ -10232,6 +10264,10 @@ header, .top-stripe, .section-nav {
                     if (upsertError) {
                         if (String(upsertError?.code || '').trim() === '42P01') {
                             showToast('Run SQL migration for collaborative lists first', 'warning');
+                            return;
+                        }
+                        if (String(upsertError?.code || '').trim() === '42501') {
+                            showToast('Collaboration requires mutual follow between both users', 'warning');
                             return;
                         }
                         throw upsertError;

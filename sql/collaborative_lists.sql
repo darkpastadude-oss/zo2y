@@ -36,6 +36,45 @@ create trigger list_collaborators_set_updated_at
 before update on public.list_collaborators
 for each row execute function public.zo2y_set_updated_at();
 
+create or replace function public.zo2y_has_mutual_follow(p_user_a uuid, p_user_b uuid)
+returns boolean
+language plpgsql
+stable
+as $$
+declare
+  has_relation boolean := false;
+begin
+  if p_user_a is null or p_user_b is null or p_user_a = p_user_b then
+    return false;
+  end if;
+
+  if to_regclass('public.follows') is null then
+    return false;
+  end if;
+
+  execute $q$
+    select
+      exists (
+        select 1
+        from public.follows f
+        where f.follower_id = $1
+          and f.followed_id = $2
+      )
+      and
+      exists (
+        select 1
+        from public.follows f
+        where f.follower_id = $2
+          and f.followed_id = $1
+      )
+  $q$
+  into has_relation
+  using p_user_a, p_user_b;
+
+  return coalesce(has_relation, false);
+end;
+$$;
+
 alter table public.list_collaborators enable row level security;
 
 drop policy if exists list_collaborators_select_owner_or_collaborator on public.list_collaborators;
@@ -50,7 +89,10 @@ create policy list_collaborators_insert_owner
 on public.list_collaborators
 for insert
 to authenticated
-with check (list_owner_id = auth.uid());
+with check (
+  list_owner_id = auth.uid()
+  and public.zo2y_has_mutual_follow(list_owner_id, collaborator_id)
+);
 
 drop policy if exists list_collaborators_update_owner on public.list_collaborators;
 create policy list_collaborators_update_owner
@@ -58,7 +100,10 @@ on public.list_collaborators
 for update
 to authenticated
 using (list_owner_id = auth.uid())
-with check (list_owner_id = auth.uid());
+with check (
+  list_owner_id = auth.uid()
+  and public.zo2y_has_mutual_follow(list_owner_id, collaborator_id)
+);
 
 drop policy if exists list_collaborators_delete_owner on public.list_collaborators;
 create policy list_collaborators_delete_owner
