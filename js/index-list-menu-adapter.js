@@ -417,6 +417,19 @@
     return itemId;
   }
 
+  function normalizeQueryableItemIdValue(itemId) {
+    const mediaType = getMediaType();
+    if (window.ListUtils && typeof ListUtils.normalizeQueryableItemId === 'function') {
+      return ListUtils.normalizeQueryableItemId(mediaType, itemId);
+    }
+    if (mediaType === 'movie' || mediaType === 'tv' || mediaType === 'game') {
+      const numericId = Number(itemId);
+      return Number.isFinite(numericId) ? numericId : null;
+    }
+    const text = String(itemId || '').trim();
+    return text || null;
+  }
+
   function normalizeItemIdKey(itemId) {
     return String(normalizeItemIdValue(itemId));
   }
@@ -535,7 +548,8 @@
     const idAttr = bridge?.itemIdAttr || 'data-item-id';
     const rawId = card.getAttribute(idAttr);
     if (!rawId) return null;
-    const coercedId = window.ListUtils ? ListUtils.coerceItemId(mediaType, rawId) : rawId;
+    const coercedId = normalizeQueryableItemIdValue(rawId);
+    if (coercedId === null || coercedId === undefined || String(coercedId).trim() === '') return null;
     const title = card.querySelector('.card-title, .card-name')?.textContent || '';
     const subtitle = card.querySelector('.card-meta, .card-sub')?.textContent || '';
     const image = card.querySelector('img')?.getAttribute('src') || '';
@@ -586,9 +600,8 @@
     if (!tableCfg) return status;
 
     try {
-      const normalizedItemId = window.ListUtils
-        ? ListUtils.coerceItemId(mediaType, itemId)
-        : itemId;
+      const normalizedItemId = normalizeQueryableItemIdValue(itemId);
+      if (normalizedItemId === null || normalizedItemId === undefined) return status;
       const { data } = await client
         .from(tableCfg.table)
         .select('list_type')
@@ -623,8 +636,8 @@
         ? bridge.getVisibleItemIds()
         : [];
       const visibleIds = [...new Set((Array.isArray(rawVisibleIds) ? rawVisibleIds : [])
-        .map((id) => normalizeItemIdValue(id))
-        .filter((id) => String(id ?? '').trim()))];
+        .map((id) => normalizeQueryableItemIdValue(id))
+        .filter((id) => id !== null && id !== undefined && String(id ?? '').trim()))];
       const visibleItemKeySet = new Set(visibleIds.map((id) => String(id)));
 
       const defaultTable = DEFAULT_TABLE_BY_MEDIA[mediaType];
@@ -668,7 +681,6 @@
         .select(`list_id,${cfg.itemIdField}`)
         .in('list_id', listIds)
         .in(cfg.itemIdField, visibleIds);
-      if (cfg.usesUserId && user.id) query = query.eq('user_id', user.id);
       const { data } = await query;
 
       const membershipByItem = new Map();

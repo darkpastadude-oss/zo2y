@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js" defer></script>
+  <script src="js/list-utils.js?v=20260221b" defer></script>
   <script src="js/universal-search.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -2535,14 +2535,15 @@
       const type = String(mediaType || '').toLowerCase();
       if (type === 'movie' || type === 'tv' || type === 'game') {
         const numericId = Number(itemId);
-        return Number.isFinite(numericId) ? numericId : itemId;
+        return Number.isFinite(numericId) ? numericId : null;
       }
-      return String(itemId || '');
+      const text = String(itemId || '').trim();
+      return text || null;
     }
 
     function normalizeHomeRestaurantId(itemId) {
       const numericId = Number(itemId);
-      return Number.isFinite(numericId) ? numericId : itemId;
+      return Number.isFinite(numericId) ? numericId : null;
     }
 
     async function saveToListFromHome(payload) {
@@ -2593,6 +2594,10 @@
         const itemId = normalizeHomeDefaultItemId(mediaType, payload.itemId);
 
         if (defaultListTable) {
+          if (itemId === null) {
+            showHomeToast('Could not update list', true);
+            return result;
+          }
           const { table, itemField } = defaultListTable;
 
           if (nextSaved === false) {
@@ -2663,6 +2668,10 @@
 
         if (mediaType === 'restaurant') {
           const restaurantId = normalizeHomeRestaurantId(payload.itemId);
+          if (restaurantId === null) {
+            showHomeToast('Could not update list', true);
+            return result;
+          }
           const listId = await ensureRestaurantList(homeCurrentUser.id, listType);
           if (!listId) {
             showHomeToast('Could not prepare list', true);
@@ -2748,6 +2757,7 @@
         const defaultListTable = getHomeDefaultListTable(mediaType);
         if (defaultListTable) {
           const normalizedItemId = normalizeHomeDefaultItemId(mediaType, itemId);
+          if (normalizedItemId === null) return status;
           const { table, itemField } = defaultListTable;
           const { data } = await client
             .from(table)
@@ -2764,6 +2774,7 @@
 
         if (mediaType === 'restaurant') {
           const restaurantId = normalizeHomeRestaurantId(itemId);
+          if (restaurantId === null) return status;
           const titleByKey = {};
           listKeys.forEach((key) => {
             const conf = HOME_RESTAURANT_LIST_META[key];
@@ -2925,8 +2936,12 @@
       cards.forEach((card) => {
         const raw = card.getAttribute('data-item-id');
         if (!raw) return;
-        const normalized = coerceHomeItemId(type, raw);
-        const key = String(normalized);
+        const normalized = window.ListUtils && typeof ListUtils.normalizeQueryableItemId === 'function'
+          ? ListUtils.normalizeQueryableItemId(type, raw)
+          : coerceHomeItemId(type, raw);
+        if (normalized === null || normalized === undefined) return;
+        const key = String(normalized).trim();
+        if (!key) return;
         if (seen.has(key)) return;
         seen.add(key);
         ids.push(normalized);
@@ -3274,10 +3289,14 @@
       const mediaType = String(card.getAttribute('data-media-type') || '').toLowerCase();
       const itemIdRaw = card.getAttribute('data-item-id');
       if (!supportsHomeLists(mediaType) || !itemIdRaw) return;
+      const normalizedItemId = window.ListUtils && typeof ListUtils.normalizeQueryableItemId === 'function'
+        ? ListUtils.normalizeQueryableItemId(mediaType, itemIdRaw)
+        : coerceHomeItemId(mediaType, itemIdRaw);
+      if (normalizedItemId === null || normalizedItemId === undefined || String(normalizedItemId).trim() === '') return;
 
       homeItemMenuState.currentItem = {
         mediaType,
-        itemId: coerceHomeItemId(mediaType, itemIdRaw),
+        itemId: normalizedItemId,
         title: card.getAttribute('data-title') || '',
         subtitle: card.getAttribute('data-subtitle') || '',
         image: card.getAttribute('data-image') || ''
@@ -5310,6 +5329,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 

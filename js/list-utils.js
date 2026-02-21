@@ -50,6 +50,7 @@
   const TIER_META_TABLE = 'list_tier_meta';
   const TIER_RANK_TABLE = 'list_tier_ranks';
   const LIST_COLLAB_TABLE = 'list_collaborators';
+  const NUMERIC_MEDIA_TYPES = new Set(['movie', 'tv', 'game']);
   const KNOWN_TIER_CREATE_MODAL_SELECTORS = [
     '#movieListsModal',
     '#tvListsModal',
@@ -79,6 +80,31 @@
       return Number.isFinite(num) ? num : itemId;
     }
     return String(itemId || '');
+  }
+
+  function normalizeQueryableItemId(type, itemId) {
+    const key = String(type || '').toLowerCase();
+    if (NUMERIC_MEDIA_TYPES.has(key)) {
+      const num = Number(itemId);
+      return Number.isFinite(num) ? num : null;
+    }
+    const text = String(itemId || '').trim();
+    return text || null;
+  }
+
+  function sanitizeItemIdsForQuery(type, itemIds) {
+    const values = Array.isArray(itemIds) ? itemIds : [];
+    const seen = new Set();
+    const normalized = [];
+    values.forEach((value) => {
+      const safeValue = normalizeQueryableItemId(type, value);
+      if (safeValue === null || safeValue === undefined) return;
+      const key = String(safeValue);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      normalized.push(safeValue);
+    });
+    return normalized;
   }
 
   function normalizeIconKey(icon, fallback = 'list') {
@@ -812,11 +838,12 @@
 
   async function loadCustomListMembership(client, userId, type, itemId, listIds) {
     const cfg = getListConfig(type);
-    if (!cfg || !client || !listIds || !listIds.length) return new Set();
+    const normalizedItemId = normalizeQueryableItemId(type, itemId);
+    if (!cfg || !client || !listIds || !listIds.length || normalizedItemId === null) return new Set();
     let query = client
       .from(cfg.itemsTable)
       .select('list_id')
-      .eq(cfg.itemIdField, itemId)
+      .eq(cfg.itemIdField, normalizedItemId)
       .in('list_id', listIds);
     const { data } = await query;
     const set = new Set();
@@ -826,7 +853,8 @@
 
   async function saveCustomListChanges(client, userId, type, itemId, selectedListIds, itemPayload) {
     const cfg = getListConfig(type);
-    if (!cfg || !client || !itemId) return;
+    const normalizedItemId = normalizeQueryableItemId(type, itemId);
+    if (!cfg || !client || normalizedItemId === null) return;
     if (userId) setTierSyncContext(client, userId);
     if (type === 'book' && itemPayload) {
       await ensureBookRecord(client, itemPayload);
@@ -851,13 +879,13 @@
       let del = client
         .from(cfg.itemsTable)
         .delete()
-        .eq(cfg.itemIdField, itemId)
+        .eq(cfg.itemIdField, normalizedItemId)
         .in('list_id', listIds);
       await del;
     }
     const inserts = listIds.map(listId => {
       const row = { list_id: listId };
-      row[cfg.itemIdField] = itemId;
+      row[cfg.itemIdField] = normalizedItemId;
       if (cfg.usesUserId) {
         const ownerId = String(ownerMap.get(String(listId || '').trim()) || '').trim();
         row.user_id = ownerId || userId;
@@ -934,6 +962,8 @@
   window.ListUtils = {
     getListConfig,
     coerceItemId,
+    normalizeQueryableItemId,
+    sanitizeItemIdsForQuery,
     normalizeIconKey,
     renderListIcon,
     setTierSyncContext,
