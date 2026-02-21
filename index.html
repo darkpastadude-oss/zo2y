@@ -2995,9 +2995,6 @@
           .select(`list_id,${listCfg.itemIdField}`)
           .in('list_id', listIds)
           .in(listCfg.itemIdField, visibleItemIds);
-        if (listCfg.usesUserId && homeCurrentUser.id) {
-          query = query.eq('user_id', homeCurrentUser.id);
-        }
         const { data: membershipRows } = await query;
         const byItem = new Map();
         visibleItemIds.forEach((id) => {
