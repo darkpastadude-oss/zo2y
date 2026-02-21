@@ -1846,8 +1846,14 @@
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 1200;
     const HOME_LOCAL_FALLBACK_IMAGE = 'images/logo.png';
     const SPOTLIGHT_ROTATE_MS = 5000;
-    const HOME_CHANNEL_TARGET_ITEMS = 24;
-    const HOME_SPOTLIGHT_POOL_SIZE = 24;
+    const HOME_CHANNEL_TARGET_ITEMS = 16;
+    const HOME_SPOTLIGHT_POOL_SIZE = 16;
+    const HOME_EAGER_IMAGE_COUNT = 3;
+    const HOME_HIGH_PRIORITY_IMAGE_COUNT = 2;
+    const HOME_PRELOAD_PER_CHANNEL = 3;
+    const HOME_PRELOAD_SPOTLIGHT_COUNT = 4;
+    const HOME_UNIFIED_TARGET_ITEMS = 24;
+    const HOME_MENU_PRIME_IDLE_DELAY_MS = 2500;
     const HOME_ONBOARDING_VERSION = 'v1';
 
     async function homeIgdbFetch(path, params = {}, signal) {
@@ -1888,6 +1894,8 @@
       selectedIcon: 'fas fa-list',
       selectedLists: new Set()
     };
+    const homePreloadedImageSet = new Set();
+    let homeMenuPrimeScheduled = false;
 
     function escapeHtml(value) {
       return String(value || '')
@@ -3035,6 +3043,23 @@
       await Promise.all(types.map((type) => primeHomeMenuCachesForType(type)));
     }
 
+    function scheduleHomeMenuCachePrime(delayMs = HOME_MENU_PRIME_IDLE_DELAY_MS) {
+      if (!homeCurrentUser?.id || homeMenuPrimeScheduled) return;
+      homeMenuPrimeScheduled = true;
+      const run = () => {
+        void primeAllHomeMenuCaches().finally(() => {
+          homeMenuPrimeScheduled = false;
+        });
+      };
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(() => {
+          setTimeout(run, delayMs);
+        }, { timeout: Math.max(1200, delayMs + 700) });
+      } else {
+        setTimeout(run, delayMs);
+      }
+    }
+
     function playHomeMenuModalFlyUp(modal) {
       if (!modal) return;
       const content = modal.querySelector('.menu-modal-content');
@@ -3695,8 +3720,15 @@
     function preloadImage(url) {
       const src = String(url || '').trim();
       if (!src) return;
+      if (homePreloadedImageSet.has(src)) return;
+      homePreloadedImageSet.add(src);
+      if (homePreloadedImageSet.size > 1200) {
+        const oldest = homePreloadedImageSet.values().next().value;
+        if (oldest) homePreloadedImageSet.delete(oldest);
+      }
       const img = new Image();
       img.decoding = 'async';
+      img.loading = 'lazy';
       img.src = src;
     }
 
@@ -3704,22 +3736,18 @@
       const groups = Object.values(feedMap || {});
       groups.forEach((items) => {
         if (!Array.isArray(items)) return;
-        items.slice(0, HOME_CHANNEL_TARGET_ITEMS).forEach((item) => {
+        items.slice(0, HOME_PRELOAD_PER_CHANNEL).forEach((item) => {
           preloadImage(item.image);
-          preloadImage(item.logo);
-          preloadImage(item.backgroundImage);
-          preloadImage(item.spotlightImage);
-          preloadImage(item.spotlightMediaImage);
+          preloadImage(item.backgroundImage || item.spotlightImage);
         });
       });
     }
 
     function warmSpotlightImages(items) {
       if (!Array.isArray(items)) return;
-      items.slice(0, HOME_SPOTLIGHT_POOL_SIZE).forEach((item) => {
+      items.slice(0, HOME_PRELOAD_SPOTLIGHT_COUNT).forEach((item) => {
         preloadImage(item.spotlightImage || item.backgroundImage || item.image);
         preloadImage(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage);
-        preloadImage(item.fallbackImage);
       });
     }
 
@@ -3838,7 +3866,7 @@
         ...(ENABLE_RESTAURANTS ? [{ key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant', landscape: true, restaurantComposite: true } }] : []),
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
-        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 6200 },
+        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 3200, deferInitial: true },
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' } },
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' } }
       ];
@@ -3992,7 +4020,7 @@
       });
 
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
-      const unified = buildUnifiedFeed(scoredPool, 32);
+      const unified = buildUnifiedFeed(scoredPool, HOME_UNIFIED_TARGET_ITEMS);
       renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
       hydrateSpotlightFromPool(scoredPool);
 
@@ -4004,12 +4032,10 @@
       if (!hasItems) return;
       homeTasteWeights = await loadTasteWeights();
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
-      const unified = buildUnifiedFeed(scoredPool, 32);
+      const unified = buildUnifiedFeed(scoredPool, HOME_UNIFIED_TARGET_ITEMS);
       renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
       hydrateSpotlightFromPool(scoredPool);
-      if (homeCurrentUser?.id) {
-        void primeAllHomeMenuCaches();
-      }
+      scheduleHomeMenuCachePrime();
     }
 
     function renderRail(railId, items, opts) {
@@ -4041,8 +4067,8 @@
         const itemId = escapeHtml(item.itemId || '');
         const supportsLists = supportsHomeLists(mediaTypeRaw) && !item.isPlaceholder;
         const opensExternal = /^https?:\/\//i.test(String(hrefRaw || ''));
-        const imageLoading = index < 12 ? 'eager' : 'lazy';
-        const imagePriority = index < 8 ? 'high' : 'auto';
+        const imageLoading = index < HOME_EAGER_IMAGE_COUNT ? 'eager' : 'lazy';
+        const imagePriority = index < HOME_HIGH_PRIORITY_IMAGE_COUNT ? 'high' : 'auto';
         const mediaClasses = ['card-media'];
         if (landscape) mediaClasses.push('landscape');
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
@@ -5142,6 +5168,8 @@
       setStatus('Loading spotlight and live feed...', false);
       resetSpotlightTimer(false);
       const channels = getHomeChannels();
+      const initialChannels = channels.filter((channel) => !channel.deferInitial);
+      const deferredChannels = channels.filter((channel) => !!channel.deferInitial);
       const cachedFeed = readHomeFeedCache();
       const baselineFeed = cachedFeed || null;
       let quickFallbackFeed = null;
@@ -5168,12 +5196,12 @@
           homeTasteWeights = weights;
         }
       }).catch(() => {});
-      const loadedPromise = Promise.all(channels.map(async (channel) => {
+      const loadedPromise = Promise.all(initialChannels.map(async (channel) => {
         const items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
         return { ...channel, items };
       }));
       let mergeBaselineFeed = baselineFeed || quickFallbackFeed;
-      const precomputedFeed = await precomputedFeedPromise;
+      const precomputedFeed = await withTimeout(precomputedFeedPromise, 220, null);
       if (precomputedFeed) {
         const precomputedActiveChannels = countActiveHomeChannels(precomputedFeed);
         const baselineActiveChannels = countActiveHomeChannels(baselineFeed);
@@ -5189,13 +5217,15 @@
       const loaded = await loadedPromise;
 
       const mergedFeed = {};
-      loaded.forEach((channel) => {
-        const freshItems = Array.isArray(channel.items) ? channel.items : [];
+      const loadedByKey = new Map(loaded.map((channel) => [channel.key, channel]));
+      channels.forEach((channel) => {
+        const loadedChannel = loadedByKey.get(channel.key);
+        const freshItems = Array.isArray(loadedChannel?.items) ? loadedChannel.items : [];
         const cachedItems = Array.isArray(mergeBaselineFeed?.[channel.key]) ? mergeBaselineFeed[channel.key] : [];
         mergedFeed[channel.key] = freshItems.length ? freshItems : cachedItems;
       });
 
-      const { scoredPool, channelsCount } = applyHomeFeedMap(mergedFeed);
+      const { scoredPool } = applyHomeFeedMap(mergedFeed);
 
       if (!scoredPool.length) {
         homeSpotlightItems = [{
@@ -5217,6 +5247,7 @@
         return;
       }
 
+      const initialChannelsCount = initialChannels.length;
       const freshActiveChannels = loaded.filter((channel) => Array.isArray(channel.items) && channel.items.length).length;
       if (freshActiveChannels > 0) {
         writeHomeFeedCache(mergedFeed);
@@ -5225,8 +5256,8 @@
           expiresAt: Date.now() + HOME_PRECOMPUTED_FEED_MAX_AGE_MS
         });
       }
-      if (freshActiveChannels === channelsCount) {
-        setStatus(`Live feed ready. ${freshActiveChannels}/${channelsCount} channels live.`, false);
+      if (freshActiveChannels === initialChannelsCount) {
+        setStatus(`Live feed ready. ${freshActiveChannels}/${initialChannelsCount} core channels live.`, false);
       } else if (freshActiveChannels === 0) {
         if (cachedFeed) {
           setStatus('Feed loaded from cache. Live sources are slow right now.', false);
@@ -5234,11 +5265,23 @@
           setStatus('Showing quick feed while live sources connect...', false);
         }
       } else {
-        setStatus(`Live feed ready. ${freshActiveChannels}/${channelsCount} channels live (fallback used for slower channels).`, false);
+        setStatus(`Live feed ready. ${freshActiveChannels}/${initialChannelsCount} core channels live.`, false);
       }
-      if (homeCurrentUser?.id) {
-        void primeAllHomeMenuCaches();
+
+      if (deferredChannels.length) {
+        void Promise.all(deferredChannels.map(async (channel) => {
+          const items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
+          if (!Array.isArray(items) || !items.length) return;
+          mergedFeed[channel.key] = items;
+          applyHomeFeedMap(mergedFeed);
+          writeHomeFeedCache(mergedFeed);
+          writePrecomputedHomeFeedCache(mergedFeed, {
+            savedAt: Date.now(),
+            expiresAt: Date.now() + HOME_PRECOMPUTED_FEED_MAX_AGE_MS
+          });
+        })).catch(() => {});
       }
+      scheduleHomeMenuCachePrime();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -5249,8 +5292,8 @@
         await completeHomeOAuthReturnIfNeeded();
         await initAuthUi();
         maybeShowHomeOnboarding();
-        await refreshHomePersonalization();
-        await primeAllHomeMenuCaches();
+        void refreshHomePersonalization();
+        scheduleHomeMenuCachePrime();
       })();
 
       const itemMenuModal = document.getElementById('itemMenuModal');
@@ -5341,6 +5384,7 @@
   </script>
 </body>
 </html>
+
 
 
 
