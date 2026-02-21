@@ -2,17 +2,36 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import User from "../models/user.js";
 import { sendWelcomeEmail } from "../lib/email/service.js";
+import { createRateLimiter } from "../lib/guardrails.js";
 
 const router = express.Router();
+router.use(express.json({ limit: "48kb" }));
+router.use(createRateLimiter({
+  keyPrefix: "auth",
+  windowMs: 60_000,
+  max: 30
+}));
 
 // ===== SIGNUP =====
 router.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
+    const safeEmail = String(email || "").trim().toLowerCase();
+    const safeUsername = String(username || "").trim();
 
-    const existingUser = await User.findOne({ email });
+    if (!safeUsername || safeUsername.length < 3 || safeUsername.length > 40) {
+      return res.status(400).json({ message: "Username must be between 3 and 40 characters." });
+    }
+    if (!/\S+@\S+\.\S+/.test(safeEmail)) {
+      return res.status(400).json({ message: "Please provide a valid email address." });
+    }
+    if (String(password || "").length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters." });
+    }
+
+    const existingUser = await User.findOne({ email: safeEmail });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -20,8 +39,8 @@ router.post("/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
-      username,
-      email,
+      username: safeUsername,
+      email: safeEmail,
       password: hashedPassword,
     });
     await newUser.save();
@@ -46,8 +65,12 @@ router.post("/signup", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    const safeEmail = String(email || "").trim().toLowerCase();
+    if (!safeEmail || !password) {
+      return res.status(400).json({ message: "Email and password are required." });
+    }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: safeEmail });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);

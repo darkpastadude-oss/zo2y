@@ -1,10 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
+import { applyApiGuardrails } from "./_guardrails.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
 
 const app = express();
+applyApiGuardrails(app, { keyPrefix: "api-tmdb", max: 260 });
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_DEFAULT_TOKEN =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s";

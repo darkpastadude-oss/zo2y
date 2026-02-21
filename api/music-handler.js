@@ -1,11 +1,13 @@
 import express from "express";
 import dotenv from "dotenv";
 import musicRoutes from "../backend/routes/music.js";
+import { applyApiGuardrails } from "./_guardrails.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
 
 const app = express();
+applyApiGuardrails(app, { keyPrefix: "api-music", max: 220 });
 app.use("/api/music", musicRoutes);
 
 function pushQueryParam(params, key, value) {

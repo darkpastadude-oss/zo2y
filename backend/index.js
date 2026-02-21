@@ -4,6 +4,14 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import {
+  attachRequestContext,
+  applySecurityHeaders,
+  createRateLimiter,
+  jsonErrorHandler,
+  requestLogger,
+  notFoundJson
+} from "./lib/guardrails.js";
 
 // Fix for ES modules and __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -19,6 +27,16 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.disable("x-powered-by");
+app.use(attachRequestContext);
+app.use(applySecurityHeaders);
+app.use(requestLogger);
+app.use("/api", createRateLimiter({
+  keyPrefix: "backend",
+  windowMs: Number(process.env.API_RATE_LIMIT_WINDOW_MS || 60_000),
+  max: Number(process.env.API_RATE_LIMIT_MAX || 240),
+  skip: (req) => req.method === "OPTIONS"
+}));
 
 // Serve static files from frontend (main folder)
 app.use(express.static(path.join(__dirname, '../')));
@@ -46,6 +64,10 @@ import musicRoutes from "./routes/music.js";
 app.use("/api/music", musicRoutes);
 import emailRoutes from "./routes/emails.js";
 app.use("/api/emails", emailRoutes);
+import analyticsRoutes from "./routes/analytics.js";
+app.use("/api/analytics", analyticsRoutes);
+import supportRoutes from "./routes/support.js";
+app.use("/api/support", supportRoutes);
 
 // Serve frontend routes
 app.get("/", (req, res) => {
@@ -64,6 +86,15 @@ app.get("/restraunts.html", (req, res) => {
   res.sendFile(path.join(__dirname, '../restraunts.html'));
 });
 
+app.get("/api/health", (_req, res) => {
+  return res.json({
+    ok: true,
+    service: "zo2y-backend",
+    uptime_seconds: Math.round(process.uptime()),
+    now: new Date().toISOString()
+  });
+});
+
 // Handle all other frontend routes
 app.get("/:page", (req, res) => {
   const page = req.params.page;
@@ -73,6 +104,9 @@ app.get("/:page", (req, res) => {
     res.status(404).json({ message: "Page not found" });
   }
 });
+
+app.use((req, res) => notFoundJson(req, res));
+app.use(jsonErrorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;

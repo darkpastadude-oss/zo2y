@@ -1334,6 +1334,23 @@
       display: none;
     }
 
+    .legal-strip {
+      width: min(1240px, calc(100% - 28px));
+      margin: 10px auto 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+    .legal-strip a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
     .spotlight-fade {
       animation: spotlightFade 0.32s ease;
     }
@@ -1707,6 +1724,12 @@
 
     </section>
   </main>
+
+  <div class="legal-strip">
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+    <a href="support.html">Support</a>
+  </div>
 
   <nav class="mobile-bottom-nav" aria-label="Mobile sections">
     <a class="mobile-nav-item active" href="index.html" aria-label="Home"><i class="fa-solid fa-house"></i></a>
@@ -5382,8 +5405,10 @@
       }
     });
   </script>
+  <script src="js/production-runtime.js?v=20260221a" defer></script>
 </body>
 </html>
+
 
 
 

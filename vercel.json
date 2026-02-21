@@ -69,6 +69,22 @@
     {
       "source": "/api/books/:path*",
       "destination": "/api/books-handler?path=:path*"
+    },
+    {
+      "source": "/api/analytics",
+      "destination": "/api/analytics-handler"
+    },
+    {
+      "source": "/api/analytics/:path*",
+      "destination": "/api/analytics-handler?path=:path*"
+    },
+    {
+      "source": "/api/support",
+      "destination": "/api/support-handler"
+    },
+    {
+      "source": "/api/support/:path*",
+      "destination": "/api/support-handler?path=:path*"
     }
   ]
 }

@@ -23,10 +23,14 @@ jobs:
 
       - name: Syntax check API handlers
         run: |
+          node --check api/_guardrails.js
           node --check api/music-handler.js
           node --check api/igdb-handler.js
           node --check api/tmdb-handler.js
           node --check api/books-handler.js
+          node --check api/health.js
+          node --check api/analytics-handler.js
+          node --check api/support-handler.js
           node --check api/_email-utils.js
           node --check api/emails/health.js
           node --check api/emails/welcome.js
@@ -40,4 +44,13 @@ jobs:
           node --check backend/routes/music.js
           node --check backend/routes/igdb.js
           node --check backend/routes/emails.js
+          node --check backend/routes/analytics.js
+          node --check backend/routes/support.js
+          node --check backend/lib/guardrails.js
+          node --check backend/lib/supabase-admin.js
           node --check backend/lib/email/service.js
+
+      - name: Syntax check frontend runtime and smoke script
+        run: |
+          node --check js/production-runtime.js
+          node --check scripts/smoke-check.mjs

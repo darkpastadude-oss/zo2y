@@ -1,10 +1,14 @@
 import express from "express";
-import igdbRoutes from "../backend/routes/igdb.js";
+import dotenv from "dotenv";
+import analyticsRoutes from "../backend/routes/analytics.js";
 import { applyApiGuardrails } from "./_guardrails.js";
 
+dotenv.config();
+dotenv.config({ path: "backend/.env" });
+
 const app = express();
-applyApiGuardrails(app, { keyPrefix: "api-igdb", max: 240 });
-app.use("/api/igdb", igdbRoutes);
+applyApiGuardrails(app, { keyPrefix: "api-analytics", max: 300 });
+app.use("/api/analytics", analyticsRoutes);
 
 function pushQueryParam(params, key, value) {
   if (value === undefined || value === null) return;
@@ -35,7 +39,8 @@ export default function handler(req, res) {
 
   const suffix = pathParts.length ? `/${pathParts.join("/")}` : "";
   const search = nextParams.toString();
-  req.url = `/api/igdb${suffix}${search ? `?${search}` : ""}`;
+  req.url = `/api/analytics${suffix}${search ? `?${search}` : ""}`;
 
   return app(req, res);
 }
+

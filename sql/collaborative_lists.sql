@@ -75,6 +75,75 @@ begin
 end;
 $$;
 
+create or replace function public.zo2y_custom_list_owner_matches(
+  p_media_type text,
+  p_list_id text,
+  p_owner_id uuid
+)
+returns boolean
+language plpgsql
+stable
+as $$
+declare
+  safe_media_type text := lower(trim(coalesce(p_media_type, '')));
+  safe_list_id text := trim(coalesce(p_list_id, ''));
+  matches_owner boolean := false;
+begin
+  if p_owner_id is null or safe_list_id = '' then
+    return false;
+  end if;
+
+  case safe_media_type
+    when 'movie' then
+      if to_regclass('public.movie_lists') is null then return false; end if;
+      select exists (
+        select 1 from public.movie_lists l
+        where l.id::text = safe_list_id
+          and l.user_id = p_owner_id
+      ) into matches_owner;
+    when 'tv' then
+      if to_regclass('public.tv_lists') is null then return false; end if;
+      select exists (
+        select 1 from public.tv_lists l
+        where l.id::text = safe_list_id
+          and l.user_id = p_owner_id
+      ) into matches_owner;
+    when 'game' then
+      if to_regclass('public.game_lists') is null then return false; end if;
+      select exists (
+        select 1 from public.game_lists l
+        where l.id::text = safe_list_id
+          and l.user_id = p_owner_id
+      ) into matches_owner;
+    when 'book' then
+      if to_regclass('public.book_lists') is null then return false; end if;
+      select exists (
+        select 1 from public.book_lists l
+        where l.id::text = safe_list_id
+          and l.user_id = p_owner_id
+      ) into matches_owner;
+    when 'music' then
+      if to_regclass('public.music_lists') is null then return false; end if;
+      select exists (
+        select 1 from public.music_lists l
+        where l.id::text = safe_list_id
+          and l.user_id = p_owner_id
+      ) into matches_owner;
+    when 'restaurant' then
+      if to_regclass('public.lists') is null then return false; end if;
+      select exists (
+        select 1 from public.lists l
+        where l.id::text = safe_list_id
+          and l.user_id = p_owner_id
+      ) into matches_owner;
+    else
+      return false;
+  end case;
+
+  return coalesce(matches_owner, false);
+end;
+$$;
+
 alter table public.list_collaborators enable row level security;
 
 drop policy if exists list_collaborators_select_owner_or_collaborator on public.list_collaborators;
@@ -91,6 +160,7 @@ for insert
 to authenticated
 with check (
   list_owner_id = auth.uid()
+  and public.zo2y_custom_list_owner_matches(media_type, list_id, list_owner_id)
   and public.zo2y_has_mutual_follow(list_owner_id, collaborator_id)
 );
 
@@ -102,6 +172,7 @@ to authenticated
 using (list_owner_id = auth.uid())
 with check (
   list_owner_id = auth.uid()
+  and public.zo2y_custom_list_owner_matches(media_type, list_id, list_owner_id)
   and public.zo2y_has_mutual_follow(list_owner_id, collaborator_id)
 );
 
@@ -194,11 +265,13 @@ begin
           where lc.media_type = %L
             and lc.list_id = %I.id::text
             and lc.collaborator_id = auth.uid()
+            and lc.list_owner_id = %I.user_id
         )
       )',
       rec.list_table || '_select_collaborator',
       rec.list_table,
       rec.media_type,
+      rec.list_table,
       rec.list_table
     );
 
@@ -270,11 +343,13 @@ begin
            where lc.media_type = %L
              and lc.list_id = %I.list_id::text
              and lc.collaborator_id = auth.uid()
+             and lc.list_owner_id = %I.user_id
          )
        )',
       rec.item_table || '_select_collaborator',
       rec.item_table,
       rec.media_type,
+      rec.item_table,
       rec.item_table
     );
 
@@ -289,6 +364,7 @@ begin
              and lc.list_id = %I.list_id::text
              and lc.collaborator_id = auth.uid()
              and lc.can_edit = true
+             and lc.list_owner_id = %I.user_id
          )
          and exists (
            select 1 from public.%I l
@@ -299,6 +375,7 @@ begin
       rec.item_table || '_insert_collaborator',
       rec.item_table,
       rec.media_type,
+      rec.item_table,
       rec.item_table,
       rec.list_table,
       rec.item_table,
@@ -316,6 +393,7 @@ begin
              and lc.list_id = %I.list_id::text
              and lc.collaborator_id = auth.uid()
              and lc.can_edit = true
+             and lc.list_owner_id = %I.user_id
          )
        )
        with check (
@@ -326,6 +404,7 @@ begin
              and lc.list_id = %I.list_id::text
              and lc.collaborator_id = auth.uid()
              and lc.can_edit = true
+             and lc.list_owner_id = %I.user_id
          )
          and exists (
            select 1 from public.%I l
@@ -337,7 +416,9 @@ begin
       rec.item_table,
       rec.media_type,
       rec.item_table,
+      rec.item_table,
       rec.media_type,
+      rec.item_table,
       rec.item_table,
       rec.list_table,
       rec.item_table,
@@ -355,11 +436,13 @@ begin
              and lc.list_id = %I.list_id::text
              and lc.collaborator_id = auth.uid()
              and lc.can_edit = true
+             and lc.list_owner_id = %I.user_id
          )
        )',
       rec.item_table || '_delete_collaborator',
       rec.item_table,
       rec.media_type,
+      rec.item_table,
       rec.item_table
     );
 

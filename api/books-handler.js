@@ -1,10 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
+import { applyApiGuardrails } from "./_guardrails.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
 
 const app = express();
+applyApiGuardrails(app, { keyPrefix: "api-books", max: 220 });
 const GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1";
 
 function getBooksKey() {
