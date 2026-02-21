@@ -3200,6 +3200,7 @@ header, .top-stripe, .section-nav {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: rgba(19, 35, 71, 0.65);
+  cursor: pointer;
 }
 
 .social-preview-info {
@@ -3503,6 +3504,65 @@ header, .top-stripe, .section-nav {
 @media (max-width: 1200px) {
   .stats-grid {
     grid-template-columns: repeat(2, minmax(140px, 1fr));
+  }
+}
+
+@media (min-width: 769px) {
+  .collection-grid {
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+  }
+
+  .collection-card {
+    height: 430px;
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .collection-card-header {
+    margin-bottom: 12px;
+    min-height: 78px;
+  }
+
+  .collection-card-title-group {
+    align-items: flex-start;
+  }
+
+  .collection-card-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 24px;
+  }
+
+  .collection-card-info {
+    min-height: 72px;
+  }
+
+  .collection-card-title {
+    font-size: 19px;
+    line-height: 1.25;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .collection-card-count {
+    font-size: 14px;
+  }
+
+  .collection-card-preview {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .collection-preview-item {
+    border-radius: 10px;
+  }
+
+  .collection-card-footer {
+    margin-top: auto;
   }
 }
 
@@ -12047,6 +12107,36 @@ header, .top-stripe, .section-nav {
                 );
             }
 
+            function setupCommunitySnapshotNavigation() {
+                const snapshotIds = ['desktopSocialPreview', 'mobileSocialPreview'];
+                snapshotIds.forEach((snapshotId) => {
+                    const snapshot = document.getElementById(snapshotId);
+                    if (!snapshot || snapshot.dataset.communityNavBound === '1') return;
+
+                    snapshot.dataset.communityNavBound = '1';
+                    snapshot.setAttribute('role', 'button');
+                    snapshot.setAttribute('tabindex', '0');
+                    snapshot.setAttribute('aria-label', 'Open community');
+
+                    const openCommunity = () => showTab('community');
+                    const isInteractiveTarget = (target) => {
+                        if (!(target instanceof Element)) return false;
+                        return !!target.closest('button, a, .social-preview-link, .social-preview-avatar');
+                    };
+
+                    snapshot.addEventListener('click', (event) => {
+                        if (isInteractiveTarget(event.target)) return;
+                        openCommunity();
+                    });
+
+                    snapshot.addEventListener('keydown', (event) => {
+                        if (event.key !== 'Enter' && event.key !== ' ') return;
+                        event.preventDefault();
+                        openCommunity();
+                    });
+                });
+            }
+
             function showCommunitySection(section) {
                 const isMobile = window.innerWidth <= 768;
                 
@@ -12451,6 +12541,7 @@ header, .top-stripe, .section-nav {
             // ===== SETUP EVENT LISTENERS =====
             function setupEventListeners() {
                 console.log('Setting up event listeners...');
+                setupCommunitySnapshotNavigation();
                 
                 // Remove existing listener before adding new one
                 const createListForm = document.getElementById('createListForm');
