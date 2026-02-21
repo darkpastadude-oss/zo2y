@@ -339,21 +339,20 @@
 
         .collection-item-card {
             background: var(--card);
-            border: 1px solid var(--border);
+            border: none;
             border-radius: var(--radius);
             overflow: hidden;
             display: grid;
             grid-template-columns: 100px 1fr;
-            gap: 16px;
+            gap: 0;
             position: relative;
             cursor: pointer;
             transition: var(--transition);
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .collection-item-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
 
         @media (max-width: 768px) {
@@ -365,14 +364,15 @@
 
         .collection-item-image {
             width: 100%;
-            height: 140px;
+            height: 100%;
+            min-height: 140px;
             object-fit: contain;
-            background: var(--bg);
+            background: transparent;
         }
 
         @media (max-width: 768px) {
             .collection-item-image {
-                height: 120px;
+                min-height: 120px;
             }
         }
 
@@ -466,7 +466,7 @@
         }
 
         .collection-item-card.tier-draggable {
-            cursor: default;
+            cursor: grab;
         }
 
         .collection-item-card.tier-draggable,
@@ -477,7 +477,7 @@
         }
 
         .collection-item-card.tier-draggable .collection-item-rank {
-            cursor: default;
+            cursor: inherit;
         }
 
         .collection-item-card.tier-draggable .collection-item-body {
@@ -589,13 +589,36 @@
             opacity: 1;
         }
 
+        .collection-item-remove-inline {
+            display: none;
+            margin-top: 6px;
+            width: fit-content;
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            background: rgba(239, 68, 68, 0.12);
+            color: #fecaca;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .collection-item-remove-inline:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.65);
+            color: #ffffff;
+        }
+
         @media (max-width: 768px) {
             .collection-item-remove {
-                opacity: 1;
-                top: 6px;
-                right: 6px;
-                width: 26px;
-                height: 26px;
+                display: none;
+            }
+
+            .collection-item-remove-inline {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
             }
         }
 
@@ -3417,10 +3440,15 @@ header, .top-stripe, .section-nav {
 .collection-items-grid .collection-item-card {
   margin-bottom: 0;
   grid-template-columns: 1fr;
+  border: none;
+  box-shadow: none;
 }
 
 .collection-items-grid .collection-item-image {
-  height: 190px;
+  height: auto;
+  min-height: 190px;
+  aspect-ratio: 2 / 3;
+  object-fit: contain;
 }
 
 .collection-items-grid .collection-item-body {
@@ -3444,10 +3472,14 @@ header, .top-stripe, .section-nav {
   min-height: 92px;
   grid-template-columns: 72px 1fr;
   gap: 10px;
+  border: none;
+  box-shadow: none;
 }
 
 .collection-items-list .collection-item-image {
-  height: 92px;
+  height: 100%;
+  min-height: 92px;
+  object-fit: contain;
 }
 
 .collection-items-list .collection-item-body {
@@ -3557,7 +3589,7 @@ header, .top-stripe, .section-nav {
   }
 
   .collection-items-grid .collection-item-image {
-    height: 145px;
+    min-height: 145px;
   }
 
   .collection-items-grid .collection-item-body {
@@ -3579,7 +3611,7 @@ header, .top-stripe, .section-nav {
   }
 
   .collection-items-list .collection-item-image {
-    height: 86px;
+    min-height: 86px;
   }
 }
 </style>
@@ -8372,11 +8404,10 @@ header, .top-stripe, .section-nav {
                 async function resolve(type, list, listId, itemIds = [], options = {}) {
                     const safeType = String(type || '').toLowerCase();
                     const safeListId = String(listId || '').trim();
-                    const safeListType = String(options.listType || '').toLowerCase();
                     const ownerUserId = options.ownerUserId || null;
                     const normalizedIds = normalizeIds(itemIds);
                     const tierMeta = TierListMeta.detect(safeType, list, normalizedIds.length);
-                    if (!(tierMeta.isTier && safeListType === 'custom' && safeListId && window.ListUtils)) {
+                    if (!(safeListId && window.ListUtils)) {
                         return { tierMeta, orderedIds: normalizedIds };
                     }
                     await hydrateOnce(safeType, safeListId, ownerUserId);
@@ -8402,6 +8433,10 @@ header, .top-stripe, .section-nav {
                 const tierMeta = getTierMetaForList(type, list, 0);
                 if (!tierMeta.isTier) return baseTitle;
                 return `${baseTitle} • Tier List`;
+            }
+
+            function canReorderCollectionItems(listId) {
+                return !!(isViewingOwnProfile && String(listId || '').trim());
             }
 
             const TierListUI = (function() {
@@ -8531,7 +8566,6 @@ header, .top-stripe, .section-nav {
                 const safeType = String(mediaType || '').toLowerCase();
                 const safeListId = String(listId || '').trim();
                 const canReorder = isViewingOwnProfile
-                    && String(listType || '').toLowerCase() === 'custom'
                     && !!safeType
                     && !!safeListId;
 
@@ -8565,6 +8599,25 @@ header, .top-stripe, .section-nav {
                 let startOrderKey = '';
                 let isSaving = false;
                 let queueSave = false;
+                let pendingCard = null;
+                let pendingPointerId = null;
+                let pendingPointerType = '';
+                let pendingStartX = 0;
+                let pendingStartY = 0;
+                const DRAG_THRESHOLD = 6;
+
+                const clearPendingDrag = () => {
+                    pendingCard = null;
+                    pendingPointerId = null;
+                    pendingPointerType = '';
+                    pendingStartX = 0;
+                    pendingStartY = 0;
+                };
+
+                const isBlockedDragTarget = (target) => {
+                    if (!(target instanceof Element)) return false;
+                    return !!target.closest('.collection-item-remove, .collection-item-remove-inline, a, button, input, select, textarea, [role="button"]');
+                };
 
                 const persistCurrentOrder = async () => {
                     if (isSaving) {
@@ -8585,6 +8638,7 @@ header, .top-stripe, .section-nav {
 
                 const beginDrag = (card, mode, pointerId, touchId, clientX, clientY) => {
                     if (!card || activeCard) return;
+                    clearPendingDrag();
                     activeCard = card;
                     activeMode = mode;
                     activePointerId = pointerId;
@@ -8604,30 +8658,45 @@ header, .top-stripe, .section-nav {
 
                     const deltaX = Math.abs(Number(clientX || 0) - dragStartX);
                     const deltaY = Math.abs(Number(clientY || 0) - dragStartY);
-                    if (!dragMoved && Math.max(deltaX, deltaY) >= 4) {
+                    if (!dragMoved && Math.max(deltaX, deltaY) >= DRAG_THRESHOLD) {
                         dragMoved = true;
                     }
 
                     const siblings = getCards().filter((card) => card !== activeCard);
                     if (!siblings.length) return;
 
-                    let targetCard = null;
-                    let targetPosition = 'after';
+                    const isGridLayout = container.classList.contains('collection-items-grid');
+                    let nearest = null;
                     for (const sibling of siblings) {
                         const rect = sibling.getBoundingClientRect();
-                        const midpointY = rect.top + (rect.height / 2);
-                        if (clientY < midpointY) {
-                            targetCard = sibling;
-                            targetPosition = 'before';
-                            break;
+                        const centerX = rect.left + (rect.width / 2);
+                        const centerY = rect.top + (rect.height / 2);
+                        const dx = Number(clientX || 0) - centerX;
+                        const dy = Number(clientY || 0) - centerY;
+                        const distance = (dx * dx) + (dy * dy);
+                        if (!nearest || distance < nearest.distance) {
+                            nearest = { card: sibling, rect, centerX, centerY, dx, dy, distance };
                         }
-                        targetCard = sibling;
-                        targetPosition = 'after';
+                    }
+
+                    if (!nearest) return;
+                    const targetCard = nearest.card;
+                    let targetPosition = 'after';
+                    if (isGridLayout) {
+                        const absDx = Math.abs(nearest.dx);
+                        const absDy = Math.abs(nearest.dy);
+                        const useVerticalAxis = absDy > (nearest.rect.height * 0.25) && absDy >= absDx;
+                        if (useVerticalAxis) {
+                            targetPosition = nearest.dy > 0 ? 'after' : 'before';
+                        } else {
+                            targetPosition = nearest.dx > 0 ? 'after' : 'before';
+                        }
+                    } else {
+                        targetPosition = nearest.dy > 0 ? 'after' : 'before';
                     }
 
                     TierListUI.clearDropTargets(container);
                     if (targetCard) TierListUI.markDropTarget(targetCard, targetPosition);
-                    if (!targetCard) return;
 
                     let moved = false;
                     if (targetPosition === 'before') {
@@ -8671,6 +8740,7 @@ header, .top-stripe, .section-nav {
                     dragMoved = false;
                     orderDirty = false;
                     startOrderKey = '';
+                    clearPendingDrag();
 
                     TierListUI.refreshRankPills(container);
                     if (changed) {
@@ -8699,18 +8769,40 @@ header, .top-stripe, .section-nav {
                 const supportsPointer = typeof window !== 'undefined' && ('PointerEvent' in window);
                 if (supportsPointer) {
                     addListener(window, 'pointermove', (event) => {
-                        if (!activeCard || activeMode !== 'pointer' || event.pointerId !== activePointerId) return;
-                        event.preventDefault();
-                        moveDrag(event.clientX, event.clientY);
+                        if (activeCard && activeMode === 'pointer' && event.pointerId === activePointerId) {
+                            event.preventDefault();
+                            moveDrag(event.clientX, event.clientY);
+                            return;
+                        }
+                        if (!activeCard && pendingCard && event.pointerId === pendingPointerId) {
+                            const deltaX = Math.abs(Number(event.clientX || 0) - pendingStartX);
+                            const deltaY = Math.abs(Number(event.clientY || 0) - pendingStartY);
+                            const threshold = pendingPointerType === 'touch' ? 14 : DRAG_THRESHOLD;
+                            if (Math.max(deltaX, deltaY) >= threshold) {
+                                event.preventDefault();
+                                beginDrag(pendingCard, 'pointer', pendingPointerId, null, pendingStartX, pendingStartY);
+                                moveDrag(event.clientX, event.clientY);
+                            }
+                        }
                     }, { passive: false });
                     addListener(window, 'pointerup', (event) => {
-                        if (!activeCard || activeMode !== 'pointer' || event.pointerId !== activePointerId) return;
-                        event.preventDefault();
-                        void finishDrag(event.pointerType !== 'mouse');
+                        if (activeCard && activeMode === 'pointer' && event.pointerId === activePointerId) {
+                            event.preventDefault();
+                            void finishDrag(event.pointerType !== 'mouse');
+                            return;
+                        }
+                        if (!activeCard && pendingCard && event.pointerId === pendingPointerId) {
+                            clearPendingDrag();
+                        }
                     });
                     addListener(window, 'pointercancel', (event) => {
-                        if (!activeCard || activeMode !== 'pointer' || event.pointerId !== activePointerId) return;
-                        void finishDrag(true);
+                        if (activeCard && activeMode === 'pointer' && event.pointerId === activePointerId) {
+                            void finishDrag(true);
+                            return;
+                        }
+                        if (!activeCard && pendingCard && event.pointerId === pendingPointerId) {
+                            clearPendingDrag();
+                        }
                     });
                 } else {
                     addListener(window, 'mousemove', (event) => {
@@ -8749,23 +8841,60 @@ header, .top-stripe, .section-nav {
                     card.removeAttribute('draggable');
                     card.querySelectorAll('img').forEach((imgEl) => imgEl.setAttribute('draggable', 'false'));
 
-                    let handle = card.querySelector('.tier-drag-handle');
-                    if (!handle) {
-                        handle = document.createElement('button');
-                        handle.type = 'button';
-                        handle.className = 'tier-drag-handle';
-                        handle.setAttribute('aria-label', 'Drag to reorder');
-                        handle.setAttribute('title', 'Drag to reorder');
-                        handle.innerHTML = '<i class="fas fa-grip-lines"></i>';
-                        card.appendChild(handle);
+                    if (supportsPointer) {
+                        addListener(card, 'pointerdown', (event) => {
+                            if (activeCard) return;
+                            if (event.pointerType === 'mouse' && event.button !== 0) return;
+                            if (isBlockedDragTarget(event.target)) return;
+                            pendingCard = card;
+                            pendingPointerId = event.pointerId;
+                            pendingPointerType = String(event.pointerType || '').toLowerCase();
+                            pendingStartX = Number(event.clientX || 0);
+                            pendingStartY = Number(event.clientY || 0);
+                        }, { passive: true });
                     }
 
-                    addListener(handle, 'click', (event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    });
+                    const handle = card.querySelector('.tier-drag-handle');
+                    if (handle) {
+                        addListener(handle, 'click', (event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        });
+                    }
 
-                    if (supportsPointer) {
+                    if (!supportsPointer) {
+                        addListener(card, 'mousedown', (event) => {
+                            if (activeCard || event.button !== 0) return;
+                            if (isBlockedDragTarget(event.target)) return;
+                            event.preventDefault();
+                            beginDrag(card, 'mouse', null, null, event.clientX, event.clientY);
+                            moveDrag(event.clientX, event.clientY);
+                        }, { passive: false });
+                        addListener(card, 'touchstart', (event) => {
+                            if (activeCard || !event.touches || !event.touches.length) return;
+                            if (isBlockedDragTarget(event.target)) return;
+                            const touch = event.touches[0];
+                            beginDrag(card, 'touch', null, touch.identifier, touch.clientX, touch.clientY);
+                            moveDrag(touch.clientX, touch.clientY);
+                        }, { passive: true });
+                        if (handle) {
+                            addListener(handle, 'mousedown', (event) => {
+                                if (activeCard || event.button !== 0) return;
+                                event.preventDefault();
+                                event.stopPropagation();
+                                beginDrag(card, 'mouse', null, null, event.clientX, event.clientY);
+                                moveDrag(event.clientX, event.clientY);
+                            }, { passive: false });
+                            addListener(handle, 'touchstart', (event) => {
+                                if (activeCard || !event.touches || !event.touches.length) return;
+                                const touch = event.touches[0];
+                                event.preventDefault();
+                                event.stopPropagation();
+                                beginDrag(card, 'touch', null, touch.identifier, touch.clientX, touch.clientY);
+                                moveDrag(touch.clientX, touch.clientY);
+                            }, { passive: false });
+                        }
+                    } else if (handle) {
                         addListener(handle, 'pointerdown', (event) => {
                             if (activeCard) return;
                             if (event.pointerType === 'mouse' && event.button !== 0) return;
@@ -8773,22 +8902,6 @@ header, .top-stripe, .section-nav {
                             event.stopPropagation();
                             beginDrag(card, 'pointer', event.pointerId, null, event.clientX, event.clientY);
                             moveDrag(event.clientX, event.clientY);
-                        }, { passive: false });
-                    } else {
-                        addListener(handle, 'mousedown', (event) => {
-                            if (activeCard || event.button !== 0) return;
-                            event.preventDefault();
-                            event.stopPropagation();
-                            beginDrag(card, 'mouse', null, null, event.clientX, event.clientY);
-                            moveDrag(event.clientX, event.clientY);
-                        }, { passive: false });
-                        addListener(handle, 'touchstart', (event) => {
-                            if (activeCard || !event.touches || !event.touches.length) return;
-                            const touch = event.touches[0];
-                            event.preventDefault();
-                            event.stopPropagation();
-                            beginDrag(card, 'touch', null, touch.identifier, touch.clientX, touch.clientY);
-                            moveDrag(touch.clientX, touch.clientY);
                         }, { passive: false });
                     }
                 });
@@ -8807,6 +8920,7 @@ header, .top-stripe, .section-nav {
                     activeMode = null;
                     activePointerId = null;
                     activeTouchId = null;
+                    clearPendingDrag();
                     document.body.classList.remove('tier-drag-active');
                 };
 
@@ -10352,7 +10466,7 @@ header, .top-stripe, .section-nav {
                     listType,
                     ownerUserId
                 });
-                const canReorderTier = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                const canReorderList = canReorderCollectionItems(listId);
 
                 const restaurantMap = new Map();
                 (restaurants || []).forEach((row) => {
@@ -10366,7 +10480,7 @@ header, .top-stripe, .section-nav {
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
                     itemCard.onclick = () => window.location.href = `restaurant.html?slug=${restaurant.slug}`;
-                    const canReorder = canReorderTier;
+                    const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
                             index + 1,
@@ -10379,6 +10493,11 @@ header, .top-stripe, .section-nav {
                         <img class="collection-item-image" src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${restaurant.name}</h3>
+                            ${isViewingOwnProfile ? `
+                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${restaurant.id}, '${listId}', 'restaurant')">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-utensils"></i> ${restaurant.category}</span>
                                 <span><i class="fas fa-star"></i> ${restaurant.rating}</span>
@@ -10400,9 +10519,9 @@ header, .top-stripe, .section-nav {
 
                 wireTierDragAndDrop(
                     container,
-                    canReorderTier ? 'restaurant' : null,
-                    canReorderTier ? listId : null,
-                    canReorderTier ? listType : 'default'
+                    canReorderList ? 'restaurant' : null,
+                    canReorderList ? listId : null,
+                    canReorderList ? listType : 'default'
                 );
             }
 
@@ -10537,7 +10656,7 @@ header, .top-stripe, .section-nav {
                     listType,
                     ownerUserId
                 });
-                const canReorderTier = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                const canReorderList = canReorderCollectionItems(listId);
 
                 const movies = await Promise.all(rankedMovieIds.map(id => fetchMovieDetails(id)));
 
@@ -10547,7 +10666,7 @@ header, .top-stripe, .section-nav {
                     const movie = movies[index];
                     if (!movie) continue;
                     const movieIdValue = rankedMovieIds[index] ?? movie.id;
-                    const canReorder = canReorderTier;
+                    const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
                             index + 1,
@@ -10564,6 +10683,11 @@ header, .top-stripe, .section-nav {
                         <img class="collection-item-image" src="${movie.poster_path ? TMDB_POSTER + movie.poster_path : 'images/placeholder.jpg'}" alt="${movie.title}" loading="lazy">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${movie.title}</h3>
+                            ${isViewingOwnProfile ? `
+                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-calendar"></i> ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</span>
                                 ${movie.vote_average ? `<span><i class="fas fa-star"></i> ${movie.vote_average.toFixed(1)}</span>` : ''}
@@ -10585,9 +10709,9 @@ header, .top-stripe, .section-nav {
 
                 wireTierDragAndDrop(
                     container,
-                    canReorderTier ? 'movie' : null,
-                    canReorderTier ? listId : null,
-                    canReorderTier ? listType : 'default'
+                    canReorderList ? 'movie' : null,
+                    canReorderList ? listId : null,
+                    canReorderList ? listType : 'default'
                 );
             }
 
@@ -10722,7 +10846,7 @@ header, .top-stripe, .section-nav {
                     listType,
                     ownerUserId
                 });
-                const canReorderTier = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                const canReorderList = canReorderCollectionItems(listId);
 
                 const shows = await Promise.all(rankedTvIds.map(id => fetchTvDetails(id)));
 
@@ -10732,7 +10856,7 @@ header, .top-stripe, .section-nav {
                     const show = shows[index];
                     if (!show) continue;
                     const tvIdValue = rankedTvIds[index] ?? show.id;
-                    const canReorder = canReorderTier;
+                    const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
                             index + 1,
@@ -10751,6 +10875,11 @@ header, .top-stripe, .section-nav {
                         <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${showTitle}</h3>
+                            ${isViewingOwnProfile ? `
+                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
                                 <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
@@ -10772,9 +10901,9 @@ header, .top-stripe, .section-nav {
 
                 wireTierDragAndDrop(
                     container,
-                    canReorderTier ? 'tv' : null,
-                    canReorderTier ? listId : null,
-                    canReorderTier ? listType : 'default'
+                    canReorderList ? 'tv' : null,
+                    canReorderList ? listId : null,
+                    canReorderList ? listType : 'default'
                 );
             }
 
@@ -10913,7 +11042,7 @@ header, .top-stripe, .section-nav {
                     listType,
                     ownerUserId
                 });
-                const canReorderTier = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                const canReorderList = canReorderCollectionItems(listId);
 
                 const games = await Promise.all(rankedGameIds.map(async (id) => ({
                     id: String(id || '').trim(),
@@ -10936,7 +11065,7 @@ header, .top-stripe, .section-nav {
                     const gameTitle = game.name || game.slug || 'Untitled';
                     const safeGameId = resolvedGameId.replace(/'/g, "\\'");
                     const gameImage = normalizeGameImageSource(game);
-                    const canReorder = canReorderTier;
+                    const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
                             index + 1,
@@ -10949,6 +11078,11 @@ header, .top-stripe, .section-nav {
                         <img class="collection-item-image" src="${gameImage}" alt="${gameTitle}" loading="lazy">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${gameTitle}</h3>
+                            ${isViewingOwnProfile ? `
+                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${safeGameId}', '${listId}', 'game', '${listType}')">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-calendar"></i> ${game.released ? new Date(game.released).getFullYear() : 'N/A'}</span>
                                 <span><i class="fas fa-star"></i> ${game.rating ? game.rating.toFixed(1) : 'N/A'}</span>
@@ -10970,9 +11104,9 @@ header, .top-stripe, .section-nav {
 
                 wireTierDragAndDrop(
                     container,
-                    canReorderTier ? 'game' : null,
-                    canReorderTier ? listId : null,
-                    canReorderTier ? listType : 'default'
+                    canReorderList ? 'game' : null,
+                    canReorderList ? listId : null,
+                    canReorderList ? listType : 'default'
                 );
             }
 
@@ -11096,7 +11230,7 @@ header, .top-stripe, .section-nav {
                     listType,
                     ownerUserId
                 });
-                const canReorderTier = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                const canReorderList = canReorderCollectionItems(listId);
 
                 // Check cache first
                 const cacheKey = `profile_books_${listId}_${rankedBookIds.join(',')}`;
@@ -11146,7 +11280,7 @@ header, .top-stripe, .section-nav {
                     }
                     const metaYear = row?.published_date ? String(row.published_date).slice(0, 4) : 'N/A';
                     const image = row?.thumbnail || FALLBACK_BOOK_IMAGE;
-                    const canReorder = canReorderTier;
+                    const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
                             i + 1,
@@ -11163,6 +11297,11 @@ header, .top-stripe, .section-nav {
                         <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${ProfileManager.escapeHtml(title)}</h3>
+                            ${isViewingOwnProfile ? `
+                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${id}', '${listId}', 'book', '${listType}')">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-user"></i> ${ProfileManager.escapeHtml(subtitle)}</span>
                                 <span><i class="fas fa-calendar"></i> ${ProfileManager.escapeHtml(metaYear)}</span>
@@ -11183,9 +11322,9 @@ header, .top-stripe, .section-nav {
 
                 wireTierDragAndDrop(
                     container,
-                    canReorderTier ? 'book' : null,
-                    canReorderTier ? listId : null,
-                    canReorderTier ? listType : 'default'
+                    canReorderList ? 'book' : null,
+                    canReorderList ? listId : null,
+                    canReorderList ? listType : 'default'
                 );
             }
 
@@ -11313,7 +11452,7 @@ header, .top-stripe, .section-nav {
                     listType,
                     ownerUserId
                 });
-                const canReorderTier = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                const canReorderList = canReorderCollectionItems(listId);
                 const tracks = await Promise.all(rankedTrackIds.map((id) => fetchMusicDetails(id)));
                 container.innerHTML = '';
 
@@ -11325,7 +11464,7 @@ header, .top-stripe, .section-nav {
                     const album = String(track?.album_name || 'Album').trim() || 'Album';
                     const image = String(track?.image_url || '').trim() || 'images/logo.png';
                     const openUrl = trackId ? `song.html?id=${encodeURIComponent(trackId)}` : 'music.html';
-                    const canReorder = canReorderTier;
+                    const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
                             i + 1,
@@ -11344,6 +11483,11 @@ header, .top-stripe, .section-nav {
                         <img class="collection-item-image" src="${image}" alt="${ProfileManager.escapeHtml(title)}" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${ProfileManager.escapeHtml(title)}</h3>
+                            ${isViewingOwnProfile ? `
+                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${trackId}', '${listId}', 'music', '${listType}')">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-user"></i> ${ProfileManager.escapeHtml(artists)}</span>
                                 <span><i class="fas fa-compact-disc"></i> ${ProfileManager.escapeHtml(album)}</span>
@@ -11364,9 +11508,9 @@ header, .top-stripe, .section-nav {
 
                 wireTierDragAndDrop(
                     container,
-                    canReorderTier ? 'music' : null,
-                    canReorderTier ? listId : null,
-                    canReorderTier ? listType : 'default'
+                    canReorderList ? 'music' : null,
+                    canReorderList ? listId : null,
+                    canReorderList ? listType : 'default'
                 );
             }
 
