@@ -3080,6 +3080,462 @@ h3 { font-size: var(--ds-title-sm); line-height: 1.3; }
 header, .top-stripe, .section-nav {
   min-height: 50px;
 }
+
+/* ===== Dashboard Density Redesign ===== */
+.stats-grid {
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.stat-card {
+  padding: 12px 14px;
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.stat-icon {
+  font-size: 16px;
+  margin: 0;
+}
+
+.stat-number {
+  font-size: 26px;
+  line-height: 1;
+  margin: 0;
+}
+
+.stat-label {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.social-preview-row,
+.mobile-social-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(19, 35, 71, 0.65);
+}
+
+.social-preview-info {
+  min-width: 0;
+}
+
+.social-preview-title {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.social-preview-meta {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.social-preview-avatars {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.social-preview-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-hover);
+  color: var(--white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -7px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.social-preview-avatar:first-child {
+  margin-left: 0;
+}
+
+.social-preview-link {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0;
+}
+
+.nav-tabs {
+  position: sticky;
+  top: 10px;
+  z-index: 250;
+  margin-bottom: 14px;
+  padding: 6px;
+  background: rgba(19, 35, 71, 0.92);
+  backdrop-filter: blur(7px);
+}
+
+.nav-tab {
+  padding: 9px 14px;
+  font-size: 13px;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.section-header {
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-title {
+  font-size: 20px;
+}
+
+.section-subtitle {
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.collection-grid {
+  grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+  gap: 12px;
+}
+
+.collection-card {
+  border-radius: 10px;
+  padding: 10px;
+  overflow: visible;
+  background: rgba(19, 35, 71, 0.9);
+}
+
+.collection-card:hover {
+  transform: translateY(-2px);
+}
+
+.collection-card-header {
+  padding: 0;
+  border: 0;
+  margin-bottom: 8px;
+}
+
+.collection-card-title-group {
+  gap: 8px;
+}
+
+.collection-card-icon {
+  width: 34px;
+  height: 34px;
+  font-size: 21px;
+  border-radius: 8px;
+}
+
+.collection-card-title {
+  font-size: 15px;
+  margin-bottom: 0;
+}
+
+.collection-card-count {
+  font-size: 12px;
+}
+
+.collection-card-description {
+  display: none;
+}
+
+.collection-card-preview {
+  display: flex;
+  gap: 6px;
+  padding: 0;
+  background: transparent;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  margin-bottom: 8px;
+}
+
+.collection-card-preview::-webkit-scrollbar {
+  display: none;
+}
+
+.collection-preview-item {
+  flex: 0 0 auto;
+  width: 58px;
+  aspect-ratio: 2 / 3;
+  border-radius: 7px;
+}
+
+.collection-preview-item.is-landscape {
+  width: 82px;
+  aspect-ratio: 16 / 10;
+}
+
+.collection-preview-item img {
+  object-fit: cover;
+}
+
+.collection-card-footer {
+  padding: 0;
+  border: 0;
+  gap: 8px;
+}
+
+.collection-card-meta {
+  gap: 8px;
+  font-size: 12px;
+}
+
+.collection-card-meta-item i {
+  opacity: 0.75;
+}
+
+.collection-view-btn {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.collection-view-btn:hover {
+  color: #ffd27a;
+  border: none;
+  background: transparent;
+}
+
+.collection-view-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(11, 22, 51, 0.7);
+}
+
+.collection-view-toggle-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.collection-view-toggle-btn.active {
+  background: var(--accent);
+  color: #0b1633;
+}
+
+.collection-item-card {
+  margin-bottom: 10px;
+}
+
+.collection-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.collection-items-grid .collection-item-card {
+  margin-bottom: 0;
+  grid-template-columns: 1fr;
+}
+
+.collection-items-grid .collection-item-image {
+  height: 190px;
+}
+
+.collection-items-grid .collection-item-body {
+  padding: 10px;
+  gap: 6px;
+}
+
+.collection-items-grid .collection-item-meta {
+  font-size: 12px;
+  gap: 8px;
+}
+
+.collection-items-grid .collection-item-remove {
+  opacity: 1;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+}
+
+.collection-items-list .collection-item-card {
+  min-height: 92px;
+  grid-template-columns: 72px 1fr;
+  gap: 10px;
+}
+
+.collection-items-list .collection-item-image {
+  height: 92px;
+}
+
+.collection-items-list .collection-item-body {
+  padding: 10px 10px 10px 0;
+}
+
+.collection-items-list .collection-item-title {
+  font-size: 15px;
+}
+
+.collection-items-list .collection-item-meta {
+  font-size: 12px;
+}
+
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    padding: 10px 12px;
+  }
+
+  .mobile-stat {
+    background: rgba(11, 22, 51, 0.32);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 4px;
+  }
+
+  .mobile-stat-number {
+    font-size: 18px;
+    margin-bottom: 1px;
+  }
+
+  .mobile-stat-label {
+    font-size: 11px;
+  }
+
+  .mobile-social-preview {
+    margin: 8px 12px 10px;
+    padding: 8px 10px;
+  }
+
+  .mobile-tabs {
+    position: sticky;
+    top: 60px;
+    z-index: 940;
+    background: rgba(19, 35, 71, 0.95);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--border);
+  }
+
+  body.mobile-viewing-other .mobile-tabs {
+    top: 99px;
+  }
+
+  .mobile-tab {
+    flex: 0 0 clamp(82px, 20vw, 98px);
+    padding: 10px 8px;
+  }
+
+  .mobile-tab i {
+    font-size: 18px;
+  }
+
+  .mobile-content {
+    padding: 10px 12px 78px;
+  }
+
+  .mobile-section-title {
+    font-size: 17px;
+    margin-bottom: 10px;
+  }
+
+  .mobile-section-subtitle {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .mobile-action-btn {
+    min-height: 36px;
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  .collection-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .collection-card {
+    padding: 8px;
+  }
+
+  .collection-card-title {
+    font-size: 14px;
+  }
+
+  .collection-preview-item {
+    width: 52px;
+  }
+
+  .collection-preview-item.is-landscape {
+    width: 74px;
+  }
+
+  .collection-items-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .collection-items-grid .collection-item-image {
+    height: 145px;
+  }
+
+  .collection-items-grid .collection-item-body {
+    padding: 7px;
+  }
+
+  .collection-items-grid .collection-item-title {
+    font-size: 13px;
+  }
+
+  .collection-items-grid .collection-item-meta {
+    font-size: 11px;
+    gap: 6px;
+  }
+
+  .collection-items-list .collection-item-card {
+    min-height: 86px;
+    grid-template-columns: 64px 1fr;
+  }
+
+  .collection-items-list .collection-item-image {
+    height: 86px;
+  }
+}
 </style>
     <link rel="icon" type="image/png" href="images/logo.png">
   <meta name="theme-color" content="#0b1633" />
@@ -3190,10 +3646,23 @@ header, .top-stripe, .section-nav {
                 </div>
             </div>
 
+            <div class="social-preview-row" id="desktopSocialPreview">
+                <div class="social-preview-info">
+                    <div class="social-preview-title">Community Snapshot</div>
+                    <div class="social-preview-meta" id="desktopSocialPreviewMeta">0 followers · 0 following</div>
+                </div>
+                <div class="social-preview-avatars" id="desktopFriendsPreviewAvatars"></div>
+                <button class="social-preview-link" onclick="ProfileManager.showTab('community')">View community -></button>
+            </div>
+
             <!-- Navigation Tabs -->
             <div class="nav-tabs">
                 <div class="nav-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
                     <i class="fas fa-utensils"></i> <span id="restaurantsTabText">Restaurants</span>
+                </div>
+                <div class="nav-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
+                    <i class="fas fa-users"></i> Community
+                    <span class="nav-tab-badge d-none" id="followersBadge">0</span>
                 </div>
                 <div class="nav-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')">
                     <i class="fas fa-film"></i> Movies
@@ -3209,10 +3678,6 @@ header, .top-stripe, .section-nav {
                 </div>
                 <div class="nav-tab" data-tab="music" onclick="ProfileManager.showTab('music')">
                     <i class="fas fa-music"></i> <span id="musicTabText">Music</span>
-                </div>
-                <div class="nav-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
-                    <i class="fas fa-users"></i> Community
-                    <span class="nav-tab-badge d-none" id="followersBadge">0</span>
                 </div>
             </div>
 
@@ -3253,6 +3718,10 @@ header, .top-stripe, .section-nav {
                                 <span id="restaurantDetailName"></span>
                             </h2>
                             <p class="collection-detail-subtitle" id="restaurantDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="restaurant">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('restaurant', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('restaurant', 'list')"><i class="fas fa-list"></i></button>
                         </div>
                         <div class="collection-detail-actions" id="restaurantDetailActions">
                             <button class="btn btn-secondary btn-sm" id="editRestaurantListBtn">
@@ -3320,6 +3789,10 @@ header, .top-stripe, .section-nav {
                             </h2>
                             <p class="collection-detail-subtitle" id="movieDetailDescription">Collection description</p>
                         </div>
+                        <div class="collection-view-toggle" data-media="movie">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('movie', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('movie', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
                         <div class="collection-detail-actions" id="movieDetailActions" style="display: none;">
                             <button class="btn btn-secondary btn-sm" id="movieListEditBtn">
                                 <i class="fas fa-pen"></i> Edit
@@ -3378,6 +3851,10 @@ header, .top-stripe, .section-nav {
                                 <span id="tvDetailName"></span>
                             </h2>
                             <p class="collection-detail-subtitle" id="tvDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="tv">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('tv', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('tv', 'list')"><i class="fas fa-list"></i></button>
                         </div>
                         <div class="collection-detail-actions" id="tvDetailActions" style="display: none;">
                             <button class="btn btn-secondary btn-sm" id="tvListEditBtn">
@@ -3438,6 +3915,10 @@ header, .top-stripe, .section-nav {
                             </h2>
                             <p class="collection-detail-subtitle" id="gameDetailDescription">Collection description</p>
                         </div>
+                        <div class="collection-view-toggle" data-media="game">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('game', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
                         <div class="collection-detail-actions" id="gameDetailActions" style="display: none;">
                             <button class="btn btn-secondary btn-sm" id="gameListEditBtn">
                                 <i class="fas fa-pen"></i> Edit
@@ -3496,6 +3977,10 @@ header, .top-stripe, .section-nav {
                                 <span id="bookDetailName"></span>
                             </h2>
                             <p class="collection-detail-subtitle" id="bookDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="book">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('book', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('book', 'list')"><i class="fas fa-list"></i></button>
                         </div>
                         <div class="collection-detail-actions" id="bookDetailActions" style="display: none;">
                             <button class="btn btn-secondary btn-sm" id="bookListEditBtn">
@@ -3611,6 +4096,10 @@ header, .top-stripe, .section-nav {
                             </h2>
                             <p class="collection-detail-subtitle" id="musicDetailDescription">Collection description</p>
                         </div>
+                        <div class="collection-view-toggle" data-media="music">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('music', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('music', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
                         <div class="collection-detail-actions" id="musicDetailActions" style="display: none;">
                             <button class="btn btn-secondary btn-sm" id="musicListEditBtn">
                                 <i class="fas fa-pen"></i> Edit
@@ -3697,11 +4186,25 @@ header, .top-stripe, .section-nav {
             </div>
         </div>
 
+        <div class="mobile-social-preview" id="mobileSocialPreview">
+            <div class="social-preview-info">
+                <div class="social-preview-title">Friends</div>
+                <div class="social-preview-meta" id="mobileSocialPreviewMeta">0 followers · 0 following</div>
+            </div>
+            <div class="social-preview-avatars" id="mobileFriendsPreviewAvatars"></div>
+            <button class="social-preview-link" onclick="ProfileManager.showTab('community')">View community -></button>
+        </div>
+
         <!-- Mobile Tabs Navigation -->
         <div class="mobile-tabs">
             <div class="mobile-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
                 <i class="fas fa-utensils"></i>
                 <span id="mobileTabRestaurants">Restaurants</span>
+            </div>
+            <div class="mobile-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
+                <i class="fas fa-users"></i>
+                <span>Community</span>
+                <span class="mobile-tab-badge d-none" id="mobileFollowersBadge">0</span>
             </div>
             <div class="mobile-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')">
                 <i class="fas fa-film"></i>
@@ -3722,11 +4225,6 @@ header, .top-stripe, .section-nav {
             <div class="mobile-tab" data-tab="music" onclick="ProfileManager.showTab('music')">
                 <i class="fas fa-music"></i>
                 <span id="mobileTabMusic">Music</span>
-            </div>
-            <div class="mobile-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
-                <i class="fas fa-users"></i>
-                <span>Community</span>
-                <span class="mobile-tab-badge d-none" id="mobileFollowersBadge">0</span>
             </div>
         </div>
         <div class="mobile-tabs-swipe-hint" id="mobileTabsSwipeHint">
@@ -3771,6 +4269,10 @@ header, .top-stripe, .section-nav {
                     </button>
                 </div>
                 <div class="mobile-section-subtitle" id="mobileRestaurantDetailDescription">Collection description</div>
+                <div class="collection-view-toggle" data-media="restaurant" style="margin-bottom: 10px;">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('restaurant', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('restaurant', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
                 
                 <div id="mobileRestaurantItems">
                     <div class="mobile-empty-state">
@@ -3815,6 +4317,10 @@ header, .top-stripe, .section-nav {
                         <span id="mobileMovieDetailTitle">Collection</span>
                     </div>
                     <div class="mobile-section-subtitle" id="mobileMovieDetailDescription"></div>
+                    <div class="collection-view-toggle" data-media="movie" style="margin-bottom: 10px;">
+                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('movie', 'grid', true)"><i class="fas fa-th"></i></button>
+                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('movie', 'list', true)"><i class="fas fa-list"></i></button>
+                    </div>
                     <div id="mobileMovieDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px; display: none;">
                         <button class="mobile-action-btn secondary" id="mobileMovieListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-pen"></i> Edit
@@ -3861,6 +4367,10 @@ header, .top-stripe, .section-nav {
                         <span id="mobileTvDetailTitle">Collection</span>
                     </div>
                     <div class="mobile-section-subtitle" id="mobileTvDetailDescription"></div>
+                    <div class="collection-view-toggle" data-media="tv" style="margin-bottom: 10px;">
+                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('tv', 'grid', true)"><i class="fas fa-th"></i></button>
+                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('tv', 'list', true)"><i class="fas fa-list"></i></button>
+                    </div>
                     <div id="mobileTvDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px; display: none;">
                         <button class="mobile-action-btn secondary" id="mobileTvListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-pen"></i> Edit
@@ -3907,6 +4417,10 @@ header, .top-stripe, .section-nav {
                         <span id="mobileGameDetailTitle">Collection</span>
                     </div>
                     <div class="mobile-section-subtitle" id="mobileGameDetailDescription"></div>
+                    <div class="collection-view-toggle" data-media="game" style="margin-bottom: 10px;">
+                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid', true)"><i class="fas fa-th"></i></button>
+                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('game', 'list', true)"><i class="fas fa-list"></i></button>
+                    </div>
                     <div id="mobileGameDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px; display: none;">
                         <button class="mobile-action-btn secondary" id="mobileGameListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-pen"></i> Edit
@@ -3953,6 +4467,10 @@ header, .top-stripe, .section-nav {
                         <span id="mobileBookDetailTitle">Collection</span>
                     </div>
                     <div class="mobile-section-subtitle" id="mobileBookDetailDescription"></div>
+                    <div class="collection-view-toggle" data-media="book" style="margin-bottom: 10px;">
+                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('book', 'grid', true)"><i class="fas fa-th"></i></button>
+                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('book', 'list', true)"><i class="fas fa-list"></i></button>
+                    </div>
                     <div id="mobileBookDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px;">
                         <button class="mobile-action-btn secondary" id="mobileBookListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-pen"></i> Edit
@@ -4040,6 +4558,10 @@ header, .top-stripe, .section-nav {
                         <span id="mobileMusicDetailTitle">Collection</span>
                     </div>
                     <div class="mobile-section-subtitle" id="mobileMusicDetailDescription"></div>
+                    <div class="collection-view-toggle" data-media="music" style="margin-bottom: 10px;">
+                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('music', 'grid', true)"><i class="fas fa-th"></i></button>
+                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('music', 'list', true)"><i class="fas fa-list"></i></button>
+                    </div>
                     <div id="mobileMusicDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px;">
                         <button class="mobile-action-btn secondary" id="mobileMusicListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
                             <i class="fas fa-pen"></i> Edit
@@ -4537,6 +5059,17 @@ header, .top-stripe, .section-nav {
             let hasPreloadedTabs = false;
             let tabSwitchToken = 0;
             const VALID_PROFILE_TABS = new Set(['restaurants', 'movies', 'tv', 'games', 'books', 'music', 'community']);
+            const VALID_COLLECTION_TYPES = new Set(['restaurant', 'movie', 'tv', 'game', 'book', 'music']);
+            const COLLECTION_TO_TAB = {
+                restaurant: 'restaurants',
+                movie: 'movies',
+                tv: 'tv',
+                game: 'games',
+                book: 'books',
+                music: 'music'
+            };
+            const COLLECTION_VIEW_STORAGE_KEY = 'zo2y_profile_collection_view_modes_v2';
+            let collectionViewModes = loadCollectionViewModes();
 
             // Avatar/icon palette (unicode escapes to avoid encoding issues)
             const foodIcons = [
@@ -4593,6 +5126,9 @@ header, .top-stripe, .section-nav {
                     if (window.innerWidth <= 768) {
                         initializeMobile();
                     }
+
+                    await hydrateInitialRoute();
+                    updateCollectionViewToggleButtons();
                     
                     // Handle click outside dropdown
                     document.addEventListener('click', (e) => {
@@ -4802,6 +5338,7 @@ header, .top-stripe, .section-nav {
                 if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'inline-flex';
                 if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'inline-flex';
                 if (mobileCreateMusicListBtn) mobileCreateMusicListBtn.style.display = 'inline-flex';
+                document.body.classList.remove('mobile-viewing-other');
 
                 // Load profile - use cached if available
                 if (!userProfile) {
@@ -4852,6 +5389,7 @@ header, .top-stripe, .section-nav {
                 if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'none';
                 if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'none';
                 if (mobileCreateMusicListBtn) mobileCreateMusicListBtn.style.display = 'none';
+                document.body.classList.add('mobile-viewing-other');
 
                 const { data: profile, error } = await supabase
                     .from('user_profiles')
@@ -5202,19 +5740,21 @@ header, .top-stripe, .section-nav {
                         visitedCount || 0,
                         followersCount || 0,
                         listsCount || 0,
-                        visitedCount || 0 // Using visited as reviews count
+                        visitedCount || 0, // Using visited as reviews count
+                        followingCount || 0
                     );
                     
                     // Update badges
                     updateFollowBadges(followersCount || 0);
+                    await renderCommunityPreview(targetId, followersCount || 0, followingCount || 0);
                     
                 } catch (error) {
                     console.error('Error updating stats:', error);
-                    updateStatsUI(0, 0, 0, 0);
+                    updateStatsUI(0, 0, 0, 0, 0);
                 }
             }
 
-            function updateStatsUI(visitedCount, followersCount, listsCount, reviewsCount) {
+            function updateStatsUI(visitedCount, followersCount, listsCount, reviewsCount, followingCount = 0) {
                 const isMobile = window.innerWidth <= 768;
                 
                 if (isMobile) {
@@ -5229,6 +5769,12 @@ header, .top-stripe, .section-nav {
                     document.getElementById('reviewsCount').textContent = reviewsCount;
                     document.getElementById('visitedCountMeta').textContent = `${visitedCount} restaurants visited`;
                 }
+
+                const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
+                const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
+                const summaryText = `${followersCount} followers · ${followingCount} following`;
+                if (desktopMeta) desktopMeta.textContent = summaryText;
+                if (mobileMeta) mobileMeta.textContent = summaryText;
             }
 
             function updateFollowBadges(followersCount) {
@@ -5250,6 +5796,74 @@ header, .top-stripe, .section-nav {
                 if (followersCountBadge) {
                     followersCountBadge.textContent = followersCount;
                     followersCountBadge.style.display = followersCount > 0 ? 'inline-block' : 'none';
+                }
+            }
+
+            async function renderCommunityPreview(targetId, followersCount, followingCount) {
+                const desktopAvatars = document.getElementById('desktopFriendsPreviewAvatars');
+                const mobileAvatars = document.getElementById('mobileFriendsPreviewAvatars');
+                if (!desktopAvatars && !mobileAvatars) return;
+
+                try {
+                    const [followersRes, followingRes] = await Promise.all([
+                        supabase
+                            .from('follows')
+                            .select('follower_id, created_at')
+                            .eq('followed_id', targetId)
+                            .order('created_at', { ascending: false })
+                            .limit(4),
+                        supabase
+                            .from('follows')
+                            .select('followed_id, created_at')
+                            .eq('follower_id', targetId)
+                            .order('created_at', { ascending: false })
+                            .limit(4)
+                    ]);
+
+                    const candidateIds = [];
+                    (followersRes.data || []).forEach((row) => {
+                        if (row?.follower_id) candidateIds.push(row.follower_id);
+                    });
+                    (followingRes.data || []).forEach((row) => {
+                        if (row?.followed_id) candidateIds.push(row.followed_id);
+                    });
+                    const uniqueIds = [...new Set(candidateIds)].filter(Boolean).slice(0, 6);
+
+                    if (!uniqueIds.length) {
+                        const emptyAvatar = `<span class="social-preview-avatar">${iconGlyph('user')}</span>`;
+                        if (desktopAvatars) desktopAvatars.innerHTML = emptyAvatar;
+                        if (mobileAvatars) mobileAvatars.innerHTML = emptyAvatar;
+                        return;
+                    }
+
+                    const { data: users } = await supabase
+                        .from('user_profiles')
+                        .select('id, username, full_name, avatar_icon')
+                        .in('id', uniqueIds);
+
+                    const userMap = new Map();
+                    (users || []).forEach((user) => userMap.set(user.id, user));
+
+                    const avatarsHtml = uniqueIds.map((id) => {
+                        const user = userMap.get(id);
+                        const label = escapeHtml(user?.full_name || user?.username || 'User');
+                        const avatar = escapeHtml(user?.avatar_icon || iconGlyph('user'));
+                        return `<button class="social-preview-avatar" title="${label}" onclick="ProfileManager.viewUserProfile('${id}')">${avatar}</button>`;
+                    }).join('');
+
+                    if (desktopAvatars) desktopAvatars.innerHTML = avatarsHtml;
+                    if (mobileAvatars) mobileAvatars.innerHTML = avatarsHtml;
+                } catch (error) {
+                    console.error('Error rendering community preview:', error);
+                    const fallback = `<span class="social-preview-avatar">${iconGlyph('user')}</span>`;
+                    if (desktopAvatars) desktopAvatars.innerHTML = fallback;
+                    if (mobileAvatars) mobileAvatars.innerHTML = fallback;
+                } finally {
+                    const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
+                    const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
+                    const summaryText = `${followersCount} followers · ${followingCount} following`;
+                    if (desktopMeta) desktopMeta.textContent = summaryText;
+                    if (mobileMeta) mobileMeta.textContent = summaryText;
                 }
             }
 
@@ -6650,6 +7264,8 @@ header, .top-stripe, .section-nav {
                                 followingCountBadge.style.display = (followingCount || 0) > 0 ? 'inline-block' : 'none';
                             }
 
+                            await renderCommunityPreview(targetId, followersCount || 0, followingCount || 0);
+
                         } catch (error) {
                             console.error('Error loading follow stats:', error);
                         }
@@ -7093,6 +7709,192 @@ header, .top-stripe, .section-nav {
 
             function viewUserProfile(userId) {
                 window.location.href = `profile.html?id=${userId}`;
+            }
+
+            function loadCollectionViewModes() {
+                try {
+                    const raw = localStorage.getItem(COLLECTION_VIEW_STORAGE_KEY);
+                    const parsed = raw ? JSON.parse(raw) : {};
+                    const base = { restaurant: 'grid', movie: 'grid', tv: 'grid', game: 'grid', book: 'grid', music: 'grid' };
+                    Object.keys(base).forEach((key) => {
+                        const mode = parsed?.[key];
+                        if (mode === 'grid' || mode === 'list') base[key] = mode;
+                    });
+                    return base;
+                } catch (_error) {
+                    return { restaurant: 'grid', movie: 'grid', tv: 'grid', game: 'grid', book: 'grid', music: 'grid' };
+                }
+            }
+
+            function persistCollectionViewModes() {
+                try {
+                    localStorage.setItem(COLLECTION_VIEW_STORAGE_KEY, JSON.stringify(collectionViewModes));
+                } catch (_error) {}
+            }
+
+            function normalizeCollectionViewMode(mode) {
+                return mode === 'list' ? 'list' : 'grid';
+            }
+
+            function getCollectionViewMode(mediaType) {
+                const key = String(mediaType || '').toLowerCase();
+                return normalizeCollectionViewMode(collectionViewModes[key]);
+            }
+
+            function getTabForCollectionType(contentType) {
+                return COLLECTION_TO_TAB[String(contentType || '').toLowerCase()] || 'restaurants';
+            }
+
+            function getCollectionItemLabel(contentType, count) {
+                const type = String(contentType || '').toLowerCase();
+                const singular = (
+                    type === 'restaurant' ? 'restaurant' :
+                    type === 'movie' ? 'movie' :
+                    type === 'tv' ? 'TV show' :
+                    type === 'game' ? 'game' :
+                    type === 'book' ? 'book' :
+                    'track'
+                );
+                return `${count} ${singular}${count === 1 ? '' : 's'}`;
+            }
+
+            function buildProfileUrl({ tab = null, collection = null, listId = null, listType = null, view = null } = {}) {
+                const currentParams = new URLSearchParams(window.location.search);
+                const nextParams = new URLSearchParams();
+                const profileId = currentParams.get('id');
+                if (profileId) nextParams.set('id', profileId);
+                if (tab) nextParams.set('tab', tab);
+                if (collection && listId) {
+                    nextParams.set('collection', collection);
+                    nextParams.set('listId', String(listId));
+                    if (listType) nextParams.set('listType', listType);
+                    if (view) nextParams.set('view', normalizeCollectionViewMode(view));
+                }
+                const query = nextParams.toString();
+                return `${window.location.pathname}${query ? `?${query}` : ''}`;
+            }
+
+            function isCollectionRouteActive() {
+                const params = new URLSearchParams(window.location.search);
+                return params.has('collection') && params.has('listId');
+            }
+
+            function leaveCollectionRoute(tabName) {
+                if (!isCollectionRouteActive()) return false;
+                window.location.href = buildProfileUrl({ tab: normalizeProfileTab(tabName) });
+                return true;
+            }
+
+            function openCollectionPage(listId, contentType, listType = null) {
+                const normalizedType = String(contentType || '').toLowerCase();
+                if (!VALID_COLLECTION_TYPES.has(normalizedType)) return;
+                const tabName = getTabForCollectionType(normalizedType);
+                const resolvedListType = listType || (normalizedType === 'restaurant' ? 'custom' : 'default');
+                const view = getCollectionViewMode(normalizedType);
+                const url = buildProfileUrl({
+                    tab: tabName,
+                    collection: normalizedType,
+                    listId: String(listId),
+                    listType: resolvedListType,
+                    view
+                });
+                window.location.href = url;
+            }
+
+            async function hydrateInitialRoute() {
+                const params = new URLSearchParams(window.location.search);
+                const requestedTab = normalizeProfileTab(params.get('tab'));
+                const routeCollection = String(params.get('collection') || '').toLowerCase();
+                const routeListId = params.get('listId');
+                const routeListType = params.get('listType');
+                const routeView = normalizeCollectionViewMode(params.get('view'));
+
+                if (requestedTab !== currentTab) {
+                    showTab(requestedTab, { skipUrlSync: true });
+                } else {
+                    requestTabRender(requestedTab, ++tabSwitchToken);
+                }
+
+                if (!routeCollection || !routeListId || !VALID_COLLECTION_TYPES.has(routeCollection)) {
+                    return;
+                }
+
+                collectionViewModes[routeCollection] = routeView;
+                persistCollectionViewModes();
+                updateCollectionViewToggleButtons(routeCollection);
+
+                const expectedTab = getTabForCollectionType(routeCollection);
+                if (expectedTab !== currentTab) {
+                    showTab(expectedTab, { skipUrlSync: true });
+                }
+
+                try {
+                    const fallbackListType = routeListType || (routeCollection === 'restaurant' ? 'custom' : 'default');
+                    await showCollectionDetail(routeListId, routeCollection, fallbackListType);
+                } catch (error) {
+                    console.error('Unable to open collection route:', error);
+                    showToast('Unable to open this collection', 'error');
+                }
+            }
+
+            function updateCollectionViewToggleButtons(mediaType = null) {
+                const targetType = mediaType ? String(mediaType).toLowerCase() : null;
+                const toggles = document.querySelectorAll('.collection-view-toggle[data-media]');
+                toggles.forEach((toggle) => {
+                    const type = String(toggle.getAttribute('data-media') || '').toLowerCase();
+                    if (targetType && type !== targetType) return;
+                    const mode = getCollectionViewMode(type);
+                    toggle.querySelectorAll('.collection-view-toggle-btn').forEach((btn) => {
+                        btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
+                    });
+                });
+            }
+
+            function applyCollectionViewToContainer(container, mediaType) {
+                if (!container) return;
+                const mode = getCollectionViewMode(mediaType);
+                container.classList.remove('collection-items-grid', 'collection-items-list');
+                container.classList.add(mode === 'list' ? 'collection-items-list' : 'collection-items-grid');
+            }
+
+            async function rerenderActiveCollectionDetail(mediaType) {
+                if (!currentMediaDetail || currentMediaDetail.mediaType !== mediaType) return;
+                const isMobile = window.innerWidth <= 768;
+                const listId = currentMediaDetail.listId;
+                const listType = currentMediaDetail.listType;
+                if (mediaType === 'restaurant') {
+                    await showRestaurantDetail(listId, isMobile);
+                } else if (mediaType === 'movie') {
+                    await showMovieDetail(listId, listType, isMobile);
+                } else if (mediaType === 'tv') {
+                    await showTvDetail(listId, listType, isMobile);
+                } else if (mediaType === 'game') {
+                    await showGameDetail(listId, listType, isMobile);
+                } else if (mediaType === 'book') {
+                    await showBookDetail(listId, listType, isMobile);
+                } else if (mediaType === 'music') {
+                    await showMusicDetail(listId, listType, isMobile);
+                }
+            }
+
+            async function setCollectionViewMode(mediaType, mode, _forceMobile = null) {
+                const normalizedType = String(mediaType || '').toLowerCase();
+                if (!VALID_COLLECTION_TYPES.has(normalizedType)) return;
+                collectionViewModes[normalizedType] = normalizeCollectionViewMode(mode);
+                persistCollectionViewModes();
+                updateCollectionViewToggleButtons(normalizedType);
+
+                if (isCollectionRouteActive()) {
+                    const currentParams = new URLSearchParams(window.location.search);
+                    if (String(currentParams.get('collection') || '').toLowerCase() === normalizedType) {
+                        currentParams.set('view', collectionViewModes[normalizedType]);
+                        history.replaceState({}, '', `${window.location.pathname}?${currentParams.toString()}`);
+                    }
+                }
+
+                if (currentMediaDetail && currentMediaDetail.mediaType === normalizedType) {
+                    await rerenderActiveCollectionDetail(normalizedType);
+                }
             }
 
             async function fetchMovieDetails(movieId) {
@@ -8428,6 +9230,52 @@ header, .top-stripe, .section-nav {
                 return VALID_PROFILE_TABS.has(safeTab) ? safeTab : 'restaurants';
             }
 
+            function resetDetailPanels() {
+                const desktopPairs = [
+                    ['restaurants-tab', 'restaurant-detail-view'],
+                    ['movies-tab', 'movie-detail-view'],
+                    ['tv-tab', 'tv-detail-view'],
+                    ['games-tab', 'game-detail-view'],
+                    ['books-tab', 'book-detail-view'],
+                    ['music-tab', 'music-detail-view']
+                ];
+                desktopPairs.forEach(([mainId, detailId]) => {
+                    const main = document.getElementById(mainId);
+                    const detail = document.getElementById(detailId);
+                    if (main) main.style.display = 'block';
+                    if (detail) {
+                        detail.style.display = 'none';
+                        detail.classList.remove('active');
+                    }
+                });
+
+                const mobileConfigs = [
+                    { main: 'mobileRestaurantsSection', detail: 'mobileRestaurantDetailSection', grid: 'mobileRestaurantsGrid' },
+                    { main: 'mobileMoviesSection', detail: 'mobileMovieDetailSection', grid: 'mobileMoviesGrid' },
+                    { main: 'mobileTvSection', detail: 'mobileTvDetailSection', grid: 'mobileTvGrid' },
+                    { main: 'mobileGamesSection', detail: 'mobileGameDetailSection', grid: 'mobileGamesGrid' },
+                    { main: 'mobileBooksSection', detail: 'mobileBookDetailSection', grid: 'mobileBooksGrid' },
+                    { main: 'mobileMusicSection', detail: 'mobileMusicDetailSection', grid: 'mobileMusicGrid' }
+                ];
+                mobileConfigs.forEach((cfg) => {
+                    const mainSection = document.getElementById(cfg.main);
+                    const detailSection = document.getElementById(cfg.detail);
+                    const grid = document.getElementById(cfg.grid);
+                    if (detailSection) {
+                        detailSection.style.display = 'none';
+                        detailSection.classList.remove('active');
+                    }
+                    if (mainSection) {
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        mainSection.style.display = 'block';
+                    }
+                    if (grid) grid.style.display = '';
+                });
+            }
+
             function requestTabRender(tabName, requestToken) {
                 const handlers = {
                     restaurants: () => renderRestaurants(),
@@ -8448,7 +9296,7 @@ header, .top-stripe, .section-nav {
                     });
             }
 
-            function showTab(tabName) {
+            function showTab(tabName, options = {}) {
                 const safeTab = normalizeProfileTab(tabName);
                 const requestToken = ++tabSwitchToken;
                 const isMobile = window.innerWidth <= 768;
@@ -8456,6 +9304,14 @@ header, .top-stripe, .section-nav {
                     ? !!document.querySelector(`.mobile-tab[data-tab="${safeTab}"]`)?.classList.contains('active')
                     : !!document.querySelector(`.nav-tab[data-tab="${safeTab}"]`)?.classList.contains('active');
                 if (safeTab === currentTab && alreadyActive) return;
+
+                resetDetailPanels();
+                currentMediaDetail = null;
+
+                if (!options.skipUrlSync) {
+                    const nextUrl = buildProfileUrl({ tab: safeTab });
+                    history.replaceState({}, '', nextUrl);
+                }
                 
                 if (isMobile) {
                     document.querySelectorAll('.mobile-section').forEach(section => {
@@ -9165,12 +10021,20 @@ header, .top-stripe, .section-nav {
                 const tierBadgeHtml = (isCustom && tierMeta.isTier)
                     ? `<div class="tier-list-badge"><i class="fas fa-layer-group"></i> Tier List</div>`
                     : '';
+                const resolvedListType = contentType === 'restaurant'
+                    ? (list.is_default ? 'default' : 'custom')
+                    : (list.type || 'default');
+                const routeListId = String(list.id || '');
+                const routeListType = String(resolvedListType || '');
+                const safeListId = routeListId.replace(/'/g, "\\'");
+                const safeListType = routeListType.replace(/'/g, "\\'");
+                const countLabel = getCollectionItemLabel(contentType, count);
 
-                const previewItems = await getPreviewItems(itemIds.slice(0, 4), contentType);
+                const previewItems = await getPreviewItems(itemIds.slice(0, 6), contentType);
                 const previewOrientationClass = getPreviewOrientationClass(contentType);
 
                 let previewHtml = '';
-                for (let i = 0; i < 4; i++) {
+                for (let i = 0; i < 6; i++) {
                     if (previewItems[i]) {
                         previewHtml += `
                             <div class="collection-preview-item ${previewOrientationClass}">
@@ -9209,7 +10073,7 @@ header, .top-stripe, .section-nav {
                             <div class="collection-card-icon">${iconGlyph(list.icon, contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : 'music')))))}</div>
                             <div class="collection-card-info">
                                 <div class="collection-card-title">${list.title}</div>
-                                <div class="collection-card-count">${count} ${contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'TV show' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : 'track'))))}${count !== 1 ? 's' : ''}</div>
+                                <div class="collection-card-count">${countLabel}</div>
                                 ${tierBadgeHtml}
                             </div>
                         </div>
@@ -9217,9 +10081,6 @@ header, .top-stripe, .section-nav {
                     <div class="collection-card-preview">
                         ${previewHtml}
                     </div>
-                    ${list.description ? `
-                        <div class="collection-card-description">${list.description}</div>
-                    ` : ''}
                     <div class="collection-card-footer">
                         <div class="collection-card-meta">
                             <div class="collection-card-meta-item">
@@ -9227,13 +10088,13 @@ header, .top-stripe, .section-nav {
                                 ${list.created_at ? new Date(list.created_at).toLocaleDateString() : ''}
                             </div>
                         </div>
-                        <button class="collection-view-btn" onclick="event.stopPropagation(); ProfileManager.showCollectionDetail('${list.id}', '${contentType}', ${list.type ? `'${list.type}'` : 'null'})">
-                            <i class="fas fa-eye"></i> View
+                        <button class="collection-view-btn" onclick="event.stopPropagation(); ProfileManager.openCollectionPage('${safeListId}', '${contentType}', '${safeListType}')">
+                            View all ->
                         </button>
                     </div>
                 `;
 
-                card.onclick = () => ProfileManager.showCollectionDetail(list.id, contentType, list.type || null);
+                card.onclick = () => openCollectionPage(routeListId, contentType, routeListType);
 
                 return card;
             }
@@ -9301,6 +10162,9 @@ header, .top-stripe, .section-nav {
 
             async function showRestaurantDetail(listId, isMobile) {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!restaurants.length) {
+                    await loadRestaurants().catch(() => {});
+                }
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileRestaurantsSection');
                     const detailSection = document.getElementById('mobileRestaurantDetailSection');
@@ -9374,11 +10238,13 @@ header, .top-stripe, .section-nav {
 
                 currentActiveList = { ...list, id: listId, restaurantIds, listType };
                 currentMediaDetail = { mediaType: 'restaurant', listId, listType, isMobile };
+                updateCollectionViewToggleButtons('restaurant');
             }
 
             async function renderRestaurantItems(restaurantIds, listId, isMobile, list = null, listType = 'custom', ownerUserId = null) {
                 const container = isMobile ? document.getElementById('mobileRestaurantItems') : document.getElementById('restaurantItemsContainer');
                 if (!container) return;
+                applyCollectionViewToContainer(container, 'restaurant');
 
                 if (!restaurantIds || restaurantIds.length === 0) {
                     container.innerHTML = `
@@ -9564,12 +10430,14 @@ header, .top-stripe, .section-nav {
                 }
 
                 currentMediaDetail = { mediaType: 'movie', listId, listType, isMobile };
+                updateCollectionViewToggleButtons('movie');
                 await renderMovieItems(movieIds, listId, listType, isMobile, list, userId);
             }
 
             async function renderMovieItems(movieIds, listId, listType, isMobile, list = null, ownerUserId = null) {
                 const container = isMobile ? document.getElementById('mobileMovieItems') : document.getElementById('movieItemsContainer');
                 if (!container) return;
+                applyCollectionViewToContainer(container, 'movie');
 
                 if (!movieIds || movieIds.length === 0) {
                     container.innerHTML = `
@@ -9749,12 +10617,14 @@ header, .top-stripe, .section-nav {
                 }
 
                 currentMediaDetail = { mediaType: 'tv', listId, listType, isMobile };
+                updateCollectionViewToggleButtons('tv');
                 await renderTvItems(tvIds, listId, listType, isMobile, list, userId);
             }
 
             async function renderTvItems(tvIds, listId, listType, isMobile, list = null, ownerUserId = null) {
                 const container = isMobile ? document.getElementById('mobileTvItems') : document.getElementById('tvItemsContainer');
                 if (!container) return;
+                applyCollectionViewToContainer(container, 'tv');
 
                 if (!tvIds || tvIds.length === 0) {
                     container.innerHTML = `
@@ -9940,12 +10810,14 @@ header, .top-stripe, .section-nav {
                 }
 
                 currentMediaDetail = { mediaType: 'game', listId, listType, isMobile };
+                updateCollectionViewToggleButtons('game');
                 await renderGameItems(gameIds, listId, listType, isMobile, list, userId);
             }
 
             async function renderGameItems(gameIds, listId, listType, isMobile, list = null, ownerUserId = null) {
                 const container = isMobile ? document.getElementById('mobileGameItems') : document.getElementById('gameItemsContainer');
                 if (!container) return;
+                applyCollectionViewToContainer(container, 'game');
 
                 if (!gameIds || gameIds.length === 0) {
                     container.innerHTML = `
@@ -10124,12 +10996,14 @@ header, .top-stripe, .section-nav {
                 }
 
                 currentMediaDetail = { mediaType: 'book', listId, listType, isMobile };
+                updateCollectionViewToggleButtons('book');
                 await renderBookItems(bookIds, listId, listType, isMobile, list, userId);
             }
 
             async function renderBookItems(bookIds, listId, listType, isMobile, list = null, ownerUserId = null) {
                 const container = isMobile ? document.getElementById('mobileBookItems') : document.getElementById('bookItemsContainer');
                 if (!container) return;
+                applyCollectionViewToContainer(container, 'book');
 
                 if (!bookIds || bookIds.length === 0) {
                     container.innerHTML = `
@@ -10340,12 +11214,14 @@ header, .top-stripe, .section-nav {
                 }
 
                 currentMediaDetail = { mediaType: 'music', listId, listType, isMobile };
+                updateCollectionViewToggleButtons('music');
                 await renderMusicItems(trackIds, listId, listType, isMobile, list, userId);
             }
 
             async function renderMusicItems(trackIds, listId, listType, isMobile, list = null, ownerUserId = null) {
                 const container = isMobile ? document.getElementById('mobileMusicItems') : document.getElementById('musicItemsContainer');
                 if (!container) return;
+                applyCollectionViewToContainer(container, 'music');
 
                 if (!trackIds || trackIds.length === 0) {
                     container.innerHTML = `
@@ -10434,6 +11310,7 @@ header, .top-stripe, .section-nav {
             }
 
             function hideBookDetail() {
+                if (leaveCollectionRoute('books')) return;
                 currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
@@ -10538,6 +11415,7 @@ header, .top-stripe, .section-nav {
             }
 
             function hideRestaurantDetail() {
+                if (leaveCollectionRoute('restaurants')) return;
                 currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
@@ -10560,6 +11438,7 @@ header, .top-stripe, .section-nav {
             }
 
             function hideMovieDetail() {
+                if (leaveCollectionRoute('movies')) return;
                 currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
@@ -10588,6 +11467,7 @@ header, .top-stripe, .section-nav {
             }
 
             function hideMusicDetail() {
+                if (leaveCollectionRoute('music')) return;
                 currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
@@ -10616,6 +11496,7 @@ header, .top-stripe, .section-nav {
             }
 
             function hideTvDetail() {
+                if (leaveCollectionRoute('tv')) return;
                 currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
@@ -10644,6 +11525,7 @@ header, .top-stripe, .section-nav {
             }
 
             function hideGameDetail() {
+                if (leaveCollectionRoute('games')) return;
                 currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
@@ -11506,6 +12388,8 @@ header, .top-stripe, .section-nav {
                 showCreateListModal,
                 showAvatarModal,
                 showCollectionDetail,
+                openCollectionPage,
+                setCollectionViewMode,
                 hideRestaurantDetail,
                 hideMobileRestaurantDetail: hideRestaurantDetail,
                 hideMovieDetail,
