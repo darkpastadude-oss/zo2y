@@ -1553,17 +1553,21 @@
       .rail.games-rail .card {
         height: 314px;
         min-height: 314px;
+        border: 0;
+        box-shadow: none;
       }
 
       .rail.games-rail .card-media.game-poster {
         height: 190px;
         aspect-ratio: 2/3;
         padding: 0;
+        background: transparent;
       }
 
       .rail.games-rail .card-media.game-poster img {
-        object-fit: cover;
+        object-fit: contain;
         border-radius: 0;
+        background: transparent;
       }
 
       .rail.unified-rail .card-media.restaurant-composite {
