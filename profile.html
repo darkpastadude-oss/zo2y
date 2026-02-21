@@ -5133,6 +5133,9 @@ header, .top-stripe, .section-nav {
             let currentMediaDetail = null;
             let hasPreloadedTabs = false;
             let tabSwitchToken = 0;
+            let hasBoundRouteListeners = false;
+            const TAB_RENDER_CACHE_TTL_MS = 5 * 60 * 1000;
+            const tabRenderCache = new Map();
             const VALID_PROFILE_TABS = new Set(['restaurants', 'movies', 'tv', 'games', 'books', 'music', 'community']);
             const VALID_COLLECTION_TYPES = new Set(['restaurant', 'movie', 'tv', 'game', 'book', 'music']);
             const COLLECTION_TO_TAB = {
@@ -5179,9 +5182,6 @@ header, .top-stripe, .section-nav {
                     // 5. FIX: Optimized initialization to load faster
                     await loadProfile();
 
-                    // Ensure initial tab content is rendered without requiring a tab switch.
-                    renderRestaurants().catch(err => console.error('Render restaurants error:', err));
-                    
                     // Load restaurants in background
                     loadRestaurants().catch(err => console.error('Restaurant load error:', err));
                     
@@ -5196,13 +5196,14 @@ header, .top-stripe, .section-nav {
                     
                     // 2. FIX: Update setupEventListeners to prevent multiple bindings
                     setupEventListeners();
-                    preloadCollectionTabs();
+                    bindRouteListeners();
                     
                     if (window.innerWidth <= 768) {
                         initializeMobile();
                     }
 
                     await hydrateInitialRoute();
+                    preloadCollectionTabs();
                     updateCollectionViewToggleButtons();
                     
                     // Handle click outside dropdown
@@ -5249,8 +5250,11 @@ header, .top-stripe, .section-nav {
 
             function preloadCollectionTabs() {
                 if (hasPreloadedTabs || !currentUser) return;
+                if (isCollectionRouteActive()) return;
                 hasPreloadedTabs = true;
+                const deferMs = window.innerWidth <= 768 ? 2200 : 1200;
                 setTimeout(() => {
+                    if (document.hidden) return;
                     Promise.allSettled([
                         renderMovies(),
                         renderTvShows(),
@@ -5258,7 +5262,7 @@ header, .top-stripe, .section-nav {
                         renderBooks(),
                         renderMusic()
                     ]).catch(() => {});
-                }, 80);
+                }, deferMs);
             }
 
             // ===== TOAST SYSTEM =====
@@ -5363,6 +5367,7 @@ header, .top-stripe, .section-nav {
 
             // ===== PROFILE MANAGEMENT =====
             async function loadProfile() {
+                tabRenderCache.clear();
                 targetUserId = getUserIdFromUrl();
                 isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
 
@@ -7841,13 +7846,45 @@ header, .top-stripe, .section-nav {
                 return params.has('collection') && params.has('listId');
             }
 
-            function leaveCollectionRoute(tabName) {
-                if (!isCollectionRouteActive()) return false;
-                window.location.href = buildProfileUrl({ tab: normalizeProfileTab(tabName) });
-                return true;
+            function getActiveProfileOwnerId() {
+                return String((isViewingOwnProfile ? currentUser?.id : targetUserId) || '').trim();
             }
 
-            function openCollectionPage(listId, contentType, listType = null) {
+            function getTabRenderCacheKey(tabName) {
+                const safeTab = normalizeProfileTab(tabName);
+                const ownerId = getActiveProfileOwnerId() || 'unknown';
+                const viewport = window.innerWidth <= 768 ? 'mobile' : 'desktop';
+                return `${ownerId}:${viewport}:${safeTab}`;
+            }
+
+            function hasFreshTabRender(tabName) {
+                const stamp = Number(tabRenderCache.get(getTabRenderCacheKey(tabName)) || 0);
+                if (!stamp) return false;
+                return (Date.now() - stamp) < TAB_RENDER_CACHE_TTL_MS;
+            }
+
+            function markTabRendered(tabName) {
+                tabRenderCache.set(getTabRenderCacheKey(tabName), Date.now());
+            }
+
+            function bindRouteListeners() {
+                if (hasBoundRouteListeners) return;
+                hasBoundRouteListeners = true;
+                window.addEventListener('popstate', () => {
+                    hydrateInitialRoute().catch((error) => {
+                        console.error('Route hydration failed:', error);
+                    });
+                });
+            }
+
+            function leaveCollectionRoute(tabName) {
+                if (!isCollectionRouteActive()) return false;
+                const nextUrl = buildProfileUrl({ tab: normalizeProfileTab(tabName) });
+                history.replaceState({}, '', nextUrl);
+                return false;
+            }
+
+            async function openCollectionPage(listId, contentType, listType = null) {
                 const normalizedType = String(contentType || '').toLowerCase();
                 if (!VALID_COLLECTION_TYPES.has(normalizedType)) return;
                 const tabName = getTabForCollectionType(normalizedType);
@@ -7860,7 +7897,18 @@ header, .top-stripe, .section-nav {
                     listType: resolvedListType,
                     view
                 });
-                window.location.href = url;
+                if (window.location.pathname + window.location.search !== url) {
+                    history.pushState({}, '', url);
+                }
+                if (currentTab !== tabName) {
+                    showTab(tabName, { skipUrlSync: true, skipRender: true });
+                }
+                try {
+                    await showCollectionDetail(String(listId), normalizedType, resolvedListType);
+                } catch (error) {
+                    console.error('Unable to open collection:', error);
+                    showToast('Unable to open this collection', 'error');
+                }
             }
 
             async function hydrateInitialRoute() {
@@ -7870,14 +7918,16 @@ header, .top-stripe, .section-nav {
                 const routeListId = params.get('listId');
                 const routeListType = params.get('listType');
                 const routeView = normalizeCollectionViewMode(params.get('view'));
+                const hasCollectionRoute = !!(routeCollection && routeListId && VALID_COLLECTION_TYPES.has(routeCollection));
+                const initialTab = hasCollectionRoute ? getTabForCollectionType(routeCollection) : requestedTab;
 
-                if (requestedTab !== currentTab) {
-                    showTab(requestedTab, { skipUrlSync: true });
-                } else {
-                    requestTabRender(requestedTab, ++tabSwitchToken);
+                if (initialTab !== currentTab) {
+                    showTab(initialTab, { skipUrlSync: true, skipRender: hasCollectionRoute });
+                } else if (!hasCollectionRoute) {
+                    requestTabRender(initialTab, ++tabSwitchToken);
                 }
 
-                if (!routeCollection || !routeListId || !VALID_COLLECTION_TYPES.has(routeCollection)) {
+                if (!hasCollectionRoute) {
                     return;
                 }
 
@@ -7887,7 +7937,7 @@ header, .top-stripe, .section-nav {
 
                 const expectedTab = getTabForCollectionType(routeCollection);
                 if (expectedTab !== currentTab) {
-                    showTab(expectedTab, { skipUrlSync: true });
+                    showTab(expectedTab, { skipUrlSync: true, skipRender: true });
                 }
 
                 try {
@@ -9467,6 +9517,10 @@ header, .top-stripe, .section-nav {
             }
 
             function requestTabRender(tabName, requestToken) {
+                const safeTab = normalizeProfileTab(tabName);
+                if (safeTab !== 'community' && hasFreshTabRender(safeTab)) {
+                    return;
+                }
                 const handlers = {
                     restaurants: () => renderRestaurants(),
                     movies: () => renderMovies(),
@@ -9476,12 +9530,12 @@ header, .top-stripe, .section-nav {
                     music: () => renderMusic(),
                     community: () => showCommunitySection('followers')
                 };
-                const handler = handlers[tabName] || handlers.restaurants;
+                const handler = handlers[safeTab] || handlers.restaurants;
                 Promise.resolve()
                     .then(() => handler())
                     .catch((error) => {
                         if (requestToken !== tabSwitchToken) return;
-                        console.error(`Tab render failed (${tabName}):`, error);
+                        console.error(`Tab render failed (${safeTab}):`, error);
                         showToast('Could not load this tab right now', 'error');
                     });
             }
@@ -9533,7 +9587,9 @@ header, .top-stripe, .section-nav {
                     if (swipeHint) swipeHint.classList.add('hidden');
                     
                     currentTab = safeTab;
-                    requestTabRender(safeTab, requestToken);
+                    if (!options.skipRender) {
+                        requestTabRender(safeTab, requestToken);
+                    }
                 } else {
                     document.querySelectorAll('.tab-content').forEach(tab => {
                         tab.classList.remove('active');
@@ -9559,7 +9615,9 @@ header, .top-stripe, .section-nav {
                     }
                     
                     currentTab = safeTab;
-                    requestTabRender(safeTab, requestToken);
+                    if (!options.skipRender) {
+                        requestTabRender(safeTab, requestToken);
+                    }
                 }
             }
 
@@ -9605,6 +9663,7 @@ header, .top-stripe, .section-nav {
                                 ` : ''}
                             </div>
                         `;
+                        markTabRendered('restaurants');
                         return;
                     }
 
@@ -9659,6 +9718,7 @@ header, .top-stripe, .section-nav {
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
                     grid.appendChild(fragment);
+                    markTabRendered('restaurants');
                 } catch (error) {
                     console.error('Error loading restaurants:', error);
                     grid.innerHTML = `
@@ -9734,6 +9794,7 @@ header, .top-stripe, .section-nav {
                                 </button>
                             </div>
                         `;
+                        markTabRendered('movies');
                         return;
                     }
 
@@ -9742,6 +9803,7 @@ header, .top-stripe, .section-nav {
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
                     grid.appendChild(fragment);
+                    markTabRendered('movies');
                 } catch (error) {
                     console.error('Error loading movies:', error);
                     grid.innerHTML = `
@@ -9817,6 +9879,7 @@ header, .top-stripe, .section-nav {
                                 </button>
                             </div>
                         `;
+                        markTabRendered('tv');
                         return;
                     }
 
@@ -9825,6 +9888,7 @@ header, .top-stripe, .section-nav {
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
                     grid.appendChild(fragment);
+                    markTabRendered('tv');
                 } catch (error) {
                     console.error('Error loading TV shows:', error);
                     grid.innerHTML = `
@@ -9910,6 +9974,7 @@ header, .top-stripe, .section-nav {
                                 </button>
                             </div>
                         `;
+                        markTabRendered('games');
                         return;
                     }
 
@@ -9918,6 +9983,7 @@ header, .top-stripe, .section-nav {
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
                     grid.appendChild(fragment);
+                    markTabRendered('games');
                 } catch (error) {
                     console.error('Error loading games:', error);
                     grid.innerHTML = `
@@ -10073,6 +10139,7 @@ header, .top-stripe, .section-nav {
                                 <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save books to see them here.</p>
                             </div>
                         `;
+                        markTabRendered('books');
                         return;
                     }
 
@@ -10081,6 +10148,7 @@ header, .top-stripe, .section-nav {
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
                     grid.appendChild(fragment);
+                    markTabRendered('books');
                 } catch (error) {
                     console.error('Error loading books:', error);
                     grid.innerHTML = `
@@ -10176,6 +10244,7 @@ header, .top-stripe, .section-nav {
                                 <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save tracks to see them here.</p>
                             </div>
                         `;
+                        markTabRendered('music');
                         return;
                     }
 
@@ -10184,6 +10253,7 @@ header, .top-stripe, .section-nav {
                     const fragment = document.createDocumentFragment();
                     cards.forEach((card) => fragment.appendChild(card));
                     grid.appendChild(fragment);
+                    markTabRendered('music');
                 } catch (error) {
                     console.error('Error loading music:', error);
                     grid.innerHTML = `
