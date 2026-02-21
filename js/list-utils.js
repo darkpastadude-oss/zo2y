@@ -197,6 +197,16 @@
     return false;
   }
 
+  function isFunctionMissingError(error) {
+    const code = String(error?.code || '').trim();
+    const message = String(error?.message || '').toLowerCase();
+    const details = String(error?.details || '').toLowerCase();
+    if (code === '42883' || code === 'PGRST202') return true;
+    if (message.includes('function') && message.includes('does not exist')) return true;
+    if (details.includes('function') && details.includes('does not exist')) return true;
+    return false;
+  }
+
   async function loadCollaboratorRows(client, userId, type) {
     const safeUserId = String(userId || '').trim();
     const safeType = String(type || '').trim().toLowerCase();
@@ -215,6 +225,30 @@
     }
     collaboratorTableSupported = true;
     return data || [];
+  }
+
+  async function loadAccessibleCustomListsViaRpc(client, userId, type) {
+    const safeUserId = String(userId || '').trim();
+    const safeType = String(type || '').trim().toLowerCase();
+    if (!client || !safeUserId || !safeType || typeof client.rpc !== 'function') return null;
+
+    const { data, error } = await client.rpc('zo2y_get_accessible_custom_lists', {
+      p_media_type: safeType
+    });
+    if (error) {
+      if (!isFunctionMissingError(error)) {
+        console.warn('Could not load collaborative lists via RPC:', error);
+      }
+      return null;
+    }
+    if (!Array.isArray(data)) return [];
+    return data.map((row) => ({
+      ...row,
+      id: String(row?.id || '').trim(),
+      __isCollaborative: !!row?.is_collaborative,
+      __canEdit: !!row?.can_edit,
+      __listOwnerId: String(row?.list_owner_id || row?.user_id || '').trim()
+    })).filter((row) => !!row.id);
   }
 
   function toListMetaKey(type, listId) {
@@ -770,13 +804,36 @@
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return [];
     setTierSyncContext(client, userId);
+    const rpcLists = await loadAccessibleCustomListsViaRpc(client, userId, type);
+    if (Array.isArray(rpcLists)) {
+      const groups = new Map();
+      rpcLists.forEach((row) => {
+        const ownerId = String(row?.user_id || userId || '').trim() || userId;
+        if (!groups.has(ownerId)) groups.set(ownerId, []);
+        groups.get(ownerId).push(row);
+      });
+      const hydratedById = new Map();
+      for (const [ownerId, rows] of groups.entries()) {
+        const hydrated = await hydrateListMetaForLists(type, rows, { client, userId, ownerUserId: ownerId });
+        (hydrated || []).forEach((row) => {
+          const key = String(row?.id || '').trim();
+          if (!key) return;
+          hydratedById.set(key, row);
+        });
+      }
+      const enhancedRpc = rpcLists.map((row) => hydratedById.get(String(row.id || '').trim()) || row);
+      if (cfg.filterTitles && cfg.filterTitles.length) {
+        return enhancedRpc.filter(list => !cfg.filterTitles.includes(list.title));
+      }
+      return enhancedRpc;
+    }
+
     const { data, error } = await client
       .from(cfg.listTable)
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-    if (error) return [];
-    const ownLists = data || [];
+    const ownLists = error ? [] : (data || []);
     const ownById = new Set(ownLists.map((row) => String(row?.id || '').trim()).filter(Boolean));
 
     let sharedLists = [];
