@@ -466,7 +466,7 @@
         }
 
         .collection-item-card.tier-draggable {
-            cursor: grab;
+            cursor: default;
         }
 
         .collection-item-card.tier-draggable,
@@ -477,7 +477,7 @@
         }
 
         .collection-item-card.tier-draggable .collection-item-rank {
-            cursor: grab;
+            cursor: default;
         }
 
         .collection-item-card.tier-draggable .collection-item-body {
@@ -503,6 +503,11 @@
             touch-action: none;
         }
 
+        .tier-drag-handle:hover {
+            color: #ffd27a;
+            transform: translateY(-50%) scale(1.08);
+        }
+
         .tier-drag-handle i {
             pointer-events: none;
             font-size: 17px;
@@ -517,6 +522,41 @@
             transform: scale(1.01);
             box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
             z-index: 5;
+        }
+
+        .collection-item-card.tier-drop-target {
+            border-color: rgba(245, 158, 11, 0.85);
+            box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.45);
+        }
+
+        .collection-item-card.tier-drop-before::before,
+        .collection-item-card.tier-drop-after::after {
+            content: '';
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            height: 4px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 1), rgba(245, 158, 11, 0.2));
+            box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.45);
+            pointer-events: none;
+            opacity: 0;
+            transform: scaleX(0.45);
+            transform-origin: center;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+            z-index: 7;
+        }
+
+        .collection-item-card.tier-drop-before::before {
+            top: -3px;
+            opacity: 1;
+            transform: scaleX(1);
+        }
+
+        .collection-item-card.tier-drop-after::after {
+            bottom: -3px;
+            opacity: 1;
+            transform: scaleX(1);
         }
 
         body.tier-drag-active,
@@ -8226,10 +8266,8 @@ header, .top-stripe, .section-nav {
                 return new Set(map[type] || []);
             }
 
-            function getTierMetaForList(type, list, itemsCount = 0) {
-                const safeType = String(type || '').toLowerCase();
-                const safeList = list && typeof list === 'object' ? list : {};
-                const fallbackNormalizeListKind = (value, fallback = 'standard') => {
+            const TierListMeta = (function() {
+                function normalizeListKind(value, fallback = 'standard') {
                     const raw = String(value || '').trim().toLowerCase();
                     if (!raw) return fallback;
                     if (raw === 'tier' || raw === 'tierlist' || raw === 'tier_list') return 'tier';
@@ -8238,49 +8276,126 @@ header, .top-stripe, .section-nav {
                         return 'standard';
                     }
                     return fallback;
-                };
-                const fallbackNormalizeMaxRank = (value) => {
+                }
+
+                function normalizeMaxRank(value) {
                     const parsed = Number(value);
                     if (!Number.isFinite(parsed) || parsed <= 0) return null;
                     return Math.max(1, Math.floor(parsed));
-                };
+                }
 
-                if (window.ListUtils && typeof ListUtils.resolveListMeta === 'function') {
-                    const resolved = ListUtils.resolveListMeta(safeType, safeList, itemsCount);
-                    if (resolved && typeof resolved === 'object') {
-                        const resolvedKind = fallbackNormalizeListKind(resolved.listKind, 'standard');
-                        const resolvedMaxRank = fallbackNormalizeMaxRank(resolved.maxRank);
-                        return {
-                            listKind: resolvedKind,
-                            isTier: resolvedKind === 'tier',
-                            maxRank: resolvedMaxRank || (resolvedKind === 'tier' ? Math.max(1, Number(itemsCount) || 1) : null)
-                        };
+                function detect(type, list, itemsCount = 0) {
+                    const safeType = String(type || '').toLowerCase();
+                    const safeList = list && typeof list === 'object' ? list : {};
+
+                    if (window.ListUtils && typeof ListUtils.resolveListMeta === 'function') {
+                        const resolved = ListUtils.resolveListMeta(safeType, safeList, itemsCount);
+                        if (resolved && typeof resolved === 'object') {
+                            const resolvedKind = normalizeListKind(resolved.listKind, 'standard');
+                            const resolvedMaxRank = normalizeMaxRank(resolved.maxRank);
+                            return {
+                                listKind: resolvedKind,
+                                isTier: resolvedKind === 'tier',
+                                maxRank: resolvedMaxRank || (resolvedKind === 'tier' ? Math.max(1, Number(itemsCount) || 1) : null)
+                            };
+                        }
+                    }
+
+                    const safeListId = String(safeList.id || safeList.list_id || '').trim();
+                    const storedMeta = (window.ListUtils && typeof ListUtils.getListMeta === 'function' && safeListId)
+                        ? ListUtils.getListMeta(safeType, safeListId)
+                        : { listKind: 'standard', maxRank: null };
+                    const rowKind = normalizeListKind(
+                        safeList.__listKind || safeList.__zo2yListKind || safeList.list_kind,
+                        normalizeListKind(storedMeta?.listKind, 'standard')
+                    );
+                    const listKind = rowKind === 'tier' || normalizeListKind(storedMeta?.listKind, 'standard') === 'tier'
+                        ? 'tier'
+                        : 'standard';
+                    const rawMaxRank = safeList.__tierMaxRank || safeList.__zo2yTierMaxRank || safeList.tier_max_rank || safeList.max_rank || storedMeta?.maxRank;
+                    const maxRank = (window.ListUtils && typeof ListUtils.normalizeTierMaxRank === 'function')
+                        ? ListUtils.normalizeTierMaxRank(rawMaxRank)
+                        : normalizeMaxRank(rawMaxRank);
+
+                    return {
+                        listKind,
+                        isTier: listKind === 'tier',
+                        maxRank: maxRank || (listKind === 'tier' ? Math.max(1, Number(itemsCount) || 1) : null)
+                    };
+                }
+
+                return {
+                    detect
+                };
+            })();
+
+            const TierListOrdering = (function() {
+                const hydratedKeys = new Set();
+
+                function normalizeIds(itemIds = []) {
+                    const seen = new Set();
+                    return (Array.isArray(itemIds) ? itemIds : [])
+                        .map((itemId) => String(itemId || '').trim())
+                        .filter((itemId) => {
+                            if (!itemId || seen.has(itemId)) return false;
+                            seen.add(itemId);
+                            return true;
+                        });
+                }
+
+                function makeKey(type, listId, ownerUserId) {
+                    const safeOwner = String(ownerUserId || currentUser?.id || '').trim() || 'self';
+                    return `${safeOwner}:${String(type || '').toLowerCase()}:${String(listId || '').trim()}`;
+                }
+
+                async function hydrateOnce(type, listId, ownerUserId = null) {
+                    if (!window.ListUtils || typeof ListUtils.hydrateTierRanksForList !== 'function') return;
+                    const key = makeKey(type, listId, ownerUserId);
+                    if (hydratedKeys.has(key)) return;
+                    hydratedKeys.add(key);
+                    try {
+                        await ListUtils.hydrateTierRanksForList(type, listId, {
+                            client: supabase,
+                            userId: currentUser?.id,
+                            ownerUserId
+                        });
+                    } catch (error) {
+                        hydratedKeys.delete(key);
+                        throw error;
                     }
                 }
 
-                const safeListId = String(safeList.id || safeList.list_id || '').trim();
-                const storedMeta = (window.ListUtils && typeof ListUtils.getListMeta === 'function' && safeListId)
-                    ? ListUtils.getListMeta(safeType, safeListId)
-                    : { listKind: 'standard', maxRank: null };
-                const rowKind = fallbackNormalizeListKind(
-                    safeList.__listKind || safeList.__zo2yListKind || safeList.list_kind,
-                    fallbackNormalizeListKind(storedMeta?.listKind, 'standard')
-                );
-                const listKind = rowKind === 'tier' || fallbackNormalizeListKind(storedMeta?.listKind, 'standard') === 'tier'
-                    ? 'tier'
-                    : 'standard';
-                const rawMaxRank = safeList.__tierMaxRank || safeList.__zo2yTierMaxRank || safeList.tier_max_rank || safeList.max_rank || storedMeta?.maxRank;
-                const maxRank = (window.ListUtils && typeof ListUtils.normalizeTierMaxRank === 'function')
-                    ? ListUtils.normalizeTierMaxRank(rawMaxRank)
-                    : fallbackNormalizeMaxRank(rawMaxRank);
+                function markHydrated(type, listId, ownerUserId = null) {
+                    hydratedKeys.add(makeKey(type, listId, ownerUserId));
+                }
+
+                async function resolve(type, list, listId, itemIds = [], options = {}) {
+                    const safeType = String(type || '').toLowerCase();
+                    const safeListId = String(listId || '').trim();
+                    const safeListType = String(options.listType || '').toLowerCase();
+                    const ownerUserId = options.ownerUserId || null;
+                    const normalizedIds = normalizeIds(itemIds);
+                    const tierMeta = TierListMeta.detect(safeType, list, normalizedIds.length);
+                    if (!(tierMeta.isTier && safeListType === 'custom' && safeListId && window.ListUtils)) {
+                        return { tierMeta, orderedIds: normalizedIds };
+                    }
+                    await hydrateOnce(safeType, safeListId, ownerUserId);
+                    const orderedIds = (typeof ListUtils.sortIdsByTierRank === 'function')
+                        ? ListUtils.sortIdsByTierRank(safeType, safeListId, normalizedIds)
+                        : normalizedIds;
+                    return { tierMeta, orderedIds: normalizeIds(orderedIds) };
+                }
 
                 return {
-                    listKind,
-                    isTier: listKind === 'tier',
-                    maxRank: maxRank || (listKind === 'tier' ? Math.max(1, Number(itemsCount) || 1) : null)
+                    normalizeIds,
+                    resolve,
+                    markHydrated
                 };
-            }
+            })();
 
+            function getTierMetaForList(type, list, itemsCount = 0) {
+                return TierListMeta.detect(type, list, itemsCount);
+            }
             function getCollectionTitleWithKind(type, list, listType) {
                 const baseTitle = String(list?.title || '');
                 if (listType !== 'custom') return baseTitle;
@@ -8289,210 +8404,277 @@ header, .top-stripe, .section-nav {
                 return `${baseTitle} • Tier List`;
             }
 
-            function buildTierRankControlMarkup(rankPosition, totalCount, canReorder = false) {
-                const safeRank = Math.max(1, Number(rankPosition) || 1);
-                const rankToneClass = safeRank === 1
-                    ? 'rank-gold'
-                    : (safeRank === 2 ? 'rank-silver' : (safeRank === 3 ? 'rank-bronze' : 'rank-default'));
-
-                return `
-                    <div class="collection-item-rank" onclick="event.stopPropagation()">
-                        <span class="collection-item-rank-pill ${rankToneClass}">#${safeRank}</span>
-                    </div>
-                `;
-            }
-
-            async function persistTierOrder(mediaType, listId, orderedItemIds = []) {
-                if (!window.ListUtils || !isViewingOwnProfile) return;
-                const safeType = String(mediaType || '').toLowerCase();
-                const safeListId = String(listId || '').trim();
-                if (!safeType || !safeListId) return;
-
-                const normalizedIds = Array.from(new Set(
-                    (Array.isArray(orderedItemIds) ? orderedItemIds : [])
-                        .map((id) => String(id || '').trim())
-                        .filter(Boolean)
-                ));
-                for (let index = 0; index < normalizedIds.length; index += 1) {
-                    await ListUtils.setTierRank(safeType, safeListId, normalizedIds[index], index + 1, {
-                        client: supabase,
-                        userId: currentUser?.id
-                    });
+            const TierListUI = (function() {
+                function getRankToneClass(rankValue) {
+                    const rank = Math.max(1, Number(rankValue) || 1);
+                    if (rank === 1) return 'rank-gold';
+                    if (rank === 2) return 'rank-silver';
+                    if (rank === 3) return 'rank-bronze';
+                    return 'rank-default';
                 }
-            }
 
-            function wireTierDragAndDrop(container, mediaType, listId, listType = 'custom') {
-                if (!container || !window.ListUtils || !isViewingOwnProfile) return;
-                const safeType = String(mediaType || '').toLowerCase();
-                const safeListId = String(listId || '').trim();
-                if (!safeType || !safeListId) return;
-
-                if (typeof container.__tierPointerMoveHandler === 'function') {
-                    window.removeEventListener('pointermove', container.__tierPointerMoveHandler);
-                }
-                if (typeof container.__tierPointerUpHandler === 'function') {
-                    window.removeEventListener('pointerup', container.__tierPointerUpHandler);
-                }
-                if (typeof container.__tierPointerCancelHandler === 'function') {
-                    window.removeEventListener('pointercancel', container.__tierPointerCancelHandler);
-                }
-                if (typeof container.__tierTouchMoveHandler === 'function') {
-                    window.removeEventListener('touchmove', container.__tierTouchMoveHandler);
-                }
-                if (typeof container.__tierTouchEndHandler === 'function') {
-                    window.removeEventListener('touchend', container.__tierTouchEndHandler);
-                }
-                if (typeof container.__tierTouchCancelHandler === 'function') {
-                    window.removeEventListener('touchcancel', container.__tierTouchCancelHandler);
-                }
-                document.body.classList.remove('tier-drag-active');
-
-                const getCards = () => Array.from(container.querySelectorAll('.collection-item-card[data-tier-item-id]'));
-                const cards = getCards();
-                if (cards.length < 2) return;
-
-                let activeCard = null;
-                let activePointerId = null;
-                let activeTouchId = null;
-                let startOrderKey = '';
-                let isPersisting = false;
-                let orderDirty = false;
-                let previousTouchAction = '';
-                let dragMoved = false;
-                let dragStartX = 0;
-                let dragStartY = 0;
-                const DRAG_MOVE_THRESHOLD = 4;
-                const DRAG_CLICK_SUPPRESS_MS = 320;
-                const TOUCH_HOLD_DELAY_MS = 160;
-                const TOUCH_HOLD_CANCEL_DISTANCE = 10;
-                const supportsPointer = typeof window !== 'undefined' && ('PointerEvent' in window);
-                const pendingTouch = {
-                    card: null,
-                    touchId: null,
-                    startX: 0,
-                    startY: 0,
-                    timerId: null
-                };
-
-                const getContainerOrder = () => getCards()
-                    .map((card) => String(card.dataset.tierItemId || '').trim())
-                    .filter(Boolean);
-
-                const applyRankTone = (pill, rankValue) => {
+                function applyRankPillTone(pill, rankValue) {
                     if (!pill) return;
                     const rank = Math.max(1, Number(rankValue) || 1);
                     pill.textContent = `#${rank}`;
                     pill.classList.remove('rank-gold', 'rank-silver', 'rank-bronze', 'rank-default');
-                    if (rank === 1) {
-                        pill.classList.add('rank-gold');
-                    } else if (rank === 2) {
-                        pill.classList.add('rank-silver');
-                    } else if (rank === 3) {
-                        pill.classList.add('rank-bronze');
-                    } else {
-                        pill.classList.add('rank-default');
-                    }
-                };
+                    pill.classList.add(getRankToneClass(rank));
+                }
 
-                const refreshRankBadges = () => {
-                    getCards().forEach((card, index) => {
-                        const pill = card.querySelector('.collection-item-rank-pill');
-                        applyRankTone(pill, index + 1);
+                function refreshRankPills(container) {
+                    if (!container) return;
+                    const cards = Array.from(container.querySelectorAll('.collection-item-card[data-tier-item-id]'));
+                    cards.forEach((card, index) => {
+                        applyRankPillTone(card.querySelector('.collection-item-rank-pill'), index + 1);
                     });
+                }
+
+                function clearDropTargets(container) {
+                    if (!container) return;
+                    container.querySelectorAll('.collection-item-card.tier-drop-target, .collection-item-card.tier-drop-before, .collection-item-card.tier-drop-after').forEach((card) => {
+                        card.classList.remove('tier-drop-target', 'tier-drop-before', 'tier-drop-after');
+                    });
+                }
+
+                function markDropTarget(card, position = 'before') {
+                    if (!card) return;
+                    card.classList.add('tier-drop-target');
+                    card.classList.toggle('tier-drop-before', position === 'before');
+                    card.classList.toggle('tier-drop-after', position === 'after');
+                }
+
+                function buildRankMarkup(rankPosition, totalCount, canReorder = false) {
+                    const safeRank = Math.max(1, Number(rankPosition) || 1);
+                    const toneClass = getRankToneClass(safeRank);
+                    const handleMarkup = canReorder
+                        ? `<button type="button" class="tier-drag-handle" aria-label="Drag to reorder" title="Drag to reorder"><i class="fas fa-grip-lines"></i></button>`
+                        : '';
+                    return `
+                        <div class="collection-item-rank" onclick="event.stopPropagation()">
+                            <span class="collection-item-rank-pill ${toneClass}">#${safeRank}</span>
+                            ${handleMarkup}
+                        </div>
+                    `;
+                }
+
+                return {
+                    buildRankMarkup,
+                    refreshRankPills,
+                    clearDropTargets,
+                    markDropTarget
                 };
+            })();
+
+            const TierListPersistence = (function() {
+                const TIER_RANK_TABLE = 'list_tier_ranks';
+
+                async function saveOrder(mediaType, listId, orderedItemIds = []) {
+                    if (!isViewingOwnProfile) return;
+                    const safeType = String(mediaType || '').toLowerCase();
+                    const safeListId = String(listId || '').trim();
+                    if (!safeType || !safeListId) return;
+
+                    const normalizedIds = TierListOrdering.normalizeIds(orderedItemIds);
+                    if (window.ListUtils && typeof ListUtils.setTierRank === 'function') {
+                        normalizedIds.forEach((itemId, index) => {
+                            void ListUtils.setTierRank(safeType, safeListId, itemId, index + 1, { skipRemote: true });
+                        });
+                    }
+                    TierListOrdering.markHydrated(safeType, safeListId, currentUser?.id);
+
+                    const safeUserId = String(currentUser?.id || '').trim();
+                    if (!supabase || !safeUserId || !normalizedIds.length) return;
+
+                    const updatedAt = new Date().toISOString();
+                    const payload = normalizedIds.map((itemId, index) => ({
+                        user_id: safeUserId,
+                        media_type: safeType,
+                        list_id: safeListId,
+                        item_id: itemId,
+                        rank: index + 1,
+                        updated_at: updatedAt
+                    }));
+
+                    const { error } = await supabase
+                        .from(TIER_RANK_TABLE)
+                        .upsert(payload, { onConflict: 'user_id,media_type,list_id,item_id' });
+                    if (error) {
+                        console.warn('Tier rank batch update failed:', error);
+                    }
+                }
+
+                return {
+                    saveOrder
+                };
+            })();
+
+            function buildTierRankControlMarkup(rankPosition, totalCount, canReorder = false) {
+                return TierListUI.buildRankMarkup(rankPosition, totalCount, canReorder);
+            }
+
+            async function resolveTierOrderedIds(mediaType, list, listId, itemIds = [], options = {}) {
+                return TierListOrdering.resolve(mediaType, list, listId, itemIds, options);
+            }
+
+            async function persistTierOrder(mediaType, listId, orderedItemIds = []) {
+                await TierListPersistence.saveOrder(mediaType, listId, orderedItemIds);
+            }
+            function wireTierDragAndDrop(container, mediaType, listId, listType = 'custom') {
+                if (!container) return;
+
+                if (typeof container.__tierCleanup === 'function') {
+                    container.__tierCleanup();
+                }
+                container.__tierCleanup = null;
+                TierListUI.clearDropTargets(container);
+
+                const safeType = String(mediaType || '').toLowerCase();
+                const safeListId = String(listId || '').trim();
+                const canReorder = isViewingOwnProfile
+                    && String(listType || '').toLowerCase() === 'custom'
+                    && !!safeType
+                    && !!safeListId;
+
+                if (!canReorder) return;
+
+                const getCards = () => Array.from(container.querySelectorAll('.collection-item-card[data-tier-item-id]'));
+                const cards = getCards();
+                if (cards.length < 2) {
+                    TierListUI.refreshRankPills(container);
+                    return;
+                }
+
+                const cleanupFns = [];
+                const addListener = (target, eventName, handler, options) => {
+                    if (!target || typeof target.addEventListener !== 'function') return;
+                    target.addEventListener(eventName, handler, options);
+                    cleanupFns.push(() => target.removeEventListener(eventName, handler, options));
+                };
+                const getOrder = () => getCards()
+                    .map((card) => String(card.dataset.tierItemId || '').trim())
+                    .filter(Boolean);
+
+                let activeCard = null;
+                let activePointerId = null;
+                let activeTouchId = null;
+                let activeMode = null;
+                let dragStartX = 0;
+                let dragStartY = 0;
+                let dragMoved = false;
+                let orderDirty = false;
+                let startOrderKey = '';
+                let isSaving = false;
+                let queueSave = false;
 
                 const persistCurrentOrder = async () => {
-                    if (isPersisting) return;
-                    isPersisting = true;
+                    if (isSaving) {
+                        queueSave = true;
+                        return;
+                    }
+                    isSaving = true;
                     try {
-                        const nextOrder = getContainerOrder();
-                        if (nextOrder.length > 1) {
-                            await persistTierOrder(safeType, safeListId, nextOrder);
-                        }
+                        await persistTierOrder(safeType, safeListId, getOrder());
                     } finally {
-                        isPersisting = false;
+                        isSaving = false;
+                        if (queueSave) {
+                            queueSave = false;
+                            void persistCurrentOrder();
+                        }
                     }
                 };
 
-                const clearPendingTouch = () => {
-                    if (pendingTouch.timerId) {
-                        clearTimeout(pendingTouch.timerId);
-                    }
-                    pendingTouch.card = null;
-                    pendingTouch.touchId = null;
-                    pendingTouch.startX = 0;
-                    pendingTouch.startY = 0;
-                    pendingTouch.timerId = null;
-                };
-
-                const setDragUiState = (isDragging) => {
-                    document.body.classList.toggle('tier-drag-active', !!isDragging);
-                };
-
-                const beginDrag = (card, { pointerId = null, touchId = null, clientX = 0, clientY = 0 } = {}) => {
-                    if (activeCard) return;
+                const beginDrag = (card, mode, pointerId, touchId, clientX, clientY) => {
+                    if (!card || activeCard) return;
                     activeCard = card;
-                    activePointerId = Number.isInteger(pointerId) ? pointerId : null;
-                    activeTouchId = Number.isInteger(touchId) ? touchId : null;
+                    activeMode = mode;
+                    activePointerId = pointerId;
+                    activeTouchId = touchId;
                     dragStartX = Number(clientX || 0);
                     dragStartY = Number(clientY || 0);
                     dragMoved = false;
-                    startOrderKey = getContainerOrder().join('|');
                     orderDirty = false;
-                    previousTouchAction = container.style.touchAction || '';
-                    container.style.touchAction = 'none';
+                    startOrderKey = getOrder().join('|');
                     card.classList.add('is-dragging');
                     card.style.pointerEvents = 'none';
-                    setDragUiState(true);
-                    clearPendingTouch();
-                    if (activePointerId !== null && typeof card.setPointerCapture === 'function') {
-                        try {
-                            card.setPointerCapture(activePointerId);
-                        } catch (_error) {}
-                    }
+                    document.body.classList.add('tier-drag-active');
                 };
 
-                const moveActiveCardToPointer = (clientX, clientY) => {
+                const moveDrag = (clientX, clientY) => {
                     if (!activeCard) return;
-                    const dx = Math.abs(Number(clientX || 0) - dragStartX);
-                    const dy = Math.abs(Number(clientY || 0) - dragStartY);
-                    if (!dragMoved && Math.max(dx, dy) >= DRAG_MOVE_THRESHOLD) {
+
+                    const deltaX = Math.abs(Number(clientX || 0) - dragStartX);
+                    const deltaY = Math.abs(Number(clientY || 0) - dragStartY);
+                    if (!dragMoved && Math.max(deltaX, deltaY) >= 4) {
                         dragMoved = true;
                     }
 
                     const siblings = getCards().filter((card) => card !== activeCard);
-                    let insertBeforeNode = null;
+                    if (!siblings.length) return;
+
+                    let targetCard = null;
+                    let targetPosition = 'after';
                     for (const sibling of siblings) {
                         const rect = sibling.getBoundingClientRect();
                         const midpointY = rect.top + (rect.height / 2);
                         if (clientY < midpointY) {
-                            insertBeforeNode = sibling;
+                            targetCard = sibling;
+                            targetPosition = 'before';
                             break;
                         }
+                        targetCard = sibling;
+                        targetPosition = 'after';
                     }
 
+                    TierListUI.clearDropTargets(container);
+                    if (targetCard) TierListUI.markDropTarget(targetCard, targetPosition);
+                    if (!targetCard) return;
+
                     let moved = false;
-                    if (insertBeforeNode) {
-                        if (activeCard.nextElementSibling !== insertBeforeNode) {
-                            container.insertBefore(activeCard, insertBeforeNode);
+                    if (targetPosition === 'before') {
+                        if (activeCard.nextElementSibling !== targetCard) {
+                            container.insertBefore(activeCard, targetCard);
                             moved = true;
                         }
-                    } else if (container.lastElementChild !== activeCard) {
-                        container.appendChild(activeCard);
-                        moved = true;
+                    } else {
+                        const afterNode = targetCard.nextElementSibling;
+                        if (afterNode !== activeCard) {
+                            container.insertBefore(activeCard, afterNode);
+                            moved = true;
+                        }
                     }
 
                     if (moved) {
                         orderDirty = true;
                         dragMoved = true;
-                        refreshRankBadges();
+                        TierListUI.refreshRankPills(container);
                     }
                 };
 
-                const onPointerMove = (event) => {
-                    if (activeCard && activePointerId !== null && event.pointerId === activePointerId) {
-                        event.preventDefault();
-                        moveActiveCardToPointer(event.clientX, event.clientY);
+                const finishDrag = async (suppressClick = false) => {
+                    if (!activeCard) return;
+
+                    activeCard.classList.remove('is-dragging');
+                    activeCard.style.pointerEvents = '';
+                    TierListUI.clearDropTargets(container);
+                    document.body.classList.remove('tier-drag-active');
+
+                    const finalOrderKey = getOrder().join('|');
+                    const changed = orderDirty || finalOrderKey !== startOrderKey;
+                    if (changed || dragMoved || suppressClick) {
+                        container.__tierSuppressClickUntil = Date.now() + 320;
+                    }
+
+                    activeCard = null;
+                    activeMode = null;
+                    activePointerId = null;
+                    activeTouchId = null;
+                    dragMoved = false;
+                    orderDirty = false;
+                    startOrderKey = '';
+
+                    TierListUI.refreshRankPills(container);
+                    if (changed) {
+                        await persistCurrentOrder();
                     }
                 };
 
@@ -8505,99 +8687,67 @@ header, .top-stripe, .section-nav {
                     return null;
                 };
 
-                const onTouchMove = (event) => {
-                    if (activeCard && activeTouchId !== null) {
+                const suppressCardClick = (event) => {
+                    const suppressUntil = Number(container.__tierSuppressClickUntil || 0);
+                    if (Date.now() <= suppressUntil) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                };
+                addListener(container, 'click', suppressCardClick, true);
+
+                const supportsPointer = typeof window !== 'undefined' && ('PointerEvent' in window);
+                if (supportsPointer) {
+                    addListener(window, 'pointermove', (event) => {
+                        if (!activeCard || activeMode !== 'pointer' || event.pointerId !== activePointerId) return;
+                        event.preventDefault();
+                        moveDrag(event.clientX, event.clientY);
+                    }, { passive: false });
+                    addListener(window, 'pointerup', (event) => {
+                        if (!activeCard || activeMode !== 'pointer' || event.pointerId !== activePointerId) return;
+                        event.preventDefault();
+                        void finishDrag(event.pointerType !== 'mouse');
+                    });
+                    addListener(window, 'pointercancel', (event) => {
+                        if (!activeCard || activeMode !== 'pointer' || event.pointerId !== activePointerId) return;
+                        void finishDrag(true);
+                    });
+                } else {
+                    addListener(window, 'mousemove', (event) => {
+                        if (!activeCard || activeMode !== 'mouse') return;
+                        event.preventDefault();
+                        moveDrag(event.clientX, event.clientY);
+                    }, { passive: false });
+                    addListener(window, 'mouseup', (event) => {
+                        if (!activeCard || activeMode !== 'mouse') return;
+                        event.preventDefault();
+                        void finishDrag(false);
+                    });
+                    addListener(window, 'touchmove', (event) => {
+                        if (!activeCard || activeMode !== 'touch') return;
                         const touch = resolveTouchById(event.touches, activeTouchId)
                             || resolveTouchById(event.changedTouches, activeTouchId);
                         if (!touch) return;
                         event.preventDefault();
-                        moveActiveCardToPointer(touch.clientX, touch.clientY);
-                        return;
-                    }
-
-                    if (pendingTouch.card && pendingTouch.touchId !== null) {
-                        const touch = resolveTouchById(event.touches, pendingTouch.touchId);
+                        moveDrag(touch.clientX, touch.clientY);
+                    }, { passive: false });
+                    addListener(window, 'touchend', (event) => {
+                        if (!activeCard || activeMode !== 'touch') return;
+                        const touch = resolveTouchById(event.changedTouches, activeTouchId);
                         if (!touch) return;
-                        const dx = Math.abs(Number(touch.clientX || 0) - pendingTouch.startX);
-                        const dy = Math.abs(Number(touch.clientY || 0) - pendingTouch.startY);
-                        if (Math.max(dx, dy) >= TOUCH_HOLD_CANCEL_DISTANCE) {
-                            clearPendingTouch();
-                        }
-                    }
-                };
-
-                const finishDrag = async () => {
-                    clearPendingTouch();
-                    if (!activeCard) return;
-                    activeCard.classList.remove('is-dragging');
-                    activeCard.style.pointerEvents = '';
-                    const finalOrderKey = getContainerOrder().join('|');
-                    const changed = finalOrderKey !== startOrderKey || orderDirty;
-                    const shouldSuppressClick = changed || dragMoved || activeTouchId !== null;
-                    activeCard = null;
-                    activePointerId = null;
-                    activeTouchId = null;
-                    startOrderKey = '';
-                    orderDirty = false;
-                    dragMoved = false;
-                    dragStartX = 0;
-                    dragStartY = 0;
-                    container.style.touchAction = previousTouchAction;
-                    previousTouchAction = '';
-                    setDragUiState(false);
-                    if (shouldSuppressClick) {
-                        container.__tierSuppressClickUntil = Date.now() + DRAG_CLICK_SUPPRESS_MS;
-                    }
-                    if (changed) {
-                        await persistCurrentOrder();
-                    }
-                };
-
-                const onPointerUp = (event) => {
-                    if (activeCard && activePointerId !== null && event.pointerId === activePointerId) {
                         event.preventDefault();
-                        void finishDrag();
-                    }
-                };
-
-                const onTouchEnd = (event) => {
-                    if (activeCard && activeTouchId !== null) {
-                        const finishedTouch = resolveTouchById(event.changedTouches, activeTouchId);
-                        if (!finishedTouch) return;
-                        event.preventDefault();
-                        void finishDrag();
-                        return;
-                    }
-
-                    if (pendingTouch.touchId !== null) {
-                        const pendingEndedTouch = resolveTouchById(event.changedTouches, pendingTouch.touchId);
-                        if (pendingEndedTouch) {
-                            clearPendingTouch();
-                        }
-                    }
-                };
-
-                if (supportsPointer) {
-                    container.__tierPointerMoveHandler = onPointerMove;
-                    container.__tierPointerUpHandler = onPointerUp;
-                    container.__tierPointerCancelHandler = onPointerUp;
-                    window.addEventListener('pointermove', onPointerMove, { passive: false });
-                    window.addEventListener('pointerup', onPointerUp);
-                    window.addEventListener('pointercancel', onPointerUp);
+                        void finishDrag(true);
+                    }, { passive: false });
+                    addListener(window, 'touchcancel', () => {
+                        if (!activeCard || activeMode !== 'touch') return;
+                        void finishDrag(true);
+                    }, { passive: false });
                 }
-                container.__tierTouchMoveHandler = onTouchMove;
-                container.__tierTouchEndHandler = onTouchEnd;
-                container.__tierTouchCancelHandler = onTouchEnd;
-                window.addEventListener('touchmove', onTouchMove, { passive: false });
-                window.addEventListener('touchend', onTouchEnd, { passive: false });
-                window.addEventListener('touchcancel', onTouchEnd, { passive: false });
 
                 cards.forEach((card) => {
                     card.classList.add('tier-draggable');
                     card.removeAttribute('draggable');
-                    card.querySelectorAll('img').forEach((imgEl) => {
-                        imgEl.setAttribute('draggable', 'false');
-                    });
+                    card.querySelectorAll('img').forEach((imgEl) => imgEl.setAttribute('draggable', 'false'));
 
                     let handle = card.querySelector('.tier-drag-handle');
                     if (!handle) {
@@ -8606,126 +8756,62 @@ header, .top-stripe, .section-nav {
                         handle.className = 'tier-drag-handle';
                         handle.setAttribute('aria-label', 'Drag to reorder');
                         handle.setAttribute('title', 'Drag to reorder');
-                        handle.innerHTML = '<i class="fas fa-sort"></i>';
+                        handle.innerHTML = '<i class="fas fa-grip-lines"></i>';
                         card.appendChild(handle);
                     }
 
-                    if (typeof card.__tierCardPointerDownHandler === 'function') {
-                        card.removeEventListener('pointerdown', card.__tierCardPointerDownHandler);
-                    }
-                    if (typeof card.__tierCardTouchStartHandler === 'function') {
-                        card.removeEventListener('touchstart', card.__tierCardTouchStartHandler);
-                    }
-                    if (typeof card.__tierCardClickCaptureHandler === 'function') {
-                        card.removeEventListener('click', card.__tierCardClickCaptureHandler, true);
-                    }
-                    if (typeof handle.__tierPointerDownHandler === 'function') {
-                        handle.removeEventListener('pointerdown', handle.__tierPointerDownHandler);
-                    }
-                    if (typeof handle.__tierTouchStartHandler === 'function') {
-                        handle.removeEventListener('touchstart', handle.__tierTouchStartHandler);
-                    }
-                    if (typeof handle.__tierClickHandler === 'function') {
-                        handle.removeEventListener('click', handle.__tierClickHandler);
-                    }
-
-                    const cardClickCaptureHandler = (event) => {
-                        const suppressUntil = Number(container.__tierSuppressClickUntil || 0);
-                        if (Date.now() <= suppressUntil) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                        }
-                    };
-                    const cardPointerDownHandler = (event) => {
-                        if (activeCard) return;
-                        if (event.pointerType !== 'mouse' || event.button !== 0) return;
-                        const targetEl = event.target instanceof Element ? event.target : null;
-                        if (targetEl && targetEl.closest('.collection-item-remove, .tier-drag-handle, a, button, input, select, textarea, [role="button"]')) {
-                            return;
-                        }
-                        event.preventDefault();
-                        beginDrag(card, {
-                            pointerId: event.pointerId,
-                            clientX: event.clientX,
-                            clientY: event.clientY
-                        });
-                        moveActiveCardToPointer(event.clientX, event.clientY);
-                    };
-                    const cardTouchStartHandler = (event) => {
-                        if (activeCard) return;
-                        const targetEl = event.target instanceof Element ? event.target : null;
-                        if (targetEl && targetEl.closest('.collection-item-remove, a, button, input, select, textarea, [role="button"]')) {
-                            return;
-                        }
-                        const touch = event.changedTouches && event.changedTouches.length
-                            ? event.changedTouches[0]
-                            : (event.touches && event.touches.length ? event.touches[0] : null);
-                        if (!touch) return;
-                        clearPendingTouch();
-                        pendingTouch.card = card;
-                        pendingTouch.touchId = touch.identifier;
-                        pendingTouch.startX = Number(touch.clientX || 0);
-                        pendingTouch.startY = Number(touch.clientY || 0);
-                        pendingTouch.timerId = setTimeout(() => {
-                            if (!pendingTouch.card || pendingTouch.touchId === null) return;
-                            beginDrag(pendingTouch.card, {
-                                touchId: pendingTouch.touchId,
-                                clientX: pendingTouch.startX,
-                                clientY: pendingTouch.startY
-                            });
-                            moveActiveCardToPointer(pendingTouch.startX, pendingTouch.startY);
-                        }, TOUCH_HOLD_DELAY_MS);
-                    };
-                    const handleClickHandler = (event) => {
+                    addListener(handle, 'click', (event) => {
                         event.preventDefault();
                         event.stopPropagation();
-                    };
-                    const handlePointerDownHandler = (event) => {
-                        if (activeCard) return;
-                        if (event.pointerType === 'mouse' && event.button !== 0) return;
-                        event.preventDefault();
-                        event.stopPropagation();
-                        beginDrag(card, {
-                            pointerId: event.pointerId,
-                            clientX: event.clientX,
-                            clientY: event.clientY
-                        });
-                        moveActiveCardToPointer(event.clientX, event.clientY);
-                    };
-                    const handleTouchStartHandler = (event) => {
-                        if (activeCard) return;
-                        if (!event.touches || !event.touches.length) return;
-                        const touch = event.touches[0];
-                        event.preventDefault();
-                        event.stopPropagation();
-                        beginDrag(card, {
-                            touchId: touch.identifier,
-                            clientX: touch.clientX,
-                            clientY: touch.clientY
-                        });
-                        moveActiveCardToPointer(touch.clientX, touch.clientY);
-                    };
-
-                    card.__tierCardPointerDownHandler = cardPointerDownHandler;
-                    card.__tierCardTouchStartHandler = cardTouchStartHandler;
-                    card.__tierCardClickCaptureHandler = cardClickCaptureHandler;
-                    handle.__tierPointerDownHandler = handlePointerDownHandler;
-                    handle.__tierTouchStartHandler = handleTouchStartHandler;
-                    handle.__tierClickHandler = handleClickHandler;
+                    });
 
                     if (supportsPointer) {
-                        card.addEventListener('pointerdown', cardPointerDownHandler, { passive: false });
-                        handle.addEventListener('pointerdown', handlePointerDownHandler, { passive: false });
+                        addListener(handle, 'pointerdown', (event) => {
+                            if (activeCard) return;
+                            if (event.pointerType === 'mouse' && event.button !== 0) return;
+                            event.preventDefault();
+                            event.stopPropagation();
+                            beginDrag(card, 'pointer', event.pointerId, null, event.clientX, event.clientY);
+                            moveDrag(event.clientX, event.clientY);
+                        }, { passive: false });
+                    } else {
+                        addListener(handle, 'mousedown', (event) => {
+                            if (activeCard || event.button !== 0) return;
+                            event.preventDefault();
+                            event.stopPropagation();
+                            beginDrag(card, 'mouse', null, null, event.clientX, event.clientY);
+                            moveDrag(event.clientX, event.clientY);
+                        }, { passive: false });
+                        addListener(handle, 'touchstart', (event) => {
+                            if (activeCard || !event.touches || !event.touches.length) return;
+                            const touch = event.touches[0];
+                            event.preventDefault();
+                            event.stopPropagation();
+                            beginDrag(card, 'touch', null, touch.identifier, touch.clientX, touch.clientY);
+                            moveDrag(touch.clientX, touch.clientY);
+                        }, { passive: false });
                     }
-                    card.addEventListener('touchstart', cardTouchStartHandler, { passive: true });
-                    handle.addEventListener('touchstart', handleTouchStartHandler, { passive: false });
-                    card.addEventListener('click', cardClickCaptureHandler, true);
-                    handle.addEventListener('click', handleClickHandler);
                 });
 
-                refreshRankBadges();
-            }
+                container.__tierCleanup = () => {
+                    cleanupFns.forEach((cleanup) => {
+                        try { cleanup(); } catch (_error) {}
+                    });
+                    cleanupFns.length = 0;
+                    TierListUI.clearDropTargets(container);
+                    getCards().forEach((card) => {
+                        card.classList.remove('is-dragging', 'tier-draggable');
+                        card.style.pointerEvents = '';
+                    });
+                    activeCard = null;
+                    activeMode = null;
+                    activePointerId = null;
+                    activeTouchId = null;
+                    document.body.classList.remove('tier-drag-active');
+                };
 
+                TierListUI.refreshRankPills(container);
+            }
             function setEditMediaListModalMode(config, isCreate = false) {
                 const titleEl = document.getElementById('editMediaListModalTitle');
                 const submitBtn = document.querySelector('#editMediaListForm button[type="submit"]');
@@ -9448,7 +9534,7 @@ header, .top-stripe, .section-nav {
                     });
 
                     if (renderToken !== renderRestaurantsToken) return;
-                    const cards = await Promise.all(lists.map(list => createCollectionCard(list, 'restaurant', isMobile)));
+                    const cards = await Promise.all(lists.map(list => createCollectionCard(list, 'restaurant', isMobile, userId)));
                     grid.innerHTML = '';
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
@@ -9531,7 +9617,7 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
-                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'movie', isMobile)));
+                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'movie', isMobile, userId)));
                     grid.innerHTML = '';
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
@@ -9614,7 +9700,7 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
-                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'tv', isMobile)));
+                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'tv', isMobile, userId)));
                     grid.innerHTML = '';
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
@@ -9707,7 +9793,7 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
-                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'game', isMobile)));
+                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'game', isMobile, userId)));
                     grid.innerHTML = '';
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
@@ -9870,7 +9956,7 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
-                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'book', isMobile)));
+                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'book', isMobile, userId)));
                     grid.innerHTML = '';
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
@@ -9973,7 +10059,7 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
-                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(list, 'music', isMobile)));
+                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(list, 'music', isMobile, userId)));
                     grid.innerHTML = '';
                     const fragment = document.createDocumentFragment();
                     cards.forEach((card) => fragment.appendChild(card));
@@ -9990,7 +10076,7 @@ header, .top-stripe, .section-nav {
                 }
             }
 
-            async function createCollectionCard(list, contentType, isMobile) {
+            async function createCollectionCard(list, contentType, isMobile, ownerUserId = null) {
                 const card = document.createElement('div');
                 card.className = 'collection-card';
 
@@ -10003,23 +10089,26 @@ header, .top-stripe, .section-nav {
                             : (contentType === 'game'
                                 ? (list.gameIds || [])
                                 : (contentType === 'book' ? (list.bookIds || []) : (list.trackIds || [])))));
-                const count = itemIds.length;
-                const isCustom = contentType === 'restaurant' ? !list.is_default : list.type === 'custom';
-                const tierMeta = isCustom ? getTierMetaForList(contentType, list, count) : { listKind: 'standard', isTier: false, maxRank: null };
-                const tierBadgeHtml = (isCustom && tierMeta.isTier)
-                    ? `<div class="tier-list-badge"><i class="fas fa-layer-group"></i> Tier List</div>`
-                    : '';
                 const resolvedListType = contentType === 'restaurant'
                     ? (list.is_default ? 'default' : 'custom')
                     : (list.type || 'default');
                 const routeListId = String(list.id || '');
+                const { tierMeta, orderedIds } = await resolveTierOrderedIds(contentType, list, routeListId, itemIds, {
+                    listType: resolvedListType,
+                    ownerUserId
+                });
+                const count = orderedIds.length;
+                const isCustom = contentType === 'restaurant' ? !list.is_default : list.type === 'custom';
+                const tierBadgeHtml = (isCustom && tierMeta.isTier)
+                    ? `<div class="tier-list-badge"><i class="fas fa-layer-group"></i> Tier List</div>`
+                    : '';
                 const routeListType = String(resolvedListType || '');
                 const safeListId = routeListId.replace(/'/g, "\\'");
                 const safeListType = routeListType.replace(/'/g, "\\'");
                 const countLabel = getCollectionItemLabel(contentType, count);
 
                 const previewLimit = 3;
-                const previewItems = await getPreviewItems(itemIds.slice(0, previewLimit), contentType);
+                const previewItems = await getPreviewItems(orderedIds.slice(0, previewLimit), contentType);
                 const previewOrientationClass = getPreviewOrientationClass(contentType);
 
                 let previewHtml = '';
@@ -10096,7 +10185,7 @@ header, .top-stripe, .section-nav {
             async function getPreviewItems(ids, contentType) {
                 if (contentType === 'restaurant') {
                     return Promise.all(ids.map(async id => {
-                        const restaurant = restaurants.find(r => r.id === id);
+                        const restaurant = restaurants.find(r => String(r.id || '') === String(id || ''));
                         return restaurant?.image ? `images/${restaurant.image}` : null;
                     }));
                 }
@@ -10253,22 +10342,17 @@ header, .top-stripe, .section-nav {
                             ` : ''}
                         </div>
                     `;
+                    wireTierDragAndDrop(container, null, null, 'default');
                     return;
                 }
 
                 container.innerHTML = '';
 
-                const tierMeta = getTierMetaForList('restaurant', list, restaurantIds.length);
-                if (tierMeta.isTier && window.ListUtils) {
-                    await ListUtils.hydrateTierRanksForList('restaurant', listId, {
-                        client: supabase,
-                        userId: currentUser?.id,
-                        ownerUserId
-                    });
-                }
-                const orderedRestaurantIds = (tierMeta.isTier && window.ListUtils)
-                    ? ListUtils.sortIdsByTierRank('restaurant', listId, restaurantIds)
-                    : [...restaurantIds];
+                const { tierMeta, orderedIds: orderedRestaurantIds } = await resolveTierOrderedIds('restaurant', list, listId, restaurantIds, {
+                    listType,
+                    ownerUserId
+                });
+                const canReorderTier = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
 
                 const restaurantMap = new Map();
                 (restaurants || []).forEach((row) => {
@@ -10282,7 +10366,7 @@ header, .top-stripe, .section-nav {
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
                     itemCard.onclick = () => window.location.href = `restaurant.html?slug=${restaurant.slug}`;
-                    const canReorder = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const canReorder = canReorderTier;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
                             index + 1,
@@ -10314,9 +10398,12 @@ header, .top-stripe, .section-nav {
                     }
                 }
 
-                if (tierMeta.isTier && isViewingOwnProfile && listType === 'custom') {
-                    wireTierDragAndDrop(container, 'restaurant', listId, listType);
-                }
+                wireTierDragAndDrop(
+                    container,
+                    canReorderTier ? 'restaurant' : null,
+                    canReorderTier ? listId : null,
+                    canReorderTier ? listType : 'default'
+                );
             }
 
             async function showMovieDetail(listId, listType, isMobile) {
@@ -10441,21 +10528,16 @@ header, .top-stripe, .section-nav {
                             <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add movies to this collection!</p>
                         </div>
                     `;
+                    wireTierDragAndDrop(container, null, null, 'default');
                     return;
                 }
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
-                const tierMeta = getTierMetaForList('movie', list, movieIds.length);
-                if (tierMeta.isTier && window.ListUtils) {
-                    await ListUtils.hydrateTierRanksForList('movie', listId, {
-                        client: supabase,
-                        userId: currentUser?.id,
-                        ownerUserId
-                    });
-                }
-                const rankedMovieIds = (tierMeta.isTier && window.ListUtils)
-                    ? ListUtils.sortIdsByTierRank('movie', listId, movieIds)
-                    : [...movieIds];
+                const { tierMeta, orderedIds: rankedMovieIds } = await resolveTierOrderedIds('movie', list, listId, movieIds, {
+                    listType,
+                    ownerUserId
+                });
+                const canReorderTier = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
 
                 const movies = await Promise.all(rankedMovieIds.map(id => fetchMovieDetails(id)));
 
@@ -10465,7 +10547,7 @@ header, .top-stripe, .section-nav {
                     const movie = movies[index];
                     if (!movie) continue;
                     const movieIdValue = rankedMovieIds[index] ?? movie.id;
-                    const canReorder = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const canReorder = canReorderTier;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
                             index + 1,
@@ -10501,9 +10583,12 @@ header, .top-stripe, .section-nav {
                     container.appendChild(itemCard);
                 }
 
-                if (tierMeta.isTier && isViewingOwnProfile && listType === 'custom') {
-                    wireTierDragAndDrop(container, 'movie', listId, listType);
-                }
+                wireTierDragAndDrop(
+                    container,
+                    canReorderTier ? 'movie' : null,
+                    canReorderTier ? listId : null,
+                    canReorderTier ? listType : 'default'
+                );
             }
 
             async function showTvDetail(listId, listType, isMobile) {
@@ -10628,21 +10713,16 @@ header, .top-stripe, .section-nav {
                             <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add TV shows to this collection!</p>
                         </div>
                     `;
+                    wireTierDragAndDrop(container, null, null, 'default');
                     return;
                 }
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
-                const tierMeta = getTierMetaForList('tv', list, tvIds.length);
-                if (tierMeta.isTier && window.ListUtils) {
-                    await ListUtils.hydrateTierRanksForList('tv', listId, {
-                        client: supabase,
-                        userId: currentUser?.id,
-                        ownerUserId
-                    });
-                }
-                const rankedTvIds = (tierMeta.isTier && window.ListUtils)
-                    ? ListUtils.sortIdsByTierRank('tv', listId, tvIds)
-                    : [...tvIds];
+                const { tierMeta, orderedIds: rankedTvIds } = await resolveTierOrderedIds('tv', list, listId, tvIds, {
+                    listType,
+                    ownerUserId
+                });
+                const canReorderTier = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
 
                 const shows = await Promise.all(rankedTvIds.map(id => fetchTvDetails(id)));
 
@@ -10652,7 +10732,7 @@ header, .top-stripe, .section-nav {
                     const show = shows[index];
                     if (!show) continue;
                     const tvIdValue = rankedTvIds[index] ?? show.id;
-                    const canReorder = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const canReorder = canReorderTier;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
                             index + 1,
@@ -10690,9 +10770,12 @@ header, .top-stripe, .section-nav {
                     container.appendChild(itemCard);
                 }
 
-                if (tierMeta.isTier && isViewingOwnProfile && listType === 'custom') {
-                    wireTierDragAndDrop(container, 'tv', listId, listType);
-                }
+                wireTierDragAndDrop(
+                    container,
+                    canReorderTier ? 'tv' : null,
+                    canReorderTier ? listId : null,
+                    canReorderTier ? listType : 'default'
+                );
             }
 
             async function showGameDetail(listId, listType, isMobile) {
@@ -10821,21 +10904,16 @@ header, .top-stripe, .section-nav {
                             <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add games to this collection!</p>
                         </div>
                     `;
+                    wireTierDragAndDrop(container, null, null, 'default');
                     return;
                 }
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
-                const tierMeta = getTierMetaForList('game', list, gameIds.length);
-                if (tierMeta.isTier && window.ListUtils) {
-                    await ListUtils.hydrateTierRanksForList('game', listId, {
-                        client: supabase,
-                        userId: currentUser?.id,
-                        ownerUserId
-                    });
-                }
-                const rankedGameIds = (tierMeta.isTier && window.ListUtils)
-                    ? ListUtils.sortIdsByTierRank('game', listId, gameIds)
-                    : [...gameIds];
+                const { tierMeta, orderedIds: rankedGameIds } = await resolveTierOrderedIds('game', list, listId, gameIds, {
+                    listType,
+                    ownerUserId
+                });
+                const canReorderTier = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
 
                 const games = await Promise.all(rankedGameIds.map(async (id) => ({
                     id: String(id || '').trim(),
@@ -10858,7 +10936,7 @@ header, .top-stripe, .section-nav {
                     const gameTitle = game.name || game.slug || 'Untitled';
                     const safeGameId = resolvedGameId.replace(/'/g, "\\'");
                     const gameImage = normalizeGameImageSource(game);
-                    const canReorder = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const canReorder = canReorderTier;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
                             index + 1,
@@ -10890,9 +10968,12 @@ header, .top-stripe, .section-nav {
                     container.appendChild(itemCard);
                 }
 
-                if (tierMeta.isTier && isViewingOwnProfile && listType === 'custom') {
-                    wireTierDragAndDrop(container, 'game', listId, listType);
-                }
+                wireTierDragAndDrop(
+                    container,
+                    canReorderTier ? 'game' : null,
+                    canReorderTier ? listId : null,
+                    canReorderTier ? listType : 'default'
+                );
             }
 
             async function showBookDetail(listId, listType, isMobile) {
@@ -11007,20 +11088,15 @@ header, .top-stripe, .section-nav {
                             <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add books to this collection!</p>
                         </div>
                     `;
+                    wireTierDragAndDrop(container, null, null, 'default');
                     return;
                 }
 
-                const tierMeta = getTierMetaForList('book', list, bookIds.length);
-                if (tierMeta.isTier && window.ListUtils) {
-                    await ListUtils.hydrateTierRanksForList('book', listId, {
-                        client: supabase,
-                        userId: currentUser?.id,
-                        ownerUserId
-                    });
-                }
-                const rankedBookIds = (tierMeta.isTier && window.ListUtils)
-                    ? ListUtils.sortIdsByTierRank('book', listId, bookIds)
-                    : [...bookIds];
+                const { tierMeta, orderedIds: rankedBookIds } = await resolveTierOrderedIds('book', list, listId, bookIds, {
+                    listType,
+                    ownerUserId
+                });
+                const canReorderTier = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
 
                 // Check cache first
                 const cacheKey = `profile_books_${listId}_${rankedBookIds.join(',')}`;
@@ -11070,7 +11146,7 @@ header, .top-stripe, .section-nav {
                     }
                     const metaYear = row?.published_date ? String(row.published_date).slice(0, 4) : 'N/A';
                     const image = row?.thumbnail || FALLBACK_BOOK_IMAGE;
-                    const canReorder = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const canReorder = canReorderTier;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
                             i + 1,
@@ -11105,9 +11181,12 @@ header, .top-stripe, .section-nav {
                     container.appendChild(itemCard);
                 }
 
-                if (tierMeta.isTier && isViewingOwnProfile && listType === 'custom') {
-                    wireTierDragAndDrop(container, 'book', listId, listType);
-                }
+                wireTierDragAndDrop(
+                    container,
+                    canReorderTier ? 'book' : null,
+                    canReorderTier ? listId : null,
+                    canReorderTier ? listType : 'default'
+                );
             }
 
             async function showMusicDetail(listId, listType, isMobile) {
@@ -11225,21 +11304,16 @@ header, .top-stripe, .section-nav {
                             <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add tracks to this collection!</p>
                         </div>
                     `;
+                    wireTierDragAndDrop(container, null, null, 'default');
                     return;
                 }
 
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
-                const tierMeta = getTierMetaForList('music', list, trackIds.length);
-                if (tierMeta.isTier && window.ListUtils) {
-                    await ListUtils.hydrateTierRanksForList('music', listId, {
-                        client: supabase,
-                        userId: currentUser?.id,
-                        ownerUserId
-                    });
-                }
-                const rankedTrackIds = (tierMeta.isTier && window.ListUtils)
-                    ? ListUtils.sortIdsByTierRank('music', listId, trackIds)
-                    : [...trackIds];
+                const { tierMeta, orderedIds: rankedTrackIds } = await resolveTierOrderedIds('music', list, listId, trackIds, {
+                    listType,
+                    ownerUserId
+                });
+                const canReorderTier = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
                 const tracks = await Promise.all(rankedTrackIds.map((id) => fetchMusicDetails(id)));
                 container.innerHTML = '';
 
@@ -11251,7 +11325,7 @@ header, .top-stripe, .section-nav {
                     const album = String(track?.album_name || 'Album').trim() || 'Album';
                     const image = String(track?.image_url || '').trim() || 'images/logo.png';
                     const openUrl = trackId ? `song.html?id=${encodeURIComponent(trackId)}` : 'music.html';
-                    const canReorder = tierMeta.isTier && isViewingOwnProfile && listType === 'custom';
+                    const canReorder = canReorderTier;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
                             i + 1,
@@ -11288,9 +11362,12 @@ header, .top-stripe, .section-nav {
                     container.appendChild(itemCard);
                 }
 
-                if (tierMeta.isTier && isViewingOwnProfile && listType === 'custom') {
-                    wireTierDragAndDrop(container, 'music', listId, listType);
-                }
+                wireTierDragAndDrop(
+                    container,
+                    canReorderTier ? 'music' : null,
+                    canReorderTier ? listId : null,
+                    canReorderTier ? listType : 'default'
+                );
             }
 
             function escapeHtml(text) {
@@ -12435,6 +12512,7 @@ header, .top-stripe, .section-nav {
     </script>
 </body>
 </html>
+
 
 
 
