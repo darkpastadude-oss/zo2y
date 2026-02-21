@@ -1837,6 +1837,11 @@
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v2';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v1';
+    const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
+    const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
+    const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
+    const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
     const HOME_CHANNEL_TIMEOUT_MS = 1600;
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 1200;
     const HOME_LOCAL_FALLBACK_IMAGE = 'images/logo.png';
@@ -1854,9 +1859,10 @@
         if (value === undefined || value === null || value === '') return;
         url.searchParams.set(key, String(value));
       });
-      const res = await fetch(url.toString(), { signal });
-      if (!res.ok) throw new Error(`IGDB error ${res.status}`);
-      return res.json();
+      const cacheKey = `igdb:${url.toString()}`;
+      const json = await fetchJsonWithPerfCache(url.toString(), { signal, cacheKey });
+      if (!json) throw new Error('IGDB error');
+      return json;
     }
 
     const statusEl = document.getElementById('loadStatus');
@@ -1871,6 +1877,7 @@
     let homeOnboardingUserId = null;
     let homeTasteWeights = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, 1]));
     const homeFeedState = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, []]));
+    const homeHttpCache = new Map();
     const homeCustomListState = {
       mediaType: null,
       itemId: null,
@@ -1893,6 +1900,74 @@
 
     function toHttpsUrl(value) {
       return String(value || '').replace(/^http:\/\//i, 'https://');
+    }
+
+    function withTimeout(promise, timeoutMs, fallbackValue = null) {
+      let timer = null;
+      return Promise.race([
+        Promise.resolve(promise).finally(() => {
+          if (timer) clearTimeout(timer);
+        }),
+        new Promise((resolve) => {
+          timer = setTimeout(() => resolve(fallbackValue), timeoutMs);
+        })
+      ]);
+    }
+
+    function cloneJson(value, fallback = null) {
+      try {
+        return JSON.parse(JSON.stringify(value));
+      } catch (_err) {
+        return fallback;
+      }
+    }
+
+    async function fetchJsonWithPerfCache(url, options = {}) {
+      const key = String(options.cacheKey || url || '').trim();
+      const ttlMs = Number(options.ttlMs || HOME_HTTP_CACHE_TTL_MS);
+      const now = Date.now();
+      if (!key) return null;
+
+      const existing = homeHttpCache.get(key);
+      if (existing?.data && now < Number(existing.expiresAt || 0)) {
+        return cloneJson(existing.data, null);
+      }
+      if (existing?.promise) {
+        const shared = await existing.promise;
+        return cloneJson(shared, null);
+      }
+
+      if (options.signal?.aborted) return null;
+
+      const requestPromise = fetch(url, { signal: options.signal })
+        .then(async (res) => {
+          if (!res.ok) return null;
+          return res.json();
+        })
+        .catch(() => null)
+        .finally(() => {
+          const current = homeHttpCache.get(key);
+          if (current?.promise) {
+            delete current.promise;
+            homeHttpCache.set(key, current);
+          }
+        });
+
+      homeHttpCache.set(key, {
+        promise: requestPromise,
+        expiresAt: now + ttlMs
+      });
+
+      const data = await requestPromise;
+      if (data && typeof data === 'object') {
+        homeHttpCache.set(key, {
+          data: cloneJson(data, null),
+          expiresAt: Date.now() + ttlMs
+        });
+      } else {
+        homeHttpCache.delete(key);
+      }
+      return cloneJson(data, null);
     }
 
     function resolveRestaurantImage(value) {
@@ -3753,6 +3828,90 @@
       ];
     }
 
+    function normalizeHomeFeedMap(feedMap) {
+      if (!feedMap || typeof feedMap !== 'object') return null;
+      const channels = getHomeChannels();
+      const normalized = {};
+      channels.forEach((channel) => {
+        normalized[channel.key] = Array.isArray(feedMap[channel.key])
+          ? feedMap[channel.key].filter((item) => item && typeof item === 'object')
+          : [];
+      });
+      return normalized;
+    }
+
+    function countActiveHomeChannels(feedMap) {
+      const normalized = normalizeHomeFeedMap(feedMap);
+      if (!normalized) return 0;
+      return getHomeChannels().reduce((count, channel) => {
+        return count + (Array.isArray(normalized[channel.key]) && normalized[channel.key].length ? 1 : 0);
+      }, 0);
+    }
+
+    function readPrecomputedHomeFeedCache() {
+      try {
+        const raw = localStorage.getItem(HOME_PRECOMPUTED_FEED_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed?.savedAt || 0);
+        if (!savedAt || (Date.now() - savedAt) > HOME_PRECOMPUTED_FEED_MAX_AGE_MS) return null;
+        const expiresAt = Number(parsed?.expiresAt || 0);
+        if (expiresAt && expiresAt < Date.now()) return null;
+        return normalizeHomeFeedMap(parsed?.feed);
+      } catch (_err) {
+        return null;
+      }
+    }
+
+    function writePrecomputedHomeFeedCache(feedMap, options = {}) {
+      try {
+        const normalized = normalizeHomeFeedMap(feedMap);
+        if (!normalized) return;
+        const savedAt = Number(options.savedAt || Date.now());
+        const expiresAt = Number(options.expiresAt || (savedAt + HOME_PRECOMPUTED_FEED_MAX_AGE_MS));
+        localStorage.setItem(HOME_PRECOMPUTED_FEED_CACHE_KEY, JSON.stringify({
+          savedAt,
+          expiresAt,
+          feed: normalized
+        }));
+      } catch (_err) {}
+    }
+
+    async function fetchPrecomputedHomeFeedFromSupabase() {
+      const client = await ensureHomeSupabase();
+      if (!client) return null;
+
+      const query = client
+        .from(HOME_PRECOMPUTE_TABLE)
+        .select('feed_payload, generated_at, expires_at')
+        .eq('cache_key', 'global')
+        .maybeSingle();
+
+      const result = await withTimeout(query, HOME_PRECOMPUTED_FETCH_TIMEOUT_MS, null);
+      if (!result || result.error || !result.data) return null;
+
+      const expiresAtMs = result.data.expires_at ? new Date(result.data.expires_at).getTime() : 0;
+      if (Number.isFinite(expiresAtMs) && expiresAtMs > 0 && expiresAtMs < Date.now()) {
+        return null;
+      }
+
+      const feed = normalizeHomeFeedMap(result.data.feed_payload);
+      if (!feed || countActiveHomeChannels(feed) === 0) return null;
+
+      const generatedAtMs = result.data.generated_at ? new Date(result.data.generated_at).getTime() : Date.now();
+      writePrecomputedHomeFeedCache(feed, {
+        savedAt: generatedAtMs,
+        expiresAt: expiresAtMs || (generatedAtMs + HOME_PRECOMPUTED_FEED_MAX_AGE_MS)
+      });
+      return feed;
+    }
+
+    async function loadPrecomputedHomeFeed() {
+      const cached = readPrecomputedHomeFeedCache();
+      if (cached && countActiveHomeChannels(cached) > 0) return cached;
+      return fetchPrecomputedHomeFeedFromSupabase();
+    }
+
     function readHomeFeedCache() {
       try {
         const raw = localStorage.getItem(HOME_FEED_CACHE_KEY);
@@ -4650,9 +4809,9 @@
       ]).slice(0, 2);
       const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
         try {
-          const res = await fetch(buildUrl(), { signal });
-          if (!res.ok) return [];
-          const json = await res.json();
+          const url = buildUrl();
+          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `tmdb:${url}` });
+          if (!json) return [];
           return Array.isArray(json.results) ? json.results : [];
         } catch (_err) {
           return [];
@@ -4693,9 +4852,9 @@
       ]).slice(0, 2);
       const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
         try {
-          const res = await fetch(buildUrl(), { signal });
-          if (!res.ok) return [];
-          const json = await res.json();
+          const url = buildUrl();
+          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `tmdb:${url}` });
+          if (!json) return [];
           return Array.isArray(json.results) ? json.results : [];
         } catch (_err) {
           return [];
@@ -4832,18 +4991,19 @@
           }
         }
 
-        let res = null;
+        let json = null;
         try {
-          res = await fetch(url, { signal: controller ? controller.signal : signal });
+          json = await fetchJsonWithPerfCache(url, {
+            signal: controller ? controller.signal : signal,
+            cacheKey: `openlib:${url}`
+          });
         } finally {
           if (timeoutId) clearTimeout(timeoutId);
           if (signal && onAbort) signal.removeEventListener('abort', onAbort);
         }
-        if (!res || !res.ok) {
+        if (!json) {
           return attachFallbackKnown([]);
         }
-
-        const json = await res.json();
         const docs = Array.isArray(json.docs) ? json.docs : [];
         const seenTitles = new Set();
         const mapped = shuffleArray(docs).map((doc, idx) => {
@@ -4916,9 +5076,8 @@
         const query = shuffleArray(POPULAR_MUSIC_QUERIES)[0] || 'top hits';
         const limit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 24);
         const url = `/api/music/search?q=${encodeURIComponent(query)}&limit=${limit}&market=US`;
-        const res = await fetch(url, { signal });
-        if (!res.ok) return [];
-        const json = await res.json();
+        const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `music:${url}` });
+        if (!json) return [];
         const rows = Array.isArray(json.results) ? json.results : [];
         const seen = new Set();
         const deduped = [];
@@ -4958,6 +5117,7 @@
       const channels = getHomeChannels();
       const cachedFeed = readHomeFeedCache();
       const baselineFeed = cachedFeed || null;
+      const precomputedFeedPromise = loadPrecomputedHomeFeed().catch(() => null);
 
       if (!baselineFeed) {
         const quickFeed = buildInstantFallbackFeed();
@@ -4980,15 +5140,30 @@
           homeTasteWeights = weights;
         }
       }).catch(() => {});
-      const loaded = await Promise.all(channels.map(async (channel) => {
+      const loadedPromise = Promise.all(channels.map(async (channel) => {
         const items = await loadHomeChannelWithTimeout(channel.loader);
         return { ...channel, items };
       }));
+      let mergeBaselineFeed = baselineFeed;
+      const precomputedFeed = await precomputedFeedPromise;
+      if (precomputedFeed) {
+        const precomputedActiveChannels = countActiveHomeChannels(precomputedFeed);
+        const baselineActiveChannels = countActiveHomeChannels(baselineFeed);
+        if (precomputedActiveChannels > baselineActiveChannels) {
+          const precomputedResult = applyHomeFeedMap(precomputedFeed);
+          if (precomputedResult.scoredPool.length) {
+            setStatus('Spotlight ready from precomputed feed. Syncing live data...', false);
+            mergeBaselineFeed = precomputedFeed;
+          }
+        }
+      }
+
+      const loaded = await loadedPromise;
 
       const mergedFeed = {};
       loaded.forEach((channel) => {
         const freshItems = Array.isArray(channel.items) ? channel.items : [];
-        const cachedItems = Array.isArray(baselineFeed?.[channel.key]) ? baselineFeed[channel.key] : [];
+        const cachedItems = Array.isArray(mergeBaselineFeed?.[channel.key]) ? mergeBaselineFeed[channel.key] : [];
         mergedFeed[channel.key] = freshItems.length ? freshItems : cachedItems;
       });
 
@@ -5017,6 +5192,10 @@
       const freshActiveChannels = loaded.filter((channel) => Array.isArray(channel.items) && channel.items.length).length;
       if (freshActiveChannels > 0) {
         writeHomeFeedCache(mergedFeed);
+        writePrecomputedHomeFeedCache(mergedFeed, {
+          savedAt: Date.now(),
+          expiresAt: Date.now() + HOME_PRECOMPUTED_FEED_MAX_AGE_MS
+        });
       }
       if (freshActiveChannels === channelsCount) {
         setStatus(`Live feed ready. ${freshActiveChannels}/${channelsCount} channels live.`, false);

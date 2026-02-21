@@ -45,6 +45,38 @@
             min-height: 100vh;
         }
 
+        body.profile-theme-navy {
+            --bg: #0b1633;
+            --card: #132347;
+            --accent: #f59e0b;
+            --bg-hover: #1a2c5a;
+            --border: rgba(255,255,255,0.1);
+        }
+
+        body.profile-theme-ocean {
+            --bg: #071f2b;
+            --card: #0e3144;
+            --accent: #22d3ee;
+            --bg-hover: #14465f;
+            --border: rgba(198, 241, 255, 0.18);
+        }
+
+        body.profile-theme-sunset {
+            --bg: #2a1328;
+            --card: #44204a;
+            --accent: #fb923c;
+            --bg-hover: #5d2b64;
+            --border: rgba(255, 222, 192, 0.22);
+        }
+
+        body.profile-theme-forest {
+            --bg: #102015;
+            --card: #1c3526;
+            --accent: #84cc16;
+            --bg-hover: #2a4934;
+            --border: rgba(218, 255, 188, 0.2);
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -421,6 +453,21 @@
             width: fit-content;
         }
 
+        .collection-pin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(59, 130, 246, 0.42);
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 9px;
+            margin-top: 6px;
+            width: fit-content;
+        }
+
         .collection-item-rank {
             margin-top: 0;
             display: inline-flex;
@@ -733,6 +780,32 @@
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
+        }
+
+        .profile-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .profile-badge-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            background: rgba(245, 158, 11, 0.14);
+            color: #ffd27a;
+        }
+
+        .profile-badge-chip.manual {
+            border-color: rgba(148, 163, 184, 0.38);
+            background: rgba(148, 163, 184, 0.18);
+            color: #e2e8f0;
         }
 
         /* === VIEWING OTHER PROFILE INDICATOR === */
@@ -2391,6 +2464,12 @@
                 line-height: 1.5;
             }
 
+            .mobile-profile-badges {
+                justify-content: center;
+                margin-top: 2px;
+                margin-bottom: 2px;
+            }
+
             /* Mobile Stats */
             .mobile-stats {
                 display: flex;
@@ -3746,6 +3825,7 @@ header, .top-stripe, .section-nav {
                                 <span id="visitedCountMeta">0 items tracked</span>
                             </div>
                         </div>
+                        <div class="profile-badges" id="profileBadges"></div>
                     </div>
                     
                     <div class="profile-actions">
@@ -4305,6 +4385,7 @@ header, .top-stripe, .section-nav {
             <div class="mobile-profile-bio" id="mobileProfileBio">
                 No bio yet. Tap edit to add one!
             </div>
+            <div class="profile-badges mobile-profile-badges" id="mobileProfileBadges"></div>
         </div>
 
         <!-- Mobile Stats -->
@@ -4819,6 +4900,22 @@ header, .top-stripe, .section-nav {
                         <label class="form-label">Location</label>
                         <input type="text" class="form-input" id="editLocation" placeholder="Your city or region">
                     </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Profile Theme</label>
+                        <select class="form-select" id="editProfileTheme">
+                            <option value="navy">Classic Navy</option>
+                            <option value="ocean">Ocean</option>
+                            <option value="sunset">Sunset</option>
+                            <option value="forest">Forest</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Custom Badges</label>
+                        <input type="text" class="form-input" id="editCustomBadges" placeholder="Comma separated badges (e.g., Collector,Top Critic)">
+                        <small style="color: var(--muted); display: block; margin-top: 4px;">Automatic milestone badges are added based on activity.</small>
+                    </div>
                     
                     <div class="form-group">
                         <label class="form-label">
@@ -5198,6 +5295,26 @@ header, .top-stripe, .section-nav {
             let hasBoundRouteListeners = false;
             const TAB_RENDER_CACHE_TTL_MS = 5 * 60 * 1000;
             const tabRenderCache = new Map();
+            const PREVIEW_ASSET_CACHE_TTL_MS = 10 * 60 * 1000;
+            const previewAssetCache = new Map();
+            const PROFILE_THEME_KEYS = ['navy', 'ocean', 'sunset', 'forest'];
+            const PROFILE_THEME_META = {
+                navy: { themeColor: '#0b1633' },
+                ocean: { themeColor: '#071f2b' },
+                sunset: { themeColor: '#2a1328' },
+                forest: { themeColor: '#102015' }
+            };
+            const PROFILE_PIN_TABLE = 'profile_pinned_lists';
+            let manualProfileBadges = [];
+            let profileStatsSnapshot = {
+                visitedCount: 0,
+                followersCount: 0,
+                listsCount: 0,
+                reviewsCount: 0,
+                followingCount: 0
+            };
+            let pinnedListsMap = new Map();
+            let pinnedListsOwnerId = '';
             const VALID_PROFILE_TABS = new Set(
                 ENABLE_RESTAURANTS
                     ? ['restaurants', 'movies', 'tv', 'games', 'books', 'music', 'community']
@@ -5480,6 +5597,8 @@ header, .top-stripe, .section-nav {
             // ===== PROFILE MANAGEMENT =====
             async function loadProfile() {
                 tabRenderCache.clear();
+                pinnedListsMap = new Map();
+                pinnedListsOwnerId = '';
                 targetUserId = getUserIdFromUrl();
                 isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
 
@@ -5488,6 +5607,8 @@ header, .top-stripe, .section-nav {
                 } else {
                     await loadOtherUserProfile();
                 }
+                const pinOwnerId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                await ensurePinnedCollectionsLoaded(pinOwnerId);
             }
 
             // 3. FIX: Optimize loadProfile function (faster loading)
@@ -5643,8 +5764,105 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            function normalizeProfileTheme(themeValue) {
+                const safeTheme = String(themeValue || '').trim().toLowerCase();
+                return PROFILE_THEME_KEYS.includes(safeTheme) ? safeTheme : 'navy';
+            }
+
+            function normalizeProfileBadges(rawBadges) {
+                const source = Array.isArray(rawBadges)
+                    ? rawBadges
+                    : String(rawBadges || '')
+                        .split(',')
+                        .map((entry) => entry.trim())
+                        .filter(Boolean);
+                const unique = [];
+                const seen = new Set();
+                source.forEach((entry) => {
+                    const label = String(entry || '').trim().slice(0, 24);
+                    const key = label.toLowerCase();
+                    if (!label || seen.has(key)) return;
+                    seen.add(key);
+                    unique.push(label);
+                });
+                return unique.slice(0, 10);
+            }
+
+            function applyProfileTheme(themeValue) {
+                const theme = normalizeProfileTheme(themeValue);
+                PROFILE_THEME_KEYS.forEach((key) => {
+                    document.body.classList.remove(`profile-theme-${key}`);
+                });
+                document.body.classList.add(`profile-theme-${theme}`);
+                const meta = document.querySelector('meta[name="theme-color"]');
+                const themeColor = PROFILE_THEME_META[theme]?.themeColor || '#0b1633';
+                if (meta) meta.setAttribute('content', themeColor);
+                return theme;
+            }
+
+            function getAutoProfileBadges(stats) {
+                const badgeList = [];
+                if ((stats?.listsCount || 0) >= 10) {
+                    badgeList.push({ label: 'Master Curator', icon: 'fa-layer-group', manual: false });
+                }
+                if ((stats?.followersCount || 0) >= 25) {
+                    badgeList.push({ label: 'Rising Creator', icon: 'fa-chart-line', manual: false });
+                }
+                if ((stats?.visitedCount || 0) >= 50) {
+                    badgeList.push({ label: 'Explorer', icon: 'fa-compass', manual: false });
+                }
+                if ((stats?.followingCount || 0) >= 20) {
+                    badgeList.push({ label: 'Connector', icon: 'fa-link', manual: false });
+                }
+                return badgeList;
+            }
+
+            function renderProfileBadges(profile = userProfile) {
+                const desktopEl = document.getElementById('profileBadges');
+                const mobileEl = document.getElementById('mobileProfileBadges');
+                if (!desktopEl && !mobileEl) return;
+
+                const autoBadges = getAutoProfileBadges(profileStatsSnapshot);
+                const manual = normalizeProfileBadges(profile?.profile_badges || manualProfileBadges)
+                    .map((label) => ({ label, icon: 'fa-award', manual: true }));
+
+                const combined = [];
+                const seen = new Set();
+                [...autoBadges, ...manual].forEach((badge) => {
+                    const label = String(badge?.label || '').trim();
+                    const key = label.toLowerCase();
+                    if (!label || seen.has(key)) return;
+                    seen.add(key);
+                    combined.push({
+                        label,
+                        icon: String(badge.icon || 'fa-award'),
+                        manual: !!badge.manual
+                    });
+                });
+
+                const html = combined
+                    .slice(0, 10)
+                    .map((badge) => `
+                        <span class="profile-badge-chip ${badge.manual ? 'manual' : 'auto'}">
+                            <i class="fas ${badge.icon}"></i>
+                            ${escapeHtml(badge.label)}
+                        </span>
+                    `)
+                    .join('');
+
+                if (desktopEl) desktopEl.innerHTML = html;
+                if (mobileEl) mobileEl.innerHTML = html;
+            }
+
             function updateProfileUI(profile = userProfile) {
                 const isMobile = window.innerWidth <= 768;
+                const resolvedTheme = applyProfileTheme(profile?.profile_theme || 'navy');
+                manualProfileBadges = normalizeProfileBadges(profile?.profile_badges || []);
+                if (profile && typeof profile === 'object') {
+                    profile.profile_theme = resolvedTheme;
+                    profile.profile_badges = [...manualProfileBadges];
+                }
+                renderProfileBadges(profile);
                 
                 if (isMobile) {
                     document.getElementById('mobileTopBarTitle').textContent = 
@@ -5948,6 +6166,13 @@ header, .top-stripe, .section-nav {
 
             function updateStatsUI(visitedCount, followersCount, listsCount, reviewsCount, followingCount = 0) {
                 const isMobile = window.innerWidth <= 768;
+                profileStatsSnapshot = {
+                    visitedCount: Number(visitedCount || 0),
+                    followersCount: Number(followersCount || 0),
+                    listsCount: Number(listsCount || 0),
+                    reviewsCount: Number(reviewsCount || 0),
+                    followingCount: Number(followingCount || 0)
+                };
                 
                 if (isMobile) {
                     document.getElementById('mobileVisitedCount').textContent = visitedCount;
@@ -5969,6 +6194,7 @@ header, .top-stripe, .section-nav {
                 const summaryText = `${followersCount} followers · ${followingCount} following`;
                 if (desktopMeta) desktopMeta.textContent = summaryText;
                 if (mobileMeta) mobileMeta.textContent = summaryText;
+                renderProfileBadges();
             }
 
             function updateFollowBadges(followersCount) {
@@ -7995,6 +8221,156 @@ header, .top-stripe, .section-nav {
                 tabRenderCache.set(getTabRenderCacheKey(tabName), Date.now());
             }
 
+            function resolveCollectionListType(contentType, list = null) {
+                if (contentType === 'restaurant') {
+                    return list?.is_default ? 'default' : 'custom';
+                }
+                const rawType = String(list?.type || '').trim().toLowerCase();
+                if (rawType === 'default' || rawType === 'custom') return rawType;
+                return 'custom';
+            }
+
+            function getPinnedCollectionKey(contentType, listId, listType = 'custom') {
+                const safeType = String(contentType || '').trim().toLowerCase();
+                const safeListId = String(listId || '').trim();
+                const safeListType = String(listType || '').trim().toLowerCase() || 'custom';
+                if (!safeType || !safeListId) return '';
+                return `${safeType}:${safeListType}:${safeListId}`;
+            }
+
+            async function ensurePinnedCollectionsLoaded(ownerId) {
+                const safeOwnerId = String(ownerId || '').trim();
+                if (!safeOwnerId || pinnedListsOwnerId === safeOwnerId) return;
+                pinnedListsMap = new Map();
+                pinnedListsOwnerId = '';
+                try {
+                    const { data, error } = await supabase
+                        .from(PROFILE_PIN_TABLE)
+                        .select('media_type, list_id, list_type, sort_order')
+                        .eq('user_id', safeOwnerId)
+                        .order('sort_order', { ascending: true });
+                    if (error) throw error;
+                    (data || []).forEach((row) => {
+                        const key = getPinnedCollectionKey(row.media_type, row.list_id, row.list_type);
+                        if (!key) return;
+                        pinnedListsMap.set(key, {
+                            sort_order: Number(row.sort_order || 0)
+                        });
+                    });
+                    pinnedListsOwnerId = safeOwnerId;
+                } catch (error) {
+                    const code = String(error?.code || '').trim();
+                    if (code !== '42P01') {
+                        console.error('Error loading pinned collections:', error);
+                    }
+                }
+            }
+
+            function applyPinnedListSorting(contentType, lists = []) {
+                if (!Array.isArray(lists) || !lists.length) return [];
+                const normalizedType = String(contentType || '').toLowerCase();
+                return lists
+                    .map((list, index) => {
+                        const listType = resolveCollectionListType(normalizedType, list);
+                        const key = getPinnedCollectionKey(normalizedType, list?.id, listType);
+                        const pinMeta = key ? pinnedListsMap.get(key) : null;
+                        return {
+                            ...list,
+                            __sourceIndex: index,
+                            __pinOrder: Number(pinMeta?.sort_order ?? Number.MAX_SAFE_INTEGER),
+                            __isPinned: !!pinMeta
+                        };
+                    })
+                    .sort((a, b) => {
+                        if (a.__isPinned !== b.__isPinned) return a.__isPinned ? -1 : 1;
+                        if (a.__isPinned && b.__isPinned && a.__pinOrder !== b.__pinOrder) {
+                            return a.__pinOrder - b.__pinOrder;
+                        }
+                        return a.__sourceIndex - b.__sourceIndex;
+                    })
+                    .map(({ __sourceIndex, __pinOrder, __isPinned, ...rest }) => rest);
+            }
+
+            async function rerenderCollectionTabForType(contentType) {
+                if (contentType === 'restaurant') {
+                    await renderRestaurants();
+                    return;
+                }
+                if (contentType === 'movie') {
+                    await renderMovies();
+                    return;
+                }
+                if (contentType === 'tv') {
+                    await renderTvShows();
+                    return;
+                }
+                if (contentType === 'game') {
+                    await renderGames();
+                    return;
+                }
+                if (contentType === 'book') {
+                    await renderBooks();
+                    return;
+                }
+                if (contentType === 'music') {
+                    await renderMusic();
+                }
+            }
+
+            async function togglePinnedCollection(listId, contentType, listType = 'custom') {
+                if (!isViewingOwnProfile) return;
+                const safeListId = String(listId || '').trim();
+                const safeType = String(contentType || '').trim().toLowerCase();
+                const safeListType = String(listType || 'custom').trim().toLowerCase() || 'custom';
+                if (!safeListId || !safeType) return;
+
+                const key = getPinnedCollectionKey(safeType, safeListId, safeListType);
+                const existing = pinnedListsMap.get(key);
+                try {
+                    if (existing) {
+                        const { error } = await supabase
+                            .from(PROFILE_PIN_TABLE)
+                            .delete()
+                            .eq('user_id', currentUser.id)
+                            .eq('media_type', safeType)
+                            .eq('list_id', safeListId)
+                            .eq('list_type', safeListType);
+                        if (error) throw error;
+                        pinnedListsMap.delete(key);
+                        showToast('Unpinned collection', 'info');
+                    } else {
+                        const maxOrder = Array.from(pinnedListsMap.values())
+                            .map((entry) => Number(entry?.sort_order || 0))
+                            .reduce((max, value) => (value > max ? value : max), 0);
+                        const nextOrder = maxOrder + 1;
+                        const payload = {
+                            user_id: currentUser.id,
+                            media_type: safeType,
+                            list_id: safeListId,
+                            list_type: safeListType,
+                            sort_order: nextOrder
+                        };
+                        const { error } = await supabase
+                            .from(PROFILE_PIN_TABLE)
+                            .upsert(payload, { onConflict: 'user_id,media_type,list_id,list_type' });
+                        if (error) throw error;
+                        pinnedListsMap.set(key, { sort_order: nextOrder });
+                        showToast('Pinned collection to top', 'success');
+                    }
+
+                    tabRenderCache.delete(getTabRenderCacheKey(getTabForCollectionType(safeType)));
+                    await rerenderCollectionTabForType(safeType);
+                } catch (error) {
+                    const code = String(error?.code || '').trim();
+                    if (code === '42P01') {
+                        showToast('Pinned lists table missing. Run the new SQL migration.', 'warning');
+                        return;
+                    }
+                    console.error('Error toggling pinned collection:', error);
+                    showToast('Could not update pin state', 'error');
+                }
+            }
+
             function bindRouteListeners() {
                 if (hasBoundRouteListeners) return;
                 hasBoundRouteListeners = true;
@@ -9762,6 +10138,7 @@ header, .top-stripe, .section-nav {
                 const renderToken = ++renderRestaurantsToken;
 
                 try {
+                    await ensurePinnedCollectionsLoaded(userId);
                     const { data: listsData, error } = await supabase
                         .from('lists')
                         .select('*')
@@ -9825,6 +10202,7 @@ header, .top-stripe, .section-nav {
                         if (aRank !== bRank) return aRank - bRank;
                         return new Date(b.created_at) - new Date(a.created_at);
                     });
+                    lists = applyPinnedListSorting('restaurant', lists);
 
                     const listIds = lists.map(list => list.id).filter(Boolean);
                     const { data: allListItems } = listIds.length
@@ -9871,6 +10249,7 @@ header, .top-stripe, .section-nav {
                 const renderToken = ++renderMoviesToken;
 
                 try {
+                    await ensurePinnedCollectionsLoaded(userId);
                     const defaultLists = [
                         { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Movies you love', type: 'default' },
                         { id: 'watched', title: 'Watched', icon: 'check', description: 'Movies you watched', type: 'default' },
@@ -9911,7 +10290,7 @@ header, .top-stripe, .section-nav {
                         list.type = 'custom';
                     }
 
-                    const allLists = [...defaultLists, ...customLists];
+                    const allLists = applyPinnedListSorting('movie', [...defaultLists, ...customLists]);
 
                     if (allLists.length === 0) {
                         grid.innerHTML = `
@@ -9956,6 +10335,7 @@ header, .top-stripe, .section-nav {
                 const renderToken = ++renderTvToken;
 
                 try {
+                    await ensurePinnedCollectionsLoaded(userId);
                     const defaultLists = [
                         { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Shows you love', type: 'default' },
                         { id: 'watched', title: 'Watched', icon: 'check', description: 'Shows you watched', type: 'default' },
@@ -9996,7 +10376,7 @@ header, .top-stripe, .section-nav {
                         list.type = 'custom';
                     }
 
-                    const allLists = [...defaultLists, ...customLists];
+                    const allLists = applyPinnedListSorting('tv', [...defaultLists, ...customLists]);
 
                     if (allLists.length === 0) {
                         grid.innerHTML = `
@@ -10041,6 +10421,7 @@ header, .top-stripe, .section-nav {
                 const renderToken = ++renderGamesToken;
 
                 try {
+                    await ensurePinnedCollectionsLoaded(userId);
                     const defaultLists = [
                         { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Games you love', type: 'default' },
                         { id: 'watched', title: 'Played', icon: 'check', description: 'Games you played', type: 'default' },
@@ -10091,7 +10472,7 @@ header, .top-stripe, .section-nav {
                         list.type = 'custom';
                     }
 
-                    const allLists = [...defaultLists, ...customLists];
+                    const allLists = applyPinnedListSorting('game', [...defaultLists, ...customLists]);
 
                     if (allLists.length === 0) {
                         grid.innerHTML = `
@@ -10198,6 +10579,7 @@ header, .top-stripe, .section-nav {
                 const renderToken = ++renderBooksToken;
 
                 try {
+                    await ensurePinnedCollectionsLoaded(userId);
                     const defaultLists = [
                         { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Books you love', type: 'default' },
                         { id: 'read', title: 'Read', icon: 'check', description: 'Books you finished', type: 'default' },
@@ -10260,7 +10642,7 @@ header, .top-stripe, .section-nav {
                         ));
                     }
 
-                    const allLists = [...defaultLists, ...customLists];
+                    const allLists = applyPinnedListSorting('book', [...defaultLists, ...customLists]);
                     if (!allLists.length) {
                         grid.innerHTML = `
                             <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
@@ -10301,6 +10683,7 @@ header, .top-stripe, .section-nav {
                 const renderToken = ++renderMusicToken;
 
                 try {
+                    await ensurePinnedCollectionsLoaded(userId);
                     const defaultLists = [
                         { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Tracks you love', type: 'default' },
                         { id: 'listened', title: 'Listened', icon: 'check', description: 'Tracks you already played', type: 'default' },
@@ -10365,7 +10748,7 @@ header, .top-stripe, .section-nav {
                         ));
                     }
 
-                    const allLists = [...defaultLists, ...customLists];
+                    const allLists = applyPinnedListSorting('music', [...defaultLists, ...customLists]);
                     if (!allLists.length) {
                         grid.innerHTML = `
                             <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
@@ -10409,9 +10792,7 @@ header, .top-stripe, .section-nav {
                             : (contentType === 'game'
                                 ? (list.gameIds || [])
                                 : (contentType === 'book' ? (list.bookIds || []) : (list.trackIds || [])))));
-                const resolvedListType = contentType === 'restaurant'
-                    ? (list.is_default ? 'default' : 'custom')
-                    : (list.type || 'default');
+                const resolvedListType = resolveCollectionListType(contentType, list);
                 const routeListId = String(list.id || '');
                 const { tierMeta, orderedIds } = await resolveTierOrderedIds(contentType, list, routeListId, itemIds, {
                     listType: resolvedListType,
@@ -10419,8 +10800,13 @@ header, .top-stripe, .section-nav {
                 });
                 const count = orderedIds.length;
                 const isCustom = contentType === 'restaurant' ? !list.is_default : list.type === 'custom';
+                const pinKey = getPinnedCollectionKey(contentType, routeListId, resolvedListType);
+                const isPinned = !!pinnedListsMap.get(pinKey);
                 const tierBadgeHtml = (isCustom && tierMeta.isTier)
                     ? `<div class="tier-list-badge"><i class="fas fa-layer-group"></i> Tier List</div>`
+                    : '';
+                const pinBadgeHtml = isPinned
+                    ? `<div class="collection-pin-badge"><i class="fas fa-thumbtack"></i> Pinned</div>`
                     : '';
                 const routeListType = String(resolvedListType || '');
                 const safeListId = routeListId.replace(/'/g, "\\'");
@@ -10453,18 +10839,29 @@ header, .top-stripe, .section-nav {
                     }
                 }
 
-                const kebabHtml = (isViewingOwnProfile && isCustom) ? `
+                const canManageCollection = isViewingOwnProfile && isCustom;
+                const canPinCollection = isViewingOwnProfile;
+                const pinActionLabel = isPinned ? 'Unpin' : 'Pin to Top';
+                const pinActionIcon = isPinned ? 'fa-thumbtack-slash' : 'fa-thumbtack';
+                const kebabHtml = (canManageCollection || canPinCollection) ? `
                     <div class="collection-card-actions">
                         <button class="collection-kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleCollectionMenu('${list.id}', '${contentType}')">
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <div class="collection-dropdown" id="collection-${contentType}-${list.id}">
-                            <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.editCollection('${list.id}', '${contentType}')">
-                                <i class="fas fa-edit"></i> Edit
-                            </div>
-                            <div class="collection-dropdown-item danger" onclick="event.stopPropagation(); ProfileManager.deleteCollection('${list.id}', '${contentType}')">
-                                <i class="fas fa-trash"></i> Delete
-                            </div>
+                            ${canPinCollection ? `
+                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.togglePinnedCollection('${safeListId}', '${contentType}', '${safeListType}')">
+                                    <i class="fas ${pinActionIcon}"></i> ${pinActionLabel}
+                                </div>
+                            ` : ''}
+                            ${canManageCollection ? `
+                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.editCollection('${safeListId}', '${contentType}')">
+                                    <i class="fas fa-edit"></i> Edit
+                                </div>
+                                <div class="collection-dropdown-item danger" onclick="event.stopPropagation(); ProfileManager.deleteCollection('${safeListId}', '${contentType}')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 ` : '';
@@ -10478,6 +10875,7 @@ header, .top-stripe, .section-nav {
                                 <div class="collection-card-title">${list.title}</div>
                                 <div class="collection-card-count">${countLabel}</div>
                                 ${tierBadgeHtml}
+                                ${pinBadgeHtml}
                             </div>
                         </div>
                     </div>
@@ -10502,47 +10900,93 @@ header, .top-stripe, .section-nav {
                 return card;
             }
 
+            function getPreviewAssetCacheKey(contentType, id) {
+                return `${String(contentType || '').toLowerCase()}:${String(id || '').trim()}`;
+            }
+
+            function readPreviewAssetCache(contentType, id) {
+                const key = getPreviewAssetCacheKey(contentType, id);
+                const entry = previewAssetCache.get(key);
+                if (!entry) return null;
+                if ((Date.now() - Number(entry.savedAt || 0)) > PREVIEW_ASSET_CACHE_TTL_MS) {
+                    previewAssetCache.delete(key);
+                    return null;
+                }
+                return String(entry.url || '').trim() || null;
+            }
+
+            function writePreviewAssetCache(contentType, id, url) {
+                const safeUrl = String(url || '').trim();
+                if (!safeUrl) return;
+                const key = getPreviewAssetCacheKey(contentType, id);
+                previewAssetCache.set(key, {
+                    url: safeUrl,
+                    savedAt: Date.now()
+                });
+            }
+
             async function getPreviewItems(ids, contentType) {
-                if (contentType === 'restaurant') {
-                    return Promise.all(ids.map(async id => {
-                        const restaurant = restaurants.find(r => String(r.id || '') === String(id || ''));
-                        return restaurant?.image ? `images/${restaurant.image}` : null;
-                    }));
+                const normalizedIds = Array.isArray(ids) ? ids.map((id) => String(id || '').trim()).filter(Boolean) : [];
+                if (!normalizedIds.length) return [];
+
+                const urls = normalizedIds.map((id) => readPreviewAssetCache(contentType, id));
+                const missingIds = normalizedIds.filter((id, index) => !urls[index]);
+
+                if (missingIds.length) {
+                    if (contentType === 'restaurant') {
+                        missingIds.forEach((id) => {
+                            const restaurant = restaurants.find((r) => String(r.id || '') === String(id || ''));
+                            const imageUrl = restaurant?.image ? `images/${restaurant.image}` : null;
+                            if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
+                        });
+                    } else if (contentType === 'book') {
+                        const { data } = await supabase
+                            .from('books')
+                            .select('id, thumbnail')
+                            .in('id', missingIds);
+                        (data || []).forEach((row) => {
+                            const id = String(row.id || '').trim();
+                            const imageUrl = row.thumbnail || FALLBACK_BOOK_IMAGE;
+                            writePreviewAssetCache(contentType, id, imageUrl);
+                        });
+                    } else if (contentType === 'music') {
+                        const { data } = await supabase
+                            .from('tracks')
+                            .select('id, image_url')
+                            .in('id', missingIds);
+                        (data || []).forEach((row) => {
+                            const id = String(row.id || '').trim();
+                            const imageUrl = row.image_url || 'images/logo.png';
+                            writePreviewAssetCache(contentType, id, imageUrl);
+                        });
+                    } else if (contentType === 'game') {
+                        await Promise.all(missingIds.map(async (id) => {
+                            const game = await fetchGameDetails(id);
+                            const imageUrl = game?.cover ? String(game.cover).trim() : null;
+                            if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
+                        }));
+                    } else if (contentType === 'tv') {
+                        await Promise.all(missingIds.map(async (id) => {
+                            const tv = await fetchTvDetails(id);
+                            const imageUrl = tv?.poster_path ? `${TMDB_POSTER}${tv.poster_path}` : null;
+                            if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
+                        }));
+                    } else {
+                        await Promise.all(missingIds.map(async (id) => {
+                            const movie = await fetchMovieDetails(id);
+                            const imageUrl = movie?.poster_path ? `${TMDB_POSTER}${movie.poster_path}` : null;
+                            if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
+                        }));
+                    }
                 }
-                if (contentType === 'book') {
-                    const { data } = await supabase
-                        .from('books')
-                        .select('id, thumbnail')
-                        .in('id', ids);
-                    const fallbackMap = new Map();
-                    (data || []).forEach(row => fallbackMap.set(row.id, row.thumbnail || null));
-                    return ids.map(id => fallbackMap.get(id) || FALLBACK_BOOK_IMAGE);
-                }
-                if (contentType === 'music') {
-                    const { data } = await supabase
-                        .from('tracks')
-                        .select('id, image_url')
-                        .in('id', ids);
-                    const imageMap = new Map();
-                    (data || []).forEach((row) => imageMap.set(String(row.id || ''), row.image_url || null));
-                    return ids.map((id) => imageMap.get(String(id || '')) || 'images/logo.png');
-                }
-                if (contentType === 'game') {
-                    return Promise.all(ids.map(async id => {
-                        const game = await fetchGameDetails(id);
-                        return game?.cover ? String(game.cover).trim() : null;
-                    }));
-                }
-                if (contentType === 'tv') {
-                    return Promise.all(ids.map(async id => {
-                        const tv = await fetchTvDetails(id);
-                        return tv?.poster_path ? `${TMDB_POSTER}${tv.poster_path}` : null;
-                    }));
-                }
-                return Promise.all(ids.map(async id => {
-                    const movie = await fetchMovieDetails(id);
-                    return movie?.poster_path ? `${TMDB_POSTER}${movie.poster_path}` : null;
-                }));
+
+                return normalizedIds.map((id) => {
+                    const cached = readPreviewAssetCache(contentType, id);
+                    if (cached) return cached;
+                    if (contentType === 'book') return FALLBACK_BOOK_IMAGE;
+                    if (contentType === 'music') return 'images/logo.png';
+                    return null;
+                });
             }
 
             async function showCollectionDetail(listId, contentType, listType) {
@@ -12280,6 +12724,10 @@ header, .top-stripe, .section-nav {
                         document.getElementById('editUsername').value = userProfile.username || '';
                         document.getElementById('editBio').value = userProfile.bio || '';
                         document.getElementById('editLocation').value = userProfile.location || '';
+                        const themeInput = document.getElementById('editProfileTheme');
+                        if (themeInput) themeInput.value = normalizeProfileTheme(userProfile.profile_theme);
+                        const badgesInput = document.getElementById('editCustomBadges');
+                        if (badgesInput) badgesInput.value = normalizeProfileBadges(userProfile.profile_badges || []).join(', ');
                         document.getElementById('editIsPrivate').checked = userProfile.is_private || false;
                     }
 
@@ -12764,6 +13212,8 @@ header, .top-stripe, .section-nav {
                 const username = document.getElementById('editUsername')?.value;
                 const bio = document.getElementById('editBio')?.value;
                 const location = document.getElementById('editLocation')?.value;
+                const profileTheme = normalizeProfileTheme(document.getElementById('editProfileTheme')?.value);
+                const customBadges = normalizeProfileBadges(document.getElementById('editCustomBadges')?.value || '');
                 const isPrivate = document.getElementById('editIsPrivate')?.checked || false;
                 
                 if (!displayName || !username) {
@@ -12772,21 +13222,46 @@ header, .top-stripe, .section-nav {
                 }
                 
                 try {
-                    const { error } = await supabase
+                    const updatePayload = {
+                        full_name: displayName,
+                        username: username,
+                        bio: bio,
+                        location: location,
+                        profile_theme: profileTheme,
+                        profile_badges: customBadges,
+                        is_private: isPrivate,
+                        updated_at: new Date().toISOString()
+                    };
+                    let { error } = await supabase
                         .from('user_profiles')
-                        .update({
-                            full_name: displayName,
-                            username: username,
-                            bio: bio,
-                            location: location,
-                            is_private: isPrivate,
-                            updated_at: new Date().toISOString()
-                        })
+                        .update(updatePayload)
                         .eq('id', currentUser.id);
+
+                    if (error && (String(error.message || '').includes('profile_theme') || String(error.message || '').includes('profile_badges'))) {
+                        const fallbackPayload = { ...updatePayload };
+                        delete fallbackPayload.profile_theme;
+                        delete fallbackPayload.profile_badges;
+                        ({ error } = await supabase
+                            .from('user_profiles')
+                            .update(fallbackPayload)
+                            .eq('id', currentUser.id));
+                    }
                     
                     if (error) throw error;
+
+                    userProfile = {
+                        ...(userProfile || {}),
+                        full_name: displayName,
+                        username: username,
+                        bio: bio,
+                        location: location,
+                        profile_theme: profileTheme,
+                        profile_badges: customBadges,
+                        is_private: isPrivate
+                    };
+                    manualProfileBadges = [...customBadges];
                     
-                    updateProfileUI();
+                    updateProfileUI(userProfile);
                     
                     closeModal('editProfileModal');
                     showToast('Profile updated successfully!', 'success');
@@ -12878,6 +13353,7 @@ header, .top-stripe, .section-nav {
                 removeFromCollection,
                 editCollection,
                 deleteCollection,
+                togglePinnedCollection,
                 handleListSubmit,
                 saveAvatar,
                 setRating,
