@@ -2349,12 +2349,7 @@
                 display: flex;
                 background: var(--card);
                 border-bottom: 1px solid var(--border);
-                position: fixed;
-                top: 60px;
-                left: 0;
-                right: 0;
-                width: 100%;
-                z-index: 900;
+                position: static;
                 overflow-x: auto;
                 overflow-y: hidden;
                 -webkit-overflow-scrolling: touch;
@@ -2362,10 +2357,6 @@
                 scroll-padding-inline: 12px;
                 gap: 4px;
                 padding: 0 12px;
-            }
-
-            body.mobile-viewing-other .mobile-tabs {
-                top: 114px;
             }
 
             .mobile-tab {
@@ -2432,12 +2423,8 @@
 
             /* Mobile Content Sections */
             .mobile-content {
-                padding: 74px 16px 80px;
+                padding: 16px;
                 padding-bottom: 80px;
-            }
-
-            body.mobile-viewing-other .mobile-content {
-                padding-top: 128px;
             }
 
             .mobile-section {
@@ -4815,7 +4802,6 @@ header, .top-stripe, .section-nav {
                 if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'inline-flex';
                 if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'inline-flex';
                 if (mobileCreateMusicListBtn) mobileCreateMusicListBtn.style.display = 'inline-flex';
-                document.body.classList.remove('mobile-viewing-other');
 
                 // Load profile - use cached if available
                 if (!userProfile) {
@@ -4866,7 +4852,6 @@ header, .top-stripe, .section-nav {
                 if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'none';
                 if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'none';
                 if (mobileCreateMusicListBtn) mobileCreateMusicListBtn.style.display = 'none';
-                document.body.classList.add('mobile-viewing-other');
 
                 const { data: profile, error } = await supabase
                     .from('user_profiles')
