@@ -527,11 +527,11 @@
 
         .collection-item-remove {
             position: absolute;
-            top: 12px;
-            right: 12px;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 7px;
             background: rgba(239, 68, 68, 0.9);
             color: white;
             border: none;
@@ -541,6 +541,8 @@
             justify-content: center;
             transition: var(--transition);
             opacity: 0;
+            z-index: 6;
+            font-size: 11px;
         }
 
         .collection-item-card:hover .collection-item-remove {
@@ -550,6 +552,10 @@
         @media (max-width: 768px) {
             .collection-item-remove {
                 opacity: 1;
+                top: 6px;
+                right: 6px;
+                width: 26px;
+                height: 26px;
             }
         }
 
@@ -3183,9 +3189,7 @@ header, .top-stripe, .section-nav {
 }
 
 .nav-tabs {
-  position: sticky;
-  top: 10px;
-  z-index: 250;
+  position: static;
   margin-bottom: 14px;
   padding: 6px;
   background: rgba(19, 35, 71, 0.92);
@@ -3263,13 +3267,11 @@ header, .top-stripe, .section-nav {
 }
 
 .collection-card-preview {
-  display: flex;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
   padding: 0;
   background: transparent;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
   margin-bottom: 8px;
 }
 
@@ -3278,19 +3280,34 @@ header, .top-stripe, .section-nav {
 }
 
 .collection-preview-item {
-  flex: 0 0 auto;
-  width: 58px;
+  width: 100%;
   aspect-ratio: 2 / 3;
-  border-radius: 7px;
+  border-radius: 8px;
+  position: relative;
 }
 
 .collection-preview-item.is-landscape {
-  width: 82px;
+  width: 100%;
   aspect-ratio: 16 / 10;
 }
 
 .collection-preview-item img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+}
+
+.collection-preview-overflow {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(11, 22, 51, 0.72);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  backdrop-filter: blur(1px);
 }
 
 .collection-card-footer {
@@ -3377,11 +3394,10 @@ header, .top-stripe, .section-nav {
 }
 
 .collection-items-grid .collection-item-remove {
-  opacity: 1;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
 }
 
 .collection-items-list .collection-item-card {
@@ -3442,16 +3458,10 @@ header, .top-stripe, .section-nav {
   }
 
   .mobile-tabs {
-    position: sticky;
-    top: 60px;
-    z-index: 940;
+    position: static;
     background: rgba(19, 35, 71, 0.95);
     backdrop-filter: blur(8px);
     border-top: 1px solid var(--border);
-  }
-
-  body.mobile-viewing-other .mobile-tabs {
-    top: 99px;
   }
 
   .mobile-tab {
@@ -3497,12 +3507,8 @@ header, .top-stripe, .section-nav {
     font-size: 14px;
   }
 
-  .collection-preview-item {
-    width: 52px;
-  }
-
-  .collection-preview-item.is-landscape {
-    width: 74px;
+  .collection-card-preview {
+    gap: 6px;
   }
 
   .collection-items-grid {
@@ -3659,10 +3665,6 @@ header, .top-stripe, .section-nav {
             <div class="nav-tabs">
                 <div class="nav-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
                     <i class="fas fa-utensils"></i> <span id="restaurantsTabText">Restaurants</span>
-                </div>
-                <div class="nav-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
-                    <i class="fas fa-users"></i> Community
-                    <span class="nav-tab-badge d-none" id="followersBadge">0</span>
                 </div>
                 <div class="nav-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')">
                     <i class="fas fa-film"></i> Movies
@@ -4200,11 +4202,6 @@ header, .top-stripe, .section-nav {
             <div class="mobile-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
                 <i class="fas fa-utensils"></i>
                 <span id="mobileTabRestaurants">Restaurants</span>
-            </div>
-            <div class="mobile-tab" data-tab="community" onclick="ProfileManager.showTab('community')">
-                <i class="fas fa-users"></i>
-                <span>Community</span>
-                <span class="mobile-tab-badge d-none" id="mobileFollowersBadge">0</span>
             </div>
             <div class="mobile-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')">
                 <i class="fas fa-film"></i>
@@ -5778,20 +5775,7 @@ header, .top-stripe, .section-nav {
             }
 
             function updateFollowBadges(followersCount) {
-                const followersBadge = document.getElementById('followersBadge');
-                const mobileFollowersBadge = document.getElementById('mobileFollowersBadge');
                 const followersCountBadge = document.getElementById('followersCountBadge');
-                const followingCountBadge = document.getElementById('followingCountBadge');
-                
-                if (followersBadge) {
-                    followersBadge.textContent = followersCount;
-                    followersBadge.style.display = followersCount > 0 ? 'inline-block' : 'none';
-                }
-                
-                if (mobileFollowersBadge) {
-                    mobileFollowersBadge.textContent = followersCount;
-                    mobileFollowersBadge.style.display = followersCount > 0 ? 'inline-block' : 'none';
-                }
                 
                 if (followersCountBadge) {
                     followersCountBadge.textContent = followersCount;
@@ -9242,7 +9226,7 @@ header, .top-stripe, .section-nav {
                 desktopPairs.forEach(([mainId, detailId]) => {
                     const main = document.getElementById(mainId);
                     const detail = document.getElementById(detailId);
-                    if (main) main.style.display = 'block';
+                    if (main) main.style.display = '';
                     if (detail) {
                         detail.style.display = 'none';
                         detail.classList.remove('active');
@@ -9270,7 +9254,7 @@ header, .top-stripe, .section-nav {
                         const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
                         if (titleEl) titleEl.style.display = '';
                         if (subtitleEl) subtitleEl.style.display = '';
-                        mainSection.style.display = 'block';
+                        mainSection.style.display = '';
                     }
                     if (grid) grid.style.display = '';
                 });
@@ -9331,11 +9315,12 @@ header, .top-stripe, .section-nav {
                         activeSection.classList.add('active');
                     }
                     
-                    const activeTab =
-                        document.querySelector(`.mobile-tab[data-tab="${safeTab}"]`) ||
-                        document.querySelector('.mobile-tab[data-tab="restaurants"]');
+                    const activeTab = document.querySelector(`.mobile-tab[data-tab="${safeTab}"]`);
                     if (activeTab) {
                         activeTab.classList.add('active');
+                    } else if (safeTab !== 'community') {
+                        const fallbackTab = document.querySelector('.mobile-tab[data-tab="restaurants"]');
+                        if (fallbackTab) fallbackTab.classList.add('active');
                     }
                     scrollActiveMobileTabIntoView(safeTab);
                     const swipeHint = document.getElementById('mobileTabsSwipeHint');
@@ -9359,10 +9344,13 @@ header, .top-stripe, .section-nav {
                         btn.classList.remove('active');
                     });
                     
-                    const activeButton =
-                        document.querySelector(`.nav-tab[data-tab="${safeTab}"]`) ||
-                        document.querySelector('.nav-tab[data-tab="restaurants"]');
-                    if (activeButton) activeButton.classList.add('active');
+                    const activeButton = document.querySelector(`.nav-tab[data-tab="${safeTab}"]`);
+                    if (activeButton) {
+                        activeButton.classList.add('active');
+                    } else if (safeTab !== 'community') {
+                        const fallbackButton = document.querySelector('.nav-tab[data-tab="restaurants"]');
+                        if (fallbackButton) fallbackButton.classList.add('active');
+                    }
                     
                     currentTab = safeTab;
                     requestTabRender(safeTab, requestToken);
@@ -10030,21 +10018,27 @@ header, .top-stripe, .section-nav {
                 const safeListType = routeListType.replace(/'/g, "\\'");
                 const countLabel = getCollectionItemLabel(contentType, count);
 
-                const previewItems = await getPreviewItems(itemIds.slice(0, 6), contentType);
+                const previewLimit = 3;
+                const previewItems = await getPreviewItems(itemIds.slice(0, previewLimit), contentType);
                 const previewOrientationClass = getPreviewOrientationClass(contentType);
 
                 let previewHtml = '';
-                for (let i = 0; i < 6; i++) {
+                for (let i = 0; i < previewLimit; i++) {
+                    const overflowHtml = (i === previewLimit - 1 && count > previewLimit)
+                        ? `<div class="collection-preview-overflow">+${count - previewLimit}</div>`
+                        : '';
                     if (previewItems[i]) {
                         previewHtml += `
                             <div class="collection-preview-item ${previewOrientationClass}">
                                 <img src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
+                                ${overflowHtml}
                             </div>
                         `;
                     } else {
                         previewHtml += `
                             <div class="collection-preview-item ${previewOrientationClass}">
                                 <div class="collection-preview-item-empty">${iconGlyph(contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : 'music')))))}</div>
+                                ${overflowHtml}
                             </div>
                         `;
                     }
