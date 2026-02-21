@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y | All Your Interests in One Place</title>
-  <meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, games, books, music, and restaurants." />
+  <meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, games, books, and music." />
   <link rel="canonical" href="https://www.zo2y.com/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Zo2y" />
   <meta property="og:title" content="Zo2y | All Your Interests in One Place" />
-  <meta property="og:description" content="Track favorites, build custom lists, and follow friends across movies, TV, games, books, music, and restaurants." />
+  <meta property="og:description" content="Track favorites, build custom lists, and follow friends across movies, TV, games, books, and music." />
   <meta property="og:url" content="https://www.zo2y.com/" />
   <meta property="og:image" content="https://www.zo2y.com/images/zo2y-search-illustration.png" />
   <meta property="og:image:alt" content="Zo2y illustration with gaming, movies, and TV." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Zo2y | All Your Interests in One Place" />
-  <meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, games, books, music, and restaurants." />
+  <meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, games, books, and music." />
   <meta name="twitter:image" content="https://www.zo2y.com/images/zo2y-search-illustration.png" />
   <script type="application/ld+json">
     {
@@ -1614,7 +1614,6 @@
           <a class="nav-pill" href="games.html">Games</a>
           <a class="nav-pill" href="books.html">Books</a>
           <a class="nav-pill" href="music.html">Music</a>
-          <a class="nav-pill" href="restraunts.html">Restaurants</a>
         </nav>
         <div class="auth-actions">
           <a class="btn" href="login.html" id="loginBtn">Login</a>
@@ -1651,7 +1650,7 @@
     <section class="section">
       <div class="section-head">
         <h2>Culture Stream</h2>
-        <p>One swipeable feed blending movies, TV, games, books, music, and restaurants.</p>
+        <p>One swipeable feed blending movies, TV, games, books, and music.</p>
       </div>
 
       <div class="rail-wrap">
@@ -1664,11 +1663,6 @@
       <div class="section-head">
         <h2>Trending by Category</h2>
         <p>Dive into a lane when you want focused browsing.</p>
-      </div>
-
-      <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-utensils"></i> Restaurants</span><a href="restraunts.html">View all</a></div>
-        <div class="rail" id="restaurantsRail"></div>
       </div>
 
       <div class="rail-wrap">
@@ -1706,7 +1700,6 @@
     <a class="mobile-nav-item" href="games.html" aria-label="Games"><i class="fa-solid fa-gamepad"></i></a>
     <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
     <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
-    <a class="mobile-nav-item" href="restraunts.html" aria-label="Restaurants"><i class="fa-solid fa-utensils"></i></a>
   </nav>
 
   <div id="itemMenuModal" class="menu-modal" aria-hidden="true">
@@ -1760,6 +1753,11 @@
 
   <script src="js/igdb-client.js"></script>
   <script>
+    const ENABLE_RESTAURANTS = false;
+    const HOME_BASE_MEDIA_TYPES = ['movie', 'tv', 'game', 'book', 'music'];
+    const HOME_ACTIVE_MEDIA_TYPES = ENABLE_RESTAURANTS
+      ? ['restaurant', ...HOME_BASE_MEDIA_TYPES]
+      : HOME_BASE_MEDIA_TYPES;
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
     const IGDB_PROXY_BASE = '/api/igdb';
@@ -1855,22 +1853,8 @@
     let homeSpotlightImageToken = 0;
     let homeOnboardingIndex = 0;
     let homeOnboardingUserId = null;
-    let homeTasteWeights = {
-      restaurant: 1,
-      movie: 1,
-      tv: 1,
-      game: 1,
-      book: 1,
-      music: 1
-    };
-    const homeFeedState = {
-      restaurant: [],
-      movie: [],
-      tv: [],
-      game: [],
-      book: [],
-      music: []
-    };
+    let homeTasteWeights = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, 1]));
+    const homeFeedState = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, []]));
     const homeCustomListState = {
       mediaType: null,
       itemId: null,
@@ -1928,7 +1912,7 @@
 
     function supportsHomeLists(mediaType) {
       const type = String(mediaType || '').toLowerCase();
-      return type === 'restaurant' || type === 'movie' || type === 'tv' || type === 'game' || type === 'book' || type === 'music';
+      return HOME_ACTIVE_MEDIA_TYPES.includes(type);
     }
 
     function getMediaListConfig(mediaType) {
@@ -1983,7 +1967,7 @@
           ]
         };
       }
-      if (type === 'restaurant') {
+      if (ENABLE_RESTAURANTS && type === 'restaurant') {
         return {
           customHref: 'restraunts.html',
           rows: [
@@ -2313,14 +2297,7 @@
     }
 
     async function loadTasteWeights() {
-      const weights = {
-        restaurant: 1,
-        movie: 1,
-        tv: 1,
-        game: 1,
-        book: 1,
-        music: 1
-      };
+      const weights = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, 1]));
       if (!homeCurrentUser?.id) return weights;
 
       const client = await ensureHomeSupabase();
@@ -2332,12 +2309,14 @@
           client.from('game_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('book_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('music_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
-          client.from('lists').select('id').eq('user_id', homeCurrentUser.id)
+          ENABLE_RESTAURANTS
+            ? client.from('lists').select('id').eq('user_id', homeCurrentUser.id)
+            : Promise.resolve({ data: [] })
         ]);
 
         const listIds = Array.isArray(listRes?.data) ? listRes.data.map((row) => row.id).filter(Boolean) : [];
         let restaurantCount = 0;
-        if (listIds.length) {
+        if (ENABLE_RESTAURANTS && listIds.length) {
           const { count } = await client
             .from('lists_restraunts')
             .select('id', { count: 'exact', head: true })
@@ -2351,7 +2330,7 @@
           game: Number(gameRes?.count || 0),
           book: Number(bookRes?.count || 0),
           music: Number(musicRes?.count || 0),
-          restaurant: restaurantCount
+          ...(ENABLE_RESTAURANTS ? { restaurant: restaurantCount } : {})
         };
         const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
         if (!total) return weights;
@@ -2949,7 +2928,7 @@
     }
 
     async function primeAllHomeMenuCaches() {
-      const types = ['restaurant', 'movie', 'tv', 'game', 'book', 'music'];
+      const types = [...HOME_ACTIVE_MEDIA_TYPES];
       await Promise.all(types.map((type) => primeHomeMenuCachesForType(type)));
     }
 
@@ -3704,21 +3683,23 @@
       }));
 
       return {
-        restaurant: FALLBACK_RESTAURANTS.map((r, index) => ({
-          mediaType: 'restaurant',
-          itemId: `seed-restaurant-${index + 1}`,
-          title: r.name,
-          subtitle: `${r.category} | ${r.rating}/5`,
-          image: '',
-          logo: '',
-          backgroundImage: '',
-          spotlightImage: '',
-          spotlightMediaImage: '',
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          href: 'restraunts.html',
-          isPlaceholder: true
-        })),
+        ...(ENABLE_RESTAURANTS ? {
+          restaurant: FALLBACK_RESTAURANTS.map((r, index) => ({
+            mediaType: 'restaurant',
+            itemId: `seed-restaurant-${index + 1}`,
+            title: r.name,
+            subtitle: `${r.category} | ${r.rating}/5`,
+            image: '',
+            logo: '',
+            backgroundImage: '',
+            spotlightImage: '',
+            spotlightMediaImage: '',
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            href: 'restraunts.html',
+            isPlaceholder: true
+          }))
+        } : {}),
         movie: makeSeedItems('movie', ['Popular Movies', 'Now in Theaters', 'Award Winners', 'Critics Picks', 'Weekend Watch'], 'movies.html'),
         tv: makeSeedItems('tv', ['Top TV Shows', 'Binge Picks', 'New Seasons', 'Global Hits', 'Fan Favorites'], 'tvshows.html'),
         game: makeSeedItems('game', ['Top Games', 'New Releases', 'Most Played', 'Action Picks', 'Co-op Favorites'], 'games.html'),
@@ -3744,7 +3725,7 @@
 
     function getHomeChannels() {
       return [
-        { key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant', landscape: true, restaurantComposite: true } },
+        ...(ENABLE_RESTAURANTS ? [{ key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant', landscape: true, restaurantComposite: true } }] : []),
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' } },
@@ -5098,7 +5079,7 @@
       if (window.initUniversalSearch) {
         window.initUniversalSearch({
           input: '#globalSearch',
-          fallbackRoute: 'restraunts.html'
+          fallbackRoute: 'movies.html'
         });
       }
 

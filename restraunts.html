@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y â€” All Restaurants</title>
+  <script>
+    (function() {
+      window.location.replace('index.html?restaurants=disabled');
+    })();
+  </script>
   
   <!-- OPTIMIZATION: Preconnect to external resources -->
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
@@ -1980,6 +1985,11 @@ header, .top-stripe, .section-nav {
   <script src="/js/mobile-webapp.js" defer></script>
 </head>
 <body>
+  <noscript>
+    <div style="padding:24px;color:#fff;background:#0b1633;font-family:Arial,sans-serif;">
+      Restaurants are temporarily disabled. Open <a href="index.html" style="color:#f59e0b;">Home</a>.
+    </div>
+  </noscript>
   <!-- Guest Banner --></div>
   </div>
 

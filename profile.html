@@ -3743,7 +3743,7 @@ header, .top-stripe, .section-nav {
                             </div>
                             <div class="meta-item">
                                 <i class="fas fa-utensils"></i>
-                                <span id="visitedCountMeta">0 restaurants visited</span>
+                                <span id="visitedCountMeta">0 items tracked</span>
                             </div>
                         </div>
                     </div>
@@ -3772,7 +3772,7 @@ header, .top-stripe, .section-nav {
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-utensils"></i></div>
                     <div class="stat-number" id="visitedCount">0</div>
-                    <div class="stat-label">Restaurants Visited</div>
+                    <div class="stat-label">Items Tracked</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-users"></i></div>
@@ -4311,7 +4311,7 @@ header, .top-stripe, .section-nav {
         <div class="mobile-stats">
             <div class="mobile-stat">
                 <span class="mobile-stat-number" id="mobileVisitedCount">0</span>
-                <span class="mobile-stat-label">Visited</span>
+                <span class="mobile-stat-label">Tracked</span>
             </div>
             <div class="mobile-stat">
                 <span class="mobile-stat-number" id="mobileFollowersCount">0</span>
@@ -4899,7 +4899,6 @@ header, .top-stripe, .section-nav {
             </div>
             <div class="modal-body">
                 <div style="display:grid; gap:10px;">
-                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('restaurants')">Restaurants</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('movies')">Movies</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('tv')">TV Shows</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('games')">Games</button>
@@ -5165,9 +5164,11 @@ header, .top-stripe, .section-nav {
             let targetUser = null;
             let targetUserId = null;
             let isViewingOwnProfile = true;
+            const ENABLE_RESTAURANTS = false;
+            const DEFAULT_PROFILE_TAB = ENABLE_RESTAURANTS ? 'restaurants' : 'movies';
             let restaurants = [];
             let customLists = [];
-            let currentTab = 'restaurants';
+            let currentTab = DEFAULT_PROFILE_TAB;
             let journalFilter = 'all';
             let currentActiveList = null;
             let selectedAvatarIcon = null;
@@ -5197,10 +5198,21 @@ header, .top-stripe, .section-nav {
             let hasBoundRouteListeners = false;
             const TAB_RENDER_CACHE_TTL_MS = 5 * 60 * 1000;
             const tabRenderCache = new Map();
-            const VALID_PROFILE_TABS = new Set(['restaurants', 'movies', 'tv', 'games', 'books', 'music', 'community']);
-            const VALID_COLLECTION_TYPES = new Set(['restaurant', 'movie', 'tv', 'game', 'book', 'music']);
+            const VALID_PROFILE_TABS = new Set(
+                ENABLE_RESTAURANTS
+                    ? ['restaurants', 'movies', 'tv', 'games', 'books', 'music', 'community']
+                    : ['movies', 'tv', 'games', 'books', 'music', 'community']
+            );
+            const VALID_COLLECTION_TYPES = new Set([
+                ...(ENABLE_RESTAURANTS ? ['restaurant'] : []),
+                'movie',
+                'tv',
+                'game',
+                'book',
+                'music'
+            ]);
             const COLLECTION_TO_TAB = {
-                restaurant: 'restaurants',
+                ...(ENABLE_RESTAURANTS ? { restaurant: 'restaurants' } : {}),
                 movie: 'movies',
                 tv: 'tv',
                 game: 'games',
@@ -5239,21 +5251,26 @@ header, .top-stripe, .section-nav {
                     if (window.ListUtils && typeof ListUtils.setTierSyncContext === 'function') {
                         ListUtils.setTierSyncContext(supabase, currentUser.id);
                     }
+
+                    disableRestaurantFeatures();
                     
                     // 5. FIX: Optimized initialization to load faster
                     await loadProfile();
 
                     // Load restaurants in background
-                    loadRestaurants().catch(err => console.error('Restaurant load error:', err));
+                    if (ENABLE_RESTAURANTS) {
+                        loadRestaurants().catch(err => console.error('Restaurant load error:', err));
+                    }
                     
                     // Initialize systems
                     communitySystem = createCommunitySystem();
                     
                     // Initialize list manager and community in background
-                    Promise.all([
-                        listManager.init(),
-                        communitySystem.init()
-                    ]).catch(err => console.error('Initialization error:', err));
+                    const initTasks = [communitySystem.init()];
+                    if (ENABLE_RESTAURANTS) {
+                        initTasks.unshift(listManager.init());
+                    }
+                    Promise.all(initTasks).catch(err => console.error('Initialization error:', err));
                     
                     // 2. FIX: Update setupEventListeners to prevent multiple bindings
                     setupEventListeners();
@@ -5287,6 +5304,40 @@ header, .top-stripe, .section-nav {
             function initializeMobile() {
                 updateMobileStats();
                 setupMobileTabsHint();
+            }
+
+            function disableRestaurantFeatures() {
+                if (ENABLE_RESTAURANTS) return;
+
+                const removeSelectors = [
+                    '.nav-tab[data-tab="restaurants"]',
+                    '#restaurants-tab',
+                    '#restaurant-detail-view',
+                    '#createRestaurantListBtn',
+                    '.mobile-tab[data-tab="restaurants"]',
+                    '#mobileRestaurantsSection',
+                    '#mobileRestaurantDetailSection',
+                    '#mobileCreateRestaurantListBtn',
+                    'button[onclick*="createListForType(\'restaurants\')"]',
+                    '.mobile-nav-item[href="restraunts.html"]',
+                    '.list-icon-option[data-icon="restaurant"]',
+                    '.edit-list-icon-option[data-icon="restaurant"]'
+                ];
+                removeSelectors.forEach((selector) => {
+                    document.querySelectorAll(selector).forEach((el) => el.remove());
+                });
+
+                const mobileProfileItem = document.querySelector('.mobile-bottom-nav-item[onclick*="showTab(\'restaurants\')"]');
+                if (mobileProfileItem) {
+                    mobileProfileItem.setAttribute('onclick', `ProfileManager.showTab('${DEFAULT_PROFILE_TAB}')`);
+                }
+
+                const desktopVisitedLabel = document.querySelector('.stats-grid .stat-card:first-child .stat-label');
+                if (desktopVisitedLabel) desktopVisitedLabel.textContent = 'Items Tracked';
+                const mobileVisitedLabel = document.querySelector('.mobile-stats .mobile-stat:first-child .mobile-stat-label');
+                if (mobileVisitedLabel) mobileVisitedLabel.textContent = 'Tracked';
+                const visitedMeta = document.getElementById('visitedCountMeta');
+                if (visitedMeta) visitedMeta.textContent = '0 items tracked';
             }
 
             function setupMobileTabsHint() {
@@ -5908,7 +5959,9 @@ header, .top-stripe, .section-nav {
                     document.getElementById('followersCount').textContent = followersCount;
                     document.getElementById('listsCount').textContent = listsCount;
                     document.getElementById('reviewsCount').textContent = reviewsCount;
-                    document.getElementById('visitedCountMeta').textContent = `${visitedCount} restaurants visited`;
+                    document.getElementById('visitedCountMeta').textContent = ENABLE_RESTAURANTS
+                        ? `${visitedCount} restaurants visited`
+                        : `${visitedCount} items tracked`;
                 }
 
                 const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
@@ -7843,14 +7896,28 @@ header, .top-stripe, .section-nav {
                 try {
                     const raw = localStorage.getItem(COLLECTION_VIEW_STORAGE_KEY);
                     const parsed = raw ? JSON.parse(raw) : {};
-                    const base = { restaurant: 'grid', movie: 'grid', tv: 'grid', game: 'grid', book: 'grid', music: 'grid' };
+                    const base = {
+                        ...(ENABLE_RESTAURANTS ? { restaurant: 'grid' } : {}),
+                        movie: 'grid',
+                        tv: 'grid',
+                        game: 'grid',
+                        book: 'grid',
+                        music: 'grid'
+                    };
                     Object.keys(base).forEach((key) => {
                         const mode = parsed?.[key];
                         if (mode === 'grid' || mode === 'list') base[key] = mode;
                     });
                     return base;
                 } catch (_error) {
-                    return { restaurant: 'grid', movie: 'grid', tv: 'grid', game: 'grid', book: 'grid', music: 'grid' };
+                    return {
+                        ...(ENABLE_RESTAURANTS ? { restaurant: 'grid' } : {}),
+                        movie: 'grid',
+                        tv: 'grid',
+                        game: 'grid',
+                        book: 'grid',
+                        music: 'grid'
+                    };
                 }
             }
 
@@ -7870,7 +7937,7 @@ header, .top-stripe, .section-nav {
             }
 
             function getTabForCollectionType(contentType) {
-                return COLLECTION_TO_TAB[String(contentType || '').toLowerCase()] || 'restaurants';
+                return COLLECTION_TO_TAB[String(contentType || '').toLowerCase()] || DEFAULT_PROFILE_TAB;
             }
 
             function getCollectionItemLabel(contentType, count) {
@@ -9528,7 +9595,7 @@ header, .top-stripe, .section-nav {
 
             function normalizeProfileTab(tabName) {
                 const safeTab = String(tabName || '').trim().toLowerCase();
-                return VALID_PROFILE_TABS.has(safeTab) ? safeTab : 'restaurants';
+                return VALID_PROFILE_TABS.has(safeTab) ? safeTab : DEFAULT_PROFILE_TAB;
             }
 
             function resetDetailPanels() {
@@ -9583,7 +9650,7 @@ header, .top-stripe, .section-nav {
                     return;
                 }
                 const handlers = {
-                    restaurants: () => renderRestaurants(),
+                    ...(ENABLE_RESTAURANTS ? { restaurants: () => renderRestaurants() } : {}),
                     movies: () => renderMovies(),
                     games: () => renderGames(),
                     tv: () => renderTvShows(),
@@ -9591,7 +9658,7 @@ header, .top-stripe, .section-nav {
                     music: () => renderMusic(),
                     community: () => showCommunitySection('followers')
                 };
-                const handler = handlers[safeTab] || handlers.restaurants;
+                const handler = handlers[safeTab] || handlers[DEFAULT_PROFILE_TAB] || handlers.movies;
                 Promise.resolve()
                     .then(() => handler())
                     .catch((error) => {
@@ -9630,7 +9697,8 @@ header, .top-stripe, .section-nav {
                     
                     const activeSection =
                         document.getElementById(`mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Section`) ||
-                        document.getElementById('mobileRestaurantsSection');
+                        document.getElementById(`mobile${DEFAULT_PROFILE_TAB.charAt(0).toUpperCase() + DEFAULT_PROFILE_TAB.slice(1)}Section`) ||
+                        document.getElementById('mobileMoviesSection');
                     if (activeSection) {
                         activeSection.style.display = 'block';
                         activeSection.classList.add('active');
@@ -9640,7 +9708,7 @@ header, .top-stripe, .section-nav {
                     if (activeTab) {
                         activeTab.classList.add('active');
                     } else if (safeTab !== 'community') {
-                        const fallbackTab = document.querySelector('.mobile-tab[data-tab="restaurants"]');
+                        const fallbackTab = document.querySelector(`.mobile-tab[data-tab="${DEFAULT_PROFILE_TAB}"]`);
                         if (fallbackTab) fallbackTab.classList.add('active');
                     }
                     scrollActiveMobileTabIntoView(safeTab);
@@ -9658,7 +9726,8 @@ header, .top-stripe, .section-nav {
                     
                     const tabElement =
                         document.getElementById(`${safeTab}-tab`) ||
-                        document.getElementById('restaurants-tab');
+                        document.getElementById(`${DEFAULT_PROFILE_TAB}-tab`) ||
+                        document.getElementById('movies-tab');
                     if (tabElement) {
                         tabElement.classList.add('active');
                     }
@@ -9671,7 +9740,7 @@ header, .top-stripe, .section-nav {
                     if (activeButton) {
                         activeButton.classList.add('active');
                     } else if (safeTab !== 'community') {
-                        const fallbackButton = document.querySelector('.nav-tab[data-tab="restaurants"]');
+                        const fallbackButton = document.querySelector(`.nav-tab[data-tab="${DEFAULT_PROFILE_TAB}"]`);
                         if (fallbackButton) fallbackButton.classList.add('active');
                     }
                     
@@ -12332,6 +12401,11 @@ header, .top-stripe, .section-nav {
                 closeModal('createListTypeModal');
                 const normalized = String(type || '').toLowerCase();
                 if (normalized === 'restaurants') {
+                    if (!ENABLE_RESTAURANTS) {
+                        showToast('Restaurants are temporarily unavailable', 'info');
+                        showTab(DEFAULT_PROFILE_TAB);
+                        return;
+                    }
                     showTab('restaurants');
                     showCreateListModal();
                     return;
