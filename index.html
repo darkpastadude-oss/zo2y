@@ -3812,7 +3812,7 @@
         } : {}),
         movie: makeSeedItems('movie', ['Popular Movies', 'Now in Theaters', 'Award Winners', 'Critics Picks', 'Weekend Watch'], 'movies.html'),
         tv: makeSeedItems('tv', ['Top TV Shows', 'Binge Picks', 'New Seasons', 'Global Hits', 'Fan Favorites'], 'tvshows.html'),
-        game: makeSeedItems('game', ['Top Games', 'New Releases', 'Most Played', 'Action Picks', 'Co-op Favorites'], 'games.html'),
+        game: [],
         music: makeSeedItems('music', ['Global Hits', 'Viral Tracks', 'Fresh Releases', 'Chill Vibes', 'Late Night Mix'], 'music.html'),
         book: FALLBACK_BOOKS.slice(0, 8).map((b, index) => ({
           mediaType: 'book',
@@ -3838,7 +3838,7 @@
         ...(ENABLE_RESTAURANTS ? [{ key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant', landscape: true, restaurantComposite: true } }] : []),
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
-        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 3500 },
+        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 6200 },
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' } },
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' } }
       ];
@@ -4903,54 +4903,65 @@
     }
 
     async function loadGames(signal) {
-      const orderings = shuffleArray(['-added', '-rating', '-released', '-metacritic']).slice(0, 2);
-      const batches = await Promise.all(orderings.map(async (ordering, index) => {
-        const dateRange = index % 2 === 0 ? '2010-01-01,2026-12-31' : '2000-01-01,2026-12-31';
-        const page = randomInt(1, 2);
+      const dateRange = '2000-01-01,2026-12-31';
+      const attempts = shuffleArray(['-rating', '-added', '-released', '-metacritic']).slice(0, 2);
+      const allRows = [];
+
+      for (let index = 0; index < attempts.length; index += 1) {
+        const ordering = attempts[index];
+        const page = index === 0 ? 1 : randomInt(1, 2);
         try {
           const json = await homeIgdbFetch('/games', {
-            page_size: 40,
+            page_size: 48,
             ordering,
             dates: dateRange,
             page
           }, signal);
-          if (Array.isArray(json?.results)) return json.results;
-          if (Array.isArray(json)) return json;
-          return [];
+          const rows = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
+          if (rows.length) allRows.push(...rows);
+          if (allRows.length >= HOME_CHANNEL_TARGET_ITEMS * 2) break;
         } catch (_err) {
-          return [];
+          // Try next ordering before giving up.
         }
-      }));
-      const results = shuffleArray(batches.flat());
-
-      const seen = new Set();
-      const candidates = [];
-      for (const g of results) {
-        const idKey = String(g.id || '').trim();
-        const nameKey = String(g.name || '').trim().toLowerCase();
-        if (!idKey || !nameKey || seen.has(idKey)) continue;
-        if (!g.cover) continue;
-        seen.add(idKey);
-        candidates.push(g);
       }
 
-      const filtered = candidates.slice(0, HOME_CHANNEL_TARGET_ITEMS);
+      const seenIds = new Set();
+      const seenNames = new Set();
+      const candidates = [];
 
-      return filtered.map((g) => {
-        const coverImage = String(g.cover || '').trim();
-        const heroImage = String(g.hero || '').trim();
-        const backgroundImage = heroImage || coverImage || '';
-        const mainImage = coverImage || '';
+      for (const row of allRows) {
+        const idKey = String(row?.id || '').trim();
+        const nameKey = String(row?.name || '').trim().toLowerCase();
+        if (!idKey || !nameKey || seenIds.has(idKey) || seenNames.has(nameKey)) continue;
+
+        const coverImage = String(row?.cover || '').trim();
+        const heroImage = String(row?.hero || '').trim();
+        const backgroundImage = String(row?.background_image || '').trim();
+        const mainImage = coverImage || heroImage || backgroundImage;
+        if (!mainImage) continue;
+
+        seenIds.add(idKey);
+        seenNames.add(nameKey);
+        candidates.push({
+          ...row,
+          _image: mainImage,
+          _bg: heroImage || backgroundImage || coverImage || mainImage,
+          _spotPoster: coverImage || heroImage || backgroundImage || mainImage
+        });
+        if (candidates.length >= HOME_CHANNEL_TARGET_ITEMS) break;
+      }
+
+      return candidates.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((g) => {
         return {
           mediaType: 'game',
           itemId: String(g.id || ''),
           title: g.name || 'Game',
           subtitle: g.released ? g.released.slice(0, 4) : 'Game',
           extra: `${Array.isArray(g.genres) && g.genres.length ? g.genres.slice(0, 2).map(x => x?.name).filter(Boolean).join(' | ') : 'Video Game'}${g.rating ? ` | ${Number(g.rating).toFixed(1)}/5` : ''}`,
-          image: coverImage,
-          backgroundImage,
-          spotlightImage: backgroundImage || coverImage,
-          spotlightMediaImage: coverImage,
+          image: g._image,
+          backgroundImage: g._bg,
+          spotlightImage: g._bg,
+          spotlightMediaImage: g._spotPoster,
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'poster',
           href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html'

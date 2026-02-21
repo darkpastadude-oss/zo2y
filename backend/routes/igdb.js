@@ -1048,6 +1048,7 @@ router.get("/games", async (req, res) => {
     const search = String(req.query.search || "").trim().slice(0, 100);
     const datesRaw = String(req.query.dates || "").trim();
     const { startUnix, endUnix } = parseDatesRange(datesRaw);
+    const rawgGenres = toRawgGenresParam(req.query.genres);
 
     let genreIds = [];
     try {
@@ -1057,25 +1058,81 @@ router.get("/games", async (req, res) => {
     }
     const whereClause = buildWhereClause({ genreIds, startUnix, endUnix });
 
-    const igdbPayload = await fetchIgdbGamesList({
-      page,
-      pageSize,
-      orderingRaw,
-      search,
-      whereClause
-    });
+    let igdbPayload = null;
+    let igdbError = null;
+    if (hasIgdbCredentials()) {
+      try {
+        igdbPayload = await fetchIgdbGamesList({
+          page,
+          pageSize,
+          orderingRaw,
+          search,
+          whereClause
+        });
+      } catch (error) {
+        igdbError = error;
+      }
+    }
 
-    const results = Array.isArray(igdbPayload?.results) ? igdbPayload.results : [];
-    const count = Number(igdbPayload?.count || results.length || 0);
+    const igdbRows = Array.isArray(igdbPayload?.results) ? igdbPayload.results : [];
+    if (igdbRows.length > 0) {
+      return res.json({
+        count: Number(igdbPayload?.count || igdbRows.length || 0),
+        page,
+        page_size: pageSize,
+        results: igdbRows.slice(0, pageSize),
+        sources: {
+          igdb: true,
+          rawg: false
+        }
+      });
+    }
 
-    res.json({
+    let rawgPayload = null;
+    let rawgError = null;
+    if (isRawgEnabled()) {
+      try {
+        rawgPayload = await fetchRawgGamesList({
+          page,
+          pageSize,
+          ordering: orderingRaw,
+          search,
+          dates: datesRaw,
+          genres: rawgGenres
+        });
+      } catch (error) {
+        rawgError = error;
+      }
+    }
+
+    const rawgRows = Array.isArray(rawgPayload?.results) ? rawgPayload.results : [];
+
+    if (!rawgRows.length) {
+      if (igdbError) throw igdbError;
+      if (rawgError) throw rawgError;
+      return res.json({
+        count: 0,
+        page,
+        page_size: pageSize,
+        results: [],
+        sources: {
+          igdb: false,
+          rawg: false
+        }
+      });
+    }
+
+    const results = rawgRows.slice(0, pageSize);
+    const count = Number(rawgPayload?.count || results.length || 0);
+
+    return res.json({
       count,
       page,
       page_size: pageSize,
       results,
       sources: {
-        igdb: true,
-        rawg: false
+        igdb: false,
+        rawg: true
       }
     });
   } catch (error) {
@@ -1089,7 +1146,23 @@ router.get("/games/:id", async (req, res) => {
     if (!Number.isFinite(requestedId) || requestedId <= 0) {
       return res.status(400).json({ message: "Invalid game id." });
     }
+    const rawgId = decodeRawgId(requestedId);
+    if (rawgId) {
+      const rawgPayload = await fetchRawgGameDetailsByRawgId(rawgId);
+      if (rawgPayload) return res.json(rawgPayload);
+    }
+
     const igdbPayload = await fetchIgdbGameDetails(requestedId);
+
+    if (isRawgEnabled()) {
+      try {
+        const rawgPayload = await fetchRawgGameDetailsByName(igdbPayload?.name, igdbPayload?.released);
+        if (rawgPayload) {
+          return res.json(mergeGameDetailRows(igdbPayload, rawgPayload));
+        }
+      } catch (_rawgErr) {}
+    }
+
     return res.json(igdbPayload);
   } catch (error) {
     if (error?.code === "NOT_FOUND") {
