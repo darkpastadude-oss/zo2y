@@ -381,6 +381,8 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            position: relative;
+            padding-bottom: 46px;
         }
 
         @media (max-width: 768px) {
@@ -420,10 +422,13 @@
         }
 
         .collection-item-rank {
-            margin-top: 6px;
+            margin-top: 0;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            position: absolute;
+            left: 0;
+            bottom: 10px;
         }
 
         .collection-item-rank-pill {
@@ -486,9 +491,10 @@
 
         .tier-drag-handle {
             position: absolute;
-            top: 50%;
+            top: auto;
             right: 12px;
-            transform: translateY(-50%);
+            bottom: 10px;
+            transform: none;
             width: 28px;
             height: 28px;
             border: none;
@@ -505,7 +511,7 @@
 
         .tier-drag-handle:hover {
             color: #ffd27a;
-            transform: translateY(-50%) scale(1.08);
+            transform: scale(1.08);
         }
 
         .tier-drag-handle i {
@@ -3452,7 +3458,7 @@ header, .top-stripe, .section-nav {
 }
 
 .collection-items-grid .collection-item-body {
-  padding: 10px;
+  padding: 10px 10px 46px;
   gap: 6px;
 }
 
@@ -3483,7 +3489,7 @@ header, .top-stripe, .section-nav {
 }
 
 .collection-items-list .collection-item-body {
-  padding: 10px 10px 10px 0;
+  padding: 10px 10px 46px 0;
 }
 
 .collection-items-list .collection-item-title {
@@ -3593,7 +3599,7 @@ header, .top-stripe, .section-nav {
   }
 
   .collection-items-grid .collection-item-body {
-    padding: 7px;
+    padding: 7px 7px 42px;
   }
 
   .collection-items-grid .collection-item-title {
