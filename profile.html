@@ -468,6 +468,21 @@
             width: fit-content;
         }
 
+        .collection-collab-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(16, 185, 129, 0.42);
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 9px;
+            margin-top: 6px;
+            width: fit-content;
+        }
+
         .collection-item-rank {
             margin-top: 0;
             display: inline-flex;
@@ -1628,6 +1643,46 @@
             gap: 12px;
             justify-content: flex-end;
             margin-top: 24px;
+        }
+
+        .collab-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .collab-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(11, 22, 51, 0.4);
+            color: var(--white);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 10px;
+        }
+
+        .collab-chip-remove {
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 12px;
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 0;
+        }
+
+        .collab-chip-remove:hover {
+            color: var(--error);
+            background: rgba(239, 68, 68, 0.12);
         }
 
         /* === TOAST NOTIFICATIONS === */
@@ -5046,6 +5101,18 @@ header, .top-stripe, .section-nav {
                         <input type="hidden" id="editMediaListSelectedIcon" value="list">
                     </div>
 
+                    <div class="form-group d-none" id="editMediaCollaboratorsGroup">
+                        <label class="form-label">Collaborators</label>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="text" class="form-input" id="editMediaCollaboratorUsername" placeholder="Username (without @)" style="flex: 1;">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="ProfileManager.addMediaListCollaborator()">
+                                <i class="fas fa-user-plus"></i> Add
+                            </button>
+                        </div>
+                        <div class="collab-list" id="editMediaCollaboratorsList"></div>
+                        <small style="color: var(--muted); display: block; margin-top: 6px;">Only the list owner can manage collaborators.</small>
+                    </div>
+
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('editMediaListModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -5305,6 +5372,28 @@ header, .top-stripe, .section-nav {
                 forest: { themeColor: '#102015' }
             };
             const PROFILE_PIN_TABLE = 'profile_pinned_lists';
+            const LIST_COLLAB_TABLE = 'list_collaborators';
+            const CUSTOM_LIST_TABLES = {
+                movie: 'movie_lists',
+                tv: 'tv_lists',
+                game: 'game_lists',
+                book: 'book_lists',
+                music: 'music_lists'
+            };
+            const MEDIA_ITEM_TABLES = {
+                movie: 'movie_list_items',
+                tv: 'tv_list_items',
+                game: 'game_list_items',
+                book: 'book_list_items',
+                music: 'music_list_items'
+            };
+            const MEDIA_ITEM_FIELDS = {
+                movie: 'movie_id',
+                tv: 'tv_id',
+                game: 'game_id',
+                book: 'book_id',
+                music: 'track_id'
+            };
             let manualProfileBadges = [];
             let profileStatsSnapshot = {
                 visitedCount: 0,
@@ -5315,6 +5404,9 @@ header, .top-stripe, .section-nav {
             };
             let pinnedListsMap = new Map();
             let pinnedListsOwnerId = '';
+            let collaborativeListAccess = new Map();
+            let editingMediaCollaborators = [];
+            let hasWarnedMissingCollaborativeTable = false;
             const VALID_PROFILE_TABS = new Set(
                 ENABLE_RESTAURANTS
                     ? ['restaurants', 'movies', 'tv', 'games', 'books', 'music', 'community']
@@ -5599,6 +5691,7 @@ header, .top-stripe, .section-nav {
                 tabRenderCache.clear();
                 pinnedListsMap = new Map();
                 pinnedListsOwnerId = '';
+                resetCollaborativeListAccess();
                 targetUserId = getUserIdFromUrl();
                 isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
 
@@ -8179,6 +8272,355 @@ header, .top-stripe, .section-nav {
                 return `${count} ${singular}${count === 1 ? '' : 's'}`;
             }
 
+            function getCollaborativeAccessKey(contentType, listId) {
+                const safeType = String(contentType || '').trim().toLowerCase();
+                const safeListId = String(listId || '').trim();
+                if (!safeType || !safeListId) return '';
+                return `${safeType}:${safeListId}`;
+            }
+
+            function resetCollaborativeListAccess() {
+                collaborativeListAccess = new Map();
+            }
+
+            function setCollaborativeAccess(contentType, listId, access = {}) {
+                const key = getCollaborativeAccessKey(contentType, listId);
+                if (!key) return;
+                const ownerUserId = String(access.ownerUserId || '').trim();
+                const isOwner = !!access.isOwner;
+                const canEdit = !!access.canEdit;
+                const isCollaborative = !!access.isCollaborative || (!isOwner && !!access.canEdit);
+                collaborativeListAccess.set(key, {
+                    ownerUserId,
+                    isOwner,
+                    canEdit,
+                    isCollaborative
+                });
+            }
+
+            function getCollaborativeAccess(contentType, listId, list = null) {
+                const key = getCollaborativeAccessKey(contentType, listId);
+                if (key && collaborativeListAccess.has(key)) {
+                    return collaborativeListAccess.get(key);
+                }
+                if (!list || typeof list !== 'object') {
+                    return {
+                        ownerUserId: '',
+                        isOwner: false,
+                        canEdit: false,
+                        isCollaborative: false
+                    };
+                }
+                const currentUserId = String(currentUser?.id || '').trim();
+                const ownerUserId = String(list?.user_id || currentUserId).trim();
+                const isOwner = !!ownerUserId && ownerUserId === currentUserId;
+                return {
+                    ownerUserId,
+                    isOwner,
+                    canEdit: isOwner,
+                    isCollaborative: false
+                };
+            }
+
+            function canEditCustomCollection(contentType, listId, list = null) {
+                if (!isViewingOwnProfile) return false;
+                const access = getCollaborativeAccess(contentType, listId, list);
+                return !!access.canEdit;
+            }
+
+            function canDeleteCustomCollection(contentType, listId, list = null) {
+                if (!isViewingOwnProfile) return false;
+                const access = getCollaborativeAccess(contentType, listId, list);
+                return !!access.isOwner;
+            }
+
+            function canEditCollectionItems(contentType, listId, listType = 'custom', list = null) {
+                if (!isViewingOwnProfile) return false;
+                if (String(listType || '').toLowerCase() === 'default') return true;
+                return canEditCustomCollection(contentType, listId, list);
+            }
+
+            function setCollaborativeAccessForLists(contentType, lists = [], collaboratorMap = new Map()) {
+                const currentUserId = String(currentUser?.id || '').trim();
+                (Array.isArray(lists) ? lists : []).forEach((list) => {
+                    const safeListId = String(list?.id || '').trim();
+                    if (!safeListId) return;
+                    const ownerUserId = String(list?.user_id || currentUserId).trim();
+                    const collaboratorMeta = collaboratorMap.get(safeListId) || null;
+                    const isOwner = !!ownerUserId && ownerUserId === currentUserId;
+                    const canEdit = isOwner || !!collaboratorMeta?.can_edit;
+                    setCollaborativeAccess(contentType, safeListId, {
+                        ownerUserId: ownerUserId || String(collaboratorMeta?.list_owner_id || '').trim(),
+                        isOwner,
+                        canEdit,
+                        isCollaborative: !!collaboratorMeta
+                    });
+                });
+            }
+
+            async function loadCollaborativeCustomLists(contentType, ownerUserId) {
+                const table = CUSTOM_LIST_TABLES[contentType];
+                if (!table) return [];
+                const safeOwnerId = String(ownerUserId || '').trim();
+                if (!safeOwnerId) return [];
+
+                const { data: ownedLists, error: ownedError } = await supabase
+                    .from(table)
+                    .select('*')
+                    .eq('user_id', safeOwnerId)
+                    .order('created_at', { ascending: false });
+                if (ownedError) throw ownedError;
+
+                const merged = [];
+                const byId = new Map();
+                (ownedLists || []).forEach((list) => {
+                    const safeId = String(list?.id || '').trim();
+                    if (!safeId || byId.has(safeId)) return;
+                    const row = { ...list, type: 'custom', __isCollaborative: false };
+                    byId.set(safeId, row);
+                    merged.push(row);
+                });
+
+                const isSelfView = isViewingOwnProfile && safeOwnerId === String(currentUser?.id || '').trim();
+                const collaboratorMap = new Map();
+
+                if (isSelfView) {
+                    const { data: collaboratorRows, error: collaboratorError } = await supabase
+                        .from(LIST_COLLAB_TABLE)
+                        .select('media_type, list_id, list_owner_id, can_edit')
+                        .eq('media_type', contentType)
+                        .eq('collaborator_id', safeOwnerId);
+
+                    if (collaboratorError) {
+                        if (String(collaboratorError?.code || '').trim() !== '42P01') {
+                            console.error('Error loading collaborative lists:', collaboratorError);
+                        } else if (!hasWarnedMissingCollaborativeTable) {
+                            hasWarnedMissingCollaborativeTable = true;
+                            showToast('Collaborative lists require the new SQL migration.', 'warning');
+                        }
+                    } else {
+                        (collaboratorRows || []).forEach((row) => {
+                            const safeListId = String(row?.list_id || '').trim();
+                            if (!safeListId) return;
+                            collaboratorMap.set(safeListId, row);
+                        });
+
+                        const sharedIds = [...collaboratorMap.keys()].filter((id) => !byId.has(id));
+                        if (sharedIds.length) {
+                            const { data: sharedLists, error: sharedError } = await supabase
+                                .from(table)
+                                .select('*')
+                                .in('id', sharedIds);
+
+                            if (sharedError) {
+                                console.error('Error loading shared lists:', sharedError);
+                            } else {
+                                (sharedLists || []).forEach((list) => {
+                                    const safeId = String(list?.id || '').trim();
+                                    if (!safeId || byId.has(safeId)) return;
+                                    const row = {
+                                        ...list,
+                                        type: 'custom',
+                                        __isCollaborative: true
+                                    };
+                                    byId.set(safeId, row);
+                                    merged.push(row);
+                                });
+                            }
+                        }
+                    }
+                }
+
+                setCollaborativeAccessForLists(contentType, merged, collaboratorMap);
+                return merged;
+            }
+
+            async function fetchCustomListAccessRecord(contentType, listId) {
+                const table = CUSTOM_LIST_TABLES[String(contentType || '').toLowerCase()];
+                const safeListId = String(listId || '').trim();
+                if (!table || !safeListId) return null;
+                const { data, error } = await supabase
+                    .from(table)
+                    .select('id, user_id')
+                    .eq('id', safeListId)
+                    .maybeSingle();
+                if (error || !data) return null;
+                const ownerUserId = String(data.user_id || '').trim();
+                const currentUserId = String(currentUser?.id || '').trim();
+                let isCollaborative = false;
+                let canEdit = ownerUserId === currentUserId;
+                if (!canEdit && isViewingOwnProfile) {
+                    const { data: collabRow, error: collabError } = await supabase
+                        .from(LIST_COLLAB_TABLE)
+                        .select('can_edit')
+                        .eq('media_type', String(contentType || '').toLowerCase())
+                        .eq('list_id', safeListId)
+                        .eq('collaborator_id', currentUserId)
+                        .maybeSingle();
+                    if (!collabError && collabRow) {
+                        isCollaborative = true;
+                        canEdit = !!collabRow.can_edit;
+                    }
+                }
+                setCollaborativeAccess(contentType, safeListId, {
+                    ownerUserId,
+                    isOwner: ownerUserId === currentUserId,
+                    canEdit,
+                    isCollaborative
+                });
+                return data;
+            }
+
+            async function ensureCollaborativeAccessForList(contentType, list = null) {
+                const safeType = String(contentType || '').trim().toLowerCase();
+                const safeListId = String(list?.id || '').trim();
+                if (!safeType || !safeListId || !isViewingOwnProfile) {
+                    return getCollaborativeAccess(safeType, safeListId, list);
+                }
+
+                const ownerUserId = String(list?.user_id || '').trim();
+                const currentUserId = String(currentUser?.id || '').trim();
+                if (ownerUserId && ownerUserId === currentUserId) {
+                    const ownerAccess = {
+                        ownerUserId,
+                        isOwner: true,
+                        canEdit: true,
+                        isCollaborative: false
+                    };
+                    setCollaborativeAccess(safeType, safeListId, ownerAccess);
+                    return ownerAccess;
+                }
+
+                const cached = getCollaborativeAccess(safeType, safeListId, null);
+                if (cached?.ownerUserId || cached?.canEdit) return cached;
+
+                try {
+                    const { data, error } = await supabase
+                        .from(LIST_COLLAB_TABLE)
+                        .select('can_edit, list_owner_id')
+                        .eq('media_type', safeType)
+                        .eq('list_id', safeListId)
+                        .eq('collaborator_id', currentUserId)
+                        .maybeSingle();
+                    if (error) throw error;
+
+                    const access = {
+                        ownerUserId: String(ownerUserId || data?.list_owner_id || '').trim(),
+                        isOwner: false,
+                        canEdit: !!data?.can_edit,
+                        isCollaborative: true
+                    };
+                    setCollaborativeAccess(safeType, safeListId, access);
+                    return access;
+                } catch (_error) {
+                    return {
+                        ownerUserId: ownerUserId || '',
+                        isOwner: false,
+                        canEdit: false,
+                        isCollaborative: true
+                    };
+                }
+            }
+
+            async function hydrateListMetaByOwner(contentType, lists = [], fallbackOwnerUserId = null) {
+                if (!window.ListUtils || typeof ListUtils.hydrateListMetaForLists !== 'function') {
+                    return Array.isArray(lists) ? lists : [];
+                }
+                const source = Array.isArray(lists) ? lists : [];
+                if (!source.length) return [];
+
+                const groups = new Map();
+                source.forEach((list) => {
+                    const ownerUserId = String(list?.user_id || fallbackOwnerUserId || currentUser?.id || '').trim();
+                    const key = ownerUserId || '__unknown_owner__';
+                    if (!groups.has(key)) groups.set(key, []);
+                    groups.get(key).push(list);
+                });
+
+                const mergedById = new Map();
+                for (const [ownerId, groupLists] of groups.entries()) {
+                    const hydratedGroup = await ListUtils.hydrateListMetaForLists(contentType, groupLists, {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId: ownerId === '__unknown_owner__' ? null : ownerId
+                    });
+                    (hydratedGroup || []).forEach((item) => {
+                        const safeId = String(item?.id || '').trim();
+                        if (!safeId) return;
+                        mergedById.set(safeId, item);
+                    });
+                }
+
+                return source.map((list) => {
+                    const safeId = String(list?.id || '').trim();
+                    return mergedById.get(safeId) || list;
+                });
+            }
+
+            async function loadMediaListItems(contentType, ownerUserId, customListIds = []) {
+                const table = MEDIA_ITEM_TABLES[contentType];
+                const itemField = MEDIA_ITEM_FIELDS[contentType];
+                if (!table || !itemField) return [];
+
+                const safeOwnerId = String(ownerUserId || '').trim();
+                const safeCustomIds = [...new Set((Array.isArray(customListIds) ? customListIds : [])
+                    .map((id) => String(id || '').trim())
+                    .filter(Boolean))];
+
+                const [defaultRes, customRes] = await Promise.all([
+                    supabase
+                        .from(table)
+                        .select(`${itemField}, list_type, list_id`)
+                        .eq('user_id', safeOwnerId),
+                    safeCustomIds.length
+                        ? supabase
+                            .from(table)
+                            .select(`${itemField}, list_type, list_id`)
+                            .in('list_id', safeCustomIds)
+                        : Promise.resolve({ data: [] })
+                ]);
+
+                if (defaultRes?.error) throw defaultRes.error;
+                if (customRes?.error) throw customRes.error;
+                return [
+                    ...(defaultRes?.data || []),
+                    ...(customRes?.data || [])
+                ];
+            }
+
+            async function fetchMediaCollectionItemIds(contentType, ownerUserId, listId, listType = 'custom') {
+                const table = MEDIA_ITEM_TABLES[contentType];
+                const itemField = MEDIA_ITEM_FIELDS[contentType];
+                if (!table || !itemField) return [];
+
+                const safeListType = String(listType || '').toLowerCase();
+                const safeOwnerId = String(ownerUserId || '').trim();
+                const safeListId = String(listId || '').trim();
+                if (!safeListId) return [];
+
+                let query = supabase
+                    .from(table)
+                    .select(itemField)
+                    .eq(safeListType === 'default' ? 'list_type' : 'list_id', safeListId);
+
+                if (safeListType === 'default') {
+                    query = query.eq('user_id', safeOwnerId);
+                }
+
+                const { data, error } = await query;
+                if (error) throw error;
+
+                const unique = [];
+                const seen = new Set();
+                (data || []).forEach((row) => {
+                    const value = String(row?.[itemField] || '').trim();
+                    if (!value || seen.has(value)) return;
+                    seen.add(value);
+                    unique.push(value);
+                });
+                return unique;
+            }
+
             function buildProfileUrl({ tab = null, collection = null, listId = null, listType = null, view = null } = {}) {
                 const currentParams = new URLSearchParams(window.location.search);
                 const nextParams = new URLSearchParams();
@@ -8736,12 +9178,27 @@ header, .top-stripe, .section-nav {
                     if (mobileActions) mobileActions.style.display = 'none';
                 } else {
                     const { data } = await supabase.from('movie_lists').select('*').eq('id', listId).single();
+                    if (data?.id) {
+                        const ownerUserId = String(data.user_id || '').trim();
+                        const currentUserId = String(currentUser?.id || '').trim();
+                        setCollaborativeAccess('movie', data.id, {
+                            ownerUserId,
+                            isOwner: ownerUserId === currentUserId,
+                            canEdit: ownerUserId === currentUserId
+                        });
+                    }
                     if (titleEl) titleEl.textContent = data?.title || 'Movies';
                     if (descEl) descEl.textContent = data?.description || 'Custom list';
                     if (mobileTitle) mobileTitle.textContent = data?.title || 'Movies';
                     if (mobileDesc) mobileDesc.textContent = data?.description || 'Custom list';
-                    if (actions) actions.style.display = isViewingOwnProfile ? 'flex' : 'none';
-                    if (mobileActions) mobileActions.style.display = isViewingOwnProfile ? 'flex' : 'none';
+                    const canEdit = canEditCustomCollection('movie', listId, data || null);
+                    const canDelete = canDeleteCustomCollection('movie', listId, data || null);
+                    if (actions) actions.style.display = (canEdit || canDelete) ? 'flex' : 'none';
+                    if (mobileActions) mobileActions.style.display = (canEdit || canDelete) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEdit ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDelete ? 'inline-flex' : 'none';
+                    if (mobileEditBtn) mobileEditBtn.style.display = canEdit ? 'inline-flex' : 'none';
+                    if (mobileDeleteBtn) mobileDeleteBtn.style.display = canDelete ? 'inline-flex' : 'none';
                     if (editBtn) {
                         editBtn.onclick = () => ProfileManager.renameMovieList(listId);
                     }
@@ -8758,14 +9215,18 @@ header, .top-stripe, .section-nav {
 
                 if (grid) grid.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-film"></i></div><h3 class="empty-title">Loading...</h3></div>';
                 if (mobileGrid) mobileGrid.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-film"></i></div><h3 class="empty-title">Loading...</h3></div>';
-                const { data: items } = await supabase
-                    .from('movie_list_items')
-                    .select('movie_id, list_type, list_id')
-                    .eq('user_id', isViewingOwnProfile ? currentUser?.id : targetUserId);
-                const filtered = (items || []).filter(item => {
-                    if (listType === 'default') return item.list_type === listId;
-                    return item.list_id === listId;
-                }).map(i => i.movie_id);
+                const ownerIdForDefault = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                let ownerIdForCustom = ownerIdForDefault;
+                if (listType === 'custom') {
+                    const { data: ownerRow } = await supabase.from('movie_lists').select('user_id').eq('id', listId).maybeSingle();
+                    ownerIdForCustom = ownerRow?.user_id || ownerIdForDefault;
+                }
+                const filtered = await fetchMediaCollectionItemIds(
+                    'movie',
+                    listType === 'default' ? ownerIdForDefault : ownerIdForCustom,
+                    listId,
+                    listType
+                );
                 if (!filtered.length) {
                     const emptyHtml = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-film"></i></div><h3 class="empty-title">No movies in this list</h3></div>';
                     if (grid) grid.innerHTML = emptyHtml;
@@ -8816,6 +9277,10 @@ header, .top-stripe, .section-nav {
                 if (!supabase || !movieId) return;
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
+                if (!canEditCollectionItems('movie', listId, listType)) {
+                    showToast('You do not have permission to edit this list', 'warning');
+                    return;
+                }
                 const renderToken = ++renderMoviesToken;
                 if (listType === 'default') {
                     await supabase
@@ -8828,7 +9293,6 @@ header, .top-stripe, .section-nav {
                     await supabase
                         .from('movie_list_items')
                         .delete()
-                        .eq('user_id', userId)
                         .eq('movie_id', movieId)
                         .eq('list_id', listId);
                 }
@@ -8995,8 +9459,10 @@ header, .top-stripe, .section-nav {
                 return `${baseTitle} • Tier List`;
             }
 
-            function canReorderCollectionItems(listId) {
-                return !!(isViewingOwnProfile && String(listId || '').trim());
+            function canReorderCollectionItems(contentType, listId, listType = 'custom', list = null) {
+                const safeListId = String(listId || '').trim();
+                if (!safeListId) return false;
+                return canEditCollectionItems(contentType, safeListId, listType, list);
             }
 
             const TierListUI = (function() {
@@ -9070,19 +9536,21 @@ header, .top-stripe, .section-nav {
                     if (!safeType || !safeListId) return;
 
                     const normalizedIds = TierListOrdering.normalizeIds(orderedItemIds);
+                    const access = getCollaborativeAccess(safeType, safeListId, null);
+                    const ownerUserId = String(access?.ownerUserId || currentUser?.id || '').trim();
+                    const persistUserId = ownerUserId || String(currentUser?.id || '').trim();
                     if (window.ListUtils && typeof ListUtils.setTierRank === 'function') {
                         normalizedIds.forEach((itemId, index) => {
                             void ListUtils.setTierRank(safeType, safeListId, itemId, index + 1, { skipRemote: true });
                         });
                     }
-                    TierListOrdering.markHydrated(safeType, safeListId, currentUser?.id);
+                    TierListOrdering.markHydrated(safeType, safeListId, persistUserId);
 
-                    const safeUserId = String(currentUser?.id || '').trim();
-                    if (!supabase || !safeUserId || !normalizedIds.length) return;
+                    if (!supabase || !persistUserId || !normalizedIds.length) return;
 
                     const updatedAt = new Date().toISOString();
                     const payload = normalizedIds.map((itemId, index) => ({
-                        user_id: safeUserId,
+                        user_id: persistUserId,
                         media_type: safeType,
                         list_id: safeListId,
                         item_id: itemId,
@@ -9125,9 +9593,9 @@ header, .top-stripe, .section-nav {
 
                 const safeType = String(mediaType || '').toLowerCase();
                 const safeListId = String(listId || '').trim();
-                const canReorder = isViewingOwnProfile
-                    && !!safeType
-                    && !!safeListId;
+                const canReorder = !!safeType
+                    && !!safeListId
+                    && canEditCollectionItems(safeType, safeListId, listType);
 
                 if (!canReorder) return;
 
@@ -9508,6 +9976,89 @@ header, .top-stripe, .section-nav {
                 });
             }
 
+            function setEditMediaCollaboratorsVisibility(visible) {
+                const group = document.getElementById('editMediaCollaboratorsGroup');
+                if (!group) return;
+                group.classList.toggle('d-none', !visible);
+            }
+
+            function renderEditMediaCollaborators() {
+                const container = document.getElementById('editMediaCollaboratorsList');
+                if (!container) return;
+                const canManage = !!editingMediaList?.canManageCollaborators;
+                if (!editingMediaCollaborators.length) {
+                    container.innerHTML = '<span class="text-muted text-sm">No collaborators yet.</span>';
+                    return;
+                }
+                container.innerHTML = editingMediaCollaborators.map((collab) => {
+                    const displayName = escapeHtml(collab.full_name || collab.username || 'User');
+                    const username = escapeHtml(collab.username || '');
+                    const safeId = String(collab.collaborator_id || '').replace(/'/g, "\\'");
+                    const removeBtn = canManage
+                        ? `<button type="button" class="collab-chip-remove" onclick="ProfileManager.removeMediaListCollaborator('${safeId}')" title="Remove collaborator"><i class="fas fa-times"></i></button>`
+                        : '';
+                    return `
+                        <span class="collab-chip">
+                            <i class="fas fa-user"></i>
+                            ${displayName}${username ? ` (@${username})` : ''}
+                            ${removeBtn}
+                        </span>
+                    `;
+                }).join('');
+            }
+
+            async function loadEditMediaCollaborators(contentType, listId) {
+                const safeType = String(contentType || '').trim().toLowerCase();
+                const safeListId = String(listId || '').trim();
+                editingMediaCollaborators = [];
+                if (!safeType || !safeListId) {
+                    renderEditMediaCollaborators();
+                    return;
+                }
+
+                const { data: links, error } = await supabase
+                    .from(LIST_COLLAB_TABLE)
+                    .select('collaborator_id, can_edit, created_at')
+                    .eq('media_type', safeType)
+                    .eq('list_id', safeListId)
+                    .order('created_at', { ascending: true });
+
+                if (error) {
+                    if (String(error?.code || '').trim() !== '42P01') {
+                        console.error('Error loading collaborators:', error);
+                    }
+                    renderEditMediaCollaborators();
+                    return;
+                }
+
+                const collaboratorIds = [...new Set((links || [])
+                    .map((row) => String(row.collaborator_id || '').trim())
+                    .filter(Boolean))];
+                if (!collaboratorIds.length) {
+                    renderEditMediaCollaborators();
+                    return;
+                }
+
+                const { data: users } = await supabase
+                    .from('user_profiles')
+                    .select('id, username, full_name')
+                    .in('id', collaboratorIds);
+                const byId = new Map();
+                (users || []).forEach((user) => byId.set(String(user.id || '').trim(), user));
+
+                editingMediaCollaborators = (links || []).map((row) => {
+                    const collaboratorId = String(row.collaborator_id || '').trim();
+                    const profile = byId.get(collaboratorId) || {};
+                    return {
+                        collaborator_id: collaboratorId,
+                        can_edit: !!row.can_edit,
+                        username: profile.username || '',
+                        full_name: profile.full_name || ''
+                    };
+                });
+                renderEditMediaCollaborators();
+            }
+
             async function openMediaListCreator(type) {
                 if (!supabase || !currentUser || !isViewingOwnProfile) {
                     showToast('You cannot create lists for other users', 'error');
@@ -9525,8 +10076,13 @@ header, .top-stripe, .section-nav {
                     rerender: config.rerender,
                     isCreate: true,
                     listKind: 'standard',
-                    maxRank: null
+                    maxRank: null,
+                    ownerUserId: String(currentUser?.id || '').trim(),
+                    canManageCollaborators: false
                 };
+                editingMediaCollaborators = [];
+                setEditMediaCollaboratorsVisibility(false);
+                renderEditMediaCollaborators();
 
                 const nameInput = document.getElementById('editMediaListName');
                 if (nameInput) nameInput.value = '';
@@ -9548,9 +10104,8 @@ header, .top-stripe, .section-nav {
                 if (!record) {
                     let { data, error } = await supabase
                         .from(config.table)
-                        .select('id, title, icon, list_kind')
+                        .select('id, user_id, title, icon, list_kind')
                         .eq('id', listId)
-                        .eq('user_id', currentUser.id)
                         .single();
                     const message = String(error?.message || '').toLowerCase();
                     const details = String(error?.details || '').toLowerCase();
@@ -9562,9 +10117,8 @@ header, .top-stripe, .section-nav {
                     if (missingListKindColumn) {
                         ({ data, error } = await supabase
                             .from(config.table)
-                            .select('id, title, icon')
+                            .select('id, user_id, title, icon')
                             .eq('id', listId)
-                            .eq('user_id', currentUser.id)
                             .single());
                     }
                     if (error || !data) {
@@ -9572,6 +10126,15 @@ header, .top-stripe, .section-nav {
                         return;
                     }
                     record = data;
+                }
+
+                if (!canEditCustomCollection(type, listId, record)) {
+                    await ensureCollaborativeAccessForList(type, record);
+                }
+
+                if (!canEditCustomCollection(type, listId, record)) {
+                    showToast('You do not have permission to edit this list', 'warning');
+                    return;
                 }
 
                 editingMediaList = {
@@ -9583,7 +10146,9 @@ header, .top-stripe, .section-nav {
                     rerender: config.rerender,
                     isCreate: false,
                     listKind: getTierMetaForList(type, record, 0).listKind,
-                    maxRank: getTierMetaForList(type, record, 0).maxRank
+                    maxRank: getTierMetaForList(type, record, 0).maxRank,
+                    ownerUserId: String(record?.user_id || currentUser?.id || '').trim(),
+                    canManageCollaborators: String(record?.user_id || '').trim() === String(currentUser?.id || '').trim()
                 };
 
                 const nameInput = document.getElementById('editMediaListName');
@@ -9598,6 +10163,115 @@ header, .top-stripe, .section-nav {
                         listKind: tierMeta.listKind,
                         maxRank: tierMeta.maxRank
                     });
+                }
+
+                setEditMediaCollaboratorsVisibility(!!editingMediaList.canManageCollaborators);
+                await loadEditMediaCollaborators(type, listId);
+            }
+
+            async function addMediaListCollaborator() {
+                if (!editingMediaList?.id || !editingMediaList?.type) return;
+                if (!editingMediaList.canManageCollaborators) {
+                    showToast('Only the list owner can add collaborators', 'warning');
+                    return;
+                }
+
+                const input = document.getElementById('editMediaCollaboratorUsername');
+                const rawUsername = String(input?.value || '').trim().replace(/^@+/, '');
+                if (!rawUsername) {
+                    showToast('Enter a username', 'warning');
+                    return;
+                }
+
+                try {
+                    let { data: user, error } = await supabase
+                        .from('user_profiles')
+                        .select('id, username, full_name')
+                        .eq('username', rawUsername)
+                        .maybeSingle();
+                    if (!user && !error) {
+                        ({ data: user, error } = await supabase
+                            .from('user_profiles')
+                            .select('id, username, full_name')
+                            .ilike('username', rawUsername)
+                            .limit(1)
+                            .maybeSingle());
+                    }
+                    if (error || !user?.id) {
+                        showToast('User not found', 'error');
+                        return;
+                    }
+
+                    const collaboratorId = String(user.id || '').trim();
+                    const ownerId = String(editingMediaList.ownerUserId || currentUser?.id || '').trim();
+                    if (!collaboratorId || !ownerId) return;
+                    if (collaboratorId === ownerId) {
+                        showToast('Owner is already in the list', 'info');
+                        return;
+                    }
+
+                    const exists = editingMediaCollaborators.some(
+                        (row) => String(row.collaborator_id || '').trim() === collaboratorId
+                    );
+                    if (exists) {
+                        showToast('User is already a collaborator', 'info');
+                        return;
+                    }
+
+                    const payload = {
+                        media_type: editingMediaList.type,
+                        list_id: editingMediaList.id,
+                        list_owner_id: ownerId,
+                        collaborator_id: collaboratorId,
+                        can_edit: true
+                    };
+
+                    const { error: upsertError } = await supabase
+                        .from(LIST_COLLAB_TABLE)
+                        .upsert(payload, { onConflict: 'media_type,list_id,collaborator_id' });
+                    if (upsertError) {
+                        if (String(upsertError?.code || '').trim() === '42P01') {
+                            showToast('Run SQL migration for collaborative lists first', 'warning');
+                            return;
+                        }
+                        throw upsertError;
+                    }
+
+                    if (input) input.value = '';
+                    await loadEditMediaCollaborators(editingMediaList.type, editingMediaList.id);
+                    showToast('Collaborator added', 'success');
+                } catch (error) {
+                    console.error('Error adding collaborator:', error);
+                    showToast('Could not add collaborator', 'error');
+                }
+            }
+
+            async function removeMediaListCollaborator(collaboratorId) {
+                if (!editingMediaList?.id || !editingMediaList?.type) return;
+                if (!editingMediaList.canManageCollaborators) {
+                    showToast('Only the list owner can remove collaborators', 'warning');
+                    return;
+                }
+                const safeCollaboratorId = String(collaboratorId || '').trim();
+                if (!safeCollaboratorId) return;
+
+                try {
+                    const { error } = await supabase
+                        .from(LIST_COLLAB_TABLE)
+                        .delete()
+                        .eq('media_type', editingMediaList.type)
+                        .eq('list_id', editingMediaList.id)
+                        .eq('collaborator_id', safeCollaboratorId);
+                    if (error) throw error;
+
+                    editingMediaCollaborators = editingMediaCollaborators.filter(
+                        (row) => String(row.collaborator_id || '').trim() !== safeCollaboratorId
+                    );
+                    renderEditMediaCollaborators();
+                    showToast('Collaborator removed', 'success');
+                } catch (error) {
+                    console.error('Error removing collaborator:', error);
+                    showToast('Could not remove collaborator', 'error');
                 }
             }
 
@@ -9708,6 +10382,12 @@ header, .top-stripe, .section-nav {
             async function handleEditMediaListSubmit(e) {
                 e.preventDefault();
                 if (!editingMediaList || !supabase || !currentUser) return;
+                if (!editingMediaList.isCreate && !canEditCustomCollection(editingMediaList.type, editingMediaList.id, {
+                    user_id: editingMediaList.ownerUserId
+                })) {
+                    showToast('You do not have permission to edit this list', 'warning');
+                    return;
+                }
 
                 const nameInput = document.getElementById('editMediaListName');
                 const iconInput = document.getElementById('editMediaListSelectedIcon');
@@ -9774,16 +10454,14 @@ header, .top-stripe, .section-nav {
                 let { error } = await supabase
                     .from(editingMediaList.table)
                     .update(updatePayload)
-                    .eq('id', editingMediaList.id)
-                    .eq('user_id', currentUser.id);
+                    .eq('id', editingMediaList.id);
 
                 if (hasListKindColumnError(error)) {
                     const fallbackPayload = { title, icon };
                     ({ error } = await supabase
                         .from(editingMediaList.table)
                         .update(fallbackPayload)
-                        .eq('id', editingMediaList.id)
-                        .eq('user_id', currentUser.id));
+                        .eq('id', editingMediaList.id));
                 }
 
                 if (error) {
@@ -9876,6 +10554,11 @@ header, .top-stripe, .section-nav {
 
             async function deleteMovieList(listId) {
                 if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const accessRecord = await fetchCustomListAccessRecord('movie', listId);
+                if (!accessRecord || !canDeleteCustomCollection('movie', listId, accessRecord)) {
+                    showToast('Only the list owner can delete this list', 'warning');
+                    return;
+                }
                 if (!confirm('Delete this movie list? This cannot be undone.')) return;
                 const userId = currentUser.id;
                 await supabase
@@ -9907,6 +10590,11 @@ header, .top-stripe, .section-nav {
 
             async function deleteTvList(listId) {
                 if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const accessRecord = await fetchCustomListAccessRecord('tv', listId);
+                if (!accessRecord || !canDeleteCustomCollection('tv', listId, accessRecord)) {
+                    showToast('Only the list owner can delete this list', 'warning');
+                    return;
+                }
                 if (!confirm('Delete this TV show list? This cannot be undone.')) return;
                 const userId = currentUser.id;
                 await supabase
@@ -9938,6 +10626,11 @@ header, .top-stripe, .section-nav {
 
             async function deleteGameList(listId) {
                 if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const accessRecord = await fetchCustomListAccessRecord('game', listId);
+                if (!accessRecord || !canDeleteCustomCollection('game', listId, accessRecord)) {
+                    showToast('Only the list owner can delete this list', 'warning');
+                    return;
+                }
                 if (!confirm('Delete this game list? This cannot be undone.')) return;
                 const userId = currentUser.id;
                 await supabase
@@ -10256,37 +10949,29 @@ header, .top-stripe, .section-nav {
                         { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Movies to watch', type: 'default' }
                     ];
 
-                    const { data: customListsData, error: customError } = await supabase
-                        .from('movie_lists')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('created_at', { ascending: false });
-
-                    if (customError) throw customError;
+                    let customLists = await loadCollaborativeCustomLists('movie', userId);
                     if (renderToken !== renderMoviesToken) return;
-                    let customLists = Array.isArray(customListsData) ? customListsData : [];
-                    if (window.ListUtils && customLists.length && typeof ListUtils.hydrateListMetaForLists === 'function') {
-                        customLists = await ListUtils.hydrateListMetaForLists('movie', customLists, {
-                            client: supabase,
-                            userId: currentUser?.id,
-                            ownerUserId: userId
-                        });
-                    }
+                    customLists = await hydrateListMetaByOwner('movie', customLists, userId);
                     if (renderToken !== renderMoviesToken) return;
 
-                    const { data: allItems } = await supabase
-                        .from('movie_list_items')
-                        .select('movie_id, list_type, list_id')
-                        .eq('user_id', userId);
-
-                    const items = allItems || [];
+                    const items = await loadMediaListItems('movie', userId, customLists.map((list) => list.id));
 
                     for (const list of defaultLists) {
-                        list.movieIds = items.filter(i => i.list_type === list.id).map(i => i.movie_id);
+                        list.movieIds = Array.from(new Set(
+                            items
+                                .filter((i) => i.list_type === list.id)
+                                .map((i) => String(i.movie_id || '').trim())
+                                .filter(Boolean)
+                        ));
                     }
 
                     for (const list of customLists) {
-                        list.movieIds = items.filter(i => i.list_id === list.id).map(i => i.movie_id);
+                        list.movieIds = Array.from(new Set(
+                            items
+                                .filter((i) => String(i.list_id || '') === String(list.id || ''))
+                                .map((i) => String(i.movie_id || '').trim())
+                                .filter(Boolean)
+                        ));
                         list.type = 'custom';
                     }
 
@@ -10307,7 +10992,12 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
-                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'movie', isMobile, userId)));
+                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
+                        list,
+                        'movie',
+                        isMobile,
+                        String(list?.user_id || userId || '').trim() || userId
+                    )));
                     grid.innerHTML = '';
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
@@ -10342,37 +11032,29 @@ header, .top-stripe, .section-nav {
                         { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Shows to watch', type: 'default' }
                     ];
 
-                    const { data: customListsData, error: customError } = await supabase
-                        .from('tv_lists')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('created_at', { ascending: false });
-
-                    if (customError) throw customError;
+                    let customLists = await loadCollaborativeCustomLists('tv', userId);
                     if (renderToken !== renderTvToken) return;
-                    let customLists = Array.isArray(customListsData) ? customListsData : [];
-                    if (window.ListUtils && customLists.length && typeof ListUtils.hydrateListMetaForLists === 'function') {
-                        customLists = await ListUtils.hydrateListMetaForLists('tv', customLists, {
-                            client: supabase,
-                            userId: currentUser?.id,
-                            ownerUserId: userId
-                        });
-                    }
+                    customLists = await hydrateListMetaByOwner('tv', customLists, userId);
                     if (renderToken !== renderTvToken) return;
 
-                    const { data: allItems } = await supabase
-                        .from('tv_list_items')
-                        .select('tv_id, list_type, list_id')
-                        .eq('user_id', userId);
-
-                    const items = allItems || [];
+                    const items = await loadMediaListItems('tv', userId, customLists.map((list) => list.id));
 
                     for (const list of defaultLists) {
-                        list.tvIds = items.filter(i => i.list_type === list.id).map(i => i.tv_id);
+                        list.tvIds = Array.from(new Set(
+                            items
+                                .filter((i) => i.list_type === list.id)
+                                .map((i) => String(i.tv_id || '').trim())
+                                .filter(Boolean)
+                        ));
                     }
 
                     for (const list of customLists) {
-                        list.tvIds = items.filter(i => i.list_id === list.id).map(i => i.tv_id);
+                        list.tvIds = Array.from(new Set(
+                            items
+                                .filter((i) => String(i.list_id || '') === String(list.id || ''))
+                                .map((i) => String(i.tv_id || '').trim())
+                                .filter(Boolean)
+                        ));
                         list.type = 'custom';
                     }
 
@@ -10393,7 +11075,12 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
-                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'tv', isMobile, userId)));
+                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
+                        list,
+                        'tv',
+                        isMobile,
+                        String(list?.user_id || userId || '').trim() || userId
+                    )));
                     grid.innerHTML = '';
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
@@ -10428,30 +11115,12 @@ header, .top-stripe, .section-nav {
                         { id: 'watchlist', title: 'Backlog', icon: 'bookmark', description: 'Games to play', type: 'default' }
                     ];
 
-                    const { data: customListsData, error: customError } = await supabase
-                        .from('game_lists')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('created_at', { ascending: false });
-
-                    if (customError) throw customError;
+                    let customLists = await loadCollaborativeCustomLists('game', userId);
                     if (renderToken !== renderGamesToken) return;
-                    let customLists = Array.isArray(customListsData) ? customListsData : [];
-                    if (window.ListUtils && customLists.length && typeof ListUtils.hydrateListMetaForLists === 'function') {
-                        customLists = await ListUtils.hydrateListMetaForLists('game', customLists, {
-                            client: supabase,
-                            userId: currentUser?.id,
-                            ownerUserId: userId
-                        });
-                    }
+                    customLists = await hydrateListMetaByOwner('game', customLists, userId);
                     if (renderToken !== renderGamesToken) return;
 
-                    const { data: allItems } = await supabase
-                        .from('game_list_items')
-                        .select('game_id, list_type, list_id')
-                        .eq('user_id', userId);
-
-                    const items = allItems || [];
+                    const items = await loadMediaListItems('game', userId, customLists.map((list) => list.id));
 
                     for (const list of defaultLists) {
                         list.gameIds = Array.from(new Set(
@@ -10489,7 +11158,12 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
-                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'game', isMobile, userId)));
+                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
+                        list,
+                        'game',
+                        isMobile,
+                        String(list?.user_id || userId || '').trim() || userId
+                    )));
                     grid.innerHTML = '';
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
@@ -10586,27 +11260,16 @@ header, .top-stripe, .section-nav {
                         { id: 'readlist', title: 'Readlist', icon: 'bookmark', description: 'Books to read', type: 'default' }
                     ];
 
-                    const { data: customListsData, error: customError } = await supabase
-                        .from('book_lists')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('created_at', { ascending: false });
-                    if (customError) throw customError;
-
-                    const { data: allItemsData, error: itemsError } = await supabase
-                        .from('book_list_items')
-                        .select('book_id, list_type, list_id')
-                        .eq('user_id', userId);
-                    if (itemsError) throw itemsError;
+                    let customLists = await loadCollaborativeCustomLists('book', userId);
+                    const allItems = await loadMediaListItems('book', userId, customLists.map((list) => list.id));
 
                     if (renderToken !== renderBooksToken) return;
 
-                    const allItems = allItemsData || [];
                     const reservedTitles = new Set(['favorites', 'read', 'readlist']);
                     const seenCustomIds = new Set();
-                    let customLists = [];
+                    const normalizedCustomLists = [];
 
-                    for (const raw of (customListsData || [])) {
+                    for (const raw of (customLists || [])) {
                         const id = String(raw.id || '').trim();
                         if (!id || seenCustomIds.has(id)) continue;
 
@@ -10614,16 +11277,10 @@ header, .top-stripe, .section-nav {
                         if (reservedTitles.has(titleNorm)) continue;
 
                         seenCustomIds.add(id);
-                        customLists.push({ ...raw, type: 'custom' });
+                        normalizedCustomLists.push({ ...raw, type: 'custom' });
                     }
 
-                    if (window.ListUtils && customLists.length && typeof ListUtils.hydrateListMetaForLists === 'function') {
-                        customLists = await ListUtils.hydrateListMetaForLists('book', customLists, {
-                            client: supabase,
-                            userId: currentUser?.id,
-                            ownerUserId: userId
-                        });
-                    }
+                    customLists = await hydrateListMetaByOwner('book', normalizedCustomLists, userId);
                     if (renderToken !== renderBooksToken) return;
 
                     for (const list of defaultLists) {
@@ -10655,7 +11312,12 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
-                    const cards = await Promise.all(allLists.map(list => createCollectionCard(list, 'book', isMobile, userId)));
+                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
+                        list,
+                        'book',
+                        isMobile,
+                        String(list?.user_id || userId || '').trim() || userId
+                    )));
                     grid.innerHTML = '';
                     const fragment = document.createDocumentFragment();
                     cards.forEach(card => fragment.appendChild(card));
@@ -10690,27 +11352,16 @@ header, .top-stripe, .section-nav {
                         { id: 'listenlist', title: 'Listenlist', icon: 'bookmark', description: 'Tracks to play later', type: 'default' }
                     ];
 
-                    const { data: customListsData, error: customError } = await supabase
-                        .from('music_lists')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('created_at', { ascending: false });
-                    if (customError) throw customError;
-
-                    const { data: allItemsData, error: itemsError } = await supabase
-                        .from('music_list_items')
-                        .select('track_id, list_type, list_id')
-                        .eq('user_id', userId);
-                    if (itemsError) throw itemsError;
+                    let customLists = await loadCollaborativeCustomLists('music', userId);
+                    const allItems = await loadMediaListItems('music', userId, customLists.map((list) => list.id));
 
                     if (renderToken !== renderMusicToken) return;
 
-                    const allItems = allItemsData || [];
                     const reservedTitles = new Set(['favorites', 'listened', 'listenlist']);
                     const seenCustomIds = new Set();
-                    let customLists = [];
+                    const normalizedCustomLists = [];
 
-                    for (const raw of (customListsData || [])) {
+                    for (const raw of (customLists || [])) {
                         const id = String(raw.id || '').trim();
                         if (!id || seenCustomIds.has(id)) continue;
 
@@ -10718,16 +11369,10 @@ header, .top-stripe, .section-nav {
                         if (reservedTitles.has(titleNorm)) continue;
 
                         seenCustomIds.add(id);
-                        customLists.push({ ...raw, type: 'custom' });
+                        normalizedCustomLists.push({ ...raw, type: 'custom' });
                     }
 
-                    if (window.ListUtils && customLists.length && typeof ListUtils.hydrateListMetaForLists === 'function') {
-                        customLists = await ListUtils.hydrateListMetaForLists('music', customLists, {
-                            client: supabase,
-                            userId: currentUser?.id,
-                            ownerUserId: userId
-                        });
-                    }
+                    customLists = await hydrateListMetaByOwner('music', normalizedCustomLists, userId);
                     if (renderToken !== renderMusicToken) return;
 
                     for (const list of defaultLists) {
@@ -10761,7 +11406,12 @@ header, .top-stripe, .section-nav {
                         return;
                     }
 
-                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(list, 'music', isMobile, userId)));
+                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
+                        list,
+                        'music',
+                        isMobile,
+                        String(list?.user_id || userId || '').trim() || userId
+                    )));
                     grid.innerHTML = '';
                     const fragment = document.createDocumentFragment();
                     cards.forEach((card) => fragment.appendChild(card));
@@ -10800,6 +11450,9 @@ header, .top-stripe, .section-nav {
                 });
                 const count = orderedIds.length;
                 const isCustom = contentType === 'restaurant' ? !list.is_default : list.type === 'custom';
+                const collabAccess = isCustom
+                    ? getCollaborativeAccess(contentType, routeListId, list)
+                    : { isOwner: true, canEdit: true, isCollaborative: false };
                 const pinKey = getPinnedCollectionKey(contentType, routeListId, resolvedListType);
                 const isPinned = !!pinnedListsMap.get(pinKey);
                 const tierBadgeHtml = (isCustom && tierMeta.isTier)
@@ -10807,6 +11460,9 @@ header, .top-stripe, .section-nav {
                     : '';
                 const pinBadgeHtml = isPinned
                     ? `<div class="collection-pin-badge"><i class="fas fa-thumbtack"></i> Pinned</div>`
+                    : '';
+                const collabBadgeHtml = (isCustom && collabAccess.isCollaborative)
+                    ? `<div class="collection-collab-badge"><i class="fas fa-user-group"></i> Shared</div>`
                     : '';
                 const routeListType = String(resolvedListType || '');
                 const safeListId = routeListId.replace(/'/g, "\\'");
@@ -10839,11 +11495,12 @@ header, .top-stripe, .section-nav {
                     }
                 }
 
-                const canManageCollection = isViewingOwnProfile && isCustom;
+                const canEditCollection = isViewingOwnProfile && isCustom && !!collabAccess.canEdit;
+                const canDeleteCollection = isViewingOwnProfile && isCustom && !!collabAccess.isOwner;
                 const canPinCollection = isViewingOwnProfile;
                 const pinActionLabel = isPinned ? 'Unpin' : 'Pin to Top';
                 const pinActionIcon = isPinned ? 'fa-thumbtack-slash' : 'fa-thumbtack';
-                const kebabHtml = (canManageCollection || canPinCollection) ? `
+                const kebabHtml = (canEditCollection || canDeleteCollection || canPinCollection) ? `
                     <div class="collection-card-actions">
                         <button class="collection-kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleCollectionMenu('${list.id}', '${contentType}')">
                             <i class="fas fa-ellipsis-v"></i>
@@ -10854,10 +11511,12 @@ header, .top-stripe, .section-nav {
                                     <i class="fas ${pinActionIcon}"></i> ${pinActionLabel}
                                 </div>
                             ` : ''}
-                            ${canManageCollection ? `
+                            ${canEditCollection ? `
                                 <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.editCollection('${safeListId}', '${contentType}')">
                                     <i class="fas fa-edit"></i> Edit
                                 </div>
+                            ` : ''}
+                            ${canDeleteCollection ? `
                                 <div class="collection-dropdown-item danger" onclick="event.stopPropagation(); ProfileManager.deleteCollection('${safeListId}', '${contentType}')">
                                     <i class="fas fa-trash"></i> Delete
                                 </div>
@@ -10876,6 +11535,7 @@ header, .top-stripe, .section-nav {
                                 <div class="collection-card-count">${countLabel}</div>
                                 ${tierBadgeHtml}
                                 ${pinBadgeHtml}
+                                ${collabBadgeHtml}
                             </div>
                         </div>
                     </div>
@@ -11116,7 +11776,7 @@ header, .top-stripe, .section-nav {
                     listType,
                     ownerUserId
                 });
-                const canReorderList = canReorderCollectionItems(listId);
+                const canReorderList = canReorderCollectionItems('restaurant', listId, listType, list);
 
                 const restaurantMap = new Map();
                 (restaurants || []).forEach((row) => {
@@ -11235,23 +11895,23 @@ header, .top-stripe, .section-nav {
                     const [hydrated] = await ListUtils.hydrateListMetaForLists('movie', [list], {
                         client: supabase,
                         userId: currentUser?.id,
-                        ownerUserId: userId
+                        ownerUserId: list?.user_id || userId
                     });
                     if (hydrated) list = hydrated;
                 }
+                if (listType === 'custom') {
+                    await ensureCollaborativeAccessForList('movie', list);
+                }
 
-                const { data: items } = await supabase
-                    .from('movie_list_items')
-                    .select('movie_id')
-                    .eq('user_id', userId)
-                    .eq(listType === 'default' ? 'list_type' : 'list_id', listId);
-
-                const movieIds = items ? items.map(i => i.movie_id) : [];
+                const listOwnerUserId = String(list?.user_id || userId || '').trim() || userId;
+                const movieIds = await fetchMediaCollectionItemIds('movie', listOwnerUserId, listId, listType);
                 const tierMeta = getTierMetaForList('movie', list, movieIds.length);
                 const detailTitle = getCollectionTitleWithKind('movie', list, listType);
                 const detailDescription = tierMeta.isTier
                     ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
                     : (list.description || '');
+                const canEditList = listType === 'custom' && canEditCustomCollection('movie', listId, list);
+                const canDeleteList = listType === 'custom' && canDeleteCustomCollection('movie', listId, list);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileMovieDetailTitle');
@@ -11261,7 +11921,9 @@ header, .top-stripe, .section-nav {
                     const deleteBtn = document.getElementById('mobileMovieListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
-                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameMovieList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteMovieList(listId);
                 } else {
@@ -11274,14 +11936,16 @@ header, .top-stripe, .section-nav {
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'list');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
-                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameMovieList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteMovieList(listId);
                 }
 
                 currentMediaDetail = { mediaType: 'movie', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('movie');
-                await renderMovieItems(movieIds, listId, listType, isMobile, list, userId);
+                await renderMovieItems(movieIds, listId, listType, isMobile, list, listOwnerUserId);
             }
 
             async function renderMovieItems(movieIds, listId, listType, isMobile, list = null, ownerUserId = null) {
@@ -11306,7 +11970,8 @@ header, .top-stripe, .section-nav {
                     listType,
                     ownerUserId
                 });
-                const canReorderList = canReorderCollectionItems(listId);
+                const canReorderList = canReorderCollectionItems('movie', listId, listType, list);
+                const canEditItems = canEditCollectionItems('movie', listId, listType, list);
 
                 const movies = await Promise.all(rankedMovieIds.map(id => fetchMovieDetails(id)));
 
@@ -11333,7 +11998,7 @@ header, .top-stripe, .section-nav {
                         <img class="collection-item-image" src="${movie.poster_path ? TMDB_POSTER + movie.poster_path : 'images/placeholder.jpg'}" alt="${movie.title}" loading="lazy">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${movie.title}</h3>
-                            ${isViewingOwnProfile ? `
+                            ${canEditItems ? `
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')">
                                     <i class="fas fa-times"></i> Remove
                                 </button>
@@ -11344,7 +12009,7 @@ header, .top-stripe, .section-nav {
                             </div>
                             ${rankMarkup}
                         </div>
-                        ${isViewingOwnProfile ? `
+                        ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -11425,23 +12090,23 @@ header, .top-stripe, .section-nav {
                     const [hydrated] = await ListUtils.hydrateListMetaForLists('tv', [list], {
                         client: supabase,
                         userId: currentUser?.id,
-                        ownerUserId: userId
+                        ownerUserId: list?.user_id || userId
                     });
                     if (hydrated) list = hydrated;
                 }
+                if (listType === 'custom') {
+                    await ensureCollaborativeAccessForList('tv', list);
+                }
 
-                const { data: items } = await supabase
-                    .from('tv_list_items')
-                    .select('tv_id')
-                    .eq('user_id', userId)
-                    .eq(listType === 'default' ? 'list_type' : 'list_id', listId);
-
-                const tvIds = items ? items.map(i => i.tv_id) : [];
+                const listOwnerUserId = String(list?.user_id || userId || '').trim() || userId;
+                const tvIds = await fetchMediaCollectionItemIds('tv', listOwnerUserId, listId, listType);
                 const tierMeta = getTierMetaForList('tv', list, tvIds.length);
                 const detailTitle = getCollectionTitleWithKind('tv', list, listType);
                 const detailDescription = tierMeta.isTier
                     ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
                     : (list.description || '');
+                const canEditList = listType === 'custom' && canEditCustomCollection('tv', listId, list);
+                const canDeleteList = listType === 'custom' && canDeleteCustomCollection('tv', listId, list);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileTvDetailTitle');
@@ -11451,7 +12116,9 @@ header, .top-stripe, .section-nav {
                     const deleteBtn = document.getElementById('mobileTvListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
-                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameTvList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
                 } else {
@@ -11464,14 +12131,16 @@ header, .top-stripe, .section-nav {
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'tv');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
-                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameTvList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
                 }
 
                 currentMediaDetail = { mediaType: 'tv', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('tv');
-                await renderTvItems(tvIds, listId, listType, isMobile, list, userId);
+                await renderTvItems(tvIds, listId, listType, isMobile, list, listOwnerUserId);
             }
 
             async function renderTvItems(tvIds, listId, listType, isMobile, list = null, ownerUserId = null) {
@@ -11496,7 +12165,8 @@ header, .top-stripe, .section-nav {
                     listType,
                     ownerUserId
                 });
-                const canReorderList = canReorderCollectionItems(listId);
+                const canReorderList = canReorderCollectionItems('tv', listId, listType, list);
+                const canEditItems = canEditCollectionItems('tv', listId, listType, list);
 
                 const shows = await Promise.all(rankedTvIds.map(id => fetchTvDetails(id)));
 
@@ -11525,7 +12195,7 @@ header, .top-stripe, .section-nav {
                         <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${showTitle}</h3>
-                            ${isViewingOwnProfile ? `
+                            ${canEditItems ? `
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')">
                                     <i class="fas fa-times"></i> Remove
                                 </button>
@@ -11536,7 +12206,7 @@ header, .top-stripe, .section-nav {
                             </div>
                             ${rankMarkup}
                         </div>
-                        ${isViewingOwnProfile ? `
+                        ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -11617,27 +12287,23 @@ header, .top-stripe, .section-nav {
                     const [hydrated] = await ListUtils.hydrateListMetaForLists('game', [list], {
                         client: supabase,
                         userId: currentUser?.id,
-                        ownerUserId: userId
+                        ownerUserId: list?.user_id || userId
                     });
                     if (hydrated) list = hydrated;
                 }
+                if (listType === 'custom') {
+                    await ensureCollaborativeAccessForList('game', list);
+                }
 
-                const { data: items } = await supabase
-                    .from('game_list_items')
-                    .select('game_id')
-                    .eq('user_id', userId)
-                    .eq(listType === 'default' ? 'list_type' : 'list_id', listId);
-
-                const gameIds = Array.from(new Set(
-                    (items || [])
-                        .map(i => i.game_id)
-                        .filter((id) => String(id || '').trim() !== '')
-                ));
+                const listOwnerUserId = String(list?.user_id || userId || '').trim() || userId;
+                const gameIds = await fetchMediaCollectionItemIds('game', listOwnerUserId, listId, listType);
                 const tierMeta = getTierMetaForList('game', list, gameIds.length);
                 const detailTitle = getCollectionTitleWithKind('game', list, listType);
                 const detailDescription = tierMeta.isTier
                     ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
                     : (list.description || '');
+                const canEditList = listType === 'custom' && canEditCustomCollection('game', listId, list);
+                const canDeleteList = listType === 'custom' && canDeleteCustomCollection('game', listId, list);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileGameDetailTitle');
@@ -11647,7 +12313,9 @@ header, .top-stripe, .section-nav {
                     const deleteBtn = document.getElementById('mobileGameListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
-                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameGameList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteGameList(listId);
                 } else {
@@ -11660,14 +12328,16 @@ header, .top-stripe, .section-nav {
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'game');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
-                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameGameList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteGameList(listId);
                 }
 
                 currentMediaDetail = { mediaType: 'game', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('game');
-                await renderGameItems(gameIds, listId, listType, isMobile, list, userId);
+                await renderGameItems(gameIds, listId, listType, isMobile, list, listOwnerUserId);
             }
 
             async function renderGameItems(gameIds, listId, listType, isMobile, list = null, ownerUserId = null) {
@@ -11692,7 +12362,8 @@ header, .top-stripe, .section-nav {
                     listType,
                     ownerUserId
                 });
-                const canReorderList = canReorderCollectionItems(listId);
+                const canReorderList = canReorderCollectionItems('game', listId, listType, list);
+                const canEditItems = canEditCollectionItems('game', listId, listType, list);
 
                 const games = await Promise.all(rankedGameIds.map(async (id) => ({
                     id: String(id || '').trim(),
@@ -11728,7 +12399,7 @@ header, .top-stripe, .section-nav {
                         <img class="collection-item-image" src="${gameImage}" alt="${gameTitle}" loading="lazy">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${gameTitle}</h3>
-                            ${isViewingOwnProfile ? `
+                            ${canEditItems ? `
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${safeGameId}', '${listId}', 'game', '${listType}')">
                                     <i class="fas fa-times"></i> Remove
                                 </button>
@@ -11739,7 +12410,7 @@ header, .top-stripe, .section-nav {
                             </div>
                             ${rankMarkup}
                         </div>
-                        ${isViewingOwnProfile ? `
+                        ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${safeGameId}', '${listId}', 'game', '${listType}')">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -11809,24 +12480,23 @@ header, .top-stripe, .section-nav {
                     const [hydrated] = await ListUtils.hydrateListMetaForLists('book', [list], {
                         client: supabase,
                         userId: currentUser?.id,
-                        ownerUserId: userId
+                        ownerUserId: list?.user_id || userId
                     });
                     if (hydrated) list = hydrated;
                 }
+                if (listType === 'custom') {
+                    await ensureCollaborativeAccessForList('book', list);
+                }
 
-                // Query with proper field name based on list type
-                const { data: items } = await supabase
-                    .from('book_list_items')
-                    .select('book_id')
-                    .eq('user_id', userId)
-                    .eq(listType === 'default' ? 'list_type' : 'list_id', listId === 'favorites' || listId === 'read' || listId === 'readlist' ? listId : listId);
-
-                const bookIds = items ? items.map(i => i.book_id) : [];
+                const listOwnerUserId = String(list?.user_id || userId || '').trim() || userId;
+                const bookIds = await fetchMediaCollectionItemIds('book', listOwnerUserId, listId, listType);
                 const tierMeta = getTierMetaForList('book', list, bookIds.length);
                 const detailTitle = getCollectionTitleWithKind('book', list, listType);
                 const detailDescription = tierMeta.isTier
                     ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
                     : (list.description || '');
+                const canEditList = listType === 'custom' && canEditCustomCollection('book', listId, list);
+                const canDeleteList = listType === 'custom' && canDeleteCustomCollection('book', listId, list);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileBookDetailTitle');
@@ -11836,7 +12506,9 @@ header, .top-stripe, .section-nav {
                     const deleteBtn = document.getElementById('mobileBookListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
-                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameBookList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteBookList(listId);
                 } else {
@@ -11849,14 +12521,16 @@ header, .top-stripe, .section-nav {
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'list');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
-                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameBookList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteBookList(listId);
                 }
 
                 currentMediaDetail = { mediaType: 'book', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('book');
-                await renderBookItems(bookIds, listId, listType, isMobile, list, userId);
+                await renderBookItems(bookIds, listId, listType, isMobile, list, listOwnerUserId);
             }
 
             async function renderBookItems(bookIds, listId, listType, isMobile, list = null, ownerUserId = null) {
@@ -11880,7 +12554,8 @@ header, .top-stripe, .section-nav {
                     listType,
                     ownerUserId
                 });
-                const canReorderList = canReorderCollectionItems(listId);
+                const canReorderList = canReorderCollectionItems('book', listId, listType, list);
+                const canEditItems = canEditCollectionItems('book', listId, listType, list);
 
                 // Check cache first
                 const cacheKey = `profile_books_${listId}_${rankedBookIds.join(',')}`;
@@ -11947,7 +12622,7 @@ header, .top-stripe, .section-nav {
                         <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${ProfileManager.escapeHtml(title)}</h3>
-                            ${isViewingOwnProfile ? `
+                            ${canEditItems ? `
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${id}', '${listId}', 'book', '${listType}')">
                                     <i class="fas fa-times"></i> Remove
                                 </button>
@@ -11958,7 +12633,7 @@ header, .top-stripe, .section-nav {
                             </div>
                             ${rankMarkup}
                         </div>
-                        ${isViewingOwnProfile ? `
+                        ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${id}', '${listId}', 'book', '${listType}')">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -12031,23 +12706,23 @@ header, .top-stripe, .section-nav {
                     const [hydrated] = await ListUtils.hydrateListMetaForLists('music', [list], {
                         client: supabase,
                         userId: currentUser?.id,
-                        ownerUserId: userId
+                        ownerUserId: list?.user_id || userId
                     });
                     if (hydrated) list = hydrated;
                 }
+                if (listType === 'custom') {
+                    await ensureCollaborativeAccessForList('music', list);
+                }
 
-                const { data: items } = await supabase
-                    .from('music_list_items')
-                    .select('track_id')
-                    .eq('user_id', userId)
-                    .eq(listType === 'default' ? 'list_type' : 'list_id', listId);
-
-                const trackIds = items ? items.map((i) => String(i.track_id || '').trim()).filter(Boolean) : [];
+                const listOwnerUserId = String(list?.user_id || userId || '').trim() || userId;
+                const trackIds = await fetchMediaCollectionItemIds('music', listOwnerUserId, listId, listType);
                 const tierMeta = getTierMetaForList('music', list, trackIds.length);
                 const detailTitle = getCollectionTitleWithKind('music', list, listType);
                 const detailDescription = tierMeta.isTier
                     ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
                     : (list.description || '');
+                const canEditList = listType === 'custom' && canEditCustomCollection('music', listId, list);
+                const canDeleteList = listType === 'custom' && canDeleteCustomCollection('music', listId, list);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileMusicDetailTitle');
@@ -12057,7 +12732,9 @@ header, .top-stripe, .section-nav {
                     const deleteBtn = document.getElementById('mobileMusicListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
-                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameMusicList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteMusicList(listId);
                 } else {
@@ -12070,14 +12747,16 @@ header, .top-stripe, .section-nav {
                     if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'music');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
-                    if (actions) actions.style.display = (isViewingOwnProfile && list.type === 'custom') ? 'flex' : 'none';
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
                     if (editBtn) editBtn.onclick = () => renameMusicList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteMusicList(listId);
                 }
 
                 currentMediaDetail = { mediaType: 'music', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('music');
-                await renderMusicItems(trackIds, listId, listType, isMobile, list, userId);
+                await renderMusicItems(trackIds, listId, listType, isMobile, list, listOwnerUserId);
             }
 
             async function renderMusicItems(trackIds, listId, listType, isMobile, list = null, ownerUserId = null) {
@@ -12102,7 +12781,8 @@ header, .top-stripe, .section-nav {
                     listType,
                     ownerUserId
                 });
-                const canReorderList = canReorderCollectionItems(listId);
+                const canReorderList = canReorderCollectionItems('music', listId, listType, list);
+                const canEditItems = canEditCollectionItems('music', listId, listType, list);
                 const tracks = await Promise.all(rankedTrackIds.map((id) => fetchMusicDetails(id)));
                 container.innerHTML = '';
 
@@ -12133,7 +12813,7 @@ header, .top-stripe, .section-nav {
                         <img class="collection-item-image" src="${image}" alt="${ProfileManager.escapeHtml(title)}" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${ProfileManager.escapeHtml(title)}</h3>
-                            ${isViewingOwnProfile ? `
+                            ${canEditItems ? `
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${trackId}', '${listId}', 'music', '${listType}')">
                                     <i class="fas fa-times"></i> Remove
                                 </button>
@@ -12144,7 +12824,7 @@ header, .top-stripe, .section-nav {
                             </div>
                             ${rankMarkup}
                         </div>
-                        ${isViewingOwnProfile ? `
+                        ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${trackId}', '${listId}', 'music', '${listType}')">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -12213,6 +12893,11 @@ header, .top-stripe, .section-nav {
 
             async function deleteBookList(listId) {
                 if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const accessRecord = await fetchCustomListAccessRecord('book', listId);
+                if (!accessRecord || !canDeleteCustomCollection('book', listId, accessRecord)) {
+                    showToast('Only the list owner can delete this list', 'warning');
+                    return;
+                }
 
                 if (!confirm('Delete this book list? This cannot be undone.')) return;
 
@@ -12254,6 +12939,11 @@ header, .top-stripe, .section-nav {
 
             async function deleteMusicList(listId) {
                 if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const accessRecord = await fetchCustomListAccessRecord('music', listId);
+                if (!accessRecord || !canDeleteCustomCollection('music', listId, accessRecord)) {
+                    showToast('Only the list owner can delete this list', 'warning');
+                    return;
+                }
                 if (!confirm('Delete this music list? This cannot be undone.')) return;
 
                 try {
@@ -12429,9 +13119,21 @@ header, .top-stripe, .section-nav {
                 dropdown.classList.toggle('show');
             }
 
-            async function removeFromCollection(itemId, collectionId, type, listType) {
+            async function removeFromCollection(itemId, collectionId, type, listType = 'custom') {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 try {
+                    if (type !== 'restaurant') {
+                        let canEdit = canEditCollectionItems(type, collectionId, listType);
+                        if (!canEdit && String(listType || '').toLowerCase() === 'custom') {
+                            const accessRecord = await fetchCustomListAccessRecord(type, collectionId);
+                            canEdit = !!accessRecord && canEditCollectionItems(type, collectionId, listType, accessRecord);
+                        }
+                        if (!canEdit) {
+                            showToast('You do not have permission to edit this list', 'warning');
+                            return;
+                        }
+                    }
+
                     if (type === 'restaurant') {
                         await supabase
                             .from('lists_restraunts')
@@ -12453,7 +13155,6 @@ header, .top-stripe, .section-nav {
                             await supabase
                                 .from('movie_list_items')
                                 .delete()
-                                .eq('user_id', userId)
                                 .eq('movie_id', itemId)
                                 .eq('list_id', collectionId);
                         }
@@ -12472,7 +13173,6 @@ header, .top-stripe, .section-nav {
                             await supabase
                                 .from('tv_list_items')
                                 .delete()
-                                .eq('user_id', userId)
                                 .eq('tv_id', itemId)
                                 .eq('list_id', collectionId);
                         }
@@ -12491,7 +13191,6 @@ header, .top-stripe, .section-nav {
                             await supabase
                                 .from('game_list_items')
                                 .delete()
-                                .eq('user_id', userId)
                                 .eq('game_id', itemId)
                                 .eq('list_id', collectionId);
                         }
@@ -12510,7 +13209,6 @@ header, .top-stripe, .section-nav {
                             await supabase
                                 .from('music_list_items')
                                 .delete()
-                                .eq('user_id', userId)
                                 .eq('track_id', itemId)
                                 .eq('list_id', collectionId);
                         }
@@ -12528,7 +13226,6 @@ header, .top-stripe, .section-nav {
                             await supabase
                                 .from('book_list_items')
                                 .delete()
-                                .eq('user_id', userId)
                                 .eq('book_id', itemId)
                                 .eq('list_id', collectionId);
                         }
@@ -12563,10 +13260,23 @@ header, .top-stripe, .section-nav {
                     return;
                 }
 
+                const accessRecord = await fetchCustomListAccessRecord(type, id);
+                if (!accessRecord || !canEditCustomCollection(type, id, accessRecord)) {
+                    showToast('You do not have permission to edit this list', 'warning');
+                    return;
+                }
+
                 await openMediaListEditor(type, id);
             }
 
             async function deleteCollection(id, type) {
+                if (type !== 'restaurant') {
+                    const accessRecord = await fetchCustomListAccessRecord(type, id);
+                    if (!accessRecord || !canDeleteCustomCollection(type, id, accessRecord)) {
+                        showToast('Only the list owner can delete this list', 'warning');
+                        return;
+                    }
+                }
                 showConfirmModal(
                     'Delete Collection',
                     'Are you sure? This cannot be undone.',
@@ -12576,18 +13286,58 @@ header, .top-stripe, .section-nav {
                                 await supabase.from('lists_restraunts').delete().eq('list_id', id);
                                 await supabase.from('lists').delete().eq('id', id);
                             } else if (type === 'movie') {
+                                const collabCleanup = await supabase
+                                    .from(LIST_COLLAB_TABLE)
+                                    .delete()
+                                    .eq('media_type', 'movie')
+                                    .eq('list_id', String(id));
+                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
+                                    console.warn('Could not remove collaborators for movie list:', collabCleanup.error);
+                                }
                                 await supabase.from('movie_list_items').delete().eq('list_id', id);
                                 await supabase.from('movie_lists').delete().eq('id', id);
                             } else if (type === 'tv') {
+                                const collabCleanup = await supabase
+                                    .from(LIST_COLLAB_TABLE)
+                                    .delete()
+                                    .eq('media_type', 'tv')
+                                    .eq('list_id', String(id));
+                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
+                                    console.warn('Could not remove collaborators for TV list:', collabCleanup.error);
+                                }
                                 await supabase.from('tv_list_items').delete().eq('list_id', id);
                                 await supabase.from('tv_lists').delete().eq('id', id);
                             } else if (type === 'game') {
+                                const collabCleanup = await supabase
+                                    .from(LIST_COLLAB_TABLE)
+                                    .delete()
+                                    .eq('media_type', 'game')
+                                    .eq('list_id', String(id));
+                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
+                                    console.warn('Could not remove collaborators for game list:', collabCleanup.error);
+                                }
                                 await supabase.from('game_list_items').delete().eq('list_id', id);
                                 await supabase.from('game_lists').delete().eq('id', id);
                             } else if (type === 'music') {
+                                const collabCleanup = await supabase
+                                    .from(LIST_COLLAB_TABLE)
+                                    .delete()
+                                    .eq('media_type', 'music')
+                                    .eq('list_id', String(id));
+                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
+                                    console.warn('Could not remove collaborators for music list:', collabCleanup.error);
+                                }
                                 await supabase.from('music_list_items').delete().eq('list_id', id);
                                 await supabase.from('music_lists').delete().eq('id', id);
                             } else {
+                                const collabCleanup = await supabase
+                                    .from(LIST_COLLAB_TABLE)
+                                    .delete()
+                                    .eq('media_type', 'book')
+                                    .eq('list_id', String(id));
+                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
+                                    console.warn('Could not remove collaborators for book list:', collabCleanup.error);
+                                }
                                 await supabase.from('book_list_items').delete().eq('list_id', id);
                                 await supabase.from('book_lists').delete().eq('id', id);
                             }
@@ -12822,6 +13572,11 @@ header, .top-stripe, .section-nav {
                         document.querySelectorAll('.edit-list-icon-option').forEach(opt => {
                             opt.classList.remove('selected');
                         });
+                        const collaboratorInput = document.getElementById('editMediaCollaboratorUsername');
+                        if (collaboratorInput) collaboratorInput.value = '';
+                        editingMediaCollaborators = [];
+                        setEditMediaCollaboratorsVisibility(false);
+                        renderEditMediaCollaborators();
                         editingMediaList = null;
                     }
 
@@ -13340,6 +14095,8 @@ header, .top-stripe, .section-nav {
                 createGameList,
                 createBookList,
                 createMusicList,
+                addMediaListCollaborator,
+                removeMediaListCollaborator,
                 renameMovieList,
                 deleteMovieList,
                 renameTvList,

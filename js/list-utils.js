@@ -49,6 +49,7 @@
   const TIER_RANK_STORAGE_KEY = 'zo2y_tier_ranks_v1';
   const TIER_META_TABLE = 'list_tier_meta';
   const TIER_RANK_TABLE = 'list_tier_ranks';
+  const LIST_COLLAB_TABLE = 'list_collaborators';
   const KNOWN_TIER_CREATE_MODAL_SELECTORS = [
     '#movieListsModal',
     '#tvListsModal',
@@ -65,6 +66,7 @@
   };
   let tierMetaServerSupported = null;
   let tierRankServerSupported = null;
+  let collaboratorTableSupported = null;
 
   function getListConfig(type) {
     return LIST_CONFIG[String(type || '').toLowerCase()] || null;
@@ -157,6 +159,36 @@
     if (code === '42501') return true;
     if (message.includes('permission denied') || message.includes('row-level security')) return true;
     return false;
+  }
+
+  function isCollaboratorTableMissingError(error) {
+    const code = String(error?.code || '').trim();
+    const message = String(error?.message || '').toLowerCase();
+    const details = String(error?.details || '').toLowerCase();
+    if (code === '42P01') return true;
+    if (message.includes('does not exist') && message.includes(LIST_COLLAB_TABLE)) return true;
+    if (details.includes('does not exist') && details.includes(LIST_COLLAB_TABLE)) return true;
+    return false;
+  }
+
+  async function loadCollaboratorRows(client, userId, type) {
+    const safeUserId = String(userId || '').trim();
+    const safeType = String(type || '').trim().toLowerCase();
+    if (!client || !safeUserId || !safeType) return [];
+    if (collaboratorTableSupported === false) return [];
+    const { data, error } = await client
+      .from(LIST_COLLAB_TABLE)
+      .select('media_type,list_id,list_owner_id,can_edit')
+      .eq('media_type', safeType)
+      .eq('collaborator_id', safeUserId);
+    if (error) {
+      if (isCollaboratorTableMissingError(error)) {
+        collaboratorTableSupported = false;
+      }
+      return [];
+    }
+    collaboratorTableSupported = true;
+    return data || [];
   }
 
   function toListMetaKey(type, listId) {
@@ -718,8 +750,60 @@
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     if (error) return [];
-    const lists = data || [];
-    const enhanced = await hydrateListMetaForLists(type, lists, { client, userId, ownerUserId: userId });
+    const ownLists = data || [];
+    const ownById = new Set(ownLists.map((row) => String(row?.id || '').trim()).filter(Boolean));
+
+    let sharedLists = [];
+    const collaboratorRows = await loadCollaboratorRows(client, userId, type);
+    const sharedIds = [...new Set((collaboratorRows || [])
+      .map((row) => String(row?.list_id || '').trim())
+      .filter((id) => id && !ownById.has(id)))];
+
+    if (sharedIds.length) {
+      const { data: rows, error: sharedError } = await client
+        .from(cfg.listTable)
+        .select('*')
+        .in('id', sharedIds);
+      if (!sharedError && Array.isArray(rows)) {
+        const collabById = new Map();
+        collaboratorRows.forEach((row) => {
+          const key = String(row?.list_id || '').trim();
+          if (!key) return;
+          collabById.set(key, row);
+        });
+        sharedLists = rows.map((row) => {
+          const key = String(row?.id || '').trim();
+          const collab = collabById.get(key);
+          return {
+            ...row,
+            __isCollaborative: true,
+            __canEdit: !!collab?.can_edit,
+            __listOwnerId: String(collab?.list_owner_id || row?.user_id || '').trim()
+          };
+        });
+      }
+    }
+
+    const lists = [...ownLists, ...sharedLists];
+    const groups = new Map();
+    lists.forEach((row) => {
+      const ownerId = String(row?.user_id || userId || '').trim() || userId;
+      if (!groups.has(ownerId)) groups.set(ownerId, []);
+      groups.get(ownerId).push(row);
+    });
+    const hydratedById = new Map();
+    for (const [ownerId, rows] of groups.entries()) {
+      const hydrated = await hydrateListMetaForLists(type, rows, { client, userId, ownerUserId: ownerId });
+      (hydrated || []).forEach((row) => {
+        const key = String(row?.id || '').trim();
+        if (!key) return;
+        hydratedById.set(key, row);
+      });
+    }
+    const enhanced = lists.map((row) => {
+      const key = String(row?.id || '').trim();
+      return hydratedById.get(key) || row;
+    });
     if (cfg.filterTitles && cfg.filterTitles.length) {
       return enhanced.filter(list => !cfg.filterTitles.includes(list.title));
     }
@@ -734,7 +818,6 @@
       .select('list_id')
       .eq(cfg.itemIdField, itemId)
       .in('list_id', listIds);
-    if (cfg.usesUserId && userId) query = query.eq('user_id', userId);
     const { data } = await query;
     const set = new Set();
     (data || []).forEach(row => set.add(row.list_id));
@@ -752,19 +835,33 @@
       await ensureTrackRecord(client, itemPayload);
     }
     const listIds = Array.isArray(selectedListIds) ? selectedListIds : [...(selectedListIds || [])];
+    const ownerMap = new Map();
+    if (listIds.length) {
+      const { data: ownerRows } = await client
+        .from(cfg.listTable)
+        .select('id,user_id')
+        .in('id', listIds);
+      (ownerRows || []).forEach((row) => {
+        const key = String(row?.id || '').trim();
+        if (!key) return;
+        ownerMap.set(key, String(row?.user_id || '').trim());
+      });
+    }
     if (listIds.length) {
       let del = client
         .from(cfg.itemsTable)
         .delete()
         .eq(cfg.itemIdField, itemId)
         .in('list_id', listIds);
-      if (cfg.usesUserId && userId) del = del.eq('user_id', userId);
       await del;
     }
     const inserts = listIds.map(listId => {
       const row = { list_id: listId };
       row[cfg.itemIdField] = itemId;
-      if (cfg.usesUserId && userId) row.user_id = userId;
+      if (cfg.usesUserId) {
+        const ownerId = String(ownerMap.get(String(listId || '').trim()) || '').trim();
+        row.user_id = ownerId || userId;
+      }
       return row;
     });
     if (inserts.length) await client.from(cfg.itemsTable).insert(inserts);
