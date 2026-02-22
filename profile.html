@@ -2039,6 +2039,50 @@
             display: block;
         }
 
+        #community-tab .section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+        }
+
+        #community-tab .section-header {
+            margin-bottom: 14px;
+        }
+
+        #community-tab .section-actions .d-flex {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 4px;
+            gap: 4px !important;
+        }
+
+        #community-tab .section-actions .btn.btn-secondary.btn-sm {
+            border-radius: 999px;
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+        }
+
+        #community-tab .section-actions .btn.btn-secondary.btn-sm.active {
+            background: rgba(245, 158, 11, 0.18);
+            color: var(--accent);
+        }
+
+        #community-tab .community-section .section-header {
+            display: none;
+        }
+
+        #community-tab .community-section + .community-section {
+            margin-top: 10px;
+        }
+
+        #community-tab .community-card {
+            border-radius: 12px;
+            border-color: rgba(255,255,255,0.08);
+        }
+
         .activity-feed {
             display: grid;
             gap: 10px;
@@ -3094,6 +3138,13 @@
 
             .mobile-community-tab.active {
                 display: block;
+            }
+
+            #mobileCommunitySection {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 14px;
             }
 
             .mobile-activity-feed {
@@ -8062,8 +8113,120 @@ header, .top-stripe, .section-nav {
                         };
                         const mediaLabel = labelByMedia[mediaType] || 'item';
                         if (eventType === 'review_add') return `posted a review for a ${mediaLabel}`;
+                        if (eventType === 'review_edit') return `edited a review for a ${mediaLabel}`;
+                        if (eventType === 'review_delete') return `deleted a review for a ${mediaLabel}`;
                         if (eventType === 'list_add') return `added a ${mediaLabel} to a list`;
+                        if (eventType === 'list_remove') return `removed a ${mediaLabel} from a list`;
                         return 'updated activity';
+                    },
+
+                    async fetchRowsWithCreatedAtFallback(tableName, selectWithCreatedAt, selectFallback, actorIds, limit = 30) {
+                        const withCreatedAt = await supabase
+                            .from(tableName)
+                            .select(selectWithCreatedAt)
+                            .in('user_id', actorIds)
+                            .order('created_at', { ascending: false })
+                            .limit(limit);
+
+                        if (!withCreatedAt?.error) {
+                            return Array.isArray(withCreatedAt?.data) ? withCreatedAt.data : [];
+                        }
+
+                        const fallback = await supabase
+                            .from(tableName)
+                            .select(selectFallback)
+                            .in('user_id', actorIds)
+                            .order('id', { ascending: false })
+                            .limit(limit);
+
+                        if (fallback?.error) return [];
+                        return (Array.isArray(fallback?.data) ? fallback.data : []).map((row) => ({ ...row, created_at: null }));
+                    },
+
+                    async loadFallbackActivityRows(actorIds) {
+                        const listSources = [
+                            { table: 'movie_list_items', mediaType: 'movie', itemField: 'movie_id' },
+                            { table: 'tv_list_items', mediaType: 'tv', itemField: 'tv_id' },
+                            { table: 'game_list_items', mediaType: 'game', itemField: 'game_id' },
+                            { table: 'book_list_items', mediaType: 'book', itemField: 'book_id' },
+                            { table: 'music_list_items', mediaType: 'music', itemField: 'track_id' }
+                        ];
+
+                        const listTasks = listSources.map(async (source) => {
+                            const rows = await this.fetchRowsWithCreatedAtFallback(
+                                source.table,
+                                `id, user_id, list_type, ${source.itemField}, created_at`,
+                                `id, user_id, list_type, ${source.itemField}`,
+                                actorIds,
+                                24
+                            );
+                            return rows.map((row) => ({
+                                id: `fallback-${source.mediaType}-${row.id}`,
+                                actor_id: row.user_id,
+                                event_type: 'list_add',
+                                media_type: source.mediaType,
+                                item_id: row[source.itemField] != null ? String(row[source.itemField]) : '',
+                                list_type: row.list_type || null,
+                                list_id: null,
+                                rating: null,
+                                review_text: null,
+                                metadata: { source_table: source.table, fallback: true },
+                                created_at: row.created_at || null
+                            }));
+                        });
+
+                        const journalRows = await this.fetchRowsWithCreatedAtFallback(
+                            'journal_entries',
+                            'id, user_id, restraunt_id, rating, notes, created_at',
+                            'id, user_id, restraunt_id, rating, notes',
+                            actorIds,
+                            24
+                        );
+                        const reviewRows = journalRows.map((row) => ({
+                            id: `fallback-review-${row.id}`,
+                            actor_id: row.user_id,
+                            event_type: 'review_add',
+                            media_type: 'restaurant',
+                            item_id: row.restraunt_id != null ? String(row.restraunt_id) : '',
+                            list_type: null,
+                            list_id: null,
+                            rating: row.rating ?? null,
+                            review_text: row.notes || null,
+                            metadata: { source_table: 'journal_entries', fallback: true },
+                            created_at: row.created_at || null
+                        }));
+
+                        const listRows = (await Promise.all(listTasks)).flat();
+                        const merged = [...listRows, ...reviewRows];
+                        merged.sort((a, b) => {
+                            const aTs = a.created_at ? new Date(a.created_at).getTime() : 0;
+                            const bTs = b.created_at ? new Date(b.created_at).getTime() : 0;
+                            return bTs - aTs;
+                        });
+                        return merged.slice(0, 60);
+                    },
+
+                    async fetchActivityRows(actorIds) {
+                        const { data: rows, error } = await supabase
+                            .from('user_activity_feed')
+                            .select('id, actor_id, event_type, media_type, item_id, list_type, list_id, rating, review_text, metadata, created_at')
+                            .in('actor_id', actorIds)
+                            .order('created_at', { ascending: false })
+                            .limit(60);
+
+                        if (!error) return Array.isArray(rows) ? rows : [];
+
+                        const msg = String(error?.message || '').toLowerCase();
+                        const code = String(error?.code || '').toUpperCase();
+                        const missingFeedTable =
+                            code === 'PGRST205' ||
+                            msg.includes('user_activity_feed') ||
+                            msg.includes('could not find the table');
+                        if (missingFeedTable) {
+                            return await this.loadFallbackActivityRows(actorIds);
+                        }
+
+                        throw error;
                     },
 
                     async loadActivity() {
@@ -8103,14 +8266,7 @@ header, .top-stripe, .section-nav {
                                 return;
                             }
 
-                            const { data: rows, error } = await supabase
-                                .from('user_activity_feed')
-                                .select('id, actor_id, event_type, media_type, item_id, list_type, list_id, rating, review_text, metadata, created_at')
-                                .in('actor_id', actorIds)
-                                .order('created_at', { ascending: false })
-                                .limit(60);
-
-                            if (error) throw error;
+                            const rows = await this.fetchActivityRows(actorIds);
                             if (!rows || !rows.length) {
                                 list.innerHTML = isMobile
                                     ? `
