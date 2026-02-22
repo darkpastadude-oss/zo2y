@@ -5,7 +5,7 @@ import { getSupabaseAdminClient } from "../lib/supabase-admin.js";
 const router = express.Router();
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
-const OPENAI_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4.1-mini";
+const OPENAI_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_CANDIDATES = 60;
 const MAX_RECOMMENDATIONS = 8;
@@ -132,40 +132,84 @@ async function requestOpenAI({ message, mediaType, candidates, signals }) {
     user_signals: signals
   });
 
-  const res = await fetch(OPENAI_API_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: OPENAI_MODEL,
+  const callChatCompletions = async ({ model, useJsonResponseFormat }) => {
+    const payload = {
+      model,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ],
-      response_format: { type: "json_object" },
       temperature: 0.4,
       max_tokens: 700
-    })
-  });
+    };
+    if (useJsonResponseFormat) {
+      payload.response_format = { type: "json_object" };
+    }
 
-  if (!res.ok) {
-    const detail = await res.text();
-    const error = new Error(`OpenAI request failed (${res.status}): ${detail}`);
-    error.statusCode = 502;
-    throw error;
+    const res = await fetch(OPENAI_API_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const raw = await res.text();
+    if (!res.ok) {
+      const err = new Error(`OpenAI request failed (${res.status}): ${raw}`);
+      err.statusCode = res.status;
+      throw err;
+    }
+    let json = null;
+    try {
+      json = JSON.parse(raw);
+    } catch (_err) {
+      const error = new Error("OpenAI returned non-JSON response.");
+      error.statusCode = 502;
+      throw error;
+    }
+    const text = String(json?.choices?.[0]?.message?.content || "").trim();
+    const parsed = extractJson(text);
+    if (!parsed || typeof parsed !== "object") {
+      const error = new Error("Model response could not be parsed.");
+      error.statusCode = 502;
+      throw error;
+    }
+    return parsed;
+  };
+
+  const attempts = [
+    { model: OPENAI_MODEL, useJsonResponseFormat: true },
+    { model: OPENAI_MODEL, useJsonResponseFormat: false }
+  ];
+  if (OPENAI_MODEL !== "gpt-4o-mini") {
+    attempts.push({ model: "gpt-4o-mini", useJsonResponseFormat: true });
+    attempts.push({ model: "gpt-4o-mini", useJsonResponseFormat: false });
   }
 
-  const json = await res.json();
-  const text = String(json?.choices?.[0]?.message?.content || "").trim();
-  const parsed = extractJson(text);
-  if (!parsed || typeof parsed !== "object") {
-    const error = new Error("Model response could not be parsed.");
-    error.statusCode = 502;
-    throw error;
+  let lastErr = null;
+  for (const attempt of attempts) {
+    try {
+      return await callChatCompletions(attempt);
+    } catch (err) {
+      lastErr = err;
+      const msg = String(err?.message || "");
+      const retryable =
+        /response_format/i.test(msg) ||
+        /unsupported/i.test(msg) ||
+        /not found/i.test(msg) ||
+        /model/i.test(msg) ||
+        Number(err?.statusCode || 0) >= 500 ||
+        Number(err?.statusCode || 0) === 429 ||
+        Number(err?.statusCode || 0) === 400;
+      if (!retryable) break;
+    }
   }
-  return parsed;
+
+  const error = new Error(String(lastErr?.message || "OpenAI request failed"));
+  error.statusCode = 502;
+  throw error;
 }
 
 router.get("/health", (_req, res) => {
