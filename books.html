@@ -770,6 +770,7 @@
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const OPEN_LIBRARY_BASE = 'https://openlibrary.org';
+      const OPEN_LIBRARY_PROXY_BASE = '/api/openlibrary';
       const OPEN_LIBRARY_COVERS = 'https://covers.openlibrary.org/b';
       const FALLBACK_BOOK_IMAGE = 'images/logo.png';
       const FALLBACK_BOOKS = [
@@ -813,27 +814,39 @@
       let supabaseClient = null;
 
       async function booksFetch(path, params = {}) {
-        const url = new URL(path, OPEN_LIBRARY_BASE);
+        const normalizedPath = String(path || '').startsWith('/') ? String(path) : `/${String(path || '')}`;
+        const directUrl = new URL(normalizedPath, OPEN_LIBRARY_BASE);
+        const proxyUrl = new URL(`${OPEN_LIBRARY_PROXY_BASE}${normalizedPath}`, window.location.origin);
         Object.entries(params).forEach(([k, v]) => {
-          if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
+          if (v === undefined || v === null || v === '') return;
+          directUrl.searchParams.set(k, v);
+          proxyUrl.searchParams.set(k, v);
         });
+
+        const requestTargets = [proxyUrl.toString(), directUrl.toString()];
         let lastError = null;
-        for (let attempt = 0; attempt < 3; attempt += 1) {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 6000);
-          try {
-            const res = await fetch(url.toString(), { signal: controller.signal });
-            clearTimeout(timeoutId);
-            if (res.ok) return await res.json();
-            const retryable = res.status === 429 || res.status >= 500;
-            if (!retryable) throw new Error(`Books API error ${res.status}`);
-            lastError = new Error(`Books API error ${res.status}`);
-          } catch (error) {
-            clearTimeout(timeoutId);
-            lastError = error;
-          }
-          if (attempt < 2) {
-            await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+
+        for (const target of requestTargets) {
+          for (let attempt = 0; attempt < 4; attempt += 1) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 7000 + (attempt * 1000));
+            try {
+              const res = await fetch(target, {
+                signal: controller.signal,
+                headers: { Accept: 'application/json' }
+              });
+              clearTimeout(timeoutId);
+              if (res.ok) return await res.json();
+              const retryable = res.status === 429 || res.status >= 500;
+              if (!retryable) throw new Error(`Books API error ${res.status}`);
+              lastError = new Error(`Books API error ${res.status}`);
+            } catch (error) {
+              clearTimeout(timeoutId);
+              lastError = error;
+            }
+            if (attempt < 3) {
+              await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+            }
           }
         }
         throw lastError || new Error('Books API error');

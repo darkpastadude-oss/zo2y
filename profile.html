@@ -5572,6 +5572,7 @@ header, .top-stripe, .section-nav {
             const IGDB_PROXY_BASE = "/api/igdb";
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
             const OPEN_LIBRARY_BASE = "https://openlibrary.org";
+            const OPEN_LIBRARY_PROXY_BASE = "/api/openlibrary";
             const FALLBACK_BOOK_IMAGE = "images/logo.png";
 
             async function igdbFetch(path, params = {}) {
@@ -11969,10 +11970,35 @@ header, .top-stripe, .section-nav {
                 try {
                     const normalizedId = String(bookId || '').replace(/^\/works\//i, '').trim();
                     if (!normalizedId || !/^[A-Za-z0-9]+W$/.test(normalizedId)) return null;
-                    const url = `${OPEN_LIBRARY_BASE}/works/${encodeURIComponent(normalizedId)}.json`;
-                    const res = await fetch(url);
-                    if (!res.ok) return null;
-                    const data = await res.json();
+                    const path = `/works/${encodeURIComponent(normalizedId)}.json`;
+                    const requestTargets = [
+                        `${OPEN_LIBRARY_PROXY_BASE}${path}`,
+                        `${OPEN_LIBRARY_BASE}${path}`
+                    ];
+                    let data = null;
+                    for (const target of requestTargets) {
+                        for (let attempt = 0; attempt < 4; attempt += 1) {
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), 7000 + (attempt * 1000));
+                            try {
+                                const res = await fetch(target, { signal: controller.signal, headers: { Accept: 'application/json' } });
+                                clearTimeout(timeoutId);
+                                if (res.ok) {
+                                    data = await res.json();
+                                    break;
+                                }
+                                const retryable = res.status === 429 || res.status >= 500;
+                                if (!retryable) break;
+                            } catch (_error) {
+                                clearTimeout(timeoutId);
+                            }
+                            if (attempt < 3) {
+                                await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+                            }
+                        }
+                        if (data) break;
+                    }
+                    if (!data) return null;
                     bookCache.set(bookId, data);
                     return data;
                 } catch (error) {

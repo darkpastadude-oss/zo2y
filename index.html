@@ -2421,19 +2421,41 @@
 
       if (options.signal?.aborted) return null;
 
-      const requestPromise = fetch(url, { signal: options.signal })
-        .then(async (res) => {
-          if (!res.ok) return null;
-          return res.json();
-        })
-        .catch(() => null)
-        .finally(() => {
-          const current = homeHttpCache.get(key);
-          if (current?.promise) {
-            delete current.promise;
-            homeHttpCache.set(key, current);
+      const requestUrl = String(url || '').trim();
+      const isOpenLibraryRequest = /(^https?:\/\/openlibrary\.org\/)|(^\/api\/openlibrary\/)|(^https?:\/\/[^/]+\/api\/openlibrary\/)/i.test(requestUrl);
+      const maxAttempts = Number(options.retries || (isOpenLibraryRequest ? 4 : 1));
+
+      const requestPromise = (async () => {
+        let lastError = null;
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+          if (options.signal?.aborted) return null;
+          const controller = new AbortController();
+          const timeoutMs = Number(options.timeoutMs || (isOpenLibraryRequest ? (7000 + attempt * 1000) : 9000));
+          const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+          try {
+            const res = await fetch(requestUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (res.ok) return await res.json();
+            const retryable = res.status === 429 || res.status >= 500;
+            if (!retryable) return null;
+            lastError = new Error(`http_${res.status}`);
+          } catch (error) {
+            clearTimeout(timeoutId);
+            lastError = error;
           }
-        });
+          if (attempt < maxAttempts - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+          }
+        }
+        if (lastError && options.throwOnError) throw lastError;
+        return null;
+      })().finally(() => {
+        const current = homeHttpCache.get(key);
+        if (current?.promise) {
+          delete current.promise;
+          homeHttpCache.set(key, current);
+        }
+      });
 
       homeHttpCache.set(key, {
         promise: requestPromise,
@@ -6124,14 +6146,14 @@
         const seedCandidates = seeds.slice(0, maxSeeds);
         const searchSeed = async (seed) => {
           const primaryUrl =
-            `https://openlibrary.org/search.json?title=${encodeURIComponent(seed.title)}` +
+            `/api/openlibrary/search.json?title=${encodeURIComponent(seed.title)}` +
             `&author=${encodeURIComponent(seed.author)}&language=eng&limit=5`;
           const primary = await fetchJsonWithPerfCache(primaryUrl, { signal, cacheKey: `books:ol:${primaryUrl}` });
           const primaryDocs = Array.isArray(primary?.docs) ? primary.docs : [];
           if (primaryDocs.length) return primaryDocs;
 
           const fallbackQ = `${seed.title} ${seed.author}`;
-          const fallbackUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(fallbackQ)}&language=eng&limit=5`;
+          const fallbackUrl = `/api/openlibrary/search.json?q=${encodeURIComponent(fallbackQ)}&language=eng&limit=5`;
           const fallback = await fetchJsonWithPerfCache(fallbackUrl, { signal, cacheKey: `books:ol:${fallbackUrl}` });
           return Array.isArray(fallback?.docs) ? fallback.docs : [];
         };

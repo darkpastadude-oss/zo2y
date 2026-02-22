@@ -55,14 +55,28 @@ function isAuthorized(req) {
   return headerSecret === PRECOMPUTE_SECRET || querySecret === PRECOMPUTE_SECRET;
 }
 
-async function fetchJson(url) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    return await res.json();
-  } catch (_error) {
-    return null;
+async function fetchJson(url, attempts = 3) {
+  let lastError = null;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000 + (attempt * 1000));
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) return await res.json();
+      const retryable = res.status === 429 || res.status >= 500;
+      if (!retryable) return null;
+      lastError = new Error(`http_${res.status}`);
+    } catch (error) {
+      clearTimeout(timeoutId);
+      lastError = error;
+    }
+    if (attempt < attempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 350 * (attempt + 1)));
+    }
   }
+  if (lastError) return null;
+  return null;
 }
 
 function mapMovies(rows = []) {

@@ -71,6 +71,14 @@
       "destination": "/api/books-handler?path=:path*"
     },
     {
+      "source": "/api/openlibrary",
+      "destination": "/api/openlibrary-handler"
+    },
+    {
+      "source": "/api/openlibrary/:path*",
+      "destination": "/api/openlibrary-handler?path=:path*"
+    },
+    {
       "source": "/api/analytics",
       "destination": "/api/analytics-handler"
     },
