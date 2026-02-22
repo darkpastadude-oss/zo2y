@@ -1524,7 +1524,7 @@
       /* Unified mobile card surface */
       .rail .card {
         background: var(--card) !important;
-        border: 1px solid var(--border) !important;
+        border: 0 !important;
         box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28) !important;
         border-radius: 14px !important;
         overflow: hidden !important;
@@ -1555,10 +1555,14 @@
         width: 100% !important;
         height: 100% !important;
         display: block !important;
-        object-fit: cover !important;
+        object-fit: contain !important;
         border: 0 !important;
         border-radius: 0 !important;
         background: #0f1f40 !important;
+      }
+
+      #restaurantsRail .card-media.restaurant-composite .restaurant-cover {
+        object-fit: cover !important;
       }
 
       .rail .card-meta {
@@ -1577,9 +1581,11 @@
         object-fit: contain !important;
       }
 
+      .rail .card-type,
       .rail .card-menu-btn,
       .rail .card-open-link,
       .rail .restaurant-logo-badge {
+        border: 0 !important;
         box-shadow: none !important;
       }
 
