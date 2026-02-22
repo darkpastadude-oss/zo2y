@@ -1655,7 +1655,7 @@
       position: fixed;
       right: 16px;
       bottom: 18px;
-      z-index: 280;
+      z-index: 3600;
       display: grid;
       gap: 10px;
       justify-items: end;
@@ -5187,7 +5187,12 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error(`chat_failed_${res.status}`);
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => null);
+        const err = new Error(String(errBody?.message || `chat_failed_${res.status}`));
+        err.statusCode = Number(res.status || 0);
+        throw err;
+      }
       const json = await res.json();
       const picks = Array.isArray(json?.recommendations) ? json.recommendations : [];
       const normalizedPicks = picks.map((row) => ({
@@ -5250,7 +5255,12 @@
       const refreshHealth = async () => {
         try {
           const res = await fetch('/api/chat/health', { method: 'GET', cache: 'no-store' });
-          setStatus(res.ok);
+          if (!res.ok) {
+            setStatus(false);
+            return;
+          }
+          const json = await res.json().catch(() => null);
+          setStatus(!!json?.ok && !!json?.configured);
         } catch (_err) {
           setStatus(false);
         }
@@ -5305,8 +5315,18 @@
           const reply = await requestSmartChatReply(prompt);
           hideTyping();
           appendMsg(reply.text, 'bot', reply.picks, true);
-        } catch (_err) {
+        } catch (err) {
           hideTyping();
+          const msg = String(err?.message || '');
+          const statusCode = Number(err?.statusCode || 0);
+          const configError =
+            statusCode === 503 ||
+            /OPENAI_API_KEY/i.test(msg) ||
+            /not configured/i.test(msg);
+          if (configError) {
+            appendMsg('AI chat is not configured on the server yet. Set `OPENAI_API_KEY` in the deployment environment and redeploy, then refresh this page.', 'bot', [], true);
+            return;
+          }
           const fallback = buildHomeChatReply(prompt);
           appendMsg(fallback.text, 'bot', fallback.picks, true);
         }

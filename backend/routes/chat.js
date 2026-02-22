@@ -107,6 +107,21 @@ function extractJson(text) {
   }
 }
 
+function extractOutputText(responseJson) {
+  const direct = String(responseJson?.output_text || "").trim();
+  if (direct) return direct;
+  const chunks = [];
+  const output = Array.isArray(responseJson?.output) ? responseJson.output : [];
+  output.forEach((entry) => {
+    const content = Array.isArray(entry?.content) ? entry.content : [];
+    content.forEach((part) => {
+      const text = String(part?.text || part?.output_text || "").trim();
+      if (text) chunks.push(text);
+    });
+  });
+  return chunks.join("\n").trim();
+}
+
 async function requestOpenAI({ message, mediaType, candidates, signals }) {
   const apiKey = String(process.env.OPENAI_API_KEY || "").trim();
   if (!apiKey) {
@@ -151,7 +166,7 @@ async function requestOpenAI({ message, mediaType, candidates, signals }) {
   }
 
   const json = await res.json();
-  const text = String(json?.output_text || "").trim();
+  const text = extractOutputText(json);
   const parsed = extractJson(text);
   if (!parsed || typeof parsed !== "object") {
     const error = new Error("Model response could not be parsed.");
@@ -212,7 +227,16 @@ router.post("/recommend", async (req, res) => {
     let result;
     try {
       result = await requestOpenAI({ message, mediaType, candidates, signals });
-    } catch (_modelErr) {
+    } catch (modelErr) {
+      const msg = String(modelErr?.message || "");
+      const statusCode = Number(modelErr?.statusCode || 0);
+      const hardFail =
+        statusCode === 503 ||
+        /OPENAI_API_KEY/i.test(msg) ||
+        /not configured/i.test(msg) ||
+        /invalid api key/i.test(msg) ||
+        /incorrect api key/i.test(msg);
+      if (hardFail) throw modelErr;
       result = fallbackRecommendations(message, mediaType, candidates);
     }
 
@@ -252,4 +276,3 @@ router.post("/recommend", async (req, res) => {
 });
 
 export default router;
-

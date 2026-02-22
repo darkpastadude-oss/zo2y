@@ -19,6 +19,7 @@ const __dirname = path.dirname(__filename);
 
 // Load env from backend/.env regardless of current working directory.
 dotenv.config({ path: path.join(__dirname, ".env") });
+dotenv.config({ path: path.join(__dirname, "authRoutes/.env") });
 // Optional fallback if someone also keeps a repo-root .env.
 dotenv.config();
 

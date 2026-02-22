@@ -5,6 +5,7 @@ import { applyApiGuardrails } from "./_guardrails.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
+dotenv.config({ path: "backend/authRoutes/.env" });
 
 const app = express();
 applyApiGuardrails(app, { keyPrefix: "api-chat", max: 120 });
@@ -43,4 +44,3 @@ export default function handler(req, res) {
 
   return app(req, res);
 }
-
