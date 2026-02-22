@@ -1650,6 +1650,198 @@
         background: rgba(245, 158, 11, 0.16);
       }
     }
+
+    .ai-chat-shell {
+      position: fixed;
+      right: 16px;
+      bottom: 18px;
+      z-index: 280;
+      display: grid;
+      gap: 10px;
+      justify-items: end;
+    }
+
+    .ai-chat-toggle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      background: linear-gradient(135deg, #f59e0b, #ffbf5b);
+      color: #0b1633;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ai-chat-toggle:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.42);
+    }
+
+    .ai-chat-panel {
+      width: min(360px, calc(100vw - 22px));
+      height: min(520px, calc(100vh - 120px));
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(13, 27, 58, 0.96);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      display: none;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+    }
+
+    .ai-chat-panel.open { display: grid; }
+
+    .ai-chat-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .ai-chat-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .ai-chat-close {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 16px;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+    }
+
+    .ai-chat-close:hover {
+      color: var(--white);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .ai-chat-messages {
+      padding: 12px;
+      overflow-y: auto;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .ai-msg {
+      max-width: 90%;
+      font-size: 13px;
+      line-height: 1.45;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+    }
+
+    .ai-msg.bot {
+      background: #152954;
+      color: #eaf1ff;
+      justify-self: start;
+    }
+
+    .ai-msg.user {
+      background: #21386f;
+      color: #fff;
+      justify-self: end;
+    }
+
+    .ai-chat-input-wrap {
+      border-top: 1px solid var(--border);
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .ai-chat-quick {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .ai-chat-chip {
+      border: 1px solid var(--border);
+      background: #14274f;
+      color: #dbe7ff;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .ai-chat-chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .ai-chat-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .ai-chat-input {
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #122446;
+      color: #fff;
+      padding: 0 12px;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .ai-chat-send {
+      height: 40px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--gradient);
+      color: #0b1633;
+      font-weight: 700;
+      padding: 0 12px;
+      cursor: pointer;
+    }
+
+    .ai-chat-send:hover { filter: brightness(1.03); }
+
+    .ai-rec-list {
+      margin-top: 6px;
+      display: grid;
+      gap: 5px;
+    }
+
+    .ai-rec-link {
+      color: #f8cf73;
+      text-decoration: underline;
+      font-size: 12px;
+      text-underline-offset: 2px;
+    }
+
+    @media (max-width: 768px) {
+      .ai-chat-shell {
+        right: 10px;
+        bottom: 76px;
+      }
+
+      .ai-chat-panel {
+        width: min(350px, calc(100vw - 16px));
+        height: min(500px, calc(100vh - 162px));
+      }
+    }
   </style>
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -1765,6 +1957,28 @@
     <a href="privacy.html">Privacy</a>
     <a href="terms.html">Terms</a>
     <a href="support.html">Support</a>
+  </div>
+
+  <div class="ai-chat-shell" id="aiChatShell">
+    <div class="ai-chat-panel" id="aiChatPanel" aria-live="polite">
+      <div class="ai-chat-head">
+        <div class="ai-chat-title"><i class="fas fa-robot"></i> Zo2y AI</div>
+        <button class="ai-chat-close" id="aiChatCloseBtn" aria-label="Close assistant"><i class="fas fa-xmark"></i></button>
+      </div>
+      <div class="ai-chat-messages" id="aiChatMessages"></div>
+      <div class="ai-chat-input-wrap">
+        <div class="ai-chat-quick">
+          <button class="ai-chat-chip" data-prompt="Recommend me movies like Inception">Sci-fi movies</button>
+          <button class="ai-chat-chip" data-prompt="What should I play tonight?">Games</button>
+          <button class="ai-chat-chip" data-prompt="Give me a great book recommendation">Books</button>
+        </div>
+        <form class="ai-chat-form" id="aiChatForm">
+          <input class="ai-chat-input" id="aiChatInput" type="text" maxlength="220" placeholder="Ask for recommendations..." />
+          <button class="ai-chat-send" type="submit"><i class="fas fa-paper-plane"></i></button>
+        </form>
+      </div>
+    </div>
+    <button class="ai-chat-toggle" id="aiChatToggleBtn" aria-label="Open Zo2y AI"><i class="fas fa-robot"></i></button>
   </div>
 
   <nav class="mobile-bottom-nav" aria-label="Mobile sections">
@@ -4621,6 +4835,134 @@
       localStorage.removeItem(getOnboardingPendingKey(userId));
     }
 
+    function homeMediaLabel(type) {
+      const key = String(type || '').toLowerCase();
+      const map = {
+        movie: 'Movie',
+        tv: 'TV Show',
+        game: 'Game',
+        book: 'Book',
+        music: 'Track'
+      };
+      return map[key] || 'Pick';
+    }
+
+    function getHomeRecommendationPoolByType(type) {
+      const key = String(type || '').toLowerCase();
+      const raw = Array.isArray(homeFeedState?.[key]) ? homeFeedState[key] : [];
+      return raw.filter((item) => !item?.isPlaceholder && String(item?.title || '').trim());
+    }
+
+    function detectHomeChatIntent(prompt) {
+      const text = String(prompt || '').toLowerCase();
+      if (/movie|film|cinema|watch/.test(text)) return 'movie';
+      if (/tv|show|series|episode/.test(text)) return 'tv';
+      if (/game|play|gaming|xbox|ps5|switch/.test(text)) return 'game';
+      if (/book|read|novel/.test(text)) return 'book';
+      if (/music|song|track|listen/.test(text)) return 'music';
+      return 'mixed';
+    }
+
+    function buildHomeChatReply(prompt) {
+      const intent = detectHomeChatIntent(prompt);
+      const mood = String(prompt || '').toLowerCase();
+      const energetic = /hype|fast|action|adrenaline|party|workout/.test(mood);
+      const calm = /calm|chill|relax|quiet|cozy|soft/.test(mood);
+      const pools = {
+        movie: getHomeRecommendationPoolByType('movie'),
+        tv: getHomeRecommendationPoolByType('tv'),
+        game: getHomeRecommendationPoolByType('game'),
+        book: getHomeRecommendationPoolByType('book'),
+        music: getHomeRecommendationPoolByType('music')
+      };
+
+      let picks = [];
+      if (intent === 'mixed') {
+        picks = HOME_BASE_MEDIA_TYPES.flatMap((type) => pools[type].slice(0, 2)).slice(0, 6);
+      } else {
+        picks = pools[intent].slice(0, 6);
+      }
+
+      if (!picks.length) {
+        return {
+          text: 'I do not have live picks loaded yet. Try opening Movies, TV, Games, Books, or Music and ask again.',
+          picks: []
+        };
+      }
+
+      const tone = energetic
+        ? 'You asked for higher energy, so I prioritized louder, momentum-heavy picks.'
+        : (calm ? 'You asked for something calmer, so these skew atmospheric and easy to sink into.' : 'Here are good picks from what is trending on Zo2y right now.');
+
+      return { text: tone, picks };
+    }
+
+    function createAiMessageNode(text, role = 'bot', picks = []) {
+      const wrap = document.createElement('div');
+      wrap.className = `ai-msg ${role === 'user' ? 'user' : 'bot'}`;
+      wrap.textContent = text;
+      if (role === 'bot' && Array.isArray(picks) && picks.length) {
+        const list = document.createElement('div');
+        list.className = 'ai-rec-list';
+        picks.forEach((item) => {
+          const link = document.createElement('a');
+          link.className = 'ai-rec-link';
+          link.href = item.href || '#';
+          link.textContent = `${homeMediaLabel(item.mediaType)}: ${item.title || 'Untitled'}`;
+          list.appendChild(link);
+        });
+        wrap.appendChild(list);
+      }
+      return wrap;
+    }
+
+    function initHomeAiChat() {
+      const panel = document.getElementById('aiChatPanel');
+      const toggleBtn = document.getElementById('aiChatToggleBtn');
+      const closeBtn = document.getElementById('aiChatCloseBtn');
+      const messages = document.getElementById('aiChatMessages');
+      const form = document.getElementById('aiChatForm');
+      const input = document.getElementById('aiChatInput');
+      if (!panel || !toggleBtn || !closeBtn || !messages || !form || !input) return;
+
+      const appendMsg = (text, role = 'bot', picks = []) => {
+        messages.appendChild(createAiMessageNode(text, role, picks));
+        messages.scrollTop = messages.scrollHeight;
+      };
+
+      const submitPrompt = (rawPrompt) => {
+        const prompt = String(rawPrompt || '').trim();
+        if (!prompt) return;
+        appendMsg(prompt, 'user');
+        const reply = buildHomeChatReply(prompt);
+        appendMsg(reply.text, 'bot', reply.picks);
+      };
+
+      if (!messages.dataset.initialized) {
+        appendMsg('Hey, I am Zo2y AI. Ask me what to watch, play, read, or listen to and I will suggest picks from your live homepage feed.');
+        messages.dataset.initialized = '1';
+      }
+
+      toggleBtn.addEventListener('click', () => {
+        panel.classList.toggle('open');
+        if (panel.classList.contains('open')) input.focus();
+      });
+      closeBtn.addEventListener('click', () => panel.classList.remove('open'));
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        submitPrompt(input.value);
+        input.value = '';
+      });
+
+      document.querySelectorAll('.ai-chat-chip[data-prompt]').forEach((chip) => {
+        chip.addEventListener('click', () => {
+          const prompt = chip.getAttribute('data-prompt') || '';
+          submitPrompt(prompt);
+        });
+      });
+    }
+
     function getHomeOnboardingSteps() {
       return [
         {
@@ -5776,6 +6118,8 @@
           fallbackRoute: 'movies.html'
         });
       }
+
+      initHomeAiChat();
 
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
