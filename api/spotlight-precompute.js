@@ -171,8 +171,14 @@ function mapBooks(rows = []) {
 }
 
 function mapMusic(rows = []) {
+  const seen = new Set();
   return rows
-    .filter((track) => track && track.id)
+    .filter((track) => {
+      const id = String(track?.id || "").trim();
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    })
     .sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0))
     .slice(0, TARGET_ITEMS)
     .map((track) => {
