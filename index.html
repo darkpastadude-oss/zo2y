@@ -1971,6 +1971,7 @@
     let homeTasteWeights = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, 1]));
     const homeFeedState = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, []]));
     const homeHttpCache = new Map();
+    let booksApiConfiguredCache = null;
     const homeCustomListState = {
       mediaType: null,
       itemId: null,
@@ -2063,6 +2064,17 @@
         homeHttpCache.delete(key);
       }
       return cloneJson(data, null);
+    }
+
+    async function isBooksApiConfigured(signal) {
+      if (typeof booksApiConfiguredCache === 'boolean') return booksApiConfiguredCache;
+      const json = await fetchJsonWithPerfCache('/api/books', {
+        signal,
+        cacheKey: 'books:health',
+        ttlMs: 1000 * 60 * 10
+      });
+      booksApiConfiguredCache = !!json?.configured;
+      return booksApiConfiguredCache;
     }
 
     function resolveRestaurantImage(value) {
@@ -3982,9 +3994,9 @@
         ...(ENABLE_RESTAURANTS ? [{ key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant', landscape: true, restaurantComposite: true } }] : []),
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
-        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 3200, deferInitial: true },
-        { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' } },
-        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' } }
+        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 4200, deferInitial: true },
+        { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 5200 },
+        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 3800 }
       ];
     }
 
@@ -5172,8 +5184,10 @@
           }))
           .filter((seed) => seed.title && seed.author);
         if (!seeds.length) return attachFallbackKnown([]);
+        const canUseGoogleBooks = await isBooksApiConfigured(signal);
+        if (!canUseGoogleBooks) return attachFallbackKnown([]);
 
-        const maxSeeds = Math.max(HOME_CHANNEL_TARGET_ITEMS, 24);
+        const maxSeeds = Math.max(HOME_CHANNEL_TARGET_ITEMS, 14);
         const seedCandidates = seeds.slice(0, maxSeeds);
         const rows = [];
         const responses = await Promise.all(seedCandidates.map(async (seed) => {

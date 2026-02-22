@@ -674,11 +674,12 @@
     }
   </style>
   <meta name="theme-color" content="#0b1633" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="/images/logo.png" />
+  <link rel="manifest" href="/manifest.webmanifest?v=2" />
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
   <link rel="stylesheet" href="/js/mobile-app.css" />
   <script src="/js/mobile-webapp.js" defer></script>
 </head>
@@ -791,6 +792,24 @@
       };
 
       let supabaseClient = null;
+      let booksApiConfiguredCache = null;
+
+      async function isBooksApiConfigured() {
+        if (typeof booksApiConfiguredCache === 'boolean') return booksApiConfiguredCache;
+        try {
+          const res = await fetch('/api/books');
+          if (!res.ok) {
+            booksApiConfiguredCache = false;
+            return false;
+          }
+          const json = await res.json();
+          booksApiConfiguredCache = !!json?.configured;
+          return booksApiConfiguredCache;
+        } catch (_err) {
+          booksApiConfiguredCache = false;
+          return false;
+        }
+      }
 
       async function booksFetch(path, params = {}) {
         const url = new URL(path, OPEN_LIBRARY_BASE);
@@ -855,15 +874,9 @@
           }))
           .filter((seed) => seed.title && seed.author)
           .slice(0, BOOKS_PER_PAGE);
-        const results = await Promise.all(candidates.map(async (seed, idx) => {
-          const q = `intitle:"${seed.title}" inauthor:"${seed.author}"`;
-          const url = `/api/books/volumes?q=${encodeURIComponent(q)}&printType=books&langRestrict=en&orderBy=relevance&maxResults=1`;
-          const r = await fetch(url);
-          if (!r.ok) return null;
-          const json = await r.json();
-          const row = Array.isArray(json?.items) ? json.items[0] : null;
-          if (row) return normalizeGoogleVolumeToDoc(row, idx);
-          return {
+        const canUseGoogleBooks = await isBooksApiConfigured();
+        if (!canUseGoogleBooks) {
+          const docs = candidates.map((seed, idx) => ({
             key: `/works/seed-${idx}`,
             title: seed.title,
             author_name: [seed.author],
@@ -871,7 +884,38 @@
             isbn: [],
             subject: [],
             publisher: []
-          };
+          }));
+          return { docs, numFound: docs.length };
+        }
+        const results = await Promise.all(candidates.map(async (seed, idx) => {
+          try {
+            const q = `intitle:"${seed.title}" inauthor:"${seed.author}"`;
+            const url = `/api/books/volumes?q=${encodeURIComponent(q)}&printType=books&langRestrict=en&orderBy=relevance&maxResults=1`;
+            const r = await fetch(url);
+            if (!r.ok) return null;
+            const json = await r.json();
+            const row = Array.isArray(json?.items) ? json.items[0] : null;
+            if (row) return normalizeGoogleVolumeToDoc(row, idx);
+            return {
+              key: `/works/seed-${idx}`,
+              title: seed.title,
+              author_name: [seed.author],
+              first_publish_year: null,
+              isbn: [],
+              subject: [],
+              publisher: []
+            };
+          } catch (_err) {
+            return {
+              key: `/works/seed-${idx}`,
+              title: seed.title,
+              author_name: [seed.author],
+              first_publish_year: null,
+              isbn: [],
+              subject: [],
+              publisher: []
+            };
+          }
         }));
         const docs = results.filter(Boolean);
         return { docs, numFound: docs.length };

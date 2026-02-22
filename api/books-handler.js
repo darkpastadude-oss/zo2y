@@ -29,7 +29,7 @@ app.get("/api/books/*", async (req, res) => {
   try {
     const key = getBooksKey();
     if (!key) {
-      return res.status(500).json({ message: "Google Books is not configured" });
+      return res.status(503).json({ message: "Google Books is not configured" });
     }
 
     const relativePath = req.path.replace(/^\/api\/books\//, "");
@@ -50,7 +50,8 @@ app.get("/api/books/*", async (req, res) => {
 });
 
 app.get("/api/books", (req, res) => {
-  res.json({ ok: true, service: "books-proxy" });
+  const key = getBooksKey();
+  res.json({ ok: true, service: "books-proxy", configured: !!key });
 });
 
 export default function handler(req, res) {
