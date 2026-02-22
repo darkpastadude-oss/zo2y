@@ -1516,110 +1516,64 @@
 
       .section { border-radius: 16px; }
       .section-head h2 { font-size: 19px; }
-      .rail { grid-auto-columns: 142px; }
-      .rail.unified-rail { grid-auto-columns: 142px; }
-      .rail.games-rail { grid-auto-columns: 142px; }
-      .card { min-height: 232px; }
+      .rail { grid-auto-columns: 154px; gap: 10px; }
+      .rail.unified-rail { grid-auto-columns: 154px; }
+      .rail.games-rail { grid-auto-columns: 154px; }
       .card-hover-cue { display: none; }
 
-      .rail.unified-rail .card {
-        height: 314px;
-        min-height: 314px;
-        border: 0;
-        box-shadow: none;
-      }
-
-      .rail.unified-rail .card-media {
-        height: 190px;
-        aspect-ratio: 2/3;
-        background: transparent;
-      }
-
-      .rail.unified-rail .card-media img {
-        background: transparent;
-      }
-
-      .rail.unified-rail .card-media.game-poster {
-        height: 190px;
-        aspect-ratio: 2/3;
-        padding: 0;
-        background: transparent;
-      }
-
-      .rail.unified-rail .card-media.landscape img,
-      .rail.unified-rail .card-media.game-poster img,
-      .rail.unified-rail .card-media.music-cover img {
-        object-fit: cover;
-      }
-
-      .rail.unified-rail .card-media.game-poster img {
-        border-radius: 0;
-      }
-
-      .rail.games-rail .card {
-        height: 314px;
-        min-height: 314px;
-        border: 0;
-        box-shadow: none;
-      }
-
-      .rail.games-rail .card-media.game-poster {
-        height: 190px;
-        aspect-ratio: 2/3;
-        padding: 0;
-        background: transparent;
-      }
-
-      .rail.games-rail .card-media.game-poster img {
-        object-fit: cover;
-        border-radius: 0;
-        background: transparent;
-      }
-
-      #booksRail .card {
-        border: 0;
-        box-shadow: none;
-      }
-
-      #booksRail .card-media {
-        background: transparent;
-      }
-
-      #booksRail .card-media img {
-        object-fit: cover;
-        background: transparent;
-      }
-
-      /* Force uniform, borderless cards across all mobile rails */
+      /* Unified mobile card surface */
       .rail .card {
-        height: 314px;
-        min-height: 314px;
+        background: var(--card) !important;
         border: 0 !important;
         box-shadow: none !important;
+        border-radius: 14px !important;
+        overflow: hidden !important;
+        min-height: 320px !important;
+        height: 320px !important;
+        display: flex !important;
+        flex-direction: column !important;
       }
 
       .rail .card-media,
       .rail .card-media.game-poster,
-      .rail .card-media.music-cover,
       .rail .card-media.landscape,
       .rail .card-media.restaurant-composite {
-        height: 190px;
-        aspect-ratio: 2/3;
-        padding: 0;
-        background: transparent !important;
+        width: 100% !important;
+        height: 220px !important;
+        aspect-ratio: 2 / 3 !important;
+        padding: 0 !important;
+        background: #0f1f40 !important;
+        overflow: hidden !important;
+      }
+
+      .rail .card-media.music-cover {
+        width: 100% !important;
+        height: 220px !important;
+        aspect-ratio: 1 / 1 !important;
+        padding: 0 !important;
+        background: #0f1f40 !important;
+        overflow: hidden !important;
       }
 
       .rail .card-media img,
       .rail .card-media.game-poster img,
-      .rail .card-media.music-cover img,
       .rail .card-media.landscape img,
+      .rail .card-media.music-cover img,
       .rail .card-media.restaurant-composite .restaurant-cover {
-        width: 100%;
-        height: 100%;
+        width: 100% !important;
+        height: 100% !important;
+        display: block !important;
         object-fit: cover !important;
+        border: 0 !important;
         border-radius: 0 !important;
-        border: 0 !important;
-        background: transparent !important;
+        background: #0f1f40 !important;
+      }
+
+      /* Selective contain for artwork that should not crop */
+      #gamesRail .card .card-media img,
+      .rail.unified-rail .card[data-media-type="game"] .card-media img,
+      .rail .card .card-media img[src*="logo.png"] {
+        object-fit: contain !important;
       }
 
       .rail .card-type,
@@ -1628,38 +1582,15 @@
       .rail .restaurant-logo-badge {
         border: 0 !important;
         box-shadow: none !important;
-      }
-
-      /* Global mobile borderless mode for index sections/cards */
-      .spotlight,
-      .section,
-      .section-head,
-      .chip,
-      .rail .card,
-      .rail .card-media,
-      .rail .card-meta,
-      .rail .card-type,
-      .rail .card-menu-btn,
-      .rail .card-open-link,
-      .rail .restaurant-logo-badge {
-        border: 0 !important;
-        box-shadow: none !important;
-      }
-
-      .section {
-        background: transparent !important;
-      }
-
-      .section-head {
-        border-bottom: 0 !important;
       }
 
       .rail.unified-rail .card-media.restaurant-composite {
-        aspect-ratio: 2/3;
+        aspect-ratio: 2/3 !important;
       }
 
       #restaurantsRail .card-media.restaurant-composite {
-        aspect-ratio: 16/10;
+        aspect-ratio: 16/10 !important;
+        height: 220px !important;
       }
 
       #restaurantsRail .restaurant-logo-badge {
@@ -1668,81 +1599,6 @@
         right: 7px;
         bottom: 7px;
         border-radius: 9px;
-      }
-
-      /* Match mobile card logic from movies/tv/books/games/music pages */
-      .rail .card {
-        background: var(--card) !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 14px !important;
-        overflow: hidden !important;
-        display: flex !important;
-        flex-direction: column !important;
-        min-height: 320px !important;
-        height: 320px !important;
-      }
-
-      .rail .card-media {
-        width: 100% !important;
-        aspect-ratio: 2 / 3 !important;
-        height: 220px !important;
-        background: #0f1f40 !important;
-        overflow: hidden !important;
-      }
-
-      .rail .card-media img {
-        width: 100% !important;
-        height: 100% !important;
-        display: block !important;
-        object-fit: cover !important;
-        background: #0f1f40 !important;
-      }
-
-      .rail .card-type {
-        border: 1px solid rgba(255,255,255,0.16) !important;
-      }
-
-      .rail .card-menu-btn,
-      .rail .card-open-link {
-        border: 1px solid var(--border) !important;
-        box-shadow: none !important;
-      }
-
-      /* games.html mobile logic */
-      #gamesRail .card,
-      .rail.unified-rail .card[data-media-type="game"] {
-        border: none !important;
-      }
-
-      #gamesRail .card .card-media,
-      .rail.unified-rail .card[data-media-type="game"] .card-media {
-        aspect-ratio: 2 / 3 !important;
-        height: 220px !important;
-        background: #0f1f40 !important;
-      }
-
-      #gamesRail .card .card-media img,
-      .rail.unified-rail .card[data-media-type="game"] .card-media img {
-        object-fit: contain !important;
-      }
-
-      /* music.html mobile logic */
-      #musicRail .card,
-      .rail.unified-rail .card[data-media-type="music"] {
-        min-height: 300px !important;
-        height: 300px !important;
-      }
-
-      #musicRail .card .card-media,
-      .rail.unified-rail .card[data-media-type="music"] .card-media {
-        aspect-ratio: 1 / 1 !important;
-        height: auto !important;
-        background: linear-gradient(135deg, #102545 0%, #0b1c35 100%) !important;
-      }
-
-      #musicRail .card .card-media img,
-      .rail.unified-rail .card[data-media-type="music"] .card-media img {
-        object-fit: cover !important;
       }
 
       .mobile-bottom-nav {
