@@ -68,6 +68,8 @@ import analyticsRoutes from "./routes/analytics.js";
 app.use("/api/analytics", analyticsRoutes);
 import supportRoutes from "./routes/support.js";
 app.use("/api/support", supportRoutes);
+import chatRoutes from "./routes/chat.js";
+app.use("/api/chat", chatRoutes);
 
 // Serve frontend routes
 app.get("/", (req, res) => {

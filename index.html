@@ -4908,12 +4908,67 @@
           const link = document.createElement('a');
           link.className = 'ai-rec-link';
           link.href = item.href || '#';
-          link.textContent = `${homeMediaLabel(item.mediaType)}: ${item.title || 'Untitled'}`;
+          link.textContent = `${homeMediaLabel(item.mediaType || item.media_type)}: ${item.title || 'Untitled'}`;
           list.appendChild(link);
         });
         wrap.appendChild(list);
       }
       return wrap;
+    }
+
+    function buildChatCandidatesFromHome() {
+      const out = [];
+      HOME_BASE_MEDIA_TYPES.forEach((type) => {
+        const rows = getHomeRecommendationPoolByType(type).slice(0, 16);
+        rows.forEach((item) => {
+          out.push({
+            media_type: type,
+            item_id: String(item?.itemId || '').trim(),
+            title: String(item?.title || '').trim(),
+            subtitle: String(item?.subtitle || '').trim(),
+            image: String(item?.image || '').trim(),
+            href: String(item?.href || '').trim()
+          });
+        });
+      });
+      return out.filter((row) => row.title);
+    }
+
+    async function requestSmartChatReply(prompt) {
+      const candidates = buildChatCandidatesFromHome();
+      const mediaType = detectHomeChatIntent(prompt);
+      if (!candidates.length) {
+        return buildHomeChatReply(prompt);
+      }
+
+      const payload = {
+        message: String(prompt || '').trim(),
+        media_type: mediaType,
+        user_id: String(homeCurrentUser?.id || '').trim() || null,
+        candidates
+      };
+
+      const res = await fetch('/api/chat/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(`chat_failed_${res.status}`);
+      const json = await res.json();
+      const picks = Array.isArray(json?.recommendations) ? json.recommendations : [];
+      const normalizedPicks = picks.map((row) => ({
+        media_type: String(row?.media_type || '').trim().toLowerCase(),
+        item_id: String(row?.item_id || '').trim(),
+        title: String(row?.title || '').trim(),
+        reason: String(row?.reason || '').trim(),
+        href: String(row?.href || '').trim(),
+        image: String(row?.image || '').trim()
+      })).filter((row) => row.title);
+
+      return {
+        text: String(json?.reply || '').trim() || 'Here are smart picks for you.',
+        picks: normalizedPicks
+      };
     }
 
     function initHomeAiChat() {
@@ -4930,12 +4985,22 @@
         messages.scrollTop = messages.scrollHeight;
       };
 
-      const submitPrompt = (rawPrompt) => {
+      const submitPrompt = async (rawPrompt) => {
         const prompt = String(rawPrompt || '').trim();
         if (!prompt) return;
         appendMsg(prompt, 'user');
-        const reply = buildHomeChatReply(prompt);
-        appendMsg(reply.text, 'bot', reply.picks);
+        appendMsg('Thinking...', 'bot');
+        try {
+          const reply = await requestSmartChatReply(prompt);
+          const thinking = messages.querySelector('.ai-msg.bot:last-child');
+          if (thinking && thinking.textContent === 'Thinking...') thinking.remove();
+          appendMsg(reply.text, 'bot', reply.picks);
+        } catch (_err) {
+          const thinking = messages.querySelector('.ai-msg.bot:last-child');
+          if (thinking && thinking.textContent === 'Thinking...') thinking.remove();
+          const fallback = buildHomeChatReply(prompt);
+          appendMsg(fallback.text, 'bot', fallback.picks);
+        }
       };
 
       if (!messages.dataset.initialized) {
@@ -4951,14 +5016,14 @@
 
       form.addEventListener('submit', (e) => {
         e.preventDefault();
-        submitPrompt(input.value);
+        void submitPrompt(input.value);
         input.value = '';
       });
 
       document.querySelectorAll('.ai-chat-chip[data-prompt]').forEach((chip) => {
         chip.addEventListener('click', () => {
           const prompt = chip.getAttribute('data-prompt') || '';
-          submitPrompt(prompt);
+          void submitPrompt(prompt);
         });
       });
     }
