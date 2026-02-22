@@ -1859,19 +1859,19 @@
       { title: 'The Psychology of Money', author: 'Morgan Housel', isbn: '9780857197689' }
     ];
     const POPULAR_BOOK_QUERIES = [
-      'new york times best sellers books',
-      'popular fiction books',
-      'classic novels everyone should read',
-      'bestselling fantasy books',
-      'bestselling mystery books'
+      'new york times bestseller fiction',
+      'new york times bestseller nonfiction',
+      'goodreads choice awards winners',
+      'pulitzer prize winning novels',
+      'booker prize winners'
     ];
     const POPULAR_MUSIC_QUERIES = [
-      'global top hits',
-      'viral pop tracks',
-      'hip hop trending',
-      'indie chill',
-      'house dance hits',
-      'rnb essentials'
+      'genre:pop year:2024-2026',
+      'genre:hip-hop year:2024-2026',
+      'genre:r-n-b year:2024-2026',
+      'genre:latin year:2024-2026',
+      'genre:dance year:2024-2026',
+      'genre:rock year:2024-2026'
     ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-utensils', accent: '#f59e0b' },
@@ -5099,10 +5099,6 @@
       };
 
       try {
-        const topic = shuffleArray(POPULAR_BOOK_QUERIES)[0] || 'popular books';
-        const page = randomInt(1, 4);
-        const url = `${OPEN_LIBRARY_SEARCH_BASE}?q=${encodeURIComponent(topic)}&language=eng&limit=28&page=${page}`;
-
         const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
         let timeoutId = null;
         let onAbort = null;
@@ -5117,26 +5113,36 @@
           }
         }
 
-        let json = null;
+        const queryUrls = POPULAR_BOOK_QUERIES.map((topic) => (
+          `${OPEN_LIBRARY_SEARCH_BASE}?q=${encodeURIComponent(topic)}&language=eng&limit=40&page=1`
+        ));
+
+        let docs = [];
         try {
-          json = await fetchJsonWithPerfCache(url, {
-            signal: controller ? controller.signal : signal,
-            cacheKey: `openlib:${url}`
-          });
+          const batches = await Promise.all(queryUrls.map(async (url) => {
+            const json = await fetchJsonWithPerfCache(url, {
+              signal: controller ? controller.signal : signal,
+              cacheKey: `openlib:${url}`
+            });
+            if (!json) return [];
+            return Array.isArray(json.docs) ? json.docs : [];
+          }));
+          docs = batches.flat();
         } finally {
           if (timeoutId) clearTimeout(timeoutId);
           if (signal && onAbort) signal.removeEventListener('abort', onAbort);
         }
-        if (!json) {
+
+        if (!docs.length) {
           return attachFallbackKnown([]);
         }
-        const docs = Array.isArray(json.docs) ? json.docs : [];
+
         const seenTitles = new Set();
-        const mapped = shuffleArray(docs).map((doc, idx) => {
+        const mapped = docs.map((doc, idx) => {
           const title = String(doc.title || '').trim();
           if (!title) return null;
           const ratingsCount = Number(doc.ratings_count || 0);
-          if (Number.isFinite(ratingsCount) && ratingsCount > 0 && ratingsCount < 10) return null;
+          if (Number.isFinite(ratingsCount) && ratingsCount > 0 && ratingsCount < 40) return null;
 
           const titleKey = title.toLowerCase();
           if (seenTitles.has(titleKey)) return null;
@@ -5158,6 +5164,9 @@
           const itemId = workId || String(doc.cover_edition_key || `ol-book-${idx}`);
           const publishedYear = Number(doc.first_publish_year || 0);
           const subtitle = publishedYear ? `${author} | ${publishedYear}` : author;
+          const ratingAverage = Number(doc.ratings_average || 0);
+          const ratingWeight = Number.isFinite(ratingsCount) ? Math.log10(Math.max(1, ratingsCount + 1)) : 0;
+          const popularityScore = (Number.isFinite(ratingAverage) ? ratingAverage : 0) * 100 + ratingWeight * 120;
 
           return {
             mediaType: 'book',
@@ -5172,15 +5181,21 @@
             spotlightMediaShape: 'poster',
             fallbackImage: coverByIsbn || primaryImage,
             isbn,
+            popularityScore,
             href: itemId ? `book.html?id=${encodeURIComponent(itemId)}` : 'books.html'
           };
         }).filter(Boolean);
 
-        const merged = attachFallbackKnown(mapped);
+        mapped.sort((a, b) => Number(b.popularityScore || 0) - Number(a.popularityScore || 0));
+        const merged = attachFallbackKnown(mapped).map((item) => {
+          const copy = { ...item };
+          delete copy.popularityScore;
+          return copy;
+        });
         if (merged.length) return merged;
       } catch (_e) {}
 
-      return shuffleArray(FALLBACK_BOOKS).slice(0, HOME_CHANNEL_TARGET_ITEMS).map((b, idx) => ({
+      return FALLBACK_BOOKS.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((b, idx) => ({
         mediaType: 'book',
         itemId: `fallback-book-${idx}`,
         title: b.title,
@@ -5199,21 +5214,38 @@
 
     async function loadMusic(signal) {
       try {
-        const query = shuffleArray(POPULAR_MUSIC_QUERIES)[0] || 'top hits';
-        const limit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 24);
-        const url = `/api/music/search?q=${encodeURIComponent(query)}&limit=${limit}&market=US`;
-        const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `music:${url}` });
-        if (!json) return [];
-        const rows = Array.isArray(json.results) ? json.results : [];
+        const perQueryLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 16);
+        const queryUrls = POPULAR_MUSIC_QUERIES.map((query) => (
+          `/api/music/search?q=${encodeURIComponent(query)}&limit=${perQueryLimit}&market=US`
+        ));
+        const batches = await Promise.all(queryUrls.map(async (url) => {
+          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `music:${url}` });
+          if (!json) return [];
+          return Array.isArray(json.results) ? json.results : [];
+        }));
+        const rows = batches.flat();
         const seen = new Set();
+        const seenTrackKeys = new Set();
         const deduped = [];
         rows.forEach((row) => {
           const id = String(row.id || '').trim();
           if (!id || seen.has(id)) return;
+          const trackName = String(row.name || '').trim().toLowerCase();
+          const firstArtist = Array.isArray(row.artists) && row.artists.length ? String(row.artists[0] || '').trim().toLowerCase() : '';
+          const trackKey = `${trackName}::${firstArtist}`;
+          if (!trackName || seenTrackKeys.has(trackKey)) return;
           seen.add(id);
+          seenTrackKeys.add(trackKey);
           deduped.push(row);
         });
-        return deduped.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((track) => {
+
+        const ranked = deduped
+          .filter((track) => Number(track.popularity || 0) >= 55 && String(track.image || '').trim())
+          .sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0));
+        const selected = (ranked.length ? ranked : deduped.sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0)))
+          .slice(0, HOME_CHANNEL_TARGET_ITEMS);
+
+        return selected.map((track) => {
           const artists = Array.isArray(track.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
           const albumName = String(track.album?.name || 'Album').trim();
           const popularity = Number(track.popularity || 0);

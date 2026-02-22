@@ -15,6 +15,21 @@ const TMDB_SPOT_POSTER = "https://image.tmdb.org/t/p/w780";
 const TMDB_BACKDROP = "https://image.tmdb.org/t/p/w1280";
 const TARGET_ITEMS = 24;
 const TTL_MINUTES = 20;
+const POPULAR_BOOK_QUERIES = [
+  "new york times bestseller fiction",
+  "new york times bestseller nonfiction",
+  "goodreads choice awards winners",
+  "pulitzer prize winning novels",
+  "booker prize winners"
+];
+const POPULAR_MUSIC_QUERIES = [
+  "pop 2025",
+  "hip hop 2025",
+  "r&b 2025",
+  "latin 2025",
+  "dance 2025",
+  "rock 2025"
+];
 
 function resolveBaseUrl(req) {
   const protocol = String(req.headers["x-forwarded-proto"] || "https");
@@ -110,8 +125,25 @@ function mapGames(rows = []) {
 }
 
 function mapBooks(rows = []) {
-  return rows
+  const ranked = rows
     .filter((b) => b && b.key && b.title)
+    .map((b) => {
+      const ratingsCount = Number(b.ratings_count || 0);
+      const ratingsAverage = Number(b.ratings_average || 0);
+      const score = (Number.isFinite(ratingsAverage) ? ratingsAverage : 0) * 100
+        + Math.log10(Math.max(1, ratingsCount + 1)) * 120;
+      return { ...b, _score: score };
+    })
+    .sort((a, b) => Number(b._score || 0) - Number(a._score || 0));
+  const seen = new Set();
+
+  return ranked
+    .filter((b) => {
+      const key = String(b.key || "").trim().toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
     .slice(0, TARGET_ITEMS)
     .map((b, index) => {
       const workKey = String(b.key || "").trim();
@@ -141,6 +173,7 @@ function mapBooks(rows = []) {
 function mapMusic(rows = []) {
   return rows
     .filter((track) => track && track.id)
+    .sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0))
     .slice(0, TARGET_ITEMS)
     .map((track) => {
       const artists = Array.isArray(track.artists) ? track.artists.filter(Boolean).join(", ") : "Artist";
@@ -155,8 +188,8 @@ function mapMusic(rows = []) {
         backgroundImage: image,
         spotlightImage: image,
         spotlightMediaImage: image,
-        spotlightMediaFit: "cover",
-        spotlightMediaShape: "square",
+        spotlightMediaFit: "contain",
+        spotlightMediaShape: "poster",
         href: track.id ? `song.html?id=${encodeURIComponent(String(track.id))}` : "music.html"
       };
     });
@@ -180,20 +213,26 @@ export default async function handler(req, res) {
     return res.status(500).json({ message: "Could not resolve request host" });
   }
 
-  const [moviesJson, tvJson, gamesJson, booksJson, musicJson] = await Promise.all([
+  const [moviesJson, tvJson, gamesJson, booksBatches, musicBatches] = await Promise.all([
     fetchJson(`${baseUrl}/api/tmdb/movie/popular?language=en-US&page=1`),
     fetchJson(`${baseUrl}/api/tmdb/tv/popular?language=en-US&page=1`),
     fetchJson(`${baseUrl}/api/igdb/games?page_size=32&ordering=-rating&dates=2000-01-01,2026-12-31&page=1`),
-    fetchJson(`https://openlibrary.org/search.json?q=${encodeURIComponent("popular books")}&language=eng&limit=28&page=1`),
-    fetchJson(`${baseUrl}/api/music/search?q=${encodeURIComponent("global top hits")}&limit=28&market=US`)
+    Promise.all(POPULAR_BOOK_QUERIES.map((q) => fetchJson(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&language=eng&limit=40&page=1`))),
+    Promise.all(POPULAR_MUSIC_QUERIES.map((q) => fetchJson(`${baseUrl}/api/music/search?q=${encodeURIComponent(q)}&limit=24&market=US`)))
   ]);
+  const booksRows = (Array.isArray(booksBatches) ? booksBatches : []).flatMap((json) => (
+    Array.isArray(json?.docs) ? json.docs : []
+  ));
+  const musicRows = (Array.isArray(musicBatches) ? musicBatches : []).flatMap((json) => (
+    Array.isArray(json?.results) ? json.results : []
+  ));
 
   const feedPayload = {
     movie: mapMovies(Array.isArray(moviesJson?.results) ? moviesJson.results : []),
     tv: mapTv(Array.isArray(tvJson?.results) ? tvJson.results : []),
     game: mapGames(Array.isArray(gamesJson?.results) ? gamesJson.results : (Array.isArray(gamesJson) ? gamesJson : [])),
-    book: mapBooks(Array.isArray(booksJson?.docs) ? booksJson.docs : []),
-    music: mapMusic(Array.isArray(musicJson?.results) ? musicJson.results : [])
+    book: mapBooks(booksRows),
+    music: mapMusic(musicRows)
   };
 
   const generatedAt = new Date();
