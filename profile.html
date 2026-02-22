@@ -2097,6 +2097,41 @@
             gap: 6px;
         }
 
+        .activity-item-body {
+            display: grid;
+            grid-template-columns: 56px 1fr;
+            gap: 10px;
+            align-items: start;
+        }
+
+        .activity-item-thumb {
+            width: 56px;
+            height: 78px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .activity-item-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .activity-item-main {
+            display: grid;
+            gap: 6px;
+            min-width: 0;
+        }
+
         .activity-item-header {
             display: flex;
             align-items: center;
@@ -3159,6 +3194,41 @@
                 padding: 12px;
                 display: grid;
                 gap: 6px;
+            }
+
+            .mobile-activity-body {
+                display: grid;
+                grid-template-columns: 52px 1fr;
+                gap: 10px;
+                align-items: start;
+            }
+
+            .mobile-activity-thumb {
+                width: 52px;
+                height: 72px;
+                border-radius: 9px;
+                background: rgba(255,255,255,0.06);
+                border: 1px solid rgba(255,255,255,0.1);
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--muted);
+                font-size: 16px;
+                flex-shrink: 0;
+            }
+
+            .mobile-activity-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+            .mobile-activity-main {
+                display: grid;
+                gap: 6px;
+                min-width: 0;
             }
 
             .mobile-activity-header {
@@ -8102,7 +8172,23 @@ header, .top-stripe, .section-nav {
 
                     renderActivityAction(eventRow) {
                         const eventType = String(eventRow?.event_type || '').toLowerCase();
-                        const mediaType = String(eventRow?.media_type || '').toLowerCase();
+                        const item = eventRow?.__activityItem || {};
+                        const listTitle = String(eventRow?.__activityListTitle || '').trim();
+                        const itemTitle = String(item.title || '').trim();
+                        const targetText = itemTitle || this.getActivityGenericTarget(eventRow?.media_type);
+                        const listText = listTitle || 'a list';
+                        const safeTarget = escapeHtml(targetText);
+                        const safeList = escapeHtml(listText);
+
+                        if (eventType === 'review_add') return `posted a review for ${safeTarget}`;
+                        if (eventType === 'review_edit') return `edited a review for ${safeTarget}`;
+                        if (eventType === 'review_delete') return `deleted a review for ${safeTarget}`;
+                        if (eventType === 'list_add') return `added ${safeTarget} to ${safeList}`;
+                        if (eventType === 'list_remove') return `removed ${safeTarget} from ${safeList}`;
+                        return 'updated activity';
+                    },
+
+                    getActivityGenericTarget(mediaType) {
                         const labelByMedia = {
                             movie: 'movie',
                             tv: 'show',
@@ -8111,13 +8197,144 @@ header, .top-stripe, .section-nav {
                             music: 'track',
                             restaurant: 'restaurant'
                         };
-                        const mediaLabel = labelByMedia[mediaType] || 'item';
-                        if (eventType === 'review_add') return `posted a review for a ${mediaLabel}`;
-                        if (eventType === 'review_edit') return `edited a review for a ${mediaLabel}`;
-                        if (eventType === 'review_delete') return `deleted a review for a ${mediaLabel}`;
-                        if (eventType === 'list_add') return `added a ${mediaLabel} to a list`;
-                        if (eventType === 'list_remove') return `removed a ${mediaLabel} from a list`;
-                        return 'updated activity';
+                        const mediaLabel = labelByMedia[String(mediaType || '').toLowerCase()] || 'item';
+                        return `a ${mediaLabel}`;
+                    },
+
+                    getDefaultActivityListTitle(mediaType, listType) {
+                        const key = String(listType || '').trim().toLowerCase();
+                        const type = String(mediaType || '').trim().toLowerCase();
+                        if (!key) return '';
+                        const map = {
+                            movie: { favorites: 'Favorites', watched: 'Watched', watchlist: 'Watchlist' },
+                            tv: { favorites: 'Favorites', watched: 'Watched', watchlist: 'Watchlist' },
+                            game: { favorites: 'Favorites', watched: 'Played', watchlist: 'Backlog' },
+                            book: { favorites: 'Favorites', read: 'Read', readlist: 'Readlist' },
+                            music: { favorites: 'Favorites', listened: 'Listened', listenlist: 'Listenlist' }
+                        };
+                        if (map[type] && map[type][key]) return map[type][key];
+                        return key.replace(/_/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase());
+                    },
+
+                    async fetchActivityItemDetails(mediaType, itemId) {
+                        const safeType = String(mediaType || '').trim().toLowerCase();
+                        const safeId = String(itemId || '').trim();
+                        if (!safeType || !safeId) return null;
+
+                        if (safeType === 'movie') {
+                            const data = await fetchMovieDetails(safeId);
+                            return data ? {
+                                title: String(data.title || data.name || '').trim(),
+                                image: data.poster_path ? `${TMDB_POSTER}${data.poster_path}` : ''
+                            } : null;
+                        }
+                        if (safeType === 'tv') {
+                            const data = await fetchTvDetails(safeId);
+                            return data ? {
+                                title: String(data.name || data.title || '').trim(),
+                                image: data.poster_path ? `${TMDB_POSTER}${data.poster_path}` : ''
+                            } : null;
+                        }
+                        if (safeType === 'game') {
+                            const data = await fetchGameDetails(safeId);
+                            return data ? {
+                                title: String(data.name || '').trim(),
+                                image: String(data.cover || '').trim()
+                            } : null;
+                        }
+                        if (safeType === 'book') {
+                            const { data } = await supabase
+                                .from('books')
+                                .select('id, title, thumbnail')
+                                .eq('id', safeId)
+                                .maybeSingle();
+                            return data ? {
+                                title: String(data.title || '').trim(),
+                                image: String(data.thumbnail || '').trim() || FALLBACK_BOOK_IMAGE
+                            } : null;
+                        }
+                        if (safeType === 'music') {
+                            const data = await fetchMusicDetails(safeId);
+                            return data ? {
+                                title: String(data.name || '').trim(),
+                                image: String(data.image_url || '').trim() || 'images/logo.png'
+                            } : null;
+                        }
+                        if (safeType === 'restaurant') {
+                            if (!restaurants.length) {
+                                await loadRestaurants().catch(() => {});
+                            }
+                            const restaurant = restaurants.find((entry) => String(entry?.id || '') === safeId);
+                            return restaurant ? {
+                                title: String(restaurant.name || '').trim(),
+                                image: restaurant.image ? `images/${restaurant.image}` : ''
+                            } : null;
+                        }
+                        return null;
+                    },
+
+                    async enrichActivityRows(rows) {
+                        const safeRows = Array.isArray(rows) ? rows : [];
+                        if (!safeRows.length) return [];
+
+                        const uniqueItemPairs = [];
+                        const seenItemPairs = new Set();
+                        safeRows.forEach((row) => {
+                            const mediaType = String(row?.media_type || '').trim().toLowerCase();
+                            const itemId = String(row?.item_id || '').trim();
+                            const key = `${mediaType}:${itemId}`;
+                            if (!mediaType || !itemId || seenItemPairs.has(key)) return;
+                            seenItemPairs.add(key);
+                            uniqueItemPairs.push({ mediaType, itemId, key });
+                        });
+
+                        const itemMap = new Map();
+                        await Promise.all(uniqueItemPairs.map(async (pair) => {
+                            try {
+                                const details = await this.fetchActivityItemDetails(pair.mediaType, pair.itemId);
+                                if (details) itemMap.set(pair.key, details);
+                            } catch (_err) {}
+                        }));
+
+                        const customListIdsByType = new Map();
+                        safeRows.forEach((row) => {
+                            const mediaType = String(row?.media_type || '').trim().toLowerCase();
+                            const listId = String(row?.list_id || '').trim();
+                            if (!mediaType || !listId || !CUSTOM_LIST_TABLES[mediaType]) return;
+                            if (!customListIdsByType.has(mediaType)) customListIdsByType.set(mediaType, new Set());
+                            customListIdsByType.get(mediaType).add(listId);
+                        });
+
+                        const listMap = new Map();
+                        await Promise.all(Array.from(customListIdsByType.entries()).map(async ([mediaType, idsSet]) => {
+                            const ids = Array.from(idsSet || []).filter(Boolean);
+                            if (!ids.length) return;
+                            const table = CUSTOM_LIST_TABLES[mediaType];
+                            const { data } = await supabase
+                                .from(table)
+                                .select('id, title')
+                                .in('id', ids);
+                            (data || []).forEach((row) => {
+                                const key = `${mediaType}:${String(row.id || '').trim()}`;
+                                const title = String(row.title || '').trim();
+                                if (title) listMap.set(key, title);
+                            });
+                        }));
+
+                        return safeRows.map((row) => {
+                            const mediaType = String(row?.media_type || '').trim().toLowerCase();
+                            const itemId = String(row?.item_id || '').trim();
+                            const listId = String(row?.list_id || '').trim();
+                            const itemKey = `${mediaType}:${itemId}`;
+                            const listKey = `${mediaType}:${listId}`;
+                            const item = itemMap.get(itemKey) || null;
+                            const listTitle = listMap.get(listKey) || this.getDefaultActivityListTitle(mediaType, row?.list_type);
+                            return {
+                                ...row,
+                                __activityItem: item,
+                                __activityListTitle: listTitle || ''
+                            };
+                        });
                     },
 
                     async fetchRowsWithCreatedAtFallback(tableName, selectWithCreatedAt, selectFallback, actorIds, limit = 30) {
@@ -8292,15 +8509,22 @@ header, .top-stripe, .section-nav {
                                 .select('id, username, full_name, avatar_icon')
                                 .in('id', profileIds);
                             const profileMap = new Map((profiles || []).map((p) => [String(p.id), p]));
+                            const enrichedRows = await this.enrichActivityRows(rows);
 
                             if (isMobile) {
                                 list.innerHTML = `
                                     <div class="mobile-activity-feed">
-                                        ${rows.map((row) => {
+                                        ${enrichedRows.map((row) => {
                                             const profile = profileMap.get(String(row.actor_id)) || {};
-                                            const actorName = profile.full_name || profile.username || 'User';
+                                            const actorName = escapeHtml(profile.full_name || profile.username || 'User');
                                             const ratingText = row?.rating ? `Rated ${Number(row.rating).toFixed(1)}/5` : '';
-                                            const noteText = String(row?.review_text || '').trim();
+                                            const noteText = escapeHtml(String(row?.review_text || '').trim());
+                                            const listText = String(row?.__activityListTitle || '').trim();
+                                            const listMetaText = listText ? `List: ${escapeHtml(listText)}` : '';
+                                            const item = row?.__activityItem || null;
+                                            const itemImage = escapeHtml(String(item?.image || '').trim());
+                                            const itemFallback = iconGlyph(String(row?.media_type || '').toLowerCase());
+                                            const primaryMeta = ratingText || listMetaText;
                                             return `
                                                 <article class="mobile-activity-item">
                                                     <div class="mobile-activity-header">
@@ -8310,9 +8534,19 @@ header, .top-stripe, .section-nav {
                                                         </div>
                                                         <span class="mobile-activity-time">${this.formatActivityTime(row.created_at)}</span>
                                                     </div>
-                                                    <div class="mobile-activity-text">${this.renderActivityAction(row)}</div>
-                                                    <div class="mobile-activity-meta">${ratingText || (row.list_type ? `List: ${row.list_type}` : '')}</div>
-                                                    ${noteText ? `<div class="mobile-activity-meta">${noteText}</div>` : ''}
+                                                    <div class="mobile-activity-body">
+                                                        <div class="mobile-activity-thumb">
+                                                            ${itemImage
+                                                                ? `<img src="${itemImage}" alt="Item artwork" loading="lazy" onerror="this.onerror=null;this.closest('.mobile-activity-thumb').innerHTML='${itemFallback}';">`
+                                                                : itemFallback}
+                                                        </div>
+                                                        <div class="mobile-activity-main">
+                                                            <div class="mobile-activity-text">${this.renderActivityAction(row)}</div>
+                                                            ${primaryMeta ? `<div class="mobile-activity-meta">${primaryMeta}</div>` : ''}
+                                                            ${ratingText && listMetaText ? `<div class="mobile-activity-meta">${listMetaText}</div>` : ''}
+                                                            ${noteText ? `<div class="mobile-activity-meta">${noteText}</div>` : ''}
+                                                        </div>
+                                                    </div>
                                                 </article>
                                             `;
                                         }).join('')}
@@ -8321,11 +8555,17 @@ header, .top-stripe, .section-nav {
                             } else {
                                 list.innerHTML = `
                                     <div class="activity-feed">
-                                        ${rows.map((row) => {
+                                        ${enrichedRows.map((row) => {
                                             const profile = profileMap.get(String(row.actor_id)) || {};
-                                            const actorName = profile.full_name || profile.username || 'User';
+                                            const actorName = escapeHtml(profile.full_name || profile.username || 'User');
                                             const ratingText = row?.rating ? `Rated ${Number(row.rating).toFixed(1)}/5` : '';
-                                            const noteText = String(row?.review_text || '').trim();
+                                            const noteText = escapeHtml(String(row?.review_text || '').trim());
+                                            const listText = String(row?.__activityListTitle || '').trim();
+                                            const listMetaText = listText ? `List: ${escapeHtml(listText)}` : '';
+                                            const item = row?.__activityItem || null;
+                                            const itemImage = escapeHtml(String(item?.image || '').trim());
+                                            const itemFallback = iconGlyph(String(row?.media_type || '').toLowerCase());
+                                            const primaryMeta = ratingText || listMetaText;
                                             return `
                                                 <article class="activity-item">
                                                     <div class="activity-item-header">
@@ -8335,9 +8575,19 @@ header, .top-stripe, .section-nav {
                                                         </div>
                                                         <span class="activity-item-time">${this.formatActivityTime(row.created_at)}</span>
                                                     </div>
-                                                    <div class="activity-item-text">${this.renderActivityAction(row)}</div>
-                                                    <div class="activity-item-meta">${ratingText || (row.list_type ? `List: ${row.list_type}` : '')}</div>
-                                                    ${noteText ? `<div class="activity-item-meta">${noteText}</div>` : ''}
+                                                    <div class="activity-item-body">
+                                                        <div class="activity-item-thumb">
+                                                            ${itemImage
+                                                                ? `<img src="${itemImage}" alt="Item artwork" loading="lazy" onerror="this.onerror=null;this.closest('.activity-item-thumb').innerHTML='${itemFallback}';">`
+                                                                : itemFallback}
+                                                        </div>
+                                                        <div class="activity-item-main">
+                                                            <div class="activity-item-text">${this.renderActivityAction(row)}</div>
+                                                            ${primaryMeta ? `<div class="activity-item-meta">${primaryMeta}</div>` : ''}
+                                                            ${ratingText && listMetaText ? `<div class="activity-item-meta">${listMetaText}</div>` : ''}
+                                                            ${noteText ? `<div class="activity-item-meta">${noteText}</div>` : ''}
+                                                        </div>
+                                                    </div>
                                                 </article>
                                             `;
                                         }).join('')}
