@@ -3,6 +3,7 @@
   const path = window.location.pathname || '/';
   const base = path === '/' ? 'index.html' : path.split('/').pop();
   const pageKey = String(base || 'index.html').replace(/\.html?$/i, '').toLowerCase();
+  const AUTH_PAGE_KEYS = new Set(['login', 'sign-up', 'signup', 'auth-callback', 'update-password']);
 
   document.body?.classList.add('app-booting');
   if (document.body) {
@@ -23,7 +24,7 @@
   const NATIVE_MENU_BACKDROP_SELECTOR = '.list-menu-backdrop.active, .rail-menu-backdrop.active';
   const INSTALL_DISMISS_KEY = 'zo2y_mobile_install_dismissed_at_v1';
   const INSTALL_DONE_KEY = 'zo2y_mobile_install_done_v1';
-  const INSTALL_REPROMPT_MS = 1000 * 60 * 60 * 24 * 3;
+  const INSTALL_REPROMPT_MS = 1000 * 60 * 60 * 12;
   let popupObserver = null;
   let pendingMutationRefreshMenus = false;
   let pendingMutationRefreshModals = false;
@@ -47,9 +48,23 @@
     const ua = String(navigator.userAgent || '');
     return /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA/i.test(ua);
   };
+  const hasOAuthParams = () => {
+    const search = new URLSearchParams(window.location.search || '');
+    const hash = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+    return !!(
+      search.get('code') ||
+      search.get('state') ||
+      search.get('error') ||
+      search.get('error_description') ||
+      hash.get('access_token') ||
+      hash.get('refresh_token')
+    );
+  };
 
   const shouldShowInstallPrompt = () => {
     if (!isMobileLike) return false;
+    if (AUTH_PAGE_KEYS.has(pageKey)) return false;
+    if (hasOAuthParams()) return false;
     if (isStandaloneMode()) return false;
     if (localStorage.getItem(INSTALL_DONE_KEY) === '1') return false;
     const dismissedAt = Number(localStorage.getItem(INSTALL_DISMISS_KEY) || 0);
@@ -57,8 +72,12 @@
     return true;
   };
 
-  const dismissInstallPrompt = () => {
-    localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now()));
+  const dismissInstallPrompt = (options = {}) => {
+    const persist = options.persist !== false;
+    const delayMs = Number(options.delayMs || 0);
+    if (persist) {
+      localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now() + Math.max(0, delayMs)));
+    }
     const card = document.getElementById('zo2yInstallPrompt');
     if (card) {
       card.classList.remove('show');
@@ -70,7 +89,7 @@
   const markInstallComplete = () => {
     localStorage.setItem(INSTALL_DONE_KEY, '1');
     localStorage.removeItem(INSTALL_DISMISS_KEY);
-    dismissInstallPrompt();
+    dismissInstallPrompt({ persist: false });
   };
 
   const ensureInstallPromptStyle = () => {
@@ -145,7 +164,7 @@
     if (installCardVisible) return;
     const canPromptInstall = !!deferredInstallPrompt;
     const useIosHint = isIosDevice() && isSafariLike() && !canPromptInstall;
-    if (!canPromptInstall && !useIosHint) return;
+    const useGenericHint = !canPromptInstall && !useIosHint;
 
     ensureInstallPromptStyle();
     let card = document.getElementById('zo2yInstallPrompt');
@@ -175,7 +194,7 @@
           if (choice?.outcome === 'accepted') {
             markInstallComplete();
           } else {
-            dismissInstallPrompt();
+            dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 30 });
           }
         } catch (_err) {
           dismissInstallPrompt();
@@ -192,8 +211,20 @@
         </div>
       `;
       card.querySelector('#zo2yInstallGotItBtn')?.addEventListener('click', () => {
-        localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now() + (1000 * 60 * 60 * 4)));
-        dismissInstallPrompt();
+        dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 60 * 4 });
+      });
+      card.querySelector('#zo2yInstallLaterBtn')?.addEventListener('click', dismissInstallPrompt);
+    } else if (useGenericHint) {
+      card.innerHTML = `
+        <p class="zo2y-install-title">Install Zo2y App</p>
+        <p class="zo2y-install-copy">Open your browser menu and choose <strong>Add to Home screen</strong> (or <strong>Install app</strong>).</p>
+        <div class="zo2y-install-actions">
+          <button type="button" class="zo2y-install-btn primary" id="zo2yInstallGenericOkBtn">Got it</button>
+          <button type="button" class="zo2y-install-btn" id="zo2yInstallLaterBtn">Later</button>
+        </div>
+      `;
+      card.querySelector('#zo2yInstallGenericOkBtn')?.addEventListener('click', () => {
+        dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 60 * 4 });
       });
       card.querySelector('#zo2yInstallLaterBtn')?.addEventListener('click', dismissInstallPrompt);
     }
