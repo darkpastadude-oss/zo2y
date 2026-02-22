@@ -369,14 +369,6 @@
   <script>
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-    const MUSIC_TOPICS = [
-      'global top hits',
-      'viral pop tracks',
-      'hip hop trending',
-      'indie chill',
-      'house dance hits',
-      'rnb essentials'
-    ];
     const MUSIC_PAGE_SIZE = 24;
 
     let supabaseClient = null;
@@ -416,10 +408,6 @@
       el.textContent = message;
       document.body.appendChild(el);
       setTimeout(() => el.remove(), 2200);
-    }
-
-    function randomTopic() {
-      return MUSIC_TOPICS[Math.floor(Math.random() * MUSIC_TOPICS.length)];
     }
 
     async function loadFallbackTracks(query) {
@@ -482,13 +470,15 @@
 
     async function loadTracks(queryOverride = '') {
       const query = String(queryOverride || state.currentQuery || '').trim();
-      const topic = query || randomTopic();
-      const q = encodeURIComponent(topic);
+      const q = encodeURIComponent(query);
       let rows = [];
       let usedFallback = false;
 
       try {
-        const res = await fetch(`/api/music/search?q=${q}&limit=30&market=US`);
+        const endpoint = query
+          ? `/api/music/search?q=${q}&limit=30&market=US`
+          : `/api/music/popular?limit=30&market=US`;
+        const res = await fetch(endpoint);
         if (res.ok) {
           const json = await res.json();
           rows = Array.isArray(json.results) ? json.results : [];
@@ -500,7 +490,7 @@
       }
 
       if (usedFallback || !rows.length) {
-        const fallbackRows = await loadFallbackTracks(topic);
+        const fallbackRows = await loadFallbackTracks(query || 'top songs');
         state.tracks = fallbackRows;
         state.page = 1;
         state.totalPages = Math.max(1, Math.ceil(state.tracks.length / MUSIC_PAGE_SIZE));

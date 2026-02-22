@@ -8,7 +8,18 @@ const TOKEN_REFRESH_SKEW_MS = 60_000;
 const POPULAR_PLAYLIST_IDS = [
   "37i9dQZEVXbLRQDuF5jeBp", // Top 50 - USA
   "37i9dQZEVXbMDoHDwVN2tF", // Top 50 - Global
-  "37i9dQZF1DXcBWIGoYBM5M"  // Today's Top Hits
+  "37i9dQZF1DXcBWIGoYBM5M", // Today's Top Hits
+  "37i9dQZEVXbKuaTI1Z1Afx"  // Viral 50 - USA
+];
+const CURATION_KEYWORDS_BLOCKLIST = [
+  "workout",
+  "karaoke",
+  "tribute",
+  "power music",
+  "fitness",
+  "8d",
+  "nightcore",
+  "sped up"
 ];
 
 let spotifyTokenCache = {
@@ -102,6 +113,59 @@ function normalizeItunesTrackRow(track) {
   };
 }
 
+function normalizeAppleChartSongRow(song) {
+  const rawArtwork = String(song?.artworkUrl100 || "").trim();
+  const hiResArtwork = rawArtwork
+    ? rawArtwork
+      .replace(/\/[0-9]+x[0-9]+bb\./i, "/640x640bb.")
+      .replace(/\/[0-9]+x[0-9]+\./i, "/640x640.")
+    : "";
+  return {
+    id: String(song?.id || song?.url || ""),
+    name: String(song?.name || "Track"),
+    artists: [String(song?.artistName || "").trim()].filter(Boolean),
+    artist_ids: [],
+    album: {
+      id: "",
+      name: String(song?.name || "").trim(),
+      images: hiResArtwork ? [{ url: hiResArtwork, width: 640, height: 640 }] : []
+    },
+    image: hiResArtwork,
+    preview_url: "",
+    external_url: String(song?.url || "").trim(),
+    popularity: 0,
+    duration_ms: 0,
+    explicit: !!song?.contentAdvisoryRating
+  };
+}
+
+function isLowSignalTrack(row) {
+  const track = String(row?.name || "").toLowerCase();
+  const artist = Array.isArray(row?.artists) ? String(row.artists[0] || "").toLowerCase() : "";
+  const album = String(row?.album?.name || "").toLowerCase();
+  const all = `${track} ${artist} ${album}`;
+  return CURATION_KEYWORDS_BLOCKLIST.some((term) => all.includes(term));
+}
+
+function dedupeTracks(rows = []) {
+  const byId = new Set();
+  const byKey = new Set();
+  const out = [];
+  rows.forEach((row) => {
+    const id = String(row?.id || "").trim();
+    const name = String(row?.name || "").trim().toLowerCase();
+    const artist = Array.isArray(row?.artists) ? String(row.artists[0] || "").trim().toLowerCase() : "";
+    const key = `${name}::${artist}`;
+    if (!name || !artist) return;
+    if (id && byId.has(id)) return;
+    if (byKey.has(key)) return;
+    if (id) byId.add(id);
+    byKey.add(key);
+    out.push(row);
+  });
+  return out;
+}
+
 async function searchItunesTracks({ q, limit }) {
   const url = new URL("https://itunes.apple.com/search");
   url.searchParams.set("term", String(q || "").trim());
@@ -113,6 +177,17 @@ async function searchItunesTracks({ q, limit }) {
   const json = await res.json();
   const rows = Array.isArray(json?.results) ? json.results : [];
   return rows.map(normalizeItunesTrackRow).filter((row) => !!row.id);
+}
+
+async function fetchAppleMostPlayedSongs({ country = "us", limit = 50 }) {
+  const countryCode = String(country || "us").trim().toLowerCase().slice(0, 2) || "us";
+  const safeLimit = clampInt(limit, 10, 100, 50);
+  const url = `https://rss.applemarketingtools.com/api/v2/${countryCode}/music/most-played/${safeLimit}/songs.json`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const json = await res.json();
+  const rows = Array.isArray(json?.feed?.results) ? json.feed.results : [];
+  return rows.map(normalizeAppleChartSongRow).filter((row) => !!row.id);
 }
 
 async function getSpotifyAccessToken(forceRefresh = false) {
@@ -188,7 +263,7 @@ router.get("/", (_req, res) => {
     ok: true,
     service: "spotify-proxy",
     configured: hasSpotifyCredentials(),
-    routes: ["/search", "/popular", "/tracks/:id"]
+    routes: ["/search", "/popular", "/featured-playlists", "/new-releases", "/tracks/:id"]
   });
 });
 
@@ -198,7 +273,15 @@ router.get("/popular", async (req, res) => {
 
   try {
     if (!hasSpotifyCredentials()) {
-      const fallback = await searchItunesTracks({ q: "top songs", limit });
+      const [marketChart, usChart] = await Promise.all([
+        fetchAppleMostPlayedSongs({ country: market, limit: Math.max(50, limit) }),
+        market === "US"
+          ? Promise.resolve([])
+          : fetchAppleMostPlayedSongs({ country: "US", limit: Math.max(50, limit) })
+      ]);
+      const fallback = dedupeTracks([...marketChart, ...usChart])
+        .filter((row) => !isLowSignalTrack(row))
+        .slice(0, limit);
       return res.json({
         count: fallback.length,
         limit,
@@ -209,10 +292,11 @@ router.get("/popular", async (req, res) => {
     }
 
     const perPlaylistLimit = clampInt(Math.max(limit, 24), 10, 50, 24);
-    const batches = await Promise.all(POPULAR_PLAYLIST_IDS.map(async (playlistId) => {
+    const chartBatches = await Promise.all(POPULAR_PLAYLIST_IDS.map(async (playlistId) => {
       const json = await spotifyRequest(`/playlists/${encodeURIComponent(playlistId)}/tracks`, {
         market,
         limit: perPlaylistLimit,
+        additional_types: "track",
         offset: 0
       });
       const items = Array.isArray(json?.items) ? json.items : [];
@@ -221,16 +305,64 @@ router.get("/popular", async (req, res) => {
         .filter((row) => !!row.id);
     }));
 
-    const seen = new Set();
-    const deduped = [];
-    batches.flat().forEach((row) => {
-      const id = String(row.id || "").trim();
-      if (!id || seen.has(id)) return;
-      seen.add(id);
-      deduped.push(row);
+    const featuredJson = await spotifyRequest("/browse/featured-playlists", {
+      country: market,
+      locale: "en_US",
+      limit: 8
     });
+    const featuredPlaylists = Array.isArray(featuredJson?.playlists?.items) ? featuredJson.playlists.items : [];
+    const featuredBatches = await Promise.all(featuredPlaylists.slice(0, 6).map(async (playlist) => {
+      const playlistId = String(playlist?.id || "").trim();
+      if (!playlistId) return [];
+      const json = await spotifyRequest(`/playlists/${encodeURIComponent(playlistId)}/tracks`, {
+        market,
+        limit: 10,
+        additional_types: "track",
+        offset: 0
+      });
+      const items = Array.isArray(json?.items) ? json.items : [];
+      return items
+        .map((row) => normalizeTrackRow(row?.track))
+        .filter((row) => !!row.id);
+    }));
 
-    const ranked = deduped
+    const newReleasesJson = await spotifyRequest("/browse/new-releases", {
+      country: market,
+      limit: 10
+    });
+    const albumItems = Array.isArray(newReleasesJson?.albums?.items) ? newReleasesJson.albums.items : [];
+    const albumTrackIds = new Set();
+    await Promise.all(albumItems.slice(0, 8).map(async (album) => {
+      const albumId = String(album?.id || "").trim();
+      if (!albumId) return;
+      const albumTracksJson = await spotifyRequest(`/albums/${encodeURIComponent(albumId)}/tracks`, {
+        market,
+        limit: 2
+      });
+      const albumTracks = Array.isArray(albumTracksJson?.items) ? albumTracksJson.items : [];
+      albumTracks.forEach((track) => {
+        const id = String(track?.id || "").trim();
+        if (id) albumTrackIds.add(id);
+      });
+    }));
+    let newReleaseTracks = [];
+    const idChunks = Array.from(albumTrackIds);
+    if (idChunks.length) {
+      const tracksJson = await spotifyRequest("/tracks", {
+        ids: idChunks.slice(0, 50).join(","),
+        market
+      });
+      const tracks = Array.isArray(tracksJson?.tracks) ? tracksJson.tracks : [];
+      newReleaseTracks = tracks.map((row) => normalizeTrackRow(row)).filter((row) => !!row.id);
+    }
+
+    const merged = dedupeTracks([
+      ...chartBatches.flat(),
+      ...featuredBatches.flat(),
+      ...newReleaseTracks
+    ]).filter((row) => !!row.image && !isLowSignalTrack(row));
+
+    const ranked = merged
       .sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0))
       .slice(0, limit);
 
@@ -243,7 +375,15 @@ router.get("/popular", async (req, res) => {
     });
   } catch (error) {
     try {
-      const fallback = await searchItunesTracks({ q: "top songs", limit });
+      const [marketChart, usChart] = await Promise.all([
+        fetchAppleMostPlayedSongs({ country: market, limit: Math.max(50, limit) }),
+        market === "US"
+          ? Promise.resolve([])
+          : fetchAppleMostPlayedSongs({ country: "US", limit: Math.max(50, limit) })
+      ]);
+      const fallback = dedupeTracks([...marketChart, ...usChart])
+        .filter((row) => !isLowSignalTrack(row))
+        .slice(0, limit);
       return res.json({
         count: fallback.length,
         limit,
@@ -254,6 +394,55 @@ router.get("/popular", async (req, res) => {
     } catch (_fallbackError) {
       return res.status(500).json({ message: "Failed to load popular music.", error: String(error?.message || error) });
     }
+  }
+});
+
+router.get("/featured-playlists", async (req, res) => {
+  const market = String(req.query.market || "US").trim().slice(0, 2).toUpperCase() || "US";
+  const limit = clampInt(req.query.limit, 1, 20, 8);
+  try {
+    if (!hasSpotifyCredentials()) {
+      return res.status(503).json({ message: "Spotify credentials are not configured on the server." });
+    }
+    const json = await spotifyRequest("/browse/featured-playlists", {
+      country: market,
+      locale: "en_US",
+      limit
+    });
+    const items = Array.isArray(json?.playlists?.items) ? json.playlists.items : [];
+    const results = items.map((item) => ({
+      id: String(item?.id || "").trim(),
+      name: String(item?.name || "").trim(),
+      description: String(item?.description || "").trim(),
+      image: String(item?.images?.[0]?.url || "").trim(),
+      external_url: String(item?.external_urls?.spotify || "").trim()
+    })).filter((item) => !!item.id);
+    return res.json({ count: results.length, limit, results, source: "spotify" });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to load featured playlists.", error: String(error?.message || error) });
+  }
+});
+
+router.get("/new-releases", async (req, res) => {
+  const market = String(req.query.market || "US").trim().slice(0, 2).toUpperCase() || "US";
+  const limit = clampInt(req.query.limit, 1, 50, 20);
+  try {
+    if (!hasSpotifyCredentials()) {
+      return res.status(503).json({ message: "Spotify credentials are not configured on the server." });
+    }
+    const json = await spotifyRequest("/browse/new-releases", { country: market, limit });
+    const items = Array.isArray(json?.albums?.items) ? json.albums.items : [];
+    const results = items.map((item) => ({
+      id: String(item?.id || "").trim(),
+      name: String(item?.name || "").trim(),
+      artists: Array.isArray(item?.artists) ? item.artists.map((a) => String(a?.name || "").trim()).filter(Boolean) : [],
+      image: String(item?.images?.[0]?.url || "").trim(),
+      external_url: String(item?.external_urls?.spotify || "").trim(),
+      release_date: String(item?.release_date || "").trim()
+    })).filter((item) => !!item.id);
+    return res.json({ count: results.length, limit, results, source: "spotify" });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to load new releases.", error: String(error?.message || error) });
   }
 });
 
