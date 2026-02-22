@@ -5377,16 +5377,28 @@
           .filter((seed) => seed.title && seed.author);
         if (!seeds.length) return attachFallbackKnown([]);
 
-        const maxSeeds = Math.max(HOME_CHANNEL_TARGET_ITEMS, 18);
+        const maxSeeds = Math.max(HOME_CHANNEL_TARGET_ITEMS, 12);
         const seedCandidates = seeds.slice(0, maxSeeds);
-        const responses = await Promise.all(seedCandidates.map(async (seed, idx) => {
-          const searchUrl =
+        const searchSeed = async (seed) => {
+          const primaryUrl =
             `https://openlibrary.org/search.json?title=${encodeURIComponent(seed.title)}` +
             `&author=${encodeURIComponent(seed.author)}&language=eng&limit=5`;
-          const json = await fetchJsonWithPerfCache(searchUrl, { signal, cacheKey: `books:ol:${searchUrl}` });
-          const docs = Array.isArray(json?.docs) ? json.docs : [];
-          return { seed, idx, docs };
-        }));
+          const primary = await fetchJsonWithPerfCache(primaryUrl, { signal, cacheKey: `books:ol:${primaryUrl}` });
+          const primaryDocs = Array.isArray(primary?.docs) ? primary.docs : [];
+          if (primaryDocs.length) return primaryDocs;
+
+          const fallbackQ = `${seed.title} ${seed.author}`;
+          const fallbackUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(fallbackQ)}&language=eng&limit=5`;
+          const fallback = await fetchJsonWithPerfCache(fallbackUrl, { signal, cacheKey: `books:ol:${fallbackUrl}` });
+          return Array.isArray(fallback?.docs) ? fallback.docs : [];
+        };
+
+        const responses = [];
+        for (let idx = 0; idx < seedCandidates.length; idx += 1) {
+          const seed = seedCandidates[idx];
+          const docs = await searchSeed(seed);
+          responses.push({ seed, idx, docs });
+        }
 
         const seen = new Set();
         const mapped = responses.map(({ seed, idx, docs }) => {

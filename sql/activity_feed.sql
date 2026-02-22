@@ -55,6 +55,7 @@ declare
   v_actor_id uuid;
   v_list_type text;
   v_list_id uuid;
+  v_payload jsonb;
 begin
   v_event_type := case tg_op
     when 'INSERT' then 'list_add'
@@ -74,17 +75,23 @@ begin
     else null
   end;
 
+  v_payload := case
+    when tg_op = 'INSERT' then to_jsonb(new)
+    when tg_op = 'DELETE' then to_jsonb(old)
+    else '{}'::jsonb
+  end;
+
   v_item_id := case tg_table_name
-    when 'movie_list_items' then coalesce(new.movie_id, old.movie_id)::text
-    when 'tv_list_items' then coalesce(new.tv_id, old.tv_id)::text
-    when 'game_list_items' then coalesce(new.game_id, old.game_id)::text
-    when 'book_list_items' then coalesce(new.book_id, old.book_id)::text
-    when 'music_list_items' then coalesce(new.track_id, old.track_id)::text
+    when 'movie_list_items' then nullif(v_payload->>'movie_id', '')
+    when 'tv_list_items' then nullif(v_payload->>'tv_id', '')
+    when 'game_list_items' then nullif(v_payload->>'game_id', '')
+    when 'book_list_items' then nullif(v_payload->>'book_id', '')
+    when 'music_list_items' then nullif(v_payload->>'track_id', '')
     else null
   end;
-  v_actor_id := coalesce(new.user_id, old.user_id);
-  v_list_type := coalesce(new.list_type, old.list_type);
-  v_list_id := coalesce(new.list_id, old.list_id);
+  v_actor_id := nullif(v_payload->>'user_id', '')::uuid;
+  v_list_type := nullif(v_payload->>'list_type', '');
+  v_list_id := nullif(v_payload->>'list_id', '')::uuid;
 
   if v_media_type is null or v_item_id is null or v_actor_id is null then
     return coalesce(new, old);

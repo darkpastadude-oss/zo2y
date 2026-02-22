@@ -835,42 +835,47 @@
           }))
           .filter((seed) => seed.title && seed.author)
           .slice(0, BOOKS_PER_PAGE);
-        const results = await Promise.all(candidates.map(async (seed, idx) => {
-          try {
-            const json = await booksFetch('/search.json', {
-              title: seed.title,
-              author: seed.author,
-              language: 'eng',
-              limit: 5
-            });
-            const docs = Array.isArray(json?.docs) ? json.docs : [];
-            const preferred = docs.find((doc) => {
-              const title = String(doc?.title || '').toLowerCase();
-              const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').toLowerCase();
-              return title.includes(seed.title.toLowerCase()) && author.includes(seed.author.toLowerCase());
-            }) || docs[0];
-            if (preferred) return preferred;
-            return {
-              key: `/works/seed-${idx}`,
-              title: seed.title,
-              author_name: [seed.author],
-              first_publish_year: null,
-              isbn: [],
-              subject: [],
-              publisher: []
-            };
-          } catch (_err) {
-            return {
-              key: `/works/seed-${idx}`,
-              title: seed.title,
-              author_name: [seed.author],
-              first_publish_year: null,
-              isbn: [],
-              subject: [],
-              publisher: []
-            };
+        const searchSeed = async (seed) => {
+          const primary = await booksFetch('/search.json', {
+            title: seed.title,
+            author: seed.author,
+            language: 'eng',
+            limit: 5
+          }).catch(() => null);
+          const primaryDocs = Array.isArray(primary?.docs) ? primary.docs : [];
+          if (primaryDocs.length) return primaryDocs;
+          const fallbackQ = `${seed.title} ${seed.author}`;
+          const fallback = await booksFetch('/search.json', {
+            q: fallbackQ,
+            language: 'eng',
+            limit: 5
+          }).catch(() => null);
+          return Array.isArray(fallback?.docs) ? fallback.docs : [];
+        };
+
+        const results = [];
+        for (let idx = 0; idx < candidates.length; idx += 1) {
+          const seed = candidates[idx];
+          const docs = await searchSeed(seed);
+          const preferred = docs.find((doc) => {
+            const title = String(doc?.title || '').toLowerCase();
+            const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').toLowerCase();
+            return title.includes(seed.title.toLowerCase()) && author.includes(seed.author.toLowerCase());
+          }) || docs[0];
+          if (preferred) {
+            results.push(preferred);
+            continue;
           }
-        }));
+          results.push({
+            key: `/works/seed-${idx}`,
+            title: seed.title,
+            author_name: [seed.author],
+            first_publish_year: null,
+            isbn: [],
+            subject: [],
+            publisher: []
+          });
+        }
         const seen = new Set();
         const docs = results.filter(Boolean).map((doc, idx) => {
           const title = String(doc?.title || '').trim();
