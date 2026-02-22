@@ -1653,13 +1653,18 @@
 
     .ai-chat-shell {
       position: fixed;
-      right: 16px;
-      bottom: 20px;
+      right: 16px !important;
+      left: auto !important;
+      bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+      top: auto !important;
       z-index: 2147483000;
       display: grid;
       gap: 10px;
       justify-items: end;
+      pointer-events: none;
     }
+
+    .ai-chat-shell > * { pointer-events: auto; }
 
     .ai-chat-toggle {
       position: relative;
@@ -1984,8 +1989,9 @@
 
     @media (max-width: 768px) {
       .ai-chat-shell {
-        right: 10px;
-        bottom: 88px;
+        right: 10px !important;
+        left: auto !important;
+        bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
       }
 
       .ai-chat-panel {
@@ -5319,16 +5325,17 @@
           hideTyping();
           const msg = String(err?.message || '');
           const statusCode = Number(err?.statusCode || 0);
-          const configError =
+          const aiError =
             statusCode === 503 ||
+            statusCode === 502 ||
             /OPENAI_API_KEY/i.test(msg) ||
-            /not configured/i.test(msg);
-          if (configError) {
-            appendMsg('AI chat is not configured on the server yet. Set `OPENAI_API_KEY` in the deployment environment and redeploy, then refresh this page.', 'bot', [], true);
+            /not configured/i.test(msg) ||
+            /AI provider error/i.test(msg);
+          if (aiError) {
+            appendMsg('AI is temporarily unavailable. Check `OPENAI_API_KEY` and `OPENAI_CHAT_MODEL` in deployment env, then redeploy.', 'bot', [], true);
             return;
           }
-          const fallback = buildHomeChatReply(prompt);
-          appendMsg(fallback.text, 'bot', fallback.picks, true);
+          appendMsg('I could not process that right now. Please try again in a moment.', 'bot', [], true);
         }
       };
 

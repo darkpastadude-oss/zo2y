@@ -168,62 +168,6 @@ async function requestOpenAI({ message, mediaType, candidates, signals }) {
   return parsed;
 }
 
-function fallbackRecommendations(message, mediaType, candidates) {
-  const lc = String(message || "").toLowerCase();
-  const energetic = /hype|fast|action|adrenaline|party|workout/.test(lc);
-  const calm = /calm|chill|relax|cozy|soft|quiet/.test(lc);
-  const tokens = lc
-    .split(/[^a-z0-9]+/g)
-    .map((t) => t.trim())
-    .filter((t) => t.length >= 3)
-    .slice(0, 20);
-
-  const basePool = mediaType === "mixed"
-    ? [...candidates]
-    : candidates.filter((item) => item.media_type === mediaType);
-
-  const hash = (value) => {
-    let h = 0;
-    const text = String(value || "");
-    for (let i = 0; i < text.length; i += 1) {
-      h = ((h << 5) - h + text.charCodeAt(i)) | 0;
-    }
-    return Math.abs(h);
-  };
-
-  const scored = basePool
-    .map((item) => {
-      const title = String(item?.title || "").toLowerCase();
-      const subtitle = String(item?.subtitle || "").toLowerCase();
-      let score = 0;
-      tokens.forEach((token) => {
-        if (title.includes(token)) score += 4;
-        if (subtitle.includes(token)) score += 2;
-      });
-      const tiebreak = hash(`${lc}:${item.media_type}:${title}`);
-      return { item, score, tiebreak };
-    })
-    .sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return a.tiebreak - b.tiebreak;
-    });
-
-  const picks = scored.slice(0, MAX_RECOMMENDATIONS).map(({ item }) => ({
-    media_type: item.media_type,
-    item_id: item.item_id,
-    title: item.title,
-    reason: energetic
-      ? "High momentum pick."
-      : (calm ? "A more relaxed option." : "Strong fit for your request.")
-  }));
-
-  const reply = picks.length
-    ? "Here are recommendations picked from the live feed."
-    : "I could not find enough live candidates right now.";
-
-  return { reply, recommendations: picks };
-}
-
 router.get("/health", (_req, res) => {
   res.json({
     ok: true,
@@ -247,21 +191,7 @@ router.post("/recommend", async (req, res) => {
     const userId = parseUuid(req.body?.user_id || req.body?.userId);
     const signals = await loadUserSignals(userId);
 
-    let result;
-    try {
-      result = await requestOpenAI({ message, mediaType, candidates, signals });
-    } catch (modelErr) {
-      const msg = String(modelErr?.message || "");
-      const statusCode = Number(modelErr?.statusCode || 0);
-      const hardFail =
-        statusCode === 503 ||
-        /OPENAI_API_KEY/i.test(msg) ||
-        /not configured/i.test(msg) ||
-        /invalid api key/i.test(msg) ||
-        /incorrect api key/i.test(msg);
-      if (hardFail) throw modelErr;
-      result = fallbackRecommendations(message, mediaType, candidates);
-    }
+    const result = await requestOpenAI({ message, mediaType, candidates, signals });
 
     const recs = Array.isArray(result?.recommendations) ? result.recommendations : [];
     const normalized = recs
@@ -292,8 +222,14 @@ router.post("/recommend", async (req, res) => {
     });
   } catch (error) {
     const status = Number(error?.statusCode || 500);
+    const rawMsg = String(error?.message || "").trim();
+    const providerError =
+      /OPENAI/i.test(rawMsg) ||
+      /Model response could not be parsed/i.test(rawMsg);
     return res.status(status).json({
-      message: status >= 500 ? "Chat recommendation failed" : String(error?.message || "Invalid request")
+      message: status >= 500
+        ? (providerError ? `AI provider error: ${rawMsg}` : "Chat recommendation failed")
+        : (rawMsg || "Invalid request")
     });
   }
 });
