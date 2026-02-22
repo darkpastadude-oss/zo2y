@@ -1724,6 +1724,11 @@
         <div class="rail-title"><span><i class="fa-solid fa-wave-square"></i> Mixed for you</span><a href="profile.html">Tune taste</a></div>
         <div class="rail unified-rail" id="unifiedRail"></div>
       </div>
+
+      <div class="rail-wrap">
+        <div class="rail-title"><span><i class="fa-solid fa-heart-circle-bolt"></i> Because you liked...</span><a href="profile.html">View activity</a></div>
+        <div class="rail unified-rail" id="becauseYouLikedRail"></div>
+      </div>
     </section>
 
     <section class="section">
@@ -1940,6 +1945,10 @@
     const HOME_PRELOAD_PER_CHANNEL = 3;
     const HOME_PRELOAD_SPOTLIGHT_COUNT = 4;
     const HOME_UNIFIED_TARGET_ITEMS = 24;
+    const HOME_BECAUSE_YOU_LIKED_LIMIT = 18;
+    const HOME_BECAUSE_SIGNAL_CACHE_MS = 1000 * 60 * 3;
+    const HOME_BECAUSE_MAX_FOLLOWED_USERS = 24;
+    const HOME_BECAUSE_SIGNAL_RECENCY_HOURS = 24 * 21;
     const HOME_MENU_PRIME_IDLE_DELAY_MS = 2500;
     const HOME_ONBOARDING_VERSION = 'v1';
 
@@ -1983,6 +1992,12 @@
     };
     const homePreloadedImageSet = new Set();
     let homeMenuPrimeScheduled = false;
+    let homeBecauseRefreshSeq = 0;
+    let homeBecauseSignalCache = {
+      userId: '',
+      savedAt: 0,
+      payload: null
+    };
 
     function escapeHtml(value) {
       return String(value || '')
@@ -2432,6 +2447,209 @@
       return stream;
     }
 
+    function getRecommendationItemKey(mediaType, itemId) {
+      const type = String(mediaType || '').toLowerCase().trim();
+      const id = String(itemId || '').trim();
+      if (!type || !id) return '';
+      return `${type}:${id}`;
+    }
+
+    function buildFeedItemLookup(feedMap) {
+      const lookup = new Map();
+      getHomeChannels().forEach((channel) => {
+        const items = Array.isArray(feedMap?.[channel.key]) ? feedMap[channel.key] : [];
+        items.forEach((item) => {
+          const key = getRecommendationItemKey(item?.mediaType || channel.key, item?.itemId);
+          if (!key || lookup.has(key)) return;
+          lookup.set(key, item);
+        });
+      });
+      return lookup;
+    }
+
+    function getListTypeWeight(listType) {
+      const value = String(listType || '').toLowerCase();
+      if (value === 'favorites') return 0.75;
+      if (value === 'watched' || value === 'read' || value === 'listened' || value === 'visited') return 0.6;
+      if (value === 'watchlist' || value === 'readlist' || value === 'listenlist' || value === 'wanttogo') return 0.35;
+      return 0.28;
+    }
+
+    function getRecencyWeight(createdAt) {
+      if (!createdAt) return 0.35;
+      const time = new Date(createdAt).getTime();
+      if (!Number.isFinite(time) || time <= 0) return 0.35;
+      const ageHours = (Date.now() - time) / (1000 * 60 * 60);
+      if (!Number.isFinite(ageHours) || ageHours < 0) return 0.35;
+      if (ageHours > HOME_BECAUSE_SIGNAL_RECENCY_HOURS) return 0.1;
+      return Math.max(0.2, 1 - (ageHours / HOME_BECAUSE_SIGNAL_RECENCY_HOURS));
+    }
+
+    async function fetchBecauseYouLikedSignals() {
+      if (!homeCurrentUser?.id) return null;
+      const client = await ensureHomeSupabase();
+      if (!client) return null;
+
+      const { data: followsRows } = await client
+        .from('follows')
+        .select('followed_id')
+        .eq('follower_id', homeCurrentUser.id)
+        .limit(HOME_BECAUSE_MAX_FOLLOWED_USERS);
+
+      const followedIds = [...new Set((followsRows || [])
+        .map((row) => String(row?.followed_id || '').trim())
+        .filter(Boolean))];
+      const userIds = [homeCurrentUser.id, ...followedIds].slice(0, HOME_BECAUSE_MAX_FOLLOWED_USERS + 1);
+      if (!userIds.length) return null;
+
+      const queryTasks = Object.entries(HOME_DEFAULT_LIST_TABLES).map(([mediaType, cfg]) => {
+        return client
+          .from(cfg.table)
+          .select(`${cfg.itemField}, user_id, list_type, created_at`)
+          .in('user_id', userIds)
+          .order('created_at', { ascending: false })
+          .limit(180)
+          .then((res) => ({ mediaType, itemField: cfg.itemField, rows: Array.isArray(res?.data) ? res.data : [] }))
+          .catch(() => ({ mediaType, itemField: cfg.itemField, rows: [] }));
+      });
+
+      const batches = await Promise.all(queryTasks);
+      const signalMap = new Map();
+      const reasonsMap = new Map();
+
+      batches.forEach(({ mediaType, itemField, rows }) => {
+        rows.forEach((row) => {
+          const rawItemId = row?.[itemField];
+          const itemId = normalizeHomeDefaultItemId(mediaType, rawItemId);
+          if (itemId === null || itemId === undefined) return;
+          const key = getRecommendationItemKey(mediaType, itemId);
+          if (!key) return;
+
+          const sourceUserId = String(row?.user_id || '').trim();
+          const isOwn = sourceUserId === String(homeCurrentUser.id);
+          const recency = getRecencyWeight(row?.created_at);
+          const listWeight = getListTypeWeight(row?.list_type);
+          const score = (isOwn ? 2.2 : 1.3) * recency + listWeight;
+
+          signalMap.set(key, Number((Number(signalMap.get(key) || 0) + score).toFixed(4)));
+
+          const existingReason = reasonsMap.get(key) || { ownCount: 0, followingCount: 0, recentAt: '' };
+          if (isOwn) existingReason.ownCount += 1;
+          else existingReason.followingCount += 1;
+          if (!existingReason.recentAt || (row?.created_at && new Date(row.created_at).getTime() > new Date(existingReason.recentAt).getTime())) {
+            existingReason.recentAt = String(row?.created_at || '');
+          }
+          reasonsMap.set(key, existingReason);
+        });
+      });
+
+      return {
+        signalMap,
+        reasonsMap,
+        followedCount: followedIds.length
+      };
+    }
+
+    async function getBecauseYouLikedSignalsCached() {
+      const userId = String(homeCurrentUser?.id || '').trim();
+      if (!userId) return null;
+      if (
+        homeBecauseSignalCache.userId === userId &&
+        homeBecauseSignalCache.payload &&
+        (Date.now() - Number(homeBecauseSignalCache.savedAt || 0)) < HOME_BECAUSE_SIGNAL_CACHE_MS
+      ) {
+        return homeBecauseSignalCache.payload;
+      }
+      const payload = await fetchBecauseYouLikedSignals();
+      homeBecauseSignalCache = {
+        userId,
+        savedAt: Date.now(),
+        payload
+      };
+      return payload;
+    }
+
+    function buildBecauseYouLikedItems(feedMap, scoredPool, signalPayload) {
+      const itemLookup = buildFeedItemLookup(feedMap);
+      const discoveryByKey = new Map();
+      (Array.isArray(scoredPool) ? scoredPool : []).forEach((item) => {
+        const key = getRecommendationItemKey(item?.mediaType, item?.itemId);
+        if (!key) return;
+        discoveryByKey.set(key, Number(item.discoveryScore || 0));
+      });
+
+      const signalMap = signalPayload?.signalMap instanceof Map ? signalPayload.signalMap : new Map();
+      const reasonsMap = signalPayload?.reasonsMap instanceof Map ? signalPayload.reasonsMap : new Map();
+      const ranked = [];
+      signalMap.forEach((signalScore, key) => {
+        const source = itemLookup.get(key);
+        if (!source) return;
+        const discoveryScore = Number(discoveryByKey.get(key) || 0);
+        const combined = Number(signalScore || 0) * 0.74 + discoveryScore * 2.2;
+        ranked.push({ key, source, combined });
+      });
+      ranked.sort((a, b) => Number(b.combined || 0) - Number(a.combined || 0));
+
+      const selected = ranked.slice(0, HOME_BECAUSE_YOU_LIKED_LIMIT).map(({ key, source }) => {
+        const reason = reasonsMap.get(key) || { ownCount: 0, followingCount: 0, recentAt: '' };
+        let reasonText = source.extra ? String(source.extra) : '';
+        if (reason.ownCount > 0 && reason.followingCount > 0) {
+          reasonText = 'Saved by you and people you follow';
+        } else if (reason.ownCount > 0) {
+          reasonText = 'From your recent saves';
+        } else if (reason.followingCount > 0) {
+          reasonText = 'Popular with people you follow';
+        }
+        return {
+          ...source,
+          extra: reasonText || source.extra || ''
+        };
+      });
+
+      if (selected.length < Math.min(8, HOME_BECAUSE_YOU_LIKED_LIMIT)) {
+        const fallback = buildUnifiedFeed(scoredPool, HOME_BECAUSE_YOU_LIKED_LIMIT * 2);
+        const seen = new Set(selected.map((item) => getRecommendationItemKey(item?.mediaType, item?.itemId)));
+        fallback.forEach((item) => {
+          if (selected.length >= HOME_BECAUSE_YOU_LIKED_LIMIT) return;
+          const key = getRecommendationItemKey(item?.mediaType, item?.itemId);
+          if (!key || seen.has(key)) return;
+          seen.add(key);
+          selected.push(item);
+        });
+      }
+
+      return selected.slice(0, HOME_BECAUSE_YOU_LIKED_LIMIT);
+    }
+
+    async function refreshBecauseYouLikedRail(feedMap, scoredPool) {
+      const rail = document.getElementById('becauseYouLikedRail');
+      if (!rail) return;
+
+      const localFeed = feedMap || homeFeedState;
+      const localPool = Array.isArray(scoredPool) ? scoredPool : buildScoredDiscoveryPool(localFeed);
+      const seq = ++homeBecauseRefreshSeq;
+      const fallbackItems = buildUnifiedFeed(localPool, HOME_BECAUSE_YOU_LIKED_LIMIT);
+
+      if (!homeCurrentUser?.id) {
+        renderRail('becauseYouLikedRail', fallbackItems, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+        return;
+      }
+
+      const signalPayload = await getBecauseYouLikedSignalsCached();
+      if (seq !== homeBecauseRefreshSeq) return;
+      const items = buildBecauseYouLikedItems(localFeed, localPool, signalPayload);
+      renderRail('becauseYouLikedRail', items.length ? items : fallbackItems, {
+        mediaType: 'mixed',
+        uniformMedia: true,
+        restaurantComposite: true
+      });
+    }
+
+    function invalidateBecauseYouLikedSignals() {
+      homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
+      void refreshBecauseYouLikedRail(homeFeedState);
+    }
+
     function hydrateSpotlightFromPool(pool) {
       if (!Array.isArray(pool) || !pool.length) {
         homeSpotlightItems = [];
@@ -2724,6 +2942,7 @@
             showHomeToast('Removed from list');
             result.ok = true;
             result.saved = false;
+            invalidateBecauseYouLikedSignals();
             return result;
           }
 
@@ -2739,6 +2958,7 @@
             showHomeToast('Added to list');
             result.ok = true;
             result.saved = true;
+            invalidateBecauseYouLikedSignals();
             return result;
           }
 
@@ -2759,6 +2979,7 @@
             showHomeToast('Removed from list');
             result.ok = true;
             result.saved = false;
+            invalidateBecauseYouLikedSignals();
             return result;
           }
 
@@ -2773,6 +2994,7 @@
           showHomeToast('Added to list');
           result.ok = true;
           result.saved = true;
+          invalidateBecauseYouLikedSignals();
           return result;
         }
 
@@ -2801,6 +3023,7 @@
             showHomeToast('Removed from list');
             result.ok = true;
             result.saved = false;
+            invalidateBecauseYouLikedSignals();
             return result;
           }
 
@@ -2815,6 +3038,7 @@
             showHomeToast('Added to list');
             result.ok = true;
             result.saved = true;
+            invalidateBecauseYouLikedSignals();
             return result;
           }
 
@@ -2834,6 +3058,7 @@
             showHomeToast('Removed from list');
             result.ok = true;
             result.saved = false;
+            invalidateBecauseYouLikedSignals();
             return result;
           }
           const { error: insertError } = await client
@@ -2846,6 +3071,7 @@
           showHomeToast('Added to list');
           result.ok = true;
           result.saved = true;
+          invalidateBecauseYouLikedSignals();
           return result;
         }
       } catch (_err) {
@@ -4138,6 +4364,7 @@
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, HOME_UNIFIED_TARGET_ITEMS);
       renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+      void refreshBecauseYouLikedRail(homeFeedState, scoredPool);
       hydrateSpotlightFromPool(scoredPool);
 
       return { activeChannels, scoredPool, channelsCount: channels.length };
@@ -4150,6 +4377,7 @@
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, HOME_UNIFIED_TARGET_ITEMS);
       renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+      void refreshBecauseYouLikedRail(homeFeedState, scoredPool);
       hydrateSpotlightFromPool(scoredPool);
       scheduleHomeMenuCachePrime();
     }
@@ -4295,8 +4523,10 @@
       client.auth.onAuthStateChange((event, session) => {
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
           homeCurrentUser = session.user;
+          homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
         } else if (event === 'SIGNED_OUT') {
           homeCurrentUser = null;
+          homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
         } else if (event === 'TOKEN_REFRESHED') {
           if (session?.user) {
             homeCurrentUser = session.user;
