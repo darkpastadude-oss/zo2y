@@ -1835,7 +1835,6 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
     const IGDB_PROXY_BASE = '/api/igdb';
     const TMDB_PROXY_BASE = '/api/tmdb';
-    const OPEN_LIBRARY_SEARCH_BASE = 'https://openlibrary.org/search.json';
     const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
     const TMDB_SPOT_POSTER = 'https://image.tmdb.org/t/p/w780';
     const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
@@ -1858,13 +1857,7 @@
       { title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', isbn: '9780374533557' },
       { title: 'The Psychology of Money', author: 'Morgan Housel', isbn: '9780857197689' }
     ];
-    const POPULAR_BOOK_QUERIES = [
-      'new york times bestseller fiction',
-      'new york times bestseller nonfiction',
-      'goodreads choice awards winners',
-      'pulitzer prize winning novels',
-      'booker prize winners'
-    ];
+    const POPULAR_BOOKS_FILE = '/books-popular.json';
     const POPULAR_MUSIC_QUERIES = [
       'pop 2025',
       'hip hop 2025',
@@ -1893,9 +1886,9 @@
       book: { table: 'book_list_items', itemField: 'book_id' },
       music: { table: 'music_list_items', itemField: 'track_id' }
     };
-    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v4';
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v5';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v3';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v4';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
@@ -5099,23 +5092,29 @@
       };
 
       try {
-        const queries = [
-          'subject:fiction bestseller',
-          'subject:nonfiction bestseller',
-          'new york times bestseller',
-          'pulitzer prize winner',
-          'goodreads choice award winners'
-        ];
-        const maxResults = 40;
-        const queryUrls = queries.map((q) => (
-          `/api/books/volumes?q=${encodeURIComponent(q)}&printType=books&langRestrict=en&orderBy=relevance&maxResults=${maxResults}`
-        ));
-        const batches = await Promise.all(queryUrls.map(async (url) => {
+        const seedsJson = await fetchJsonWithPerfCache(POPULAR_BOOKS_FILE, { signal, cacheKey: `books-seeds:${POPULAR_BOOKS_FILE}` });
+        const seedsRaw = Array.isArray(seedsJson) ? seedsJson : [];
+        const seeds = seedsRaw
+          .map((seed) => ({
+            title: String(seed?.title || '').trim(),
+            author: String(seed?.author || '').trim()
+          }))
+          .filter((seed) => seed.title && seed.author);
+        if (!seeds.length) return attachFallbackKnown([]);
+
+        const maxSeeds = Math.max(HOME_CHANNEL_TARGET_ITEMS, 24);
+        const seedCandidates = seeds.slice(0, maxSeeds);
+        const rows = [];
+        const responses = await Promise.all(seedCandidates.map(async (seed) => {
+          const q = `intitle:"${seed.title}" inauthor:"${seed.author}"`;
+          const url = `/api/books/volumes?q=${encodeURIComponent(q)}&printType=books&langRestrict=en&orderBy=relevance&maxResults=1`;
           const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `books:${url}` });
-          if (!json) return [];
-          return Array.isArray(json.items) ? json.items : [];
+          return { seed, json };
         }));
-        const rows = batches.flat();
+        responses.forEach(({ seed, json }) => {
+          const items = Array.isArray(json?.items) ? json.items : [];
+          if (items[0]) rows.push(items[0]);
+        });
         if (!rows.length) return attachFallbackKnown([]);
 
         const seenTitles = new Set();
@@ -5165,8 +5164,37 @@
           };
         }).filter(Boolean);
 
-        mapped.sort((a, b) => Number(b.popularityScore || 0) - Number(a.popularityScore || 0));
-        const merged = attachFallbackKnown(mapped).map((item) => {
+        const seedFallbackMapped = seedCandidates
+          .filter((seed) => {
+            const key = `${seed.title.toLowerCase()}::${seed.author.toLowerCase()}`;
+            return !mapped.some((item) => `${String(item.title || '').toLowerCase()}::${String(item.subtitle || '').toLowerCase().split(' | ')[0]}` === key);
+          })
+          .map((seed, idx) => {
+            const key = `${seed.title.toLowerCase()}::${seed.author.toLowerCase()}`;
+            const known = FALLBACK_BOOKS.find((b) => `${String(b.title || '').toLowerCase()}::${String(b.author || '').toLowerCase()}` === key);
+            const isbn = String(known?.isbn || '').trim();
+            const cover = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : 'images/logo.png';
+            return {
+              mediaType: 'book',
+              itemId: `seed-book-${idx}-${key.replace(/[^a-z0-9]+/g, '-')}`,
+              title: seed.title,
+              subtitle: seed.author,
+              image: cover,
+              backgroundImage: cover,
+              spotlightImage: cover,
+              spotlightMediaImage: cover,
+              spotlightMediaFit: 'contain',
+              spotlightMediaShape: 'poster',
+              fallbackImage: cover,
+              isbn,
+              popularityScore: 0,
+              href: 'books.html'
+            };
+          });
+
+        const ranked = [...mapped, ...seedFallbackMapped]
+          .sort((a, b) => Number(b.popularityScore || 0) - Number(a.popularityScore || 0));
+        const merged = attachFallbackKnown(ranked).map((item) => {
           const copy = { ...item };
           delete copy.popularityScore;
           return copy;

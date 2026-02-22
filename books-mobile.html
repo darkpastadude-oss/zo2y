@@ -817,6 +817,61 @@
         return null;
       }
 
+      function normalizeGoogleVolumeToDoc(volume, index) {
+        const info = volume?.volumeInfo || {};
+        const title = String(info.title || '').trim() || 'Book';
+        const author = Array.isArray(info.authors) && info.authors.length ? String(info.authors[0] || '').trim() : 'Unknown author';
+        const identifiers = Array.isArray(info.industryIdentifiers) ? info.industryIdentifiers : [];
+        const isbnId = identifiers.find((x) => /ISBN_13|ISBN_10/i.test(String(x?.type || '')));
+        const isbn = String(isbnId?.identifier || '').replace(/[^0-9Xx]/g, '').trim();
+        const yearRaw = String(info.publishedDate || '').trim();
+        const year = /^\d{4}/.test(yearRaw) ? Number(yearRaw.slice(0, 4)) : null;
+        const volumeId = String(volume?.id || `gb-${index}`).trim();
+        return {
+          key: `/works/${volumeId}`,
+          title,
+          author_name: [author],
+          first_publish_year: year,
+          isbn: isbn ? [isbn] : [],
+          subject: Array.isArray(info.categories) ? info.categories : [],
+          publisher: Array.isArray(info.publisher) ? info.publisher : (info.publisher ? [String(info.publisher)] : [])
+        };
+      }
+
+      async function loadCuratedPopularBooks() {
+        const res = await fetch('/books-popular.json');
+        if (!res.ok) throw new Error(`books-popular.json error ${res.status}`);
+        const seedsRaw = await res.json();
+        const seeds = Array.isArray(seedsRaw) ? seedsRaw : [];
+        const candidates = seeds
+          .map((seed) => ({
+            title: String(seed?.title || '').trim(),
+            author: String(seed?.author || '').trim()
+          }))
+          .filter((seed) => seed.title && seed.author)
+          .slice(0, BOOKS_PER_PAGE);
+        const results = await Promise.all(candidates.map(async (seed, idx) => {
+          const q = `intitle:"${seed.title}" inauthor:"${seed.author}"`;
+          const url = `/api/books/volumes?q=${encodeURIComponent(q)}&printType=books&langRestrict=en&orderBy=relevance&maxResults=1`;
+          const r = await fetch(url);
+          if (!r.ok) return null;
+          const json = await r.json();
+          const row = Array.isArray(json?.items) ? json.items[0] : null;
+          if (row) return normalizeGoogleVolumeToDoc(row, idx);
+          return {
+            key: `/works/seed-${idx}`,
+            title: seed.title,
+            author_name: [seed.author],
+            first_publish_year: null,
+            isbn: [],
+            subject: [],
+            publisher: []
+          };
+        }));
+        const docs = results.filter(Boolean);
+        return { docs, numFound: docs.length };
+      }
+
       function stripHtml(html) {
         if (!html) return '';
         return html.replace(/<[^>]*>/g, '').trim();
@@ -1008,13 +1063,18 @@
 
         let data;
         try {
-          const q = buildQuery();
-          data = await booksFetch('/search.json', {
-            q,
-            page: state.page,
-            limit: BOOKS_PER_PAGE,
-            lang: 'en'
-          });
+          const hasCustomQuery = !!String(state.query || '').trim() || !!String(state.author || '').trim() || !!String(state.activeCategory || '').trim() || !!String(state.year || '').trim();
+          if (!hasCustomQuery && Number(state.page || 1) === 1) {
+            data = await loadCuratedPopularBooks();
+          } else {
+            const q = buildQuery();
+            data = await booksFetch('/search.json', {
+              q,
+              page: state.page,
+              limit: BOOKS_PER_PAGE,
+              lang: 'en'
+            });
+          }
         } catch (e) {
           console.error('OpenLibrary fetch error', e);
           showNotification('Could not load remote books; showing offline fallback', 'error', 4000);

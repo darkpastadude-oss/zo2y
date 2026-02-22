@@ -15,13 +15,7 @@ const TMDB_SPOT_POSTER = "https://image.tmdb.org/t/p/w780";
 const TMDB_BACKDROP = "https://image.tmdb.org/t/p/w1280";
 const TARGET_ITEMS = 24;
 const TTL_MINUTES = 20;
-const POPULAR_BOOK_QUERIES = [
-  "new york times bestseller fiction",
-  "new york times bestseller nonfiction",
-  "goodreads choice awards winners",
-  "pulitzer prize winning novels",
-  "booker prize winners"
-];
+const BOOKS_POPULAR_PATH = "/books-popular.json";
 const POPULAR_MUSIC_QUERIES = [
   "pop 2025",
   "hip hop 2025",
@@ -125,49 +119,45 @@ function mapGames(rows = []) {
 }
 
 function mapBooks(rows = []) {
-  const ranked = rows
-    .filter((b) => b && b.key && b.title)
-    .map((b) => {
-      const ratingsCount = Number(b.ratings_count || 0);
-      const ratingsAverage = Number(b.ratings_average || 0);
-      const score = (Number.isFinite(ratingsAverage) ? ratingsAverage : 0) * 100
-        + Math.log10(Math.max(1, ratingsCount + 1)) * 120;
-      return { ...b, _score: score };
-    })
-    .sort((a, b) => Number(b._score || 0) - Number(a._score || 0));
   const seen = new Set();
-
-  return ranked
-    .filter((b) => {
-      const key = String(b.key || "").trim().toLowerCase();
-      if (!key || seen.has(key)) return false;
+  const mapped = rows
+    .map((row, index) => {
+      const info = row?.volumeInfo || {};
+      const title = String(info.title || "").trim();
+      if (!title) return null;
+      const author = Array.isArray(info.authors) && info.authors.length ? String(info.authors[0] || "").trim() : "Book";
+      const key = `${title.toLowerCase()}::${author.toLowerCase()}`;
+      if (seen.has(key)) return null;
       seen.add(key);
-      return true;
-    })
-    .slice(0, TARGET_ITEMS)
-    .map((b, index) => {
-      const workKey = String(b.key || "").trim();
-      const workId = workKey.startsWith("/works/") ? workKey.replace("/works/", "") : workKey;
-      const author = Array.isArray(b.author_name) && b.author_name.length ? b.author_name[0] : "Book";
-      const coverId = Number(b.cover_i || 0);
-      const cover = Number.isFinite(coverId) && coverId > 0
-        ? `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg`
-        : "images/logo.png";
+      const identifiers = Array.isArray(info.industryIdentifiers) ? info.industryIdentifiers : [];
+      const isbnId = identifiers.find((x) => /ISBN_13|ISBN_10/i.test(String(x?.type || "")));
+      const isbn = String(isbnId?.identifier || "").replace(/[^0-9Xx]/g, "").trim();
+      const imageLinks = info.imageLinks || {};
+      const imgRaw = String(imageLinks.thumbnail || imageLinks.smallThumbnail || "").trim();
+      const image = imgRaw.replace(/^http:\/\//i, "https://");
+      const coverByIsbn = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : "";
+      const primaryImage = image || coverByIsbn || "images/logo.png";
+      const itemId = String(row?.id || `pre-book-${index + 1}`).trim();
+      const publishedDate = String(info.publishedDate || "").trim();
+      const year = /^\d{4}/.test(publishedDate) ? publishedDate.slice(0, 4) : "";
+      const subtitle = year ? `${author} | ${year}` : author;
       return {
         mediaType: "book",
-        itemId: workId || `pre-book-${index + 1}`,
-        title: String(b.title || "Book"),
-        subtitle: author,
-        image: cover,
-        backgroundImage: cover,
-        spotlightImage: cover,
-        spotlightMediaImage: cover,
+        itemId,
+        title,
+        subtitle,
+        image: primaryImage,
+        backgroundImage: primaryImage,
+        spotlightImage: primaryImage,
+        spotlightMediaImage: primaryImage,
         spotlightMediaFit: "contain",
         spotlightMediaShape: "poster",
-        fallbackImage: cover,
-        href: workId ? `book.html?id=${encodeURIComponent(workId)}` : "books.html"
+        fallbackImage: coverByIsbn || primaryImage,
+        href: itemId ? `book.html?id=${encodeURIComponent(itemId)}` : "books.html"
       };
-    });
+    })
+    .filter(Boolean);
+  return mapped.slice(0, TARGET_ITEMS);
 }
 
 function mapMusic(rows = []) {
@@ -219,19 +209,33 @@ export default async function handler(req, res) {
     return res.status(500).json({ message: "Could not resolve request host" });
   }
 
-  const [moviesJson, tvJson, gamesJson, booksBatches, musicBatches] = await Promise.all([
+  const [moviesJson, tvJson, gamesJson, booksSeedsJson, musicBatches] = await Promise.all([
     fetchJson(`${baseUrl}/api/tmdb/movie/popular?language=en-US&page=1`),
     fetchJson(`${baseUrl}/api/tmdb/tv/popular?language=en-US&page=1`),
     fetchJson(`${baseUrl}/api/igdb/games?page_size=32&ordering=-rating&dates=2000-01-01,2026-12-31&page=1`),
-    Promise.all(POPULAR_BOOK_QUERIES.map((q) => fetchJson(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&language=eng&limit=40&page=1`))),
+    fetchJson(`${baseUrl}${BOOKS_POPULAR_PATH}`),
     Promise.all([
       fetchJson(`${baseUrl}/api/music/popular?limit=30&market=US`),
       ...POPULAR_MUSIC_QUERIES.map((q) => fetchJson(`${baseUrl}/api/music/search?q=${encodeURIComponent(q)}&limit=24&market=US`))
     ])
   ]);
-  const booksRows = (Array.isArray(booksBatches) ? booksBatches : []).flatMap((json) => (
-    Array.isArray(json?.docs) ? json.docs : []
-  ));
+  const booksSeeds = Array.isArray(booksSeedsJson) ? booksSeedsJson : [];
+  const bookQueries = booksSeeds
+    .map((seed) => ({
+      title: String(seed?.title || "").trim(),
+      author: String(seed?.author || "").trim()
+    }))
+    .filter((seed) => seed.title && seed.author)
+    .slice(0, Math.max(TARGET_ITEMS, 24));
+  const booksBatches = await Promise.all(bookQueries.map((seed) => {
+    const q = `intitle:"${seed.title}" inauthor:"${seed.author}"`;
+    const url = `${baseUrl}/api/books/volumes?q=${encodeURIComponent(q)}&printType=books&langRestrict=en&orderBy=relevance&maxResults=1`;
+    return fetchJson(url);
+  }));
+  const booksRows = booksBatches.flatMap((json) => {
+    const items = Array.isArray(json?.items) ? json.items : [];
+    return items.slice(0, 1);
+  });
   const musicRows = (Array.isArray(musicBatches) ? musicBatches : []).flatMap((json) => (
     Array.isArray(json?.results) ? json.results : []
   ));
