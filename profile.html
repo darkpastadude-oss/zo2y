@@ -8172,6 +8172,7 @@ header, .top-stripe, .section-nav {
 
                     renderActivityAction(eventRow) {
                         const eventType = String(eventRow?.event_type || '').toLowerCase();
+                        const mediaType = String(eventRow?.media_type || '').toLowerCase();
                         const item = eventRow?.__activityItem || {};
                         const listTitle = String(eventRow?.__activityListTitle || '').trim();
                         const itemTitle = String(item.title || '').trim();
@@ -8179,13 +8180,20 @@ header, .top-stripe, .section-nav {
                         const listText = listTitle || 'a list';
                         const safeTarget = escapeHtml(targetText);
                         const safeList = escapeHtml(listText);
+                        const mediaTag = this.getActivityMediaTypeTag(mediaType);
 
-                        if (eventType === 'review_add') return `posted a review for ${safeTarget}`;
-                        if (eventType === 'review_edit') return `edited a review for ${safeTarget}`;
-                        if (eventType === 'review_delete') return `deleted a review for ${safeTarget}`;
-                        if (eventType === 'list_add') return `added ${safeTarget} to ${safeList}`;
-                        if (eventType === 'list_remove') return `removed ${safeTarget} from ${safeList}`;
+                        if (eventType === 'review_add') return `posted a review for ${safeTarget}${mediaTag}`;
+                        if (eventType === 'review_edit') return `edited a review for ${safeTarget}${mediaTag}`;
+                        if (eventType === 'review_delete') return `deleted a review for ${safeTarget}${mediaTag}`;
+                        if (eventType === 'list_add') return `added ${safeTarget}${mediaTag} to ${safeList}`;
+                        if (eventType === 'list_remove') return `removed ${safeTarget}${mediaTag} from ${safeList}`;
                         return 'updated activity';
+                    },
+
+                    getActivityMediaTypeTag(mediaType) {
+                        const normalized = String(mediaType || '').trim().toLowerCase();
+                        if (!normalized) return '';
+                        return ` (${escapeHtml(normalized)})`;
                     },
 
                     getActivityGenericTarget(mediaType) {
