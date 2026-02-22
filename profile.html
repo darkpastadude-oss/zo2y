@@ -8516,7 +8516,10 @@ header, .top-stripe, .section-nav {
                                     <div class="mobile-activity-feed">
                                         ${enrichedRows.map((row) => {
                                             const profile = profileMap.get(String(row.actor_id)) || {};
-                                            const actorName = escapeHtml(profile.full_name || profile.username || 'User');
+                                            const isCurrentActor = String(row?.actor_id || '').trim() === String(currentUser?.id || '').trim();
+                                            const actorName = isCurrentActor
+                                                ? 'YOU'
+                                                : escapeHtml(profile.full_name || profile.username || 'User');
                                             const ratingText = row?.rating ? `Rated ${Number(row.rating).toFixed(1)}/5` : '';
                                             const noteText = escapeHtml(String(row?.review_text || '').trim());
                                             const listText = String(row?.__activityListTitle || '').trim();
@@ -8557,7 +8560,10 @@ header, .top-stripe, .section-nav {
                                     <div class="activity-feed">
                                         ${enrichedRows.map((row) => {
                                             const profile = profileMap.get(String(row.actor_id)) || {};
-                                            const actorName = escapeHtml(profile.full_name || profile.username || 'User');
+                                            const isCurrentActor = String(row?.actor_id || '').trim() === String(currentUser?.id || '').trim();
+                                            const actorName = isCurrentActor
+                                                ? 'YOU'
+                                                : escapeHtml(profile.full_name || profile.username || 'User');
                                             const ratingText = row?.rating ? `Rated ${Number(row.rating).toFixed(1)}/5` : '';
                                             const noteText = escapeHtml(String(row?.review_text || '').trim());
                                             const listText = String(row?.__activityListTitle || '').trim();
