@@ -800,13 +800,17 @@
         });
         let lastError = null;
         for (let attempt = 0; attempt < 3; attempt += 1) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 6000);
           try {
-            const res = await fetch(url.toString());
+            const res = await fetch(url.toString(), { signal: controller.signal });
+            clearTimeout(timeoutId);
             if (res.ok) return await res.json();
             const retryable = res.status === 429 || res.status >= 500;
             if (!retryable) throw new Error(`Books API error ${res.status}`);
             lastError = new Error(`Books API error ${res.status}`);
           } catch (error) {
+            clearTimeout(timeoutId);
             lastError = error;
           }
           if (attempt < 2) {
@@ -1120,10 +1124,13 @@
         const grid = document.getElementById('booksGrid');
         const empty = document.getElementById('emptyState');
         if (!grid) return;
+        const hasCustomQuery = !!String(state.query || '').trim() || !!String(state.author || '').trim() || !!String(state.activeCategory || '').trim() || !!String(state.year || '').trim();
 
         let data;
+        if (!hasCustomQuery && Number(state.page || 1) === 1) {
+          displayBookResults(FALLBACK_BOOKS, FALLBACK_BOOKS.length);
+        }
         try {
-          const hasCustomQuery = !!String(state.query || '').trim() || !!String(state.author || '').trim() || !!String(state.activeCategory || '').trim() || !!String(state.year || '').trim();
           if (!hasCustomQuery && Number(state.page || 1) === 1) {
             data = await loadCuratedPopularBooks();
           } else {
@@ -1134,6 +1141,9 @@
               limit: BOOKS_PER_PAGE,
               language: 'eng'
             });
+          }
+          if (!Array.isArray(data?.docs) || !data.docs.length) {
+            data = { docs: FALLBACK_BOOKS, numFound: FALLBACK_BOOKS.length };
           }
         } catch (e) {
           console.error('OpenLibrary fetch error', e);

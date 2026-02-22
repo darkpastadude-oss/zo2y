@@ -819,13 +819,17 @@
         });
         let lastError = null;
         for (let attempt = 0; attempt < 3; attempt += 1) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 6000);
           try {
-            const res = await fetch(url.toString());
+            const res = await fetch(url.toString(), { signal: controller.signal });
+            clearTimeout(timeoutId);
             if (res.ok) return await res.json();
             const retryable = res.status === 429 || res.status >= 500;
             if (!retryable) throw new Error(`Books API error ${res.status}`);
             lastError = new Error(`Books API error ${res.status}`);
           } catch (error) {
+            clearTimeout(timeoutId);
             lastError = error;
           }
           if (attempt < 2) {
@@ -1131,6 +1135,7 @@
         const grid = document.getElementById('booksGrid');
         const empty = document.getElementById('emptyState');
         if (!grid) return;
+        const hasCustomQuery = !!String(state.query || '').trim() || !!String(state.author || '').trim() || !!String(state.activeCategory || '').trim() || !!String(state.year || '').trim();
 
         // Show cached results instantly
         const cacheKey = `books_search_${state.query}_${state.author}_${state.activeCategory}_${state.year}_${state.page}`;
@@ -1143,6 +1148,11 @@
           } catch (e) {
             console.warn('Cache read error', e);
           }
+        }
+
+        // Never stay blank while remote requests are pending.
+        if (!hasCustomQuery && state.page === 1) {
+          displayBookResults(FALLBACK_BOOKS, FALLBACK_BOOKS.length);
         }
 
         let data;
@@ -1160,6 +1170,9 @@
             data = await loadCuratedPopularBooks();
           } else {
             data = await booksFetch('/search.json', params);
+          }
+          if (!Array.isArray(data?.docs) || !data.docs.length) {
+            data = { docs: FALLBACK_BOOKS, numFound: FALLBACK_BOOKS.length };
           }
           // Cache successful results
           localStorage.setItem(cacheKey, JSON.stringify({ docs: data.docs || [], numFound: data.numFound || 0 }));

@@ -787,13 +787,17 @@
         });
         let lastError = null;
         for (let attempt = 0; attempt < 3; attempt += 1) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 6000);
           try {
-            const res = await fetch(url.toString());
+            const res = await fetch(url.toString(), { signal: controller.signal });
+            clearTimeout(timeoutId);
             if (res.ok) return await res.json();
             const retryable = res.status === 429 || res.status >= 500;
             if (!retryable) throw new Error(`Books API error ${res.status}`);
             lastError = new Error(`Books API error ${res.status}`);
           } catch (error) {
+            clearTimeout(timeoutId);
             lastError = error;
           }
           if (attempt < 2) {
