@@ -16,6 +16,22 @@ const TMDB_BACKDROP = "https://image.tmdb.org/t/p/w1280";
 const TARGET_ITEMS = 24;
 const TTL_MINUTES = 20;
 const BOOKS_POPULAR_PATH = "/books-popular.json";
+const CURATED_POPULAR_BOOKS = [
+  { title: "Atomic Habits", author: "James Clear" },
+  { title: "The Psychology of Money", author: "Morgan Housel" },
+  { title: "It Ends with Us", author: "Colleen Hoover" },
+  { title: "Fourth Wing", author: "Rebecca Yarros" },
+  { title: "The 48 Laws of Power", author: "Robert Greene" },
+  { title: "The Seven Husbands of Evelyn Hugo", author: "Taylor Jenkins Reid" },
+  { title: "Where the Crawdads Sing", author: "Delia Owens" },
+  { title: "The Midnight Library", author: "Matt Haig" },
+  { title: "The Silent Patient", author: "Alex Michaelides" },
+  { title: "The Alchemist", author: "Paulo Coelho" },
+  { title: "Sapiens", author: "Yuval Noah Harari" },
+  { title: "Rich Dad Poor Dad", author: "Robert T. Kiyosaki" },
+  { title: "Project Hail Mary", author: "Andy Weir" },
+  { title: "Educated", author: "Tara Westover" }
+];
 const POPULAR_MUSIC_QUERIES = [
   "pop 2025",
   "hip hop 2025",
@@ -219,7 +235,7 @@ export default async function handler(req, res) {
       ...POPULAR_MUSIC_QUERIES.map((q) => fetchJson(`${baseUrl}/api/music/search?q=${encodeURIComponent(q)}&limit=24&market=US`))
     ])
   ]);
-  const booksSeeds = Array.isArray(booksSeedsJson) ? booksSeedsJson : [];
+  const booksSeeds = Array.isArray(booksSeedsJson) && booksSeedsJson.length ? booksSeedsJson : CURATED_POPULAR_BOOKS;
   const bookQueries = booksSeeds
     .map((seed) => ({
       title: String(seed?.title || "").trim(),

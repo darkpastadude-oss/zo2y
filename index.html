@@ -1857,6 +1857,42 @@
       { title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', isbn: '9780374533557' },
       { title: 'The Psychology of Money', author: 'Morgan Housel', isbn: '9780857197689' }
     ];
+    const CURATED_POPULAR_BOOKS = [
+      { title: 'Atomic Habits', author: 'James Clear' },
+      { title: 'The Psychology of Money', author: 'Morgan Housel' },
+      { title: 'It Ends with Us', author: 'Colleen Hoover' },
+      { title: 'Fourth Wing', author: 'Rebecca Yarros' },
+      { title: 'The 48 Laws of Power', author: 'Robert Greene' },
+      { title: 'The Seven Husbands of Evelyn Hugo', author: 'Taylor Jenkins Reid' },
+      { title: 'Where the Crawdads Sing', author: 'Delia Owens' },
+      { title: 'The Midnight Library', author: 'Matt Haig' },
+      { title: 'The Silent Patient', author: 'Alex Michaelides' },
+      { title: 'The Alchemist', author: 'Paulo Coelho' },
+      { title: 'Sapiens', author: 'Yuval Noah Harari' },
+      { title: 'Rich Dad Poor Dad', author: 'Robert T. Kiyosaki' },
+      { title: 'Project Hail Mary', author: 'Andy Weir' },
+      { title: 'Educated', author: 'Tara Westover' }
+    ];
+    const FALLBACK_GAMES = [
+      { title: 'The Legend of Zelda: Breath of the Wild', year: '2017', genre: 'Adventure' },
+      { title: 'Elden Ring', year: '2022', genre: 'Action RPG' },
+      { title: 'God of War', year: '2018', genre: 'Action' },
+      { title: 'Red Dead Redemption 2', year: '2018', genre: 'Open World' },
+      { title: 'Minecraft', year: '2011', genre: 'Sandbox' },
+      { title: 'Grand Theft Auto V', year: '2013', genre: 'Open World' },
+      { title: 'The Witcher 3: Wild Hunt', year: '2015', genre: 'RPG' },
+      { title: 'Fortnite', year: '2017', genre: 'Battle Royale' }
+    ];
+    const FALLBACK_MUSIC_TRACKS = [
+      { id: '4iV5W9uYEdYUVa79Axb7Rh', title: 'Smells Like Teen Spirit', artist: 'Nirvana', album: 'Nevermind' },
+      { id: '7qiZfU4dY1lWllzX7mPBI3', title: 'Shape of You', artist: 'Ed Sheeran', album: 'Divide' },
+      { id: '3n3Ppam7vgaVa1iaRUc9Lp', title: 'Mr. Brightside', artist: 'The Killers', album: 'Hot Fuss' },
+      { id: '2takcwOaAZWiXQijPHIx7B', title: 'CAN\'T STOP THE FEELING!', artist: 'Justin Timberlake', album: 'Trolls OST' },
+      { id: '6habFhsOp2NvshLv26DqMb', title: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours' },
+      { id: '0VjIjW4GlUZAMYd2vXMi3b', title: 'Starboy', artist: 'The Weeknd', album: 'Starboy' },
+      { id: '2dpaYNEQHiRxtZbfNsse99', title: 'Stressed Out', artist: 'Twenty One Pilots', album: 'Blurryface' },
+      { id: '5Z01UMMf7V1o0MzF86s6WJ', title: 'Believer', artist: 'Imagine Dragons', album: 'Evolve' }
+    ];
     const POPULAR_BOOKS_FILE = '/books-popular.json';
     const POPULAR_MUSIC_QUERIES = [
       'pop 2025',
@@ -1886,9 +1922,9 @@
       book: { table: 'book_list_items', itemField: 'book_id' },
       music: { table: 'music_list_items', itemField: 'track_id' }
     };
-    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v5';
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v6';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v4';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v5';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
@@ -3906,7 +3942,21 @@
         } : {}),
         movie: makeSeedItems('movie', ['Popular Movies', 'Now in Theaters', 'Award Winners', 'Critics Picks', 'Weekend Watch'], 'movies.html'),
         tv: makeSeedItems('tv', ['Top TV Shows', 'Binge Picks', 'New Seasons', 'Global Hits', 'Fan Favorites'], 'tvshows.html'),
-        game: [],
+        game: FALLBACK_GAMES.slice(0, 8).map((g, index) => ({
+          mediaType: 'game',
+          itemId: `seed-game-${index + 1}`,
+          title: g.title,
+          subtitle: g.year,
+          extra: g.genre,
+          image: fallbackImage,
+          backgroundImage: fallbackImage,
+          spotlightImage: fallbackImage,
+          spotlightMediaImage: fallbackImage,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          href: 'games.html',
+          isPlaceholder: true
+        })),
         music: makeSeedItems('music', ['Global Hits', 'Viral Tracks', 'Fresh Releases', 'Chill Vibes', 'Late Night Mix'], 'music.html'),
         book: FALLBACK_BOOKS.slice(0, 8).map((b, index) => ({
           mediaType: 'book',
@@ -5043,7 +5093,7 @@
         if (candidates.length >= HOME_CHANNEL_TARGET_ITEMS) break;
       }
 
-      return candidates.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((g) => {
+      const mapped = candidates.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((g) => {
         return {
           mediaType: 'game',
           itemId: String(g.id || ''),
@@ -5059,24 +5109,45 @@
           href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html'
         };
       });
+      if (mapped.length) return mapped;
+      return FALLBACK_GAMES.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((g, idx) => ({
+        mediaType: 'game',
+        itemId: `fallback-game-${idx + 1}`,
+        title: g.title,
+        subtitle: g.year,
+        extra: g.genre,
+        image: HOME_LOCAL_FALLBACK_IMAGE,
+        backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
+        spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
+        spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
+        href: 'games.html',
+        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
+      }));
     }
 
     async function loadBooks(signal) {
-      const fallbackKnown = FALLBACK_BOOKS.map((b, idx) => ({
+      const fallbackKnown = CURATED_POPULAR_BOOKS.map((b, idx) => {
+        const known = FALLBACK_BOOKS.find((x) => String(x.title || '').toLowerCase() === String(b.title || '').toLowerCase());
+        const isbn = String(known?.isbn || '').trim();
+        const cover = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : HOME_LOCAL_FALLBACK_IMAGE;
+        return ({
         mediaType: 'book',
         itemId: `known-book-${idx}`,
         title: b.title,
         subtitle: b.author,
-        image: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
-        backgroundImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
-        spotlightImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
-        spotlightMediaImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
+        image: cover,
+        backgroundImage: cover,
+        spotlightImage: cover,
+        spotlightMediaImage: cover,
         spotlightMediaFit: 'contain',
         spotlightMediaShape: 'poster',
-        fallbackImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
-        isbn: b.isbn,
+        fallbackImage: cover,
+        isbn,
         href: 'books.html'
-      }));
+      });
+      });
 
       const attachFallbackKnown = (items) => {
         const merged = [...(Array.isArray(items) ? items : []), ...fallbackKnown];
@@ -5093,7 +5164,7 @@
 
       try {
         const seedsJson = await fetchJsonWithPerfCache(POPULAR_BOOKS_FILE, { signal, cacheKey: `books-seeds:${POPULAR_BOOKS_FILE}` });
-        const seedsRaw = Array.isArray(seedsJson) ? seedsJson : [];
+        const seedsRaw = Array.isArray(seedsJson) && seedsJson.length ? seedsJson : CURATED_POPULAR_BOOKS;
         const seeds = seedsRaw
           .map((seed) => ({
             title: String(seed?.title || '').trim(),
@@ -5202,21 +5273,7 @@
         if (merged.length) return merged;
       } catch (_e) {}
 
-      return FALLBACK_BOOKS.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((b, idx) => ({
-        mediaType: 'book',
-        itemId: `fallback-book-${idx}`,
-        title: b.title,
-        subtitle: b.author,
-        image: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
-        backgroundImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
-        spotlightImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
-        spotlightMediaImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
-        spotlightMediaFit: 'contain',
-        spotlightMediaShape: 'poster',
-        fallbackImage: `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(b.isbn)}-L.jpg`,
-        isbn: b.isbn,
-        href: 'books.html'
-      }));
+      return attachFallbackKnown([]);
     }
 
     async function loadMusic(signal) {
@@ -5259,6 +5316,23 @@
           .sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0));
         const selected = (ranked.length ? ranked : deduped.sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0)))
           .slice(0, HOME_CHANNEL_TARGET_ITEMS);
+        if (!selected.length) {
+          return FALLBACK_MUSIC_TRACKS.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((track, idx) => ({
+            mediaType: 'music',
+            itemId: String(track.id || `fallback-track-${idx + 1}`),
+            title: track.title,
+            subtitle: track.artist,
+            extra: track.album,
+            image: HOME_LOCAL_FALLBACK_IMAGE,
+            backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
+            spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
+            spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            href: track.id ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html',
+            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
+          }));
+        }
 
         return selected.map((track) => {
           const artists = Array.isArray(track.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
@@ -5280,7 +5354,21 @@
           };
         });
       } catch (_err) {
-        return [];
+        return FALLBACK_MUSIC_TRACKS.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((track, idx) => ({
+          mediaType: 'music',
+          itemId: String(track.id || `fallback-track-${idx + 1}`),
+          title: track.title,
+          subtitle: track.artist,
+          extra: track.album,
+          image: HOME_LOCAL_FALLBACK_IMAGE,
+          backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
+          spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
+          spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          href: track.id ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html',
+          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
+        }));
       }
     }
 

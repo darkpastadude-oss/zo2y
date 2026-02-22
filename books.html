@@ -858,9 +858,14 @@
       }
 
       async function loadCuratedPopularBooks() {
-        const res = await fetch('/books-popular.json');
-        if (!res.ok) throw new Error(`books-popular.json error ${res.status}`);
-        const seedsRaw = await res.json();
+        let seedsRaw = FALLBACK_BOOKS.map((b) => ({ title: b.title, author: (Array.isArray(b.author_name) ? b.author_name[0] : 'Unknown author') }));
+        try {
+          const res = await fetch('/books-popular.json');
+          if (res.ok) {
+            const json = await res.json();
+            if (Array.isArray(json) && json.length) seedsRaw = json;
+          }
+        } catch (_err) {}
         const seeds = Array.isArray(seedsRaw) ? seedsRaw : [];
         const candidates = seeds
           .map((seed) => ({
