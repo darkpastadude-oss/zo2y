@@ -5,6 +5,11 @@ const router = express.Router();
 const SPOTIFY_API_BASE = "https://api.spotify.com/v1";
 const SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token";
 const TOKEN_REFRESH_SKEW_MS = 60_000;
+const POPULAR_PLAYLIST_IDS = [
+  "37i9dQZEVXbLRQDuF5jeBp", // Top 50 - USA
+  "37i9dQZEVXbMDoHDwVN2tF", // Top 50 - Global
+  "37i9dQZF1DXcBWIGoYBM5M"  // Today's Top Hits
+];
 
 let spotifyTokenCache = {
   accessToken: "",
@@ -183,8 +188,73 @@ router.get("/", (_req, res) => {
     ok: true,
     service: "spotify-proxy",
     configured: hasSpotifyCredentials(),
-    routes: ["/search", "/tracks/:id"]
+    routes: ["/search", "/popular", "/tracks/:id"]
   });
+});
+
+router.get("/popular", async (req, res) => {
+  const limit = clampInt(req.query.limit, 1, 50, 24);
+  const market = String(req.query.market || "US").trim().slice(0, 2).toUpperCase() || "US";
+
+  try {
+    if (!hasSpotifyCredentials()) {
+      const fallback = await searchItunesTracks({ q: "top songs", limit });
+      return res.json({
+        count: fallback.length,
+        limit,
+        offset: 0,
+        source: "itunes-fallback",
+        results: fallback
+      });
+    }
+
+    const perPlaylistLimit = clampInt(Math.max(limit, 24), 10, 50, 24);
+    const batches = await Promise.all(POPULAR_PLAYLIST_IDS.map(async (playlistId) => {
+      const json = await spotifyRequest(`/playlists/${encodeURIComponent(playlistId)}/tracks`, {
+        market,
+        limit: perPlaylistLimit,
+        offset: 0
+      });
+      const items = Array.isArray(json?.items) ? json.items : [];
+      return items
+        .map((row) => normalizeTrackRow(row?.track))
+        .filter((row) => !!row.id);
+    }));
+
+    const seen = new Set();
+    const deduped = [];
+    batches.flat().forEach((row) => {
+      const id = String(row.id || "").trim();
+      if (!id || seen.has(id)) return;
+      seen.add(id);
+      deduped.push(row);
+    });
+
+    const ranked = deduped
+      .sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0))
+      .slice(0, limit);
+
+    return res.json({
+      count: ranked.length,
+      limit,
+      offset: 0,
+      source: "spotify-playlists",
+      results: ranked
+    });
+  } catch (error) {
+    try {
+      const fallback = await searchItunesTracks({ q: "top songs", limit });
+      return res.json({
+        count: fallback.length,
+        limit,
+        offset: 0,
+        source: "itunes-fallback",
+        results: fallback
+      });
+    } catch (_fallbackError) {
+      return res.status(500).json({ message: "Failed to load popular music.", error: String(error?.message || error) });
+    }
+  }
 });
 
 router.get("/search", async (req, res) => {

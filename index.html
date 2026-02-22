@@ -1893,9 +1893,9 @@
       book: { table: 'book_list_items', itemField: 'book_id' },
       music: { table: 'music_list_items', itemField: 'track_id' }
     };
-    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v2';
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v3';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v1';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v2';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
@@ -5099,74 +5099,53 @@
       };
 
       try {
-        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-        let timeoutId = null;
-        let onAbort = null;
-        if (controller) {
-          timeoutId = setTimeout(() => controller.abort(), HOME_BOOKS_FETCH_TIMEOUT_MS);
-          if (signal) {
-            if (signal.aborted) controller.abort();
-            else {
-              onAbort = () => controller.abort();
-              signal.addEventListener('abort', onAbort, { once: true });
-            }
-          }
-        }
-
-        const queryUrls = POPULAR_BOOK_QUERIES.map((topic) => (
-          `${OPEN_LIBRARY_SEARCH_BASE}?q=${encodeURIComponent(topic)}&language=eng&limit=40&page=1`
+        const queries = [
+          'subject:fiction bestseller',
+          'subject:nonfiction bestseller',
+          'new york times bestseller',
+          'pulitzer prize winner',
+          'goodreads choice award winners'
+        ];
+        const maxResults = 40;
+        const queryUrls = queries.map((q) => (
+          `/api/books/volumes?q=${encodeURIComponent(q)}&printType=books&langRestrict=en&orderBy=relevance&maxResults=${maxResults}`
         ));
-
-        let docs = [];
-        try {
-          const batches = await Promise.all(queryUrls.map(async (url) => {
-            const json = await fetchJsonWithPerfCache(url, {
-              signal: controller ? controller.signal : signal,
-              cacheKey: `openlib:${url}`
-            });
-            if (!json) return [];
-            return Array.isArray(json.docs) ? json.docs : [];
-          }));
-          docs = batches.flat();
-        } finally {
-          if (timeoutId) clearTimeout(timeoutId);
-          if (signal && onAbort) signal.removeEventListener('abort', onAbort);
-        }
-
-        if (!docs.length) {
-          return attachFallbackKnown([]);
-        }
+        const batches = await Promise.all(queryUrls.map(async (url) => {
+          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `books:${url}` });
+          if (!json) return [];
+          return Array.isArray(json.items) ? json.items : [];
+        }));
+        const rows = batches.flat();
+        if (!rows.length) return attachFallbackKnown([]);
 
         const seenTitles = new Set();
-        const mapped = docs.map((doc, idx) => {
-          const title = String(doc.title || '').trim();
+        const mapped = rows.map((row, idx) => {
+          const info = row?.volumeInfo || {};
+          const title = String(info.title || '').trim();
           if (!title) return null;
-          const ratingsCount = Number(doc.ratings_count || 0);
-          if (Number.isFinite(ratingsCount) && ratingsCount > 0 && ratingsCount < 40) return null;
 
-          const titleKey = title.toLowerCase();
+          const author = Array.isArray(info.authors) && info.authors.length ? String(info.authors[0] || '').trim() : 'Book';
+          const titleKey = `${title.toLowerCase()}::${author.toLowerCase()}`;
           if (seenTitles.has(titleKey)) return null;
           seenTitles.add(titleKey);
 
-          const author = Array.isArray(doc.author_name) && doc.author_name.length ? doc.author_name[0] : 'Book';
-          const rawWork = String(doc.key || '').trim();
-          const workId = rawWork.startsWith('/works/') ? rawWork.replace('/works/', '') : rawWork;
-          const rawIsbn = Array.isArray(doc.isbn) && doc.isbn.length ? doc.isbn[0] : '';
-          const isbn = String(rawIsbn || '').replace(/[^0-9Xx]/g, '').trim();
-          const coverId = Number(doc.cover_i || 0);
-          const coverById = Number.isFinite(coverId) && coverId > 0
-            ? `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg`
-            : '';
-          const coverByIsbn = isbn
-            ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`
-            : '';
-          const primaryImage = coverById || coverByIsbn || 'images/logo.png';
-          const itemId = workId || String(doc.cover_edition_key || `ol-book-${idx}`);
-          const publishedYear = Number(doc.first_publish_year || 0);
-          const subtitle = publishedYear ? `${author} | ${publishedYear}` : author;
-          const ratingAverage = Number(doc.ratings_average || 0);
-          const ratingWeight = Number.isFinite(ratingsCount) ? Math.log10(Math.max(1, ratingsCount + 1)) : 0;
-          const popularityScore = (Number.isFinite(ratingAverage) ? ratingAverage : 0) * 100 + ratingWeight * 120;
+          const identifiers = Array.isArray(info.industryIdentifiers) ? info.industryIdentifiers : [];
+          const isbnId = identifiers.find((x) => /ISBN_13|ISBN_10/i.test(String(x?.type || '')));
+          const isbn = String(isbnId?.identifier || '').replace(/[^0-9Xx]/g, '').trim();
+          const imageLinks = info.imageLinks || {};
+          const imgRaw = String(imageLinks.thumbnail || imageLinks.smallThumbnail || '').trim();
+          const image = imgRaw.replace(/^http:\/\//i, 'https://');
+          const coverByIsbn = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : '';
+          const primaryImage = image || coverByIsbn || 'images/logo.png';
+          const itemId = String(row?.id || `gb-book-${idx}`).trim();
+
+          const publishedDate = String(info.publishedDate || '').trim();
+          const year = /^\d{4}/.test(publishedDate) ? publishedDate.slice(0, 4) : '';
+          const subtitle = year ? `${author} | ${year}` : author;
+          const ratingsCount = Number(info.ratingsCount || 0);
+          const avgRating = Number(info.averageRating || 0);
+          if (ratingsCount > 0 && ratingsCount < 50) return null;
+          const popularityScore = (Number.isFinite(avgRating) ? avgRating : 0) * 100 + Math.log10(Math.max(1, ratingsCount + 1)) * 120;
 
           return {
             mediaType: 'book',
@@ -5214,16 +5193,24 @@
 
     async function loadMusic(signal) {
       try {
-        const perQueryLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 16);
-        const queryUrls = POPULAR_MUSIC_QUERIES.map((query) => (
-          `/api/music/search?q=${encodeURIComponent(query)}&limit=${perQueryLimit}&market=US`
-        ));
-        const batches = await Promise.all(queryUrls.map(async (url) => {
-          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `music:${url}` });
-          if (!json) return [];
-          return Array.isArray(json.results) ? json.results : [];
-        }));
-        const rows = batches.flat();
+        const limit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 24);
+        const primaryUrl = `/api/music/popular?limit=${limit}&market=US`;
+        const primaryJson = await fetchJsonWithPerfCache(primaryUrl, { signal, cacheKey: `music:${primaryUrl}` });
+        let rows = Array.isArray(primaryJson?.results) ? primaryJson.results : [];
+
+        if (!rows.length) {
+          const perQueryLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 16);
+          const queryUrls = POPULAR_MUSIC_QUERIES.map((query) => (
+            `/api/music/search?q=${encodeURIComponent(query)}&limit=${perQueryLimit}&market=US`
+          ));
+          const batches = await Promise.all(queryUrls.map(async (url) => {
+            const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `music:${url}` });
+            if (!json) return [];
+            return Array.isArray(json.results) ? json.results : [];
+          }));
+          rows = batches.flat();
+        }
+
         const seen = new Set();
         const seenTrackKeys = new Set();
         const deduped = [];

@@ -224,7 +224,10 @@ export default async function handler(req, res) {
     fetchJson(`${baseUrl}/api/tmdb/tv/popular?language=en-US&page=1`),
     fetchJson(`${baseUrl}/api/igdb/games?page_size=32&ordering=-rating&dates=2000-01-01,2026-12-31&page=1`),
     Promise.all(POPULAR_BOOK_QUERIES.map((q) => fetchJson(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&language=eng&limit=40&page=1`))),
-    Promise.all(POPULAR_MUSIC_QUERIES.map((q) => fetchJson(`${baseUrl}/api/music/search?q=${encodeURIComponent(q)}&limit=24&market=US`)))
+    Promise.all([
+      fetchJson(`${baseUrl}/api/music/popular?limit=30&market=US`),
+      ...POPULAR_MUSIC_QUERIES.map((q) => fetchJson(`${baseUrl}/api/music/search?q=${encodeURIComponent(q)}&limit=24&market=US`))
+    ])
   ]);
   const booksRows = (Array.isArray(booksBatches) ? booksBatches : []).flatMap((json) => (
     Array.isArray(json?.docs) ? json.docs : []
