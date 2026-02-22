@@ -1521,17 +1521,30 @@
       .rail.games-rail { grid-auto-columns: 154px; }
       .card-hover-cue { display: none; }
 
-      /* Unified mobile card surface */
+      /* Movies-style mobile card surface */
       .rail .card {
         background: var(--card) !important;
-        border: 0 !important;
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28) !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: none !important;
         border-radius: 14px !important;
         overflow: hidden !important;
         min-height: 320px !important;
         height: 320px !important;
         display: flex !important;
         flex-direction: column !important;
+        transition: all 0.2s ease !important;
+        position: relative !important;
+      }
+
+      .rail .card:hover {
+        border-color: var(--accent) !important;
+        transform: translateY(-2px) !important;
+      }
+
+      .rail .card.menu-open,
+      .rail .card.menu-open:hover {
+        transform: none !important;
+        overflow: visible !important;
       }
 
       .rail .card-media,
@@ -1540,7 +1553,7 @@
       .rail .card-media.music-cover,
       .rail .card-media.restaurant-composite {
         width: 100% !important;
-        height: 210px !important;
+        height: 220px !important;
         aspect-ratio: 2 / 3 !important;
         padding: 0 !important;
         background: #0f1f40 !important;
@@ -1555,37 +1568,24 @@
         width: 100% !important;
         height: 100% !important;
         display: block !important;
-        object-fit: contain !important;
+        object-fit: cover !important;
         border: 0 !important;
         border-radius: 0 !important;
         background: #0f1f40 !important;
       }
 
-      #restaurantsRail .card-media.restaurant-composite .restaurant-cover {
-        object-fit: cover !important;
-      }
-
       .rail .card-meta {
-        padding: 8px 10px 10px !important;
-        gap: 4px !important;
+        padding: 12px 14px 16px !important;
+        gap: 8px !important;
       }
 
-      .rail .card-name {
-        min-height: 34px !important;
+      .rail .card-meta-top {
+        gap: 10px !important;
       }
 
-      /* Selective contain for artwork that should not crop */
-      #gamesRail .card .card-media img,
-      .rail.unified-rail .card[data-media-type="game"] .card-media img,
-      .rail .card .card-media img[src*="logo.png"] {
-        object-fit: contain !important;
-      }
-
-      .rail .card-type,
       .rail .card-menu-btn,
       .rail .card-open-link,
       .rail .restaurant-logo-badge {
-        border: 0 !important;
         box-shadow: none !important;
       }
 
