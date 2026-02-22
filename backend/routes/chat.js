@@ -4,7 +4,7 @@ import { getSupabaseAdminClient } from "../lib/supabase-admin.js";
 
 const router = express.Router();
 
-const OPENAI_API_URL = "https://api.openai.com/v1/responses";
+const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const OPENAI_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4.1-mini";
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_CANDIDATES = 60;
@@ -107,21 +107,6 @@ function extractJson(text) {
   }
 }
 
-function extractOutputText(responseJson) {
-  const direct = String(responseJson?.output_text || "").trim();
-  if (direct) return direct;
-  const chunks = [];
-  const output = Array.isArray(responseJson?.output) ? responseJson.output : [];
-  output.forEach((entry) => {
-    const content = Array.isArray(entry?.content) ? entry.content : [];
-    content.forEach((part) => {
-      const text = String(part?.text || part?.output_text || "").trim();
-      if (text) chunks.push(text);
-    });
-  });
-  return chunks.join("\n").trim();
-}
-
 async function requestOpenAI({ message, mediaType, candidates, signals }) {
   const apiKey = String(process.env.OPENAI_API_KEY || "").trim();
   if (!apiKey) {
@@ -130,19 +115,22 @@ async function requestOpenAI({ message, mediaType, candidates, signals }) {
     throw error;
   }
 
-  const prompt = [
-    "You are a recommendation assistant for an entertainment app.",
-    "Return STRICT JSON only with this shape:",
+  const systemPrompt = [
+    "You are Zo2y AI, a recommendation assistant for movies, TV, games, books, and music.",
+    "Output STRICT JSON only.",
+    "JSON shape:",
     "{\"reply\":\"string\",\"recommendations\":[{\"media_type\":\"movie|tv|game|book|music\",\"item_id\":\"string\",\"title\":\"string\",\"reason\":\"string\"}]}",
-    `User intent media type hint: ${mediaType}`,
-    `User message: ${message}`,
-    `Candidates: ${JSON.stringify(candidates)}`,
-    `User signals: ${JSON.stringify(signals)}.`,
     "Rules:",
-    "1) Pick only from candidates by exact title+media_type match.",
-    "2) Provide 4 to 8 recommendations max.",
-    "3) Keep reasons concise and specific."
+    "1) Recommend only from provided candidates.",
+    "2) Keep 4 to 8 recommendations.",
+    "3) Reasons should be concise and specific to the user's request."
   ].join("\n");
+  const userPrompt = JSON.stringify({
+    media_type_hint: mediaType,
+    user_message: message,
+    candidates,
+    user_signals: signals
+  });
 
   const res = await fetch(OPENAI_API_URL, {
     method: "POST",
@@ -152,9 +140,13 @@ async function requestOpenAI({ message, mediaType, candidates, signals }) {
     },
     body: JSON.stringify({
       model: OPENAI_MODEL,
-      input: prompt,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      response_format: { type: "json_object" },
       temperature: 0.4,
-      max_output_tokens: 700
+      max_tokens: 700
     })
   });
 
@@ -166,7 +158,7 @@ async function requestOpenAI({ message, mediaType, candidates, signals }) {
   }
 
   const json = await res.json();
-  const text = extractOutputText(json);
+  const text = String(json?.choices?.[0]?.message?.content || "").trim();
   const parsed = extractJson(text);
   if (!parsed || typeof parsed !== "object") {
     const error = new Error("Model response could not be parsed.");
@@ -180,12 +172,43 @@ function fallbackRecommendations(message, mediaType, candidates) {
   const lc = String(message || "").toLowerCase();
   const energetic = /hype|fast|action|adrenaline|party|workout/.test(lc);
   const calm = /calm|chill|relax|cozy|soft|quiet/.test(lc);
+  const tokens = lc
+    .split(/[^a-z0-9]+/g)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 3)
+    .slice(0, 20);
 
-  const pool = mediaType === "mixed"
+  const basePool = mediaType === "mixed"
     ? [...candidates]
     : candidates.filter((item) => item.media_type === mediaType);
 
-  const picks = pool.slice(0, MAX_RECOMMENDATIONS).map((item) => ({
+  const hash = (value) => {
+    let h = 0;
+    const text = String(value || "");
+    for (let i = 0; i < text.length; i += 1) {
+      h = ((h << 5) - h + text.charCodeAt(i)) | 0;
+    }
+    return Math.abs(h);
+  };
+
+  const scored = basePool
+    .map((item) => {
+      const title = String(item?.title || "").toLowerCase();
+      const subtitle = String(item?.subtitle || "").toLowerCase();
+      let score = 0;
+      tokens.forEach((token) => {
+        if (title.includes(token)) score += 4;
+        if (subtitle.includes(token)) score += 2;
+      });
+      const tiebreak = hash(`${lc}:${item.media_type}:${title}`);
+      return { item, score, tiebreak };
+    })
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.tiebreak - b.tiebreak;
+    });
+
+  const picks = scored.slice(0, MAX_RECOMMENDATIONS).map(({ item }) => ({
     media_type: item.media_type,
     item_id: item.item_id,
     title: item.title,
