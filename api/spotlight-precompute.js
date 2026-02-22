@@ -138,24 +138,21 @@ function mapBooks(rows = []) {
   const seen = new Set();
   const mapped = rows
     .map((row, index) => {
-      const info = row?.volumeInfo || {};
-      const title = String(info.title || "").trim();
+      const title = String(row?.title || "").trim();
       if (!title) return null;
-      const author = Array.isArray(info.authors) && info.authors.length ? String(info.authors[0] || "").trim() : "Book";
+      const author = Array.isArray(row?.author_name) && row.author_name.length ? String(row.author_name[0] || "").trim() : "Book";
       const key = `${title.toLowerCase()}::${author.toLowerCase()}`;
       if (seen.has(key)) return null;
       seen.add(key);
-      const identifiers = Array.isArray(info.industryIdentifiers) ? info.industryIdentifiers : [];
-      const isbnId = identifiers.find((x) => /ISBN_13|ISBN_10/i.test(String(x?.type || "")));
-      const isbn = String(isbnId?.identifier || "").replace(/[^0-9Xx]/g, "").trim();
-      const imageLinks = info.imageLinks || {};
-      const imgRaw = String(imageLinks.thumbnail || imageLinks.smallThumbnail || "").trim();
-      const image = imgRaw.replace(/^http:\/\//i, "https://");
+      const coverId = Number(row?.cover_i || 0);
+      const isbnRaw = Array.isArray(row?.isbn) ? String(row.isbn[0] || "").trim() : "";
+      const isbn = isbnRaw.replace(/[^0-9Xx]/g, "");
+      const coverById = coverId ? `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg` : "";
       const coverByIsbn = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : "";
-      const primaryImage = image || coverByIsbn || "images/logo.png";
-      const itemId = String(row?.id || `pre-book-${index + 1}`).trim();
-      const publishedDate = String(info.publishedDate || "").trim();
-      const year = /^\d{4}/.test(publishedDate) ? publishedDate.slice(0, 4) : "";
+      const primaryImage = coverById || coverByIsbn || "images/logo.png";
+      const workKey = String(row?.key || "").trim();
+      const itemId = workKey.replace(/^\/works\//i, "").trim() || `pre-book-${index + 1}`;
+      const year = Number(row?.first_publish_year || 0) || 0;
       const subtitle = year ? `${author} | ${year}` : author;
       return {
         mediaType: "book",
@@ -169,7 +166,7 @@ function mapBooks(rows = []) {
         spotlightMediaFit: "contain",
         spotlightMediaShape: "poster",
         fallbackImage: coverByIsbn || primaryImage,
-        href: itemId ? `book.html?id=${encodeURIComponent(itemId)}` : "books.html"
+        href: workKey ? `book.html?id=${encodeURIComponent(itemId)}` : "books.html"
       };
     })
     .filter(Boolean);
@@ -244,13 +241,17 @@ export default async function handler(req, res) {
     .filter((seed) => seed.title && seed.author)
     .slice(0, Math.max(TARGET_ITEMS, 24));
   const booksBatches = await Promise.all(bookQueries.map((seed) => {
-    const q = `intitle:"${seed.title}" inauthor:"${seed.author}"`;
-    const url = `${baseUrl}/api/books/volumes?q=${encodeURIComponent(q)}&printType=books&langRestrict=en&orderBy=relevance&maxResults=1`;
-    return fetchJson(url);
+    const url = `https://openlibrary.org/search.json?title=${encodeURIComponent(seed.title)}&author=${encodeURIComponent(seed.author)}&language=eng&limit=5`;
+    return fetchJson(url).then((json) => ({ seed, json }));
   }));
-  const booksRows = booksBatches.flatMap((json) => {
-    const items = Array.isArray(json?.items) ? json.items : [];
-    return items.slice(0, 1);
+  const booksRows = booksBatches.flatMap(({ seed, json }) => {
+    const docs = Array.isArray(json?.docs) ? json.docs : [];
+    const preferred = docs.find((doc) => {
+      const title = String(doc?.title || "").toLowerCase();
+      const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : "") || "").toLowerCase();
+      return title.includes(String(seed?.title || "").toLowerCase()) && author.includes(String(seed?.author || "").toLowerCase());
+    }) || docs[0];
+    return preferred ? [preferred] : [];
   });
   const musicRows = (Array.isArray(musicBatches) ? musicBatches : []).flatMap((json) => (
     Array.isArray(json?.results) ? json.results : []

@@ -5302,7 +5302,7 @@ header, .top-stripe, .section-nav {
             const TMDB_PROXY_BASE = "/api/tmdb";
             const IGDB_PROXY_BASE = "/api/igdb";
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
-            const GOOGLE_BOOKS_PROXY_BASE = "/api/books";
+            const OPEN_LIBRARY_BASE = "https://openlibrary.org";
             const FALLBACK_BOOK_IMAGE = "images/logo.png";
 
             async function igdbFetch(path, params = {}) {
@@ -11220,7 +11220,9 @@ header, .top-stripe, .section-nav {
             async function fetchBookDetails(bookId) {
                 if (bookCache.has(bookId)) return bookCache.get(bookId);
                 try {
-                    const url = `${GOOGLE_BOOKS_PROXY_BASE}/volumes/${encodeURIComponent(bookId)}`;
+                    const normalizedId = String(bookId || '').replace(/^\/works\//i, '').trim();
+                    if (!normalizedId || !/^[A-Za-z0-9]+W$/.test(normalizedId)) return null;
+                    const url = `${OPEN_LIBRARY_BASE}/works/${encodeURIComponent(normalizedId)}.json`;
                     const res = await fetch(url);
                     if (!res.ok) return null;
                     const data = await res.json();
@@ -11237,46 +11239,31 @@ header, .top-stripe, .section-nav {
                 let safe = String(url).trim();
                 if (safe.startsWith('//')) safe = `https:${safe}`;
                 if (safe.startsWith('http:')) safe = safe.replace(/^http:/i, 'https:');
-                safe = safe.replace(/&edge=curl/gi, '');
-                safe = safe.replace(/([?&])zoom=\d+/i, '');
-                if (safe.includes('books.google')) {
-                    safe = safe.replace(/([?&])(printsec|img|zoom)=[^&]*/gi, '');
-                    const separator = safe.includes('?') ? '&' : '?';
-                    safe += `${separator}fife=w400-h600&source=gbs_api`;
-                }
                 return safe;
             }
 
-            function getBestBookIdentifier(volumeInfo) {
-                const ids = volumeInfo?.industryIdentifiers || [];
-                const isbn13 = ids.find(x => x.type === 'ISBN_13')?.identifier;
+            function getBestBookIdentifier(book) {
+                const isbnFromArray = Array.isArray(book?.isbn) ? String(book.isbn[0] || '').trim() : '';
+                if (isbnFromArray) return { type: 'isbn', value: isbnFromArray };
+                const identifiers = book?.identifiers || {};
+                const isbn13 = Array.isArray(identifiers.isbn_13) ? String(identifiers.isbn_13[0] || '').trim() : '';
                 if (isbn13) return { type: 'isbn', value: isbn13 };
-                const isbn10 = ids.find(x => x.type === 'ISBN_10')?.identifier;
+                const isbn10 = Array.isArray(identifiers.isbn_10) ? String(identifiers.isbn_10[0] || '').trim() : '';
                 if (isbn10) return { type: 'isbn', value: isbn10 };
-                const other = ids.find(x => x.type === 'OTHER')?.identifier;
-                if (other) return { type: 'oclc', value: other };
                 return null;
             }
 
-            function getOpenLibraryBookFallback(volumeInfo) {
-                const best = getBestBookIdentifier(volumeInfo);
+            function getOpenLibraryBookFallback(book) {
+                const best = getBestBookIdentifier(book);
                 if (!best) return null;
-                if (best.type === 'isbn') {
-                    return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(best.value)}-L.jpg`;
-                }
-                return `https://covers.openlibrary.org/b/oclc/${encodeURIComponent(best.value)}-L.jpg`;
+                return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(best.value)}-L.jpg`;
             }
 
             function getBookThumbnail(book) {
-                const links = book?.volumeInfo?.imageLinks || {};
-                const preferred =
-                    normalizeBookImageUrl(links.extraLarge) ||
-                    normalizeBookImageUrl(links.large) ||
-                    normalizeBookImageUrl(links.medium) ||
-                    normalizeBookImageUrl(links.small) ||
-                    normalizeBookImageUrl(links.thumbnail) ||
-                    normalizeBookImageUrl(links.smallThumbnail);
-                return preferred || FALLBACK_BOOK_IMAGE;
+                const coverId = Number(book?.cover_i || (Array.isArray(book?.covers) ? book.covers[0] : 0) || 0);
+                const coverById = coverId ? `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg` : '';
+                const fallbackCover = getOpenLibraryBookFallback(book);
+                return normalizeBookImageUrl(coverById) || normalizeBookImageUrl(fallbackCover) || FALLBACK_BOOK_IMAGE;
             }
 
             async function renderBooks() {

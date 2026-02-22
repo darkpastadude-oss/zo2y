@@ -811,24 +811,6 @@
       };
 
       let supabaseClient = null;
-      let booksApiConfiguredCache = null;
-
-      async function isBooksApiConfigured() {
-        if (typeof booksApiConfiguredCache === 'boolean') return booksApiConfiguredCache;
-        try {
-          const res = await fetch('/api/books');
-          if (!res.ok) {
-            booksApiConfiguredCache = false;
-            return false;
-          }
-          const json = await res.json();
-          booksApiConfiguredCache = !!json?.configured;
-          return booksApiConfiguredCache;
-        } catch (_err) {
-          booksApiConfiguredCache = false;
-          return false;
-        }
-      }
 
       async function booksFetch(path, params = {}) {
         const url = new URL(path, OPEN_LIBRARY_BASE);
@@ -855,27 +837,6 @@
         return null;
       }
 
-      function normalizeGoogleVolumeToDoc(volume, index) {
-        const info = volume?.volumeInfo || {};
-        const title = String(info.title || '').trim() || 'Book';
-        const author = Array.isArray(info.authors) && info.authors.length ? String(info.authors[0] || '').trim() : 'Unknown author';
-        const identifiers = Array.isArray(info.industryIdentifiers) ? info.industryIdentifiers : [];
-        const isbnId = identifiers.find((x) => /ISBN_13|ISBN_10/i.test(String(x?.type || '')));
-        const isbn = String(isbnId?.identifier || '').replace(/[^0-9Xx]/g, '').trim();
-        const yearRaw = String(info.publishedDate || '').trim();
-        const year = /^\d{4}/.test(yearRaw) ? Number(yearRaw.slice(0, 4)) : null;
-        const volumeId = String(volume?.id || `gb-${index}`).trim();
-        return {
-          key: `/works/${volumeId}`,
-          title,
-          author_name: [author],
-          first_publish_year: year,
-          isbn: isbn ? [isbn] : [],
-          subject: Array.isArray(info.categories) ? info.categories : [],
-          publisher: Array.isArray(info.publisher) ? info.publisher : (info.publisher ? [String(info.publisher)] : [])
-        };
-      }
-
       async function loadCuratedPopularBooks() {
         let seedsRaw = FALLBACK_BOOKS.map((b) => ({ title: b.title, author: (Array.isArray(b.author_name) ? b.author_name[0] : 'Unknown author') }));
         try {
@@ -893,28 +854,21 @@
           }))
           .filter((seed) => seed.title && seed.author)
           .slice(0, BOOKS_PER_PAGE);
-        const canUseGoogleBooks = await isBooksApiConfigured();
-        if (!canUseGoogleBooks) {
-          const docs = candidates.map((seed, idx) => ({
-            key: `/works/seed-${idx}`,
-            title: seed.title,
-            author_name: [seed.author],
-            first_publish_year: null,
-            isbn: [],
-            subject: [],
-            publisher: []
-          }));
-          return { docs, numFound: docs.length };
-        }
         const results = await Promise.all(candidates.map(async (seed, idx) => {
           try {
-            const q = `intitle:"${seed.title}" inauthor:"${seed.author}"`;
-            const url = `/api/books/volumes?q=${encodeURIComponent(q)}&printType=books&langRestrict=en&orderBy=relevance&maxResults=1`;
-            const r = await fetch(url);
-            if (!r.ok) return null;
-            const json = await r.json();
-            const row = Array.isArray(json?.items) ? json.items[0] : null;
-            if (row) return normalizeGoogleVolumeToDoc(row, idx);
+            const json = await booksFetch('/search.json', {
+              title: seed.title,
+              author: seed.author,
+              language: 'eng',
+              limit: 5
+            });
+            const docs = Array.isArray(json?.docs) ? json.docs : [];
+            const preferred = docs.find((doc) => {
+              const title = String(doc?.title || '').toLowerCase();
+              const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').toLowerCase();
+              return title.includes(seed.title.toLowerCase()) && author.includes(seed.author.toLowerCase());
+            }) || docs[0];
+            if (preferred) return preferred;
             return {
               key: `/works/seed-${idx}`,
               title: seed.title,
@@ -936,7 +890,19 @@
             };
           }
         }));
-        const docs = results.filter(Boolean);
+        const seen = new Set();
+        const docs = results.filter(Boolean).map((doc, idx) => {
+          const title = String(doc?.title || '').trim();
+          const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').trim();
+          const key = `${title.toLowerCase()}::${author.toLowerCase()}`;
+          if (!title || seen.has(key)) return null;
+          seen.add(key);
+          if (doc?.key) return doc;
+          return {
+            ...doc,
+            key: `/works/seed-${idx}`
+          };
+        }).filter(Boolean);
         return { docs, numFound: docs.length };
       }
 
@@ -1144,7 +1110,7 @@
           const params = {
             page: state.page,
             limit: BOOKS_PER_PAGE,
-            lang: 'en'
+            language: 'eng'
           };
           if (state.query) params.q = state.query;
           if (state.author) params.author = state.author;
@@ -1191,12 +1157,13 @@
 
         const fragment = document.createDocumentFragment();
         state.bookIndex.clear();
-        results.forEach(item => {
+        results.forEach((item, idx) => {
           const authors = item.author_name ? item.author_name.join(', ') : 'Unknown author';
           const year = item.first_publish_year || '';
           const desc = truncateText(item.title || '', 140) || 'No description available.';
           const thumb = getPreferredBookImage(item);
-          const bookId = item.key.replace(/^\/works\//i, '');
+          const rawKey = String(item?.key || `/works/seed-${idx}`).trim();
+          const bookId = rawKey.replace(/^\/works\//i, '');
           state.bookIndex.set(bookId, item);
 
           const card = document.createElement('div');

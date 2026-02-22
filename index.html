@@ -1971,7 +1971,6 @@
     let homeTasteWeights = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, 1]));
     const homeFeedState = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, []]));
     const homeHttpCache = new Map();
-    let booksApiConfiguredCache = null;
     const homeCustomListState = {
       mediaType: null,
       itemId: null,
@@ -2064,17 +2063,6 @@
         homeHttpCache.delete(key);
       }
       return cloneJson(data, null);
-    }
-
-    async function isBooksApiConfigured(signal) {
-      if (typeof booksApiConfiguredCache === 'boolean') return booksApiConfiguredCache;
-      const json = await fetchJsonWithPerfCache('/api/books', {
-        signal,
-        cacheKey: 'books:health',
-        ttlMs: 1000 * 60 * 10
-      });
-      booksApiConfiguredCache = !!json?.configured;
-      return booksApiConfiguredCache;
     }
 
     function resolveRestaurantImage(value) {
@@ -5144,21 +5132,21 @@
         const known = FALLBACK_BOOKS.find((x) => String(x.title || '').toLowerCase() === String(b.title || '').toLowerCase());
         const isbn = String(known?.isbn || '').trim();
         const cover = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : HOME_LOCAL_FALLBACK_IMAGE;
-        return ({
-        mediaType: 'book',
-        itemId: `known-book-${idx}`,
-        title: b.title,
-        subtitle: b.author,
-        image: cover,
-        backgroundImage: cover,
-        spotlightImage: cover,
-        spotlightMediaImage: cover,
-        spotlightMediaFit: 'contain',
-        spotlightMediaShape: 'poster',
-        fallbackImage: cover,
-        isbn,
-        href: 'books.html'
-      });
+        return {
+          mediaType: 'book',
+          itemId: `known-book-${idx}`,
+          title: b.title,
+          subtitle: b.author,
+          image: cover,
+          backgroundImage: cover,
+          spotlightImage: cover,
+          spotlightMediaImage: cover,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          fallbackImage: cover,
+          isbn,
+          href: 'books.html'
+        };
       });
 
       const attachFallbackKnown = (items) => {
@@ -5166,7 +5154,7 @@
         const deduped = [];
         const seen = new Set();
         merged.forEach((entry) => {
-          const key = String(entry.title || '').trim().toLowerCase();
+          const key = `${String(entry?.title || '').trim().toLowerCase()}::${String(entry?.subtitle || '').trim().toLowerCase()}`;
           if (!key || seen.has(key)) return;
           seen.add(key);
           deduped.push(entry);
@@ -5184,84 +5172,40 @@
           }))
           .filter((seed) => seed.title && seed.author);
         if (!seeds.length) return attachFallbackKnown([]);
-        const canUseGoogleBooks = await isBooksApiConfigured(signal);
-        if (!canUseGoogleBooks) return attachFallbackKnown([]);
 
-        const maxSeeds = Math.max(HOME_CHANNEL_TARGET_ITEMS, 14);
+        const maxSeeds = Math.max(HOME_CHANNEL_TARGET_ITEMS, 18);
         const seedCandidates = seeds.slice(0, maxSeeds);
-        const rows = [];
-        const responses = await Promise.all(seedCandidates.map(async (seed) => {
-          const q = `intitle:"${seed.title}" inauthor:"${seed.author}"`;
-          const url = `/api/books/volumes?q=${encodeURIComponent(q)}&printType=books&langRestrict=en&orderBy=relevance&maxResults=1`;
-          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `books:${url}` });
-          return { seed, json };
+        const responses = await Promise.all(seedCandidates.map(async (seed, idx) => {
+          const searchUrl =
+            `https://openlibrary.org/search.json?title=${encodeURIComponent(seed.title)}` +
+            `&author=${encodeURIComponent(seed.author)}&language=eng&limit=5`;
+          const json = await fetchJsonWithPerfCache(searchUrl, { signal, cacheKey: `books:ol:${searchUrl}` });
+          const docs = Array.isArray(json?.docs) ? json.docs : [];
+          return { seed, idx, docs };
         }));
-        responses.forEach(({ seed, json }) => {
-          const items = Array.isArray(json?.items) ? json.items : [];
-          if (items[0]) rows.push(items[0]);
-        });
-        if (!rows.length) return attachFallbackKnown([]);
 
-        const seenTitles = new Set();
-        const mapped = rows.map((row, idx) => {
-          const info = row?.volumeInfo || {};
-          const title = String(info.title || '').trim();
-          if (!title) return null;
+        const seen = new Set();
+        const mapped = responses.map(({ seed, idx, docs }) => {
+          const seedTitle = seed.title.toLowerCase();
+          const seedAuthor = seed.author.toLowerCase();
+          const chosen = docs.find((doc) => {
+            const title = String(doc?.title || '').toLowerCase();
+            const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').toLowerCase();
+            return title.includes(seedTitle) && author.includes(seedAuthor);
+          }) || docs.find((doc) => {
+            const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').toLowerCase();
+            return author.includes(seedAuthor);
+          }) || docs[0];
 
-          const author = Array.isArray(info.authors) && info.authors.length ? String(info.authors[0] || '').trim() : 'Book';
-          const titleKey = `${title.toLowerCase()}::${author.toLowerCase()}`;
-          if (seenTitles.has(titleKey)) return null;
-          seenTitles.add(titleKey);
-
-          const identifiers = Array.isArray(info.industryIdentifiers) ? info.industryIdentifiers : [];
-          const isbnId = identifiers.find((x) => /ISBN_13|ISBN_10/i.test(String(x?.type || '')));
-          const isbn = String(isbnId?.identifier || '').replace(/[^0-9Xx]/g, '').trim();
-          const imageLinks = info.imageLinks || {};
-          const imgRaw = String(imageLinks.thumbnail || imageLinks.smallThumbnail || '').trim();
-          const image = imgRaw.replace(/^http:\/\//i, 'https://');
-          const coverByIsbn = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : '';
-          const primaryImage = image || coverByIsbn || 'images/logo.png';
-          const itemId = String(row?.id || `gb-book-${idx}`).trim();
-
-          const publishedDate = String(info.publishedDate || '').trim();
-          const year = /^\d{4}/.test(publishedDate) ? publishedDate.slice(0, 4) : '';
-          const subtitle = year ? `${author} | ${year}` : author;
-          const ratingsCount = Number(info.ratingsCount || 0);
-          const avgRating = Number(info.averageRating || 0);
-          if (ratingsCount > 0 && ratingsCount < 50) return null;
-          const popularityScore = (Number.isFinite(avgRating) ? avgRating : 0) * 100 + Math.log10(Math.max(1, ratingsCount + 1)) * 120;
-
-          return {
-            mediaType: 'book',
-            itemId,
-            title,
-            subtitle,
-            image: primaryImage,
-            backgroundImage: primaryImage,
-            spotlightImage: primaryImage,
-            spotlightMediaImage: primaryImage,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            fallbackImage: coverByIsbn || primaryImage,
-            isbn,
-            popularityScore,
-            href: itemId ? `book.html?id=${encodeURIComponent(itemId)}` : 'books.html'
-          };
-        }).filter(Boolean);
-
-        const seedFallbackMapped = seedCandidates
-          .filter((seed) => {
-            const key = `${seed.title.toLowerCase()}::${seed.author.toLowerCase()}`;
-            return !mapped.some((item) => `${String(item.title || '').toLowerCase()}::${String(item.subtitle || '').toLowerCase().split(' | ')[0]}` === key);
-          })
-          .map((seed, idx) => {
-            const key = `${seed.title.toLowerCase()}::${seed.author.toLowerCase()}`;
-            const known = FALLBACK_BOOKS.find((b) => `${String(b.title || '').toLowerCase()}::${String(b.author || '').toLowerCase()}` === key);
+          if (!chosen) {
+            const known = FALLBACK_BOOKS.find((x) => (
+              String(x.title || '').toLowerCase() === seedTitle && String(x.author || '').toLowerCase() === seedAuthor
+            ));
             const isbn = String(known?.isbn || '').trim();
-            const cover = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : 'images/logo.png';
+            const cover = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : HOME_LOCAL_FALLBACK_IMAGE;
             return {
               mediaType: 'book',
-              itemId: `seed-book-${idx}-${key.replace(/[^a-z0-9]+/g, '-')}`,
+              itemId: `seed-book-${idx}`,
               title: seed.title,
               subtitle: seed.author,
               image: cover,
@@ -5275,11 +5219,50 @@
               popularityScore: 0,
               href: 'books.html'
             };
-          });
+          }
 
-        const ranked = [...mapped, ...seedFallbackMapped]
-          .sort((a, b) => Number(b.popularityScore || 0) - Number(a.popularityScore || 0));
-        const merged = attachFallbackKnown(ranked).map((item) => {
+          const title = String(chosen?.title || '').trim() || seed.title;
+          const author = String((Array.isArray(chosen?.author_name) ? chosen.author_name[0] : '') || '').trim() || seed.author;
+          const dedupeKey = `${title.toLowerCase()}::${author.toLowerCase()}`;
+          if (seen.has(dedupeKey)) return null;
+          seen.add(dedupeKey);
+
+          const workKey = String(chosen?.key || '').trim();
+          const itemId = workKey.replace(/^\/works\//i, '').trim() || `ol-seed-${idx}`;
+          const coverId = Number(chosen?.cover_i || 0);
+          const isbnRaw = Array.isArray(chosen?.isbn) ? String(chosen.isbn[0] || '').trim() : '';
+          const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
+          const coverById = coverId ? `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg` : '';
+          const coverByIsbn = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : '';
+          const cover = coverById || coverByIsbn || HOME_LOCAL_FALLBACK_IMAGE;
+          const year = Number(chosen?.first_publish_year || 0) || 0;
+          const subtitle = year ? `${author} | ${year}` : author;
+          const popularityScore =
+            Number(chosen?.ratings_count || 0) +
+            Number(chosen?.want_to_read_count || 0) +
+            Number(chosen?.edition_count || 0) * 4;
+
+          return {
+            mediaType: 'book',
+            itemId,
+            title,
+            subtitle,
+            image: cover,
+            backgroundImage: cover,
+            spotlightImage: cover,
+            spotlightMediaImage: cover,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            fallbackImage: coverByIsbn || cover,
+            isbn,
+            popularityScore,
+            href: workKey ? `book.html?id=${encodeURIComponent(itemId)}` : 'books.html'
+          };
+        }).filter(Boolean);
+
+        const merged = attachFallbackKnown(
+          mapped.sort((a, b) => Number(b.popularityScore || 0) - Number(a.popularityScore || 0))
+        ).map((item) => {
           const copy = { ...item };
           delete copy.popularityScore;
           return copy;
