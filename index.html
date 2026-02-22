@@ -1524,8 +1524,8 @@
       /* Unified mobile card surface */
       .rail .card {
         background: var(--card) !important;
-        border: 0 !important;
-        box-shadow: none !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28) !important;
         border-radius: 14px !important;
         overflow: hidden !important;
         min-height: 320px !important;
@@ -1537,19 +1537,11 @@
       .rail .card-media,
       .rail .card-media.game-poster,
       .rail .card-media.landscape,
+      .rail .card-media.music-cover,
       .rail .card-media.restaurant-composite {
         width: 100% !important;
-        height: 220px !important;
+        height: 210px !important;
         aspect-ratio: 2 / 3 !important;
-        padding: 0 !important;
-        background: #0f1f40 !important;
-        overflow: hidden !important;
-      }
-
-      .rail .card-media.music-cover {
-        width: 100% !important;
-        height: 220px !important;
-        aspect-ratio: 1 / 1 !important;
         padding: 0 !important;
         background: #0f1f40 !important;
         overflow: hidden !important;
@@ -1569,6 +1561,15 @@
         background: #0f1f40 !important;
       }
 
+      .rail .card-meta {
+        padding: 8px 10px 10px !important;
+        gap: 4px !important;
+      }
+
+      .rail .card-name {
+        min-height: 34px !important;
+      }
+
       /* Selective contain for artwork that should not crop */
       #gamesRail .card .card-media img,
       .rail.unified-rail .card[data-media-type="game"] .card-media img,
@@ -1576,21 +1577,10 @@
         object-fit: contain !important;
       }
 
-      .rail .card-type,
       .rail .card-menu-btn,
       .rail .card-open-link,
       .rail .restaurant-logo-badge {
-        border: 0 !important;
         box-shadow: none !important;
-      }
-
-      .rail.unified-rail .card-media.restaurant-composite {
-        aspect-ratio: 2/3 !important;
-      }
-
-      #restaurantsRail .card-media.restaurant-composite {
-        aspect-ratio: 16/10 !important;
-        height: 220px !important;
       }
 
       #restaurantsRail .restaurant-logo-badge {
