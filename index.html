@@ -1725,10 +1725,6 @@
         <div class="rail unified-rail" id="unifiedRail"></div>
       </div>
 
-      <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-heart-circle-bolt"></i> Because you liked...</span><a href="profile.html">View activity</a></div>
-        <div class="rail unified-rail" id="becauseYouLikedRail"></div>
-      </div>
     </section>
 
     <section class="section">
@@ -1945,7 +1941,6 @@
     const HOME_PRELOAD_PER_CHANNEL = 3;
     const HOME_PRELOAD_SPOTLIGHT_COUNT = 4;
     const HOME_UNIFIED_TARGET_ITEMS = 24;
-    const HOME_BECAUSE_YOU_LIKED_LIMIT = 18;
     const HOME_BECAUSE_SIGNAL_CACHE_MS = 1000 * 60 * 3;
     const HOME_BECAUSE_MAX_FOLLOWED_USERS = 24;
     const HOME_BECAUSE_SIGNAL_RECENCY_HOURS = 24 * 21;
@@ -2454,19 +2449,6 @@
       return `${type}:${id}`;
     }
 
-    function buildFeedItemLookup(feedMap) {
-      const lookup = new Map();
-      getHomeChannels().forEach((channel) => {
-        const items = Array.isArray(feedMap?.[channel.key]) ? feedMap[channel.key] : [];
-        items.forEach((item) => {
-          const key = getRecommendationItemKey(item?.mediaType || channel.key, item?.itemId);
-          if (!key || lookup.has(key)) return;
-          lookup.set(key, item);
-        });
-      });
-      return lookup;
-    }
-
     function getListTypeWeight(listType) {
       const value = String(listType || '').toLowerCase();
       if (value === 'favorites') return 0.75;
@@ -2502,15 +2484,39 @@
       const userIds = [homeCurrentUser.id, ...followedIds].slice(0, HOME_BECAUSE_MAX_FOLLOWED_USERS + 1);
       if (!userIds.length) return null;
 
-      const queryTasks = Object.entries(HOME_DEFAULT_LIST_TABLES).map(([mediaType, cfg]) => {
-        return client
+      const fetchRowsForSignalTable = async (mediaType, cfg) => {
+        const withCreatedAt = await client
           .from(cfg.table)
           .select(`${cfg.itemField}, user_id, list_type, created_at`)
           .in('user_id', userIds)
           .order('created_at', { ascending: false })
-          .limit(180)
-          .then((res) => ({ mediaType, itemField: cfg.itemField, rows: Array.isArray(res?.data) ? res.data : [] }))
-          .catch(() => ({ mediaType, itemField: cfg.itemField, rows: [] }));
+          .limit(220);
+
+        if (!withCreatedAt?.error) {
+          return { mediaType, itemField: cfg.itemField, rows: Array.isArray(withCreatedAt?.data) ? withCreatedAt.data : [] };
+        }
+
+        // Some deployments do not have created_at on media list tables.
+        const withoutCreatedAt = await client
+          .from(cfg.table)
+          .select(`${cfg.itemField}, user_id, list_type, id`)
+          .in('user_id', userIds)
+          .order('id', { ascending: false })
+          .limit(220);
+
+        if (withoutCreatedAt?.error) {
+          return { mediaType, itemField: cfg.itemField, rows: [] };
+        }
+
+        const rows = (Array.isArray(withoutCreatedAt?.data) ? withoutCreatedAt.data : []).map((row) => ({
+          ...row,
+          created_at: null
+        }));
+        return { mediaType, itemField: cfg.itemField, rows };
+      };
+
+      const queryTasks = Object.entries(HOME_DEFAULT_LIST_TABLES).map(([mediaType, cfg]) => {
+        return fetchRowsForSignalTable(mediaType, cfg).catch(() => ({ mediaType, itemField: cfg.itemField, rows: [] }));
       });
 
       const batches = await Promise.all(queryTasks);
@@ -2550,7 +2556,7 @@
       };
     }
 
-    async function getBecauseYouLikedSignalsCached() {
+    async function getActivitySignalsCached() {
       const userId = String(homeCurrentUser?.id || '').trim();
       if (!userId) return null;
       if (
@@ -2569,85 +2575,53 @@
       return payload;
     }
 
-    function buildBecauseYouLikedItems(feedMap, scoredPool, signalPayload) {
-      const itemLookup = buildFeedItemLookup(feedMap);
-      const discoveryByKey = new Map();
-      (Array.isArray(scoredPool) ? scoredPool : []).forEach((item) => {
-        const key = getRecommendationItemKey(item?.mediaType, item?.itemId);
-        if (!key) return;
-        discoveryByKey.set(key, Number(item.discoveryScore || 0));
-      });
-
+    function applyActivitySignalsToPool(scoredPool, signalPayload) {
       const signalMap = signalPayload?.signalMap instanceof Map ? signalPayload.signalMap : new Map();
       const reasonsMap = signalPayload?.reasonsMap instanceof Map ? signalPayload.reasonsMap : new Map();
-      const ranked = [];
-      signalMap.forEach((signalScore, key) => {
-        const source = itemLookup.get(key);
-        if (!source) return;
-        const discoveryScore = Number(discoveryByKey.get(key) || 0);
-        const combined = Number(signalScore || 0) * 0.74 + discoveryScore * 2.2;
-        ranked.push({ key, source, combined });
-      });
-      ranked.sort((a, b) => Number(b.combined || 0) - Number(a.combined || 0));
-
-      const selected = ranked.slice(0, HOME_BECAUSE_YOU_LIKED_LIMIT).map(({ key, source }) => {
-        const reason = reasonsMap.get(key) || { ownCount: 0, followingCount: 0, recentAt: '' };
-        let reasonText = source.extra ? String(source.extra) : '';
-        if (reason.ownCount > 0 && reason.followingCount > 0) {
-          reasonText = 'Saved by you and people you follow';
-        } else if (reason.ownCount > 0) {
-          reasonText = 'From your recent saves';
-        } else if (reason.followingCount > 0) {
-          reasonText = 'Popular with people you follow';
-        }
-        return {
-          ...source,
-          extra: reasonText || source.extra || ''
-        };
-      });
-
-      if (selected.length < Math.min(8, HOME_BECAUSE_YOU_LIKED_LIMIT)) {
-        const fallback = buildUnifiedFeed(scoredPool, HOME_BECAUSE_YOU_LIKED_LIMIT * 2);
-        const seen = new Set(selected.map((item) => getRecommendationItemKey(item?.mediaType, item?.itemId)));
-        fallback.forEach((item) => {
-          if (selected.length >= HOME_BECAUSE_YOU_LIKED_LIMIT) return;
+      if (!Array.isArray(scoredPool) || !scoredPool.length) return [];
+      return scoredPool
+        .map((item) => {
           const key = getRecommendationItemKey(item?.mediaType, item?.itemId);
-          if (!key || seen.has(key)) return;
-          seen.add(key);
-          selected.push(item);
-        });
-      }
-
-      return selected.slice(0, HOME_BECAUSE_YOU_LIKED_LIMIT);
+          const signal = Number(signalMap.get(key) || 0);
+          const reason = reasonsMap.get(key) || { ownCount: 0, followingCount: 0 };
+          let reasonText = '';
+          if (reason.ownCount > 0 && reason.followingCount > 0) reasonText = 'Saved by you and people you follow';
+          else if (reason.ownCount > 0) reasonText = 'From your recent saves';
+          else if (reason.followingCount > 0) reasonText = 'Popular with people you follow';
+          return {
+            ...item,
+            extra: reasonText || item.extra || '',
+            discoveryScore: Number(item.discoveryScore || 0) + Math.min(4.6, signal * 0.92)
+          };
+        })
+        .sort((a, b) => Number(b.discoveryScore || 0) - Number(a.discoveryScore || 0));
     }
 
-    async function refreshBecauseYouLikedRail(feedMap, scoredPool) {
-      const rail = document.getElementById('becauseYouLikedRail');
-      if (!rail) return;
-
+    async function refreshMixedForYouFromActivity(feedMap, scoredPool) {
       const localFeed = feedMap || homeFeedState;
       const localPool = Array.isArray(scoredPool) ? scoredPool : buildScoredDiscoveryPool(localFeed);
       const seq = ++homeBecauseRefreshSeq;
-      const fallbackItems = buildUnifiedFeed(localPool, HOME_BECAUSE_YOU_LIKED_LIMIT);
+      const fallbackItems = buildUnifiedFeed(localPool, HOME_UNIFIED_TARGET_ITEMS);
 
       if (!homeCurrentUser?.id) {
-        renderRail('becauseYouLikedRail', fallbackItems, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+        renderRail('unifiedRail', fallbackItems, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
         return;
       }
 
-      const signalPayload = await getBecauseYouLikedSignalsCached();
+      const signalPayload = await getActivitySignalsCached();
       if (seq !== homeBecauseRefreshSeq) return;
-      const items = buildBecauseYouLikedItems(localFeed, localPool, signalPayload);
-      renderRail('becauseYouLikedRail', items.length ? items : fallbackItems, {
+      const boostedPool = applyActivitySignalsToPool(localPool, signalPayload);
+      const unified = buildUnifiedFeed(boostedPool, HOME_UNIFIED_TARGET_ITEMS);
+      renderRail('unifiedRail', unified.length ? unified : fallbackItems, {
         mediaType: 'mixed',
         uniformMedia: true,
         restaurantComposite: true
       });
     }
 
-    function invalidateBecauseYouLikedSignals() {
+    function invalidateActivitySignals() {
       homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
-      void refreshBecauseYouLikedRail(homeFeedState);
+      void refreshMixedForYouFromActivity(homeFeedState);
     }
 
     function hydrateSpotlightFromPool(pool) {
@@ -2942,7 +2916,7 @@
             showHomeToast('Removed from list');
             result.ok = true;
             result.saved = false;
-            invalidateBecauseYouLikedSignals();
+            invalidateActivitySignals();
             return result;
           }
 
@@ -2958,7 +2932,7 @@
             showHomeToast('Added to list');
             result.ok = true;
             result.saved = true;
-            invalidateBecauseYouLikedSignals();
+            invalidateActivitySignals();
             return result;
           }
 
@@ -2979,7 +2953,7 @@
             showHomeToast('Removed from list');
             result.ok = true;
             result.saved = false;
-            invalidateBecauseYouLikedSignals();
+            invalidateActivitySignals();
             return result;
           }
 
@@ -2994,7 +2968,7 @@
           showHomeToast('Added to list');
           result.ok = true;
           result.saved = true;
-          invalidateBecauseYouLikedSignals();
+          invalidateActivitySignals();
           return result;
         }
 
@@ -3023,7 +2997,7 @@
             showHomeToast('Removed from list');
             result.ok = true;
             result.saved = false;
-            invalidateBecauseYouLikedSignals();
+            invalidateActivitySignals();
             return result;
           }
 
@@ -3038,7 +3012,7 @@
             showHomeToast('Added to list');
             result.ok = true;
             result.saved = true;
-            invalidateBecauseYouLikedSignals();
+            invalidateActivitySignals();
             return result;
           }
 
@@ -3058,7 +3032,7 @@
             showHomeToast('Removed from list');
             result.ok = true;
             result.saved = false;
-            invalidateBecauseYouLikedSignals();
+            invalidateActivitySignals();
             return result;
           }
           const { error: insertError } = await client
@@ -3071,7 +3045,7 @@
           showHomeToast('Added to list');
           result.ok = true;
           result.saved = true;
-          invalidateBecauseYouLikedSignals();
+          invalidateActivitySignals();
           return result;
         }
       } catch (_err) {
@@ -4364,7 +4338,7 @@
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, HOME_UNIFIED_TARGET_ITEMS);
       renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
-      void refreshBecauseYouLikedRail(homeFeedState, scoredPool);
+      void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
       hydrateSpotlightFromPool(scoredPool);
 
       return { activeChannels, scoredPool, channelsCount: channels.length };
@@ -4377,7 +4351,7 @@
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, HOME_UNIFIED_TARGET_ITEMS);
       renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
-      void refreshBecauseYouLikedRail(homeFeedState, scoredPool);
+      void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
       hydrateSpotlightFromPool(scoredPool);
       scheduleHomeMenuCachePrime();
     }
