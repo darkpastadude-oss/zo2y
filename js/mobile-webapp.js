@@ -21,11 +21,186 @@
   const LIST_MENU_SELECTOR = '.list-menu, .rail-menu, .menu';
   const LIST_MODAL_SELECTOR = '.modal[id*="ListsModal"], #customListsModal, #actionsModal';
   const NATIVE_MENU_BACKDROP_SELECTOR = '.list-menu-backdrop.active, .rail-menu-backdrop.active';
+  const INSTALL_DISMISS_KEY = 'zo2y_mobile_install_dismissed_at_v1';
+  const INSTALL_DONE_KEY = 'zo2y_mobile_install_done_v1';
+  const INSTALL_REPROMPT_MS = 1000 * 60 * 60 * 24 * 3;
   let popupObserver = null;
   let pendingMutationRefreshMenus = false;
   let pendingMutationRefreshModals = false;
   let pendingMutationSync = false;
   let mutationFlushScheduled = false;
+  let deferredInstallPrompt = null;
+  let installCardVisible = false;
+
+  const isStandaloneMode = () => {
+    try {
+      const displayStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+      const iosStandalone = !!window.navigator.standalone;
+      return !!(displayStandalone || iosStandalone);
+    } catch (_err) {
+      return false;
+    }
+  };
+
+  const isIosDevice = () => /iPad|iPhone|iPod/i.test(navigator.userAgent);
+  const isSafariLike = () => {
+    const ua = String(navigator.userAgent || '');
+    return /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA/i.test(ua);
+  };
+
+  const shouldShowInstallPrompt = () => {
+    if (!isMobileLike) return false;
+    if (isStandaloneMode()) return false;
+    if (localStorage.getItem(INSTALL_DONE_KEY) === '1') return false;
+    const dismissedAt = Number(localStorage.getItem(INSTALL_DISMISS_KEY) || 0);
+    if (dismissedAt && (Date.now() - dismissedAt) < INSTALL_REPROMPT_MS) return false;
+    return true;
+  };
+
+  const dismissInstallPrompt = () => {
+    localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now()));
+    const card = document.getElementById('zo2yInstallPrompt');
+    if (card) {
+      card.classList.remove('show');
+      window.setTimeout(() => card.remove(), 240);
+    }
+    installCardVisible = false;
+  };
+
+  const markInstallComplete = () => {
+    localStorage.setItem(INSTALL_DONE_KEY, '1');
+    localStorage.removeItem(INSTALL_DISMISS_KEY);
+    dismissInstallPrompt();
+  };
+
+  const ensureInstallPromptStyle = () => {
+    if (document.getElementById('zo2yInstallPromptStyle')) return;
+    const style = document.createElement('style');
+    style.id = 'zo2yInstallPromptStyle';
+    style.textContent = `
+      .zo2y-install-prompt {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: 18px;
+        z-index: 12000;
+        background: linear-gradient(160deg, rgba(14, 27, 61, 0.98), rgba(9, 19, 44, 0.98));
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 16px;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+        padding: 14px 14px 12px;
+        transform: translateY(20px);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.22s ease, opacity 0.22s ease;
+      }
+      .zo2y-install-prompt.show {
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .zo2y-install-title {
+        font-weight: 700;
+        font-size: 15px;
+        margin: 0 0 6px;
+      }
+      .zo2y-install-copy {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.4;
+        color: rgba(236, 244, 255, 0.9);
+      }
+      .zo2y-install-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .zo2y-install-btn {
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(255,255,255,0.06);
+        color: #fff;
+        border-radius: 10px;
+        height: 38px;
+        padding: 0 12px;
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .zo2y-install-btn.primary {
+        background: #f59e0b;
+        border-color: #f59e0b;
+        color: #0b1633;
+      }
+      .zo2y-install-help {
+        margin-top: 10px;
+        font-size: 12px;
+        color: rgba(236, 244, 255, 0.78);
+      }
+    `;
+    document.head.appendChild(style);
+  };
+
+  const showInstallPromptCard = () => {
+    if (!shouldShowInstallPrompt()) return;
+    if (installCardVisible) return;
+    const canPromptInstall = !!deferredInstallPrompt;
+    const useIosHint = isIosDevice() && isSafariLike() && !canPromptInstall;
+    if (!canPromptInstall && !useIosHint) return;
+
+    ensureInstallPromptStyle();
+    let card = document.getElementById('zo2yInstallPrompt');
+    if (!card) {
+      card = document.createElement('div');
+      card.id = 'zo2yInstallPrompt';
+      card.className = 'zo2y-install-prompt';
+      document.body.appendChild(card);
+    }
+
+    if (canPromptInstall) {
+      card.innerHTML = `
+        <p class="zo2y-install-title">Install Zo2y App</p>
+        <p class="zo2y-install-copy">Get the full-screen web app on your phone with faster launch and app-style navigation.</p>
+        <div class="zo2y-install-actions">
+          <button type="button" class="zo2y-install-btn primary" id="zo2yInstallNowBtn">Install</button>
+          <button type="button" class="zo2y-install-btn" id="zo2yInstallLaterBtn">Not now</button>
+        </div>
+      `;
+      card.querySelector('#zo2yInstallNowBtn')?.addEventListener('click', async () => {
+        if (!deferredInstallPrompt) return;
+        try {
+          const promptEvent = deferredInstallPrompt;
+          deferredInstallPrompt = null;
+          await promptEvent.prompt();
+          const choice = await promptEvent.userChoice;
+          if (choice?.outcome === 'accepted') {
+            markInstallComplete();
+          } else {
+            dismissInstallPrompt();
+          }
+        } catch (_err) {
+          dismissInstallPrompt();
+        }
+      });
+      card.querySelector('#zo2yInstallLaterBtn')?.addEventListener('click', dismissInstallPrompt);
+    } else if (useIosHint) {
+      card.innerHTML = `
+        <p class="zo2y-install-title">Install Zo2y App</p>
+        <p class="zo2y-install-copy">On iPhone: tap <strong>Share</strong> in Safari, then choose <strong>Add to Home Screen</strong>.</p>
+        <div class="zo2y-install-actions">
+          <button type="button" class="zo2y-install-btn primary" id="zo2yInstallGotItBtn">Got it</button>
+          <button type="button" class="zo2y-install-btn" id="zo2yInstallLaterBtn">Later</button>
+        </div>
+      `;
+      card.querySelector('#zo2yInstallGotItBtn')?.addEventListener('click', () => {
+        localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now() + (1000 * 60 * 60 * 4)));
+        dismissInstallPrompt();
+      });
+      card.querySelector('#zo2yInstallLaterBtn')?.addEventListener('click', dismissInstallPrompt);
+    }
+
+    installCardVisible = true;
+    window.setTimeout(() => card.classList.add('show'), 60);
+  };
 
   const ensurePopupBackdrop = () => {
     if (!document.body) return null;
@@ -229,6 +404,17 @@
     document.body.classList.add('app-ready');
     initListPopupShell();
     window.setTimeout(() => document.body.classList.remove('app-loading'), 180);
+    window.setTimeout(() => showInstallPromptCard(), 1200);
+  });
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    showInstallPromptCard();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    markInstallComplete();
   });
 
   // Prefetch same-origin page links on hover/touch for snappier transitions.
