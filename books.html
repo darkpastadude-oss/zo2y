@@ -773,11 +773,11 @@
       const OPEN_LIBRARY_COVERS = 'https://covers.openlibrary.org/b';
       const FALLBACK_BOOK_IMAGE = 'images/logo.png';
       const FALLBACK_BOOKS = [
-        { key: '/works/OL1W', title: 'Pride and Prejudice', author_name: ['Jane Austen'], first_publish_year: 1813, isbn: ['9780141199078'] },
-        { key: '/works/OL2W', title: 'Murder on the Orient Express', author_name: ['Agatha Christie'], first_publish_year: 1934, isbn: ['9780007119318'] },
-        { key: '/works/OL3W', title: 'The Hobbit', author_name: ['J.R.R. Tolkien'], first_publish_year: 1937, isbn: ['9780261102217'] },
-        { key: '/works/OL4W', title: 'Sapiens', author_name: ['Yuval Noah Harari'], first_publish_year: 2011, isbn: ['9780062316097'] },
-        { key: '/works/OL5W', title: 'Atomic Habits', author_name: ['James Clear'], first_publish_year: 2018, isbn: ['9780735211292'] }
+        { title: 'Pride and Prejudice', author_name: ['Jane Austen'], first_publish_year: 1813, isbn: ['9780141199078'] },
+        { title: 'Murder on the Orient Express', author_name: ['Agatha Christie'], first_publish_year: 1934, isbn: ['9780007119318'] },
+        { title: 'The Hobbit', author_name: ['J.R.R. Tolkien'], first_publish_year: 1937, isbn: ['9780261102217'] },
+        { title: 'Sapiens', author_name: ['Yuval Noah Harari'], first_publish_year: 2011, isbn: ['9780062316097'] },
+        { title: 'Atomic Habits', author_name: ['James Clear'], first_publish_year: 2018, isbn: ['9780735211292'] }
       ];
       const BOOKS_PER_PAGE = 20;
       const CATEGORY_OPTIONS = [
@@ -817,9 +817,22 @@
         Object.entries(params).forEach(([k, v]) => {
           if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
         });
-        const res = await fetch(url.toString());
-        if (!res.ok) throw new Error(`Books API error ${res.status}`);
-        return res.json();
+        let lastError = null;
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          try {
+            const res = await fetch(url.toString());
+            if (res.ok) return await res.json();
+            const retryable = res.status === 429 || res.status >= 500;
+            if (!retryable) throw new Error(`Books API error ${res.status}`);
+            lastError = new Error(`Books API error ${res.status}`);
+          } catch (error) {
+            lastError = error;
+          }
+          if (attempt < 2) {
+            await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+          }
+        }
+        throw lastError || new Error('Books API error');
       }
 
       function getBookCoverUrl(coverId) {
@@ -835,6 +848,31 @@
           return `${OPEN_LIBRARY_COVERS}/isbn/${doc.isbn[0]}-L.jpg`;
         }
         return null;
+      }
+
+      function slugifyBookPart(value) {
+        return String(value || '')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 64);
+      }
+
+      function isOpenLibraryWorkKey(rawKey) {
+        const key = String(rawKey || '').trim();
+        return /^\/works\/OL\d+W$/i.test(key);
+      }
+
+      function getBookEntryId(item, idx = 0) {
+        const rawKey = String(item?.key || '').trim();
+        if (isOpenLibraryWorkKey(rawKey)) {
+          return rawKey.replace(/^\/works\//i, '');
+        }
+        const titleSlug = slugifyBookPart(item?.title || `book-${idx}`);
+        const authorSlug = slugifyBookPart(Array.isArray(item?.author_name) ? item.author_name[0] : '');
+        const year = String(item?.first_publish_year || '').trim();
+        return `search-${titleSlug}-${authorSlug || 'unknown'}-${year || 'na'}`;
       }
 
       async function loadCuratedPopularBooks() {
@@ -1065,10 +1103,12 @@
         });
       }
 
-      async function upsertBookRecord(book) {
+      async function upsertBookRecord(book, bookId) {
         if (!supabaseClient || !book) return;
+        const safeId = String(bookId || getBookEntryId(book)).trim();
+        if (!safeId) return;
         const payload = {
-          id: book.key.replace(/^\/works\//i, ''),
+          id: safeId,
           title: book.title || '',
           authors: (book.author_name || []).join(', '),
           thumbnail: getPreferredBookImage(book) || '',
@@ -1103,11 +1143,6 @@
           } catch (e) {
             console.warn('Cache read error', e);
           }
-        }
-
-        // Show fallback first on page 1
-        if (state.page === 1) {
-          displayBookResults(FALLBACK_BOOKS, FALLBACK_BOOKS.length);
         }
 
         let data;
@@ -1167,8 +1202,9 @@
           const year = item.first_publish_year || '';
           const desc = truncateText(item.title || '', 140) || 'No description available.';
           const thumb = getPreferredBookImage(item);
-          const rawKey = String(item?.key || `/works/seed-${idx}`).trim();
-          const bookId = rawKey.replace(/^\/works\//i, '');
+          const bookId = getBookEntryId(item, idx);
+          const titleParam = encodeURIComponent(String(item?.title || '').trim());
+          const authorParam = encodeURIComponent(String((Array.isArray(item?.author_name) ? item.author_name[0] : '') || '').trim());
           state.bookIndex.set(bookId, item);
 
           const card = document.createElement('div');
@@ -1193,7 +1229,7 @@
           `;
           card.onclick = (e) => {
             if (e.target.closest('.menu-btn')) return;
-            window.location.href = `book.html?id=${bookId}`;
+            window.location.href = `book.html?id=${encodeURIComponent(bookId)}&title=${titleParam}&author=${authorParam}`;
           };
           wireCardMenu(card, bookId);
           updateCardMenuUI(card, bookId);
@@ -1268,7 +1304,7 @@
 
         try {
           if (nextSaved) {
-            await upsertBookRecord(state.bookIndex.get(bookId));
+            await upsertBookRecord(state.bookIndex.get(bookId), bookId);
             const { error } = await supabaseClient
               .from('book_list_items')
               .insert({ user_id: state.currentUser.id, book_id: bookId, list_type: listType });
@@ -1364,7 +1400,7 @@
             [...state.modalSelectedLists],
             book
               ? {
-                id: book.key ? book.key.replace(/^\/works\//i, '') : state.activeBookId,
+                id: state.activeBookId,
                 title: book.title || '',
                 authors: (book.author_name || []).join(', '),
                 thumbnail: getPreferredBookImage(book) || ''
