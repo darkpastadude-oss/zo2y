@@ -1698,7 +1698,7 @@
         <img id="spotlightImage" alt="Spotlight artwork" loading="eager" fetchpriority="high" />
       </div>
       <div class="spotlight-inner" id="spotlightInner">
-        <p class="spotlight-kicker" id="spotlightKicker">Live Spotlight</p>
+        <p class="spotlight-kicker" id="spotlightKicker">Discover</p>
         <h1 class="spotlight-title" id="spotlightTitle">Loading spotlight...</h1>
         <p class="spotlight-summary" id="spotlightSummary">Pulling trends and personalization signals.</p>
         <div class="spotlight-meta">
@@ -2067,6 +2067,17 @@
       return HOME_MEDIA_META[type] || { label: 'Item', icon: 'fa-star', accent: '#f59e0b' };
     }
 
+    function getSpotlightSectionLabel(mediaType) {
+      const type = String(mediaType || '').toLowerCase();
+      if (type === 'movie') return 'Movies';
+      if (type === 'tv') return 'TV Shows';
+      if (type === 'game') return 'Games';
+      if (type === 'book') return 'Books';
+      if (type === 'music') return 'Music';
+      if (type === 'restaurant') return 'Restaurants';
+      return 'Discover';
+    }
+
     function supportsHomeLists(mediaType) {
       const type = String(mediaType || '').toLowerCase();
       return HOME_ACTIVE_MEDIA_TYPES.includes(type);
@@ -2236,8 +2247,12 @@
       const meta = getHomeMediaMeta(item.mediaType);
       const spotlightBackground = String(item.spotlightImage || item.backgroundImage || item.image || '').trim();
       const spotlightMediaImage = String(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
-      const spotlightMediaFit = String(item.spotlightMediaFit || '').trim() || 'contain';
-      const spotlightMediaShape = String(item.spotlightMediaShape || '').trim() || 'poster';
+      let spotlightMediaFit = String(item.spotlightMediaFit || '').trim() || 'contain';
+      let spotlightMediaShape = String(item.spotlightMediaShape || '').trim() || 'poster';
+      if (String(item.mediaType || '').toLowerCase() === 'music') {
+        spotlightMediaFit = 'contain';
+        spotlightMediaShape = 'poster';
+      }
       const usesSquareMedia = spotlightMediaShape === 'square';
       const usesLandscapeMedia = spotlightMediaShape === 'landscape';
       const mediaToken = ++homeSpotlightImageToken;
@@ -2305,7 +2320,7 @@
         spotlightSection.classList.add('no-media');
       }
       title.textContent = item.title || 'Spotlight';
-      kicker.textContent = `${meta.label} Spotlight`;
+      kicker.textContent = getSpotlightSectionLabel(item.mediaType);
       summary.textContent = getSpotlightSummary(item);
       reason.innerHTML = getPersonalReason(item);
       trend.innerHTML = getTrendLabel(item);
@@ -5212,8 +5227,8 @@
             backgroundImage: String(track.image || '').trim(),
             spotlightImage: String(track.image || '').trim(),
             spotlightMediaImage: String(track.image || '').trim(),
-            spotlightMediaFit: 'cover',
-            spotlightMediaShape: 'square',
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
             href: String(track.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
           };
         });
