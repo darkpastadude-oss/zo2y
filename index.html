@@ -5335,7 +5335,7 @@
             appendMsg('AI is temporarily unavailable. Check `OPENAI_API_KEY` and `OPENAI_CHAT_MODEL` in deployment env, then redeploy.', 'bot', [], true);
             return;
           }
-          appendMsg('I could not process that right now. Please try again in a moment.', 'bot', [], true);
+          appendMsg(msg || 'I could not process that right now. Please try again in a moment.', 'bot', [], true);
         }
       };
 

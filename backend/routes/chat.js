@@ -4,7 +4,8 @@ import { getSupabaseAdminClient } from "../lib/supabase-admin.js";
 
 const router = express.Router();
 
-const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+const OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
+const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const OPENAI_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_CANDIDATES = 60;
@@ -146,7 +147,7 @@ async function requestOpenAI({ message, mediaType, candidates, signals }) {
       payload.response_format = { type: "json_object" };
     }
 
-    const res = await fetch(OPENAI_API_URL, {
+    const res = await fetch(OPENAI_CHAT_COMPLETIONS_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -179,36 +180,100 @@ async function requestOpenAI({ message, mediaType, candidates, signals }) {
     return parsed;
   };
 
+  const callResponsesApi = async ({ model }) => {
+    const prompt = [
+      systemPrompt,
+      `Input JSON:\n${userPrompt}`
+    ].join("\n\n");
+
+    const res = await fetch(OPENAI_RESPONSES_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model,
+        input: prompt,
+        temperature: 0.4,
+        max_output_tokens: 700
+      })
+    });
+
+    const raw = await res.text();
+    if (!res.ok) {
+      const err = new Error(`OpenAI request failed (${res.status}): ${raw}`);
+      err.statusCode = res.status;
+      throw err;
+    }
+
+    let json = null;
+    try {
+      json = JSON.parse(raw);
+    } catch (_err) {
+      const error = new Error("OpenAI returned non-JSON response.");
+      error.statusCode = 502;
+      throw error;
+    }
+
+    const text =
+      String(json?.output_text || "").trim() ||
+      String(
+        (Array.isArray(json?.output) ? json.output : [])
+          .flatMap((entry) => Array.isArray(entry?.content) ? entry.content : [])
+          .map((part) => String(part?.text || part?.output_text || "").trim())
+          .filter(Boolean)
+          .join("\n")
+      ).trim();
+
+    const parsed = extractJson(text);
+    if (!parsed || typeof parsed !== "object") {
+      const error = new Error("Model response could not be parsed.");
+      error.statusCode = 502;
+      throw error;
+    }
+    return parsed;
+  };
+
   const attempts = [
-    { model: OPENAI_MODEL, useJsonResponseFormat: true },
-    { model: OPENAI_MODEL, useJsonResponseFormat: false }
+    { kind: "chat", model: OPENAI_MODEL, useJsonResponseFormat: true },
+    { kind: "chat", model: OPENAI_MODEL, useJsonResponseFormat: false },
+    { kind: "responses", model: OPENAI_MODEL }
   ];
   if (OPENAI_MODEL !== "gpt-4o-mini") {
-    attempts.push({ model: "gpt-4o-mini", useJsonResponseFormat: true });
-    attempts.push({ model: "gpt-4o-mini", useJsonResponseFormat: false });
+    attempts.push({ kind: "chat", model: "gpt-4o-mini", useJsonResponseFormat: true });
+    attempts.push({ kind: "chat", model: "gpt-4o-mini", useJsonResponseFormat: false });
+    attempts.push({ kind: "responses", model: "gpt-4o-mini" });
   }
 
   let lastErr = null;
   for (const attempt of attempts) {
     try {
-      return await callChatCompletions(attempt);
+      if (attempt.kind === "chat") {
+        return await callChatCompletions(attempt);
+      }
+      return await callResponsesApi(attempt);
     } catch (err) {
       lastErr = err;
       const msg = String(err?.message || "");
+      const statusCode = Number(err?.statusCode || 0);
       const retryable =
         /response_format/i.test(msg) ||
         /unsupported/i.test(msg) ||
         /not found/i.test(msg) ||
+        /does not exist/i.test(msg) ||
+        /not available/i.test(msg) ||
         /model/i.test(msg) ||
-        Number(err?.statusCode || 0) >= 500 ||
-        Number(err?.statusCode || 0) === 429 ||
-        Number(err?.statusCode || 0) === 400;
+        statusCode >= 500 ||
+        statusCode === 429 ||
+        statusCode === 404 ||
+        statusCode === 400;
       if (!retryable) break;
     }
   }
 
   const error = new Error(String(lastErr?.message || "OpenAI request failed"));
-  error.statusCode = 502;
+  error.statusCode = Number(lastErr?.statusCode || 502);
   throw error;
 }
 
