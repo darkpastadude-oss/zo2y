@@ -1895,7 +1895,6 @@
       { id: '2dpaYNEQHiRxtZbfNsse99', title: 'Stressed Out', artist: 'Twenty One Pilots', album: 'Blurryface' },
       { id: '5Z01UMMf7V1o0MzF86s6WJ', title: 'Believer', artist: 'Imagine Dragons', album: 'Evolve' }
     ];
-    const POPULAR_BOOKS_FILE = '/books-popular.json';
     const POPULAR_MUSIC_QUERIES = [
       'pop 2025',
       'hip hop 2025',
@@ -5370,8 +5369,10 @@
     async function loadBooks(signal) {
       const fallbackKnown = CURATED_POPULAR_BOOKS.map((b, idx) => {
         const known = FALLBACK_BOOKS.find((x) => String(x.title || '').toLowerCase() === String(b.title || '').toLowerCase());
-        const isbn = String(known?.isbn || '').trim();
-        const cover = HOME_LOCAL_FALLBACK_IMAGE;
+        const isbn = String(known?.isbn || '').trim().replace(/[^0-9Xx]/g, '');
+        const cover = isbn
+          ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`
+          : HOME_LOCAL_FALLBACK_IMAGE;
         return {
           mediaType: 'book',
           itemId: `known-book-${idx}`,
@@ -5394,7 +5395,8 @@
         const deduped = [];
         const seen = new Set();
         merged.forEach((entry) => {
-          const key = `${String(entry?.title || '').trim().toLowerCase()}::${String(entry?.subtitle || '').trim().toLowerCase()}`;
+          const subtitleKey = String(entry?.subtitle || '').split('|')[0].trim().toLowerCase();
+          const key = `${String(entry?.title || '').trim().toLowerCase()}::${subtitleKey}`;
           if (!key || seen.has(key)) return;
           seen.add(key);
           deduped.push(entry);
@@ -5402,123 +5404,104 @@
         return deduped.slice(0, HOME_CHANNEL_TARGET_ITEMS);
       };
 
-      try {
-        const seedsJson = await fetchJsonWithPerfCache(POPULAR_BOOKS_FILE, { signal, cacheKey: `books-seeds:${POPULAR_BOOKS_FILE}` });
-        const seedsRaw = Array.isArray(seedsJson) && seedsJson.length ? seedsJson : CURATED_POPULAR_BOOKS;
-        const seeds = seedsRaw
-          .map((seed) => ({
-            title: String(seed?.title || '').trim(),
-            author: String(seed?.author || '').trim()
-          }))
-          .filter((seed) => seed.title && seed.author);
-        if (!seeds.length) return attachFallbackKnown([]);
-
-        const maxSeeds = Math.max(HOME_CHANNEL_TARGET_ITEMS, 12);
-        const seedCandidates = seeds.slice(0, maxSeeds);
-        const googleDocsFromSeed = async (seed) => {
-          const qParts = [];
-          if (seed.title) qParts.push(`intitle:\"${seed.title}\"`);
-          if (seed.author) qParts.push(`inauthor:\"${seed.author}\"`);
-          const q = qParts.join(' ').trim() || `${seed.title} ${seed.author}`.trim();
-          if (!q) return [];
-          const googleUrl =
-            `/api/books/volumes?q=${encodeURIComponent(q)}` +
-            `&printType=books&langRestrict=en&maxResults=6`;
-          const json = await fetchJsonWithPerfCache(googleUrl, { signal, cacheKey: `books:g:${googleUrl}` });
-          const items = Array.isArray(json?.items) ? json.items : [];
-          return items.map((entry) => {
-            const info = entry?.volumeInfo || {};
-            const title = String(info?.title || '').trim();
-            const author = Array.isArray(info?.authors) && info.authors.length ? String(info.authors[0] || '').trim() : '';
-            const published = String(info?.publishedDate || '').trim();
-            const yearMatch = published.match(/\d{4}/);
-            const year = yearMatch ? Number(yearMatch[0]) : null;
-            const identifiers = Array.isArray(info?.industryIdentifiers) ? info.industryIdentifiers : [];
-            const isbn = identifiers
-              .map((x) => String(x?.identifier || '').replace(/[^0-9Xx]/g, ''))
-              .find(Boolean) || '';
-            const thumb = String(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || '')
-              .replace(/^http:\/\//i, 'https://')
-              .trim();
-            return {
-              key: '',
-              title,
-              author_name: author ? [author] : [],
-              first_publish_year: year,
-              isbn: isbn ? [isbn] : [],
-              cover_i: null,
-              _googleThumbnail: thumb
-            };
-          }).filter((row) => row.title);
-        };
-
-        const searchSeed = async (seed) => {
-          const googleDocs = await googleDocsFromSeed(seed);
-          return googleDocs.length ? googleDocs : [];
-        };
-
-        const responses = [];
-        for (let idx = 0; idx < seedCandidates.length; idx += 1) {
-          const seed = seedCandidates[idx];
-          const docs = await searchSeed(seed);
-          responses.push({ seed, idx, docs });
+      const buildOpenLibraryCoverUrl = (doc, size = 'L') => {
+        const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
+          ? String(size || 'L').toUpperCase()
+          : 'L';
+        const coverId = Number(doc?.cover_i || 0) || 0;
+        if (coverId > 0) {
+          return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-${safeSize}.jpg`;
         }
+        const isbnRaw = Array.isArray(doc?.isbn) ? String(doc.isbn[0] || '').trim() : String(doc?.isbn || '').trim();
+        const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
+        if (isbn) {
+          return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-${safeSize}.jpg`;
+        }
+        return '';
+      };
 
+      const normalizeBookDoc = (row, idx = 0) => {
+        if (!row) return null;
+        if (row.volumeInfo) {
+          const info = row.volumeInfo || {};
+          const title = String(info?.title || '').trim();
+          if (!title) return null;
+          const author = Array.isArray(info?.authors) && info.authors.length ? String(info.authors[0] || '').trim() : 'Unknown author';
+          const identifiers = Array.isArray(info?.industryIdentifiers) ? info.industryIdentifiers : [];
+          const isbn = identifiers
+            .map((entry) => String(entry?.identifier || '').replace(/[^0-9Xx]/g, ''))
+            .filter(Boolean);
+          const published = String(info?.publishedDate || '').trim();
+          const yearMatch = published.match(/\d{4}/);
+          return {
+            key: '',
+            title,
+            author_name: [author],
+            first_publish_year: yearMatch ? Number(yearMatch[0]) : null,
+            isbn,
+            cover_i: null,
+            coverImage: toHttpsUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || ''),
+            _googleThumbnail: toHttpsUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || ''),
+            _googleVolumeId: String(row?.id || '').trim(),
+            _source: 'google-books'
+          };
+        }
+        const title = String(row?.title || '').trim();
+        if (!title) return null;
+        const author = Array.isArray(row?.author_name) && row.author_name.length
+          ? String(row.author_name[0] || '').trim()
+          : 'Unknown author';
+        const isbn = Array.isArray(row?.isbn)
+          ? row.isbn.map((entry) => String(entry || '').replace(/[^0-9Xx]/g, '')).filter(Boolean)
+          : (String(row?.isbn || '').trim() ? [String(row.isbn).trim().replace(/[^0-9Xx]/g, '')] : []);
+        return {
+          key: String(row?.key || '').trim(),
+          title,
+          author_name: [author],
+          first_publish_year: Number(row?.first_publish_year || 0) || null,
+          isbn,
+          cover_i: Number(row?.cover_i || 0) || null,
+          coverImage: toHttpsUrl(row?.coverImage || ''),
+          _googleThumbnail: toHttpsUrl(row?._googleThumbnail || ''),
+          _googleVolumeId: String(row?._googleVolumeId || '').trim(),
+          _source: String(row?._source || '').trim() || 'book'
+        };
+      };
+
+      const mapDocsToRailItems = (docs) => {
         const seen = new Set();
-        const mapped = responses.map(({ seed, idx, docs }) => {
-          const seedTitle = seed.title.toLowerCase();
-          const seedAuthor = seed.author.toLowerCase();
-          const chosen = docs.find((doc) => {
-            const title = String(doc?.title || '').toLowerCase();
-            const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').toLowerCase();
-            return title.includes(seedTitle) && author.includes(seedAuthor);
-          }) || docs.find((doc) => {
-            const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').toLowerCase();
-            return author.includes(seedAuthor);
-          }) || docs[0];
-
-          if (!chosen) {
-            const known = FALLBACK_BOOKS.find((x) => (
-              String(x.title || '').toLowerCase() === seedTitle && String(x.author || '').toLowerCase() === seedAuthor
-            ));
-            const isbn = String(known?.isbn || '').trim();
-            const cover = HOME_LOCAL_FALLBACK_IMAGE;
-            return {
-              mediaType: 'book',
-              itemId: `seed-book-${idx}`,
-              title: seed.title,
-              subtitle: seed.author,
-              image: cover,
-              backgroundImage: cover,
-              spotlightImage: cover,
-              spotlightMediaImage: cover,
-              spotlightMediaFit: 'contain',
-              spotlightMediaShape: 'poster',
-              fallbackImage: cover,
-              isbn,
-              popularityScore: 0,
-              href: 'books.html'
-            };
-          }
-
-          const title = String(chosen?.title || '').trim() || seed.title;
-          const author = String((Array.isArray(chosen?.author_name) ? chosen.author_name[0] : '') || '').trim() || seed.author;
+        return (Array.isArray(docs) ? docs : []).map((doc, idx) => {
+          const normalized = normalizeBookDoc(doc, idx);
+          if (!normalized) return null;
+          const title = String(normalized.title || '').trim();
+          const author = String((Array.isArray(normalized.author_name) ? normalized.author_name[0] : '') || '').trim() || 'Unknown author';
           const dedupeKey = `${title.toLowerCase()}::${author.toLowerCase()}`;
           if (seen.has(dedupeKey)) return null;
           seen.add(dedupeKey);
 
-          const synthesizedId = `search-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `book-${idx}`}`;
-          const itemId = synthesizedId;
-          const isbnRaw = Array.isArray(chosen?.isbn) ? String(chosen.isbn[0] || '').trim() : '';
-          const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
-          const googleThumb = String(chosen?._googleThumbnail || '').trim();
-          const cover = googleThumb || HOME_LOCAL_FALLBACK_IMAGE;
-          const year = Number(chosen?.first_publish_year || 0) || 0;
+          const year = Number(normalized?.first_publish_year || 0) || 0;
           const subtitle = year ? `${author} | ${year}` : author;
-          const popularityScore =
-            Number(chosen?.ratings_count || 0) +
-            Number(chosen?.want_to_read_count || 0) +
-            Number(chosen?.edition_count || 0) * 4;
+          const googleVolumeId = String(normalized?._googleVolumeId || '').trim();
+          const workKey = String(normalized?.key || '').trim();
+          let itemId = '';
+          if (googleVolumeId) itemId = googleVolumeId;
+          if (!itemId && workKey.startsWith('/works/')) itemId = workKey.replace('/works/', '').trim();
+          if (!itemId) {
+            itemId = `search-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `book-${idx}`}`;
+          }
+
+          const coverCandidates = [
+            toHttpsUrl(normalized?._googleThumbnail || ''),
+            toHttpsUrl(normalized?.coverImage || ''),
+            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'L')),
+            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'M'))
+          ].filter(Boolean);
+          const cover = coverCandidates[0] || HOME_LOCAL_FALLBACK_IMAGE;
+          const isbnRaw = Array.isArray(normalized?.isbn) ? String(normalized.isbn[0] || '').trim() : '';
+          const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
+          const titleParam = encodeURIComponent(title);
+          const authorParam = encodeURIComponent(author);
+          const href = `book.html?id=${encodeURIComponent(itemId)}&title=${titleParam}&author=${authorParam}`;
 
           return {
             mediaType: 'book',
@@ -5531,21 +5514,35 @@
             spotlightMediaImage: cover,
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
-            fallbackImage: cover,
+            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
             isbn,
-            popularityScore,
-            href: `book.html?id=${encodeURIComponent(itemId)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`
+            href
           };
         }).filter(Boolean);
+      };
 
-        const merged = attachFallbackKnown(
-          mapped.sort((a, b) => Number(b.popularityScore || 0) - Number(a.popularityScore || 0))
-        ).map((item) => {
-          const copy = { ...item };
-          delete copy.popularityScore;
-          return copy;
-        });
-        if (merged.length) return merged;
+      try {
+        const limit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 24);
+        const [trendingJson, popularJson] = await Promise.all([
+          fetchJsonWithPerfCache(
+            `/api/books/trending?period=weekly&limit=${limit}`,
+            { signal, cacheKey: `books:trending:${limit}` }
+          ),
+          fetchJsonWithPerfCache(
+            `/api/books/popular?subject=fiction&limit=${limit}&page=1&orderBy=relevance`,
+            { signal, cacheKey: `books:popular:${limit}` }
+          )
+        ]);
+
+        const trendingDocsRaw = Array.isArray(trendingJson?.docs)
+          ? trendingJson.docs
+          : (Array.isArray(trendingJson?.items) ? trendingJson.items : []);
+        const popularDocsRaw = Array.isArray(popularJson?.docs)
+          ? popularJson.docs
+          : (Array.isArray(popularJson?.items) ? popularJson.items : []);
+
+        const mapped = mapDocsToRailItems([...trendingDocsRaw, ...popularDocsRaw]).slice(0, limit);
+        if (mapped.length) return attachFallbackKnown(mapped);
       } catch (_e) {}
 
       return attachFallbackKnown([]);

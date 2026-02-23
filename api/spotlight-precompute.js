@@ -15,23 +15,6 @@ const TMDB_SPOT_POSTER = "https://image.tmdb.org/t/p/w780";
 const TMDB_BACKDROP = "https://image.tmdb.org/t/p/w1280";
 const TARGET_ITEMS = 24;
 const TTL_MINUTES = 20;
-const BOOKS_POPULAR_PATH = "/books-popular.json";
-const CURATED_POPULAR_BOOKS = [
-  { title: "Atomic Habits", author: "James Clear" },
-  { title: "The Psychology of Money", author: "Morgan Housel" },
-  { title: "It Ends with Us", author: "Colleen Hoover" },
-  { title: "Fourth Wing", author: "Rebecca Yarros" },
-  { title: "The 48 Laws of Power", author: "Robert Greene" },
-  { title: "The Seven Husbands of Evelyn Hugo", author: "Taylor Jenkins Reid" },
-  { title: "Where the Crawdads Sing", author: "Delia Owens" },
-  { title: "The Midnight Library", author: "Matt Haig" },
-  { title: "The Silent Patient", author: "Alex Michaelides" },
-  { title: "The Alchemist", author: "Paulo Coelho" },
-  { title: "Sapiens", author: "Yuval Noah Harari" },
-  { title: "Rich Dad Poor Dad", author: "Robert T. Kiyosaki" },
-  { title: "Project Hail Mary", author: "Andy Weir" },
-  { title: "Educated", author: "Tara Westover" }
-];
 const POPULAR_MUSIC_QUERIES = [
   "pop 2025",
   "hip hop 2025",
@@ -163,11 +146,16 @@ function mapBooks(rows = []) {
       const isbn = isbnRaw.replace(/[^0-9Xx]/g, "");
       const coverById = coverId ? `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg` : "";
       const coverByIsbn = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : "";
-      const primaryImage = coverById || coverByIsbn || "images/logo.png";
+      const googleThumb = String(row?._googleThumbnail || row?.coverImage || "").trim().replace(/^http:\/\//i, "https://");
+      const primaryImage = googleThumb || coverById || coverByIsbn || "images/logo.png";
       const workKey = String(row?.key || "").trim();
-      const itemId = workKey.replace(/^\/works\//i, "").trim() || `pre-book-${index + 1}`;
+      const googleVolumeId = String(row?._googleVolumeId || "").trim();
+      const itemId = googleVolumeId || workKey.replace(/^\/works\//i, "").trim() || `pre-book-${index + 1}`;
       const year = Number(row?.first_publish_year || 0) || 0;
       const subtitle = year ? `${author} | ${year}` : author;
+      const href = itemId
+        ? `book.html?id=${encodeURIComponent(itemId)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`
+        : "books.html";
       return {
         mediaType: "book",
         itemId,
@@ -179,8 +167,8 @@ function mapBooks(rows = []) {
         spotlightMediaImage: primaryImage,
         spotlightMediaFit: "contain",
         spotlightMediaShape: "poster",
-        fallbackImage: coverByIsbn || primaryImage,
-        href: workKey ? `book.html?id=${encodeURIComponent(itemId)}` : "books.html"
+        fallbackImage: coverByIsbn || coverById || primaryImage,
+        href
       };
     })
     .filter(Boolean);
@@ -236,37 +224,21 @@ export default async function handler(req, res) {
     return res.status(500).json({ message: "Could not resolve request host" });
   }
 
-  const [moviesJson, tvJson, gamesJson, booksSeedsJson, musicBatches] = await Promise.all([
+  const [moviesJson, tvJson, gamesJson, booksTrendingJson, booksPopularJson, musicBatches] = await Promise.all([
     fetchJson(`${baseUrl}/api/tmdb/movie/popular?language=en-US&page=1`),
     fetchJson(`${baseUrl}/api/tmdb/tv/popular?language=en-US&page=1`),
     fetchJson(`${baseUrl}/api/igdb/games?page_size=32&ordering=-rating&dates=2000-01-01,2026-12-31&page=1`),
-    fetchJson(`${baseUrl}${BOOKS_POPULAR_PATH}`),
+    fetchJson(`${baseUrl}/api/books/trending?period=weekly&limit=36`),
+    fetchJson(`${baseUrl}/api/books/popular?subject=fiction&limit=36&page=1&orderBy=relevance`),
     Promise.all([
       fetchJson(`${baseUrl}/api/music/popular?limit=30&market=US`),
       ...POPULAR_MUSIC_QUERIES.map((q) => fetchJson(`${baseUrl}/api/music/search?q=${encodeURIComponent(q)}&limit=24&market=US`))
     ])
   ]);
-  const booksSeeds = Array.isArray(booksSeedsJson) && booksSeedsJson.length ? booksSeedsJson : CURATED_POPULAR_BOOKS;
-  const bookQueries = booksSeeds
-    .map((seed) => ({
-      title: String(seed?.title || "").trim(),
-      author: String(seed?.author || "").trim()
-    }))
-    .filter((seed) => seed.title && seed.author)
-    .slice(0, Math.max(TARGET_ITEMS, 24));
-  const booksBatches = await Promise.all(bookQueries.map((seed) => {
-    const url = `https://openlibrary.org/search.json?title=${encodeURIComponent(seed.title)}&author=${encodeURIComponent(seed.author)}&language=eng&limit=5`;
-    return fetchJson(url).then((json) => ({ seed, json }));
-  }));
-  const booksRows = booksBatches.flatMap(({ seed, json }) => {
-    const docs = Array.isArray(json?.docs) ? json.docs : [];
-    const preferred = docs.find((doc) => {
-      const title = String(doc?.title || "").toLowerCase();
-      const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : "") || "").toLowerCase();
-      return title.includes(String(seed?.title || "").toLowerCase()) && author.includes(String(seed?.author || "").toLowerCase());
-    }) || docs[0];
-    return preferred ? [preferred] : [];
-  });
+  const booksRows = [
+    ...(Array.isArray(booksTrendingJson?.docs) ? booksTrendingJson.docs : []),
+    ...(Array.isArray(booksPopularJson?.docs) ? booksPopularJson.docs : [])
+  ];
   const musicRows = (Array.isArray(musicBatches) ? musicBatches : []).flatMap((json) => (
     Array.isArray(json?.results) ? json.results : []
   ));

@@ -69,6 +69,10 @@ import analyticsRoutes from "./routes/analytics.js";
 app.use("/api/analytics", analyticsRoutes);
 import supportRoutes from "./routes/support.js";
 app.use("/api/support", supportRoutes);
+import booksRoutes from "./routes/books.js";
+app.use("/api/books", booksRoutes);
+import openLibraryRoutes from "./routes/openlibrary.js";
+app.use("/api/openlibrary", openLibraryRoutes);
 
 // Serve frontend routes
 app.get("/", (req, res) => {

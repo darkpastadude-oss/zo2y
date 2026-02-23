@@ -4,7 +4,7 @@
   const TMDB_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s';
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
   const IGDB_PROXY_BASE = '/api/igdb';
-  const GOOGLE_BOOKS_KEY = 'AIzaSyD6EFAseKNOjzkpEaY1fmJmZnleM9uJP8s';
+  const BOOKS_PROXY_BASE = '/api/books';
   const MUSIC_PROXY_BASE = '/api/music';
 
   function toHttpsUrl(value) {
@@ -218,19 +218,73 @@
   }
 
   async function fetchBooks(query) {
-    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=4&key=${GOOGLE_BOOKS_KEY}`);
-    if (!res.ok) return [];
-    const json = await res.json();
-    const items = Array.isArray(json.items) ? json.items : [];
-    return items.map((item) => {
-      const info = item.volumeInfo || {};
-      const author = Array.isArray(info.authors) && info.authors.length ? info.authors[0] : 'Book';
+    const buildOpenLibraryCoverUrl = (doc, size = 'L') => {
+      const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
+        ? String(size || 'L').toUpperCase()
+        : 'L';
+      const coverId = Number(doc?.cover_i || 0) || 0;
+      if (coverId > 0) {
+        return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-${safeSize}.jpg`;
+      }
+      const isbnRaw = Array.isArray(doc?.isbn) ? String(doc.isbn[0] || '').trim() : '';
+      const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
+      if (isbn) {
+        return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-${safeSize}.jpg`;
+      }
+      return '';
+    };
+
+    const searchUrl = `${BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=4&language=eng&page=1`;
+    let docs = [];
+    try {
+      const res = await fetch(searchUrl);
+      if (res.ok) {
+        const json = await res.json();
+        docs = Array.isArray(json?.docs)
+          ? json.docs
+          : (Array.isArray(json?.items) ? json.items : []);
+      }
+    } catch (_err) {}
+
+    if (!docs.length) {
+      try {
+        const fallbackRes = await fetch(`${BOOKS_PROXY_BASE}/trending?period=weekly&limit=4`);
+        if (fallbackRes.ok) {
+          const fallbackJson = await fallbackRes.json();
+          docs = Array.isArray(fallbackJson?.docs)
+            ? fallbackJson.docs
+            : (Array.isArray(fallbackJson?.items) ? fallbackJson.items : []);
+        }
+      } catch (_err) {
+        docs = [];
+      }
+    }
+
+    return docs.slice(0, 4).map((doc, idx) => {
+      const title = String(doc?.title || '').trim() || 'Book';
+      const author = Array.isArray(doc?.author_name) && doc.author_name.length
+        ? String(doc.author_name[0] || '').trim()
+        : 'Book';
+      const googleVolumeId = String(doc?._googleVolumeId || '').trim();
+      const workKey = String(doc?.key || '').trim();
+      let itemId = googleVolumeId;
+      if (!itemId && workKey.startsWith('/works/')) itemId = workKey.replace('/works/', '').trim();
+      if (!itemId) {
+        itemId = `search-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `book-${idx}`}`;
+      }
+      const image = toHttpsUrl(
+        doc?._googleThumbnail ||
+        doc?.coverImage ||
+        buildOpenLibraryCoverUrl(doc, 'L') ||
+        buildOpenLibraryCoverUrl(doc, 'M') ||
+        ''
+      );
       return {
         type: 'Books',
-        title: info.title || 'Book',
+        title,
         sub: author,
-        href: item.id ? `book.html?id=${encodeURIComponent(item.id)}` : 'books.html',
-        image: toHttpsUrl(info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || ''),
+        href: `book.html?id=${encodeURIComponent(itemId)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`,
+        image,
         landscape: false
       };
     });

@@ -811,6 +811,61 @@
 
       let supabaseClient = null;
 
+      function toHttpsUrl(value) {
+        return String(value || '').replace(/^http:\/\//i, 'https://').trim();
+      }
+
+      function buildOpenLibraryCoverUrl(doc, size = 'L') {
+        const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
+          ? String(size).toUpperCase()
+          : 'L';
+        const coverId = Number(doc?.cover_i || 0) || 0;
+        if (coverId > 0) {
+          return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-${safeSize}.jpg`;
+        }
+        const isbnRaw = Array.isArray(doc?.isbn) ? String(doc.isbn[0] || '').trim() : '';
+        const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
+        if (isbn) {
+          return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-${safeSize}.jpg`;
+        }
+        return '';
+      }
+
+      function normalizeRemoteBookDoc(raw, idx = 0) {
+        if (!raw) return null;
+        if (raw.volumeInfo) {
+          return normalizeGoogleBookDoc(raw, idx);
+        }
+        const title = String(raw?.title || `Book ${idx + 1}`).trim();
+        if (!title) return null;
+        const authorNames = Array.isArray(raw?.author_name)
+          ? raw.author_name.map((entry) => String(entry || '').trim()).filter(Boolean)
+          : [];
+        const year = Number(raw?.first_publish_year || 0) || null;
+        const isbn = Array.isArray(raw?.isbn)
+          ? raw.isbn.map((entry) => String(entry || '').replace(/[^0-9Xx]/g, '')).filter(Boolean)
+          : [];
+        const subject = Array.isArray(raw?.subject)
+          ? raw.subject.map((entry) => String(entry || '').trim()).filter(Boolean)
+          : [];
+        const publisher = Array.isArray(raw?.publisher)
+          ? raw.publisher.map((entry) => String(entry || '').trim()).filter(Boolean)
+          : [];
+        return {
+          key: String(raw?.key || '').trim(),
+          title,
+          author_name: authorNames.length ? authorNames : ['Unknown author'],
+          first_publish_year: year,
+          isbn,
+          subject,
+          publisher,
+          cover_i: Number(raw?.cover_i || 0) || null,
+          coverImage: toHttpsUrl(raw?.coverImage || ''),
+          _googleThumbnail: toHttpsUrl(raw?._googleThumbnail || ''),
+          _googleVolumeId: String(raw?._googleVolumeId || '').trim()
+        };
+      }
+
       function buildGoogleBooksQuery(params = {}) {
         const title = String(params?.title || '').trim();
         const author = String(params?.author || '').trim();
@@ -876,19 +931,56 @@
 
       async function booksFetch(path, params = {}) {
         const normalizedPath = String(path || '').startsWith('/') ? String(path) : `/${String(path || '')}`;
-        if (normalizedPath !== '/search.json') {
-          throw new Error('Unsupported books endpoint');
-        }
-        const googleDocs = await fetchGoogleBooksDocs(params);
-        if (googleDocs.length) {
-          return { docs: googleDocs, numFound: googleDocs.length };
-        }
-        throw new Error('Books API error');
+        const endpoint = normalizedPath === '/search.json'
+          ? `${GOOGLE_BOOKS_PROXY_BASE}/search`
+          : `${GOOGLE_BOOKS_PROXY_BASE}${normalizedPath}`;
+        const url = new URL(endpoint, window.location.origin);
+        Object.entries(params || {}).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === '') return;
+          if (Array.isArray(value)) {
+            value.forEach((entry) => {
+              if (entry === undefined || entry === null || entry === '') return;
+              url.searchParams.append(key, String(entry));
+            });
+            return;
+          }
+          url.searchParams.set(key, String(value));
+        });
+        const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+        if (!res.ok) throw new Error(`Books API error ${res.status}`);
+        const json = await res.json();
+        const docsRaw = Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.items) ? json.items : []);
+        const docs = docsRaw.map((entry, idx) => normalizeRemoteBookDoc(entry, idx)).filter((entry) => String(entry?.title || '').trim());
+        const numFound = Number(json?.numFound || json?.count || json?.totalItems || docs.length) || docs.length;
+        return { docs, numFound };
+      }
+
+      async function fetchPopularBooks(page = 1, limit = BOOKS_PER_PAGE) {
+        return booksFetch('/popular', {
+          page,
+          limit,
+          subject: state.activeCategory || 'fiction',
+          language: 'en',
+          orderBy: 'relevance'
+        });
+      }
+
+      async function fetchTrendingBooks(limit = BOOKS_PER_PAGE) {
+        return booksFetch('/trending', {
+          period: 'weekly',
+          limit
+        });
       }
 
       function getPreferredBookImage(doc) {
-        if (doc?._googleThumbnail) return String(doc._googleThumbnail);
-        if (doc?.coverImage) return String(doc.coverImage);
+        const googleThumb = toHttpsUrl(doc?._googleThumbnail || '');
+        if (googleThumb) return googleThumb;
+        const coverImage = toHttpsUrl(doc?.coverImage || '');
+        if (coverImage) return coverImage;
+        const byCoverId = toHttpsUrl(buildOpenLibraryCoverUrl(doc, 'L'));
+        if (byCoverId) return byCoverId;
+        const byIsbn = toHttpsUrl(buildOpenLibraryCoverUrl(doc, 'M'));
+        if (byIsbn) return byIsbn;
         return null;
       }
 
@@ -902,6 +994,13 @@
       }
 
       function getBookEntryId(item, idx = 0) {
+        const googleVolumeId = String(item?._googleVolumeId || '').trim();
+        if (googleVolumeId) return googleVolumeId;
+        const workKey = String(item?.key || '').trim();
+        if (workKey.startsWith('/works/')) {
+          const workId = workKey.replace('/works/', '').trim();
+          if (workId) return workId;
+        }
         const titleSlug = slugifyBookPart(item?.title || `book-${idx}`);
         const authorSlug = slugifyBookPart(Array.isArray(item?.author_name) ? item.author_name[0] : '');
         const year = String(item?.first_publish_year || '').trim();
@@ -909,6 +1008,26 @@
       }
 
       async function loadCuratedPopularBooks() {
+        try {
+          const trending = await fetchTrendingBooks(BOOKS_PER_PAGE);
+          if (Array.isArray(trending?.docs) && trending.docs.length) {
+            return {
+              docs: trending.docs.slice(0, BOOKS_PER_PAGE),
+              numFound: Number(trending.numFound || trending.docs.length) || trending.docs.length
+            };
+          }
+        } catch (_err) {}
+
+        try {
+          const popular = await fetchPopularBooks(1, BOOKS_PER_PAGE);
+          if (Array.isArray(popular?.docs) && popular.docs.length) {
+            return {
+              docs: popular.docs.slice(0, BOOKS_PER_PAGE),
+              numFound: Number(popular.numFound || popular.docs.length) || popular.docs.length
+            };
+          }
+        } catch (_err) {}
+
         let seedsRaw = FALLBACK_BOOKS.map((b) => ({ title: b.title, author: (Array.isArray(b.author_name) ? b.author_name[0] : 'Unknown author') }));
         try {
           const res = await fetch('/books-popular.json');
@@ -1196,7 +1315,11 @@
           if (state.activeCategory) params.subject = state.activeCategory;
           if (state.year) params.first_publish_year = state.year;
           if (!params.q && !params.author && !params.subject && !params.first_publish_year) {
-            data = await loadCuratedPopularBooks();
+            if (Number(state.page || 1) === 1) {
+              data = await loadCuratedPopularBooks();
+            } else {
+              data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
+            }
           } else {
             data = await booksFetch('/search.json', params);
           }

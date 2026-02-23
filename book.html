@@ -734,6 +734,7 @@
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
+      const OPEN_LIBRARY_PROXY_BASE = '/api/openlibrary';
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
       const titleParam = String(params.get('title') || '').trim();
@@ -763,6 +764,24 @@
 
       function toHttpsUrl(value) {
         return String(value || '').replace(/^http:\/\//i, 'https://');
+      }
+
+      function buildOpenLibraryCoverUrl(coverId, size = 'L') {
+        const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
+          ? String(size || 'L').toUpperCase()
+          : 'L';
+        const id = Number(coverId || 0) || 0;
+        if (!id) return '';
+        return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(id))}-${safeSize}.jpg`;
+      }
+
+      function buildOpenLibraryCoverByIsbn(isbn, size = 'L') {
+        const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
+          ? String(size || 'L').toUpperCase()
+          : 'L';
+        const normalized = String(isbn || '').replace(/[^0-9Xx]/g, '');
+        if (!normalized) return '';
+        return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(normalized)}-${safeSize}.jpg`;
       }
 
       function isSyntheticSearchId(value) {
@@ -910,6 +929,138 @@
         }
       }
 
+      async function resolveOpenLibraryAuthorNames(authorRefs = []) {
+        const keys = (Array.isArray(authorRefs) ? authorRefs : [])
+          .map((entry) => String(entry?.author?.key || entry?.key || '').trim())
+          .filter(Boolean)
+          .slice(0, 6);
+        if (!keys.length) return [];
+        const names = await Promise.all(keys.map(async (key) => {
+          const authorPath = key.startsWith('/') ? key : `/${key}`;
+          const url = new URL(`${OPEN_LIBRARY_PROXY_BASE}${authorPath}.json`, window.location.origin);
+          try {
+            const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+            if (!res.ok) return '';
+            const json = await res.json();
+            return String(json?.name || '').trim();
+          } catch (_err) {
+            return '';
+          }
+        }));
+        return names.filter(Boolean);
+      }
+
+      async function fetchOpenLibraryBookFromWorkId(workId) {
+        const cleanId = String(workId || '').trim().replace(/^\/works\//i, '');
+        if (!cleanId) return null;
+        const url = new URL(`${OPEN_LIBRARY_PROXY_BASE}/works/${encodeURIComponent(cleanId)}.json`, window.location.origin);
+        try {
+          const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+          if (!res.ok) return null;
+          const work = await res.json();
+          const coverId = Array.isArray(work?.covers) ? Number(work.covers[0] || 0) : 0;
+          const authorNames = await resolveOpenLibraryAuthorNames(Array.isArray(work?.authors) ? work.authors : []);
+          const description = typeof work?.description === 'string'
+            ? work.description
+            : String(work?.description?.value || '').trim();
+          const subjects = Array.isArray(work?.subjects)
+            ? work.subjects.map((entry) => String(entry || '').trim()).filter(Boolean)
+            : [];
+          const firstPublishDate = String(work?.first_publish_date || '').trim();
+          return {
+            title: String(work?.title || '').trim() || (titleParam || 'Untitled'),
+            description,
+            first_publish_date: firstPublishDate,
+            publishedDate: firstPublishDate,
+            covers: Array.isArray(work?.covers) ? work.covers : [],
+            cover_i: coverId || null,
+            coverImage: buildOpenLibraryCoverUrl(coverId, 'L'),
+            subjects,
+            categories: subjects,
+            authors: authorNames.map((name) => ({ name })),
+            publishers: [],
+            number_of_pages: null,
+            key: String(work?.key || `/works/${cleanId}`),
+            googleVolumeId: ''
+          };
+        } catch (_err) {
+          return null;
+        }
+      }
+
+      async function fetchOpenLibraryBookFromHints(titleHint = '', authorHint = '') {
+        const title = String(titleHint || '').trim();
+        const author = String(authorHint || '').trim();
+        if (!title && !author) return null;
+        const searchUrl = new URL(`${OPEN_LIBRARY_PROXY_BASE}/search.json`, window.location.origin);
+        if (title) searchUrl.searchParams.set('title', title);
+        if (author) searchUrl.searchParams.set('author', author);
+        searchUrl.searchParams.set('language', 'eng');
+        searchUrl.searchParams.set('limit', '5');
+        try {
+          const res = await fetch(searchUrl.toString(), { headers: { Accept: 'application/json' } });
+          if (!res.ok) return null;
+          const json = await res.json();
+          const docs = Array.isArray(json?.docs) ? json.docs : [];
+          if (!docs.length) return null;
+          const best = docs.find((doc) => {
+            const docTitle = String(doc?.title || '').toLowerCase();
+            const docAuthor = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').toLowerCase();
+            const titleOk = title ? docTitle.includes(title.toLowerCase()) : true;
+            const authorOk = author ? docAuthor.includes(author.toLowerCase()) : true;
+            return titleOk && authorOk;
+          }) || docs[0];
+
+          const workId = String(best?.key || '').trim().replace(/^\/works\//i, '');
+          const detailed = workId ? await fetchOpenLibraryBookFromWorkId(workId) : null;
+          const coverId = Number(best?.cover_i || 0) || 0;
+          const isbnList = Array.isArray(best?.isbn)
+            ? best.isbn.map((entry) => String(entry || '').replace(/[^0-9Xx]/g, '')).filter(Boolean)
+            : [];
+          const openCover = buildOpenLibraryCoverUrl(coverId, 'L') || buildOpenLibraryCoverByIsbn(isbnList[0] || '', 'L');
+          const docYear = Number(best?.first_publish_year || 0) || 0;
+          const publishText = docYear ? String(docYear) : '';
+          if (detailed) {
+            if (!detailed.coverImage) detailed.coverImage = openCover || '';
+            detailed.cover_i = detailed.cover_i || coverId || null;
+            detailed.isbn = Array.isArray(detailed?.isbn) && detailed.isbn.length ? detailed.isbn : isbnList;
+            if (!detailed.first_publish_date && publishText) detailed.first_publish_date = publishText;
+            if (!detailed.publishedDate && publishText) detailed.publishedDate = publishText;
+            if (!Array.isArray(detailed?.authors) || !detailed.authors.length) {
+              detailed.authors = (Array.isArray(best?.author_name) ? best.author_name : [])
+                .map((name) => ({ name: String(name || '').trim() }))
+                .filter((entry) => entry.name);
+            }
+            return detailed;
+          }
+
+          const subjects = Array.isArray(best?.subject)
+            ? best.subject.map((entry) => String(entry || '').trim()).filter(Boolean)
+            : [];
+          return {
+            title: String(best?.title || '').trim() || (title || 'Untitled'),
+            description: '',
+            first_publish_date: publishText,
+            publishedDate: publishText,
+            covers: coverId ? [coverId] : [],
+            cover_i: coverId || null,
+            coverImage: openCover || '',
+            subjects,
+            categories: subjects,
+            authors: (Array.isArray(best?.author_name) ? best.author_name : [])
+              .map((name) => ({ name: String(name || '').trim() }))
+              .filter((entry) => entry.name),
+            publishers: Array.isArray(best?.publisher) ? best.publisher : [],
+            number_of_pages: null,
+            key: String(best?.key || '').trim(),
+            isbn: isbnList,
+            googleVolumeId: ''
+          };
+        } catch (_err) {
+          return null;
+        }
+      }
+
       async function booksFetch(path, paramsObj = {}) {
         const normalizedPath = String(path || '').startsWith('/') ? String(path) : `/${String(path || '')}`;
         if (normalizedPath !== '/search.json') {
@@ -1031,13 +1182,26 @@
             await fetchGoogleBookFromHints(titleParam || legacy?.title || '', authorParam || legacy?.author || '') ||
             await fetchGoogleBookFromStoredBook(normalizedId);
 
-          if (!loadedInfo) {
+          if (!loadedInfo && normalizedId && !isSyntheticSearchId(normalizedId)) {
             loadedInfo = await fetchGoogleBookFromVolumeId(normalizedId);
           }
+
           if (!loadedInfo && (titleParam || authorParam)) {
             loadedInfo = await fetchGoogleBookFromHints(titleParam, authorParam);
           }
-          if (!loadedInfo) throw new Error('Google Books record not found');
+
+          if (!loadedInfo && (titleParam || authorParam || legacy?.title || legacy?.author)) {
+            loadedInfo = await fetchOpenLibraryBookFromHints(
+              titleParam || legacy?.title || '',
+              authorParam || legacy?.author || ''
+            );
+          }
+
+          if (!loadedInfo && normalizedId && !isSyntheticSearchId(normalizedId)) {
+            loadedInfo = await fetchOpenLibraryBookFromWorkId(normalizedId);
+          }
+
+          if (!loadedInfo) throw new Error('Book record not found');
 
           bookInfo = loadedInfo;
           // Cache successful fetch
@@ -1068,6 +1232,15 @@
         bookCoverUrl = '';
         if (info.coverImage) {
           bookCoverUrl = toHttpsUrl(info.coverImage);
+        }
+        if (!bookCoverUrl && Number(info?.cover_i || 0) > 0) {
+          bookCoverUrl = buildOpenLibraryCoverUrl(Number(info.cover_i || 0), 'L');
+        }
+        if (!bookCoverUrl && Array.isArray(info?.covers) && info.covers.length) {
+          bookCoverUrl = buildOpenLibraryCoverUrl(Number(info.covers[0] || 0), 'L');
+        }
+        if (!bookCoverUrl && Array.isArray(info?.isbn) && info.isbn.length) {
+          bookCoverUrl = buildOpenLibraryCoverByIsbn(info.isbn[0], 'L');
         }
 
         document.getElementById('title').textContent = info.title || 'Untitled';
@@ -1100,10 +1273,18 @@
         const metaGridEl = document.getElementById('metaGrid');
         if (metaGridEl) {
           const items = [];
-          if (Array.isArray(info.authors) && info.authors.length) items.push(`Author: ${info.authors.join(', ')}`);
-          if (info.publisher) items.push(`Publisher: ${info.publisher}`);
+          const authorLabels = (Array.isArray(info.authors) ? info.authors : [])
+            .map((entry) => (typeof entry === 'string' ? entry : (entry?.name || entry?.author?.key || '')))
+            .filter(Boolean);
+          const publisherLabel = String(
+            info.publisher ||
+            (Array.isArray(info.publishers) && info.publishers.length ? info.publishers[0] : '')
+          ).trim();
+          const pageCount = Number(info.pageCount || info.number_of_pages || 0) || 0;
+          if (authorLabels.length) items.push(`Author: ${authorLabels.join(', ')}`);
+          if (publisherLabel) items.push(`Publisher: ${publisherLabel}`);
           if (info.publishedDate) items.push(`Published: ${info.publishedDate}`);
-          if (typeof info.pageCount === 'number') items.push(`Pages: ${info.pageCount}`);
+          if (pageCount > 0) items.push(`Pages: ${pageCount}`);
           if (info.language) items.push(`Language: ${String(info.language).toUpperCase()}`);
           if (info.maturityRating) items.push(`Maturity: ${info.maturityRating}`);
           if (info.averageRating) items.push(`Rating: ${info.averageRating} (${info.ratingsCount || 0})`);
