@@ -869,6 +869,23 @@
         };
       }
 
+      async function fetchGoogleBookFromStoredBook(idHint) {
+        if (!supabaseClient || !idHint) return null;
+        try {
+          const { data } = await supabaseClient
+            .from('books')
+            .select('id, title, authors')
+            .eq('id', idHint)
+            .maybeSingle();
+          const title = String(data?.title || '').trim();
+          const author = String(data?.authors || '').split(',')[0]?.trim() || '';
+          if (!title && !author) return null;
+          return await fetchGoogleBookFromHints(title, author);
+        } catch (_err) {
+          return null;
+        }
+      }
+
       async function booksFetch(path, paramsObj = {}) {
         const normalizedPath = String(path || '').startsWith('/') ? String(path) : `/${String(path || '')}`;
         const directUrl = new URL(normalizedPath, OPEN_LIBRARY_BASE);
@@ -903,12 +920,6 @@
             if (attempt < 3) {
               await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
             }
-          }
-        }
-        if (normalizedPath === '/search.json') {
-          const googleDocs = await fetchGoogleBooksDocs(paramsObj);
-          if (googleDocs.length) {
-            return { docs: googleDocs, numFound: googleDocs.length };
           }
         }
         throw lastError || new Error('Books API error');
@@ -1068,13 +1079,17 @@
           const normalizedId = id.startsWith('/works/') ? id.replace('/works/', '') : id;
           let loadedInfo = null;
           let resolvedWorkId = null;
+          const legacy = LEGACY_FAKE_WORK_MAP[String(normalizedId || '').toUpperCase()] || null;
 
-          if (isOpenLibraryWorkId(normalizedId)) {
+          loadedInfo =
+            await fetchGoogleBookFromHints(titleParam || legacy?.title || '', authorParam || legacy?.author || '') ||
+            await fetchGoogleBookFromStoredBook(normalizedId);
+
+          if (!loadedInfo && isOpenLibraryWorkId(normalizedId)) {
             try {
               loadedInfo = await booksFetch(`/works/${encodeURIComponent(normalizedId)}.json`);
               resolvedWorkId = normalizedId;
             } catch (_openLibraryErr) {
-              const legacy = LEGACY_FAKE_WORK_MAP[String(normalizedId || '').toUpperCase()] || null;
               const fallbackDoc =
                 await resolveWorkDocFromHints(titleParam || legacy?.title || '', authorParam || legacy?.author || '') ||
                 await resolveWorkDocFromStoredBook(normalizedId);
@@ -1084,30 +1099,19 @@
                 loadedInfo = await booksFetch(`/works/${encodeURIComponent(resolvedWorkId)}.json`);
               }
             }
-          } else if (isSyntheticSearchId(normalizedId) || titleParam || authorParam) {
+          } else if (!loadedInfo && (isSyntheticSearchId(normalizedId) || titleParam || authorParam)) {
             const fallbackDoc = await resolveWorkDocFromHints(titleParam, authorParam);
             const fallbackKey = String(fallbackDoc?.key || '').trim();
             if (fallbackKey.startsWith('/works/')) {
               resolvedWorkId = fallbackKey.replace(/^\/works\//i, '');
               loadedInfo = await booksFetch(`/works/${encodeURIComponent(resolvedWorkId)}.json`);
             }
-          } else {
+          } else if (!loadedInfo) {
             const fallbackDoc = await resolveWorkDocFromStoredBook(normalizedId);
             const fallbackKey = String(fallbackDoc?.key || '').trim();
             if (fallbackKey.startsWith('/works/')) {
               resolvedWorkId = fallbackKey.replace(/^\/works\//i, '');
               loadedInfo = await booksFetch(`/works/${encodeURIComponent(resolvedWorkId)}.json`);
-            }
-          }
-
-          if (!loadedInfo) {
-            const legacy = LEGACY_FAKE_WORK_MAP[String(normalizedId || '').toUpperCase()] || null;
-            const googleInfo = await fetchGoogleBookFromHints(
-              titleParam || legacy?.title || '',
-              authorParam || legacy?.author || ''
-            );
-            if (googleInfo) {
-              loadedInfo = googleInfo;
             }
           }
 
@@ -1889,8 +1893,13 @@
             return;
           }
           try {
-            const json = await booksFetch('/search.json', { q, limit: 6, lang: 'en' });
-            suggestions = (json.docs || []).slice(0, 6).map((b) => {
+            const googleDocs = await fetchGoogleBooksDocs({ q, limit: 6 });
+            let docs = googleDocs;
+            if (!docs.length) {
+              const json = await booksFetch('/search.json', { q, limit: 6, lang: 'en' });
+              docs = Array.isArray(json?.docs) ? json.docs : [];
+            }
+            suggestions = docs.slice(0, 6).map((b) => {
               const rawWorkId = String(b.key || '').replace(/^\/works\//i, '').trim();
               const author = Array.isArray(b.author_name) && b.author_name.length ? b.author_name[0] : 'Book';
               const fallbackId = `search-${String(b.title || 'book').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'book'}`;

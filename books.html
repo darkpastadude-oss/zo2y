@@ -883,6 +883,13 @@
           proxyUrl.searchParams.set(k, v);
         });
 
+        if (normalizedPath === '/search.json') {
+          const googleDocs = await fetchGoogleBooksDocs(params);
+          if (googleDocs.length) {
+            return { docs: googleDocs, numFound: googleDocs.length };
+          }
+        }
+
         const requestTargets = [proxyUrl.toString(), directUrl.toString()];
         let lastError = null;
 
@@ -907,12 +914,6 @@
             if (attempt < 3) {
               await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
             }
-          }
-        }
-        if (normalizedPath === '/search.json') {
-          const googleDocs = await fetchGoogleBooksDocs(params);
-          if (googleDocs.length) {
-            return { docs: googleDocs, numFound: googleDocs.length };
           }
         }
         throw lastError || new Error('Books API error');

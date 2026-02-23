@@ -5458,6 +5458,9 @@
         };
 
         const searchSeed = async (seed) => {
+          const googleDocs = await googleDocsFromSeed(seed);
+          if (googleDocs.length) return googleDocs;
+
           const primaryUrl =
             `/api/openlibrary/search.json?title=${encodeURIComponent(seed.title)}` +
             `&author=${encodeURIComponent(seed.author)}&language=eng&limit=5`;
@@ -5470,7 +5473,7 @@
           const fallback = await fetchJsonWithPerfCache(fallbackUrl, { signal, cacheKey: `books:ol:${fallbackUrl}` });
           const fallbackDocs = Array.isArray(fallback?.docs) ? fallback.docs : [];
           if (fallbackDocs.length) return fallbackDocs;
-          return await googleDocsFromSeed(seed);
+          return [];
         };
 
         const responses = [];
