@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zo2y-app-v2';
+const CACHE_NAME = 'zo2y-app-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

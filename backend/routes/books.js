@@ -386,6 +386,7 @@ router.get("/popular", async (req, res) => {
       }
     }
 
+    res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
     return res.json({
       ok: true,
       source,
@@ -416,8 +417,6 @@ router.get("/trending", async (req, res) => {
       limit
     );
 
-    docs = await enrichMissingCoversWithGoogle(docs, 8);
-
     if (!docs.length) {
       const popular = await fetchGoogleDocs({
         q: "subject:fiction",
@@ -427,6 +426,7 @@ router.get("/trending", async (req, res) => {
         language: "en"
       });
       docs = Array.isArray(popular.docs) ? popular.docs : [];
+      res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
       return res.json({
         ok: true,
         source: "google-books-fallback",
@@ -438,6 +438,7 @@ router.get("/trending", async (req, res) => {
       });
     }
 
+    res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
     return res.json({
       ok: true,
       source: "openlibrary-trending",

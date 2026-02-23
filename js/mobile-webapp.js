@@ -25,6 +25,7 @@
   const INSTALL_DISMISS_KEY = 'zo2y_mobile_install_dismissed_at_v2';
   const INSTALL_DONE_KEY = 'zo2y_mobile_install_done_v2';
   const INSTALL_REPROMPT_MS = 1000 * 60 * 60 * 12;
+  const ENABLE_MOBILE_INSTALL_PROMPT = false;
   let popupObserver = null;
   let pendingMutationRefreshMenus = false;
   let pendingMutationRefreshModals = false;
@@ -62,6 +63,7 @@
   };
 
   const shouldShowInstallPrompt = () => {
+    if (!ENABLE_MOBILE_INSTALL_PROMPT) return false;
     if (!isMobileLike) return false;
     if (AUTH_PAGE_KEYS.has(pageKey)) return false;
     if (hasOAuthParams()) return false;
@@ -499,12 +501,15 @@
     document.body.classList.add('app-ready');
     initListPopupShell();
     window.setTimeout(() => document.body.classList.remove('app-loading'), 180);
-    window.setTimeout(() => showInstallPromptCard(), 1200);
+    if (ENABLE_MOBILE_INSTALL_PROMPT) {
+      window.setTimeout(() => showInstallPromptCard(), 1200);
+    }
   });
 
   window.addEventListener('beforeinstallprompt', (event) => {
-    event.preventDefault();
     deferredInstallPrompt = event;
+    event.preventDefault();
+    if (!ENABLE_MOBILE_INSTALL_PROMPT) return;
     showInstallPromptCard({ force: true });
   });
 

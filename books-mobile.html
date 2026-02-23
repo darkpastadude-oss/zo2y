@@ -983,38 +983,37 @@
       }
 
       async function loadCuratedPopularBooks() {
-        let trendingDocs = [];
-        try {
-          const trending = await fetchTrendingBooks(BOOKS_PER_PAGE);
-          if (Array.isArray(trending?.docs) && trending.docs.length) {
-            trendingDocs = trending.docs.slice(0, BOOKS_PER_PAGE);
-          }
-        } catch (_err) {}
+        const [trendingResult, popularResult] = await Promise.allSettled([
+          fetchTrendingBooks(BOOKS_PER_PAGE),
+          fetchPopularBooks(1, BOOKS_PER_PAGE)
+        ]);
 
-        try {
-          const popular = await fetchPopularBooks(1, BOOKS_PER_PAGE);
-          if (Array.isArray(popular?.docs) && popular.docs.length) {
-            const merged = [];
-            const seen = new Set();
-            [...trendingDocs, ...popular.docs].forEach((doc) => {
-              const title = String(doc?.title || '').trim().toLowerCase();
-              const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').trim().toLowerCase();
-              const key = `${title}::${author}`;
-              if (!title || seen.has(key)) return;
-              seen.add(key);
-              merged.push(doc);
-            });
-            return {
-              docs: (merged.length ? merged : popular.docs).slice(0, BOOKS_PER_PAGE),
-              numFound: Number(popular.numFound || 0) || Math.max(popular.docs.length, BOOKS_PER_PAGE * 2)
-            };
-          }
-        } catch (_err) {}
+        const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
+        const popular = popularResult.status === 'fulfilled' ? popularResult.value : null;
+        const trendingDocs = Array.isArray(trending?.docs) ? trending.docs.slice(0, BOOKS_PER_PAGE) : [];
+        const popularDocs = Array.isArray(popular?.docs) ? popular.docs.slice(0, BOOKS_PER_PAGE) : [];
 
-        if (trendingDocs.length) {
+        if (popularDocs.length || trendingDocs.length) {
+          const merged = [];
+          const seen = new Set();
+          [...trendingDocs, ...popularDocs].forEach((doc) => {
+            const title = String(doc?.title || '').trim().toLowerCase();
+            const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').trim().toLowerCase();
+            const key = `${title}::${author}`;
+            if (!title || seen.has(key)) return;
+            seen.add(key);
+            merged.push(doc);
+          });
+
+          const docs = (merged.length ? merged : (popularDocs.length ? popularDocs : trendingDocs)).slice(0, BOOKS_PER_PAGE);
           return {
-            docs: trendingDocs,
-            numFound: BOOKS_PER_PAGE * 2
+            docs,
+            numFound: Math.max(
+              Number(popular?.numFound || 0),
+              Number(trending?.numFound || 0),
+              docs.length,
+              BOOKS_PER_PAGE * 2
+            )
           };
         }
 
