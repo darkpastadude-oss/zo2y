@@ -5677,6 +5677,11 @@ header, .top-stripe, .section-nav {
             let collaborativeListAccess = new Map();
             let editingMediaCollaborators = [];
             let hasWarnedMissingCollaborativeTable = false;
+            let statsRealtimeChannels = [];
+            let statsRealtimeTargetId = '';
+            let statsRealtimeRefreshTimer = null;
+            let hasBoundStatsRealtimeLifecycle = false;
+            const STATS_REALTIME_DEBOUNCE_MS = 220;
             const VALID_PROFILE_TABS = new Set(
                 ENABLE_RESTAURANTS
                     ? ['restaurants', 'movies', 'tv', 'games', 'books', 'music', 'community']
@@ -5946,6 +5951,7 @@ header, .top-stripe, .section-nav {
             async function logout() {
                 try {
                     showToast('Logging out...', 'info');
+                    await teardownStatsRealtimeSubscriptions();
                     await supabase.auth.signOut();
                     setTimeout(() => {
                         window.location.href = 'login.html';
@@ -5972,6 +5978,12 @@ header, .top-stripe, .section-nav {
                 }
                 const pinOwnerId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 await ensurePinnedCollectionsLoaded(pinOwnerId);
+                const statsOwnerId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (statsOwnerId) {
+                    setupStatsRealtimeSubscriptions(statsOwnerId).catch((error) => {
+                        console.error('Failed to setup realtime stats subscriptions:', error);
+                    });
+                }
             }
 
             // 3. FIX: Optimize loadProfile function (faster loading)
@@ -6480,6 +6492,118 @@ header, .top-stripe, .section-nav {
             }
 
             // ===== STATS =====
+            function clearStatsRealtimeRefreshTimer() {
+                if (!statsRealtimeRefreshTimer) return;
+                clearTimeout(statsRealtimeRefreshTimer);
+                statsRealtimeRefreshTimer = null;
+            }
+
+            function scheduleStatsRealtimeRefresh(userId = null) {
+                const targetId = String(userId || statsRealtimeTargetId || '').trim();
+                if (!targetId) return;
+                clearStatsRealtimeRefreshTimer();
+                statsRealtimeRefreshTimer = setTimeout(() => {
+                    updateStats(targetId).catch((error) => {
+                        console.error('Realtime stats refresh error:', error);
+                    });
+                }, STATS_REALTIME_DEBOUNCE_MS);
+            }
+
+            async function teardownStatsRealtimeSubscriptions() {
+                clearStatsRealtimeRefreshTimer();
+                statsRealtimeTargetId = '';
+                if (!supabase || !Array.isArray(statsRealtimeChannels) || !statsRealtimeChannels.length) {
+                    statsRealtimeChannels = [];
+                    return;
+                }
+                const channels = statsRealtimeChannels.slice();
+                statsRealtimeChannels = [];
+                await Promise.allSettled(channels.map((channel) => {
+                    try {
+                        return supabase.removeChannel(channel);
+                    } catch (_error) {
+                        return Promise.resolve();
+                    }
+                }));
+            }
+
+            function getStatsRealtimeDefinitions(targetId) {
+                const safeId = String(targetId || '').trim();
+                if (!safeId) return [];
+                const defs = [
+                    { table: 'follows', filter: `followed_id=eq.${safeId}` },
+                    { table: 'follows', filter: `follower_id=eq.${safeId}` },
+                    { table: 'movie_list_items', filter: `user_id=eq.${safeId}` },
+                    { table: 'tv_list_items', filter: `user_id=eq.${safeId}` },
+                    { table: 'game_list_items', filter: `user_id=eq.${safeId}` },
+                    { table: 'book_list_items', filter: `user_id=eq.${safeId}` },
+                    { table: 'music_list_items', filter: `user_id=eq.${safeId}` },
+                    { table: 'movie_lists', filter: `user_id=eq.${safeId}` },
+                    { table: 'tv_lists', filter: `user_id=eq.${safeId}` },
+                    { table: 'game_lists', filter: `user_id=eq.${safeId}` },
+                    { table: 'book_lists', filter: `user_id=eq.${safeId}` },
+                    { table: 'music_lists', filter: `user_id=eq.${safeId}` },
+                    { table: 'journal_entries', filter: `user_id=eq.${safeId}` },
+                    { table: 'tv_reviews', filter: `user_id=eq.${safeId}` },
+                    { table: 'game_reviews', filter: `user_id=eq.${safeId}` },
+                    { table: 'book_reviews', filter: `user_id=eq.${safeId}` },
+                    { table: 'music_reviews', filter: `user_id=eq.${safeId}` }
+                ];
+                if (ENABLE_RESTAURANTS) {
+                    defs.push({ table: 'lists', filter: `user_id=eq.${safeId}` });
+                }
+                return defs;
+            }
+
+            async function setupStatsRealtimeSubscriptions(targetId) {
+                const safeId = String(targetId || '').trim();
+                if (!supabase || !safeId) return;
+
+                if (statsRealtimeTargetId === safeId && Array.isArray(statsRealtimeChannels) && statsRealtimeChannels.length) {
+                    return;
+                }
+
+                await teardownStatsRealtimeSubscriptions();
+                statsRealtimeTargetId = safeId;
+
+                const definitions = getStatsRealtimeDefinitions(safeId);
+                definitions.forEach((def, index) => {
+                    const channelName = `profile-stats-${def.table}-${index}-${safeId.slice(0, 12)}-${Date.now().toString(36)}`;
+                    const channel = supabase
+                        .channel(channelName)
+                        .on('postgres_changes', {
+                            event: '*',
+                            schema: 'public',
+                            table: def.table,
+                            filter: def.filter
+                        }, () => {
+                            scheduleStatsRealtimeRefresh(safeId);
+                        })
+                        .subscribe((status) => {
+                            if (status === 'CHANNEL_ERROR') {
+                                console.warn(`Stats realtime channel error for ${def.table}`);
+                            }
+                        });
+                    statsRealtimeChannels.push(channel);
+                });
+
+                if (!hasBoundStatsRealtimeLifecycle) {
+                    hasBoundStatsRealtimeLifecycle = true;
+                    window.addEventListener('beforeunload', () => {
+                        if (!supabase || !statsRealtimeChannels.length) return;
+                        statsRealtimeChannels.forEach((channel) => {
+                            try { supabase.removeChannel(channel); } catch (_error) {}
+                        });
+                        statsRealtimeChannels = [];
+                    });
+                    document.addEventListener('visibilitychange', () => {
+                        if (!document.hidden && statsRealtimeTargetId) {
+                            scheduleStatsRealtimeRefresh(statsRealtimeTargetId);
+                        }
+                    });
+                }
+            }
+
             function isIgnorableStatsError(error) {
                 const code = String(error?.code || '').trim();
                 const message = String(error?.message || error?.details || '').toLowerCase();
