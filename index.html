@@ -4493,6 +4493,7 @@
 
     async function getVerifiedHomeUser(client) {
       // Short retry window to avoid race right after OAuth redirect.
+      let refreshAttempted = false;
       for (let attempt = 0; attempt < 4; attempt += 1) {
         const { data: sessionData } = await client.auth.getSession();
         const session = sessionData?.session || null;
@@ -4518,9 +4519,15 @@
           errorMessage.includes('unauthorized');
 
         if (invalidSession) {
-          // Session token in local storage can be stale and cause false "logged in" redirects.
-          await client.auth.signOut({ scope: 'local' });
-        } else if (attempt < 3) {
+          if (!refreshAttempted) {
+            refreshAttempted = true;
+            const { data: refreshed, error: refreshError } = await client.auth.refreshSession();
+            if (!refreshError && refreshed?.session?.user) {
+              return refreshed.session.user;
+            }
+          }
+        }
+        if (attempt < 3) {
           await new Promise((resolve) => setTimeout(resolve, 250));
           continue;
         }
@@ -5446,7 +5453,7 @@
 
       try {
         const limit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 24);
-        const [trendingJson, popularJson] = await Promise.all([
+        const [trendingResult, popularResult] = await Promise.allSettled([
           fetchJsonWithPerfCache(
             `/api/books/trending?period=weekly&limit=${limit}`,
             { signal, cacheKey: `books:trending:${limit}` }
@@ -5456,6 +5463,8 @@
             { signal, cacheKey: `books:popular:${limit}` }
           )
         ]);
+        const trendingJson = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
+        const popularJson = popularResult.status === 'fulfilled' ? popularResult.value : null;
 
         const trendingDocsRaw = Array.isArray(trendingJson?.docs)
           ? trendingJson.docs

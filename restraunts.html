@@ -2643,7 +2643,8 @@ header, .top-stripe, .section-nav {
           errorMessage.includes('unauthorized');
 
         if (invalidSession) {
-          await supabase.auth.signOut({ scope: 'local' });
+          const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+          if (!refreshError && refreshed?.session?.user) return refreshed.session.user;
         }
         return null;
       }

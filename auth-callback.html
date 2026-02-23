@@ -135,6 +135,7 @@
       }
 
       async function waitForVerifiedUser(client) {
+        let refreshAttempted = false;
         for (let attempt = 0; attempt < 4; attempt += 1) {
           const { data: sessionData } = await client.auth.getSession();
           const session = sessionData?.session || null;
@@ -158,8 +159,11 @@
             errorMessage.includes('unauthorized');
 
           if (invalidSession) {
-            await client.auth.signOut({ scope: 'local' });
-            return null;
+            if (!refreshAttempted) {
+              refreshAttempted = true;
+              const { data: refreshed, error: refreshError } = await client.auth.refreshSession();
+              if (!refreshError && refreshed?.session?.user) return refreshed.session.user;
+            }
           }
 
           if (attempt < 3) {

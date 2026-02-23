@@ -3812,6 +3812,7 @@ class RestaurantListManager {
     async checkAuth() {
         try {
             const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+            let resolvedUser = userData?.user || null;
             if (userError) {
                 const errorMessage = String(userError.message || '').toLowerCase();
                 const invalidSession =
@@ -3821,10 +3822,13 @@ class RestaurantListManager {
                     errorMessage.includes('session') ||
                     errorMessage.includes('unauthorized');
                 if (invalidSession) {
-                    await supabaseClient.auth.signOut({ scope: 'local' });
+                    const { data: refreshed, error: refreshError } = await supabaseClient.auth.refreshSession();
+                    if (!refreshError && refreshed?.session?.user) {
+                        resolvedUser = refreshed.session.user;
+                    }
                 }
             }
-            this.currentUser = userData?.user || null;
+            this.currentUser = resolvedUser;
             
             if (this.currentUser) {
                 console.log('📋 User authenticated:', this.currentUser.id);

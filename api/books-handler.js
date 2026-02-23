@@ -198,7 +198,9 @@ async function fetchGoogleDocs(params = {}) {
   const page = clampInt(params.page, 1, 1000, 1);
   const startIndex = clampInt(params.startIndex, 0, 2000, (page - 1) * limit);
   const orderBy = String(params.orderBy || "").trim();
-  const lang = String(params.language || params.lang || "en").trim();
+  let lang = String(params.language || params.lang || "en").trim().toLowerCase();
+  if (lang === "eng") lang = "en";
+  if (lang.length > 2) lang = lang.slice(0, 2);
 
   const url = new URL(`${GOOGLE_BOOKS_BASE}/volumes`);
   url.searchParams.set("q", query);

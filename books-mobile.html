@@ -752,13 +752,6 @@
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = 'images/logo.png';
-        const FALLBACK_BOOKS = [
-          { title: 'Pride and Prejudice', author_name: ['Jane Austen'], first_publish_year: 1813, isbn: ['9780141199078'] },
-          { title: 'Murder on the Orient Express', author_name: ['Agatha Christie'], first_publish_year: 1934, isbn: ['9780007119318'] },
-          { title: 'The Hobbit', author_name: ['J.R.R. Tolkien'], first_publish_year: 1937, isbn: ['9780261102217'] },
-          { title: 'Sapiens', author_name: ['Yuval Noah Harari'], first_publish_year: 2011, isbn: ['9780062316097'] },
-          { title: 'Atomic Habits', author_name: ['James Clear'], first_publish_year: 2018, isbn: ['9780735211292'] }
-        ];
       const BOOKS_PER_PAGE = 20;
       const CATEGORY_OPTIONS = [
         'Fiction',
@@ -1025,77 +1018,7 @@
           };
         }
 
-        let seedsRaw = FALLBACK_BOOKS.map((b) => ({ title: b.title, author: (Array.isArray(b.author_name) ? b.author_name[0] : 'Unknown author') }));
-        try {
-          const res = await fetch('/books-popular.json');
-          if (res.ok) {
-            const json = await res.json();
-            if (Array.isArray(json) && json.length) seedsRaw = json;
-          }
-        } catch (_err) {}
-        const seeds = Array.isArray(seedsRaw) ? seedsRaw : [];
-        const candidates = seeds
-          .map((seed) => ({
-            title: String(seed?.title || '').trim(),
-            author: String(seed?.author || '').trim()
-          }))
-          .filter((seed) => seed.title && seed.author)
-          .slice(0, BOOKS_PER_PAGE);
-        const searchSeed = async (seed) => {
-          const primary = await booksFetch('/search.json', {
-            title: seed.title,
-            author: seed.author,
-            language: 'eng',
-            limit: 5
-          }).catch(() => null);
-          const primaryDocs = Array.isArray(primary?.docs) ? primary.docs : [];
-          if (primaryDocs.length) return primaryDocs;
-          const fallbackQ = `${seed.title} ${seed.author}`;
-          const fallback = await booksFetch('/search.json', {
-            q: fallbackQ,
-            language: 'eng',
-            limit: 5
-          }).catch(() => null);
-          return Array.isArray(fallback?.docs) ? fallback.docs : [];
-        };
-
-        const results = [];
-        for (let idx = 0; idx < candidates.length; idx += 1) {
-          const seed = candidates[idx];
-          const docs = await searchSeed(seed);
-          const preferred = docs.find((doc) => {
-            const title = String(doc?.title || '').toLowerCase();
-            const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').toLowerCase();
-            return title.includes(seed.title.toLowerCase()) && author.includes(seed.author.toLowerCase());
-          }) || docs[0];
-          if (preferred) {
-            results.push(preferred);
-            continue;
-          }
-          results.push({
-            key: '',
-            title: seed.title,
-            author_name: [seed.author],
-            first_publish_year: null,
-            isbn: [],
-            subject: [],
-            publisher: []
-          });
-        }
-        const seen = new Set();
-        const docs = results.filter(Boolean).map((doc, idx) => {
-          const title = String(doc?.title || '').trim();
-          const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').trim();
-          const key = `${title.toLowerCase()}::${author.toLowerCase()}`;
-          if (!title || seen.has(key)) return null;
-          seen.add(key);
-          if (doc?.key) return doc;
-          return {
-            ...doc,
-            key: `search-seed-${idx}`
-          };
-        }).filter(Boolean);
-        return { docs, numFound: docs.length };
+        return { docs: [], numFound: 0 };
       }
 
       function stripHtml(html) {
@@ -1349,17 +1272,13 @@
         const empty = document.getElementById('emptyState');
         if (!grid) return;
         const requestSeq = ++state.requestSeq;
-        const hasCustomQuery = !!String(state.query || '').trim() || !!String(state.author || '').trim() || !!String(state.activeCategory || '').trim() || !!String(state.year || '').trim();
 
         let data;
-        if (!hasCustomQuery && Number(state.page || 1) === 1) {
-          displayBookResults(FALLBACK_BOOKS, FALLBACK_BOOKS.length);
-        }
         try {
           const params = {
             page: state.page,
             limit: BOOKS_PER_PAGE,
-            language: 'eng'
+            language: 'en'
           };
           if (state.query) params.q = state.query;
           if (state.author) params.author = state.author;
@@ -1376,12 +1295,12 @@
             data = await booksFetch('/search.json', params);
           }
           if (!Array.isArray(data?.docs) || !data.docs.length) {
-            data = { docs: FALLBACK_BOOKS, numFound: FALLBACK_BOOKS.length };
+            data = { docs: [], numFound: 0 };
           }
         } catch (e) {
           console.error('Books fetch error', e);
-          showNotification('Could not load remote books; showing offline fallback', 'error', 4000);
-          data = { docs: FALLBACK_BOOKS, numFound: FALLBACK_BOOKS.length };
+          showNotification('Could not load books right now. Please try again.', 'error', 4000);
+          data = { docs: [], numFound: 0 };
         }
 
         if (requestSeq !== state.requestSeq) return;
