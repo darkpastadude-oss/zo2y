@@ -4,6 +4,7 @@ import { applyApiGuardrails } from "./_guardrails.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
+dotenv.config({ path: "backend/authRoutes/.env" });
 
 const app = express();
 applyApiGuardrails(app, { keyPrefix: "api-books", max: 220 });
@@ -28,22 +29,34 @@ function pushQueryParam(params, key, value) {
 app.get("/api/books/*", async (req, res) => {
   try {
     const key = getBooksKey();
-    if (!key) {
-      return res.status(503).json({ message: "Google Books is not configured" });
-    }
-
     const relativePath = req.path.replace(/^\/api\/books\//, "");
     const url = new URL(`${GOOGLE_BOOKS_BASE}/${relativePath}`);
     Object.entries(req.query || {}).forEach(([paramKey, value]) => pushQueryParam(url.searchParams, paramKey, value));
-    if (!url.searchParams.get("key")) {
+    if (key && !url.searchParams.get("key")) {
       url.searchParams.set("key", key);
     }
 
-    const booksRes = await fetch(url.toString());
-    const text = await booksRes.text();
-    res.status(booksRes.status);
-    res.setHeader("content-type", booksRes.headers.get("content-type") || "application/json; charset=utf-8");
-    return res.send(text);
+    let lastError = null;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const booksRes = await fetch(url.toString());
+        const text = await booksRes.text();
+        const retryable = booksRes.status === 429 || booksRes.status >= 500;
+        if (!retryable || attempt === 2) {
+          res.status(booksRes.status);
+          res.setHeader("content-type", booksRes.headers.get("content-type") || "application/json; charset=utf-8");
+          return res.send(text);
+        }
+        lastError = new Error(`Google Books error ${booksRes.status}: ${text}`);
+      } catch (error) {
+        lastError = error;
+      }
+      if (attempt < 2) {
+        await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+      }
+    }
+
+    return res.status(502).json({ message: lastError?.message || "Books proxy upstream failure" });
   } catch (error) {
     return res.status(500).json({ message: error.message || "Books proxy error" });
   }

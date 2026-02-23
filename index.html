@@ -1651,354 +1651,6 @@
       }
     }
 
-    .ai-chat-shell {
-      position: fixed;
-      right: 16px !important;
-      left: auto !important;
-      bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
-      top: auto !important;
-      z-index: 2147483000;
-      display: grid;
-      gap: 10px;
-      justify-items: end;
-      pointer-events: none;
-    }
-
-    .ai-chat-shell > * { pointer-events: auto; }
-
-    .ai-chat-toggle {
-      position: relative;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      border: 1px solid rgba(245, 158, 11, 0.45);
-      background: linear-gradient(135deg, #f59e0b, #ffbf5b);
-      color: #0b1633;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 21px;
-      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .ai-chat-toggle:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.42);
-    }
-
-    .ai-chat-badge {
-      position: absolute;
-      top: -4px;
-      right: -4px;
-      min-width: 20px;
-      height: 20px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.25);
-      background: #ef4444;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 6px;
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
-    }
-
-    .ai-chat-badge.hidden { display: none; }
-
-    .ai-chat-panel {
-      width: min(360px, calc(100vw - 22px));
-      height: min(520px, calc(100vh - 120px));
-      border-radius: 18px;
-      border: 1px solid var(--border);
-      background: rgba(13, 27, 58, 0.96);
-      backdrop-filter: blur(12px);
-      box-shadow: var(--shadow);
-      display: none;
-      grid-template-rows: auto 1fr auto;
-      overflow: hidden;
-    }
-
-    .ai-chat-panel.open { display: grid; }
-
-    .ai-chat-head {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .ai-chat-title {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .ai-chat-title-wrap {
-      display: grid;
-      gap: 1px;
-      line-height: 1.1;
-    }
-
-    .ai-chat-subtitle {
-      font-size: 11px;
-      color: #9fb1d6;
-      font-weight: 500;
-    }
-
-    .ai-chat-head-actions {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .ai-chat-status {
-      border: 1px solid var(--border);
-      background: #132951;
-      color: #9fb1d6;
-      border-radius: 999px;
-      padding: 4px 8px;
-      font-size: 11px;
-      line-height: 1;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .ai-chat-status.online {
-      border-color: rgba(34, 197, 94, 0.45);
-      color: #c9f5d7;
-      background: rgba(34, 197, 94, 0.12);
-    }
-
-    .ai-chat-status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #94a3b8;
-    }
-
-    .ai-chat-status.online .ai-chat-status-dot {
-      background: #22c55e;
-      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.24);
-    }
-
-    .ai-chat-close {
-      border: 0;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 16px;
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-    }
-
-    .ai-chat-close:hover {
-      color: var(--white);
-      background: rgba(255,255,255,0.08);
-    }
-
-    .ai-chat-messages {
-      padding: 12px;
-      overflow-y: auto;
-      display: grid;
-      gap: 8px;
-      align-content: start;
-    }
-
-    .ai-msg {
-      max-width: 90%;
-      font-size: 13px;
-      line-height: 1.45;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      white-space: pre-wrap;
-    }
-
-    .ai-msg.bot {
-      background: #152954;
-      color: #eaf1ff;
-      justify-self: start;
-    }
-
-    .ai-msg.user {
-      background: #21386f;
-      color: #fff;
-      justify-self: end;
-    }
-
-    .ai-chat-input-wrap {
-      border-top: 1px solid var(--border);
-      padding: 10px;
-      display: grid;
-      gap: 8px;
-    }
-
-    .ai-chat-quick {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .ai-chat-chip {
-      border: 1px solid var(--border);
-      background: #14274f;
-      color: #dbe7ff;
-      border-radius: 999px;
-      padding: 5px 9px;
-      font-size: 11px;
-      cursor: pointer;
-    }
-
-    .ai-chat-chip:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .ai-chat-form {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-    }
-
-    .ai-chat-input {
-      height: 40px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #122446;
-      color: #fff;
-      padding: 0 12px;
-      outline: none;
-      font-size: 13px;
-    }
-
-    .ai-chat-send {
-      height: 40px;
-      border: 0;
-      border-radius: 10px;
-      background: var(--gradient);
-      color: #0b1633;
-      font-weight: 700;
-      padding: 0 12px;
-      cursor: pointer;
-    }
-
-    .ai-chat-send:hover { filter: brightness(1.03); }
-
-    .ai-rec-list {
-      margin-top: 8px;
-      display: grid;
-      gap: 8px;
-    }
-
-    .ai-rec-card {
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px;
-      background: #102347;
-      display: grid;
-      grid-template-columns: 48px 1fr;
-      gap: 8px;
-      padding: 7px;
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .ai-rec-card:hover {
-      border-color: rgba(245, 158, 11, 0.4);
-      background: #12305e;
-    }
-
-    .ai-rec-image {
-      width: 48px;
-      height: 64px;
-      object-fit: cover;
-      border-radius: 7px;
-      background: #0a1737;
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .ai-rec-info {
-      min-width: 0;
-      display: grid;
-      gap: 3px;
-      align-content: start;
-    }
-
-    .ai-rec-type {
-      font-size: 10px;
-      color: #f8cf73;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-weight: 700;
-    }
-
-    .ai-rec-title {
-      font-size: 12px;
-      color: #eff5ff;
-      font-weight: 700;
-      line-height: 1.2;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .ai-rec-reason {
-      font-size: 11px;
-      color: #b8c8e8;
-      line-height: 1.3;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .ai-msg.typing {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      width: auto;
-      padding: 10px 12px;
-    }
-
-    .ai-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #b9c8e7;
-      opacity: 0.65;
-      animation: aiDotPulse 1.2s ease-in-out infinite;
-    }
-
-    .ai-dot:nth-child(2) { animation-delay: 0.15s; }
-    .ai-dot:nth-child(3) { animation-delay: 0.3s; }
-
-    @keyframes aiDotPulse {
-      0%, 80%, 100% { transform: translateY(0); opacity: 0.45; }
-      40% { transform: translateY(-3px); opacity: 1; }
-    }
-
-    @media (max-width: 768px) {
-      .ai-chat-shell {
-        right: 10px !important;
-        left: auto !important;
-        bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
-      }
-
-      .ai-chat-panel {
-        width: min(350px, calc(100vw - 16px));
-        height: min(500px, calc(100vh - 162px));
-      }
-    }
   </style>
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -2114,40 +1766,6 @@
     <a href="privacy.html">Privacy</a>
     <a href="terms.html">Terms</a>
     <a href="support.html">Support</a>
-  </div>
-
-  <div class="ai-chat-shell" id="aiChatShell">
-    <div class="ai-chat-panel" id="aiChatPanel" aria-live="polite">
-      <div class="ai-chat-head">
-        <div class="ai-chat-title">
-          <i class="fas fa-robot"></i>
-          <div class="ai-chat-title-wrap">
-            <span>Zo2y AI</span>
-            <span class="ai-chat-subtitle">Smart recommendations</span>
-          </div>
-        </div>
-        <div class="ai-chat-head-actions">
-          <span class="ai-chat-status offline" id="aiChatStatus"><span class="ai-chat-status-dot"></span>Offline</span>
-          <button class="ai-chat-close" id="aiChatCloseBtn" aria-label="Close assistant"><i class="fas fa-xmark"></i></button>
-        </div>
-      </div>
-      <div class="ai-chat-messages" id="aiChatMessages"></div>
-      <div class="ai-chat-input-wrap">
-        <div class="ai-chat-quick">
-          <button class="ai-chat-chip" data-prompt="Recommend me movies like Inception">Sci-fi movies</button>
-          <button class="ai-chat-chip" data-prompt="What should I play tonight?">Games</button>
-          <button class="ai-chat-chip" data-prompt="Give me a great book recommendation">Books</button>
-        </div>
-        <form class="ai-chat-form" id="aiChatForm">
-          <input class="ai-chat-input" id="aiChatInput" type="text" maxlength="220" placeholder="Ask for recommendations..." />
-          <button class="ai-chat-send" type="submit"><i class="fas fa-paper-plane"></i></button>
-        </form>
-      </div>
-    </div>
-    <button class="ai-chat-toggle" id="aiChatToggleBtn" aria-label="Open Zo2y AI">
-      <i class="fas fa-robot"></i>
-      <span class="ai-chat-badge hidden" id="aiChatUnreadBadge">0</span>
-    </button>
   </div>
 
   <nav class="mobile-bottom-nav" aria-label="Mobile sections">
@@ -5044,375 +4662,6 @@
       return raw.filter((item) => !item?.isPlaceholder && String(item?.title || '').trim());
     }
 
-    function detectHomeChatIntent(prompt) {
-      const text = String(prompt || '').toLowerCase();
-      if (/movie|film|cinema|watch/.test(text)) return 'movie';
-      if (/tv|show|series|episode/.test(text)) return 'tv';
-      if (/game|play|gaming|xbox|ps5|switch/.test(text)) return 'game';
-      if (/book|read|novel/.test(text)) return 'book';
-      if (/music|song|track|listen/.test(text)) return 'music';
-      return 'mixed';
-    }
-
-    function buildHomeChatReply(prompt) {
-      const intent = detectHomeChatIntent(prompt);
-      const mood = String(prompt || '').toLowerCase();
-      const energetic = /hype|fast|action|adrenaline|party|workout/.test(mood);
-      const calm = /calm|chill|relax|quiet|cozy|soft/.test(mood);
-      const pools = {
-        movie: getHomeRecommendationPoolByType('movie'),
-        tv: getHomeRecommendationPoolByType('tv'),
-        game: getHomeRecommendationPoolByType('game'),
-        book: getHomeRecommendationPoolByType('book'),
-        music: getHomeRecommendationPoolByType('music')
-      };
-
-      let picks = [];
-      if (intent === 'mixed') {
-        picks = HOME_BASE_MEDIA_TYPES.flatMap((type) => pools[type].slice(0, 2)).slice(0, 6);
-      } else {
-        picks = pools[intent].slice(0, 6);
-      }
-
-      if (!picks.length) {
-        return {
-          text: 'I do not have live picks loaded yet. Try opening Movies, TV, Games, Books, or Music and ask again.',
-          picks: []
-        };
-      }
-
-      const tone = energetic
-        ? 'You asked for higher energy, so I prioritized louder, momentum-heavy picks.'
-        : (calm ? 'You asked for something calmer, so these skew atmospheric and easy to sink into.' : 'Here are good picks from what is trending on Zo2y right now.');
-
-      return { text: tone, picks };
-    }
-
-    function buildHomeChatFallbackHref(item) {
-      const mediaType = String(item?.media_type || item?.mediaType || '').toLowerCase();
-      const itemId = String(item?.item_id || item?.itemId || '').trim();
-      if (mediaType === 'movie') return itemId ? `movie.html?id=${encodeURIComponent(itemId)}` : 'movies.html';
-      if (mediaType === 'tv') return itemId ? `tvshow.html?id=${encodeURIComponent(itemId)}` : 'tvshows.html';
-      if (mediaType === 'game') return itemId ? `game.html?id=${encodeURIComponent(itemId)}` : 'games.html';
-      if (mediaType === 'book') return itemId ? `book.html?id=${encodeURIComponent(itemId)}` : 'books.html';
-      if (mediaType === 'music') return itemId ? `song.html?id=${encodeURIComponent(itemId)}` : 'music.html';
-      return '#';
-    }
-
-    function createAiMessageNode(text, role = 'bot', picks = []) {
-      const wrap = document.createElement('div');
-      wrap.className = `ai-msg ${role === 'user' ? 'user' : 'bot'}`;
-      wrap.textContent = text;
-      if (role === 'bot' && Array.isArray(picks) && picks.length) {
-        const list = document.createElement('div');
-        list.className = 'ai-rec-list';
-        picks.forEach((item) => {
-          const mediaType = String(item?.mediaType || item?.media_type || '').toLowerCase();
-          const card = document.createElement('a');
-          card.className = 'ai-rec-card';
-          card.href = String(item?.href || '').trim() || buildHomeChatFallbackHref(item);
-          const image = document.createElement('img');
-          image.className = 'ai-rec-image';
-          image.alt = String(item?.title || 'Recommendation');
-          image.loading = 'lazy';
-          image.decoding = 'async';
-          image.src = String(item?.image || '').trim() || 'images/logo.png';
-          image.onerror = () => {
-            image.onerror = null;
-            image.src = 'images/logo.png';
-          };
-          const info = document.createElement('div');
-          info.className = 'ai-rec-info';
-          const typeNode = document.createElement('div');
-          typeNode.className = 'ai-rec-type';
-          typeNode.textContent = homeMediaLabel(mediaType);
-          const titleNode = document.createElement('div');
-          titleNode.className = 'ai-rec-title';
-          titleNode.textContent = String(item?.title || 'Untitled');
-          const reasonNode = document.createElement('div');
-          reasonNode.className = 'ai-rec-reason';
-          reasonNode.textContent = String(item?.reason || item?.subtitle || 'Good match for your vibe right now.');
-          info.appendChild(typeNode);
-          info.appendChild(titleNode);
-          info.appendChild(reasonNode);
-          card.appendChild(image);
-          card.appendChild(info);
-          list.appendChild(card);
-        });
-        wrap.appendChild(list);
-      }
-      return wrap;
-    }
-
-    function createAiTypingNode() {
-      const wrap = document.createElement('div');
-      wrap.className = 'ai-msg bot typing';
-      wrap.setAttribute('aria-label', 'Zo2y AI is typing');
-      for (let i = 0; i < 3; i += 1) {
-        const dot = document.createElement('span');
-        dot.className = 'ai-dot';
-        wrap.appendChild(dot);
-      }
-      return wrap;
-    }
-
-    function buildChatCandidatesFromHome() {
-      const out = [];
-      HOME_BASE_MEDIA_TYPES.forEach((type) => {
-        const rows = getHomeRecommendationPoolByType(type).slice(0, 16);
-        rows.forEach((item) => {
-          out.push({
-            media_type: type,
-            item_id: String(item?.itemId || '').trim(),
-            title: String(item?.title || '').trim(),
-            subtitle: String(item?.subtitle || '').trim(),
-            image: String(item?.image || '').trim(),
-            href: String(item?.href || '').trim()
-          });
-        });
-      });
-      return out.filter((row) => row.title);
-    }
-
-    async function requestSmartChatReply(prompt) {
-      const candidates = buildChatCandidatesFromHome();
-      const mediaType = detectHomeChatIntent(prompt);
-      if (!candidates.length) {
-        return buildHomeChatReply(prompt);
-      }
-
-      const payload = {
-        message: String(prompt || '').trim(),
-        media_type: mediaType,
-        user_id: String(homeCurrentUser?.id || '').trim() || null,
-        candidates
-      };
-
-      const res = await fetch('/api/chat/recommend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => null);
-        const err = new Error(String(errBody?.message || `chat_failed_${res.status}`));
-        err.statusCode = Number(res.status || 0);
-        throw err;
-      }
-      const json = await res.json();
-      const picks = Array.isArray(json?.recommendations) ? json.recommendations : [];
-      const normalizedPicks = picks.map((row) => ({
-        media_type: String(row?.media_type || '').trim().toLowerCase(),
-        item_id: String(row?.item_id || '').trim(),
-        title: String(row?.title || '').trim(),
-        reason: String(row?.reason || '').trim(),
-        href: String(row?.href || '').trim(),
-        image: String(row?.image || '').trim()
-      })).filter((row) => row.title);
-
-      return {
-        text: String(json?.reply || '').trim() || 'Here are smart picks for you.',
-        picks: normalizedPicks
-      };
-    }
-
-    function initHomeAiChat() {
-      const panel = document.getElementById('aiChatPanel');
-      const toggleBtn = document.getElementById('aiChatToggleBtn');
-      const closeBtn = document.getElementById('aiChatCloseBtn');
-      const statusEl = document.getElementById('aiChatStatus');
-      const unreadBadge = document.getElementById('aiChatUnreadBadge');
-      const messages = document.getElementById('aiChatMessages');
-      const form = document.getElementById('aiChatForm');
-      const input = document.getElementById('aiChatInput');
-      if (!panel || !toggleBtn || !closeBtn || !messages || !form || !input || !statusEl || !unreadBadge) return;
-
-      const chatStorageKey = 'zo2y_ai_chat_history_v2';
-      const chatOpenStorageKey = 'zo2y_ai_chat_open_v2';
-      let unreadCount = 0;
-      let typingNode = null;
-      let history = [];
-
-      const saveHistory = () => {
-        try {
-          localStorage.setItem(chatStorageKey, JSON.stringify(history.slice(-30)));
-        } catch (_err) {
-          // Ignore storage failures.
-        }
-      };
-
-      const saveOpenState = () => {
-        try {
-          localStorage.setItem(chatOpenStorageKey, panel.classList.contains('open') ? '1' : '0');
-        } catch (_err) {
-          // Ignore storage failures.
-        }
-      };
-
-      const setStatus = (online) => {
-        statusEl.classList.toggle('online', !!online);
-        if (online) {
-          statusEl.innerHTML = '<span class="ai-chat-status-dot"></span>Online';
-        } else {
-          statusEl.innerHTML = '<span class="ai-chat-status-dot"></span>Offline';
-        }
-      };
-
-      const refreshHealth = async () => {
-        try {
-          const res = await fetch('/api/chat/health', { method: 'GET', cache: 'no-store' });
-          if (!res.ok) {
-            setStatus(false);
-            return;
-          }
-          const json = await res.json().catch(() => null);
-          setStatus(!!json?.ok && !!json?.configured);
-        } catch (_err) {
-          setStatus(false);
-        }
-      };
-
-      const updateUnreadBadge = () => {
-        unreadBadge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
-        unreadBadge.classList.toggle('hidden', unreadCount <= 0);
-      };
-
-      const clearUnread = () => {
-        unreadCount = 0;
-        updateUnreadBadge();
-      };
-
-      const appendMsg = (text, role = 'bot', picks = [], persist = true) => {
-        messages.appendChild(createAiMessageNode(text, role, picks));
-        messages.scrollTop = messages.scrollHeight;
-        if (persist) {
-          history.push({
-            role: role === 'user' ? 'user' : 'bot',
-            text: String(text || ''),
-            picks: Array.isArray(picks) ? picks.slice(0, 6) : []
-          });
-          saveHistory();
-        }
-        if (persist && role === 'bot' && !panel.classList.contains('open')) {
-          unreadCount += 1;
-          updateUnreadBadge();
-        }
-      };
-
-      const showTyping = () => {
-        if (typingNode) return;
-        typingNode = createAiTypingNode();
-        messages.appendChild(typingNode);
-        messages.scrollTop = messages.scrollHeight;
-      };
-
-      const hideTyping = () => {
-        if (!typingNode) return;
-        typingNode.remove();
-        typingNode = null;
-      };
-
-      const submitPrompt = async (rawPrompt) => {
-        const prompt = String(rawPrompt || '').trim();
-        if (!prompt) return;
-        appendMsg(prompt, 'user', [], true);
-        showTyping();
-        try {
-          const reply = await requestSmartChatReply(prompt);
-          hideTyping();
-          appendMsg(reply.text, 'bot', reply.picks, true);
-        } catch (err) {
-          hideTyping();
-          const msg = String(err?.message || '');
-          const statusCode = Number(err?.statusCode || 0);
-          const aiError =
-            statusCode === 503 ||
-            statusCode === 502 ||
-            /OPENAI_API_KEY/i.test(msg) ||
-            /not configured/i.test(msg) ||
-            /AI provider error/i.test(msg);
-          if (aiError) {
-            appendMsg('AI is temporarily unavailable. Check `OPENAI_API_KEY` and `OPENAI_CHAT_MODEL` in deployment env, then redeploy.', 'bot', [], true);
-            return;
-          }
-          appendMsg(msg || 'I could not process that right now. Please try again in a moment.', 'bot', [], true);
-        }
-      };
-
-      const renderHistory = () => {
-        messages.innerHTML = '';
-        history.forEach((entry) => {
-          appendMsg(entry.text, entry.role, entry.picks, false);
-        });
-      };
-
-      try {
-        const rawHistory = localStorage.getItem(chatStorageKey);
-        const parsed = rawHistory ? JSON.parse(rawHistory) : [];
-        history = Array.isArray(parsed)
-          ? parsed
-            .map((entry) => ({
-              role: entry?.role === 'user' ? 'user' : 'bot',
-              text: String(entry?.text || ''),
-              picks: Array.isArray(entry?.picks) ? entry.picks : []
-            }))
-            .filter((entry) => entry.text)
-            .slice(-30)
-          : [];
-      } catch (_err) {
-        history = [];
-      }
-
-      if (!history.length) {
-        history.push({
-          role: 'bot',
-          text: 'Hey, I am Zo2y AI. Ask me what to watch, play, read, or listen to and I will suggest picks from your live homepage feed.',
-          picks: []
-        });
-        saveHistory();
-      }
-
-      renderHistory();
-
-      const shouldOpen = localStorage.getItem(chatOpenStorageKey) === '1';
-      if (shouldOpen) {
-        panel.classList.add('open');
-        clearUnread();
-        setTimeout(() => input.focus(), 40);
-      }
-
-      void refreshHealth();
-      setInterval(() => {
-        void refreshHealth();
-      }, 60000);
-
-      toggleBtn.addEventListener('click', () => {
-        panel.classList.toggle('open');
-        saveOpenState();
-        if (panel.classList.contains('open')) {
-          clearUnread();
-          input.focus();
-        }
-      });
-      closeBtn.addEventListener('click', () => {
-        panel.classList.remove('open');
-        saveOpenState();
-      });
-
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        void submitPrompt(input.value);
-        input.value = '';
-      });
-
-      document.querySelectorAll('.ai-chat-chip[data-prompt]').forEach((chip) => {
-        chip.addEventListener('click', () => {
-          const prompt = chip.getAttribute('data-prompt') || '';
-          void submitPrompt(prompt);
-        });
-      });
-    }
-
     function getHomeOnboardingSteps() {
       return [
         {
@@ -6171,6 +5420,43 @@
 
         const maxSeeds = Math.max(HOME_CHANNEL_TARGET_ITEMS, 12);
         const seedCandidates = seeds.slice(0, maxSeeds);
+        const googleDocsFromSeed = async (seed) => {
+          const qParts = [];
+          if (seed.title) qParts.push(`intitle:\"${seed.title}\"`);
+          if (seed.author) qParts.push(`inauthor:\"${seed.author}\"`);
+          const q = qParts.join(' ').trim() || `${seed.title} ${seed.author}`.trim();
+          if (!q) return [];
+          const googleUrl =
+            `/api/books/volumes?q=${encodeURIComponent(q)}` +
+            `&printType=books&langRestrict=en&maxResults=6`;
+          const json = await fetchJsonWithPerfCache(googleUrl, { signal, cacheKey: `books:g:${googleUrl}` });
+          const items = Array.isArray(json?.items) ? json.items : [];
+          return items.map((entry) => {
+            const info = entry?.volumeInfo || {};
+            const title = String(info?.title || '').trim();
+            const author = Array.isArray(info?.authors) && info.authors.length ? String(info.authors[0] || '').trim() : '';
+            const published = String(info?.publishedDate || '').trim();
+            const yearMatch = published.match(/\d{4}/);
+            const year = yearMatch ? Number(yearMatch[0]) : null;
+            const identifiers = Array.isArray(info?.industryIdentifiers) ? info.industryIdentifiers : [];
+            const isbn = identifiers
+              .map((x) => String(x?.identifier || '').replace(/[^0-9Xx]/g, ''))
+              .find(Boolean) || '';
+            const thumb = String(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || '')
+              .replace(/^http:\/\//i, 'https://')
+              .trim();
+            return {
+              key: '',
+              title,
+              author_name: author ? [author] : [],
+              first_publish_year: year,
+              isbn: isbn ? [isbn] : [],
+              cover_i: null,
+              _googleThumbnail: thumb
+            };
+          }).filter((row) => row.title);
+        };
+
         const searchSeed = async (seed) => {
           const primaryUrl =
             `/api/openlibrary/search.json?title=${encodeURIComponent(seed.title)}` +
@@ -6182,7 +5468,9 @@
           const fallbackQ = `${seed.title} ${seed.author}`;
           const fallbackUrl = `/api/openlibrary/search.json?q=${encodeURIComponent(fallbackQ)}&language=eng&limit=5`;
           const fallback = await fetchJsonWithPerfCache(fallbackUrl, { signal, cacheKey: `books:ol:${fallbackUrl}` });
-          return Array.isArray(fallback?.docs) ? fallback.docs : [];
+          const fallbackDocs = Array.isArray(fallback?.docs) ? fallback.docs : [];
+          if (fallbackDocs.length) return fallbackDocs;
+          return await googleDocsFromSeed(seed);
         };
 
         const responses = [];
@@ -6236,13 +5524,15 @@
           seen.add(dedupeKey);
 
           const workKey = String(chosen?.key || '').trim();
-          const itemId = workKey.replace(/^\/works\//i, '').trim() || `ol-seed-${idx}`;
+          const synthesizedId = `search-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `book-${idx}`}`;
+          const itemId = workKey.replace(/^\/works\//i, '').trim() || synthesizedId;
           const coverId = Number(chosen?.cover_i || 0);
           const isbnRaw = Array.isArray(chosen?.isbn) ? String(chosen.isbn[0] || '').trim() : '';
           const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
+          const googleThumb = String(chosen?._googleThumbnail || '').trim();
           const coverById = coverId ? `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg` : '';
           const coverByIsbn = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : '';
-          const cover = coverById || coverByIsbn || HOME_LOCAL_FALLBACK_IMAGE;
+          const cover = coverById || coverByIsbn || googleThumb || HOME_LOCAL_FALLBACK_IMAGE;
           const year = Number(chosen?.first_publish_year || 0) || 0;
           const subtitle = year ? `${author} | ${year}` : author;
           const popularityScore =
@@ -6264,7 +5554,9 @@
             fallbackImage: coverByIsbn || cover,
             isbn,
             popularityScore,
-            href: workKey ? `book.html?id=${encodeURIComponent(itemId)}` : 'books.html'
+            href: workKey
+              ? `book.html?id=${encodeURIComponent(itemId)}`
+              : `book.html?id=${encodeURIComponent(itemId)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`
           };
         }).filter(Boolean);
 
@@ -6568,8 +5860,6 @@
           fallbackRoute: 'movies.html'
         });
       }
-
-      initHomeAiChat();
 
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {

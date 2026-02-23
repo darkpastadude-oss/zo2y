@@ -736,6 +736,7 @@
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const OPEN_LIBRARY_BASE = 'https://openlibrary.org';
       const OPEN_LIBRARY_PROXY_BASE = '/api/openlibrary';
+      const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const OPEN_LIBRARY_COVERS = 'https://covers.openlibrary.org/b';
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
@@ -780,6 +781,94 @@
         return raw.startsWith('search-');
       }
 
+      function buildGoogleBooksQuery(paramsObj = {}) {
+        const title = String(paramsObj?.title || '').trim();
+        const author = String(paramsObj?.author || '').trim();
+        const qRaw = String(paramsObj?.q || '').trim();
+        const chunks = [];
+        if (title) chunks.push(`intitle:\"${title}\"`);
+        if (author) chunks.push(`inauthor:\"${author}\"`);
+        if (!chunks.length && qRaw) chunks.push(qRaw);
+        return chunks.join(' ').trim();
+      }
+
+      function normalizeGoogleBookDoc(volume, idx = 0) {
+        const info = volume?.volumeInfo || {};
+        const title = String(info?.title || `Book ${idx + 1}`).trim();
+        const authorNames = Array.isArray(info?.authors) ? info.authors.filter(Boolean).map((name) => String(name).trim()).filter(Boolean) : [];
+        const published = String(info?.publishedDate || '').trim();
+        const yearMatch = published.match(/\d{4}/);
+        const year = yearMatch ? Number(yearMatch[0]) : null;
+        const categories = Array.isArray(info?.categories) ? info.categories.filter(Boolean).map((entry) => String(entry).trim()) : [];
+        const publisher = String(info?.publisher || '').trim();
+        const identifiers = Array.isArray(info?.industryIdentifiers) ? info.industryIdentifiers : [];
+        const isbn = identifiers
+          .map((entry) => String(entry?.identifier || '').replace(/[^0-9Xx]/g, ''))
+          .filter(Boolean);
+        const thumb = String(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || '').replace(/^http:\/\//i, 'https://').trim();
+
+        return {
+          key: '',
+          title,
+          author_name: authorNames.length ? authorNames : ['Unknown author'],
+          first_publish_year: Number.isFinite(year) ? year : null,
+          isbn,
+          subject: categories,
+          publisher: publisher ? [publisher] : [],
+          cover_i: null,
+          _googleThumbnail: thumb,
+          _googleVolumeId: String(volume?.id || '').trim(),
+          _googleRaw: volume
+        };
+      }
+
+      async function fetchGoogleBooksDocs(paramsObj = {}) {
+        const q = buildGoogleBooksQuery(paramsObj);
+        if (!q) return [];
+        const googleUrl = new URL(`${GOOGLE_BOOKS_PROXY_BASE}/volumes`, window.location.origin);
+        googleUrl.searchParams.set('q', q);
+        googleUrl.searchParams.set('printType', 'books');
+        googleUrl.searchParams.set('langRestrict', 'en');
+        googleUrl.searchParams.set('maxResults', String(Math.max(1, Number(paramsObj?.limit || 8))));
+        try {
+          const res = await fetch(googleUrl.toString(), { headers: { Accept: 'application/json' } });
+          if (!res.ok) return [];
+          const json = await res.json();
+          const items = Array.isArray(json?.items) ? json.items : [];
+          return items.map((entry, idx) => normalizeGoogleBookDoc(entry, idx)).filter((entry) => String(entry?.title || '').trim());
+        } catch (_err) {
+          return [];
+        }
+      }
+
+      async function fetchGoogleBookFromHints(titleHint = '', authorHint = '') {
+        const docs = await fetchGoogleBooksDocs({
+          title: String(titleHint || '').trim() || undefined,
+          author: String(authorHint || '').trim() || undefined,
+          q: [titleHint, authorHint].filter(Boolean).join(' '),
+          limit: 6
+        });
+        const best = docs[0] || null;
+        if (!best) return null;
+        const raw = best._googleRaw?.volumeInfo || {};
+        const coverImage = String(best._googleThumbnail || '').trim();
+        const pageCount = Number(raw?.pageCount || 0) || null;
+        return {
+          title: String(best.title || '').trim() || 'Untitled',
+          description: String(raw?.description || '').trim(),
+          first_publish_date: String(raw?.publishedDate || '').trim(),
+          publishedDate: String(raw?.publishedDate || '').trim(),
+          covers: [],
+          coverImage: coverImage || '',
+          subjects: Array.isArray(raw?.categories) ? raw.categories : [],
+          authors: Array.isArray(best.author_name) ? best.author_name.map((name) => ({ name })) : [],
+          publishers: raw?.publisher ? [String(raw.publisher)] : [],
+          number_of_pages: pageCount,
+          key: '',
+          googleVolumeId: String(best._googleVolumeId || '').trim()
+        };
+      }
+
       async function booksFetch(path, paramsObj = {}) {
         const normalizedPath = String(path || '').startsWith('/') ? String(path) : `/${String(path || '')}`;
         const directUrl = new URL(normalizedPath, OPEN_LIBRARY_BASE);
@@ -814,6 +903,12 @@
             if (attempt < 3) {
               await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
             }
+          }
+        }
+        if (normalizedPath === '/search.json') {
+          const googleDocs = await fetchGoogleBooksDocs(paramsObj);
+          if (googleDocs.length) {
+            return { docs: googleDocs, numFound: googleDocs.length };
           }
         }
         throw lastError || new Error('Books API error');
@@ -1002,6 +1097,17 @@
             if (fallbackKey.startsWith('/works/')) {
               resolvedWorkId = fallbackKey.replace(/^\/works\//i, '');
               loadedInfo = await booksFetch(`/works/${encodeURIComponent(resolvedWorkId)}.json`);
+            }
+          }
+
+          if (!loadedInfo) {
+            const legacy = LEGACY_FAKE_WORK_MAP[String(normalizedId || '').toUpperCase()] || null;
+            const googleInfo = await fetchGoogleBookFromHints(
+              titleParam || legacy?.title || '',
+              authorParam || legacy?.author || ''
+            );
+            if (googleInfo) {
+              loadedInfo = googleInfo;
             }
           }
 
@@ -1772,7 +1878,7 @@
               if (!selected) return;
               input.value = selected.title;
               closeSuggest();
-              window.location.href = `book.html?id=${encodeURIComponent(selected.id)}`;
+              window.location.href = selected.href || `book.html?id=${encodeURIComponent(selected.id)}`;
             });
           });
         };
@@ -1785,16 +1891,24 @@
           try {
             const json = await booksFetch('/search.json', { q, limit: 6, lang: 'en' });
             suggestions = (json.docs || []).slice(0, 6).map((b) => {
-              const workId = String(b.key || '').replace(/^\/works\//i, '');
+              const rawWorkId = String(b.key || '').replace(/^\/works\//i, '').trim();
               const author = Array.isArray(b.author_name) && b.author_name.length ? b.author_name[0] : 'Book';
-              const cover = b.cover_i ? `${OPEN_LIBRARY_COVERS}/id/${b.cover_i}-M.jpg` : '';
+              const fallbackId = `search-${String(b.title || 'book').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'book'}`;
+              const workId = rawWorkId || fallbackId;
+              const cover = b.cover_i
+                ? `${OPEN_LIBRARY_COVERS}/id/${b.cover_i}-M.jpg`
+                : String(b?._googleThumbnail || '');
+              const href = rawWorkId
+                ? `book.html?id=${encodeURIComponent(workId)}`
+                : `book.html?id=${encodeURIComponent(workId)}&title=${encodeURIComponent(String(b.title || ''))}&author=${encodeURIComponent(String(author || ''))}`;
               return {
                 id: workId,
                 title: b.title || 'Book',
                 sub: author,
-                image: cover
+                image: cover,
+                href
               };
-            }).filter((x) => !!x.id);
+            }).filter((x) => !!x.id && !!x.title);
             activeIndex = -1;
             renderSuggest();
           } catch (_e) {

@@ -93,14 +93,6 @@
     {
       "source": "/api/support/:path*",
       "destination": "/api/support-handler?path=:path*"
-    },
-    {
-      "source": "/api/chat",
-      "destination": "/api/chat-handler"
-    },
-    {
-      "source": "/api/chat/:path*",
-      "destination": "/api/chat-handler?path=:path*"
     }
   ]
 }
