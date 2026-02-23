@@ -1847,34 +1847,6 @@
       { id: 'fallback-r4', name: 'Date Night', category: 'Curated', rating: '4.7' },
       { id: 'fallback-r5', name: 'Quick Bites', category: 'Casual', rating: '4.6' }
     ];
-    const FALLBACK_BOOKS = [
-      { title: 'Atomic Habits', author: 'James Clear', isbn: '9780735211292' },
-      { title: 'The Alchemist', author: 'Paulo Coelho', isbn: '9780061122415' },
-      { title: 'The Silent Patient', author: 'Alex Michaelides', isbn: '9781250316776' },
-      { title: 'Sapiens', author: 'Yuval Noah Harari', isbn: '9780062316097' },
-      { title: 'The Hobbit', author: 'J.R.R. Tolkien', isbn: '9780261103344' },
-      { title: "Harry Potter and the Sorcerer's Stone", author: 'J.K. Rowling', isbn: '9780590353427' },
-      { title: 'To Kill a Mockingbird', author: 'Harper Lee', isbn: '9780061120084' },
-      { title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', isbn: '9780743273565' },
-      { title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', isbn: '9780374533557' },
-      { title: 'The Psychology of Money', author: 'Morgan Housel', isbn: '9780857197689' }
-    ];
-    const CURATED_POPULAR_BOOKS = [
-      { title: 'Atomic Habits', author: 'James Clear' },
-      { title: 'The Psychology of Money', author: 'Morgan Housel' },
-      { title: 'It Ends with Us', author: 'Colleen Hoover' },
-      { title: 'Fourth Wing', author: 'Rebecca Yarros' },
-      { title: 'The 48 Laws of Power', author: 'Robert Greene' },
-      { title: 'The Seven Husbands of Evelyn Hugo', author: 'Taylor Jenkins Reid' },
-      { title: 'Where the Crawdads Sing', author: 'Delia Owens' },
-      { title: 'The Midnight Library', author: 'Matt Haig' },
-      { title: 'The Silent Patient', author: 'Alex Michaelides' },
-      { title: 'The Alchemist', author: 'Paulo Coelho' },
-      { title: 'Sapiens', author: 'Yuval Noah Harari' },
-      { title: 'Rich Dad Poor Dad', author: 'Robert T. Kiyosaki' },
-      { title: 'Project Hail Mary', author: 'Andy Weir' },
-      { title: 'Educated', author: 'Tara Westover' }
-    ];
     const FALLBACK_GAMES = [
       { title: 'The Legend of Zelda: Breath of the Wild', year: '2017', genre: 'Adventure' },
       { title: 'Elden Ring', year: '2022', genre: 'Action RPG' },
@@ -2681,10 +2653,13 @@
       const desiredBookCount = Math.min(bookPool.length, Math.max(3, Math.floor(HOME_SPOTLIGHT_POOL_SIZE * 0.2)));
       const currentBookCount = shortlist.filter((item) => String(item.mediaType || '').toLowerCase() === 'book').length;
       if (currentBookCount < desiredBookCount) {
-        const knownTitles = new Set(FALLBACK_BOOKS.map((b) => String(b.title || '').trim().toLowerCase()));
-        const scoreBook = (item) => (knownTitles.has(String(item.title || '').trim().toLowerCase()) ? 1 : 0);
-        const bookAdditions = [...bookPool]
-          .sort((a, b) => scoreBook(b) - scoreBook(a))
+        const existingBookKeys = new Set(shortlist
+          .filter((item) => String(item.mediaType || '').toLowerCase() === 'book')
+          .map((item) => `${String(item.itemId || '').trim().toLowerCase()}::${String(item.title || '').trim().toLowerCase()}`));
+        const bookAdditions = shuffleArray(bookPool.filter((item) => {
+          const key = `${String(item.itemId || '').trim().toLowerCase()}::${String(item.title || '').trim().toLowerCase()}`;
+          return key && !existingBookKeys.has(key);
+        }))
           .slice(0, desiredBookCount - currentBookCount);
         if (bookAdditions.length) {
           const boosted = [...shortlist];
@@ -4175,22 +4150,7 @@
           isPlaceholder: true
         })),
         music: makeSeedItems('music', ['Global Hits', 'Viral Tracks', 'Fresh Releases', 'Chill Vibes', 'Late Night Mix'], 'music.html'),
-        book: FALLBACK_BOOKS.slice(0, 8).map((b, index) => ({
-          mediaType: 'book',
-          itemId: `seed-book-${index + 1}`,
-          title: b.title,
-          subtitle: b.author,
-          image: fallbackImage,
-          backgroundImage: fallbackImage,
-          spotlightImage: fallbackImage,
-          spotlightMediaImage: fallbackImage,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          fallbackImage,
-          isbn: b.isbn,
-          href: 'books.html',
-          isPlaceholder: true
-        }))
+        book: []
       };
     }
 
@@ -5367,43 +5327,6 @@
     }
 
     async function loadBooks(signal) {
-      const fallbackKnown = CURATED_POPULAR_BOOKS.map((b, idx) => {
-        const known = FALLBACK_BOOKS.find((x) => String(x.title || '').toLowerCase() === String(b.title || '').toLowerCase());
-        const isbn = String(known?.isbn || '').trim().replace(/[^0-9Xx]/g, '');
-        const cover = isbn
-          ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`
-          : HOME_LOCAL_FALLBACK_IMAGE;
-        return {
-          mediaType: 'book',
-          itemId: `known-book-${idx}`,
-          title: b.title,
-          subtitle: b.author,
-          image: cover,
-          backgroundImage: cover,
-          spotlightImage: cover,
-          spotlightMediaImage: cover,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          fallbackImage: cover,
-          isbn,
-          href: 'books.html'
-        };
-      });
-
-      const attachFallbackKnown = (items) => {
-        const merged = [...(Array.isArray(items) ? items : []), ...fallbackKnown];
-        const deduped = [];
-        const seen = new Set();
-        merged.forEach((entry) => {
-          const subtitleKey = String(entry?.subtitle || '').split('|')[0].trim().toLowerCase();
-          const key = `${String(entry?.title || '').trim().toLowerCase()}::${subtitleKey}`;
-          if (!key || seen.has(key)) return;
-          seen.add(key);
-          deduped.push(entry);
-        });
-        return deduped.slice(0, HOME_CHANNEL_TARGET_ITEMS);
-      };
-
       const buildOpenLibraryCoverUrl = (doc, size = 'L') => {
         const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
           ? String(size || 'L').toUpperCase()
@@ -5541,11 +5464,11 @@
           ? popularJson.docs
           : (Array.isArray(popularJson?.items) ? popularJson.items : []);
 
-        const mapped = mapDocsToRailItems([...trendingDocsRaw, ...popularDocsRaw]).slice(0, limit);
-        if (mapped.length) return attachFallbackKnown(mapped);
+        const mapped = mapDocsToRailItems([...trendingDocsRaw, ...popularDocsRaw]);
+        if (mapped.length) return mapped.slice(0, HOME_CHANNEL_TARGET_ITEMS);
       } catch (_e) {}
 
-      return attachFallbackKnown([]);
+      return [];
     }
 
     async function loadMusic(signal) {
