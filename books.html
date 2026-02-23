@@ -715,7 +715,7 @@
 
   <section class="hero">
     <h1>Popular Books</h1>
-    <p>Book data sourced from Open Library and cached in Supabase.</p>
+    <p>Book data sourced from Google Books and cached in Supabase.</p>
   </section>
 
   <div class="controls">
@@ -769,10 +769,7 @@
       }
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      const OPEN_LIBRARY_BASE = 'https://openlibrary.org';
-      const OPEN_LIBRARY_PROXY_BASE = '/api/openlibrary';
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
-      const OPEN_LIBRARY_COVERS = 'https://covers.openlibrary.org/b';
       const FALLBACK_BOOK_IMAGE = 'images/logo.png';
       const FALLBACK_BOOKS = [
         { title: 'Pride and Prejudice', author_name: ['Jane Austen'], first_publish_year: 1813, isbn: ['9780141199078'] },
@@ -818,10 +815,14 @@
         const title = String(params?.title || '').trim();
         const author = String(params?.author || '').trim();
         const qRaw = String(params?.q || '').trim();
+        const subject = String(params?.subject || '').trim();
+        const year = String(params?.first_publish_year || params?.year || '').trim();
         const chunks = [];
+        if (qRaw) chunks.push(qRaw);
         if (title) chunks.push(`intitle:\"${title}\"`);
         if (author) chunks.push(`inauthor:\"${author}\"`);
-        if (!chunks.length && qRaw) chunks.push(qRaw);
+        if (subject) chunks.push(subject);
+        if (year) chunks.push(year);
         return chunks.join(' ').trim();
       }
 
@@ -875,63 +876,19 @@
 
       async function booksFetch(path, params = {}) {
         const normalizedPath = String(path || '').startsWith('/') ? String(path) : `/${String(path || '')}`;
-        const directUrl = new URL(normalizedPath, OPEN_LIBRARY_BASE);
-        const proxyUrl = new URL(`${OPEN_LIBRARY_PROXY_BASE}${normalizedPath}`, window.location.origin);
-        Object.entries(params).forEach(([k, v]) => {
-          if (v === undefined || v === null || v === '') return;
-          directUrl.searchParams.set(k, v);
-          proxyUrl.searchParams.set(k, v);
-        });
-
-        if (normalizedPath === '/search.json') {
-          const googleDocs = await fetchGoogleBooksDocs(params);
-          if (googleDocs.length) {
-            return { docs: googleDocs, numFound: googleDocs.length };
-          }
+        if (normalizedPath !== '/search.json') {
+          throw new Error('Unsupported books endpoint');
         }
-
-        const requestTargets = [proxyUrl.toString(), directUrl.toString()];
-        let lastError = null;
-
-        for (const target of requestTargets) {
-          for (let attempt = 0; attempt < 4; attempt += 1) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 7000 + (attempt * 1000));
-            try {
-              const res = await fetch(target, {
-                signal: controller.signal,
-                headers: { Accept: 'application/json' }
-              });
-              clearTimeout(timeoutId);
-              if (res.ok) return await res.json();
-              const retryable = res.status === 429 || res.status >= 500;
-              if (!retryable) throw new Error(`Books API error ${res.status}`);
-              lastError = new Error(`Books API error ${res.status}`);
-            } catch (error) {
-              clearTimeout(timeoutId);
-              lastError = error;
-            }
-            if (attempt < 3) {
-              await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
-            }
-          }
+        const googleDocs = await fetchGoogleBooksDocs(params);
+        if (googleDocs.length) {
+          return { docs: googleDocs, numFound: googleDocs.length };
         }
-        throw lastError || new Error('Books API error');
-      }
-
-      function getBookCoverUrl(coverId) {
-        if (!coverId) return null;
-        return `${OPEN_LIBRARY_COVERS}/id/${coverId}-L.jpg`;
+        throw new Error('Books API error');
       }
 
       function getPreferredBookImage(doc) {
         if (doc?._googleThumbnail) return String(doc._googleThumbnail);
-        if (doc?.cover_i) {
-          return getBookCoverUrl(doc.cover_i);
-        }
-        if (doc?.isbn?.[0]) {
-          return `${OPEN_LIBRARY_COVERS}/isbn/${doc.isbn[0]}-L.jpg`;
-        }
+        if (doc?.coverImage) return String(doc.coverImage);
         return null;
       }
 
@@ -944,16 +901,7 @@
           .slice(0, 64);
       }
 
-      function isOpenLibraryWorkKey(rawKey) {
-        const key = String(rawKey || '').trim();
-        return /^\/works\/OL\d+W$/i.test(key);
-      }
-
       function getBookEntryId(item, idx = 0) {
-        const rawKey = String(item?.key || '').trim();
-        if (isOpenLibraryWorkKey(rawKey)) {
-          return rawKey.replace(/^\/works\//i, '');
-        }
         const titleSlug = slugifyBookPart(item?.title || `book-${idx}`);
         const authorSlug = slugifyBookPart(Array.isArray(item?.author_name) ? item.author_name[0] : '');
         const year = String(item?.first_publish_year || '').trim();
@@ -1258,7 +1206,7 @@
           // Cache successful results
           localStorage.setItem(cacheKey, JSON.stringify({ docs: data.docs || [], numFound: data.numFound || 0 }));
         } catch (e) {
-          console.error('OpenLibrary fetch error', e);
+          console.error('Books fetch error', e);
           if (cached) {
             try {
               const cachedData = JSON.parse(cached);

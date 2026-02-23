@@ -2046,15 +2046,14 @@
       if (options.signal?.aborted) return null;
 
       const requestUrl = String(url || '').trim();
-      const isOpenLibraryRequest = /(^https?:\/\/openlibrary\.org\/)|(^\/api\/openlibrary\/)|(^https?:\/\/[^/]+\/api\/openlibrary\/)/i.test(requestUrl);
-      const maxAttempts = Number(options.retries || (isOpenLibraryRequest ? 4 : 1));
+      const maxAttempts = Math.max(1, Number(options.retries || 2));
 
       const requestPromise = (async () => {
         let lastError = null;
         for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
           if (options.signal?.aborted) return null;
           const controller = new AbortController();
-          const timeoutMs = Number(options.timeoutMs || (isOpenLibraryRequest ? (7000 + attempt * 1000) : 9000));
+          const timeoutMs = Number(options.timeoutMs || (9000 + attempt * 750));
           const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
           try {
             const res = await fetch(requestUrl, { signal: controller.signal });
@@ -4077,10 +4076,6 @@
     }
 
     function getBookCoverFallback(item) {
-      const isbn = String(item?.isbn || '').trim();
-      if (isbn) {
-        return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`;
-      }
       return '';
     }
 
@@ -5376,7 +5371,7 @@
       const fallbackKnown = CURATED_POPULAR_BOOKS.map((b, idx) => {
         const known = FALLBACK_BOOKS.find((x) => String(x.title || '').toLowerCase() === String(b.title || '').toLowerCase());
         const isbn = String(known?.isbn || '').trim();
-        const cover = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : HOME_LOCAL_FALLBACK_IMAGE;
+        const cover = HOME_LOCAL_FALLBACK_IMAGE;
         return {
           mediaType: 'book',
           itemId: `known-book-${idx}`,
@@ -5459,21 +5454,7 @@
 
         const searchSeed = async (seed) => {
           const googleDocs = await googleDocsFromSeed(seed);
-          if (googleDocs.length) return googleDocs;
-
-          const primaryUrl =
-            `/api/openlibrary/search.json?title=${encodeURIComponent(seed.title)}` +
-            `&author=${encodeURIComponent(seed.author)}&language=eng&limit=5`;
-          const primary = await fetchJsonWithPerfCache(primaryUrl, { signal, cacheKey: `books:ol:${primaryUrl}` });
-          const primaryDocs = Array.isArray(primary?.docs) ? primary.docs : [];
-          if (primaryDocs.length) return primaryDocs;
-
-          const fallbackQ = `${seed.title} ${seed.author}`;
-          const fallbackUrl = `/api/openlibrary/search.json?q=${encodeURIComponent(fallbackQ)}&language=eng&limit=5`;
-          const fallback = await fetchJsonWithPerfCache(fallbackUrl, { signal, cacheKey: `books:ol:${fallbackUrl}` });
-          const fallbackDocs = Array.isArray(fallback?.docs) ? fallback.docs : [];
-          if (fallbackDocs.length) return fallbackDocs;
-          return [];
+          return googleDocs.length ? googleDocs : [];
         };
 
         const responses = [];
@@ -5501,7 +5482,7 @@
               String(x.title || '').toLowerCase() === seedTitle && String(x.author || '').toLowerCase() === seedAuthor
             ));
             const isbn = String(known?.isbn || '').trim();
-            const cover = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : HOME_LOCAL_FALLBACK_IMAGE;
+            const cover = HOME_LOCAL_FALLBACK_IMAGE;
             return {
               mediaType: 'book',
               itemId: `seed-book-${idx}`,
@@ -5526,16 +5507,12 @@
           if (seen.has(dedupeKey)) return null;
           seen.add(dedupeKey);
 
-          const workKey = String(chosen?.key || '').trim();
           const synthesizedId = `search-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `book-${idx}`}`;
-          const itemId = workKey.replace(/^\/works\//i, '').trim() || synthesizedId;
-          const coverId = Number(chosen?.cover_i || 0);
+          const itemId = synthesizedId;
           const isbnRaw = Array.isArray(chosen?.isbn) ? String(chosen.isbn[0] || '').trim() : '';
           const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
           const googleThumb = String(chosen?._googleThumbnail || '').trim();
-          const coverById = coverId ? `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg` : '';
-          const coverByIsbn = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : '';
-          const cover = coverById || coverByIsbn || googleThumb || HOME_LOCAL_FALLBACK_IMAGE;
+          const cover = googleThumb || HOME_LOCAL_FALLBACK_IMAGE;
           const year = Number(chosen?.first_publish_year || 0) || 0;
           const subtitle = year ? `${author} | ${year}` : author;
           const popularityScore =
@@ -5554,12 +5531,10 @@
             spotlightMediaImage: cover,
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
-            fallbackImage: coverByIsbn || cover,
+            fallbackImage: cover,
             isbn,
             popularityScore,
-            href: workKey
-              ? `book.html?id=${encodeURIComponent(itemId)}`
-              : `book.html?id=${encodeURIComponent(itemId)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`
+            href: `book.html?id=${encodeURIComponent(itemId)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`
           };
         }).filter(Boolean);
 

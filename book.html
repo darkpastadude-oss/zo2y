@@ -6,7 +6,6 @@
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Book</title>
   <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon" />
-  <link rel="preconnect" href="https://covers.openlibrary.org" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -734,10 +733,7 @@
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      const OPEN_LIBRARY_BASE = 'https://openlibrary.org';
-      const OPEN_LIBRARY_PROXY_BASE = '/api/openlibrary';
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
-      const OPEN_LIBRARY_COVERS = 'https://covers.openlibrary.org/b';
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
       const titleParam = String(params.get('title') || '').trim();
@@ -769,13 +765,6 @@
         return String(value || '').replace(/^http:\/\//i, 'https://');
       }
 
-      function isOpenLibraryWorkId(value) {
-        const raw = String(value || '').trim();
-        if (!raw) return false;
-        if (raw.startsWith('/works/')) return true;
-        return /^OL\d+W$/i.test(raw);
-      }
-
       function isSyntheticSearchId(value) {
         const raw = String(value || '').trim().toLowerCase();
         return raw.startsWith('search-');
@@ -785,10 +774,14 @@
         const title = String(paramsObj?.title || '').trim();
         const author = String(paramsObj?.author || '').trim();
         const qRaw = String(paramsObj?.q || '').trim();
+        const subject = String(paramsObj?.subject || '').trim();
+        const year = String(paramsObj?.first_publish_year || paramsObj?.year || '').trim();
         const chunks = [];
+        if (qRaw) chunks.push(qRaw);
         if (title) chunks.push(`intitle:\"${title}\"`);
         if (author) chunks.push(`inauthor:\"${author}\"`);
-        if (!chunks.length && qRaw) chunks.push(qRaw);
+        if (subject) chunks.push(subject);
+        if (year) chunks.push(year);
         return chunks.join(' ').trim();
       }
 
@@ -869,6 +862,37 @@
         };
       }
 
+      async function fetchGoogleBookFromVolumeId(volumeId) {
+        const cleanId = String(volumeId || '').trim();
+        if (!cleanId || isSyntheticSearchId(cleanId)) return null;
+        const volumeUrl = new URL(`${GOOGLE_BOOKS_PROXY_BASE}/volumes/${encodeURIComponent(cleanId)}`, window.location.origin);
+        try {
+          const res = await fetch(volumeUrl.toString(), { headers: { Accept: 'application/json' } });
+          if (!res.ok) return null;
+          const json = await res.json();
+          const raw = json?.volumeInfo || {};
+          const authorNames = Array.isArray(raw?.authors) ? raw.authors.filter(Boolean) : [];
+          const coverImage = toHttpsUrl(raw?.imageLinks?.thumbnail || raw?.imageLinks?.smallThumbnail || '');
+          const pageCount = Number(raw?.pageCount || 0) || null;
+          return {
+            title: String(raw?.title || '').trim() || 'Untitled',
+            description: String(raw?.description || '').trim(),
+            first_publish_date: String(raw?.publishedDate || '').trim(),
+            publishedDate: String(raw?.publishedDate || '').trim(),
+            covers: [],
+            coverImage: coverImage || '',
+            subjects: Array.isArray(raw?.categories) ? raw.categories : [],
+            authors: authorNames.map((name) => ({ name: String(name).trim() })),
+            publishers: raw?.publisher ? [String(raw.publisher)] : [],
+            number_of_pages: pageCount,
+            key: '',
+            googleVolumeId: String(json?.id || cleanId).trim()
+          };
+        } catch (_err) {
+          return null;
+        }
+      }
+
       async function fetchGoogleBookFromStoredBook(idHint) {
         if (!supabaseClient || !idHint) return null;
         try {
@@ -888,91 +912,14 @@
 
       async function booksFetch(path, paramsObj = {}) {
         const normalizedPath = String(path || '').startsWith('/') ? String(path) : `/${String(path || '')}`;
-        const directUrl = new URL(normalizedPath, OPEN_LIBRARY_BASE);
-        const proxyUrl = new URL(`${OPEN_LIBRARY_PROXY_BASE}${normalizedPath}`, window.location.origin);
-        Object.entries(paramsObj).forEach(([k, v]) => {
-          if (v === null || v === undefined || v === '') return;
-          directUrl.searchParams.set(k, v);
-          proxyUrl.searchParams.set(k, v);
-        });
-
-        const requestTargets = [proxyUrl.toString(), directUrl.toString()];
-        let lastError = null;
-
-        for (const target of requestTargets) {
-          for (let attempt = 0; attempt < 4; attempt += 1) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 7000 + (attempt * 1000));
-            try {
-              const res = await fetch(target, {
-                signal: controller.signal,
-                headers: { Accept: 'application/json' }
-              });
-              clearTimeout(timeoutId);
-              if (res.ok) return await res.json();
-              const retryable = res.status === 429 || res.status >= 500;
-              if (!retryable) throw new Error(`Books API error ${res.status}`);
-              lastError = new Error(`Books API error ${res.status}`);
-            } catch (error) {
-              clearTimeout(timeoutId);
-              lastError = error;
-            }
-            if (attempt < 3) {
-              await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
-            }
-          }
+        if (normalizedPath !== '/search.json') {
+          throw new Error('Unsupported books endpoint');
         }
-        throw lastError || new Error('Books API error');
-      }
-
-      function pickBestSearchDoc(docs, titleHint = '', authorHint = '') {
-        const list = Array.isArray(docs) ? docs : [];
-        if (!list.length) return null;
-        const titleNeedle = String(titleHint || '').trim().toLowerCase();
-        const authorNeedle = String(authorHint || '').trim().toLowerCase();
-        return list.find((doc) => {
-          const title = String(doc?.title || '').toLowerCase();
-          const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').toLowerCase();
-          const titleOk = !titleNeedle || title.includes(titleNeedle);
-          const authorOk = !authorNeedle || author.includes(authorNeedle);
-          return titleOk && authorOk && String(doc?.key || '').startsWith('/works/');
-        }) || list.find((doc) => String(doc?.key || '').startsWith('/works/')) || null;
-      }
-
-      async function resolveWorkDocFromHints(titleHint = '', authorHint = '') {
-        const cleanTitle = String(titleHint || '').trim();
-        const cleanAuthor = String(authorHint || '').trim();
-        if (!cleanTitle && !cleanAuthor) return null;
-        const primary = await booksFetch('/search.json', {
-          title: cleanTitle || undefined,
-          author: cleanAuthor || undefined,
-          language: 'eng',
-          limit: 8
-        }).catch(() => null);
-        let chosen = pickBestSearchDoc(primary?.docs, cleanTitle, cleanAuthor);
-        if (chosen) return chosen;
-        const q = [cleanTitle, cleanAuthor].filter(Boolean).join(' ').trim();
-        if (!q) return null;
-        const fallback = await booksFetch('/search.json', {
-          q,
-          language: 'eng',
-          limit: 8
-        }).catch(() => null);
-        chosen = pickBestSearchDoc(fallback?.docs, cleanTitle, cleanAuthor);
-        return chosen || null;
-      }
-
-      async function resolveWorkDocFromStoredBook(idHint) {
-        if (!supabaseClient || !idHint) return null;
-        const { data } = await supabaseClient
-          .from('books')
-          .select('id, title, authors')
-          .eq('id', idHint)
-          .maybeSingle();
-        const title = String(data?.title || '').trim();
-        const author = String(data?.authors || '').split(',')[0]?.trim() || '';
-        if (!title) return null;
-        return await resolveWorkDocFromHints(title, author);
+        const googleDocs = await fetchGoogleBooksDocs(paramsObj);
+        if (googleDocs.length) {
+          return { docs: googleDocs, numFound: googleDocs.length };
+        }
+        throw new Error('Books API error');
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -1078,52 +1025,19 @@
         try {
           const normalizedId = id.startsWith('/works/') ? id.replace('/works/', '') : id;
           let loadedInfo = null;
-          let resolvedWorkId = null;
           const legacy = LEGACY_FAKE_WORK_MAP[String(normalizedId || '').toUpperCase()] || null;
 
           loadedInfo =
             await fetchGoogleBookFromHints(titleParam || legacy?.title || '', authorParam || legacy?.author || '') ||
             await fetchGoogleBookFromStoredBook(normalizedId);
 
-          if (!loadedInfo && isOpenLibraryWorkId(normalizedId)) {
-            try {
-              loadedInfo = await booksFetch(`/works/${encodeURIComponent(normalizedId)}.json`);
-              resolvedWorkId = normalizedId;
-            } catch (_openLibraryErr) {
-              const fallbackDoc =
-                await resolveWorkDocFromHints(titleParam || legacy?.title || '', authorParam || legacy?.author || '') ||
-                await resolveWorkDocFromStoredBook(normalizedId);
-              const fallbackKey = String(fallbackDoc?.key || '').trim();
-              if (fallbackKey.startsWith('/works/')) {
-                resolvedWorkId = fallbackKey.replace(/^\/works\//i, '');
-                loadedInfo = await booksFetch(`/works/${encodeURIComponent(resolvedWorkId)}.json`);
-              }
-            }
-          } else if (!loadedInfo && (isSyntheticSearchId(normalizedId) || titleParam || authorParam)) {
-            const fallbackDoc = await resolveWorkDocFromHints(titleParam, authorParam);
-            const fallbackKey = String(fallbackDoc?.key || '').trim();
-            if (fallbackKey.startsWith('/works/')) {
-              resolvedWorkId = fallbackKey.replace(/^\/works\//i, '');
-              loadedInfo = await booksFetch(`/works/${encodeURIComponent(resolvedWorkId)}.json`);
-            }
-          } else if (!loadedInfo) {
-            const fallbackDoc = await resolveWorkDocFromStoredBook(normalizedId);
-            const fallbackKey = String(fallbackDoc?.key || '').trim();
-            if (fallbackKey.startsWith('/works/')) {
-              resolvedWorkId = fallbackKey.replace(/^\/works\//i, '');
-              loadedInfo = await booksFetch(`/works/${encodeURIComponent(resolvedWorkId)}.json`);
-            }
+          if (!loadedInfo) {
+            loadedInfo = await fetchGoogleBookFromVolumeId(normalizedId);
           }
-
-          if (!loadedInfo) throw new Error('Open Library work not found');
-
-          if (resolvedWorkId && resolvedWorkId !== normalizedBookId) {
-            normalizedBookId = resolvedWorkId;
-            const next = new URL(window.location.href);
-            next.searchParams.set('id', resolvedWorkId);
-            history.replaceState({}, '', `${next.pathname}${next.search}`);
-            if (currentUser) await loadListStatus();
+          if (!loadedInfo && (titleParam || authorParam)) {
+            loadedInfo = await fetchGoogleBookFromHints(titleParam, authorParam);
           }
+          if (!loadedInfo) throw new Error('Google Books record not found');
 
           bookInfo = loadedInfo;
           // Cache successful fetch
@@ -1150,13 +1064,9 @@
         const publishedBase = info.first_publish_date || info.publishedDate || info.created?.value || '';
         const publishedYear = publishedBase ? String(publishedBase).slice(0, 4) : '';
 
-        // pick a cover id (work.covers is array of numeric ids)
+        // Prefer Google cover URL when available.
         bookCoverUrl = '';
-        if (Array.isArray(info.covers) && info.covers.length) {
-          // Medium cover is noticeably faster than large on mobile while still clear.
-          bookCoverUrl = `${OPEN_LIBRARY_COVERS}/id/${info.covers[0]}-M.jpg`;
-        }
-        if (!bookCoverUrl && info.coverImage) {
+        if (info.coverImage) {
           bookCoverUrl = toHttpsUrl(info.coverImage);
         }
 
@@ -1208,9 +1118,6 @@
           if (info.printType) detailRows.push(`<div class="list-row"><span class="list-label">Type:</span> ${info.printType}</div>`);
           if (info.industryIdentifiers?.length) {
             detailRows.push(`<div class="list-row"><span class="list-label">Identifiers:</span> ${info.industryIdentifiers.map(x => `${x.type}: ${x.identifier}`).join(', ')}</div>`);
-          }
-          if (info.key) {
-            detailRows.push(`<div class="list-row"><span class="list-label">Open Library:</span> <a class="tag" href="https://openlibrary.org${info.key}" target="_blank" rel="noopener">Open</a></div>`);
           }
           detailsEl.innerHTML = detailRows.length ? detailRows.join('') : '<div class="list-row">No extra details available.</div>';
         }
@@ -1894,19 +1801,13 @@
           }
           try {
             const googleDocs = await fetchGoogleBooksDocs({ q, limit: 6 });
-            let docs = googleDocs;
-            if (!docs.length) {
-              const json = await booksFetch('/search.json', { q, limit: 6, lang: 'en' });
-              docs = Array.isArray(json?.docs) ? json.docs : [];
-            }
+            const docs = googleDocs;
             suggestions = docs.slice(0, 6).map((b) => {
               const rawWorkId = String(b.key || '').replace(/^\/works\//i, '').trim();
               const author = Array.isArray(b.author_name) && b.author_name.length ? b.author_name[0] : 'Book';
               const fallbackId = `search-${String(b.title || 'book').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'book'}`;
               const workId = rawWorkId || fallbackId;
-              const cover = b.cover_i
-                ? `${OPEN_LIBRARY_COVERS}/id/${b.cover_i}-M.jpg`
-                : String(b?._googleThumbnail || '');
+              const cover = String(b?._googleThumbnail || '');
               const href = rawWorkId
                 ? `book.html?id=${encodeURIComponent(workId)}`
                 : `book.html?id=${encodeURIComponent(workId)}&title=${encodeURIComponent(String(b.title || ''))}&author=${encodeURIComponent(String(author || ''))}`;
