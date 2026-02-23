@@ -226,13 +226,13 @@ async function fetchOpenLibraryDocs(params = {}) {
   const year = String(params.first_publish_year || params.year || "").trim();
 
   const url = new URL(`${OPEN_LIBRARY_BASE}/search.json`);
-  if (q) {
-    url.searchParams.set("q", q);
-  } else {
-    if (title) url.searchParams.set("title", title);
-    if (author) url.searchParams.set("author", author);
-    if (subject) url.searchParams.set("subject", subject);
-    if (year) url.searchParams.set("first_publish_year", year);
+  if (q) url.searchParams.set("q", q);
+  if (!q && title) url.searchParams.set("title", title);
+  if (author) url.searchParams.set("author", author);
+  if (subject) url.searchParams.set("subject", subject);
+  if (year) url.searchParams.set("first_publish_year", year);
+  if (!q && !title && !author && !subject && !year) {
+    url.searchParams.set("q", "bestseller");
   }
   if (String(params.language || "").trim()) {
     url.searchParams.set("language", String(params.language).trim());

@@ -42,16 +42,35 @@ app.use("/api", createRateLimiter({
 // Serve static files from frontend (main folder)
 app.use(express.static(path.join(__dirname, '../')));
 
+function normalizeMongoUri(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^['"]+|['"]+$/g, "");
+}
+
+function hasValidMongoScheme(uri) {
+  return uri.startsWith("mongodb://") || uri.startsWith("mongodb+srv://");
+}
+
 // Connect to MongoDB
 const connectDB = async () => {
+  const mongoUri = normalizeMongoUri(process.env.MONGO_URI);
+  if (!mongoUri) {
+    console.log('[WARN] MONGO_URI is empty. Skipping MongoDB connection.');
+    console.log('[WARN] Set MONGO_URI in backend/.env to mongodb://... or mongodb+srv://...');
+    return;
+  }
+  if (!hasValidMongoScheme(mongoUri)) {
+    console.log('[WARN] MONGO_URI has an invalid scheme. Expected mongodb:// or mongodb+srv://');
+    console.log('[WARN] Current value in backend/.env is malformed. Fix it and restart the server.');
+    return;
+  }
+
   try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log("✅ Connected to MongoDB Atlas");
+    await mongoose.connect(mongoUri);
+    console.log('Connected to MongoDB Atlas');
   } catch (err) {
-    console.log("❌ MongoDB connection error:", err.message);
+    console.log('MongoDB connection error:', err.message);
   }
 };
 connectDB();
@@ -116,6 +135,6 @@ app.use(jsonErrorHandler);
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`⚡ Server running on port ${PORT}`);
-  console.log(`🌐 Frontend available`);
+  console.log(`Server running on port ${PORT}`);
+  console.log("Frontend available");
 });
