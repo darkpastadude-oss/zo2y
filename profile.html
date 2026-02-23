@@ -4113,8 +4113,8 @@ header, .top-stripe, .section-nav {
                                 <span id="memberSince">Member since 2023</span>
                             </div>
                             <div class="meta-item">
-                                <i class="fas fa-utensils"></i>
-                                <span id="visitedCountMeta">0 items tracked</span>
+                                <i class="fas fa-bookmark"></i>
+                                <span id="visitedCountMeta">0 saved items</span>
                             </div>
                         </div>
                         <div class="profile-badges" id="profileBadges"></div>
@@ -4142,9 +4142,9 @@ header, .top-stripe, .section-nav {
             <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-utensils"></i></div>
+                    <div class="stat-icon"><i class="fas fa-bookmark"></i></div>
                     <div class="stat-number" id="visitedCount">0</div>
-                    <div class="stat-label">Items Tracked</div>
+                    <div class="stat-label">Items Saved</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-users"></i></div>
@@ -4702,7 +4702,7 @@ header, .top-stripe, .section-nav {
         <div class="mobile-stats">
             <div class="mobile-stat">
                 <span class="mobile-stat-number" id="mobileVisitedCount">0</span>
-                <span class="mobile-stat-label">Tracked</span>
+                <span class="mobile-stat-label">Saved</span>
             </div>
             <div class="mobile-stat">
                 <span class="mobile-stat-number" id="mobileFollowersCount">0</span>
@@ -5812,11 +5812,11 @@ header, .top-stripe, .section-nav {
                 }
 
                 const desktopVisitedLabel = document.querySelector('.stats-grid .stat-card:first-child .stat-label');
-                if (desktopVisitedLabel) desktopVisitedLabel.textContent = 'Items Tracked';
+                if (desktopVisitedLabel) desktopVisitedLabel.textContent = 'Items Saved';
                 const mobileVisitedLabel = document.querySelector('.mobile-stats .mobile-stat:first-child .mobile-stat-label');
-                if (mobileVisitedLabel) mobileVisitedLabel.textContent = 'Tracked';
+                if (mobileVisitedLabel) mobileVisitedLabel.textContent = 'Saved';
                 const visitedMeta = document.getElementById('visitedCountMeta');
-                if (visitedMeta) visitedMeta.textContent = '0 items tracked';
+                if (visitedMeta) visitedMeta.textContent = '0 saved items';
             }
 
             function setupMobileTabsHint() {
@@ -6480,46 +6480,190 @@ header, .top-stripe, .section-nav {
             }
 
             // ===== STATS =====
+            function isIgnorableStatsError(error) {
+                const code = String(error?.code || '').trim();
+                const message = String(error?.message || error?.details || '').toLowerCase();
+                if (code === '42P01' || code === '42703') return true;
+                if (message.includes('does not exist')) return true;
+                if (message.includes('relation') && message.includes('not found')) return true;
+                return false;
+            }
+
+            async function safeCountByUser(tableName, userId, options = {}) {
+                if (!supabase || !tableName || !userId) return 0;
+                const userColumn = String(options.userColumn || 'user_id');
+                const extraFilter = typeof options.extraFilter === 'function' ? options.extraFilter : null;
+                try {
+                    let query = supabase
+                        .from(tableName)
+                        .select('*', { count: 'exact', head: true })
+                        .eq(userColumn, userId);
+                    if (extraFilter) query = extraFilter(query);
+                    const { count, error } = await query;
+                    if (error) {
+                        if (isIgnorableStatsError(error)) return 0;
+                        throw error;
+                    }
+                    return Number(count || 0);
+                } catch (error) {
+                    if (isIgnorableStatsError(error)) return 0;
+                    console.warn(`Stats count failed for ${tableName}:`, error);
+                    return 0;
+                }
+            }
+
+            async function countRestaurantSavedItems(userId) {
+                if (!ENABLE_RESTAURANTS || !supabase || !userId) return 0;
+                try {
+                    const { data: ownedLists, error: ownedListsError } = await supabase
+                        .from('lists')
+                        .select('id')
+                        .eq('user_id', userId);
+                    if (ownedListsError) {
+                        if (isIgnorableStatsError(ownedListsError)) return 0;
+                        throw ownedListsError;
+                    }
+                    const listIds = (ownedLists || []).map((row) => row?.id).filter(Boolean);
+                    if (!listIds.length) return 0;
+
+                    const { count, error } = await supabase
+                        .from('lists_restraunts')
+                        .select('*', { count: 'exact', head: true })
+                        .in('list_id', listIds);
+                    if (error) {
+                        if (isIgnorableStatsError(error)) return 0;
+                        throw error;
+                    }
+                    return Number(count || 0);
+                } catch (error) {
+                    if (isIgnorableStatsError(error)) return 0;
+                    console.warn('Stats count failed for lists_restraunts:', error);
+                    return 0;
+                }
+            }
+
+            async function countRestaurantListsCreated(userId) {
+                if (!ENABLE_RESTAURANTS || !supabase || !userId) return 0;
+                try {
+                    let result = await supabase
+                        .from('lists')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('user_id', userId)
+                        .eq('is_default', false);
+
+                    if (result.error && String(result.error?.code || '').trim() === '42703') {
+                        result = await supabase
+                            .from('lists')
+                            .select('*', { count: 'exact', head: true })
+                            .eq('user_id', userId);
+                    }
+
+                    if (result.error) {
+                        if (isIgnorableStatsError(result.error)) return 0;
+                        throw result.error;
+                    }
+                    return Number(result.count || 0);
+                } catch (error) {
+                    if (isIgnorableStatsError(error)) return 0;
+                    console.warn('Stats count failed for lists:', error);
+                    return 0;
+                }
+            }
+
             async function updateStats(userId = null) {
                 const targetId = userId || currentUser.id;
                 
                 try {
-                    // Get followers count
-                    const { count: followersCount, error: followersError } = await supabase
-                        .from('follows')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('followed_id', targetId);
+                    const [
+                        followersResult,
+                        followingResult,
+                        movieSavedCount,
+                        tvSavedCount,
+                        gameSavedCount,
+                        bookSavedCount,
+                        musicSavedCount,
+                        restaurantSavedCount,
+                        movieListsCount,
+                        tvListsCount,
+                        gameListsCount,
+                        bookListsCount,
+                        musicListsCount,
+                        restaurantListsCount,
+                        journalReviewsCount,
+                        movieReviewsCount,
+                        tvReviewsCount,
+                        gameReviewsCount,
+                        bookReviewsCount,
+                        musicReviewsCount
+                    ] = await Promise.all([
+                        supabase
+                            .from('follows')
+                            .select('*', { count: 'exact', head: true })
+                            .eq('followed_id', targetId),
+                        supabase
+                            .from('follows')
+                            .select('*', { count: 'exact', head: true })
+                            .eq('follower_id', targetId),
+                        safeCountByUser('movie_list_items', targetId),
+                        safeCountByUser('tv_list_items', targetId),
+                        safeCountByUser('game_list_items', targetId),
+                        safeCountByUser('book_list_items', targetId),
+                        safeCountByUser('music_list_items', targetId),
+                        countRestaurantSavedItems(targetId),
+                        safeCountByUser('movie_lists', targetId),
+                        safeCountByUser('tv_lists', targetId),
+                        safeCountByUser('game_lists', targetId),
+                        safeCountByUser('book_lists', targetId),
+                        safeCountByUser('music_lists', targetId),
+                        countRestaurantListsCreated(targetId),
+                        safeCountByUser('journal_entries', targetId),
+                        safeCountByUser('movie_reviews', targetId),
+                        safeCountByUser('tv_reviews', targetId),
+                        safeCountByUser('game_reviews', targetId),
+                        safeCountByUser('book_reviews', targetId),
+                        safeCountByUser('music_reviews', targetId)
+                    ]);
 
-                    // Get following count
-                    const { count: followingCount, error: followingError } = await supabase
-                        .from('follows')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('follower_id', targetId);
+                    if (followersResult?.error && !isIgnorableStatsError(followersResult.error)) {
+                        throw followersResult.error;
+                    }
+                    if (followingResult?.error && !isIgnorableStatsError(followingResult.error)) {
+                        throw followingResult.error;
+                    }
 
-                    // Get visited count from journal entries
-                    const { count: visitedCount, error: visitedError } = await supabase
-                        .from('journal_entries')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('user_id', targetId);
-
-                    // Get lists count
-                    const { count: listsCount, error: listsError } = await supabase
-                        .from('lists')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('user_id', targetId);
+                    const followersCount = Number(followersResult?.count || 0) || 0;
+                    const followingCount = Number(followingResult?.count || 0) || 0;
+                    const savedItemsCount = Number(movieSavedCount || 0)
+                        + Number(tvSavedCount || 0)
+                        + Number(gameSavedCount || 0)
+                        + Number(bookSavedCount || 0)
+                        + Number(musicSavedCount || 0)
+                        + Number(restaurantSavedCount || 0);
+                    const listsCount = Number(movieListsCount || 0)
+                        + Number(tvListsCount || 0)
+                        + Number(gameListsCount || 0)
+                        + Number(bookListsCount || 0)
+                        + Number(musicListsCount || 0)
+                        + Number(restaurantListsCount || 0);
+                    const reviewsCount = Number(journalReviewsCount || 0)
+                        + Number(movieReviewsCount || 0)
+                        + Number(tvReviewsCount || 0)
+                        + Number(gameReviewsCount || 0)
+                        + Number(bookReviewsCount || 0)
+                        + Number(musicReviewsCount || 0);
 
                     // Update UI
                     updateStatsUI(
-                        visitedCount || 0,
-                        followersCount || 0,
-                        listsCount || 0,
-                        visitedCount || 0, // Using visited as reviews count
-                        followingCount || 0
+                        savedItemsCount,
+                        followersCount,
+                        listsCount,
+                        reviewsCount,
+                        followingCount
                     );
                     
                     // Update badges
-                    updateFollowBadges(followersCount || 0);
-                    await renderCommunityPreview(targetId, followersCount || 0, followingCount || 0);
+                    updateFollowBadges(followersCount);
+                    await renderCommunityPreview(targetId, followersCount, followingCount);
                     
                 } catch (error) {
                     console.error('Error updating stats:', error);
@@ -6547,9 +6691,7 @@ header, .top-stripe, .section-nav {
                     document.getElementById('followersCount').textContent = followersCount;
                     document.getElementById('listsCount').textContent = listsCount;
                     document.getElementById('reviewsCount').textContent = reviewsCount;
-                    document.getElementById('visitedCountMeta').textContent = ENABLE_RESTAURANTS
-                        ? `${visitedCount} restaurants visited`
-                        : `${visitedCount} items tracked`;
+                    document.getElementById('visitedCountMeta').textContent = `${visitedCount} saved items`;
                 }
 
                 const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
