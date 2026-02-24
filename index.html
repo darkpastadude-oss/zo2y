@@ -5662,149 +5662,92 @@
     }
 
     async function loadMusic(signal) {
-      try {
-        const limit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 24);
-        const market = 'US';
-        const searchLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 12);
-        const fetchRowsFromSearch = async (query, batchLimit = searchLimit) => {
-          const url = `/api/music/search?q=${encodeURIComponent(query)}&limit=${batchLimit}&market=${market}`;
-          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `music:${url}` });
-          return Array.isArray(json?.results) ? json.results : [];
+      const market = 'US';
+      const mapTracksToHomeItems = (tracks = []) => tracks.map((track) => {
+        const artists = Array.isArray(track.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
+        const albumName = String(track.album?.name || 'Album').trim();
+        const popularity = Number(track.popularity || 0);
+        const image = String(track.image || '').trim();
+        return {
+          mediaType: 'music',
+          itemId: String(track.id || ''),
+          title: track.name || 'Track',
+          subtitle: artists || 'Artist',
+          extra: `${albumName}${popularity ? ` | Popularity ${popularity}/100` : ''}`,
+          image,
+          backgroundImage: image,
+          spotlightImage: image,
+          spotlightMediaImage: image,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          href: String(track.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
         };
+      });
 
-        const [popularResult, featuredResult, releasesResult, genreSearchResult] = await Promise.allSettled([
-          fetchJsonWithPerfCache(
-            `/api/music/popular?limit=50&market=${market}`,
-            { signal, cacheKey: `music:popular:50:${market}` }
-          ),
-          fetchJsonWithPerfCache(
-            `/api/music/featured-playlists?limit=10&market=${market}`,
-            { signal, cacheKey: `music:featured:${market}` }
-          ),
-          fetchJsonWithPerfCache(
-            `/api/music/new-releases?limit=14&market=${market}`,
-            { signal, cacheKey: `music:new-releases:${market}` }
-          ),
-          Promise.allSettled(
-            POPULAR_MUSIC_QUERIES.slice(0, 6).map((query) => fetchRowsFromSearch(query, 10))
-          )
-        ]);
-
-        const popularRows = popularResult.status === 'fulfilled' && Array.isArray(popularResult.value?.results)
-          ? popularResult.value.results
-          : [];
-        const featuredPlaylists = featuredResult.status === 'fulfilled' && Array.isArray(featuredResult.value?.results)
-          ? featuredResult.value.results
-          : [];
-        const releaseAlbums = releasesResult.status === 'fulfilled' && Array.isArray(releasesResult.value?.results)
-          ? releasesResult.value.results
-          : [];
-        const genreRows = genreSearchResult.status === 'fulfilled'
-          ? genreSearchResult.value
-            .filter((entry) => entry.status === 'fulfilled')
-            .flatMap((entry) => Array.isArray(entry.value) ? entry.value : [])
-          : [];
-
-        const featuredSeedQueries = featuredPlaylists
-          .map((row) => String(row?.name || '').trim())
-          .filter(Boolean)
-          .slice(0, 4);
-        const releaseSeedQueries = releaseAlbums
-          .map((row) => {
-            const albumName = String(row?.name || '').trim();
-            const firstArtist = Array.isArray(row?.artists) && row.artists.length ? String(row.artists[0] || '').trim() : '';
-            return `${firstArtist} ${albumName}`.trim();
-          })
-          .filter(Boolean)
-          .slice(0, 5);
-        const seedQueries = [...featuredSeedQueries, ...releaseSeedQueries];
-        const seededRows = seedQueries.length
-          ? (await Promise.allSettled(seedQueries.map((query) => fetchRowsFromSearch(query, 8))))
-            .filter((entry) => entry.status === 'fulfilled')
-            .flatMap((entry) => Array.isArray(entry.value) ? entry.value : [])
-          : [];
-
-        const rows = [...popularRows, ...genreRows, ...seededRows];
-
-        const seen = new Set();
+      const dedupeMusicRows = (rows = []) => {
+        const seenIds = new Set();
         const seenTrackKeys = new Set();
         const deduped = [];
         rows.forEach((row) => {
-          const id = String(row.id || '').trim();
-          if (!id || seen.has(id)) return;
-          const trackName = String(row.name || '').trim().toLowerCase();
-          const firstArtist = Array.isArray(row.artists) && row.artists.length ? String(row.artists[0] || '').trim().toLowerCase() : '';
+          const id = String(row?.id || '').trim();
+          const trackName = String(row?.name || '').trim().toLowerCase();
+          const firstArtist = Array.isArray(row?.artists) && row.artists.length
+            ? String(row.artists[0] || '').trim().toLowerCase()
+            : '';
           const trackKey = `${trackName}::${firstArtist}`;
-          if (!trackName || seenTrackKeys.has(trackKey)) return;
-          seen.add(id);
+          if (!trackName || !firstArtist) return;
+          if (id && seenIds.has(id)) return;
+          if (seenTrackKeys.has(trackKey)) return;
+          if (id) seenIds.add(id);
           seenTrackKeys.add(trackKey);
           deduped.push(row);
         });
+        return deduped;
+      };
 
-        const withArtwork = deduped.filter((track) => String(track.image || '').trim());
-        const ranked = withArtwork
-          .filter((track) => Number(track.popularity || 0) >= 70)
-          .sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0));
-        const popularitySorted = ranked.length
-          ? ranked
-          : withArtwork.sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0));
-        const pool = popularitySorted.slice(0, Math.max(HOME_CHANNEL_TARGET_ITEMS * 2, 28));
-        const selected = shuffleArray(pool)
-          .slice(0, HOME_CHANNEL_TARGET_ITEMS);
-        if (!selected.length) {
-          return FALLBACK_MUSIC_TRACKS.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((track, idx) => ({
-            mediaType: 'music',
-            itemId: String(track.id || `fallback-track-${idx + 1}`),
-            title: track.title,
-            subtitle: track.artist,
-            extra: track.album,
-            image: HOME_LOCAL_FALLBACK_IMAGE,
-            backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
-            spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
-            spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            href: track.id ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html',
-            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
-          }));
-        }
+      try {
+        const top50Limit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 4, 64);
+        const top50Url = `/api/music/top-50?limit=${top50Limit}&market=${market}`;
+        const top50Json = await fetchJsonWithPerfCache(
+          top50Url,
+          { signal, cacheKey: `music:top-50:${top50Limit}:${market}` }
+        );
+        const top50Rows = Array.isArray(top50Json?.results) ? top50Json.results : [];
+        const top50Deduped = dedupeMusicRows(top50Rows);
+        const top50WithArtwork = top50Deduped.filter((track) => String(track.image || '').trim());
+        const top50Pool = top50WithArtwork.length ? top50WithArtwork : top50Deduped;
+        const top50Selected = shuffleArray(top50Pool).slice(0, HOME_CHANNEL_TARGET_ITEMS);
+        if (top50Selected.length) return mapTracksToHomeItems(top50Selected);
+      } catch (_top50Error) {}
 
-        return selected.map((track) => {
-          const artists = Array.isArray(track.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
-          const albumName = String(track.album?.name || 'Album').trim();
-          const popularity = Number(track.popularity || 0);
-          return {
-            mediaType: 'music',
-            itemId: String(track.id || ''),
-            title: track.name || 'Track',
-            subtitle: artists || 'Artist',
-            extra: `${albumName}${popularity ? ` | Popularity ${popularity}/100` : ''}`,
-            image: String(track.image || '').trim(),
-            backgroundImage: String(track.image || '').trim(),
-            spotlightImage: String(track.image || '').trim(),
-            spotlightMediaImage: String(track.image || '').trim(),
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            href: String(track.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
-          };
-        });
-      } catch (_err) {
-        return FALLBACK_MUSIC_TRACKS.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((track, idx) => ({
-          mediaType: 'music',
-          itemId: String(track.id || `fallback-track-${idx + 1}`),
-          title: track.title,
-          subtitle: track.artist,
-          extra: track.album,
-          image: HOME_LOCAL_FALLBACK_IMAGE,
-          backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
-          spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
-          spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          href: track.id ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html',
-          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
-        }));
-      }
+      try {
+        const popularJson = await fetchJsonWithPerfCache(
+          `/api/music/popular?limit=50&market=${market}`,
+          { signal, cacheKey: `music:popular:50:${market}` }
+        );
+        const popularRows = Array.isArray(popularJson?.results) ? popularJson.results : [];
+        const dedupedPopular = dedupeMusicRows(popularRows);
+        const popularWithArtwork = dedupedPopular.filter((track) => String(track.image || '').trim());
+        const popularPool = popularWithArtwork.length ? popularWithArtwork : dedupedPopular;
+        const popularSelected = shuffleArray(popularPool).slice(0, HOME_CHANNEL_TARGET_ITEMS);
+        if (popularSelected.length) return mapTracksToHomeItems(popularSelected);
+      } catch (_popularError) {}
+
+      return FALLBACK_MUSIC_TRACKS.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((track, idx) => ({
+        mediaType: 'music',
+        itemId: String(track.id || `fallback-track-${idx + 1}`),
+        title: track.title,
+        subtitle: track.artist,
+        extra: track.album,
+        image: HOME_LOCAL_FALLBACK_IMAGE,
+        backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
+        spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
+        spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
+        href: track.id ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html',
+        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
+      }));
     }
 
     async function initUniversalHome() {

@@ -11,6 +11,10 @@ const POPULAR_PLAYLIST_IDS = [
   "37i9dQZF1DXcBWIGoYBM5M", // Today's Top Hits
   "37i9dQZEVXbKuaTI1Z1Afx"  // Viral 50 - USA
 ];
+const TOP_50_PLAYLIST_IDS = [
+  "37i9dQZEVXbLRQDuF5jeBp", // Top 50 - USA
+  "37i9dQZEVXbMDoHDwVN2tF"  // Top 50 - Global
+];
 const CURATION_KEYWORDS_BLOCKLIST = [
   "workout",
   "karaoke",
@@ -263,8 +267,81 @@ router.get("/", (_req, res) => {
     ok: true,
     service: "spotify-proxy",
     configured: hasSpotifyCredentials(),
-    routes: ["/search", "/popular", "/featured-playlists", "/new-releases", "/tracks/:id"]
+    routes: ["/search", "/top-50", "/popular", "/featured-playlists", "/new-releases", "/tracks/:id"]
   });
+});
+
+router.get("/top-50", async (req, res) => {
+  const limit = clampInt(req.query.limit, 1, 100, 50);
+  const market = String(req.query.market || "US").trim().slice(0, 2).toUpperCase() || "US";
+
+  try {
+    if (!hasSpotifyCredentials()) {
+      const [marketChart, usChart] = await Promise.all([
+        fetchAppleMostPlayedSongs({ country: market, limit: Math.max(50, limit) }),
+        market === "US"
+          ? Promise.resolve([])
+          : fetchAppleMostPlayedSongs({ country: "US", limit: Math.max(50, limit) })
+      ]);
+      const fallback = dedupeTracks([...marketChart, ...usChart])
+        .filter((row) => !isLowSignalTrack(row))
+        .slice(0, limit);
+      return res.json({
+        count: fallback.length,
+        limit,
+        offset: 0,
+        source: "itunes-fallback",
+        results: fallback
+      });
+    }
+
+    const chartBatches = await Promise.all(TOP_50_PLAYLIST_IDS.map(async (playlistId) => {
+      const json = await spotifyRequest(`/playlists/${encodeURIComponent(playlistId)}/tracks`, {
+        market,
+        limit: 50,
+        additional_types: "track",
+        offset: 0
+      });
+      const items = Array.isArray(json?.items) ? json.items : [];
+      return items
+        .map((row) => normalizeTrackRow(row?.track))
+        .filter((row) => !!row.id);
+    }));
+
+    const merged = dedupeTracks(chartBatches.flat())
+      .filter((row) => !!row.image && !isLowSignalTrack(row))
+      .slice(0, limit);
+
+    return res.json({
+      count: merged.length,
+      limit,
+      offset: 0,
+      source: "spotify-top-50-playlists",
+      playlist_ids: [...TOP_50_PLAYLIST_IDS],
+      results: merged
+    });
+  } catch (error) {
+    try {
+      const [marketChart, usChart] = await Promise.all([
+        fetchAppleMostPlayedSongs({ country: market, limit: Math.max(50, limit) }),
+        market === "US"
+          ? Promise.resolve([])
+          : fetchAppleMostPlayedSongs({ country: "US", limit: Math.max(50, limit) })
+      ]);
+      const fallback = dedupeTracks([...marketChart, ...usChart])
+        .filter((row) => !isLowSignalTrack(row))
+        .slice(0, limit);
+      return res.json({
+        count: fallback.length,
+        limit,
+        offset: 0,
+        source: "itunes-fallback",
+        results: fallback
+      });
+    } catch (_fallbackError) {
+      return res.status(500).json({ message: "Failed to load top 50 music.", error: String(error?.message || error) });
+    }
+  }
 });
 
 router.get("/popular", async (req, res) => {
