@@ -1668,21 +1668,12 @@
             const json = await res.json();
             const rawResults = Array.isArray(json.results) ? json.results : [];
             const filteredResults = rawResults.filter((item) => !isAnimeMovieResult(item));
-            const filteredOut = rawResults.length - filteredResults.length;
-            const firstAnime = rawResults.find((item) => isAnimeMovieResult(item));
             suggestions = filteredResults.slice(0, 6).map((m) => ({
               id: m.id,
               title: m.title || 'Movie',
               sub: m.release_date ? String(m.release_date).slice(0, 4) : 'Movie',
               image: m.poster_path ? `${POSTER_BASE}${m.poster_path}` : ''
             }));
-            if (filteredOut > 0) {
-              promptAnimeRedirect(
-                q,
-                suggestions.length === 0,
-                String(firstAnime?.title || firstAnime?.original_title || firstAnime?.name || '').trim()
-              );
-            }
             activeIndex = -1;
             renderSuggest();
           } catch (_e) {

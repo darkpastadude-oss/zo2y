@@ -1672,21 +1672,12 @@
             const json = await res.json();
             const rawResults = Array.isArray(json.results) ? json.results : [];
             const filteredResults = rawResults.filter((item) => !isAnimeTvResult(item));
-            const filteredOut = rawResults.length - filteredResults.length;
-            const firstAnime = rawResults.find((item) => isAnimeTvResult(item));
             suggestions = filteredResults.slice(0, 6).map((m) => ({
               id: m.id,
               title: m.name || 'TV Show',
               sub: m.first_air_date ? String(m.first_air_date).slice(0, 4) : 'TV Show',
               image: m.poster_path ? `${POSTER_BASE}${m.poster_path}` : ''
             }));
-            if (filteredOut > 0) {
-              promptAnimeRedirect(
-                q,
-                suggestions.length === 0,
-                String(firstAnime?.name || firstAnime?.original_name || firstAnime?.title || '').trim()
-              );
-            }
             activeIndex = -1;
             renderSuggest();
           } catch (_e) {

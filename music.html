@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/list-utils.js?v=20260221c" defer></script>
+  <script src="js/index-list-menu-adapter.js?v=20260221b" defer></script>
   <script src="js/universal-search.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
@@ -349,23 +350,6 @@
     </section>
   </main>
 
-  <div class="modal" id="musicListsModal" aria-hidden="true">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-title">Custom Music Lists</div>
-        <button class="icon-btn" id="closeMusicListsModal" aria-label="Close"><i class="fas fa-xmark"></i></button>
-      </div>
-      <div class="modal-list" id="musicListsContainer"></div>
-      <div class="modal-input">
-        <input type="text" id="newMusicListName" placeholder="New list name..." maxlength="50">
-        <button class="btn" id="createMusicListBtn">Create</button>
-      </div>
-      <div style="display:flex; justify-content:flex-end; margin-top:10px;">
-        <button class="btn" id="saveMusicListsBtn">Save Changes</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
@@ -379,10 +363,7 @@
       page: 1,
       totalPages: 1,
       listStatusMap: new Map(),
-      pendingQuickOps: new Set(),
-      modalTrack: null,
-      customLists: [],
-      selectedLists: new Set()
+      pendingQuickOps: new Set()
     };
 
     function escapeHtml(value) {
@@ -548,41 +529,6 @@
       return state.listStatusMap.get(id);
     }
 
-    function updateTrackMenuButtons(trackId) {
-      const id = String(trackId || '').trim();
-      if (!id) return;
-      const status = getTrackListStatus(id);
-      const card = Array.from(document.querySelectorAll('.card'))
-        .find((node) => String(node.getAttribute('data-id') || '').trim() === id);
-      if (!card) return;
-      const menu = card.querySelector('.menu');
-      if (!menu) return;
-      ['favorites', 'listened', 'listenlist'].forEach((listType) => {
-        const btn = menu.querySelector(`button[data-list="${listType}"]`);
-        if (!btn) return;
-        const isSaved = !!status[listType];
-        const isBusy = state.pendingQuickOps.has(`${id}:${listType}`);
-        btn.setAttribute('data-saved', isSaved ? '1' : '0');
-        btn.setAttribute('aria-busy', isBusy ? 'true' : 'false');
-        btn.disabled = isBusy;
-        btn.style.opacity = isBusy ? '0.72' : '';
-      });
-    }
-
-    function cardMenuHtml(track) {
-      const trackId = String(track.id || '').trim();
-      const status = getTrackListStatus(trackId);
-      const favoritesBusy = state.pendingQuickOps.has(`${trackId}:favorites`);
-      const listenedBusy = state.pendingQuickOps.has(`${trackId}:listened`);
-      const listenlistBusy = state.pendingQuickOps.has(`${trackId}:listenlist`);
-      return `
-        <button data-list="favorites" data-saved="${status.favorites ? '1' : '0'}" aria-busy="${favoritesBusy ? 'true' : 'false'}" ${favoritesBusy ? 'disabled' : ''}><i class="fas fa-heart"></i> Favorites</button>
-        <button data-list="listened" data-saved="${status.listened ? '1' : '0'}" aria-busy="${listenedBusy ? 'true' : 'false'}" ${listenedBusy ? 'disabled' : ''}><i class="fas fa-check"></i> Listened</button>
-        <button data-list="listenlist" data-saved="${status.listenlist ? '1' : '0'}" aria-busy="${listenlistBusy ? 'true' : 'false'}" ${listenlistBusy ? 'disabled' : ''}><i class="fas fa-bookmark"></i> Listenlist</button>
-        <button data-action="custom"><i class="fas fa-list"></i> Custom Lists</button>
-      `;
-    }
-
     function renderGrid() {
       const grid = document.getElementById('musicGrid');
       if (!grid) return;
@@ -603,10 +549,9 @@
             <p class="card-sub">${escapeHtml(track.subtitle)}</p>
             <p class="card-extra">${escapeHtml(track.album)} | Popularity ${track.popularity}/100</p>
             <div class="card-actions">
-              <button class="icon-btn menu-toggle" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
               ${track.preview_url ? `<button class="icon-btn preview-toggle" data-preview="${escapeHtml(track.preview_url)}" type="button" aria-label="Preview"><i class="fas fa-play"></i></button>` : '<span></span>'}
             </div>
-            <div class="menu">${cardMenuHtml(track)}</div>
           </div>
         </article>
       `).join('');
@@ -644,25 +589,30 @@
       return true;
     }
 
-    async function toggleQuickList(track, listType) {
+    async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
+      const trackId = String(itemId || '').trim();
+      if (!trackId) return { ok: false, saved: false };
+      const track = state.tracks.find((row) => String(row.id || '').trim() === trackId);
+      if (!track) return { ok: false, saved: false };
+
       const client = await ensureSupabase();
       if (!client || !currentUser?.id) {
         window.location.href = 'login.html';
-        return;
+        return { ok: false, saved: false };
       }
-      const trackId = String(track.id || '');
-      if (!trackId) return;
-      const bucket = getTrackListStatus(trackId);
-      if (!(listType in bucket)) return;
+
+      const status = getTrackListStatus(trackId);
+      if (!(listType in status)) return { ok: false, saved: false };
+
+      const previousSaved = !!status[listType];
+      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
       const opKey = `${trackId}:${listType}`;
-      if (state.pendingQuickOps.has(opKey)) return;
+      if (state.pendingQuickOps.has(opKey)) {
+        return { ok: false, saved: previousSaved };
+      }
 
-      const previousSaved = !!bucket[listType];
-      const nextSaved = !previousSaved;
       state.pendingQuickOps.add(opKey);
-      bucket[listType] = nextSaved;
-      updateTrackMenuButtons(trackId);
-
+      status[listType] = nextSaved;
       try {
         if (nextSaved) {
           const ok = await upsertTrackRecord(client, track);
@@ -684,175 +634,38 @@
           if (error) throw error;
           showToast('Removed from list');
         }
+        return { ok: true, saved: nextSaved };
       } catch (error) {
         console.error('Music list toggle failed', error);
-        bucket[listType] = previousSaved;
+        status[listType] = previousSaved;
         showToast('Could not update list', true);
+        return { ok: false, saved: previousSaved };
       } finally {
         state.pendingQuickOps.delete(opKey);
-        updateTrackMenuButtons(trackId);
       }
-    }
-
-    async function openCustomLists(track) {
-      if (!currentUser?.id) {
-        window.location.href = 'login.html';
-        return;
-      }
-      const client = await ensureSupabase();
-      if (!client || !window.ListUtils) return;
-      state.modalTrack = track;
-      state.customLists = await ListUtils.loadCustomLists(client, currentUser.id, 'music');
-      const listIds = state.customLists.map((list) => list.id);
-      state.selectedLists = await ListUtils.loadCustomListMembership(client, currentUser.id, 'music', track.id, listIds);
-      renderMusicListsModal();
-      const modal = document.getElementById('musicListsModal');
-      if (modal) {
-        modal.classList.add('active');
-        modal.setAttribute('aria-hidden', 'false');
-      }
-    }
-
-    function renderMusicListsModal() {
-      const container = document.getElementById('musicListsContainer');
-      if (!container) return;
-      if (!state.customLists.length) {
-        container.innerHTML = '<div class="empty">No custom lists yet.</div>';
-        return;
-      }
-      container.innerHTML = state.customLists.map((list) => {
-        const active = state.selectedLists.has(list.id);
-        return `
-          <div class="modal-list-item${active ? ' active' : ''}" data-list-id="${list.id}">
-            <span>${window.ListUtils ? ListUtils.renderListIcon(list.icon, 'fas fa-music') : ''} ${escapeHtml(list.title)}</span>
-            <span>${active ? 'Saved' : 'Add'}</span>
-          </div>
-        `;
-      }).join('');
-      container.querySelectorAll('.modal-list-item').forEach((node) => {
-        node.addEventListener('click', () => {
-          const id = node.getAttribute('data-list-id');
-          if (!id) return;
-          if (state.selectedLists.has(id)) state.selectedLists.delete(id);
-          else state.selectedLists.add(id);
-          node.classList.toggle('active');
-          const label = node.querySelector('span:last-child');
-          if (label) label.textContent = state.selectedLists.has(id) ? 'Saved' : 'Add';
-        });
-      });
-    }
-
-    async function saveCustomLists() {
-      const client = await ensureSupabase();
-      if (!client || !currentUser?.id || !state.modalTrack || !window.ListUtils) return;
-      const ok = await upsertTrackRecord(client, state.modalTrack);
-      if (!ok) {
-        showToast('Could not save track', true);
-        return;
-      }
-      await ListUtils.saveCustomListChanges(
-        client,
-        currentUser.id,
-        'music',
-        state.modalTrack.id,
-        [...state.selectedLists],
-        {
-          id: state.modalTrack.id,
-          name: state.modalTrack.name || '',
-          artists: state.modalTrack.subtitle || '',
-          album: state.modalTrack.album || '',
-          image: state.modalTrack.image || '',
-          preview_url: state.modalTrack.preview_url || '',
-          external_url: state.modalTrack.external_url || '',
-          popularity: Number(state.modalTrack.popularity || 0)
-        }
-      );
-      closeCustomLists();
-      showToast('Lists updated');
-    }
-
-    function closeCustomLists() {
-      const modal = document.getElementById('musicListsModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.setAttribute('aria-hidden', 'true');
-      }
-      state.modalTrack = null;
-      state.customLists = [];
-      state.selectedLists = new Set();
-    }
-
-    async function createCustomList() {
-      const input = document.getElementById('newMusicListName');
-      const title = String(input?.value || '').trim();
-      if (!title || !window.ListUtils || !currentUser?.id) return;
-      const client = await ensureSupabase();
-      if (!client) return;
-      const modal = document.getElementById('musicListsModal');
-      const tierState = modal
-        ? ListUtils.readTierCreateState(modal)
-        : { listKind: 'standard', maxRank: null };
-      const created = await ListUtils.createCustomList(client, currentUser.id, 'music', {
-        title,
-        icon: 'fas fa-music',
-        listKind: tierState.listKind,
-        maxRank: tierState.maxRank
-      });
-      if (!created) {
-        showToast('Could not create list', true);
-        return;
-      }
-      input.value = '';
-      if (modal) ListUtils.resetTierCreateState(modal);
-      state.customLists.unshift(created);
-      renderMusicListsModal();
     }
 
     function wireGridActions() {
       const audio = new Audio();
       let currentBtn = null;
 
-      document.querySelectorAll('.menu-toggle').forEach((btn) => {
+      document.querySelectorAll('.menu-btn').forEach((btn) => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           const card = btn.closest('.card');
           if (!card) return;
-          const menu = card.querySelector('.menu');
-          document.querySelectorAll('.menu.open').forEach((node) => {
-            if (node !== menu) node.classList.remove('open');
-          });
-          menu?.classList.toggle('open');
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(card);
+          }
         });
       });
 
       document.querySelectorAll('.card').forEach((card) => {
         card.addEventListener('click', (e) => {
-          if (e.target.closest('.menu') || e.target.closest('.menu-toggle') || e.target.closest('.preview-toggle')) return;
+          if (e.target.closest('.menu-btn') || e.target.closest('.preview-toggle')) return;
           const id = String(card.getAttribute('data-id') || '').trim();
           if (!id) return;
           window.location.href = `song.html?id=${encodeURIComponent(id)}`;
-        });
-      });
-
-      document.querySelectorAll('.menu').forEach((menu) => {
-        menu.querySelectorAll('button').forEach((button) => {
-          button.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const card = button.closest('.card');
-            if (!card) return;
-            const id = card.getAttribute('data-id');
-            const track = state.tracks.find((row) => row.id === id);
-            if (!track) return;
-            const action = button.getAttribute('data-action');
-            const list = button.getAttribute('data-list');
-            menu.classList.remove('open');
-
-            if (action === 'custom') {
-              await openCustomLists(track);
-              return;
-            }
-            if (list) await toggleQuickList(track, list);
-          });
         });
       });
 
@@ -887,11 +700,6 @@
       }
     }
 
-    document.addEventListener('click', (e) => {
-      if (e.target.closest('.menu') || e.target.closest('.menu-toggle')) return;
-      document.querySelectorAll('.menu.open').forEach((node) => node.classList.remove('open'));
-    });
-
     document.getElementById('refreshMusicBtn')?.addEventListener('click', loadPage);
     document.getElementById('searchMusicBtn')?.addEventListener('click', async () => {
       state.currentQuery = String(document.getElementById('musicPageSearch')?.value || '').trim();
@@ -909,12 +717,6 @@
       state.currentQuery = String(e.target.value || '').trim();
       await loadPage();
     });
-    document.getElementById('closeMusicListsModal')?.addEventListener('click', closeCustomLists);
-    document.getElementById('saveMusicListsBtn')?.addEventListener('click', saveCustomLists);
-    document.getElementById('createMusicListBtn')?.addEventListener('click', createCustomList);
-    document.getElementById('newMusicListName')?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') createCustomList();
-    });
     document.getElementById('prevPageBtn')?.addEventListener('click', () => {
       if (state.page <= 1) return;
       state.page -= 1;
@@ -931,6 +733,30 @@
         window.initUniversalSearch({
           input: '#globalSearch',
           fallbackRoute: 'music.html'
+        });
+      }
+      if (window.initIndexStyleListMenu) {
+        window.initIndexStyleListMenu({
+          mediaType: 'music',
+          itemIdAttr: 'data-id',
+          getVisibleItemIds: () =>
+            Array.from(document.querySelectorAll('.card[data-id]'))
+              .map((card) => card.getAttribute('data-id'))
+              .filter(Boolean),
+          getQuickStatusForItem: (itemId) => {
+            const key = String(itemId || '').trim();
+            const status = state.listStatusMap.get(key);
+            return status ? { ...status } : null;
+          },
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            await ensureSupabase();
+            return supabaseClient;
+          },
+          getCurrentUser: () => currentUser,
+          notify: (message, isError) => showToast(message, !!isError),
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved)
         });
       }
       loadPage();
