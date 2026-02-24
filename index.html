@@ -1688,6 +1688,7 @@
           <a class="nav-pill" href="games.html">Games</a>
           <a class="nav-pill" href="books.html">Books</a>
           <a class="nav-pill" href="music.html">Music</a>
+          <a class="nav-pill" href="reviews.html">Reviews</a>
         </nav>
         <div class="auth-actions">
           <a class="btn" href="login.html" id="loginBtn">Login</a>
@@ -2525,6 +2526,10 @@
 
     async function loadNewReleases(signal) {
       const now = new Date();
+      const currentYear = now.getUTCFullYear();
+      const recentBookMinYear = Math.max(2000, currentYear - 2);
+      const fallbackBookMinYear = Math.max(1990, currentYear - 4);
+      const bookReleaseQuery = encodeURIComponent(`bestseller new release fiction ${currentYear} ${currentYear - 1}`);
       const toIsoDate = (value) => {
         const date = value instanceof Date ? value : new Date(value);
         return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 10) : '';
@@ -2710,8 +2715,8 @@
           page: 1
         }, signal),
         fetchJsonWithPerfCache(
-          '/api/books/trending?period=weekly&limit=24',
-          { signal, cacheKey: 'books:new-releases:weekly' }
+          `/api/books/popular?limit=30&page=1&language=en&orderBy=newest&q=${bookReleaseQuery}`,
+          { signal, cacheKey: `books:new-releases:newest:${recentBookMinYear}:${currentYear}` }
         ),
         fetchJsonWithPerfCache(
           '/api/music/top-50?limit=40&market=US',
@@ -2728,9 +2733,20 @@
       const gameRows = gamesRes.status === 'fulfilled'
         ? (Array.isArray(gamesRes.value?.results) ? gamesRes.value.results : (Array.isArray(gamesRes.value) ? gamesRes.value : []))
         : [];
-      const bookRows = booksRes.status === 'fulfilled'
+      const rawBookRows = booksRes.status === 'fulfilled'
         ? (Array.isArray(booksRes.value?.docs) ? booksRes.value.docs : (Array.isArray(booksRes.value?.items) ? booksRes.value.items : []))
         : [];
+      const strictBookRows = rawBookRows.filter((row) => {
+        const year = Number(row?.first_publish_year || row?.published_year || 0) || 0;
+        return year >= recentBookMinYear;
+      });
+      const relaxedBookRows = rawBookRows.filter((row) => {
+        const year = Number(row?.first_publish_year || row?.published_year || 0) || 0;
+        return year >= fallbackBookMinYear;
+      });
+      const bookRows = strictBookRows.length >= 4
+        ? strictBookRows
+        : (relaxedBookRows.length ? relaxedBookRows : strictBookRows);
       const musicRows = musicRes.status === 'fulfilled' && Array.isArray(musicRes.value?.results) ? musicRes.value.results : [];
 
       const combined = [

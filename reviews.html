@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
+  <title>Zo2y | Reviews</title>
+  <meta name="description" content="Browse reviews across movies, TV, anime, games, books, and music." />
+  <link rel="canonical" href="https://www.zo2y.com/reviews.html" />
+  <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/universal-search.js" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <style>
+    :root { --bg:#0b1633; --card:#132347; --muted:#8ca3c7; --accent:#f59e0b; --white:#fff; --border:rgba(255,255,255,.12); }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    html,body { min-height:100%; background:radial-gradient(circle at 20% -10%, rgba(245,158,11,.15), transparent 35%), var(--bg); color:var(--white); font-family:Inter,system-ui,-apple-system,sans-serif; }
+    a { color:inherit; text-decoration:none; }
+    .container { width:min(1120px, calc(100% - 24px)); margin:0 auto; }
+    header { position:sticky; top:0; z-index:100; backdrop-filter:blur(10px) saturate(180%); background:rgba(12,26,57,.86); border-bottom:1px solid var(--border); }
+    .header-inner { min-height:70px; display:flex; align-items:center; gap:10px; padding:10px 0; flex-wrap:wrap; }
+    .brand { display:inline-flex; align-items:center; gap:8px; font-size:21px; font-weight:800; }
+    .brand img { width:34px; height:34px; border-radius:9px; }
+    .search-wrap { flex:1; min-width:200px; max-width:420px; position:relative; margin-left:8px; }
+    .search-wrap i { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px; }
+    .search { width:100%; height:40px; border-radius:999px; border:1px solid var(--border); background:#10224a; color:var(--white); padding:0 14px 0 34px; }
+    .search:focus { outline:none; border-color:rgba(245,158,11,.55); }
+    .top-nav { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-left:auto; }
+    .nav-pill { border:1px solid var(--border); border-radius:999px; color:var(--muted); padding:7px 11px; font-size:12px; font-weight:700; }
+    .nav-pill.active,.nav-pill:hover { color:var(--white); border-color:rgba(245,158,11,.55); background:rgba(245,158,11,.15); }
+    .page { padding:18px 0 36px; display:grid; gap:12px; }
+    .hero,.filters,.card { border:1px solid var(--border); border-radius:14px; background:linear-gradient(160deg, rgba(23,43,88,.92), rgba(19,35,71,.95)); }
+    .hero { padding:16px; display:grid; gap:8px; }
+    .hero p { color:var(--muted); font-size:14px; }
+    .filters { padding:12px; display:grid; gap:9px; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .chip { border:1px solid var(--border); border-radius:999px; background:rgba(255,255,255,.02); color:var(--muted); padding:6px 10px; font-size:12px; font-weight:700; cursor:pointer; }
+    .chip.active,.chip:hover { color:var(--white); border-color:rgba(245,158,11,.55); background:rgba(245,158,11,.15); }
+    .sort { margin-left:auto; display:inline-flex; gap:8px; align-items:center; color:var(--muted); font-size:12px; font-weight:700; }
+    .sort select { border:1px solid var(--border); border-radius:9px; min-height:34px; background:#10224a; color:var(--white); padding:0 8px; }
+    .summary { color:var(--muted); font-size:13px; min-height:16px; }
+    #reviewsList { display:grid; gap:10px; }
+    .card { padding:10px; display:grid; grid-template-columns:minmax(0,1fr) 86px; gap:10px; }
+    .top { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .badge { border:1px solid var(--border); border-radius:999px; padding:3px 8px; font-size:11px; color:var(--muted); font-weight:700; }
+    .date { margin-left:auto; color:var(--muted); font-size:12px; }
+    .title { font-size:18px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:6px 0; }
+    .meta { color:var(--muted); font-size:13px; }
+    .stars { margin-top:6px; display:inline-flex; gap:8px; border:1px solid rgba(255,191,63,.3); background:rgba(255,191,63,.1); color:#ffbf3f; border-radius:999px; padding:3px 9px; font-size:12px; font-weight:800; }
+    .comment { margin-top:7px; color:#d9e5ff; font-size:13px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+    .art { border:1px solid var(--border); border-radius:9px; overflow:hidden; background:rgba(255,255,255,.05); min-height:112px; }
+    .art img { width:100%; height:100%; object-fit:cover; display:block; }
+    .empty { border:1px dashed var(--border); border-radius:14px; color:var(--muted); text-align:center; padding:16px; }
+    @media (max-width:760px) {
+      .sort { margin-left:0; width:100%; justify-content:space-between; }
+      .card { grid-template-columns:minmax(0,1fr) 72px; }
+      .art { min-height:94px; }
+      .title { font-size:16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-inner">
+      <a class="brand" href="index.html"><img src="images/logo.png" alt="Zo2y" /><span>Zo2y</span></a>
+      <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input class="search" id="globalSearch" placeholder="Search all media..." /></div>
+      <nav class="top-nav" aria-label="Browse media">
+        <a class="nav-pill" href="index.html">Home</a>
+        <a class="nav-pill" href="movies.html">Movies</a>
+        <a class="nav-pill" href="tvshows.html">TV</a>
+        <a class="nav-pill" href="animes.html">Anime</a>
+        <a class="nav-pill" href="games.html">Games</a>
+        <a class="nav-pill" href="books.html">Books</a>
+        <a class="nav-pill" href="music.html">Music</a>
+        <a class="nav-pill active" href="reviews.html">Reviews</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container page">
+    <section class="hero">
+      <h1>Community Reviews</h1>
+      <p>See what was reviewed, when it was reviewed, how many stars it got, and who posted it. Click a card to open that item.</p>
+    </section>
+    <section class="filters">
+      <div class="chips" id="mediaFilters">
+        <button class="chip active" type="button" data-media="all">All</button>
+        <button class="chip" type="button" data-media="movie">Movies</button>
+        <button class="chip" type="button" data-media="tv">TV</button>
+        <button class="chip" type="button" data-media="anime">Anime</button>
+        <button class="chip" type="button" data-media="game">Games</button>
+        <button class="chip" type="button" data-media="book">Books</button>
+        <button class="chip" type="button" data-media="music">Music</button>
+        <div class="sort"><label for="sortSelect">Sort</label><select id="sortSelect"><option value="newest">Newest</option><option value="highest">Highest Rated</option><option value="lowest">Lowest Rated</option></select></div>
+      </div>
+      <div class="summary" id="summaryText"></div>
+    </section>
+    <section id="reviewsList"><div class="empty">Loading reviews...</div></section>
+  </main>
+  <script src="js/reviews-page.js" defer></script>
+  <script src="js/production-runtime.js?v=20260221a" defer></script>
+</body>
+</html>
+
