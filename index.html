@@ -32,6 +32,11 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://image.tmdb.org" crossorigin>
+  <link rel="preconnect" href="https://covers.openlibrary.org" crossorigin>
+  <link rel="preconnect" href="https://books.googleusercontent.com" crossorigin>
+  <link rel="preconnect" href="https://i.scdn.co" crossorigin>
+  <link rel="preconnect" href="https://images.igdb.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/list-utils.js?v=20260221c" defer></script>
   <script src="js/universal-search.js" defer></script>
@@ -1922,10 +1927,10 @@
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 16;
     const HOME_SPOTLIGHT_POOL_SIZE = 16;
-    const HOME_EAGER_IMAGE_COUNT = 3;
-    const HOME_HIGH_PRIORITY_IMAGE_COUNT = 2;
-    const HOME_PRELOAD_PER_CHANNEL = 3;
-    const HOME_PRELOAD_SPOTLIGHT_COUNT = 4;
+    const HOME_EAGER_IMAGE_COUNT = 8;
+    const HOME_HIGH_PRIORITY_IMAGE_COUNT = 4;
+    const HOME_PRELOAD_PER_CHANNEL = 2;
+    const HOME_PRELOAD_SPOTLIGHT_COUNT = 3;
     const HOME_UNIFIED_TARGET_ITEMS = 24;
     const HOME_BECAUSE_SIGNAL_CACHE_MS = 1000 * 60 * 3;
     const HOME_BECAUSE_MAX_FOLLOWED_USERS = 24;
@@ -1972,6 +1977,8 @@
       selectedLists: new Set()
     };
     const homePreloadedImageSet = new Set();
+    let homeEagerImageBudgetUsed = 0;
+    let homeHighPriorityImageBudgetUsed = 0;
     let homeMenuPrimeScheduled = false;
     let homeBecauseRefreshSeq = 0;
     let homeBecauseSignalCache = {
@@ -4045,34 +4052,45 @@
       return arr;
     }
 
-    function seededHash32(value) {
-      const text = String(value || '');
-      let hash = 2166136261;
-      for (let i = 0; i < text.length; i += 1) {
-        hash ^= text.charCodeAt(i);
-        hash = Math.imul(hash, 16777619);
-      }
-      return hash >>> 0;
+    function isHomeSlowNetwork() {
+      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (!connection) return false;
+      if (connection.saveData) return true;
+      const effectiveType = String(connection.effectiveType || '').toLowerCase();
+      return effectiveType === 'slow-2g' || effectiveType === '2g' || effectiveType === '3g';
     }
 
-    function seededShuffleArray(input, seedKey = '') {
-      const arr = [...input];
-      let state = seededHash32(seedKey) || 1;
-      const nextRandom = () => {
-        state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-        return state / 4294967296;
+    function getHomePreloadPerChannelBudget() {
+      if (isHomeSlowNetwork()) return Math.max(1, HOME_PRELOAD_PER_CHANNEL - 1);
+      return HOME_PRELOAD_PER_CHANNEL;
+    }
+
+    function getHomeSpotlightPreloadBudget() {
+      if (isHomeSlowNetwork()) return Math.max(1, HOME_PRELOAD_SPOTLIGHT_COUNT - 1);
+      return HOME_PRELOAD_SPOTLIGHT_COUNT;
+    }
+
+    function resetHomeImageRequestBudget() {
+      homeEagerImageBudgetUsed = 0;
+      homeHighPriorityImageBudgetUsed = 0;
+    }
+
+    function consumeHomeImageRequestBudget() {
+      const onSlowNetwork = isHomeSlowNetwork();
+      const eagerBudget = onSlowNetwork
+        ? Math.max(2, HOME_EAGER_IMAGE_COUNT - 3)
+        : HOME_EAGER_IMAGE_COUNT;
+      const priorityBudget = onSlowNetwork
+        ? Math.max(1, HOME_HIGH_PRIORITY_IMAGE_COUNT - 2)
+        : HOME_HIGH_PRIORITY_IMAGE_COUNT;
+      const useEager = homeEagerImageBudgetUsed < eagerBudget;
+      const useHighPriority = homeHighPriorityImageBudgetUsed < priorityBudget;
+      if (useEager) homeEagerImageBudgetUsed += 1;
+      if (useHighPriority) homeHighPriorityImageBudgetUsed += 1;
+      return {
+        loading: useEager ? 'eager' : 'lazy',
+        priority: useHighPriority ? 'high' : 'low'
       };
-      for (let i = arr.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(nextRandom() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-
-    function buildDailySeed(scope = '') {
-      const now = new Date();
-      const day = `${now.getUTCFullYear()}-${now.getUTCMonth() + 1}-${now.getUTCDate()}`;
-      return `${scope}:${day}`;
     }
 
     function hasGenreId(item, id) {
@@ -4106,14 +4124,16 @@
       const img = new Image();
       img.decoding = 'async';
       img.loading = 'lazy';
+      img.fetchPriority = 'low';
       img.src = src;
     }
 
     function warmHomeFeedImages(feedMap) {
+      const perChannelBudget = getHomePreloadPerChannelBudget();
       const groups = Object.values(feedMap || {});
       groups.forEach((items) => {
         if (!Array.isArray(items)) return;
-        items.slice(0, HOME_PRELOAD_PER_CHANNEL).forEach((item) => {
+        items.slice(0, perChannelBudget).forEach((item) => {
           preloadImage(item.image);
           preloadImage(item.backgroundImage || item.spotlightImage);
         });
@@ -4122,7 +4142,8 @@
 
     function warmSpotlightImages(items) {
       if (!Array.isArray(items)) return;
-      items.slice(0, HOME_PRELOAD_SPOTLIGHT_COUNT).forEach((item) => {
+      const spotlightBudget = getHomeSpotlightPreloadBudget();
+      items.slice(0, spotlightBudget).forEach((item) => {
         preloadImage(item.spotlightImage || item.backgroundImage || item.image);
         preloadImage(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage);
       });
@@ -4384,6 +4405,7 @@
 
     function applyHomeFeedMap(feedMap) {
       const channels = getHomeChannels();
+      resetHomeImageRequestBudget();
       warmHomeFeedImages(feedMap);
       let activeChannels = 0;
       channels.forEach((channel) => {
@@ -4424,7 +4446,7 @@
         return;
       }
 
-      rail.innerHTML = items.map((item, index) => {
+      rail.innerHTML = items.map((item) => {
         const mediaTypeRaw = String(item.mediaType || opts?.mediaType || '').toLowerCase();
         const media = getHomeMediaMeta(mediaTypeRaw);
         const uniformMedia = !!opts?.uniformMedia;
@@ -4443,8 +4465,12 @@
         const itemId = escapeHtml(item.itemId || '');
         const supportsLists = supportsHomeLists(mediaTypeRaw) && !item.isPlaceholder;
         const opensExternal = /^https?:\/\//i.test(String(hrefRaw || ''));
-        const imageLoading = index < HOME_EAGER_IMAGE_COUNT ? 'eager' : 'lazy';
-        const imagePriority = index < HOME_HIGH_PRIORITY_IMAGE_COUNT ? 'high' : 'auto';
+        const hasVisualImage = restaurantComposite ? !!coverImage || !!logo : !!image;
+        const imagePolicy = hasVisualImage
+          ? consumeHomeImageRequestBudget()
+          : { loading: 'lazy', priority: 'low' };
+        const imageLoading = imagePolicy.loading;
+        const imagePriority = imagePolicy.priority;
         const mediaClasses = ['card-media'];
         if (landscape) mediaClasses.push('landscape');
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
@@ -5627,7 +5653,7 @@
         const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 1995, allowMissingYear: true });
         const merged = mergeUniqueItems(strictModern, modernWithUnknownYear, relaxedFallback);
         if (merged.length) {
-          const shuffled = seededShuffleArray(merged, buildDailySeed('books-home'));
+          const shuffled = shuffleArray(merged);
           return shuffled.slice(0, HOME_CHANNEL_TARGET_ITEMS);
         }
       } catch (_e) {}
@@ -5723,7 +5749,7 @@
           ? ranked
           : withArtwork.sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0));
         const pool = popularitySorted.slice(0, Math.max(HOME_CHANNEL_TARGET_ITEMS * 2, 28));
-        const selected = seededShuffleArray(pool, buildDailySeed(`music-home-${market}`))
+        const selected = shuffleArray(pool)
           .slice(0, HOME_CHANNEL_TARGET_ITEMS);
         if (!selected.length) {
           return FALLBACK_MUSIC_TRACKS.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((track, idx) => ({

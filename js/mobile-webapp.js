@@ -19,9 +19,18 @@
   document.documentElement.appendChild(loadLine);
   document.body?.classList.add('app-loading');
 
-  const LIST_MENU_SELECTOR = '.list-menu, .rail-menu, .menu';
+  const LIST_MENU_SELECTOR = '.list-menu, .rail-menu';
+  const OPEN_LIST_MENU_SELECTOR = '.list-menu.open, .rail-menu.open';
   const LIST_MODAL_SELECTOR = '.modal[id*="ListsModal"], #customListsModal, #actionsModal';
+  const OPEN_LIST_MODAL_SELECTOR = '.modal[id*="ListsModal"].active, #customListsModal.active, #actionsModal.active';
   const NATIVE_MENU_BACKDROP_SELECTOR = '.list-menu-backdrop.active, .rail-menu-backdrop.active';
+  const IMAGE_RESOURCE_HINT_ORIGINS = [
+    'https://image.tmdb.org',
+    'https://covers.openlibrary.org',
+    'https://books.googleusercontent.com',
+    'https://i.scdn.co',
+    'https://images.igdb.com'
+  ];
   const INSTALL_DISMISS_KEY = 'zo2y_mobile_install_dismissed_at_v2';
   const INSTALL_DONE_KEY = 'zo2y_mobile_install_done_v2';
   const INSTALL_REPROMPT_MS = 1000 * 60 * 60 * 12;
@@ -73,6 +82,34 @@
     if (dismissedAt && (Date.now() - dismissedAt) < INSTALL_REPROMPT_MS) return false;
     return true;
   };
+
+  const ensureResourceHints = () => {
+    if (!document.head) return;
+    IMAGE_RESOURCE_HINT_ORIGINS.forEach((origin) => {
+      const key = origin.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+      const dnsId = `zo2y-dns-${key}`;
+      const preconnectId = `zo2y-preconnect-${key}`;
+
+      if (!document.getElementById(dnsId)) {
+        const dns = document.createElement('link');
+        dns.id = dnsId;
+        dns.rel = 'dns-prefetch';
+        dns.href = origin;
+        document.head.appendChild(dns);
+      }
+
+      if (!document.getElementById(preconnectId)) {
+        const preconnect = document.createElement('link');
+        preconnect.id = preconnectId;
+        preconnect.rel = 'preconnect';
+        preconnect.href = origin;
+        preconnect.crossOrigin = 'anonymous';
+        document.head.appendChild(preconnect);
+      }
+    });
+  };
+
+  ensureResourceHints();
 
   const dismissInstallPrompt = (options = {}) => {
     const persist = options.persist !== false;
@@ -321,7 +358,7 @@
   };
 
   const closeAllPopupMenus = () => {
-    document.querySelectorAll('.list-menu.open, .rail-menu.open, .menu.open').forEach((menu) => {
+    document.querySelectorAll(OPEN_LIST_MENU_SELECTOR).forEach((menu) => {
       menu.classList.remove('open');
     });
     document.querySelectorAll('.card.menu-open').forEach((card) => {
@@ -335,13 +372,23 @@
   };
 
   const closeAllListModals = () => {
-    document.querySelectorAll('.modal[id*="ListsModal"].active, #customListsModal.active, #actionsModal.active')
+    document.querySelectorAll(OPEN_LIST_MODAL_SELECTOR)
       .forEach((modal) => closeModalNode(modal));
   };
 
+  const releaseStalePopupLock = () => {
+    if (!document.body) return;
+    const hasOpenMenu = !!document.querySelector(OPEN_LIST_MENU_SELECTOR);
+    const hasOpenModal = !!document.querySelector(OPEN_LIST_MODAL_SELECTOR);
+    if (hasOpenMenu || hasOpenModal) return;
+    document.body.classList.remove('zo2y-popup-open');
+    const popupBackdrop = document.getElementById('zo2yPopupBackdrop');
+    if (popupBackdrop) popupBackdrop.classList.remove('active');
+  };
+
   const syncPopupState = () => {
-    const hasOpenMenu = !!document.querySelector('.list-menu.open, .rail-menu.open, .menu.open');
-    const hasOpenModal = !!document.querySelector('.modal[id*="ListsModal"].active, #customListsModal.active, #actionsModal.active');
+    const hasOpenMenu = !!document.querySelector(OPEN_LIST_MENU_SELECTOR);
+    const hasOpenModal = !!document.querySelector(OPEN_LIST_MODAL_SELECTOR);
     const hasNativeBackdrop = !!document.querySelector(NATIVE_MENU_BACKDROP_SELECTOR);
     const popupBackdrop = ensurePopupBackdrop();
 
@@ -354,6 +401,9 @@
     }
     if (document.body) {
       document.body.classList.toggle('zo2y-popup-open', hasOpenMenu || hasOpenModal);
+    }
+    if (!hasOpenMenu && !hasOpenModal) {
+      releaseStalePopupLock();
     }
   };
 
@@ -393,6 +443,7 @@
     ensureMenuCloseButtons();
     ensureModalCloseButtons();
     syncPopupState();
+    releaseStalePopupLock();
 
     document.addEventListener('click', (event) => {
       const target = event.target;
@@ -500,6 +551,7 @@
     document.body.classList.remove('app-booting');
     document.body.classList.add('app-ready');
     initListPopupShell();
+    releaseStalePopupLock();
     window.setTimeout(() => document.body.classList.remove('app-loading'), 180);
     if (ENABLE_MOBILE_INSTALL_PROMPT) {
       window.setTimeout(() => showInstallPromptCard(), 1200);
@@ -516,6 +568,15 @@
   window.addEventListener('appinstalled', () => {
     markInstallComplete();
   });
+
+  window.addEventListener('pageshow', () => {
+    syncPopupState();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    syncPopupState();
+  }, { passive: true });
 
   // Prefetch same-origin page links on hover/touch for snappier transitions.
   const prefetched = new Set();
