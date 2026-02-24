@@ -123,13 +123,33 @@
 
   async function loadAuthState() {
     const supabase = await ensureSupabase();
-    if (!supabase) return;
+    const loginBtn = document.getElementById('loginBtn');
+    const signupBtn = document.getElementById('signupBtn');
+    const profileBtn = document.getElementById('profileBtn');
+    const syncAuthButtons = () => {
+      const loggedIn = !!currentUser;
+      if (loginBtn) loginBtn.style.display = loggedIn ? 'none' : 'inline-flex';
+      if (signupBtn) signupBtn.style.display = loggedIn ? 'none' : 'inline-flex';
+      if (profileBtn) {
+        profileBtn.style.display = loggedIn ? 'inline-flex' : 'none';
+        if (loggedIn) profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+      }
+    };
+    if (!supabase) {
+      syncAuthButtons();
+      return;
+    }
     try {
       const { data } = await supabase.auth.getUser();
       currentUser = data?.user || null;
     } catch (_err) {
       currentUser = null;
     }
+    syncAuthButtons();
+    supabase.auth.onAuthStateChange((_event, session) => {
+      currentUser = session?.user || null;
+      syncAuthButtons();
+    });
   }
 
   async function fetchSourceReviews(source) {

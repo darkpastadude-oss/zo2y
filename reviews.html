@@ -11,23 +11,35 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/universal-search.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
   <style>
-    :root { --bg:#0b1633; --card:#132347; --muted:#8ca3c7; --accent:#f59e0b; --white:#fff; --border:rgba(255,255,255,.12); }
+    :root { --bg:#0b1633; --card:#132347; --muted:#8ca3c7; --accent:#f59e0b; --white:#fff; --border:rgba(255,255,255,.12); --surface:rgba(12,26,57,.86); --gradient:linear-gradient(135deg,#f59e0b,#ffb84d); }
     * { box-sizing:border-box; margin:0; padding:0; }
-    html,body { min-height:100%; background:radial-gradient(circle at 20% -10%, rgba(245,158,11,.15), transparent 35%), var(--bg); color:var(--white); font-family:Inter,system-ui,-apple-system,sans-serif; }
+    html,body { min-height:100%; background:radial-gradient(circle at 20% -10%, rgba(245,158,11,.15), transparent 35%), var(--bg); color:var(--white); font-family:Inter,system-ui,-apple-system,sans-serif; overflow-x:hidden; }
     a { color:inherit; text-decoration:none; }
-    .container { width:min(1120px, calc(100% - 24px)); margin:0 auto; }
-    header { position:sticky; top:0; z-index:100; backdrop-filter:blur(10px) saturate(180%); background:rgba(12,26,57,.86); border-bottom:1px solid var(--border); }
-    .header-inner { min-height:70px; display:flex; align-items:center; gap:10px; padding:10px 0; flex-wrap:wrap; }
-    .brand { display:inline-flex; align-items:center; gap:8px; font-size:21px; font-weight:800; }
-    .brand img { width:34px; height:34px; border-radius:9px; }
-    .search-wrap { flex:1; min-width:200px; max-width:420px; position:relative; margin-left:8px; }
-    .search-wrap i { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px; }
-    .search { width:100%; height:40px; border-radius:999px; border:1px solid var(--border); background:#10224a; color:var(--white); padding:0 14px 0 34px; }
-    .search:focus { outline:none; border-color:rgba(245,158,11,.55); }
-    .top-nav { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-left:auto; }
-    .nav-pill { border:1px solid var(--border); border-radius:999px; color:var(--muted); padding:7px 11px; font-size:12px; font-weight:700; }
-    .nav-pill.active,.nav-pill:hover { color:var(--white); border-color:rgba(245,158,11,.55); background:rgba(245,158,11,.15); }
+
+    .container { width:min(1240px, calc(100% - 28px)); margin:0 auto; }
+    header { position:sticky; top:0; z-index:100; backdrop-filter:blur(10px) saturate(180%); background:var(--surface); border-bottom:1px solid var(--border); }
+    .header-inner { min-height:72px; display:flex; align-items:center; gap:14px; padding:12px 0; flex-wrap:wrap; }
+    .brand { display:inline-flex; align-items:center; gap:10px; font-size:22px; font-weight:800; letter-spacing:.2px; }
+    .brand img { width:36px; height:36px; border-radius:10px; object-fit:cover; }
+    .search-wrap { flex:1; min-width:210px; max-width:420px; position:relative; margin-left:8px; }
+    .search-wrap i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px; }
+    .search { width:100%; height:42px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--white); padding:0 14px 0 34px; outline:none; }
+    .search:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(245,158,11,.14); }
+
+    .header-actions { margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .top-nav { display:inline-flex; align-items:center; gap:8px; opacity:.92; }
+    .nav-pill { border:1px solid transparent; color:#e2ecff; background:transparent; border-radius:999px; font-size:12px; font-weight:600; padding:8px 10px; transition:border-color .2s ease, color .2s ease, background .2s ease; }
+    .nav-pill:hover { border-color:var(--border); color:var(--accent); background:rgba(255,255,255,.04); }
+
+    .auth-actions { display:inline-flex; align-items:center; gap:8px; }
+    .btn { border:1px solid var(--border); background:var(--card); color:var(--white); height:40px; padding:0 14px; border-radius:12px; font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:8px; cursor:pointer; transition:border-color .2s ease, transform .2s ease; }
+    .btn:hover { border-color:var(--accent); transform:translateY(-1px); }
+    .btn-primary { background:var(--gradient); color:#0b1633; border:0; }
+
+    .mobile-bottom-nav { display:none; }
+
     .page { padding:18px 0 36px; display:grid; gap:12px; }
     .hero,.filters,.card { border:1px solid var(--border); border-radius:14px; background:linear-gradient(160deg, rgba(23,43,88,.92), rgba(19,35,71,.95)); }
     .hero { padding:16px; display:grid; gap:8px; }
@@ -51,31 +63,108 @@
     .art { border:1px solid var(--border); border-radius:9px; overflow:hidden; background:rgba(255,255,255,.05); min-height:112px; }
     .art img { width:100%; height:100%; object-fit:cover; display:block; }
     .empty { border:1px dashed var(--border); border-radius:14px; color:var(--muted); text-align:center; padding:16px; }
+
+    @media (max-width: 1100px) {
+      .top-nav { flex-wrap:wrap; justify-content:flex-end; }
+    }
+
+    @media (max-width: 860px) {
+      .top-nav { display:none; }
+      .header-actions { margin-left:auto; }
+    }
+
     @media (max-width:760px) {
+      body { padding-bottom:86px; }
+      .container { width:calc(100% - 16px); }
+      .header-inner { gap:10px; }
+      .brand { font-size:18px; }
+      .brand img { width:31px; height:31px; }
+      .search-wrap { order:3; max-width:none; margin-left:0; width:100%; }
+      .header-actions { margin-left:auto; }
+      .auth-actions .btn { height:36px; padding:0 10px; border-radius:11px; }
+      #profileBtn span { display:none; }
       .sort { margin-left:0; width:100%; justify-content:space-between; }
       .card { grid-template-columns:minmax(0,1fr) 72px; }
       .art { min-height:94px; }
       .title { font-size:16px; }
+
+      .mobile-bottom-nav {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        display: grid;
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: rgba(12, 24, 52, 0.95);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 34px rgba(0,0,0,0.35);
+        z-index: 230;
+        padding: 6px;
+      }
+
+      .mobile-nav-item {
+        min-height: 48px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #c8d7f6;
+        font-size: 18px;
+        transition: color 0.2s ease, background 0.2s ease;
+      }
+
+      .mobile-nav-item.active,
+      .mobile-nav-item:hover {
+        color: var(--accent);
+        background: rgba(245, 158, 11, 0.16);
+      }
     }
   </style>
+
+  <meta name="theme-color" content="#0b1633" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zo2y" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
+  <link rel="stylesheet" href="/js/mobile-app.css" />
+  <script src="/js/mobile-webapp.js" defer></script>
 </head>
 <body>
   <header>
     <div class="container header-inner">
-      <a class="brand" href="index.html"><img src="images/logo.png" alt="Zo2y" /><span>Zo2y</span></a>
-      <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input class="search" id="globalSearch" placeholder="Search all media..." /></div>
-      <nav class="top-nav" aria-label="Browse media">
-        <a class="nav-pill" href="index.html">Home</a>
-        <a class="nav-pill" href="movies.html">Movies</a>
-        <a class="nav-pill" href="tvshows.html">TV</a>
-        <a class="nav-pill" href="animes.html">Anime</a>
-        <a class="nav-pill" href="games.html">Games</a>
-        <a class="nav-pill" href="books.html">Books</a>
-        <a class="nav-pill" href="music.html">Music</a>
-        <a class="nav-pill active" href="reviews.html">Reviews</a>
-      </nav>
+      <a class="brand" href="index.html">
+        <img src="images/logo.png" alt="Zo2y" />
+        <span>Zo2y</span>
+      </a>
+
+      <div class="search-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input class="search" id="globalSearch" placeholder="Search all media..." />
+      </div>
+
+      <div class="header-actions">
+        <nav class="top-nav" aria-label="Browse media">
+          <a class="nav-pill" href="movies.html">Movies</a>
+          <a class="nav-pill" href="tvshows.html">TV</a>
+          <a class="nav-pill" href="animes.html">Anime</a>
+          <a class="nav-pill" href="games.html">Games</a>
+          <a class="nav-pill" href="books.html">Books</a>
+          <a class="nav-pill" href="music.html">Music</a>
+          <a class="nav-pill" href="reviews.html">Reviews</a>
+        </nav>
+        <div class="auth-actions">
+          <a class="btn" href="login.html" id="loginBtn">Login</a>
+          <a class="btn btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+          <a class="btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+        </div>
+      </div>
     </div>
   </header>
+
   <main class="container page">
     <section class="hero">
       <h1>Community Reviews</h1>
@@ -96,8 +185,19 @@
     </section>
     <section id="reviewsList"><div class="empty">Loading reviews...</div></section>
   </main>
+
+  <nav class="mobile-bottom-nav" aria-label="Mobile sections">
+    <a class="mobile-nav-item" href="index.html" aria-label="Home"><i class="fa-solid fa-house"></i></a>
+    <a class="mobile-nav-item" href="movies.html" aria-label="Movies"><i class="fa-solid fa-film"></i></a>
+    <a class="mobile-nav-item" href="tvshows.html" aria-label="TV Shows"><i class="fa-solid fa-tv"></i></a>
+    <a class="mobile-nav-item" href="animes.html" aria-label="Anime"><i class="fa-solid fa-dragon"></i></a>
+    <a class="mobile-nav-item" href="games.html" aria-label="Games"><i class="fa-solid fa-gamepad"></i></a>
+    <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
+    <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
+    <a class="mobile-nav-item active" href="reviews.html" aria-label="Reviews"><i class="fa-solid fa-star"></i></a>
+  </nav>
+
   <script src="js/reviews-page.js" defer></script>
   <script src="js/production-runtime.js?v=20260221a" defer></script>
 </body>
 </html>
-

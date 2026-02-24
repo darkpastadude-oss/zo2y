@@ -638,6 +638,11 @@
       visibility: hidden;
     }
 
+    #newReleasesRail .card-extra {
+      color: #ffd78a;
+      font-weight: 700;
+    }
+
     .rail.unified-rail .card {
       height: 332px;
       min-height: 332px;
@@ -1606,6 +1611,23 @@
         margin: 0 !important;
       }
 
+      #newReleasesRail .card-extra {
+        display: block !important;
+        min-height: 24px !important;
+        margin: 2px 0 0 !important;
+        color: #ffd78a !important;
+        font-size: 10px !important;
+        line-height: 1.24 !important;
+        font-weight: 700 !important;
+      }
+
+      #newReleasesRail .card-extra.placeholder {
+        display: block !important;
+        min-height: 24px !important;
+        margin: 2px 0 0 !important;
+        opacity: 0 !important;
+      }
+
       .rail .card-type,
       .rail .card-menu-btn,
       .rail .card-open-link,
@@ -1628,7 +1650,7 @@
         right: 10px;
         bottom: 10px;
         display: grid;
-        grid-template-columns: repeat(7, minmax(0, 1fr));
+        grid-template-columns: repeat(8, minmax(0, 1fr));
         border: 1px solid var(--border);
         border-radius: 18px;
         background: rgba(12, 24, 52, 0.95);
@@ -1793,6 +1815,7 @@
     <a class="mobile-nav-item" href="games.html" aria-label="Games"><i class="fa-solid fa-gamepad"></i></a>
     <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
     <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
+    <a class="mobile-nav-item" href="reviews.html" aria-label="Reviews"><i class="fa-solid fa-star"></i></a>
   </nav>
 
   <div id="itemMenuModal" class="menu-modal" aria-hidden="true">
@@ -1934,7 +1957,7 @@
     const HOME_CHANNEL_TARGET_ITEMS = 16;
     const HOME_SPOTLIGHT_POOL_SIZE = 16;
     const HOME_NEW_RELEASES_TARGET_ITEMS = 16;
-    const HOME_NEW_RELEASES_TIMEOUT_MS = 4200;
+    const HOME_NEW_RELEASES_TIMEOUT_MS = 5600;
     const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 12;
     const HOME_EAGER_IMAGE_COUNT = 8;
     const HOME_HIGH_PRIORITY_IMAGE_COUNT = 4;
@@ -2505,31 +2528,16 @@
       };
     }
 
-    function buildNewReleasesFallback(feedMap) {
-      const source = feedMap && typeof feedMap === 'object' ? feedMap : {};
-      const bucket = [];
-      const pushFrom = (key, label, takeCount) => {
-        const rows = Array.isArray(source[key]) ? source[key] : [];
-        rows.slice(0, Math.max(0, Number(takeCount || 0))).forEach((item) => {
-          if (!item || item.isPlaceholder) return;
-          bucket.push(withReleaseTag(item, label));
-        });
-      };
-      pushFrom('tv', 'New Episode', 5);
-      pushFrom('anime', 'New Season', 4);
-      pushFrom('movie', 'New Release', 4);
-      pushFrom('game', 'New Release', 2);
-      pushFrom('book', 'New Release', 2);
-      pushFrom('music', 'Chart Update', 2);
-      return shuffleArray(dedupeHomeItemsByMediaAndId(bucket)).slice(0, HOME_NEW_RELEASES_TARGET_ITEMS);
+    function buildNewReleasesFallback() {
+      // Keep this rail strict: do not backfill with generic/trending content.
+      return [];
     }
 
     async function loadNewReleases(signal) {
       const now = new Date();
       const currentYear = now.getUTCFullYear();
-      const recentBookMinYear = Math.max(2000, currentYear - 2);
-      const fallbackBookMinYear = Math.max(1990, currentYear - 4);
-      const bookReleaseQuery = encodeURIComponent(`bestseller new release fiction ${currentYear} ${currentYear - 1}`);
+      const recentBookMinYear = Math.max(2018, currentYear - 1);
+      const bookReleaseQuery = encodeURIComponent(`bestseller new release fiction ${currentYear}`);
       const toIsoDate = (value) => {
         const date = value instanceof Date ? value : new Date(value);
         return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 10) : '';
@@ -2541,17 +2549,27 @@
         if (!match) return text.slice(0, 4);
         return `${match[1]}-${match[2]}-${match[3]}`;
       };
+      const toSortEpoch = (raw) => {
+        const text = String(raw || '').trim();
+        if (!text) return 0;
+        const parsed = Date.parse(text);
+        if (Number.isFinite(parsed)) return parsed;
+        const yearMatch = text.match(/^(\d{4})$/);
+        if (yearMatch) return Date.UTC(Number(yearMatch[1]), 0, 1);
+        return 0;
+      };
       const recentEpisodeDate = toIsoDate(new Date(now.getTime() - (1000 * 60 * 60 * 24 * 10)));
       const recentSeasonDate = toIsoDate(new Date(now.getTime() - (1000 * 60 * 60 * 24 * 120)));
       const upcomingDate = toIsoDate(new Date(now.getTime() + (1000 * 60 * 60 * 24 * 120)));
       const todayDate = toIsoDate(now);
-      const movieNowPage = randomInt(1, 2);
-      const movieUpcomingPage = randomInt(1, 2);
+      const movieNowPage = 1;
+      const movieUpcomingPage = 1;
 
       const mapMovieRows = (rows, label, takeCount = 6) => {
         const list = Array.isArray(rows) ? rows : [];
         return list.slice(0, takeCount).map((row) => {
           const releaseDate = formatDateLabel(row?.release_date);
+          const releaseDateSort = toSortEpoch(row?.release_date || releaseDate);
           const item = {
             mediaType: 'movie',
             itemId: String(row?.id || ''),
@@ -2565,14 +2583,18 @@
             spotlightMediaShape: 'poster',
             href: row?.id ? `movie.html?id=${encodeURIComponent(row.id)}` : 'movies.html'
           };
-          return withReleaseTag(item, label, { detail: releaseDate });
+          return withReleaseTag({ ...item, releaseDateSort }, label, { detail: releaseDate });
         }).filter((item) => String(item.itemId || '').trim());
       };
 
-      const mapShowRows = (rows, mediaType, label, takeCount = 6) => {
+      const mapShowRows = (rows, mediaType, label, takeCount = 6, options = {}) => {
         const list = Array.isArray(rows) ? rows : [];
+        const detailLabel = String(options.detail || '').trim();
         return list.slice(0, takeCount).map((row) => {
           const firstAir = formatDateLabel(row?.first_air_date);
+          const recentAir = formatDateLabel(row?.last_air_date || row?.first_air_date);
+          const detail = detailLabel || recentAir;
+          const releaseDateSort = toSortEpoch(row?.last_air_date || row?.first_air_date || recentAir);
           const item = {
             mediaType,
             itemId: String(row?.id || ''),
@@ -2588,7 +2610,7 @@
               ? `${mediaType === 'anime' ? 'anime.html' : 'tvshow.html'}?id=${encodeURIComponent(row.id)}`
               : (mediaType === 'anime' ? 'animes.html' : 'tvshows.html')
           };
-          return withReleaseTag(item, label);
+          return withReleaseTag({ ...item, releaseDateSort }, label, { detail });
         }).filter((item) => String(item.itemId || '').trim());
       };
 
@@ -2596,6 +2618,7 @@
         const list = Array.isArray(rows) ? rows : [];
         return list.slice(0, takeCount).map((row) => {
           const releaseDate = formatDateLabel(row?.released || row?.release_date || '');
+          const releaseDateSort = toSortEpoch(row?.released || row?.release_date || releaseDate);
           const cover = String(row?.cover || '').trim();
           const hero = String(row?.hero || '').trim();
           const bg = String(row?.background_image || '').trim();
@@ -2613,7 +2636,7 @@
             spotlightMediaShape: 'poster',
             href: row?.id ? `game.html?id=${encodeURIComponent(row.id)}` : 'games.html'
           };
-          return withReleaseTag(item, label, { detail: releaseDate });
+          return withReleaseTag({ ...item, releaseDateSort }, label, { detail: releaseDate });
         }).filter((item) => String(item.itemId || '').trim() && String(item.image || '').trim());
       };
 
@@ -2643,6 +2666,7 @@
           const href = itemId
             ? `book.html?id=${encodeURIComponent(itemId)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(author || 'Unknown author')}`
             : 'books.html';
+          const releaseDateSort = year > 0 ? Date.UTC(year, 0, 1) : 0;
           const item = {
             mediaType: 'book',
             itemId: itemId || `book-${idx}`,
@@ -2657,15 +2681,16 @@
             href,
             fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
           };
-          return withReleaseTag(item, label);
+          return withReleaseTag({ ...item, releaseDateSort }, label, { detail: year > 0 ? String(year) : '' });
         }).filter(Boolean);
       };
 
       const mapMusicRows = (rows, label, takeCount = 6) => {
         const list = Array.isArray(rows) ? rows : [];
-        return list.slice(0, takeCount).map((track) => {
+        return list.slice(0, takeCount).map((track, idx) => {
           const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : '';
           const image = String(track?.image || '').trim();
+          const releaseDateSort = Date.now() - (idx * 1000);
           const item = {
             mediaType: 'music',
             itemId: String(track?.id || ''),
@@ -2679,7 +2704,7 @@
             spotlightMediaShape: 'poster',
             href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
           };
-          return withReleaseTag(item, label);
+          return withReleaseTag({ ...item, releaseDateSort }, label, { detail: 'Top 50' });
         }).filter((item) => String(item.itemId || '').trim() && String(item.image || '').trim());
       };
 
@@ -2697,8 +2722,8 @@
           { signal, cacheKey: 'tmdb:new-releases:tv-episode' }
         ),
         fetchJsonWithPerfCache(
-          `${TMDB_PROXY_BASE}/tv/on_the_air?language=en-US&page=1`,
-          { signal, cacheKey: 'tmdb:new-releases:tv-season' }
+          `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=first_air_date.desc&page=1&first_air_date.gte=${recentSeasonDate}&first_air_date.lte=${todayDate}`,
+          { signal, cacheKey: `tmdb:new-releases:tv-season:${recentSeasonDate}:${todayDate}` }
         ),
         fetchJsonWithPerfCache(
           `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=popularity.desc&page=1&with_genres=16&with_original_language=ja&air_date.gte=${recentEpisodeDate}&air_date.lte=${todayDate}`,
@@ -2736,24 +2761,24 @@
       const rawBookRows = booksRes.status === 'fulfilled'
         ? (Array.isArray(booksRes.value?.docs) ? booksRes.value.docs : (Array.isArray(booksRes.value?.items) ? booksRes.value.items : []))
         : [];
-      const strictBookRows = rawBookRows.filter((row) => {
-        const year = Number(row?.first_publish_year || row?.published_year || 0) || 0;
-        return year >= recentBookMinYear;
-      });
-      const relaxedBookRows = rawBookRows.filter((row) => {
-        const year = Number(row?.first_publish_year || row?.published_year || 0) || 0;
-        return year >= fallbackBookMinYear;
-      });
-      const bookRows = strictBookRows.length >= 4
-        ? strictBookRows
-        : (relaxedBookRows.length ? relaxedBookRows : strictBookRows);
+      const strictBookRows = rawBookRows
+        .filter((row) => {
+          const year = Number(row?.first_publish_year || row?.published_year || 0) || 0;
+          return year >= recentBookMinYear;
+        })
+        .sort((a, b) => {
+          const yearA = Number(a?.first_publish_year || a?.published_year || 0) || 0;
+          const yearB = Number(b?.first_publish_year || b?.published_year || 0) || 0;
+          return yearB - yearA;
+        });
+      const bookRows = strictBookRows;
       const musicRows = musicRes.status === 'fulfilled' && Array.isArray(musicRes.value?.results) ? musicRes.value.results : [];
 
       const combined = [
-        ...mapShowRows(tvEpisodeRows, 'tv', 'New Episode', 5),
-        ...mapShowRows(tvSeasonRows, 'tv', 'New Season', 5),
-        ...mapShowRows(animeEpisodeRows, 'anime', 'New Episode', 4),
-        ...mapShowRows(animeSeasonRows, 'anime', 'New Season', 4),
+        ...mapShowRows(tvEpisodeRows, 'tv', 'New Episode', 5, { detail: 'Airing Today' }),
+        ...mapShowRows(tvSeasonRows, 'tv', 'New Season', 5, { detail: 'Latest Season' }),
+        ...mapShowRows(animeEpisodeRows, 'anime', 'New Episode', 4, { detail: 'Latest Episode' }),
+        ...mapShowRows(animeSeasonRows, 'anime', 'New Season', 4, { detail: 'Latest Season' }),
         ...mapMovieRows(movieNowRows, 'New Release', 5),
         ...mapMovieRows(movieUpcomingRows, 'Upcoming Release', 3),
         ...mapGameRows(gameRows, 'New Release', 4),
@@ -2763,7 +2788,8 @@
 
       const deduped = dedupeHomeItemsByMediaAndId(combined)
         .filter((item) => String(item?.image || '').trim());
-      return shuffleArray(deduped).slice(0, HOME_NEW_RELEASES_TARGET_ITEMS);
+      deduped.sort((a, b) => Number(b?.releaseDateSort || 0) - Number(a?.releaseDateSort || 0));
+      return deduped.slice(0, HOME_NEW_RELEASES_TARGET_ITEMS);
     }
 
     async function refreshHomeNewReleases(feedMap = homeFeedState, options = {}) {
