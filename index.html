@@ -1679,6 +1679,7 @@
         <nav class="top-nav" aria-label="Browse media">
           <a class="nav-pill" href="movies.html">Movies</a>
           <a class="nav-pill" href="tvshows.html">TV</a>
+          <a class="nav-pill" href="animes.html">Anime</a>
           <a class="nav-pill" href="games.html">Games</a>
           <a class="nav-pill" href="books.html">Books</a>
           <a class="nav-pill" href="music.html">Music</a>
@@ -1718,7 +1719,7 @@
     <section class="section">
       <div class="section-head">
         <h2>Culture Stream</h2>
-        <p>One swipeable feed blending movies, TV, games, books, and music.</p>
+        <p>One swipeable feed blending movies, TV, anime, games, books, and music.</p>
       </div>
 
       <div class="rail-wrap">
@@ -1742,6 +1743,11 @@
       <div class="rail-wrap">
         <div class="rail-title"><span><i class="fa-solid fa-tv"></i> TV Shows</span><a href="tvshows.html">View all</a></div>
         <div class="rail" id="tvRail"></div>
+      </div>
+
+      <div class="rail-wrap">
+        <div class="rail-title"><span><i class="fa-solid fa-dragon"></i> Anime</span><a href="animes.html">View all</a></div>
+        <div class="rail" id="animeRail"></div>
       </div>
 
       <div class="rail-wrap">
@@ -1772,6 +1778,7 @@
     <a class="mobile-nav-item active" href="index.html" aria-label="Home"><i class="fa-solid fa-house"></i></a>
     <a class="mobile-nav-item" href="movies.html" aria-label="Movies"><i class="fa-solid fa-film"></i></a>
     <a class="mobile-nav-item" href="tvshows.html" aria-label="TV Shows"><i class="fa-solid fa-tv"></i></a>
+    <a class="mobile-nav-item" href="animes.html" aria-label="Anime"><i class="fa-solid fa-dragon"></i></a>
     <a class="mobile-nav-item" href="games.html" aria-label="Games"><i class="fa-solid fa-gamepad"></i></a>
     <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
     <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
@@ -1813,6 +1820,7 @@
           <button class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
           <button class="menu-icon-option" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
           <button class="menu-icon-option" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-dragon"><i class="fas fa-dragon"></i></button>
           <button class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
           <button class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
           <button class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
@@ -1829,7 +1837,7 @@
   <script src="js/igdb-client.js"></script>
   <script>
     const ENABLE_RESTAURANTS = false;
-    const HOME_BASE_MEDIA_TYPES = ['movie', 'tv', 'game', 'book', 'music'];
+    const HOME_BASE_MEDIA_TYPES = ['movie', 'tv', 'anime', 'game', 'book', 'music'];
     const HOME_ACTIVE_MEDIA_TYPES = ENABLE_RESTAURANTS
       ? ['restaurant', ...HOME_BASE_MEDIA_TYPES]
       : HOME_BASE_MEDIA_TYPES;
@@ -1868,17 +1876,20 @@
       { id: '5Z01UMMf7V1o0MzF86s6WJ', title: 'Believer', artist: 'Imagine Dragons', album: 'Evolve' }
     ];
     const POPULAR_MUSIC_QUERIES = [
-      'pop 2025',
-      'hip hop 2025',
-      'r&b 2025',
-      'latin 2025',
-      'dance 2025',
-      'rock 2025'
+      'genre:pop',
+      'genre:hip-hop',
+      'genre:r&b',
+      'genre:latin',
+      'genre:dance',
+      'taylor swift',
+      'drake',
+      'the weeknd'
     ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-utensils', accent: '#f59e0b' },
       movie: { label: 'Movie', icon: 'fa-film', accent: '#ef4444' },
       tv: { label: 'TV', icon: 'fa-tv', accent: '#22c55e' },
+      anime: { label: 'Anime', icon: 'fa-dragon', accent: '#f97316' },
       game: { label: 'Game', icon: 'fa-gamepad', accent: '#38bdf8' },
       book: { label: 'Book', icon: 'fa-book', accent: '#f97316' },
       music: { label: 'Music', icon: 'fa-music', accent: '#1db954' }
@@ -1891,6 +1902,7 @@
     const HOME_DEFAULT_LIST_TABLES = {
       movie: { table: 'movie_list_items', itemField: 'movie_id' },
       tv: { table: 'tv_list_items', itemField: 'tv_id' },
+      anime: { table: 'anime_list_items', itemField: 'anime_id' },
       game: { table: 'game_list_items', itemField: 'game_id' },
       book: { table: 'book_list_items', itemField: 'book_id' },
       music: { table: 'music_list_items', itemField: 'track_id' }
@@ -2103,6 +2115,7 @@
       const type = String(mediaType || '').toLowerCase();
       if (type === 'movie') return 'Movies';
       if (type === 'tv') return 'TV Shows';
+      if (type === 'anime') return 'Anime';
       if (type === 'game') return 'Games';
       if (type === 'book') return 'Books';
       if (type === 'music') return 'Music';
@@ -2130,6 +2143,16 @@
       if (type === 'tv') {
         return {
           customHref: 'tvshows.html',
+          rows: [
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'watched', label: 'Watched', icon: 'fas fa-eye' },
+            { key: 'watchlist', label: 'Watchlist', icon: 'fas fa-bookmark' }
+          ]
+        };
+      }
+      if (type === 'anime') {
+        return {
+          customHref: 'animes.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
             { key: 'watched', label: 'Watched', icon: 'fas fa-eye' },
@@ -2692,9 +2715,12 @@
       const client = await ensureHomeSupabase();
       if (!client) return weights;
       try {
-        const [movieRes, tvRes, gameRes, bookRes, musicRes, listRes] = await Promise.all([
+        const [movieRes, tvRes, animeRes, gameRes, bookRes, musicRes, listRes] = await Promise.all([
           client.from('movie_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('tv_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
+          client.from('anime_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
+            .then((res) => res)
+            .catch(() => ({ count: 0 })),
           client.from('game_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('book_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('music_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
@@ -2716,6 +2742,7 @@
         const counts = {
           movie: Number(movieRes?.count || 0),
           tv: Number(tvRes?.count || 0),
+          anime: Number(animeRes?.count || 0),
           game: Number(gameRes?.count || 0),
           book: Number(bookRes?.count || 0),
           music: Number(musicRes?.count || 0),
@@ -2831,7 +2858,7 @@
 
     function normalizeHomeDefaultItemId(mediaType, itemId) {
       const type = String(mediaType || '').toLowerCase();
-      if (type === 'movie' || type === 'tv' || type === 'game') {
+      if (type === 'movie' || type === 'tv' || type === 'anime' || type === 'game') {
         const numericId = Number(itemId);
         return Number.isFinite(numericId) ? numericId : null;
       }
@@ -3823,6 +3850,7 @@
       const map = {
         movie: 'Custom Movie Lists',
         tv: 'Custom TV Lists',
+        anime: 'Custom Anime Lists',
         game: 'Custom Game Lists',
         book: 'Custom Book Lists',
         music: 'Custom Music Lists',
@@ -4134,6 +4162,7 @@
         } : {}),
         movie: makeSeedItems('movie', ['Popular Movies', 'Now in Theaters', 'Award Winners', 'Critics Picks', 'Weekend Watch'], 'movies.html'),
         tv: makeSeedItems('tv', ['Top TV Shows', 'Binge Picks', 'New Seasons', 'Global Hits', 'Fan Favorites'], 'tvshows.html'),
+        anime: makeSeedItems('anime', ['Top Anime', 'Fan Favorites', 'Must Watch Series', 'Shonen Hits', 'Classic Anime'], 'animes.html'),
         game: FALLBACK_GAMES.slice(0, 8).map((g, index) => ({
           mediaType: 'game',
           itemId: `seed-game-${index + 1}`,
@@ -4159,6 +4188,7 @@
         ...(ENABLE_RESTAURANTS ? [{ key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant', landscape: true, restaurantComposite: true } }] : []),
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
+        { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
         { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 4200, deferInitial: true },
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 8500 },
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 3800 }
@@ -4610,6 +4640,7 @@
       const map = {
         movie: 'Movie',
         tv: 'TV Show',
+        anime: 'Anime',
         game: 'Game',
         book: 'Book',
         music: 'Track'
@@ -5250,6 +5281,48 @@
       }));
     }
 
+    async function loadAnime(signal) {
+      const sourceBuilders = shuffleArray([
+        () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=popularity.desc&page=${randomInt(1, 5)}&with_genres=16&with_original_language=ja`,
+        () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=vote_count.desc&page=${randomInt(1, 5)}&with_genres=16&with_original_language=ja`,
+        () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=vote_average.desc&page=${randomInt(1, 4)}&with_genres=16&with_original_language=ja&vote_count.gte=120`
+      ]).slice(0, 2);
+      const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
+        try {
+          const url = buildUrl();
+          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `tmdb:${url}` });
+          if (!json) return [];
+          return Array.isArray(json.results) ? json.results : [];
+        } catch (_err) {
+          return [];
+        }
+      }));
+      const collected = shuffleArray(batches.flat());
+      const seen = new Set();
+      const results = [];
+      for (const item of collected) {
+        const key = String(item?.id || '').trim();
+        if (!key || seen.has(key)) continue;
+        if (!item?.poster_path && !item?.backdrop_path) continue;
+        seen.add(key);
+        results.push(item);
+        if (results.length >= HOME_CHANNEL_TARGET_ITEMS) break;
+      }
+      return results.map((show) => ({
+        mediaType: 'anime',
+        itemId: String(show.id || ''),
+        title: show.name || 'Anime',
+        subtitle: show.first_air_date ? show.first_air_date.slice(0, 4) : 'Anime',
+        image: show.poster_path ? `${TMDB_POSTER}${show.poster_path}` : '',
+        backgroundImage: show.backdrop_path ? `${TMDB_BACKDROP}${show.backdrop_path}` : '',
+        spotlightImage: show.backdrop_path ? `${TMDB_BACKDROP}${show.backdrop_path}` : '',
+        spotlightMediaImage: show.poster_path ? `${TMDB_SPOT_POSTER}${show.poster_path}` : (show.backdrop_path ? `${TMDB_BACKDROP}${show.backdrop_path}` : ''),
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
+        href: show.id ? `anime.html?id=${encodeURIComponent(show.id)}` : 'animes.html'
+      }));
+    }
+
     async function loadGames(signal) {
       const dateRange = '2000-01-01,2026-12-31';
       const attempts = shuffleArray(['-rating', '-added', '-released', '-metacritic']).slice(0, 2);
@@ -5398,18 +5471,33 @@
         };
       };
 
-      const mapDocsToRailItems = (docs) => {
+      const mapDocsToRailItems = (docs, options = {}) => {
+        const minYear = Number(options.minYear || 0);
+        const allowMissingYear = !!options.allowMissingYear;
         const seen = new Set();
         return (Array.isArray(docs) ? docs : []).map((doc, idx) => {
           const normalized = normalizeBookDoc(doc, idx);
           if (!normalized) return null;
           const title = String(normalized.title || '').trim();
           const author = String((Array.isArray(normalized.author_name) ? normalized.author_name[0] : '') || '').trim() || 'Unknown author';
+          const year = Number(normalized?.first_publish_year || 0) || 0;
+
+          if (!allowMissingYear && !year) return null;
+          if (minYear && year && year < minYear) return null;
+
+          const coverCandidates = [
+            toHttpsUrl(normalized?._googleThumbnail || ''),
+            toHttpsUrl(normalized?.coverImage || ''),
+            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'L')),
+            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'M'))
+          ].filter(Boolean);
+          const cover = coverCandidates[0] || '';
+          if (!cover) return null;
+
           const dedupeKey = `${title.toLowerCase()}::${author.toLowerCase()}`;
           if (seen.has(dedupeKey)) return null;
           seen.add(dedupeKey);
 
-          const year = Number(normalized?.first_publish_year || 0) || 0;
           const subtitle = year ? `${author} | ${year}` : author;
           const googleVolumeId = String(normalized?._googleVolumeId || '').trim();
           const workKey = String(normalized?.key || '').trim();
@@ -5419,14 +5507,6 @@
           if (!itemId) {
             itemId = `search-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `book-${idx}`}`;
           }
-
-          const coverCandidates = [
-            toHttpsUrl(normalized?._googleThumbnail || ''),
-            toHttpsUrl(normalized?.coverImage || ''),
-            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'L')),
-            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'M'))
-          ].filter(Boolean);
-          const cover = coverCandidates[0] || HOME_LOCAL_FALLBACK_IMAGE;
           const isbnRaw = Array.isArray(normalized?.isbn) ? String(normalized.isbn[0] || '').trim() : '';
           const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
           const titleParam = encodeURIComponent(title);
@@ -5451,31 +5531,49 @@
         }).filter(Boolean);
       };
 
+      const mergeUniqueItems = (...batches) => {
+        const seen = new Set();
+        const out = [];
+        batches.forEach((batch) => {
+          (Array.isArray(batch) ? batch : []).forEach((item) => {
+            const key = `${String(item?.title || '').trim().toLowerCase()}::${String(item?.subtitle || '').trim().toLowerCase()}`;
+            if (!key || seen.has(key)) return;
+            seen.add(key);
+            out.push(item);
+          });
+        });
+        return out;
+      };
+
       try {
-        const limit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 20);
+        const limit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 24);
         const booksRequestOptions = { signal, timeoutMs: 4200, retries: 1 };
-        const [trendingResult, popularResult] = await Promise.allSettled([
-          fetchJsonWithPerfCache(
-            `/api/books/trending?period=weekly&limit=${limit}`,
-            { ...booksRequestOptions, cacheKey: `books:trending:${limit}` }
-          ),
-          fetchJsonWithPerfCache(
-            `/api/books/popular?subject=fiction&limit=${limit}&page=1&orderBy=relevance`,
-            { ...booksRequestOptions, cacheKey: `books:popular:${limit}` }
-          )
-        ]);
-        const trendingJson = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
-        const popularJson = popularResult.status === 'fulfilled' ? popularResult.value : null;
+        const queryUrls = [
+          `/api/books/popular?q=${encodeURIComponent('subject:fiction bestseller 2023 2024 2025')}&limit=${limit}&page=1&orderBy=relevance`,
+          `/api/books/popular?q=${encodeURIComponent('subject:fantasy bestseller')}&limit=${limit}&page=1&orderBy=relevance`,
+          `/api/books/popular?q=${encodeURIComponent('subject:romance bestseller')}&limit=${limit}&page=1&orderBy=relevance`,
+          `/api/books/popular?q=${encodeURIComponent('bestseller popular books')}&limit=${limit}&page=1&orderBy=relevance`,
+          `/api/books/trending?period=weekly&limit=${limit}`
+        ];
+        const results = await Promise.allSettled(queryUrls.map((url) => (
+          fetchJsonWithPerfCache(url, { ...booksRequestOptions, cacheKey: `books:${url}` })
+        )));
 
-        const trendingDocsRaw = Array.isArray(trendingJson?.docs)
-          ? trendingJson.docs
-          : (Array.isArray(trendingJson?.items) ? trendingJson.items : []);
-        const popularDocsRaw = Array.isArray(popularJson?.docs)
-          ? popularJson.docs
-          : (Array.isArray(popularJson?.items) ? popularJson.items : []);
+        const allDocsRaw = [];
+        results.forEach((result) => {
+          if (result.status !== 'fulfilled') return;
+          const payload = result.value;
+          const docs = Array.isArray(payload?.docs)
+            ? payload.docs
+            : (Array.isArray(payload?.items) ? payload.items : []);
+          if (docs.length) allDocsRaw.push(...docs);
+        });
 
-        const mapped = mapDocsToRailItems([...trendingDocsRaw, ...popularDocsRaw]);
-        if (mapped.length) return mapped.slice(0, HOME_CHANNEL_TARGET_ITEMS);
+        const strictModern = mapDocsToRailItems(allDocsRaw, { minYear: 2005, allowMissingYear: false });
+        const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: 2005, allowMissingYear: true });
+        const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 1995, allowMissingYear: true });
+        const merged = mergeUniqueItems(strictModern, modernWithUnknownYear, relaxedFallback);
+        if (merged.length) return merged.slice(0, HOME_CHANNEL_TARGET_ITEMS);
       } catch (_e) {}
 
       return [];
@@ -5484,22 +5582,67 @@
     async function loadMusic(signal) {
       try {
         const limit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 24);
-        const primaryUrl = `/api/music/popular?limit=${limit}&market=US`;
-        const primaryJson = await fetchJsonWithPerfCache(primaryUrl, { signal, cacheKey: `music:${primaryUrl}` });
-        let rows = Array.isArray(primaryJson?.results) ? primaryJson.results : [];
+        const market = 'US';
+        const searchLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 12);
+        const fetchRowsFromSearch = async (query, batchLimit = searchLimit) => {
+          const url = `/api/music/search?q=${encodeURIComponent(query)}&limit=${batchLimit}&market=${market}`;
+          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `music:${url}` });
+          return Array.isArray(json?.results) ? json.results : [];
+        };
 
-        if (!rows.length) {
-          const perQueryLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 16);
-          const queryUrls = POPULAR_MUSIC_QUERIES.map((query) => (
-            `/api/music/search?q=${encodeURIComponent(query)}&limit=${perQueryLimit}&market=US`
-          ));
-          const batches = await Promise.all(queryUrls.map(async (url) => {
-            const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `music:${url}` });
-            if (!json) return [];
-            return Array.isArray(json.results) ? json.results : [];
-          }));
-          rows = batches.flat();
-        }
+        const [popularResult, featuredResult, releasesResult, genreSearchResult] = await Promise.allSettled([
+          fetchJsonWithPerfCache(
+            `/api/music/popular?limit=${Math.max(limit, 30)}&market=${market}`,
+            { signal, cacheKey: `music:popular:${limit}:${market}` }
+          ),
+          fetchJsonWithPerfCache(
+            `/api/music/featured-playlists?limit=10&market=${market}`,
+            { signal, cacheKey: `music:featured:${market}` }
+          ),
+          fetchJsonWithPerfCache(
+            `/api/music/new-releases?limit=14&market=${market}`,
+            { signal, cacheKey: `music:new-releases:${market}` }
+          ),
+          Promise.allSettled(
+            POPULAR_MUSIC_QUERIES.slice(0, 6).map((query) => fetchRowsFromSearch(query, 10))
+          )
+        ]);
+
+        const popularRows = popularResult.status === 'fulfilled' && Array.isArray(popularResult.value?.results)
+          ? popularResult.value.results
+          : [];
+        const featuredPlaylists = featuredResult.status === 'fulfilled' && Array.isArray(featuredResult.value?.results)
+          ? featuredResult.value.results
+          : [];
+        const releaseAlbums = releasesResult.status === 'fulfilled' && Array.isArray(releasesResult.value?.results)
+          ? releasesResult.value.results
+          : [];
+        const genreRows = genreSearchResult.status === 'fulfilled'
+          ? genreSearchResult.value
+            .filter((entry) => entry.status === 'fulfilled')
+            .flatMap((entry) => Array.isArray(entry.value) ? entry.value : [])
+          : [];
+
+        const featuredSeedQueries = featuredPlaylists
+          .map((row) => String(row?.name || '').trim())
+          .filter(Boolean)
+          .slice(0, 4);
+        const releaseSeedQueries = releaseAlbums
+          .map((row) => {
+            const albumName = String(row?.name || '').trim();
+            const firstArtist = Array.isArray(row?.artists) && row.artists.length ? String(row.artists[0] || '').trim() : '';
+            return `${firstArtist} ${albumName}`.trim();
+          })
+          .filter(Boolean)
+          .slice(0, 5);
+        const seedQueries = [...featuredSeedQueries, ...releaseSeedQueries];
+        const seededRows = seedQueries.length
+          ? (await Promise.allSettled(seedQueries.map((query) => fetchRowsFromSearch(query, 8))))
+            .filter((entry) => entry.status === 'fulfilled')
+            .flatMap((entry) => Array.isArray(entry.value) ? entry.value : [])
+          : [];
+
+        const rows = [...popularRows, ...genreRows, ...seededRows];
 
         const seen = new Set();
         const seenTrackKeys = new Set();
@@ -5516,10 +5659,11 @@
           deduped.push(row);
         });
 
-        const ranked = deduped
-          .filter((track) => Number(track.popularity || 0) >= 55 && String(track.image || '').trim())
+        const withArtwork = deduped.filter((track) => String(track.image || '').trim());
+        const ranked = withArtwork
+          .filter((track) => Number(track.popularity || 0) >= 70)
           .sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0));
-        const selected = (ranked.length ? ranked : deduped.sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0)))
+        const selected = (ranked.length ? ranked : withArtwork.sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0)))
           .slice(0, HOME_CHANNEL_TARGET_ITEMS);
         if (!selected.length) {
           return FALLBACK_MUSIC_TRACKS.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((track, idx) => ({

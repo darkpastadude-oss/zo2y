@@ -4183,6 +4183,9 @@ header, .top-stripe, .section-nav {
                 <div class="nav-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')">
                     <i class="fas fa-tv"></i> <span id="tvTabText">TV Shows</span>
                 </div>
+                <div class="nav-tab" data-tab="anime" onclick="ProfileManager.showTab('anime')">
+                    <i class="fas fa-dragon"></i> <span id="animeTabText">Anime</span>
+                </div>
                 <div class="nav-tab" data-tab="games" onclick="ProfileManager.showTab('games')">
                     <i class="fas fa-gamepad"></i> <span id="gamesTabText">Games</span>
                 </div>
@@ -4379,6 +4382,69 @@ header, .top-stripe, .section-nav {
                         </div>
                     </div>
                     <div id="tvItemsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Anime Tab Content -->
+            <div class="tab-content" id="anime-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="animeTitle">My Anime</h2>
+                            <p class="section-subtitle" id="animeSubtitle">Organize your favorite anime</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createAnimeListBtn" onclick="ProfileManager.createAnimeList()">
+                                <i class="fas fa-plus"></i> New Collection
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='animes.html'">
+                                <i class="fas fa-dragon"></i> Browse Anime
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="animeGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Anime Yet</h3>
+                            <p class="empty-description">Save anime to see it here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='animes.html'">
+                                <i class="fas fa-dragon"></i> Explore Anime
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anime Detail View -->
+            <div class="tab-content" id="anime-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideAnimeDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="animeDetailTitle">
+                                <span id="animeDetailIcon"></span>
+                                <span id="animeDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="animeDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="anime">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('anime', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('anime', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions" id="animeDetailActions" style="display: none;">
+                            <button class="btn btn-secondary btn-sm" id="animeListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="animeListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="animeItemsContainer"></div>
                 </div>
             </div>
 
@@ -4741,6 +4807,10 @@ header, .top-stripe, .section-nav {
                 <i class="fas fa-tv"></i>
                 <span id="mobileTabTv">TV Shows</span>
             </div>
+            <div class="mobile-tab" data-tab="anime" onclick="ProfileManager.showTab('anime')">
+                <i class="fas fa-dragon"></i>
+                <span id="mobileTabAnime">Anime</span>
+            </div>
             <div class="mobile-tab" data-tab="games" onclick="ProfileManager.showTab('games')">
                 <i class="fas fa-gamepad"></i>
                 <span id="mobileTabGames">Games</span>
@@ -4907,6 +4977,56 @@ header, .top-stripe, .section-nav {
                         </button>
                     </div>
                     <div id="mobileTvItems"></div>
+                </div>
+            </div>
+
+            <!-- Anime Section -->
+            <div class="mobile-section" id="mobileAnimeSection">
+                <div class="mobile-section-title">
+                    <span id="mobileAnimeTitle">My Anime</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn" id="mobileCreateAnimeListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createAnimeList()">
+                            <i class="fas fa-plus"></i> New Collection
+                        </button>
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='animes.html'">
+                            <i class="fas fa-dragon"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileAnimeSubtitle">Organize your favorite anime</div>
+
+                <div class="collection-grid" id="mobileAnimeGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <div class="mobile-empty-title">No Anime Yet</div>
+                        <div class="mobile-empty-description">Save anime to see it here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='animes.html'">
+                            <i class="fas fa-dragon"></i> Explore Anime
+                        </button>
+                    </div>
+                </div>
+
+                <div id="mobileAnimeDetailSection" style="display:none; margin-top: 16px;">
+                    <div class="mobile-section-title">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideAnimeDetail()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <span id="mobileAnimeDetailTitle">Collection</span>
+                    </div>
+                    <div class="mobile-section-subtitle" id="mobileAnimeDetailDescription"></div>
+                    <div class="collection-view-toggle" data-media="anime" style="margin-bottom: 10px;">
+                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('anime', 'grid', true)"><i class="fas fa-th"></i></button>
+                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('anime', 'list', true)"><i class="fas fa-list"></i></button>
+                    </div>
+                    <div id="mobileAnimeDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px; display: none;">
+                        <button class="mobile-action-btn secondary" id="mobileAnimeListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-pen"></i> Edit
+                        </button>
+                        <button class="mobile-action-btn secondary" id="mobileAnimeListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                    <div id="mobileAnimeItems"></div>
                 </div>
             </div>
 
@@ -5286,6 +5406,7 @@ header, .top-stripe, .section-nav {
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="restaurant"><i class="fas fa-utensils"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="movie"><i class="fas fa-film"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="tv"><i class="fas fa-tv"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="anime"><i class="fas fa-dragon"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="game"><i class="fas fa-gamepad"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="book"><i class="fas fa-book"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="list"><i class="fas fa-list"></i></button>
@@ -5322,6 +5443,7 @@ header, .top-stripe, .section-nav {
                 <div style="display:grid; gap:10px;">
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('movies')">Movies</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('tv')">TV Shows</button>
+                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('anime')">Anime</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('games')">Games</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('books')">Books</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('music')">Music</button>
@@ -5354,6 +5476,7 @@ header, .top-stripe, .section-nav {
                             <button type="button" class="edit-list-icon-option" data-icon="restaurant"><i class="fas fa-utensils"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="movie"><i class="fas fa-film"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="tv"><i class="fas fa-tv"></i></button>
+                            <button type="button" class="edit-list-icon-option" data-icon="anime"><i class="fas fa-dragon"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="game"><i class="fas fa-gamepad"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="book"><i class="fas fa-book"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="list"><i class="fas fa-list"></i></button>
@@ -5616,11 +5739,13 @@ header, .top-stripe, .section-nav {
             let isSubmittingList = false;
             let movieCache = new Map();
             let tvCache = new Map();
+            let animeCache = new Map();
             let gameCache = new Map();
             let bookCache = new Map();
             let musicCache = new Map();
             let renderMoviesToken = 0;
             let renderTvToken = 0;
+            let renderAnimeToken = 0;
             let renderGamesToken = 0;
             let renderBooksToken = 0;
             let renderMusicToken = 0;
@@ -5646,6 +5771,7 @@ header, .top-stripe, .section-nav {
             const CUSTOM_LIST_TABLES = {
                 movie: 'movie_lists',
                 tv: 'tv_lists',
+                anime: 'anime_lists',
                 game: 'game_lists',
                 book: 'book_lists',
                 music: 'music_lists'
@@ -5653,6 +5779,7 @@ header, .top-stripe, .section-nav {
             const MEDIA_ITEM_TABLES = {
                 movie: 'movie_list_items',
                 tv: 'tv_list_items',
+                anime: 'anime_list_items',
                 game: 'game_list_items',
                 book: 'book_list_items',
                 music: 'music_list_items'
@@ -5660,6 +5787,7 @@ header, .top-stripe, .section-nav {
             const MEDIA_ITEM_FIELDS = {
                 movie: 'movie_id',
                 tv: 'tv_id',
+                anime: 'anime_id',
                 game: 'game_id',
                 book: 'book_id',
                 music: 'track_id'
@@ -5684,13 +5812,14 @@ header, .top-stripe, .section-nav {
             const STATS_REALTIME_DEBOUNCE_MS = 220;
             const VALID_PROFILE_TABS = new Set(
                 ENABLE_RESTAURANTS
-                    ? ['restaurants', 'movies', 'tv', 'games', 'books', 'music', 'community']
-                    : ['movies', 'tv', 'games', 'books', 'music', 'community']
+                    ? ['restaurants', 'movies', 'tv', 'anime', 'games', 'books', 'music', 'community']
+                    : ['movies', 'tv', 'anime', 'games', 'books', 'music', 'community']
             );
             const VALID_COLLECTION_TYPES = new Set([
                 ...(ENABLE_RESTAURANTS ? ['restaurant'] : []),
                 'movie',
                 'tv',
+                'anime',
                 'game',
                 'book',
                 'music'
@@ -5699,6 +5828,7 @@ header, .top-stripe, .section-nav {
                 ...(ENABLE_RESTAURANTS ? { restaurant: 'restaurants' } : {}),
                 movie: 'movies',
                 tv: 'tv',
+                anime: 'anime',
                 game: 'games',
                 book: 'books',
                 music: 'music'
@@ -5854,6 +5984,7 @@ header, .top-stripe, .section-nav {
                     Promise.allSettled([
                         renderMovies(),
                         renderTvShows(),
+                        renderAnimeShows(),
                         renderGames(),
                         renderBooks(),
                         renderMusic()
@@ -5998,12 +6129,14 @@ header, .top-stripe, .section-nav {
                 const createListBtn = document.getElementById('createRestaurantListBtn');
                 const createMovieListBtn = document.getElementById('createMovieListBtn');
                 const createTvListBtn = document.getElementById('createTvListBtn');
+                const createAnimeListBtn = document.getElementById('createAnimeListBtn');
                 const createGameListBtn = document.getElementById('createGameListBtn');
                 const createBookListBtn = document.getElementById('createBookListBtn');
                 const createMusicListBtn = document.getElementById('createMusicListBtn');
                 const mobileCreateRestaurantListBtn = document.getElementById('mobileCreateRestaurantListBtn');
                 const mobileCreateMovieListBtn = document.getElementById('mobileCreateMovieListBtn');
                 const mobileCreateTvListBtn = document.getElementById('mobileCreateTvListBtn');
+                const mobileCreateAnimeListBtn = document.getElementById('mobileCreateAnimeListBtn');
                 const mobileCreateGameListBtn = document.getElementById('mobileCreateGameListBtn');
                 const mobileCreateBookListBtn = document.getElementById('mobileCreateBookListBtn');
                 const mobileCreateMusicListBtn = document.getElementById('mobileCreateMusicListBtn');
@@ -6017,12 +6150,14 @@ header, .top-stripe, .section-nav {
                 if (createListBtn) createListBtn.style.display = 'flex';
                 if (createMovieListBtn) createMovieListBtn.style.display = 'inline-flex';
                 if (createTvListBtn) createTvListBtn.style.display = 'inline-flex';
+                if (createAnimeListBtn) createAnimeListBtn.style.display = 'inline-flex';
                 if (createGameListBtn) createGameListBtn.style.display = 'inline-flex';
                 if (createBookListBtn) createBookListBtn.style.display = 'inline-flex';
                 if (createMusicListBtn) createMusicListBtn.style.display = 'inline-flex';
                 if (mobileCreateRestaurantListBtn) mobileCreateRestaurantListBtn.style.display = 'inline-flex';
                 if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'inline-flex';
                 if (mobileCreateTvListBtn) mobileCreateTvListBtn.style.display = 'inline-flex';
+                if (mobileCreateAnimeListBtn) mobileCreateAnimeListBtn.style.display = 'inline-flex';
                 if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'inline-flex';
                 if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'inline-flex';
                 if (mobileCreateMusicListBtn) mobileCreateMusicListBtn.style.display = 'inline-flex';
@@ -6049,12 +6184,14 @@ header, .top-stripe, .section-nav {
                 const createListBtn = document.getElementById('createRestaurantListBtn');
                 const createMovieListBtn = document.getElementById('createMovieListBtn');
                 const createTvListBtn = document.getElementById('createTvListBtn');
+                const createAnimeListBtn = document.getElementById('createAnimeListBtn');
                 const createGameListBtn = document.getElementById('createGameListBtn');
                 const createBookListBtn = document.getElementById('createBookListBtn');
                 const createMusicListBtn = document.getElementById('createMusicListBtn');
                 const mobileCreateRestaurantListBtn = document.getElementById('mobileCreateRestaurantListBtn');
                 const mobileCreateMovieListBtn = document.getElementById('mobileCreateMovieListBtn');
                 const mobileCreateTvListBtn = document.getElementById('mobileCreateTvListBtn');
+                const mobileCreateAnimeListBtn = document.getElementById('mobileCreateAnimeListBtn');
                 const mobileCreateGameListBtn = document.getElementById('mobileCreateGameListBtn');
                 const mobileCreateBookListBtn = document.getElementById('mobileCreateBookListBtn');
                 const mobileCreateMusicListBtn = document.getElementById('mobileCreateMusicListBtn');
@@ -6068,12 +6205,14 @@ header, .top-stripe, .section-nav {
                 if (createListBtn) createListBtn.style.display = 'none';
                 if (createMovieListBtn) createMovieListBtn.style.display = 'none';
                 if (createTvListBtn) createTvListBtn.style.display = 'none';
+                if (createAnimeListBtn) createAnimeListBtn.style.display = 'none';
                 if (createGameListBtn) createGameListBtn.style.display = 'none';
                 if (createBookListBtn) createBookListBtn.style.display = 'none';
                 if (createMusicListBtn) createMusicListBtn.style.display = 'none';
                 if (mobileCreateRestaurantListBtn) mobileCreateRestaurantListBtn.style.display = 'none';
                 if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'none';
                 if (mobileCreateTvListBtn) mobileCreateTvListBtn.style.display = 'none';
+                if (mobileCreateAnimeListBtn) mobileCreateAnimeListBtn.style.display = 'none';
                 if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'none';
                 if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'none';
                 if (mobileCreateMusicListBtn) mobileCreateMusicListBtn.style.display = 'none';
@@ -6261,12 +6400,14 @@ header, .top-stripe, .section-nav {
                 const journalTabText = document.getElementById('journalTabText');
                 const restaurantsTabText = document.getElementById('restaurantsTabText');
                 const tvTabText = document.getElementById('tvTabText');
+                const animeTabText = document.getElementById('animeTabText');
                 const gamesTabText = document.getElementById('gamesTabText');
                 const booksTabText = document.getElementById('booksTabText');
                 const musicTabText = document.getElementById('musicTabText');
                 const journalTitle = document.getElementById('journalTitle');
                 const restaurantsTitle = document.getElementById('restaurantsTitle');
                 const tvTitle = document.getElementById('tvTitle');
+                const animeTitle = document.getElementById('animeTitle');
                 const gamesTitle = document.getElementById('gamesTitle');
                 const booksTitle = document.getElementById('booksTitle');
                 const musicTitle = document.getElementById('musicTitle');
@@ -6274,6 +6415,7 @@ header, .top-stripe, .section-nav {
                 const journalSubtitle = document.getElementById('journalSubtitle');
                 const restaurantsSubtitle = document.getElementById('restaurantsSubtitle');
                 const tvSubtitle = document.getElementById('tvSubtitle');
+                const animeSubtitle = document.getElementById('animeSubtitle');
                 const gamesSubtitle = document.getElementById('gamesSubtitle');
                 const booksSubtitle = document.getElementById('booksSubtitle');
                 const musicSubtitle = document.getElementById('musicSubtitle');
@@ -6284,12 +6426,14 @@ header, .top-stripe, .section-nav {
                 if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
                 if (restaurantsTabText) restaurantsTabText.textContent = `${userName}'s Restaurants`;
                 if (tvTabText) tvTabText.textContent = `${userName}'s TV Shows`;
+                if (animeTabText) animeTabText.textContent = `${userName}'s Anime`;
                 if (gamesTabText) gamesTabText.textContent = `${userName}'s Games`;
                 if (booksTabText) booksTabText.textContent = `${userName}'s Books`;
                 if (musicTabText) musicTabText.textContent = `${userName}'s Music`;
                 if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
                 if (restaurantsTitle) restaurantsTitle.textContent = `${userName}'s Restaurants`;
                 if (tvTitle) tvTitle.textContent = `${userName}'s TV Shows`;
+                if (animeTitle) animeTitle.textContent = `${userName}'s Anime`;
                 if (gamesTitle) gamesTitle.textContent = `${userName}'s Games`;
                 if (booksTitle) booksTitle.textContent = `${userName}'s Books`;
                 if (musicTitle) musicTitle.textContent = `${userName}'s Music`;
@@ -6297,6 +6441,7 @@ header, .top-stripe, .section-nav {
                 if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
                 if (tvSubtitle) tvSubtitle.textContent = `${userName}'s favorite TV shows`;
+                if (animeSubtitle) animeSubtitle.textContent = `${userName}'s favorite anime`;
                 if (gamesSubtitle) gamesSubtitle.textContent = `${userName}'s favorite games`;
                 if (booksSubtitle) booksSubtitle.textContent = `${userName}'s favorite books`;
                 if (musicSubtitle) musicSubtitle.textContent = `${userName}'s favorite tracks`;
@@ -6308,17 +6453,20 @@ header, .top-stripe, .section-nav {
                 const mobileTabJournal = document.getElementById('mobileTabJournal');
                 const mobileTabRestaurants = document.getElementById('mobileTabRestaurants');
                 const mobileTabTv = document.getElementById('mobileTabTv');
+                const mobileTabAnime = document.getElementById('mobileTabAnime');
                 const mobileTabGames = document.getElementById('mobileTabGames');
                 const mobileTabBooks = document.getElementById('mobileTabBooks');
                 const mobileTabMusic = document.getElementById('mobileTabMusic');
                 const mobileJournalTitle = document.getElementById('mobileJournalTitle');
                 const mobileRestaurantsTitle = document.getElementById('mobileRestaurantsTitle');
+                const mobileAnimeTitle = document.getElementById('mobileAnimeTitle');
                 const mobileGamesTitle = document.getElementById('mobileGamesTitle');
                 const mobileBooksTitle = document.getElementById('mobileBooksTitle');
                 const mobileMusicTitle = document.getElementById('mobileMusicTitle');
                 const mobileCommunityTitle = document.getElementById('mobileCommunityTitle');
                 const mobileJournalSubtitle = document.getElementById('mobileJournalSubtitle');
                 const mobileRestaurantsSubtitle = document.getElementById('mobileRestaurantsSubtitle');
+                const mobileAnimeSubtitle = document.getElementById('mobileAnimeSubtitle');
                 const mobileGamesSubtitle = document.getElementById('mobileGamesSubtitle');
                 const mobileBooksSubtitle = document.getElementById('mobileBooksSubtitle');
                 const mobileMusicSubtitle = document.getElementById('mobileMusicSubtitle');
@@ -6328,17 +6476,20 @@ header, .top-stripe, .section-nav {
                 if (mobileTabJournal) mobileTabJournal.textContent = `${userName}'s Journal`;
                 if (mobileTabRestaurants) mobileTabRestaurants.textContent = `${userName}'s Restaurants`;
                 if (mobileTabTv) mobileTabTv.textContent = `${userName}'s TV Shows`;
+                if (mobileTabAnime) mobileTabAnime.textContent = `${userName}'s Anime`;
                 if (mobileTabGames) mobileTabGames.textContent = `${userName}'s Games`;
                 if (mobileTabBooks) mobileTabBooks.textContent = `${userName}'s Books`;
                 if (mobileTabMusic) mobileTabMusic.textContent = `${userName}'s Music`;
                 if (mobileJournalTitle) mobileJournalTitle.textContent = `${userName}'s Food Journal`;
                 if (mobileRestaurantsTitle) mobileRestaurantsTitle.textContent = `${userName}'s Restaurants`;
+                if (mobileAnimeTitle) mobileAnimeTitle.textContent = `${userName}'s Anime`;
                 if (mobileGamesTitle) mobileGamesTitle.textContent = `${userName}'s Games`;
                 if (mobileBooksTitle) mobileBooksTitle.textContent = `${userName}'s Books`;
                 if (mobileMusicTitle) mobileMusicTitle.textContent = `${userName}'s Music`;
                 if (mobileCommunityTitle) mobileCommunityTitle.textContent = `${userName}'s Community`;
                 if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (mobileRestaurantsSubtitle) mobileRestaurantsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
+                if (mobileAnimeSubtitle) mobileAnimeSubtitle.textContent = `${userName}'s favorite anime`;
                 if (mobileGamesSubtitle) mobileGamesSubtitle.textContent = `${userName}'s favorite games`;
                 if (mobileBooksSubtitle) mobileBooksSubtitle.textContent = `${userName}'s favorite books`;
                 if (mobileMusicSubtitle) mobileMusicSubtitle.textContent = `${userName}'s favorite tracks`;
@@ -6535,16 +6686,19 @@ header, .top-stripe, .section-nav {
                     { table: 'follows', filter: `follower_id=eq.${safeId}` },
                     { table: 'movie_list_items', filter: `user_id=eq.${safeId}` },
                     { table: 'tv_list_items', filter: `user_id=eq.${safeId}` },
+                    { table: 'anime_list_items', filter: `user_id=eq.${safeId}` },
                     { table: 'game_list_items', filter: `user_id=eq.${safeId}` },
                     { table: 'book_list_items', filter: `user_id=eq.${safeId}` },
                     { table: 'music_list_items', filter: `user_id=eq.${safeId}` },
                     { table: 'movie_lists', filter: `user_id=eq.${safeId}` },
                     { table: 'tv_lists', filter: `user_id=eq.${safeId}` },
+                    { table: 'anime_lists', filter: `user_id=eq.${safeId}` },
                     { table: 'game_lists', filter: `user_id=eq.${safeId}` },
                     { table: 'book_lists', filter: `user_id=eq.${safeId}` },
                     { table: 'music_lists', filter: `user_id=eq.${safeId}` },
                     { table: 'journal_entries', filter: `user_id=eq.${safeId}` },
                     { table: 'tv_reviews', filter: `user_id=eq.${safeId}` },
+                    { table: 'anime_reviews', filter: `user_id=eq.${safeId}` },
                     { table: 'game_reviews', filter: `user_id=eq.${safeId}` },
                     { table: 'book_reviews', filter: `user_id=eq.${safeId}` },
                     { table: 'music_reviews', filter: `user_id=eq.${safeId}` }
@@ -6703,12 +6857,14 @@ header, .top-stripe, .section-nav {
                         followingResult,
                         movieSavedCount,
                         tvSavedCount,
+                        animeSavedCount,
                         gameSavedCount,
                         bookSavedCount,
                         musicSavedCount,
                         restaurantSavedCount,
                         movieListsCount,
                         tvListsCount,
+                        animeListsCount,
                         gameListsCount,
                         bookListsCount,
                         musicListsCount,
@@ -6716,6 +6872,7 @@ header, .top-stripe, .section-nav {
                         journalReviewsCount,
                         movieReviewsCount,
                         tvReviewsCount,
+                        animeReviewsCount,
                         gameReviewsCount,
                         bookReviewsCount,
                         musicReviewsCount
@@ -6730,12 +6887,14 @@ header, .top-stripe, .section-nav {
                             .eq('follower_id', targetId),
                         safeCountByUser('movie_list_items', targetId),
                         safeCountByUser('tv_list_items', targetId),
+                        safeCountByUser('anime_list_items', targetId),
                         safeCountByUser('game_list_items', targetId),
                         safeCountByUser('book_list_items', targetId),
                         safeCountByUser('music_list_items', targetId),
                         countRestaurantSavedItems(targetId),
                         safeCountByUser('movie_lists', targetId),
                         safeCountByUser('tv_lists', targetId),
+                        safeCountByUser('anime_lists', targetId),
                         safeCountByUser('game_lists', targetId),
                         safeCountByUser('book_lists', targetId),
                         safeCountByUser('music_lists', targetId),
@@ -6743,6 +6902,7 @@ header, .top-stripe, .section-nav {
                         safeCountByUser('journal_entries', targetId),
                         safeCountByUser('movie_reviews', targetId),
                         safeCountByUser('tv_reviews', targetId),
+                        safeCountByUser('anime_reviews', targetId),
                         safeCountByUser('game_reviews', targetId),
                         safeCountByUser('book_reviews', targetId),
                         safeCountByUser('music_reviews', targetId)
@@ -6759,12 +6919,14 @@ header, .top-stripe, .section-nav {
                     const followingCount = Number(followingResult?.count || 0) || 0;
                     const savedItemsCount = Number(movieSavedCount || 0)
                         + Number(tvSavedCount || 0)
+                        + Number(animeSavedCount || 0)
                         + Number(gameSavedCount || 0)
                         + Number(bookSavedCount || 0)
                         + Number(musicSavedCount || 0)
                         + Number(restaurantSavedCount || 0);
                     const listsCount = Number(movieListsCount || 0)
                         + Number(tvListsCount || 0)
+                        + Number(animeListsCount || 0)
                         + Number(gameListsCount || 0)
                         + Number(bookListsCount || 0)
                         + Number(musicListsCount || 0)
@@ -6772,6 +6934,7 @@ header, .top-stripe, .section-nav {
                     const reviewsCount = Number(journalReviewsCount || 0)
                         + Number(movieReviewsCount || 0)
                         + Number(tvReviewsCount || 0)
+                        + Number(animeReviewsCount || 0)
                         + Number(gameReviewsCount || 0)
                         + Number(bookReviewsCount || 0)
                         + Number(musicReviewsCount || 0);
@@ -8467,6 +8630,7 @@ header, .top-stripe, .section-nav {
                         const labelByMedia = {
                             movie: 'movie',
                             tv: 'show',
+                            anime: 'anime',
                             game: 'game',
                             book: 'book',
                             music: 'track',
@@ -8483,6 +8647,7 @@ header, .top-stripe, .section-nav {
                         const map = {
                             movie: { favorites: 'Favorites', watched: 'Watched', watchlist: 'Watchlist' },
                             tv: { favorites: 'Favorites', watched: 'Watched', watchlist: 'Watchlist' },
+                            anime: { favorites: 'Favorites', watched: 'Watched', watchlist: 'Watchlist' },
                             game: { favorites: 'Favorites', watched: 'Played', watchlist: 'Backlog' },
                             book: { favorites: 'Favorites', read: 'Read', readlist: 'Readlist' },
                             music: { favorites: 'Favorites', listened: 'Listened', listenlist: 'Listenlist' }
@@ -8505,6 +8670,13 @@ header, .top-stripe, .section-nav {
                         }
                         if (safeType === 'tv') {
                             const data = await fetchTvDetails(safeId);
+                            return data ? {
+                                title: String(data.name || data.title || '').trim(),
+                                image: data.poster_path ? `${TMDB_POSTER}${data.poster_path}` : ''
+                            } : null;
+                        }
+                        if (safeType === 'anime') {
+                            const data = await fetchAnimeDetails(safeId);
                             return data ? {
                                 title: String(data.name || data.title || '').trim(),
                                 image: data.poster_path ? `${TMDB_POSTER}${data.poster_path}` : ''
@@ -8639,6 +8811,7 @@ header, .top-stripe, .section-nav {
                         const listSources = [
                             { table: 'movie_list_items', mediaType: 'movie', itemField: 'movie_id' },
                             { table: 'tv_list_items', mediaType: 'tv', itemField: 'tv_id' },
+                            { table: 'anime_list_items', mediaType: 'anime', itemField: 'anime_id' },
                             { table: 'game_list_items', mediaType: 'game', itemField: 'game_id' },
                             { table: 'book_list_items', mediaType: 'book', itemField: 'book_id' },
                             { table: 'music_list_items', mediaType: 'music', itemField: 'track_id' }
@@ -9180,8 +9353,9 @@ header, .top-stripe, .section-nav {
                 if (raw === '??') return 'list';
                 if (raw === '???') return 'restaurant';
                 if (raw.includes('fa-tv')) return 'tv';
+                if (raw.includes('fa-dragon')) return 'anime';
                 if (raw.includes('fa-gamepad')) return 'game';
-                if (raw === 'heart' || raw === 'check' || raw === 'bookmark' || raw === 'restaurant' || raw === 'movie' || raw === 'book' || raw === 'tv' || raw === 'game' || raw === 'list' || raw === 'user' || raw === 'star' || raw === 'fire' || raw === 'sparkles' || raw === 'rocket' || raw === 'trophy' || raw === 'gift' || raw === 'music' || raw === 'camera' || raw === 'soccer') return raw;
+                if (raw === 'heart' || raw === 'check' || raw === 'bookmark' || raw === 'restaurant' || raw === 'movie' || raw === 'book' || raw === 'tv' || raw === 'anime' || raw === 'game' || raw === 'list' || raw === 'user' || raw === 'star' || raw === 'fire' || raw === 'sparkles' || raw === 'rocket' || raw === 'trophy' || raw === 'gift' || raw === 'music' || raw === 'camera' || raw === 'soccer') return raw;
                 return raw;
             }
 
@@ -9194,6 +9368,7 @@ header, .top-stripe, .section-nav {
                     restaurant: "\u{1F37D}\uFE0F",
                     movie: "\u{1F3AC}",
                     tv: "\u{1F4FA}",
+                    anime: "\u{1F409}",
                     game: "\u{1F3AE}",
                     book: "\u{1F4DA}",
                     list: "\u{1F4CB}",
@@ -9233,6 +9408,7 @@ header, .top-stripe, .section-nav {
                         ...(ENABLE_RESTAURANTS ? { restaurant: 'grid' } : {}),
                         movie: 'grid',
                         tv: 'grid',
+                        anime: 'grid',
                         game: 'grid',
                         book: 'grid',
                         music: 'grid'
@@ -9247,6 +9423,7 @@ header, .top-stripe, .section-nav {
                         ...(ENABLE_RESTAURANTS ? { restaurant: 'grid' } : {}),
                         movie: 'grid',
                         tv: 'grid',
+                        anime: 'grid',
                         game: 'grid',
                         book: 'grid',
                         music: 'grid'
@@ -9305,6 +9482,7 @@ header, .top-stripe, .section-nav {
                     type === 'restaurant' ? 'restaurant' :
                     type === 'movie' ? 'movie' :
                     type === 'tv' ? 'TV show' :
+                    type === 'anime' ? 'anime' :
                     type === 'game' ? 'game' :
                     type === 'book' ? 'book' :
                     'track'
@@ -9786,6 +9964,10 @@ header, .top-stripe, .section-nav {
                     await renderTvShows();
                     return;
                 }
+                if (contentType === 'anime') {
+                    await renderAnimeShows();
+                    return;
+                }
                 if (contentType === 'game') {
                     await renderGames();
                     return;
@@ -9966,6 +10148,8 @@ header, .top-stripe, .section-nav {
                     await showMovieDetail(listId, listType, isMobile);
                 } else if (mediaType === 'tv') {
                     await showTvDetail(listId, listType, isMobile);
+                } else if (mediaType === 'anime') {
+                    await showAnimeDetail(listId, listType, isMobile);
                 } else if (mediaType === 'game') {
                     await showGameDetail(listId, listType, isMobile);
                 } else if (mediaType === 'book') {
@@ -10010,6 +10194,15 @@ header, .top-stripe, .section-nav {
                 if (!res.ok) return null;
                 const data = await res.json();
                 tvCache.set(tvId, data);
+                return data;
+            }
+
+            async function fetchAnimeDetails(animeId) {
+                if (animeCache.has(animeId)) return animeCache.get(animeId);
+                const res = await fetch(`${TMDB_PROXY_BASE}/tv/${animeId}?language=en`);
+                if (!res.ok) return null;
+                const data = await res.json();
+                animeCache.set(animeId, data);
                 return data;
             }
 
@@ -10344,6 +10537,7 @@ header, .top-stripe, .section-nav {
                 const configMap = {
                     movie: { table: 'movie_lists', fallback: 'movie', label: 'Movie', rerender: renderMovies },
                     tv: { table: 'tv_lists', fallback: 'tv', label: 'TV', rerender: renderTvShows },
+                    anime: { table: 'anime_lists', fallback: 'anime', label: 'Anime', rerender: renderAnimeShows },
                     game: { table: 'game_lists', fallback: 'game', label: 'Game', rerender: renderGames },
                     book: { table: 'book_lists', fallback: 'book', label: 'Book', rerender: renderBooks },
                     music: { table: 'music_lists', fallback: 'music', label: 'Music', rerender: renderMusic }
@@ -10355,6 +10549,7 @@ header, .top-stripe, .section-nav {
                 const map = {
                     movie: ['favorites', 'watched', 'watchlist'],
                     tv: ['favorites', 'watched', 'watchlist'],
+                    anime: ['favorites', 'watched', 'watchlist'],
                     game: ['favorites', 'watched', 'watchlist'],
                     book: ['favorites', 'read', 'readlist'],
                     music: ['favorites', 'listened', 'listenlist']
@@ -10368,7 +10563,7 @@ header, .top-stripe, .section-nav {
                     if (!raw) return fallback;
                     if (raw === 'tier' || raw === 'tierlist' || raw === 'tier_list') return 'tier';
                     if (raw === 'standard' || raw === 'list' || raw === 'custom' || raw === 'default') return 'standard';
-                    if (raw === 'movie' || raw === 'tv' || raw === 'game' || raw === 'book' || raw === 'music' || raw === 'restaurant') {
+                    if (raw === 'movie' || raw === 'tv' || raw === 'anime' || raw === 'game' || raw === 'book' || raw === 'music' || raw === 'restaurant') {
                         return 'standard';
                     }
                     return fallback;
@@ -11549,11 +11744,13 @@ header, .top-stripe, .section-nav {
                     safeIcon,
                     type === 'tv'
                         ? 'tv'
+                        : (type === 'anime'
+                            ? 'anime'
                         : (type === 'game'
                             ? 'game'
                             : (type === 'movie'
                                 ? 'movie'
-                                : (type === 'music' ? 'music' : 'book')))
+                                : (type === 'music' ? 'music' : 'book'))))
                 );
 
                 if (type === 'movie') {
@@ -11567,6 +11764,13 @@ header, .top-stripe, .section-nav {
                     const desktopName = document.getElementById('tvDetailName');
                     const desktopIcon = document.getElementById('tvDetailIcon');
                     const mobileName = document.getElementById('mobileTvDetailTitle');
+                    if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
+                    if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
+                    if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
+                } else if (type === 'anime') {
+                    const desktopName = document.getElementById('animeDetailName');
+                    const desktopIcon = document.getElementById('animeDetailIcon');
+                    const mobileName = document.getElementById('mobileAnimeDetailTitle');
                     if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
                     if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
                     if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
@@ -11666,6 +11870,42 @@ header, .top-stripe, .section-nav {
                 showToast('List deleted', 'success');
             }
 
+            async function renameAnimeList(listId) {
+                await openMediaListEditor('anime', listId);
+            }
+
+            async function createAnimeList() {
+                await openMediaListCreator('anime');
+            }
+
+            async function deleteAnimeList(listId) {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const accessRecord = await fetchCustomListAccessRecord('anime', listId);
+                if (!accessRecord || !canDeleteCustomCollection('anime', listId, accessRecord)) {
+                    showToast('Only the list owner can delete this list', 'warning');
+                    return;
+                }
+                if (!confirm('Delete this anime list? This cannot be undone.')) return;
+                const userId = currentUser.id;
+                await supabase
+                    .from('anime_list_items')
+                    .delete()
+                    .eq('user_id', userId)
+                    .eq('list_id', listId);
+                const { error } = await supabase
+                    .from('anime_lists')
+                    .delete()
+                    .eq('id', listId)
+                    .eq('user_id', userId);
+                if (error) {
+                    showToast('Could not delete list', 'error');
+                    return;
+                }
+                hideAnimeDetail();
+                await renderAnimeShows();
+                showToast('List deleted', 'success');
+            }
+
             async function renameGameList(listId) {
                 await openMediaListEditor('game', listId);
             }
@@ -11722,6 +11962,7 @@ header, .top-stripe, .section-nav {
                     ['restaurants-tab', 'restaurant-detail-view'],
                     ['movies-tab', 'movie-detail-view'],
                     ['tv-tab', 'tv-detail-view'],
+                    ['anime-tab', 'anime-detail-view'],
                     ['games-tab', 'game-detail-view'],
                     ['books-tab', 'book-detail-view'],
                     ['music-tab', 'music-detail-view']
@@ -11740,6 +11981,7 @@ header, .top-stripe, .section-nav {
                     { main: 'mobileRestaurantsSection', detail: 'mobileRestaurantDetailSection', grid: 'mobileRestaurantsGrid' },
                     { main: 'mobileMoviesSection', detail: 'mobileMovieDetailSection', grid: 'mobileMoviesGrid' },
                     { main: 'mobileTvSection', detail: 'mobileTvDetailSection', grid: 'mobileTvGrid' },
+                    { main: 'mobileAnimeSection', detail: 'mobileAnimeDetailSection', grid: 'mobileAnimeGrid' },
                     { main: 'mobileGamesSection', detail: 'mobileGameDetailSection', grid: 'mobileGamesGrid' },
                     { main: 'mobileBooksSection', detail: 'mobileBookDetailSection', grid: 'mobileBooksGrid' },
                     { main: 'mobileMusicSection', detail: 'mobileMusicDetailSection', grid: 'mobileMusicGrid' }
@@ -11773,6 +12015,7 @@ header, .top-stripe, .section-nav {
                     movies: () => renderMovies(),
                     games: () => renderGames(),
                     tv: () => renderTvShows(),
+                    anime: () => renderAnimeShows(),
                     books: () => renderBooks(),
                     music: () => renderMusic(),
                     community: () => showCommunitySection('followers')
@@ -12148,6 +12391,89 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            async function renderAnimeShows() {
+                const isMobile = window.innerWidth <= 768;
+                const grid = isMobile ? document.getElementById('mobileAnimeGrid') : document.getElementById('animeGrid');
+                if (!grid) return;
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                const renderToken = ++renderAnimeToken;
+
+                try {
+                    await ensurePinnedCollectionsLoaded(userId);
+                    const defaultLists = [
+                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Anime you love', type: 'default' },
+                        { id: 'watched', title: 'Watched', icon: 'check', description: 'Anime you watched', type: 'default' },
+                        { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Anime to watch', type: 'default' }
+                    ];
+
+                    let customLists = await loadCollaborativeCustomLists('anime', userId);
+                    if (renderToken !== renderAnimeToken) return;
+                    customLists = await hydrateListMetaByOwner('anime', customLists, userId);
+                    if (renderToken !== renderAnimeToken) return;
+
+                    const items = await loadMediaListItems('anime', userId, customLists.map((list) => list.id));
+
+                    for (const list of defaultLists) {
+                        list.animeIds = Array.from(new Set(
+                            items
+                                .filter((i) => i.list_type === list.id)
+                                .map((i) => String(i.anime_id || '').trim())
+                                .filter(Boolean)
+                        ));
+                    }
+
+                    for (const list of customLists) {
+                        list.animeIds = Array.from(new Set(
+                            items
+                                .filter((i) => String(i.list_id || '') === String(list.id || ''))
+                                .map((i) => String(i.anime_id || '').trim())
+                                .filter(Boolean)
+                        ));
+                        list.type = 'custom';
+                    }
+
+                    const allLists = applyPinnedListSorting('anime', [...defaultLists, ...customLists]);
+
+                    if (allLists.length === 0) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Anime Yet</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save anime to see it here.</p>
+                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='animes.html'">
+                                    <i class="fas fa-dragon"></i> Explore Anime
+                                </button>
+                            </div>
+                        `;
+                        markTabRendered('anime');
+                        return;
+                    }
+
+                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
+                        list,
+                        'anime',
+                        isMobile,
+                        String(list?.user_id || userId || '').trim() || userId
+                    )));
+                    grid.innerHTML = '';
+                    const fragment = document.createDocumentFragment();
+                    cards.forEach(card => fragment.appendChild(card));
+                    grid.appendChild(fragment);
+                    markTabRendered('anime');
+                } catch (error) {
+                    console.error('Error loading anime:', error);
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Anime</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your anime</p>
+                        </div>
+                    `;
+                }
+            }
+
             async function renderGames() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileGamesGrid') : document.getElementById('gamesGrid');
@@ -12501,9 +12827,11 @@ header, .top-stripe, .section-nav {
                         ? (list.movieIds || [])
                         : (contentType === 'tv'
                             ? (list.tvIds || [])
+                            : (contentType === 'anime'
+                                ? (list.animeIds || [])
                             : (contentType === 'game'
                                 ? (list.gameIds || [])
-                                : (contentType === 'book' ? (list.bookIds || []) : (list.trackIds || [])))));
+                                : (contentType === 'book' ? (list.bookIds || []) : (list.trackIds || []))))));
                 const resolvedListType = resolveCollectionListType(contentType, list);
                 const routeListId = String(list.id || '');
                 const { tierMeta, orderedIds } = await resolveTierOrderedIds(contentType, list, routeListId, itemIds, {
@@ -12549,8 +12877,8 @@ header, .top-stripe, .section-nav {
                         `;
                     } else {
                         previewHtml += `
-                            <div class="collection-preview-item ${previewOrientationClass}">
-                                <div class="collection-preview-item-empty">${iconGlyph(contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : 'music')))))}</div>
+                                <div class="collection-preview-item ${previewOrientationClass}">
+                                <div class="collection-preview-item-empty">${iconGlyph(contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'anime' ? 'anime' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : 'music'))))))}</div>
                                 ${overflowHtml}
                             </div>
                         `;
@@ -12591,7 +12919,7 @@ header, .top-stripe, .section-nav {
                     ${kebabHtml}
                     <div class="collection-card-header">
                         <div class="collection-card-title-group">
-                            <div class="collection-card-icon">${iconGlyph(list.icon, contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : 'music')))))}</div>
+                            <div class="collection-card-icon">${iconGlyph(list.icon, contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'anime' ? 'anime' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : 'music'))))))}</div>
                             <div class="collection-card-info">
                                 <div class="collection-card-title">${list.title}</div>
                                 <div class="collection-card-count">${countLabel}</div>
@@ -12693,6 +13021,12 @@ header, .top-stripe, .section-nav {
                             const imageUrl = tv?.poster_path ? `${TMDB_POSTER}${tv.poster_path}` : null;
                             if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
                         }));
+                    } else if (contentType === 'anime') {
+                        await Promise.all(missingIds.map(async (id) => {
+                            const anime = await fetchAnimeDetails(id);
+                            const imageUrl = anime?.poster_path ? `${TMDB_POSTER}${anime.poster_path}` : null;
+                            if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
+                        }));
                     } else {
                         await Promise.all(missingIds.map(async (id) => {
                             const movie = await fetchMovieDetails(id);
@@ -12722,6 +13056,8 @@ header, .top-stripe, .section-nav {
                     await showGameDetail(listId, listType, isMobile);
                 } else if (contentType === 'tv') {
                     await showTvDetail(listId, listType, isMobile);
+                } else if (contentType === 'anime') {
+                    await showAnimeDetail(listId, listType, isMobile);
                 } else if (contentType === 'music') {
                     await showMusicDetail(listId, listType, isMobile);
                 } else {
@@ -13284,6 +13620,203 @@ header, .top-stripe, .section-nav {
                 wireTierDragAndDrop(
                     container,
                     canReorderList ? 'tv' : null,
+                    canReorderList ? listId : null,
+                    canReorderList ? listType : 'default'
+                );
+            }
+
+            async function showAnimeDetail(listId, listType, isMobile) {
+                if (isMobile) {
+                    const mainSection = document.getElementById('mobileAnimeSection');
+                    const detailSection = document.getElementById('mobileAnimeDetailSection');
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileAnimeGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
+                    if (detailSection) {
+                        detailSection.style.display = 'block';
+                        detailSection.classList.add('active');
+                    }
+                } else {
+                    const mainTab = document.getElementById('anime-tab');
+                    const detailView = document.getElementById('anime-detail-view');
+                    if (mainTab) mainTab.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'block';
+                        detailView.classList.add('active');
+                    }
+                }
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+
+                let list = null;
+                if (listType === 'default') {
+                    const titles = { favorites: 'Favorites', watched: 'Watched', watchlist: 'Watchlist' };
+                    const icons = { favorites: 'heart', watched: 'check', watchlist: 'bookmark' };
+                    const descriptions = { favorites: 'Anime you love', watched: 'Anime you watched', watchlist: 'Anime to watch' };
+                    list = {
+                        id: listId,
+                        title: titles[listId],
+                        icon: icons[listId],
+                        description: descriptions[listId],
+                        type: 'default'
+                    };
+                } else {
+                    const { data, error } = await supabase
+                        .from('anime_lists')
+                        .select('*')
+                        .eq('id', listId)
+                        .single();
+
+                    if (error || !data) {
+                        showToast('Collection not found', 'error');
+                        return;
+                    }
+                    list = { ...data, type: 'custom' };
+                }
+
+                if (listType === 'custom' && window.ListUtils) {
+                    const [hydrated] = await ListUtils.hydrateListMetaForLists('anime', [list], {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId: list?.user_id || userId
+                    });
+                    if (hydrated) list = hydrated;
+                }
+                if (listType === 'custom') {
+                    await ensureCollaborativeAccessForList('anime', list);
+                }
+
+                const listOwnerUserId = String(list?.user_id || userId || '').trim() || userId;
+                const animeIds = await fetchMediaCollectionItemIds('anime', listOwnerUserId, listId, listType);
+                const tierMeta = getTierMetaForList('anime', list, animeIds.length);
+                const detailTitle = getCollectionTitleWithKind('anime', list, listType);
+                const detailDescription = tierMeta.isTier
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
+                    : (list.description || '');
+                const canEditList = listType === 'custom' && canEditCustomCollection('anime', listId, list);
+                const canDeleteList = listType === 'custom' && canDeleteCustomCollection('anime', listId, list);
+
+                if (isMobile) {
+                    const titleEl = document.getElementById('mobileAnimeDetailTitle');
+                    const descEl = document.getElementById('mobileAnimeDetailDescription');
+                    const actions = document.getElementById('mobileAnimeDetailActions');
+                    const editBtn = document.getElementById('mobileAnimeListEditBtn');
+                    const deleteBtn = document.getElementById('mobileAnimeListDeleteBtn');
+                    if (titleEl) titleEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameAnimeList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteAnimeList(listId);
+                } else {
+                    const iconEl = document.getElementById('animeDetailIcon');
+                    const nameEl = document.getElementById('animeDetailName');
+                    const descEl = document.getElementById('animeDetailDescription');
+                    const actions = document.getElementById('animeDetailActions');
+                    const editBtn = document.getElementById('animeListEditBtn');
+                    const deleteBtn = document.getElementById('animeListDeleteBtn');
+                    if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'anime');
+                    if (nameEl) nameEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameAnimeList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteAnimeList(listId);
+                }
+
+                currentMediaDetail = { mediaType: 'anime', listId, listType, isMobile };
+                updateCollectionViewToggleButtons('anime');
+                await renderAnimeItems(animeIds, listId, listType, isMobile, list, listOwnerUserId);
+            }
+
+            async function renderAnimeItems(animeIds, listId, listType, isMobile, list = null, ownerUserId = null) {
+                const container = isMobile ? document.getElementById('mobileAnimeItems') : document.getElementById('animeItemsContainer');
+                if (!container) return;
+                applyCollectionViewToContainer(container, 'anime');
+
+                if (!animeIds || animeIds.length === 0) {
+                    container.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Anime Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add anime to this collection!</p>
+                        </div>
+                    `;
+                    wireTierDragAndDrop(container, null, null, 'default');
+                    return;
+                }
+
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                const { tierMeta, orderedIds: rankedAnimeIds } = await resolveTierOrderedIds('anime', list, listId, animeIds, {
+                    listType,
+                    ownerUserId
+                });
+                const canReorderList = canReorderCollectionItems('anime', listId, listType, list);
+                const canEditItems = canEditCollectionItems('anime', listId, listType, list);
+
+                const shows = await Promise.all(rankedAnimeIds.map((id) => fetchAnimeDetails(id)));
+
+                container.innerHTML = '';
+
+                for (let index = 0; index < shows.length; index += 1) {
+                    const show = shows[index];
+                    if (!show) continue;
+                    const animeIdValue = rankedAnimeIds[index] ?? show.id;
+                    const canReorder = canReorderList;
+                    const rankMarkup = tierMeta.isTier
+                        ? buildTierRankControlMarkup(
+                            index + 1,
+                            rankedAnimeIds.length,
+                            canReorder
+                        )
+                        : '';
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'collection-item-card';
+                    itemCard.onclick = () => window.location.href = `anime.html?id=${show.id}`;
+
+                    const showTitle = show.name || show.original_name || show.title || 'Untitled';
+
+                    itemCard.innerHTML = `
+                        <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
+                        <div class="collection-item-body">
+                            <h3 class="collection-item-title">${showTitle}</h3>
+                            ${canEditItems ? `
+                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            ` : ''}
+                            <div class="collection-item-meta">
+                                <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
+                                <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
+                            </div>
+                            ${rankMarkup}
+                        </div>
+                        ${canEditItems ? `
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    `;
+
+                    if (canReorder) {
+                        itemCard.dataset.tierItemId = String(animeIdValue || '').trim();
+                    }
+                    container.appendChild(itemCard);
+                }
+
+                wireTierDragAndDrop(
+                    container,
+                    canReorderList ? 'anime' : null,
                     canReorderList ? listId : null,
                     canReorderList ? listType : 'default'
                 );
@@ -14141,6 +14674,35 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            function hideAnimeDetail() {
+                if (leaveCollectionRoute('anime')) return;
+                currentMediaDetail = null;
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    const detailSection = document.getElementById('mobileAnimeDetailSection');
+                    const mainSection = document.getElementById('mobileAnimeSection');
+                    if (detailSection) detailSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileAnimeGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
+                    }
+                } else {
+                    const detailView = document.getElementById('anime-detail-view');
+                    const mainTab = document.getElementById('anime-tab');
+                    if (detailView) detailView.style.display = 'none';
+                    if (mainTab) {
+                        mainTab.style.display = 'block';
+                        mainTab.classList.add('active');
+                    }
+                }
+            }
+
             function hideGameDetail() {
                 if (leaveCollectionRoute('games')) return;
                 currentMediaDetail = null;
@@ -14241,6 +14803,24 @@ header, .top-stripe, .section-nav {
 
                         showToast('Removed from collection', 'success');
                         await showTvDetail(collectionId, listType, window.innerWidth <= 768);
+                    } else if (type === 'anime') {
+                        if (listType === 'default') {
+                            await supabase
+                                .from('anime_list_items')
+                                .delete()
+                                .eq('user_id', userId)
+                                .eq('anime_id', itemId)
+                                .eq('list_type', collectionId);
+                        } else {
+                            await supabase
+                                .from('anime_list_items')
+                                .delete()
+                                .eq('anime_id', itemId)
+                                .eq('list_id', collectionId);
+                        }
+
+                        showToast('Removed from collection', 'success');
+                        await showAnimeDetail(collectionId, listType, window.innerWidth <= 768);
                     } else if (type === 'game') {
                         if (listType === 'default') {
                             await supabase
@@ -14301,6 +14881,8 @@ header, .top-stripe, .section-nav {
                         await renderMovies();
                     } else if (type === 'tv') {
                         await renderTvShows();
+                    } else if (type === 'anime') {
+                        await renderAnimeShows();
                     } else if (type === 'game') {
                         await renderGames();
                     } else if (type === 'music') {
@@ -14369,6 +14951,17 @@ header, .top-stripe, .section-nav {
                                 }
                                 await supabase.from('tv_list_items').delete().eq('list_id', id);
                                 await supabase.from('tv_lists').delete().eq('id', id);
+                            } else if (type === 'anime') {
+                                const collabCleanup = await supabase
+                                    .from(LIST_COLLAB_TABLE)
+                                    .delete()
+                                    .eq('media_type', 'anime')
+                                    .eq('list_id', String(id));
+                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
+                                    console.warn('Could not remove collaborators for anime list:', collabCleanup.error);
+                                }
+                                await supabase.from('anime_list_items').delete().eq('list_id', id);
+                                await supabase.from('anime_lists').delete().eq('id', id);
                             } else if (type === 'game') {
                                 const collabCleanup = await supabase
                                     .from(LIST_COLLAB_TABLE)
@@ -14415,6 +15008,9 @@ header, .top-stripe, .section-nav {
                             } else if (type === 'tv') {
                                 hideTvDetail();
                                 await renderTvShows();
+                            } else if (type === 'anime') {
+                                hideAnimeDetail();
+                                await renderAnimeShows();
                             } else if (type === 'game') {
                                 hideGameDetail();
                                 await renderGames();
@@ -14689,6 +15285,11 @@ header, .top-stripe, .section-nav {
                 if (normalized === 'tv') {
                     showTab('tv');
                     createTvList();
+                    return;
+                }
+                if (normalized === 'anime') {
+                    showTab('anime');
+                    createAnimeList();
                     return;
                 }
                 if (normalized === 'games') {
@@ -15151,6 +15752,8 @@ header, .top-stripe, .section-nav {
                 hideMobileMovieDetail: hideMovieDetail,
                 hideTvDetail,
                 hideMobileTvDetail: hideTvDetail,
+                hideAnimeDetail,
+                hideMobileAnimeDetail: hideAnimeDetail,
                 hideGameDetail,
                 hideMobileGameDetail: hideGameDetail,
                 hideBookDetail,
@@ -15160,6 +15763,7 @@ header, .top-stripe, .section-nav {
                 toggleCollectionMenu,
                 createMovieList,
                 createTvList,
+                createAnimeList,
                 createGameList,
                 createBookList,
                 createMusicList,
@@ -15169,6 +15773,8 @@ header, .top-stripe, .section-nav {
                 deleteMovieList,
                 renameTvList,
                 deleteTvList,
+                renameAnimeList,
+                deleteAnimeList,
                 renameGameList,
                 deleteGameList,
                 renameBookList,

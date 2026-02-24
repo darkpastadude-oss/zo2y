@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
-  <title>Zo2y - TV Show</title>
+  <title>Zo2y - Anime</title>
   <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -653,11 +653,11 @@
       <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'" width="160" height="40" decoding="async" fetchpriority="high">
       <div class="nav-right">
         <div class="nav-search">
-          <input id="pageSearchInput" class="nav-search-input" type="search" placeholder="Search TV shows..." aria-label="Search TV shows">
-          <button id="pageSearchBtn" class="nav-search-btn" type="button" aria-label="Search TV shows"><i class="fas fa-search"></i></button>
+          <input id="pageSearchInput" class="nav-search-input" type="search" placeholder="Search anime..." aria-label="Search anime">
+          <button id="pageSearchBtn" class="nav-search-btn" type="button" aria-label="Search anime"><i class="fas fa-search"></i></button>
           <div id="pageSearchSuggest" class="search-suggest"></div>
         </div>
-        <a class="ghost" href="tvshows.html">TV Shows</a>
+        <a class="ghost" href="animes.html">Anime</a>
         <a class="ghost" href="restraunts.html">Restaurants</a>
         <a class="ghost" href="index.html">Home</a>
         <button class="account-btn" id="userAccountBtn"><i class="fas fa-user"></i><span>Account</span></button>
@@ -699,7 +699,7 @@
   </div>
 
   <section id="reviews-section" class="section reviews">
-    <h2>TV Show Reviews</h2>
+    <h2>Anime Reviews</h2>
     <div class="reviews-sort-controls" id="reviewsSortControls" style="display: none;">
       <span class="sort-label">Sort by:</span>
       <select class="sort-select" id="sortSelect">
@@ -727,7 +727,7 @@
           <span class="rating-text" id="ratingText">Select your rating</span>
         </div>
         <div class="comment-input">
-          <textarea id="review-comment" placeholder="What did you think of this TV show?" rows="4" maxlength="500"></textarea>
+          <textarea id="review-comment" placeholder="What did you think of this Anime?" rows="4" maxlength="500"></textarea>
           <div class="char-count">
             <span id="charCount">0</span>/500 characters
           </div>
@@ -741,7 +741,7 @@
       </form>
       <div id="auth-prompt" class="auth-prompt">
         <div class="auth-icon"><i class="fas fa-lock"></i></div>
-        <p>Please <a href="login.html" class="auth-link">sign in</a> to review TV shows</p>
+        <p>Please <a href="login.html" class="auth-link">sign in</a> to review Anime</p>
       </div>
     </div>
   </section>
@@ -749,7 +749,7 @@
   <div class="modal" id="movieListsModal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title">Custom TV Lists</div>
+        <div class="modal-title">Custom Anime Lists</div>
         <button class="modal-close" id="closeMovieListsBtn">&times;</button>
       </div>
       <div class="modal-list" id="movieListsContainer"></div>
@@ -813,8 +813,8 @@
       }
 
       function renderListIcon(icon) {
-        if (window.ListUtils) return ListUtils.renderListIcon(icon, 'fas fa-tv');
-        if (!icon) return '<i class="fas fa-tv"></i>';
+        if (window.ListUtils) return ListUtils.renderListIcon(icon, 'fas fa-dragon');
+        if (!icon) return '<i class="fas fa-dragon"></i>';
         if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
         return icon;
       }
@@ -995,10 +995,10 @@
       async function loadListStatus() {
         if (!supabaseClient || !currentUser || !tvId) return;
         const { data, error } = await supabaseClient
-          .from('tv_list_items')
+          .from('anime_list_items')
           .select('list_type')
           .eq('user_id', currentUser.id)
-          .eq('tv_id', tvId);
+          .eq('anime_id', tvId);
         if (error) return;
         listStatus.favorites = false;
         listStatus.watched = false;
@@ -1013,7 +1013,7 @@
 
       async function loadCustomLists() {
         if (!supabaseClient || !currentUser || !window.ListUtils) return [];
-        return await ListUtils.loadCustomLists(supabaseClient, currentUser.id, 'tv');
+        return await ListUtils.loadCustomLists(supabaseClient, currentUser.id, 'anime');
       }
 
       async function openMovieListsModal() {
@@ -1028,7 +1028,7 @@
         customLists = await loadCustomLists();
         const listIds = customLists.map(l => l.id);
         modalSelectedLists = window.ListUtils
-          ? await ListUtils.loadCustomListMembership(supabaseClient, currentUser.id, 'tv', tvId, listIds)
+          ? await ListUtils.loadCustomListMembership(supabaseClient, currentUser.id, 'anime', tvId, listIds)
           : new Set();
         container.innerHTML = '';
         if (!customLists.length) {
@@ -1072,7 +1072,7 @@
           await ListUtils.saveCustomListChanges(
             supabaseClient,
             currentUser.id,
-            'tv',
+            'anime',
             tvId,
             [...modalSelectedLists]
           );
@@ -1096,9 +1096,9 @@
           ? ListUtils.readTierCreateState(modal)
           : { listKind: 'standard', maxRank: null };
         const data = window.ListUtils
-          ? await ListUtils.createCustomList(supabaseClient, currentUser.id, 'tv', {
+          ? await ListUtils.createCustomList(supabaseClient, currentUser.id, 'anime', {
             title,
-            icon: selectedIcon || 'fas fa-tv',
+            icon: selectedIcon || 'fas fa-dragon',
           listKind: tierState.listKind,
           maxRank: tierState.maxRank
           })
@@ -1118,7 +1118,7 @@
         if (!nextTitle || !nextTitle.trim()) return;
         if (!supabaseClient || !currentUser) return;
         const ok = window.ListUtils
-          ? await ListUtils.renameCustomList(supabaseClient, currentUser.id, 'tv', listId, nextTitle.trim())
+          ? await ListUtils.renameCustomList(supabaseClient, currentUser.id, 'anime', listId, nextTitle.trim())
           : false;
         if (!ok) {
           showNotification('Could not rename list', 'error');
@@ -1155,7 +1155,7 @@
 
       async function toggleList(listType, forcedNextSaved) {
         if (!currentUser) {
-          showNotification('Please sign in to save TV shows', 'info');
+          showNotification('Please sign in to save Anime', 'info');
           return { ok: false, saved: false };
         }
         if (!tvId || !(listType in listStatus)) return { ok: false, saved: false };
@@ -1171,16 +1171,16 @@
         try {
           if (nextSaved) {
             const { error } = await supabaseClient
-              .from('tv_list_items')
-              .insert({ user_id: currentUser.id, tv_id: tvId, list_type: listType });
+              .from('anime_list_items')
+              .insert({ user_id: currentUser.id, anime_id: tvId, list_type: listType });
             if (error && String(error.code || '') !== '23505') throw error;
             showNotification('Saved to list', 'success');
           } else {
             const { error } = await supabaseClient
-              .from('tv_list_items')
+              .from('anime_list_items')
               .delete()
               .eq('user_id', currentUser.id)
-              .eq('tv_id', tvId)
+              .eq('anime_id', tvId)
               .eq('list_type', listType);
             if (error) throw error;
             showNotification('Removed from list', 'info');
@@ -1201,7 +1201,7 @@
         if (!menuBtn || !tvId || !window.initIndexStyleListMenu) return;
 
         window.initIndexStyleListMenu({
-          mediaType: 'tv',
+          mediaType: 'anime',
           itemIdAttr: 'data-item-id',
           getVisibleItemIds: () => tvId ? [tvId] : [],
           getQuickStatusForItem: (itemId) => {
@@ -1210,9 +1210,9 @@
             return { ...listStatus };
           },
           getItemFromCard: () => ({
-            mediaType: 'tv',
+            mediaType: 'anime',
             itemId: tvId,
-            title: String(document.getElementById('title')?.textContent || 'TV Show').trim(),
+            title: String(document.getElementById('title')?.textContent || 'Anime').trim(),
             subtitle: String(document.getElementById('meta')?.textContent || '').trim(),
             image: String(document.getElementById('poster')?.getAttribute('src') || '').trim()
           }),
@@ -1285,9 +1285,9 @@
         if (!container || !statsContainer || !supabaseClient) return;
         container.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
         const { data, error } = await supabaseClient
-          .from('tv_reviews')
+          .from('anime_reviews')
           .select('*')
-          .eq('tv_id', tvId)
+          .eq('anime_id', tvId)
           .order('created_at', { ascending: false });
         if (error) {
           container.innerHTML = '<div class="reviews-empty">Error loading reviews.</div>';
@@ -1442,17 +1442,17 @@
           showNotification('Please select a rating', 'info');
           return;
         }
-        const payload = { tv_id: tvId, user_id: currentUser.id, rating: currentRating, comment };
+        const payload = { anime_id: tvId, user_id: currentUser.id, rating: currentRating, comment };
         let error = null;
         if (editingReviewId) {
           const { error: updateError } = await supabaseClient
-            .from('tv_reviews')
+            .from('anime_reviews')
             .update(payload)
             .eq('id', editingReviewId);
           error = updateError;
         } else {
           const { error: insertError } = await supabaseClient
-            .from('tv_reviews')
+            .from('anime_reviews')
             .insert(payload);
           error = insertError;
         }
@@ -1468,7 +1468,7 @@
       window.editReview = async function (reviewId) {
         if (!supabaseClient) return;
         const { data: review } = await supabaseClient
-          .from('tv_reviews')
+          .from('anime_reviews')
           .select('*')
           .eq('id', reviewId)
           .single();
@@ -1490,7 +1490,7 @@
         }
         if (!confirm('Delete this review?')) return;
         const { error } = await supabaseClient
-          .from('tv_reviews')
+          .from('anime_reviews')
           .delete()
           .eq('id', reviewId);
         if (error) {
@@ -1526,7 +1526,7 @@
         let debounceTimer = null;
         const go = () => {
           const query = input.value.trim();
-          const url = new URL('tvshows.html', window.location.href);
+          const url = new URL('animes.html', window.location.href);
           if (query) url.searchParams.set('search', query);
           window.location.href = `${url.pathname}${url.search}`;
         };
@@ -1558,7 +1558,7 @@
               if (!selected) return;
               input.value = selected.title;
               closeSuggest();
-              window.location.href = `tvshow.html?id=${encodeURIComponent(selected.id)}`;
+              window.location.href = `anime.html?id=${encodeURIComponent(selected.id)}`;
             });
           });
         };
@@ -1575,8 +1575,8 @@
             const json = await res.json();
             suggestions = (json.results || []).slice(0, 6).map((m) => ({
               id: m.id,
-              title: m.name || 'TV Show',
-              sub: m.first_air_date ? String(m.first_air_date).slice(0, 4) : 'TV Show',
+              title: m.name || 'Anime',
+              sub: m.first_air_date ? String(m.first_air_date).slice(0, 4) : 'Anime',
               image: m.poster_path ? `${POSTER_BASE}${m.poster_path}` : ''
             }));
             activeIndex = -1;
@@ -1608,7 +1608,7 @@
           if (e.key === 'Enter') {
             e.preventDefault();
             if (activeIndex >= 0 && suggestions[activeIndex]) {
-              window.location.href = `tvshow.html?id=${encodeURIComponent(suggestions[activeIndex].id)}`;
+              window.location.href = `anime.html?id=${encodeURIComponent(suggestions[activeIndex].id)}`;
               return;
             }
             go();
@@ -1650,6 +1650,7 @@
   <script src="js/production-runtime.js?v=20260221a" defer></script>
 </body>
 </html>
+
 
 
 

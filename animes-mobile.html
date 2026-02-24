@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
+  <title>Zo2y - Anime</title>
+  <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <style>
+    :root {
+      --bg: #0b1633;
+      --card: #132347;
+      --muted: #8ca3c7;
+      --accent: #f59e0b;
+      --glass: rgba(255,255,255,0.03);
+      --white: #ffffff;
+      --border: rgba(255,255,255,0.1);
+      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      --surface: rgba(19, 35, 71, 0.6);
+      --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+      --shadow: 0 10px 30px rgba(0,0,0,0.3);
+      --info: #3b82f6;
+      --success: #10b981;
+      --error: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: -20% 0 0 0;
+      background: var(--radial-glow);
+      pointer-events: none;
+      z-index: -2;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0 12px, rgba(255, 184, 77, 0) 12px 24px);
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: -3;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding: 12px 12px;
+      backdrop-filter: blur(10px) saturate(180%);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      gap: 10px;
+    }
+
+    .logo {
+      height: 34px;
+      width: auto;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .logo:hover { transform: scale(1.05); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav a.ghost {
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .nav a.ghost:hover { color: var(--accent); background: rgba(245, 158, 11, 0.05); }
+
+    .account-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--white);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .account-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .account-btn.logged-in {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: var(--accent);
+    }
+
+    .hero {
+      max-width: 1200px;
+      margin: 16px auto 0;
+      padding: 0 12px;
+    }
+
+    .hero h1 {
+      font-size: 20px;
+      margin: 0 0 6px 0;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .controls {
+      max-width: 1200px;
+      margin: 12px auto 0;
+      padding: 0 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .search-input,
+    .filter-select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1f40;
+      color: var(--white);
+      outline: none;
+      font-size: 12px;
+    }
+
+    .full-span { grid-column: 1 / -1; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--white);
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 12px;
+      transition: all 0.2s ease;
+      justify-content: center;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .chip-row {
+      max-width: 1200px;
+      margin: 8px auto 0;
+      padding: 0 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      padding: 5px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .chip.active { border-color: var(--accent); color: var(--accent); }
+
+    .grid {
+      max-width: 1200px;
+      margin: 16px auto 40px;
+      padding: 0 12px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card.menu-open,
+    .card.menu-open:hover {
+      transform: none;
+      overflow: visible;
+    }
+
+    .card img {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      height: auto;
+      object-fit: cover;
+      display: block;
+      background: #0f1f40;
+    }
+
+    .card-body {
+      padding: 8px 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 700;
+      margin: 0;
+      line-height: 1.3;
+      min-height: 32px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      order: 1;
+    }
+
+    .card-meta {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .card-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      order: 3;
+      margin-top: auto;
+    }
+
+    .card-menu-wrap {
+      position: relative;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .menu-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(19, 35, 71, 0.9);
+      color: var(--white);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .list-menu {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .list-menu.open { display: flex; }
+
+    .list-menu-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 380px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      animation: menuFadeIn 0.2s ease;
+    }
+    .list-menu-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 3290;
+      display: none;
+    }
+    .list-menu-backdrop.active { display: block; }
+
+    .list-menu-title { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+
+    .list-action {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--white);
+      border-radius: 10px;
+      padding: 7px 9px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: all 0.2s ease;
+      margin-bottom: 6px;
+    }
+
+    .list-action:last-child { margin-bottom: 0; }
+    .list-action:hover { border-color: var(--accent); color: var(--accent); }
+    .list-action.active {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .empty {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 12px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .pagination {
+      max-width: 1200px;
+      margin: 0 auto 40px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .page-btn {
+      min-width: 40px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--white);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .page-info { color: var(--muted); font-size: 12px; }
+
+    .notification {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      z-index: 2000;
+      box-shadow: var(--shadow);
+    }
+    .notification.success { background: var(--success); color: white; }
+    .notification.error { background: var(--error); color: white; }
+    .notification.info { background: var(--info); color: white; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      padding: 16px;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .modal-title { font-size: 16px; font-weight: 700; }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 22px;
+      cursor: pointer;
+    }
+    .modal-list {
+      display: grid;
+      gap: 8px;
+      max-height: 240px;
+      overflow: auto;
+      margin-bottom: 10px;
+    }
+    .modal-list-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .modal-list-actions { display: inline-flex; gap: 6px; align-items: center; }
+    .list-edit-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .list-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .modal-list-item.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(245, 158, 11, 0.12);
+    }
+    .modal-input {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .modal-input input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1f40;
+      color: var(--white);
+      outline: none;
+      font-size: 12px;
+    }
+    .icon-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .icon-option {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .icon-option.selected { border-color: var(--accent); color: var(--accent); }
+
+    .menu-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .menu-modal.active {
+      display: flex;
+    }
+
+    .menu-modal-content {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 380px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      animation: menuFadeIn 0.2s ease;
+    }
+
+    @keyframes menuFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .menu-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .menu-modal-header h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--white);
+      margin: 0;
+    }
+
+    .menu-modal-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 24px;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .menu-modal-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--white);
+    }
+
+    .menu-modal-body {
+      padding: 16px 20px;
+    }
+
+    .menu-quick-lists {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .menu-custom-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .menu-custom-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .menu-create-list-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .menu-create-list-btn:hover {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: var(--accent);
+    }
+
+    .menu-custom-lists {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+  </style>
+  <meta name="theme-color" content="#0b1633" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zo2y" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/images/logo.png" />
+  <link rel="stylesheet" href="/js/mobile-app.css" />
+  <script src="/js/mobile-webapp.js" defer></script>
+</head>
+<body>
+  <header class="nav" role="banner">
+    <div class="nav-container">
+      <img src="images/logo.png" alt="Zo2y" class="logo" onclick="location.href='index.html'" width="140" height="34" decoding="async" fetchpriority="high">
+      <div class="nav-right">
+        <a class="ghost" href="animes.html">Anime</a>
+        <a class="ghost" href="restraunts.html">Restaurants</a>
+        <a class="ghost" href="index.html">Home</a>
+        <button class="account-btn" id="userAccountBtn"><i class="fas fa-user"></i><span>Account</span></button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>Popular Anime</h1>
+    <p>Egyptian-focused content sourced from TMDB and cached in Supabase.</p>
+  </section>
+
+  <div class="controls">
+    <input id="searchInput" class="search-input full-span" type="text" placeholder="Search anime...">
+    <select id="genreSelect" class="filter-select">
+      <option value="">All Genres</option>
+    </select>
+    <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year">
+    <input id="actorInput" class="search-input full-span" type="text" placeholder="Actor (e.g., Ahmed Helmy)">
+    <button class="btn full-span" id="refreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
+  </div>
+  <div id="activeFilters" class="chip-row"></div>
+
+  <div id="moviesGrid" class="grid"></div>
+  <div id="emptyState" class="empty" style="display:none;">No anime found.</div>
+  <div class="pagination">
+    <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
+    <div class="page-info" id="pageInfo">Page 1</div>
+    <button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
+  </div>
+
+  <div class="modal" id="movieListsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Custom Anime Lists</div>
+        <button class="modal-close" id="closeMovieListsBtn">&times;</button>
+      </div>
+      <div class="modal-list" id="movieListsContainer"></div>
+      <div class="modal-input">
+        <input type="text" id="newMovieListName" placeholder="New list name..." maxlength="50">
+        <button class="btn" id="createMovieListBtn">Create</button>
+      </div>
+      <div class="icon-options" id="movieListIconOptions">
+        <button class="icon-option selected" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
+        <button class="icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+        <button class="icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+        <button class="icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+        <button class="icon-option" data-icon="fas fa-eye"><i class="fas fa-eye"></i></button>
+      </div>
+      <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn" id="saveMovieListsBtn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/list-utils.js?v=20260221c"></script>
+  <script src="js/index-list-menu-adapter.js?v=20260221b"></script>
+  <script>
+    (function () {
+      const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+      const TMDB_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s';
+      const TMDB_BASE = 'https://api.themoviedb.org/3';
+      const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
+      const state = {
+        genres: [],
+        activeGenre: '',
+        query: '',
+        actor: '',
+        year: '',
+        page: 1,
+        totalPages: 1,
+        currentUser: null,
+        listStatusMap: new Map(),
+        customLists: [],
+        activeMovieId: null,
+        modalSelectedLists: new Set(),
+        selectedIcon: 'fas fa-film',
+        pendingDefaultOps: new Set()
+      };
+
+      let supabaseClient = null;
+
+      async function tmdbFetch(path, params = {}) {
+        const url = new URL(TMDB_BASE + path);
+        Object.entries(params).forEach(([k, v]) => {
+          if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
+        });
+        const res = await fetch(url.toString(), {
+          headers: {
+            Authorization: `Bearer ${TMDB_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!res.ok) throw new Error(`TMDB error ${res.status}`);
+        return res.json();
+      }
+
+      function showNotification(message, type = 'info', duration = 3000) {
+        const existing = document.querySelectorAll('.notification');
+        existing.forEach(n => n.remove());
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), duration);
+      }
+
+      function renderListIcon(icon) {
+        if (window.ListUtils) return ListUtils.renderListIcon(icon, 'fas fa-dragon');
+        if (!icon) return '<i class="fas fa-dragon"></i>';
+        if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
+        return icon;
+      }
+
+      async function initSupabase() {
+        if (typeof supabase === 'undefined') {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        if (typeof supabase === 'undefined') return null;
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        return supabaseClient;
+      }
+
+      async function initAuth() {
+        if (!supabaseClient) return;
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        state.currentUser = user || null;
+        updateAccountButton();
+        await loadUserListStatus();
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+          state.currentUser = session?.user || null;
+          updateAccountButton();
+          loadUserListStatus();
+        });
+      }
+
+      function updateAccountButton() {
+        const btn = document.getElementById('userAccountBtn');
+        if (!btn) return;
+        if (state.currentUser) {
+          btn.classList.add('logged-in');
+          btn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+          btn.onclick = () => window.location.href = 'profile.html';
+        } else {
+          btn.classList.remove('logged-in');
+          btn.innerHTML = '<i class="fas fa-user"></i><span>Account</span>';
+          btn.onclick = () => window.location.href = 'login.html';
+        }
+      }
+
+      async function loadUserListStatus() {
+        state.listStatusMap = new Map();
+        if (!supabaseClient || !state.currentUser) return;
+        const { data, error } = await supabaseClient
+          .from('anime_list_items')
+          .select('anime_id, list_type')
+          .eq('user_id', state.currentUser.id);
+        if (error) return;
+        (data || []).forEach(row => {
+          if (!state.listStatusMap.has(row.anime_id)) {
+            state.listStatusMap.set(row.anime_id, { favorites: false, watched: false, watchlist: false });
+          }
+          if (row.list_type && state.listStatusMap.get(row.anime_id)[row.list_type] !== undefined) {
+            state.listStatusMap.get(row.anime_id)[row.list_type] = true;
+          }
+        });
+        updateAllCardMenus();
+      }
+
+      function updateAllCardMenus() {
+        document.querySelectorAll('.card').forEach(card => {
+          const movieId = Number(card.getAttribute('data-movie-id'));
+          if (!movieId) return;
+          updateCardMenuUI(card, movieId);
+        });
+      }
+
+      function updateCardMenuUI(card, movieId) {
+        const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };
+        card.querySelectorAll('.list-action').forEach(btn => {
+          const listType = btn.getAttribute('data-list');
+          if (!listType) return;
+          const isActive = !!status[listType];
+          btn.classList.toggle('active', isActive);
+          const stateEl = btn.querySelector('.list-action-state');
+          if (stateEl) stateEl.textContent = isActive ? 'Saved' : 'Add';
+        });
+      }
+
+      function renderFilters() {
+        const row = document.getElementById('activeFilters');
+        if (!row) return;
+        row.innerHTML = '';
+        const items = [];
+        if (state.activeGenre) items.push({ label: state.activeGenre, type: 'genre' });
+        if (state.query) items.push({ label: state.query, type: 'query' });
+        if (state.year) items.push({ label: state.year, type: 'year' });
+        if (state.actor) items.push({ label: state.actor, type: 'actor' });
+        items.forEach(item => {
+          const chip = document.createElement('div');
+          chip.className = 'chip active';
+          chip.textContent = item.label;
+          chip.onclick = () => {
+            if (item.type === 'genre') state.activeGenre = '';
+            if (item.type === 'query') state.query = '';
+            if (item.type === 'year') state.year = '';
+            if (item.type === 'actor') state.actor = '';
+            document.getElementById('searchInput').value = state.query;
+            document.getElementById('genreSelect').value = state.activeGenre;
+            document.getElementById('yearInput').value = state.year;
+            document.getElementById('actorInput').value = state.actor;
+            renderFilters();
+            state.page = 1;
+            loadTvShows();
+          };
+          row.appendChild(chip);
+        });
+      }
+
+      async function loadGenres() {
+        const data = await tmdbFetch('/genre/tv/list', { language: 'en' });
+        state.genres = data.genres || [];
+        const select = document.getElementById('genreSelect');
+        if (!select) return;
+        state.genres.forEach(g => {
+          const opt = document.createElement('option');
+          opt.value = String(g.id);
+          opt.textContent = g.name;
+          select.appendChild(opt);
+        });
+      }
+
+      async function resolveActorId() {
+        if (!state.actor) return null;
+        const res = await tmdbFetch('/search/person', {
+          query: state.actor,
+          language: 'en',
+          page: 1
+        });
+        const person = (res.results || [])[0];
+        return person ? person.id : null;
+      }
+
+      async function loadTvShows() {
+        const grid = document.getElementById('moviesGrid');
+        const empty = document.getElementById('emptyState');
+        if (!grid) return;
+
+        let data;
+        try {
+          const actorId = await resolveActorId();
+          const animeGenreFilter = state.activeGenre
+            ? (String(state.activeGenre) === '16' ? '16' : `16,${state.activeGenre}`)
+            : '16';
+          if (state.query || state.year || state.activeGenre || actorId) {
+            data = await tmdbFetch('/discover/tv', {
+              language: 'en',
+              page: state.page,
+              with_genres: animeGenreFilter,
+              with_original_language: 'ja',
+              first_air_date_year: state.year,
+              with_cast: actorId || undefined,
+              sort_by: 'popularity.desc'
+            });
+            if (state.query) {
+              const searchData = await tmdbFetch('/search/tv', {
+                query: state.query,
+                language: 'en',
+                include_adult: false,
+                page: state.page
+              });
+              data = searchData;
+            }
+          } else {
+            data = await tmdbFetch('/discover/tv', {
+              language: 'en',
+              page: state.page,
+              sort_by: 'popularity.desc',
+              with_genres: '16',
+              with_original_language: 'ja'
+            });
+          }
+        } catch (e) {
+          if (empty) empty.style.display = 'block';
+          return;
+        }
+
+        let results = data.results || [];
+        results = results.filter((entry) => Array.isArray(entry.genre_ids) && entry.genre_ids.includes(16));
+        if (state.activeGenre) {
+          const genreId = parseInt(state.activeGenre, 10);
+          results = results.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(genreId));
+        }
+
+        if (!results.length) {
+          if (empty) empty.style.display = 'block';
+          grid.innerHTML = '';
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        results.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.setAttribute('data-movie-id', item.id);
+          const showTitle = item.name || item.original_name || item.title || 'Untitled';
+          const showDate = item.first_air_date || item.release_date || '';
+          card.innerHTML = `
+            <img src="${item.poster_path ? POSTER_BASE + item.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}">
+            <div class="card-body">
+              <h3 class="card-title">${showTitle}</h3>
+              <div class="card-meta-row">
+                <div class="card-meta">${showDate}</div>
+                <div class="card-menu-wrap">
+                  <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
+                </div>
+              </div>
+            </div>
+          `;
+          card.onclick = (e) => {
+            if (e.target.closest('.menu-btn')) return;
+            window.location.href = `anime.html?id=${item.id}`;
+          };
+          wireCardMenu(card, item.id);
+          updateCardMenuUI(card, item.id);
+          fragment.appendChild(card);
+        });
+        grid.innerHTML = '';
+        grid.appendChild(fragment);
+        if (empty) empty.style.display = 'none';
+
+        state.totalPages = Math.min(data.total_pages || 1, 500);
+        updatePagination();
+      }
+
+      function wireCardMenu(card, movieId) {
+        const menuBtn = card.querySelector('.menu-btn');
+        if (!menuBtn) return;
+        menuBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(card);
+          }
+        });
+      }
+
+      function ensureListMenuBackdrop() {
+        let backdrop = document.getElementById('listMenuBackdrop');
+        if (!backdrop) {
+          backdrop = document.createElement('div');
+          backdrop.id = 'listMenuBackdrop';
+          backdrop.className = 'list-menu-backdrop';
+          backdrop.addEventListener('click', closeAllListMenus);
+          document.body.appendChild(backdrop);
+        }
+        return backdrop;
+      }
+
+      function showListMenuBackdrop() {
+        const backdrop = ensureListMenuBackdrop();
+        backdrop.classList.add('active');
+      }
+
+      function hideListMenuBackdrop() {
+        const backdrop = document.getElementById('listMenuBackdrop');
+        if (backdrop) backdrop.classList.remove('active');
+      }
+
+      function closeAllListMenus() {
+        document.querySelectorAll('.list-menu.open').forEach(m => m.classList.remove('open'));
+        document.querySelectorAll('.card.menu-open').forEach(c => c.classList.remove('menu-open'));
+        hideListMenuBackdrop();
+      }
+
+      async function toggleDefaultList(movieId, listType, card, forcedNextSaved) {
+        if (!state.currentUser) {
+          showNotification('Please sign in to save anime', 'info');
+          return { ok: false, saved: false };
+        }
+        if (!supabaseClient) return { ok: false, saved: false };
+        const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };
+        const previousSaved = !!status[listType];
+        const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
+        const opKey = `${movieId}:${listType}`;
+        if (state.pendingDefaultOps.has(opKey)) {
+          return { ok: false, saved: previousSaved };
+        }
+        state.pendingDefaultOps.add(opKey);
+
+        status[listType] = nextSaved;
+        state.listStatusMap.set(movieId, status);
+        if (card) updateCardMenuUI(card, movieId);
+
+        try {
+          if (nextSaved) {
+            const { error } = await supabaseClient
+              .from('anime_list_items')
+              .insert({ user_id: state.currentUser.id, anime_id: movieId, list_type: listType });
+            if (error) throw error;
+            showNotification('Saved to list', 'success');
+          } else {
+            const { error } = await supabaseClient
+              .from('anime_list_items')
+              .delete()
+              .eq('user_id', state.currentUser.id)
+              .eq('anime_id', movieId)
+              .eq('list_type', listType);
+            if (error) throw error;
+            showNotification('Removed from list', 'info');
+          }
+          return { ok: true, saved: nextSaved };
+        } catch (_err) {
+          status[listType] = previousSaved;
+          state.listStatusMap.set(movieId, status);
+          if (card) updateCardMenuUI(card, movieId);
+          showNotification('Could not update list', 'error');
+          return { ok: false, saved: previousSaved };
+        } finally {
+          state.pendingDefaultOps.delete(opKey);
+        }
+      }
+
+      async function loadCustomLists() {
+        if (!supabaseClient || !state.currentUser || !window.ListUtils) return [];
+        return await ListUtils.loadCustomLists(supabaseClient, state.currentUser.id, 'anime');
+      }
+
+      async function openMovieListsModal(movieId) {
+        if (!state.currentUser) {
+          showNotification('Please sign in to manage lists', 'info');
+          return;
+        }
+        state.activeMovieId = movieId;
+        const modal = document.getElementById('movieListsModal');
+        const container = document.getElementById('movieListsContainer');
+        if (!modal || !container) return;
+        container.innerHTML = '<div class="chip">Loading...</div>';
+        state.customLists = await loadCustomLists();
+        const listIds = state.customLists.map(l => l.id);
+        state.modalSelectedLists = window.ListUtils
+          ? await ListUtils.loadCustomListMembership(supabaseClient, state.currentUser.id, 'anime', movieId, listIds)
+          : new Set();
+        container.innerHTML = '';
+        if (!state.customLists.length) {
+          container.innerHTML = '<div class="chip">No custom lists yet.</div>';
+        } else {
+          state.customLists.forEach(list => {
+            const item = document.createElement('div');
+            item.className = 'modal-list-item' + (state.modalSelectedLists.has(list.id) ? ' active' : '');
+            item.innerHTML = `
+              <span>${renderListIcon(list.icon)} ${list.title}</span>
+              <span class="modal-list-actions">
+                <span>${state.modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>
+                <button class="list-edit-btn" aria-label="Rename list"><i class="fas fa-pen"></i></button>
+              </span>
+            `;
+            item.onclick = () => {
+              if (state.modalSelectedLists.has(list.id)) {
+                state.modalSelectedLists.delete(list.id);
+              } else {
+                state.modalSelectedLists.add(list.id);
+              }
+              item.classList.toggle('active');
+              item.querySelector('.modal-list-actions span').textContent = state.modalSelectedLists.has(list.id) ? 'Saved' : 'Add';
+            };
+            const editBtn = item.querySelector('.list-edit-btn');
+            if (editBtn) {
+              editBtn.onclick = (e) => {
+                e.stopPropagation();
+                renameMovieList(list.id, list.title);
+              };
+            }
+            container.appendChild(item);
+          });
+        }
+        modal.classList.add('active');
+      }
+
+      async function saveMovieListChanges() {
+        if (!supabaseClient || !state.currentUser || !state.activeMovieId) return;
+        if (window.ListUtils) {
+          await ListUtils.saveCustomListChanges(
+            supabaseClient,
+            state.currentUser.id,
+            'anime',
+            state.activeMovieId,
+            [...state.modalSelectedLists]
+          );
+        }
+        showNotification('Lists updated', 'success');
+        closeMovieListsModal();
+      }
+
+      function closeMovieListsModal() {
+        const modal = document.getElementById('movieListsModal');
+        if (modal) modal.classList.remove('active');
+        state.activeMovieId = null;
+      }
+
+      async function createMovieList() {
+        const input = document.getElementById('newMovieListName');
+        if (!input || !input.value.trim()) return;
+        if (!supabaseClient || !state.currentUser) return;
+        const title = input.value.trim();
+        const modal = document.getElementById('movieListsModal');
+        const tierState = window.ListUtils && modal
+          ? ListUtils.readTierCreateState(modal)
+          : { listKind: 'standard', maxRank: null };
+        const data = window.ListUtils
+          ? await ListUtils.createCustomList(supabaseClient, state.currentUser.id, 'anime', {
+            title,
+            icon: state.selectedIcon || 'fas fa-dragon',
+          listKind: tierState.listKind,
+          maxRank: tierState.maxRank
+          })
+          : null;
+        if (!data) {
+          showNotification('Could not create list', 'error');
+          return;
+        }
+        input.value = '';
+        if (window.ListUtils && modal) ListUtils.resetTierCreateState(modal);
+        state.customLists.unshift(data);
+        openMovieListsModal(state.activeMovieId);
+      }
+
+      async function renameMovieList(listId, currentTitle) {
+        const nextTitle = prompt('Rename list', currentTitle || '');
+        if (!nextTitle || !nextTitle.trim()) return;
+        if (!supabaseClient || !state.currentUser) return;
+        const ok = window.ListUtils
+          ? await ListUtils.renameCustomList(supabaseClient, state.currentUser.id, 'anime', listId, nextTitle.trim())
+          : false;
+        if (!ok) {
+          showNotification('Could not rename list', 'error');
+          return;
+        }
+        state.customLists = state.customLists.map(l => l.id === listId ? { ...l, title: nextTitle.trim() } : l);
+        openMovieListsModal(state.activeMovieId);
+      }
+
+      function wireUI() {
+        const searchInput = document.getElementById('searchInput');
+        const genreSelect = document.getElementById('genreSelect');
+        const yearInput = document.getElementById('yearInput');
+        const actorInput = document.getElementById('actorInput');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+        const closeListsBtn = document.getElementById('closeMovieListsBtn');
+        const saveListsBtn = document.getElementById('saveMovieListsBtn');
+        const createListBtn = document.getElementById('createMovieListBtn');
+        const iconOptions = document.querySelectorAll('#movieListIconOptions .icon-option');
+
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            state.query = e.target.value.trim();
+            renderFilters();
+            state.page = 1;
+            loadTvShows();
+          });
+        }
+        if (genreSelect) {
+          genreSelect.addEventListener('change', (e) => {
+            state.activeGenre = e.target.value;
+            renderFilters();
+            state.page = 1;
+            loadTvShows();
+          });
+        }
+        if (yearInput) {
+          yearInput.addEventListener('input', (e) => {
+            state.year = e.target.value.trim();
+            renderFilters();
+            state.page = 1;
+            loadTvShows();
+          });
+        }
+        if (actorInput) {
+          actorInput.addEventListener('change', (e) => {
+            state.actor = e.target.value.trim();
+            renderFilters();
+            state.page = 1;
+            loadTvShows();
+          });
+        }
+        if (refreshBtn) refreshBtn.addEventListener('click', () => loadTvShows());
+        if (prevBtn) {
+          prevBtn.addEventListener('click', () => {
+            if (state.page > 1) {
+              state.page -= 1;
+              loadTvShows();
+            }
+          });
+        }
+        if (nextBtn) {
+          nextBtn.addEventListener('click', () => {
+            if (state.page < state.totalPages) {
+              state.page += 1;
+              loadTvShows();
+            }
+          });
+        }
+        if (closeListsBtn) closeListsBtn.addEventListener('click', closeMovieListsModal);
+        if (saveListsBtn) saveListsBtn.addEventListener('click', saveMovieListChanges);
+        if (createListBtn) createListBtn.addEventListener('click', createMovieList);
+        iconOptions.forEach(btn => {
+          btn.addEventListener('click', () => {
+            iconOptions.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            state.selectedIcon = btn.getAttribute('data-icon') || 'fas fa-film';
+          });
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeAllListMenus();
+        });
+      }
+
+      function updatePagination() {
+        const prevBtn = document.getElementById('prevPageBtn');
+        const nextBtn = document.getElementById('nextPageBtn');
+        const info = document.getElementById('pageInfo');
+        if (prevBtn) prevBtn.disabled = state.page <= 1;
+        if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
+        if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+      }
+
+      if (window.initIndexStyleListMenu) {
+        window.initIndexStyleListMenu({
+          mediaType: 'anime',
+          itemIdAttr: 'data-movie-id',
+          getVisibleItemIds: () =>
+            Array.from(document.querySelectorAll('.card[data-movie-id]'))
+              .map((card) => card.getAttribute('data-movie-id'))
+              .filter(Boolean),
+          getQuickStatusForItem: (itemId) => {
+            const numeric = Number(itemId);
+            const key = Number.isFinite(numeric) ? numeric : itemId;
+            const status = state.listStatusMap.get(key);
+            return status ? { ...status } : null;
+          },
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            await initSupabase();
+            return supabaseClient;
+          },
+          getCurrentUser: () => state.currentUser,
+          notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved)
+        });
+      }
+
+      (async function init() {
+        await initSupabase();
+        wireUI();
+        await Promise.all([loadGenres(), initAuth()]);
+        renderFilters();
+        loadTvShows();
+      })();
+    })();
+  </script>
+  <script src="js/production-runtime.js?v=20260221a" defer></script>
+</body>
+</html>
+
+
+
+
+
+

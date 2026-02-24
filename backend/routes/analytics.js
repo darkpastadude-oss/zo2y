@@ -89,15 +89,25 @@ async function insertEvents(rows) {
     };
   }
 
-  const { error } = await client.from("analytics_events").insert(rows);
-  if (error) {
-    throw error;
+  try {
+    const { error } = await client.from("analytics_events").insert(rows);
+    if (error) {
+      throw error;
+    }
+    return {
+      ok: true,
+      inserted: rows.length,
+      storage: "supabase"
+    };
+  } catch (error) {
+    // Analytics should never break user flows. Accept and drop on storage failure.
+    console.warn("[analytics] dropping events due to storage error:", String(error?.message || error));
+    return {
+      ok: true,
+      inserted: 0,
+      storage: "dropped"
+    };
   }
-  return {
-    ok: true,
-    inserted: rows.length,
-    storage: "supabase"
-  };
 }
 
 router.get("/health", (_req, res) => {
@@ -118,9 +128,11 @@ router.post("/track", async (req, res) => {
     const result = await insertEvents([row]);
     return res.status(202).json(result);
   } catch (error) {
-    return res.status(500).json({
-      message: "Failed to persist analytics event",
-      error: String(error?.message || error)
+    console.warn("[analytics] track handler failed:", String(error?.message || error));
+    return res.status(202).json({
+      ok: true,
+      inserted: 0,
+      storage: "dropped"
     });
   }
 });
@@ -146,9 +158,11 @@ router.post("/batch", async (req, res) => {
     const result = await insertEvents(rows);
     return res.status(202).json(result);
   } catch (error) {
-    return res.status(500).json({
-      message: "Failed to persist analytics events",
-      error: String(error?.message || error)
+    console.warn("[analytics] batch handler failed:", String(error?.message || error));
+    return res.status(202).json({
+      ok: true,
+      inserted: 0,
+      storage: "dropped"
     });
   }
 });
@@ -175,9 +189,11 @@ router.post("/error", async (req, res) => {
     const result = await insertEvents([row]);
     return res.status(202).json(result);
   } catch (error) {
-    return res.status(500).json({
-      message: "Failed to persist error event",
-      error: String(error?.message || error)
+    console.warn("[analytics] error handler failed:", String(error?.message || error));
+    return res.status(202).json({
+      ok: true,
+      inserted: 0,
+      storage: "dropped"
     });
   }
 });

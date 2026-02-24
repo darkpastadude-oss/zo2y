@@ -14,6 +14,13 @@
       usesUserId: true,
       defaultIcon: 'fas fa-tv'
     },
+    anime: {
+      listTable: 'anime_lists',
+      itemsTable: 'anime_list_items',
+      itemIdField: 'anime_id',
+      usesUserId: true,
+      defaultIcon: 'fas fa-dragon'
+    },
     game: {
       listTable: 'game_lists',
       itemsTable: 'game_list_items',
@@ -50,7 +57,7 @@
   const TIER_META_TABLE = 'list_tier_meta';
   const TIER_RANK_TABLE = 'list_tier_ranks';
   const LIST_COLLAB_TABLE = 'list_collaborators';
-  const NUMERIC_MEDIA_TYPES = new Set(['movie', 'tv', 'game']);
+  const NUMERIC_MEDIA_TYPES = new Set(['movie', 'tv', 'anime', 'game']);
   const KNOWN_TIER_CREATE_MODAL_SELECTORS = [
     '#movieListsModal',
     '#tvListsModal',
@@ -75,7 +82,7 @@
 
   function coerceItemId(type, itemId) {
     const key = String(type || '').toLowerCase();
-    if (key === 'movie' || key === 'tv' || key === 'game') {
+    if (key === 'movie' || key === 'tv' || key === 'anime' || key === 'game') {
       const num = Number(itemId);
       return Number.isFinite(num) ? num : itemId;
     }
@@ -119,6 +126,7 @@
     if (raw.includes('fa-music')) return 'music';
     if (raw.includes('fa-user')) return 'user';
     if (raw.includes('fa-tv')) return 'tv';
+    if (raw.includes('fa-dragon')) return 'anime';
     if (raw.includes('fa-gamepad')) return 'game';
     if (raw === '?' || raw === '??' || raw === '???') return fallback;
     return raw;
@@ -266,6 +274,7 @@
     if (
       raw === 'movie' ||
       raw === 'tv' ||
+      raw === 'anime' ||
       raw === 'game' ||
       raw === 'book' ||
       raw === 'music' ||
