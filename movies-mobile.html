@@ -760,6 +760,40 @@
         setTimeout(() => notification.remove(), duration);
       }
 
+      let lastAnimeRedirectPrompt = '';
+
+      function isAnimeMovieResult(item) {
+        const genreIds = Array.isArray(item?.genre_ids) ? item.genre_ids.map((entry) => Number(entry)) : [];
+        const originalLanguage = String(item?.original_language || '').trim().toLowerCase();
+        return genreIds.includes(16) && originalLanguage === 'ja';
+      }
+
+      function filterOutAnimeMovies(rows = []) {
+        let removed = 0;
+        const filtered = (Array.isArray(rows) ? rows : []).filter((item) => {
+          if (isAnimeMovieResult(item)) {
+            removed += 1;
+            return false;
+          }
+          return true;
+        });
+        return { filtered, removed };
+      }
+
+      function promptAnimeRedirect(query, forcePrompt = false) {
+        const q = String(query || '').trim();
+        if (!q) return;
+        const key = q.toLowerCase();
+        if (key === lastAnimeRedirectPrompt) return;
+        lastAnimeRedirectPrompt = key;
+        showNotification('Anime titles are now listed under Anime.', 'info', 3200);
+        if (!forcePrompt) return;
+        if (!window.confirm(`"${q}" looks like anime. Open the Anime page now?`)) return;
+        const url = new URL('animes-mobile.html', window.location.href);
+        url.searchParams.set('search', q);
+        window.location.href = `${url.pathname}${url.search}`;
+      }
+
       function renderListIcon(icon) {
         if (window.ListUtils) return ListUtils.renderListIcon(icon, 'fas fa-film');
         if (!icon) return '<i class="fas fa-film"></i>';
@@ -934,9 +968,16 @@
         }
 
         let results = data.results || [];
+        const animeFilter = filterOutAnimeMovies(results);
+        results = animeFilter.filtered;
+        const nonAnimeCountBeforeGenreFilter = results.length;
         if (state.activeGenre) {
           const genreId = parseInt(state.activeGenre, 10);
           results = results.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(genreId));
+        }
+
+        if (state.query && animeFilter.removed > 0) {
+          promptAnimeRedirect(state.query, nonAnimeCountBeforeGenreFilter === 0);
         }
 
         if (!results.length) {

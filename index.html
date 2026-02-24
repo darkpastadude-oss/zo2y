@@ -1876,14 +1876,16 @@
       { id: '5Z01UMMf7V1o0MzF86s6WJ', title: 'Believer', artist: 'Imagine Dragons', album: 'Evolve' }
     ];
     const POPULAR_MUSIC_QUERIES = [
+      'top 50 usa',
+      'top 50 global',
+      "today's top hits",
+      'viral hits',
       'genre:pop',
       'genre:hip-hop',
-      'genre:r&b',
-      'genre:latin',
-      'genre:dance',
       'taylor swift',
       'drake',
-      'the weeknd'
+      'the weeknd',
+      'sabrina carpenter'
     ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-utensils', accent: '#f59e0b' },
@@ -4043,6 +4045,55 @@
       return arr;
     }
 
+    function seededHash32(value) {
+      const text = String(value || '');
+      let hash = 2166136261;
+      for (let i = 0; i < text.length; i += 1) {
+        hash ^= text.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash >>> 0;
+    }
+
+    function seededShuffleArray(input, seedKey = '') {
+      const arr = [...input];
+      let state = seededHash32(seedKey) || 1;
+      const nextRandom = () => {
+        state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+        return state / 4294967296;
+      };
+      for (let i = arr.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(nextRandom() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function buildDailySeed(scope = '') {
+      const now = new Date();
+      const day = `${now.getUTCFullYear()}-${now.getUTCMonth() + 1}-${now.getUTCDate()}`;
+      return `${scope}:${day}`;
+    }
+
+    function hasGenreId(item, id) {
+      const genreIds = Array.isArray(item?.genre_ids) ? item.genre_ids : [];
+      return genreIds.map((entry) => Number(entry)).includes(Number(id));
+    }
+
+    function isLikelyAnimeMovieEntry(item) {
+      const lang = String(item?.original_language || '').trim().toLowerCase();
+      return hasGenreId(item, 16) && lang === 'ja';
+    }
+
+    function isLikelyAnimeTvEntry(item) {
+      const lang = String(item?.original_language || '').trim().toLowerCase();
+      const originCountry = Array.isArray(item?.origin_country)
+        ? item.origin_country.map((entry) => String(entry || '').trim().toUpperCase())
+        : [];
+      const fromJapan = lang === 'ja' || originCountry.includes('JP');
+      return hasGenreId(item, 16) && fromJapan;
+    }
+
     function preloadImage(url) {
       const src = String(url || '').trim();
       if (!src) return;
@@ -5218,6 +5269,7 @@
       for (const item of collected) {
         const key = String(item?.id || '').trim();
         if (!key || seen.has(key)) continue;
+        if (isLikelyAnimeMovieEntry(item)) continue;
         if (!item?.poster_path && !item?.backdrop_path) continue;
         seen.add(key);
         results.push(item);
@@ -5261,6 +5313,7 @@
       for (const item of collected) {
         const key = String(item?.id || '').trim();
         if (!key || seen.has(key)) continue;
+        if (isLikelyAnimeTvEntry(item)) continue;
         if (!item?.poster_path && !item?.backdrop_path) continue;
         seen.add(key);
         results.push(item);
@@ -5573,7 +5626,10 @@
         const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: 2005, allowMissingYear: true });
         const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 1995, allowMissingYear: true });
         const merged = mergeUniqueItems(strictModern, modernWithUnknownYear, relaxedFallback);
-        if (merged.length) return merged.slice(0, HOME_CHANNEL_TARGET_ITEMS);
+        if (merged.length) {
+          const shuffled = seededShuffleArray(merged, buildDailySeed('books-home'));
+          return shuffled.slice(0, HOME_CHANNEL_TARGET_ITEMS);
+        }
       } catch (_e) {}
 
       return [];
@@ -5592,8 +5648,8 @@
 
         const [popularResult, featuredResult, releasesResult, genreSearchResult] = await Promise.allSettled([
           fetchJsonWithPerfCache(
-            `/api/music/popular?limit=${Math.max(limit, 30)}&market=${market}`,
-            { signal, cacheKey: `music:popular:${limit}:${market}` }
+            `/api/music/popular?limit=50&market=${market}`,
+            { signal, cacheKey: `music:popular:50:${market}` }
           ),
           fetchJsonWithPerfCache(
             `/api/music/featured-playlists?limit=10&market=${market}`,
@@ -5663,7 +5719,11 @@
         const ranked = withArtwork
           .filter((track) => Number(track.popularity || 0) >= 70)
           .sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0));
-        const selected = (ranked.length ? ranked : withArtwork.sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0)))
+        const popularitySorted = ranked.length
+          ? ranked
+          : withArtwork.sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0));
+        const pool = popularitySorted.slice(0, Math.max(HOME_CHANNEL_TARGET_ITEMS * 2, 28));
+        const selected = seededShuffleArray(pool, buildDailySeed(`music-home-${market}`))
           .slice(0, HOME_CHANNEL_TARGET_ITEMS);
         if (!selected.length) {
           return FALLBACK_MUSIC_TRACKS.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((track, idx) => ({

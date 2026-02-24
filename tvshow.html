@@ -812,6 +812,32 @@
         setTimeout(() => notification.remove(), duration);
       }
 
+      let lastAnimeSearchPrompt = '';
+
+      function isAnimeTvResult(item) {
+        const genreIds = Array.isArray(item?.genre_ids) ? item.genre_ids.map((entry) => Number(entry)) : [];
+        const originalLanguage = String(item?.original_language || '').trim().toLowerCase();
+        const originCountries = Array.isArray(item?.origin_country)
+          ? item.origin_country.map((entry) => String(entry || '').trim().toUpperCase())
+          : [];
+        const fromJapan = originalLanguage === 'ja' || originCountries.includes('JP');
+        return genreIds.includes(16) && fromJapan;
+      }
+
+      function promptAnimeRedirect(query, forcePrompt = false) {
+        const q = String(query || '').trim();
+        if (!q) return;
+        const key = q.toLowerCase();
+        if (key === lastAnimeSearchPrompt) return;
+        lastAnimeSearchPrompt = key;
+        showNotification('Anime titles are listed under Anime.', 'info', 3200);
+        if (!forcePrompt) return;
+        if (!window.confirm(`"${q}" looks like anime. Open the Anime page now?`)) return;
+        const url = new URL('animes.html', window.location.href);
+        url.searchParams.set('search', q);
+        window.location.href = `${url.pathname}${url.search}`;
+      }
+
       function renderListIcon(icon) {
         if (window.ListUtils) return ListUtils.renderListIcon(icon, 'fas fa-tv');
         if (!icon) return '<i class="fas fa-tv"></i>';
@@ -1573,12 +1599,18 @@
             const res = await fetch(url, { headers: { Authorization: `Bearer ${TMDB_TOKEN}` } });
             if (!res.ok) throw new Error('TMDB suggestions failed');
             const json = await res.json();
-            suggestions = (json.results || []).slice(0, 6).map((m) => ({
+            const rawResults = Array.isArray(json.results) ? json.results : [];
+            const filteredResults = rawResults.filter((item) => !isAnimeTvResult(item));
+            const filteredOut = rawResults.length - filteredResults.length;
+            suggestions = filteredResults.slice(0, 6).map((m) => ({
               id: m.id,
               title: m.name || 'TV Show',
               sub: m.first_air_date ? String(m.first_air_date).slice(0, 4) : 'TV Show',
               image: m.poster_path ? `${POSTER_BASE}${m.poster_path}` : ''
             }));
+            if (filteredOut > 0) {
+              promptAnimeRedirect(q, suggestions.length === 0);
+            }
             activeIndex = -1;
             renderSuggest();
           } catch (_e) {
