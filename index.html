@@ -1732,6 +1732,11 @@
         <div class="rail unified-rail" id="unifiedRail"></div>
       </div>
 
+      <div class="rail-wrap">
+        <div class="rail-title"><span><i class="fa-solid fa-calendar-check"></i> New Releases</span><a href="#newReleasesRail">Live</a></div>
+        <div class="rail unified-rail" id="newReleasesRail"></div>
+      </div>
+
     </section>
 
     <section class="section">
@@ -1927,6 +1932,9 @@
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 16;
     const HOME_SPOTLIGHT_POOL_SIZE = 16;
+    const HOME_NEW_RELEASES_TARGET_ITEMS = 16;
+    const HOME_NEW_RELEASES_TIMEOUT_MS = 4200;
+    const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 12;
     const HOME_EAGER_IMAGE_COUNT = 8;
     const HOME_HIGH_PRIORITY_IMAGE_COUNT = 4;
     const HOME_PRELOAD_PER_CHANNEL = 2;
@@ -1979,6 +1987,10 @@
     const homePreloadedImageSet = new Set();
     let homeEagerImageBudgetUsed = 0;
     let homeHighPriorityImageBudgetUsed = 0;
+    let homeNewReleasesState = [];
+    let homeNewReleasesLastFetchAt = 0;
+    let homeNewReleasesRequestSeq = 0;
+    let homeNewReleasesInFlight = null;
     let homeMenuPrimeScheduled = false;
     let homeBecauseRefreshSeq = 0;
     let homeBecauseSignalCache = {
@@ -2465,6 +2477,320 @@
         guard += 1;
       }
       return stream;
+    }
+
+    function dedupeHomeItemsByMediaAndId(items = []) {
+      const seen = new Set();
+      const out = [];
+      (Array.isArray(items) ? items : []).forEach((item, index) => {
+        const mediaType = String(item?.mediaType || '').trim().toLowerCase();
+        const itemId = String(item?.itemId || '').trim();
+        const title = String(item?.title || '').trim().toLowerCase();
+        const key = `${mediaType}:${itemId || title || index}`;
+        if (!mediaType || seen.has(key)) return;
+        seen.add(key);
+        out.push(item);
+      });
+      return out;
+    }
+
+    function withReleaseTag(item, releaseLabel, options = {}) {
+      const detail = String(options.detail || '').trim();
+      const existingExtra = String(options.keepExistingExtra ? (item?.extra || '') : '').trim();
+      const parts = [releaseLabel, detail, existingExtra].filter(Boolean);
+      return {
+        ...(item || {}),
+        extra: parts.join(' | ')
+      };
+    }
+
+    function buildNewReleasesFallback(feedMap) {
+      const source = feedMap && typeof feedMap === 'object' ? feedMap : {};
+      const bucket = [];
+      const pushFrom = (key, label, takeCount) => {
+        const rows = Array.isArray(source[key]) ? source[key] : [];
+        rows.slice(0, Math.max(0, Number(takeCount || 0))).forEach((item) => {
+          if (!item || item.isPlaceholder) return;
+          bucket.push(withReleaseTag(item, label));
+        });
+      };
+      pushFrom('tv', 'New Episode', 5);
+      pushFrom('anime', 'New Season', 4);
+      pushFrom('movie', 'New Release', 4);
+      pushFrom('game', 'New Release', 2);
+      pushFrom('book', 'New Release', 2);
+      pushFrom('music', 'Chart Update', 2);
+      return shuffleArray(dedupeHomeItemsByMediaAndId(bucket)).slice(0, HOME_NEW_RELEASES_TARGET_ITEMS);
+    }
+
+    async function loadNewReleases(signal) {
+      const now = new Date();
+      const toIsoDate = (value) => {
+        const date = value instanceof Date ? value : new Date(value);
+        return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 10) : '';
+      };
+      const formatDateLabel = (raw) => {
+        const text = String(raw || '').trim();
+        if (!text) return '';
+        const match = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match) return text.slice(0, 4);
+        return `${match[1]}-${match[2]}-${match[3]}`;
+      };
+      const recentEpisodeDate = toIsoDate(new Date(now.getTime() - (1000 * 60 * 60 * 24 * 10)));
+      const recentSeasonDate = toIsoDate(new Date(now.getTime() - (1000 * 60 * 60 * 24 * 120)));
+      const upcomingDate = toIsoDate(new Date(now.getTime() + (1000 * 60 * 60 * 24 * 120)));
+      const todayDate = toIsoDate(now);
+      const movieNowPage = randomInt(1, 2);
+      const movieUpcomingPage = randomInt(1, 2);
+
+      const mapMovieRows = (rows, label, takeCount = 6) => {
+        const list = Array.isArray(rows) ? rows : [];
+        return list.slice(0, takeCount).map((row) => {
+          const releaseDate = formatDateLabel(row?.release_date);
+          const item = {
+            mediaType: 'movie',
+            itemId: String(row?.id || ''),
+            title: String(row?.title || 'Movie').trim() || 'Movie',
+            subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Movie',
+            image: row?.poster_path ? `${TMDB_POSTER}${row.poster_path}` : '',
+            backgroundImage: row?.backdrop_path ? `${TMDB_BACKDROP}${row.backdrop_path}` : '',
+            spotlightImage: row?.backdrop_path ? `${TMDB_BACKDROP}${row.backdrop_path}` : '',
+            spotlightMediaImage: row?.poster_path ? `${TMDB_SPOT_POSTER}${row.poster_path}` : (row?.backdrop_path ? `${TMDB_BACKDROP}${row.backdrop_path}` : ''),
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            href: row?.id ? `movie.html?id=${encodeURIComponent(row.id)}` : 'movies.html'
+          };
+          return withReleaseTag(item, label, { detail: releaseDate });
+        }).filter((item) => String(item.itemId || '').trim());
+      };
+
+      const mapShowRows = (rows, mediaType, label, takeCount = 6) => {
+        const list = Array.isArray(rows) ? rows : [];
+        return list.slice(0, takeCount).map((row) => {
+          const firstAir = formatDateLabel(row?.first_air_date);
+          const item = {
+            mediaType,
+            itemId: String(row?.id || ''),
+            title: String(row?.name || (mediaType === 'anime' ? 'Anime' : 'TV Show')).trim() || (mediaType === 'anime' ? 'Anime' : 'TV Show'),
+            subtitle: firstAir ? firstAir.slice(0, 4) : (mediaType === 'anime' ? 'Anime' : 'TV Show'),
+            image: row?.poster_path ? `${TMDB_POSTER}${row.poster_path}` : '',
+            backgroundImage: row?.backdrop_path ? `${TMDB_BACKDROP}${row.backdrop_path}` : '',
+            spotlightImage: row?.backdrop_path ? `${TMDB_BACKDROP}${row.backdrop_path}` : '',
+            spotlightMediaImage: row?.poster_path ? `${TMDB_SPOT_POSTER}${row.poster_path}` : (row?.backdrop_path ? `${TMDB_BACKDROP}${row.backdrop_path}` : ''),
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            href: row?.id
+              ? `${mediaType === 'anime' ? 'anime.html' : 'tvshow.html'}?id=${encodeURIComponent(row.id)}`
+              : (mediaType === 'anime' ? 'animes.html' : 'tvshows.html')
+          };
+          return withReleaseTag(item, label);
+        }).filter((item) => String(item.itemId || '').trim());
+      };
+
+      const mapGameRows = (rows, label, takeCount = 6) => {
+        const list = Array.isArray(rows) ? rows : [];
+        return list.slice(0, takeCount).map((row) => {
+          const releaseDate = formatDateLabel(row?.released || row?.release_date || '');
+          const cover = String(row?.cover || '').trim();
+          const hero = String(row?.hero || '').trim();
+          const bg = String(row?.background_image || '').trim();
+          const image = cover || hero || bg;
+          const item = {
+            mediaType: 'game',
+            itemId: String(row?.id || ''),
+            title: String(row?.name || 'Game').trim() || 'Game',
+            subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
+            image,
+            backgroundImage: hero || bg || image,
+            spotlightImage: hero || bg || image,
+            spotlightMediaImage: cover || hero || bg || image,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            href: row?.id ? `game.html?id=${encodeURIComponent(row.id)}` : 'games.html'
+          };
+          return withReleaseTag(item, label, { detail: releaseDate });
+        }).filter((item) => String(item.itemId || '').trim() && String(item.image || '').trim());
+      };
+
+      const mapBookRows = (rows, label, takeCount = 6) => {
+        const list = Array.isArray(rows) ? rows : [];
+        const buildCover = (row) => {
+          const directCover = toHttpsUrl(row?.coverImage || row?.image || row?.thumbnail || '');
+          if (directCover) return directCover;
+          const coverId = Number(row?.cover_i || 0) || 0;
+          if (coverId > 0) return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg`;
+          const isbnRaw = Array.isArray(row?.isbn) ? String(row.isbn[0] || '').trim() : String(row?.isbn || '').trim();
+          const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
+          if (isbn) return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`;
+          return '';
+        };
+        return list.slice(0, takeCount).map((row, idx) => {
+          const title = String(row?.title || row?.name || '').trim();
+          if (!title) return null;
+          const author = Array.isArray(row?.author_name)
+            ? String(row.author_name[0] || '').trim()
+            : String(row?.author || '').trim();
+          const year = Number(row?.first_publish_year || row?.published_year || 0) || 0;
+          const cover = buildCover(row);
+          if (!cover) return null;
+          const key = String(row?.key || row?.id || `book-${idx}`).trim();
+          const itemId = key.startsWith('/works/') ? key.replace('/works/', '').trim() : key;
+          const href = itemId
+            ? `book.html?id=${encodeURIComponent(itemId)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(author || 'Unknown author')}`
+            : 'books.html';
+          const item = {
+            mediaType: 'book',
+            itemId: itemId || `book-${idx}`,
+            title,
+            subtitle: author ? `${author}${year ? ` | ${year}` : ''}` : (year ? String(year) : 'Book'),
+            image: cover,
+            backgroundImage: cover,
+            spotlightImage: cover,
+            spotlightMediaImage: cover,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            href,
+            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
+          };
+          return withReleaseTag(item, label);
+        }).filter(Boolean);
+      };
+
+      const mapMusicRows = (rows, label, takeCount = 6) => {
+        const list = Array.isArray(rows) ? rows : [];
+        return list.slice(0, takeCount).map((track) => {
+          const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : '';
+          const image = String(track?.image || '').trim();
+          const item = {
+            mediaType: 'music',
+            itemId: String(track?.id || ''),
+            title: String(track?.name || 'Track').trim() || 'Track',
+            subtitle: artists || 'Artist',
+            image,
+            backgroundImage: image,
+            spotlightImage: image,
+            spotlightMediaImage: image,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
+          };
+          return withReleaseTag(item, label);
+        }).filter((item) => String(item.itemId || '').trim() && String(item.image || '').trim());
+      };
+
+      const [movieNowRes, movieUpcomingRes, tvEpisodeRes, tvSeasonRes, animeEpisodeRes, animeSeasonRes, gamesRes, booksRes, musicRes] = await Promise.allSettled([
+        fetchJsonWithPerfCache(
+          `${TMDB_PROXY_BASE}/movie/now_playing?language=en-US&page=${movieNowPage}`,
+          { signal, cacheKey: `tmdb:new-releases:movie-now:${movieNowPage}` }
+        ),
+        fetchJsonWithPerfCache(
+          `${TMDB_PROXY_BASE}/movie/upcoming?language=en-US&page=${movieUpcomingPage}`,
+          { signal, cacheKey: `tmdb:new-releases:movie-upcoming:${movieUpcomingPage}` }
+        ),
+        fetchJsonWithPerfCache(
+          `${TMDB_PROXY_BASE}/tv/airing_today?language=en-US&page=1`,
+          { signal, cacheKey: 'tmdb:new-releases:tv-episode' }
+        ),
+        fetchJsonWithPerfCache(
+          `${TMDB_PROXY_BASE}/tv/on_the_air?language=en-US&page=1`,
+          { signal, cacheKey: 'tmdb:new-releases:tv-season' }
+        ),
+        fetchJsonWithPerfCache(
+          `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=popularity.desc&page=1&with_genres=16&with_original_language=ja&air_date.gte=${recentEpisodeDate}&air_date.lte=${todayDate}`,
+          { signal, cacheKey: `tmdb:new-releases:anime-episode:${recentEpisodeDate}:${todayDate}` }
+        ),
+        fetchJsonWithPerfCache(
+          `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=first_air_date.desc&page=1&with_genres=16&with_original_language=ja&first_air_date.gte=${recentSeasonDate}`,
+          { signal, cacheKey: `tmdb:new-releases:anime-season:${recentSeasonDate}` }
+        ),
+        homeIgdbFetch('/games', {
+          page_size: 24,
+          ordering: '-released',
+          dates: `${recentSeasonDate},${upcomingDate}`,
+          page: 1
+        }, signal),
+        fetchJsonWithPerfCache(
+          '/api/books/trending?period=weekly&limit=24',
+          { signal, cacheKey: 'books:new-releases:weekly' }
+        ),
+        fetchJsonWithPerfCache(
+          '/api/music/top-50?limit=40&market=US',
+          { signal, cacheKey: 'music:new-releases:top-50-us-40' }
+        )
+      ]);
+
+      const movieNowRows = movieNowRes.status === 'fulfilled' && Array.isArray(movieNowRes.value?.results) ? movieNowRes.value.results : [];
+      const movieUpcomingRows = movieUpcomingRes.status === 'fulfilled' && Array.isArray(movieUpcomingRes.value?.results) ? movieUpcomingRes.value.results : [];
+      const tvEpisodeRows = tvEpisodeRes.status === 'fulfilled' && Array.isArray(tvEpisodeRes.value?.results) ? tvEpisodeRes.value.results : [];
+      const tvSeasonRows = tvSeasonRes.status === 'fulfilled' && Array.isArray(tvSeasonRes.value?.results) ? tvSeasonRes.value.results : [];
+      const animeEpisodeRows = animeEpisodeRes.status === 'fulfilled' && Array.isArray(animeEpisodeRes.value?.results) ? animeEpisodeRes.value.results : [];
+      const animeSeasonRows = animeSeasonRes.status === 'fulfilled' && Array.isArray(animeSeasonRes.value?.results) ? animeSeasonRes.value.results : [];
+      const gameRows = gamesRes.status === 'fulfilled'
+        ? (Array.isArray(gamesRes.value?.results) ? gamesRes.value.results : (Array.isArray(gamesRes.value) ? gamesRes.value : []))
+        : [];
+      const bookRows = booksRes.status === 'fulfilled'
+        ? (Array.isArray(booksRes.value?.docs) ? booksRes.value.docs : (Array.isArray(booksRes.value?.items) ? booksRes.value.items : []))
+        : [];
+      const musicRows = musicRes.status === 'fulfilled' && Array.isArray(musicRes.value?.results) ? musicRes.value.results : [];
+
+      const combined = [
+        ...mapShowRows(tvEpisodeRows, 'tv', 'New Episode', 5),
+        ...mapShowRows(tvSeasonRows, 'tv', 'New Season', 5),
+        ...mapShowRows(animeEpisodeRows, 'anime', 'New Episode', 4),
+        ...mapShowRows(animeSeasonRows, 'anime', 'New Season', 4),
+        ...mapMovieRows(movieNowRows, 'New Release', 5),
+        ...mapMovieRows(movieUpcomingRows, 'Upcoming Release', 3),
+        ...mapGameRows(gameRows, 'New Release', 4),
+        ...mapBookRows(bookRows, 'New Release', 4),
+        ...mapMusicRows(musicRows, 'Chart Update', 4)
+      ];
+
+      const deduped = dedupeHomeItemsByMediaAndId(combined)
+        .filter((item) => String(item?.image || '').trim());
+      return shuffleArray(deduped).slice(0, HOME_NEW_RELEASES_TARGET_ITEMS);
+    }
+
+    async function refreshHomeNewReleases(feedMap = homeFeedState, options = {}) {
+      const railOptions = { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true };
+      const fallbackItems = buildNewReleasesFallback(feedMap);
+
+      if (homeNewReleasesState.length) {
+        renderRail('newReleasesRail', homeNewReleasesState, railOptions);
+      } else if (fallbackItems.length) {
+        renderRail('newReleasesRail', fallbackItems, railOptions);
+      }
+
+      const force = options.force === true;
+      const now = Date.now();
+      if (!force && homeNewReleasesState.length && (now - homeNewReleasesLastFetchAt) < HOME_NEW_RELEASES_REFRESH_MS) {
+        return;
+      }
+
+      if (!force && homeNewReleasesInFlight) {
+        await homeNewReleasesInFlight;
+        return;
+      }
+
+      const seq = ++homeNewReleasesRequestSeq;
+      const requestTask = (async () => {
+        const liveItems = await loadHomeChannelWithTimeout(loadNewReleases, HOME_NEW_RELEASES_TIMEOUT_MS);
+        if (seq !== homeNewReleasesRequestSeq) return;
+        if (Array.isArray(liveItems) && liveItems.length) {
+          homeNewReleasesState = liveItems;
+          homeNewReleasesLastFetchAt = Date.now();
+          renderRail('newReleasesRail', homeNewReleasesState, railOptions);
+        } else if (!homeNewReleasesState.length && fallbackItems.length) {
+          renderRail('newReleasesRail', fallbackItems, railOptions);
+        }
+      })();
+      homeNewReleasesInFlight = requestTask;
+      try {
+        await requestTask;
+      } finally {
+        if (homeNewReleasesInFlight === requestTask) {
+          homeNewReleasesInFlight = null;
+        }
+      }
     }
 
     function getRecommendationItemKey(mediaType, itemId) {
@@ -4418,6 +4744,7 @@
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, HOME_UNIFIED_TARGET_ITEMS);
       renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+      void refreshHomeNewReleases(homeFeedState);
       void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
       hydrateSpotlightFromPool(scoredPool);
 
@@ -4431,6 +4758,7 @@
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, HOME_UNIFIED_TARGET_ITEMS);
       renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+      void refreshHomeNewReleases(homeFeedState);
       void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
       hydrateSpotlightFromPool(scoredPool);
       scheduleHomeMenuCachePrime();
