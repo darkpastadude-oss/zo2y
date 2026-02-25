@@ -21,6 +21,7 @@ function isCacheableResponse(response) {
 
 function cloneForCache(response) {
   if (!response) return null;
+  if (response.bodyUsed) return null;
   try {
     return response.clone();
   } catch (_error) {
@@ -38,8 +39,13 @@ async function trimCache(cacheName, maxEntries) {
 
 async function putInCache(cacheName, request, response) {
   if (!isCacheableResponse(response)) return;
+  if (!response || response.bodyUsed) return;
   const cache = await caches.open(cacheName);
-  await cache.put(request, response);
+  try {
+    await cache.put(request, response);
+  } catch (_error) {
+    return;
+  }
   if (cacheName === IMAGE_CACHE) {
     await trimCache(IMAGE_CACHE, MAX_IMAGE_CACHE_ENTRIES);
   }

@@ -10,7 +10,7 @@ serve(async (req) => {
     const { data, error } = await resend.emails.send({
       from: 'Zo2y <onboarding@resend.dev>',
       to: email,
-      subject: 'Verify Your Zo2y Account 🍔',
+      subject: 'Verify Your Zo2y Account 🎬',
       html: `
         <!DOCTYPE html>
         <html>
@@ -25,7 +25,7 @@ serve(async (req) => {
         </head>
         <body>
           <div class="container">
-            <div class="logo">🍔 Zo2y</div>
+            <div class="logo">🎬 Zo2y</div>
             <h2>Welcome to Zo2y, ${user_name}! 👋</h2>
             <p>Thanks for signing up! Click the button below to verify your email address and start exploring amazing restaurants.</p>
             
@@ -37,7 +37,7 @@ serve(async (req) => {
             <p style="word-break: break-all; color: #666;">${verification_link}</p>
             
             <div class="footer">
-              <p>Happy eating! 🍕</p>
+              <p>Enjoy exploring! ✨</p>
               <p>The Zo2y Team</p>
             </div>
           </div>

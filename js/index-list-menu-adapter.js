@@ -390,7 +390,7 @@
               <button class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
               <button class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
               <button class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-utensils"><i class="fas fa-utensils"></i></button>
+              <button class="menu-icon-option" data-icon="fas fa-clapperboard"><i class="fas fa-clapperboard"></i></button>
             </div>
             <div class="menu-modal-actions">
               <button class="menu-btn menu-btn-secondary" id="cancelCreateBtn">Cancel</button>

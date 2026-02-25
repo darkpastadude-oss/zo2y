@@ -24,6 +24,17 @@
   const LIST_MODAL_SELECTOR = '.modal[id*="ListsModal"], #customListsModal, #actionsModal';
   const OPEN_LIST_MODAL_SELECTOR = '.modal[id*="ListsModal"].active, #customListsModal.active, #actionsModal.active';
   const NATIVE_MENU_BACKDROP_SELECTOR = '.list-menu-backdrop.active, .rail-menu-backdrop.active';
+  const GENERIC_SCROLL_LOCK_OVERLAY_SELECTOR = [
+    '.menu-modal.active',
+    '.actions-modal.active',
+    '.custom-lists-modal.active',
+    '.modal.active',
+    '.modal.show',
+    '.lightbox.active',
+    '#homeOnboardingOverlay.active',
+    '#authPromptModal.active',
+    '.zo2y-install-overlay.show'
+  ].join(', ');
   const IMAGE_RESOURCE_HINT_ORIGINS = [
     'https://image.tmdb.org',
     'https://covers.openlibrary.org',
@@ -376,12 +387,39 @@
       .forEach((modal) => closeModalNode(modal));
   };
 
+  const hasExternalScrollLockOverlay = () => {
+    const overlays = document.querySelectorAll(GENERIC_SCROLL_LOCK_OVERLAY_SELECTOR);
+    for (const overlay of overlays) {
+      if (!(overlay instanceof HTMLElement)) continue;
+      const styles = window.getComputedStyle(overlay);
+      if (styles.display === 'none' || styles.visibility === 'hidden') continue;
+      if (styles.pointerEvents === 'none' && Number(styles.opacity || '1') === 0) continue;
+      const rect = overlay.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) return true;
+    }
+    return false;
+  };
+
+  const clearInlineScrollLocks = () => {
+    if (!document.body || !document.documentElement) return;
+    const bodyOverflow = String(document.body.style.overflow || '').trim().toLowerCase();
+    const docOverflow = String(document.documentElement.style.overflow || '').trim().toLowerCase();
+    if (bodyOverflow === 'hidden' || bodyOverflow === 'clip' || bodyOverflow === 'auto') {
+      document.body.style.overflow = '';
+    }
+    if (docOverflow === 'hidden' || docOverflow === 'clip') {
+      document.documentElement.style.overflow = '';
+    }
+  };
+
   const releaseStalePopupLock = () => {
     if (!document.body) return;
     const hasOpenMenu = !!document.querySelector(OPEN_LIST_MENU_SELECTOR);
     const hasOpenModal = !!document.querySelector(OPEN_LIST_MODAL_SELECTOR);
-    if (hasOpenMenu || hasOpenModal) return;
+    const hasNativeBackdrop = !!document.querySelector(NATIVE_MENU_BACKDROP_SELECTOR);
+    if (hasOpenMenu || hasOpenModal || hasNativeBackdrop || hasExternalScrollLockOverlay()) return;
     document.body.classList.remove('zo2y-popup-open');
+    clearInlineScrollLocks();
     const popupBackdrop = document.getElementById('zo2yPopupBackdrop');
     if (popupBackdrop) popupBackdrop.classList.remove('active');
   };
@@ -406,6 +444,18 @@
       releaseStalePopupLock();
     }
   };
+
+  const schedulePopupStateSync = (() => {
+    let timerId = 0;
+    return () => {
+      if (timerId) return;
+      timerId = window.setTimeout(() => {
+        timerId = 0;
+        syncPopupState();
+        releaseStalePopupLock();
+      }, 48);
+    };
+  })();
 
   const ensureMenuCloseButtons = (scope = document) => {
     if (!scope || !scope.querySelectorAll) return;
@@ -571,12 +621,21 @@
 
   window.addEventListener('pageshow', () => {
     syncPopupState();
+    releaseStalePopupLock();
   });
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') return;
     syncPopupState();
+    releaseStalePopupLock();
   }, { passive: true });
+
+  window.addEventListener('focus', schedulePopupStateSync, { passive: true });
+  window.addEventListener('resize', schedulePopupStateSync, { passive: true });
+  window.addEventListener('orientationchange', schedulePopupStateSync, { passive: true });
+  window.addEventListener('popstate', schedulePopupStateSync);
+  document.addEventListener('touchend', schedulePopupStateSync, { passive: true, capture: true });
+  document.addEventListener('pointerup', schedulePopupStateSync, { passive: true, capture: true });
 
   // Prefetch same-origin page links on hover/touch for snappier transitions.
   const prefetched = new Set();

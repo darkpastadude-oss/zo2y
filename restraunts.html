@@ -2101,7 +2101,7 @@ header, .top-stripe, .section-nav {
           <span id="wantToGoText">Want to Go</span>
         </button>
         <button class="action-btn-modal" data-action="visited" id="modalVisitedBtn">
-          <i class="fas fa-utensils"></i>
+          <i class="fas fa-clapperboard"></i>
           <span id="visitedText">Mark as Visited</span>
         </button>
         <button class="action-btn-modal custom-lists-btn" id="modalCustomListsBtn">
@@ -3017,7 +3017,7 @@ header, .top-stripe, .section-nav {
         const emptyState = document.createElement('div');
         emptyState.className = 'empty-state';
         emptyState.innerHTML = `
-          <i class="fas fa-utensils"></i>
+          <i class="fas fa-clapperboard"></i>
           <h3>No restaurants found</h3>
           <p>Try adjusting your search or filters</p>
           <button class="btn" id="resetEmpty" style="margin-top: 12px;">Reset All Filters</button>
@@ -3754,7 +3754,7 @@ header, .top-stripe, .section-nav {
         }
         
         if (visitedBtn) {
-          visitedBtn.innerHTML = `<i class="fas fa-utensils"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
+          visitedBtn.innerHTML = `<i class="fas fa-clapperboard"></i><span>${status.visited ? 'Remove from Visited' : 'Mark as Visited'}</span>`;
           visitedBtn.classList.toggle('active', status.visited);
         }
         

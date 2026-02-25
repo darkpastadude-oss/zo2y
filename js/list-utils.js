@@ -47,7 +47,7 @@
       itemsTable: 'lists_restraunts',
       itemIdField: 'restraunt_id',
       usesUserId: false,
-      defaultIcon: 'fas fa-utensils',
+      defaultIcon: 'fas fa-clapperboard',
       filterTitles: ['Favorites', 'Visited', 'Want to Go']
     }
   };
@@ -120,6 +120,7 @@
     if (raw.includes('fa-heart')) return 'heart';
     if (raw.includes('fa-check') || raw.includes('fa-eye')) return 'check';
     if (raw.includes('fa-bookmark')) return 'bookmark';
+    if (raw.includes('fa-clapperboard')) return 'restaurant';
     if (raw.includes('fa-utensils')) return 'restaurant';
     if (raw.includes('fa-film')) return 'movie';
     if (raw.includes('fa-book')) return 'book';
