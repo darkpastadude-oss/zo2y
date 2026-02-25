@@ -11,7 +11,10 @@ html {
 }
 
 body.mobile-webapp {
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: auto;
+  overflow-y: auto;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
   -webkit-tap-highlight-color: rgba(245, 158, 11, 0.22);
 }
 
