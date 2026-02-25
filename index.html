@@ -1344,6 +1344,36 @@
       display: none;
     }
 
+    .mobile-reviews-section {
+      display: none;
+    }
+
+    .mobile-reviews-actions {
+      display: grid;
+      gap: 8px;
+      padding: 0 14px 14px;
+    }
+
+    .mobile-reviews-link {
+      min-height: 44px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: #e7f0ff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .mobile-reviews-link.mobile-reviews-link-primary {
+      border: 0;
+      background: var(--gradient);
+      color: #0b1633;
+    }
+
     .legal-strip {
       width: min(1240px, calc(100% - 28px));
       margin: 10px auto 22px;
@@ -1389,6 +1419,10 @@
     @media (max-width: 760px) {
       body {
         padding-bottom: 86px;
+      }
+
+      .legal-strip {
+        display: none;
       }
 
       .container { width: calc(100% - 16px); }
@@ -1530,6 +1564,12 @@
       .rail.unified-rail { grid-auto-columns: 154px; }
       .rail.games-rail { grid-auto-columns: 154px; }
       .card-hover-cue { display: none; }
+      .mobile-reviews-section {
+        display: block;
+      }
+      .mobile-reviews-actions {
+        padding: 0 12px 12px;
+      }
 
       /* Movies-style mobile card surface */
       .rail .card {
@@ -1658,6 +1698,7 @@
         box-shadow: 0 10px 34px rgba(0,0,0,0.35);
         z-index: 230;
         padding: 6px;
+        border-radius: 18px !important;
       }
 
       .mobile-nav-item {
@@ -1675,6 +1716,14 @@
       .mobile-nav-item:hover {
         color: var(--accent);
         background: rgba(245, 158, 11, 0.16);
+      }
+
+      .mobile-nav-item.mobile-nav-item-support,
+      .mobile-nav-item.mobile-nav-item-support:hover {
+        color: #0b1633;
+        background: var(--gradient);
+        font-size: 13px;
+        font-weight: 800;
       }
     }
 
@@ -1741,6 +1790,17 @@
         </div>
         <div class="spotlight-dots" id="spotlightDots" aria-label="Spotlight items"></div>
         <div class="status" id="loadStatus">Loading live feed...</div>
+      </div>
+    </section>
+
+    <section class="section mobile-reviews-section" aria-label="Community reviews">
+      <div class="section-head">
+        <h2>Community Reviews</h2>
+        <p>Quick access to the latest ratings and reactions from the community.</p>
+      </div>
+      <div class="mobile-reviews-actions">
+        <a class="mobile-reviews-link mobile-reviews-link-primary" href="reviews.html"><i class="fa-solid fa-star"></i> Browse Reviews</a>
+        <a class="mobile-reviews-link" href="reviews.html#mediaFilters"><i class="fa-solid fa-layer-group"></i> Filter by Category</a>
       </div>
     </section>
 
@@ -1815,7 +1875,7 @@
     <a class="mobile-nav-item" href="games.html" aria-label="Games"><i class="fa-solid fa-gamepad"></i></a>
     <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
     <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
-    <a class="mobile-nav-item" href="reviews.html" aria-label="Reviews"><i class="fa-solid fa-star"></i></a>
+    <a class="mobile-nav-item mobile-nav-item-support" href="support.html" aria-label="Support">Support</a>
   </nav>
 
   <div id="itemMenuModal" class="menu-modal" aria-hidden="true">

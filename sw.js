@@ -19,6 +19,15 @@ function isCacheableResponse(response) {
   return !!response && (response.ok || response.type === 'opaque');
 }
 
+function cloneForCache(response) {
+  if (!response) return null;
+  try {
+    return response.clone();
+  } catch (_error) {
+    return null;
+  }
+}
+
 async function trimCache(cacheName, maxEntries) {
   const cache = await caches.open(cacheName);
   const keys = await cache.keys();
@@ -30,10 +39,18 @@ async function trimCache(cacheName, maxEntries) {
 async function putInCache(cacheName, request, response) {
   if (!isCacheableResponse(response)) return;
   const cache = await caches.open(cacheName);
-  await cache.put(request, response.clone());
+  await cache.put(request, response);
   if (cacheName === IMAGE_CACHE) {
     await trimCache(IMAGE_CACHE, MAX_IMAGE_CACHE_ENTRIES);
   }
+}
+
+function queueCachePut(cacheName, request, response) {
+  const clonedResponse = cloneForCache(response);
+  if (!clonedResponse) return;
+  void putInCache(cacheName, request, clonedResponse).catch(() => {
+    // Silent fail to avoid runtime noise from non-cloneable responses.
+  });
 }
 
 async function cacheFirst(request, cacheName) {
@@ -41,14 +58,14 @@ async function cacheFirst(request, cacheName) {
   const cached = await cache.match(request);
   if (cached) return cached;
   const networkResponse = await fetch(request);
-  void putInCache(cacheName, request, networkResponse);
+  queueCachePut(cacheName, request, networkResponse);
   return networkResponse;
 }
 
 async function networkFirst(request, cacheName, fallbackPath = '') {
   try {
     const networkResponse = await fetch(request);
-    void putInCache(cacheName, request, networkResponse);
+    queueCachePut(cacheName, request, networkResponse);
     return networkResponse;
   } catch (_error) {
     const cache = await caches.open(cacheName);
@@ -67,7 +84,7 @@ async function staleWhileRevalidate(request, cacheName) {
   const cached = await cache.match(request);
   const networkPromise = fetch(request)
     .then((response) => {
-      void putInCache(cacheName, request, response);
+      queueCachePut(cacheName, request, response);
       return response;
     })
     .catch(() => null);
