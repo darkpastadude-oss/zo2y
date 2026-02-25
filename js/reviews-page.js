@@ -140,8 +140,17 @@
       return;
     }
     try {
-      const { data } = await supabase.auth.getUser();
-      currentUser = data?.user || null;
+      // Prefer local session first to avoid unnecessary network noise.
+      const { data: sessionData } = await supabase.auth.getSession();
+      currentUser = sessionData?.session?.user || null;
+
+      // Best-effort verification when online; keep local user if it fails.
+      if (currentUser && navigator.onLine !== false) {
+        const { data, error } = await supabase.auth.getUser();
+        if (!error && data?.user) {
+          currentUser = data.user;
+        }
+      }
     } catch (_err) {
       currentUser = null;
     }
@@ -186,26 +195,15 @@
     const ids = Array.from(new Set((rows || []).map((row) => String(row?.userId || '').trim()).filter(Boolean)));
     if (!ids.length) return;
 
-    const selects = [
-      'user_id, id, username, full_name',
-      'user_id, username, full_name',
-      'user_id, username',
-      'id, username, full_name',
-      'id, username'
-    ];
+    // Keep this aligned with index.html, where user_profiles is keyed by id.
+    const { data, error } = await client
+      .from('user_profiles')
+      .select('id, username, full_name')
+      .in('id', ids);
+    if (error || !Array.isArray(data)) return;
 
-    let dataRows = [];
-    for (const cols of selects) {
-      const field = cols.includes('user_id') ? 'user_id' : 'id';
-      const { data, error } = await client.from('user_profiles').select(cols).in(field, ids);
-      if (!error) {
-        dataRows = Array.isArray(data) ? data : [];
-        break;
-      }
-    }
-
-    dataRows.forEach((row) => {
-      const id = String(row?.user_id || row?.id || '').trim();
+    data.forEach((row) => {
+      const id = String(row?.id || '').trim();
       if (!id) return;
       users.set(id, {
         username: String(row?.username || '').trim(),
