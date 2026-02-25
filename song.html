@@ -18,6 +18,7 @@
       --card-2: #123059;
       --muted: #8fb2dd;
       --accent: #1db954;
+      --cta: #f59e0b;
       --white: #fff;
       --border: rgba(255,255,255,0.12);
     }
@@ -91,15 +92,72 @@
       background: var(--card-2); color: var(--white); padding: 0 12px; cursor: pointer;
       display: inline-flex; align-items: center; gap: 7px; font-weight: 600;
     }
-    .btn-primary { border: 0; color: #0a213c; background: linear-gradient(135deg, #1db954 0%, #56da84 100%); }
+    .btn-primary { border: 0; color: #0b1633; background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); }
     .btn:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-primary:hover { color: #0a213c; }
-    .btn[data-saved="1"] {
-      border-color: rgba(29,185,84,0.85);
-      background: rgba(29,185,84,0.18);
+    .btn-primary:hover { color: #0b1633; }
+    .menu-wrapper { position: relative; }
+    .menu-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      color: var(--white);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s ease;
+    }
+    .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .list-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 220px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #0f2547;
+      box-shadow: 0 14px 32px rgba(0,0,0,0.35);
+      padding: 10px;
+      display: none;
+      z-index: 130;
+    }
+    .list-menu.open { display: block; }
+    .list-menu-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 12, 28, 0.55);
+      z-index: 120;
+      display: none;
+    }
+    .list-menu-backdrop.active { display: block; }
+    .list-menu-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .list-action {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--white);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: all 0.2s ease;
+      margin-bottom: 6px;
+    }
+    .list-action:last-child { margin-bottom: 0; }
+    .list-action:hover { border-color: var(--accent); color: var(--accent); }
+    .list-action.active {
+      background: rgba(29,185,84,0.15);
+      border-color: rgba(29,185,84,0.8);
       color: #d1fae5;
     }
-    .btn[aria-busy="true"] {
+    .list-action[aria-busy="true"] {
       opacity: 0.72;
       pointer-events: none;
     }
@@ -171,9 +229,15 @@
         </div>
         <div class="actions">
           <button class="btn btn-primary" id="listenBtn" type="button"><i class="fa-solid fa-play"></i> Listen Now</button>
-          <button class="btn" id="favBtn" data-list="favorites" type="button"><i class="fa-solid fa-heart"></i> Favorites</button>
-          <button class="btn" id="listenedBtn" data-list="listened" type="button"><i class="fa-solid fa-check"></i> Listened</button>
-          <button class="btn" id="listenlistBtn" data-list="listenlist" type="button"><i class="fa-solid fa-bookmark"></i> Listenlist</button>
+          <div class="menu-wrapper">
+            <button class="menu-btn" id="songMenuBtn" type="button" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
+            <div class="list-menu" id="songListMenu">
+              <div class="list-menu-title">Save to list</div>
+              <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="listened"><span><i class="fas fa-check"></i> Listened</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="listenlist"><span><i class="fas fa-bookmark"></i> Listenlist</span><span class="list-action-state">Add</span></button>
+            </div>
+          </div>
           <a class="btn" href="music.html"><i class="fa-solid fa-arrow-left"></i> Back to Music</a>
         </div>
         <audio id="previewPlayer" controls preload="none" style="display:none;"></audio>
@@ -203,6 +267,37 @@
       const m = Math.floor(sec / 60);
       const s = sec % 60;
       return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    function toHttpsUrl(url) {
+      const value = String(url || '').trim();
+      if (!value) return '';
+      if (value.startsWith('//')) return `https:${value}`;
+      if (value.startsWith('http://')) return value.replace(/^http:\/\//i, 'https://');
+      return value;
+    }
+
+    function upgradeItunesArtwork(url, size = 1200) {
+      const src = toHttpsUrl(url);
+      if (!src) return '';
+      return src
+        .replace(/\/[0-9]+x[0-9]+bb\./i, `/${size}x${size}bb.`)
+        .replace(/\/[0-9]+x[0-9]+\./i, `/${size}x${size}.`);
+    }
+
+    function pickTrackImage(data) {
+      if (!data || typeof data !== 'object') return '';
+      const albumImages = Array.isArray(data.album?.images) ? data.album.images : [];
+      const bestAlbumImage = albumImages
+        .map((img) => ({
+          url: String(img?.url || '').trim(),
+          area: Number(img?.width || 0) * Number(img?.height || 0)
+        }))
+        .filter((img) => !!img.url)
+        .sort((a, b) => b.area - a.area)[0]?.url || '';
+      const raw = bestAlbumImage || String(data.image || '').trim();
+      const upgraded = upgradeItunesArtwork(raw, 1200);
+      return upgraded || toHttpsUrl(raw);
     }
 
     async function ensureSupabase() {
@@ -243,13 +338,18 @@
         ? (json.results.find((item) => item.wrapperType === 'track' || item.kind === 'song') || json.results[0])
         : null;
       if (!row) return null;
+      const rawArtwork = String(row.artworkUrl100 || row.artworkUrl60 || '').trim();
+      const hiResArtwork = upgradeItunesArtwork(rawArtwork, 1200) || toHttpsUrl(rawArtwork);
       return {
         id: String(row.trackId || row.collectionId || id),
         name: row.trackName || row.collectionName || 'Track',
         artists: [row.artistName || 'Artist'],
         artist_ids: [],
-        album: { name: row.collectionName || 'Album' },
-        image: row.artworkUrl100 || row.artworkUrl60 || '',
+        album: {
+          name: row.collectionName || 'Album',
+          images: hiResArtwork ? [{ url: hiResArtwork, width: 1200, height: 1200 }] : []
+        },
+        image: hiResArtwork,
         preview_url: row.previewUrl || '',
         popularity: 0,
         duration_ms: Number(row.trackTimeMillis || 0)
@@ -264,7 +364,14 @@
       qs('songDuration').innerHTML = `<i class="fa-regular fa-clock"></i> ${msToMinSec(data.duration_ms)}`;
       qs('songPopularity').innerHTML = `<i class="fa-solid fa-fire"></i> Popularity ${Number(data.popularity || 0)}/100`;
       qs('artistFollowers').innerHTML = '<i class="fa-solid fa-users"></i> Followers --';
-      qs('songCover').src = data.image || 'images/logo.png';
+      const coverEl = qs('songCover');
+      const coverUrl = pickTrackImage(data);
+      coverEl.src = coverUrl || 'images/logo.png';
+      track.image = coverUrl || String(track.image || '').trim();
+      coverEl.onerror = () => {
+        coverEl.onerror = null;
+        coverEl.src = 'images/logo.png';
+      };
       qs('songStatus').textContent = data.preview_url ? 'Ready to play preview.' : 'Preview not available for this track.';
       qs('songStatus').classList.remove('error');
 
@@ -295,22 +402,21 @@
       followersEl.innerHTML = `<i class="fa-solid fa-users"></i> Followers ${Number(artist.followers || 0).toLocaleString()}`;
     }
 
-    function updateListButtonsUi() {
-      const map = {
-        favorites: 'favBtn',
-        listened: 'listenedBtn',
-        listenlist: 'listenlistBtn'
-      };
+    function updateListMenuUi() {
+      const menu = qs('songListMenu');
+      if (!menu) return;
       const trackId = String(track?.id || '').trim();
-      Object.entries(map).forEach(([listType, buttonId]) => {
-        const btn = qs(buttonId);
-        if (!btn) return;
+      menu.querySelectorAll('.list-action[data-list]').forEach((btn) => {
+        const listType = String(btn.getAttribute('data-list') || '').trim().toLowerCase();
+        if (!(listType in trackListStatus)) return;
+        const state = btn.querySelector('.list-action-state');
         const isSaved = !!trackListStatus[listType];
         const isPending = pendingListOps.has(`${trackId}:${listType}`);
-        btn.setAttribute('data-saved', isSaved ? '1' : '0');
+        btn.classList.toggle('active', isSaved);
         btn.setAttribute('aria-busy', isPending ? 'true' : 'false');
         btn.disabled = isPending;
         btn.title = isSaved ? `Remove from ${listType}` : `Add to ${listType}`;
+        if (state) state.textContent = isPending ? '...' : (isSaved ? 'Saved' : 'Add');
       });
     }
 
@@ -319,7 +425,7 @@
       trackListStatus.listened = false;
       trackListStatus.listenlist = false;
       if (!track?.id || !currentUser?.id) {
-        updateListButtonsUi();
+        updateListMenuUi();
         return;
       }
       const client = await ensureSupabase();
@@ -337,7 +443,7 @@
           }
         });
       }
-      updateListButtonsUi();
+      updateListMenuUi();
     }
 
     async function toggleList(listType) {
@@ -356,7 +462,7 @@
       const nextSaved = !previousSaved;
       pendingListOps.add(opKey);
       trackListStatus[listType] = nextSaved;
-      updateListButtonsUi();
+      updateListMenuUi();
 
       try {
         if (nextSaved) {
@@ -397,8 +503,71 @@
         qs('songStatus').classList.add('error');
       } finally {
         pendingListOps.delete(opKey);
-        updateListButtonsUi();
+        updateListMenuUi();
       }
+    }
+
+    function ensureListMenuBackdrop() {
+      let backdrop = document.getElementById('songListMenuBackdrop');
+      if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'songListMenuBackdrop';
+        backdrop.className = 'list-menu-backdrop';
+        backdrop.addEventListener('click', closeAllListMenus);
+        document.body.appendChild(backdrop);
+      }
+      return backdrop;
+    }
+
+    function showListMenuBackdrop() {
+      const backdrop = ensureListMenuBackdrop();
+      backdrop.classList.add('active');
+    }
+
+    function hideListMenuBackdrop() {
+      const backdrop = document.getElementById('songListMenuBackdrop');
+      if (backdrop) backdrop.classList.remove('active');
+    }
+
+    function closeAllListMenus() {
+      const menu = qs('songListMenu');
+      if (menu) menu.classList.remove('open');
+      hideListMenuBackdrop();
+    }
+
+    function wireListMenu() {
+      const menuBtn = qs('songMenuBtn');
+      const menu = qs('songListMenu');
+      if (!menuBtn || !menu) return;
+
+      menuBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const wasOpen = menu.classList.contains('open');
+        closeAllListMenus();
+        if (!wasOpen) {
+          menu.classList.add('open');
+          showListMenuBackdrop();
+        }
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!event.target.closest('.menu-wrapper') && !event.target.closest('.list-menu')) {
+          closeAllListMenus();
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeAllListMenus();
+      });
+
+      menu.querySelectorAll('.list-action[data-list]').forEach((btn) => {
+        btn.addEventListener('click', async (event) => {
+          event.stopPropagation();
+          const listType = String(btn.getAttribute('data-list') || '').trim().toLowerCase();
+          await toggleList(listType);
+          closeAllListMenus();
+        });
+      });
     }
 
     async function initSongPage() {
@@ -444,14 +613,12 @@
       if (audio.paused) audio.play().catch(() => {});
       else audio.pause();
     });
-    qs('favBtn').addEventListener('click', () => toggleList('favorites'));
-    qs('listenedBtn').addEventListener('click', () => toggleList('listened'));
-    qs('listenlistBtn').addEventListener('click', () => toggleList('listenlist'));
 
     document.addEventListener('DOMContentLoaded', () => {
       if (window.initUniversalSearch) {
         window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'music.html' });
       }
+      wireListMenu();
       initSongPage();
     });
   </script>
