@@ -67,6 +67,7 @@
       return false;
     }
   };
+  const shouldUsePopupScrollLock = !isMobileLike || isStandaloneMode();
 
   const isIosDevice = () => /iPad|iPhone|iPod/i.test(navigator.userAgent);
   const isSafariLike = () => {
@@ -432,6 +433,13 @@
 
   const releaseStalePopupLock = () => {
     if (!document.body) return;
+    if (!shouldUsePopupScrollLock) {
+      document.body.classList.remove('zo2y-popup-open');
+      clearInlineScrollLocks();
+      const popupBackdrop = document.getElementById('zo2yPopupBackdrop');
+      if (popupBackdrop) popupBackdrop.classList.remove('active');
+      return;
+    }
     const hasOpenMenu = !!document.querySelector(OPEN_LIST_MENU_SELECTOR);
     const hasOpenModal = !!document.querySelector(OPEN_LIST_MODAL_SELECTOR);
     const hasNativeBackdrop = !!document.querySelector(NATIVE_MENU_BACKDROP_SELECTOR);
@@ -449,16 +457,21 @@
     const popupBackdrop = ensurePopupBackdrop();
 
     if (popupBackdrop) {
-      if (hasOpenMenu && !hasNativeBackdrop) {
+      if (shouldUsePopupScrollLock && hasOpenMenu && !hasNativeBackdrop) {
         popupBackdrop.classList.add('active');
       } else {
         popupBackdrop.classList.remove('active');
       }
     }
     if (document.body) {
-      document.body.classList.toggle('zo2y-popup-open', hasOpenMenu || hasOpenModal);
+      if (shouldUsePopupScrollLock) {
+        document.body.classList.toggle('zo2y-popup-open', hasOpenMenu || hasOpenModal);
+      } else {
+        document.body.classList.remove('zo2y-popup-open');
+        clearInlineScrollLocks();
+      }
     }
-    if (!hasOpenMenu && !hasOpenModal) {
+    if (!shouldUsePopupScrollLock || (!hasOpenMenu && !hasOpenModal)) {
       releaseStalePopupLock();
     }
   };
@@ -652,12 +665,15 @@
   window.addEventListener('resize', schedulePopupStateSync, { passive: true });
   window.addEventListener('orientationchange', schedulePopupStateSync, { passive: true });
   window.addEventListener('popstate', schedulePopupStateSync);
+  window.addEventListener('scroll', schedulePopupStateSync, { passive: true });
+  document.addEventListener('click', schedulePopupStateSync, true);
+  document.addEventListener('touchstart', schedulePopupStateSync, { passive: true, capture: true });
   document.addEventListener('touchend', schedulePopupStateSync, { passive: true, capture: true });
   document.addEventListener('pointerup', schedulePopupStateSync, { passive: true, capture: true });
   window.setInterval(() => {
     if (document.visibilityState !== 'visible') return;
     releaseStalePopupLock();
-  }, 1200);
+  }, shouldUsePopupScrollLock ? 1200 : 260);
 
   // Prefetch same-origin page links on hover/touch for snappier transitions.
   const prefetched = new Set();

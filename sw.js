@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v5';
-const PAGE_CACHE = 'zo2y-pages-v5';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v6';
+const PAGE_CACHE = 'zo2y-pages-v6';
 const IMAGE_CACHE = 'zo2y-images-v2';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 
@@ -8,7 +8,7 @@ const STATIC_ASSETS = [
   '/index.html',
   '/manifest.webmanifest',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260225c',
+  '/js/mobile-webapp.js?v=20260225d',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260225b',
   '/favicon.ico',
