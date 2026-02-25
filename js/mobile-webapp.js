@@ -28,6 +28,10 @@
     '.menu-modal.active',
     '.actions-modal.active',
     '.custom-lists-modal.active',
+    '.auth-prompt-modal.active',
+    '.login-modal.active',
+    '#mobileMenuModal.active',
+    '#confirmModal.active',
     '.modal.active',
     '.modal.show',
     '.lightbox.active',
@@ -389,13 +393,19 @@
 
   const hasExternalScrollLockOverlay = () => {
     const overlays = document.querySelectorAll(GENERIC_SCROLL_LOCK_OVERLAY_SELECTOR);
+    const viewportWidth = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 0);
+    const viewportHeight = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 0);
     for (const overlay of overlays) {
       if (!(overlay instanceof HTMLElement)) continue;
       const styles = window.getComputedStyle(overlay);
       if (styles.display === 'none' || styles.visibility === 'hidden') continue;
       if (styles.pointerEvents === 'none' && Number(styles.opacity || '1') === 0) continue;
+      if (styles.position !== 'fixed' && styles.position !== 'absolute') continue;
       const rect = overlay.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) return true;
+      if (rect.width <= 0 || rect.height <= 0) continue;
+      const coversViewportEnough = rect.width >= viewportWidth * 0.45 && rect.height >= viewportHeight * 0.35;
+      const isHighLayer = Number.isFinite(Number(styles.zIndex)) ? Number(styles.zIndex) >= 100 : false;
+      if (coversViewportEnough || isHighLayer) return true;
     }
     return false;
   };
@@ -403,12 +413,20 @@
   const clearInlineScrollLocks = () => {
     if (!document.body || !document.documentElement) return;
     const bodyOverflow = String(document.body.style.overflow || '').trim().toLowerCase();
+    const bodyOverflowY = String(document.body.style.overflowY || '').trim().toLowerCase();
     const docOverflow = String(document.documentElement.style.overflow || '').trim().toLowerCase();
+    const docOverflowY = String(document.documentElement.style.overflowY || '').trim().toLowerCase();
     if (bodyOverflow === 'hidden' || bodyOverflow === 'clip' || bodyOverflow === 'auto') {
       document.body.style.overflow = '';
     }
-    if (docOverflow === 'hidden' || docOverflow === 'clip') {
+    if (bodyOverflowY === 'hidden' || bodyOverflowY === 'clip' || bodyOverflowY === 'auto') {
+      document.body.style.overflowY = '';
+    }
+    if (docOverflow === 'hidden' || docOverflow === 'clip' || docOverflow === 'auto') {
       document.documentElement.style.overflow = '';
+    }
+    if (docOverflowY === 'hidden' || docOverflowY === 'clip' || docOverflowY === 'auto') {
+      document.documentElement.style.overflowY = '';
     }
   };
 
@@ -636,6 +654,10 @@
   window.addEventListener('popstate', schedulePopupStateSync);
   document.addEventListener('touchend', schedulePopupStateSync, { passive: true, capture: true });
   document.addEventListener('pointerup', schedulePopupStateSync, { passive: true, capture: true });
+  window.setInterval(() => {
+    if (document.visibilityState !== 'visible') return;
+    releaseStalePopupLock();
+  }, 1200);
 
   // Prefetch same-origin page links on hover/touch for snappier transitions.
   const prefetched = new Set();
