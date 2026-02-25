@@ -33,7 +33,14 @@ body.app-ready {
 
   body.mobile-webapp {
     padding-top: max(8px, var(--app-safe-top));
-    padding-bottom: max(12px, var(--app-safe-bottom));
+    padding-bottom: max(12px, var(--app-safe-bottom)) !important;
+  }
+
+  .mobile-bottom-nav,
+  nav.mobile-bottom-nav,
+  .mobile-bottom-nav-item,
+  .mobile-nav-item {
+    display: none !important;
   }
 
   .nav,
