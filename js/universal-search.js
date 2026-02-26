@@ -310,12 +310,15 @@
 
   async function fetchMusic(query, signal) {
     const proxy = await fetchJsonWithTimeout(
-      `${MUSIC_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=4&market=US`,
+      `${MUSIC_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=6&market=US&type=track,album`,
       { signal }
     );
     if (proxy) {
-      const items = Array.isArray(proxy.results) ? proxy.results : [];
-      return items.map((track) => ({
+      const trackRows = Array.isArray(proxy?.tracks)
+        ? proxy.tracks
+        : (Array.isArray(proxy?.results) ? proxy.results : []);
+      const albumRows = Array.isArray(proxy?.albums) ? proxy.albums : [];
+      const tracks = trackRows.slice(0, 4).map((track) => ({
         type: 'Music',
         title: track.name || 'Track',
         sub: Array.isArray(track.artists) && track.artists.length ? track.artists.join(', ') : 'Artist',
@@ -323,15 +326,36 @@
         image: toHttpsUrl(track.image || ''),
         landscape: false
       }));
+      const albums = albumRows.slice(0, 3).map((album) => ({
+        type: 'Music Album',
+        title: album.name || 'Album',
+        sub: Array.isArray(album.artists) && album.artists.length ? album.artists.join(', ') : 'Artist',
+        href: album.external_url || 'music.html',
+        image: toHttpsUrl(album.image || ''),
+        landscape: false
+      }));
+      const merged = [];
+      const trackQueue = [...tracks];
+      const albumQueue = [...albums];
+      while (merged.length < 6 && (trackQueue.length || albumQueue.length)) {
+        if (trackQueue.length) merged.push(trackQueue.shift());
+        if (albumQueue.length && merged.length < 6) merged.push(albumQueue.shift());
+        if (trackQueue.length && merged.length < 6) merged.push(trackQueue.shift());
+      }
+      return merged.slice(0, 6);
     }
 
-    // Fallback when proxy is temporarily unavailable.
-    const itunes = await fetchJsonWithTimeout(
-      `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=4`,
-      { signal }
-    );
-    const items = Array.isArray(itunes?.results) ? itunes.results : [];
-    return items.map((track) => ({
+    const [itunesTracks, itunesAlbums] = await Promise.all([
+      fetchJsonWithTimeout(
+        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=4`,
+        { signal }
+      ).catch(() => null),
+      fetchJsonWithTimeout(
+        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=album&limit=3`,
+        { signal }
+      ).catch(() => null)
+    ]);
+    const tracks = (Array.isArray(itunesTracks?.results) ? itunesTracks.results : []).map((track) => ({
       type: 'Music',
       title: track.trackName || 'Track',
       sub: track.artistName || 'Artist',
@@ -339,6 +363,23 @@
       image: toHttpsUrl(track.artworkUrl100 || track.artworkUrl60 || ''),
       landscape: false
     }));
+    const albums = (Array.isArray(itunesAlbums?.results) ? itunesAlbums.results : []).map((album) => ({
+      type: 'Music Album',
+      title: album.collectionName || 'Album',
+      sub: album.artistName || 'Artist',
+      href: album.collectionViewUrl || 'music.html',
+      image: toHttpsUrl(album.artworkUrl100 || album.artworkUrl60 || ''),
+      landscape: false
+    }));
+    const merged = [];
+    const trackQueue = [...tracks];
+    const albumQueue = [...albums];
+    while (merged.length < 6 && (trackQueue.length || albumQueue.length)) {
+      if (trackQueue.length) merged.push(trackQueue.shift());
+      if (albumQueue.length && merged.length < 6) merged.push(albumQueue.shift());
+      if (trackQueue.length && merged.length < 6) merged.push(trackQueue.shift());
+    }
+    return merged.slice(0, 6);
   }
 
   async function fetchAllSuggestions(query, signal) {

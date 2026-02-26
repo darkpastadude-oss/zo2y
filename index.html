@@ -2074,6 +2074,13 @@
       { id: '2dpaYNEQHiRxtZbfNsse99', title: 'Stressed Out', artist: 'Twenty One Pilots', album: 'Blurryface' },
       { id: '5Z01UMMf7V1o0MzF86s6WJ', title: 'Believer', artist: 'Imagine Dragons', album: 'Evolve' }
     ];
+    const FALLBACK_MUSIC_ALBUMS = [
+      { id: '6akEvsycLGftJxYudPjmqK', title: 'After Hours', artist: 'The Weeknd', releaseDate: '2020-03-20', albumType: 'album', totalTracks: 14 },
+      { id: '4LH4d3cOWNNsVw41Gqt2kv', title: 'The Dark Side of the Moon', artist: 'Pink Floyd', releaseDate: '1973-03-01', albumType: 'album', totalTracks: 10 },
+      { id: '6s84u2TUpR3wdUv4NgKA2j', title: 'Future Nostalgia', artist: 'Dua Lipa', releaseDate: '2020-03-27', albumType: 'album', totalTracks: 11 },
+      { id: '5v6N6vcpjI0Byxqv5e6Qpt', title: '1989 (Taylor\'s Version)', artist: 'Taylor Swift', releaseDate: '2023-10-27', albumType: 'album', totalTracks: 21 },
+      { id: '151w1FgRZfnKZA9FEcg9Z3', title: 'Adele 25', artist: 'Adele', releaseDate: '2015-11-20', albumType: 'album', totalTracks: 11 }
+    ];
     const POPULAR_MUSIC_QUERIES = [
       'top 50 usa',
       'top 50 global',
@@ -2997,9 +3004,8 @@
         }).filter(Boolean);
       };
 
-      const mapMusicRows = (rows, label, takeCount = 6) => {
-        const list = Array.isArray(rows) ? rows : [];
-        return list.slice(0, takeCount).map((track, idx) => {
+      const mapMusicRows = (trackRows, albumRows, label, takeCount = 6) => {
+        const tracks = (Array.isArray(trackRows) ? trackRows : []).slice(0, Math.max(takeCount * 2, 8)).map((track, idx) => {
           const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : '';
           const image = String(track?.image || '').trim();
           const releaseDateSort = Date.now() - (idx * 1000);
@@ -3017,11 +3023,52 @@
             explicit: track?.explicit === true,
             href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
           };
-          return withReleaseTag({ ...item, releaseDateSort }, label, { detail: 'Top 50' });
+          return withReleaseTag({ ...item, releaseDateSort }, label, { detail: 'Top Track' });
         }).filter((item) => String(item.itemId || '').trim() && String(item.image || '').trim());
+
+        const albums = (Array.isArray(albumRows) ? albumRows : []).slice(0, Math.max(takeCount, 4)).map((album, idx) => {
+          const artists = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : '';
+          const image = String(album?.image || '').trim();
+          const albumIdRaw = String(album?.id || '').trim();
+          const albumId = albumIdRaw.startsWith('album:') ? albumIdRaw.slice(6) : albumIdRaw;
+          const releaseDate = String(album?.release_date || '').trim();
+          const parsedRelease = Date.parse(releaseDate);
+          const releaseDateSort = Number.isFinite(parsedRelease) ? parsedRelease : (Date.now() - ((idx + 1) * 900));
+          const detailBits = [releaseDate ? `Released ${releaseDate}` : '', Number(album?.total_tracks || 0) > 0 ? `${Number(album.total_tracks)} tracks` : ''].filter(Boolean);
+          const detail = detailBits.length ? detailBits.join(' | ') : 'New Album';
+          const href = String(album?.external_url || '').trim() || 'music.html';
+          const item = {
+            mediaType: 'music',
+            itemId: albumId ? `album:${albumId}` : '',
+            title: String(album?.name || 'Album').trim() || 'Album',
+            subtitle: artists || 'Artist',
+            image,
+            backgroundImage: image,
+            spotlightImage: image,
+            spotlightMediaImage: image,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            href,
+            disableLists: true,
+            isMusicAlbum: true
+          };
+          return withReleaseTag({ ...item, releaseDateSort }, label, { detail });
+        }).filter((item) => String(item.itemId || '').trim() && String(item.image || '').trim());
+
+        const mixed = [];
+        const trackQueue = [...tracks];
+        const albumQueue = [...albums];
+        while (mixed.length < takeCount && (trackQueue.length || albumQueue.length)) {
+          if (trackQueue.length) mixed.push(trackQueue.shift());
+          if (trackQueue.length && mixed.length < takeCount) mixed.push(trackQueue.shift());
+          if (albumQueue.length && mixed.length < takeCount) mixed.push(albumQueue.shift());
+        }
+        while (mixed.length < takeCount && trackQueue.length) mixed.push(trackQueue.shift());
+        while (mixed.length < takeCount && albumQueue.length) mixed.push(albumQueue.shift());
+        return mixed.slice(0, takeCount);
       };
 
-      const [movieNowRes, movieUpcomingRes, tvEpisodeRes, tvSeasonRes, animeEpisodeRes, animeSeasonRes, gamesRes, booksRes, musicRes] = await Promise.allSettled([
+      const [movieNowRes, movieUpcomingRes, tvEpisodeRes, tvSeasonRes, animeEpisodeRes, animeSeasonRes, gamesRes, booksRes, musicTrackRes, musicAlbumRes] = await Promise.allSettled([
         fetchJsonWithPerfCache(
           `${TMDB_PROXY_BASE}/movie/now_playing?language=en-US&page=${movieNowPage}`,
           { signal, cacheKey: `tmdb:new-releases:movie-now:${movieNowPage}` }
@@ -3059,6 +3106,10 @@
         fetchJsonWithPerfCache(
           '/api/music/top-50?limit=40&market=US',
           { signal, cacheKey: 'music:new-releases:top-50-us-40' }
+        ),
+        fetchJsonWithPerfCache(
+          '/api/music/new-releases?limit=24&market=US',
+          { signal, cacheKey: 'music:new-releases:albums-us-24' }
         )
       ]);
 
@@ -3085,7 +3136,12 @@
           return yearB - yearA;
         });
       const bookRows = strictBookRows;
-      const musicRows = musicRes.status === 'fulfilled' && Array.isArray(musicRes.value?.results) ? musicRes.value.results : [];
+      const musicTrackRows = musicTrackRes.status === 'fulfilled' && Array.isArray(musicTrackRes.value?.results)
+        ? musicTrackRes.value.results
+        : [];
+      const musicAlbumRows = musicAlbumRes.status === 'fulfilled' && Array.isArray(musicAlbumRes.value?.results)
+        ? musicAlbumRes.value.results
+        : [];
 
       const combined = [
         ...mapShowRows(tvEpisodeRows, 'tv', 'New Episode', 5, { detail: 'Airing Today' }),
@@ -3096,7 +3152,7 @@
         ...mapMovieRows(movieUpcomingRows, 'Upcoming Release', 3),
         ...mapGameRows(gameRows, 'New Release', 4),
         ...mapBookRows(bookRows, 'New Release', 4),
-        ...mapMusicRows(musicRows, 'Chart Update', 4)
+        ...mapMusicRows(musicTrackRows, musicAlbumRows, 'Chart Update', 4)
       ];
 
       const deduped = dedupeHomeItemsByMediaAndId(combined)
@@ -5221,7 +5277,7 @@
         const href = escapeHtml(hrefRaw);
         const mediaType = escapeHtml(mediaTypeRaw);
         const itemId = escapeHtml(item.itemId || '');
-        const supportsLists = supportsHomeLists(mediaTypeRaw) && !item.isPlaceholder;
+        const supportsLists = supportsHomeLists(mediaTypeRaw) && !item.isPlaceholder && item.disableLists !== true;
         const opensExternal = /^https?:\/\//i.test(String(hrefRaw || ''));
         const hasVisualImage = restaurantComposite ? !!coverImage || !!logo : !!image;
         const imagePolicy = hasVisualImage
@@ -6429,14 +6485,14 @@
     async function loadMusic(signal) {
       const market = 'US';
       const mapTracksToHomeItems = (tracks = []) => tracks.map((track) => {
-        const artists = Array.isArray(track.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
-        const albumName = String(track.album?.name || 'Album').trim();
-        const popularity = Number(track.popularity || 0);
-        const image = String(track.image || '').trim();
+        const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
+        const albumName = String(track?.album?.name || 'Album').trim();
+        const popularity = Number(track?.popularity || 0);
+        const image = String(track?.image || '').trim();
         return {
           mediaType: 'music',
-          itemId: String(track.id || ''),
-          title: track.name || 'Track',
+          itemId: String(track?.id || ''),
+          title: track?.name || 'Track',
           subtitle: artists || 'Artist',
           extra: `${albumName}${popularity ? ` | Popularity ${popularity}/100` : ''}`,
           image,
@@ -6446,11 +6502,45 @@
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'poster',
           explicit: track?.explicit === true,
-          href: String(track.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
+          href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
         };
-      });
+      }).filter((item) => String(item?.itemId || '').trim());
 
-      const dedupeMusicRows = (rows = []) => {
+      const mapAlbumsToHomeItems = (albums = []) => albums.map((album, idx) => {
+        const albumIdRaw = String(album?.id || '').trim();
+        const albumId = albumIdRaw.startsWith('album:') ? albumIdRaw.slice(6) : albumIdRaw;
+        if (!albumId) return null;
+        const artists = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : 'Artist';
+        const image = String(album?.image || '').trim();
+        const releaseDate = String(album?.release_date || '').trim();
+        const albumType = String(album?.album_type || '').trim();
+        const totalTracks = Number(album?.total_tracks || 0);
+        const detail = [
+          releaseDate ? `Released ${releaseDate}` : '',
+          totalTracks > 0 ? `${totalTracks} tracks` : '',
+          albumType || ''
+        ].filter(Boolean).join(' | ');
+        const href = String(album?.external_url || '').trim()
+          || `music.html?q=${encodeURIComponent(String(album?.name || artists || `album-${idx + 1}`).trim())}`;
+        return {
+          mediaType: 'music',
+          itemId: `album:${albumId}`,
+          title: String(album?.name || 'Album').trim() || 'Album',
+          subtitle: artists || 'Artist',
+          extra: `Album${detail ? ` | ${detail}` : ''}`,
+          image,
+          backgroundImage: image,
+          spotlightImage: image,
+          spotlightMediaImage: image,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          href,
+          disableLists: true,
+          isMusicAlbum: true
+        };
+      }).filter((item) => !!item && String(item?.itemId || '').trim());
+
+      const dedupeMusicTrackRows = (rows = []) => {
         const seenIds = new Set();
         const seenTrackKeys = new Set();
         const deduped = [];
@@ -6471,41 +6561,91 @@
         return deduped;
       };
 
-      try {
-        const top50Limit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 4, 64);
-        const top50Url = `/api/music/top-50?limit=${top50Limit}&market=${market}`;
-        const top50Json = await fetchJsonWithPerfCache(
-          top50Url,
-          { signal, cacheKey: `music:top-50:${top50Limit}:${market}` }
-        );
-        const top50Rows = Array.isArray(top50Json?.results) ? top50Json.results : [];
-        const top50Deduped = dedupeMusicRows(top50Rows);
-        const top50WithArtwork = top50Deduped.filter((track) => String(track.image || '').trim());
-        const top50Pool = top50WithArtwork.length ? top50WithArtwork : top50Deduped;
-        const top50Selected = shuffleArray(top50Pool).slice(0, HOME_CHANNEL_TARGET_ITEMS);
-        if (top50Selected.length) {
-          const safeTop50 = filterHomeSafeItems(mapTracksToHomeItems(top50Selected));
-          if (safeTop50.length) return safeTop50;
-        }
-      } catch (_top50Error) {}
+      const dedupeMusicAlbumRows = (rows = []) => {
+        const seenIds = new Set();
+        const seenAlbumKeys = new Set();
+        const deduped = [];
+        rows.forEach((row) => {
+          const id = String(row?.id || '').trim();
+          const albumName = String(row?.name || '').trim().toLowerCase();
+          const firstArtist = Array.isArray(row?.artists) && row.artists.length
+            ? String(row.artists[0] || '').trim().toLowerCase()
+            : '';
+          const albumKey = `${albumName}::${firstArtist}`;
+          if (!albumName || !firstArtist) return;
+          if (id && seenIds.has(id)) return;
+          if (seenAlbumKeys.has(albumKey)) return;
+          if (id) seenIds.add(id);
+          seenAlbumKeys.add(albumKey);
+          deduped.push(row);
+        });
+        return deduped;
+      };
 
-      try {
-        const popularJson = await fetchJsonWithPerfCache(
+      const mixMusicItems = (trackItems = [], albumItems = [], takeCount = HOME_CHANNEL_TARGET_ITEMS) => {
+        const trackQueue = [...(Array.isArray(trackItems) ? trackItems : [])];
+        const albumQueue = [...(Array.isArray(albumItems) ? albumItems : [])];
+        const mixed = [];
+        while (mixed.length < takeCount && (trackQueue.length || albumQueue.length)) {
+          if (trackQueue.length) mixed.push(trackQueue.shift());
+          if (trackQueue.length && mixed.length < takeCount) mixed.push(trackQueue.shift());
+          if (albumQueue.length && mixed.length < takeCount) mixed.push(albumQueue.shift());
+        }
+        while (mixed.length < takeCount && trackQueue.length) mixed.push(trackQueue.shift());
+        while (mixed.length < takeCount && albumQueue.length) mixed.push(albumQueue.shift());
+        return mixed.slice(0, takeCount);
+      };
+
+      const buildMixedMusicItems = (trackRows = [], albumRows = [], takeCount = HOME_CHANNEL_TARGET_ITEMS) => {
+        const dedupedTracks = dedupeMusicTrackRows(trackRows);
+        const dedupedAlbums = dedupeMusicAlbumRows(albumRows);
+        const tracksWithArtwork = dedupedTracks.filter((track) => String(track?.image || '').trim());
+        const albumsWithArtwork = dedupedAlbums.filter((album) => String(album?.image || '').trim());
+        const trackPool = tracksWithArtwork.length ? tracksWithArtwork : dedupedTracks;
+        const albumPool = albumsWithArtwork.length ? albumsWithArtwork : dedupedAlbums;
+        const selectedTracks = shuffleArray(trackPool).slice(0, Math.max(takeCount * 2, 32));
+        const selectedAlbums = shuffleArray(albumPool).slice(0, Math.max(takeCount, 12));
+        const mappedTracks = mapTracksToHomeItems(selectedTracks);
+        const mappedAlbums = mapAlbumsToHomeItems(selectedAlbums);
+        const mixed = mixMusicItems(mappedTracks, mappedAlbums, takeCount);
+        return dedupeHomeItemsByMediaAndId(mixed).slice(0, takeCount);
+      };
+
+      const top50Limit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 4, 64);
+      const newReleaseLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 2, 24);
+      const [top50Res, topAlbumsRes] = await Promise.allSettled([
+        fetchJsonWithPerfCache(
+          `/api/music/top-50?limit=${top50Limit}&market=${market}`,
+          { signal, cacheKey: `music:top-50:${top50Limit}:${market}` }
+        ),
+        fetchJsonWithPerfCache(
+          `/api/music/new-releases?limit=${newReleaseLimit}&market=${market}`,
+          { signal, cacheKey: `music:new-releases:${newReleaseLimit}:${market}` }
+        )
+      ]);
+      const top50Rows = top50Res.status === 'fulfilled' && Array.isArray(top50Res.value?.results) ? top50Res.value.results : [];
+      const topAlbumRows = topAlbumsRes.status === 'fulfilled' && Array.isArray(topAlbumsRes.value?.results) ? topAlbumsRes.value.results : [];
+      const topBatch = filterHomeSafeItems(buildMixedMusicItems(top50Rows, topAlbumRows, HOME_CHANNEL_TARGET_ITEMS));
+      if (topBatch.length) return topBatch;
+
+      const [popularRes, popularAlbumsRes] = await Promise.allSettled([
+        fetchJsonWithPerfCache(
           `/api/music/popular?limit=50&market=${market}`,
           { signal, cacheKey: `music:popular:50:${market}` }
-        );
-        const popularRows = Array.isArray(popularJson?.results) ? popularJson.results : [];
-        const dedupedPopular = dedupeMusicRows(popularRows);
-        const popularWithArtwork = dedupedPopular.filter((track) => String(track.image || '').trim());
-        const popularPool = popularWithArtwork.length ? popularWithArtwork : dedupedPopular;
-        const popularSelected = shuffleArray(popularPool).slice(0, HOME_CHANNEL_TARGET_ITEMS);
-        if (popularSelected.length) {
-          const safePopular = filterHomeSafeItems(mapTracksToHomeItems(popularSelected));
-          if (safePopular.length) return safePopular;
-        }
-      } catch (_popularError) {}
+        ),
+        fetchJsonWithPerfCache(
+          `/api/music/new-releases?limit=24&market=${market}`,
+          { signal, cacheKey: `music:new-releases:24:${market}` }
+        )
+      ]);
+      const popularRows = popularRes.status === 'fulfilled' && Array.isArray(popularRes.value?.results) ? popularRes.value.results : [];
+      const popularAlbumRows = popularAlbumsRes.status === 'fulfilled' && Array.isArray(popularAlbumsRes.value?.results)
+        ? popularAlbumsRes.value.results
+        : [];
+      const popularBatch = filterHomeSafeItems(buildMixedMusicItems(popularRows, popularAlbumRows, HOME_CHANNEL_TARGET_ITEMS));
+      if (popularBatch.length) return popularBatch;
 
-      return FALLBACK_MUSIC_TRACKS.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((track, idx) => ({
+      const fallbackTrackItems = FALLBACK_MUSIC_TRACKS.map((track, idx) => ({
         mediaType: 'music',
         itemId: String(track.id || `fallback-track-${idx + 1}`),
         title: track.title,
@@ -6520,6 +6660,32 @@
         href: track.id ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html',
         fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
       }));
+      const fallbackAlbumItems = FALLBACK_MUSIC_ALBUMS.map((album, idx) => {
+        const releaseDate = String(album.releaseDate || '').trim();
+        const detail = [
+          releaseDate ? `Released ${releaseDate}` : '',
+          Number(album.totalTracks || 0) > 0 ? `${Number(album.totalTracks)} tracks` : '',
+          String(album.albumType || '').trim()
+        ].filter(Boolean).join(' | ');
+        return {
+          mediaType: 'music',
+          itemId: `album:${String(album.id || `fallback-album-${idx + 1}`)}`,
+          title: String(album.title || 'Album'),
+          subtitle: String(album.artist || 'Artist'),
+          extra: `Album${detail ? ` | ${detail}` : ''}`,
+          image: HOME_LOCAL_FALLBACK_IMAGE,
+          backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
+          spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
+          spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          href: 'music.html',
+          disableLists: true,
+          isMusicAlbum: true,
+          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
+        };
+      });
+      return mixMusicItems(fallbackTrackItems, fallbackAlbumItems, HOME_CHANNEL_TARGET_ITEMS);
     }
 
     async function initUniversalHome() {

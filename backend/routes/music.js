@@ -82,6 +82,34 @@ function normalizeTrackRow(track) {
   };
 }
 
+function normalizeAlbumRow(album) {
+  const artists = Array.isArray(album?.artists) ? album.artists : [];
+  const images = Array.isArray(album?.images) ? album.images : [];
+  return {
+    id: String(album?.id || ""),
+    kind: "album",
+    name: String(album?.name || "Album"),
+    artists: artists
+      .map((artist) => String(artist?.name || "").trim())
+      .filter(Boolean),
+    artist_ids: artists
+      .map((artist) => String(artist?.id || "").trim())
+      .filter(Boolean),
+    image: String(images?.[0]?.url || "").trim(),
+    images: images
+      .map((img) => ({
+        url: String(img?.url || "").trim(),
+        width: Number(img?.width || 0),
+        height: Number(img?.height || 0)
+      }))
+      .filter((img) => !!img.url),
+    external_url: String(album?.external_urls?.spotify || "").trim(),
+    release_date: String(album?.release_date || "").trim(),
+    total_tracks: Number(album?.total_tracks || 0),
+    album_type: String(album?.album_type || "").trim()
+  };
+}
+
 function normalizeArtistRow(artist) {
   const images = Array.isArray(artist?.images) ? artist.images : [];
   const genres = Array.isArray(artist?.genres) ? artist.genres : [];
@@ -114,6 +142,24 @@ function normalizeItunesTrackRow(track) {
     popularity: 0,
     duration_ms: Number(track?.trackTimeMillis || 0),
     explicit: false
+  };
+}
+
+function normalizeItunesAlbumRow(album) {
+  return {
+    id: String(album?.collectionId || album?.id || ""),
+    kind: "album",
+    name: String(album?.collectionName || "Album"),
+    artists: [String(album?.artistName || "").trim()].filter(Boolean),
+    artist_ids: [],
+    image: String(album?.artworkUrl100 || album?.artworkUrl60 || "").trim(),
+    images: [String(album?.artworkUrl100 || album?.artworkUrl60 || "").trim()]
+      .filter(Boolean)
+      .map((url) => ({ url, width: 100, height: 100 })),
+    external_url: String(album?.collectionViewUrl || "").trim(),
+    release_date: String(album?.releaseDate || "").trim().slice(0, 10),
+    total_tracks: Number(album?.trackCount || 0),
+    album_type: "album"
   };
 }
 
@@ -181,6 +227,19 @@ async function searchItunesTracks({ q, limit }) {
   const json = await res.json();
   const rows = Array.isArray(json?.results) ? json.results : [];
   return rows.map(normalizeItunesTrackRow).filter((row) => !!row.id);
+}
+
+async function searchItunesAlbums({ q, limit }) {
+  const url = new URL("https://itunes.apple.com/search");
+  url.searchParams.set("term", String(q || "").trim());
+  url.searchParams.set("media", "music");
+  url.searchParams.set("entity", "album");
+  url.searchParams.set("limit", String(clampInt(limit, 1, 50, 20)));
+  const res = await fetch(url.toString());
+  if (!res.ok) return [];
+  const json = await res.json();
+  const rows = Array.isArray(json?.results) ? json.results : [];
+  return rows.map(normalizeItunesAlbumRow).filter((row) => !!row.id);
 }
 
 async function fetchAppleMostPlayedSongs({ country = "us", limit = 50 }) {
@@ -511,11 +570,14 @@ router.get("/new-releases", async (req, res) => {
     const items = Array.isArray(json?.albums?.items) ? json.albums.items : [];
     const results = items.map((item) => ({
       id: String(item?.id || "").trim(),
+      kind: "album",
       name: String(item?.name || "").trim(),
       artists: Array.isArray(item?.artists) ? item.artists.map((a) => String(a?.name || "").trim()).filter(Boolean) : [],
       image: String(item?.images?.[0]?.url || "").trim(),
       external_url: String(item?.external_urls?.spotify || "").trim(),
-      release_date: String(item?.release_date || "").trim()
+      release_date: String(item?.release_date || "").trim(),
+      total_tracks: Number(item?.total_tracks || 0),
+      album_type: String(item?.album_type || "").trim()
     })).filter((item) => !!item.id);
     return res.json({ count: results.length, limit, results, source: "spotify" });
   } catch (error) {
@@ -532,44 +594,88 @@ router.get("/search", async (req, res) => {
   const limit = clampInt(req.query.limit, 1, 50, 20);
   const offset = clampInt(req.query.offset, 0, 500, 0);
   const market = String(req.query.market || "US").trim().slice(0, 2).toUpperCase() || "US";
+  const rawType = String(req.query.type || "track")
+    .split(",")
+    .map((part) => String(part || "").trim().toLowerCase())
+    .filter(Boolean);
+  const allowedTypes = new Set(["track", "album"]);
+  const safeTypes = rawType.filter((type) => allowedTypes.has(type));
+  if (!safeTypes.length) safeTypes.push("track");
+  const includeTracks = safeTypes.includes("track");
+  const includeAlbums = safeTypes.includes("album");
+  const spotifyType = safeTypes.join(",");
 
   try {
     if (!hasSpotifyCredentials()) {
-      const fallback = await searchItunesTracks({ q, limit });
+      const [fallbackTracks, fallbackAlbums] = await Promise.all([
+        includeTracks ? searchItunesTracks({ q, limit }) : Promise.resolve([]),
+        includeAlbums ? searchItunesAlbums({ q, limit }) : Promise.resolve([])
+      ]);
+      const fallbackPrimary = includeTracks ? fallbackTracks : fallbackAlbums;
+      const fallbackCount = includeTracks && includeAlbums
+        ? (fallbackTracks.length + fallbackAlbums.length)
+        : fallbackPrimary.length;
       return res.json({
-        count: fallback.length,
+        count: fallbackCount,
+        track_count: fallbackTracks.length,
+        album_count: fallbackAlbums.length,
         limit,
         offset: 0,
         source: "itunes-fallback",
-        results: fallback
+        type: spotifyType,
+        results: fallbackPrimary,
+        tracks: fallbackTracks,
+        albums: fallbackAlbums
       });
     }
 
     const json = await spotifyRequest("/search", {
       q,
-      type: "track",
+      type: spotifyType,
       limit,
       offset,
       market
     });
-
-    const tracks = Array.isArray(json?.tracks?.items) ? json.tracks.items : [];
+    const trackRows = includeTracks && Array.isArray(json?.tracks?.items) ? json.tracks.items : [];
+    const albumRows = includeAlbums && Array.isArray(json?.albums?.items) ? json.albums.items : [];
+    const tracks = trackRows.map(normalizeTrackRow).filter((row) => !!row.id);
+    const albums = albumRows.map(normalizeAlbumRow).filter((row) => !!row.id);
+    const primaryResults = includeTracks ? tracks : albums;
+    const trackCount = Number(json?.tracks?.total || tracks.length || 0);
+    const albumCount = Number(json?.albums?.total || albums.length || 0);
     return res.json({
-      count: Number(json?.tracks?.total || tracks.length || 0),
+      count: includeTracks && includeAlbums ? (trackCount + albumCount) : (includeTracks ? trackCount : albumCount),
+      track_count: trackCount,
+      album_count: albumCount,
       limit,
       offset,
       source: "spotify",
-      results: tracks.map(normalizeTrackRow)
+      type: spotifyType,
+      results: primaryResults,
+      tracks,
+      albums
     });
   } catch (error) {
     try {
-      const fallback = await searchItunesTracks({ q, limit });
+      const [fallbackTracks, fallbackAlbums] = await Promise.all([
+        includeTracks ? searchItunesTracks({ q, limit }) : Promise.resolve([]),
+        includeAlbums ? searchItunesAlbums({ q, limit }) : Promise.resolve([])
+      ]);
+      const fallbackPrimary = includeTracks ? fallbackTracks : fallbackAlbums;
+      const fallbackCount = includeTracks && includeAlbums
+        ? (fallbackTracks.length + fallbackAlbums.length)
+        : fallbackPrimary.length;
       return res.json({
-        count: fallback.length,
+        count: fallbackCount,
+        track_count: fallbackTracks.length,
+        album_count: fallbackAlbums.length,
         limit,
         offset: 0,
         source: "itunes-fallback",
-        results: fallback
+        type: spotifyType,
+        results: fallbackPrimary,
+        tracks: fallbackTracks,
+        albums: fallbackAlbums
       });
     } catch (_fallbackError) {
       return res.status(500).json({ message: "Failed to search music.", error: String(error?.message || error) });

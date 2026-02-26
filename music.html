@@ -460,7 +460,8 @@
     function mapAlbumRowsToItems(rows = []) {
       return (Array.isArray(rows) ? rows : []).map((row) => {
         const artists = Array.isArray(row.artists) ? row.artists : [];
-        const albumCoreId = String(row.id || '').trim();
+        const albumCoreIdRaw = String(row.id || '').trim();
+        const albumCoreId = albumCoreIdRaw.startsWith('album:') ? albumCoreIdRaw.slice(6) : albumCoreIdRaw;
         if (!albumCoreId) return null;
         return {
           id: `album:${albumCoreId}`,
@@ -472,6 +473,8 @@
           preview_url: '',
           external_url: row.external_url || '',
           release_date: String(row.release_date || '').trim(),
+          total_tracks: Number(row.total_tracks || 0),
+          album_type: String(row.album_type || '').trim(),
           popularity: 0
         };
       }).filter(Boolean);
@@ -509,7 +512,14 @@
       const kind = String(item?.kind || 'track').toLowerCase();
       if (kind === 'album') {
         const release = String(item?.release_date || '').trim();
-        return release ? `Album | Released ${release}` : 'Album Release';
+        const tracks = Number(item?.total_tracks || 0);
+        const albumType = String(item?.album_type || '').trim();
+        const details = [
+          release ? `Released ${release}` : '',
+          tracks > 0 ? `${tracks} tracks` : '',
+          albumType || ''
+        ].filter(Boolean).join(' | ');
+        return details ? `Album | ${details}` : 'Album Release';
       }
       return `${String(item?.album || 'Album')} | Popularity ${Number(item?.popularity || 0)}/100`;
     }
@@ -560,17 +570,13 @@
 
       try {
         if (query) {
-          const [trackRes, albumFallbackRes] = await Promise.allSettled([
-            fetch(`/api/music/search?q=${q}&limit=36&market=US`),
-            loadFallbackAlbums(query)
-          ]);
-
-          if (trackRes.status === 'fulfilled' && trackRes.value?.ok) {
-            const trackJson = await trackRes.value.json();
-            trackRows = Array.isArray(trackJson.results) ? trackJson.results : [];
-          }
-          if (albumFallbackRes.status === 'fulfilled') {
-            albumRows = Array.isArray(albumFallbackRes.value) ? albumFallbackRes.value : [];
+          const searchRes = await fetch(`/api/music/search?q=${q}&limit=36&market=US&type=track,album`);
+          if (searchRes?.ok) {
+            const searchJson = await searchRes.json();
+            trackRows = Array.isArray(searchJson?.tracks)
+              ? searchJson.tracks
+              : (Array.isArray(searchJson?.results) ? searchJson.results : []);
+            albumRows = Array.isArray(searchJson?.albums) ? searchJson.albums : [];
           }
         } else {
           const [trackRes, albumRes] = await Promise.allSettled([
@@ -592,9 +598,7 @@
       }
 
       const mappedTracks = mapTrackRowsToItems(trackRows);
-      let mappedAlbums = query
-        ? (Array.isArray(albumRows) ? albumRows : []).filter((row) => String(row?.kind || '').toLowerCase() === 'album')
-        : mapAlbumRowsToItems(albumRows);
+      let mappedAlbums = mapAlbumRowsToItems(albumRows);
       if (!mappedAlbums.length) {
         mappedAlbums = await loadFallbackAlbums(query || 'top albums');
       }
