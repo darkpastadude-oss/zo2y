@@ -1,7 +1,9 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v6';
-const PAGE_CACHE = 'zo2y-pages-v6';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v7';
+const PAGE_CACHE = 'zo2y-pages-v7';
 const IMAGE_CACHE = 'zo2y-images-v2';
+const API_CACHE = 'zo2y-api-v1';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
+const MAX_API_CACHE_ENTRIES = 260;
 
 const STATIC_ASSETS = [
   '/',
@@ -15,7 +17,7 @@ const STATIC_ASSETS = [
   '/images/logo.png'
 ];
 
-const ACTIVE_CACHES = [APP_SHELL_CACHE, PAGE_CACHE, IMAGE_CACHE];
+const ACTIVE_CACHES = [APP_SHELL_CACHE, PAGE_CACHE, IMAGE_CACHE, API_CACHE];
 
 function isCacheableResponse(response) {
   return !!response && (response.ok || response.type === 'opaque');
@@ -50,6 +52,10 @@ async function putInCache(cacheName, request, response) {
   }
   if (cacheName === IMAGE_CACHE) {
     await trimCache(IMAGE_CACHE, MAX_IMAGE_CACHE_ENTRIES);
+    return;
+  }
+  if (cacheName === API_CACHE) {
+    await trimCache(API_CACHE, MAX_API_CACHE_ENTRIES);
   }
 }
 
@@ -59,6 +65,11 @@ function queueCachePut(cacheName, request, response) {
   void putInCache(cacheName, request, clonedResponse).catch(() => {
     // Silent fail to avoid runtime noise from non-cloneable responses.
   });
+}
+
+function isMediaApiRequest(url) {
+  if (!url || url.origin !== self.location.origin) return false;
+  return /^\/api\/(tmdb|igdb|books|music|openlibrary)(\/|$)/i.test(url.pathname);
 }
 
 async function cacheFirst(request, cacheName) {
@@ -139,6 +150,11 @@ self.addEventListener('fetch', (event) => {
 
   if (isImageRequest) {
     event.respondWith(staleWhileRevalidate(request, IMAGE_CACHE));
+    return;
+  }
+
+  if (isMediaApiRequest(url)) {
+    event.respondWith(staleWhileRevalidate(request, API_CACHE));
     return;
   }
 

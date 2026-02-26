@@ -1417,12 +1417,13 @@
 
         /* === MODALS === */
         .modal {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            width: 100dvw;
+            height: 100dvh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
             display: none;
             align-items: center;
             justify-content: center;
@@ -1442,7 +1443,16 @@
             max-height: 90vh;
             overflow-y: auto;
             border: 1px solid var(--border);
-            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes profileModalFlyUp {
+            from { opacity: 0; transform: translateY(22px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-content.profile-modal-fly-up,
+        .confirm-content.profile-modal-fly-up {
+            animation: profileModalFlyUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .modal-header {
@@ -2428,12 +2438,13 @@
 
         /* === CUSTOM CONFIRMATION MODAL === */
         .confirm-modal {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            width: 100dvw;
+            height: 100dvh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
             display: none;
             align-items: center;
             justify-content: center;
@@ -2451,7 +2462,6 @@
             width: 100%;
             max-width: 400px;
             border: 1px solid var(--border);
-            animation: slideIn 0.3s ease;
         }
 
         .confirm-header {
@@ -3438,24 +3448,12 @@
             margin: 8px 0;
         }
 
-        /* Mobile-specific modal positioning */
+        /* Mobile-specific modal sizing */
         @media (max-width: 768px) {
             #mobileMenuModal .modal-content {
-                position: fixed;
-                top: 60px;
-                right: 10px;
-                left: auto;
-                width: 280px;
-                max-height: calc(100vh - 70px);
-                transform: none;
-                animation: slideInDown 0.2s ease;
-                border: 1px solid var(--border);
-                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            }
-            
-            @keyframes slideInDown {
-                from { transform: translateY(-20px); opacity: 0; }
-                to { transform: translateY(0); opacity: 1; }
+                width: min(320px, 100%);
+                max-width: 320px;
+                max-height: 85vh;
             }
         }
     
@@ -5648,7 +5646,7 @@ header, .top-stripe, .section-nav {
 
     <!-- Mobile Menu Modal -->
     <div class="modal" id="mobileMenuModal">
-        <div class="modal-content" style="max-width: 300px; position: fixed; top: 60px; right: 20px; max-height: calc(100vh - 80px);">
+        <div class="modal-content">
             <div class="modal-body">
                 <div class="mobile-menu-items">
                     <a href="index.html" class="mobile-menu-item">
@@ -5764,6 +5762,7 @@ header, .top-stripe, .section-nav {
             let hasPreloadedTabs = false;
             let tabSwitchToken = 0;
             let hasBoundRouteListeners = false;
+            let hasBoundModalViewportListeners = false;
             const TAB_RENDER_CACHE_TTL_MS = 5 * 60 * 1000;
             const tabRenderCache = new Map();
             const PREVIEW_ASSET_CACHE_TTL_MS = 10 * 60 * 1000;
@@ -6055,6 +6054,72 @@ header, .top-stripe, .section-nav {
                 return (type === 'restaurant') ? 'is-landscape' : 'is-portrait';
             }
 
+            function playProfileModalFlyUp(modal) {
+                if (!modal) return;
+                const content = modal.querySelector('.modal-content, .confirm-content');
+                if (!content) return;
+                content.classList.remove('profile-modal-fly-up');
+                // Restart animation for repeated opens.
+                // eslint-disable-next-line no-unused-expressions
+                content.offsetWidth;
+                content.classList.add('profile-modal-fly-up');
+            }
+
+            function syncProfileModalViewport(modal) {
+                if (!modal || !modal.classList.contains('active')) return;
+                const visual = window.visualViewport;
+                const top = (visual?.offsetTop || 0) + window.scrollY;
+                const left = (visual?.offsetLeft || 0) + window.scrollX;
+                const width = Math.max(0, Math.ceil(visual?.width || window.innerWidth || document.documentElement.clientWidth || 0));
+                const height = Math.max(0, Math.ceil(visual?.height || window.innerHeight || document.documentElement.clientHeight || 0));
+                modal.style.top = `${top}px`;
+                modal.style.left = `${left}px`;
+                modal.style.width = `${width}px`;
+                modal.style.height = `${height}px`;
+            }
+
+            function getActiveProfileModals() {
+                return Array.from(document.querySelectorAll('.modal.active, .confirm-modal.active'));
+            }
+
+            function syncActiveProfileModalViewports() {
+                getActiveProfileModals().forEach(syncProfileModalViewport);
+            }
+
+            function syncProfileModalBodyLock() {
+                const anyActive = getActiveProfileModals().length > 0;
+                if (anyActive) {
+                    syncActiveProfileModalViewports();
+                    document.body.style.overflow = 'hidden';
+                    document.documentElement.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                    document.documentElement.style.overflow = '';
+                }
+            }
+
+            function bindProfileModalViewportListeners() {
+                if (hasBoundModalViewportListeners) return;
+                hasBoundModalViewportListeners = true;
+                const sync = () => syncActiveProfileModalViewports();
+                window.addEventListener('resize', sync, { passive: true });
+                window.addEventListener('scroll', sync, { passive: true });
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', sync, { passive: true });
+                    window.visualViewport.addEventListener('scroll', sync, { passive: true });
+                }
+            }
+
+            function isColumnMissingError(error, columnName) {
+                const message = String(error?.message || '').toLowerCase();
+                const details = String(error?.details || '').toLowerCase();
+                const hint = String(error?.hint || '').toLowerCase();
+                const code = String(error?.code || '').toUpperCase();
+                const needle = String(columnName || '').toLowerCase();
+                if (!needle) return false;
+                return code === '42703' || message.includes(needle) || details.includes(needle) || hint.includes(needle);
+            }
+
             // ===== CUSTOM CONFIRMATION MODAL =====
             function showConfirmModal(title, message, onConfirm) {
                 const modal = document.getElementById('confirmModal');
@@ -6075,7 +6140,10 @@ header, .top-stripe, .section-nav {
                     });
                     
                     modal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
+                    modal.setAttribute('aria-hidden', 'false');
+                    syncProfileModalViewport(modal);
+                    playProfileModalFlyUp(modal);
+                    syncProfileModalBodyLock();
                 }
             }
 
@@ -6083,7 +6151,8 @@ header, .top-stripe, .section-nav {
                 const modal = document.getElementById('confirmModal');
                 if (modal) {
                     modal.classList.remove('active');
-                    document.body.style.overflow = '';
+                    modal.setAttribute('aria-hidden', 'true');
+                    syncProfileModalBodyLock();
                 }
             }
 
@@ -6247,44 +6316,85 @@ header, .top-stripe, .section-nav {
             }
 
             async function loadUserProfile() {
-                const { data: profile, error } = await supabase
-                    .from("user_profiles")
-                    .select("*")
-                    .eq("id", currentUser.id)
-                    .single();
+                let profile = null;
+                let profileError = null;
 
-                if (error && error.code !== 'PGRST116') {
-                    console.error("Error loading profile:", error);
+                {
+                    const result = await supabase
+                        .from("user_profiles")
+                        .select("*")
+                        .eq("id", currentUser.id)
+                        .maybeSingle();
+                    profile = result.data || null;
+                    profileError = result.error || null;
+                }
+
+                if (!profile) {
+                    const fallbackResult = await supabase
+                        .from("user_profiles")
+                        .select("*")
+                        .eq("user_id", currentUser.id)
+                        .maybeSingle();
+                    if (!fallbackResult.error && fallbackResult.data) {
+                        profile = fallbackResult.data;
+                        profileError = null;
+                    } else if (fallbackResult.error && !isColumnMissingError(fallbackResult.error, 'user_id')) {
+                        profileError = fallbackResult.error;
+                    }
+                }
+
+                if (profileError && profileError.code !== 'PGRST116') {
+                    console.error("Error loading profile:", profileError);
                 }
 
                 userProfile = profile || {};
-                
-                if (!profile) {
-                    const { error: insertError } = await supabase
+                if (profile) return;
+
+                const basePayload = {
+                    id: currentUser.id,
+                    username: currentUser.email.split('@')[0],
+                    full_name: currentUser.email.split('@')[0],
+                    bio: "",
+                    location: "",
+                    avatar_icon: iconGlyph('user'),
+                    is_private: false,
+                    created_at: new Date().toISOString()
+                };
+
+                let insertError = null;
+                {
+                    const result = await supabase
                         .from("user_profiles")
                         .insert({
-                            id: currentUser.id,
-                            username: currentUser.email.split('@')[0],
-                            full_name: currentUser.email.split('@')[0],
-                            bio: "",
-                            location: "",
-                            avatar_icon: iconGlyph('user'),
-                            is_private: false,
-                            created_at: new Date().toISOString()
+                            ...basePayload,
+                            user_id: currentUser.id
                         });
-
-                    if (insertError) {
-                        console.error('Error creating profile:', insertError);
-                    } else {
-                        const { data: newProfile } = await supabase
-                            .from("user_profiles")
-                            .select("*")
-                            .eq("id", currentUser.id)
-                            .single();
-                        
-                        userProfile = newProfile || {};
-                    }
+                    insertError = result.error || null;
                 }
+                if (insertError && isColumnMissingError(insertError, 'user_id')) {
+                    const retryResult = await supabase
+                        .from("user_profiles")
+                        .insert(basePayload);
+                    insertError = retryResult.error || null;
+                }
+
+                if (insertError) {
+                    console.error('Error creating profile:', insertError);
+                    return;
+                }
+
+                const { data: newProfile, error: newProfileError } = await supabase
+                    .from("user_profiles")
+                    .select("*")
+                    .eq("id", currentUser.id)
+                    .maybeSingle();
+                if (newProfileError && newProfileError.code !== 'PGRST116') {
+                    console.error('Error reloading profile:', newProfileError);
+                }
+                userProfile = newProfile || {
+                    ...basePayload,
+                    user_id: currentUser.id
+                };
             }
 
             function normalizeProfileTheme(themeValue) {
@@ -15233,8 +15343,10 @@ header, .top-stripe, .section-nav {
                 const modal = document.getElementById(modalId);
                 if (modal) {
                     modal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                    document.documentElement.style.overflow = 'hidden';
+                    modal.setAttribute('aria-hidden', 'false');
+                    syncProfileModalViewport(modal);
+                    playProfileModalFlyUp(modal);
+                    syncProfileModalBodyLock();
                     
                     if (modalId === 'addEntryModal') {
                         const visitDate = document.getElementById('visitDate');
@@ -15305,8 +15417,8 @@ header, .top-stripe, .section-nav {
                 const modal = document.getElementById(modalId);
                 if (modal) {
                     modal.classList.remove('active');
-                    document.body.style.overflow = '';
-                    document.documentElement.style.overflow = '';
+                    modal.setAttribute('aria-hidden', 'true');
+                    syncProfileModalBodyLock();
                     
                     if (modalId === 'addEntryModal') {
                         const form = document.getElementById('journalEntryForm');
@@ -15423,11 +15535,7 @@ header, .top-stripe, .section-nav {
 
             // ===== MOBILE MENU FUNCTIONS =====
             function showMobileMenu() {
-                const modal = document.getElementById('mobileMenuModal');
-                if (modal) {
-                    modal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                }
+                showModal('mobileMenuModal');
             }
 
             // ===== AVATAR FUNCTIONS =====
@@ -15444,37 +15552,85 @@ header, .top-stripe, .section-nav {
                 }
 
                 try {
-                    console.log('Saving avatar:', selectedAvatarIcon);
-                    
-                    const { error } = await supabase
+                    const nowIso = new Date().toISOString();
+                    const payload = {
+                        avatar_icon: selectedAvatarIcon,
+                        updated_at: nowIso
+                    };
+                    let saved = false;
+
+                    const byIdResult = await supabase
                         .from('user_profiles')
-                        .update({ 
+                        .update(payload)
+                        .eq('id', currentUser.id)
+                        .select('*')
+                        .limit(1);
+                    if (byIdResult.error && !isColumnMissingError(byIdResult.error, 'id')) {
+                        throw byIdResult.error;
+                    }
+                    saved = Array.isArray(byIdResult.data) && byIdResult.data.length > 0;
+
+                    if (!saved) {
+                        const byUserIdResult = await supabase
+                            .from('user_profiles')
+                            .update(payload)
+                            .eq('user_id', currentUser.id)
+                            .select('*')
+                            .limit(1);
+                        if (byUserIdResult.error && !isColumnMissingError(byUserIdResult.error, 'user_id')) {
+                            throw byUserIdResult.error;
+                        }
+                        saved = Array.isArray(byUserIdResult.data) && byUserIdResult.data.length > 0;
+                    }
+
+                    if (!saved) {
+                        const usernameSeed = String(
+                            userProfile?.username ||
+                            currentUser?.email?.split('@')[0] ||
+                            `user_${String(currentUser?.id || '').slice(0, 8)}`
+                        ).trim();
+                        const fullNameSeed = String(
+                            userProfile?.full_name ||
+                            usernameSeed ||
+                            'User'
+                        ).trim();
+                        const upsertPayload = {
+                            id: currentUser.id,
+                            user_id: currentUser.id,
+                            username: usernameSeed,
+                            full_name: fullNameSeed,
+                            bio: String(userProfile?.bio || ''),
+                            location: String(userProfile?.location || ''),
+                            is_private: !!userProfile?.is_private,
                             avatar_icon: selectedAvatarIcon,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', currentUser.id);
+                            created_at: userProfile?.created_at || nowIso,
+                            updated_at: nowIso
+                        };
 
-                    if (error) throw error;
+                        let upsertError = null;
+                        {
+                            const result = await supabase
+                                .from('user_profiles')
+                                .upsert(upsertPayload, { onConflict: 'id' });
+                            upsertError = result.error || null;
+                        }
+                        if (upsertError && isColumnMissingError(upsertError, 'user_id')) {
+                            const { user_id, ...fallbackPayload } = upsertPayload;
+                            const retry = await supabase
+                                .from('user_profiles')
+                                .upsert(fallbackPayload, { onConflict: 'id' });
+                            upsertError = retry.error || null;
+                        }
+                        if (upsertError) throw upsertError;
+                    }
 
-                    // Update UI
-                    const avatar = document.getElementById('profileAvatar');
-                    if (avatar) {
-                        avatar.textContent = selectedAvatarIcon;
-                    }
-                    
-                    const mobileAvatar = document.getElementById('mobileAvatar');
-                    if (mobileAvatar) {
-                        mobileAvatar.textContent = selectedAvatarIcon;
-                    }
-                    
-                    // Update local profile
+                    await loadUserProfile();
                     if (userProfile) {
                         userProfile.avatar_icon = selectedAvatarIcon;
                     }
-                    
+                    updateProfileUI(userProfile);
                     showToast('Avatar updated successfully!', 'success');
                     closeModal('avatarModal');
-                    
                 } catch (error) {
                     console.error('Error saving avatar:', error);
                     showToast('Error saving avatar', 'error');
@@ -15602,6 +15758,7 @@ header, .top-stripe, .section-nav {
             function setupEventListeners() {
                 console.log('Setting up event listeners...');
                 setupCommunitySnapshotNavigation();
+                bindProfileModalViewportListeners();
                 
                 // Remove existing listener before adding new one
                 const createListForm = document.getElementById('createListForm');
@@ -15732,6 +15889,14 @@ header, .top-stripe, .section-nav {
                         }
                     });
                 });
+
+                document.querySelectorAll('.confirm-modal').forEach(modal => {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            closeConfirmModal();
+                        }
+                    });
+                });
                 
                 // ESC key to close modals
                 document.addEventListener('keydown', (e) => {
@@ -15739,6 +15904,10 @@ header, .top-stripe, .section-nav {
                         document.querySelectorAll('.modal.active').forEach(modal => {
                             closeModal(modal.id);
                         });
+                        const confirmModal = document.getElementById('confirmModal');
+                        if (confirmModal?.classList.contains('active')) {
+                            closeConfirmModal();
+                        }
                     }
                 });
             }

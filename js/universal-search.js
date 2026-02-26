@@ -1,19 +1,22 @@
-﻿(function () {
-  const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  const TMDB_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s';
+(function () {
+  const TMDB_PROXY_BASE = '/api/tmdb';
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
   const IGDB_PROXY_BASE = '/api/igdb';
   const BOOKS_PROXY_BASE = '/api/books';
   const MUSIC_PROXY_BASE = '/api/music';
+  const MIN_QUERY_LEN = 2;
+  const SEARCH_DEBOUNCE_MS = 140;
+  const REQUEST_TIMEOUT_MS = 3400;
+  const SEARCH_CACHE_TTL_MS = 3 * 60 * 1000;
+  const SEARCH_CACHE_MAX_ENTRIES = 60;
+
+  const suggestionCache = new Map();
 
   function toHttpsUrl(value) {
     const raw = String(value || '').trim();
     if (!raw) return '';
     return raw.replace(/^http:\/\//i, 'https://');
   }
-
-  let supabaseClient = null;
 
   function ensureStyles() {
     if (document.getElementById('universal-search-styles')) return;
@@ -132,39 +135,71 @@
     return buckets;
   }
 
-  async function fetchRestaurants(query) {
-    if (!window.supabase || !window.supabase.createClient) return [];
-    if (!supabaseClient) {
-      supabaseClient = window.__zo2ySupabaseClient || window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: false
-        }
-      });
-      window.__zo2ySupabaseClient = supabaseClient;
-    }
-    const { data } = await supabaseClient
-      .from('restraunts')
-      .select('id,name,category,image')
-      .ilike('name', `%${query}%`)
-      .limit(4);
-    return (data || []).map((r) => ({
-      type: 'Restaurants',
-      title: r.name || 'Restaurant',
-      sub: r.category || 'Restaurant',
-      href: r.id ? `restaurant.html?id=${encodeURIComponent(r.id)}` : 'restraunts.html',
-      image: r.image ? toHttpsUrl(`images/${r.image}`) : '',
-      landscape: true
-    }));
+  function normalizeQuery(value) {
+    return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
   }
 
-  async function fetchMoviesAndTv(query) {
-    const res = await fetch(`https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=1`, {
-      headers: { Authorization: `Bearer ${TMDB_TOKEN}` }
-    });
-    if (!res.ok) return [];
-    const json = await res.json();
+  function pruneSuggestionCache() {
+    if (suggestionCache.size <= SEARCH_CACHE_MAX_ENTRIES) return;
+    const entries = Array.from(suggestionCache.entries()).sort((a, b) => (a[1]?.ts || 0) - (b[1]?.ts || 0));
+    while (entries.length > SEARCH_CACHE_MAX_ENTRIES) {
+      const entry = entries.shift();
+      if (!entry) break;
+      suggestionCache.delete(entry[0]);
+    }
+  }
+
+  function readCachedSuggestions(queryKey) {
+    if (!queryKey) return null;
+    const cached = suggestionCache.get(queryKey);
+    if (!cached) return null;
+    if ((Date.now() - Number(cached.ts || 0)) > SEARCH_CACHE_TTL_MS) {
+      suggestionCache.delete(queryKey);
+      return null;
+    }
+    return Array.isArray(cached.items) ? cached.items : null;
+  }
+
+  function writeCachedSuggestions(queryKey, items) {
+    if (!queryKey || !Array.isArray(items)) return;
+    suggestionCache.set(queryKey, { ts: Date.now(), items });
+    pruneSuggestionCache();
+  }
+
+  async function fetchJsonWithTimeout(url, { signal = null, headers = null, timeoutMs = REQUEST_TIMEOUT_MS } = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    let abortListener = null;
+    if (signal) {
+      if (signal.aborted) {
+        clearTimeout(timer);
+        throw new DOMException('Aborted', 'AbortError');
+      }
+      abortListener = () => controller.abort();
+      signal.addEventListener('abort', abortListener, { once: true });
+    }
+
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: headers || undefined
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } finally {
+      clearTimeout(timer);
+      if (signal && abortListener) {
+        signal.removeEventListener('abort', abortListener);
+      }
+    }
+  }
+
+  async function fetchMoviesAndTv(query, signal) {
+    const url = `${TMDB_PROXY_BASE}/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=1&include_adult=false`;
+    const json = await fetchJsonWithTimeout(url, { signal });
+    if (!json) return [];
+
     const items = Array.isArray(json.results) ? json.results : [];
     const mapped = [];
     for (const item of items) {
@@ -178,6 +213,7 @@
           image: item.poster_path ? toHttpsUrl(`${TMDB_POSTER}${item.poster_path}`) : '',
           landscape: false
         });
+        continue;
       }
       if (item.media_type === 'tv') {
         mapped.push({
@@ -193,7 +229,7 @@
     return mapped;
   }
 
-  async function fetchGames(query) {
+  async function fetchGames(query, signal) {
     let json = null;
     if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
       try {
@@ -202,10 +238,10 @@
         return [];
       }
     } else {
-      const res = await fetch(`${IGDB_PROXY_BASE}/games?search=${encodeURIComponent(query)}&page_size=4`);
-      if (!res.ok) return [];
-      json = await res.json();
+      json = await fetchJsonWithTimeout(`${IGDB_PROXY_BASE}/games?search=${encodeURIComponent(query)}&page_size=4`, { signal });
+      if (!json) return [];
     }
+
     const items = Array.isArray(json.results) ? json.results : [];
     return items.map((g) => ({
       type: 'Games',
@@ -217,7 +253,7 @@
     }));
   }
 
-  async function fetchBooks(query) {
+  async function fetchBooks(query, signal) {
     const buildOpenLibraryCoverUrl = (doc, size = 'L') => {
       const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
         ? String(size || 'L').toUpperCase()
@@ -234,31 +270,13 @@
       return '';
     };
 
-    const searchUrl = `${BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=4&language=eng&page=1`;
-    let docs = [];
-    try {
-      const res = await fetch(searchUrl);
-      if (res.ok) {
-        const json = await res.json();
-        docs = Array.isArray(json?.docs)
-          ? json.docs
-          : (Array.isArray(json?.items) ? json.items : []);
-      }
-    } catch (_err) {}
-
-    if (!docs.length) {
-      try {
-        const fallbackRes = await fetch(`${BOOKS_PROXY_BASE}/trending?period=weekly&limit=4`);
-        if (fallbackRes.ok) {
-          const fallbackJson = await fallbackRes.json();
-          docs = Array.isArray(fallbackJson?.docs)
-            ? fallbackJson.docs
-            : (Array.isArray(fallbackJson?.items) ? fallbackJson.items : []);
-        }
-      } catch (_err) {
-        docs = [];
-      }
-    }
+    const json = await fetchJsonWithTimeout(
+      `${BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=4&language=eng&page=1`,
+      { signal }
+    );
+    const docs = Array.isArray(json?.docs)
+      ? json.docs
+      : (Array.isArray(json?.items) ? json.items : []);
 
     return docs.slice(0, 4).map((doc, idx) => {
       const title = String(doc?.title || '').trim() || 'Book';
@@ -290,51 +308,54 @@
     });
   }
 
-  async function fetchMusic(query) {
-    try {
-      const res = await fetch(`${MUSIC_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=4&market=US`);
-      if (res.ok) {
-        const json = await res.json();
-        const items = Array.isArray(json.results) ? json.results : [];
-        return items.map((track) => ({
-          type: 'Music',
-          title: track.name || 'Track',
-          sub: Array.isArray(track.artists) && track.artists.length ? track.artists.join(', ') : 'Artist',
-          href: track.id ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html',
-          image: toHttpsUrl(track.image || ''),
-          landscape: false
-        }));
-      }
-    } catch (_err) {}
-
-    // Fallback path when Spotify proxy is unavailable.
-    try {
-      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=4`);
-      if (!res.ok) return [];
-      const json = await res.json();
-      const items = Array.isArray(json.results) ? json.results : [];
+  async function fetchMusic(query, signal) {
+    const proxy = await fetchJsonWithTimeout(
+      `${MUSIC_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=4&market=US`,
+      { signal }
+    );
+    if (proxy) {
+      const items = Array.isArray(proxy.results) ? proxy.results : [];
       return items.map((track) => ({
         type: 'Music',
-        title: track.trackName || 'Track',
-        sub: track.artistName || 'Artist',
-        href: track.trackId ? `song.html?id=${encodeURIComponent(track.trackId)}&source=itunes` : 'music.html',
-        image: toHttpsUrl(track.artworkUrl100 || track.artworkUrl60 || ''),
+        title: track.name || 'Track',
+        sub: Array.isArray(track.artists) && track.artists.length ? track.artists.join(', ') : 'Artist',
+        href: track.id ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html',
+        image: toHttpsUrl(track.image || ''),
         landscape: false
       }));
-    } catch (_err) {
-      return [];
     }
+
+    // Fallback when proxy is temporarily unavailable.
+    const itunes = await fetchJsonWithTimeout(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=4`,
+      { signal }
+    );
+    const items = Array.isArray(itunes?.results) ? itunes.results : [];
+    return items.map((track) => ({
+      type: 'Music',
+      title: track.trackName || 'Track',
+      sub: track.artistName || 'Artist',
+      href: track.trackId ? `song.html?id=${encodeURIComponent(track.trackId)}&source=itunes` : 'music.html',
+      image: toHttpsUrl(track.artworkUrl100 || track.artworkUrl60 || ''),
+      landscape: false
+    }));
   }
 
-  async function fetchAllSuggestions(query) {
-    const [restaurants, moviesTv, games, books, music] = await Promise.all([
-      fetchRestaurants(query).catch(() => []),
-      fetchMoviesAndTv(query).catch(() => []),
-      fetchGames(query).catch(() => []),
-      fetchBooks(query).catch(() => []),
-      fetchMusic(query).catch(() => [])
+  async function fetchAllSuggestions(query, signal) {
+    const normalized = normalizeQuery(query);
+    const cached = readCachedSuggestions(normalized);
+    if (cached) return cached;
+
+    const [moviesTv, games, books, music] = await Promise.all([
+      fetchMoviesAndTv(normalized, signal).catch(() => []),
+      fetchGames(normalized, signal).catch(() => []),
+      fetchBooks(normalized, signal).catch(() => []),
+      fetchMusic(normalized, signal).catch(() => [])
     ]);
-    return [...restaurants, ...moviesTv, ...games, ...books, ...music].slice(0, 18);
+
+    const merged = [...moviesTv, ...games, ...books, ...music].slice(0, 18);
+    writeCachedSuggestions(normalized, merged);
+    return merged;
   }
 
   window.initUniversalSearch = function initUniversalSearch(options) {
@@ -344,17 +365,20 @@
       ? document.querySelector(options.input)
       : options?.input;
 
-    if (!input) return;
+    if (!input || input.dataset.universalSearchInit === '1') return;
+    input.dataset.universalSearchInit = '1';
 
     const fallbackRoute = Object.prototype.hasOwnProperty.call(options || {}, 'fallbackRoute')
       ? options.fallbackRoute
-      : 'restraunts.html';
+      : 'movies.html';
     const dropdown = document.createElement('div');
     dropdown.className = 'universal-search-dropdown';
     document.body.appendChild(dropdown);
 
     let suggestions = [];
     let activeIndex = -1;
+    let activeRequestId = 0;
+    let activeAbortController = null;
 
     function hide() {
       dropdown.style.display = 'none';
@@ -410,15 +434,40 @@
     }
 
     const loadSuggestions = debounce(async (query) => {
-      if (!query || query.length < 2) {
+      const normalized = normalizeQuery(query);
+      if (!normalized || normalized.length < MIN_QUERY_LEN) {
+        if (activeAbortController) activeAbortController.abort();
         suggestions = [];
         render();
         return;
       }
-      suggestions = await fetchAllSuggestions(query);
-      activeIndex = -1;
-      render();
-    }, 220);
+
+      const cached = readCachedSuggestions(normalized);
+      if (cached) {
+        suggestions = cached;
+        activeIndex = -1;
+        render();
+        return;
+      }
+
+      activeRequestId += 1;
+      const requestId = activeRequestId;
+      if (activeAbortController) activeAbortController.abort();
+      activeAbortController = new AbortController();
+
+      try {
+        const next = await fetchAllSuggestions(normalized, activeAbortController.signal);
+        if (requestId !== activeRequestId) return;
+        suggestions = next;
+        activeIndex = -1;
+        render();
+      } catch (err) {
+        if (requestId !== activeRequestId) return;
+        if (String(err?.name || '') === 'AbortError') return;
+        suggestions = [];
+        render();
+      }
+    }, SEARCH_DEBOUNCE_MS);
 
     input.addEventListener('input', () => {
       loadSuggestions(input.value.trim());
