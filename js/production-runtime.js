@@ -356,12 +356,193 @@
     document.body.appendChild(fab);
   }
 
+  function normalizeDedupeText(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ");
+  }
+
+  function normalizeDedupeHref(rawHref) {
+    const href = String(rawHref || "").trim();
+    if (!href || href === "#") return "";
+    try {
+      const url = new URL(href, window.location.origin);
+      const base = `${url.origin}${url.pathname}`;
+      const params = new URLSearchParams(url.search || "");
+      const stableKeys = ["id", "track", "track_id", "album", "album_id", "movie", "tv", "game", "book", "q", "source"];
+      const stablePairs = [];
+      stableKeys.forEach((key) => {
+        const value = params.get(key);
+        if (value) stablePairs.push(`${key}=${value}`);
+      });
+      return stablePairs.length ? `${base}?${stablePairs.join("&")}` : base;
+    } catch (_err) {
+      return href;
+    }
+  }
+
+  function isDuplicateCardExcluded(node) {
+    if (!(node instanceof HTMLElement)) return true;
+    return !!node.closest(
+      [
+        "[data-dedupe-exempt='1']",
+        ".modal",
+        ".menu-modal",
+        ".rail-menu",
+        ".list-menu",
+        ".home-onboarding-card",
+        ".mini-card",
+        "#homeOnboardingOverlay",
+        "#itemMenuModal",
+        "#createListModal",
+        "#homeListsModal"
+      ].join(",")
+    );
+  }
+
+  function buildDuplicateCardKey(card) {
+    if (!(card instanceof HTMLElement)) return "";
+
+    const media = normalizeDedupeText(
+      card.getAttribute("data-media-type") ||
+      card.getAttribute("data-kind") ||
+      card.getAttribute("data-type") ||
+      ""
+    );
+
+    const idCandidates = [
+      card.getAttribute("data-item-id"),
+      card.getAttribute("data-id"),
+      card.getAttribute("data-track-id"),
+      card.getAttribute("data-album-id"),
+      card.getAttribute("data-movie-id"),
+      card.getAttribute("data-tv-id"),
+      card.getAttribute("data-game-id"),
+      card.getAttribute("data-book-id")
+    ]
+      .map((value) => String(value || "").trim())
+      .filter(Boolean);
+
+    if (idCandidates.length) {
+      return `id:${media}:${idCandidates[0].toLowerCase()}`;
+    }
+
+    const href =
+      card.getAttribute("data-href") ||
+      card.querySelector("a[href]")?.getAttribute("href") ||
+      "";
+    const normalizedHref = normalizeDedupeHref(href);
+    if (normalizedHref) {
+      return `href:${media}:${normalizedHref.toLowerCase()}`;
+    }
+
+    const title = normalizeDedupeText(
+      card.getAttribute("data-title") ||
+      card.querySelector(".card-title")?.textContent ||
+      card.querySelector(".card-name")?.textContent ||
+      card.querySelector("h2, h3, h4")?.textContent ||
+      ""
+    );
+    const subtitle = normalizeDedupeText(
+      card.getAttribute("data-subtitle") ||
+      card.querySelector(".card-sub")?.textContent ||
+      card.querySelector(".subtitle")?.textContent ||
+      ""
+    );
+
+    if (!title) return "";
+    return `text:${media}:${title}::${subtitle}`;
+  }
+
+  function removeDuplicateCards(scope = document) {
+    if (!(scope instanceof Document || scope instanceof HTMLElement)) return 0;
+    const selector = [
+      ".grid .card",
+      ".rail .card",
+      ".cards .card",
+      ".results .card",
+      "article.card[data-item-id]",
+      "article.card[data-id]"
+    ].join(",");
+    const cards = Array.from(scope.querySelectorAll(selector));
+    const seen = new Set();
+    let removed = 0;
+
+    cards.forEach((card) => {
+      if (!(card instanceof HTMLElement)) return;
+      if (isDuplicateCardExcluded(card)) return;
+      const key = buildDuplicateCardKey(card);
+      if (!key) return;
+      if (seen.has(key)) {
+        card.remove();
+        removed += 1;
+        return;
+      }
+      seen.add(key);
+    });
+
+    return removed;
+  }
+
+  function setupDuplicateCardCleanup() {
+    let scheduled = false;
+    let debugRuns = 0;
+
+    const run = () => {
+      scheduled = false;
+      const removed = removeDuplicateCards(document);
+      if (removed > 0) {
+        debugRuns += 1;
+        if (debugRuns <= 20) {
+          console.info(`[zo2y] duplicate cleanup removed ${removed} card(s)`);
+        }
+      }
+    };
+
+    const schedule = () => {
+      if (scheduled) return;
+      scheduled = true;
+      if (typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(run);
+      } else {
+        setTimeout(run, 50);
+      }
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", schedule, { once: true });
+    } else {
+      schedule();
+    }
+    window.addEventListener("load", schedule);
+
+    if ("MutationObserver" in window) {
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.type !== "childList") continue;
+          if ((mutation.addedNodes?.length || 0) < 1) continue;
+          schedule();
+          break;
+        }
+      });
+      if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+      } else {
+        document.addEventListener("DOMContentLoaded", () => {
+          if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+        }, { once: true });
+      }
+    }
+  }
+
   function init() {
     setupErrorObservers();
     setupWebVitals();
     setupFunnelTracking();
     renderConsentBanner();
     mountSupportFab();
+    setupDuplicateCardCleanup();
 
     window.ZO2Y_ANALYTICS = {
       track,
