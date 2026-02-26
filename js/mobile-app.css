@@ -136,15 +136,41 @@ body.app-ready #appLoadLine {
     border-radius: 16px;
   }
 
+  body[data-zo2y-page="index"] .spotlight-media {
+    right: 10px;
+    top: 10px;
+    transform: none;
+    width: 86px;
+    border-radius: 10px;
+  }
+
   body[data-zo2y-page="index"] .spotlight-inner {
     min-height: 302px;
-    padding: 12px 14px 14px;
+    padding: 12px 12px 14px;
+    padding-right: 122px;
     gap: 8px;
   }
 
+  body[data-zo2y-page="index"] .spotlight.has-square-media .spotlight-inner {
+    padding-right: 114px;
+  }
+
+  body[data-zo2y-page="index"] .spotlight.has-landscape-media .spotlight-inner {
+    padding-right: 12px;
+    padding-top: 106px;
+  }
+
   body[data-zo2y-page="index"] .spotlight-title {
-    font-size: clamp(21px, 7vw, 30px);
-    line-height: 1.06;
+    font-size: clamp(14px, 4.8vw, 18px);
+    line-height: 1.08;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  body[data-zo2y-page="index"] .spotlight.has-landscape-media .spotlight-title {
+    font-size: clamp(13px, 4.2vw, 16px);
   }
 
   body[data-zo2y-page="index"] .spotlight-summary {

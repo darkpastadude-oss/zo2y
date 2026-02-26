@@ -1506,7 +1506,12 @@
       }
 
       .legal-strip {
-        display: none;
+        display: flex;
+        width: calc(100% - 18px);
+        margin: 12px auto 96px;
+        justify-content: center;
+        gap: 12px;
+        font-size: 12px;
       }
 
       .container { width: calc(100% - 16px); }
@@ -1779,7 +1784,7 @@
         right: 10px;
         bottom: 10px;
         display: grid;
-        grid-template-columns: repeat(8, minmax(0, 1fr));
+        grid-template-columns: repeat(7, minmax(0, 1fr));
         border: 1px solid var(--border);
         border-radius: 18px;
         background: rgba(12, 24, 52, 0.95);
@@ -1807,13 +1812,6 @@
         background: rgba(245, 158, 11, 0.16);
       }
 
-      .mobile-nav-item.mobile-nav-item-support,
-      .mobile-nav-item.mobile-nav-item-support:hover {
-        color: #0b1633;
-        background: var(--gradient);
-        font-size: 13px;
-        font-weight: 800;
-      }
     }
 
     @media (max-width: 420px) {
@@ -1843,7 +1841,7 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260225b" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260226a" />
   <script src="/js/mobile-webapp.js?v=20260225d" defer></script>
 </head>
 <body>
@@ -1983,7 +1981,6 @@
     <a class="mobile-nav-item" href="games.html" aria-label="Games"><i class="fa-solid fa-gamepad"></i></a>
     <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
     <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
-    <a class="mobile-nav-item mobile-nav-item-support" href="support.html" aria-label="Support">Support</a>
   </nav>
 
   <div id="itemMenuModal" class="menu-modal" aria-hidden="true">

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Music</title>
-  <meta name="description" content="Discover trending tracks on Zo2y and save them to your music lists." />
+  <meta name="description" content="Discover trending tracks and albums on Zo2y and save tracks to your music lists." />
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -288,7 +288,7 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/logo.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260225b" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260226a" />
   <script src="/js/mobile-webapp.js?v=20260225d" defer></script>
 </head>
 <body>
@@ -325,7 +325,7 @@
   <main class="container page-shell">
     <section class="hero">
       <h1>Music Radar</h1>
-      <p>Live Spotify discovery feed. Save tracks to favorites, listened, listenlist, or your custom music lists.</p>
+      <p>Live Spotify discovery feed for tracks and albums. Save tracks to favorites, listened, listenlist, or your custom music lists.</p>
       <div class="hero-actions">
         <button class="btn btn-primary" id="refreshMusicBtn"><i class="fa-solid fa-rotate"></i> Refresh Picks</button>
       </div>
@@ -333,10 +333,10 @@
 
     <section class="section">
       <div class="section-head">
-        <h2>Trending Tracks</h2>
-        <p>Pulled from Spotify search signals and rotated genres.</p>
+        <h2>Trending Music</h2>
+        <p>Pulled from Spotify and Apple chart signals with albums mixed in.</p>
         <div class="section-search">
-          <input id="musicPageSearch" type="text" placeholder="Search songs or artists..." />
+          <input id="musicPageSearch" type="text" placeholder="Search songs, artists, or albums..." />
           <button class="btn" id="searchMusicBtn" type="button"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
           <button class="btn" id="clearMusicSearchBtn" type="button"><i class="fa-solid fa-rotate-left"></i> Reset</button>
         </div>
@@ -399,6 +399,7 @@
         const rows = Array.isArray(json.results) ? json.results : [];
         return rows.map((row) => ({
           id: String(row.trackId || row.collectionId || ''),
+          kind: 'track',
           name: row.trackName || row.collectionName || 'Track',
           subtitle: row.artistName || 'Artist',
           album: row.collectionName || 'Album',
@@ -410,6 +411,107 @@
       } catch (_err) {
         return [];
       }
+    }
+
+    async function loadFallbackAlbums(query) {
+      try {
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=album&limit=20`);
+        if (!res.ok) return [];
+        const json = await res.json();
+        const rows = Array.isArray(json.results) ? json.results : [];
+        return rows.map((row) => {
+          const baseId = String(row.collectionId || row.artistId || row.collectionName || '').trim();
+          const albumId = baseId ? `album:${baseId}` : '';
+          return {
+            id: albumId,
+            kind: 'album',
+            name: row.collectionName || 'Album',
+            subtitle: row.artistName || 'Artist',
+            album: row.collectionName || 'Album',
+            image: row.artworkUrl100 || row.artworkUrl60 || '',
+            preview_url: '',
+            external_url: row.collectionViewUrl || '',
+            release_date: String(row.releaseDate || '').trim().slice(0, 10),
+            popularity: 0
+          };
+        }).filter((row) => row.id);
+      } catch (_err) {
+        return [];
+      }
+    }
+
+    function mapTrackRowsToItems(rows = []) {
+      return (Array.isArray(rows) ? rows : []).map((row) => {
+        const artists = Array.isArray(row.artists) ? row.artists : [];
+        return {
+          id: String(row.id || ''),
+          kind: 'track',
+          name: row.name || 'Track',
+          subtitle: artists.join(', ') || 'Artist',
+          album: row.album?.name || 'Album',
+          image: row.image || '',
+          preview_url: row.preview_url || '',
+          external_url: row.external_url || '',
+          popularity: Number(row.popularity || 0)
+        };
+      }).filter((row) => row.id);
+    }
+
+    function mapAlbumRowsToItems(rows = []) {
+      return (Array.isArray(rows) ? rows : []).map((row) => {
+        const artists = Array.isArray(row.artists) ? row.artists : [];
+        const albumCoreId = String(row.id || '').trim();
+        if (!albumCoreId) return null;
+        return {
+          id: `album:${albumCoreId}`,
+          kind: 'album',
+          name: row.name || 'Album',
+          subtitle: artists.join(', ') || 'Artist',
+          album: row.name || 'Album',
+          image: row.image || '',
+          preview_url: '',
+          external_url: row.external_url || '',
+          release_date: String(row.release_date || '').trim(),
+          popularity: 0
+        };
+      }).filter(Boolean);
+    }
+
+    function dedupeMixedMusicItems(items = []) {
+      const seen = new Set();
+      const out = [];
+      (Array.isArray(items) ? items : []).forEach((item) => {
+        const kind = String(item?.kind || 'track').trim().toLowerCase();
+        const id = String(item?.id || '').trim().toLowerCase();
+        const title = String(item?.name || '').trim().toLowerCase();
+        const subtitle = String(item?.subtitle || '').trim().toLowerCase();
+        const key = `${kind}:${id || `${title}::${subtitle}`}`;
+        if (!kind || !id || seen.has(key)) return;
+        seen.add(key);
+        out.push(item);
+      });
+      return out;
+    }
+
+    function mixTrackAndAlbumItems(trackItems = [], albumItems = [], limit = 90) {
+      const tracks = [...(Array.isArray(trackItems) ? trackItems : [])];
+      const albums = [...(Array.isArray(albumItems) ? albumItems : [])];
+      const mixed = [];
+      while (mixed.length < limit && (tracks.length || albums.length)) {
+        if (tracks.length) mixed.push(tracks.shift());
+        if (tracks.length && mixed.length < limit) mixed.push(tracks.shift());
+        if (albums.length && mixed.length < limit) mixed.push(albums.shift());
+      }
+      return mixed.slice(0, limit);
+    }
+
+    function getMusicCardExtra(item) {
+      const kind = String(item?.kind || 'track').toLowerCase();
+      if (kind === 'album') {
+        const release = String(item?.release_date || '').trim();
+        return release ? `Album | Released ${release}` : 'Album Release';
+      }
+      return `${String(item?.album || 'Album')} | Popularity ${Number(item?.popularity || 0)}/100`;
     }
 
     async function ensureSupabase() {
@@ -452,49 +554,68 @@
     async function loadTracks(queryOverride = '') {
       const query = String(queryOverride || state.currentQuery || '').trim();
       const q = encodeURIComponent(query);
-      let rows = [];
+      let trackRows = [];
+      let albumRows = [];
       let usedFallback = false;
 
       try {
-        const endpoint = query
-          ? `/api/music/search?q=${q}&limit=30&market=US`
-          : `/api/music/popular?limit=30&market=US`;
-        const res = await fetch(endpoint);
-        if (res.ok) {
-          const json = await res.json();
-          rows = Array.isArray(json.results) ? json.results : [];
+        if (query) {
+          const [trackRes, albumFallbackRes] = await Promise.allSettled([
+            fetch(`/api/music/search?q=${q}&limit=36&market=US`),
+            loadFallbackAlbums(query)
+          ]);
+
+          if (trackRes.status === 'fulfilled' && trackRes.value?.ok) {
+            const trackJson = await trackRes.value.json();
+            trackRows = Array.isArray(trackJson.results) ? trackJson.results : [];
+          }
+          if (albumFallbackRes.status === 'fulfilled') {
+            albumRows = Array.isArray(albumFallbackRes.value) ? albumFallbackRes.value : [];
+          }
         } else {
-          usedFallback = true;
+          const [trackRes, albumRes] = await Promise.allSettled([
+            fetch('/api/music/popular?limit=40&market=US'),
+            fetch('/api/music/new-releases?limit=24&market=US')
+          ]);
+
+          if (trackRes.status === 'fulfilled' && trackRes.value?.ok) {
+            const trackJson = await trackRes.value.json();
+            trackRows = Array.isArray(trackJson.results) ? trackJson.results : [];
+          }
+          if (albumRes.status === 'fulfilled' && albumRes.value?.ok) {
+            const albumJson = await albumRes.value.json();
+            albumRows = Array.isArray(albumJson.results) ? albumJson.results : [];
+          }
         }
       } catch (_err) {
         usedFallback = true;
       }
 
-      if (usedFallback || !rows.length) {
-        const fallbackRows = await loadFallbackTracks(query || 'top songs');
-        state.tracks = fallbackRows;
+      const mappedTracks = mapTrackRowsToItems(trackRows);
+      let mappedAlbums = query
+        ? (Array.isArray(albumRows) ? albumRows : []).filter((row) => String(row?.kind || '').toLowerCase() === 'album')
+        : mapAlbumRowsToItems(albumRows);
+      if (!mappedAlbums.length) {
+        mappedAlbums = await loadFallbackAlbums(query || 'top albums');
+      }
+      const mergedLive = dedupeMixedMusicItems(mixTrackAndAlbumItems(mappedTracks, mappedAlbums, 96));
+
+      if (usedFallback || !mergedLive.length) {
+        const [fallbackTracks, fallbackAlbums] = await Promise.all([
+          loadFallbackTracks(query || 'top songs'),
+          loadFallbackAlbums(query || 'top albums')
+        ]);
+        state.tracks = dedupeMixedMusicItems(mixTrackAndAlbumItems(fallbackTracks, fallbackAlbums, 96));
         state.page = 1;
         state.totalPages = Math.max(1, Math.ceil(state.tracks.length / MUSIC_PAGE_SIZE));
-        if (fallbackRows.length) {
-          showToast('Spotify feed is temporarily unavailable. Showing fallback tracks.', true);
+        if (state.tracks.length) {
+          showToast('Spotify feed is temporarily unavailable. Showing fallback music.', true);
           return;
         }
         throw new Error('Music API unavailable');
       }
 
-      state.tracks = rows.map((row) => {
-        const artists = Array.isArray(row.artists) ? row.artists : [];
-        return {
-          id: String(row.id || ''),
-          name: row.name || 'Track',
-          subtitle: artists.join(', ') || 'Artist',
-          album: row.album?.name || 'Album',
-          image: row.image || '',
-          preview_url: row.preview_url || '',
-          external_url: row.external_url || '',
-          popularity: Number(row.popularity || 0)
-        };
-      }).filter((row) => row.id);
+      state.tracks = mergedLive;
       state.page = 1;
       state.totalPages = Math.max(1, Math.ceil(state.tracks.length / MUSIC_PAGE_SIZE));
     }
@@ -504,7 +625,10 @@
       if (!currentUser?.id || !state.tracks.length) return;
       const client = await ensureSupabase();
       if (!client) return;
-      const ids = state.tracks.map((track) => track.id);
+      const ids = state.tracks
+        .filter((item) => String(item?.kind || 'track').toLowerCase() === 'track')
+        .map((track) => track.id);
+      if (!ids.length) return;
       const { data } = await client
         .from('music_list_items')
         .select('track_id, list_type')
@@ -533,28 +657,40 @@
       const grid = document.getElementById('musicGrid');
       if (!grid) return;
       if (!state.tracks.length) {
-        grid.innerHTML = '<div class="empty">No tracks right now.</div>';
+        grid.innerHTML = '<div class="empty">No music right now.</div>';
         updatePagination();
         return;
       }
       const start = (state.page - 1) * MUSIC_PAGE_SIZE;
-      const visibleTracks = state.tracks.slice(start, start + MUSIC_PAGE_SIZE);
-      grid.innerHTML = visibleTracks.map((track) => `
-        <article class="card" data-id="${escapeHtml(track.id)}">
+      const visibleItems = state.tracks.slice(start, start + MUSIC_PAGE_SIZE);
+      grid.innerHTML = visibleItems.map((item) => {
+        const kind = String(item.kind || 'track').toLowerCase();
+        const isTrack = kind === 'track';
+        const previewBtn = isTrack && item.preview_url
+          ? `<button class="icon-btn preview-toggle" data-preview="${escapeHtml(item.preview_url)}" type="button" aria-label="Preview"><i class="fas fa-play"></i></button>`
+          : '<span></span>';
+        const trailingBtn = isTrack
+          ? '<button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>'
+          : (item.external_url
+            ? `<button class="icon-btn open-external" type="button" data-url="${escapeHtml(item.external_url)}" aria-label="Open album"><i class="fas fa-arrow-up-right-from-square"></i></button>`
+            : '<span></span>');
+        return `
+        <article class="card" data-id="${escapeHtml(item.id)}" data-kind="${escapeHtml(kind)}" data-external="${escapeHtml(item.external_url || '')}">
           <div class="card-media">
-            ${track.image ? `<img src="${escapeHtml(track.image)}" alt="${escapeHtml(track.name)}" loading="lazy">` : ''}
+            ${item.image ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy">` : ''}
           </div>
           <div class="card-meta">
-            <p class="card-title">${escapeHtml(track.name)}</p>
-            <p class="card-sub">${escapeHtml(track.subtitle)}</p>
-            <p class="card-extra">${escapeHtml(track.album)} | Popularity ${track.popularity}/100</p>
+            <p class="card-title">${escapeHtml(item.name)}</p>
+            <p class="card-sub">${escapeHtml(item.subtitle)}</p>
+            <p class="card-extra">${escapeHtml(getMusicCardExtra(item))}</p>
             <div class="card-actions">
-              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
-              ${track.preview_url ? `<button class="icon-btn preview-toggle" data-preview="${escapeHtml(track.preview_url)}" type="button" aria-label="Preview"><i class="fas fa-play"></i></button>` : '<span></span>'}
+              ${trailingBtn}
+              ${previewBtn}
             </div>
           </div>
         </article>
-      `).join('');
+      `;
+      }).join('');
 
       wireGridActions();
       updatePagination();
@@ -592,7 +728,10 @@
     async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
       const trackId = String(itemId || '').trim();
       if (!trackId) return { ok: false, saved: false };
-      const track = state.tracks.find((row) => String(row.id || '').trim() === trackId);
+      const track = state.tracks.find((row) => (
+        String(row.id || '').trim() === trackId &&
+        String(row.kind || 'track').toLowerCase() === 'track'
+      ));
       if (!track) return { ok: false, saved: false };
 
       const client = await ensureSupabase();
@@ -662,10 +801,26 @@
 
       document.querySelectorAll('.card').forEach((card) => {
         card.addEventListener('click', (e) => {
-          if (e.target.closest('.menu-btn') || e.target.closest('.preview-toggle')) return;
+          if (e.target.closest('.menu-btn') || e.target.closest('.preview-toggle') || e.target.closest('.open-external')) return;
           const id = String(card.getAttribute('data-id') || '').trim();
+          const kind = String(card.getAttribute('data-kind') || 'track').toLowerCase();
+          const external = String(card.getAttribute('data-external') || '').trim();
           if (!id) return;
+          if (kind === 'album') {
+            if (external) window.open(external, '_blank', 'noopener');
+            return;
+          }
           window.location.href = `song.html?id=${encodeURIComponent(id)}`;
+        });
+      });
+
+      document.querySelectorAll('.open-external').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const url = String(btn.getAttribute('data-url') || '').trim();
+          if (!url) return;
+          window.open(url, '_blank', 'noopener');
         });
       });
 
@@ -740,7 +895,7 @@
           mediaType: 'music',
           itemIdAttr: 'data-id',
           getVisibleItemIds: () =>
-            Array.from(document.querySelectorAll('.card[data-id]'))
+            Array.from(document.querySelectorAll('.card[data-kind="track"][data-id]'))
               .map((card) => card.getAttribute('data-id'))
               .filter(Boolean),
           getQuickStatusForItem: (itemId) => {
