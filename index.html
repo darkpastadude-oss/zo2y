@@ -3007,6 +3007,7 @@
       const mapMusicRows = (trackRows, albumRows, label, takeCount = 6) => {
         const tracks = (Array.isArray(trackRows) ? trackRows : []).slice(0, Math.max(takeCount * 2, 8)).map((track, idx) => {
           const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : '';
+          const albumName = String(track?.album?.name || '').trim() || 'Unknown Album';
           const image = String(track?.image || '').trim();
           const releaseDateSort = Date.now() - (idx * 1000);
           const item = {
@@ -3023,7 +3024,7 @@
             explicit: track?.explicit === true,
             href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
           };
-          return withReleaseTag({ ...item, releaseDateSort }, label, { detail: 'Top Track' });
+          return withReleaseTag({ ...item, releaseDateSort }, label, { detail: `Song | Album: ${albumName}` });
         }).filter((item) => String(item.itemId || '').trim() && String(item.image || '').trim());
 
         const albums = (Array.isArray(albumRows) ? albumRows : []).slice(0, Math.max(takeCount, 4)).map((album, idx) => {
@@ -3035,7 +3036,7 @@
           const parsedRelease = Date.parse(releaseDate);
           const releaseDateSort = Number.isFinite(parsedRelease) ? parsedRelease : (Date.now() - ((idx + 1) * 900));
           const detailBits = [releaseDate ? `Released ${releaseDate}` : '', Number(album?.total_tracks || 0) > 0 ? `${Number(album.total_tracks)} tracks` : ''].filter(Boolean);
-          const detail = detailBits.length ? detailBits.join(' | ') : 'New Album';
+          const detail = detailBits.length ? `Album | ${detailBits.join(' | ')}` : 'Album';
           const href = String(album?.external_url || '').trim() || 'music.html';
           const item = {
             mediaType: 'music',
@@ -6486,7 +6487,7 @@
       const market = 'US';
       const mapTracksToHomeItems = (tracks = []) => tracks.map((track) => {
         const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
-        const albumName = String(track?.album?.name || 'Album').trim();
+        const albumName = String(track?.album?.name || '').trim() || 'Unknown Album';
         const popularity = Number(track?.popularity || 0);
         const image = String(track?.image || '').trim();
         return {
@@ -6494,7 +6495,7 @@
           itemId: String(track?.id || ''),
           title: track?.name || 'Track',
           subtitle: artists || 'Artist',
-          extra: `${albumName}${popularity ? ` | Popularity ${popularity}/100` : ''}`,
+          extra: `Song | Album: ${albumName}${popularity ? ` | Popularity ${popularity}/100` : ''}`,
           image,
           backgroundImage: image,
           spotlightImage: image,
@@ -6650,7 +6651,7 @@
         itemId: String(track.id || `fallback-track-${idx + 1}`),
         title: track.title,
         subtitle: track.artist,
-        extra: track.album,
+        extra: `Song | Album: ${String(track.album || 'Unknown Album')}`,
         image: HOME_LOCAL_FALLBACK_IMAGE,
         backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
         spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,

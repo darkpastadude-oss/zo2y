@@ -319,7 +319,7 @@
         : (Array.isArray(proxy?.results) ? proxy.results : []);
       const albumRows = Array.isArray(proxy?.albums) ? proxy.albums : [];
       const tracks = trackRows.slice(0, 4).map((track) => ({
-        type: 'Music',
+        type: 'Music Song',
         title: track.name || 'Track',
         sub: Array.isArray(track.artists) && track.artists.length ? track.artists.join(', ') : 'Artist',
         href: track.id ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html',
@@ -356,7 +356,7 @@
       ).catch(() => null)
     ]);
     const tracks = (Array.isArray(itunesTracks?.results) ? itunesTracks.results : []).map((track) => ({
-      type: 'Music',
+      type: 'Music Song',
       title: track.trackName || 'Track',
       sub: track.artistName || 'Artist',
       href: track.trackId ? `song.html?id=${encodeURIComponent(track.trackId)}&source=itunes` : 'music.html',

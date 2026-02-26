@@ -521,7 +521,8 @@
         ].filter(Boolean).join(' | ');
         return details ? `Album | ${details}` : 'Album Release';
       }
-      return `${String(item?.album || 'Album')} | Popularity ${Number(item?.popularity || 0)}/100`;
+      const albumName = String(item?.album || '').trim() || 'Unknown Album';
+      return `Song | Album: ${albumName} | Popularity ${Number(item?.popularity || 0)}/100`;
     }
 
     async function ensureSupabase() {
