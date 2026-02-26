@@ -2046,6 +2046,75 @@
     const HOME_BECAUSE_SIGNAL_RECENCY_HOURS = 24 * 21;
     const HOME_MENU_PRIME_IDLE_DELAY_MS = 2500;
     const HOME_ONBOARDING_VERSION = 'v1';
+    const HOME_BOOK_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
+        <defs>
+          <linearGradient id='bookGrad' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0%' stop-color='#0f172a' />
+            <stop offset='55%' stop-color='#312e81' />
+            <stop offset='100%' stop-color='#7c3aed' />
+          </linearGradient>
+        </defs>
+        <rect width='1600' height='900' fill='url(#bookGrad)' />
+        <circle cx='1330' cy='170' r='220' fill='rgba(245,158,11,0.28)' />
+        <circle cx='220' cy='760' r='260' fill='rgba(56,189,248,0.18)' />
+        <g fill='rgba(255,255,255,0.13)'>
+          <rect x='520' y='220' width='56' height='460' rx='12' />
+          <rect x='590' y='250' width='68' height='430' rx='12' />
+          <rect x='672' y='200' width='64' height='480' rx='12' />
+          <rect x='752' y='240' width='60' height='440' rx='12' />
+          <rect x='826' y='208' width='72' height='472' rx='12' />
+        </g>
+      </svg>
+    `)}`;
+    const HOME_MUSIC_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
+        <defs>
+          <linearGradient id='musicGrad' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0%' stop-color='#042f2e' />
+            <stop offset='52%' stop-color='#0f766e' />
+            <stop offset='100%' stop-color='#115e59' />
+          </linearGradient>
+        </defs>
+        <rect width='1600' height='900' fill='url(#musicGrad)' />
+        <circle cx='1250' cy='170' r='230' fill='rgba(16,185,129,0.28)' />
+        <circle cx='260' cy='770' r='250' fill='rgba(59,130,246,0.16)' />
+        <g fill='rgba(255,255,255,0.16)'>
+          <rect x='400' y='450' width='56' height='170' rx='28' />
+          <rect x='490' y='380' width='56' height='240' rx='28' />
+          <rect x='580' y='330' width='56' height='290' rx='28' />
+          <rect x='670' y='280' width='56' height='340' rx='28' />
+          <rect x='760' y='320' width='56' height='300' rx='28' />
+          <rect x='850' y='360' width='56' height='260' rx='28' />
+        </g>
+      </svg>
+    `)}`;
+    const HOME_SUGGESTIVE_TEXT_PATTERNS = [
+      /\bhentai\b/i,
+      /\becchi\b/i,
+      /\bnsfw\b/i,
+      /\b18\+\b/i,
+      /\berotic(?:a|ism)?\b/i,
+      /\bsex(?:ual|y)?\b/i,
+      /\bnud(?:e|ity)\b/i,
+      /\buncensored\b/i,
+      /\bfetish\b/i,
+      /\bharem\b/i,
+      /\bmature audiences?\b/i,
+      /\badult[-\s]?(only|content|themes?|audiences?)\b/i,
+      /\bxxx\b/i
+    ];
+    const HOME_SUGGESTIVE_TITLE_PATTERNS = [
+      /high school dxd/i,
+      /interspecies reviewers/i,
+      /redo of healer/i,
+      /monster musume/i,
+      /to love-?ru/i,
+      /yosuga no sora/i,
+      /prison school/i,
+      /kiss x sis/i,
+      /shinmai maou/i
+    ];
 
     async function homeIgdbFetch(path, params = {}, signal) {
       if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
@@ -2231,6 +2300,55 @@
     function getHomeMediaMeta(mediaType) {
       const type = String(mediaType || '').toLowerCase();
       return HOME_MEDIA_META[type] || { label: 'Item', icon: 'fa-star', accent: '#f59e0b' };
+    }
+
+    function getHomeSpotlightBackgroundByType(mediaType) {
+      const type = String(mediaType || '').toLowerCase();
+      if (type === 'book') return HOME_BOOK_SPOTLIGHT_BG;
+      if (type === 'music') return HOME_MUSIC_SPOTLIGHT_BG;
+      return '';
+    }
+
+    function isHomeSuggestiveText(text) {
+      const value = String(text || '').trim();
+      if (!value) return false;
+      return HOME_SUGGESTIVE_TEXT_PATTERNS.some((pattern) => pattern.test(value));
+    }
+
+    function isHomeSafeContentItem(item) {
+      if (!item || typeof item !== 'object') return false;
+      if (item.isPlaceholder) return true;
+      const isAdult = item.isAdult === true || String(item.isAdult || '').trim().toLowerCase() === 'true';
+      const isExplicit = item.explicit === true || String(item.explicit || '').trim().toLowerCase() === 'true';
+      if (isAdult || isExplicit) return false;
+
+      const maturityRating = String(item?.maturityRating || '').trim().toLowerCase();
+      if (maturityRating.includes('mature') && !maturityRating.includes('not_mature')) {
+        return false;
+      }
+
+      const title = String(item?.title || '');
+      if (HOME_SUGGESTIVE_TITLE_PATTERNS.some((pattern) => pattern.test(title))) {
+        return false;
+      }
+
+      const textFields = [
+        item?.title,
+        item?.subtitle,
+        item?.extra,
+        item?.overview,
+        item?.description,
+        item?.genreText,
+        item?.tags,
+        item?.maturityRating
+      ];
+      if (Array.isArray(item?.genres)) textFields.push(item.genres.join(' '));
+
+      return !textFields.some((value) => isHomeSuggestiveText(value));
+    }
+
+    function filterHomeSafeItems(items = []) {
+      return (Array.isArray(items) ? items : []).filter((item) => isHomeSafeContentItem(item));
     }
 
     function getSpotlightSectionLabel(mediaType) {
@@ -2422,7 +2540,8 @@
       if (!bg || !spotlightSection || !mediaWrap || !mediaImage || !title || !kicker || !summary || !reason || !trend || !openBtn) return;
 
       const meta = getHomeMediaMeta(item.mediaType);
-      const spotlightBackground = String(item.spotlightImage || item.backgroundImage || item.image || '').trim();
+      const fallbackSpotlightBackground = String(item.spotlightImage || item.backgroundImage || item.image || '').trim();
+      const spotlightBackground = getHomeSpotlightBackgroundByType(item.mediaType) || fallbackSpotlightBackground;
       const spotlightMediaImage = String(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
       const spotlightBackgroundPosition = String(item.spotlightBackgroundPosition || item.backgroundPosition || '').trim() || 'center 28%';
       const spotlightMediaPosition = String(item.spotlightMediaPosition || item.imagePosition || '').trim();
@@ -2555,7 +2674,7 @@
     function buildScoredDiscoveryPool(feedMap) {
       const pool = [];
       Object.entries(feedMap).forEach(([type, items]) => {
-        const list = Array.isArray(items) ? items : [];
+        const list = filterHomeSafeItems(Array.isArray(items) ? items : []);
         const weight = Number(homeTasteWeights[type] || 1);
         const maxRank = Math.max(1, list.length);
         list.forEach((item, index) => {
@@ -2683,6 +2802,7 @@
             spotlightMediaImage: row?.poster_path ? `${TMDB_SPOT_POSTER}${row.poster_path}` : (row?.backdrop_path ? `${TMDB_BACKDROP}${row.backdrop_path}` : ''),
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
+            isAdult: row?.adult === true,
             href: row?.id ? `movie.html?id=${encodeURIComponent(row.id)}` : 'movies.html'
           };
           return withReleaseTag({ ...item, releaseDateSort }, label, { detail: releaseDate });
@@ -2708,6 +2828,7 @@
             spotlightMediaImage: row?.poster_path ? `${TMDB_SPOT_POSTER}${row.poster_path}` : (row?.backdrop_path ? `${TMDB_BACKDROP}${row.backdrop_path}` : ''),
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
+            isAdult: row?.adult === true,
             href: row?.id
               ? `${mediaType === 'anime' ? 'anime.html' : 'tvshow.html'}?id=${encodeURIComponent(row.id)}`
               : (mediaType === 'anime' ? 'animes.html' : 'tvshows.html')
@@ -2780,6 +2901,7 @@
             spotlightMediaImage: cover,
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
+            maturityRating: String(row?.maturityRating || row?.volumeInfo?.maturityRating || '').trim(),
             href,
             fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
           };
@@ -2804,6 +2926,7 @@
             spotlightMediaImage: image,
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
+            explicit: track?.explicit === true,
             href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
           };
           return withReleaseTag({ ...item, releaseDateSort }, label, { detail: 'Top 50' });
@@ -2889,17 +3012,18 @@
       ];
 
       const deduped = dedupeHomeItemsByMediaAndId(combined)
-        .filter((item) => String(item?.image || '').trim());
+        .filter((item) => String(item?.image || '').trim())
+        .filter((item) => isHomeSafeContentItem(item));
       deduped.sort((a, b) => Number(b?.releaseDateSort || 0) - Number(a?.releaseDateSort || 0));
       return deduped.slice(0, HOME_NEW_RELEASES_TARGET_ITEMS);
     }
 
     async function refreshHomeNewReleases(feedMap = homeFeedState, options = {}) {
       const railOptions = { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true };
-      const fallbackItems = buildNewReleasesFallback(feedMap);
+      const fallbackItems = filterHomeSafeItems(buildNewReleasesFallback(feedMap));
 
       if (homeNewReleasesState.length) {
-        renderRail('newReleasesRail', homeNewReleasesState, railOptions);
+        renderRail('newReleasesRail', filterHomeSafeItems(homeNewReleasesState), railOptions);
       } else if (fallbackItems.length) {
         renderRail('newReleasesRail', fallbackItems, railOptions);
       }
@@ -2919,8 +3043,9 @@
       const requestTask = (async () => {
         const liveItems = await loadHomeChannelWithTimeout(loadNewReleases, HOME_NEW_RELEASES_TIMEOUT_MS);
         if (seq !== homeNewReleasesRequestSeq) return;
-        if (Array.isArray(liveItems) && liveItems.length) {
-          homeNewReleasesState = liveItems;
+        const safeLiveItems = filterHomeSafeItems(liveItems);
+        if (safeLiveItems.length) {
+          homeNewReleasesState = safeLiveItems;
           homeNewReleasesLastFetchAt = Date.now();
           renderRail('newReleasesRail', homeNewReleasesState, railOptions);
         } else if (!homeNewReleasesState.length && fallbackItems.length) {
@@ -3119,68 +3244,135 @@
       void refreshMixedForYouFromActivity(homeFeedState);
     }
 
+    function getHomeSpotlightPoolKey(item, index = 0) {
+      const type = String(item?.mediaType || '').trim().toLowerCase();
+      const id = String(item?.itemId || '').trim().toLowerCase();
+      const title = String(item?.title || '').trim().toLowerCase();
+      const image = String(item?.image || '').trim().toLowerCase();
+      return `${type}:${id || title || image || index}`;
+    }
+
+    function buildBalancedSpotlightShortlist(pool, limit = HOME_SPOTLIGHT_POOL_SIZE) {
+      const maxItems = Math.max(1, Number(limit || HOME_SPOTLIGHT_POOL_SIZE));
+      const candidates = filterHomeSafeItems(Array.isArray(pool) ? pool : []);
+      if (!candidates.length) return [];
+
+      const typePool = (Array.isArray(HOME_ACTIVE_MEDIA_TYPES) && HOME_ACTIVE_MEDIA_TYPES.length)
+        ? HOME_ACTIVE_MEDIA_TYPES
+        : HOME_BASE_MEDIA_TYPES;
+      const grouped = new Map();
+      const groupedKeys = new Map();
+      typePool.forEach((type) => {
+        grouped.set(type, []);
+        groupedKeys.set(type, new Set());
+      });
+
+      candidates.forEach((item, index) => {
+        const type = String(item?.mediaType || '').trim().toLowerCase();
+        if (!type) return;
+        if (!grouped.has(type)) {
+          grouped.set(type, []);
+          groupedKeys.set(type, new Set());
+        }
+        const key = getHomeSpotlightPoolKey(item, index);
+        const keySet = groupedKeys.get(type);
+        if (!keySet || keySet.has(key)) return;
+        keySet.add(key);
+        grouped.get(type).push(item);
+      });
+
+      const activeTypes = [...grouped.entries()]
+        .filter(([, items]) => Array.isArray(items) && items.length)
+        .map(([type]) => type);
+      if (!activeTypes.length) return candidates.slice(0, maxItems);
+
+      const allocation = new Map(activeTypes.map((type) => [type, 0]));
+      const baseCount = Math.floor(maxItems / activeTypes.length);
+      activeTypes.forEach((type) => {
+        allocation.set(type, Math.min(baseCount, grouped.get(type).length));
+      });
+
+      let used = [...allocation.values()].reduce((sum, value) => sum + Number(value || 0), 0);
+      while (used < maxItems) {
+        const nextType = [...activeTypes]
+          .map((type) => {
+            const allocated = Number(allocation.get(type) || 0);
+            const remaining = grouped.get(type).length - allocated;
+            return {
+              type,
+              remaining,
+              weight: Number(homeTasteWeights[type] || 1)
+            };
+          })
+          .filter((entry) => entry.remaining > 0)
+          .sort((a, b) => b.remaining - a.remaining || b.weight - a.weight || a.type.localeCompare(b.type))[0];
+        if (!nextType) break;
+        allocation.set(nextType.type, Number(allocation.get(nextType.type) || 0) + 1);
+        used += 1;
+      }
+
+      const selectedByType = new Map();
+      activeTypes.forEach((type) => {
+        const takeCount = Number(allocation.get(type) || 0);
+        selectedByType.set(type, grouped.get(type).slice(0, takeCount));
+      });
+
+      const roundRobinOrder = [...activeTypes].sort(
+        (a, b) => Number(homeTasteWeights[b] || 1) - Number(homeTasteWeights[a] || 1)
+      );
+      const shortlist = [];
+      let guard = 0;
+      while (shortlist.length < maxItems && guard < (maxItems * 8)) {
+        let added = false;
+        roundRobinOrder.forEach((type) => {
+          if (shortlist.length >= maxItems) return;
+          const queue = selectedByType.get(type);
+          if (!queue || !queue.length) return;
+          const item = queue.shift();
+          if (!item) return;
+          shortlist.push(item);
+          added = true;
+        });
+        if (!added) break;
+        guard += 1;
+      }
+
+      if (shortlist.length < maxItems) {
+        const usedKeys = new Set(shortlist.map((item, index) => getHomeSpotlightPoolKey(item, index)));
+        candidates.forEach((item, index) => {
+          if (shortlist.length >= maxItems) return;
+          const key = getHomeSpotlightPoolKey(item, index);
+          if (usedKeys.has(key)) return;
+          usedKeys.add(key);
+          shortlist.push(item);
+        });
+      }
+
+      return shortlist.slice(0, maxItems);
+    }
+
     function hydrateSpotlightFromPool(pool) {
-      if (!Array.isArray(pool) || !pool.length) {
+      const safePool = filterHomeSafeItems(Array.isArray(pool) ? pool : []);
+      if (!safePool.length) {
         homeSpotlightItems = [];
         resetSpotlightTimer(false);
         return;
       }
-      const topPool = pool.slice(0, HOME_SPOTLIGHT_POOL_SIZE * 3);
-      const mixedCandidates = buildUnifiedFeed(topPool, HOME_SPOTLIGHT_POOL_SIZE * 2);
-      const diversified = shuffleArray(mixedCandidates.length ? mixedCandidates : topPool).slice(0, HOME_SPOTLIGHT_POOL_SIZE);
-      let shortlist = diversified.length ? diversified : pool.slice(0, HOME_SPOTLIGHT_POOL_SIZE);
 
-      const gamePool = pool.filter((item) => String(item.mediaType || '').toLowerCase() === 'game');
-      const desiredGameCount = Math.min(gamePool.length, Math.max(6, Math.floor(HOME_SPOTLIGHT_POOL_SIZE * 0.4)));
-      const currentGameCount = shortlist.filter((item) => String(item.mediaType || '').toLowerCase() === 'game').length;
-      if (currentGameCount < desiredGameCount) {
-        const keyOf = (item) => `${String(item.mediaType || '')}:${String(item.itemId || item.title || '')}`;
-        const existingKeys = new Set(shortlist.map((item) => keyOf(item)));
-        const gameAdditions = gamePool.filter((item) => !existingKeys.has(keyOf(item))).slice(0, desiredGameCount - currentGameCount);
-        if (gameAdditions.length) {
-          const boosted = [...shortlist];
-          gameAdditions.forEach((gameItem) => {
-            for (let i = boosted.length - 1; i >= 0; i -= 1) {
-              if (String(boosted[i].mediaType || '').toLowerCase() !== 'game') {
-                boosted[i] = gameItem;
-                break;
-              }
-            }
-          });
-          shortlist = shuffleArray(boosted);
-        }
+      const topPool = safePool.slice(0, HOME_SPOTLIGHT_POOL_SIZE * 4);
+      const mixedCandidates = buildUnifiedFeed(topPool, HOME_SPOTLIGHT_POOL_SIZE * 4);
+      const shortlist = buildBalancedSpotlightShortlist(
+        mixedCandidates.length ? mixedCandidates : topPool,
+        HOME_SPOTLIGHT_POOL_SIZE
+      );
+      if (!shortlist.length) {
+        homeSpotlightItems = safePool.slice(0, HOME_SPOTLIGHT_POOL_SIZE);
+      } else {
+        const seed = getSpotlightSeedOffset();
+        const offset = seed % shortlist.length;
+        homeSpotlightItems = [...shortlist.slice(offset), ...shortlist.slice(0, offset)];
       }
 
-      const bookPool = pool.filter((item) => String(item.mediaType || '').toLowerCase() === 'book');
-      const desiredBookCount = Math.min(bookPool.length, Math.max(3, Math.floor(HOME_SPOTLIGHT_POOL_SIZE * 0.2)));
-      const currentBookCount = shortlist.filter((item) => String(item.mediaType || '').toLowerCase() === 'book').length;
-      if (currentBookCount < desiredBookCount) {
-        const existingBookKeys = new Set(shortlist
-          .filter((item) => String(item.mediaType || '').toLowerCase() === 'book')
-          .map((item) => `${String(item.itemId || '').trim().toLowerCase()}::${String(item.title || '').trim().toLowerCase()}`));
-        const bookAdditions = shuffleArray(bookPool.filter((item) => {
-          const key = `${String(item.itemId || '').trim().toLowerCase()}::${String(item.title || '').trim().toLowerCase()}`;
-          return key && !existingBookKeys.has(key);
-        }))
-          .slice(0, desiredBookCount - currentBookCount);
-        if (bookAdditions.length) {
-          const boosted = [...shortlist];
-          bookAdditions.forEach((bookItem) => {
-            for (let i = boosted.length - 1; i >= 0; i -= 1) {
-              const type = String(boosted[i].mediaType || '').toLowerCase();
-              if (type !== 'book' && type !== 'game') {
-                boosted[i] = bookItem;
-                break;
-              }
-            }
-          });
-          shortlist = shuffleArray(boosted);
-        }
-      }
-
-      const seed = getSpotlightSeedOffset();
-      const offset = seed % shortlist.length;
-      homeSpotlightItems = [...shortlist.slice(offset), ...shortlist.slice(0, offset)];
       warmSpotlightImages(homeSpotlightItems);
       homeSpotlightIndex = 0;
       showSpotlightByIndex(0, false);
@@ -4742,9 +4934,10 @@
       const channels = getHomeChannels();
       const normalized = {};
       channels.forEach((channel) => {
-        normalized[channel.key] = Array.isArray(feedMap[channel.key])
+        const channelItems = Array.isArray(feedMap[channel.key])
           ? feedMap[channel.key].filter((item) => item && typeof item === 'object')
           : [];
+        normalized[channel.key] = filterHomeSafeItems(channelItems);
       });
       return normalized;
     }
@@ -4830,7 +5023,7 @@
         if (!savedAt || (Date.now() - savedAt) > HOME_FEED_CACHE_MAX_AGE_MS) return null;
         const feed = parsed?.feed;
         if (!feed || typeof feed !== 'object') return null;
-        return feed;
+        return normalizeHomeFeedMap(feed);
       } catch (_err) {
         return null;
       }
@@ -4838,10 +5031,12 @@
 
     function writeHomeFeedCache(feedMap) {
       try {
+        const normalizedFeed = normalizeHomeFeedMap(feedMap);
+        if (!normalizedFeed) return;
         const channels = getHomeChannels();
         const payload = {};
         channels.forEach((channel) => {
-          payload[channel.key] = Array.isArray(feedMap?.[channel.key]) ? feedMap[channel.key] : [];
+          payload[channel.key] = Array.isArray(normalizedFeed?.[channel.key]) ? normalizedFeed[channel.key] : [];
         });
         localStorage.setItem(HOME_FEED_CACHE_KEY, JSON.stringify({
           savedAt: Date.now(),
@@ -4874,12 +5069,15 @@
     }
 
     function applyHomeFeedMap(feedMap) {
+      const normalizedFeed = normalizeHomeFeedMap(feedMap) || Object.fromEntries(
+        getHomeChannels().map((channel) => [channel.key, []])
+      );
       const channels = getHomeChannels();
       resetHomeImageRequestBudget();
-      warmHomeFeedImages(feedMap);
+      warmHomeFeedImages(normalizedFeed);
       let activeChannels = 0;
       channels.forEach((channel) => {
-        const items = Array.isArray(feedMap?.[channel.key]) ? feedMap[channel.key] : [];
+        const items = Array.isArray(normalizedFeed?.[channel.key]) ? normalizedFeed[channel.key] : [];
         homeFeedState[channel.key] = items;
         renderRail(channel.railId, items, channel.opts);
         if (items.length) activeChannels += 1;
@@ -5784,8 +5982,9 @@
         spotlightMediaImage: m.poster_path ? `${TMDB_SPOT_POSTER}${m.poster_path}` : (m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : ''),
         spotlightMediaFit: 'contain',
         spotlightMediaShape: 'poster',
+        isAdult: m?.adult === true,
         href: m.id ? `movie.html?id=${encodeURIComponent(m.id)}` : 'movies.html'
-      }));
+      })).filter((item) => isHomeSafeContentItem(item));
     }
 
     async function loadTv(signal) {
@@ -5828,8 +6027,9 @@
         spotlightMediaImage: t.poster_path ? `${TMDB_SPOT_POSTER}${t.poster_path}` : (t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : ''),
         spotlightMediaFit: 'contain',
         spotlightMediaShape: 'poster',
+        isAdult: t?.adult === true,
         href: t.id ? `tvshow.html?id=${encodeURIComponent(t.id)}` : 'tvshows.html'
-      }));
+      })).filter((item) => isHomeSafeContentItem(item));
     }
 
     async function loadAnime(signal) {
@@ -5870,8 +6070,9 @@
         spotlightMediaImage: show.poster_path ? `${TMDB_SPOT_POSTER}${show.poster_path}` : (show.backdrop_path ? `${TMDB_BACKDROP}${show.backdrop_path}` : ''),
         spotlightMediaFit: 'contain',
         spotlightMediaShape: 'poster',
+        isAdult: show?.adult === true,
         href: show.id ? `anime.html?id=${encodeURIComponent(show.id)}` : 'animes.html'
-      }));
+      })).filter((item) => isHomeSafeContentItem(item));
     }
 
     async function loadGames(signal) {
@@ -5997,6 +6198,7 @@
             coverImage: toHttpsUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || ''),
             _googleThumbnail: toHttpsUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || ''),
             _googleVolumeId: String(row?.id || '').trim(),
+            maturityRating: String(info?.maturityRating || '').trim(),
             _source: 'google-books'
           };
         }
@@ -6018,6 +6220,7 @@
           coverImage: toHttpsUrl(row?.coverImage || ''),
           _googleThumbnail: toHttpsUrl(row?._googleThumbnail || ''),
           _googleVolumeId: String(row?._googleVolumeId || '').trim(),
+          maturityRating: String(row?.maturityRating || '').trim(),
           _source: String(row?._source || '').trim() || 'book'
         };
       };
@@ -6076,6 +6279,7 @@
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
             fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+            maturityRating: String(normalized?.maturityRating || '').trim(),
             isbn,
             href
           };
@@ -6124,8 +6328,9 @@
         const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: 2005, allowMissingYear: true });
         const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 1995, allowMissingYear: true });
         const merged = mergeUniqueItems(strictModern, modernWithUnknownYear, relaxedFallback);
-        if (merged.length) {
-          const shuffled = shuffleArray(merged);
+        const safeMerged = filterHomeSafeItems(merged);
+        if (safeMerged.length) {
+          const shuffled = shuffleArray(safeMerged);
           return shuffled.slice(0, HOME_CHANNEL_TARGET_ITEMS);
         }
       } catch (_e) {}
@@ -6152,6 +6357,7 @@
           spotlightMediaImage: image,
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'poster',
+          explicit: track?.explicit === true,
           href: String(track.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
         };
       });
@@ -6189,7 +6395,10 @@
         const top50WithArtwork = top50Deduped.filter((track) => String(track.image || '').trim());
         const top50Pool = top50WithArtwork.length ? top50WithArtwork : top50Deduped;
         const top50Selected = shuffleArray(top50Pool).slice(0, HOME_CHANNEL_TARGET_ITEMS);
-        if (top50Selected.length) return mapTracksToHomeItems(top50Selected);
+        if (top50Selected.length) {
+          const safeTop50 = filterHomeSafeItems(mapTracksToHomeItems(top50Selected));
+          if (safeTop50.length) return safeTop50;
+        }
       } catch (_top50Error) {}
 
       try {
@@ -6202,7 +6411,10 @@
         const popularWithArtwork = dedupedPopular.filter((track) => String(track.image || '').trim());
         const popularPool = popularWithArtwork.length ? popularWithArtwork : dedupedPopular;
         const popularSelected = shuffleArray(popularPool).slice(0, HOME_CHANNEL_TARGET_ITEMS);
-        if (popularSelected.length) return mapTracksToHomeItems(popularSelected);
+        if (popularSelected.length) {
+          const safePopular = filterHomeSafeItems(mapTracksToHomeItems(popularSelected));
+          if (safePopular.length) return safePopular;
+        }
       } catch (_popularError) {}
 
       return FALLBACK_MUSIC_TRACKS.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((track, idx) => ({
