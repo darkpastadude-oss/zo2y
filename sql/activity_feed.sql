@@ -243,6 +243,7 @@ begin
     when 'game_reviews' then 'game'
     when 'book_reviews' then 'book'
     when 'music_reviews' then 'music'
+    when 'user_album_reviews' then 'music'
     when 'journal_entries' then 'restaurant'
     else null
   end;
@@ -261,6 +262,7 @@ begin
     when 'game_reviews' then nullif(v_payload->>'game_id', '')
     when 'book_reviews' then nullif(v_payload->>'book_id', '')
     when 'music_reviews' then nullif(v_payload->>'track_id', '')
+    when 'user_album_reviews' then nullif(v_payload->>'album_id', '')
     when 'journal_entries' then coalesce(
       nullif(v_payload->>'restraunt_id', ''),
       nullif(v_payload->>'restaurant_id', '')
@@ -275,6 +277,11 @@ begin
 
   v_metadata := jsonb_build_object('source_table', tg_table_name);
   v_metadata := v_metadata || jsonb_build_object('source_pk', nullif(v_payload->>'id', ''));
+  if tg_table_name = 'user_album_reviews' then
+    v_metadata := v_metadata || jsonb_build_object(
+      'item_kind', 'album'
+    );
+  end if;
   if tg_table_name = 'journal_entries' then
     v_metadata := v_metadata || jsonb_build_object(
       'visit_date', v_payload->>'visit_date',
@@ -382,6 +389,9 @@ select public.ensure_activity_trigger('book_reviews', 'trg_book_review_delete_ac
 select public.ensure_activity_trigger('music_reviews', 'trg_music_review_add_activity', 'insert', 'public.log_media_review_activity_iud');
 select public.ensure_activity_trigger('music_reviews', 'trg_music_review_edit_activity', 'update of rating, comment', 'public.log_media_review_activity_iud');
 select public.ensure_activity_trigger('music_reviews', 'trg_music_review_delete_activity', 'delete', 'public.log_media_review_activity_iud');
+select public.ensure_activity_trigger('user_album_reviews', 'trg_album_review_add_activity', 'insert', 'public.log_media_review_activity_iud');
+select public.ensure_activity_trigger('user_album_reviews', 'trg_album_review_edit_activity', 'update of rating, comment', 'public.log_media_review_activity_iud');
+select public.ensure_activity_trigger('user_album_reviews', 'trg_album_review_delete_activity', 'delete', 'public.log_media_review_activity_iud');
 select public.ensure_activity_trigger('journal_entries', 'trg_journal_review_add_activity', 'insert', 'public.log_media_review_activity_iud');
 select public.ensure_activity_trigger('journal_entries', 'trg_journal_review_edit_activity', 'update of rating, notes, visit_date, tags', 'public.log_media_review_activity_iud');
 select public.ensure_activity_trigger('journal_entries', 'trg_journal_review_delete_activity', 'delete', 'public.log_media_review_activity_iud');
@@ -858,6 +868,37 @@ begin
         where f.event_type = 'review_add'
           and f.media_type = 'music'
           and f.metadata->>'source_table' = 'music_reviews'
+          and f.metadata->>'source_pk' = src.id::text
+      );
+  end if;
+
+  if to_regclass('public.user_album_reviews') is not null then
+    insert into public.user_activity_feed (
+      actor_id, event_type, media_type, item_id, rating, review_text, metadata, created_at
+    )
+    select
+      src.user_id,
+      'review_add',
+      'music',
+      src.album_id::text,
+      src.rating::numeric(3,1),
+      nullif(trim(src.comment), ''),
+      jsonb_build_object(
+        'source_table', 'user_album_reviews',
+        'source_pk', src.id::text,
+        'item_kind', 'album',
+        'backfill', true
+      ),
+      coalesce(src.created_at, now())
+    from public.user_album_reviews src
+    where src.user_id is not null
+      and src.album_id is not null
+      and not exists (
+        select 1
+        from public.user_activity_feed f
+        where f.event_type = 'review_add'
+          and f.media_type = 'music'
+          and f.metadata->>'source_table' = 'user_album_reviews'
           and f.metadata->>'source_pk' = src.id::text
       );
   end if;

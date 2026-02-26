@@ -442,6 +442,7 @@
 
     function mapTrackRowsToItems(rows = []) {
       return (Array.isArray(rows) ? rows : []).map((row) => {
+        if (String(row?.kind || '').trim().toLowerCase() === 'album') return null;
         const artists = Array.isArray(row.artists) ? row.artists : [];
         const albumName = String(row?.album?.name || row?.album_name || '').trim();
         const albumType = String(row?.album?.album_type || row?.album_type || '').trim().toLowerCase();
@@ -457,7 +458,7 @@
           external_url: row.external_url || '',
           popularity: Number(row.popularity || 0)
         };
-      }).filter((row) => row.id);
+      }).filter((row) => row && row.id);
     }
 
     function mapAlbumRowsToItems(rows = []) {
@@ -584,10 +585,15 @@
           const searchRes = await fetch(`/api/music/search?q=${q}&limit=36&market=US&type=track,album&album_types=album`);
           if (searchRes?.ok) {
             const searchJson = await searchRes.json();
-            trackRows = Array.isArray(searchJson?.tracks)
+            const hasTrackArray = Array.isArray(searchJson?.tracks);
+            const hasAlbumArray = Array.isArray(searchJson?.albums);
+            const mixedRows = Array.isArray(searchJson?.results) ? searchJson.results : [];
+            trackRows = hasTrackArray
               ? searchJson.tracks
-              : (Array.isArray(searchJson?.results) ? searchJson.results : []);
-            albumRows = Array.isArray(searchJson?.albums) ? searchJson.albums : [];
+              : mixedRows.filter((row) => String(row?.kind || 'track').toLowerCase() !== 'album');
+            albumRows = hasAlbumArray
+              ? searchJson.albums
+              : mixedRows.filter((row) => String(row?.kind || '').toLowerCase() === 'album');
           }
         } else {
           const [trackRes, albumRes] = await Promise.allSettled([

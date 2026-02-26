@@ -58,6 +58,7 @@ function normalizeTrackRow(track) {
   const images = Array.isArray(album.images) ? album.images : [];
 
   return {
+    kind: "track",
     id: String(track?.id || ""),
     name: String(track?.name || "Track"),
     artists: artists
@@ -952,6 +953,20 @@ router.get("/search", async (req, res) => {
     .filter(Boolean);
   const albumTypesKey = albumTypes.join(",") || "album";
 
+  const mergeMixedResults = (tracks = [], albums = [], maxCount = limit) => {
+    const t = [...(Array.isArray(tracks) ? tracks : [])];
+    const a = [...(Array.isArray(albums) ? albums : [])];
+    const mixed = [];
+    while (mixed.length < maxCount && (t.length || a.length)) {
+      if (a.length) mixed.push(a.shift());
+      if (t.length && mixed.length < maxCount) mixed.push(t.shift());
+      if (t.length && mixed.length < maxCount) mixed.push(t.shift());
+    }
+    while (mixed.length < maxCount && a.length) mixed.push(a.shift());
+    while (mixed.length < maxCount && t.length) mixed.push(t.shift());
+    return mixed.slice(0, maxCount);
+  };
+
   try {
     if (!hasSpotifyCredentials()) {
       const [fallbackTracks, fallbackAlbums] = await Promise.all([
@@ -962,6 +977,9 @@ router.get("/search", async (req, res) => {
       const fallbackCount = includeTracks && includeAlbums
         ? (fallbackTracks.length + fallbackAlbums.length)
         : fallbackPrimary.length;
+      const fallbackMixed = includeTracks && includeAlbums
+        ? mergeMixedResults(fallbackTracks, filterAlbumsByType(fallbackAlbums, albumTypes), limit)
+        : fallbackPrimary;
       return res.json({
         count: fallbackCount,
         track_count: fallbackTracks.length,
@@ -971,7 +989,7 @@ router.get("/search", async (req, res) => {
         source: "itunes-fallback",
         type: spotifyType,
         album_types: albumTypesKey,
-        results: fallbackPrimary,
+        results: fallbackMixed,
         tracks: fallbackTracks,
         albums: filterAlbumsByType(fallbackAlbums, albumTypes)
       });
@@ -999,7 +1017,9 @@ router.get("/search", async (req, res) => {
       ...seed,
       ...(detailedMap.get(seed.id) || {})
     })), albumTypes);
-    const primaryResults = includeTracks ? tracks : albums;
+    const primaryResults = includeTracks && includeAlbums
+      ? mergeMixedResults(tracks, albums, limit)
+      : (includeTracks ? tracks : albums);
     const trackCount = Number(json?.tracks?.total || tracks.length || 0);
     const albumCount = Number(albums.length || json?.albums?.total || 0);
     return res.json({
@@ -1025,6 +1045,9 @@ router.get("/search", async (req, res) => {
       const fallbackCount = includeTracks && includeAlbums
         ? (fallbackTracks.length + fallbackAlbums.length)
         : fallbackPrimary.length;
+      const fallbackMixed = includeTracks && includeAlbums
+        ? mergeMixedResults(fallbackTracks, filterAlbumsByType(fallbackAlbums, albumTypes), limit)
+        : fallbackPrimary;
       return res.json({
         count: fallbackCount,
         track_count: fallbackTracks.length,
@@ -1034,7 +1057,7 @@ router.get("/search", async (req, res) => {
         source: "itunes-fallback",
         type: spotifyType,
         album_types: albumTypesKey,
-        results: fallbackPrimary,
+        results: fallbackMixed,
         tracks: fallbackTracks,
         albums: filterAlbumsByType(fallbackAlbums, albumTypes)
       });

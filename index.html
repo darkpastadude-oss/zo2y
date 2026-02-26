@@ -3006,6 +3006,7 @@
 
       const mapMusicRows = (trackRows, albumRows, label, takeCount = 6) => {
         const tracks = (Array.isArray(trackRows) ? trackRows : []).slice(0, Math.max(takeCount * 2, 8)).map((track, idx) => {
+          if (String(track?.kind || '').trim().toLowerCase() === 'album') return null;
           const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : '';
           const title = String(track?.name || 'Track').trim() || 'Track';
           const albumName = String(track?.album?.name || track?.album_name || '').trim() || 'Unknown Album';
@@ -3029,7 +3030,7 @@
             href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
           };
           return withReleaseTag({ ...item, releaseDateSort }, label, { detail: `Song | ${containerLabel}: ${albumName}` });
-        }).filter((item) => String(item.itemId || '').trim() && String(item.image || '').trim());
+        }).filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim());
 
         const albums = (Array.isArray(albumRows) ? albumRows : []).slice(0, Math.max(takeCount, 4)).map((album, idx) => {
           const artists = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : '';
@@ -6492,6 +6493,7 @@
     async function loadMusic(signal) {
       const market = 'US';
       const mapTracksToHomeItems = (tracks = []) => tracks.map((track) => {
+        if (String(track?.kind || '').trim().toLowerCase() === 'album') return null;
         const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
         const title = String(track?.name || 'Track').trim() || 'Track';
         const albumName = String(track?.album?.name || track?.album_name || '').trim() || 'Unknown Album';
@@ -6515,7 +6517,7 @@
           explicit: track?.explicit === true,
           href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
         };
-      }).filter((item) => String(item?.itemId || '').trim());
+      }).filter((item) => item && String(item?.itemId || '').trim());
 
       const mapAlbumsToHomeItems = (albums = []) => albums.map((album, idx) => {
         const albumIdRaw = String(album?.id || '').trim();
