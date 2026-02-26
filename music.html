@@ -443,12 +443,15 @@
     function mapTrackRowsToItems(rows = []) {
       return (Array.isArray(rows) ? rows : []).map((row) => {
         const artists = Array.isArray(row.artists) ? row.artists : [];
+        const albumName = String(row?.album?.name || row?.album_name || '').trim();
+        const albumType = String(row?.album?.album_type || row?.album_type || '').trim().toLowerCase();
         return {
           id: String(row.id || ''),
           kind: 'track',
           name: row.name || 'Track',
           subtitle: artists.join(', ') || 'Artist',
-          album: row.album?.name || 'Album',
+          album: albumName || 'Unknown Album',
+          album_type: albumType || '',
           image: row.image || '',
           preview_url: row.preview_url || '',
           external_url: row.external_url || '',
@@ -523,8 +526,13 @@
         ].filter(Boolean).join(' | ');
         return details ? `Album | ${details}` : 'Album Release';
       }
+      const title = String(item?.name || '').trim().toLowerCase();
       const albumName = String(item?.album || '').trim() || 'Unknown Album';
-      return `Song | Album: ${albumName} | Popularity ${Number(item?.popularity || 0)}/100`;
+      const albumNameLower = albumName.toLowerCase();
+      const albumType = String(item?.album_type || '').trim().toLowerCase();
+      const isSingleContainer = albumType === 'single' || (!!title && title === albumNameLower);
+      const containerLabel = isSingleContainer ? 'Single' : 'Album';
+      return `Song | ${containerLabel}: ${albumName} | Popularity ${Number(item?.popularity || 0)}/100`;
     }
 
     async function ensureSupabase() {

@@ -2115,9 +2115,9 @@
       book: { table: 'book_list_items', itemField: 'book_id' },
       music: { table: 'music_list_items', itemField: 'track_id' }
     };
-    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v6';
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v7';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v5';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v6';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
@@ -3007,13 +3007,17 @@
       const mapMusicRows = (trackRows, albumRows, label, takeCount = 6) => {
         const tracks = (Array.isArray(trackRows) ? trackRows : []).slice(0, Math.max(takeCount * 2, 8)).map((track, idx) => {
           const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : '';
-          const albumName = String(track?.album?.name || '').trim() || 'Unknown Album';
+          const title = String(track?.name || 'Track').trim() || 'Track';
+          const albumName = String(track?.album?.name || track?.album_name || '').trim() || 'Unknown Album';
+          const albumType = String(track?.album?.album_type || track?.album_type || '').trim().toLowerCase();
+          const isSingleContainer = albumType === 'single' || title.toLowerCase() === albumName.toLowerCase();
+          const containerLabel = isSingleContainer ? 'Single' : 'Album';
           const image = String(track?.image || '').trim();
           const releaseDateSort = Date.now() - (idx * 1000);
           const item = {
             mediaType: 'music',
             itemId: String(track?.id || ''),
-            title: String(track?.name || 'Track').trim() || 'Track',
+            title,
             subtitle: artists || 'Artist',
             image,
             backgroundImage: image,
@@ -3024,7 +3028,7 @@
             explicit: track?.explicit === true,
             href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
           };
-          return withReleaseTag({ ...item, releaseDateSort }, label, { detail: `Song | Album: ${albumName}` });
+          return withReleaseTag({ ...item, releaseDateSort }, label, { detail: `Song | ${containerLabel}: ${albumName}` });
         }).filter((item) => String(item.itemId || '').trim() && String(item.image || '').trim());
 
         const albums = (Array.isArray(albumRows) ? albumRows : []).slice(0, Math.max(takeCount, 4)).map((album, idx) => {
@@ -6489,15 +6493,19 @@
       const market = 'US';
       const mapTracksToHomeItems = (tracks = []) => tracks.map((track) => {
         const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
-        const albumName = String(track?.album?.name || '').trim() || 'Unknown Album';
+        const title = String(track?.name || 'Track').trim() || 'Track';
+        const albumName = String(track?.album?.name || track?.album_name || '').trim() || 'Unknown Album';
+        const albumType = String(track?.album?.album_type || track?.album_type || '').trim().toLowerCase();
+        const isSingleContainer = albumType === 'single' || title.toLowerCase() === albumName.toLowerCase();
+        const containerLabel = isSingleContainer ? 'Single' : 'Album';
         const popularity = Number(track?.popularity || 0);
         const image = String(track?.image || '').trim();
         return {
           mediaType: 'music',
           itemId: String(track?.id || ''),
-          title: track?.name || 'Track',
+          title,
           subtitle: artists || 'Artist',
-          extra: `Song | Album: ${albumName}${popularity ? ` | Popularity ${popularity}/100` : ''}`,
+          extra: `Song | ${containerLabel}: ${albumName}${popularity ? ` | Popularity ${popularity}/100` : ''}`,
           image,
           backgroundImage: image,
           spotlightImage: image,
@@ -6654,7 +6662,7 @@
         itemId: String(track.id || `fallback-track-${idx + 1}`),
         title: track.title,
         subtitle: track.artist,
-        extra: `Song | Album: ${String(track.album || 'Unknown Album')}`,
+        extra: `Song | ${String(track.title || '').trim().toLowerCase() === String(track.album || '').trim().toLowerCase() ? 'Single' : 'Album'}: ${String(track.album || 'Unknown Album')}`,
         image: HOME_LOCAL_FALLBACK_IMAGE,
         backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
         spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,

@@ -69,6 +69,8 @@ function normalizeTrackRow(track) {
     album: {
       id: String(album?.id || ""),
       name: String(album?.name || "").trim(),
+      album_type: String(album?.album_type || "").trim(),
+      release_date: String(album?.release_date || "").trim(),
       images: images
         .map((img) => ({
           url: String(img?.url || "").trim(),
@@ -88,17 +90,21 @@ function normalizeTrackRow(track) {
 
 function normalizeAlbumRow(album) {
   const artists = Array.isArray(album?.artists) ? album.artists : [];
+  const artistNames = artists
+    .map((artist) => String(artist?.name || "").trim())
+    .filter(Boolean);
+  const artistIds = artists
+    .map((artist) => String(artist?.id || "").trim())
+    .filter(Boolean);
   const images = Array.isArray(album?.images) ? album.images : [];
   return {
     id: String(album?.id || ""),
     kind: "album",
     name: String(album?.name || "Album"),
-    artists: artists
-      .map((artist) => String(artist?.name || "").trim())
-      .filter(Boolean),
-    artist_ids: artists
-      .map((artist) => String(artist?.id || "").trim())
-      .filter(Boolean),
+    artists: artistNames,
+    artist_ids: artistIds,
+    artist_name: String(artistNames?.[0] || "").trim(),
+    artist_id: String(artistIds?.[0] || "").trim(),
     image: String(images?.[0]?.url || "").trim(),
     images: images
       .map((img) => ({
@@ -133,6 +139,7 @@ function normalizeArtistRow(artist) {
 }
 
 function normalizeItunesTrackRow(track) {
+  const collectionType = String(track?.collectionType || "").trim().toLowerCase();
   return {
     id: String(track?.trackId || track?.collectionId || ""),
     name: String(track?.trackName || track?.collectionName || "Track"),
@@ -140,6 +147,8 @@ function normalizeItunesTrackRow(track) {
     album: {
       id: String(track?.collectionId || ""),
       name: String(track?.collectionName || "").trim(),
+      album_type: collectionType === "single" ? "single" : (collectionType || "album"),
+      release_date: String(track?.releaseDate || "").trim().slice(0, 10),
       images: [String(track?.artworkUrl100 || track?.artworkUrl60 || "").trim()]
         .filter(Boolean)
         .map((url) => ({ url, width: 100, height: 100 }))
@@ -154,12 +163,15 @@ function normalizeItunesTrackRow(track) {
 }
 
 function normalizeItunesAlbumRow(album) {
+  const artistName = String(album?.artistName || "").trim();
   return {
     id: String(album?.collectionId || album?.id || ""),
     kind: "album",
     name: String(album?.collectionName || "Album"),
-    artists: [String(album?.artistName || "").trim()].filter(Boolean),
+    artists: [artistName].filter(Boolean),
     artist_ids: [],
+    artist_name: artistName,
+    artist_id: "",
     image: String(album?.artworkUrl100 || album?.artworkUrl60 || "").trim(),
     images: [String(album?.artworkUrl100 || album?.artworkUrl60 || "").trim()]
       .filter(Boolean)
@@ -190,6 +202,8 @@ function normalizeAppleChartSongRow(song) {
     album: {
       id: "",
       name: String(song?.name || "").trim(),
+      album_type: "single",
+      release_date: "",
       images: hiResArtwork ? [{ url: hiResArtwork, width: 640, height: 640 }] : []
     },
     image: hiResArtwork,
@@ -338,6 +352,52 @@ async function fetchSpotifyAlbumsByIds(ids = [], { market = "US" } = {}) {
   return uniqueIds
     .map((id) => mergedById.get(id))
     .filter(Boolean);
+}
+
+async function hydrateTracksWithAlbumDetails(rows = [], { market = "US" } = {}) {
+  const tracks = Array.isArray(rows) ? rows : [];
+  if (!tracks.length) return tracks;
+  const albumIds = Array.from(new Set(
+    tracks
+      .map((row) => String(row?.album?.id || "").trim())
+      .filter(Boolean)
+  ));
+  if (!albumIds.length) return tracks;
+
+  const detailedAlbums = await fetchSpotifyAlbumsByIds(albumIds, { market });
+  const albumMap = new Map(
+    detailedAlbums.map((album) => [String(album?.id || "").trim(), album])
+  );
+
+  return tracks.map((track) => {
+    const currentAlbum = track?.album || {};
+    const albumId = String(currentAlbum?.id || "").trim();
+    if (!albumId) return track;
+    const fullAlbum = albumMap.get(albumId);
+    if (!fullAlbum) return track;
+
+    const nextAlbumImages = Array.isArray(fullAlbum.images) && fullAlbum.images.length
+      ? fullAlbum.images
+      : (Array.isArray(currentAlbum.images) ? currentAlbum.images : []);
+    const nextImage = String(
+      fullAlbum?.image ||
+      nextAlbumImages?.[0]?.url ||
+      track?.image ||
+      ""
+    ).trim();
+
+    return {
+      ...track,
+      album: {
+        id: albumId,
+        name: String(fullAlbum?.name || currentAlbum?.name || "").trim(),
+        album_type: String(fullAlbum?.album_type || currentAlbum?.album_type || "").trim(),
+        release_date: String(fullAlbum?.release_date || currentAlbum?.release_date || "").trim(),
+        images: nextAlbumImages
+      },
+      image: nextImage || String(track?.image || "").trim()
+    };
+  });
 }
 
 function filterAlbumsByType(rows = [], allowedTypes = ["album"]) {
@@ -505,14 +565,15 @@ router.get("/top-50", async (req, res) => {
     const merged = dedupeTracks(chartBatches.flat())
       .filter((row) => !!row.image && !isLowSignalTrack(row))
       .slice(0, limit);
+    const hydrated = await hydrateTracksWithAlbumDetails(merged, { market });
 
     return res.json({
-      count: merged.length,
+      count: hydrated.length,
       limit,
       offset: 0,
       source: "spotify-top-50-playlists",
       playlist_ids: [...TOP_50_PLAYLIST_IDS],
-      results: merged
+      results: hydrated
     });
   } catch (error) {
     try {
@@ -636,13 +697,14 @@ router.get("/popular", async (req, res) => {
     const ranked = merged
       .sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0))
       .slice(0, limit);
+    const hydrated = await hydrateTracksWithAlbumDetails(ranked, { market });
 
     return res.json({
-      count: ranked.length,
+      count: hydrated.length,
       limit,
       offset: 0,
       source: "spotify-playlists",
-      results: ranked
+      results: hydrated
     });
   } catch (error) {
     try {
@@ -924,7 +986,10 @@ router.get("/search", async (req, res) => {
     });
     const trackRows = includeTracks && Array.isArray(json?.tracks?.items) ? json.tracks.items : [];
     const albumRows = includeAlbums && Array.isArray(json?.albums?.items) ? json.albums.items : [];
-    const tracks = trackRows.map(normalizeTrackRow).filter((row) => !!row.id);
+    const seedTracks = trackRows.map(normalizeTrackRow).filter((row) => !!row.id);
+    const tracks = includeTracks
+      ? await hydrateTracksWithAlbumDetails(seedTracks, { market })
+      : [];
     const seedAlbums = albumRows.map(normalizeAlbumRow).filter((row) => !!row.id);
     const detailedAlbums = includeAlbums
       ? await fetchSpotifyAlbumsByIds(seedAlbums.map((row) => row.id), { market })
@@ -990,7 +1055,9 @@ router.get("/tracks/:id", async (req, res) => {
 
     const market = String(req.query.market || "US").trim().slice(0, 2).toUpperCase() || "US";
     const json = await spotifyRequest(`/tracks/${encodeURIComponent(id)}`, { market });
-    return res.json(normalizeTrackRow(json));
+    const normalized = normalizeTrackRow(json);
+    const hydratedRows = await hydrateTracksWithAlbumDetails([normalized], { market });
+    return res.json(hydratedRows?.[0] || normalized);
   } catch (error) {
     const message = String(error?.message || error);
     if (message.includes("(404)")) {
