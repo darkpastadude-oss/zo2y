@@ -3060,7 +3060,7 @@
         const trackQueue = [...tracks];
         const albumQueue = [...albums];
         while (mixed.length < takeCount && (trackQueue.length || albumQueue.length)) {
-          if (trackQueue.length) mixed.push(trackQueue.shift());
+          if (albumQueue.length) mixed.push(albumQueue.shift());
           if (trackQueue.length && mixed.length < takeCount) mixed.push(trackQueue.shift());
           if (albumQueue.length && mixed.length < takeCount) mixed.push(albumQueue.shift());
         }
@@ -3109,8 +3109,8 @@
           { signal, cacheKey: 'music:new-releases:top-50-us-40' }
         ),
         fetchJsonWithPerfCache(
-          '/api/music/new-releases?limit=24&market=US',
-          { signal, cacheKey: 'music:new-releases:albums-us-24' }
+          '/api/music/new-releases?limit=40&market=US',
+          { signal, cacheKey: 'music:new-releases:albums-us-40' }
         )
       ]);
 
@@ -6588,7 +6588,7 @@
         const albumQueue = [...(Array.isArray(albumItems) ? albumItems : [])];
         const mixed = [];
         while (mixed.length < takeCount && (trackQueue.length || albumQueue.length)) {
-          if (trackQueue.length) mixed.push(trackQueue.shift());
+          if (albumQueue.length) mixed.push(albumQueue.shift());
           if (trackQueue.length && mixed.length < takeCount) mixed.push(trackQueue.shift());
           if (albumQueue.length && mixed.length < takeCount) mixed.push(albumQueue.shift());
         }
@@ -6604,8 +6604,8 @@
         const albumsWithArtwork = dedupedAlbums.filter((album) => String(album?.image || '').trim());
         const trackPool = tracksWithArtwork.length ? tracksWithArtwork : dedupedTracks;
         const albumPool = albumsWithArtwork.length ? albumsWithArtwork : dedupedAlbums;
-        const selectedTracks = shuffleArray(trackPool).slice(0, Math.max(takeCount * 2, 32));
-        const selectedAlbums = shuffleArray(albumPool).slice(0, Math.max(takeCount, 12));
+        const selectedTracks = shuffleArray(trackPool).slice(0, Math.max(takeCount, 16));
+        const selectedAlbums = shuffleArray(albumPool).slice(0, Math.max(takeCount * 2, 24));
         const mappedTracks = mapTracksToHomeItems(selectedTracks);
         const mappedAlbums = mapAlbumsToHomeItems(selectedAlbums);
         const mixed = mixMusicItems(mappedTracks, mappedAlbums, takeCount);
@@ -6613,7 +6613,7 @@
       };
 
       const top50Limit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 4, 64);
-      const newReleaseLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 2, 24);
+      const newReleaseLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 3, 36);
       const [top50Res, topAlbumsRes] = await Promise.allSettled([
         fetchJsonWithPerfCache(
           `/api/music/top-50?limit=${top50Limit}&market=${market}`,
@@ -6635,8 +6635,8 @@
           { signal, cacheKey: `music:popular:50:${market}` }
         ),
         fetchJsonWithPerfCache(
-          `/api/music/new-releases?limit=24&market=${market}`,
-          { signal, cacheKey: `music:new-releases:24:${market}` }
+          `/api/music/new-releases?limit=36&market=${market}`,
+          { signal, cacheKey: `music:new-releases:36:${market}` }
         )
       ]);
       const popularRows = popularRes.status === 'fulfilled' && Array.isArray(popularRes.value?.results) ? popularRes.value.results : [];
