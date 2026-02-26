@@ -284,7 +284,7 @@
       overflow: hidden;
       border: 0;
       background: transparent;
-      z-index: 1;
+      z-index: 3;
       box-shadow: none;
     }
 
@@ -1429,6 +1429,77 @@
       }
     }
 
+    @media (max-width: 1024px) {
+      .spotlight {
+        border-radius: 20px;
+        min-height: 340px;
+      }
+
+      .spotlight-media {
+        right: 14px;
+        top: 14px;
+        transform: none;
+        width: clamp(110px, 22vw, 168px);
+        aspect-ratio: 2/3;
+        border-radius: 12px;
+      }
+
+      .spotlight-inner {
+        min-height: 340px;
+        max-width: none;
+        padding: 16px 18px 18px;
+        padding-right: clamp(150px, 34vw, 246px);
+        gap: 8px;
+      }
+
+      .spotlight.no-media .spotlight-inner {
+        padding-right: 18px;
+      }
+
+      .spotlight.has-square-media .spotlight-inner {
+        padding-right: clamp(138px, 30vw, 222px);
+      }
+
+      .spotlight.has-landscape-media .spotlight-inner {
+        padding-right: 18px;
+        padding-top: clamp(114px, 25vw, 166px);
+      }
+
+      .spotlight-media.square {
+        width: clamp(96px, 18vw, 144px);
+      }
+
+      .spotlight-media.landscape {
+        width: min(42vw, 212px);
+        max-width: 212px;
+        aspect-ratio: 16/9;
+        right: 14px;
+        left: auto;
+        top: 14px;
+      }
+
+      .spotlight-title {
+        font-size: clamp(24px, 5.6vw, 36px);
+        line-height: 1.06;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .spotlight-summary {
+        font-size: 13px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .spotlight.has-landscape-media .spotlight-title {
+        font-size: clamp(21px, 5vw, 30px);
+      }
+    }
+
     @media (max-width: 760px) {
       body {
         padding-bottom: 86px;
@@ -1521,7 +1592,7 @@
       }
 
       .spotlight.has-landscape-media .spotlight-title {
-        font-size: clamp(20px, 6vw, 32px);
+        font-size: clamp(19px, 5.8vw, 28px);
       }
 
       .spotlight.has-landscape-media .spotlight-summary {
@@ -1530,7 +1601,8 @@
       }
 
       .spotlight-title {
-        font-size: clamp(24px, 8vw, 38px);
+        font-size: clamp(20px, 7.2vw, 30px);
+        line-height: 1.08;
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
@@ -1538,7 +1610,7 @@
       }
 
       .spotlight-summary {
-        font-size: 13px;
+        font-size: 12px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -1741,6 +1813,25 @@
         background: var(--gradient);
         font-size: 13px;
         font-weight: 800;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .spotlight-media {
+        width: 88px;
+      }
+
+      .spotlight-inner {
+        padding-right: 118px;
+      }
+
+      .spotlight.has-square-media .spotlight-inner {
+        padding-right: 108px;
+      }
+
+      .spotlight-title {
+        font-size: clamp(18px, 7vw, 25px);
+        -webkit-line-clamp: 3;
       }
     }
 
@@ -4913,7 +5004,7 @@
           isPlaceholder: true
         })),
         music: makeSeedItems('music', ['Global Hits', 'Viral Tracks', 'Fresh Releases', 'Chill Vibes', 'Late Night Mix'], 'music.html'),
-        book: []
+        book: makeSeedItems('book', ['Bestselling Books', 'Popular Fiction', 'Book Club Picks', 'Page-Turners', 'Must Read Stories'], 'books.html')
       };
     }
 
@@ -4923,7 +5014,7 @@
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
-        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 4200, deferInitial: true },
+        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 4200 },
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 8500 },
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 3800 }
       ];
@@ -6438,8 +6529,7 @@
       setStatus('Loading spotlight and live feed...', false);
       resetSpotlightTimer(false);
       const channels = getHomeChannels();
-      const initialChannels = channels.filter((channel) => !channel.deferInitial);
-      const deferredChannels = channels.filter((channel) => !!channel.deferInitial);
+      const initialChannels = channels;
       const cachedFeed = readHomeFeedCache();
       const baselineFeed = cachedFeed || null;
       let quickFallbackFeed = null;
@@ -6538,19 +6628,6 @@
         setStatus(`Live feed ready. ${freshActiveChannels}/${initialChannelsCount} core channels live.`, false);
       }
 
-      if (deferredChannels.length) {
-        void Promise.all(deferredChannels.map(async (channel) => {
-          const items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
-          if (!Array.isArray(items) || !items.length) return;
-          mergedFeed[channel.key] = items;
-          applyHomeFeedMap(mergedFeed);
-          writeHomeFeedCache(mergedFeed);
-          writePrecomputedHomeFeedCache(mergedFeed, {
-            savedAt: Date.now(),
-            expiresAt: Date.now() + HOME_PRECOMPUTED_FEED_MAX_AGE_MS
-          });
-        })).catch(() => {});
-      }
       scheduleHomeMenuCachePrime();
     }
 
