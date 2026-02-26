@@ -310,7 +310,7 @@
 
   async function fetchMusic(query, signal) {
     const proxy = await fetchJsonWithTimeout(
-      `${MUSIC_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=6&market=US&type=track,album`,
+      `${MUSIC_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=6&market=US&type=track,album&album_types=album`,
       { signal }
     );
     if (proxy) {

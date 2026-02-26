@@ -3032,6 +3032,8 @@
           const image = String(album?.image || '').trim();
           const albumIdRaw = String(album?.id || '').trim();
           const albumId = albumIdRaw.startsWith('album:') ? albumIdRaw.slice(6) : albumIdRaw;
+          const albumType = String(album?.album_type || 'album').trim().toLowerCase();
+          if (albumType && albumType !== 'album') return null;
           const releaseDate = String(album?.release_date || '').trim();
           const parsedRelease = Date.parse(releaseDate);
           const releaseDateSort = Number.isFinite(parsedRelease) ? parsedRelease : (Date.now() - ((idx + 1) * 900));
@@ -3109,8 +3111,8 @@
           { signal, cacheKey: 'music:new-releases:top-50-us-40' }
         ),
         fetchJsonWithPerfCache(
-          '/api/music/new-releases?limit=40&market=US',
-          { signal, cacheKey: 'music:new-releases:albums-us-40' }
+          '/api/music/new-releases?limit=40&market=US&album_types=album',
+          { signal, cacheKey: 'music:new-releases:albums-us-40:album' }
         )
       ]);
 
@@ -6510,11 +6512,12 @@
       const mapAlbumsToHomeItems = (albums = []) => albums.map((album, idx) => {
         const albumIdRaw = String(album?.id || '').trim();
         const albumId = albumIdRaw.startsWith('album:') ? albumIdRaw.slice(6) : albumIdRaw;
+        const albumType = String(album?.album_type || 'album').trim().toLowerCase();
+        if (albumType && albumType !== 'album') return null;
         if (!albumId) return null;
         const artists = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : 'Artist';
         const image = String(album?.image || '').trim();
         const releaseDate = String(album?.release_date || '').trim();
-        const albumType = String(album?.album_type || '').trim();
         const totalTracks = Number(album?.total_tracks || 0);
         const detail = [
           releaseDate ? `Released ${releaseDate}` : '',
@@ -6620,8 +6623,8 @@
           { signal, cacheKey: `music:top-50:${top50Limit}:${market}` }
         ),
         fetchJsonWithPerfCache(
-          `/api/music/new-releases?limit=${newReleaseLimit}&market=${market}`,
-          { signal, cacheKey: `music:new-releases:${newReleaseLimit}:${market}` }
+          `/api/music/popular-albums?limit=${newReleaseLimit}&market=${market}&album_types=album`,
+          { signal, cacheKey: `music:popular-albums:${newReleaseLimit}:${market}:album` }
         )
       ]);
       const top50Rows = top50Res.status === 'fulfilled' && Array.isArray(top50Res.value?.results) ? top50Res.value.results : [];
@@ -6635,8 +6638,8 @@
           { signal, cacheKey: `music:popular:50:${market}` }
         ),
         fetchJsonWithPerfCache(
-          `/api/music/new-releases?limit=36&market=${market}`,
-          { signal, cacheKey: `music:new-releases:36:${market}` }
+          `/api/music/popular-albums?limit=36&market=${market}&album_types=album`,
+          { signal, cacheKey: `music:popular-albums:36:${market}:album` }
         )
       ]);
       const popularRows = popularRes.status === 'fulfilled' && Array.isArray(popularRes.value?.results) ? popularRes.value.results : [];

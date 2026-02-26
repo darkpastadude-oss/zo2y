@@ -15,6 +15,8 @@ const TOP_50_PLAYLIST_IDS = [
   "37i9dQZEVXbLRQDuF5jeBp", // Top 50 - USA
   "37i9dQZEVXbMDoHDwVN2tF"  // Top 50 - Global
 ];
+const ALBUM_DETAILS_CACHE_TTL_MS = 1000 * 60 * 30;
+const POPULAR_ALBUMS_CACHE_TTL_MS = 1000 * 60 * 8;
 const CURATION_KEYWORDS_BLOCKLIST = [
   "workout",
   "karaoke",
@@ -30,6 +32,8 @@ let spotifyTokenCache = {
   accessToken: "",
   expiresAt: 0
 };
+const albumDetailsCache = new Map();
+const popularAlbumsCache = new Map();
 
 function clampInt(value, min, max, fallback) {
   const n = Number(value);
@@ -106,7 +110,11 @@ function normalizeAlbumRow(album) {
     external_url: String(album?.external_urls?.spotify || "").trim(),
     release_date: String(album?.release_date || "").trim(),
     total_tracks: Number(album?.total_tracks || 0),
-    album_type: String(album?.album_type || "").trim()
+    album_type: String(album?.album_type || "").trim(),
+    popularity: Number(album?.popularity || 0),
+    label: String(album?.label || "").trim(),
+    genres: Array.isArray(album?.genres) ? album.genres.map((g) => String(g || "").trim()).filter(Boolean) : [],
+    explicit: !!album?.explicit
   };
 }
 
@@ -159,7 +167,11 @@ function normalizeItunesAlbumRow(album) {
     external_url: String(album?.collectionViewUrl || "").trim(),
     release_date: String(album?.releaseDate || "").trim().slice(0, 10),
     total_tracks: Number(album?.trackCount || 0),
-    album_type: "album"
+    album_type: "album",
+    popularity: 0,
+    label: "",
+    genres: [],
+    explicit: false
   };
 }
 
@@ -214,6 +226,129 @@ function dedupeTracks(rows = []) {
     out.push(row);
   });
   return out;
+}
+
+function isLowSignalAlbum(row) {
+  const name = String(row?.name || "").toLowerCase();
+  const artist = Array.isArray(row?.artists) ? String(row.artists[0] || "").toLowerCase() : "";
+  const type = String(row?.album_type || "").toLowerCase();
+  const all = `${name} ${artist} ${type}`;
+  return CURATION_KEYWORDS_BLOCKLIST.some((term) => all.includes(term));
+}
+
+function dedupeAlbums(rows = []) {
+  const byId = new Set();
+  const byKey = new Set();
+  const out = [];
+  rows.forEach((row) => {
+    const id = String(row?.id || "").trim();
+    const name = String(row?.name || "").trim().toLowerCase();
+    const artist = Array.isArray(row?.artists) ? String(row.artists[0] || "").trim().toLowerCase() : "";
+    const key = `${name}::${artist}`;
+    if (!name || !artist) return;
+    if (id && byId.has(id)) return;
+    if (byKey.has(key)) return;
+    if (id) byId.add(id);
+    byKey.add(key);
+    out.push(row);
+  });
+  return out;
+}
+
+function chunkArray(items = [], chunkSize = 20) {
+  const size = Math.max(1, Number(chunkSize) || 20);
+  const out = [];
+  for (let i = 0; i < items.length; i += size) {
+    out.push(items.slice(i, i + size));
+  }
+  return out;
+}
+
+function readCacheEntry(cache, key) {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (!entry.expiresAt || Date.now() >= entry.expiresAt) {
+    cache.delete(key);
+    return null;
+  }
+  return entry.value;
+}
+
+function writeCacheEntry(cache, key, value, ttlMs) {
+  cache.set(key, {
+    value,
+    expiresAt: Date.now() + Math.max(1, Number(ttlMs) || 1)
+  });
+}
+
+function computeAlbumTrendScore(row) {
+  const popularity = Number(row?.popularity || 0);
+  const totalTracks = Number(row?.total_tracks || 0);
+  const releaseMs = Date.parse(String(row?.release_date || "").trim());
+  const recentBoost = Number.isFinite(releaseMs)
+    ? Math.max(0, 1 - ((Date.now() - releaseMs) / (1000 * 60 * 60 * 24 * 365 * 8)))
+    : 0;
+  const tracksBoost = Math.min(24, Math.max(0, totalTracks));
+  return Number((popularity * 0.72 + recentBoost * 22 + tracksBoost * 0.35).toFixed(4));
+}
+
+async function fetchSpotifyAlbumsByIds(ids = [], { market = "US" } = {}) {
+  const uniqueIds = Array.from(new Set(
+    (Array.isArray(ids) ? ids : [])
+      .map((id) => String(id || "").trim())
+      .filter(Boolean)
+  ));
+  if (!uniqueIds.length) return [];
+
+  const cached = [];
+  const missing = [];
+  uniqueIds.forEach((id) => {
+    const key = `${market}:${id}`;
+    const hit = readCacheEntry(albumDetailsCache, key);
+    if (hit) {
+      cached.push(hit);
+    } else {
+      missing.push(id);
+    }
+  });
+
+  const fetched = [];
+  const chunks = chunkArray(missing, 20);
+  for (const group of chunks) {
+    const json = await spotifyRequest("/albums", {
+      ids: group.join(","),
+      market
+    });
+    const albums = Array.isArray(json?.albums) ? json.albums : [];
+    albums.forEach((album) => {
+      const normalized = normalizeAlbumRow(album);
+      if (!normalized.id) return;
+      writeCacheEntry(albumDetailsCache, `${market}:${normalized.id}`, normalized, ALBUM_DETAILS_CACHE_TTL_MS);
+      fetched.push(normalized);
+    });
+  }
+
+  const mergedById = new Map();
+  [...cached, ...fetched].forEach((row) => {
+    const id = String(row?.id || "").trim();
+    if (!id) return;
+    mergedById.set(id, row);
+  });
+
+  return uniqueIds
+    .map((id) => mergedById.get(id))
+    .filter(Boolean);
+}
+
+function filterAlbumsByType(rows = [], allowedTypes = ["album"]) {
+  const allow = new Set((Array.isArray(allowedTypes) ? allowedTypes : [])
+    .map((type) => String(type || "").trim().toLowerCase())
+    .filter(Boolean));
+  if (!allow.size) return rows;
+  return (Array.isArray(rows) ? rows : []).filter((row) => {
+    const albumType = String(row?.album_type || "").trim().toLowerCase();
+    return allow.has(albumType || "album");
+  });
 }
 
 async function searchItunesTracks({ q, limit }) {
@@ -326,7 +461,7 @@ router.get("/", (_req, res) => {
     ok: true,
     service: "spotify-proxy",
     configured: hasSpotifyCredentials(),
-    routes: ["/search", "/top-50", "/popular", "/featured-playlists", "/new-releases", "/tracks/:id"]
+    routes: ["/search", "/top-50", "/popular", "/popular-albums", "/featured-playlists", "/new-releases", "/tracks/:id"]
   });
 });
 
@@ -559,27 +694,172 @@ router.get("/featured-playlists", async (req, res) => {
   }
 });
 
+router.get("/popular-albums", async (req, res) => {
+  const market = String(req.query.market || "US").trim().slice(0, 2).toUpperCase() || "US";
+  const limit = clampInt(req.query.limit, 1, 60, 24);
+  const albumTypes = String(req.query.album_types || "album")
+    .split(",")
+    .map((type) => String(type || "").trim().toLowerCase())
+    .filter(Boolean);
+  const albumTypesKey = albumTypes.join(",") || "album";
+  const cacheKey = `${market}:${limit}:${albumTypesKey}`;
+
+  try {
+    if (!hasSpotifyCredentials()) {
+      return res.status(503).json({ message: "Spotify credentials are not configured on the server." });
+    }
+
+    const cached = readCacheEntry(popularAlbumsCache, cacheKey);
+    if (cached) {
+      return res.json({
+        count: cached.length,
+        limit,
+        source: "spotify-popular-albums-cache",
+        album_types: albumTypesKey,
+        results: cached
+      });
+    }
+
+    const [newReleasesJson, playlistBatches] = await Promise.all([
+      spotifyRequest("/browse/new-releases", { country: market, limit: 50 }),
+      Promise.all(POPULAR_PLAYLIST_IDS.map(async (playlistId) => {
+        const json = await spotifyRequest(`/playlists/${encodeURIComponent(playlistId)}/tracks`, {
+          market,
+          limit: 50,
+          additional_types: "track",
+          offset: 0
+        });
+        return Array.isArray(json?.items) ? json.items : [];
+      }))
+    ]);
+
+    const releaseAlbums = Array.isArray(newReleasesJson?.albums?.items) ? newReleasesJson.albums.items : [];
+    const seedAlbumIds = new Set();
+    const artistCounts = new Map();
+
+    releaseAlbums.forEach((album) => {
+      const id = String(album?.id || "").trim();
+      if (id) seedAlbumIds.add(id);
+    });
+
+    playlistBatches.flat().forEach((entry) => {
+      const track = entry?.track;
+      const albumId = String(track?.album?.id || "").trim();
+      if (albumId) seedAlbumIds.add(albumId);
+      const artists = Array.isArray(track?.artists) ? track.artists : [];
+      artists.forEach((artist) => {
+        const artistId = String(artist?.id || "").trim();
+        if (!artistId) return;
+        artistCounts.set(artistId, Number(artistCounts.get(artistId) || 0) + 1);
+      });
+    });
+
+    const topArtistIds = Array.from(artistCounts.entries())
+      .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))
+      .slice(0, 14)
+      .map(([artistId]) => String(artistId || "").trim())
+      .filter(Boolean);
+
+    const artistAlbumBatches = await Promise.all(topArtistIds.map(async (artistId) => {
+      const json = await spotifyRequest(`/artists/${encodeURIComponent(artistId)}/albums`, {
+        include_groups: "album,single,compilation",
+        market,
+        limit: 18
+      });
+      const items = Array.isArray(json?.items) ? json.items : [];
+      return items;
+    }));
+
+    artistAlbumBatches.flat().forEach((album) => {
+      const id = String(album?.id || "").trim();
+      if (id) seedAlbumIds.add(id);
+    });
+
+    const seedIds = Array.from(seedAlbumIds).slice(0, 260);
+    const detailedAlbums = await fetchSpotifyAlbumsByIds(seedIds, { market });
+    const filtered = filterAlbumsByType(detailedAlbums, albumTypes)
+      .filter((row) => !!String(row?.image || "").trim())
+      .filter((row) => !isLowSignalAlbum(row));
+
+    const ranked = dedupeAlbums(filtered)
+      .map((row) => ({ ...row, trend_score: computeAlbumTrendScore(row) }))
+      .sort((a, b) => (
+        Number(b?.trend_score || 0) - Number(a?.trend_score || 0) ||
+        Number(b?.popularity || 0) - Number(a?.popularity || 0) ||
+        Number(Date.parse(String(b?.release_date || "")) || 0) - Number(Date.parse(String(a?.release_date || "")) || 0)
+      ))
+      .slice(0, limit);
+
+    writeCacheEntry(popularAlbumsCache, cacheKey, ranked, POPULAR_ALBUMS_CACHE_TTL_MS);
+
+    return res.json({
+      count: ranked.length,
+      limit,
+      source: "spotify-popular-albums",
+      album_types: albumTypesKey,
+      results: ranked
+    });
+  } catch (error) {
+    try {
+      const fallbackJson = await spotifyRequest("/browse/new-releases", { country: market, limit: Math.max(limit * 2, 30) });
+      const releaseAlbums = Array.isArray(fallbackJson?.albums?.items) ? fallbackJson.albums.items : [];
+      const releaseIds = releaseAlbums
+        .map((row) => String(row?.id || "").trim())
+        .filter(Boolean);
+      const detailed = await fetchSpotifyAlbumsByIds(releaseIds, { market });
+      const results = dedupeAlbums(
+        filterAlbumsByType(detailed, albumTypes)
+          .filter((row) => !!String(row?.image || "").trim())
+          .filter((row) => !isLowSignalAlbum(row))
+      )
+        .map((row) => ({ ...row, trend_score: computeAlbumTrendScore(row) }))
+        .sort((a, b) => Number(b?.trend_score || 0) - Number(a?.trend_score || 0))
+        .slice(0, limit);
+      return res.json({
+        count: results.length,
+        limit,
+        source: "spotify-new-releases-fallback",
+        album_types: albumTypesKey,
+        results
+      });
+    } catch (_fallbackError) {
+      return res.status(500).json({ message: "Failed to load popular albums.", error: String(error?.message || error) });
+    }
+  }
+});
+
 router.get("/new-releases", async (req, res) => {
   const market = String(req.query.market || "US").trim().slice(0, 2).toUpperCase() || "US";
   const limit = clampInt(req.query.limit, 1, 50, 20);
+  const albumTypes = String(req.query.album_types || "album")
+    .split(",")
+    .map((type) => String(type || "").trim().toLowerCase())
+    .filter(Boolean);
   try {
     if (!hasSpotifyCredentials()) {
       return res.status(503).json({ message: "Spotify credentials are not configured on the server." });
     }
     const json = await spotifyRequest("/browse/new-releases", { country: market, limit });
     const items = Array.isArray(json?.albums?.items) ? json.albums.items : [];
-    const results = items.map((item) => ({
-      id: String(item?.id || "").trim(),
-      kind: "album",
-      name: String(item?.name || "").trim(),
-      artists: Array.isArray(item?.artists) ? item.artists.map((a) => String(a?.name || "").trim()).filter(Boolean) : [],
-      image: String(item?.images?.[0]?.url || "").trim(),
-      external_url: String(item?.external_urls?.spotify || "").trim(),
-      release_date: String(item?.release_date || "").trim(),
-      total_tracks: Number(item?.total_tracks || 0),
-      album_type: String(item?.album_type || "").trim()
-    })).filter((item) => !!item.id);
-    return res.json({ count: results.length, limit, results, source: "spotify" });
+    const seedAlbums = items
+      .map((item) => normalizeAlbumRow(item))
+      .filter((item) => !!item.id);
+    const detailedAlbums = await fetchSpotifyAlbumsByIds(seedAlbums.map((item) => item.id), { market });
+    const detailedMap = new Map(detailedAlbums.map((item) => [item.id, item]));
+    const merged = seedAlbums.map((seed) => ({
+      ...seed,
+      ...(detailedMap.get(seed.id) || {})
+    }));
+    const results = dedupeAlbums(filterAlbumsByType(merged, albumTypes))
+      .filter((item) => !!String(item?.image || "").trim())
+      .slice(0, limit);
+    return res.json({
+      count: results.length,
+      limit,
+      album_types: (albumTypes.join(",") || "album"),
+      results,
+      source: "spotify"
+    });
   } catch (error) {
     return res.status(500).json({ message: "Failed to load new releases.", error: String(error?.message || error) });
   }
@@ -604,6 +884,11 @@ router.get("/search", async (req, res) => {
   const includeTracks = safeTypes.includes("track");
   const includeAlbums = safeTypes.includes("album");
   const spotifyType = safeTypes.join(",");
+  const albumTypes = String(req.query.album_types || "album")
+    .split(",")
+    .map((type) => String(type || "").trim().toLowerCase())
+    .filter(Boolean);
+  const albumTypesKey = albumTypes.join(",") || "album";
 
   try {
     if (!hasSpotifyCredentials()) {
@@ -623,9 +908,10 @@ router.get("/search", async (req, res) => {
         offset: 0,
         source: "itunes-fallback",
         type: spotifyType,
+        album_types: albumTypesKey,
         results: fallbackPrimary,
         tracks: fallbackTracks,
-        albums: fallbackAlbums
+        albums: filterAlbumsByType(fallbackAlbums, albumTypes)
       });
     }
 
@@ -639,10 +925,18 @@ router.get("/search", async (req, res) => {
     const trackRows = includeTracks && Array.isArray(json?.tracks?.items) ? json.tracks.items : [];
     const albumRows = includeAlbums && Array.isArray(json?.albums?.items) ? json.albums.items : [];
     const tracks = trackRows.map(normalizeTrackRow).filter((row) => !!row.id);
-    const albums = albumRows.map(normalizeAlbumRow).filter((row) => !!row.id);
+    const seedAlbums = albumRows.map(normalizeAlbumRow).filter((row) => !!row.id);
+    const detailedAlbums = includeAlbums
+      ? await fetchSpotifyAlbumsByIds(seedAlbums.map((row) => row.id), { market })
+      : [];
+    const detailedMap = new Map(detailedAlbums.map((row) => [row.id, row]));
+    const albums = filterAlbumsByType(seedAlbums.map((seed) => ({
+      ...seed,
+      ...(detailedMap.get(seed.id) || {})
+    })), albumTypes);
     const primaryResults = includeTracks ? tracks : albums;
     const trackCount = Number(json?.tracks?.total || tracks.length || 0);
-    const albumCount = Number(json?.albums?.total || albums.length || 0);
+    const albumCount = Number(albums.length || json?.albums?.total || 0);
     return res.json({
       count: includeTracks && includeAlbums ? (trackCount + albumCount) : (includeTracks ? trackCount : albumCount),
       track_count: trackCount,
@@ -651,6 +945,7 @@ router.get("/search", async (req, res) => {
       offset,
       source: "spotify",
       type: spotifyType,
+      album_types: albumTypesKey,
       results: primaryResults,
       tracks,
       albums
@@ -673,9 +968,10 @@ router.get("/search", async (req, res) => {
         offset: 0,
         source: "itunes-fallback",
         type: spotifyType,
+        album_types: albumTypesKey,
         results: fallbackPrimary,
         tracks: fallbackTracks,
-        albums: fallbackAlbums
+        albums: filterAlbumsByType(fallbackAlbums, albumTypes)
       });
     } catch (_fallbackError) {
       return res.status(500).json({ message: "Failed to search music.", error: String(error?.message || error) });

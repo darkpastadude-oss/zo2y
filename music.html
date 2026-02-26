@@ -462,6 +462,8 @@
         const artists = Array.isArray(row.artists) ? row.artists : [];
         const albumCoreIdRaw = String(row.id || '').trim();
         const albumCoreId = albumCoreIdRaw.startsWith('album:') ? albumCoreIdRaw.slice(6) : albumCoreIdRaw;
+        const albumType = String(row.album_type || 'album').trim().toLowerCase();
+        if (albumType && albumType !== 'album') return null;
         if (!albumCoreId) return null;
         return {
           id: `album:${albumCoreId}`,
@@ -474,7 +476,7 @@
           external_url: row.external_url || '',
           release_date: String(row.release_date || '').trim(),
           total_tracks: Number(row.total_tracks || 0),
-          album_type: String(row.album_type || '').trim(),
+          album_type: albumType || 'album',
           popularity: 0
         };
       }).filter(Boolean);
@@ -571,7 +573,7 @@
 
       try {
         if (query) {
-          const searchRes = await fetch(`/api/music/search?q=${q}&limit=36&market=US&type=track,album`);
+          const searchRes = await fetch(`/api/music/search?q=${q}&limit=36&market=US&type=track,album&album_types=album`);
           if (searchRes?.ok) {
             const searchJson = await searchRes.json();
             trackRows = Array.isArray(searchJson?.tracks)
@@ -582,7 +584,7 @@
         } else {
           const [trackRes, albumRes] = await Promise.allSettled([
             fetch('/api/music/popular?limit=40&market=US'),
-            fetch('/api/music/new-releases?limit=24&market=US')
+            fetch('/api/music/popular-albums?limit=32&market=US&album_types=album')
           ]);
 
           if (trackRes.status === 'fulfilled' && trackRes.value?.ok) {
