@@ -232,12 +232,21 @@
       isolation: isolate;
     }
 
+    .spotlight.is-clickable {
+      cursor: pointer;
+    }
+
+    .spotlight.is-clickable:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
     .spotlight-bg {
       position: absolute;
       inset: 0;
       background: linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%);
       background-size: cover;
-      background-position: center;
+      background-position: center 28%;
       transition: background-image 0.22s ease;
       z-index: -2;
     }
@@ -283,6 +292,7 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
+      object-position: center 24%;
       background: transparent;
     }
 
@@ -342,6 +352,9 @@
       font-size: clamp(31px, 5.2vw, 57px);
       line-height: 1.03;
       letter-spacing: -0.4px;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .spotlight-summary {
@@ -1454,7 +1467,7 @@
         min-height: 332px;
         max-width: none;
         padding: 14px 16px 16px;
-        padding-right: 120px;
+        padding-right: 128px;
         gap: 9px;
       }
       .spotlight.no-media .spotlight-inner {
@@ -1462,7 +1475,7 @@
       }
 
       .spotlight.has-square-media .spotlight-inner {
-        padding-right: 112px;
+        padding-right: 120px;
       }
 
       .spotlight.has-landscape-media .spotlight-inner {
@@ -1518,6 +1531,10 @@
 
       .spotlight-title {
         font-size: clamp(24px, 8vw, 38px);
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
 
       .spotlight-summary {
@@ -1771,7 +1788,7 @@
   </header>
 
   <main class="container page-shell">
-    <section class="spotlight" id="spotlightSection">
+    <section class="spotlight" id="spotlightSection" role="link" tabindex="0" aria-label="Open spotlight item">
       <div class="spotlight-bg" id="spotlightBackground"></div>
       <div class="spotlight-media" id="spotlightMedia">
         <img id="spotlightImage" alt="Spotlight artwork" loading="eager" fetchpriority="high" />
@@ -2407,6 +2424,8 @@
       const meta = getHomeMediaMeta(item.mediaType);
       const spotlightBackground = String(item.spotlightImage || item.backgroundImage || item.image || '').trim();
       const spotlightMediaImage = String(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
+      const spotlightBackgroundPosition = String(item.spotlightBackgroundPosition || item.backgroundPosition || '').trim() || 'center 28%';
+      const spotlightMediaPosition = String(item.spotlightMediaPosition || item.imagePosition || '').trim();
       let spotlightMediaFit = String(item.spotlightMediaFit || '').trim() || 'contain';
       let spotlightMediaShape = String(item.spotlightMediaShape || '').trim() || 'poster';
       if (String(item.mediaType || '').toLowerCase() === 'music') {
@@ -2432,6 +2451,7 @@
       } else {
         bg.style.backgroundImage = 'linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%)';
       }
+      bg.style.backgroundPosition = spotlightBackgroundPosition;
 
       if (spotlightMediaImage) {
         mediaImage.loading = 'eager';
@@ -2442,6 +2462,7 @@
         mediaImage.style.borderRadius = '';
         mediaImage.style.background = '';
         mediaImage.style.objectFit = spotlightMediaFit;
+        mediaImage.style.objectPosition = spotlightMediaPosition || (usesLandscapeMedia ? 'center center' : 'center 24%');
         mediaImage.style.display = 'block';
         mediaWrap.style.display = 'block';
         spotlightSection.classList.remove('no-media');
@@ -2472,6 +2493,7 @@
         mediaImage.style.borderRadius = '';
         mediaImage.style.background = '';
         mediaImage.style.objectFit = '';
+        mediaImage.style.objectPosition = '';
         mediaWrap.style.display = 'none';
         spotlightSection.classList.remove('has-square-media');
         spotlightSection.classList.remove('has-landscape-media');
@@ -2486,6 +2508,9 @@
       trend.innerHTML = getTrendLabel(item);
       openBtn.href = item.href || 'index.html';
       openBtn.onclick = null;
+      spotlightSection.dataset.href = String(item.href || '').trim();
+      spotlightSection.classList.toggle('is-clickable', !!String(item.href || '').trim());
+      spotlightSection.setAttribute('aria-label', `Open spotlight item: ${item.title || 'Spotlight'}`);
 
       if (shouldAnimate && spotlightInner) {
         spotlightInner.classList.remove('spotlight-fade');
@@ -2499,6 +2524,23 @@
       const normalized = ((Number(index) || 0) % homeSpotlightItems.length + homeSpotlightItems.length) % homeSpotlightItems.length;
       homeSpotlightIndex = normalized;
       renderSpotlightItem(homeSpotlightItems[homeSpotlightIndex], shouldAnimate);
+    }
+
+    function getCurrentSpotlightItem() {
+      if (!Array.isArray(homeSpotlightItems) || !homeSpotlightItems.length) return null;
+      return homeSpotlightItems[homeSpotlightIndex] || null;
+    }
+
+    function openCurrentSpotlightItem() {
+      const item = getCurrentSpotlightItem();
+      const href = String(item?.href || '').trim();
+      if (!href) return;
+      window.location.href = href;
+    }
+
+    function isSpotlightInteractiveTarget(target) {
+      if (!(target instanceof Element)) return false;
+      return !!target.closest('a, button, input, select, textarea, [data-spotlight-index]');
     }
 
     function resetSpotlightTimer(shouldStart = true) {
@@ -6315,6 +6357,7 @@
       const itemMenuModal = document.getElementById('itemMenuModal');
       const createListModal = document.getElementById('createListModal');
       const nextSpotlightBtn = document.getElementById('spotlightNextBtn');
+      const spotlightSection = document.getElementById('spotlightSection');
 
       document.querySelectorAll('.menu-icon-option').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -6336,6 +6379,19 @@
         nextSpotlightBtn.addEventListener('click', () => {
           showSpotlightByIndex(homeSpotlightIndex + 1, true);
           resetSpotlightTimer(true);
+        });
+      }
+
+      if (spotlightSection) {
+        spotlightSection.addEventListener('click', (event) => {
+          if (isSpotlightInteractiveTarget(event.target)) return;
+          openCurrentSpotlightItem();
+        });
+        spotlightSection.addEventListener('keydown', (event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          if (isSpotlightInteractiveTarget(event.target)) return;
+          event.preventDefault();
+          openCurrentSpotlightItem();
         });
       }
 
