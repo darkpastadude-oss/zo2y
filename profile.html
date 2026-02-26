@@ -8624,6 +8624,8 @@ header, .top-stripe, .section-nav {
                         if (eventType === 'review_add') return `posted a review for ${safeTarget}${mediaTag}`;
                         if (eventType === 'review_edit') return `edited a review for ${safeTarget}${mediaTag}`;
                         if (eventType === 'review_delete') return `deleted a review for ${safeTarget}${mediaTag}`;
+                        if (eventType === 'list_create') return `created a new list ${safeList}${mediaTag}`;
+                        if (eventType === 'list_delete') return `deleted a list ${safeList}${mediaTag}`;
                         if (eventType === 'list_add') return `added ${safeTarget}${mediaTag} to ${safeList}`;
                         if (eventType === 'list_remove') return `removed ${safeTarget}${mediaTag} from ${safeList}`;
                         return 'updated activity';
@@ -8663,6 +8665,13 @@ header, .top-stripe, .section-nav {
                         };
                         if (map[type] && map[type][key]) return map[type][key];
                         return key.replace(/_/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase());
+                    },
+
+                    getActivityCustomListTable(mediaType) {
+                        const normalized = String(mediaType || '').trim().toLowerCase();
+                        if (!normalized) return '';
+                        if (normalized === 'restaurant' && ENABLE_RESTAURANTS) return 'lists';
+                        return CUSTOM_LIST_TABLES[normalized] || '';
                     },
 
                     async fetchActivityItemDetails(mediaType, itemId) {
@@ -8756,7 +8765,8 @@ header, .top-stripe, .section-nav {
                         safeRows.forEach((row) => {
                             const mediaType = String(row?.media_type || '').trim().toLowerCase();
                             const listId = String(row?.list_id || '').trim();
-                            if (!mediaType || !listId || !CUSTOM_LIST_TABLES[mediaType]) return;
+                            const table = this.getActivityCustomListTable(mediaType);
+                            if (!mediaType || !listId || !table) return;
                             if (!customListIdsByType.has(mediaType)) customListIdsByType.set(mediaType, new Set());
                             customListIdsByType.get(mediaType).add(listId);
                         });
@@ -8765,7 +8775,8 @@ header, .top-stripe, .section-nav {
                         await Promise.all(Array.from(customListIdsByType.entries()).map(async ([mediaType, idsSet]) => {
                             const ids = Array.from(idsSet || []).filter(Boolean);
                             if (!ids.length) return;
-                            const table = CUSTOM_LIST_TABLES[mediaType];
+                            const table = this.getActivityCustomListTable(mediaType);
+                            if (!table) return;
                             const { data } = await supabase
                                 .from(table)
                                 .select('id, title')
@@ -8784,7 +8795,8 @@ header, .top-stripe, .section-nav {
                             const itemKey = `${mediaType}:${itemId}`;
                             const listKey = `${mediaType}:${listId}`;
                             const item = itemMap.get(itemKey) || null;
-                            const listTitle = listMap.get(listKey) || this.getDefaultActivityListTitle(mediaType, row?.list_type);
+                            const metadataListTitle = String(row?.metadata?.list_title || '').trim();
+                            const listTitle = listMap.get(listKey) || metadataListTitle || this.getDefaultActivityListTitle(mediaType, row?.list_type);
                             return {
                                 ...row,
                                 __activityItem: item,
@@ -8816,8 +8828,48 @@ header, .top-stripe, .section-nav {
                         return (Array.isArray(fallback?.data) ? fallback.data : []).map((row) => ({ ...row, created_at: null }));
                     },
 
+                    toActivityTimestamp(value) {
+                        const ts = value ? new Date(value).getTime() : 0;
+                        return Number.isFinite(ts) ? ts : 0;
+                    },
+
+                    buildActivityRowKey(row) {
+                        const eventType = String(row?.event_type || '').trim().toLowerCase();
+                        const actorId = String(row?.actor_id || '').trim();
+                        const mediaType = String(row?.media_type || '').trim().toLowerCase();
+                        const itemId = String(row?.item_id || '').trim();
+                        const listType = String(row?.list_type || '').trim().toLowerCase();
+                        const listId = String(row?.list_id || '').trim();
+                        const rating = Number(row?.rating || 0);
+                        const reviewText = String(row?.review_text || '').trim().replace(/\s+/g, ' ').slice(0, 120).toLowerCase();
+                        const createdBucket = Math.floor(this.toActivityTimestamp(row?.created_at) / 60000);
+                        return [eventType, actorId, mediaType, itemId, listType, listId, rating, reviewText, createdBucket].join('|');
+                    },
+
+                    mergeActivityRows(...groups) {
+                        const merged = groups.flat().filter(Boolean);
+                        if (!merged.length) return [];
+                        const keyed = new Map();
+
+                        merged.forEach((row) => {
+                            const key = this.buildActivityRowKey(row);
+                            const prev = keyed.get(key);
+                            if (!prev) {
+                                keyed.set(key, row);
+                                return;
+                            }
+                            const prevTs = this.toActivityTimestamp(prev?.created_at);
+                            const nextTs = this.toActivityTimestamp(row?.created_at);
+                            if (nextTs >= prevTs) keyed.set(key, row);
+                        });
+
+                        const out = Array.from(keyed.values());
+                        out.sort((a, b) => this.toActivityTimestamp(b?.created_at) - this.toActivityTimestamp(a?.created_at));
+                        return out.slice(0, 60);
+                    },
+
                     async loadFallbackActivityRows(actorIds) {
-                        const listSources = [
+                        const listItemSources = [
                             { table: 'movie_list_items', mediaType: 'movie', itemField: 'movie_id' },
                             { table: 'tv_list_items', mediaType: 'tv', itemField: 'tv_id' },
                             { table: 'anime_list_items', mediaType: 'anime', itemField: 'anime_id' },
@@ -8825,23 +8877,45 @@ header, .top-stripe, .section-nav {
                             { table: 'book_list_items', mediaType: 'book', itemField: 'book_id' },
                             { table: 'music_list_items', mediaType: 'music', itemField: 'track_id' }
                         ];
+                        const customListSources = [
+                            { table: 'movie_lists', mediaType: 'movie' },
+                            { table: 'tv_lists', mediaType: 'tv' },
+                            { table: 'anime_lists', mediaType: 'anime' },
+                            { table: 'game_lists', mediaType: 'game' },
+                            { table: 'book_lists', mediaType: 'book' },
+                            { table: 'music_lists', mediaType: 'music' }
+                        ];
+                        if (ENABLE_RESTAURANTS) {
+                            customListSources.push({ table: 'lists', mediaType: 'restaurant' });
+                        }
+                        const reviewSources = [
+                            { table: 'movie_reviews', mediaType: 'movie', itemField: 'movie_id', textField: 'comment' },
+                            { table: 'tv_reviews', mediaType: 'tv', itemField: 'tv_id', textField: 'comment' },
+                            { table: 'anime_reviews', mediaType: 'anime', itemField: 'anime_id', textField: 'comment' },
+                            { table: 'game_reviews', mediaType: 'game', itemField: 'game_id', textField: 'comment' },
+                            { table: 'book_reviews', mediaType: 'book', itemField: 'book_id', textField: 'comment' },
+                            { table: 'music_reviews', mediaType: 'music', itemField: 'track_id', textField: 'comment' }
+                        ];
+                        if (ENABLE_RESTAURANTS) {
+                            reviewSources.push({ table: 'journal_entries', mediaType: 'restaurant', itemField: 'restraunt_id', textField: 'notes' });
+                        }
 
-                        const listTasks = listSources.map(async (source) => {
+                        const listAddTasks = listItemSources.map(async (source) => {
                             const rows = await this.fetchRowsWithCreatedAtFallback(
                                 source.table,
-                                `id, user_id, list_type, ${source.itemField}, created_at`,
-                                `id, user_id, list_type, ${source.itemField}`,
+                                `id, user_id, list_type, list_id, ${source.itemField}, created_at`,
+                                `id, user_id, list_type, list_id, ${source.itemField}`,
                                 actorIds,
                                 24
                             );
                             return rows.map((row) => ({
-                                id: `fallback-${source.mediaType}-${row.id}`,
+                                id: `fallback-${source.mediaType}-list-add-${row.id}`,
                                 actor_id: row.user_id,
                                 event_type: 'list_add',
                                 media_type: source.mediaType,
                                 item_id: row[source.itemField] != null ? String(row[source.itemField]) : '',
                                 list_type: row.list_type || null,
-                                list_id: null,
+                                list_id: row.list_id != null ? String(row.list_id) : null,
                                 rating: null,
                                 review_text: null,
                                 metadata: { source_table: source.table, fallback: true },
@@ -8849,35 +8923,60 @@ header, .top-stripe, .section-nav {
                             }));
                         });
 
-                        const journalRows = await this.fetchRowsWithCreatedAtFallback(
-                            'journal_entries',
-                            'id, user_id, restraunt_id, rating, notes, created_at',
-                            'id, user_id, restraunt_id, rating, notes',
-                            actorIds,
-                            24
-                        );
-                        const reviewRows = journalRows.map((row) => ({
-                            id: `fallback-review-${row.id}`,
-                            actor_id: row.user_id,
-                            event_type: 'review_add',
-                            media_type: 'restaurant',
-                            item_id: row.restraunt_id != null ? String(row.restraunt_id) : '',
-                            list_type: null,
-                            list_id: null,
-                            rating: row.rating ?? null,
-                            review_text: row.notes || null,
-                            metadata: { source_table: 'journal_entries', fallback: true },
-                            created_at: row.created_at || null
-                        }));
-
-                        const listRows = (await Promise.all(listTasks)).flat();
-                        const merged = [...listRows, ...reviewRows];
-                        merged.sort((a, b) => {
-                            const aTs = a.created_at ? new Date(a.created_at).getTime() : 0;
-                            const bTs = b.created_at ? new Date(b.created_at).getTime() : 0;
-                            return bTs - aTs;
+                        const listCreateTasks = customListSources.map(async (source) => {
+                            const rows = await this.fetchRowsWithCreatedAtFallback(
+                                source.table,
+                                'id, user_id, title, created_at',
+                                'id, user_id, title',
+                                actorIds,
+                                20
+                            );
+                            return rows.map((row) => ({
+                                id: `fallback-${source.mediaType}-list-create-${row.id}`,
+                                actor_id: row.user_id,
+                                event_type: 'list_create',
+                                media_type: source.mediaType,
+                                item_id: '',
+                                list_type: null,
+                                list_id: row.id != null ? String(row.id) : null,
+                                rating: null,
+                                review_text: null,
+                                metadata: {
+                                    source_table: source.table,
+                                    fallback: true,
+                                    list_title: String(row.title || '').trim()
+                                },
+                                created_at: row.created_at || null
+                            }));
                         });
-                        return merged.slice(0, 60);
+
+                        const reviewTasks = reviewSources.map(async (source) => {
+                            const rows = await this.fetchRowsWithCreatedAtFallback(
+                                source.table,
+                                `id, user_id, ${source.itemField}, rating, ${source.textField}, created_at`,
+                                `id, user_id, ${source.itemField}, rating, ${source.textField}`,
+                                actorIds,
+                                24
+                            );
+                            return rows.map((row) => ({
+                                id: `fallback-${source.mediaType}-review-${row.id}`,
+                                actor_id: row.user_id,
+                                event_type: 'review_add',
+                                media_type: source.mediaType,
+                                item_id: row[source.itemField] != null ? String(row[source.itemField]) : '',
+                                list_type: null,
+                                list_id: null,
+                                rating: row.rating ?? null,
+                                review_text: row[source.textField] || null,
+                                metadata: { source_table: source.table, fallback: true },
+                                created_at: row.created_at || null
+                            }));
+                        });
+
+                        const listAddRows = (await Promise.all(listAddTasks)).flat();
+                        const listCreateRows = (await Promise.all(listCreateTasks)).flat();
+                        const reviewRows = (await Promise.all(reviewTasks)).flat();
+                        return this.mergeActivityRows(listAddRows, listCreateRows, reviewRows);
                     },
 
                     async fetchActivityRows(actorIds) {
@@ -8888,7 +8987,11 @@ header, .top-stripe, .section-nav {
                             .order('created_at', { ascending: false })
                             .limit(60);
 
-                        if (!error) return Array.isArray(rows) ? rows : [];
+                        if (!error) {
+                            const primaryRows = Array.isArray(rows) ? rows : [];
+                            const supplementalRows = await this.loadFallbackActivityRows(actorIds);
+                            return this.mergeActivityRows(primaryRows, supplementalRows);
+                        }
 
                         const msg = String(error?.message || '').toLowerCase();
                         const code = String(error?.code || '').toUpperCase();
