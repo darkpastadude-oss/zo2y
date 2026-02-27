@@ -91,12 +91,27 @@ const POPULAR_GAME_TITLE_SEEDS = [
   "Escape from Tarkov",
   "Path of Exile",
   "Path of Exile 2",
+  "Civilization VI",
+  "Age of Empires IV",
+  "StarCraft II",
+  "Total War: Warhammer III",
+  "XCOM 2",
+  "Crusader Kings III",
   "Diablo IV",
   "World of Warcraft",
   "Final Fantasy XIV",
   "Monster Hunter: World",
   "Monster Hunter Wilds",
   "EA Sports FC 25",
+  "EA Sports FC 24",
+  "FIFA 23",
+  "FIFA 22",
+  "FIFA 21",
+  "FIFA 20",
+  "FIFA 19",
+  "FIFA 18",
+  "FIFA 17",
+  "FIFA 16",
   "NBA 2K25",
   "Madden NFL 25",
   "Gran Turismo 7",
@@ -148,9 +163,59 @@ const POPULAR_SEARCH_SEEDS = [
   "top video games"
 ];
 
+const GENRE_SEARCH_QUERY_SEEDS = {
+  action: ["action video game", "best action games"],
+  "action-adventure": ["action-adventure video game", "open world action game"],
+  adventure: ["adventure video game"],
+  "role-playing": ["role-playing video game", "rpg video game", "jrpg video game"],
+  strategy: ["strategy video game", "turn-based strategy game", "real-time strategy game"],
+  simulation: ["simulation video game", "simulator video game"],
+  sports: ["sports video game", "fifa video game", "ea sports fc", "madden nfl video game", "nba 2k video game"],
+  racing: ["racing video game", "forza video game", "gran turismo video game", "need for speed video game"],
+  fighting: ["fighting video game", "tekken video game", "street fighter video game"],
+  shooter: ["shooter video game", "fps video game", "battle royale video game"],
+  platformer: ["platform game", "platformer video game"],
+  puzzle: ["puzzle video game"],
+  horror: ["horror video game", "survival horror game"],
+  stealth: ["stealth video game"],
+  survival: ["survival video game"],
+  sandbox: ["sandbox video game"],
+  mmo: ["mmorpg video game", "massively multiplayer online game"],
+  indie: ["indie video game"]
+};
+
 const POPULAR_TITLE_RANK = new Map(
   POPULAR_GAME_TITLE_SEEDS.map((title, index) => [normalizeGameKey(title), index + 1])
 );
+
+const CANONICAL_GENRE_BY_SLUG = new Map(
+  WIKIPEDIA_GAME_GENRES.map((genre) => [String(genre.slug || "").trim().toLowerCase(), genre])
+);
+
+const CANONICAL_GENRE_BY_ID = new Map(
+  WIKIPEDIA_GAME_GENRES.map((genre) => [Number(genre.id || 0), genre])
+);
+
+const GENRE_ALIAS_RULES = [
+  { slug: "action-adventure", patterns: [/action adventure/, /action[-\s]?adventure/] },
+  { slug: "role-playing", patterns: [/role[-\s]?playing/, /\brpg\b/] },
+  { slug: "strategy", patterns: [/strategy/, /real[-\s]?time strategy/, /turn[-\s]?based strategy/, /civilization/, /age of empires/, /starcraft/, /xcom/, /total war/, /crusader kings/, /hearts of iron/] },
+  { slug: "simulation", patterns: [/simulation/, /simulator/, /management/] },
+  { slug: "sports", patterns: [/sports?/, /football/, /soccer/, /basketball/, /baseball/, /hockey/, /tennis/, /golf/, /fifa/, /madden/, /nba\s*2k/, /ea sports fc/, /wwe\s*2k/, /mlb the show/, /\bufc\b/, /\bpga\b/] },
+  { slug: "racing", patterns: [/racing/, /driving/, /kart/, /forza/, /gran turismo/, /need for speed/, /mario kart/, /\bf1\b/, /rally/] },
+  { slug: "fighting", patterns: [/fighting/, /beat em up/, /brawler/, /tekken/, /street fighter/, /mortal kombat/, /smash bros/, /super smash/] },
+  { slug: "shooter", patterns: [/shooter/, /first person shooter/, /third person shooter/, /\bfps\b/, /call of duty/, /battlefield/, /counter[-\s]?strike/, /rainbow six/, /valorant/] },
+  { slug: "platformer", patterns: [/platform/, /platformer/] },
+  { slug: "puzzle", patterns: [/puzzle/] },
+  { slug: "horror", patterns: [/horror/] },
+  { slug: "stealth", patterns: [/stealth/] },
+  { slug: "survival", patterns: [/survival/, /survive/] },
+  { slug: "sandbox", patterns: [/sandbox/, /open world/] },
+  { slug: "mmo", patterns: [/massively multiplayer/, /\bmmo\b/, /\bmmorpg\b/] },
+  { slug: "indie", patterns: [/indie/] },
+  { slug: "adventure", patterns: [/\badventure\b/] },
+  { slug: "action", patterns: [/\baction\b/] }
+];
 
 function clampInt(value, min, max, fallback) {
   const n = Number(value);
@@ -186,6 +251,50 @@ function normalizeGameKey(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+function canonicalGenreSlugFromText(value) {
+  const normalized = normalizeGameKey(value);
+  if (!normalized) return "";
+  const compact = normalized.replace(/\s+/g, "-");
+  if (CANONICAL_GENRE_BY_SLUG.has(compact)) return compact;
+  for (const rule of GENRE_ALIAS_RULES) {
+    if (rule.patterns.some((pattern) => pattern.test(normalized))) {
+      return rule.slug;
+    }
+  }
+  return "";
+}
+
+function toCanonicalGenreRow(value, fallbackId = 0) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  const slug = canonicalGenreSlugFromText(raw);
+  if (slug && CANONICAL_GENRE_BY_SLUG.has(slug)) {
+    const canonical = CANONICAL_GENRE_BY_SLUG.get(slug);
+    return {
+      id: Number(canonical.id || 0),
+      name: String(canonical.name || raw).trim(),
+      slug: String(canonical.slug || slug).trim()
+    };
+  }
+  return {
+    id: Number(fallbackId || 0),
+    name: raw,
+    slug: normalizeGameKey(raw).replace(/\s+/g, "-")
+  };
+}
+
+function resolveGenreFilterToken(token) {
+  const text = String(token || "").trim();
+  if (!text) return "";
+  if (/^\d+$/.test(text)) {
+    const byId = CANONICAL_GENRE_BY_ID.get(Number(text));
+    return String(byId?.slug || "").trim().toLowerCase();
+  }
+  const slug = text.toLowerCase();
+  if (CANONICAL_GENRE_BY_SLUG.has(slug)) return slug;
+  return canonicalGenreSlugFromText(text);
 }
 
 function stripHtml(value) {
@@ -380,16 +489,21 @@ function filterRowsByDates(rows, datesRaw) {
   });
 }
 
+function parseGenreFilterTokens(genresRaw) {
+  return new Set(String(genresRaw || "")
+    .split(",")
+    .map((token) => resolveGenreFilterToken(token))
+    .filter(Boolean));
+}
+
 function filterRowsByGenres(rows, genresRaw) {
-  const tokens = new Set(String(genresRaw || "").split(",").map((token) => String(token || "").trim().toLowerCase()).filter(Boolean));
+  const tokens = parseGenreFilterTokens(genresRaw);
   if (!tokens.size) return [...(Array.isArray(rows) ? rows : [])];
   return (Array.isArray(rows) ? rows : []).filter((row) => {
     const genres = Array.isArray(row?.genres) ? row.genres : [];
     return genres.some((genre) => {
-      const slug = String(genre?.slug || "").trim().toLowerCase();
-      const nameSlug = normalizeGameKey(genre?.name || "").replace(/\s+/g, "-");
-      const id = String(genre?.id || "").trim().toLowerCase();
-      return tokens.has(slug) || tokens.has(nameSlug) || (id && tokens.has(id));
+      const slug = resolveGenreFilterToken(genre?.slug || genre?.name || "");
+      return !!slug && tokens.has(slug);
     });
   });
 }
@@ -403,13 +517,59 @@ function sortRows(rows, orderingRaw = "-added") {
   return list.sort((a, b) => toSortEpoch(b?.released) - toSortEpoch(a?.released));
 }
 
-async function fetchJson(url, timeoutMs = WIKI_REQUEST_TIMEOUT_MS) {
-  const response = await fetch(url, {
-    headers: { accept: "application/json" },
-    signal: typeof AbortSignal?.timeout === "function" ? AbortSignal.timeout(timeoutMs) : undefined
+function dedupeRows(rows = []) {
+  const out = [];
+  const seenIds = new Set();
+  const seenNames = new Set();
+  (Array.isArray(rows) ? rows : []).forEach((row) => {
+    const id = Number(row?.id || 0);
+    if (Number.isFinite(id) && id > 0) {
+      if (seenIds.has(id)) return;
+      seenIds.add(id);
+    }
+    const nameKey = normalizeGameKey(row?.name || "");
+    const yearKey = String(row?.released || "").slice(0, 4);
+    const compositeKey = nameKey ? `${nameKey}|${yearKey}` : "";
+    if (compositeKey) {
+      if (seenNames.has(compositeKey)) return;
+      seenNames.add(compositeKey);
+    }
+    out.push(row);
   });
-  if (!response.ok) throw new Error(`UPSTREAM ${response.status}: ${await response.text()}`);
-  return await response.json();
+  return out;
+}
+
+async function fetchJson(url, timeoutMs = WIKI_REQUEST_TIMEOUT_MS) {
+  const attempts = 2;
+  let lastError = null;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          accept: "application/json",
+          "user-agent": "zo2y-games/1.0 (+https://www.zo2y.com; contact: zo2hyq@gmail.com)",
+          "api-user-agent": "zo2y-games/1.0 (+https://www.zo2y.com; contact: zo2hyq@gmail.com)"
+        },
+        signal: typeof AbortSignal?.timeout === "function" ? AbortSignal.timeout(timeoutMs) : undefined
+      });
+      if (response.ok) return await response.json();
+      const body = await response.text();
+      const status = Number(response.status || 0);
+      const retryable = status === 429 || status === 500 || status === 502 || status === 503 || status === 504;
+      if (retryable && attempt < attempts - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+        continue;
+      }
+      throw new Error(`UPSTREAM ${status}: ${body}`);
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 200 * (attempt + 1)));
+        continue;
+      }
+    }
+  }
+  throw lastError || new Error("UPSTREAM REQUEST FAILED");
 }
 
 async function wikiQuery(params = {}) {
@@ -430,12 +590,53 @@ async function wikidataQuery(params = {}) {
   return await fetchJson(url.toString());
 }
 
+async function fetchSummaryViaQuery(title) {
+  const normalized = normalizeTitle(title);
+  if (!normalized || isExcludedTitle(normalized)) return null;
+  const json = await wikiQuery({
+    titles: normalized,
+    redirects: "1",
+    prop: "description|extracts|pageimages|pageprops",
+    exintro: "1",
+    explaintext: "1",
+    piprop: "original|thumbnail",
+    pithumbsize: "900",
+    ppprop: "wikibase_item"
+  }).catch(() => null);
+  const page = Array.isArray(json?.query?.pages) ? json.query.pages[0] : null;
+  if (!page || page.missing || isExcludedTitle(page?.title)) return null;
+  const payload = {
+    type: "standard",
+    title: normalizeTitle(page?.title || normalized),
+    pageid: Number(page?.pageid || 0),
+    extract: String(page?.extract || "").trim(),
+    description: String(page?.description || "").trim(),
+    wikibase_item: String(page?.pageprops?.wikibase_item || "").trim(),
+    thumbnail: page?.thumbnail?.source
+      ? { source: toHttpsUrl(page.thumbnail.source), width: Number(page?.thumbnail?.width || 0), height: Number(page?.thumbnail?.height || 0) }
+      : null,
+    originalimage: page?.original?.source
+      ? { source: toHttpsUrl(page.original.source), width: Number(page?.original?.width || 0), height: Number(page?.original?.height || 0) }
+      : null
+  };
+  if (payload.pageid <= 0 || !payload.title) return null;
+  return payload;
+}
+
 async function fetchSummary(title) {
   const normalized = normalizeTitle(title);
   if (!normalized || isExcludedTitle(normalized)) return null;
   const cached = readTimedCache(summaryCache, normalized.toLowerCase());
   if (cached) return cached;
-  const payload = await fetchJson(`${WIKIPEDIA_REST_BASE}/page/summary/${encodeTitle(normalized)}`);
+  let payload = null;
+  try {
+    payload = await fetchJson(`${WIKIPEDIA_REST_BASE}/page/summary/${encodeTitle(normalized)}`);
+  } catch (_error) {
+    payload = null;
+  }
+  if (!payload || payload.type === "disambiguation" || isExcludedTitle(payload?.title) || Number(payload?.pageid || 0) <= 0) {
+    payload = await fetchSummaryViaQuery(normalized);
+  }
   if (!payload || payload.type === "disambiguation" || isExcludedTitle(payload?.title)) return null;
   writeTimedCache(summaryCache, normalized.toLowerCase(), payload, WIKI_SUMMARY_TTL_MS);
   return payload;
@@ -527,11 +728,38 @@ async function labelMapForEntities(ids = []) {
 }
 
 function mapGenres(entity, labels) {
+  const seen = new Set();
   return claimEntityIds(entity, "P136").map((qid, idx) => {
     const name = String(labels.get(qid) || "").trim();
     if (!name) return null;
-    return { id: idx + 1, name, slug: normalizeGameKey(name).replace(/\s+/g, "-") };
+    const mapped = toCanonicalGenreRow(name, idx + 1);
+    if (!mapped) return null;
+    const key = String(mapped.slug || "").trim().toLowerCase() || String(mapped.name || "").toLowerCase();
+    if (!key || seen.has(key)) return null;
+    seen.add(key);
+    return mapped;
   }).filter(Boolean).slice(0, 4);
+}
+
+function inferGenresFromText(text) {
+  const normalized = normalizeGameKey(text);
+  if (!normalized) return [];
+  const rows = [];
+  const seen = new Set();
+  GENRE_ALIAS_RULES.forEach((rule) => {
+    if (!rule?.slug || seen.has(rule.slug)) return;
+    if (!Array.isArray(rule.patterns) || !rule.patterns.length) return;
+    if (!rule.patterns.some((pattern) => pattern.test(normalized))) return;
+    const canonical = CANONICAL_GENRE_BY_SLUG.get(rule.slug);
+    if (!canonical) return;
+    seen.add(rule.slug);
+    rows.push({
+      id: Number(canonical.id || 0),
+      name: String(canonical.name || "").trim() || rule.slug,
+      slug: String(canonical.slug || rule.slug).trim()
+    });
+  });
+  return rows.slice(0, 3);
 }
 
 function mapPlatforms(entity, labels) {
@@ -546,6 +774,16 @@ function mapListRow(summary, entity, labels, infoboxCover = "") {
   const cover = toHttpsUrl(infoboxCover || summary?.originalimage?.source || summary?.thumbnail?.source || "");
   if (!cover) return null;
   const description = String(summary?.description || summary?.extract || "").trim();
+  const mappedGenres = mapGenres(entity, labels);
+  const inferredGenres = inferGenresFromText(`${summary?.title || ""} ${description}`);
+  const genres = [];
+  const seenGenreSlugs = new Set();
+  [...mappedGenres, ...inferredGenres].forEach((genre) => {
+    const slug = String(genre?.slug || "").trim().toLowerCase();
+    if (!slug || seenGenreSlugs.has(slug)) return;
+    seenGenreSlugs.add(slug);
+    genres.push(genre);
+  });
   return {
     id: Number(summary?.pageid || 0),
     name: String(summary?.title || "Game").trim() || "Game",
@@ -559,7 +797,7 @@ function mapListRow(summary, entity, labels, infoboxCover = "") {
     rating: null,
     ratings_count: 0,
     metacritic: null,
-    genres: mapGenres(entity, labels),
+    genres,
     platforms: mapPlatforms(entity, labels),
     source: "wikipedia"
   };
@@ -572,6 +810,7 @@ function mapSummaryBackfillRow(summary) {
   if (pageid <= 0 || !name || !cover) return null;
   const releaseText = `${summary?.description || ""} ${summary?.extract || ""}`.trim();
   const released = extractYearFallback(releaseText);
+  const inferredGenres = inferGenresFromText(`${name} ${releaseText}`);
   return {
     id: pageid,
     name,
@@ -585,7 +824,7 @@ function mapSummaryBackfillRow(summary) {
     rating: null,
     ratings_count: 0,
     metacritic: null,
-    genres: [],
+    genres: inferredGenres,
     platforms: [],
     source: "wikipedia"
   };
@@ -726,16 +965,29 @@ async function fetchCategoryCandidates(datesRaw = "", target = 80) {
 async function fetchSearchCandidates(search, offset = 0, limit = 40) {
   const q = String(search || "").trim();
   if (!q) return { rows: [], totalHits: 0 };
+  const queryKey = normalizeGameKey(q);
+  const queryTokens = queryKey.split(/\s+/).filter(Boolean);
   const json = await wikiQuery({ list: "search", srsearch: `${q} video game`, srnamespace: "0", sroffset: String(Math.max(0, offset)), srlimit: String(clampInt(limit, 1, 50, 40)) }).catch(() => null);
-  const rows = (Array.isArray(json?.query?.search) ? json.query.search : []).filter((row) => !isExcludedTitle(row?.title)).filter((row) => {
-    const snippet = stripHtml(row?.snippet || "").toLowerCase();
-    return (
-      snippet.includes("video game") ||
-      snippet.includes("developed by") ||
-      snippet.includes("published by") ||
-      snippet.includes(" game")
-    );
-  }).map((row) => ({ pageid: Number(row?.pageid || 0), title: normalizeTitle(row?.title || "") })).filter((row) => row.pageid > 0 && row.title);
+  const rows = (Array.isArray(json?.query?.search) ? json.query.search : [])
+    .filter((row) => !isExcludedTitle(row?.title))
+    .filter((row) => {
+      const title = normalizeTitle(row?.title || "");
+      const titleKey = normalizeGameKey(title);
+      const snippet = stripHtml(row?.snippet || "").toLowerCase();
+      const snippetLooksLikeGame = (
+        snippet.includes("video game") ||
+        snippet.includes("developed by") ||
+        snippet.includes("published by") ||
+        snippet.includes(" game")
+      );
+      const titleMatchesQuery = !!titleKey && (
+        titleKey.includes(queryKey) ||
+        (queryTokens.length > 0 && queryTokens.every((token) => titleKey.includes(token)))
+      );
+      return snippetLooksLikeGame || titleMatchesQuery;
+    })
+    .map((row) => ({ pageid: Number(row?.pageid || 0), title: normalizeTitle(row?.title || "") }))
+    .filter((row) => row.pageid > 0 && row.title);
   return { rows, totalHits: Number(json?.query?.searchinfo?.totalhits || 0) };
 }
 
@@ -765,10 +1017,12 @@ async function fetchPopularSearchSeedCandidates() {
   return out;
 }
 
-async function fetchSummaryBackfillRows(limit = 12, excludedIds = new Set()) {
+async function fetchSummaryBackfillRows(limit = 12, excludedIds = new Set(), genresRaw = "") {
   const take = clampInt(limit, 1, POPULAR_GAME_TITLE_SEEDS.length, 12);
+  const preferred = buildGenreSeedCandidates(genresRaw, Math.max(take * 2, 24)).map((row) => row.title);
+  const titlePool = [...new Set([...preferred, ...POPULAR_GAME_TITLE_SEEDS].map((row) => normalizeTitle(row)).filter(Boolean))];
   const rows = [];
-  for (const title of POPULAR_GAME_TITLE_SEEDS) {
+  for (const title of titlePool) {
     if (rows.length >= take) break;
     const summary = await fetchSummary(title).catch(() => null);
     const mapped = mapSummaryBackfillRow(summary);
@@ -794,6 +1048,141 @@ function sortRowsByPopularity(rows = [], orderingRaw = "") {
     return String(a?.name || "").localeCompare(String(b?.name || ""));
   });
   return list;
+}
+
+function sortSearchRowsByQuery(rows = [], query = "") {
+  const normalizedQuery = normalizeGameKey(query);
+  const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
+  if (!normalizedQuery) return [...(Array.isArray(rows) ? rows : [])];
+  const scored = (Array.isArray(rows) ? rows : []).map((row, index) => {
+    const title = String(row?.name || "").trim();
+    const titleKey = normalizeGameKey(title);
+    const slugKey = normalizeGameKey(row?.slug || "");
+    const combined = `${titleKey} ${slugKey}`.trim();
+    let score = 0;
+    if (titleKey === normalizedQuery) score += 1200;
+    if (combined.startsWith(normalizedQuery)) score += 880;
+    if (combined.includes(normalizedQuery)) score += 620;
+    queryTokens.forEach((token) => {
+      if (!token) return;
+      if (combined.startsWith(token)) score += 60;
+      if (combined.includes(token)) score += 55;
+      else score -= 30;
+    });
+    if (/\bvideo game\b/i.test(title)) score += 45;
+    const popularityRank = Number(POPULAR_TITLE_RANK.get(titleKey) || 0);
+    if (popularityRank > 0) score += Math.max(0, 320 - popularityRank);
+    score += Math.max(0, Math.min(90, Math.floor(toSortEpoch(row?.released) / (1000 * 60 * 60 * 24 * 365 * 8))));
+    return { row, score, index };
+  });
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    const releaseDiff = toSortEpoch(b.row?.released) - toSortEpoch(a.row?.released);
+    if (releaseDiff !== 0) return releaseDiff;
+    const rankA = Number(POPULAR_TITLE_RANK.get(normalizeGameKey(a.row?.name || "")) || 9999);
+    const rankB = Number(POPULAR_TITLE_RANK.get(normalizeGameKey(b.row?.name || "")) || 9999);
+    if (rankA !== rankB) return rankA - rankB;
+    return a.index - b.index;
+  });
+  return scored.map((entry) => entry.row);
+}
+
+function buildSeedQueryMatchCandidates(query, limit = 20) {
+  const queryKey = normalizeGameKey(query);
+  const tokens = queryKey.split(/\s+/).filter(Boolean);
+  if (!queryKey) return [];
+  const matched = POPULAR_GAME_TITLE_SEEDS
+    .map((title) => ({ title, key: normalizeGameKey(title) }))
+    .filter((entry) => {
+      if (!entry.key) return false;
+      if (entry.key.includes(queryKey)) return true;
+      if (tokens.length && tokens.every((token) => entry.key.includes(token))) return true;
+      if (tokens.length === 1 && tokens[0].length >= 3 && entry.key.startsWith(tokens[0])) return true;
+      return false;
+    })
+    .slice(0, clampInt(limit, 1, 40, 20))
+    .map((entry) => ({ pageid: 0, title: normalizeTitle(entry.title) }));
+  return matched;
+}
+
+function titleMatchesGenreTokens(title, genreTokens = new Set()) {
+  const tokens = genreTokens instanceof Set ? genreTokens : new Set();
+  if (!tokens.size) return false;
+  const titleText = normalizeTitle(title);
+  if (!titleText) return false;
+  const titleKey = normalizeGameKey(titleText);
+  if (!titleKey) return false;
+  const inferred = inferGenresFromText(titleText);
+  if (inferred.some((genre) => tokens.has(resolveGenreFilterToken(genre?.slug || genre?.name || "")))) return true;
+  for (const token of tokens) {
+    if (!token) continue;
+    const rule = GENRE_ALIAS_RULES.find((entry) => entry.slug === token);
+    if (Array.isArray(rule?.patterns) && rule.patterns.some((pattern) => pattern.test(titleKey))) return true;
+  }
+  return false;
+}
+
+function buildGenreSeedCandidates(genresRaw = "", limit = 60) {
+  const tokens = parseGenreFilterTokens(genresRaw);
+  if (!tokens.size) return [];
+  const out = [];
+  const seen = new Set();
+  const maxRows = clampInt(limit, 1, POPULAR_GAME_TITLE_SEEDS.length, 60);
+  for (const title of POPULAR_GAME_TITLE_SEEDS) {
+    if (out.length >= maxRows) break;
+    const normalizedTitle = normalizeTitle(title);
+    if (!normalizedTitle || isExcludedTitle(normalizedTitle)) continue;
+    if (!titleMatchesGenreTokens(normalizedTitle, tokens)) continue;
+    const key = normalizedTitle.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ pageid: 0, title: normalizedTitle });
+  }
+  return out;
+}
+
+function buildGenreSearchQueries(genresRaw = "", limit = 8) {
+  const tokens = [...parseGenreFilterTokens(genresRaw)];
+  if (!tokens.length) return [];
+  const out = [];
+  const seen = new Set();
+  tokens.forEach((token) => {
+    if (!token) return;
+    const canonical = CANONICAL_GENRE_BY_SLUG.get(token);
+    const defaultQuery = `${String(canonical?.name || token).trim()} video game`;
+    const genreQueries = [defaultQuery, ...(Array.isArray(GENRE_SEARCH_QUERY_SEEDS[token]) ? GENRE_SEARCH_QUERY_SEEDS[token] : [])];
+    genreQueries.forEach((query) => {
+      const value = String(query || "").trim();
+      if (!value) return;
+      const key = value.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push(value);
+    });
+  });
+  return out.slice(0, clampInt(limit, 1, 16, 8));
+}
+
+async function fetchGenreSearchCandidates(genresRaw = "", limit = 80) {
+  const queries = buildGenreSearchQueries(genresRaw, 10);
+  if (!queries.length) return [];
+  const maxRows = clampInt(limit, 1, 320, 80);
+  const perQuery = clampInt(Math.ceil(maxRows / queries.length) + 8, 8, 40, 24);
+  const buckets = await Promise.all(queries.map((query) => fetchSearchCandidates(query, 0, perQuery).catch(() => ({ rows: [] }))));
+  const out = [];
+  const seen = new Set();
+  buckets.forEach((bucket) => {
+    (Array.isArray(bucket?.rows) ? bucket.rows : []).forEach((row) => {
+      const pageid = Number(row?.pageid || 0);
+      const title = normalizeTitle(row?.title || "");
+      if (pageid <= 0 || !title || isExcludedTitle(title)) return;
+      const key = `${pageid}:${title.toLowerCase()}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push({ pageid, title });
+    });
+  });
+  return out.slice(0, maxRows);
 }
 
 export async function fetchWikipediaGameDetailsById(gameId) {
@@ -859,7 +1248,7 @@ export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search 
 
   if (explicitIds.length) {
     let rows = await fetchGamesByExplicitIds(explicitIds);
-    rows = sortRows(filterRowsByDates(filterRowsByGenres(rows, genres), dates), ordering);
+    rows = dedupeRows(sortRows(filterRowsByDates(filterRowsByGenres(rows, genres), dates), ordering));
     const totalCount = rows.length;
     rows = rows.slice(0, safePageSize);
     rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(10, safePageSize));
@@ -872,41 +1261,64 @@ export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search 
 
   let rows = [];
   let count = 0;
+  const genreTokens = parseGenreFilterTokens(genres);
   if (String(search || "").trim()) {
     const searched = await fetchSearchCandidates(search, offset, Math.max(36, safePageSize * 4));
     const popularSeeds = await fetchPopularSeedCandidates(36);
+    const seedQueryMatches = buildSeedQueryMatchCandidates(search, 24);
+    const genreSeedMatches = buildGenreSeedCandidates(genres, Math.max(18, safePageSize * 2));
+    const genreSearchMatches = genreTokens.size ? await fetchGenreSearchCandidates(genres, Math.max(28, safePageSize * 2)) : [];
     rows = await hydrateRows(searched.rows);
     if (rows.length < safePageSize) {
-      const popularBackfill = await hydrateRows(popularSeeds);
-      rows = [...rows, ...popularBackfill];
+      const [popularBackfill, queryBackfill, genreBackfill, genreQueryBackfill] = await Promise.all([
+        hydrateRows(popularSeeds),
+        hydrateRows(seedQueryMatches),
+        hydrateRows(genreSeedMatches),
+        hydrateRows(genreSearchMatches)
+      ]);
+      rows = [...rows, ...queryBackfill, ...genreBackfill, ...genreQueryBackfill, ...popularBackfill];
     }
+    rows = dedupeRows(rows);
     rows = filterRowsByDates(filterRowsByGenres(rows, genres), dates);
+    rows = dedupeRows(rows);
+    rows = sortSearchRowsByQuery(rows, search);
     if (String(ordering || "").trim().toLowerCase() !== "-added") {
       rows = sortRowsByPopularity(rows, ordering);
     }
+    const hasExtraFilters = !!String(dates || "").trim() || genreTokens.size > 0;
+    count = hasExtraFilters
+      ? offset + rows.length + (rows.length >= safePageSize ? safePageSize : 0)
+      : Math.max(Number(searched.totalHits || 0), offset + rows.length);
     rows = rows.slice(0, safePageSize);
     rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(10, safePageSize));
-    count = Math.max(Number(searched.totalHits || 0), offset + rows.length);
   } else {
-    const candidateTarget = Math.min(Math.max(offset + safePageSize + 8, 56), 84);
+    const candidateTarget = Math.min(Math.max(offset + (safePageSize * 3) + 24, 96), 560);
     const candidates = await fetchCategoryCandidates(dates, candidateTarget);
     const popularCandidates = await fetchPopularSeedCandidates(POPULAR_SEED_BATCH_SIZE);
     const popularSearchCandidates = await fetchPopularSearchSeedCandidates();
+    const genreSeedCandidates = buildGenreSeedCandidates(genres, Math.max(30, safePageSize * 3));
+    const genreSearchCandidates = genreTokens.size
+      ? await fetchGenreSearchCandidates(genres, Math.max(42, safePageSize * 4))
+      : [];
     const blendedCandidates = [
+      ...genreSeedCandidates,
+      ...genreSearchCandidates,
       ...popularCandidates,
       ...popularSearchCandidates,
       ...candidates
-    ].slice(0, Math.max(offset + safePageSize + 8, 56));
-    rows = await hydrateRows(blendedCandidates);
+    ].slice(0, Math.min(Math.max(offset + (safePageSize * 4) + 48, 160), 720));
+    rows = dedupeRows(await hydrateRows(blendedCandidates));
     rows = filterRowsByDates(filterRowsByGenres(rows, genres), dates);
+    rows = dedupeRows(rows);
     rows = sortRowsByPopularity(rows, ordering);
     const neededPoolSize = offset + safePageSize;
     if (rows.length < neededPoolSize) {
       const excludedIds = new Set(rows.map((row) => Number(row?.id || 0)).filter((id) => Number.isFinite(id) && id > 0));
-      const backfillRows = await fetchSummaryBackfillRows(Math.max(neededPoolSize - rows.length, 0) + 8, excludedIds);
-      rows = sortRowsByPopularity([...rows, ...backfillRows], ordering);
+      let backfillRows = await fetchSummaryBackfillRows(Math.max(neededPoolSize - rows.length, 0) + 8, excludedIds, genres);
+      backfillRows = filterRowsByDates(filterRowsByGenres(backfillRows, genres), dates);
+      rows = sortRowsByPopularity(dedupeRows([...rows, ...backfillRows]), ordering);
     }
-    count = Math.max(rows.length, offset + safePageSize);
+    count = rows.length;
     rows = rows.slice(offset, offset + safePageSize);
     rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(12, safePageSize));
   }

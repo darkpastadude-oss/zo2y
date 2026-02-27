@@ -190,6 +190,7 @@
       background: #0f1f40;
       color: var(--white);
       outline: none;
+      font-size: 16px;
     }
 
     .filter-select {
@@ -200,6 +201,7 @@
       color: var(--white);
       outline: none;
       min-width: 200px;
+      font-size: 16px;
     }
 
     .small-input {
@@ -675,7 +677,7 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/logo.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260226a" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260227f" />
   <script src="/js/mobile-webapp.js?v=20260227e" defer></script>
 </head>
 <body>
@@ -755,6 +757,7 @@
         year: '',
         page: 1,
         totalPages: 1,
+        hasMore: true,
         requestId: 0,
         currentUser: null,
         listStatusMap: new Map(),
@@ -952,6 +955,8 @@
         if (!results.length) {
           if (empty) empty.style.display = 'block';
           grid.innerHTML = '';
+          state.hasMore = false;
+          updatePagination();
           return;
         }
 
@@ -995,8 +1000,12 @@
         grid.appendChild(fragment);
         if (empty) empty.style.display = 'none';
 
-        const totalCount = data.count || results.length || 0;
-        state.totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+        const totalCount = Number(data?.count || 0);
+        const rawCount = Array.isArray(rawResults) ? rawResults.length : results.length;
+        state.hasMore = rawCount >= pageSize || totalCount > (state.page * pageSize);
+        state.totalPages = state.hasMore
+          ? Math.max(state.totalPages || 1, state.page + 1)
+          : Math.max(1, state.page);
         updatePagination();
       }
 
@@ -1254,7 +1263,7 @@
         }
         if (nextBtn) {
           nextBtn.addEventListener('click', () => {
-            if (state.page < state.totalPages) {
+            if (state.hasMore) {
               state.page += 1;
               loadGames();
             }
@@ -1281,8 +1290,10 @@
         const nextBtn = document.getElementById('nextPageBtn');
         const info = document.getElementById('pageInfo');
         if (prevBtn) prevBtn.disabled = state.page <= 1;
-        if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-        if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+        if (nextBtn) nextBtn.disabled = !state.hasMore;
+        if (info) info.textContent = state.hasMore
+          ? `Page ${state.page}+`
+          : `Page ${state.page}`;
       }
 
       function syncSearchStateFromUrl() {
@@ -1333,6 +1344,7 @@
   <script src="js/production-runtime.js?v=20260227d" defer></script>
 </body>
 </html>
+
 
 
 

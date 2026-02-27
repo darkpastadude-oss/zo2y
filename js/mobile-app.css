@@ -34,6 +34,37 @@ body.app-ready {
     min-height: 100dvh;
   }
 
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    line-height: 1.25;
+  }
+
+  input[type="search"],
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"] {
+    font-size: 16px !important;
+  }
+
+  body.mobile-webapp input,
+  body.mobile-webapp select,
+  body.mobile-webapp textarea {
+    font-size: 16px !important;
+    line-height: 1.25;
+  }
+
+  body.mobile-webapp input[type="search"],
+  body.mobile-webapp input[type="text"],
+  body.mobile-webapp #globalSearch,
+  body.mobile-webapp #searchInput,
+  body.mobile-webapp #pageSearchInput,
+  body.mobile-webapp .search {
+    font-size: 16px !important;
+  }
+
   body.mobile-webapp {
     padding-top: max(8px, var(--app-safe-top));
     padding-bottom: max(12px, var(--app-safe-bottom)) !important;
@@ -123,7 +154,7 @@ body.app-ready #appLoadLine {
   body[data-zo2y-page="index"] .search {
     height: 40px;
     border-radius: 14px;
-    font-size: 14px;
+    font-size: 16px;
   }
 
   body[data-zo2y-page="index"] .page-shell {

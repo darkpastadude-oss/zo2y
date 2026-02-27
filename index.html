@@ -1864,7 +1864,7 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260226a" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260227f" />
   <script src="/js/mobile-webapp.js?v=20260227e" defer></script>
 </head>
 <body>
@@ -6292,7 +6292,7 @@
         const page = index === 0 ? 1 : (index === 1 ? 2 : 1);
         try {
           const json = await homeIgdbFetch('/games', {
-            page_size: 48,
+            page_size: 32,
             ordering,
             dates: dateRange,
             page
@@ -7022,6 +7022,7 @@
   <script src="js/production-runtime.js?v=20260227d" defer></script>
 </body>
 </html>
+
 
 
 
