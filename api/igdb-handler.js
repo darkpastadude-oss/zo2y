@@ -6,6 +6,10 @@ applyApiGuardrails(app, { keyPrefix: "api-igdb", max: 240 });
 
 const IGDB_API_BASE = "https://api.igdb.com/v4";
 const TWITCH_TOKEN_URL = "https://id.twitch.tv/oauth2/token";
+const GAMEBRAIN_API_BASE = "https://gamebrain.co/api";
+const GAMEBRAIN_REQUEST_TIMEOUT_MS = 7000;
+const GAMEBRAIN_LIST_SCAN_MULTIPLIER = 4;
+const GAMEBRAIN_MAX_FETCH_IDS = 120;
 const RAWG_API_BASE = "https://api.rawg.io/api";
 const RAWG_ID_OFFSET = 9_000_000_000_000;
 const RAWG_BACKUP_KEY = "83b2a55ac54c4c1db7099212e740f680";
@@ -1058,75 +1062,195 @@ async function fetchRawgGameDetails(rawgId) {
   return payload;
 }
 
+async function gameBrainRequest(path, params = {}, timeoutMs = GAMEBRAIN_REQUEST_TIMEOUT_MS) {
+  const url = new URL(`${GAMEBRAIN_API_BASE}${String(path || "").startsWith("/") ? path : `/${String(path || "")}`}`);
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value === undefined || value === null || String(value).trim() === "") return;
+    url.searchParams.set(key, String(value));
+  });
+
+  const response = await fetch(url.toString(), {
+    headers: { accept: "application/json" },
+    signal: typeof AbortSignal?.timeout === "function" ? AbortSignal.timeout(timeoutMs) : undefined
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    const text = await response.text();
+    const err = new Error(`GAMEBRAIN ${response.status}: ${text}`);
+    err.code = "GAMEBRAIN_UPSTREAM_ERROR";
+    err.status = response.status;
+    throw err;
+  }
+  const text = await response.text();
+  if (!text.trim()) return null;
+  return JSON.parse(text);
+}
+
+async function fetchGameBrainGameInfo(id) {
+  const gameId = Number(id);
+  if (!Number.isFinite(gameId) || gameId <= 0) return null;
+  const payload = await gameBrainRequest("/game-info", { id: gameId });
+  if (!payload || typeof payload !== "object") return null;
+  return payload;
+}
+
+async function fetchGameBrainPlayerScores(gameId, playerId) {
+  const safeGameId = Number(gameId);
+  const safePlayerId = Number(playerId);
+  if (!Number.isFinite(safeGameId) || safeGameId <= 0) return null;
+  if (!Number.isFinite(safePlayerId) || safePlayerId <= 0) return null;
+  const payload = await gameBrainRequest("/player-scores", {
+    game_id: safeGameId,
+    player_id: safePlayerId
+  });
+  if (!payload || typeof payload !== "object") return null;
+  return payload;
+}
+
+function toGameBrainGenreRows(genreValue) {
+  const name = String(genreValue || "").trim();
+  if (!name) return [];
+  const slug = normalizeGameKey(name).replace(/\s+/g, "-");
+  return [{
+    id: 0,
+    name,
+    slug
+  }];
+}
+
+function mapGameBrainListRow(game) {
+  const id = Number(game?.id || 0);
+  if (!Number.isFinite(id) || id <= 0) return null;
+  const title = String(game?.title || "Game").trim() || "Game";
+  const slug = normalizeGameKey(title).replace(/\s+/g, "-");
+  const released = String(game?.release_date || "").trim();
+  const ratingRaw = Number(game?.rating || NaN);
+  const rating = Number.isFinite(ratingRaw) ? Number(ratingRaw) : null;
+
+  return {
+    id,
+    name: title,
+    slug,
+    released,
+    cover: "",
+    hero: "",
+    screenshots: [],
+    background_image: "",
+    short_screenshots: [],
+    rating,
+    ratings_count: 0,
+    metacritic: null,
+    genres: toGameBrainGenreRows(game?.genre),
+    platforms: [],
+    source: "gamebrain"
+  };
+}
+
+function mapGameBrainDetailRow(game, scoresPayload = null) {
+  const base = mapGameBrainListRow(game);
+  if (!base) return null;
+  const scores = Array.isArray(scoresPayload?.scores) ? scoresPayload.scores : [];
+  return {
+    ...base,
+    description_raw: "",
+    description: "",
+    playtime: null,
+    developers: [],
+    publishers: [],
+    stores: [],
+    website: "",
+    reddit_url: "",
+    clip: null,
+    youtube_url: "",
+    player_scores: scores
+  };
+}
+
+function parseIdsQuery(value) {
+  return dedupeNumbers(String(value || "")
+    .split(",")
+    .map((entry) => Number(String(entry || "").trim())));
+}
+
+async function fetchGameBrainGamesList({ page = 1, pageSize = 20, search = "", id = "", ids = "" } = {}) {
+  const safePage = clampInt(page, 1, 100000, 1);
+  const safePageSize = clampInt(pageSize, 1, 50, 20);
+  const parsedIds = dedupeNumbers([
+    ...parseIdsQuery(ids),
+    ...parseIdsQuery(id)
+  ]);
+  const maybeSearchId = /^\d+$/.test(String(search || "").trim()) ? Number(search) : 0;
+  if (maybeSearchId > 0) parsedIds.push(maybeSearchId);
+  const explicitIds = dedupeNumbers(parsedIds).slice(0, GAMEBRAIN_MAX_FETCH_IDS);
+
+  let candidateIds = explicitIds;
+  if (!candidateIds.length) {
+    const offset = (safePage - 1) * safePageSize;
+    const scanCount = Math.min(
+      GAMEBRAIN_MAX_FETCH_IDS,
+      Math.max(safePageSize, safePageSize * GAMEBRAIN_LIST_SCAN_MULTIPLIER)
+    );
+    candidateIds = Array.from({ length: scanCount }, (_v, idx) => offset + idx + 1);
+  }
+
+  const workItems = candidateIds.map((gameId, idx) => ({ gameId, idx }));
+  const mapped = new Array(workItems.length).fill(null);
+  await runWithConcurrency(workItems, 6, async ({ gameId, idx }) => {
+    try {
+      const game = await fetchGameBrainGameInfo(gameId);
+      mapped[idx] = mapGameBrainListRow(game);
+    } catch (_error) {
+      mapped[idx] = null;
+    }
+  });
+
+  const results = mapped.filter(Boolean).slice(0, safePageSize);
+  const fallbackCount = (safePage - 1) * safePageSize + results.length + (results.length >= safePageSize ? safePageSize : 0);
+  const count = explicitIds.length ? results.length : fallbackCount;
+
+  return {
+    count,
+    results
+  };
+}
+
 app.get("/api/igdb", (_req, res) => {
   return res.json({
     ok: true,
-    service: "igdb-proxy",
-    configured: hasIgdbCredentials(),
-    auth_mode: hasIgdbCredentials() ? "twitch-client-credentials" : "igdb-disabled",
+    service: "gamebrain-proxy",
+    configured: true,
+    auth_mode: "gamebrain",
     providers: {
-      igdb: hasIgdbCredentials(),
-      rawg: false
+      igdb: false,
+      rawg: false,
+      gamebrain: true
     },
     routes: ["/genres", "/games", "/games/:id"]
   });
 });
 
 app.get("/api/igdb/genres", async (_req, res) => {
-  try {
-    if (!hasIgdbCredentials()) {
-      return res.json({
-        count: 0,
-        source: "unavailable",
-        results: []
-      });
-    }
-    const cache = await ensureIgdbGenreCache();
-    return res.json({
-      count: cache.items.length,
-      source: "igdb",
-      results: cache.items
-    });
-  } catch (_error) {
-    return res.json({
-      count: 0,
-      source: "unavailable",
-      results: []
-    });
-  }
+  return res.json({
+    count: 0,
+    source: "gamebrain",
+    results: []
+  });
 });
 
 app.get("/api/igdb/games", async (req, res) => {
   const page = clampInt(req.query.page, 1, 100000, 1);
   const pageSize = clampInt(req.query.page_size, 1, 50, 20);
-  const orderingRaw = String(req.query.ordering || "-added").trim().toLowerCase();
   const search = String(req.query.search || "").trim().slice(0, 100);
-  const datesRaw = String(req.query.dates || "").trim();
-  const genresRaw = String(req.query.genres || "").trim();
+  const id = String(req.query.id || "").trim();
+  const ids = String(req.query.ids || "").trim();
 
   try {
-    if (!hasIgdbCredentials()) {
-      return res.json({
-        count: 0,
-        page,
-        page_size: pageSize,
-        results: [],
-        sources: {
-          igdb: false,
-          rawg: false
-        }
-      });
-    }
-
-    const genreIds = await resolveGenreIds(genresRaw);
-    const { startUnix, endUnix } = parseDatesRange(datesRaw);
-    const whereClause = buildIgdbWhereClause({ genreIds, startUnix, endUnix });
-    const payload = await fetchIgdbGamesList({
+    const payload = await fetchGameBrainGamesList({
       page,
-      pageSize,
-      orderingRaw,
+      pageSize: pageSize,
       search,
-      whereClause
+      id,
+      ids
     });
     const results = Array.isArray(payload?.results) ? payload.results : [];
 
@@ -1136,12 +1260,13 @@ app.get("/api/igdb/games", async (req, res) => {
       page_size: pageSize,
       results: results.slice(0, pageSize),
       sources: {
-        igdb: true,
-        rawg: false
+        igdb: false,
+        rawg: false,
+        gamebrain: true
       }
     });
   } catch (error) {
-    console.warn("[igdb-handler] IGDB games failed:", String(error?.message || error));
+    console.warn("[igdb-handler] GameBrain games failed:", String(error?.message || error));
     return res.json({
       count: 0,
       page,
@@ -1149,7 +1274,8 @@ app.get("/api/igdb/games", async (req, res) => {
       results: [],
       sources: {
         igdb: false,
-        rawg: false
+        rawg: false,
+        gamebrain: true
       }
     });
   }
@@ -1162,16 +1288,21 @@ app.get("/api/igdb/games/:id", async (req, res) => {
   }
 
   try {
-    if (!hasIgdbCredentials()) {
-      return res.status(503).json({ message: "IGDB is not configured." });
-    }
-    const details = await fetchIgdbGameDetails(requestedId);
-    return res.json(details);
-  } catch (error) {
-    if (error?.code === "NOT_FOUND") {
+    const details = await fetchGameBrainGameInfo(requestedId);
+    if (!details) {
       return res.status(404).json({ message: "Game not found." });
     }
-    return res.status(500).json({ message: "Failed to load game details." });
+    const playerId = Number(req.query.player_id || 0);
+    const scorePayload = Number.isFinite(playerId) && playerId > 0
+      ? await fetchGameBrainPlayerScores(requestedId, playerId).catch(() => null)
+      : null;
+    const mapped = mapGameBrainDetailRow(details, scorePayload);
+    if (!mapped) {
+      return res.status(404).json({ message: "Game not found." });
+    }
+    return res.json(mapped);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to load game details.", error: String(error?.message || error) });
   }
 });
 
@@ -1193,7 +1324,8 @@ app.use((error, req, res, _next) => {
     results: [],
     sources: {
       igdb: false,
-      rawg: false
+      rawg: false,
+      gamebrain: true
     }
   });
 });
@@ -1228,7 +1360,8 @@ export default function handler(req, res) {
       results: [],
       sources: {
         igdb: false,
-        rawg: false
+        rawg: false,
+        gamebrain: true
       }
     });
   }
