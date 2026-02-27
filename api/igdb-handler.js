@@ -6,10 +6,18 @@ applyApiGuardrails(app, { keyPrefix: "api-igdb", max: 240 });
 
 const IGDB_API_BASE = "https://api.igdb.com/v4";
 const TWITCH_TOKEN_URL = "https://id.twitch.tv/oauth2/token";
-const GAMEBRAIN_API_BASE = "https://gamebrain.co/api";
-const GAMEBRAIN_REQUEST_TIMEOUT_MS = 7000;
-const GAMEBRAIN_LIST_SCAN_MULTIPLIER = 4;
-const GAMEBRAIN_MAX_FETCH_IDS = 120;
+const WIKIPEDIA_API_BASE = "https://en.wikipedia.org/w/api.php";
+const WIKIPEDIA_REST_BASE = "https://en.wikipedia.org/api/rest_v1";
+const WIKIDATA_API_BASE = "https://www.wikidata.org/w/api.php";
+const WIKI_REQUEST_TIMEOUT_MS = 7000;
+const WIKI_SUMMARY_CACHE_TTL_MS = 1000 * 60 * 30;
+const WIKI_LIST_CACHE_TTL_MS = 1000 * 60 * 4;
+const WIKI_DETAIL_CACHE_TTL_MS = 1000 * 60 * 30;
+const WIKI_ENTITY_CACHE_TTL_MS = 1000 * 60 * 60;
+const MAX_WIKI_LIST_CACHE_ENTRIES = 220;
+const MAX_WIKI_DETAIL_CACHE_ENTRIES = 320;
+const MAX_WIKI_ENTITY_CACHE_ENTRIES = 900;
+const WIKIDATA_VIDEO_GAME_QID = "Q7889";
 const RAWG_API_BASE = "https://api.rawg.io/api";
 const RAWG_ID_OFFSET = 9_000_000_000_000;
 const RAWG_BACKUP_KEY = "83b2a55ac54c4c1db7099212e740f680";
@@ -43,6 +51,10 @@ let listCache = new Map();
 let detailCache = new Map();
 let rawgIgdbCoverCache = new Map();
 let igdbCoverLookupBackoffUntil = 0;
+let wikiSummaryCache = new Map();
+let wikiListResponseCache = new Map();
+let wikiDetailResponseCache = new Map();
+let wikiEntityCache = new Map();
 
 function pushQueryParam(params, key, value) {
   if (value === undefined || value === null) return;
