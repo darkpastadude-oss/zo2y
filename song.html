@@ -166,37 +166,123 @@
     .album-tracks {
       margin-top: 14px;
       border: 1px solid var(--border);
-      border-radius: 12px;
-      background: rgba(255,255,255,0.03);
-      padding: 10px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      padding: 12px;
       display: none;
     }
-    .album-tracks h3 { font-size: 14px; color: #d9e7ff; margin-bottom: 8px; }
-    .album-track-list { display: grid; gap: 8px; }
+    .album-tracks h3 {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #b6cfee;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    .album-track-list { display: grid; gap: 10px; }
     .album-track-row {
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px;
-      background: rgba(255,255,255,0.02);
+      border-radius: 14px;
+      padding: 10px;
+      background: linear-gradient(120deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
       display: grid;
       gap: 8px;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    .album-track-main { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
-    .album-track-title { font-size: 14px; font-weight: 600; color: #f6fbff; }
-    .album-track-sub { font-size: 12px; color: #bfd6f7; margin-top: 2px; }
-    .album-track-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .album-track-row:hover {
+      transform: translateY(-1px);
+      border-color: rgba(143, 178, 221, 0.35);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .album-track-main {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .album-track-left {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+    }
+    .album-track-index {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.04);
+      color: #d7e8ff;
+      font-size: 12px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+    }
+    .album-track-info { min-width: 0; }
+    .album-track-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #f7fbff;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .album-track-meta {
+      margin-top: 5px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .album-track-sub {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      color: #c7dcf7;
+      background: rgba(255,255,255,0.025);
+    }
+    .album-track-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+    .album-track-actions-primary { justify-content: flex-end; }
+    .album-track-actions-lists {
+      padding-top: 2px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      justify-content: flex-start;
+    }
     .track-pill {
       border: 1px solid var(--border);
-      background: transparent;
-      color: #e5efff;
+      background: rgba(255,255,255,0.03);
+      color: #dceaff;
       border-radius: 999px;
-      height: 30px;
-      padding: 0 10px;
+      height: 31px;
+      padding: 0 12px;
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.18s ease;
     }
-    .track-pill:hover { border-color: var(--accent); color: var(--accent); }
+    .track-pill:hover { border-color: #8fb2dd; color: #ffffff; background: rgba(143,178,221,0.12); }
+    .track-pill.primary {
+      border-color: rgba(245,158,11,0.55);
+      background: rgba(245,158,11,0.16);
+      color: #ffe4b0;
+    }
+    .track-pill.primary:hover {
+      border-color: rgba(245,158,11,0.85);
+      background: rgba(245,158,11,0.26);
+      color: #fff3d6;
+    }
+    .track-pill.open-pill {
+      border-color: rgba(255,255,255,0.2);
+    }
     .track-pill.active {
       border-color: rgba(29,185,84,0.8);
       background: rgba(29,185,84,0.16);
@@ -220,6 +306,9 @@
       .shell { grid-template-columns: 1fr; }
       .container { width: calc(100% - 16px); }
       .search-wrap { order: 3; max-width: none; margin-left: 0; width: 100%; }
+      .album-track-main { grid-template-columns: 1fr; }
+      .album-track-actions-primary { justify-content: flex-start; }
+      .album-track-title { font-size: 15px; }
     }
   </style>
   <meta name="theme-color" content="#0b1633" />
@@ -709,22 +798,29 @@
         const status = getAlbumTrackStatus(id);
         const duration = msToMinSec(row?.duration_ms || 0);
         const hasPreview = !!String(row?.preview_url || '').trim();
+        const explicitBadge = row?.explicit ? '<span class="album-track-sub"><i class="fa-solid fa-e"></i> Explicit</span>' : '';
         return `
           <article class="album-track-row" data-track-id="${escapeHtml(id)}">
             <div class="album-track-main">
-              <div>
-                <div class="album-track-title">${escapeHtml(`${index + 1}. ${String(row?.name || 'Track')}`)}</div>
-                <div class="album-track-sub">${escapeHtml(duration)}${row?.explicit ? ' | Explicit' : ''}</div>
+              <div class="album-track-left">
+                <span class="album-track-index">${index + 1}</span>
+                <div class="album-track-info">
+                  <div class="album-track-title">${escapeHtml(String(row?.name || 'Track'))}</div>
+                  <div class="album-track-meta">
+                    <span class="album-track-sub"><i class="fa-regular fa-clock"></i> ${escapeHtml(duration)}</span>
+                    ${explicitBadge}
+                  </div>
+                </div>
               </div>
-              <div class="album-track-actions">
-                ${hasPreview ? `<button class="track-pill album-preview-btn" data-preview="${escapeHtml(String(row.preview_url || ''))}" type="button">Preview</button>` : ''}
-                ${id ? `<a class="track-pill" href="song.html?id=${encodeURIComponent(id)}">Open</a>` : ''}
+              <div class="album-track-actions album-track-actions-primary">
+                ${hasPreview ? `<button class="track-pill primary album-preview-btn" data-preview="${escapeHtml(String(row.preview_url || ''))}" type="button"><i class="fa-solid fa-play"></i> Preview</button>` : ''}
+                ${id ? `<a class="track-pill open-pill" href="song.html?id=${encodeURIComponent(id)}"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open</a>` : ''}
               </div>
             </div>
-            <div class="album-track-actions">
-              <button class="track-pill album-list-btn ${status.favorites ? 'active' : ''}" data-track-id="${escapeHtml(id)}" data-list="favorites" type="button" ${id ? '' : 'disabled'}>Favorites</button>
-              <button class="track-pill album-list-btn ${status.listened ? 'active' : ''}" data-track-id="${escapeHtml(id)}" data-list="listened" type="button" ${id ? '' : 'disabled'}>Listened</button>
-              <button class="track-pill album-list-btn ${status.listenlist ? 'active' : ''}" data-track-id="${escapeHtml(id)}" data-list="listenlist" type="button" ${id ? '' : 'disabled'}>Listenlist</button>
+            <div class="album-track-actions album-track-actions-lists">
+              <button class="track-pill album-list-btn ${status.favorites ? 'active' : ''}" data-track-id="${escapeHtml(id)}" data-list="favorites" type="button" ${id ? '' : 'disabled'}><i class="fa-solid fa-heart"></i> Favorites</button>
+              <button class="track-pill album-list-btn ${status.listened ? 'active' : ''}" data-track-id="${escapeHtml(id)}" data-list="listened" type="button" ${id ? '' : 'disabled'}><i class="fa-solid fa-check"></i> Listened</button>
+              <button class="track-pill album-list-btn ${status.listenlist ? 'active' : ''}" data-track-id="${escapeHtml(id)}" data-list="listenlist" type="button" ${id ? '' : 'disabled'}><i class="fa-solid fa-bookmark"></i> Listenlist</button>
             </div>
           </article>
         `;
