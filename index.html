@@ -6678,6 +6678,20 @@
       const popularBatch = filterHomeSafeItems(buildMixedMusicItems(popularRows, popularAlbumRows, HOME_CHANNEL_TARGET_ITEMS));
       if (popularBatch.length && hasAlbumItems(popularBatch)) return popularBatch;
 
+      const searchFallbackTerms = ['top albums and songs', 'new music albums and songs'];
+      for (const term of searchFallbackTerms) {
+        try {
+          const fallbackSearch = await fetchJsonWithPerfCache(
+            `/api/music/search?q=${encodeURIComponent(term)}&limit=40&market=${market}&type=track,album&album_types=album`,
+            { ...musicFetchOptions, cacheKey: `music:search-fallback:${market}:${term}` }
+          );
+          const fallbackTracks = Array.isArray(fallbackSearch?.tracks) ? fallbackSearch.tracks : [];
+          const fallbackAlbums = Array.isArray(fallbackSearch?.albums) ? fallbackSearch.albums : [];
+          const searchBatch = filterHomeSafeItems(buildMixedMusicItems(fallbackTracks, fallbackAlbums, HOME_CHANNEL_TARGET_ITEMS));
+          if (searchBatch.length && hasAlbumItems(searchBatch)) return searchBatch;
+        } catch (_err) {}
+      }
+
       const fallbackTrackItems = FALLBACK_MUSIC_TRACKS.map((track, idx) => ({
         mediaType: 'music',
         itemId: String(track.id || `fallback-track-${idx + 1}`),

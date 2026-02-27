@@ -538,6 +538,24 @@ async function searchItunesAlbums({ q, limit }) {
   return rows.map(normalizeItunesAlbumRow).filter((row) => !!row.id);
 }
 
+async function fetchItunesAlbumFallback({ limit = 24, albumTypes = ["album"] } = {}) {
+  const safeLimit = clampInt(limit, 1, 60, 24);
+  const perQueryLimit = clampInt(Math.max(12, Math.ceil(safeLimit * 1.5)), 10, 50, 24);
+  const batches = await Promise.allSettled(POPULAR_ALBUM_SEARCH_QUERIES.map(async (query) => (
+    searchItunesAlbums({ q: query, limit: perQueryLimit })
+  )));
+  const rows = batches.flatMap((result) => (result.status === "fulfilled" ? result.value : []));
+  return dedupeAlbums(
+    filterAlbumsByType(rows, albumTypes)
+      .filter((row) => !!String(row?.image || "").trim())
+      .filter((row) => !isLowSignalAlbum(row))
+  )
+    .sort((a, b) => (
+      Number(Date.parse(String(b?.release_date || "")) || 0) - Number(Date.parse(String(a?.release_date || "")) || 0)
+    ))
+    .slice(0, safeLimit);
+}
+
 async function fetchAppleMostPlayedSongs({ country = "us", limit = 50 }) {
   const countryCode = String(country || "us").trim().toLowerCase().slice(0, 2) || "us";
   const safeLimit = clampInt(limit, 10, 100, 50);
@@ -869,7 +887,14 @@ router.get("/popular-albums", async (req, res) => {
 
   try {
     if (!hasSpotifyCredentials()) {
-      return res.status(503).json({ message: "Spotify credentials are not configured on the server." });
+      const fallback = await fetchItunesAlbumFallback({ limit, albumTypes });
+      return res.json({
+        count: fallback.length,
+        limit,
+        source: "itunes-fallback",
+        album_types: albumTypesKey,
+        results: fallback
+      });
     }
 
     const cached = readCacheEntry(popularAlbumsCache, cacheKey);
@@ -955,23 +980,11 @@ router.get("/popular-albums", async (req, res) => {
     });
   } catch (error) {
     try {
-      const fallbackJson = await spotifyRequest("/browse/new-releases", { country: market, limit: Math.max(limit * 2, 30) });
-      const releaseAlbums = Array.isArray(fallbackJson?.albums?.items) ? fallbackJson.albums.items : [];
-      const releaseRows = releaseAlbums
-        .map((row) => normalizeAlbumRow(row))
-        .filter(Boolean);
-      const results = dedupeAlbums(
-        filterAlbumsByType(releaseRows, albumTypes)
-          .filter((row) => !!String(row?.image || "").trim())
-          .filter((row) => !isLowSignalAlbum(row))
-      )
-        .map((row) => ({ ...row, trend_score: computeAlbumTrendScore(row) }))
-        .sort((a, b) => Number(b?.trend_score || 0) - Number(a?.trend_score || 0))
-        .slice(0, limit);
+      const results = await fetchItunesAlbumFallback({ limit, albumTypes });
       return res.json({
         count: results.length,
         limit,
-        source: "spotify-new-releases-fallback",
+        source: "itunes-fallback",
         album_types: albumTypesKey,
         results
       });
@@ -988,9 +1001,17 @@ router.get("/new-releases", async (req, res) => {
     .split(",")
     .map((type) => String(type || "").trim().toLowerCase())
     .filter(Boolean);
+  const albumTypesKey = albumTypes.join(",") || "album";
   try {
     if (!hasSpotifyCredentials()) {
-      return res.status(503).json({ message: "Spotify credentials are not configured on the server." });
+      const fallback = await fetchItunesAlbumFallback({ limit, albumTypes });
+      return res.json({
+        count: fallback.length,
+        limit,
+        album_types: albumTypesKey,
+        results: fallback,
+        source: "itunes-fallback"
+      });
     }
     const json = await spotifyRequest("/browse/new-releases", { country: market, limit });
     const items = Array.isArray(json?.albums?.items) ? json.albums.items : [];
@@ -1009,12 +1030,23 @@ router.get("/new-releases", async (req, res) => {
     return res.json({
       count: results.length,
       limit,
-      album_types: (albumTypes.join(",") || "album"),
+      album_types: albumTypesKey,
       results,
       source: "spotify"
     });
   } catch (error) {
-    return res.status(500).json({ message: "Failed to load new releases.", error: String(error?.message || error) });
+    try {
+      const fallback = await fetchItunesAlbumFallback({ limit, albumTypes });
+      return res.json({
+        count: fallback.length,
+        limit,
+        album_types: albumTypesKey,
+        results: fallback,
+        source: "itunes-fallback"
+      });
+    } catch (_fallbackError) {
+      return res.status(500).json({ message: "Failed to load new releases.", error: String(error?.message || error) });
+    }
   }
 });
 
