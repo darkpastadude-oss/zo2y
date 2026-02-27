@@ -8,12 +8,9 @@ dotenv.config({ path: "backend/.env" });
 const app = express();
 applyApiGuardrails(app, { keyPrefix: "api-tmdb", max: 260 });
 const TMDB_BASE = "https://api.themoviedb.org/3";
-const TMDB_DEFAULT_TOKEN =
-  "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NzVjMDM5N2IxZGUxYzU3NjQ4ZmRiNjJiZGQ5NmI0OSIsIm5iZiI6MTc3MDU4Mzk1NC42NTc5OTk4LCJzdWIiOiI2OTg4Zjc5MmFlYTFkN2NjNjcyY2VlNDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.1RMWLft0Yl73gfhkCXtnqBIzRQHdaoLfZFYXYN7jm7s";
 
 function getTmdbToken() {
   return String(
-    TMDB_DEFAULT_TOKEN ||
     process.env.TMDB_TOKEN ||
     process.env.TMDB_BEARER_TOKEN ||
     process.env.TMDB_API_READ_TOKEN ||

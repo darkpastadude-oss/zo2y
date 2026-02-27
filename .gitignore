@@ -15,3 +15,11 @@ backend/.env.*
 Thumbs.db
 .vscode/
 .idea/
+
+# Build/cache artifacts and local deployment output
+.vercel/
+
+# Backup/temp files
+*.bak
+*.diff
+*.tmp

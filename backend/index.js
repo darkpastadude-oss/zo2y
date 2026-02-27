@@ -25,8 +25,37 @@ dotenv.config();
 
 const app = express();
 
+function parseCorsOrigins() {
+  const raw = String(process.env.CORS_ORIGINS || "")
+    .split(",")
+    .map((value) => String(value || "").trim())
+    .filter(Boolean);
+  const defaults = [
+    String(process.env.APP_BASE_URL || "").trim(),
+    "https://zo2y.com",
+    "https://www.zo2y.com",
+    "http://localhost:3000",
+    "http://localhost:5000"
+  ].filter(Boolean);
+  return new Set([...defaults, ...raw]);
+}
+
+const corsAllowAll = String(process.env.CORS_ALLOW_ALL || "").trim().toLowerCase() === "true";
+const allowedCorsOrigins = parseCorsOrigins();
+const corsOptions = corsAllowAll
+  ? { origin: true, credentials: true }
+  : {
+      origin(origin, callback) {
+        // Allow non-browser requests (curl, server-to-server).
+        if (!origin) return callback(null, true);
+        if (allowedCorsOrigins.has(origin)) return callback(null, true);
+        return callback(new Error("Not allowed by CORS"));
+      },
+      credentials: true
+    };
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.disable("x-powered-by");
 app.use(attachRequestContext);
