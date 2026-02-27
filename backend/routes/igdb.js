@@ -1331,9 +1331,19 @@ async function fetchIgdbGameDetails(gameId) {
 }
 
 router.get("/", (_req, res) => {
+  const { clientId, clientSecret, staticAccessToken } = getIgdbCredentials();
   res.json({
     ok: true,
     service: "igdb-proxy",
+    configured: hasIgdbCredentials(),
+    auth_mode: clientId
+      ? (clientSecret ? "oauth_client_credentials" : (staticAccessToken ? "static_token_only" : "missing_secret"))
+      : "missing_client_id",
+    providers: {
+      igdb: hasIgdbCredentials(),
+      rawg: !!getRawgKey(),
+      steam: true
+    },
     routes: ["/genres", "/games", "/games/:id"]
   });
 });
@@ -1341,9 +1351,29 @@ router.get("/", (_req, res) => {
 router.get("/genres", async (req, res) => {
   try {
     const pageSize = clampInt(req.query.page_size, 1, 100, 50);
+    if (!hasIgdbCredentials()) {
+      try {
+        if (isRawgEnabled()) {
+          const rawg = await rawgRequest("/genres", { page_size: pageSize }, { ttlMs: 1000 * 60 * 20 });
+          const rows = mapRawgGenres(rawg?.results || []).slice(0, pageSize);
+          return res.json({
+            count: rows.length,
+            source: "rawg",
+            results: rows
+          });
+        }
+      } catch (_rawgErr) {}
+      return res.json({
+        count: 0,
+        source: "unavailable",
+        results: []
+      });
+    }
+
     const cache = await ensureGenreCache();
     res.json({
       count: cache.items.length,
+      source: "igdb",
       results: cache.items.slice(0, pageSize).map((item) => ({
         id: item.id,
         name: item.name,
@@ -1351,7 +1381,11 @@ router.get("/genres", async (req, res) => {
       }))
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to load genres from IGDB.", error: String(error?.message || error) });
+    res.json({
+      count: 0,
+      source: "unavailable",
+      results: []
+    });
   }
 });
 
@@ -1423,8 +1457,36 @@ router.get("/games", async (req, res) => {
     const rawgRows = Array.isArray(rawgPayload?.results) ? rawgPayload.results : [];
 
     if (!rawgRows.length) {
-      if (igdbError) throw igdbError;
-      if (rawgError) throw rawgError;
+      try {
+        const steamPayload = await fetchSteamGamesList({
+          page,
+          pageSize,
+          search
+        });
+        const steamRows = Array.isArray(steamPayload?.results) ? steamPayload.results : [];
+        if (steamRows.length) {
+          return res.json({
+            count: Number(steamPayload?.count || steamRows.length || 0),
+            page,
+            page_size: pageSize,
+            results: steamRows.slice(0, pageSize),
+            sources: {
+              igdb: false,
+              rawg: false,
+              steam: true
+            }
+          });
+        }
+      } catch (_steamError) {}
+    }
+
+    if (!rawgRows.length) {
+      if (igdbError) {
+        console.warn("IGDB list provider failed:", String(igdbError?.message || igdbError));
+      }
+      if (rawgError) {
+        console.warn("RAWG list provider failed:", String(rawgError?.message || rawgError));
+      }
       return res.json({
         count: 0,
         page,
@@ -1432,7 +1494,8 @@ router.get("/games", async (req, res) => {
         results: [],
         sources: {
           igdb: false,
-          rawg: false
+          rawg: false,
+          steam: false
         }
       });
     }
@@ -1447,11 +1510,24 @@ router.get("/games", async (req, res) => {
       results,
       sources: {
         igdb: false,
-        rawg: true
+        rawg: true,
+        steam: false
       }
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to load games.", error: String(error?.message || error) });
+    const page = clampInt(req.query.page, 1, 100000, 1);
+    const pageSize = clampInt(req.query.page_size, 1, 50, 20);
+    res.json({
+      count: 0,
+      page,
+      page_size: pageSize,
+      results: [],
+      sources: {
+        igdb: false,
+        rawg: false,
+        steam: false
+      }
+    });
   }
 });
 
@@ -1461,10 +1537,23 @@ router.get("/games/:id", async (req, res) => {
     if (!Number.isFinite(requestedId) || requestedId <= 0) {
       return res.status(400).json({ message: "Invalid game id." });
     }
+
+    const steamId = decodeSteamId(requestedId);
+    if (steamId) {
+      const steamPayload = await fetchSteamGameDetailsByAppId(steamId);
+      if (steamPayload) return res.json(steamPayload);
+    }
+
     const rawgId = decodeRawgId(requestedId);
     if (rawgId) {
       const rawgPayload = await fetchRawgGameDetailsByRawgId(rawgId);
       if (rawgPayload) return res.json(rawgPayload);
+    }
+
+    if (!hasIgdbCredentials()) {
+      const steamDirectPayload = await fetchSteamGameDetailsByAppId(requestedId).catch(() => null);
+      if (steamDirectPayload) return res.json(steamDirectPayload);
+      return res.status(404).json({ message: "Game not found." });
     }
 
     const igdbPayload = await fetchIgdbGameDetails(requestedId);

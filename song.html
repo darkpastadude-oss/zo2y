@@ -310,7 +310,74 @@
     }
     .artist-panel h3 { font-size: 14px; color: #d9e7ff; }
     .artist-meta { font-size: 12px; color: #c8ddfb; }
-    audio { margin-top: 12px; width: 100%; max-width: 520px; }
+    .preview-player {
+      margin-top: 12px;
+      width: 100%;
+      max-width: 560px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(15, 32, 64, 0.9);
+      padding: 10px 12px;
+      display: none;
+      gap: 10px;
+      align-items: center;
+    }
+    .preview-player.show { display: grid; grid-template-columns: auto 1fr auto; }
+    .preview-play-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      border: 1px solid rgba(245,158,11,0.7);
+      background: rgba(245,158,11,0.2);
+      color: #ffd79c;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .preview-play-btn:hover {
+      background: rgba(245,158,11,0.28);
+      border-color: rgba(245,158,11,0.95);
+      color: #fff2d9;
+    }
+    .preview-timeline {
+      display: grid;
+      gap: 6px;
+    }
+    .preview-range {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.18);
+      outline: none;
+    }
+    .preview-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: none;
+      background: #f59e0b;
+      cursor: pointer;
+    }
+    .preview-range::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: none;
+      background: #f59e0b;
+      cursor: pointer;
+    }
+    .preview-time {
+      font-size: 12px;
+      color: #d7e7ff;
+      min-width: 72px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
     @media (max-width: 860px) {
       .top-nav { display: none; }
       .shell { grid-template-columns: 1fr; }
@@ -379,7 +446,14 @@
           </div>
           <a class="btn" href="music.html"><i class="fa-solid fa-arrow-left"></i> Back to Music</a>
         </div>
-        <audio id="previewPlayer" controls preload="none" style="display:none;"></audio>
+        <audio id="previewPlayer" preload="none" style="display:none;"></audio>
+        <div class="preview-player" id="previewPlayerUi">
+          <button class="preview-play-btn" id="previewPlayBtn" type="button" aria-label="Play preview"><i class="fa-solid fa-play"></i></button>
+          <div class="preview-timeline">
+            <input class="preview-range" id="previewSeek" type="range" min="0" max="30" step="0.1" value="0" />
+          </div>
+          <div class="preview-time" id="previewTime">0:00 / 0:00</div>
+        </div>
         <div class="artist-panel" id="artistPanel" style="display:none;">
           <h3 id="artistPanelTitle">Artist Info</h3>
           <div class="artist-meta" id="artistGenres">Genres: --</div>
@@ -405,6 +479,7 @@
     const albumTrackStatusMap = new Map();
     const albumTrackPendingOps = new Set();
     const albumPreviewState = { btn: null };
+    const previewPlayerState = { initialized: false };
     const trackListStatus = { favorites: false, listened: false, listenlist: false };
     const pendingListOps = new Set();
 
@@ -423,6 +498,130 @@
       const m = Math.floor(sec / 60);
       const s = sec % 60;
       return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    function secToMinSec(seconds) {
+      const total = Math.max(0, Number(seconds || 0));
+      const whole = Math.floor(total);
+      const m = Math.floor(whole / 60);
+      const s = whole % 60;
+      return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    function showPreviewPlayer(show) {
+      const ui = qs('previewPlayerUi');
+      if (!ui) return;
+      ui.classList.toggle('show', !!show);
+    }
+
+    function updatePreviewPlayerUi() {
+      const audio = qs('previewPlayer');
+      const seek = qs('previewSeek');
+      const time = qs('previewTime');
+      const playBtn = qs('previewPlayBtn');
+      if (!audio || !seek || !time || !playBtn) return;
+
+      const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
+      seek.max = String(duration > 0 ? duration : 30);
+      seek.value = String(Math.min(Number(seek.max || 30), Number(audio.currentTime || 0)));
+      time.textContent = `${secToMinSec(audio.currentTime || 0)} / ${secToMinSec(duration)}`;
+      playBtn.innerHTML = audio.paused
+        ? '<i class="fa-solid fa-play"></i>'
+        : '<i class="fa-solid fa-pause"></i>';
+    }
+
+    function setPreviewSource(src = '') {
+      const audio = qs('previewPlayer');
+      const safeSrc = String(src || '').trim();
+      if (!audio) return;
+      if (!safeSrc) {
+        audio.pause();
+        audio.removeAttribute('src');
+        showPreviewPlayer(false);
+        updatePreviewPlayerUi();
+        return;
+      }
+      if (String(audio.src || '').trim() !== safeSrc) {
+        audio.src = safeSrc;
+      }
+      showPreviewPlayer(true);
+      updatePreviewPlayerUi();
+    }
+
+    function playPreviewSource(src = '', sourceButton = null) {
+      const safeSrc = String(src || '').trim();
+      const audio = qs('previewPlayer');
+      if (!audio || !safeSrc) return;
+
+      const isSameSrc = String(audio.src || '').trim() === safeSrc;
+      if (isSameSrc && !audio.paused) {
+        audio.pause();
+        if (sourceButton) sourceButton.innerHTML = '<i class="fa-solid fa-play"></i> Preview';
+        return;
+      }
+
+      if (albumPreviewState.btn && albumPreviewState.btn !== sourceButton) {
+        albumPreviewState.btn.innerHTML = '<i class="fa-solid fa-play"></i> Preview';
+      }
+
+      setPreviewSource(safeSrc);
+      audio.play().catch(() => {});
+      if (sourceButton) {
+        sourceButton.innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
+      }
+      albumPreviewState.btn = sourceButton || null;
+    }
+
+    function initPreviewPlayerUi() {
+      if (previewPlayerState.initialized) return;
+      previewPlayerState.initialized = true;
+
+      const audio = qs('previewPlayer');
+      const seek = qs('previewSeek');
+      const playBtn = qs('previewPlayBtn');
+      if (!audio || !seek || !playBtn) return;
+
+      const onPlay = () => updatePreviewPlayerUi();
+      const onPause = () => {
+        if (albumPreviewState.btn) {
+          albumPreviewState.btn.innerHTML = '<i class="fa-solid fa-play"></i> Preview';
+          albumPreviewState.btn = null;
+        }
+        updatePreviewPlayerUi();
+      };
+      const onTime = () => updatePreviewPlayerUi();
+      const onMeta = () => updatePreviewPlayerUi();
+      const onEnded = () => {
+        if (albumPreviewState.btn) {
+          albumPreviewState.btn.innerHTML = '<i class="fa-solid fa-play"></i> Preview';
+        }
+        albumPreviewState.btn = null;
+        updatePreviewPlayerUi();
+      };
+
+      audio.addEventListener('play', onPlay);
+      audio.addEventListener('pause', onPause);
+      audio.addEventListener('timeupdate', onTime);
+      audio.addEventListener('loadedmetadata', onMeta);
+      audio.addEventListener('ended', onEnded);
+
+      playBtn.addEventListener('click', () => {
+        if (!audio.src) return;
+        if (audio.paused) audio.play().catch(() => {});
+        else audio.pause();
+      });
+
+      seek.addEventListener('input', () => {
+        const max = Number(seek.max || 0);
+        const next = Number(seek.value || 0);
+        if (!Number.isFinite(next) || next < 0) return;
+        if (Number.isFinite(max) && max > 0) {
+          audio.currentTime = Math.min(max, next);
+        } else {
+          audio.currentTime = next;
+        }
+        updatePreviewPlayerUi();
+      });
     }
 
     function toHttpsUrl(url) {
@@ -556,13 +755,10 @@
       const listenBtn = qs('listenBtn');
       if (listenBtn) listenBtn.innerHTML = '<i class="fa-solid fa-play"></i> Listen Now';
 
-      const audio = qs('previewPlayer');
       if (data.preview_url) {
-        audio.src = data.preview_url;
-        audio.style.display = 'block';
+        setPreviewSource(data.preview_url);
       } else {
-        audio.removeAttribute('src');
-        audio.style.display = 'none';
+        setPreviewSource('');
       }
     }
 
@@ -841,22 +1037,8 @@
         if (previewBtn) {
           event.preventDefault();
           const src = String(previewBtn.getAttribute('data-preview') || '').trim();
-          const audio = qs('previewPlayer');
-          if (!audio || !src) return;
-          if (audio.src === src && !audio.paused) {
-            audio.pause();
-            previewBtn.textContent = 'Preview';
-            albumPreviewState.btn = null;
-            return;
-          }
-          if (albumPreviewState.btn && albumPreviewState.btn !== previewBtn) {
-            albumPreviewState.btn.textContent = 'Preview';
-          }
-          audio.src = src;
-          audio.style.display = 'block';
-          audio.play().catch(() => {});
-          previewBtn.textContent = 'Pause';
-          albumPreviewState.btn = previewBtn;
+          if (!src) return;
+          playPreviewSource(src, previewBtn);
           return;
         }
 
@@ -903,8 +1085,7 @@
       if (listenBtn) listenBtn.innerHTML = '<i class="fa-solid fa-list"></i> Album Tracks';
       const audio = qs('previewPlayer');
       if (audio) {
-        audio.removeAttribute('src');
-        audio.style.display = 'none';
+        setPreviewSource('');
       }
 
       qs('songStatus').textContent = `Showing ${albumTracks.length} track${albumTracks.length === 1 ? '' : 's'} from this album.`;
@@ -1086,20 +1267,20 @@
       }
       const audio = qs('previewPlayer');
       if (!audio || !track?.preview_url) return;
-      if (audio.paused) audio.play().catch(() => {});
-      else audio.pause();
+      playPreviewSource(track.preview_url);
     });
 
     document.addEventListener('DOMContentLoaded', () => {
       if (window.initUniversalSearch) {
         window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'music.html' });
       }
+      initPreviewPlayerUi();
       initAlbumTrackKebabMenu();
       wireListMenu();
       initSongPage();
     });
   </script>
-  <script src="js/production-runtime.js?v=20260227b" defer></script>
+  <script src="js/production-runtime.js?v=20260227c" defer></script>
 </body>
 </html>
 

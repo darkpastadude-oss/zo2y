@@ -420,7 +420,7 @@ function writeCacheEntry(cache, key, value, ttlMs) {
 function normalizeMusicText(value) {
   return String(value || "")
     .toLowerCase()
-    .replace(/['’`]/g, "")
+    .replace(/['\u2019`]/g, "")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }
@@ -1064,7 +1064,7 @@ router.get("/top-50", async (req, res) => {
     const hydrated = await hydrateTracksWithAlbumDetails(merged, { market });
     const albumAware = await hydrateTracksWithAlbumContext(hydrated, {
       market,
-      maxLookups: Math.min(24, limit)
+      maxLookups: Math.min(40, limit)
     });
 
     return res.json({
@@ -1205,7 +1205,7 @@ router.get("/popular", async (req, res) => {
     const hydrated = await hydrateTracksWithAlbumDetails(ranked, { market });
     const albumAware = await hydrateTracksWithAlbumContext(hydrated, {
       market,
-      maxLookups: Math.min(24, limit)
+      maxLookups: Math.min(40, limit)
     });
 
     return res.json({
@@ -1539,7 +1539,7 @@ router.get("/search", async (req, res) => {
       ? await hydrateTracksWithAlbumDetails(seedTracks, { market })
       : [];
     const albumAwareTracks = includeTracks
-      ? await hydrateTracksWithAlbumContext(tracks, { market, maxLookups: Math.min(18, limit) })
+      ? await hydrateTracksWithAlbumContext(tracks, { market, maxLookups: Math.min(40, limit) })
       : [];
     const seedAlbums = albumRows.map(normalizeAlbumRow).filter((row) => !!row.id);
     const detailedAlbums = includeAlbums

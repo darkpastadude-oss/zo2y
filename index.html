@@ -740,6 +740,9 @@
     .card-menu-wrap {
       position: relative;
       flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .card-menu-btn {
@@ -758,6 +761,25 @@
     .card-menu-btn:hover {
       border-color: var(--accent);
       color: var(--accent);
+    }
+
+    .card-preview-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid rgba(245, 158, 11, 0.55);
+      background: rgba(245, 158, 11, 0.18);
+      color: #ffd89a;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .card-preview-btn:hover {
+      border-color: rgba(245, 158, 11, 0.85);
+      color: #fff3d6;
+      background: rgba(245, 158, 11, 0.26);
     }
 
     .card-open-link {
@@ -2054,33 +2076,6 @@
       { id: 'fallback-r4', name: 'Date Night', category: 'Curated', rating: '4.7' },
       { id: 'fallback-r5', name: 'Quick Bites', category: 'Casual', rating: '4.6' }
     ];
-    const FALLBACK_GAMES = [
-      { title: 'The Legend of Zelda: Breath of the Wild', year: '2017', genre: 'Adventure' },
-      { title: 'Elden Ring', year: '2022', genre: 'Action RPG' },
-      { title: 'God of War', year: '2018', genre: 'Action' },
-      { title: 'Red Dead Redemption 2', year: '2018', genre: 'Open World' },
-      { title: 'Minecraft', year: '2011', genre: 'Sandbox' },
-      { title: 'Grand Theft Auto V', year: '2013', genre: 'Open World' },
-      { title: 'The Witcher 3: Wild Hunt', year: '2015', genre: 'RPG' },
-      { title: 'Fortnite', year: '2017', genre: 'Battle Royale' }
-    ];
-    const FALLBACK_MUSIC_TRACKS = [
-      { id: '4iV5W9uYEdYUVa79Axb7Rh', title: 'Smells Like Teen Spirit', artist: 'Nirvana', album: 'Nevermind' },
-      { id: '7qiZfU4dY1lWllzX7mPBI3', title: 'Shape of You', artist: 'Ed Sheeran', album: 'Divide' },
-      { id: '3n3Ppam7vgaVa1iaRUc9Lp', title: 'Mr. Brightside', artist: 'The Killers', album: 'Hot Fuss' },
-      { id: '2takcwOaAZWiXQijPHIx7B', title: 'CAN\'T STOP THE FEELING!', artist: 'Justin Timberlake', album: 'Trolls OST' },
-      { id: '6habFhsOp2NvshLv26DqMb', title: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours' },
-      { id: '0VjIjW4GlUZAMYd2vXMi3b', title: 'Starboy', artist: 'The Weeknd', album: 'Starboy' },
-      { id: '2dpaYNEQHiRxtZbfNsse99', title: 'Stressed Out', artist: 'Twenty One Pilots', album: 'Blurryface' },
-      { id: '5Z01UMMf7V1o0MzF86s6WJ', title: 'Believer', artist: 'Imagine Dragons', album: 'Evolve' }
-    ];
-    const FALLBACK_MUSIC_ALBUMS = [
-      { id: '6akEvsycLGftJxYudPjmqK', title: 'After Hours', artist: 'The Weeknd', releaseDate: '2020-03-20', albumType: 'album', totalTracks: 14 },
-      { id: '4LH4d3cOWNNsVw41Gqt2kv', title: 'The Dark Side of the Moon', artist: 'Pink Floyd', releaseDate: '1973-03-01', albumType: 'album', totalTracks: 10 },
-      { id: '6s84u2TUpR3wdUv4NgKA2j', title: 'Future Nostalgia', artist: 'Dua Lipa', releaseDate: '2020-03-27', albumType: 'album', totalTracks: 11 },
-      { id: '5v6N6vcpjI0Byxqv5e6Qpt', title: '1989 (Taylor\'s Version)', artist: 'Taylor Swift', releaseDate: '2023-10-27', albumType: 'album', totalTracks: 21 },
-      { id: '151w1FgRZfnKZA9FEcg9Z3', title: 'Adele 25', artist: 'Adele', releaseDate: '2015-11-20', albumType: 'album', totalTracks: 11 }
-    ];
     const POPULAR_MUSIC_QUERIES = [
       'top 50 usa',
       'top 50 global',
@@ -2262,6 +2257,10 @@
       userId: '',
       savedAt: 0,
       payload: null
+    };
+    const homeMusicPreviewState = {
+      audio: null,
+      btn: null
     };
 
     function escapeHtml(value) {
@@ -3032,6 +3031,7 @@
             backgroundImage: image,
             spotlightImage: image,
             spotlightMediaImage: image,
+            previewUrl: String(track?.preview_url || '').trim(),
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
             explicit: track?.explicit === true,
@@ -3068,7 +3068,6 @@
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
             href,
-            disableLists: true,
             isMusicAlbum: true
           };
           return withReleaseTag({ ...item, releaseDateSort }, label, { detail });
@@ -5060,21 +5059,7 @@
         movie: makeSeedItems('movie', ['Popular Movies', 'Now in Theaters', 'Award Winners', 'Critics Picks', 'Weekend Watch'], 'movies.html'),
         tv: makeSeedItems('tv', ['Top TV Shows', 'Binge Picks', 'New Seasons', 'Global Hits', 'Fan Favorites'], 'tvshows.html'),
         anime: makeSeedItems('anime', ['Top Anime', 'Fan Favorites', 'Must Watch Series', 'Shonen Hits', 'Classic Anime'], 'animes.html'),
-        game: FALLBACK_GAMES.slice(0, 8).map((g, index) => ({
-          mediaType: 'game',
-          itemId: `seed-game-${index + 1}`,
-          title: g.title,
-          subtitle: g.year,
-          extra: g.genre,
-          image: fallbackImage,
-          backgroundImage: fallbackImage,
-          spotlightImage: fallbackImage,
-          spotlightMediaImage: fallbackImage,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          href: 'games.html',
-          isPlaceholder: true
-        })),
+        game: makeSeedItems('game', ['Top Games', 'New Releases', 'Community Picks', 'Multiplayer Hits', 'Story Games'], 'games.html'),
         music: makeSeedItems('music', ['Global Hits', 'Viral Tracks', 'Fresh Releases', 'Chill Vibes', 'Late Night Mix'], 'music.html'),
         book: makeSeedItems('book', ['Bestselling Books', 'Popular Fiction', 'Book Club Picks', 'Page-Turners', 'Must Read Stories'], 'books.html')
       };
@@ -5298,6 +5283,12 @@
         const itemId = escapeHtml(item.itemId || '');
         const supportsLists = supportsHomeLists(mediaTypeRaw) && !item.isPlaceholder && item.disableLists !== true;
         const opensExternal = /^https?:\/\//i.test(String(hrefRaw || ''));
+        const previewUrlRaw = (mediaTypeRaw === 'music' && !item?.isMusicAlbum)
+          ? String(item?.previewUrl || '').trim()
+          : '';
+        const previewControl = previewUrlRaw
+          ? `<button class="card-preview-btn" data-preview="${escapeHtml(previewUrlRaw)}" aria-label="Play preview"><i class="fas fa-play"></i></button>`
+          : '';
         const hasVisualImage = restaurantComposite ? !!coverImage || !!logo : !!image;
         const imagePolicy = hasVisualImage
           ? consumeHomeImageRequestBudget()
@@ -5319,10 +5310,16 @@
         const trailingControl = supportsLists
           ? `
             <div class="card-menu-wrap">
+              ${previewControl}
               <button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
             </div>
           `
-          : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
+          : `
+            <div class="card-menu-wrap">
+              ${previewControl}
+              <a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>
+            </div>
+          `;
         return `
           <article class="card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}">
             <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
@@ -5363,7 +5360,7 @@
       scope.querySelectorAll('.card').forEach((card) => {
         const href = card.getAttribute('data-href');
         card.onclick = (e) => {
-          if (e.target.closest('.card-menu-btn') || e.target.closest('.card-open-link')) return;
+          if (e.target.closest('.card-menu-btn') || e.target.closest('.card-open-link') || e.target.closest('.card-preview-btn')) return;
           if (href) window.location.href = href;
         };
       });
@@ -5373,6 +5370,49 @@
           e.stopPropagation();
           const card = btn.closest('.card');
           if (card) openItemMenu(card, btn);
+        });
+      });
+
+      scope.querySelectorAll('.card-preview-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const src = String(btn.getAttribute('data-preview') || '').trim();
+          if (!src) return;
+
+          if (!homeMusicPreviewState.audio) {
+            homeMusicPreviewState.audio = new Audio();
+            homeMusicPreviewState.audio.preload = 'none';
+            homeMusicPreviewState.audio.addEventListener('ended', () => {
+              if (homeMusicPreviewState.btn) {
+                homeMusicPreviewState.btn.innerHTML = '<i class="fas fa-play"></i>';
+              }
+              homeMusicPreviewState.btn = null;
+            });
+            homeMusicPreviewState.audio.addEventListener('pause', () => {
+              if (homeMusicPreviewState.btn) {
+                homeMusicPreviewState.btn.innerHTML = '<i class="fas fa-play"></i>';
+              }
+            });
+          }
+
+          const audio = homeMusicPreviewState.audio;
+          const sameSource = String(audio.src || '').trim() === src;
+          if (sameSource && !audio.paused) {
+            audio.pause();
+            btn.innerHTML = '<i class="fas fa-play"></i>';
+            homeMusicPreviewState.btn = null;
+            return;
+          }
+
+          if (homeMusicPreviewState.btn && homeMusicPreviewState.btn !== btn) {
+            homeMusicPreviewState.btn.innerHTML = '<i class="fas fa-play"></i>';
+          }
+
+          audio.src = src;
+          audio.play().catch(() => {});
+          btn.innerHTML = '<i class="fas fa-pause"></i>';
+          homeMusicPreviewState.btn = btn;
         });
       });
     }
@@ -6304,21 +6344,7 @@
         };
       });
       if (mapped.length) return mapped;
-      return FALLBACK_GAMES.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((g, idx) => ({
-        mediaType: 'game',
-        itemId: `fallback-game-${idx + 1}`,
-        title: g.title,
-        subtitle: g.year,
-        extra: g.genre,
-        image: HOME_LOCAL_FALLBACK_IMAGE,
-        backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
-        spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
-        spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
-        spotlightMediaFit: 'contain',
-        spotlightMediaShape: 'poster',
-        href: 'games.html',
-        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
-      }));
+      return [];
     }
 
     async function loadBooks(signal) {
@@ -6532,6 +6558,7 @@
           backgroundImage: image,
           spotlightImage: image,
           spotlightMediaImage: image,
+          previewUrl: String(track?.preview_url || '').trim(),
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'poster',
           explicit: track?.explicit === true,
@@ -6569,7 +6596,6 @@
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'poster',
           href,
-          disableLists: true,
           isMusicAlbum: true
         };
       }).filter((item) => !!item && String(item?.itemId || '').trim());
@@ -6652,6 +6678,14 @@
         const list = Array.isArray(items) ? items : [];
         return list.length >= HOME_MUSIC_MIN_ITEMS && hasAlbumItems(list) && hasTrackItems(list);
       };
+      const collectedTrackRows = [];
+      const collectedAlbumRows = [];
+      const collectMusicRows = ({ tracks = [], albums = [] } = {}) => {
+        if (Array.isArray(tracks) && tracks.length) collectedTrackRows.push(...tracks);
+        if (Array.isArray(albums) && albums.length) collectedAlbumRows.push(...albums);
+      };
+      const getCollectedTrackRows = () => dedupeMusicTrackRows(collectedTrackRows);
+      const getCollectedAlbumRows = () => dedupeMusicAlbumRows(collectedAlbumRows);
 
       const top50Limit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 4, 64);
       const newReleaseLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 3, 36);
@@ -6675,6 +6709,7 @@
         ...(topAlbumsRes.status === 'fulfilled' && Array.isArray(topAlbumsRes.value?.results) ? topAlbumsRes.value.results : []),
         ...(topReleaseAlbumsRes.status === 'fulfilled' && Array.isArray(topReleaseAlbumsRes.value?.results) ? topReleaseAlbumsRes.value.results : [])
       ];
+      collectMusicRows({ tracks: top50Rows, albums: topAlbumRows });
       const topBatch = filterHomeSafeItems(buildMixedMusicItems(top50Rows, topAlbumRows, HOME_CHANNEL_TARGET_ITEMS));
       if (isHealthyMusicBatch(topBatch)) return topBatch;
 
@@ -6701,6 +6736,7 @@
           ? popularReleaseAlbumsRes.value.results
           : [])
       ];
+      collectMusicRows({ tracks: popularRows, albums: popularAlbumRows });
       const popularBatch = filterHomeSafeItems(buildMixedMusicItems(popularRows, popularAlbumRows, HOME_CHANNEL_TARGET_ITEMS));
       if (isHealthyMusicBatch(popularBatch)) return popularBatch;
 
@@ -6713,52 +6749,48 @@
           );
           const fallbackTracks = Array.isArray(fallbackSearch?.tracks) ? fallbackSearch.tracks : [];
           const fallbackAlbums = Array.isArray(fallbackSearch?.albums) ? fallbackSearch.albums : [];
+          collectMusicRows({ tracks: fallbackTracks, albums: fallbackAlbums });
           const searchBatch = filterHomeSafeItems(buildMixedMusicItems(fallbackTracks, fallbackAlbums, HOME_CHANNEL_TARGET_ITEMS));
           if (isHealthyMusicBatch(searchBatch)) return searchBatch;
         } catch (_err) {}
       }
 
-      const fallbackTrackItems = FALLBACK_MUSIC_TRACKS.map((track, idx) => ({
-        mediaType: 'music',
-        itemId: String(track.id || `fallback-track-${idx + 1}`),
-        title: track.title,
-        subtitle: track.artist,
-        extra: `Song | Album: ${String(track.album || 'Unknown Album')}`,
-        image: HOME_LOCAL_FALLBACK_IMAGE,
-        backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
-        spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
-        spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
-        spotlightMediaFit: 'contain',
-        spotlightMediaShape: 'poster',
-        href: track.id ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html',
-        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
-      }));
-      const fallbackAlbumItems = FALLBACK_MUSIC_ALBUMS.map((album, idx) => {
-        const releaseDate = String(album.releaseDate || '').trim();
-        const detail = [
-          releaseDate ? `Released ${releaseDate}` : '',
-          Number(album.totalTracks || 0) > 0 ? `${Number(album.totalTracks)} tracks` : '',
-          String(album.albumType || '').trim()
-        ].filter(Boolean).join(' | ');
-        return {
-          mediaType: 'music',
-          itemId: `album:${String(album.id || `fallback-album-${idx + 1}`)}`,
-          title: String(album.title || 'Album'),
-          subtitle: String(album.artist || 'Artist'),
-          extra: `Album${detail ? ` | ${detail}` : ''}`,
-          image: HOME_LOCAL_FALLBACK_IMAGE,
-          backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
-          spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
-          spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          href: `song.html?album_id=${encodeURIComponent(String(album.id || `fallback-album-${idx + 1}`))}&source=spotify`,
-          disableLists: true,
-          isMusicAlbum: true,
-          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
-        };
-      });
-      return mixMusicItems(fallbackTrackItems, fallbackAlbumItems, HOME_CHANNEL_TARGET_ITEMS);
+      const minimumTrackRows = Math.max(4, Math.ceil(HOME_MUSIC_MIN_ITEMS / 2));
+      const minimumAlbumRows = Math.max(4, Math.ceil(HOME_MUSIC_MIN_ITEMS / 2));
+      if (getCollectedAlbumRows().length < minimumAlbumRows) {
+        try {
+          const albumSearch = await fetchJsonWithPerfCache(
+            `/api/music/search?q=${encodeURIComponent('top albums')}&limit=48&market=${market}&type=album&album_types=album`,
+            { ...musicFetchOptions, cacheKey: `music:album-search-backfill:${market}` }
+          );
+          collectMusicRows({ albums: Array.isArray(albumSearch?.albums) ? albumSearch.albums : [] });
+        } catch (_err) {}
+      }
+      if (getCollectedTrackRows().length < minimumTrackRows) {
+        try {
+          const trackSearch = await fetchJsonWithPerfCache(
+            `/api/music/search?q=${encodeURIComponent('top songs')}&limit=48&market=${market}&type=track`,
+            { ...musicFetchOptions, cacheKey: `music:track-search-backfill:${market}` }
+          );
+          collectMusicRows({ tracks: Array.isArray(trackSearch?.tracks) ? trackSearch.tracks : [] });
+        } catch (_err) {}
+      }
+
+      const bestEffortBatch = filterHomeSafeItems(
+        buildMixedMusicItems(
+          getCollectedTrackRows(),
+          getCollectedAlbumRows(),
+          Math.max(HOME_CHANNEL_TARGET_ITEMS, HOME_MUSIC_MIN_ITEMS)
+        )
+      );
+      if (bestEffortBatch.length) {
+        const mixedEnough = hasAlbumItems(bestEffortBatch) && hasTrackItems(bestEffortBatch);
+        if (isHealthyMusicBatch(bestEffortBatch) || (mixedEnough && bestEffortBatch.length >= Math.min(6, HOME_MUSIC_MIN_ITEMS))) {
+          return bestEffortBatch;
+        }
+      }
+
+      return [];
     }
 
     async function initUniversalHome() {
@@ -6979,7 +7011,7 @@
       }
     });
   </script>
-  <script src="js/production-runtime.js?v=20260227b" defer></script>
+  <script src="js/production-runtime.js?v=20260227c" defer></script>
 </body>
 </html>
 

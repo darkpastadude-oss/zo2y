@@ -14,6 +14,8 @@
   let latestLcp = null;
   let clsValue = 0;
   let hasReportedVitals = false;
+  let analyticsDisabledUntil = 0;
+  let analyticsConsecutiveFailures = 0;
 
   function nowIso() {
     return new Date().toISOString();
@@ -102,32 +104,62 @@
     }, 2500);
   }
 
+  function resetAnalyticsTransportState() {
+    analyticsConsecutiveFailures = 0;
+    analyticsDisabledUntil = 0;
+  }
+
+  function markAnalyticsTransportFailure() {
+    analyticsConsecutiveFailures += 1;
+    const cappedFailures = Math.min(analyticsConsecutiveFailures, 6);
+    const backoffMs = Math.min(15 * 60 * 1000, 30 * 1000 * Math.pow(2, Math.max(0, cappedFailures - 1)));
+    analyticsDisabledUntil = Date.now() + backoffMs;
+  }
+
   async function sendPayload(url, payload) {
+    if (Date.now() < analyticsDisabledUntil) return false;
     const body = JSON.stringify(payload);
 
     if (navigator.sendBeacon) {
       try {
         const blob = new Blob([body], { type: "application/json" });
         const sent = navigator.sendBeacon(url, blob);
-        if (sent) return true;
+        if (sent) {
+          resetAnalyticsTransportState();
+          return true;
+        }
       } catch (_err) {}
     }
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body,
-      keepalive: true
-    });
-    return response.ok;
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true
+      });
+      if (response.ok) {
+        resetAnalyticsTransportState();
+        return true;
+      }
+      markAnalyticsTransportFailure();
+      return false;
+    } catch (_err) {
+      markAnalyticsTransportFailure();
+      throw _err;
+    }
   }
 
   async function flushQueue() {
     if (!queue.length) return;
     const items = queue.splice(0, Math.min(queue.length, MAX_QUEUE));
     try {
-      for (const item of items) {
-        await sendPayload(TRACK_URL, item);
+      for (let index = 0; index < items.length; index += 1) {
+        const ok = await sendPayload(TRACK_URL, items[index]);
+        if (!ok) {
+          queue = [...items.slice(index), ...queue].slice(0, MAX_QUEUE);
+          return;
+        }
       }
     } catch (_err) {
       queue = [...items, ...queue].slice(0, MAX_QUEUE);

@@ -13,7 +13,6 @@ const MAX_ERROR_MESSAGE = 1000;
 const MAX_EVENTS_PER_BATCH = 40;
 const EVENT_NAME_RE = /^[a-z0-9][a-z0-9_.:-]{1,79}$/i;
 
-router.use(express.json({ limit: "96kb" }));
 router.use(createRateLimiter({
   keyPrefix: "analytics",
   windowMs: 60_000,

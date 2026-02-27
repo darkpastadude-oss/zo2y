@@ -692,7 +692,6 @@
       const client = await ensureSupabase();
       if (!client) return;
       const ids = state.tracks
-        .filter((item) => String(item?.kind || 'track').toLowerCase() === 'track')
         .map((track) => track.id);
       if (!ids.length) return;
       const { data } = await client
@@ -735,9 +734,7 @@
         const previewBtn = isTrack && item.preview_url
           ? `<button class="icon-btn preview-toggle" data-preview="${escapeHtml(item.preview_url)}" type="button" aria-label="Preview"><i class="fas fa-play"></i></button>`
           : '<span></span>';
-        const trailingBtn = isTrack
-          ? '<button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>'
-          : '<button class="icon-btn open-album" type="button" aria-label="View album tracks"><i class="fas fa-list-music"></i></button>';
+        const trailingBtn = '<button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>';
         return `
         <article class="card" data-id="${escapeHtml(item.id)}" data-kind="${escapeHtml(kind)}" data-source="${escapeHtml(item.source || '')}" data-external="${escapeHtml(item.external_url || '')}">
           <div class="card-media">
@@ -792,10 +789,7 @@
     async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
       const trackId = String(itemId || '').trim();
       if (!trackId) return { ok: false, saved: false };
-      const track = state.tracks.find((row) => (
-        String(row.id || '').trim() === trackId &&
-        String(row.kind || 'track').toLowerCase() === 'track'
-      ));
+      const track = state.tracks.find((row) => String(row.id || '').trim() === trackId);
       if (!track) return { ok: false, saved: false };
 
       const client = await ensureSupabase();
@@ -865,7 +859,7 @@
 
       document.querySelectorAll('.card').forEach((card) => {
         card.addEventListener('click', (e) => {
-          if (e.target.closest('.menu-btn') || e.target.closest('.preview-toggle') || e.target.closest('.open-external') || e.target.closest('.open-album')) return;
+          if (e.target.closest('.menu-btn') || e.target.closest('.preview-toggle') || e.target.closest('.open-external')) return;
           const id = String(card.getAttribute('data-id') || '').trim();
           const kind = String(card.getAttribute('data-kind') || 'track').toLowerCase();
           const source = String(card.getAttribute('data-source') || '').trim().toLowerCase() || 'spotify';
@@ -877,20 +871,6 @@
             return;
           }
           window.location.href = `song.html?id=${encodeURIComponent(id)}`;
-        });
-      });
-
-      document.querySelectorAll('.open-album').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const card = btn.closest('.card');
-          if (!card) return;
-          const id = String(card.getAttribute('data-id') || '').trim();
-          const source = String(card.getAttribute('data-source') || '').trim().toLowerCase() || 'spotify';
-          const albumId = id.startsWith('album:') ? id.slice(6) : id;
-          if (!albumId) return;
-          window.location.href = `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(source)}`;
         });
       });
 
@@ -975,7 +955,7 @@
           mediaType: 'music',
           itemIdAttr: 'data-id',
           getVisibleItemIds: () =>
-            Array.from(document.querySelectorAll('.card[data-kind="track"][data-id]'))
+            Array.from(document.querySelectorAll('.card[data-id]'))
               .map((card) => card.getAttribute('data-id'))
               .filter(Boolean),
           getQuickStatusForItem: (itemId) => {
@@ -997,7 +977,7 @@
       loadPage();
     });
   </script>
-  <script src="js/production-runtime.js?v=20260227b" defer></script>
+  <script src="js/production-runtime.js?v=20260227c" defer></script>
 </body>
 </html>
 
