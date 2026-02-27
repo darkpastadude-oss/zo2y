@@ -239,6 +239,19 @@ function hasRawgKey() {
   return !!getRawgKey();
 }
 
+function getGameBrainApiKey() {
+  return String(
+    process.env.GAMEBRAIN_API_KEY ||
+    process.env.GAME_BRAIN_API_KEY ||
+    process.env.GAMEBRAIN_KEY ||
+    ""
+  ).trim();
+}
+
+function hasGameBrainApiKey() {
+  return !!getGameBrainApiKey();
+}
+
 function mapOrderingToIgdb(orderingRaw) {
   const ordering = String(orderingRaw || "-added").trim().toLowerCase();
   if (ordering === "-released") return "first_release_date desc";
@@ -1063,14 +1076,24 @@ async function fetchRawgGameDetails(rawgId) {
 }
 
 async function gameBrainRequest(path, params = {}, timeoutMs = GAMEBRAIN_REQUEST_TIMEOUT_MS) {
+  const apiKey = getGameBrainApiKey();
+  if (!apiKey) {
+    const err = new Error("Missing GAMEBRAIN_API_KEY.");
+    err.code = "GAMEBRAIN_DISABLED";
+    throw err;
+  }
   const url = new URL(`${GAMEBRAIN_API_BASE}${String(path || "").startsWith("/") ? path : `/${String(path || "")}`}`);
+  url.searchParams.set("api_key", apiKey);
   Object.entries(params || {}).forEach(([key, value]) => {
     if (value === undefined || value === null || String(value).trim() === "") return;
     url.searchParams.set(key, String(value));
   });
 
   const response = await fetch(url.toString(), {
-    headers: { accept: "application/json" },
+    headers: {
+      accept: "application/json",
+      "x-api-key": apiKey
+    },
     signal: typeof AbortSignal?.timeout === "function" ? AbortSignal.timeout(timeoutMs) : undefined
   });
   if (response.status === 404) return null;
@@ -1218,18 +1241,25 @@ app.get("/api/igdb", (_req, res) => {
   return res.json({
     ok: true,
     service: "gamebrain-proxy",
-    configured: true,
+    configured: hasGameBrainApiKey(),
     auth_mode: "gamebrain",
     providers: {
       igdb: false,
       rawg: false,
-      gamebrain: true
+      gamebrain: hasGameBrainApiKey()
     },
     routes: ["/genres", "/games", "/games/:id"]
   });
 });
 
 app.get("/api/igdb/genres", async (_req, res) => {
+  if (!hasGameBrainApiKey()) {
+    return res.status(503).json({
+      count: 0,
+      source: "unavailable",
+      results: []
+    });
+  }
   return res.json({
     count: 0,
     source: "gamebrain",
@@ -1245,6 +1275,19 @@ app.get("/api/igdb/games", async (req, res) => {
   const ids = String(req.query.ids || "").trim();
 
   try {
+    if (!hasGameBrainApiKey()) {
+      return res.status(503).json({
+        count: 0,
+        page,
+        page_size: pageSize,
+        results: [],
+        sources: {
+          igdb: false,
+          rawg: false,
+          gamebrain: false
+        }
+      });
+    }
     const payload = await fetchGameBrainGamesList({
       page,
       pageSize: pageSize,
@@ -1275,7 +1318,7 @@ app.get("/api/igdb/games", async (req, res) => {
       sources: {
         igdb: false,
         rawg: false,
-        gamebrain: true
+        gamebrain: hasGameBrainApiKey()
       }
     });
   }
@@ -1288,6 +1331,9 @@ app.get("/api/igdb/games/:id", async (req, res) => {
   }
 
   try {
+    if (!hasGameBrainApiKey()) {
+      return res.status(503).json({ message: "GameBrain is not configured." });
+    }
     const details = await fetchGameBrainGameInfo(requestedId);
     if (!details) {
       return res.status(404).json({ message: "Game not found." });
@@ -1325,7 +1371,7 @@ app.use((error, req, res, _next) => {
     sources: {
       igdb: false,
       rawg: false,
-      gamebrain: true
+      gamebrain: hasGameBrainApiKey()
     }
   });
 });
@@ -1361,7 +1407,7 @@ export default function handler(req, res) {
       sources: {
         igdb: false,
         rawg: false,
-        gamebrain: true
+        gamebrain: hasGameBrainApiKey()
       }
     });
   }

@@ -4,6 +4,10 @@ const router = express.Router();
 
 const IGDB_API_BASE = "https://api.igdb.com/v4";
 const TWITCH_TOKEN_URL = "https://id.twitch.tv/oauth2/token";
+const GAMEBRAIN_API_BASE = "https://gamebrain.co/api";
+const GAMEBRAIN_REQUEST_TIMEOUT_MS = 7000;
+const GAMEBRAIN_LIST_SCAN_MULTIPLIER = 4;
+const GAMEBRAIN_MAX_FETCH_IDS = 120;
 const GENRE_CACHE_TTL_MS = 1000 * 60 * 60;
 const RAWG_API_BASE = "https://api.rawg.io/api";
 const RAWG_ID_OFFSET = 9_000_000_000_000;
@@ -308,6 +312,19 @@ function getRawgKey() {
     RAWG_BACKUP_KEY ||
     ""
   ).trim();
+}
+
+function getGameBrainApiKey() {
+  return String(
+    process.env.GAMEBRAIN_API_KEY ||
+    process.env.GAME_BRAIN_API_KEY ||
+    process.env.GAMEBRAIN_KEY ||
+    ""
+  ).trim();
+}
+
+function hasGameBrainApiKey() {
+  return !!getGameBrainApiKey();
 }
 
 function isRawgEnabled() {
@@ -1521,104 +1538,236 @@ async function fetchIgdbGameDetails(gameId) {
   };
 }
 
+async function gameBrainRequest(path, params = {}, timeoutMs = GAMEBRAIN_REQUEST_TIMEOUT_MS) {
+  const apiKey = getGameBrainApiKey();
+  if (!apiKey) {
+    const err = new Error("Missing GAMEBRAIN_API_KEY.");
+    err.code = "GAMEBRAIN_DISABLED";
+    throw err;
+  }
+  const url = new URL(`${GAMEBRAIN_API_BASE}${String(path || "").startsWith("/") ? path : `/${String(path || "")}`}`);
+  url.searchParams.set("api_key", apiKey);
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value === undefined || value === null || String(value).trim() === "") return;
+    url.searchParams.set(key, String(value));
+  });
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      "Accept": "application/json",
+      "x-api-key": apiKey
+    },
+    signal: typeof AbortSignal?.timeout === "function" ? AbortSignal.timeout(timeoutMs) : undefined
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`GAMEBRAIN ${res.status}: ${body}`);
+  }
+  const text = await res.text();
+  if (!text.trim()) return null;
+  return JSON.parse(text);
+}
+
+async function fetchGameBrainGameInfo(id) {
+  const gameId = Number(id);
+  if (!Number.isFinite(gameId) || gameId <= 0) return null;
+  const payload = await gameBrainRequest("/game-info", { id: gameId });
+  if (!payload || typeof payload !== "object") return null;
+  return payload;
+}
+
+async function fetchGameBrainPlayerScores(gameId, playerId) {
+  const safeGameId = Number(gameId);
+  const safePlayerId = Number(playerId);
+  if (!Number.isFinite(safeGameId) || safeGameId <= 0) return null;
+  if (!Number.isFinite(safePlayerId) || safePlayerId <= 0) return null;
+  const payload = await gameBrainRequest("/player-scores", {
+    game_id: safeGameId,
+    player_id: safePlayerId
+  });
+  if (!payload || typeof payload !== "object") return null;
+  return payload;
+}
+
+function toGameBrainGenreRows(genreValue) {
+  const name = String(genreValue || "").trim();
+  if (!name) return [];
+  return [{
+    id: 0,
+    name,
+    slug: normalizeGameKey(name).replace(/\s+/g, "-")
+  }];
+}
+
+function mapGameBrainListRow(game) {
+  const id = Number(game?.id || 0);
+  if (!Number.isFinite(id) || id <= 0) return null;
+  const title = String(game?.title || "Game").trim() || "Game";
+  const slug = normalizeGameKey(title).replace(/\s+/g, "-");
+  const released = String(game?.release_date || "").trim();
+  const ratingRaw = Number(game?.rating || NaN);
+  const rating = Number.isFinite(ratingRaw) ? Number(ratingRaw) : null;
+  return {
+    id,
+    name: title,
+    slug,
+    released,
+    cover: "",
+    hero: "",
+    screenshots: [],
+    background_image: "",
+    short_screenshots: [],
+    rating,
+    ratings_count: 0,
+    metacritic: null,
+    genres: toGameBrainGenreRows(game?.genre),
+    platforms: [],
+    source: "gamebrain"
+  };
+}
+
+function mapGameBrainDetailRow(game, scoresPayload = null) {
+  const base = mapGameBrainListRow(game);
+  if (!base) return null;
+  return {
+    ...base,
+    description_raw: "",
+    description: "",
+    playtime: null,
+    developers: [],
+    publishers: [],
+    stores: [],
+    website: "",
+    reddit_url: "",
+    clip: null,
+    youtube_url: "",
+    player_scores: Array.isArray(scoresPayload?.scores) ? scoresPayload.scores : []
+  };
+}
+
+function parseIdsQuery(value) {
+  return uniqNumbers(String(value || "")
+    .split(",")
+    .map((entry) => Number(String(entry || "").trim())));
+}
+
+async function fetchGameBrainGamesList({ page = 1, pageSize = 20, search = "", id = "", ids = "" } = {}) {
+  const safePage = clampInt(page, 1, 100000, 1);
+  const safePageSize = clampInt(pageSize, 1, 50, 20);
+  const parsedIds = uniqNumbers([
+    ...parseIdsQuery(ids),
+    ...parseIdsQuery(id)
+  ]);
+  const maybeSearchId = /^\d+$/.test(String(search || "").trim()) ? Number(search) : 0;
+  if (maybeSearchId > 0) parsedIds.push(maybeSearchId);
+  const explicitIds = uniqNumbers(parsedIds).slice(0, GAMEBRAIN_MAX_FETCH_IDS);
+
+  let candidateIds = explicitIds;
+  if (!candidateIds.length) {
+    const offset = (safePage - 1) * safePageSize;
+    const scanCount = Math.min(
+      GAMEBRAIN_MAX_FETCH_IDS,
+      Math.max(safePageSize, safePageSize * GAMEBRAIN_LIST_SCAN_MULTIPLIER)
+    );
+    candidateIds = Array.from({ length: scanCount }, (_v, idx) => offset + idx + 1);
+  }
+
+  const workItems = candidateIds.map((gameId, idx) => ({ gameId, idx }));
+  const mapped = new Array(workItems.length).fill(null);
+  await runWithConcurrency(workItems, 6, async ({ gameId, idx }) => {
+    try {
+      const game = await fetchGameBrainGameInfo(gameId);
+      mapped[idx] = mapGameBrainListRow(game);
+    } catch (_error) {
+      mapped[idx] = null;
+    }
+  });
+
+  const results = mapped.filter(Boolean).slice(0, safePageSize);
+  const fallbackCount = (safePage - 1) * safePageSize + results.length + (results.length >= safePageSize ? safePageSize : 0);
+  const count = explicitIds.length ? results.length : fallbackCount;
+
+  return {
+    count,
+    results
+  };
+}
+
 router.get("/", (_req, res) => {
-  const { clientId, clientSecret, staticAccessToken } = getIgdbCredentials();
   res.json({
     ok: true,
-    service: "igdb-proxy",
-    configured: hasIgdbCredentials(),
-    auth_mode: clientId
-      ? (clientSecret ? "oauth_client_credentials" : (staticAccessToken ? "static_token_only" : "missing_secret"))
-      : "missing_client_id",
+    service: "gamebrain-proxy",
+    configured: hasGameBrainApiKey(),
+    auth_mode: "gamebrain",
     providers: {
-      igdb: hasIgdbCredentials(),
-      rawg: false
+      igdb: false,
+      rawg: false,
+      gamebrain: hasGameBrainApiKey()
     },
     routes: ["/genres", "/games", "/games/:id"]
   });
 });
 
-router.get("/genres", async (req, res) => {
-  try {
-    const pageSize = clampInt(req.query.page_size, 1, 100, 50);
-    if (!hasIgdbCredentials()) {
-      return res.json({
-        count: 0,
-        source: "unavailable",
-        results: []
-      });
-    }
-
-    const cache = await ensureGenreCache();
-    res.json({
-      count: cache.items.length,
-      source: "igdb",
-      results: cache.items.slice(0, pageSize).map((item) => ({
-        id: item.id,
-        name: item.name,
-        slug: item.slug
-      }))
-    });
-  } catch (error) {
-    res.json({
+router.get("/genres", async (_req, res) => {
+  if (!hasGameBrainApiKey()) {
+    return res.status(503).json({
       count: 0,
       source: "unavailable",
       results: []
     });
   }
+  return res.json({
+    count: 0,
+    source: "gamebrain",
+    results: []
+  });
 });
 
 router.get("/games", async (req, res) => {
   try {
     const page = clampInt(req.query.page, 1, 100000, 1);
     const pageSize = clampInt(req.query.page_size, 1, 50, 20);
-    const orderingRaw = String(req.query.ordering || "-added").trim().toLowerCase();
     const search = String(req.query.search || "").trim().slice(0, 100);
-    const datesRaw = String(req.query.dates || "").trim();
-    const { startUnix, endUnix } = parseDatesRange(datesRaw);
+    const id = String(req.query.id || "").trim();
+    const ids = String(req.query.ids || "").trim();
 
-    let genreIds = [];
-    try {
-      genreIds = await resolveGenreIds(req.query.genres);
-    } catch (_genreErr) {
-      genreIds = [];
-    }
-    const whereClause = buildWhereClause({ genreIds, startUnix, endUnix });
-
-    if (!hasIgdbCredentials()) {
-      return res.json({
+    if (!hasGameBrainApiKey()) {
+      return res.status(503).json({
         count: 0,
         page,
         page_size: pageSize,
         results: [],
         sources: {
           igdb: false,
-          rawg: false
+          rawg: false,
+          gamebrain: false
         }
       });
     }
 
-    const igdbPayload = await fetchIgdbGamesList({
+    const payload = await fetchGameBrainGamesList({
       page,
-      pageSize,
-      orderingRaw,
+      pageSize: pageSize,
       search,
-      whereClause
+      id,
+      ids
     });
+    const results = Array.isArray(payload?.results) ? payload.results : [];
 
-    const igdbRows = Array.isArray(igdbPayload?.results) ? igdbPayload.results : [];
     return res.json({
-      count: Number(igdbPayload?.count || igdbRows.length || 0),
+      count: Number(payload?.count || results.length),
       page,
       page_size: pageSize,
-      results: igdbRows.slice(0, pageSize),
+      results: results.slice(0, pageSize),
       sources: {
-        igdb: true,
-        rawg: false
+        igdb: false,
+        rawg: false,
+        gamebrain: true
       }
     });
   } catch (error) {
-    console.warn("IGDB list provider failed:", String(error?.message || error));
+    console.warn("GameBrain list provider failed:", String(error?.message || error));
     const page = clampInt(req.query.page, 1, 100000, 1);
     const pageSize = clampInt(req.query.page_size, 1, 50, 20);
     res.json({
@@ -1628,7 +1777,8 @@ router.get("/games", async (req, res) => {
       results: [],
       sources: {
         igdb: false,
-        rawg: false
+        rawg: false,
+        gamebrain: hasGameBrainApiKey()
       }
     });
   }
@@ -1641,16 +1791,20 @@ router.get("/games/:id", async (req, res) => {
       return res.status(400).json({ message: "Invalid game id." });
     }
 
-    if (!hasIgdbCredentials()) {
-      return res.status(503).json({ message: "IGDB is not configured." });
+    if (!hasGameBrainApiKey()) {
+      return res.status(503).json({ message: "GameBrain is not configured." });
     }
 
-    const igdbPayload = await fetchIgdbGameDetails(requestedId);
-    return res.json(igdbPayload);
+    const details = await fetchGameBrainGameInfo(requestedId);
+    if (!details) return res.status(404).json({ message: "Game not found." });
+    const playerId = Number(req.query.player_id || 0);
+    const scorePayload = Number.isFinite(playerId) && playerId > 0
+      ? await fetchGameBrainPlayerScores(requestedId, playerId).catch(() => null)
+      : null;
+    const mapped = mapGameBrainDetailRow(details, scorePayload);
+    if (!mapped) return res.status(404).json({ message: "Game not found." });
+    return res.json(mapped);
   } catch (error) {
-    if (error?.code === "NOT_FOUND") {
-      return res.status(404).json({ message: "Game not found." });
-    }
     res.status(500).json({ message: "Failed to load game details.", error: String(error?.message || error) });
   }
 });
