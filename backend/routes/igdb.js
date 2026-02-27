@@ -1532,8 +1532,7 @@ router.get("/", (_req, res) => {
       : "missing_client_id",
     providers: {
       igdb: hasIgdbCredentials(),
-      rawg: !!getRawgKey(),
-      steam: true
+      rawg: !!getRawgKey()
     },
     routes: ["/genres", "/games", "/games/:id"]
   });
@@ -1648,30 +1647,6 @@ router.get("/games", async (req, res) => {
     const rawgRows = Array.isArray(rawgPayload?.results) ? rawgPayload.results : [];
 
     if (!rawgRows.length) {
-      try {
-        const steamPayload = await fetchSteamGamesList({
-          page,
-          pageSize,
-          search
-        });
-        const steamRows = Array.isArray(steamPayload?.results) ? steamPayload.results : [];
-        if (steamRows.length) {
-          return res.json({
-            count: Number(steamPayload?.count || steamRows.length || 0),
-            page,
-            page_size: pageSize,
-            results: steamRows.slice(0, pageSize),
-            sources: {
-              igdb: false,
-              rawg: false,
-              steam: true
-            }
-          });
-        }
-      } catch (_steamError) {}
-    }
-
-    if (!rawgRows.length) {
       if (igdbError) {
         console.warn("IGDB list provider failed:", String(igdbError?.message || igdbError));
       }
@@ -1685,8 +1660,7 @@ router.get("/games", async (req, res) => {
         results: [],
         sources: {
           igdb: false,
-          rawg: false,
-          steam: false
+          rawg: false
         }
       });
     }
@@ -1701,8 +1675,7 @@ router.get("/games", async (req, res) => {
       results,
       sources: {
         igdb: false,
-        rawg: true,
-        steam: false
+        rawg: true
       }
     });
   } catch (error) {
@@ -1715,8 +1688,7 @@ router.get("/games", async (req, res) => {
       results: [],
       sources: {
         igdb: false,
-        rawg: false,
-        steam: false
+        rawg: false
       }
     });
   }
@@ -1729,12 +1701,6 @@ router.get("/games/:id", async (req, res) => {
       return res.status(400).json({ message: "Invalid game id." });
     }
 
-    const steamId = decodeSteamId(requestedId);
-    if (steamId) {
-      const steamPayload = await fetchSteamGameDetailsByAppId(steamId);
-      if (steamPayload) return res.json(steamPayload);
-    }
-
     const rawgId = decodeRawgId(requestedId);
     if (rawgId) {
       const rawgPayload = await fetchRawgGameDetailsByRawgId(rawgId);
@@ -1742,22 +1708,12 @@ router.get("/games/:id", async (req, res) => {
     }
 
     if (!hasIgdbCredentials()) {
-      const steamDirectPayload = await fetchSteamGameDetailsByAppId(requestedId).catch(() => null);
-      if (steamDirectPayload) return res.json(steamDirectPayload);
+      const rawgDirectPayload = await fetchRawgGameDetailsByRawgId(requestedId).catch(() => null);
+      if (rawgDirectPayload) return res.json(rawgDirectPayload);
       return res.status(404).json({ message: "Game not found." });
     }
 
     const igdbPayload = await fetchIgdbGameDetails(requestedId);
-
-    if (isRawgEnabled()) {
-      try {
-        const rawgPayload = await fetchRawgGameDetailsByName(igdbPayload?.name, igdbPayload?.released);
-        if (rawgPayload) {
-          return res.json(mergeGameDetailRows(igdbPayload, rawgPayload));
-        }
-      } catch (_rawgErr) {}
-    }
-
     return res.json(igdbPayload);
   } catch (error) {
     if (error?.code === "NOT_FOUND") {
