@@ -18,6 +18,26 @@
     return raw.replace(/^http:\/\//i, 'https://');
   }
 
+  function normalizeAlbumId(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    return raw.startsWith('album:') ? raw.slice(6).trim() : raw;
+  }
+
+  function inferAlbumSource(albumId, explicitSource = '') {
+    const source = String(explicitSource || '').trim().toLowerCase();
+    if (source) return source;
+    const id = normalizeAlbumId(albumId);
+    return /^\d+$/.test(id) ? 'itunes' : 'spotify';
+  }
+
+  function buildAlbumHref(albumId, explicitSource = '') {
+    const id = normalizeAlbumId(albumId);
+    if (!id) return 'music.html';
+    const source = inferAlbumSource(id, explicitSource);
+    return `song.html?album_id=${encodeURIComponent(id)}&source=${encodeURIComponent(source)}`;
+  }
+
   function ensureStyles() {
     if (document.getElementById('universal-search-styles')) return;
     const style = document.createElement('style');
@@ -330,7 +350,7 @@
         type: 'Music Album',
         title: album.name || 'Album',
         sub: Array.isArray(album.artists) && album.artists.length ? album.artists.join(', ') : 'Artist',
-        href: album.external_url || 'music.html',
+        href: buildAlbumHref(album.id, album.source),
         image: toHttpsUrl(album.image || ''),
         landscape: false
       }));
@@ -367,7 +387,7 @@
       type: 'Music Album',
       title: album.collectionName || 'Album',
       sub: album.artistName || 'Artist',
-      href: album.collectionViewUrl || 'music.html',
+      href: buildAlbumHref(album.collectionId || album.id, 'itunes'),
       image: toHttpsUrl(album.artworkUrl100 || album.artworkUrl60 || ''),
       landscape: false
     }));
