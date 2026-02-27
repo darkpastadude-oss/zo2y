@@ -7,6 +7,7 @@ const TWITCH_TOKEN_URL = "https://id.twitch.tv/oauth2/token";
 const GENRE_CACHE_TTL_MS = 1000 * 60 * 60;
 const RAWG_API_BASE = "https://api.rawg.io/api";
 const RAWG_ID_OFFSET = 9_000_000_000_000;
+const RAWG_BACKUP_KEY = "83b2a55ac54c4c1db7099212e740f680";
 const RAWG_CACHE_TTL_MS = 1000 * 60 * 5;
 const RAWG_BACKOFF_MS = 1000 * 60 * 2;
 const STEAM_API_BASE = "https://store.steampowered.com/api";
@@ -230,7 +231,13 @@ function hasIgdbCredentials() {
 }
 
 function getRawgKey() {
-  return String(process.env.RAWG_API_KEY || process.env.RAWG_KEY || "").trim();
+  return String(
+    process.env.RAWG_API_KEY ||
+    process.env.RAWG_KEY ||
+    process.env.RAWG_BACKUP_KEY ||
+    RAWG_BACKUP_KEY ||
+    ""
+  ).trim();
 }
 
 function isRawgEnabled() {
