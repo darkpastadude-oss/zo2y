@@ -15,6 +15,21 @@ const TOP_50_PLAYLIST_IDS = [
   "37i9dQZEVXbLRQDuF5jeBp", // Top 50 - USA
   "37i9dQZEVXbMDoHDwVN2tF"  // Top 50 - Global
 ];
+const POPULAR_ARTIST_SEARCH_QUERIES = [
+  "top artists",
+  "global chart artists",
+  "viral artists",
+  "pop artists",
+  "hip hop artists",
+  "r&b artists"
+];
+const POPULAR_ALBUM_SEARCH_QUERIES = [
+  "top albums",
+  "new albums",
+  "chart albums",
+  "pop albums",
+  "hip hop albums"
+];
 const ALBUM_DETAILS_CACHE_TTL_MS = 1000 * 60 * 30;
 const POPULAR_ALBUMS_CACHE_TTL_MS = 1000 * 60 * 8;
 const CURATION_KEYWORDS_BLOCKLIST = [
@@ -305,6 +320,91 @@ function computeAlbumTrendScore(row) {
     : 0;
   const tracksBoost = Math.min(24, Math.max(0, totalTracks));
   return Number((popularity * 0.72 + recentBoost * 22 + tracksBoost * 0.35).toFixed(4));
+}
+
+function computeArtistSearchScore(artist) {
+  const popularity = Number(artist?.popularity || 0);
+  const followers = Number(artist?.followers?.total || 0);
+  const followersBoost = Math.log10(Math.max(1, followers)) * 6;
+  return Number((popularity + followersBoost).toFixed(4));
+}
+
+async function searchSpotifyTopArtists({ market = "US", maxArtists = 14 } = {}) {
+  const batches = await Promise.allSettled(POPULAR_ARTIST_SEARCH_QUERIES.map(async (query) => {
+    const json = await spotifyRequest("/search", {
+      q: query,
+      type: "artist",
+      market,
+      limit: 12,
+      offset: 0
+    });
+    return Array.isArray(json?.artists?.items) ? json.artists.items : [];
+  }));
+
+  const byId = new Map();
+  batches.forEach((result) => {
+    if (result.status !== "fulfilled") return;
+    result.value.forEach((artist) => {
+      const id = String(artist?.id || "").trim();
+      if (!id) return;
+      const score = computeArtistSearchScore(artist);
+      const current = byId.get(id);
+      if (!current || score > Number(current.score || 0)) {
+        byId.set(id, {
+          id,
+          popularity: Number(artist?.popularity || 0),
+          followers: Number(artist?.followers?.total || 0),
+          score
+        });
+      }
+    });
+  });
+
+  return Array.from(byId.values())
+    .sort((a, b) => (
+      Number(b?.score || 0) - Number(a?.score || 0) ||
+      Number(b?.popularity || 0) - Number(a?.popularity || 0)
+    ))
+    .slice(0, Math.max(1, Number(maxArtists || 14)));
+}
+
+async function fetchAlbumsFromArtists(artistIds = [], { market = "US", limitPerArtist = 12 } = {}) {
+  const ids = Array.from(new Set((Array.isArray(artistIds) ? artistIds : [])
+    .map((id) => String(id || "").trim())
+    .filter(Boolean)));
+  if (!ids.length) return [];
+
+  const batches = await Promise.allSettled(ids.map(async (artistId) => {
+    const json = await spotifyRequest(`/artists/${encodeURIComponent(artistId)}/albums`, {
+      include_groups: "album",
+      market,
+      limit: clampInt(limitPerArtist, 1, 50, 12)
+    });
+    const items = Array.isArray(json?.items) ? json.items : [];
+    return items
+      .map((album) => normalizeAlbumRow(album))
+      .filter((album) => !!album.id);
+  }));
+
+  return batches.flatMap((result) => (result.status === "fulfilled" ? result.value : []));
+}
+
+async function searchSpotifyAlbumsByQueries({ market = "US", limitPerQuery = 10 } = {}) {
+  const batches = await Promise.allSettled(POPULAR_ALBUM_SEARCH_QUERIES.map(async (query) => {
+    const json = await spotifyRequest("/search", {
+      q: query,
+      type: "album",
+      market,
+      limit: clampInt(limitPerQuery, 1, 50, 10),
+      offset: 0
+    });
+    const items = Array.isArray(json?.albums?.items) ? json.albums.items : [];
+    return items
+      .map((album) => normalizeAlbumRow(album))
+      .filter((album) => !!album.id);
+  }));
+
+  return batches.flatMap((result) => (result.status === "fulfilled" ? result.value : []));
 }
 
 async function fetchSpotifyAlbumsByIds(ids = [], { market = "US" } = {}) {
@@ -783,68 +883,44 @@ router.get("/popular-albums", async (req, res) => {
       });
     }
 
-    const [newReleasesJson, playlistBatches] = await Promise.all([
+    const [newReleasesJson, topArtists, searchedAlbums] = await Promise.all([
       spotifyRequest("/browse/new-releases", { country: market, limit: 50 }),
-      Promise.all(POPULAR_PLAYLIST_IDS.map(async (playlistId) => {
-        const json = await spotifyRequest(`/playlists/${encodeURIComponent(playlistId)}/tracks`, {
-          market,
-          limit: 50,
-          additional_types: "track",
-          offset: 0
-        });
-        return Array.isArray(json?.items) ? json.items : [];
-      }))
+      searchSpotifyTopArtists({ market, maxArtists: 16 }),
+      searchSpotifyAlbumsByQueries({ market, limitPerQuery: 10 })
     ]);
 
     const releaseAlbums = Array.isArray(newReleasesJson?.albums?.items) ? newReleasesJson.albums.items : [];
-    const seedAlbumIds = new Set();
-    const artistCounts = new Map();
-
-    releaseAlbums.forEach((album) => {
-      const id = String(album?.id || "").trim();
-      if (id) seedAlbumIds.add(id);
-    });
-
-    playlistBatches.flat().forEach((entry) => {
-      const track = entry?.track;
-      const albumId = String(track?.album?.id || "").trim();
-      if (albumId) seedAlbumIds.add(albumId);
-      const artists = Array.isArray(track?.artists) ? track.artists : [];
-      artists.forEach((artist) => {
-        const artistId = String(artist?.id || "").trim();
-        if (!artistId) return;
-        artistCounts.set(artistId, Number(artistCounts.get(artistId) || 0) + 1);
-      });
-    });
-
-    const topArtistIds = Array.from(artistCounts.entries())
-      .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))
-      .slice(0, 14)
-      .map(([artistId]) => String(artistId || "").trim())
+    const releaseRows = releaseAlbums
+      .map((album) => normalizeAlbumRow(album))
+      .filter((album) => !!album.id);
+    const topArtistIds = (Array.isArray(topArtists) ? topArtists : [])
+      .map((artist) => String(artist?.id || "").trim())
       .filter(Boolean);
-
-    const artistAlbumBatches = await Promise.all(topArtistIds.map(async (artistId) => {
-      const json = await spotifyRequest(`/artists/${encodeURIComponent(artistId)}/albums`, {
-        include_groups: "album,single,compilation",
-        market,
-        limit: 18
-      });
-      const items = Array.isArray(json?.items) ? json.items : [];
-      return items;
-    }));
-
-    artistAlbumBatches.flat().forEach((album) => {
-      const id = String(album?.id || "").trim();
-      if (id) seedAlbumIds.add(id);
+    const artistPopularityById = new Map(
+      (Array.isArray(topArtists) ? topArtists : []).map((artist) => [
+        String(artist?.id || "").trim(),
+        Number(artist?.popularity || 0)
+      ])
+    );
+    const artistAlbumRows = await fetchAlbumsFromArtists(topArtistIds, { market, limitPerArtist: 12 });
+    const boostedArtistRows = artistAlbumRows.map((album) => {
+      const artistId = String(album?.artist_id || album?.artist_ids?.[0] || "").trim();
+      const fallbackPopularity = Number(artistPopularityById.get(artistId) || 0);
+      if (!fallbackPopularity || Number(album?.popularity || 0) >= fallbackPopularity) return album;
+      return { ...album, popularity: fallbackPopularity };
     });
 
-    const seedIds = Array.from(seedAlbumIds).slice(0, 260);
-    const detailedAlbums = await fetchSpotifyAlbumsByIds(seedIds, { market });
-    const filtered = filterAlbumsByType(detailedAlbums, albumTypes)
+    const seededAlbums = dedupeAlbums([
+      ...releaseRows,
+      ...boostedArtistRows,
+      ...(Array.isArray(searchedAlbums) ? searchedAlbums : [])
+    ]);
+
+    const filtered = filterAlbumsByType(seededAlbums, albumTypes)
       .filter((row) => !!String(row?.image || "").trim())
       .filter((row) => !isLowSignalAlbum(row));
 
-    const ranked = dedupeAlbums(filtered)
+    let ranked = dedupeAlbums(filtered)
       .map((row) => ({ ...row, trend_score: computeAlbumTrendScore(row) }))
       .sort((a, b) => (
         Number(b?.trend_score || 0) - Number(a?.trend_score || 0) ||
@@ -852,6 +928,21 @@ router.get("/popular-albums", async (req, res) => {
         Number(Date.parse(String(b?.release_date || "")) || 0) - Number(Date.parse(String(a?.release_date || "")) || 0)
       ))
       .slice(0, limit);
+
+    if (ranked.length < limit) {
+      const releaseFallback = dedupeAlbums(
+        filterAlbumsByType(releaseRows, albumTypes)
+          .filter((row) => !!String(row?.image || "").trim())
+          .filter((row) => !isLowSignalAlbum(row))
+      )
+        .map((row) => ({ ...row, trend_score: computeAlbumTrendScore(row) }))
+        .sort((a, b) => (
+          Number(b?.trend_score || 0) - Number(a?.trend_score || 0) ||
+          Number(Date.parse(String(b?.release_date || "")) || 0) - Number(Date.parse(String(a?.release_date || "")) || 0)
+        ))
+        .slice(0, limit);
+      ranked = dedupeAlbums([...ranked, ...releaseFallback]).slice(0, limit);
+    }
 
     writeCacheEntry(popularAlbumsCache, cacheKey, ranked, POPULAR_ALBUMS_CACHE_TTL_MS);
 
@@ -866,12 +957,11 @@ router.get("/popular-albums", async (req, res) => {
     try {
       const fallbackJson = await spotifyRequest("/browse/new-releases", { country: market, limit: Math.max(limit * 2, 30) });
       const releaseAlbums = Array.isArray(fallbackJson?.albums?.items) ? fallbackJson.albums.items : [];
-      const releaseIds = releaseAlbums
-        .map((row) => String(row?.id || "").trim())
+      const releaseRows = releaseAlbums
+        .map((row) => normalizeAlbumRow(row))
         .filter(Boolean);
-      const detailed = await fetchSpotifyAlbumsByIds(releaseIds, { market });
       const results = dedupeAlbums(
-        filterAlbumsByType(detailed, albumTypes)
+        filterAlbumsByType(releaseRows, albumTypes)
           .filter((row) => !!String(row?.image || "").trim())
           .filter((row) => !isLowSignalAlbum(row))
       )

@@ -5077,7 +5077,7 @@
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
         { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 4200 },
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 8500 },
-        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 3800 }
+        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 }
       ];
     }
 
@@ -6624,40 +6624,59 @@
         const mixed = mixMusicItems(mappedTracks, mappedAlbums, takeCount);
         return dedupeHomeItemsByMediaAndId(mixed).slice(0, takeCount);
       };
+      const hasAlbumItems = (items = []) => (Array.isArray(items) ? items : [])
+        .some((item) => item?.isMusicAlbum === true || String(item?.itemId || '').startsWith('album:'));
 
       const top50Limit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 4, 64);
       const newReleaseLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 3, 36);
-      const [top50Res, topAlbumsRes] = await Promise.allSettled([
+      const musicFetchOptions = { signal, timeoutMs: 3600, retries: 1 };
+      const [top50Res, topAlbumsRes, topReleaseAlbumsRes] = await Promise.allSettled([
         fetchJsonWithPerfCache(
           `/api/music/top-50?limit=${top50Limit}&market=${market}`,
-          { signal, cacheKey: `music:top-50:${top50Limit}:${market}` }
+          { ...musicFetchOptions, cacheKey: `music:top-50:${top50Limit}:${market}` }
         ),
         fetchJsonWithPerfCache(
           `/api/music/popular-albums?limit=${newReleaseLimit}&market=${market}&album_types=album`,
-          { signal, cacheKey: `music:popular-albums:${newReleaseLimit}:${market}:album` }
+          { ...musicFetchOptions, cacheKey: `music:popular-albums:${newReleaseLimit}:${market}:album` }
+        ),
+        fetchJsonWithPerfCache(
+          `/api/music/new-releases?limit=${newReleaseLimit}&market=${market}&album_types=album`,
+          { ...musicFetchOptions, cacheKey: `music:new-releases:${newReleaseLimit}:${market}:album` }
         )
       ]);
       const top50Rows = top50Res.status === 'fulfilled' && Array.isArray(top50Res.value?.results) ? top50Res.value.results : [];
-      const topAlbumRows = topAlbumsRes.status === 'fulfilled' && Array.isArray(topAlbumsRes.value?.results) ? topAlbumsRes.value.results : [];
+      const topAlbumRows = [
+        ...(topAlbumsRes.status === 'fulfilled' && Array.isArray(topAlbumsRes.value?.results) ? topAlbumsRes.value.results : []),
+        ...(topReleaseAlbumsRes.status === 'fulfilled' && Array.isArray(topReleaseAlbumsRes.value?.results) ? topReleaseAlbumsRes.value.results : [])
+      ];
       const topBatch = filterHomeSafeItems(buildMixedMusicItems(top50Rows, topAlbumRows, HOME_CHANNEL_TARGET_ITEMS));
-      if (topBatch.length) return topBatch;
+      if (topBatch.length && hasAlbumItems(topBatch)) return topBatch;
 
-      const [popularRes, popularAlbumsRes] = await Promise.allSettled([
+      const [popularRes, popularAlbumsRes, popularReleaseAlbumsRes] = await Promise.allSettled([
         fetchJsonWithPerfCache(
           `/api/music/popular?limit=50&market=${market}`,
-          { signal, cacheKey: `music:popular:50:${market}` }
+          { ...musicFetchOptions, cacheKey: `music:popular:50:${market}` }
         ),
         fetchJsonWithPerfCache(
           `/api/music/popular-albums?limit=36&market=${market}&album_types=album`,
-          { signal, cacheKey: `music:popular-albums:36:${market}:album` }
+          { ...musicFetchOptions, cacheKey: `music:popular-albums:36:${market}:album` }
+        ),
+        fetchJsonWithPerfCache(
+          `/api/music/new-releases?limit=24&market=${market}&album_types=album`,
+          { ...musicFetchOptions, cacheKey: `music:new-releases:24:${market}:album` }
         )
       ]);
       const popularRows = popularRes.status === 'fulfilled' && Array.isArray(popularRes.value?.results) ? popularRes.value.results : [];
-      const popularAlbumRows = popularAlbumsRes.status === 'fulfilled' && Array.isArray(popularAlbumsRes.value?.results)
-        ? popularAlbumsRes.value.results
-        : [];
+      const popularAlbumRows = [
+        ...(popularAlbumsRes.status === 'fulfilled' && Array.isArray(popularAlbumsRes.value?.results)
+          ? popularAlbumsRes.value.results
+          : []),
+        ...(popularReleaseAlbumsRes.status === 'fulfilled' && Array.isArray(popularReleaseAlbumsRes.value?.results)
+          ? popularReleaseAlbumsRes.value.results
+          : [])
+      ];
       const popularBatch = filterHomeSafeItems(buildMixedMusicItems(popularRows, popularAlbumRows, HOME_CHANNEL_TARGET_ITEMS));
-      if (popularBatch.length) return popularBatch;
+      if (popularBatch.length && hasAlbumItems(popularBatch)) return popularBatch;
 
       const fallbackTrackItems = FALLBACK_MUSIC_TRACKS.map((track, idx) => ({
         mediaType: 'music',
