@@ -434,10 +434,8 @@ async function getIgdbAccessToken(forceRefresh = false) {
     err.code = "IGDB_DISABLED";
     throw err;
   }
-  if (staticAccessToken) {
-    return staticAccessToken;
-  }
   if (!clientSecret) {
+    if (staticAccessToken) return staticAccessToken;
     const err = new Error("Missing Twitch client secret/token. Set TWITCH_CLIENT_SECRET, TWITCH_API_SECRET, or TWITCH_ACCESS_TOKEN.");
     err.code = "IGDB_DISABLED";
     throw err;
@@ -463,6 +461,7 @@ async function getIgdbAccessToken(forceRefresh = false) {
     });
     if (!response.ok) {
       const body = await response.text();
+      if (staticAccessToken) return staticAccessToken;
       const err = new Error(`Twitch token error ${response.status}: ${body}`);
       err.code = "TWITCH_AUTH_ERROR";
       throw err;
@@ -472,6 +471,7 @@ async function getIgdbAccessToken(forceRefresh = false) {
     const accessToken = String(json?.access_token || "").trim();
     const expiresIn = Number(json?.expires_in || 0);
     if (!accessToken || !Number.isFinite(expiresIn) || expiresIn <= 0) {
+      if (staticAccessToken) return staticAccessToken;
       const err = new Error("Invalid Twitch token response");
       err.code = "TWITCH_AUTH_INVALID";
       throw err;
