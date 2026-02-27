@@ -310,6 +310,14 @@
     const pendingListOps = new Set();
 
     function qs(id) { return document.getElementById(id); }
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
     function msToMinSec(ms) {
       const total = Math.max(0, Number(ms || 0));
       const sec = Math.floor(total / 1000);

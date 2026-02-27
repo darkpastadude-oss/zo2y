@@ -333,7 +333,7 @@
 
   function mountSupportFab() {
     const path = String(window.location.pathname || "").toLowerCase();
-    if (/(^|\/)(support|support-admin|privacy|terms)\.html$/.test(path)) return;
+    if (/(^|\/)(support|support-admin|privacy|terms|music|song)\.html$/.test(path)) return;
     if (document.querySelector("[data-support-fab='1']")) return;
     const fab = document.createElement("a");
     fab.href = "support.html";
