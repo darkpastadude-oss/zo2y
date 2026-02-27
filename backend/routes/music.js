@@ -32,6 +32,8 @@ const POPULAR_ALBUM_SEARCH_QUERIES = [
 ];
 const ALBUM_DETAILS_CACHE_TTL_MS = 1000 * 60 * 30;
 const POPULAR_ALBUMS_CACHE_TTL_MS = 1000 * 60 * 8;
+const TRACK_ALBUM_CONTEXT_CACHE_TTL_MS = 1000 * 60 * 30;
+const TRACK_ALBUM_CONTEXT_CACHE_MISS = "__miss__";
 const CURATION_KEYWORDS_BLOCKLIST = [
   "workout",
   "karaoke",
@@ -49,6 +51,7 @@ let spotifyTokenCache = {
 };
 const albumDetailsCache = new Map();
 const popularAlbumsCache = new Map();
+const trackAlbumContextCache = new Map();
 
 function clampInt(value, min, max, fallback) {
   const n = Number(value);
@@ -375,6 +378,179 @@ function writeCacheEntry(cache, key, value, ttlMs) {
   cache.set(key, {
     value,
     expiresAt: Date.now() + Math.max(1, Number(ttlMs) || 1)
+  });
+}
+
+function normalizeMusicText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/['’`]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function getPrimaryArtistName(row) {
+  if (Array.isArray(row?.artists) && row.artists.length) {
+    return String(row.artists[0] || "").trim();
+  }
+  return String(row?.artist_name || "").trim();
+}
+
+function isLikelySingleTrackContext(track) {
+  const albumNameRaw = String(track?.album?.name || track?.album_name || "").trim();
+  const albumType = String(track?.album?.album_type || track?.album_type || "").trim().toLowerCase();
+  const totalTracks = Number(track?.album?.total_tracks || track?.total_tracks || 0);
+  const trackName = normalizeMusicText(track?.name || "");
+  const albumName = normalizeMusicText(albumNameRaw);
+
+  if (!albumNameRaw) return true;
+  if (albumType === "single") return true;
+  if (/\bsingle\b/i.test(albumNameRaw)) return true;
+  if (totalTracks > 0 && totalTracks <= 1) return true;
+  if (trackName && albumName && trackName === albumName) return true;
+  return false;
+}
+
+function computeTrackAlbumContextScore(album, normalizedTrackName = "") {
+  const albumType = String(album?.album_type || "").trim().toLowerCase();
+  const totalTracks = Number(album?.total_tracks || 0);
+  const albumNameRaw = String(album?.name || "").trim();
+  const albumName = normalizeMusicText(albumNameRaw);
+  const releaseMs = Date.parse(String(album?.release_date || "").trim());
+  const recencyBoost = Number.isFinite(releaseMs)
+    ? Math.max(0, 8 - ((Date.now() - releaseMs) / (1000 * 60 * 60 * 24 * 365 * 6)) * 8)
+    : 0;
+
+  let score = 0;
+  if (albumType === "album") score += 110;
+  else if (albumType && albumType !== "single") score += 40;
+  if (totalTracks > 1) score += Math.min(32, totalTracks);
+  if (albumName && normalizedTrackName && albumName !== normalizedTrackName) score += 18;
+  if (!/\bsingle\b/i.test(albumNameRaw)) score += 10;
+  score += recencyBoost;
+  return Number(score.toFixed(4));
+}
+
+async function resolveCanonicalAlbumForTrack(track, { market = "US" } = {}) {
+  const trackId = String(track?.id || "").trim();
+  if (!trackId) return null;
+  const cacheKey = `${market}:${trackId}`;
+  const cached = readCacheEntry(trackAlbumContextCache, cacheKey);
+  if (cached !== null) {
+    return cached === TRACK_ALBUM_CONTEXT_CACHE_MISS ? null : cached;
+  }
+
+  const trackName = String(track?.name || "").trim();
+  const primaryArtist = getPrimaryArtistName(track);
+  if (!trackName || !primaryArtist) {
+    writeCacheEntry(trackAlbumContextCache, cacheKey, TRACK_ALBUM_CONTEXT_CACHE_MISS, TRACK_ALBUM_CONTEXT_CACHE_TTL_MS);
+    return null;
+  }
+
+  const normalizedTrackName = normalizeMusicText(trackName);
+  const normalizedArtist = normalizeMusicText(primaryArtist);
+  const currentScore = computeTrackAlbumContextScore(track?.album || {}, normalizedTrackName);
+
+  try {
+    const query = `track:${trackName} artist:${primaryArtist}`;
+    const json = await spotifyRequest("/search", {
+      q: query,
+      type: "track",
+      market,
+      limit: 20,
+      offset: 0
+    });
+
+    const items = Array.isArray(json?.tracks?.items) ? json.tracks.items : [];
+    const candidates = items
+      .map((row) => normalizeTrackRow(row))
+      .filter((row) => {
+        const candidateName = normalizeMusicText(row?.name || "");
+        if (!candidateName || candidateName !== normalizedTrackName) return false;
+        const candidateArtist = normalizeMusicText(getPrimaryArtistName(row));
+        if (normalizedArtist && candidateArtist && candidateArtist !== normalizedArtist) return false;
+        return true;
+      });
+
+    const albumIds = Array.from(new Set(
+      candidates
+        .map((row) => String(row?.album?.id || "").trim())
+        .filter(Boolean)
+    ));
+    if (!albumIds.length) {
+      writeCacheEntry(trackAlbumContextCache, cacheKey, TRACK_ALBUM_CONTEXT_CACHE_MISS, TRACK_ALBUM_CONTEXT_CACHE_TTL_MS);
+      return null;
+    }
+
+    const detailedAlbums = await fetchSpotifyAlbumsByIds(albumIds, { market });
+    const ranked = (Array.isArray(detailedAlbums) ? detailedAlbums : [])
+      .map((album) => ({
+        album,
+        score: computeTrackAlbumContextScore(album, normalizedTrackName)
+      }))
+      .sort((a, b) => Number(b?.score || 0) - Number(a?.score || 0));
+
+    const best = ranked[0];
+    if (!best || Number(best?.score || 0) <= Number(currentScore || 0)) {
+      writeCacheEntry(trackAlbumContextCache, cacheKey, TRACK_ALBUM_CONTEXT_CACHE_MISS, TRACK_ALBUM_CONTEXT_CACHE_TTL_MS);
+      return null;
+    }
+
+    writeCacheEntry(trackAlbumContextCache, cacheKey, best.album, TRACK_ALBUM_CONTEXT_CACHE_TTL_MS);
+    return best.album;
+  } catch (_err) {
+    writeCacheEntry(trackAlbumContextCache, cacheKey, TRACK_ALBUM_CONTEXT_CACHE_MISS, TRACK_ALBUM_CONTEXT_CACHE_TTL_MS);
+    return null;
+  }
+}
+
+async function hydrateTracksWithAlbumContext(rows = [], { market = "US", maxLookups = 16 } = {}) {
+  const tracks = Array.isArray(rows) ? rows : [];
+  if (!tracks.length || !hasSpotifyCredentials()) return tracks;
+
+  const lookupBudget = clampInt(maxLookups, 1, 40, 16);
+  const queue = tracks
+    .filter((track) => isLikelySingleTrackContext(track))
+    .slice(0, lookupBudget);
+  if (!queue.length) return tracks;
+
+  const albumByTrackId = new Map();
+  for (const track of queue) {
+    const trackId = String(track?.id || "").trim();
+    if (!trackId || albumByTrackId.has(trackId)) continue;
+    const album = await resolveCanonicalAlbumForTrack(track, { market });
+    if (album?.id) albumByTrackId.set(trackId, album);
+  }
+  if (!albumByTrackId.size) return tracks;
+
+  return tracks.map((track) => {
+    const trackId = String(track?.id || "").trim();
+    const replacement = albumByTrackId.get(trackId);
+    if (!replacement) return track;
+
+    const currentAlbum = track?.album || {};
+    const nextImages = Array.isArray(replacement?.images) && replacement.images.length
+      ? replacement.images
+      : (Array.isArray(currentAlbum?.images) ? currentAlbum.images : []);
+    const nextImage = String(
+      replacement?.image ||
+      nextImages?.[0]?.url ||
+      track?.image ||
+      ""
+    ).trim();
+
+    return {
+      ...track,
+      album: {
+        id: String(replacement?.id || currentAlbum?.id || "").trim(),
+        name: String(replacement?.name || currentAlbum?.name || "").trim(),
+        album_type: String(replacement?.album_type || currentAlbum?.album_type || "").trim(),
+        release_date: String(replacement?.release_date || currentAlbum?.release_date || "").trim(),
+        total_tracks: Number(replacement?.total_tracks || currentAlbum?.total_tracks || 0),
+        images: nextImages
+      },
+      image: nextImage || String(track?.image || "").trim()
+    };
   });
 }
 
@@ -793,14 +969,18 @@ router.get("/top-50", async (req, res) => {
       .filter((row) => !!row.image && !isLowSignalTrack(row))
       .slice(0, limit);
     const hydrated = await hydrateTracksWithAlbumDetails(merged, { market });
+    const albumAware = await hydrateTracksWithAlbumContext(hydrated, {
+      market,
+      maxLookups: Math.min(24, limit)
+    });
 
     return res.json({
-      count: hydrated.length,
+      count: albumAware.length,
       limit,
       offset: 0,
       source: "spotify-top-50-playlists",
       playlist_ids: [...TOP_50_PLAYLIST_IDS],
-      results: hydrated
+      results: albumAware
     });
   } catch (error) {
     try {
@@ -925,13 +1105,17 @@ router.get("/popular", async (req, res) => {
       .sort((a, b) => Number(b.popularity || 0) - Number(a.popularity || 0))
       .slice(0, limit);
     const hydrated = await hydrateTracksWithAlbumDetails(ranked, { market });
+    const albumAware = await hydrateTracksWithAlbumContext(hydrated, {
+      market,
+      maxLookups: Math.min(24, limit)
+    });
 
     return res.json({
-      count: hydrated.length,
+      count: albumAware.length,
       limit,
       offset: 0,
       source: "spotify-playlists",
-      results: hydrated
+      results: albumAware
     });
   } catch (error) {
     try {
@@ -1238,6 +1422,9 @@ router.get("/search", async (req, res) => {
     const tracks = includeTracks
       ? await hydrateTracksWithAlbumDetails(seedTracks, { market })
       : [];
+    const albumAwareTracks = includeTracks
+      ? await hydrateTracksWithAlbumContext(tracks, { market, maxLookups: Math.min(18, limit) })
+      : [];
     const seedAlbums = albumRows.map(normalizeAlbumRow).filter((row) => !!row.id);
     const detailedAlbums = includeAlbums
       ? await fetchSpotifyAlbumsByIds(seedAlbums.map((row) => row.id), { market })
@@ -1248,9 +1435,9 @@ router.get("/search", async (req, res) => {
       ...(detailedMap.get(seed.id) || {})
     })), albumTypes);
     const primaryResults = includeTracks && includeAlbums
-      ? mergeMixedResults(tracks, albums, limit)
-      : (includeTracks ? tracks : albums);
-    const trackCount = Number(json?.tracks?.total || tracks.length || 0);
+      ? mergeMixedResults(albumAwareTracks, albums, limit)
+      : (includeTracks ? albumAwareTracks : albums);
+    const trackCount = Number(json?.tracks?.total || albumAwareTracks.length || 0);
     const albumCount = Number(albums.length || json?.albums?.total || 0);
     return res.json({
       count: includeTracks && includeAlbums ? (trackCount + albumCount) : (includeTracks ? trackCount : albumCount),
@@ -1262,7 +1449,7 @@ router.get("/search", async (req, res) => {
       type: spotifyType,
       album_types: albumTypesKey,
       results: primaryResults,
-      tracks,
+      tracks: albumAwareTracks,
       albums
     });
   } catch (error) {
@@ -1414,7 +1601,8 @@ router.get("/tracks/:id", async (req, res) => {
     const json = await spotifyRequest(`/tracks/${encodeURIComponent(id)}`, { market });
     const normalized = normalizeTrackRow(json);
     const hydratedRows = await hydrateTracksWithAlbumDetails([normalized], { market });
-    return res.json(hydratedRows?.[0] || normalized);
+    const albumAwareRows = await hydrateTracksWithAlbumContext(hydratedRows, { market, maxLookups: 1 });
+    return res.json(albumAwareRows?.[0] || hydratedRows?.[0] || normalized);
   } catch (error) {
     const message = String(error?.message || error);
     if (message.includes("(404)")) {

@@ -499,11 +499,8 @@
       const albumType = String(item?.album_type || '').trim().toLowerCase();
       const totalTracks = Number(item?.total_tracks || 0);
       const sameName = !!title && !!albumName && title === albumName.toLowerCase();
-      if (albumType === 'single') {
-        if (totalTracks > 1 && !sameName) return 'Album';
-        return 'Single';
-      }
-      if (sameName && totalTracks > 0 && totalTracks <= 1) return 'Single';
+      if (albumType === 'single' && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
+      if (/\bsingle\b/i.test(albumName) && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
       return 'Album';
     }
 

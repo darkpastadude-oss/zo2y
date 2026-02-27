@@ -3011,11 +3011,8 @@
           const albumType = String(row?.album?.album_type || row?.album_type || '').trim().toLowerCase();
           const totalTracks = Number(row?.album?.total_tracks || row?.total_tracks || 0);
           const sameName = !!title && !!albumName && title === albumName.toLowerCase();
-          if (albumType === 'single') {
-            if (totalTracks > 1 && !sameName) return 'Album';
-            return 'Single';
-          }
-          if (sameName && totalTracks > 0 && totalTracks <= 1) return 'Single';
+          if (albumType === 'single' && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
+          if (/\bsingle\b/i.test(albumName) && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
           return 'Album';
         };
         const tracks = (Array.isArray(trackRows) ? trackRows : []).slice(0, Math.max(takeCount * 2, 8)).map((track, idx) => {
@@ -6513,11 +6510,8 @@
         const albumType = String(track?.album?.album_type || track?.album_type || '').trim().toLowerCase();
         const totalTracks = Number(track?.album?.total_tracks || track?.total_tracks || 0);
         const sameName = !!title && !!albumName && title === albumName.toLowerCase();
-        if (albumType === 'single') {
-          if (totalTracks > 1 && !sameName) return 'Album';
-          return 'Single';
-        }
-        if (sameName && totalTracks > 0 && totalTracks <= 1) return 'Single';
+        if (albumType === 'single' && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
+        if (/\bsingle\b/i.test(albumName) && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
         return 'Album';
       };
       const mapTracksToHomeItems = (tracks = []) => tracks.map((track) => {
@@ -6729,7 +6723,7 @@
         itemId: String(track.id || `fallback-track-${idx + 1}`),
         title: track.title,
         subtitle: track.artist,
-        extra: `Song | ${String(track.title || '').trim().toLowerCase() === String(track.album || '').trim().toLowerCase() ? 'Single' : 'Album'}: ${String(track.album || 'Unknown Album')}`,
+        extra: `Song | Album: ${String(track.album || 'Unknown Album')}`,
         image: HOME_LOCAL_FALLBACK_IMAGE,
         backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
         spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
