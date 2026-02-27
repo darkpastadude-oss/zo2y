@@ -1,4 +1,9 @@
 import express from "express";
+import {
+  WIKIPEDIA_GAME_GENRES,
+  fetchWikipediaGameDetailsById,
+  fetchWikipediaGamesList
+} from "../../api/_wiki-games-provider.js";
 
 const router = express.Router();
 
@@ -1697,30 +1702,23 @@ async function fetchGameBrainGamesList({ page = 1, pageSize = 20, search = "", i
 router.get("/", (_req, res) => {
   res.json({
     ok: true,
-    service: "gamebrain-proxy",
-    configured: hasGameBrainApiKey(),
-    auth_mode: "gamebrain",
+    service: "wikipedia-proxy",
+    configured: true,
+    auth_mode: "none",
     providers: {
       igdb: false,
       rawg: false,
-      gamebrain: hasGameBrainApiKey()
+      wikipedia: true
     },
     routes: ["/genres", "/games", "/games/:id"]
   });
 });
 
 router.get("/genres", async (_req, res) => {
-  if (!hasGameBrainApiKey()) {
-    return res.status(503).json({
-      count: 0,
-      source: "unavailable",
-      results: []
-    });
-  }
   return res.json({
-    count: 0,
-    source: "gamebrain",
-    results: []
+    count: WIKIPEDIA_GAME_GENRES.length,
+    source: "wikipedia",
+    results: WIKIPEDIA_GAME_GENRES
   });
 });
 
@@ -1728,30 +1726,22 @@ router.get("/games", async (req, res) => {
   try {
     const page = clampInt(req.query.page, 1, 100000, 1);
     const pageSize = clampInt(req.query.page_size, 1, 50, 20);
-    const search = String(req.query.search || "").trim().slice(0, 100);
+    const search = String(req.query.search || "").trim().slice(0, 120);
     const id = String(req.query.id || "").trim();
     const ids = String(req.query.ids || "").trim();
+    const ordering = String(req.query.ordering || "-added").trim();
+    const dates = String(req.query.dates || "").trim();
+    const genres = String(req.query.genres || "").trim();
 
-    if (!hasGameBrainApiKey()) {
-      return res.status(503).json({
-        count: 0,
-        page,
-        page_size: pageSize,
-        results: [],
-        sources: {
-          igdb: false,
-          rawg: false,
-          gamebrain: false
-        }
-      });
-    }
-
-    const payload = await fetchGameBrainGamesList({
+    const payload = await fetchWikipediaGamesList({
       page,
-      pageSize: pageSize,
+      pageSize,
       search,
       id,
-      ids
+      ids,
+      ordering,
+      dates,
+      genres
     });
     const results = Array.isArray(payload?.results) ? payload.results : [];
 
@@ -1763,11 +1753,11 @@ router.get("/games", async (req, res) => {
       sources: {
         igdb: false,
         rawg: false,
-        gamebrain: true
+        wikipedia: true
       }
     });
   } catch (error) {
-    console.warn("GameBrain list provider failed:", String(error?.message || error));
+    console.warn("Wikipedia list provider failed:", String(error?.message || error));
     const page = clampInt(req.query.page, 1, 100000, 1);
     const pageSize = clampInt(req.query.page_size, 1, 50, 20);
     res.json({
@@ -1778,7 +1768,7 @@ router.get("/games", async (req, res) => {
       sources: {
         igdb: false,
         rawg: false,
-        gamebrain: hasGameBrainApiKey()
+        wikipedia: true
       }
     });
   }
@@ -1791,17 +1781,7 @@ router.get("/games/:id", async (req, res) => {
       return res.status(400).json({ message: "Invalid game id." });
     }
 
-    if (!hasGameBrainApiKey()) {
-      return res.status(503).json({ message: "GameBrain is not configured." });
-    }
-
-    const details = await fetchGameBrainGameInfo(requestedId);
-    if (!details) return res.status(404).json({ message: "Game not found." });
-    const playerId = Number(req.query.player_id || 0);
-    const scorePayload = Number.isFinite(playerId) && playerId > 0
-      ? await fetchGameBrainPlayerScores(requestedId, playerId).catch(() => null)
-      : null;
-    const mapped = mapGameBrainDetailRow(details, scorePayload);
+    const mapped = await fetchWikipediaGameDetailsById(requestedId);
     if (!mapped) return res.status(404).json({ message: "Game not found." });
     return res.json(mapped);
   } catch (error) {

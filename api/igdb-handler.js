@@ -1,5 +1,10 @@
 import express from "express";
 import { applyApiGuardrails } from "./_guardrails.js";
+import {
+  WIKIPEDIA_GAME_GENRES,
+  fetchWikipediaGameDetailsById,
+  fetchWikipediaGamesList
+} from "./_wiki-games-provider.js";
 
 const app = express();
 applyApiGuardrails(app, { keyPrefix: "api-igdb", max: 240 });
@@ -1252,60 +1257,46 @@ async function fetchGameBrainGamesList({ page = 1, pageSize = 20, search = "", i
 app.get("/api/igdb", (_req, res) => {
   return res.json({
     ok: true,
-    service: "gamebrain-proxy",
-    configured: hasGameBrainApiKey(),
-    auth_mode: "gamebrain",
+    service: "wikipedia-proxy",
+    configured: true,
+    auth_mode: "none",
     providers: {
       igdb: false,
       rawg: false,
-      gamebrain: hasGameBrainApiKey()
+      wikipedia: true
     },
     routes: ["/genres", "/games", "/games/:id"]
   });
 });
 
 app.get("/api/igdb/genres", async (_req, res) => {
-  if (!hasGameBrainApiKey()) {
-    return res.status(503).json({
-      count: 0,
-      source: "unavailable",
-      results: []
-    });
-  }
   return res.json({
-    count: 0,
-    source: "gamebrain",
-    results: []
+    count: WIKIPEDIA_GAME_GENRES.length,
+    source: "wikipedia",
+    results: WIKIPEDIA_GAME_GENRES
   });
 });
 
 app.get("/api/igdb/games", async (req, res) => {
   const page = clampInt(req.query.page, 1, 100000, 1);
   const pageSize = clampInt(req.query.page_size, 1, 50, 20);
-  const search = String(req.query.search || "").trim().slice(0, 100);
+  const search = String(req.query.search || "").trim().slice(0, 120);
   const id = String(req.query.id || "").trim();
   const ids = String(req.query.ids || "").trim();
+  const ordering = String(req.query.ordering || "-added").trim();
+  const dates = String(req.query.dates || "").trim();
+  const genres = String(req.query.genres || "").trim();
 
   try {
-    if (!hasGameBrainApiKey()) {
-      return res.status(503).json({
-        count: 0,
-        page,
-        page_size: pageSize,
-        results: [],
-        sources: {
-          igdb: false,
-          rawg: false,
-          gamebrain: false
-        }
-      });
-    }
-    const payload = await fetchGameBrainGamesList({
+    const payload = await fetchWikipediaGamesList({
       page,
-      pageSize: pageSize,
+      pageSize,
       search,
       id,
-      ids
+      ids,
+      ordering,
+      dates,
+      genres
     });
     const results = Array.isArray(payload?.results) ? payload.results : [];
 
@@ -1317,11 +1308,11 @@ app.get("/api/igdb/games", async (req, res) => {
       sources: {
         igdb: false,
         rawg: false,
-        gamebrain: true
+        wikipedia: true
       }
     });
   } catch (error) {
-    console.warn("[igdb-handler] GameBrain games failed:", String(error?.message || error));
+    console.warn("[igdb-handler] wikipedia games failed:", String(error?.message || error));
     return res.json({
       count: 0,
       page,
@@ -1330,7 +1321,7 @@ app.get("/api/igdb/games", async (req, res) => {
       sources: {
         igdb: false,
         rawg: false,
-        gamebrain: hasGameBrainApiKey()
+        wikipedia: true
       }
     });
   }
@@ -1343,18 +1334,7 @@ app.get("/api/igdb/games/:id", async (req, res) => {
   }
 
   try {
-    if (!hasGameBrainApiKey()) {
-      return res.status(503).json({ message: "GameBrain is not configured." });
-    }
-    const details = await fetchGameBrainGameInfo(requestedId);
-    if (!details) {
-      return res.status(404).json({ message: "Game not found." });
-    }
-    const playerId = Number(req.query.player_id || 0);
-    const scorePayload = Number.isFinite(playerId) && playerId > 0
-      ? await fetchGameBrainPlayerScores(requestedId, playerId).catch(() => null)
-      : null;
-    const mapped = mapGameBrainDetailRow(details, scorePayload);
+    const mapped = await fetchWikipediaGameDetailsById(requestedId);
     if (!mapped) {
       return res.status(404).json({ message: "Game not found." });
     }
@@ -1383,7 +1363,7 @@ app.use((error, req, res, _next) => {
     sources: {
       igdb: false,
       rawg: false,
-      gamebrain: hasGameBrainApiKey()
+      wikipedia: true
     }
   });
 });
@@ -1419,7 +1399,7 @@ export default function handler(req, res) {
       sources: {
         igdb: false,
         rawg: false,
-        gamebrain: hasGameBrainApiKey()
+        wikipedia: true
       }
     });
   }
