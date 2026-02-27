@@ -331,29 +331,74 @@
     }
   }
 
-  function mountSupportFab() {
-    const path = String(window.location.pathname || "").toLowerCase();
-    if (/(^|\/)(support|support-admin|privacy|terms|music|song)\.html$/.test(path)) return;
-    if (document.querySelector("[data-support-fab='1']")) return;
-    const fab = document.createElement("a");
-    fab.href = "support.html";
-    fab.setAttribute("data-support-fab", "1");
-    fab.setAttribute("data-track", "support_fab_click");
-    fab.setAttribute("aria-label", "Open support");
-    fab.textContent = "Support";
-    fab.style.position = "fixed";
-    fab.style.right = "16px";
-    fab.style.bottom = "16px";
-    fab.style.zIndex = "9999";
-    fab.style.textDecoration = "none";
-    fab.style.background = "#f59e0b";
-    fab.style.color = "#0b1633";
-    fab.style.padding = "10px 14px";
-    fab.style.borderRadius = "999px";
-    fab.style.fontWeight = "700";
-    fab.style.fontSize = "13px";
-    fab.style.boxShadow = "0 8px 22px rgba(0,0,0,0.3)";
-    document.body.appendChild(fab);
+  function ensureGlobalLegalFooterStyles() {
+    if (document.getElementById("zo2yGlobalLegalFooterStyle")) return;
+    const style = document.createElement("style");
+    style.id = "zo2yGlobalLegalFooterStyle";
+    style.textContent = `
+      .legal-strip.global-legal-footer {
+        width: min(1240px, calc(100% - 28px));
+        margin: 14px auto 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        color: #8ca3c7;
+        font-size: 12px;
+        flex-wrap: wrap;
+      }
+      .legal-strip.global-legal-footer a {
+        color: #f59e0b;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .legal-strip.global-legal-footer .legal-sep {
+        color: rgba(255,255,255,0.28);
+      }
+      @media (max-width: 760px) {
+        .legal-strip.global-legal-footer {
+          width: calc(100% - 18px);
+          margin: 12px auto 96px;
+          gap: 12px;
+          font-size: 12px;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function rewriteSupportLinksToEmail() {
+    const links = Array.from(document.querySelectorAll("a[href]"));
+    links.forEach((link) => {
+      const href = String(link.getAttribute("href") || "").trim();
+      if (!/(^|\/)support\.html(\?|#|$)/i.test(href)) return;
+      link.setAttribute("href", "mailto:zo2hyq@gmail.com?subject=Zo2y%20Support");
+      link.setAttribute("target", "_blank");
+      link.setAttribute("rel", "noopener");
+      if (String(link.textContent || "").trim().toLowerCase() === "support") {
+        link.textContent = "Contact";
+      }
+    });
+  }
+
+  function mountGlobalLegalFooter() {
+    rewriteSupportLinksToEmail();
+    const existing = document.querySelector(".legal-strip");
+    if (existing) return;
+    const body = document.body;
+    if (!body || document.querySelector("[data-global-legal-footer='1']")) return;
+    ensureGlobalLegalFooterStyles();
+    const footer = document.createElement("div");
+    footer.className = "legal-strip global-legal-footer";
+    footer.setAttribute("data-global-legal-footer", "1");
+    footer.innerHTML = `
+      <a href="privacy.html">Privacy</a>
+      <span class="legal-sep">|</span>
+      <a href="terms.html">Terms</a>
+      <span class="legal-sep">|</span>
+      <a href="mailto:zo2hyq@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
+    `;
+    body.appendChild(footer);
   }
 
   function normalizeDedupeText(value) {
@@ -541,7 +586,7 @@
     setupWebVitals();
     setupFunnelTracking();
     renderConsentBanner();
-    mountSupportFab();
+    mountGlobalLegalFooter();
     setupDuplicateCardCleanup();
 
     window.ZO2Y_ANALYTICS = {
