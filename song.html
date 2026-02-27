@@ -163,6 +163,46 @@
     }
     .status { margin-top: 10px; color: var(--muted); font-size: 13px; }
     .error { color: #fecaca; }
+    .album-tracks {
+      margin-top: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      padding: 10px;
+      display: none;
+    }
+    .album-tracks h3 { font-size: 14px; color: #d9e7ff; margin-bottom: 8px; }
+    .album-track-list { display: grid; gap: 8px; }
+    .album-track-row {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      background: rgba(255,255,255,0.02);
+      display: grid;
+      gap: 8px;
+    }
+    .album-track-main { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+    .album-track-title { font-size: 14px; font-weight: 600; color: #f6fbff; }
+    .album-track-sub { font-size: 12px; color: #bfd6f7; margin-top: 2px; }
+    .album-track-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .track-pill {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: #e5efff;
+      border-radius: 999px;
+      height: 30px;
+      padding: 0 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .track-pill:hover { border-color: var(--accent); color: var(--accent); }
+    .track-pill.active {
+      border-color: rgba(29,185,84,0.8);
+      background: rgba(29,185,84,0.16);
+      color: #d1fae5;
+    }
+    .track-pill[disabled] { opacity: 0.6; cursor: not-allowed; }
     .artist-panel {
       margin-top: 14px;
       border: 1px solid var(--border);
@@ -247,6 +287,10 @@
           <div class="artist-meta" id="artistPopularity">Artist popularity: --/100</div>
         </div>
         <div class="status" id="songStatus">Fetching track details...</div>
+        <section class="album-tracks" id="albumTracksSection">
+          <h3>Album Tracks</h3>
+          <div class="album-track-list" id="albumTracks"></div>
+        </section>
       </div>
     </section>
   </main>
@@ -257,6 +301,11 @@
     let supabaseClient = null;
     let currentUser = null;
     let track = null;
+    let albumMode = false;
+    let albumTracks = [];
+    const albumTrackStatusMap = new Map();
+    const albumTrackPendingOps = new Set();
+    const albumPreviewState = { btn: null };
     const trackListStatus = { favorites: false, listened: false, listenlist: false };
     const pendingListOps = new Set();
 
@@ -300,6 +349,12 @@
       return upgraded || toHttpsUrl(raw);
     }
 
+    function inferSourceFromId(id) {
+      const value = String(id || '').trim();
+      if (!value) return 'spotify';
+      return /^[0-9]+$/.test(value) ? 'itunes' : 'spotify';
+    }
+
     async function ensureSupabase() {
       if (supabaseClient) return supabaseClient;
       if (!window.supabase || !window.supabase.createClient) return null;
@@ -326,6 +381,17 @@
       const artistId = String(id || '').trim();
       if (!artistId) return null;
       const res = await fetch(`/api/music/artists/${encodeURIComponent(artistId)}`);
+      if (!res.ok) return null;
+      return res.json();
+    }
+
+    async function fetchAlbumDetails(id, source = '') {
+      const albumId = String(id || '').trim();
+      if (!albumId) return null;
+      const sourceParam = String(source || '').trim().toLowerCase();
+      const query = new URLSearchParams({ market: 'US', include_tracks: 'true', limit: '140' });
+      if (sourceParam) query.set('source', sourceParam);
+      const res = await fetch(`/api/music/albums/${encodeURIComponent(albumId)}?${query.toString()}`);
       if (!res.ok) return null;
       return res.json();
     }
@@ -357,6 +423,8 @@
     }
 
     function renderTrack(data) {
+      albumMode = false;
+      albumTracks = [];
       track = data;
       qs('songTitle').textContent = data.name || 'Track';
       qs('songArtist').textContent = Array.isArray(data.artists) && data.artists.length ? data.artists.join(', ') : 'Artist';
@@ -374,6 +442,12 @@
       };
       qs('songStatus').textContent = data.preview_url ? 'Ready to play preview.' : 'Preview not available for this track.';
       qs('songStatus').classList.remove('error');
+      const section = qs('albumTracksSection');
+      if (section) section.style.display = 'none';
+      const menuBtn = qs('songMenuBtn');
+      if (menuBtn) menuBtn.style.display = 'inline-flex';
+      const listenBtn = qs('listenBtn');
+      if (listenBtn) listenBtn.innerHTML = '<i class="fa-solid fa-play"></i> Listen Now';
 
       const audio = qs('previewPlayer');
       if (data.preview_url) {
@@ -507,6 +581,230 @@
       }
     }
 
+    function getAlbumTrackStatus(trackId) {
+      const id = String(trackId || '').trim();
+      const empty = { favorites: false, listened: false, listenlist: false };
+      if (!id) return { ...empty };
+      if (!albumTrackStatusMap.has(id)) albumTrackStatusMap.set(id, { ...empty });
+      return albumTrackStatusMap.get(id);
+    }
+
+    async function loadAlbumTrackListStatus() {
+      albumTrackStatusMap.clear();
+      if (!currentUser?.id || !albumTracks.length) return;
+      const ids = albumTracks
+        .map((row) => String(row?.id || '').trim())
+        .filter(Boolean);
+      if (!ids.length) return;
+      const client = await ensureSupabase();
+      if (!client) return;
+      const { data, error } = await client
+        .from('music_list_items')
+        .select('track_id, list_type')
+        .eq('user_id', currentUser.id)
+        .in('track_id', ids);
+      if (error) return;
+      (data || []).forEach((row) => {
+        const id = String(row?.track_id || '').trim();
+        const listType = String(row?.list_type || '').trim().toLowerCase();
+        if (!id) return;
+        const bucket = getAlbumTrackStatus(id);
+        if (listType in bucket) bucket[listType] = true;
+      });
+    }
+
+    async function upsertTrackRecord(client, row) {
+      if (!client || !row?.id) return false;
+      const payload = {
+        id: String(row.id),
+        name: String(row.name || '').trim(),
+        artists: Array.isArray(row?.artists) ? row.artists.join(', ') : String(row?.subtitle || '').trim(),
+        album_name: String(row?.album?.name || row?.album_name || '').trim(),
+        image_url: String(row?.image || '').trim(),
+        preview_url: String(row?.preview_url || '').trim(),
+        popularity: Number(row?.popularity || 0),
+        duration_ms: Number(row?.duration_ms || 0),
+        updated_at: new Date().toISOString()
+      };
+      const { error } = await client.from('tracks').upsert(payload, { onConflict: 'id' });
+      return !error;
+    }
+
+    async function toggleAlbumTrackList(trackId, listType, btn) {
+      const id = String(trackId || '').trim();
+      if (!id) return;
+      const type = String(listType || '').trim().toLowerCase();
+      const status = getAlbumTrackStatus(id);
+      if (!(type in status)) return;
+
+      const row = albumTracks.find((item) => String(item?.id || '').trim() === id);
+      if (!row) return;
+      const client = await ensureSupabase();
+      if (!client || !currentUser?.id) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const opKey = `${id}:${type}`;
+      if (albumTrackPendingOps.has(opKey)) return;
+      const previousSaved = !!status[type];
+      const nextSaved = !previousSaved;
+      albumTrackPendingOps.add(opKey);
+      status[type] = nextSaved;
+      if (btn) {
+        btn.classList.toggle('active', nextSaved);
+        btn.disabled = true;
+      }
+
+      try {
+        if (nextSaved) {
+          const ok = await upsertTrackRecord(client, row);
+          if (!ok) throw new Error('Track upsert failed');
+          const { error } = await client.from('music_list_items').insert({
+            user_id: currentUser.id,
+            track_id: id,
+            list_type: type
+          });
+          if (error && String(error.code || '') !== '23505') throw error;
+          qs('songStatus').textContent = 'Added to list.';
+          qs('songStatus').classList.remove('error');
+        } else {
+          const { error } = await client
+            .from('music_list_items')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('track_id', id)
+            .eq('list_type', type);
+          if (error) throw error;
+          qs('songStatus').textContent = 'Removed from list.';
+          qs('songStatus').classList.remove('error');
+        }
+      } catch (_err) {
+        status[type] = previousSaved;
+        qs('songStatus').textContent = 'Could not update list.';
+        qs('songStatus').classList.add('error');
+      } finally {
+        albumTrackPendingOps.delete(opKey);
+        renderAlbumTrackRows();
+      }
+    }
+
+    function renderAlbumTrackRows() {
+      const list = qs('albumTracks');
+      if (!list) return;
+      if (!albumTracks.length) {
+        list.innerHTML = '<div class="album-track-row"><div class="album-track-title">No tracks available.</div></div>';
+        return;
+      }
+      list.innerHTML = albumTracks.map((row, index) => {
+        const id = String(row?.id || '').trim();
+        const status = getAlbumTrackStatus(id);
+        const duration = msToMinSec(row?.duration_ms || 0);
+        const hasPreview = !!String(row?.preview_url || '').trim();
+        return `
+          <article class="album-track-row" data-track-id="${escapeHtml(id)}">
+            <div class="album-track-main">
+              <div>
+                <div class="album-track-title">${escapeHtml(`${index + 1}. ${String(row?.name || 'Track')}`)}</div>
+                <div class="album-track-sub">${escapeHtml(duration)}${row?.explicit ? ' | Explicit' : ''}</div>
+              </div>
+              <div class="album-track-actions">
+                ${hasPreview ? `<button class="track-pill album-preview-btn" data-preview="${escapeHtml(String(row.preview_url || ''))}" type="button">Preview</button>` : ''}
+                ${id ? `<a class="track-pill" href="song.html?id=${encodeURIComponent(id)}">Open</a>` : ''}
+              </div>
+            </div>
+            <div class="album-track-actions">
+              <button class="track-pill album-list-btn ${status.favorites ? 'active' : ''}" data-track-id="${escapeHtml(id)}" data-list="favorites" type="button" ${id ? '' : 'disabled'}>Favorites</button>
+              <button class="track-pill album-list-btn ${status.listened ? 'active' : ''}" data-track-id="${escapeHtml(id)}" data-list="listened" type="button" ${id ? '' : 'disabled'}>Listened</button>
+              <button class="track-pill album-list-btn ${status.listenlist ? 'active' : ''}" data-track-id="${escapeHtml(id)}" data-list="listenlist" type="button" ${id ? '' : 'disabled'}>Listenlist</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function wireAlbumTrackInteractions() {
+      const list = qs('albumTracks');
+      if (!list || list.dataset.wired === '1') return;
+      list.dataset.wired = '1';
+      list.addEventListener('click', async (event) => {
+        const previewBtn = event.target.closest('.album-preview-btn');
+        if (previewBtn) {
+          event.preventDefault();
+          const src = String(previewBtn.getAttribute('data-preview') || '').trim();
+          const audio = qs('previewPlayer');
+          if (!audio || !src) return;
+          if (audio.src === src && !audio.paused) {
+            audio.pause();
+            previewBtn.textContent = 'Preview';
+            albumPreviewState.btn = null;
+            return;
+          }
+          if (albumPreviewState.btn && albumPreviewState.btn !== previewBtn) {
+            albumPreviewState.btn.textContent = 'Preview';
+          }
+          audio.src = src;
+          audio.style.display = 'block';
+          audio.play().catch(() => {});
+          previewBtn.textContent = 'Pause';
+          albumPreviewState.btn = previewBtn;
+          return;
+        }
+
+        const listBtn = event.target.closest('.album-list-btn');
+        if (listBtn) {
+          event.preventDefault();
+          const trackId = String(listBtn.getAttribute('data-track-id') || '').trim();
+          const listType = String(listBtn.getAttribute('data-list') || '').trim().toLowerCase();
+          await toggleAlbumTrackList(trackId, listType, listBtn);
+        }
+      });
+    }
+
+    async function renderAlbumPage(payload) {
+      const album = payload?.album || {};
+      albumTracks = Array.isArray(payload?.tracks) ? payload.tracks : [];
+      albumMode = true;
+      track = null;
+
+      qs('songTitle').textContent = String(album?.name || 'Album');
+      qs('songArtist').textContent = Array.isArray(album?.artists) && album.artists.length ? album.artists.join(', ') : 'Artist';
+      qs('songAlbum').innerHTML = `<i class="fa-solid fa-compact-disc"></i> Album`;
+      qs('songDuration').innerHTML = `<i class="fa-regular fa-clock"></i> ${albumTracks.length} tracks`;
+      qs('songPopularity').innerHTML = `<i class="fa-solid fa-fire"></i> Album Release`;
+      qs('artistFollowers').innerHTML = `<i class="fa-solid fa-calendar"></i> ${String(album?.release_date || 'Release date unknown')}`;
+
+      const coverUrl = pickTrackImage({ image: album?.image, album: { images: album?.images || [] } });
+      const coverEl = qs('songCover');
+      coverEl.src = coverUrl || 'images/logo.png';
+      coverEl.onerror = () => {
+        coverEl.onerror = null;
+        coverEl.src = 'images/logo.png';
+      };
+
+      const artistPanel = qs('artistPanel');
+      if (artistPanel) artistPanel.style.display = 'none';
+      const menuBtn = qs('songMenuBtn');
+      if (menuBtn) menuBtn.style.display = 'none';
+      closeAllListMenus();
+      const listenBtn = qs('listenBtn');
+      if (listenBtn) listenBtn.innerHTML = '<i class="fa-solid fa-list"></i> Album Tracks';
+      const audio = qs('previewPlayer');
+      if (audio) {
+        audio.removeAttribute('src');
+        audio.style.display = 'none';
+      }
+
+      qs('songStatus').textContent = `Showing ${albumTracks.length} track${albumTracks.length === 1 ? '' : 's'} from this album.`;
+      qs('songStatus').classList.remove('error');
+
+      await loadAlbumTrackListStatus();
+      const section = qs('albumTracksSection');
+      if (section) section.style.display = 'block';
+      renderAlbumTrackRows();
+      wireAlbumTrackInteractions();
+    }
+
     function ensureListMenuBackdrop() {
       let backdrop = document.getElementById('songListMenuBackdrop');
       if (!backdrop) {
@@ -574,7 +872,24 @@
       await loadAuth();
       const url = new URL(window.location.href);
       const id = String(url.searchParams.get('id') || '').trim();
+      const albumId = String(url.searchParams.get('album_id') || '').trim();
       const source = String(url.searchParams.get('source') || '').trim().toLowerCase();
+
+      if (albumId) {
+        const primarySource = source || inferSourceFromId(albumId);
+        let payload = await fetchAlbumDetails(albumId, primarySource);
+        if (!payload && primarySource !== 'itunes') {
+          payload = await fetchAlbumDetails(albumId, 'itunes');
+        }
+        if (!payload?.album) {
+          qs('songStatus').textContent = 'Could not load this album.';
+          qs('songStatus').classList.add('error');
+          return;
+        }
+        await renderAlbumPage(payload);
+        return;
+      }
+
       if (!id) {
         qs('songStatus').textContent = 'Missing song id.';
         qs('songStatus').classList.add('error');
@@ -608,6 +923,10 @@
     }
 
     qs('listenBtn').addEventListener('click', () => {
+      if (albumMode) {
+        qs('albumTracksSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
       const audio = qs('previewPlayer');
       if (!audio || !track?.preview_url) return;
       if (audio.paused) audio.play().catch(() => {});

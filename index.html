@@ -3037,6 +3037,7 @@
           const image = String(album?.image || '').trim();
           const albumIdRaw = String(album?.id || '').trim();
           const albumId = albumIdRaw.startsWith('album:') ? albumIdRaw.slice(6) : albumIdRaw;
+          const source = String(album?.source || '').trim().toLowerCase() || (/^[0-9]+$/.test(albumId) ? 'itunes' : 'spotify');
           const albumType = String(album?.album_type || 'album').trim().toLowerCase();
           if (albumType && albumType !== 'album') return null;
           const releaseDate = String(album?.release_date || '').trim();
@@ -3044,7 +3045,9 @@
           const releaseDateSort = Number.isFinite(parsedRelease) ? parsedRelease : (Date.now() - ((idx + 1) * 900));
           const detailBits = [releaseDate ? `Released ${releaseDate}` : '', Number(album?.total_tracks || 0) > 0 ? `${Number(album.total_tracks)} tracks` : ''].filter(Boolean);
           const detail = detailBits.length ? `Album | ${detailBits.join(' | ')}` : 'Album';
-          const href = String(album?.external_url || '').trim() || 'music.html';
+          const href = albumId
+            ? `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(source)}`
+            : 'music.html';
           const item = {
             mediaType: 'music',
             itemId: albumId ? `album:${albumId}` : '',
@@ -6525,6 +6528,7 @@
         const albumType = String(album?.album_type || 'album').trim().toLowerCase();
         if (albumType && albumType !== 'album') return null;
         if (!albumId) return null;
+        const source = String(album?.source || '').trim().toLowerCase() || (/^[0-9]+$/.test(albumId) ? 'itunes' : 'spotify');
         const artists = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : 'Artist';
         const image = String(album?.image || '').trim();
         const releaseDate = String(album?.release_date || '').trim();
@@ -6534,8 +6538,7 @@
           totalTracks > 0 ? `${totalTracks} tracks` : '',
           albumType || ''
         ].filter(Boolean).join(' | ');
-        const href = String(album?.external_url || '').trim()
-          || `music.html?q=${encodeURIComponent(String(album?.name || artists || `album-${idx + 1}`).trim())}`;
+        const href = `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(source)}`;
         return {
           mediaType: 'music',
           itemId: `album:${albumId}`,
@@ -6726,7 +6729,7 @@
           spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'poster',
-          href: 'music.html',
+          href: `song.html?album_id=${encodeURIComponent(String(album.id || `fallback-album-${idx + 1}`))}&source=spotify`,
           disableLists: true,
           isMusicAlbum: true,
           fallbackImage: HOME_LOCAL_FALLBACK_IMAGE

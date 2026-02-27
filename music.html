@@ -375,6 +375,29 @@
         .replace(/'/g, '&#039;');
     }
 
+    function toHttpsUrl(url) {
+      const value = String(url || '').trim();
+      if (!value) return '';
+      if (value.startsWith('//')) return `https:${value}`;
+      if (value.startsWith('http://')) return value.replace(/^http:\/\//i, 'https://');
+      return value;
+    }
+
+    function upgradeItunesArtwork(url, size = 1200) {
+      const src = toHttpsUrl(url);
+      if (!src) return '';
+      return src
+        .replace(/\/[0-9]+x[0-9]+bb\./i, `/${size}x${size}bb.`)
+        .replace(/\/[0-9]+x[0-9]+\./i, `/${size}x${size}.`);
+    }
+
+    function getMusicSource(row) {
+      const explicit = String(row?.source || '').trim().toLowerCase();
+      if (explicit) return explicit;
+      const rawId = String(row?.id || '').trim();
+      return /^[0-9]+$/.test(rawId) || /^album:[0-9]+$/.test(rawId) ? 'itunes' : 'spotify';
+    }
+
     function showToast(message, isError = false) {
       const el = document.createElement('div');
       el.style.position = 'fixed';
@@ -400,10 +423,11 @@
         return rows.map((row) => ({
           id: String(row.trackId || row.collectionId || ''),
           kind: 'track',
+          source: 'itunes',
           name: row.trackName || row.collectionName || 'Track',
           subtitle: row.artistName || 'Artist',
           album: row.collectionName || 'Album',
-          image: row.artworkUrl100 || row.artworkUrl60 || '',
+          image: upgradeItunesArtwork(row.artworkUrl100 || row.artworkUrl60 || '', 1200) || toHttpsUrl(row.artworkUrl100 || row.artworkUrl60 || ''),
           preview_url: row.previewUrl || '',
           external_url: row.trackViewUrl || '',
           popularity: 0
@@ -425,10 +449,11 @@
           return {
             id: albumId,
             kind: 'album',
+            source: 'itunes',
             name: row.collectionName || 'Album',
             subtitle: row.artistName || 'Artist',
             album: row.collectionName || 'Album',
-            image: row.artworkUrl100 || row.artworkUrl60 || '',
+            image: upgradeItunesArtwork(row.artworkUrl100 || row.artworkUrl60 || '', 1200) || toHttpsUrl(row.artworkUrl100 || row.artworkUrl60 || ''),
             preview_url: '',
             external_url: row.collectionViewUrl || '',
             release_date: String(row.releaseDate || '').trim().slice(0, 10),
@@ -443,17 +468,22 @@
     function mapTrackRowsToItems(rows = []) {
       return (Array.isArray(rows) ? rows : []).map((row) => {
         if (String(row?.kind || '').trim().toLowerCase() === 'album') return null;
-        const artists = Array.isArray(row.artists) ? row.artists : [];
-        const albumName = String(row?.album?.name || row?.album_name || '').trim();
+        const artists = Array.isArray(row?.artists)
+          ? row.artists
+          : String(row?.subtitle || row?.artist_name || '').split(',').map((part) => String(part || '').trim()).filter(Boolean);
+        const albumName = String(row?.album?.name || row?.album_name || row?.album || '').trim();
         const albumType = String(row?.album?.album_type || row?.album_type || '').trim().toLowerCase();
+        const rawImage = String(row?.image || '').trim();
+        const source = getMusicSource(row);
         return {
           id: String(row.id || ''),
           kind: 'track',
+          source,
           name: row.name || 'Track',
           subtitle: artists.join(', ') || 'Artist',
           album: albumName || 'Unknown Album',
           album_type: albumType || '',
-          image: row.image || '',
+          image: source === 'itunes' ? (upgradeItunesArtwork(rawImage, 1200) || toHttpsUrl(rawImage)) : toHttpsUrl(rawImage),
           preview_url: row.preview_url || '',
           external_url: row.external_url || '',
           popularity: Number(row.popularity || 0)
@@ -463,19 +493,24 @@
 
     function mapAlbumRowsToItems(rows = []) {
       return (Array.isArray(rows) ? rows : []).map((row) => {
-        const artists = Array.isArray(row.artists) ? row.artists : [];
+        const artists = Array.isArray(row?.artists)
+          ? row.artists
+          : String(row?.subtitle || row?.artist_name || '').split(',').map((part) => String(part || '').trim()).filter(Boolean);
         const albumCoreIdRaw = String(row.id || '').trim();
         const albumCoreId = albumCoreIdRaw.startsWith('album:') ? albumCoreIdRaw.slice(6) : albumCoreIdRaw;
         const albumType = String(row.album_type || 'album').trim().toLowerCase();
+        const source = getMusicSource(row);
+        const rawImage = String(row?.image || '').trim();
         if (albumType && albumType !== 'album') return null;
         if (!albumCoreId) return null;
         return {
           id: `album:${albumCoreId}`,
           kind: 'album',
+          source,
           name: row.name || 'Album',
           subtitle: artists.join(', ') || 'Artist',
           album: row.name || 'Album',
-          image: row.image || '',
+          image: source === 'itunes' ? (upgradeItunesArtwork(rawImage, 1200) || toHttpsUrl(rawImage)) : toHttpsUrl(rawImage),
           preview_url: '',
           external_url: row.external_url || '',
           release_date: String(row.release_date || '').trim(),
@@ -692,11 +727,9 @@
           : '<span></span>';
         const trailingBtn = isTrack
           ? '<button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>'
-          : (item.external_url
-            ? `<button class="icon-btn open-external" type="button" data-url="${escapeHtml(item.external_url)}" aria-label="Open album"><i class="fas fa-arrow-up-right-from-square"></i></button>`
-            : '<span></span>');
+          : '<button class="icon-btn open-album" type="button" aria-label="View album tracks"><i class="fas fa-list-music"></i></button>';
         return `
-        <article class="card" data-id="${escapeHtml(item.id)}" data-kind="${escapeHtml(kind)}" data-external="${escapeHtml(item.external_url || '')}">
+        <article class="card" data-id="${escapeHtml(item.id)}" data-kind="${escapeHtml(kind)}" data-source="${escapeHtml(item.source || '')}" data-external="${escapeHtml(item.external_url || '')}">
           <div class="card-media">
             ${item.image ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy">` : ''}
           </div>
@@ -822,16 +855,32 @@
 
       document.querySelectorAll('.card').forEach((card) => {
         card.addEventListener('click', (e) => {
-          if (e.target.closest('.menu-btn') || e.target.closest('.preview-toggle') || e.target.closest('.open-external')) return;
+          if (e.target.closest('.menu-btn') || e.target.closest('.preview-toggle') || e.target.closest('.open-external') || e.target.closest('.open-album')) return;
           const id = String(card.getAttribute('data-id') || '').trim();
           const kind = String(card.getAttribute('data-kind') || 'track').toLowerCase();
-          const external = String(card.getAttribute('data-external') || '').trim();
+          const source = String(card.getAttribute('data-source') || '').trim().toLowerCase() || 'spotify';
           if (!id) return;
           if (kind === 'album') {
-            if (external) window.open(external, '_blank', 'noopener');
+            const albumId = id.startsWith('album:') ? id.slice(6) : id;
+            if (!albumId) return;
+            window.location.href = `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(source)}`;
             return;
           }
           window.location.href = `song.html?id=${encodeURIComponent(id)}`;
+        });
+      });
+
+      document.querySelectorAll('.open-album').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const card = btn.closest('.card');
+          if (!card) return;
+          const id = String(card.getAttribute('data-id') || '').trim();
+          const source = String(card.getAttribute('data-source') || '').trim().toLowerCase() || 'spotify';
+          const albumId = id.startsWith('album:') ? id.slice(6) : id;
+          if (!albumId) return;
+          window.location.href = `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(source)}`;
         });
       });
 

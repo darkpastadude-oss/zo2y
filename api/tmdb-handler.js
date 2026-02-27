@@ -30,26 +30,71 @@ function pushQueryParam(params, key, value) {
   params.append(key, String(value));
 }
 
+function buildTmdbFallbackPayload(relativePath, query = {}) {
+  const path = `/${String(relativePath || "").trim().toLowerCase()}`;
+  const page = Math.max(1, Number(query?.page || 1) || 1);
+
+  if (path.endsWith("/genre/movie/list") || path.endsWith("/genre/tv/list")) {
+    return { genres: [] };
+  }
+  if (path.endsWith("/credits")) {
+    return { id: 0, cast: [], crew: [] };
+  }
+  if (path.endsWith("/videos")) {
+    return { id: 0, results: [] };
+  }
+  if (path.endsWith("/images")) {
+    return { id: 0, backdrops: [], posters: [], logos: [] };
+  }
+  if (path.includes("/watch/providers")) {
+    return { id: 0, results: {} };
+  }
+  return {
+    page,
+    results: [],
+    total_pages: 1,
+    total_results: 0
+  };
+}
+
 app.get("/api/tmdb/*", async (req, res) => {
+  const relativePath = req.path.replace(/^\/api\/tmdb\//, "");
+  const fallbackPayload = buildTmdbFallbackPayload(relativePath, req.query || {});
   try {
     const token = getTmdbToken();
     if (!token) {
-      return res.status(500).json({ message: "TMDB is not configured" });
+      return res.status(200).json({
+        ...fallbackPayload,
+        source: "tmdb-fallback",
+        message: "TMDB is not configured"
+      });
     }
 
-    const relativePath = req.path.replace(/^\/api\/tmdb\//, "");
     const url = new URL(`${TMDB_BASE}/${relativePath}`);
     Object.entries(req.query || {}).forEach(([key, value]) => pushQueryParam(url.searchParams, key, value));
 
     const tmdbRes = await fetch(url.toString(), {
       headers: { Authorization: `Bearer ${token}` },
     });
+
+    if (!tmdbRes.ok) {
+      return res.status(200).json({
+        ...fallbackPayload,
+        source: "tmdb-fallback",
+        upstream_status: tmdbRes.status
+      });
+    }
+
     const text = await tmdbRes.text();
     res.status(tmdbRes.status);
     res.setHeader("content-type", tmdbRes.headers.get("content-type") || "application/json; charset=utf-8");
     return res.send(text);
   } catch (error) {
-    return res.status(500).json({ message: error.message || "TMDB proxy error" });
+    return res.status(200).json({
+      ...fallbackPayload,
+      source: "tmdb-fallback",
+      message: error.message || "TMDB proxy error"
+    });
   }
 });
 

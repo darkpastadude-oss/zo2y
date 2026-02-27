@@ -67,12 +67,29 @@ function hasSpotifyCredentials() {
   return !!(clientId && clientSecret);
 }
 
+function toHttpsUrl(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (raw.startsWith("//")) return `https:${raw}`;
+  if (/^http:\/\//i.test(raw)) return raw.replace(/^http:\/\//i, "https://");
+  return raw;
+}
+
+function upgradeItunesArtwork(url, size = 1200) {
+  const src = toHttpsUrl(url);
+  if (!src) return "";
+  return src
+    .replace(/\/[0-9]+x[0-9]+bb\./i, `/${size}x${size}bb.`)
+    .replace(/\/[0-9]+x[0-9]+\./i, `/${size}x${size}.`);
+}
+
 function normalizeTrackRow(track) {
   const album = track?.album || {};
   const artists = Array.isArray(track?.artists) ? track.artists : [];
   const images = Array.isArray(album.images) ? album.images : [];
 
   return {
+    source: "spotify",
     kind: "track",
     id: String(track?.id || ""),
     name: String(track?.name || "Track"),
@@ -114,6 +131,7 @@ function normalizeAlbumRow(album) {
     .filter(Boolean);
   const images = Array.isArray(album?.images) ? album.images : [];
   return {
+    source: "spotify",
     id: String(album?.id || ""),
     kind: "album",
     name: String(album?.name || "Album"),
@@ -140,6 +158,48 @@ function normalizeAlbumRow(album) {
   };
 }
 
+function normalizeSpotifyAlbumTrackRow(track, album = null) {
+  const artists = Array.isArray(track?.artists) ? track.artists : [];
+  const albumObj = album || {};
+  const albumImages = Array.isArray(albumObj?.images) ? albumObj.images : [];
+  const albumId = String(albumObj?.id || track?.album?.id || "").trim();
+  const albumName = String(albumObj?.name || track?.album?.name || "").trim();
+  const albumType = String(albumObj?.album_type || track?.album?.album_type || "").trim();
+  const albumRelease = String(albumObj?.release_date || track?.album?.release_date || "").trim();
+
+  return {
+    source: "spotify",
+    kind: "track",
+    id: String(track?.id || ""),
+    name: String(track?.name || "Track"),
+    artists: artists
+      .map((artist) => String(artist?.name || "").trim())
+      .filter(Boolean),
+    artist_ids: artists
+      .map((artist) => String(artist?.id || "").trim())
+      .filter(Boolean),
+    album: {
+      id: albumId,
+      name: albumName,
+      album_type: albumType,
+      release_date: albumRelease,
+      images: albumImages
+        .map((img) => ({
+          url: String(img?.url || "").trim(),
+          width: Number(img?.width || 0),
+          height: Number(img?.height || 0)
+        }))
+        .filter((img) => !!img.url)
+    },
+    image: String(albumImages?.[0]?.url || "").trim(),
+    preview_url: String(track?.preview_url || "").trim(),
+    external_url: String(track?.external_urls?.spotify || "").trim(),
+    popularity: Number(track?.popularity || 0),
+    duration_ms: Number(track?.duration_ms || 0),
+    explicit: !!track?.explicit
+  };
+}
+
 function normalizeArtistRow(artist) {
   const images = Array.isArray(artist?.images) ? artist.images : [];
   const genres = Array.isArray(artist?.genres) ? artist.genres : [];
@@ -156,7 +216,10 @@ function normalizeArtistRow(artist) {
 
 function normalizeItunesTrackRow(track) {
   const collectionType = String(track?.collectionType || "").trim().toLowerCase();
+  const rawArtwork = String(track?.artworkUrl100 || track?.artworkUrl60 || "").trim();
+  const hiResArtwork = upgradeItunesArtwork(rawArtwork, 1200) || toHttpsUrl(rawArtwork);
   return {
+    source: "itunes",
     id: String(track?.trackId || track?.collectionId || ""),
     name: String(track?.trackName || track?.collectionName || "Track"),
     artists: [String(track?.artistName || "").trim()].filter(Boolean),
@@ -165,11 +228,11 @@ function normalizeItunesTrackRow(track) {
       name: String(track?.collectionName || "").trim(),
       album_type: collectionType === "single" ? "single" : (collectionType || "album"),
       release_date: String(track?.releaseDate || "").trim().slice(0, 10),
-      images: [String(track?.artworkUrl100 || track?.artworkUrl60 || "").trim()]
+      images: [hiResArtwork]
         .filter(Boolean)
-        .map((url) => ({ url, width: 100, height: 100 }))
+        .map((url) => ({ url, width: 1200, height: 1200 }))
     },
-    image: String(track?.artworkUrl100 || track?.artworkUrl60 || "").trim(),
+    image: hiResArtwork,
     preview_url: String(track?.previewUrl || "").trim(),
     external_url: String(track?.trackViewUrl || "").trim(),
     popularity: 0,
@@ -180,7 +243,10 @@ function normalizeItunesTrackRow(track) {
 
 function normalizeItunesAlbumRow(album) {
   const artistName = String(album?.artistName || "").trim();
+  const rawArtwork = String(album?.artworkUrl100 || album?.artworkUrl60 || "").trim();
+  const hiResArtwork = upgradeItunesArtwork(rawArtwork, 1200) || toHttpsUrl(rawArtwork);
   return {
+    source: "itunes",
     id: String(album?.collectionId || album?.id || ""),
     kind: "album",
     name: String(album?.collectionName || "Album"),
@@ -188,10 +254,10 @@ function normalizeItunesAlbumRow(album) {
     artist_ids: [],
     artist_name: artistName,
     artist_id: "",
-    image: String(album?.artworkUrl100 || album?.artworkUrl60 || "").trim(),
-    images: [String(album?.artworkUrl100 || album?.artworkUrl60 || "").trim()]
+    image: hiResArtwork,
+    images: [hiResArtwork]
       .filter(Boolean)
-      .map((url) => ({ url, width: 100, height: 100 })),
+      .map((url) => ({ url, width: 1200, height: 1200 })),
     external_url: String(album?.collectionViewUrl || "").trim(),
     release_date: String(album?.releaseDate || "").trim().slice(0, 10),
     total_tracks: Number(album?.trackCount || 0),
@@ -205,12 +271,9 @@ function normalizeItunesAlbumRow(album) {
 
 function normalizeAppleChartSongRow(song) {
   const rawArtwork = String(song?.artworkUrl100 || "").trim();
-  const hiResArtwork = rawArtwork
-    ? rawArtwork
-      .replace(/\/[0-9]+x[0-9]+bb\./i, "/640x640bb.")
-      .replace(/\/[0-9]+x[0-9]+\./i, "/640x640.")
-    : "";
+  const hiResArtwork = upgradeItunesArtwork(rawArtwork, 1200) || toHttpsUrl(rawArtwork);
   return {
+    source: "apple",
     id: String(song?.id || song?.url || ""),
     name: String(song?.name || "Track"),
     artists: [String(song?.artistName || "").trim()].filter(Boolean),
@@ -538,6 +601,45 @@ async function searchItunesAlbums({ q, limit }) {
   return rows.map(normalizeItunesAlbumRow).filter((row) => !!row.id);
 }
 
+async function fetchItunesAlbumDetails(id, { limit = 120 } = {}) {
+  const albumId = String(id || "").trim();
+  if (!albumId) return null;
+  const url = new URL("https://itunes.apple.com/lookup");
+  url.searchParams.set("id", albumId);
+  url.searchParams.set("entity", "song");
+  const res = await fetch(url.toString());
+  if (!res.ok) return null;
+  const json = await res.json();
+  const rows = Array.isArray(json?.results) ? json.results : [];
+  if (!rows.length) return null;
+
+  const collectionRow = rows.find((row) => String(row?.wrapperType || "").toLowerCase() === "collection") || rows[0];
+  const album = normalizeItunesAlbumRow(collectionRow);
+  const trackRowsRaw = rows.filter((row) => String(row?.wrapperType || "").toLowerCase() === "track");
+  const trackRows = dedupeTracks(trackRowsRaw.map((row) => {
+    const normalized = normalizeItunesTrackRow(row);
+    return {
+      ...normalized,
+      album: {
+        id: String(album?.id || normalized?.album?.id || ""),
+        name: String(album?.name || normalized?.album?.name || "").trim(),
+        album_type: String(album?.album_type || normalized?.album?.album_type || "album").trim(),
+        release_date: String(album?.release_date || normalized?.album?.release_date || "").trim(),
+        images: Array.isArray(album?.images) && album.images.length
+          ? album.images
+          : (Array.isArray(normalized?.album?.images) ? normalized.album.images : [])
+      },
+      image: String(album?.image || normalized?.image || "").trim() || String(normalized?.image || "").trim()
+    };
+  }))
+    .slice(0, clampInt(limit, 1, 200, 120));
+
+  return {
+    album,
+    tracks: trackRows
+  };
+}
+
 async function fetchItunesAlbumFallback({ limit = 24, albumTypes = ["album"] } = {}) {
   const safeLimit = clampInt(limit, 1, 60, 24);
   const perQueryLimit = clampInt(Math.max(12, Math.ceil(safeLimit * 1.5)), 10, 50, 24);
@@ -640,7 +742,7 @@ router.get("/", (_req, res) => {
     ok: true,
     service: "spotify-proxy",
     configured: hasSpotifyCredentials(),
-    routes: ["/search", "/top-50", "/popular", "/popular-albums", "/featured-playlists", "/new-releases", "/tracks/:id"]
+    routes: ["/search", "/top-50", "/popular", "/popular-albums", "/featured-playlists", "/new-releases", "/albums/:id", "/tracks/:id"]
   });
 });
 
@@ -1186,6 +1288,110 @@ router.get("/search", async (req, res) => {
     } catch (_fallbackError) {
       return res.status(500).json({ message: "Failed to search music.", error: String(error?.message || error) });
     }
+  }
+});
+
+router.get("/albums/:id", async (req, res) => {
+  const id = String(req.params.id || "").trim();
+  if (!id) return res.status(400).json({ message: "Invalid album id." });
+
+  const market = String(req.query.market || "US").trim().slice(0, 2).toUpperCase() || "US";
+  const includeTracks = String(req.query.include_tracks || "true").trim().toLowerCase() !== "false";
+  const trackLimit = clampInt(req.query.limit, 1, 200, 120);
+  const sourcePref = String(req.query.source || "").trim().toLowerCase();
+
+  const sendItunesFallback = async () => {
+    const payload = await fetchItunesAlbumDetails(id, { limit: trackLimit });
+    if (!payload?.album) return null;
+    const tracks = Array.isArray(payload.tracks) ? payload.tracks : [];
+    return res.json({
+      album: payload.album,
+      tracks: includeTracks ? tracks : [],
+      count: includeTracks ? tracks.length : 0,
+      source: "itunes-fallback"
+    });
+  };
+
+  try {
+    if (sourcePref === "itunes") {
+      const fallbackRes = await sendItunesFallback();
+      if (fallbackRes) return fallbackRes;
+      return res.status(404).json({ message: "Album not found." });
+    }
+
+    if (!hasSpotifyCredentials()) {
+      const fallbackRes = await sendItunesFallback();
+      if (fallbackRes) return fallbackRes;
+      return res.status(503).json({ message: "Spotify credentials are not configured on the server." });
+    }
+
+    const albumJson = await spotifyRequest(`/albums/${encodeURIComponent(id)}`, { market });
+    const album = normalizeAlbumRow(albumJson);
+    let tracks = [];
+
+    if (includeTracks) {
+      const seedTracks = [];
+      let offset = 0;
+      while (seedTracks.length < trackLimit) {
+        const pageLimit = Math.min(50, trackLimit - seedTracks.length);
+        const page = await spotifyRequest(`/albums/${encodeURIComponent(id)}/tracks`, {
+          market,
+          limit: pageLimit,
+          offset
+        });
+        const items = Array.isArray(page?.items) ? page.items : [];
+        if (!items.length) break;
+        seedTracks.push(
+          ...items
+            .map((row) => normalizeSpotifyAlbumTrackRow(row, albumJson))
+            .filter((row) => !!row.id)
+        );
+        if (!page?.next) break;
+        offset += items.length;
+      }
+
+      const seedById = new Map(seedTracks.map((row) => [String(row?.id || "").trim(), row]));
+      const hydrated = [];
+      const chunks = chunkArray(Array.from(seedById.keys()), 50);
+      for (const group of chunks) {
+        const json = await spotifyRequest("/tracks", {
+          ids: group.join(","),
+          market
+        });
+        const rows = Array.isArray(json?.tracks) ? json.tracks : [];
+        rows.forEach((row) => {
+          const normalized = normalizeTrackRow(row);
+          if (!normalized.id) return;
+          const seed = seedById.get(normalized.id) || {};
+          hydrated.push({
+            ...seed,
+            ...normalized,
+            album: {
+              ...(seed?.album || {}),
+              ...(normalized?.album || {})
+            },
+            image: String(normalized?.image || seed?.image || album?.image || "").trim()
+          });
+        });
+      }
+
+      tracks = hydrated.length
+        ? dedupeTracks(hydrated).slice(0, trackLimit)
+        : dedupeTracks(seedTracks).slice(0, trackLimit);
+    }
+
+    return res.json({
+      album,
+      tracks,
+      count: tracks.length,
+      source: "spotify"
+    });
+  } catch (error) {
+    try {
+      const fallbackRes = await sendItunesFallback();
+      if (fallbackRes) return fallbackRes;
+    } catch (_fallbackError) {}
+    return res.status(500).json({ message: "Failed to load album details.", error: String(error?.message || error) });
   }
 });
 
