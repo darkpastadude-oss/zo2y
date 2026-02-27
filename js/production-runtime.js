@@ -6,6 +6,8 @@
   const TRACK_URL = "/api/analytics/track";
   const ERROR_URL = "/api/analytics/error";
   const MAX_QUEUE = 40;
+  const CONTACT_EMAIL = "zo2yhq@gmail.com";
+  const CONTACT_SUBJECT = "Zo2y Support";
 
   let queue = [];
   let flushTimer = null;
@@ -367,22 +369,71 @@
     document.head.appendChild(style);
   }
 
+  function buildMailtoContactHref() {
+    return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(CONTACT_SUBJECT)}`;
+  }
+
+  function buildGmailComposeHref() {
+    const params = new URLSearchParams({
+      view: "cm",
+      fs: "1",
+      to: CONTACT_EMAIL,
+      su: CONTACT_SUBJECT
+    });
+    return `https://mail.google.com/mail/?${params.toString()}`;
+  }
+
+  function isContactLikeLink(link) {
+    if (!(link instanceof HTMLAnchorElement)) return false;
+    const href = String(link.getAttribute("href") || "").trim();
+    const text = String(link.textContent || "").trim().toLowerCase();
+    if (/(^|\/)support\.html(\?|#|$)/i.test(href)) return true;
+    if (/^mailto:/i.test(href) && /(zo2hyq|zo2yhq)@gmail\.com/i.test(href)) return true;
+    if (text === "support" || text === "contact") return true;
+    return false;
+  }
+
   function rewriteSupportLinksToEmail() {
     const links = Array.from(document.querySelectorAll("a[href]"));
+    const mailtoHref = buildMailtoContactHref();
     links.forEach((link) => {
-      const href = String(link.getAttribute("href") || "").trim();
-      if (!/(^|\/)support\.html(\?|#|$)/i.test(href)) return;
-      link.setAttribute("href", "mailto:zo2hyq@gmail.com?subject=Zo2y%20Support");
+      if (!(link instanceof HTMLAnchorElement)) return;
+      if (!isContactLikeLink(link)) return;
+      link.setAttribute("href", mailtoHref);
       link.setAttribute("target", "_blank");
       link.setAttribute("rel", "noopener");
+      link.setAttribute("data-contact-link", "1");
       if (String(link.textContent || "").trim().toLowerCase() === "support") {
         link.textContent = "Contact";
       }
     });
   }
 
+  function setupContactLinkPopup() {
+    if (window.__ZO2Y_CONTACT_POPUP_WIRED__) return;
+    window.__ZO2Y_CONTACT_POPUP_WIRED__ = true;
+
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const link = target.closest("a[data-contact-link='1']");
+      if (!(link instanceof HTMLAnchorElement)) return;
+
+      event.preventDefault();
+      const shouldOpenGmail = window.confirm(`Contact us at ${CONTACT_EMAIL}.\nOpen Gmail compose now?`);
+      if (!shouldOpenGmail) return;
+
+      const gmailHref = buildGmailComposeHref();
+      const popup = window.open(gmailHref, "_blank", "noopener,noreferrer");
+      if (!popup) {
+        window.location.href = buildMailtoContactHref();
+      }
+    });
+  }
+
   function mountGlobalLegalFooter() {
     rewriteSupportLinksToEmail();
+    setupContactLinkPopup();
     const existing = document.querySelector(".legal-strip");
     if (existing) return;
     const body = document.body;
@@ -396,7 +447,7 @@
       <span class="legal-sep">|</span>
       <a href="terms.html">Terms</a>
       <span class="legal-sep">|</span>
-      <a href="mailto:zo2hyq@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
+      <a href="${buildMailtoContactHref()}" data-contact-link="1" target="_blank" rel="noopener">Contact</a>
     `;
     body.appendChild(footer);
   }
