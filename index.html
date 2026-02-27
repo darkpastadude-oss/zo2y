@@ -3005,14 +3005,25 @@
       };
 
       const mapMusicRows = (trackRows, albumRows, label, takeCount = 6) => {
+        const getTrackContainerLabel = (row = {}) => {
+          const title = String(row?.name || '').trim().toLowerCase();
+          const albumName = String(row?.album?.name || row?.album_name || '').trim();
+          const albumType = String(row?.album?.album_type || row?.album_type || '').trim().toLowerCase();
+          const totalTracks = Number(row?.album?.total_tracks || row?.total_tracks || 0);
+          const sameName = !!title && !!albumName && title === albumName.toLowerCase();
+          if (albumType === 'single') {
+            if (totalTracks > 1 && !sameName) return 'Album';
+            return 'Single';
+          }
+          if (sameName && totalTracks > 0 && totalTracks <= 1) return 'Single';
+          return 'Album';
+        };
         const tracks = (Array.isArray(trackRows) ? trackRows : []).slice(0, Math.max(takeCount * 2, 8)).map((track, idx) => {
           if (String(track?.kind || '').trim().toLowerCase() === 'album') return null;
           const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : '';
           const title = String(track?.name || 'Track').trim() || 'Track';
           const albumName = String(track?.album?.name || track?.album_name || '').trim() || 'Unknown Album';
-          const albumType = String(track?.album?.album_type || track?.album_type || '').trim().toLowerCase();
-          const isSingleContainer = albumType === 'single' || title.toLowerCase() === albumName.toLowerCase();
-          const containerLabel = isSingleContainer ? 'Single' : 'Album';
+          const containerLabel = getTrackContainerLabel(track);
           const image = String(track?.image || '').trim();
           const releaseDateSort = Date.now() - (idx * 1000);
           const item = {
@@ -6495,14 +6506,26 @@
 
     async function loadMusic(signal) {
       const market = 'US';
+      const HOME_MUSIC_MIN_ITEMS = Math.max(8, Math.min(HOME_CHANNEL_TARGET_ITEMS, 12));
+      const getTrackContainerLabel = (track = {}) => {
+        const title = String(track?.name || '').trim().toLowerCase();
+        const albumName = String(track?.album?.name || track?.album_name || '').trim();
+        const albumType = String(track?.album?.album_type || track?.album_type || '').trim().toLowerCase();
+        const totalTracks = Number(track?.album?.total_tracks || track?.total_tracks || 0);
+        const sameName = !!title && !!albumName && title === albumName.toLowerCase();
+        if (albumType === 'single') {
+          if (totalTracks > 1 && !sameName) return 'Album';
+          return 'Single';
+        }
+        if (sameName && totalTracks > 0 && totalTracks <= 1) return 'Single';
+        return 'Album';
+      };
       const mapTracksToHomeItems = (tracks = []) => tracks.map((track) => {
         if (String(track?.kind || '').trim().toLowerCase() === 'album') return null;
         const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
         const title = String(track?.name || 'Track').trim() || 'Track';
         const albumName = String(track?.album?.name || track?.album_name || '').trim() || 'Unknown Album';
-        const albumType = String(track?.album?.album_type || track?.album_type || '').trim().toLowerCase();
-        const isSingleContainer = albumType === 'single' || title.toLowerCase() === albumName.toLowerCase();
-        const containerLabel = isSingleContainer ? 'Single' : 'Album';
+        const containerLabel = getTrackContainerLabel(track);
         const popularity = Number(track?.popularity || 0);
         const image = String(track?.image || '').trim();
         return {
@@ -6629,6 +6652,12 @@
       };
       const hasAlbumItems = (items = []) => (Array.isArray(items) ? items : [])
         .some((item) => item?.isMusicAlbum === true || String(item?.itemId || '').startsWith('album:'));
+      const hasTrackItems = (items = []) => (Array.isArray(items) ? items : [])
+        .some((item) => item && !item?.isMusicAlbum && !String(item?.itemId || '').startsWith('album:'));
+      const isHealthyMusicBatch = (items = []) => {
+        const list = Array.isArray(items) ? items : [];
+        return list.length >= HOME_MUSIC_MIN_ITEMS && hasAlbumItems(list) && hasTrackItems(list);
+      };
 
       const top50Limit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 4, 64);
       const newReleaseLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 3, 36);
@@ -6653,7 +6682,7 @@
         ...(topReleaseAlbumsRes.status === 'fulfilled' && Array.isArray(topReleaseAlbumsRes.value?.results) ? topReleaseAlbumsRes.value.results : [])
       ];
       const topBatch = filterHomeSafeItems(buildMixedMusicItems(top50Rows, topAlbumRows, HOME_CHANNEL_TARGET_ITEMS));
-      if (topBatch.length && hasAlbumItems(topBatch)) return topBatch;
+      if (isHealthyMusicBatch(topBatch)) return topBatch;
 
       const [popularRes, popularAlbumsRes, popularReleaseAlbumsRes] = await Promise.allSettled([
         fetchJsonWithPerfCache(
@@ -6679,7 +6708,7 @@
           : [])
       ];
       const popularBatch = filterHomeSafeItems(buildMixedMusicItems(popularRows, popularAlbumRows, HOME_CHANNEL_TARGET_ITEMS));
-      if (popularBatch.length && hasAlbumItems(popularBatch)) return popularBatch;
+      if (isHealthyMusicBatch(popularBatch)) return popularBatch;
 
       const searchFallbackTerms = ['top albums and songs', 'new music albums and songs'];
       for (const term of searchFallbackTerms) {
@@ -6691,7 +6720,7 @@
           const fallbackTracks = Array.isArray(fallbackSearch?.tracks) ? fallbackSearch.tracks : [];
           const fallbackAlbums = Array.isArray(fallbackSearch?.albums) ? fallbackSearch.albums : [];
           const searchBatch = filterHomeSafeItems(buildMixedMusicItems(fallbackTracks, fallbackAlbums, HOME_CHANNEL_TARGET_ITEMS));
-          if (searchBatch.length && hasAlbumItems(searchBatch)) return searchBatch;
+          if (isHealthyMusicBatch(searchBatch)) return searchBatch;
         } catch (_err) {}
       }
 

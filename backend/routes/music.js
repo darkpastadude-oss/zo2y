@@ -104,6 +104,7 @@ function normalizeTrackRow(track) {
       name: String(album?.name || "").trim(),
       album_type: String(album?.album_type || "").trim(),
       release_date: String(album?.release_date || "").trim(),
+      total_tracks: Number(album?.total_tracks || 0),
       images: images
         .map((img) => ({
           url: String(img?.url || "").trim(),
@@ -183,6 +184,7 @@ function normalizeSpotifyAlbumTrackRow(track, album = null) {
       name: albumName,
       album_type: albumType,
       release_date: albumRelease,
+      total_tracks: Number(albumObj?.total_tracks || track?.album?.total_tracks || 0),
       images: albumImages
         .map((img) => ({
           url: String(img?.url || "").trim(),
@@ -228,6 +230,7 @@ function normalizeItunesTrackRow(track) {
       name: String(track?.collectionName || "").trim(),
       album_type: collectionType === "single" ? "single" : (collectionType || "album"),
       release_date: String(track?.releaseDate || "").trim().slice(0, 10),
+      total_tracks: Number(track?.trackCount || 0),
       images: [hiResArtwork]
         .filter(Boolean)
         .map((url) => ({ url, width: 1200, height: 1200 }))
@@ -283,6 +286,7 @@ function normalizeAppleChartSongRow(song) {
       name: String(song?.name || "").trim(),
       album_type: "single",
       release_date: "",
+      total_tracks: 1,
       images: hiResArtwork ? [{ url: hiResArtwork, width: 640, height: 640 }] : []
     },
     image: hiResArtwork,
@@ -557,6 +561,7 @@ async function hydrateTracksWithAlbumDetails(rows = [], { market = "US" } = {}) 
         name: String(fullAlbum?.name || currentAlbum?.name || "").trim(),
         album_type: String(fullAlbum?.album_type || currentAlbum?.album_type || "").trim(),
         release_date: String(fullAlbum?.release_date || currentAlbum?.release_date || "").trim(),
+        total_tracks: Number(fullAlbum?.total_tracks || currentAlbum?.total_tracks || 0),
         images: nextAlbumImages
       },
       image: nextImage || String(track?.image || "").trim()
@@ -625,6 +630,7 @@ async function fetchItunesAlbumDetails(id, { limit = 120 } = {}) {
         name: String(album?.name || normalized?.album?.name || "").trim(),
         album_type: String(album?.album_type || normalized?.album?.album_type || "album").trim(),
         release_date: String(album?.release_date || normalized?.album?.release_date || "").trim(),
+        total_tracks: Number(album?.total_tracks || normalized?.album?.total_tracks || 0),
         images: Array.isArray(album?.images) && album.images.length
           ? album.images
           : (Array.isArray(normalized?.album?.images) ? normalized.album.images : [])
