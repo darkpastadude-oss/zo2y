@@ -414,7 +414,9 @@
       fetchMusic(normalized, signal).catch(() => [])
     ]);
 
-    const merged = [...moviesTv, ...games, ...books, ...music].slice(0, 18);
+    const merged = [...moviesTv, ...games, ...books, ...music]
+      .filter((item) => !/restaurant/i.test(String(item?.type || '')))
+      .slice(0, 18);
     writeCachedSuggestions(normalized, merged);
     return merged;
   }
