@@ -10,6 +10,10 @@ const RAWG_API_BASE = "https://api.rawg.io/api";
 const RAWG_ID_OFFSET = 9_000_000_000_000;
 const TOKEN_REFRESH_SKEW_MS = 60_000;
 const GENRE_CACHE_TTL_MS = 1000 * 60 * 60;
+const LIST_CACHE_TTL_MS = 1000 * 60;
+const DETAIL_CACHE_TTL_MS = 1000 * 60 * 10;
+const MAX_LIST_CACHE_ENTRIES = 200;
+const MAX_DETAIL_CACHE_ENTRIES = 300;
 
 let tokenCache = {
   accessToken: "",
@@ -23,6 +27,8 @@ let genreCache = {
   byName: new Map(),
   expiresAt: 0
 };
+let listCache = new Map();
+let detailCache = new Map();
 
 function pushQueryParam(params, key, value) {
   if (value === undefined || value === null) return;
@@ -34,6 +40,34 @@ function pushQueryParam(params, key, value) {
     return;
   }
   params.append(key, String(value));
+}
+
+function readTimedCache(cache, key) {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (Date.now() >= Number(entry.expiresAt || 0)) {
+    cache.delete(key);
+    return null;
+  }
+  return entry.value;
+}
+
+function writeTimedCache(cache, key, value, ttlMs, maxEntries = 200) {
+  cache.set(key, {
+    value,
+    expiresAt: Date.now() + Math.max(1, Number(ttlMs || 0))
+  });
+  while (cache.size > Math.max(1, Number(maxEntries || 200))) {
+    const oldestKey = cache.keys().next().value;
+    if (!oldestKey) break;
+    cache.delete(oldestKey);
+  }
+}
+
+function formatIgdbQuery(rawQuery) {
+  const query = String(rawQuery || "").trim();
+  if (!query) return "";
+  return /;\s*$/.test(query) ? query : `${query};`;
 }
 
 function clampInt(value, min, max, fallback) {
@@ -117,16 +151,24 @@ function readFirstEnv(keys = []) {
 function getIgdbCredentials() {
   const clientId = readFirstEnv([
     "TWITCH_CLIENT_ID",
+    "TWITCH_API_KEY",
+    "TWITCH_API_CLIENT_ID",
+    "TWITCH_KEY",
     "IGDB_CLIENT_ID",
     "TWITCH_APP_CLIENT_ID"
   ]);
   const clientSecret = readFirstEnv([
     "TWITCH_CLIENT_SECRET",
+    "TWITCH_API_SECRET",
+    "TWITCH_API_CLIENT_SECRET",
+    "TWITCH_SECRET",
     "IGDB_CLIENT_SECRET",
     "TWITCH_APP_CLIENT_SECRET"
   ]);
   const staticAccessToken = readFirstEnv([
     "TWITCH_ACCESS_TOKEN",
+    "TWITCH_BEARER_TOKEN",
+    "TWITCH_API_TOKEN",
     "TWITCH_APP_ACCESS_TOKEN",
     "IGDB_ACCESS_TOKEN"
   ]);
@@ -183,7 +225,7 @@ function decodeRawgId(value) {
 async function getIgdbAccessToken(forceRefresh = false) {
   const { clientId, clientSecret, staticAccessToken } = getIgdbCredentials();
   if (!clientId) {
-    const err = new Error("Missing TWITCH_CLIENT_ID / IGDB_CLIENT_ID");
+    const err = new Error("Missing Twitch client id. Set TWITCH_CLIENT_ID or TWITCH_API_KEY.");
     err.code = "IGDB_DISABLED";
     throw err;
   }
@@ -191,7 +233,7 @@ async function getIgdbAccessToken(forceRefresh = false) {
     return staticAccessToken;
   }
   if (!clientSecret) {
-    const err = new Error("Missing TWITCH_CLIENT_SECRET / IGDB_CLIENT_SECRET");
+    const err = new Error("Missing Twitch client secret/token. Set TWITCH_CLIENT_SECRET, TWITCH_API_SECRET, or TWITCH_ACCESS_TOKEN.");
     err.code = "IGDB_DISABLED";
     throw err;
   }
@@ -253,6 +295,13 @@ async function igdbRequest(endpoint, body, retry = true) {
   }
 
   const token = await getIgdbAccessToken();
+  const query = formatIgdbQuery(body);
+  if (!query) {
+    const err = new Error("IGDB query body is empty.");
+    err.code = "IGDB_QUERY_EMPTY";
+    throw err;
+  }
+
   const response = await fetch(`${IGDB_API_BASE}/${String(endpoint || "").trim()}`, {
     method: "POST",
     headers: {
@@ -260,7 +309,7 @@ async function igdbRequest(endpoint, body, retry = true) {
       Authorization: `Bearer ${token}`,
       "Content-Type": "text/plain"
     },
-    body: String(body || "")
+    body: query
   });
 
   if (response.status === 401 && retry) {
@@ -361,6 +410,10 @@ function buildIgdbWhereClause({ genreIds = [], startUnix = null, endUnix = null 
 }
 
 async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereClause }) {
+  const cacheKey = `igdb:${page}:${pageSize}:${orderingRaw}:${search}:${whereClause}`;
+  const cached = readTimedCache(listCache, cacheKey);
+  if (cached) return cached;
+
   const offset = Math.max(0, (page - 1) * pageSize);
   const sortClause = mapOrderingToIgdb(orderingRaw);
 
@@ -438,13 +491,19 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
     };
   }).filter((row) => row.id > 0);
 
-  return {
+  const payload = {
     count: totalCount || results.length,
     results
   };
+  writeTimedCache(listCache, cacheKey, payload, LIST_CACHE_TTL_MS, MAX_LIST_CACHE_ENTRIES);
+  return payload;
 }
 
 async function fetchIgdbGameDetails(id) {
+  const cacheKey = `igdb:${Number(id)}`;
+  const cached = readTimedCache(detailCache, cacheKey);
+  if (cached) return cached;
+
   const query = [
     "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,aggregated_rating,cover,cover.image_id,screenshots,screenshots.image_id,genres,platforms;",
     `where id = ${Number(id)};`,
@@ -474,7 +533,7 @@ async function fetchIgdbGameDetails(id) {
   const rating = Number(game?.total_rating || game?.aggregated_rating || 0);
   const ratingsCount = Number(game?.total_rating_count || 0);
 
-  return {
+  const payload = {
     id: Number(game?.id || 0),
     name: String(game?.name || "Game"),
     slug: String(game?.slug || ""),
@@ -507,6 +566,8 @@ async function fetchIgdbGameDetails(id) {
     youtube_url: "",
     source: "igdb"
   };
+  writeTimedCache(detailCache, cacheKey, payload, DETAIL_CACHE_TTL_MS, MAX_DETAIL_CACHE_ENTRIES);
+  return payload;
 }
 
 async function rawgRequest(path, params = {}, timeoutMs = 7000) {

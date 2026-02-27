@@ -18,7 +18,7 @@
       --card: #0f2748;
       --card-2: #123059;
       --muted: #8fb2dd;
-      --accent: #1db954;
+      --accent: #f59e0b;
       --cta: #f59e0b;
       --white: #fff;
       --border: rgba(255,255,255,0.12);
@@ -27,7 +27,7 @@
     html, body {
       min-height: 100%;
       background:
-        radial-gradient(circle at 18% -10%, rgba(29,185,84,0.24), transparent 35%),
+        radial-gradient(circle at 18% -10%, rgba(245,158,11,0.24), transparent 35%),
         radial-gradient(circle at 88% -14%, rgba(53,103,194,0.25), transparent 42%),
         var(--bg);
       color: var(--white);
@@ -53,7 +53,7 @@
       width: 100%; height: 42px; border-radius: 999px; border: 1px solid var(--border); background: var(--card);
       color: var(--white); padding: 0 14px 0 34px; outline: none;
     }
-    .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(29,185,84,0.2); }
+    .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245,158,11,0.2); }
     .top-nav { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
     .nav-pill {
       border: 1px solid transparent; color: #e2ecff; border-radius: 999px; font-size: 12px;
@@ -154,9 +154,9 @@
     .list-action:last-child { margin-bottom: 0; }
     .list-action:hover { border-color: var(--accent); color: var(--accent); }
     .list-action.active {
-      background: rgba(29,185,84,0.15);
-      border-color: rgba(29,185,84,0.8);
-      color: #d1fae5;
+      background: rgba(245,158,11,0.16);
+      border-color: rgba(245,158,11,0.82);
+      color: #fff2d6;
     }
     .list-action[aria-busy="true"] {
       opacity: 0.72;
@@ -294,9 +294,9 @@
       border-color: rgba(255,255,255,0.2);
     }
     .track-pill.active {
-      border-color: rgba(29,185,84,0.8);
-      background: rgba(29,185,84,0.16);
-      color: #d1fae5;
+      border-color: rgba(245,158,11,0.82);
+      background: rgba(245,158,11,0.18);
+      color: #fff2d6;
     }
     .track-pill[disabled] { opacity: 0.6; cursor: not-allowed; }
     .artist-panel {

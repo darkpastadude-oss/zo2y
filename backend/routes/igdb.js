@@ -200,16 +200,24 @@ function readFirstEnv(keys = []) {
 function getIgdbCredentials() {
   const clientId = readFirstEnv([
     "TWITCH_CLIENT_ID",
+    "TWITCH_API_KEY",
+    "TWITCH_API_CLIENT_ID",
+    "TWITCH_KEY",
     "IGDB_CLIENT_ID",
     "TWITCH_APP_CLIENT_ID"
   ]);
   const clientSecret = readFirstEnv([
     "TWITCH_CLIENT_SECRET",
+    "TWITCH_API_SECRET",
+    "TWITCH_API_CLIENT_SECRET",
+    "TWITCH_SECRET",
     "IGDB_CLIENT_SECRET",
     "TWITCH_APP_CLIENT_SECRET"
   ]);
   const staticAccessToken = readFirstEnv([
     "TWITCH_ACCESS_TOKEN",
+    "TWITCH_BEARER_TOKEN",
+    "TWITCH_API_TOKEN",
     "TWITCH_APP_ACCESS_TOKEN",
     "IGDB_ACCESS_TOKEN"
   ]);
@@ -806,12 +814,12 @@ async function getAccessToken(forceRefresh = false) {
 
   const { clientId, clientSecret, staticAccessToken } = getIgdbCredentials();
   if (!clientId) {
-    throw new Error("Missing IGDB credentials. Set TWITCH_CLIENT_ID (or IGDB_CLIENT_ID).");
+    throw new Error("Missing IGDB credentials. Set TWITCH_CLIENT_ID or TWITCH_API_KEY.");
   }
 
   if (!clientSecret) {
     if (staticAccessToken) return staticAccessToken;
-    throw new Error("Missing IGDB credentials. Set TWITCH_CLIENT_SECRET or TWITCH_ACCESS_TOKEN.");
+    throw new Error("Missing IGDB credentials. Set TWITCH_CLIENT_SECRET, TWITCH_API_SECRET, or TWITCH_ACCESS_TOKEN.");
   }
 
   if (!forceRefresh && igdbTokenRefreshPromise) {
@@ -862,7 +870,7 @@ async function getAccessToken(forceRefresh = false) {
 async function igdbRequest(endpoint, query, retry = true, forceRefresh = false) {
   const { clientId } = getIgdbCredentials();
   if (!clientId) {
-    throw new Error("Missing IGDB credentials. Set TWITCH_CLIENT_ID (or IGDB_CLIENT_ID).");
+    throw new Error("Missing IGDB credentials. Set TWITCH_CLIENT_ID or TWITCH_API_KEY.");
   }
   const accessToken = await getAccessToken(forceRefresh);
   const res = await fetch(`${IGDB_API_BASE}/${endpoint}`, {

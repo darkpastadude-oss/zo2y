@@ -635,6 +635,14 @@
       };
 
       let supabaseClient = null;
+      let loadGamesTimer = null;
+
+      function scheduleGamesLoad(delayMs = 360) {
+        if (loadGamesTimer) clearTimeout(loadGamesTimer);
+        loadGamesTimer = setTimeout(() => {
+          loadGames();
+        }, delayMs);
+      }
 
       async function igdbFetch(path, params = {}) {
         if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
@@ -1078,7 +1086,7 @@
             state.query = e.target.value.trim();
             renderFilters();
             state.page = 1;
-            loadGames();
+            scheduleGamesLoad(380);
           });
         }
         if (genreSelect) {
@@ -1086,7 +1094,7 @@
             state.activeGenre = e.target.value;
             renderFilters();
             state.page = 1;
-            loadGames();
+            scheduleGamesLoad(320);
           });
         }
         if (yearInput) {
@@ -1094,7 +1102,7 @@
             state.year = e.target.value.trim();
             renderFilters();
             state.page = 1;
-            loadGames();
+            scheduleGamesLoad(340);
           });
         }
         if (refreshBtn) refreshBtn.addEventListener('click', () => loadGames());

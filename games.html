@@ -768,7 +768,7 @@
       let supabaseClient = null;
       let loadGamesTimer = null;
 
-      function scheduleGamesLoad(delayMs = 220) {
+      function scheduleGamesLoad(delayMs = 360) {
         if (loadGamesTimer) clearTimeout(loadGamesTimer);
         loadGamesTimer = setTimeout(() => {
           loadGames();
@@ -1221,7 +1221,7 @@
             state.query = e.target.value.trim();
             renderFilters();
             state.page = 1;
-            scheduleGamesLoad(240);
+            scheduleGamesLoad(380);
           });
         }
         if (genreSelect) {
@@ -1229,7 +1229,7 @@
             state.activeGenre = e.target.value;
             renderFilters();
             state.page = 1;
-            scheduleGamesLoad(120);
+            scheduleGamesLoad(320);
           });
         }
         if (yearInput) {
@@ -1237,7 +1237,7 @@
             state.year = e.target.value.trim();
             renderFilters();
             state.page = 1;
-            scheduleGamesLoad(220);
+            scheduleGamesLoad(340);
           });
         }
         if (refreshBtn) {
