@@ -15,6 +15,9 @@ const LIST_CACHE_TTL_MS = 1000 * 60;
 const DETAIL_CACHE_TTL_MS = 1000 * 60 * 10;
 const MAX_LIST_CACHE_ENTRIES = 200;
 const MAX_DETAIL_CACHE_ENTRIES = 300;
+const IGDB_REQUEST_TIMEOUT_MS = 8000;
+const IGDB_COUNT_TIMEOUT_MS = 1200;
+const IGDB_MAX_RETRIES = 2;
 const RAWG_IGDB_COVER_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const MAX_RAWG_IGDB_COVER_CACHE_ENTRIES = 1200;
 const IGDB_COVER_LOOKUP_BACKOFF_MS = 1000 * 60;
@@ -59,6 +62,11 @@ function readTimedCache(cache, key) {
   return entry.value;
 }
 
+function readStaleCache(cache, key) {
+  const entry = cache.get(key);
+  return entry ? entry.value : null;
+}
+
 function writeTimedCache(cache, key, value, ttlMs, maxEntries = 200) {
   cache.set(key, {
     value,
@@ -75,6 +83,32 @@ function formatIgdbQuery(rawQuery) {
   const query = String(rawQuery || "").trim();
   if (!query) return "";
   return /;\s*$/.test(query) ? query : `${query};`;
+}
+
+function isTransientIgdbStatus(status) {
+  const n = Number(status);
+  return n === 429 || n === 500 || n === 502 || n === 503 || n === 504;
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
+}
+
+async function withTimeout(promise, ms) {
+  const timeoutMs = Math.max(1, Number(ms) || 1);
+  let timer = null;
+  return await Promise.race([
+    promise.finally(() => {
+      if (timer) clearTimeout(timer);
+    }),
+    new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        const err = new Error(`Timeout after ${timeoutMs}ms`);
+        err.code = "TIMEOUT";
+        reject(err);
+      }, timeoutMs);
+    })
+  ]);
 }
 
 function clampInt(value, min, max, fallback) {
@@ -491,7 +525,7 @@ async function getIgdbAccessToken(forceRefresh = false) {
   }
 }
 
-async function igdbRequest(endpoint, body, retry = true) {
+async function igdbRequest(endpoint, body, options = {}) {
   const { clientId } = getIgdbCredentials();
   if (!clientId) {
     const err = new Error("IGDB client id is missing.");
@@ -499,37 +533,69 @@ async function igdbRequest(endpoint, body, retry = true) {
     throw err;
   }
 
-  const token = await getIgdbAccessToken();
   const query = formatIgdbQuery(body);
   if (!query) {
     const err = new Error("IGDB query body is empty.");
     err.code = "IGDB_QUERY_EMPTY";
     throw err;
   }
+  const timeoutMs = clampInt(options.timeoutMs, 1000, 30_000, IGDB_REQUEST_TIMEOUT_MS);
+  const maxRetries = clampInt(options.maxRetries, 0, 5, IGDB_MAX_RETRIES);
+  const retryBackoffMs = clampInt(options.retryBackoffMs, 50, 3000, 260);
 
-  const response = await fetch(`${IGDB_API_BASE}/${String(endpoint || "").trim()}`, {
-    method: "POST",
-    headers: {
-      "Client-ID": clientId,
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "text/plain"
-    },
-    body: query
-  });
+  let lastError = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+    let forceRefreshToken = attempt > 0;
+    try {
+      const token = await getIgdbAccessToken(forceRefreshToken);
+      const response = await fetch(`${IGDB_API_BASE}/${String(endpoint || "").trim()}`, {
+        method: "POST",
+        headers: {
+          "Client-ID": clientId,
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "text/plain"
+        },
+        body: query,
+        signal: typeof AbortSignal?.timeout === "function" ? AbortSignal.timeout(timeoutMs) : undefined
+      });
 
-  if (response.status === 401 && retry) {
-    await getIgdbAccessToken(true);
-    return igdbRequest(endpoint, body, false);
+      if (response.status === 401) {
+        tokenCache = { accessToken: "", expiresAt: 0 };
+        if (attempt < maxRetries) {
+          await delay(retryBackoffMs * (attempt + 1));
+          continue;
+        }
+      }
+
+      if (!response.ok) {
+        const text = await response.text();
+        const err = new Error(`IGDB ${response.status}: ${text}`);
+        err.code = "IGDB_UPSTREAM_ERROR";
+        err.status = response.status;
+        if (attempt < maxRetries && isTransientIgdbStatus(response.status)) {
+          lastError = err;
+          await delay(retryBackoffMs * (attempt + 1));
+          continue;
+        }
+        throw err;
+      }
+
+      const text = await response.text();
+      if (!text.trim()) return [];
+      return JSON.parse(text);
+    } catch (error) {
+      lastError = error;
+      const message = String(error?.message || "");
+      const isAbort = error?.name === "AbortError" || message.toLowerCase().includes("timed out");
+      if (attempt < maxRetries && isAbort) {
+        await delay(retryBackoffMs * (attempt + 1));
+        continue;
+      }
+      throw error;
+    }
   }
-  if (!response.ok) {
-    const text = await response.text();
-    const err = new Error(`IGDB ${response.status}: ${text}`);
-    err.code = "IGDB_UPSTREAM_ERROR";
-    throw err;
-  }
-  const text = await response.text();
-  if (!text.trim()) return [];
-  return JSON.parse(text);
+
+  throw lastError || new Error("IGDB request failed.");
 }
 
 async function fetchMapByIds(endpoint, ids, fields, mapper = null) {
@@ -604,7 +670,8 @@ async function resolveGenreIds(genresRaw) {
 
 function buildIgdbWhereClause({ genreIds = [], startUnix = null, endUnix = null } = {}) {
   const clauses = [
-    "category = 0"
+    "category = 0",
+    "cover != null"
   ];
   const ids = dedupeNumbers(genreIds);
   if (ids.length) clauses.push(`genres = (${ids.join(",")})`);
@@ -617,90 +684,120 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
   const cacheKey = `igdb:${page}:${pageSize}:${orderingRaw}:${search}:${whereClause}`;
   const cached = readTimedCache(listCache, cacheKey);
   if (cached) return cached;
+  const staleCached = readStaleCache(listCache, cacheKey);
 
   const offset = Math.max(0, (page - 1) * pageSize);
-  const sortClause = mapOrderingToIgdb(orderingRaw);
-
-  let totalCount = 0;
   try {
-    const countParts = [];
-    if (search) countParts.push(`search "${escapeIgdbText(search)}";`);
-    if (whereClause) countParts.push(`where ${whereClause};`);
-    const countJson = await igdbRequest("games/count", countParts.join(" "));
-    totalCount = Number(countJson?.count || 0);
-  } catch (_err) {
-    totalCount = 0;
-  }
+    const sortClause = mapOrderingToIgdb(orderingRaw);
+    const countPromise = (async () => {
+      try {
+        const countParts = [];
+        if (search) countParts.push(`search "${escapeIgdbText(search)}";`);
+        if (whereClause) countParts.push(`where ${whereClause};`);
+        const countJson = await igdbRequest("games/count", countParts.join(" "), {
+          timeoutMs: IGDB_COUNT_TIMEOUT_MS,
+          maxRetries: 0
+        });
+        return Number(countJson?.count || 0);
+      } catch (_error) {
+        return 0;
+      }
+    })();
 
-  const queryParts = [
-    "fields id,name,slug,first_release_date,total_rating,total_rating_count,aggregated_rating,cover,cover.image_id,screenshots,screenshots.image_id,genres;"
-  ];
-  if (search) queryParts.push(`search "${escapeIgdbText(search)}";`);
-  if (whereClause) queryParts.push(`where ${whereClause};`);
-  queryParts.push(`sort ${sortClause};`);
-  queryParts.push(`limit ${pageSize};`);
-  queryParts.push(`offset ${offset};`);
-  const games = await igdbRequest("games", queryParts.join(" "));
+    const queryParts = [
+      "fields id,name,slug,first_release_date,total_rating,total_rating_count,aggregated_rating,cover.image_id,screenshots.image_id,genres.id,genres.name,genres.slug;"
+    ];
+    if (search) queryParts.push(`search "${escapeIgdbText(search)}";`);
+    if (whereClause) queryParts.push(`where ${whereClause};`);
+    queryParts.push(`sort ${sortClause};`);
+    queryParts.push(`limit ${pageSize};`);
+    queryParts.push(`offset ${offset};`);
+    const games = await igdbRequest("games", queryParts.join(" "));
 
-  const genreData = await ensureIgdbGenreCache();
-  const coverIds = dedupeNumbers((Array.isArray(games) ? games : []).map((game) => game?.cover));
-  const screenshotIds = dedupeNumbers((Array.isArray(games) ? games : []).flatMap((game) => game?.screenshots || []));
+    let genreData = null;
+    const hasNumericGenreRefs = (Array.isArray(games) ? games : []).some((game) =>
+      (Array.isArray(game?.genres) ? game.genres : []).some((genre) => Number.isFinite(Number(genre)))
+    );
+    if (hasNumericGenreRefs) {
+      try {
+        genreData = await ensureIgdbGenreCache();
+      } catch (_genreError) {
+        genreData = null;
+      }
+    }
 
-  const [coverMap, screenshotMap] = await Promise.all([
-    fetchMapByIds("covers", coverIds, "id,image_id", (row) => imageUrl(row?.image_id, "t_1080p")),
-    fetchMapByIds("screenshots", screenshotIds, "id,image_id", (row) => imageUrl(row?.image_id, "t_1080p"))
-  ]);
+    const results = (Array.isArray(games) ? games : []).map((game) => {
+      const mappedGenres = (Array.isArray(game?.genres) ? game.genres : [])
+        .map((genre) => {
+          if (genre && typeof genre === "object") {
+            const id = Number(genre?.id || 0);
+            const name = String(genre?.name || "").trim();
+            const slug = String(genre?.slug || "").trim().toLowerCase();
+            if (id > 0 || name) {
+              return {
+                id: id > 0 ? id : 0,
+                name: name || "Genre",
+                slug
+              };
+            }
+            return null;
+          }
+          const genreId = Number(genre);
+          if (!Number.isFinite(genreId) || genreId <= 0 || !genreData) return null;
+          const mapped = genreData.byId.get(genreId);
+          if (!mapped) return null;
+          return {
+            id: mapped.id,
+            name: mapped.name,
+            slug: mapped.slug
+          };
+        })
+        .filter(Boolean);
 
-  const results = (Array.isArray(games) ? games : []).map((game) => {
-    const mappedGenres = (Array.isArray(game?.genres) ? game.genres : [])
-      .map((genreId) => genreData.byId.get(Number(genreId)))
-      .filter(Boolean)
-      .map((genre) => ({
-        id: genre.id,
-        name: genre.name,
-        slug: genre.slug
-      }));
+      const coverImage = game?.cover?.image_id ? imageUrl(game.cover.image_id, "t_cover_big") : "";
+      const screenshotRows = (Array.isArray(game?.screenshots) ? game.screenshots : [])
+        .map((entry) => {
+          if (entry && typeof entry === "object" && entry.image_id) {
+            return imageUrl(entry.image_id, "t_screenshot_big");
+          }
+          return "";
+        })
+        .filter(Boolean)
+        .slice(0, 12);
+      const hero = screenshotRows[0] || coverImage || "";
+      const rating = Number(game?.total_rating || game?.aggregated_rating || 0);
+      const ratingCount = Number(game?.total_rating_count || 0);
 
-    const coverImage = game?.cover?.image_id
-      ? imageUrl(game.cover.image_id, "t_cover_big")
-      : (coverMap.get(Number(game?.cover)) || "");
-    const screenshotRows = (Array.isArray(game?.screenshots) ? game.screenshots : [])
-      .map((entry) => {
-        if (entry && typeof entry === "object" && entry.image_id) {
-          return imageUrl(entry.image_id, "t_1080p");
-        }
-        return screenshotMap.get(Number(entry));
-      })
-      .filter(Boolean)
-      .slice(0, 12);
-    const hero = screenshotRows[0] || coverImage || "";
-    const rating = Number(game?.total_rating || game?.aggregated_rating || 0);
-    const ratingCount = Number(game?.total_rating_count || 0);
+      return {
+        id: Number(game?.id || 0),
+        name: String(game?.name || "Game"),
+        slug: String(game?.slug || ""),
+        released: toReleaseDate(game?.first_release_date),
+        cover: coverImage,
+        hero,
+        screenshots: screenshotRows,
+        background_image: hero || coverImage,
+        short_screenshots: screenshotRows.map((image, index) => ({ id: index + 1, image })),
+        rating: rating ? Number((rating / 20).toFixed(1)) : null,
+        ratings_count: ratingCount || 0,
+        metacritic: Number.isFinite(Number(game?.aggregated_rating)) ? Math.round(Number(game.aggregated_rating)) : null,
+        genres: mappedGenres,
+        source: "igdb"
+      };
+    }).filter((row) => row.id > 0);
 
-    return {
-      id: Number(game?.id || 0),
-      name: String(game?.name || "Game"),
-      slug: String(game?.slug || ""),
-      released: toReleaseDate(game?.first_release_date),
-      cover: coverImage,
-      hero,
-      screenshots: screenshotRows,
-      background_image: hero || coverImage,
-      short_screenshots: screenshotRows.map((image, index) => ({ id: index + 1, image })),
-      rating: rating ? Number((rating / 20).toFixed(1)) : null,
-      ratings_count: ratingCount || 0,
-      metacritic: Number.isFinite(Number(game?.aggregated_rating)) ? Math.round(Number(game.aggregated_rating)) : null,
-      genres: mappedGenres,
-      source: "igdb"
+    const timedCount = await withTimeout(countPromise, IGDB_COUNT_TIMEOUT_MS).catch(() => 0);
+    const fallbackCount = offset + results.length + (results.length >= pageSize ? pageSize : 0);
+    const payload = {
+      count: timedCount || fallbackCount,
+      results
     };
-  }).filter((row) => row.id > 0);
-
-  const payload = {
-    count: totalCount || results.length,
-    results
-  };
-  writeTimedCache(listCache, cacheKey, payload, LIST_CACHE_TTL_MS, MAX_LIST_CACHE_ENTRIES);
-  return payload;
+    writeTimedCache(listCache, cacheKey, payload, LIST_CACHE_TTL_MS, MAX_LIST_CACHE_ENTRIES);
+    return payload;
+  } catch (error) {
+    if (staleCached) return staleCached;
+    throw error;
+  }
 }
 
 async function fetchIgdbGameDetails(id) {
@@ -709,7 +806,7 @@ async function fetchIgdbGameDetails(id) {
   if (cached) return cached;
 
   const query = [
-    "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,aggregated_rating,cover,cover.image_id,screenshots,screenshots.image_id,genres,platforms;",
+    "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,aggregated_rating,cover.image_id,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name;",
     `where id = ${Number(id)};`,
     "limit 1;"
   ].join(" ");
@@ -721,9 +818,26 @@ async function fetchIgdbGameDetails(id) {
     throw err;
   }
 
-  const genreData = await ensureIgdbGenreCache();
+  let genreData = null;
+  const hasNumericGenreRefs = (Array.isArray(game?.genres) ? game.genres : [])
+    .some((genre) => Number.isFinite(Number(genre)));
+  if (hasNumericGenreRefs) {
+    try {
+      genreData = await ensureIgdbGenreCache();
+    } catch (_genreError) {
+      genreData = null;
+    }
+  }
+
   const platformIds = dedupeNumbers(game?.platforms || []);
-  const platformMap = await fetchMapByIds("platforms", platformIds, "id,name");
+  let platformMap = new Map();
+  if (platformIds.length) {
+    try {
+      platformMap = await fetchMapByIds("platforms", platformIds, "id,name");
+    } catch (_platformError) {
+      platformMap = new Map();
+    }
+  }
 
   const coverImage = game?.cover?.image_id ? imageUrl(game.cover.image_id, "t_cover_big") : "";
   const screenshotRows = (Array.isArray(game?.screenshots) ? game.screenshots : [])
@@ -751,16 +865,45 @@ async function fetchIgdbGameDetails(id) {
     background_image: hero || coverImage || "",
     short_screenshots: screenshotRows.map((image, index) => ({ id: index + 1, image })),
     genres: (Array.isArray(game?.genres) ? game.genres : [])
-      .map((genreId) => genreData.byId.get(Number(genreId)))
-      .filter(Boolean)
-      .map((genre) => ({ id: genre.id, name: genre.name, slug: genre.slug })),
+      .map((genre) => {
+        if (genre && typeof genre === "object") {
+          const id = Number(genre?.id || 0);
+          const name = String(genre?.name || "").trim();
+          const slug = String(genre?.slug || "").trim().toLowerCase();
+          if (id > 0 || name) {
+            return {
+              id: id > 0 ? id : 0,
+              name: name || "Genre",
+              slug
+            };
+          }
+          return null;
+        }
+        const genreId = Number(genre);
+        if (!Number.isFinite(genreId) || genreId <= 0 || !genreData) return null;
+        const mapped = genreData.byId.get(genreId);
+        if (!mapped) return null;
+        return {
+          id: mapped.id,
+          name: mapped.name,
+          slug: mapped.slug
+        };
+      })
+      .filter(Boolean),
     rating: rating ? Number((rating / 20).toFixed(1)) : null,
     ratings_count: ratingsCount || 0,
     metacritic: Number.isFinite(Number(game?.aggregated_rating)) ? Math.round(Number(game.aggregated_rating)) : null,
     platforms: (Array.isArray(game?.platforms) ? game.platforms : [])
-      .map((platformId) => platformMap.get(Number(platformId)))
-      .filter(Boolean)
-      .map((platform) => ({ platform: { name: String(platform?.name || "Platform") } })),
+      .map((platform) => {
+        if (platform && typeof platform === "object") {
+          const name = String(platform?.name || platform?.platform?.name || "").trim();
+          return name ? { platform: { name } } : null;
+        }
+        const mapped = platformMap.get(Number(platform));
+        const name = String(mapped?.name || "").trim();
+        return name ? { platform: { name } } : null;
+      })
+      .filter(Boolean),
     developers: [],
     publishers: [],
     stores: [],
