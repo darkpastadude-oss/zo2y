@@ -9,11 +9,16 @@ const RAWG_API_BASE = "https://api.rawg.io/api";
 const RAWG_ID_OFFSET = 9_000_000_000_000;
 const RAWG_CACHE_TTL_MS = 1000 * 60 * 5;
 const RAWG_BACKOFF_MS = 1000 * 60 * 2;
+const STEAM_API_BASE = "https://store.steampowered.com/api";
+const STEAM_ID_OFFSET = 8_000_000_000_000;
+const STEAM_LIST_CACHE_TTL_MS = 1000 * 60 * 3;
+const STEAM_DETAIL_CACHE_TTL_MS = 1000 * 60 * 10;
 
 let tokenCache = {
   accessToken: "",
   expiresAt: 0
 };
+let igdbTokenRefreshPromise = null;
 
 let genreCache = {
   items: [],
@@ -24,6 +29,8 @@ let genreCache = {
 
 let rawgRequestCache = new Map();
 let rawgDisabledUntil = 0;
+let steamListCache = new Map();
+let steamDetailCache = new Map();
 
 function clampInt(value, min, max, fallback) {
   const n = Number(value);
@@ -168,10 +175,50 @@ function decodeRawgId(value) {
   return decoded;
 }
 
+function encodeSteamId(appId) {
+  const id = Number(appId);
+  if (!Number.isFinite(id) || id <= 0) return 0;
+  return STEAM_ID_OFFSET + id;
+}
+
+function decodeSteamId(value) {
+  const id = Number(value);
+  if (!Number.isFinite(id) || id <= STEAM_ID_OFFSET || id >= RAWG_ID_OFFSET) return null;
+  const decoded = id - STEAM_ID_OFFSET;
+  if (!Number.isFinite(decoded) || decoded <= 0) return null;
+  return decoded;
+}
+
+function readFirstEnv(keys = []) {
+  for (const key of keys) {
+    const value = String(process.env?.[key] || "").trim();
+    if (value) return value;
+  }
+  return "";
+}
+
+function getIgdbCredentials() {
+  const clientId = readFirstEnv([
+    "TWITCH_CLIENT_ID",
+    "IGDB_CLIENT_ID",
+    "TWITCH_APP_CLIENT_ID"
+  ]);
+  const clientSecret = readFirstEnv([
+    "TWITCH_CLIENT_SECRET",
+    "IGDB_CLIENT_SECRET",
+    "TWITCH_APP_CLIENT_SECRET"
+  ]);
+  const staticAccessToken = readFirstEnv([
+    "TWITCH_ACCESS_TOKEN",
+    "TWITCH_APP_ACCESS_TOKEN",
+    "IGDB_ACCESS_TOKEN"
+  ]);
+  return { clientId, clientSecret, staticAccessToken };
+}
+
 function hasIgdbCredentials() {
-  const clientId = process.env.TWITCH_CLIENT_ID || process.env.IGDB_CLIENT_ID || "";
-  const clientSecret = process.env.TWITCH_CLIENT_SECRET || process.env.IGDB_CLIENT_SECRET || "";
-  return !!(clientId && clientSecret);
+  const { clientId, clientSecret, staticAccessToken } = getIgdbCredentials();
+  return !!(clientId && (clientSecret || staticAccessToken));
 }
 
 function getRawgKey() {
@@ -505,51 +552,319 @@ function findRawgMatchForIgdb(igdbRow, index) {
   return null;
 }
 
-async function getAccessToken() {
-  if (tokenCache.accessToken && Date.now() < tokenCache.expiresAt - 60_000) {
-    return tokenCache.accessToken;
+function readTimedCache(cache, key) {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (!entry.expiresAt || Date.now() >= entry.expiresAt) {
+    cache.delete(key);
+    return null;
   }
+  return entry.value;
+}
 
-  const clientId = process.env.TWITCH_CLIENT_ID || process.env.IGDB_CLIENT_ID || "";
-  const clientSecret = process.env.TWITCH_CLIENT_SECRET || process.env.IGDB_CLIENT_SECRET || "";
-  if (!clientId || !clientSecret) {
-    throw new Error("Missing IGDB credentials. Set TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET.");
+function writeTimedCache(cache, key, value, ttlMs) {
+  cache.set(key, {
+    value,
+    expiresAt: Date.now() + Math.max(1, Number(ttlMs) || 1)
+  });
+}
+
+function parseSteamReleaseDate(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const directMs = Date.parse(raw.replace(/,/g, ""));
+  if (Number.isFinite(directMs)) {
+    return new Date(directMs).toISOString().slice(0, 10);
   }
+  const yearMatch = raw.match(/\b(19|20)\d{2}\b/);
+  if (yearMatch) {
+    return `${yearMatch[0]}-01-01`;
+  }
+  return "";
+}
 
-  const body = new URLSearchParams({
-    client_id: clientId,
-    client_secret: clientSecret,
-    grant_type: "client_credentials"
+function toPlainText(value) {
+  return String(value || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function mapSteamPlatforms(item = {}) {
+  const rows = [];
+  if (item?.windows || item?.windows_available) rows.push({ platform: { name: "PC (Windows)" } });
+  if (item?.mac || item?.mac_available) rows.push({ platform: { name: "macOS" } });
+  if (item?.linux || item?.linux_available) rows.push({ platform: { name: "Linux" } });
+  return rows;
+}
+
+function mapSteamListGame(item) {
+  const appId = Number(item?.id || item?.steam_appid || 0);
+  if (!Number.isFinite(appId) || appId <= 0) return null;
+  const encodedId = encodeSteamId(appId);
+  const coverImage = String(item?.large_capsule_image || item?.small_capsule_image || item?.header_image || "").trim();
+  const heroImage = String(item?.header_image || coverImage).trim();
+  const releaseDate = parseSteamReleaseDate(item?.release_date?.date || item?.release_date || "");
+  const screenshotRows = heroImage ? [{ id: 1, image: heroImage }] : [];
+
+  return {
+    id: encodedId || appId,
+    steam_appid: appId,
+    name: String(item?.name || "Game").trim() || "Game",
+    slug: normalizeGameKey(item?.name || "").replace(/\s+/g, "-"),
+    released: releaseDate,
+    cover: coverImage || heroImage || "",
+    hero: heroImage || coverImage || "",
+    screenshots: normalizeImageUrls(screenshotRows.map((row) => row.image)),
+    background_image: heroImage || coverImage || "",
+    short_screenshots: screenshotRows,
+    rating: null,
+    ratings_count: 0,
+    metacritic: null,
+    genres: [],
+    platforms: mapSteamPlatforms(item),
+    source: "steam"
+  };
+}
+
+function mapSteamDetailGame(appId, details) {
+  const encodedId = encodeSteamId(appId);
+  const screenshots = (Array.isArray(details?.screenshots) ? details.screenshots : [])
+    .map((row, index) => {
+      const image = String(row?.path_full || row?.path_thumbnail || "").trim();
+      if (!image) return null;
+      return { id: Number(row?.id || index + 1), image };
+    })
+    .filter(Boolean)
+    .slice(0, 16);
+  const screenshotUrls = normalizeImageUrls(screenshots.map((row) => row.image));
+
+  const headerImage = String(details?.header_image || "").trim();
+  const capsuleImage = String(details?.capsule_image || details?.capsule_imagev5 || "").trim();
+  const backgroundImage = String(details?.background_raw || details?.background || "").trim();
+  const coverImage = headerImage || capsuleImage || screenshotUrls[0] || "";
+  const heroImage = backgroundImage || screenshotUrls[0] || headerImage || capsuleImage || coverImage;
+
+  const metacritic = Number(details?.metacritic?.score || 0);
+  const recommendationCount = Number(details?.recommendations?.total || 0);
+  const clipUrl = String(
+    details?.movies?.[0]?.mp4?.max ||
+    details?.movies?.[0]?.mp4?.["480"] ||
+    details?.movies?.[0]?.webm?.max ||
+    ""
+  ).trim();
+
+  return {
+    id: encodedId || appId,
+    steam_appid: appId,
+    name: String(details?.name || "Game").trim() || "Game",
+    slug: normalizeGameKey(details?.name || "").replace(/\s+/g, "-"),
+    description_raw: toPlainText(details?.detailed_description || details?.short_description || ""),
+    description: toPlainText(details?.detailed_description || details?.short_description || ""),
+    released: parseSteamReleaseDate(details?.release_date?.date || ""),
+    playtime: null,
+    cover: coverImage || "",
+    hero: heroImage || coverImage || "",
+    screenshots: screenshotUrls,
+    background_image: heroImage || coverImage || "",
+    short_screenshots: screenshots,
+    genres: (Array.isArray(details?.genres) ? details.genres : [])
+      .map((genre) => {
+        const name = String(genre?.description || genre?.name || "").trim();
+        if (!name) return null;
+        const id = Number(genre?.id || 0);
+        return { id: Number.isFinite(id) && id > 0 ? id : 0, name, slug: normalizeGameKey(name).replace(/\s+/g, "-") };
+      })
+      .filter(Boolean),
+    rating: null,
+    ratings_count: Number.isFinite(recommendationCount) && recommendationCount > 0 ? recommendationCount : 0,
+    metacritic: Number.isFinite(metacritic) && metacritic > 0 ? metacritic : null,
+    esrb_rating: null,
+    platforms: mapSteamPlatforms(details?.platforms || details || {}),
+    developers: (Array.isArray(details?.developers) ? details.developers : [])
+      .map((name) => String(name || "").trim())
+      .filter(Boolean)
+      .map((name) => ({ name })),
+    publishers: (Array.isArray(details?.publishers) ? details.publishers : [])
+      .map((name) => String(name || "").trim())
+      .filter(Boolean)
+      .map((name) => ({ name })),
+    stores: [{ store: { name: "Steam" } }],
+    website: String(details?.website || "").trim(),
+    reddit_url: "",
+    clip: clipUrl ? { clip: clipUrl } : null,
+    youtube_url: ""
+  };
+}
+
+async function fetchSteamFeaturedItems() {
+  const cacheKey = "featured:us:en";
+  const cached = readTimedCache(steamListCache, cacheKey);
+  if (cached) return cached;
+
+  const url = new URL(`${STEAM_API_BASE}/featuredcategories`);
+  url.searchParams.set("cc", "us");
+  url.searchParams.set("l", "en");
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      "Accept": "application/json",
+      "User-Agent": "zo2y/1.0"
+    }
   });
-
-  const res = await fetch(TWITCH_TOKEN_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body
-  });
-
   if (!res.ok) {
-    const msg = await res.text();
-    throw new Error(`Twitch token error ${res.status}: ${msg}`);
+    const body = await res.text();
+    throw new Error(`Steam featured error ${res.status}: ${body}`);
   }
 
   const json = await res.json();
-  const accessToken = String(json?.access_token || "");
-  const expiresIn = Number(json?.expires_in || 0);
-  if (!accessToken || !expiresIn) {
-    throw new Error("Invalid Twitch token response.");
-  }
+  const pools = [
+    json?.top_sellers?.items,
+    json?.new_releases?.items,
+    json?.specials?.items,
+    json?.featured_win?.items,
+    json?.featured_mac?.items,
+    json?.featured_linux?.items
+  ];
 
-  tokenCache = {
-    accessToken,
-    expiresAt: Date.now() + (expiresIn * 1000)
-  };
-  return accessToken;
+  const deduped = [];
+  const seen = new Set();
+  pools.forEach((rows) => {
+    (Array.isArray(rows) ? rows : []).forEach((row) => {
+      const id = Number(row?.id || row?.steam_appid || 0);
+      if (!Number.isFinite(id) || id <= 0 || seen.has(id)) return;
+      seen.add(id);
+      deduped.push(row);
+    });
+  });
+
+  writeTimedCache(steamListCache, cacheKey, deduped, STEAM_LIST_CACHE_TTL_MS);
+  return deduped;
 }
 
-async function igdbRequest(endpoint, query, retry = true) {
-  const clientId = process.env.TWITCH_CLIENT_ID || process.env.IGDB_CLIENT_ID || "";
-  const accessToken = await getAccessToken();
+async function fetchSteamGamesList({ page = 1, pageSize = 20, search = "" }) {
+  const rows = await fetchSteamFeaturedItems();
+  const query = normalizeGameKey(search);
+  const filtered = rows.filter((row) => {
+    const mapped = mapSteamListGame(row);
+    if (!mapped) return false;
+    if (!query) return true;
+    return normalizeGameKey(mapped.name).includes(query);
+  });
+
+  const mappedRows = filtered
+    .map((row) => mapSteamListGame(row))
+    .filter(Boolean);
+
+  const offset = (Math.max(1, Number(page) || 1) - 1) * Math.max(1, Number(pageSize) || 20);
+  const paged = mappedRows.slice(offset, offset + Math.max(1, Number(pageSize) || 20));
+
+  return {
+    count: mappedRows.length,
+    results: paged
+  };
+}
+
+async function fetchSteamGameDetailsByAppId(appId) {
+  const safeId = Number(appId);
+  if (!Number.isFinite(safeId) || safeId <= 0) return null;
+
+  const cacheKey = `detail:${safeId}`;
+  const cached = readTimedCache(steamDetailCache, cacheKey);
+  if (cached) return cached;
+
+  const url = new URL(`${STEAM_API_BASE}/appdetails`);
+  url.searchParams.set("appids", String(safeId));
+  url.searchParams.set("cc", "us");
+  url.searchParams.set("l", "en");
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      "Accept": "application/json",
+      "User-Agent": "zo2y/1.0"
+    }
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Steam detail error ${res.status}: ${body}`);
+  }
+
+  const json = await res.json();
+  const root = json?.[String(safeId)];
+  if (!root?.success || !root?.data) return null;
+
+  const mapped = mapSteamDetailGame(safeId, root.data);
+  writeTimedCache(steamDetailCache, cacheKey, mapped, STEAM_DETAIL_CACHE_TTL_MS);
+  return mapped;
+}
+
+async function getAccessToken(forceRefresh = false) {
+  if (!forceRefresh && tokenCache.accessToken && Date.now() < tokenCache.expiresAt - 60_000) {
+    return tokenCache.accessToken;
+  }
+
+  const { clientId, clientSecret, staticAccessToken } = getIgdbCredentials();
+  if (!clientId) {
+    throw new Error("Missing IGDB credentials. Set TWITCH_CLIENT_ID (or IGDB_CLIENT_ID).");
+  }
+
+  if (!clientSecret) {
+    if (staticAccessToken) return staticAccessToken;
+    throw new Error("Missing IGDB credentials. Set TWITCH_CLIENT_SECRET or TWITCH_ACCESS_TOKEN.");
+  }
+
+  if (!forceRefresh && igdbTokenRefreshPromise) {
+    return igdbTokenRefreshPromise;
+  }
+
+  igdbTokenRefreshPromise = (async () => {
+    const body = new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      grant_type: "client_credentials"
+    });
+
+    const res = await fetch(TWITCH_TOKEN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body
+    });
+
+    if (!res.ok) {
+      const msg = await res.text();
+      if (staticAccessToken) return staticAccessToken;
+      throw new Error(`Twitch token error ${res.status}: ${msg}`);
+    }
+
+    const json = await res.json();
+    const accessToken = String(json?.access_token || "");
+    const expiresIn = Number(json?.expires_in || 0);
+    if (!accessToken || !expiresIn) {
+      if (staticAccessToken) return staticAccessToken;
+      throw new Error("Invalid Twitch token response.");
+    }
+
+    tokenCache = {
+      accessToken,
+      expiresAt: Date.now() + (expiresIn * 1000)
+    };
+    return accessToken;
+  })();
+
+  try {
+    return await igdbTokenRefreshPromise;
+  } finally {
+    igdbTokenRefreshPromise = null;
+  }
+}
+
+async function igdbRequest(endpoint, query, retry = true, forceRefresh = false) {
+  const { clientId } = getIgdbCredentials();
+  if (!clientId) {
+    throw new Error("Missing IGDB credentials. Set TWITCH_CLIENT_ID (or IGDB_CLIENT_ID).");
+  }
+  const accessToken = await getAccessToken(forceRefresh);
   const res = await fetch(`${IGDB_API_BASE}/${endpoint}`, {
     method: "POST",
     headers: {
@@ -562,7 +877,7 @@ async function igdbRequest(endpoint, query, retry = true) {
 
   if (res.status === 401 && retry) {
     tokenCache = { accessToken: "", expiresAt: 0 };
-    return igdbRequest(endpoint, query, false);
+    return igdbRequest(endpoint, query, false, true);
   }
 
   if (!res.ok) {

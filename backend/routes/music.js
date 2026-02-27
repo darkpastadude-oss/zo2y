@@ -49,6 +49,7 @@ let spotifyTokenCache = {
   accessToken: "",
   expiresAt: 0
 };
+let spotifyTokenRefreshPromise = null;
 const albumDetailsCache = new Map();
 const popularAlbumsCache = new Map();
 const trackAlbumContextCache = new Map();
@@ -59,15 +60,50 @@ function clampInt(value, min, max, fallback) {
   return Math.max(min, Math.min(max, Math.floor(n)));
 }
 
+function readFirstEnv(keys = []) {
+  for (const key of keys) {
+    const value = String(process.env?.[key] || "").trim();
+    if (value) return value;
+  }
+  return "";
+}
+
 function getSpotifyCredentials() {
-  const clientId = String(process.env.SPOTIFY_CLIENT_ID || "").trim();
-  const clientSecret = String(process.env.SPOTIFY_CLIENT_SECRET || "").trim();
-  return { clientId, clientSecret };
+  const clientId = readFirstEnv([
+    "SPOTIFY_CLIENT_ID",
+    "SPOTIFY_ID",
+    "SPOTIFY_API_CLIENT_ID",
+    "SPOTIFY_APP_CLIENT_ID"
+  ]);
+  const clientSecret = readFirstEnv([
+    "SPOTIFY_CLIENT_SECRET",
+    "SPOTIFY_SECRET",
+    "SPOTIFY_API_CLIENT_SECRET",
+    "SPOTIFY_APP_CLIENT_SECRET"
+  ]);
+  const staticToken = readFirstEnv([
+    "SPOTIFY_ACCESS_TOKEN",
+    "SPOTIFY_BEARER_TOKEN"
+  ]);
+  return { clientId, clientSecret, staticToken };
 }
 
 function hasSpotifyCredentials() {
-  const { clientId, clientSecret } = getSpotifyCredentials();
-  return !!(clientId && clientSecret);
+  const { clientId, clientSecret, staticToken } = getSpotifyCredentials();
+  return !!(clientId && (clientSecret || staticToken));
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
+}
+
+function parseRetryAfterMs(headerValue, fallbackMs = 1200) {
+  const fallback = Math.max(250, Number(fallbackMs) || 1200);
+  const seconds = Number(headerValue);
+  if (Number.isFinite(seconds) && seconds > 0) {
+    return Math.max(250, Math.floor(seconds * 1000));
+  }
+  return fallback;
 }
 
 function toHttpsUrl(value) {
@@ -856,75 +892,132 @@ async function getSpotifyAccessToken(forceRefresh = false) {
     return spotifyTokenCache.accessToken;
   }
 
-  const { clientId, clientSecret } = getSpotifyCredentials();
-  if (!clientId || !clientSecret) {
+  const { clientId, clientSecret, staticToken } = getSpotifyCredentials();
+  if (!clientId) {
     const err = new Error("Spotify credentials are not configured.");
     err.code = "SPOTIFY_DISABLED";
     throw err;
   }
 
-  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
-  const res = await fetch(SPOTIFY_TOKEN_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${basic}`,
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: "grant_type=client_credentials"
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Spotify token error ${res.status}: ${body}`);
+  if (!clientSecret) {
+    if (staticToken) return staticToken;
+    const err = new Error("Spotify credentials are incomplete. Set SPOTIFY_CLIENT_SECRET.");
+    err.code = "SPOTIFY_DISABLED";
+    throw err;
   }
 
-  const json = await res.json();
-  const accessToken = String(json?.access_token || "");
-  const expiresIn = Number(json?.expires_in || 0);
-  if (!accessToken || !expiresIn) {
-    throw new Error("Spotify token response was invalid.");
+  if (!forceRefresh && spotifyTokenRefreshPromise) {
+    return spotifyTokenRefreshPromise;
   }
 
-  spotifyTokenCache = {
-    accessToken,
-    expiresAt: Date.now() + (expiresIn * 1000)
-  };
-  return accessToken;
+  spotifyTokenRefreshPromise = (async () => {
+    const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+    const res = await fetch(SPOTIFY_TOKEN_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${basic}`,
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: "grant_type=client_credentials"
+    });
+
+    if (!res.ok) {
+      const body = await res.text();
+      if (staticToken) return staticToken;
+      throw new Error(`Spotify token error ${res.status}: ${body}`);
+    }
+
+    const json = await res.json();
+    const accessToken = String(json?.access_token || "");
+    const expiresIn = Number(json?.expires_in || 0);
+    if (!accessToken || !expiresIn) {
+      if (staticToken) return staticToken;
+      throw new Error("Spotify token response was invalid.");
+    }
+
+    spotifyTokenCache = {
+      accessToken,
+      expiresAt: Date.now() + (expiresIn * 1000)
+    };
+    return accessToken;
+  })();
+
+  try {
+    return await spotifyTokenRefreshPromise;
+  } finally {
+    spotifyTokenRefreshPromise = null;
+  }
 }
 
 async function spotifyRequest(path, params = {}, retry = true) {
-  const accessToken = await getSpotifyAccessToken(false);
-  const url = new URL(`${SPOTIFY_API_BASE}${String(path || "").startsWith("/") ? path : `/${String(path || "")}`}`);
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value === undefined || value === null || value === "") return;
-    url.searchParams.set(key, String(value));
-  });
+  const maxAttempts = retry ? 3 : 1;
+  let forceTokenRefresh = false;
 
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${accessToken}`
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const accessToken = await getSpotifyAccessToken(forceTokenRefresh);
+    forceTokenRefresh = false;
+    const url = new URL(`${SPOTIFY_API_BASE}${String(path || "").startsWith("/") ? path : `/${String(path || "")}`}`);
+    Object.entries(params || {}).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === "") return;
+      url.searchParams.set(key, String(value));
+    });
+
+    const res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+
+    if (res.status === 401 && retry && attempt < maxAttempts) {
+      spotifyTokenCache = { accessToken: "", expiresAt: 0 };
+      forceTokenRefresh = true;
+      continue;
     }
-  });
 
-  if (res.status === 401 && retry) {
-    spotifyTokenCache = { accessToken: "", expiresAt: 0 };
-    return spotifyRequest(path, params, false);
+    if (res.status === 429 && attempt < maxAttempts) {
+      const waitMs = parseRetryAfterMs(res.headers.get("retry-after"), 1200 + (attempt * 300));
+      await sleep(waitMs);
+      continue;
+    }
+
+    if (res.status >= 500 && res.status <= 599 && attempt < maxAttempts) {
+      await sleep(300 * attempt);
+      continue;
+    }
+
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Spotify request failed (${res.status}): ${body}`);
+    }
+
+    return res.json();
   }
 
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Spotify request failed (${res.status}): ${body}`);
-  }
-
-  return res.json();
+  throw new Error(`Spotify request failed after retries (${String(path || "")})`);
 }
 
 router.get("/", (_req, res) => {
+  const { clientId, clientSecret, staticToken } = getSpotifyCredentials();
   res.json({
     ok: true,
     service: "spotify-proxy",
     configured: hasSpotifyCredentials(),
+    auth_mode: clientId
+      ? (clientSecret ? "client_credentials" : (staticToken ? "static_token_only" : "missing_secret"))
+      : "missing_client_id",
     routes: ["/search", "/top-50", "/popular", "/popular-albums", "/featured-playlists", "/new-releases", "/albums/:id", "/tracks/:id"]
+  });
+});
+
+router.get("/health", (_req, res) => {
+  const { clientId, clientSecret, staticToken } = getSpotifyCredentials();
+  res.json({
+    ok: true,
+    service: "spotify-proxy",
+    configured: hasSpotifyCredentials(),
+    has_client_id: !!clientId,
+    has_client_secret: !!clientSecret,
+    has_static_token: !!staticToken
   });
 });
 
@@ -1001,7 +1094,12 @@ router.get("/top-50", async (req, res) => {
         results: fallback
       });
     } catch (_fallbackError) {
-      return res.status(500).json({ message: "Failed to load top 50 music.", error: String(error?.message || error) });
+      return res.json({
+        count: 0,
+        limit,
+        source: "unavailable",
+        results: []
+      });
     }
   }
 });
@@ -1136,7 +1234,13 @@ router.get("/popular", async (req, res) => {
         results: fallback
       });
     } catch (_fallbackError) {
-      return res.status(500).json({ message: "Failed to load popular music.", error: String(error?.message || error) });
+      return res.json({
+        count: 0,
+        limit,
+        offset: 0,
+        source: "unavailable",
+        results: []
+      });
     }
   }
 });
@@ -1281,7 +1385,13 @@ router.get("/popular-albums", async (req, res) => {
         results
       });
     } catch (_fallbackError) {
-      return res.status(500).json({ message: "Failed to load popular albums.", error: String(error?.message || error) });
+      return res.json({
+        count: 0,
+        limit,
+        source: "unavailable",
+        album_types: albumTypesKey,
+        results: []
+      });
     }
   }
 });
@@ -1337,7 +1447,13 @@ router.get("/new-releases", async (req, res) => {
         source: "itunes-fallback"
       });
     } catch (_fallbackError) {
-      return res.status(500).json({ message: "Failed to load new releases.", error: String(error?.message || error) });
+      return res.json({
+        count: 0,
+        limit,
+        album_types: albumTypesKey,
+        source: "unavailable",
+        results: []
+      });
     }
   }
 });
@@ -1479,7 +1595,19 @@ router.get("/search", async (req, res) => {
         albums: filterAlbumsByType(fallbackAlbums, albumTypes)
       });
     } catch (_fallbackError) {
-      return res.status(500).json({ message: "Failed to search music.", error: String(error?.message || error) });
+      return res.json({
+        count: 0,
+        track_count: 0,
+        album_count: 0,
+        limit,
+        offset,
+        source: "unavailable",
+        type: spotifyType,
+        album_types: albumTypesKey,
+        results: [],
+        tracks: [],
+        albums: []
+      });
     }
   }
 });

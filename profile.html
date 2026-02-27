@@ -5705,18 +5705,20 @@ header, .top-stripe, .section-nav {
             const OPEN_LIBRARY_PROXY_BASE = "/api/openlibrary";
             const FALLBACK_BOOK_IMAGE = "images/logo.png";
 
-            async function igdbFetch(path, params = {}) {
+            async function igdbFetch(path, params = {}, signal = null) {
                 if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === "function") {
-                    return window.ZO2Y_IGDB.request(path, params);
+                    return window.ZO2Y_IGDB.request(path, params, signal ? { signal } : undefined);
                 }
                 const url = new URL(`${IGDB_PROXY_BASE}${path}`, window.location.origin);
-                Object.entries(params).forEach(([key, value]) => {
+                Object.entries(params || {}).forEach(([key, value]) => {
                     if (value === undefined || value === null || value === "") return;
                     url.searchParams.set(key, String(value));
                 });
-                const res = await fetch(url.toString());
+                const res = await fetch(url.toString(), signal ? { signal } : undefined);
                 if (!res.ok) throw new Error(`IGDB error ${res.status}`);
-                return res.json();
+                const json = await res.json().catch(() => null);
+                if (!json) throw new Error('IGDB error');
+                return json;
             }
 
             // Initialize Supabase client
@@ -5905,6 +5907,14 @@ header, .top-stripe, .section-nav {
                     await hydrateInitialRoute();
                     preloadCollectionTabs();
                     updateCollectionViewToggleButtons();
+
+                    if (!isCollectionRouteActive()) {
+                        Promise.allSettled([
+                            renderMovies(),
+                            renderTvShows(),
+                            renderAnimeShows()
+                        ]).catch(() => {});
+                    }
                     
                     // Handle click outside dropdown
                     document.addEventListener('click', (e) => {
@@ -5989,14 +5999,15 @@ header, .top-stripe, .section-nav {
                 const deferMs = window.innerWidth <= 768 ? 2200 : 1200;
                 setTimeout(() => {
                     if (document.hidden) return;
-                    Promise.allSettled([
-                        renderMovies(),
-                        renderTvShows(),
-                        renderAnimeShows(),
-                        renderGames(),
-                        renderBooks(),
-                        renderMusic()
-                    ]).catch(() => {});
+                    const preloadTasks = [];
+                    if (!hasFreshTabRender('movies')) preloadTasks.push(renderMovies());
+                    if (!hasFreshTabRender('tv')) preloadTasks.push(renderTvShows());
+                    if (!hasFreshTabRender('anime')) preloadTasks.push(renderAnimeShows());
+                    if (!hasFreshTabRender('games')) preloadTasks.push(renderGames());
+                    if (!hasFreshTabRender('books')) preloadTasks.push(renderBooks());
+                    if (!hasFreshTabRender('music')) preloadTasks.push(renderMusic());
+                    if (!preloadTasks.length) return;
+                    Promise.allSettled(preloadTasks).catch(() => {});
                 }, deferMs);
             }
 
@@ -10983,6 +10994,10 @@ header, .top-stripe, .section-nav {
                     const ownerUserId = options.ownerUserId || null;
                     const normalizedIds = normalizeIds(itemIds);
                     const tierMeta = TierListMeta.detect(safeType, list, normalizedIds.length);
+                    // Most lists are standard lists; avoid tier-rank hydration queries unless needed.
+                    if (!tierMeta.isTier) {
+                        return { tierMeta, orderedIds: normalizedIds };
+                    }
                     if (!(safeListId && window.ListUtils)) {
                         return { tierMeta, orderedIds: normalizedIds };
                     }
@@ -12550,16 +12565,29 @@ header, .top-stripe, .section-nav {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderMoviesToken;
+                const hasCards = !!grid.querySelector('.collection-card');
+                if (!hasCards) {
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('movie')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading Movies...</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
+                        </div>
+                    `;
+                }
 
                 try {
-                    await ensurePinnedCollectionsLoaded(userId);
+                    const [_, loadedCustomLists] = await Promise.all([
+                        ensurePinnedCollectionsLoaded(userId),
+                        loadCollaborativeCustomLists('movie', userId)
+                    ]);
                     const defaultLists = [
                         { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Movies you love', type: 'default' },
                         { id: 'watched', title: 'Watched', icon: 'check', description: 'Movies you watched', type: 'default' },
                         { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Movies to watch', type: 'default' }
                     ];
 
-                    let customLists = await loadCollaborativeCustomLists('movie', userId);
+                    let customLists = Array.isArray(loadedCustomLists) ? loadedCustomLists : [];
                     if (renderToken !== renderMoviesToken) return;
                     customLists = await hydrateListMetaByOwner('movie', customLists, userId);
                     if (renderToken !== renderMoviesToken) return;
@@ -12633,16 +12661,29 @@ header, .top-stripe, .section-nav {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderTvToken;
+                const hasCards = !!grid.querySelector('.collection-card');
+                if (!hasCards) {
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('tv')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading TV Shows...</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
+                        </div>
+                    `;
+                }
 
                 try {
-                    await ensurePinnedCollectionsLoaded(userId);
+                    const [_, loadedCustomLists] = await Promise.all([
+                        ensurePinnedCollectionsLoaded(userId),
+                        loadCollaborativeCustomLists('tv', userId)
+                    ]);
                     const defaultLists = [
                         { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Shows you love', type: 'default' },
                         { id: 'watched', title: 'Watched', icon: 'check', description: 'Shows you watched', type: 'default' },
                         { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Shows to watch', type: 'default' }
                     ];
 
-                    let customLists = await loadCollaborativeCustomLists('tv', userId);
+                    let customLists = Array.isArray(loadedCustomLists) ? loadedCustomLists : [];
                     if (renderToken !== renderTvToken) return;
                     customLists = await hydrateListMetaByOwner('tv', customLists, userId);
                     if (renderToken !== renderTvToken) return;
@@ -12716,16 +12757,29 @@ header, .top-stripe, .section-nav {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderAnimeToken;
+                const hasCards = !!grid.querySelector('.collection-card');
+                if (!hasCards) {
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('anime')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading Anime...</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
+                        </div>
+                    `;
+                }
 
                 try {
-                    await ensurePinnedCollectionsLoaded(userId);
+                    const [_, loadedCustomLists] = await Promise.all([
+                        ensurePinnedCollectionsLoaded(userId),
+                        loadCollaborativeCustomLists('anime', userId)
+                    ]);
                     const defaultLists = [
                         { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Anime you love', type: 'default' },
                         { id: 'watched', title: 'Watched', icon: 'check', description: 'Anime you watched', type: 'default' },
                         { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Anime to watch', type: 'default' }
                     ];
 
-                    let customLists = await loadCollaborativeCustomLists('anime', userId);
+                    let customLists = Array.isArray(loadedCustomLists) ? loadedCustomLists : [];
                     if (renderToken !== renderAnimeToken) return;
                     customLists = await hydrateListMetaByOwner('anime', customLists, userId);
                     if (renderToken !== renderAnimeToken) return;
@@ -13177,30 +13231,45 @@ header, .top-stripe, .section-nav {
                 const countLabel = getCollectionItemLabel(contentType, count);
 
                 const previewLimit = 3;
-                const previewItems = await getPreviewItems(orderedIds.slice(0, previewLimit), contentType);
+                const previewIds = orderedIds.slice(0, previewLimit);
                 const previewOrientationClass = getPreviewOrientationClass(contentType);
-
-                let previewHtml = '';
-                for (let i = 0; i < previewLimit; i++) {
-                    const overflowHtml = (i === previewLimit - 1 && count > previewLimit)
-                        ? `<div class="collection-preview-overflow">+${count - previewLimit}</div>`
-                        : '';
-                    if (previewItems[i]) {
-                        previewHtml += `
-                            <div class="collection-preview-item ${previewOrientationClass}">
-                                <img src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
-                                ${overflowHtml}
-                            </div>
-                        `;
-                    } else {
-                        previewHtml += `
+                const fallbackPreviewIcon = contentType === 'restaurant'
+                    ? 'restaurant'
+                    : (contentType === 'movie'
+                        ? 'movie'
+                        : (contentType === 'tv'
+                            ? 'tv'
+                            : (contentType === 'anime'
+                                ? 'anime'
+                                : (contentType === 'game'
+                                    ? 'game'
+                                    : (contentType === 'book' ? 'book' : 'music')))));
+                const buildPreviewHtml = (previewItems = []) => {
+                    let html = '';
+                    for (let i = 0; i < previewLimit; i++) {
+                        const overflowHtml = (i === previewLimit - 1 && count > previewLimit)
+                            ? `<div class="collection-preview-overflow">+${count - previewLimit}</div>`
+                            : '';
+                        if (previewItems[i]) {
+                            html += `
                                 <div class="collection-preview-item ${previewOrientationClass}">
-                                <div class="collection-preview-item-empty">${iconGlyph(contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'anime' ? 'anime' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : 'music'))))))}</div>
-                                ${overflowHtml}
-                            </div>
-                        `;
+                                    <img src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
+                                    ${overflowHtml}
+                                </div>
+                            `;
+                        } else {
+                            html += `
+                                <div class="collection-preview-item ${previewOrientationClass}">
+                                    <div class="collection-preview-item-empty">${iconGlyph(fallbackPreviewIcon)}</div>
+                                    ${overflowHtml}
+                                </div>
+                            `;
+                        }
                     }
-                }
+                    return html;
+                };
+                const cachedPreviewItems = previewIds.map((id) => readPreviewAssetCache(contentType, id));
+                const previewHtml = buildPreviewHtml(cachedPreviewItems);
 
                 const canEditCollection = isViewingOwnProfile && isCustom && !!collabAccess.canEdit;
                 const canDeleteCollection = isViewingOwnProfile && isCustom && !!collabAccess.isOwner;
@@ -13263,6 +13332,21 @@ header, .top-stripe, .section-nav {
                 `;
 
                 card.onclick = () => openCollectionPage(routeListId, contentType, routeListType);
+
+                // Hydrate preview images in the background to keep first paint instant.
+                if (previewIds.length) {
+                    void getPreviewItems(previewIds, contentType)
+                        .then((resolvedPreviewItems) => {
+                            if (!card.isConnected) return;
+                            const previewContainer = card.querySelector('.collection-card-preview');
+                            if (!previewContainer) return;
+                            const nextHtml = buildPreviewHtml(resolvedPreviewItems);
+                            if (previewContainer.innerHTML !== nextHtml) {
+                                previewContainer.innerHTML = nextHtml;
+                            }
+                        })
+                        .catch(() => {});
+                }
 
                 return card;
             }
