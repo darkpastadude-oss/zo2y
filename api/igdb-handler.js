@@ -15,6 +15,10 @@ const LIST_CACHE_TTL_MS = 1000 * 60;
 const DETAIL_CACHE_TTL_MS = 1000 * 60 * 10;
 const MAX_LIST_CACHE_ENTRIES = 200;
 const MAX_DETAIL_CACHE_ENTRIES = 300;
+const RAWG_IGDB_COVER_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
+const MAX_RAWG_IGDB_COVER_CACHE_ENTRIES = 1200;
+const IGDB_COVER_LOOKUP_BACKOFF_MS = 1000 * 60;
+const RAWG_IGDB_FALLBACK_LOOKUPS_PER_REQUEST = 10;
 
 let tokenCache = {
   accessToken: "",
@@ -30,6 +34,8 @@ let genreCache = {
 };
 let listCache = new Map();
 let detailCache = new Map();
+let rawgIgdbCoverCache = new Map();
+let igdbCoverLookupBackoffUntil = 0;
 
 function pushQueryParam(params, key, value) {
   if (value === undefined || value === null) return;
@@ -227,6 +233,198 @@ function decodeRawgId(value) {
   const decoded = id - RAWG_ID_OFFSET;
   if (!Number.isFinite(decoded) || decoded <= 0) return null;
   return decoded;
+}
+
+function normalizeGameKey(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function yearFromRelease(value) {
+  const text = String(value || "").trim();
+  const year = text.slice(0, 4);
+  return /^\d{4}$/.test(year) ? year : "";
+}
+
+function rawgCoverLookupKey(name, slug, released) {
+  const slugKey = String(slug || "").trim().toLowerCase();
+  if (slugKey) return `slug:${slugKey}`;
+  const normalizedName = normalizeGameKey(name);
+  if (!normalizedName) return "";
+  const year = yearFromRelease(released);
+  return year ? `name:${normalizedName}|${year}` : `name:${normalizedName}`;
+}
+
+function pickIgdbCoverImage(game) {
+  const imageId = String(game?.cover?.image_id || "").trim();
+  if (imageId) return imageUrl(imageId, "t_cover_big");
+  const url = toHttpsUrl(game?.cover?.url || "");
+  return url || "";
+}
+
+function scoreIgdbCoverMatch(row, targetYear = "") {
+  const year = Number(targetYear);
+  if (!Number.isFinite(year) || year <= 0) return 0;
+  const rowYear = Number(toReleaseDate(row?.first_release_date).slice(0, 4));
+  if (!Number.isFinite(rowYear) || rowYear <= 0) return 100;
+  return Math.abs(rowYear - year);
+}
+
+function pickBestIgdbCover(games, targetYear = "") {
+  let bestCover = "";
+  let bestScore = Number.POSITIVE_INFINITY;
+  (Array.isArray(games) ? games : []).forEach((game) => {
+    const cover = pickIgdbCoverImage(game);
+    if (!cover) return;
+    const score = scoreIgdbCoverMatch(game, targetYear);
+    if (score < bestScore) {
+      bestScore = score;
+      bestCover = cover;
+    }
+  });
+  return bestCover;
+}
+
+function shouldBackoffIgdbCoverLookup(error) {
+  const message = String(error?.message || error || "").toLowerCase();
+  return (
+    message.includes("igdb 429") ||
+    message.includes("igdb 500") ||
+    message.includes("igdb 502") ||
+    message.includes("igdb 503") ||
+    message.includes("igdb 504") ||
+    message.includes("twitch token error")
+  );
+}
+
+async function runWithConcurrency(items = [], concurrency = 4, worker) {
+  const list = Array.isArray(items) ? items : [];
+  if (!list.length) return;
+  const queue = [...list];
+  const maxWorkers = Math.max(1, Math.min(Number(concurrency) || 1, queue.length));
+  await Promise.all(Array.from({ length: maxWorkers }, async () => {
+    while (queue.length) {
+      const item = queue.shift();
+      if (!item) continue;
+      await worker(item);
+    }
+  }));
+}
+
+async function lookupIgdbCoverByName(name, released = "") {
+  const query = String(name || "").trim();
+  if (!query) return "";
+  const safeName = escapeIgdbText(query);
+  if (!safeName) return "";
+  const queryParts = [
+    "fields id,name,slug,first_release_date,cover,cover.image_id;",
+    `search "${safeName}";`,
+    "where cover != null & category = 0;",
+    "limit 6;"
+  ];
+  const rows = await igdbRequest("games", queryParts.join(" "));
+  return pickBestIgdbCover(rows, yearFromRelease(released));
+}
+
+async function enrichRawgRowsWithIgdbCovers(rows = []) {
+  const list = Array.isArray(rows) ? rows : [];
+  if (!list.length || !hasIgdbCredentials()) return list;
+  if (Date.now() < igdbCoverLookupBackoffUntil) return list;
+
+  const pending = [];
+  list.forEach((row) => {
+    const key = rawgCoverLookupKey(row?.name, row?.slug, row?.released);
+    if (!key) return;
+    const cached = readTimedCache(rawgIgdbCoverCache, key);
+    if (cached !== null) {
+      if (cached) row.cover = cached;
+      return;
+    }
+    pending.push({
+      row,
+      key,
+      slug: String(row?.slug || "").trim().toLowerCase()
+    });
+  });
+  if (!pending.length) return list;
+
+  const unresolved = new Set(pending);
+  try {
+    const slugMap = new Map();
+    pending.forEach((entry) => {
+      if (!/^[a-z0-9-]+$/.test(entry.slug)) return;
+      if (!slugMap.has(entry.slug)) slugMap.set(entry.slug, []);
+      slugMap.get(entry.slug).push(entry);
+    });
+
+    const slugs = [...slugMap.keys()];
+    for (const slugChunk of chunkArray(slugs, 20)) {
+      if (!slugChunk.length) continue;
+      const slugFilters = slugChunk
+        .map((slug) => `slug = "${escapeIgdbText(slug)}"`)
+        .join(" | ");
+      const query = [
+        "fields id,slug,first_release_date,cover,cover.image_id;",
+        `where cover != null & category = 0 & (${slugFilters});`,
+        `limit ${Math.max(20, slugChunk.length * 3)};`
+      ].join(" ");
+      const rows = await igdbRequest("games", query);
+      (Array.isArray(rows) ? rows : []).forEach((game) => {
+        const slug = String(game?.slug || "").trim().toLowerCase();
+        const cover = pickIgdbCoverImage(game);
+        if (!slug || !cover || !slugMap.has(slug)) return;
+        slugMap.get(slug).forEach((entry) => {
+          if (!unresolved.has(entry)) return;
+          entry.row.cover = cover;
+          writeTimedCache(
+            rawgIgdbCoverCache,
+            entry.key,
+            cover,
+            RAWG_IGDB_COVER_CACHE_TTL_MS,
+            MAX_RAWG_IGDB_COVER_CACHE_ENTRIES
+          );
+          unresolved.delete(entry);
+        });
+      });
+    }
+
+    const fallbackEntries = pending
+      .filter((entry) => unresolved.has(entry))
+      .slice(0, RAWG_IGDB_FALLBACK_LOOKUPS_PER_REQUEST);
+
+    await runWithConcurrency(fallbackEntries, 4, async (entry) => {
+      const cover = await lookupIgdbCoverByName(entry.row?.name, entry.row?.released);
+      if (!cover) return;
+      entry.row.cover = cover;
+      writeTimedCache(
+        rawgIgdbCoverCache,
+        entry.key,
+        cover,
+        RAWG_IGDB_COVER_CACHE_TTL_MS,
+        MAX_RAWG_IGDB_COVER_CACHE_ENTRIES
+      );
+      unresolved.delete(entry);
+    });
+
+    pending.forEach((entry) => {
+      if (!unresolved.has(entry)) return;
+      writeTimedCache(
+        rawgIgdbCoverCache,
+        entry.key,
+        "",
+        RAWG_IGDB_COVER_CACHE_TTL_MS,
+        MAX_RAWG_IGDB_COVER_CACHE_ENTRIES
+      );
+    });
+  } catch (error) {
+    if (shouldBackoffIgdbCoverLookup(error)) {
+      igdbCoverLookupBackoffUntil = Date.now() + IGDB_COVER_LOOKUP_BACKOFF_MS;
+    }
+  }
+
+  return list;
 }
 
 async function getIgdbAccessToken(forceRefresh = false) {
@@ -648,6 +846,7 @@ async function fetchRawgGamesList({ page, pageSize, orderingRaw, search, dates, 
   });
   const rows = Array.isArray(json?.results) ? json.results : [];
   const results = rows.map(mapRawgListRow).filter((row) => Number(row?.id) > 0);
+  await enrichRawgRowsWithIgdbCovers(results);
   return {
     count: Number(json?.count || results.length || 0),
     results
@@ -671,7 +870,7 @@ async function fetchRawgGameDetails(rawgId) {
   const uniqueScreens = [...new Set(screenshotUrls)];
   const cover = toHttpsUrl(details?.background_image || details?.background_image_additional || uniqueScreens[0] || "");
 
-  return {
+  const payload = {
     id: encodeRawgId(id),
     rawg_id: id,
     name: String(details?.name || "Game").trim(),
@@ -713,6 +912,8 @@ async function fetchRawgGameDetails(rawgId) {
     youtube_url: "",
     source: "rawg"
   };
+  await enrichRawgRowsWithIgdbCovers([payload]);
+  return payload;
 }
 
 app.get("/api/igdb", (_req, res) => {
