@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/list-utils.js?v=20260221c" defer></script>
+  <script src="js/index-list-menu-adapter.js?v=20260221b" defer></script>
   <script src="js/universal-search.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
@@ -207,18 +208,14 @@
       min-width: 0;
     }
     .album-track-index {
-      width: 30px;
-      height: 30px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(255,255,255,0.04);
-      color: #d7e8ff;
-      font-size: 12px;
-      font-weight: 800;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      color: #9fb9da;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
       flex: 0 0 auto;
+      min-width: 22px;
+      text-align: right;
+      padding-top: 1px;
     }
     .album-track-info { min-width: 0; }
     .album-track-title {
@@ -241,7 +238,7 @@
       align-items: center;
       gap: 5px;
       border: 1px solid rgba(255,255,255,0.13);
-      border-radius: 999px;
+      border-radius: 8px;
       padding: 2px 8px;
       font-size: 11px;
       color: #c7dcf7;
@@ -249,16 +246,29 @@
     }
     .album-track-actions { display: flex; gap: 7px; flex-wrap: wrap; }
     .album-track-actions-primary { justify-content: flex-end; }
-    .album-track-actions-lists {
-      padding-top: 2px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      justify-content: flex-start;
+    .album-track-menu-btn {
+      width: 34px;
+      height: 31px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: #dceaff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .album-track-menu-btn:hover {
+      border-color: #8fb2dd;
+      color: #ffffff;
+      background: rgba(143,178,221,0.12);
     }
     .track-pill {
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.03);
       color: #dceaff;
-      border-radius: 999px;
+      border-radius: 10px;
       height: 31px;
       padding: 0 12px;
       font-size: 12px;
@@ -727,31 +737,27 @@
       return !error;
     }
 
-    async function toggleAlbumTrackList(trackId, listType, btn) {
+    async function toggleAlbumTrackDefaultList(trackId, listType, _card, forcedNextSaved) {
       const id = String(trackId || '').trim();
-      if (!id) return;
+      if (!id) return { ok: false, saved: false };
       const type = String(listType || '').trim().toLowerCase();
       const status = getAlbumTrackStatus(id);
-      if (!(type in status)) return;
+      if (!(type in status)) return { ok: false, saved: false };
 
       const row = albumTracks.find((item) => String(item?.id || '').trim() === id);
-      if (!row) return;
+      if (!row) return { ok: false, saved: false };
       const client = await ensureSupabase();
       if (!client || !currentUser?.id) {
         window.location.href = 'login.html';
-        return;
+        return { ok: false, saved: false };
       }
 
       const opKey = `${id}:${type}`;
-      if (albumTrackPendingOps.has(opKey)) return;
+      if (albumTrackPendingOps.has(opKey)) return { ok: false, saved: !!status[type] };
       const previousSaved = !!status[type];
-      const nextSaved = !previousSaved;
+      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
       albumTrackPendingOps.add(opKey);
       status[type] = nextSaved;
-      if (btn) {
-        btn.classList.toggle('active', nextSaved);
-        btn.disabled = true;
-      }
 
       try {
         if (nextSaved) {
@@ -765,6 +771,7 @@
           if (error && String(error.code || '') !== '23505') throw error;
           qs('songStatus').textContent = 'Added to list.';
           qs('songStatus').classList.remove('error');
+          return { ok: true, saved: true };
         } else {
           const { error } = await client
             .from('music_list_items')
@@ -775,11 +782,13 @@
           if (error) throw error;
           qs('songStatus').textContent = 'Removed from list.';
           qs('songStatus').classList.remove('error');
+          return { ok: true, saved: false };
         }
       } catch (_err) {
         status[type] = previousSaved;
         qs('songStatus').textContent = 'Could not update list.';
         qs('songStatus').classList.add('error');
+        return { ok: false, saved: previousSaved };
       } finally {
         albumTrackPendingOps.delete(opKey);
         renderAlbumTrackRows();
@@ -795,12 +804,12 @@
       }
       list.innerHTML = albumTracks.map((row, index) => {
         const id = String(row?.id || '').trim();
-        const status = getAlbumTrackStatus(id);
         const duration = msToMinSec(row?.duration_ms || 0);
         const hasPreview = !!String(row?.preview_url || '').trim();
         const explicitBadge = row?.explicit ? '<span class="album-track-sub"><i class="fa-solid fa-e"></i> Explicit</span>' : '';
+        const artistsText = Array.isArray(row?.artists) ? row.artists.join(', ') : '';
         return `
-          <article class="album-track-row" data-track-id="${escapeHtml(id)}">
+          <article class="album-track-row album-track-card" data-track-id="${escapeHtml(id)}" data-id="${escapeHtml(id)}" data-title="${escapeHtml(String(row?.name || 'Track'))}" data-subtitle="${escapeHtml(artistsText)}" data-image="${escapeHtml(String(row?.image || ''))}">
             <div class="album-track-main">
               <div class="album-track-left">
                 <span class="album-track-index">${index + 1}</span>
@@ -815,12 +824,8 @@
               <div class="album-track-actions album-track-actions-primary">
                 ${hasPreview ? `<button class="track-pill primary album-preview-btn" data-preview="${escapeHtml(String(row.preview_url || ''))}" type="button"><i class="fa-solid fa-play"></i> Preview</button>` : ''}
                 ${id ? `<a class="track-pill open-pill" href="song.html?id=${encodeURIComponent(id)}"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open</a>` : ''}
+                <button class="album-track-menu-btn" type="button" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
               </div>
-            </div>
-            <div class="album-track-actions album-track-actions-lists">
-              <button class="track-pill album-list-btn ${status.favorites ? 'active' : ''}" data-track-id="${escapeHtml(id)}" data-list="favorites" type="button" ${id ? '' : 'disabled'}><i class="fa-solid fa-heart"></i> Favorites</button>
-              <button class="track-pill album-list-btn ${status.listened ? 'active' : ''}" data-track-id="${escapeHtml(id)}" data-list="listened" type="button" ${id ? '' : 'disabled'}><i class="fa-solid fa-check"></i> Listened</button>
-              <button class="track-pill album-list-btn ${status.listenlist ? 'active' : ''}" data-track-id="${escapeHtml(id)}" data-list="listenlist" type="button" ${id ? '' : 'disabled'}><i class="fa-solid fa-bookmark"></i> Listenlist</button>
             </div>
           </article>
         `;
@@ -855,12 +860,15 @@
           return;
         }
 
-        const listBtn = event.target.closest('.album-list-btn');
-        if (listBtn) {
+        const menuBtn = event.target.closest('.album-track-menu-btn');
+        if (menuBtn) {
           event.preventDefault();
-          const trackId = String(listBtn.getAttribute('data-track-id') || '').trim();
-          const listType = String(listBtn.getAttribute('data-list') || '').trim().toLowerCase();
-          await toggleAlbumTrackList(trackId, listType, listBtn);
+          event.stopPropagation();
+          const card = menuBtn.closest('.album-track-card');
+          if (!card) return;
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(card);
+          }
         }
       });
     }
@@ -907,6 +915,51 @@
       if (section) section.style.display = 'block';
       renderAlbumTrackRows();
       wireAlbumTrackInteractions();
+    }
+
+    function initAlbumTrackKebabMenu() {
+      if (!window.initIndexStyleListMenu) return;
+      window.initIndexStyleListMenu({
+        mediaType: 'music',
+        itemIdAttr: 'data-track-id',
+        getVisibleItemIds: () =>
+          (Array.isArray(albumTracks) ? albumTracks : [])
+            .map((row) => String(row?.id || '').trim())
+            .filter(Boolean),
+        getQuickStatusForItem: (itemId) => {
+          const key = String(itemId || '').trim();
+          const status = albumTrackStatusMap.get(key);
+          return status ? { ...status } : null;
+        },
+        getItemFromCard: (card) => {
+          const id = String(card?.getAttribute?.('data-track-id') || '').trim();
+          if (!id) return null;
+          const row = albumTracks.find((item) => String(item?.id || '').trim() === id);
+          const artists = Array.isArray(row?.artists) ? row.artists.join(', ') : '';
+          return {
+            mediaType: 'music',
+            itemId: id,
+            title: String(row?.name || card?.getAttribute?.('data-title') || 'Track'),
+            subtitle: artists || String(card?.getAttribute?.('data-subtitle') || ''),
+            image: String(row?.image || card?.getAttribute?.('data-image') || '')
+          };
+        },
+        ensureClient: async () => {
+          if (supabaseClient) return supabaseClient;
+          await ensureSupabase();
+          return supabaseClient;
+        },
+        getCurrentUser: () => currentUser,
+        notify: (message, isError) => {
+          const status = qs('songStatus');
+          if (status) {
+            status.textContent = String(message || '');
+            status.classList.toggle('error', !!isError);
+          }
+        },
+        toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+          toggleAlbumTrackDefaultList(itemId, listType, card, nextSaved)
+      });
     }
 
     function ensureListMenuBackdrop() {
@@ -1041,6 +1094,7 @@
       if (window.initUniversalSearch) {
         window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'music.html' });
       }
+      initAlbumTrackKebabMenu();
       wireListMenu();
       initSongPage();
     });
