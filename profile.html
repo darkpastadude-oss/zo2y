@@ -10008,25 +10008,102 @@ header, .top-stripe, .section-nav {
                     .map((id) => String(id || '').trim())
                     .filter(Boolean))];
 
-                const [defaultRes, customRes] = await Promise.all([
-                    supabase
+                const normalizeRows = (rows = []) => (Array.isArray(rows) ? rows : []).map((row) => {
+                    const normalized = { ...(row || {}) };
+                    if (
+                        (normalized?.[itemField] === null || normalized?.[itemField] === undefined || normalized?.[itemField] === '') &&
+                        normalized?.item_id !== null &&
+                        normalized?.item_id !== undefined &&
+                        normalized?.item_id !== ''
+                    ) {
+                        normalized[itemField] = normalized.item_id;
+                    }
+                    return normalized;
+                });
+
+                const dedupeRows = (rows = []) => {
+                    const out = [];
+                    const seen = new Set();
+                    (Array.isArray(rows) ? rows : []).forEach((row) => {
+                        const value = String(row?.[itemField] || row?.item_id || '').trim();
+                        const listType = String(row?.list_type || '').trim();
+                        const listId = String(row?.list_id || '').trim();
+                        const key = `${value}::${listType}::${listId}`;
+                        if (!value || seen.has(key)) return;
+                        seen.add(key);
+                        out.push(row);
+                    });
+                    return out;
+                };
+
+                const queryDefaultRows = async () => {
+                    let result = await supabase
                         .from(table)
                         .select(`${itemField}, list_type, list_id`)
-                        .eq('user_id', safeOwnerId),
-                    safeCustomIds.length
-                        ? supabase
+                        .eq('user_id', safeOwnerId);
+
+                    if (result?.error && isColumnMissingError(result.error, 'list_id')) {
+                        result = await supabase
                             .from(table)
-                            .select(`${itemField}, list_type, list_id`)
-                            .in('list_id', safeCustomIds)
-                        : Promise.resolve({ data: [] })
+                            .select(`${itemField}, list_type`)
+                            .eq('user_id', safeOwnerId);
+                    }
+                    if (result?.error && isColumnMissingError(result.error, itemField)) {
+                        result = await supabase
+                            .from(table)
+                            .select('item_id, list_type, list_id')
+                            .eq('user_id', safeOwnerId);
+                        if (result?.error && isColumnMissingError(result.error, 'list_id')) {
+                            result = await supabase
+                                .from(table)
+                                .select('item_id, list_type')
+                                .eq('user_id', safeOwnerId);
+                        }
+                    }
+                    return result;
+                };
+
+                const queryCustomRows = async () => {
+                    if (!safeCustomIds.length) return { data: [] };
+                    let result = await supabase
+                        .from(table)
+                        .select(`${itemField}, list_type, list_id`)
+                        .in('list_id', safeCustomIds);
+
+                    if (result?.error && isColumnMissingError(result.error, itemField)) {
+                        result = await supabase
+                            .from(table)
+                            .select('item_id, list_type, list_id')
+                            .in('list_id', safeCustomIds);
+                    }
+                    if (result?.error && isColumnMissingError(result.error, 'list_id')) {
+                        result = await supabase
+                            .from(table)
+                            .select(`${itemField}, list_type`)
+                            .eq('user_id', safeOwnerId);
+                        if (result?.error && isColumnMissingError(result.error, itemField)) {
+                            result = await supabase
+                                .from(table)
+                                .select('item_id, list_type')
+                                .eq('user_id', safeOwnerId);
+                        }
+                    }
+                    return result;
+                };
+
+                const [defaultRes, customRes] = await Promise.all([
+                    queryDefaultRows(),
+                    queryCustomRows()
                 ]);
 
                 if (defaultRes?.error) throw defaultRes.error;
                 if (customRes?.error) throw customRes.error;
-                return [
-                    ...(defaultRes?.data || []),
-                    ...(customRes?.data || [])
-                ];
+
+                const merged = dedupeRows([
+                    ...normalizeRows(defaultRes?.data || []),
+                    ...normalizeRows(customRes?.data || [])
+                ]);
+                return merged;
             }
 
             async function fetchMediaCollectionItemIds(contentType, ownerUserId, listId, listType = 'custom') {
@@ -10039,22 +10116,39 @@ header, .top-stripe, .section-nav {
                 const safeListId = String(listId || '').trim();
                 if (!safeListId) return [];
 
-                let query = supabase
-                    .from(table)
-                    .select(itemField)
-                    .eq(safeListType === 'default' ? 'list_type' : 'list_id', safeListId);
+                const runQuery = async (selectField, filterField) => {
+                    let query = supabase
+                        .from(table)
+                        .select(selectField)
+                        .eq(filterField, safeListId);
+                    if (safeListType === 'default') {
+                        query = query.eq('user_id', safeOwnerId);
+                    }
+                    return await query;
+                };
 
-                if (safeListType === 'default') {
-                    query = query.eq('user_id', safeOwnerId);
+                const primaryFilterField = safeListType === 'default' ? 'list_type' : 'list_id';
+                const fallbackFilterField = primaryFilterField === 'list_type' ? 'list_id' : 'list_type';
+
+                let result = await runQuery(itemField, primaryFilterField);
+                if (result?.error && isColumnMissingError(result.error, itemField)) {
+                    result = await runQuery('item_id', primaryFilterField);
+                }
+                if (result?.error && isColumnMissingError(result.error, primaryFilterField)) {
+                    result = await runQuery(itemField, fallbackFilterField);
+                    if (result?.error && isColumnMissingError(result.error, itemField)) {
+                        result = await runQuery('item_id', fallbackFilterField);
+                    }
                 }
 
-                const { data, error } = await query;
+                const data = result?.data || [];
+                const error = result?.error || null;
                 if (error) throw error;
 
                 const unique = [];
                 const seen = new Set();
                 (data || []).forEach((row) => {
-                    const value = String(row?.[itemField] || '').trim();
+                    const value = String(row?.[itemField] || row?.item_id || '').trim();
                     if (!value || seen.has(value)) return;
                     seen.add(value);
                     unique.push(value);
