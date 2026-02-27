@@ -1040,7 +1040,7 @@ async function resolveGenreIds(rawGenreValue) {
 }
 
 function buildWhereClause({ genreIds, startUnix, endUnix }) {
-  const clauses = ["version_parent = null"];
+  const clauses = ["category = 0"];
   if (Array.isArray(genreIds) && genreIds.length) {
     clauses.push(`genres = (${genreIds.join(",")})`);
   }

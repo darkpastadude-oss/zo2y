@@ -604,8 +604,7 @@ async function resolveGenreIds(genresRaw) {
 
 function buildIgdbWhereClause({ genreIds = [], startUnix = null, endUnix = null } = {}) {
   const clauses = [
-    "category = 0",
-    "version_parent = null"
+    "category = 0"
   ];
   const ids = dedupeNumbers(genreIds);
   if (ids.length) clauses.push(`genres = (${ids.join(",")})`);
