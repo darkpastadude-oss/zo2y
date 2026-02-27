@@ -7,7 +7,10 @@ const WIKI_SUMMARY_TTL_MS = 1000 * 60 * 30;
 const WIKI_LIST_TTL_MS = 1000 * 60 * 4;
 const WIKI_DETAIL_TTL_MS = 1000 * 60 * 30;
 const WIKI_ENTITY_TTL_MS = 1000 * 60 * 60;
+const WIKI_MEDIA_TTL_MS = 1000 * 60 * 60;
 const MAX_CACHE_ENTRIES = 500;
+const POPULAR_SEED_BATCH_SIZE = 42;
+const WIKI_YEAR_CANDIDATE_LIMIT = 20;
 
 export const WIKIPEDIA_GAME_GENRES = [
   { id: 1, name: "Action", slug: "action" },
@@ -34,6 +37,120 @@ const summaryCache = new Map();
 const listCache = new Map();
 const detailCache = new Map();
 const entityCache = new Map();
+const mediaCache = new Map();
+
+const POPULAR_GAME_TITLE_SEEDS = [
+  "Minecraft",
+  "Grand Theft Auto V",
+  "Fortnite Battle Royale",
+  "Roblox",
+  "League of Legends",
+  "Valorant",
+  "Counter-Strike 2",
+  "Dota 2",
+  "Apex Legends",
+  "Call of Duty: Warzone",
+  "Elden Ring",
+  "Baldur's Gate 3",
+  "The Legend of Zelda: Tears of the Kingdom",
+  "The Legend of Zelda: Breath of the Wild",
+  "Cyberpunk 2077",
+  "Red Dead Redemption 2",
+  "The Witcher 3: Wild Hunt",
+  "God of War Ragnarök",
+  "Hades",
+  "Helldivers 2",
+  "Palworld",
+  "Black Myth: Wukong",
+  "Final Fantasy VII Rebirth",
+  "Alan Wake 2",
+  "Metaphor: ReFantazio",
+  "Dragon's Dogma 2",
+  "Hollow Knight",
+  "Hollow Knight: Silksong",
+  "Persona 5",
+  "Persona 3 Reload",
+  "Like a Dragon: Infinite Wealth",
+  "Resident Evil 4 (2023 video game)",
+  "Silent Hill 2 (2024 video game)",
+  "Dead Space (2023 video game)",
+  "Resident Evil Village",
+  "Stardew Valley",
+  "Terraria",
+  "No Man's Sky",
+  "Sea of Thieves",
+  "Destiny 2",
+  "Rainbow Six Siege",
+  "Overwatch 2",
+  "Rocket League",
+  "Genshin Impact",
+  "Honkai: Star Rail",
+  "Zenless Zone Zero",
+  "Marvel Rivals",
+  "PUBG: Battlegrounds",
+  "Escape from Tarkov",
+  "Path of Exile",
+  "Path of Exile 2",
+  "Diablo IV",
+  "World of Warcraft",
+  "Final Fantasy XIV",
+  "Monster Hunter: World",
+  "Monster Hunter Wilds",
+  "EA Sports FC 25",
+  "NBA 2K25",
+  "Madden NFL 25",
+  "Gran Turismo 7",
+  "Forza Horizon 5",
+  "Need for Speed Unbound",
+  "Tekken 8",
+  "Street Fighter 6",
+  "Mortal Kombat 1",
+  "Super Smash Bros. Ultimate",
+  "Super Mario Odyssey",
+  "Super Mario Bros. Wonder",
+  "Animal Crossing: New Horizons",
+  "Pokémon Scarlet and Violet",
+  "Pokémon Legends: Arceus",
+  "Splatoon 3",
+  "Fire Emblem Engage",
+  "Metroid Dread",
+  "Starfield (video game)",
+  "Avowed",
+  "S.T.A.L.K.E.R. 2: Heart of Chornobyl",
+  "Lies of P",
+  "Lethal Company",
+  "Phasmophobia",
+  "Among Us",
+  "The Finals",
+  "Remnant II",
+  "Warframe",
+  "The Last of Us Part II",
+  "Ghost of Tsushima",
+  "Death Stranding",
+  "Assassin's Creed Valhalla",
+  "Assassin's Creed Shadows",
+  "Hogwarts Legacy",
+  "Marvel's Spider-Man 2",
+  "The Elder Scrolls V: Skyrim",
+  "Fallout 4",
+  "Fallout: New Vegas",
+  "Nier: Automata",
+  "Sekiro: Shadows Die Twice",
+  "Bloodborne",
+  "Dark Souls III",
+  "Clair Obscur: Expedition 33"
+];
+
+const POPULAR_SEARCH_SEEDS = [
+  "best-selling video games",
+  "most played video games",
+  "game of the year video game",
+  "top video games"
+];
+
+const POPULAR_TITLE_RANK = new Map(
+  POPULAR_GAME_TITLE_SEEDS.map((title, index) => [normalizeGameKey(title), index + 1])
+);
 
 function clampInt(value, min, max, fallback) {
   const n = Number(value);
@@ -48,6 +165,20 @@ function chunkArray(values = [], size = 40) {
     out.push(list.slice(i, i + Math.max(1, Number(size) || 40)));
   }
   return out;
+}
+
+async function runWithConcurrency(items = [], concurrency = 6, worker) {
+  const list = Array.isArray(items) ? items : [];
+  if (!list.length) return;
+  const queue = [...list];
+  const maxWorkers = Math.max(1, Math.min(Number(concurrency) || 1, queue.length));
+  await Promise.all(Array.from({ length: maxWorkers }, async () => {
+    while (queue.length) {
+      const item = queue.shift();
+      if (!item) continue;
+      await worker(item);
+    }
+  }));
 }
 
 function normalizeGameKey(value) {
@@ -89,6 +220,50 @@ function toHttpsUrl(value) {
   if (text.startsWith("//")) return `https:${text}`;
   if (/^http:\/\//i.test(text)) return text.replace(/^http:\/\//i, "https://");
   return text;
+}
+
+function normalizeMediaUrl(url) {
+  return toHttpsUrl(url).replace(/\?.*$/, "").trim().toLowerCase();
+}
+
+function expandWikimediaThumbUrl(url) {
+  const raw = toHttpsUrl(url);
+  if (!raw.includes("/thumb/")) return raw;
+  const match = raw.match(/^(https:\/\/upload\.wikimedia\.org\/[^/]+)\/thumb\/(.+)\/([^/]+)$/i);
+  if (!match) return raw;
+  const base = match[1];
+  const thumbPath = match[2];
+  const sourcePath = thumbPath.replace(/\/[^/]+$/, "");
+  if (!sourcePath) return raw;
+  return `${base}/${sourcePath}`;
+}
+
+function resolveMediaItemImageUrl(item) {
+  const srcset = Array.isArray(item?.srcset) ? item.srcset : [];
+  const sorted = [...srcset].sort((a, b) => {
+    const aScale = Number(String(a?.scale || "1").replace(/[^\d.]/g, "")) || 1;
+    const bScale = Number(String(b?.scale || "1").replace(/[^\d.]/g, "")) || 1;
+    return bScale - aScale;
+  });
+  const candidate = String(
+    sorted[0]?.src ||
+    item?.src ||
+    item?.original?.source ||
+    item?.thumbnail?.source ||
+    ""
+  ).trim();
+  if (!candidate) return "";
+  return expandWikimediaThumbUrl(candidate);
+}
+
+function isLikelyScreenshotMediaItem(item) {
+  const title = String(item?.title || "").toLowerCase();
+  const caption = String(item?.caption?.text || "").toLowerCase();
+  const text = `${title} ${caption}`;
+  if (!text.trim()) return false;
+  if (/\b(gameplay|in-?game|screenshot|screen|battle|combat|mission|map|level|hud|boss)\b/i.test(text)) return true;
+  if (/\b(cover|box art|logo|wordmark|icon|portrait|awards?|developer|director|actor)\b/i.test(text)) return false;
+  return !item?.leadImage;
 }
 
 function readTimedCache(cache, key) {
@@ -278,6 +453,42 @@ async function fetchInfoboxCover(title) {
   return toHttpsUrl(page?.original?.source || page?.thumbnail?.source || "");
 }
 
+async function fetchSpotlightScreenshot(title, fallbackCover = "") {
+  const normalizedTitle = normalizeTitle(title);
+  if (!normalizedTitle) return toHttpsUrl(fallbackCover);
+  const cacheKey = normalizedTitle.toLowerCase();
+  const cached = readTimedCache(mediaCache, cacheKey);
+  if (cached !== null) return cached;
+
+  const fallbackUrl = toHttpsUrl(fallbackCover);
+  const fallbackNormalized = normalizeMediaUrl(fallbackUrl);
+  let selected = "";
+  try {
+    const mediaJson = await fetchJson(`${WIKIPEDIA_REST_BASE}/page/media-list/${encodeTitle(normalizedTitle)}`);
+    const items = (Array.isArray(mediaJson?.items) ? mediaJson.items : [])
+      .filter((item) => String(item?.type || "").toLowerCase() === "image");
+    const prioritized = [];
+    const secondary = [];
+    items.forEach((item) => {
+      const url = resolveMediaItemImageUrl(item);
+      if (!url) return;
+      const normalizedUrl = normalizeMediaUrl(url);
+      if (!normalizedUrl || (fallbackNormalized && normalizedUrl === fallbackNormalized)) return;
+      if (isLikelyScreenshotMediaItem(item)) {
+        prioritized.push(url);
+      } else {
+        secondary.push(url);
+      }
+    });
+    selected = prioritized[0] || secondary[0] || fallbackUrl;
+  } catch (_error) {
+    selected = fallbackUrl;
+  }
+
+  writeTimedCache(mediaCache, cacheKey, selected || "", WIKI_MEDIA_TTL_MS);
+  return selected || "";
+}
+
 async function fetchEntities(ids = [], props = "claims|labels") {
   const uniqueIds = [...new Set((Array.isArray(ids) ? ids : []).map((id) => String(id || "").trim()).filter((id) => /^Q\d+$/i.test(id)))];
   if (!uniqueIds.length) return new Map();
@@ -354,6 +565,32 @@ function mapListRow(summary, entity, labels, infoboxCover = "") {
   };
 }
 
+function mapSummaryBackfillRow(summary) {
+  const pageid = Number(summary?.pageid || 0);
+  const name = String(summary?.title || "").trim();
+  const cover = toHttpsUrl(summary?.originalimage?.source || summary?.thumbnail?.source || "");
+  if (pageid <= 0 || !name || !cover) return null;
+  const releaseText = `${summary?.description || ""} ${summary?.extract || ""}`.trim();
+  const released = extractYearFallback(releaseText);
+  return {
+    id: pageid,
+    name,
+    slug: normalizeGameKey(name).replace(/\s+/g, "-"),
+    released,
+    cover,
+    hero: cover,
+    screenshots: [cover],
+    background_image: cover,
+    short_screenshots: [{ id: 1, image: cover }],
+    rating: null,
+    ratings_count: 0,
+    metacritic: null,
+    genres: [],
+    platforms: [],
+    source: "wikipedia"
+  };
+}
+
 function mapDetailRow(summary, entity, labels, infoboxCover = "") {
   const base = mapListRow(summary, entity, labels, infoboxCover);
   if (!base) return null;
@@ -376,14 +613,49 @@ function mapDetailRow(summary, entity, labels, infoboxCover = "") {
   };
 }
 
+function mergeScreenshotUrls(primary = [], secondary = []) {
+  const seen = new Set();
+  const out = [];
+  [...(Array.isArray(primary) ? primary : []), ...(Array.isArray(secondary) ? secondary : [])].forEach((value) => {
+    const url = toHttpsUrl(value);
+    if (!url) return;
+    const key = normalizeMediaUrl(url);
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    out.push(url);
+  });
+  return out;
+}
+
+async function enrichRowsWithSpotlightScreenshots(rows = [], maxToEnrich = 20) {
+  const baseRows = Array.isArray(rows) ? rows : [];
+  const out = [...baseRows];
+  const limit = clampInt(maxToEnrich, 1, Math.max(1, out.length), Math.min(20, out.length || 1));
+  await runWithConcurrency(out.slice(0, limit).map((row, index) => ({ row, index })), 8, async ({ row, index }) => {
+    if (!row || !row.name) return;
+    const cover = toHttpsUrl(row.cover || "");
+    const hero = await fetchSpotlightScreenshot(row.name, cover).catch(() => cover);
+    if (!hero || normalizeMediaUrl(hero) === normalizeMediaUrl(cover)) return;
+    const screenshots = mergeScreenshotUrls([hero, cover], row.screenshots || []);
+    out[index] = {
+      ...row,
+      hero,
+      background_image: hero,
+      screenshots,
+      short_screenshots: screenshots.map((image, idx) => ({ id: idx + 1, image }))
+    };
+  });
+  return out;
+}
+
 async function hydrateRows(candidates = []) {
   const deduped = [];
   const seen = new Set();
   (Array.isArray(candidates) ? candidates : []).forEach((candidate) => {
     const pageid = Number(candidate?.pageid || 0);
     const title = normalizeTitle(candidate?.title || "");
-    if (pageid <= 0 || !title || isExcludedTitle(title)) return;
-    const key = `${pageid}:${title.toLowerCase()}`;
+    if (!title || isExcludedTitle(title)) return;
+    const key = pageid > 0 ? `${pageid}:${title.toLowerCase()}` : `title:${title.toLowerCase()}`;
     if (seen.has(key)) return;
     seen.add(key);
     deduped.push({ pageid, title });
@@ -413,7 +685,7 @@ function parseRequestedYears(datesRaw = "") {
   const minYear = Math.max(1970, Math.min(startYear, endYear));
   const maxYear = Math.max(minYear, Math.max(startYear, endYear));
   const out = [];
-  for (let year = maxYear; year >= minYear && out.length < 12; year -= 1) out.push(year);
+  for (let year = maxYear; year >= minYear && out.length < WIKI_YEAR_CANDIDATE_LIMIT; year -= 1) out.push(year);
   if (!out.length) out.push(currentYear);
   return out;
 }
@@ -424,17 +696,29 @@ async function fetchCategoryCandidates(datesRaw = "", target = 80) {
   const seen = new Set();
   for (const year of years) {
     if (out.length >= target) break;
-    const json = await wikiQuery({ list: "categorymembers", cmtitle: `Category:${year}_video_games`, cmnamespace: "0", cmtype: "page", cmlimit: "50" }).catch(() => null);
-    const rows = Array.isArray(json?.query?.categorymembers) ? json.query.categorymembers : [];
-    rows.forEach((row) => {
-      const pageid = Number(row?.pageid || 0);
-      const title = normalizeTitle(row?.title || "");
-      if (pageid <= 0 || !title || isExcludedTitle(title)) return;
-      const key = `${pageid}:${title.toLowerCase()}`;
-      if (seen.has(key)) return;
-      seen.add(key);
-      out.push({ pageid, title });
-    });
+    let cmcontinue = "";
+    for (let pass = 0; pass < 2; pass += 1) {
+      const json = await wikiQuery({
+        list: "categorymembers",
+        cmtitle: `Category:${year}_video_games`,
+        cmnamespace: "0",
+        cmtype: "page",
+        cmlimit: "50",
+        cmcontinue
+      }).catch(() => null);
+      const rows = Array.isArray(json?.query?.categorymembers) ? json.query.categorymembers : [];
+      rows.forEach((row) => {
+        const pageid = Number(row?.pageid || 0);
+        const title = normalizeTitle(row?.title || "");
+        if (pageid <= 0 || !title || isExcludedTitle(title)) return;
+        const key = `${pageid}:${title.toLowerCase()}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        out.push({ pageid, title });
+      });
+      cmcontinue = String(json?.continue?.cmcontinue || "").trim();
+      if (!cmcontinue || out.length >= target) break;
+    }
   }
   return out;
 }
@@ -455,6 +739,63 @@ async function fetchSearchCandidates(search, offset = 0, limit = 40) {
   return { rows, totalHits: Number(json?.query?.searchinfo?.totalhits || 0) };
 }
 
+async function fetchPopularSeedCandidates(limit = POPULAR_SEED_BATCH_SIZE) {
+  const take = clampInt(limit, 12, POPULAR_GAME_TITLE_SEEDS.length, POPULAR_SEED_BATCH_SIZE);
+  return POPULAR_GAME_TITLE_SEEDS
+    .slice(0, take)
+    .map((title) => ({ pageid: 0, title: normalizeTitle(title) }))
+    .filter((row) => !!row.title && !isExcludedTitle(row.title));
+}
+
+async function fetchPopularSearchSeedCandidates() {
+  const buckets = await Promise.all(POPULAR_SEARCH_SEEDS.map((seed) => fetchSearchCandidates(seed, 0, 22).catch(() => ({ rows: [] }))));
+  const seen = new Set();
+  const out = [];
+  buckets.forEach((bucket) => {
+    (Array.isArray(bucket?.rows) ? bucket.rows : []).forEach((row) => {
+      const pageid = Number(row?.pageid || 0);
+      const title = normalizeTitle(row?.title || "");
+      if (pageid <= 0 || !title || isExcludedTitle(title)) return;
+      const key = `${pageid}:${title.toLowerCase()}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push({ pageid, title });
+    });
+  });
+  return out;
+}
+
+async function fetchSummaryBackfillRows(limit = 12, excludedIds = new Set()) {
+  const take = clampInt(limit, 1, POPULAR_GAME_TITLE_SEEDS.length, 12);
+  const rows = [];
+  for (const title of POPULAR_GAME_TITLE_SEEDS) {
+    if (rows.length >= take) break;
+    const summary = await fetchSummary(title).catch(() => null);
+    const mapped = mapSummaryBackfillRow(summary);
+    if (!mapped) continue;
+    if (excludedIds.has(mapped.id)) continue;
+    excludedIds.add(mapped.id);
+    rows.push(mapped);
+  }
+  return rows;
+}
+
+function sortRowsByPopularity(rows = [], orderingRaw = "") {
+  const ordering = String(orderingRaw || "").trim().toLowerCase();
+  const popularOrdering = ordering === "-rating" || ordering === "-metacritic" || ordering === "-added" || ordering === "";
+  if (!popularOrdering) return sortRows(rows, orderingRaw);
+  const list = [...(Array.isArray(rows) ? rows : [])];
+  list.sort((a, b) => {
+    const rankA = Number(POPULAR_TITLE_RANK.get(normalizeGameKey(a?.name || "")) || 9999);
+    const rankB = Number(POPULAR_TITLE_RANK.get(normalizeGameKey(b?.name || "")) || 9999);
+    if (rankA !== rankB) return rankA - rankB;
+    const releaseDiff = toSortEpoch(b?.released) - toSortEpoch(a?.released);
+    if (releaseDiff) return releaseDiff;
+    return String(a?.name || "").localeCompare(String(b?.name || ""));
+  });
+  return list;
+}
+
 export async function fetchWikipediaGameDetailsById(gameId) {
   const id = Number(gameId);
   if (!Number.isFinite(id) || id <= 0) return null;
@@ -473,8 +814,17 @@ export async function fetchWikipediaGameDetailsById(gameId) {
   const cover = await fetchInfoboxCover(summary?.title || page?.title || "").catch(() => "");
   const mapped = mapDetailRow(summary, entity, labels, cover);
   if (!mapped) return null;
-  writeTimedCache(detailCache, String(id), mapped, WIKI_DETAIL_TTL_MS);
-  return mapped;
+  const hero = await fetchSpotlightScreenshot(mapped.name, mapped.cover).catch(() => mapped.cover || "");
+  const screenshots = mergeScreenshotUrls([hero, mapped.cover], mapped.screenshots || []);
+  const normalized = {
+    ...mapped,
+    hero: hero || mapped.hero || mapped.cover || "",
+    background_image: hero || mapped.background_image || mapped.cover || "",
+    screenshots,
+    short_screenshots: screenshots.map((image, idx) => ({ id: idx + 1, image }))
+  };
+  writeTimedCache(detailCache, String(id), normalized, WIKI_DETAIL_TTL_MS);
+  return normalized;
 }
 
 async function fetchGamesByExplicitIds(ids = []) {
@@ -510,7 +860,10 @@ export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search 
   if (explicitIds.length) {
     let rows = await fetchGamesByExplicitIds(explicitIds);
     rows = sortRows(filterRowsByDates(filterRowsByGenres(rows, genres), dates), ordering);
-    return { count: rows.length, results: rows.slice(0, safePageSize) };
+    const totalCount = rows.length;
+    rows = rows.slice(0, safePageSize);
+    rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(10, safePageSize));
+    return { count: totalCount, results: rows };
   }
 
   const cacheKey = JSON.stringify({ safePage, safePageSize, search: String(search || "").trim().toLowerCase(), ordering: String(ordering || "").trim().toLowerCase(), dates: String(dates || "").trim(), genres: String(genres || "").trim().toLowerCase() });
@@ -520,21 +873,42 @@ export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search 
   let rows = [];
   let count = 0;
   if (String(search || "").trim()) {
-    const searched = await fetchSearchCandidates(search, offset, Math.max(24, safePageSize * 3));
+    const searched = await fetchSearchCandidates(search, offset, Math.max(36, safePageSize * 4));
+    const popularSeeds = await fetchPopularSeedCandidates(36);
     rows = await hydrateRows(searched.rows);
+    if (rows.length < safePageSize) {
+      const popularBackfill = await hydrateRows(popularSeeds);
+      rows = [...rows, ...popularBackfill];
+    }
     rows = filterRowsByDates(filterRowsByGenres(rows, genres), dates);
     if (String(ordering || "").trim().toLowerCase() !== "-added") {
-      rows = sortRows(rows, ordering);
+      rows = sortRowsByPopularity(rows, ordering);
     }
     rows = rows.slice(0, safePageSize);
+    rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(10, safePageSize));
     count = Math.max(Number(searched.totalHits || 0), offset + rows.length);
   } else {
-    const candidates = await fetchCategoryCandidates(dates, Math.max(offset + safePageSize * 4, 80));
-    const fallback = candidates.length < safePageSize ? await fetchSearchCandidates("top video games", 0, 50) : { rows: [] };
-    rows = await hydrateRows([...candidates, ...(fallback.rows || [])]);
-    rows = sortRows(filterRowsByDates(filterRowsByGenres(rows, genres), dates), ordering);
+    const candidateTarget = Math.min(Math.max(offset + safePageSize + 8, 56), 84);
+    const candidates = await fetchCategoryCandidates(dates, candidateTarget);
+    const popularCandidates = await fetchPopularSeedCandidates(POPULAR_SEED_BATCH_SIZE);
+    const popularSearchCandidates = await fetchPopularSearchSeedCandidates();
+    const blendedCandidates = [
+      ...popularCandidates,
+      ...popularSearchCandidates,
+      ...candidates
+    ].slice(0, Math.max(offset + safePageSize + 8, 56));
+    rows = await hydrateRows(blendedCandidates);
+    rows = filterRowsByDates(filterRowsByGenres(rows, genres), dates);
+    rows = sortRowsByPopularity(rows, ordering);
+    const neededPoolSize = offset + safePageSize;
+    if (rows.length < neededPoolSize) {
+      const excludedIds = new Set(rows.map((row) => Number(row?.id || 0)).filter((id) => Number.isFinite(id) && id > 0));
+      const backfillRows = await fetchSummaryBackfillRows(Math.max(neededPoolSize - rows.length, 0) + 8, excludedIds);
+      rows = sortRowsByPopularity([...rows, ...backfillRows], ordering);
+    }
     count = Math.max(rows.length, offset + safePageSize);
     rows = rows.slice(offset, offset + safePageSize);
+    rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(12, safePageSize));
   }
 
   const payload = { count: Number(count || rows.length || 0), results: rows };

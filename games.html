@@ -676,7 +676,7 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/logo.png" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260226a" />
-  <script src="/js/mobile-webapp.js?v=20260225d" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260227e" defer></script>
 </head>
 <body>
   <header class="nav" role="banner">
@@ -693,7 +693,7 @@
 
   <section class="hero">
     <h1>Popular Games</h1>
-    <p>Discover trending games powered by IGDB.</p>
+    <p>Discover trending and popular games powered by Wikipedia.</p>
   </section>
 
   <div class="controls">
@@ -783,6 +783,7 @@
         Object.entries(params).forEach(([k, v]) => {
           if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
         });
+        if (!url.searchParams.has('rev')) url.searchParams.set('rev', 'wiki20260227b');
         const res = await fetch(url.toString());
         if (!res.ok) throw new Error(`IGDB error ${res.status}`);
         return res.json();
@@ -1329,7 +1330,7 @@
       })();
     })();
   </script>
-  <script src="js/production-runtime.js?v=20260227c" defer></script>
+  <script src="js/production-runtime.js?v=20260227d" defer></script>
 </body>
 </html>
 

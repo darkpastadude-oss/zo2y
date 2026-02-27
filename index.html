@@ -523,7 +523,7 @@
 
     .card-media.game-poster {
       aspect-ratio: 2/3;
-      padding: 0;
+      padding: 8px;
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
     }
 
@@ -540,12 +540,12 @@
     }
 
     .card-media.game-poster img {
-      object-fit: cover;
+      object-fit: contain;
       border-radius: 0;
     }
 
     .card-media.landscape.game-poster img {
-      object-fit: cover;
+      object-fit: contain;
     }
 
     .card-media.restaurant-composite {
@@ -725,14 +725,15 @@
     .rail.games-rail .card-media.game-poster {
       aspect-ratio: 2/3;
       height: 216px;
-      padding: 0;
+      padding: 8px;
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
     }
 
     .rail.games-rail .card-media.game-poster img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      object-position: center center;
       border-radius: 0;
       background: transparent;
     }
@@ -1864,7 +1865,7 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260226a" />
-  <script src="/js/mobile-webapp.js?v=20260225d" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260227e" defer></script>
 </head>
 <body>
   <header>
@@ -2110,9 +2111,9 @@
       book: { table: 'book_list_items', itemField: 'book_id' },
       music: { table: 'music_list_items', itemField: 'track_id' }
     };
-    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v7';
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v8';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v6';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v7';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
@@ -2215,6 +2216,7 @@
         if (value === undefined || value === null || value === '') return;
         url.searchParams.set(key, String(value));
       });
+      if (!url.searchParams.has('rev')) url.searchParams.set('rev', 'wiki20260227b');
       const cacheKey = `igdb:${url.toString()}`;
       const json = await fetchJsonWithPerfCache(url.toString(), { signal, cacheKey });
       if (!json) throw new Error('IGDB error');
@@ -2940,17 +2942,19 @@
           const hero = String(row?.hero || '').trim();
           const bg = String(row?.background_image || '').trim();
           const image = cover || hero || bg;
+          const spotlightVisual = hero || bg || cover || image;
+          const useLandscapeSpotlight = !!(hero || bg) && String(spotlightVisual || '').trim().toLowerCase() !== String(cover || '').trim().toLowerCase();
           const item = {
             mediaType: 'game',
             itemId: String(row?.id || ''),
             title: String(row?.name || 'Game').trim() || 'Game',
             subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
             image,
-            backgroundImage: hero || bg || image,
-            spotlightImage: hero || bg || image,
-            spotlightMediaImage: cover || hero || bg || image,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
+            backgroundImage: spotlightVisual || image,
+            spotlightImage: spotlightVisual || image,
+            spotlightMediaImage: spotlightVisual || image,
+            spotlightMediaFit: useLandscapeSpotlight ? 'cover' : 'contain',
+            spotlightMediaShape: useLandscapeSpotlight ? 'landscape' : 'poster',
             href: row?.id ? `game.html?id=${encodeURIComponent(row.id)}` : 'games.html'
           };
           return withReleaseTag({ ...item, releaseDateSort }, label, { detail: releaseDate });
@@ -6280,12 +6284,12 @@
 
     async function loadGames(signal) {
       const dateRange = '2000-01-01,2026-12-31';
-      const attempts = shuffleArray(['-rating', '-added', '-released', '-metacritic']).slice(0, 2);
+      const attempts = ['-rating', '-added', '-metacritic', '-released'];
       const allRows = [];
 
       for (let index = 0; index < attempts.length; index += 1) {
         const ordering = attempts[index];
-        const page = index === 0 ? 1 : randomInt(1, 2);
+        const page = index === 0 ? 1 : (index === 1 ? 2 : 1);
         try {
           const json = await homeIgdbFetch('/games', {
             page_size: 48,
@@ -6314,6 +6318,8 @@
         const heroImage = String(row?.hero || '').trim();
         const backgroundImage = String(row?.background_image || '').trim();
         const mainImage = coverImage || heroImage || backgroundImage;
+        const spotlightVisual = heroImage || backgroundImage || coverImage || mainImage;
+        const useLandscapeSpotlight = !!(heroImage || backgroundImage) && String(spotlightVisual || '').trim().toLowerCase() !== String(coverImage || '').trim().toLowerCase();
         if (!mainImage) continue;
 
         seenIds.add(idKey);
@@ -6321,8 +6327,10 @@
         candidates.push({
           ...row,
           _image: mainImage,
-          _bg: heroImage || backgroundImage || coverImage || mainImage,
-          _spotPoster: coverImage || heroImage || backgroundImage || mainImage
+          _bg: spotlightVisual,
+          _spotPoster: spotlightVisual,
+          _spotShape: useLandscapeSpotlight ? 'landscape' : 'poster',
+          _spotFit: useLandscapeSpotlight ? 'cover' : 'contain'
         });
         if (candidates.length >= HOME_CHANNEL_TARGET_ITEMS) break;
       }
@@ -6338,8 +6346,8 @@
           backgroundImage: g._bg,
           spotlightImage: g._bg,
           spotlightMediaImage: g._spotPoster,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
+          spotlightMediaFit: g._spotFit || 'contain',
+          spotlightMediaShape: g._spotShape || 'poster',
           href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html'
         };
       });
@@ -7011,7 +7019,7 @@
       }
     });
   </script>
-  <script src="js/production-runtime.js?v=20260227c" defer></script>
+  <script src="js/production-runtime.js?v=20260227d" defer></script>
 </body>
 </html>
 

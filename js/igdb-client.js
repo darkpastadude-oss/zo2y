@@ -1,5 +1,6 @@
 (function initZo2yIgdbClient(global) {
   if (global.ZO2Y_IGDB && typeof global.ZO2Y_IGDB.request === 'function') return;
+  const GAME_DATA_REV = 'wiki20260227b';
 
   function normalizeBase(value) {
     const raw = String(value || '').trim();
@@ -48,6 +49,9 @@
       if (value === undefined || value === null || value === '') return;
       url.searchParams.set(key, String(value));
     });
+    if (!url.searchParams.has('rev')) {
+      url.searchParams.set('rev', GAME_DATA_REV);
+    }
     return url;
   }
 
