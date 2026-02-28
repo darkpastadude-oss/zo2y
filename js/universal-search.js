@@ -1,13 +1,12 @@
 (function () {
   const TMDB_PROXY_BASE = '/api/tmdb';
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
-  const IGDB_PROXY_BASE = '/api/igdb';
   const BOOKS_PROXY_BASE = '/api/books';
   const MUSIC_PROXY_BASE = '/api/music';
   const GAMES_DISABLED = true;
   const MIN_QUERY_LEN = 2;
-  const SEARCH_DEBOUNCE_MS = 140;
-  const REQUEST_TIMEOUT_MS = 3400;
+  const SEARCH_DEBOUNCE_MS = 40;
+  const REQUEST_TIMEOUT_MS = 2200;
   const SEARCH_CACHE_TTL_MS = 3 * 60 * 1000;
   const SEARCH_CACHE_MAX_ENTRIES = 60;
 
@@ -160,6 +159,18 @@
     return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
   }
 
+  function sanitizeSuggestions(items) {
+    return (Array.isArray(items) ? items : [])
+      .filter((item) => {
+        const type = String(item?.type || '').toLowerCase();
+        if (!type) return false;
+        if (type.includes('restaurant')) return false;
+        if (GAMES_DISABLED && type.includes('game')) return false;
+        return true;
+      })
+      .slice(0, 18);
+  }
+
   function pruneSuggestionCache() {
     if (suggestionCache.size <= SEARCH_CACHE_MAX_ENTRIES) return;
     const entries = Array.from(suggestionCache.entries()).sort((a, b) => (a[1]?.ts || 0) - (b[1]?.ts || 0));
@@ -178,13 +189,44 @@
       suggestionCache.delete(queryKey);
       return null;
     }
-    return Array.isArray(cached.items) ? cached.items : null;
+    return sanitizeSuggestions(cached.items);
   }
 
   function writeCachedSuggestions(queryKey, items) {
     if (!queryKey || !Array.isArray(items)) return;
-    suggestionCache.set(queryKey, { ts: Date.now(), items });
+    suggestionCache.set(queryKey, { ts: Date.now(), items: sanitizeSuggestions(items) });
     pruneSuggestionCache();
+  }
+
+  function readWarmSuggestions(queryKey) {
+    if (!queryKey) return [];
+    const q = String(queryKey).trim();
+    if (!q) return [];
+
+    const now = Date.now();
+    const entries = Array.from(suggestionCache.entries())
+      .filter(([key, value]) => {
+        if (!key || !value) return false;
+        if ((now - Number(value.ts || 0)) > SEARCH_CACHE_TTL_MS) return false;
+        return key.startsWith(q) || q.startsWith(key);
+      })
+      .sort((a, b) => Number(b?.[1]?.ts || 0) - Number(a?.[1]?.ts || 0));
+
+    const merged = [];
+    const seen = new Set();
+    entries.forEach(([, value]) => {
+      sanitizeSuggestions(value?.items || []).forEach((item) => {
+        const title = String(item?.title || '').trim().toLowerCase();
+        const sub = String(item?.sub || '').trim().toLowerCase();
+        const haystack = `${title} ${sub}`;
+        if (!haystack.includes(q)) return;
+        const key = `${String(item?.type || '').toLowerCase()}|${title}|${String(item?.href || '').trim()}`;
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        merged.push(item);
+      });
+    });
+    return merged.slice(0, 18);
   }
 
   async function fetchJsonWithTimeout(url, { signal = null, headers = null, timeoutMs = REQUEST_TIMEOUT_MS } = {}) {
@@ -248,30 +290,6 @@
       }
     }
     return mapped;
-  }
-
-  async function fetchGames(query, signal) {
-    let json = null;
-    if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
-      try {
-        json = await window.ZO2Y_IGDB.request('/games', { search: query, page_size: 4 });
-      } catch (_err) {
-        return [];
-      }
-    } else {
-      json = await fetchJsonWithTimeout(`${IGDB_PROXY_BASE}/games?search=${encodeURIComponent(query)}&page_size=4`, { signal });
-      if (!json) return [];
-    }
-
-    const items = Array.isArray(json.results) ? json.results : [];
-    return items.map((g) => ({
-      type: 'Games',
-      title: g.name || 'Game',
-      sub: g.released ? g.released.slice(0, 4) : 'Game',
-      href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html',
-      image: toHttpsUrl(g.cover || ''),
-      landscape: true
-    }));
   }
 
   async function fetchBooks(query, signal) {
@@ -408,21 +426,13 @@
     const cached = readCachedSuggestions(normalized);
     if (cached) return cached;
 
-    const [moviesTv, games, books, music] = await Promise.all([
+    const [moviesTv, books, music] = await Promise.all([
       fetchMoviesAndTv(normalized, signal).catch(() => []),
-      GAMES_DISABLED ? Promise.resolve([]) : fetchGames(normalized, signal).catch(() => []),
       fetchBooks(normalized, signal).catch(() => []),
       fetchMusic(normalized, signal).catch(() => [])
     ]);
 
-    const merged = [...moviesTv, ...games, ...books, ...music]
-      .filter((item) => {
-        const type = String(item?.type || '').toLowerCase();
-        if (type.includes('restaurant')) return false;
-        if (GAMES_DISABLED && type.includes('game')) return false;
-        return true;
-      })
-      .slice(0, 18);
+    const merged = sanitizeSuggestions([...moviesTv, ...books, ...music]);
     writeCachedSuggestions(normalized, merged);
     return merged;
   }
@@ -517,6 +527,13 @@
         activeIndex = -1;
         render();
         return;
+      }
+
+      const warm = readWarmSuggestions(normalized);
+      if (warm.length) {
+        suggestions = warm;
+        activeIndex = -1;
+        render();
       }
 
       activeRequestId += 1;
