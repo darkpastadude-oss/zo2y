@@ -1462,7 +1462,7 @@
       .desktop-app-shell {
         width: min(1780px, calc(100% - 30px));
         margin: 14px auto 0;
-        min-height: calc(100vh - 100px);
+        min-height: 0;
         display: grid;
         grid-template-columns: 292px minmax(0, 1fr);
         gap: 14px;
@@ -1481,9 +1481,9 @@
         position: sticky;
         top: 14px;
         align-self: start;
-        min-height: calc(100vh - 28px);
-        max-height: none;
-        height: auto;
+        min-height: 0;
+        max-height: calc(100vh - 28px);
+        height: fit-content;
         border: 1px solid rgba(255,255,255,0.14);
         border-radius: 28px;
         background:
@@ -1494,7 +1494,7 @@
         gap: 12px;
         padding: 18px 14px 16px;
         overflow-x: hidden;
-        overflow-y: visible;
+        overflow-y: auto;
       }
 
       .desktop-sidebar::-webkit-scrollbar {
@@ -2716,7 +2716,7 @@
     </div>
   </div>
 
-  <script src="js/igdb-client.js"></script>
+  <script src="js/igdb-client.js?v=20260228a"></script>
   <script>
     const ENABLE_RESTAURANTS = false;
     const HOME_BASE_MEDIA_TYPES = ['movie', 'tv', 'anime', 'game', 'book', 'music'];

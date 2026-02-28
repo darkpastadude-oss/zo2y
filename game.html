@@ -772,7 +772,7 @@
 
     <script src="js/list-utils.js?v=20260221c"></script>
     <script src="js/index-list-menu-adapter.js?v=20260221b"></script>
-    <script src="js/igdb-client.js"></script>
+    <script src="js/igdb-client.js?v=20260228a"></script>
     <script>
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
@@ -793,18 +793,65 @@
       let modalSelectedLists = new Set();
       let selectedIcon = 'fas fa-gamepad';
 
+      function pickGameFromPayload(payload) {
+        if (!payload) return null;
+        if (Array.isArray(payload)) return payload.find(Boolean) || null;
+        if (Array.isArray(payload.results)) return payload.results.find(Boolean) || null;
+        if (Array.isArray(payload.data)) return payload.data.find(Boolean) || null;
+        return null;
+      }
+
       async function igdbFetch(path, params = {}) {
+        const normalizedPath = String(path || '').trim();
+        const detailMatch = normalizedPath.match(/^\/games\/([^/?#]+)$/i);
+        const detailId = detailMatch ? decodeURIComponent(String(detailMatch[1] || '').trim()) : '';
+
         if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
-          return window.ZO2Y_IGDB.request(path, params);
+          try {
+            const payload = await window.ZO2Y_IGDB.request(normalizedPath, params);
+            if (!detailId) return payload;
+            return pickGameFromPayload(payload) || payload;
+          } catch (detailError) {
+            if (!detailId) throw detailError;
+            const fallbackPayload = await window.ZO2Y_IGDB.request('/games', {
+              ...(params || {}),
+              id: detailId,
+              page_size: 1
+            });
+            const fallbackGame = pickGameFromPayload(fallbackPayload);
+            if (fallbackGame) return fallbackGame;
+            throw detailError;
+          }
         }
-        const url = new URL(IGDB_PROXY_BASE + path, window.location.origin);
-        Object.entries(params).forEach(([k, v]) => {
-          if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
-        });
-        if (!url.searchParams.has('rev')) url.searchParams.set('rev', 'wiki20260227b');
-        const res = await fetch(url.toString());
-        if (!res.ok) throw new Error('IGDB error');
-        return res.json();
+
+        const fetchFromProxy = async (fetchPath, fetchParams = {}) => {
+          const url = new URL(IGDB_PROXY_BASE + fetchPath, window.location.origin);
+          Object.entries(fetchParams || {}).forEach(([k, v]) => {
+            if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
+          });
+          if (!url.searchParams.has('rev')) url.searchParams.set('rev', 'wiki20260228a');
+          const res = await fetch(url.toString());
+          if (!res.ok) throw new Error('IGDB error');
+          return res.json();
+        };
+
+        if (!detailId) {
+          return fetchFromProxy(normalizedPath, params);
+        }
+
+        try {
+          const detailPayload = await fetchFromProxy(normalizedPath, params);
+          return pickGameFromPayload(detailPayload) || detailPayload;
+        } catch (detailError) {
+          const fallbackPayload = await fetchFromProxy('/games', {
+            ...(params || {}),
+            id: detailId,
+            page_size: 1
+          });
+          const fallbackGame = pickGameFromPayload(fallbackPayload);
+          if (fallbackGame) return fallbackGame;
+          throw detailError;
+        }
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -1634,7 +1681,12 @@
           });
         });
         await initAuth();
-        await load();
+        try {
+          await load();
+        } catch (error) {
+          console.error('Game page load failed:', error);
+          showNotification('Could not load this game right now', 'error');
+        }
         await initReviewSystem();
       })();
     })();

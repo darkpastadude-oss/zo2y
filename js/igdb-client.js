@@ -1,6 +1,6 @@
 (function initZo2yIgdbClient(global) {
   if (global.ZO2Y_IGDB && typeof global.ZO2Y_IGDB.request === 'function') return;
-  const GAME_DATA_REV = 'wiki20260227b';
+  const GAME_DATA_REV = 'wiki20260228a';
 
   function normalizeBase(value) {
     const raw = String(value || '').trim();
@@ -89,6 +89,38 @@
     return error;
   }
 
+  function getGameIdFromDetailPath(path) {
+    const match = String(path || '').trim().match(/^\/games\/([^/?#]+)$/i);
+    if (!match) return '';
+    try {
+      return decodeURIComponent(String(match[1] || '').trim());
+    } catch (_err) {
+      return String(match[1] || '').trim();
+    }
+  }
+
+  function pickGameFromListPayload(payload) {
+    if (!payload) return null;
+    if (Array.isArray(payload)) return payload.find(Boolean) || null;
+    if (Array.isArray(payload.results)) return payload.results.find(Boolean) || null;
+    if (Array.isArray(payload.data)) return payload.data.find(Boolean) || null;
+    if (payload.game && typeof payload.game === 'object') return payload.game;
+    return null;
+  }
+
+  async function tryFallbackGameDetail(base, path, params = {}, options = {}, meta = {}) {
+    const gameId = getGameIdFromDetailPath(path);
+    if (!gameId) return null;
+    const status = Number(meta.status || 0);
+    if (status !== 404 && status < 500) return null;
+
+    const fallbackParams = { ...(params || {}), id: gameId, page_size: 1 };
+    delete fallbackParams.page;
+    const fallbackMeta = await fetchWithMeta(base, '/games', fallbackParams, options);
+    if (!fallbackMeta.ok) return null;
+    return pickGameFromListPayload(fallbackMeta.data);
+  }
+
   let resolvedBase = '';
   let resolvingPromise = null;
 
@@ -137,11 +169,23 @@
     for (const base of orderedBases) {
       try {
         const meta = await fetchWithMeta(base, path, params, options);
-        if (meta.status === 404) {
-          if (base === resolvedBase) resolvedBase = '';
-          continue;
+        if (!meta.ok) {
+          let fallbackGame = null;
+          try {
+            fallbackGame = await tryFallbackGameDetail(base, path, params, options, meta);
+          } catch (_fallbackErr) {
+            fallbackGame = null;
+          }
+          if (fallbackGame) {
+            resolvedBase = base;
+            return fallbackGame;
+          }
+          if (meta.status === 404) {
+            if (base === resolvedBase) resolvedBase = '';
+            continue;
+          }
+          throw createRequestError(meta);
         }
-        if (!meta.ok) throw createRequestError(meta);
         resolvedBase = base;
         return meta.data;
       } catch (error) {
