@@ -17,14 +17,15 @@
     { mediaType: 'music', table: 'music_reviews', idField: 'track_id', label: 'Music' }
   ];
 
-  const SIDEBAR_MEDIA_TYPES = ['movie', 'tv', 'anime', 'game', 'book', 'music'];
+  const SIDEBAR_MEDIA_TYPES = ['movie', 'tv', 'anime', 'game', 'book', 'music', 'restaurant'];
   const SIDEBAR_MEDIA_LABEL = {
     movie: 'Movies',
     tv: 'TV',
     anime: 'Anime',
     game: 'Games',
     book: 'Books',
-    music: 'Music'
+    music: 'Music',
+    restaurant: 'Places'
   };
   const SIDEBAR_MEDIA_ROUTE = {
     movie: 'movies.html',
@@ -32,10 +33,12 @@
     anime: 'animes.html',
     game: 'games.html',
     book: 'books.html',
-    music: 'music.html'
+    music: 'music.html',
+    restaurant: 'restraunts.html'
   };
 
   const SOURCE_BY_MEDIA = Object.fromEntries(REVIEW_SOURCES.map((source) => [source.mediaType, source]));
+  let lastLiveReviewSlides = [];
 
   const imdbTopMovies = [
     {
@@ -580,6 +583,7 @@
       if (slides.length >= 10) break;
     }
 
+    lastLiveReviewSlides = slides.slice();
     return slides;
   }
 
@@ -716,11 +720,18 @@
 
     slides = await buildReviewSlidesFromLiveData();
     if (!slides.length) {
+      await wait(800);
+      slides = await buildReviewSlidesFromLiveData();
+    }
+    if (!slides.length && lastLiveReviewSlides.length) {
+      slides = lastLiveReviewSlides.slice();
+    }
+    if (!slides.length) {
       slides = [{
-        kicker: 'Community Reviews',
-        title: 'No live reviews yet',
-        quote: 'As soon as the community posts reviews, this slider will update automatically.',
-        author: '@zo2y',
+        kicker: 'Reviews Spotlight',
+        title: 'No community reviews yet',
+        quote: 'As soon as someone posts a review, this section updates from live data.',
+        author: 'zo2y.com/reviews',
         score: '-',
         image: '',
         href: 'reviews.html'
@@ -746,7 +757,14 @@
       return;
     }
 
-    const user = await getAuthedUser(client);
+    let user = await getAuthedUser(client);
+    if (!user?.id) {
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        await wait(350);
+        user = await getAuthedUser(client);
+        if (user?.id) break;
+      }
+    }
     if (!user?.id) {
       listContainer.innerHTML = '<div class="sidebar-list-empty">Sign in to preview your custom lists.</div>';
       return;
@@ -831,5 +849,7 @@
     renderCuratedRails();
     void loadSidebarCustomListPreview();
     void bindSidebarListAuthRefresh();
+    window.setTimeout(() => { void loadSidebarCustomListPreview(); }, 1200);
+    window.setTimeout(() => { void loadSidebarCustomListPreview(); }, 3600);
   });
 })();

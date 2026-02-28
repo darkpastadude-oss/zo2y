@@ -1478,9 +1478,9 @@
 
       .desktop-sidebar {
         position: sticky;
-        top: 12px;
+        top: 104px;
         align-self: start;
-        max-height: calc(100vh - 24px);
+        max-height: calc(100vh - 116px);
         height: auto;
         border: 1px solid rgba(255,255,255,0.14);
         border-radius: 28px;
@@ -1843,7 +1843,7 @@
         grid-template-columns: 46px minmax(0, 1fr) 46px;
         align-items: center;
         gap: 12px;
-        padding: 16px 18px 12px;
+        padding: 10px 18px 8px;
       }
 
       .review-nav {
@@ -1869,7 +1869,7 @@
         border-radius: 22px;
         border: 1px solid rgba(255,255,255,0.14);
         overflow: hidden;
-        min-height: 258px;
+        min-height: 198px;
       }
 
       .review-stage-backdrop {
@@ -1892,10 +1892,10 @@
       .review-stage-content {
         position: relative;
         z-index: 2;
-        padding: 24px 26px;
-        max-width: 72%;
+        padding: 16px 20px;
+        max-width: 70%;
         display: grid;
-        gap: 10px;
+        gap: 6px;
       }
 
       .review-stage-kicker {
@@ -1908,14 +1908,18 @@
 
       .review-stage-title {
         font-family: 'Outfit', sans-serif;
-        font-size: clamp(26px, 3.2vw, 42px);
+        font-size: clamp(18px, 2.5vw, 30px);
         line-height: 1.06;
       }
 
       .review-stage-quote {
         color: #d7e6ff;
-        font-size: 15px;
-        line-height: 1.5;
+        font-size: 13px;
+        line-height: 1.42;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
 
       .review-stage-footer {
@@ -1923,7 +1927,7 @@
         align-items: center;
         gap: 14px;
         flex-wrap: wrap;
-        font-size: 13px;
+        font-size: 12px;
         color: #dce9ff;
       }
 
@@ -1966,7 +1970,7 @@
       }
 
       .review-stage-content {
-        max-width: 82%;
+        max-width: 80%;
       }
     }
 
@@ -7672,7 +7676,7 @@
     });
   </script>
   <script src="js/production-runtime.js?v=20260227d" defer></script>
-  <script src="js/home-desktop-rebrand.js?v=20260228a" defer></script>
+  <script src="js/home-desktop-rebrand.js?v=20260228c" defer></script>
 </body>
 </html>
 
