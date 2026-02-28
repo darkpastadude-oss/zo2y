@@ -1482,7 +1482,7 @@
         top: 14px;
         align-self: start;
         min-height: calc(100vh - 28px);
-        max-height: calc(100vh - 28px);
+        max-height: none;
         height: auto;
         border: 1px solid rgba(255,255,255,0.14);
         border-radius: 28px;
@@ -1494,7 +1494,7 @@
         gap: 12px;
         padding: 18px 14px 16px;
         overflow-x: hidden;
-        overflow-y: auto;
+        overflow-y: visible;
       }
 
       .desktop-sidebar::-webkit-scrollbar {
@@ -1612,7 +1612,7 @@
       }
 
       .sidebar-lists-preview {
-        margin-top: auto;
+        margin-top: 8px;
         border: 1px solid rgba(255,255,255,0.13);
         border-radius: 14px;
         background: rgba(255,255,255,0.03);
@@ -2515,7 +2515,7 @@
         </div>
       </header>
 
-      <main class="container page-shell">
+      <main class="container page-shell" data-dedupe-exempt="1">
         <section class="spotlight" id="spotlightSection" role="link" tabindex="0" aria-label="Open spotlight item">
           <div class="spotlight-bg" id="spotlightBackground"></div>
           <div class="spotlight-media" id="spotlightMedia">
@@ -7795,7 +7795,7 @@
     });
   </script>
   <script src="js/production-runtime.js?v=20260227d" defer></script>
-  <script src="js/home-desktop-rebrand.js?v=20260228d" defer></script>
+  <script src="js/home-desktop-rebrand.js?v=20260228e" defer></script>
 </body>
 </html>
 

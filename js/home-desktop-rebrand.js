@@ -43,188 +43,228 @@
   const imdbTopMovies = [
     {
       mediaType: 'movie',
+      itemId: '278',
       title: 'The Shawshank Redemption',
       subtitle: 'IMDb 9.3',
       extra: '#1 on IMDb Top 250',
       image: 'https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg',
-      href: 'https://www.imdb.com/title/tt0111161/',
-      disableLists: true
+      href: 'movie.html?id=278'
     },
     {
       mediaType: 'movie',
+      itemId: '238',
       title: 'The Godfather',
       subtitle: 'IMDb 9.2',
       extra: '#2 on IMDb Top 250',
       image: 'https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg',
-      href: 'https://www.imdb.com/title/tt0068646/',
-      disableLists: true
+      href: 'movie.html?id=238'
     },
     {
       mediaType: 'movie',
+      itemId: '155',
       title: 'The Dark Knight',
       subtitle: 'IMDb 9.0',
       extra: '#3 on IMDb Top 250',
       image: 'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
-      href: 'https://www.imdb.com/title/tt0468569/',
-      disableLists: true
+      href: 'movie.html?id=155'
     },
     {
       mediaType: 'movie',
+      itemId: '240',
       title: 'The Godfather Part II',
       subtitle: 'IMDb 9.0',
       extra: '#4 on IMDb Top 250',
       image: 'https://image.tmdb.org/t/p/w500/hek3koDUyRQk7FIhPXsa6mT2Zc3.jpg',
-      href: 'https://www.imdb.com/title/tt0071562/',
-      disableLists: true
+      href: 'movie.html?id=240'
     },
     {
       mediaType: 'movie',
+      itemId: '389',
       title: '12 Angry Men',
       subtitle: 'IMDb 9.0',
       extra: '#5 on IMDb Top 250',
       image: 'https://image.tmdb.org/t/p/w500/ow3wq89wM8qd5X7hWKxiRfsFf9C.jpg',
-      href: 'https://www.imdb.com/title/tt0050083/',
-      disableLists: true
+      href: 'movie.html?id=389'
     },
     {
       mediaType: 'movie',
+      itemId: '424',
       title: 'Schindler\'s List',
       subtitle: 'IMDb 9.0',
       extra: '#6 on IMDb Top 250',
       image: 'https://image.tmdb.org/t/p/w500/sF1U4EUQS8YHUYjNl3pMGNIQyr0.jpg',
-      href: 'https://www.imdb.com/title/tt0108052/',
-      disableLists: true
+      href: 'movie.html?id=424'
     },
     {
       mediaType: 'movie',
+      itemId: '122',
       title: 'The Return of the King',
       subtitle: 'IMDb 9.0',
       extra: '#7 on IMDb Top 250',
       image: 'https://image.tmdb.org/t/p/w500/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg',
-      href: 'https://www.imdb.com/title/tt0167260/',
-      disableLists: true
+      href: 'movie.html?id=122'
     },
     {
       mediaType: 'movie',
+      itemId: '680',
       title: 'Pulp Fiction',
       subtitle: 'IMDb 8.9',
       extra: '#8 on IMDb Top 250',
       image: 'https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg',
-      href: 'https://www.imdb.com/title/tt0110912/',
-      disableLists: true
+      href: 'movie.html?id=680'
     },
     {
       mediaType: 'movie',
+      itemId: '429',
       title: 'The Good, the Bad and the Ugly',
       subtitle: 'IMDb 8.8',
       extra: '#9 on IMDb Top 250',
       image: 'https://image.tmdb.org/t/p/w500/bX2xnavhMYjWDoZp1VM6VnU1xwe.jpg',
-      href: 'https://www.imdb.com/title/tt0060196/',
-      disableLists: true
+      href: 'movie.html?id=429'
     },
     {
       mediaType: 'movie',
+      itemId: '550',
       title: 'Fight Club',
       subtitle: 'IMDb 8.8',
       extra: '#10 on IMDb Top 250',
       image: 'https://image.tmdb.org/t/p/w500/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
-      href: 'https://www.imdb.com/title/tt0137523/',
-      disableLists: true
+      href: 'movie.html?id=550'
     }
   ];
 
-  const awardWinningGames = [
+  const awardWinningGameSeeds = [
     {
-      mediaType: 'game',
       title: 'Baldur\'s Gate 3',
       subtitle: 'Game of the Year 2023',
-      extra: 'The Game Awards',
-      image: 'https://upload.wikimedia.org/wikipedia/en/1/12/Baldur%27s_Gate_3_cover_art.jpg',
-      href: 'https://www.metacritic.com/game/baldurs-gate-3/',
-      disableLists: true
+      extra: 'The Game Awards'
     },
     {
-      mediaType: 'game',
       title: 'Elden Ring',
       subtitle: 'Game of the Year 2022',
-      extra: 'The Game Awards',
-      image: 'https://upload.wikimedia.org/wikipedia/en/b/b9/Elden_Ring_Box_art.jpg',
-      href: 'https://www.metacritic.com/game/elden-ring/',
-      disableLists: true
+      extra: 'The Game Awards'
     },
     {
-      mediaType: 'game',
       title: 'It Takes Two',
       subtitle: 'Game of the Year 2021',
-      extra: 'The Game Awards',
-      image: 'https://upload.wikimedia.org/wikipedia/en/a/a9/It_Takes_Two_cover_art.png',
-      href: 'https://www.metacritic.com/game/it-takes-two/',
-      disableLists: true
+      extra: 'The Game Awards'
     },
     {
-      mediaType: 'game',
       title: 'The Last of Us Part II',
       subtitle: 'Game of the Year 2020',
-      extra: 'The Game Awards',
-      image: 'https://upload.wikimedia.org/wikipedia/en/4/4f/The_Last_of_Us_Part_II_cover_art.jpg',
-      href: 'https://www.metacritic.com/game/the-last-of-us-part-ii/',
-      disableLists: true
+      extra: 'The Game Awards'
     },
     {
-      mediaType: 'game',
       title: 'Sekiro: Shadows Die Twice',
       subtitle: 'Game of the Year 2019',
-      extra: 'The Game Awards',
-      image: 'https://upload.wikimedia.org/wikipedia/en/6/6e/Sekiro_art.jpg',
-      href: 'https://www.metacritic.com/game/sekiro-shadows-die-twice/',
-      disableLists: true
+      extra: 'The Game Awards'
     },
     {
-      mediaType: 'game',
       title: 'Hades',
       subtitle: 'Best Indie 2020',
-      extra: 'Golden Joystick Awards',
-      image: 'https://upload.wikimedia.org/wikipedia/en/c/cc/Hades_cover_art.jpg',
-      href: 'https://www.metacritic.com/game/hades/',
-      disableLists: true
+      extra: 'Golden Joystick Awards'
     },
     {
-      mediaType: 'game',
       title: 'Disco Elysium',
       subtitle: 'Best Narrative 2019',
-      extra: 'The Game Awards',
-      image: 'https://upload.wikimedia.org/wikipedia/en/0/0e/Disco_Elysium_Poster.jpeg',
-      href: 'https://www.metacritic.com/game/disco-elysium/',
-      disableLists: true
+      extra: 'The Game Awards'
     },
     {
-      mediaType: 'game',
       title: 'Portal 2',
       subtitle: 'BAFTA Best Game',
-      extra: 'Classic Winner',
-      image: 'https://upload.wikimedia.org/wikipedia/en/f/f9/Portal2cover.jpg',
-      href: 'https://www.metacritic.com/game/portal-2/',
-      disableLists: true
+      extra: 'Classic Winner'
     },
     {
-      mediaType: 'game',
       title: 'The Legend of Zelda: TOTK',
       subtitle: 'Best Action/Adventure',
-      extra: 'The Game Awards 2023',
-      image: 'https://upload.wikimedia.org/wikipedia/en/f/fb/The_Legend_of_Zelda_Tears_of_the_Kingdom_cover.jpg',
-      href: 'https://www.metacritic.com/game/the-legend-of-zelda-tears-of-the-kingdom/',
-      disableLists: true
+      extra: 'The Game Awards 2023'
     },
     {
-      mediaType: 'game',
       title: 'Red Dead Redemption 2',
       subtitle: 'Best Narrative 2018',
-      extra: 'The Game Awards',
-      image: 'https://upload.wikimedia.org/wikipedia/en/4/44/Red_Dead_Redemption_II.jpg',
-      href: 'https://www.metacritic.com/game/red-dead-redemption-2/',
-      disableLists: true
+      extra: 'The Game Awards'
     }
   ];
+  const awardWinningGamesFallback = awardWinningGameSeeds.map((seed, index) => ({
+    mediaType: 'game',
+    itemId: `award-fallback-${index + 1}`,
+    title: seed.title,
+    subtitle: seed.subtitle,
+    extra: seed.extra,
+    image: 'images/logo.png',
+    href: 'games.html',
+    disableLists: true
+  }));
+
+  function normalizeGameName(value) {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function scoreGameNameMatch(candidate, target) {
+    const left = normalizeGameName(candidate);
+    const right = normalizeGameName(target);
+    if (!left || !right) return 0;
+    if (left === right) return 100;
+    if (left.includes(right) || right.includes(left)) return 75;
+    const leftWords = new Set(left.split(' ').filter(Boolean));
+    const rightWords = new Set(right.split(' ').filter(Boolean));
+    let overlap = 0;
+    rightWords.forEach((word) => {
+      if (leftWords.has(word)) overlap += 1;
+    });
+    return overlap;
+  }
+
+  async function buildAwardWinningGamesRail() {
+    const tasks = awardWinningGameSeeds.map(async (seed) => {
+      const searchUrl = `/api/igdb/games?search=${encodeURIComponent(seed.title)}&ordering=-rating&page_size=8&page=1`;
+      const json = await fetchJson(searchUrl, 9000);
+      const rows = Array.isArray(json?.results) ? json.results : [];
+      const ranked = rows
+        .map((row) => ({
+          row,
+          score: scoreGameNameMatch(row?.name, seed.title)
+        }))
+        .sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
+
+      const best = ranked[0]?.row || null;
+      const bestId = String(best?.id || '').trim();
+      if (!best || !bestId) {
+        return {
+          mediaType: 'game',
+          itemId: '',
+          title: seed.title,
+          subtitle: seed.subtitle,
+          extra: seed.extra,
+          image: 'images/logo.png',
+          href: 'games.html',
+          disableLists: true
+        };
+      }
+
+      const cover = safeHttps(best?.cover || '');
+      const hero = safeHttps(best?.hero || best?.background_image || '');
+      return {
+        mediaType: 'game',
+        itemId: bestId,
+        title: String(best?.name || seed.title).trim() || seed.title,
+        subtitle: seed.subtitle,
+        extra: seed.extra,
+        image: cover || hero || 'images/logo.png',
+        href: `game.html?id=${encodeURIComponent(bestId)}`
+      };
+    });
+
+    const settled = await Promise.allSettled(tasks);
+    const items = settled
+      .map((entry) => (entry.status === 'fulfilled' ? entry.value : null))
+      .filter(Boolean);
+    return items.length ? items : awardWinningGamesFallback;
+  }
 
   function isDesktopViewport() {
     return window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`).matches;
@@ -519,14 +559,15 @@
     });
 
     const gameTasks = [...groupedIds.game].slice(0, 20).map(async (id) => {
-      const json = await fetchJson(`/api/igdb/games/${encodeURIComponent(id)}`, 8500);
-      const title = String(json?.name || '').trim();
+      const json = await fetchJson(`/api/igdb/games?id=${encodeURIComponent(id)}&page_size=1`, 8500);
+      const row = Array.isArray(json?.results) ? (json.results[0] || null) : null;
+      const title = String(row?.name || '').trim();
       if (!title) return;
-      const cover = safeHttps(json?.cover || '');
-      const hero = safeHttps(json?.hero || json?.background_image || '');
+      const cover = safeHttps(row?.cover || '');
+      const hero = safeHttps(row?.hero || row?.background_image || '');
       metaByKey.set(makeReviewKey('game', id), {
         title,
-        subtitle: String(json?.released || '').slice(0, 4) || 'Game',
+        subtitle: String(row?.released || '').slice(0, 4) || 'Game',
         image: cover || hero || 'images/logo.png',
         background: hero || cover || '',
         href: `game.html?id=${encodeURIComponent(id)}`
@@ -840,7 +881,11 @@
     }
 
     window.renderRail('imdbTop10Rail', imdbTopMovies, { mediaType: 'movie' });
-    window.renderRail('awardGamesRail', awardWinningGames, { mediaType: 'game' });
+    window.renderRail('awardGamesRail', awardWinningGamesFallback, { mediaType: 'game' });
+    void buildAwardWinningGamesRail().then((items) => {
+      if (typeof window.renderRail !== 'function') return;
+      window.renderRail('awardGamesRail', Array.isArray(items) ? items : awardWinningGamesFallback, { mediaType: 'game' });
+    }).catch(() => {});
   }
 
   document.addEventListener('DOMContentLoaded', () => {
