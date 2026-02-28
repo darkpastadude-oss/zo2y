@@ -1438,6 +1438,7 @@
       }
 
       .desktop-main-panel {
+        grid-column: 2;
         min-width: 0;
         width: 100%;
         padding: 14px 0 0;
@@ -1462,11 +1463,12 @@
       }
 
       .desktop-sidebar {
-        position: sticky;
+        position: fixed;
         top: 0;
-        left: auto;
-        bottom: auto;
-        width: 100%;
+        left: 0;
+        bottom: 0;
+        width: var(--desktop-sidebar-expanded);
+        height: 100vh;
         min-height: 100vh;
         max-height: 100vh;
         border: 0;
@@ -1479,6 +1481,7 @@
         padding: 14px 12px 16px;
         overflow-x: hidden;
         overflow-y: auto;
+        overscroll-behavior: contain;
         z-index: 210;
         transition: width 0.22s ease, padding-inline 0.22s ease;
       }
@@ -1687,7 +1690,7 @@
       }
 
       body.sidebar-collapsed .desktop-sidebar {
-        width: 100%;
+        width: var(--desktop-sidebar-collapsed);
         padding-inline: 9px;
         align-items: center;
       }
