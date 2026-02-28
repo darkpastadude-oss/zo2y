@@ -13,7 +13,7 @@
       --ok: #10b981;
       --desktop-sidebar-expanded: 292px;
       --desktop-sidebar-collapsed: 96px;
-      --desktop-shell-gap: 14px;
+      --desktop-shell-gap: 0px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1424,16 +1424,17 @@
       .desktop-main-panel {
         min-width: 0;
         width: 100%;
-        padding: 14px 15px 0 calc(var(--desktop-sidebar-expanded) + var(--desktop-shell-gap));
+        padding: 14px 0 0 var(--desktop-sidebar-expanded);
         transition: padding-left 0.22s ease;
       }
 
       body.sidebar-collapsed .desktop-main-panel {
-        padding-left: calc(var(--desktop-sidebar-collapsed) + var(--desktop-shell-gap));
+        padding-left: var(--desktop-sidebar-collapsed);
       }
 
       .desktop-main-panel .container {
         width: 100%;
+        margin: 0;
       }
 
       .desktop-sidebar {
