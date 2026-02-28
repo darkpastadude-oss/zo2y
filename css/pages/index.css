@@ -1416,47 +1416,22 @@
       }
 
       .desktop-app-shell {
-        position: relative;
         width: 100%;
         min-height: 100%;
-        display: grid;
-        grid-template-columns: var(--desktop-sidebar-expanded) minmax(0, 1fr);
-        align-items: stretch;
-      }
-
-      .desktop-app-shell::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: var(--desktop-sidebar-expanded);
-        border-right: 1px solid rgba(255,255,255,0.14);
-        background: linear-gradient(180deg, rgba(12, 18, 31, 0.93) 0%, rgba(8, 14, 26, 0.97) 100%);
-        pointer-events: none;
-        z-index: 0;
+        display: flex;
+        align-items: flex-start;
       }
 
       .desktop-main-panel {
-        grid-column: 2;
         position: relative;
-        z-index: 1;
         min-width: 0;
-        width: 100%;
+        flex: 1;
         padding: 14px 0 0;
-        transition: width 0.22s ease;
+        transition: none;
       }
 
       body.sidebar-collapsed .desktop-main-panel {
-        width: 100%;
-      }
-
-      body.sidebar-collapsed .desktop-app-shell {
-        grid-template-columns: var(--desktop-sidebar-collapsed) minmax(0, 1fr);
-      }
-
-      body.sidebar-collapsed .desktop-app-shell::before {
-        width: var(--desktop-sidebar-collapsed);
+        width: auto;
       }
 
       .desktop-main-panel .container {
@@ -1465,11 +1440,11 @@
       }
 
       .desktop-sidebar {
-        position: fixed;
+        position: sticky;
         top: 0;
-        left: 0;
-        bottom: 0;
+        align-self: flex-start;
         width: var(--desktop-sidebar-expanded);
+        flex: 0 0 var(--desktop-sidebar-expanded);
         height: 100vh;
         min-height: 100vh;
         max-height: 100vh;
@@ -1485,10 +1460,8 @@
         overflow-x: hidden;
         overflow-y: auto;
         overscroll-behavior: contain;
-        pointer-events: auto;
-        transform: translateZ(0);
-        z-index: 320;
-        transition: width 0.22s ease, padding-inline 0.22s ease;
+        z-index: 210;
+        transition: width 0.22s ease, flex-basis 0.22s ease, padding-inline 0.22s ease;
       }
 
       .desktop-sidebar::-webkit-scrollbar {
@@ -1696,6 +1669,7 @@
 
       body.sidebar-collapsed .desktop-sidebar {
         width: var(--desktop-sidebar-collapsed);
+        flex-basis: var(--desktop-sidebar-collapsed);
         padding-inline: 9px;
         align-items: center;
       }
