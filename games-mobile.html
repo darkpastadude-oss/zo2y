@@ -892,7 +892,7 @@
           const ratingValue = Number(item.rating || 0);
           const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
           const gameDesc = [genreText, ratingText].filter(Boolean).join(' | ') || String(item.description || '').trim() || 'Popular pick';
-          const gameCover = item.cover_url || item.hero_url || 'images/logo.png';
+          const gameCover = item.cover_url || 'images/logo.png';
           const gameId = Number(item.id);
           if (!Number.isFinite(gameId)) return;
           const card = document.createElement('div');

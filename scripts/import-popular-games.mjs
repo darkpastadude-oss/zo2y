@@ -348,7 +348,7 @@ function mapProviderRowToCandidate(row) {
   const rating = toNumberOrNull(row?.rating);
   const ratingCount = toPositiveIntOrNull(row?.ratings_count || row?.rating_count) || 0;
   const coverUrl = toHttpsUrl(row?.cover || row?.cover_url || "");
-  const heroUrl = toHttpsUrl(row?.hero || row?.background_image || row?.hero_url || coverUrl);
+  const heroUrl = coverUrl;
   const genres = normalizeGenres(row?.genres);
   const platforms = normalizePlatforms(row?.platforms);
   const screenshots = normalizeScreenshots(row);
@@ -393,19 +393,9 @@ function mapRawgRowToCandidate(row) {
   const coverUrl = toHttpsUrl(
     row?.cover ||
     row?.cover_url ||
-    row?.background_image ||
-    row?.background_image_additional ||
-    screenshots[0] ||
     ""
   );
-  const heroUrl = toHttpsUrl(
-    row?.hero ||
-    row?.hero_url ||
-    row?.background_image_additional ||
-    row?.background_image ||
-    screenshots[0] ||
-    coverUrl
-  );
+  const heroUrl = coverUrl;
   const releaseDate = toIsoDateOrNull(row?.released || row?.release_date);
   const rating = toNumberOrNull(row?.rating);
   const ratingCount = toPositiveIntOrNull(row?.ratings_count || row?.rating_count) || 0;

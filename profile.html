@@ -8824,8 +8824,8 @@ header, .top-stripe, .section-nav {
                         if (safeType === 'game') {
                             const data = await fetchGameDetails(safeId);
                             return data ? {
-                                title: String(data.name || '').trim(),
-                                image: String(data.cover || '').trim()
+                                title: String(data.name || data.title || '').trim(),
+                                image: normalizeGameImageSource(data)
                             } : null;
                         }
                         if (safeType === 'book') {
@@ -10538,14 +10538,67 @@ header, .top-stripe, .section-nav {
                 if (!game || typeof game !== 'object') return 'images/placeholder.jpg';
                 return String(
                     game.cover ||
+                    game.cover_url ||
                     ''
                 ).trim() || 'images/placeholder.jpg';
+            }
+
+            function normalizeSupabaseGameRecord(row, fallbackId = '') {
+                if (!row || typeof row !== 'object') return null;
+                const idValue = row.id ?? fallbackId;
+                const title = String(row.title || row.name || row.slug || '').trim() || 'Untitled';
+                const ratingValue = Number(row.rating);
+                const ratingCountValue = Number(row.rating_count ?? row.ratings_count ?? 0);
+                const coverUrl = String(row.cover_url || row.cover || '').trim();
+                const releaseDate = String(row.release_date || row.released || '').trim();
+                return {
+                    ...row,
+                    id: idValue,
+                    name: String(row.name || title).trim() || title,
+                    title,
+                    cover: coverUrl,
+                    cover_url: coverUrl,
+                    hero: coverUrl,
+                    hero_url: coverUrl,
+                    released: releaseDate,
+                    release_date: releaseDate,
+                    rating: Number.isFinite(ratingValue) ? ratingValue : null,
+                    ratings_count: Number.isFinite(ratingCountValue) ? Math.floor(ratingCountValue) : 0,
+                    rating_count: Number.isFinite(ratingCountValue) ? Math.floor(ratingCountValue) : 0
+                };
             }
 
             async function fetchGameDetails(gameId) {
                 const cacheKey = String(gameId || '').trim();
                 if (!cacheKey) return null;
                 if (gameCache.has(cacheKey)) return gameCache.get(cacheKey);
+
+                const cacheGameRecord = (record) => {
+                    if (!record) return null;
+                    const normalizedId = String(record.id ?? cacheKey).trim();
+                    if (normalizedId) gameCache.set(normalizedId, record);
+                    gameCache.set(cacheKey, record);
+                    return record;
+                };
+
+                if (supabase) {
+                    try {
+                        const numericId = Number(cacheKey);
+                        let query = supabase
+                            .from('games')
+                            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,source,igdb_id,rawg_id,slug,extra')
+                            .limit(1);
+                        query = Number.isFinite(numericId)
+                            ? query.eq('id', numericId)
+                            : query.eq('id', cacheKey);
+                        const { data, error } = await query.maybeSingle();
+                        if (!error && data) {
+                            const normalized = normalizeSupabaseGameRecord(data, cacheKey);
+                            return cacheGameRecord(normalized);
+                        }
+                    } catch (_err) {}
+                }
+
                 try {
                     const response = await igdbFetch(`/games/${encodeURIComponent(cacheKey)}`);
                     const raw = Array.isArray(response?.results)
@@ -10559,9 +10612,8 @@ header, .top-stripe, .section-nav {
                         return null;
                     }
 
-                    const normalized = { ...raw, id: raw.id ?? cacheKey };
-                    gameCache.set(cacheKey, normalized);
-                    return normalized;
+                    const normalized = normalizeSupabaseGameRecord(raw, cacheKey) || { ...raw, id: raw.id ?? cacheKey };
+                    return cacheGameRecord(normalized);
                 } catch (_err) {
                     return null;
                 }

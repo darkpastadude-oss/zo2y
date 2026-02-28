@@ -3598,12 +3598,7 @@
           const releaseDateSort = toSortEpoch(row?.released || row?.release_date || releaseDate);
           const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
           const cover = String(row?.cover || row?.cover_url || '').trim();
-          const hero = String(row?.hero || row?.hero_url || row?.background_image || '').trim();
-          const bg = String(row?.background_image || row?.hero_url || '').trim();
-          const image = cover || hero || bg;
-          const spotlightBackdrop = hero || bg || cover || image;
-          const spotlightCover = cover || hero || bg || image;
-          const hasDedicatedCover = !!cover && String(cover).toLowerCase() !== String(spotlightBackdrop || '').toLowerCase();
+          const image = cover || HOME_LOCAL_FALLBACK_IMAGE;
           const rowId = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
           const rowTitle = String(row?.name || row?.title || 'Game').trim() || 'Game';
           const genreText = Array.isArray(extra?.genres)
@@ -3617,11 +3612,12 @@
             subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
             extra: [genreText, Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : ''].filter(Boolean).join(' | '),
             image,
-            backgroundImage: spotlightBackdrop || image,
-            spotlightImage: spotlightBackdrop || image,
-            spotlightMediaImage: spotlightCover || image,
-            spotlightMediaFit: hasDedicatedCover ? 'contain' : ((hero || bg) ? 'cover' : 'contain'),
-            spotlightMediaShape: hasDedicatedCover ? 'poster' : ((hero || bg) ? 'landscape' : 'poster'),
+            backgroundImage: image,
+            spotlightImage: image,
+            spotlightMediaImage: image,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
             href: rowId ? `game.html?id=${encodeURIComponent(rowId)}` : 'games.html'
           };
           return withReleaseTag({ ...item, releaseDateSort }, label, { detail: releaseDate });
@@ -6981,12 +6977,7 @@
           const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
           const genres = Array.isArray(extra?.genres) ? extra.genres : [];
           const cover = String(row?.cover_url || '').trim();
-          const hero = String(row?.hero_url || '').trim();
-          const image = cover || hero;
-          if (!image) return null;
-          const backdrop = hero || cover || image;
-          const poster = cover || hero || image;
-          const hasDedicatedCover = !!cover && String(cover).toLowerCase() !== String(backdrop || '').toLowerCase();
+          const image = cover || HOME_LOCAL_FALLBACK_IMAGE;
           return {
             mediaType: 'game',
             itemId: String(row?.id || ''),
@@ -6994,11 +6985,12 @@
             subtitle: row?.release_date ? String(row.release_date).slice(0, 4) : 'Game',
             extra: `${genres.length ? genres.slice(0, 2).map((entry) => entry?.name).filter(Boolean).join(' | ') : 'Video Game'}${row?.rating ? ` | ${Number(row.rating).toFixed(1)}/5` : ''}`,
             image,
-            backgroundImage: backdrop,
-            spotlightImage: backdrop,
-            spotlightMediaImage: poster,
-            spotlightMediaFit: hasDedicatedCover ? 'contain' : (hero ? 'cover' : 'contain'),
-            spotlightMediaShape: hasDedicatedCover ? 'poster' : (hero ? 'landscape' : 'poster'),
+            backgroundImage: image,
+            spotlightImage: image,
+            spotlightMediaImage: image,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
             href: row?.id ? `game.html?id=${encodeURIComponent(String(row.id))}` : 'games.html'
           };
         })

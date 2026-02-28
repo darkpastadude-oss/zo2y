@@ -1019,7 +1019,7 @@
         results.forEach(item => {
           const gameTitle = item.title || item.slug || 'Untitled';
           const gameDate = item.release_date ? String(item.release_date).slice(0, 10) : '';
-          const gameCover = item.cover_url || item.hero_url || 'images/logo.png';
+          const gameCover = item.cover_url || 'images/logo.png';
           const genreText = normalizeGameGenres(item.extra)
             .map((genre) => genre.name)
             .slice(0, 2)

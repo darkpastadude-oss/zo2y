@@ -928,7 +928,7 @@
         document.getElementById('title').textContent = title;
         document.getElementById('overview').textContent = description || 'No description available.';
         document.getElementById('meta').textContent = metaParts.join(' | ');
-        document.getElementById('poster').src = data.cover_url || data.hero_url || 'images/placeholder.jpg';
+        document.getElementById('poster').src = data.cover_url || 'images/placeholder.jpg';
 
         const genres = normalizeGameGenres(extra);
         const tags = document.getElementById('tags');
@@ -1640,7 +1640,7 @@
               id: g.id,
               title: g.title || 'Game',
               sub: g.release_date ? String(g.release_date).slice(0, 4) : 'Game',
-              image: g.cover_url || g.hero_url || ''
+              image: g.cover_url || ''
             }));
             activeIndex = -1;
             renderSuggest();
