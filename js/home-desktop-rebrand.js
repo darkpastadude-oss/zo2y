@@ -290,12 +290,21 @@
 
     const collapsed = document.body.classList.contains('sidebar-collapsed');
     const railWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH;
-    sidebar.style.position = 'fixed';
-    sidebar.style.top = '0';
-    sidebar.style.left = '0';
-    sidebar.style.bottom = '0';
-    sidebar.style.height = '100vh';
-    sidebar.style.maxHeight = '100vh';
+    const visual = window.visualViewport;
+    const top = (visual?.offsetTop || 0) + window.scrollY;
+    const left = (visual?.offsetLeft || 0) + window.scrollX;
+    const viewportHeight = Math.max(
+      0,
+      Math.ceil(visual?.height || window.innerHeight || document.documentElement.clientHeight || 0)
+    );
+
+    // Use popup-style viewport syncing so sidebar remains "floating" even when layout contexts shift.
+    sidebar.style.position = 'absolute';
+    sidebar.style.top = `${top}px`;
+    sidebar.style.left = `${left}px`;
+    sidebar.style.bottom = 'auto';
+    sidebar.style.height = `${viewportHeight}px`;
+    sidebar.style.maxHeight = `${viewportHeight}px`;
     sidebar.style.width = `${railWidth}px`;
     sidebar.style.zIndex = '320';
   }
@@ -306,6 +315,11 @@
     const apply = () => syncDesktopSidebarFloatingState();
     window.addEventListener('resize', apply, { passive: true });
     window.addEventListener('orientationchange', apply, { passive: true });
+    window.addEventListener('scroll', apply, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', apply, { passive: true });
+      window.visualViewport.addEventListener('scroll', apply, { passive: true });
+    }
     apply();
   }
 
