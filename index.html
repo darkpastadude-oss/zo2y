@@ -1462,9 +1462,10 @@
       .desktop-app-shell {
         width: min(1780px, calc(100% - 30px));
         margin: 14px auto 0;
+        min-height: calc(100vh - 100px);
         display: grid;
         grid-template-columns: 292px minmax(0, 1fr);
-        gap: 16px;
+        gap: 14px;
         align-items: start;
       }
 
@@ -1478,10 +1479,11 @@
 
       .desktop-sidebar {
         position: sticky;
-        top: 12px;
+        top: 14px;
         align-self: start;
-        max-height: calc(100vh - 24px);
-        height: calc(100vh - 24px);
+        min-height: calc(100vh - 28px);
+        max-height: calc(100vh - 28px);
+        height: auto;
         border: 1px solid rgba(255,255,255,0.14);
         border-radius: 28px;
         background:
@@ -1778,20 +1780,20 @@
       }
 
       .page-shell {
-        margin-top: 16px;
-        gap: 16px;
+        margin-top: 10px;
+        gap: 10px;
       }
 
       .spotlight {
-        min-height: 500px;
+        min-height: 392px;
         border-radius: 30px;
       }
 
       .spotlight-inner {
-        min-height: 500px;
+        min-height: 392px;
         padding: clamp(24px, 3.4vw, 38px);
-        max-width: calc(100% - 360px);
-        gap: 12px;
+        max-width: calc(100% - 336px);
+        gap: 10px;
       }
 
       .spotlight-title {
@@ -1806,7 +1808,7 @@
 
       .spotlight-media {
         right: 24px;
-        width: clamp(240px, 24vw, 294px);
+        width: clamp(228px, 23vw, 286px);
       }
 
       .section {
@@ -1815,7 +1817,11 @@
       }
 
       .section-head {
-        padding: 18px 20px;
+        padding: 12px 16px 10px;
+      }
+
+      .rail-wrap {
+        padding: 8px 12px 12px;
       }
 
       .section-head h2 {
@@ -1840,16 +1846,16 @@
 
       .review-slider {
         display: grid;
-        grid-template-columns: 46px minmax(0, 1fr) 46px;
+        grid-template-columns: 40px minmax(0, 1fr) 40px;
         align-items: center;
-        gap: 12px;
-        padding: 10px 18px 8px;
+        gap: 10px;
+        padding: 8px 14px 6px;
       }
 
       .review-nav {
-        width: 46px;
-        height: 46px;
-        border-radius: 14px;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
         border: 1px solid rgba(255,255,255,0.18);
         background: rgba(255,255,255,0.05);
         color: #e4eeff;
@@ -1866,10 +1872,10 @@
 
       .review-stage-card {
         position: relative;
-        border-radius: 22px;
+        border-radius: 18px;
         border: 1px solid rgba(255,255,255,0.14);
         overflow: hidden;
-        min-height: 198px;
+        min-height: 164px;
       }
 
       .review-stage-backdrop {
@@ -1892,10 +1898,10 @@
       .review-stage-content {
         position: relative;
         z-index: 2;
-        padding: 16px 20px;
-        max-width: 70%;
+        padding: 13px 16px;
+        max-width: 76%;
         display: grid;
-        gap: 6px;
+        gap: 4px;
       }
 
       .review-stage-kicker {
@@ -1908,14 +1914,14 @@
 
       .review-stage-title {
         font-family: 'Outfit', sans-serif;
-        font-size: clamp(18px, 2.5vw, 30px);
+        font-size: clamp(16px, 2vw, 24px);
         line-height: 1.06;
       }
 
       .review-stage-quote {
         color: #d7e6ff;
-        font-size: 13px;
-        line-height: 1.42;
+        font-size: 12.5px;
+        line-height: 1.35;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
@@ -1936,7 +1942,7 @@
       }
 
       .review-pagination {
-        padding: 0 0 18px;
+        padding: 0 0 14px;
         display: inline-flex;
         justify-content: center;
         gap: 8px;
@@ -2765,9 +2771,9 @@
       book: { table: 'book_list_items', itemField: 'book_id' },
       music: { table: 'music_list_items', itemField: 'track_id' }
     };
-    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v8';
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v9';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v7';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v8';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
@@ -2870,7 +2876,7 @@
         if (value === undefined || value === null || value === '') return;
         url.searchParams.set(key, String(value));
       });
-      if (!url.searchParams.has('rev')) url.searchParams.set('rev', 'wiki20260227b');
+      if (!url.searchParams.has('rev')) url.searchParams.set('rev', 'wiki20260228c');
       const cacheKey = `igdb:${url.toString()}`;
       const json = await fetchJsonWithPerfCache(url.toString(), { signal, cacheKey });
       if (!json) throw new Error('IGDB error');
@@ -5730,7 +5736,7 @@
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
-        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 4200 },
+        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 5600 },
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 8500 },
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 }
       ];
@@ -6938,7 +6944,7 @@
     }
 
     async function loadGames(signal) {
-      const dateRange = '1978-01-01,2027-12-31';
+      const dateRange = '1978-01-01,2028-12-31';
       const orderingPool = shuffleArray(['-released', 'released', '-name', '-rating', '-added', '-metacritic']);
       const genrePool = shuffleArray([
         'action',
@@ -6960,76 +6966,91 @@
         'mmo',
         'indie'
       ]);
+      const RECENT_GAME_IDS_KEY = 'zo2y_home_recent_games_v2';
+      const readRecentGameIds = () => {
+        try {
+          const raw = localStorage.getItem(RECENT_GAME_IDS_KEY);
+          if (!raw) return new Set();
+          const parsed = JSON.parse(raw);
+          const ids = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.ids) ? parsed.ids : []);
+          return new Set(ids.map((id) => String(id || '').trim()).filter(Boolean));
+        } catch (_err) {
+          return new Set();
+        }
+      };
+      const writeRecentGameIds = (ids = []) => {
+        try {
+          const normalized = Array.from(new Set((ids || []).map((id) => String(id || '').trim()).filter(Boolean))).slice(0, 96);
+          localStorage.setItem(RECENT_GAME_IDS_KEY, JSON.stringify(normalized));
+        } catch (_err) {}
+      };
       const requestPlans = [];
-      const cappedCatalogPage = 80;
-
-      orderingPool.slice(0, 4).forEach((ordering, idx) => {
+      const seenPlans = new Set();
+      const addPlan = (ordering, page, genres = '') => {
+        const normalizedOrdering = String(ordering || '').trim() || '-released';
+        const normalizedGenres = String(genres || '').trim();
+        const normalizedPage = Math.max(1, Number(page || 1));
+        const key = `${normalizedOrdering}|${normalizedPage}|${normalizedGenres}`;
+        if (seenPlans.has(key)) return;
+        seenPlans.add(key);
         requestPlans.push({
-          ordering,
-          page: randomInt(1, cappedCatalogPage),
-          genres: ''
+          ordering: normalizedOrdering,
+          page: normalizedPage,
+          genres: normalizedGenres
         });
-        if (idx < 2) {
-          requestPlans.push({
-            ordering,
-            page: randomInt(1, cappedCatalogPage),
-            genres: ''
-          });
+      };
+
+      const maxCatalogPage = 130;
+      orderingPool.slice(0, 5).forEach((ordering, idx) => {
+        addPlan(ordering, randomInt(1, maxCatalogPage));
+        if (idx < 3) {
+          addPlan(ordering, randomInt(1, maxCatalogPage));
         }
       });
 
-      genrePool.slice(0, 8).forEach((genres) => {
-        requestPlans.push({
-          ordering: orderingPool[randomInt(0, Math.max(0, orderingPool.length - 1))] || '-released',
-          page: randomInt(1, 28),
-          genres
-        });
+      genrePool.slice(0, 10).forEach((genre, idx) => {
+        const ordering = orderingPool[idx % orderingPool.length] || '-released';
+        addPlan(ordering, randomInt(1, 56), genre);
       });
 
-      const allRows = [];
-      const targetRawPool = HOME_CHANNEL_TARGET_ITEMS * 6;
-      for (const plan of requestPlans) {
+      const fetchRowsForPlan = async (plan) => {
         try {
           const json = await homeIgdbFetch('/games', {
-            page_size: 32,
+            page_size: 34,
             ordering: plan.ordering,
             dates: dateRange,
             page: plan.page,
             genres: plan.genres
           }, signal);
-          const rows = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
-          if (rows.length) allRows.push(...rows);
-          if (allRows.length >= targetRawPool) break;
+          return Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
         } catch (_err) {
-          // Continue trying other catalog slices.
+          return [];
         }
+      };
+
+      const primaryPlans = shuffleArray(requestPlans).slice(0, 12);
+      const primaryRows = (await Promise.all(primaryPlans.map((plan) => fetchRowsForPlan(plan)))).flat();
+      let allRows = primaryRows;
+
+      if (allRows.length < HOME_CHANNEL_TARGET_ITEMS * 4) {
+        const fallbackPlans = [
+          { ordering: '-added', page: randomInt(1, 48), genres: '' },
+          { ordering: '-released', page: randomInt(1, 48), genres: '' },
+          { ordering: '-metacritic', page: randomInt(1, 36), genres: '' }
+        ];
+        const fallbackRows = (await Promise.all(fallbackPlans.map((plan) => fetchRowsForPlan(plan)))).flat();
+        allRows = [...allRows, ...fallbackRows];
       }
 
-      if (allRows.length < HOME_CHANNEL_TARGET_ITEMS) {
-        try {
-          const fallbackJson = await homeIgdbFetch('/games', {
-            page_size: 32,
-            ordering: '-released',
-            dates: dateRange,
-            page: randomInt(1, 12)
-          }, signal);
-          const fallbackRows = Array.isArray(fallbackJson?.results) ? fallbackJson.results : (Array.isArray(fallbackJson) ? fallbackJson : []);
-          if (fallbackRows.length) allRows.push(...fallbackRows);
-        } catch (_err) {}
-      }
+      if (!allRows.length) return [];
 
       const overexposedNamePattern = /\b(fortnite|valorant|counter[-\s]?strike|league of legends|dota 2|roblox|minecraft)\b/i;
-      const shuffledRows = shuffleArray(allRows);
-      const diversifiedRows = [
-        ...shuffledRows.filter((row) => !overexposedNamePattern.test(String(row?.name || ''))),
-        ...shuffleArray(shuffledRows.filter((row) => overexposedNamePattern.test(String(row?.name || ''))))
-      ];
-
+      const recentIds = readRecentGameIds();
       const seenIds = new Set();
       const seenNames = new Set();
-      const candidates = [];
+      const preparedRows = [];
 
-      for (const row of diversifiedRows) {
+      for (const row of shuffleArray(allRows)) {
         const idKey = String(row?.id || '').trim();
         const nameKey = String(row?.name || '').trim().toLowerCase();
         if (!idKey || !nameKey || seenIds.has(idKey) || seenNames.has(nameKey)) continue;
@@ -7037,31 +7058,66 @@
         const coverImage = String(row?.cover || '').trim();
         const heroImage = String(row?.hero || '').trim();
         const backgroundImage = String(row?.background_image || '').trim();
-        const mainImage = coverImage || heroImage || backgroundImage;
-        const spotlightBackdrop = heroImage || backgroundImage || coverImage || mainImage;
-        const spotlightCover = coverImage || heroImage || backgroundImage || mainImage;
+        const primaryImage = coverImage || heroImage || backgroundImage;
+        if (!primaryImage) continue;
+
+        const spotlightBackdrop = heroImage || backgroundImage || coverImage || primaryImage;
+        const spotlightCover = coverImage || heroImage || backgroundImage || primaryImage;
         const hasDedicatedCover = !!coverImage && String(coverImage).toLowerCase() !== String(spotlightBackdrop || '').toLowerCase();
-        if (!mainImage) continue;
 
         seenIds.add(idKey);
         seenNames.add(nameKey);
-        candidates.push({
+        preparedRows.push({
           ...row,
-          _image: mainImage,
+          itemId: idKey,
+          title: String(row?.name || 'Game').trim() || 'Game',
+          _image: primaryImage,
           _bg: spotlightBackdrop,
           _spotPoster: spotlightCover,
           _spotShape: hasDedicatedCover ? 'poster' : ((heroImage || backgroundImage) ? 'landscape' : 'poster'),
           _spotFit: hasDedicatedCover ? 'contain' : ((heroImage || backgroundImage) ? 'cover' : 'contain')
         });
-        if (candidates.length >= HOME_CHANNEL_TARGET_ITEMS * 2) break;
+        if (preparedRows.length >= HOME_CHANNEL_TARGET_ITEMS * 8) break;
       }
 
-      const mapped = shuffleArray(candidates).slice(0, HOME_CHANNEL_TARGET_ITEMS).map((g) => {
+      if (!preparedRows.length) return [];
+
+      const nonRepeatRows = preparedRows.filter((row) => !recentIds.has(String(row.itemId || '')));
+      const repeatRows = preparedRows.filter((row) => recentIds.has(String(row.itemId || '')));
+      const safeFreshRows = shuffleArray(nonRepeatRows.filter((row) => !overexposedNamePattern.test(String(row?.title || ''))));
+      const safeRepeatRows = shuffleArray(repeatRows.filter((row) => !overexposedNamePattern.test(String(row?.title || ''))));
+      const overexposedRows = shuffleArray(preparedRows.filter((row) => overexposedNamePattern.test(String(row?.title || ''))));
+      const prioritizedRows = [...safeFreshRows, ...safeRepeatRows, ...overexposedRows];
+
+      const selected = [];
+      const selectedKeys = new Set();
+      for (const row of prioritizedRows) {
+        const key = String(row?.itemId || '').trim();
+        if (!key || selectedKeys.has(key)) continue;
+        selectedKeys.add(key);
+        selected.push(row);
+        if (selected.length >= HOME_CHANNEL_TARGET_ITEMS) break;
+      }
+
+      if (selected.length < HOME_CHANNEL_TARGET_ITEMS) {
+        for (const row of shuffleArray(preparedRows)) {
+          const key = String(row?.itemId || '').trim();
+          if (!key || selectedKeys.has(key)) continue;
+          selectedKeys.add(key);
+          selected.push(row);
+          if (selected.length >= HOME_CHANNEL_TARGET_ITEMS) break;
+        }
+      }
+
+      if (!selected.length) return [];
+      writeRecentGameIds(selected.map((row) => row.itemId));
+
+      return selected.map((g) => {
         return {
           mediaType: 'game',
-          itemId: String(g.id || ''),
-          title: g.name || 'Game',
-          subtitle: g.released ? g.released.slice(0, 4) : 'Game',
+          itemId: String(g.itemId || g.id || ''),
+          title: g.title || 'Game',
+          subtitle: g.released ? String(g.released).slice(0, 4) : 'Game',
           extra: `${Array.isArray(g.genres) && g.genres.length ? g.genres.slice(0, 2).map(x => x?.name).filter(Boolean).join(' | ') : 'Video Game'}${g.rating ? ` | ${Number(g.rating).toFixed(1)}/5` : ''}`,
           image: g._image,
           backgroundImage: g._bg,
@@ -7072,8 +7128,6 @@
           href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html'
         };
       });
-      if (mapped.length) return mapped;
-      return [];
     }
 
     async function loadBooks(signal) {
