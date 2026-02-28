@@ -4,6 +4,33 @@
   const base = path === '/' ? 'index.html' : path.split('/').pop();
   const pageKey = String(base || 'index.html').replace(/\.html?$/i, '').toLowerCase();
   const AUTH_PAGE_KEYS = new Set(['login', 'sign-up', 'signup', 'auth-callback', 'update-password']);
+  const GAMES_DISABLED = true;
+  const GAME_PAGE_KEYS = new Set(['games', 'games-mobile', 'game']);
+  const GAME_ENTRY_SELECTOR = [
+    'a[href="games.html"]',
+    'a[href="/games.html"]',
+    'a[href*="games.html?"]',
+    'a[href*="game.html?id="]',
+    'button[onclick*="games.html"]',
+    'button[onclick*="game.html"]',
+    '[data-media="game"]',
+    '[data-media-type="game"]',
+    '[data-tab="games"]',
+    '#gamesRail',
+    '#awardGamesRail',
+    '#gamesTab',
+    '#mobileTabGames',
+    '#gamesTabText',
+    '.menu-icon-option[data-icon="fas fa-gamepad"]',
+    '.icon-option[data-icon="fas fa-gamepad"]'
+  ].join(', ');
+
+  if (GAMES_DISABLED && GAME_PAGE_KEYS.has(pageKey)) {
+    const target = new URL('index.html', window.location.origin);
+    target.searchParams.set('games_disabled', '1');
+    window.location.replace(target.toString());
+    return;
+  }
 
   document.body?.classList.add('app-booting');
   if (document.body) {
@@ -125,7 +152,47 @@
     });
   };
 
+  const hideGameEntryPoints = (scope = document) => {
+    if (!GAMES_DISABLED || !scope) return;
+    const canQuery = typeof scope.querySelectorAll === 'function';
+    const collect = [];
+    if (canQuery) {
+      collect.push(...scope.querySelectorAll(GAME_ENTRY_SELECTOR));
+    }
+    if (scope instanceof Element && scope.matches(GAME_ENTRY_SELECTOR)) {
+      collect.push(scope);
+    }
+
+    const hideNode = (node) => {
+      if (!(node instanceof Element)) return;
+      if (node.matches('.card[data-media-type="game"]')) {
+        node.remove();
+        return;
+      }
+      if (node.matches('#gamesRail, #awardGamesRail')) {
+        const wrap = node.closest('.rail-wrap');
+        if (wrap) {
+          wrap.style.display = 'none';
+          wrap.setAttribute('aria-hidden', 'true');
+        } else {
+          node.style.display = 'none';
+          node.setAttribute('aria-hidden', 'true');
+        }
+        return;
+      }
+      const target = node.closest(
+        '.rail-wrap, .sidebar-link, .sidebar-ghost-link, .nav-pill, .mobile-nav-item, .chip, .btn, .mobile-action-btn, button, a, [role="tab"], .tab-btn, .list-tab'
+      ) || node;
+      target.style.display = 'none';
+      target.setAttribute('aria-hidden', 'true');
+      target.dataset.gamesHidden = '1';
+    };
+
+    collect.forEach(hideNode);
+  };
+
   ensureResourceHints();
+  hideGameEntryPoints();
 
   const dismissInstallPrompt = (options = {}) => {
     const persist = options.persist !== false;
@@ -574,6 +641,7 @@
 
       if (refreshMenus) ensureMenuCloseButtons();
       if (refreshModals) ensureModalCloseButtons();
+      if (GAMES_DISABLED) hideGameEntryPoints();
       if (shouldSync || refreshMenus || refreshModals) syncPopupState();
     };
 
@@ -612,6 +680,7 @@
           if (node.matches('.list-menu-backdrop, .rail-menu-backdrop') || node.querySelector('.list-menu-backdrop, .rail-menu-backdrop')) {
             pendingMutationSync = true;
           }
+          if (GAMES_DISABLED) hideGameEntryPoints(node);
         });
       });
 
@@ -633,6 +702,7 @@
     document.body.classList.add('app-ready');
     initListPopupShell();
     releaseStalePopupLock();
+    hideGameEntryPoints();
     window.setTimeout(() => document.body.classList.remove('app-loading'), 180);
     if (ENABLE_MOBILE_INSTALL_PROMPT) {
       window.setTimeout(() => showInstallPromptCard(), 1200);

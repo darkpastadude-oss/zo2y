@@ -2444,7 +2444,7 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260227f" />
-  <script src="/js/mobile-webapp.js?v=20260227e" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260228b" defer></script>
 </head>
 <body>
   <div class="desktop-app-shell">
@@ -2462,7 +2462,6 @@
         <a class="sidebar-link" href="movies.html"><i class="fa-solid fa-film"></i><span>Movies</span></a>
         <a class="sidebar-link" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>TV Shows</span></a>
         <a class="sidebar-link" href="animes.html"><i class="fa-solid fa-dragon"></i><span>Anime</span></a>
-        <a class="sidebar-link" href="games.html"><i class="fa-solid fa-gamepad"></i><span>Games</span></a>
         <a class="sidebar-link" href="books.html"><i class="fa-solid fa-book"></i><span>Books</span></a>
         <a class="sidebar-link" href="music.html"><i class="fa-solid fa-music"></i><span>Music</span></a>
         <a class="sidebar-link accent" href="reviews.html"><i class="fa-solid fa-star"></i><span>Reviews</span></a>
@@ -2471,7 +2470,6 @@
       <p class="sidebar-label">Quick Picks</p>
       <a class="sidebar-ghost-link" href="#desktopReviewsSection"><i class="fa-solid fa-comments"></i><span>Review Slides</span></a>
       <a class="sidebar-ghost-link" href="#imdbTop10Rail"><i class="fa-solid fa-ranking-star"></i><span>IMDb Top 10</span></a>
-      <a class="sidebar-ghost-link" href="#awardGamesRail"><i class="fa-solid fa-trophy"></i><span>Award Games</span></a>
       <section class="sidebar-lists-preview" id="sidebarCustomListPreview" aria-label="Custom list preview">
         <div class="sidebar-lists-head">
           <p class="sidebar-label">Your Lists</p>
@@ -2501,7 +2499,6 @@
               <a class="nav-pill" href="movies.html">Movies</a>
               <a class="nav-pill" href="tvshows.html">TV</a>
               <a class="nav-pill" href="animes.html">Anime</a>
-              <a class="nav-pill" href="games.html">Games</a>
               <a class="nav-pill" href="books.html">Books</a>
               <a class="nav-pill" href="music.html">Music</a>
               <a class="nav-pill" href="reviews.html">Reviews</a>
@@ -2579,22 +2576,18 @@
         <section class="section desktop-curated-shelf" aria-label="Curated rankings">
           <div class="section-head">
             <h2>Curated Rankings</h2>
-            <p>Top 10 IMDb movie picks and award-winning games, preloaded for quick browsing.</p>
+            <p>Top 10 IMDb movie picks, preloaded for quick browsing.</p>
           </div>
           <div class="rail-wrap">
             <div class="rail-title"><span><i class="fa-solid fa-ranking-star"></i> Top 10 IMDb Movies</span><a href="movies.html">Browse movies</a></div>
             <div class="rail" id="imdbTop10Rail"></div>
-          </div>
-          <div class="rail-wrap">
-            <div class="rail-title"><span><i class="fa-solid fa-trophy"></i> Award-Winning Games</span><a href="games.html">Browse games</a></div>
-            <div class="rail" id="awardGamesRail"></div>
           </div>
         </section>
 
         <section class="section">
           <div class="section-head">
             <h2>Culture Stream</h2>
-            <p>One swipeable feed blending movies, TV, anime, games, books, and music.</p>
+            <p>One swipeable feed blending movies, TV, anime, books, and music.</p>
           </div>
 
           <div class="rail-wrap">
@@ -2631,11 +2624,6 @@
           </div>
 
           <div class="rail-wrap">
-            <div class="rail-title"><span><i class="fa-solid fa-gamepad"></i> Games</span><a href="games.html">View all</a></div>
-            <div class="rail" id="gamesRail"></div>
-          </div>
-
-          <div class="rail-wrap">
             <div class="rail-title"><span><i class="fa-solid fa-book"></i> Books</span><a href="books.html">View all</a></div>
             <div class="rail" id="booksRail"></div>
           </div>
@@ -2661,7 +2649,6 @@
     <a class="mobile-nav-item" href="movies.html" aria-label="Movies"><i class="fa-solid fa-film"></i></a>
     <a class="mobile-nav-item" href="tvshows.html" aria-label="TV Shows"><i class="fa-solid fa-tv"></i></a>
     <a class="mobile-nav-item" href="animes.html" aria-label="Anime"><i class="fa-solid fa-dragon"></i></a>
-    <a class="mobile-nav-item" href="games.html" aria-label="Games"><i class="fa-solid fa-gamepad"></i></a>
     <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
     <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
   </nav>
@@ -2718,8 +2705,11 @@
 
   <script src="js/igdb-client.js?v=20260228a"></script>
   <script>
+    const ENABLE_GAMES = false;
     const ENABLE_RESTAURANTS = false;
-    const HOME_BASE_MEDIA_TYPES = ['movie', 'tv', 'anime', 'game', 'book', 'music'];
+    const HOME_BASE_MEDIA_TYPES = ENABLE_GAMES
+      ? ['movie', 'tv', 'anime', 'game', 'book', 'music']
+      : ['movie', 'tv', 'anime', 'book', 'music'];
     const HOME_ACTIVE_MEDIA_TYPES = ENABLE_RESTAURANTS
       ? ['restaurant', ...HOME_BASE_MEDIA_TYPES]
       : HOME_BASE_MEDIA_TYPES;
@@ -2754,7 +2744,7 @@
       movie: { label: 'Movie', icon: 'fa-film', accent: '#ef4444' },
       tv: { label: 'TV', icon: 'fa-tv', accent: '#22c55e' },
       anime: { label: 'Anime', icon: 'fa-dragon', accent: '#f97316' },
-      game: { label: 'Game', icon: 'fa-gamepad', accent: '#38bdf8' },
+      ...(ENABLE_GAMES ? { game: { label: 'Game', icon: 'fa-gamepad', accent: '#38bdf8' } } : {}),
       book: { label: 'Book', icon: 'fa-book', accent: '#f97316' },
       music: { label: 'Music', icon: 'fa-music', accent: '#f59e0b' }
     };
@@ -2767,7 +2757,7 @@
       movie: { table: 'movie_list_items', itemField: 'movie_id' },
       tv: { table: 'tv_list_items', itemField: 'tv_id' },
       anime: { table: 'anime_list_items', itemField: 'anime_id' },
-      game: { table: 'game_list_items', itemField: 'game_id' },
+      ...(ENABLE_GAMES ? { game: { table: 'game_list_items', itemField: 'game_id' } } : {}),
       book: { table: 'book_list_items', itemField: 'book_id' },
       music: { table: 'music_list_items', itemField: 'track_id' }
     };
@@ -3776,12 +3766,14 @@
           `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=first_air_date.desc&page=1&with_genres=16&with_original_language=ja&first_air_date.gte=${recentSeasonDate}`,
           { signal, cacheKey: `tmdb:new-releases:anime-season:${recentSeasonDate}` }
         ),
-        homeIgdbFetch('/games', {
-          page_size: 24,
-          ordering: '-released',
-          dates: `${recentSeasonDate},${upcomingDate}`,
-          page: 1
-        }, signal),
+        ENABLE_GAMES
+          ? homeIgdbFetch('/games', {
+            page_size: 24,
+            ordering: '-released',
+            dates: `${recentSeasonDate},${upcomingDate}`,
+            page: 1
+          }, signal)
+          : Promise.resolve({ results: [] }),
         fetchJsonWithPerfCache(
           `/api/books/popular?limit=30&page=1&language=en&orderBy=newest&q=${bookReleaseQuery}`,
           { signal, cacheKey: `books:new-releases:newest:${recentBookMinYear}:${currentYear}` }
@@ -3802,7 +3794,7 @@
       const tvSeasonRows = tvSeasonRes.status === 'fulfilled' && Array.isArray(tvSeasonRes.value?.results) ? tvSeasonRes.value.results : [];
       const animeEpisodeRows = animeEpisodeRes.status === 'fulfilled' && Array.isArray(animeEpisodeRes.value?.results) ? animeEpisodeRes.value.results : [];
       const animeSeasonRows = animeSeasonRes.status === 'fulfilled' && Array.isArray(animeSeasonRes.value?.results) ? animeSeasonRes.value.results : [];
-      const gameRows = gamesRes.status === 'fulfilled'
+      const gameRows = ENABLE_GAMES && gamesRes.status === 'fulfilled'
         ? (Array.isArray(gamesRes.value?.results) ? gamesRes.value.results : (Array.isArray(gamesRes.value) ? gamesRes.value : []))
         : [];
       const rawBookRows = booksRes.status === 'fulfilled'
@@ -3833,7 +3825,7 @@
         ...mapShowRows(animeSeasonRows, 'anime', 'New Season', 4, { detail: 'Latest Season' }),
         ...mapMovieRows(movieNowRows, 'New Release', 5),
         ...mapMovieRows(movieUpcomingRows, 'Upcoming Release', 3),
-        ...mapGameRows(gameRows, 'New Release', 4),
+        ...(ENABLE_GAMES ? mapGameRows(gameRows, 'New Release', 4) : []),
         ...mapBookRows(bookRows, 'New Release', 4),
         ...mapMusicRows(musicTrackRows, musicAlbumRows, 'Chart Update', 4)
       ];
@@ -4219,7 +4211,9 @@
           client.from('anime_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
             .then((res) => res)
             .catch(() => ({ count: 0 })),
-          client.from('game_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
+          ENABLE_GAMES
+            ? client.from('game_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
+            : Promise.resolve({ count: 0 }),
           client.from('book_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('music_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           ENABLE_RESTAURANTS
@@ -4241,7 +4235,7 @@
           movie: Number(movieRes?.count || 0),
           tv: Number(tvRes?.count || 0),
           anime: Number(animeRes?.count || 0),
-          game: Number(gameRes?.count || 0),
+          ...(ENABLE_GAMES ? { game: Number(gameRes?.count || 0) } : {}),
           book: Number(bookRes?.count || 0),
           music: Number(musicRes?.count || 0),
           ...(ENABLE_RESTAURANTS ? { restaurant: restaurantCount } : {})
@@ -5724,7 +5718,9 @@
         movie: makeSeedItems('movie', ['Popular Movies', 'Now in Theaters', 'Award Winners', 'Critics Picks', 'Weekend Watch'], 'movies.html'),
         tv: makeSeedItems('tv', ['Top TV Shows', 'Binge Picks', 'New Seasons', 'Global Hits', 'Fan Favorites'], 'tvshows.html'),
         anime: makeSeedItems('anime', ['Top Anime', 'Fan Favorites', 'Must Watch Series', 'Shonen Hits', 'Classic Anime'], 'animes.html'),
-        game: makeSeedItems('game', ['Top Games', 'New Releases', 'Community Picks', 'Multiplayer Hits', 'Story Games'], 'games.html'),
+        ...(ENABLE_GAMES ? {
+          game: makeSeedItems('game', ['Top Games', 'New Releases', 'Community Picks', 'Multiplayer Hits', 'Story Games'], 'games.html')
+        } : {}),
         music: makeSeedItems('music', ['Global Hits', 'Viral Tracks', 'Fresh Releases', 'Chill Vibes', 'Late Night Mix'], 'music.html'),
         book: makeSeedItems('book', ['Bestselling Books', 'Popular Fiction', 'Book Club Picks', 'Page-Turners', 'Must Read Stories'], 'books.html')
       };
@@ -5736,7 +5732,7 @@
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
-        { key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 5600 },
+        ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 5600 }] : []),
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 8500 },
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 }
       ];
