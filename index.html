@@ -42,6 +42,7 @@
   <script src="js/universal-search.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -1384,6 +1385,19 @@
       display: none;
     }
 
+    .desktop-app-shell {
+      width: 100%;
+    }
+
+    .desktop-sidebar {
+      display: none;
+    }
+
+    .desktop-reviews-shell,
+    .desktop-curated-shelf {
+      display: none;
+    }
+
     .mobile-reviews-actions {
       display: grid;
       gap: 8px;
@@ -1429,6 +1443,459 @@
 
     .spotlight-fade {
       animation: spotlightFade 0.32s ease;
+    }
+
+    @media (min-width: 1025px) {
+      body {
+        font-family: 'Sora', sans-serif;
+        background:
+          radial-gradient(circle at 14% 6%, rgba(248, 171, 42, 0.18), transparent 34%),
+          radial-gradient(circle at 86% -8%, rgba(56, 153, 250, 0.16), transparent 44%),
+          linear-gradient(165deg, #04070f 0%, #061325 48%, #081b32 100%);
+        padding-bottom: 24px;
+      }
+
+      body.sidebar-collapsed .desktop-app-shell {
+        grid-template-columns: 96px minmax(0, 1fr);
+      }
+
+      .desktop-app-shell {
+        width: min(1780px, calc(100% - 30px));
+        margin: 14px auto 0;
+        display: grid;
+        grid-template-columns: 292px minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+      }
+
+      .desktop-main-panel {
+        min-width: 0;
+      }
+
+      .desktop-main-panel .container {
+        width: 100%;
+      }
+
+      .desktop-sidebar {
+        position: sticky;
+        top: 12px;
+        height: calc(100vh - 24px);
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 28px;
+        background:
+          linear-gradient(180deg, rgba(12, 18, 31, 0.93) 0%, rgba(8, 14, 26, 0.97) 100%);
+        box-shadow: 0 24px 54px rgba(0, 0, 0, 0.46);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 18px 14px 16px;
+        overflow: hidden;
+      }
+
+      .sidebar-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 46px;
+        padding: 0 8px;
+      }
+
+      .sidebar-brand img {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        object-fit: cover;
+      }
+
+      .sidebar-brand-wordmark {
+        font-family: 'Outfit', sans-serif;
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: 0.8px;
+      }
+
+      .sidebar-toggle {
+        min-height: 38px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(255,255,255,0.04);
+        color: #d7e6ff;
+        font-family: 'Sora', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 9px;
+        padding: 0 10px;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background 0.2s ease;
+      }
+
+      .sidebar-toggle:hover {
+        border-color: rgba(255,255,255,0.28);
+        background: rgba(255,255,255,0.08);
+      }
+
+      .sidebar-nav {
+        display: grid;
+        gap: 7px;
+      }
+
+      .sidebar-link,
+      .sidebar-ghost-link {
+        min-height: 44px;
+        border-radius: 13px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 11px;
+        color: #d8e6ff;
+        font-family: 'Sora', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid transparent;
+        transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+      }
+
+      .sidebar-link i,
+      .sidebar-ghost-link i {
+        width: 16px;
+        text-align: center;
+      }
+
+      .sidebar-link:hover,
+      .sidebar-ghost-link:hover {
+        border-color: rgba(255,255,255,0.16);
+        background: rgba(255,255,255,0.06);
+      }
+
+      .sidebar-link.active {
+        border-color: rgba(245, 158, 11, 0.7);
+        background: linear-gradient(120deg, rgba(245, 158, 11, 0.22), rgba(245, 158, 11, 0.08));
+        color: #ffe2a6;
+      }
+
+      .sidebar-link.accent {
+        color: #ffe09c;
+      }
+
+      .sidebar-divider {
+        width: 100%;
+        height: 1px;
+        background: rgba(255,255,255,0.12);
+        margin: 4px 0 0;
+      }
+
+      .sidebar-label {
+        color: #8da5cc;
+        font-family: 'Sora', sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        padding: 2px 9px 0;
+      }
+
+      body.sidebar-collapsed .desktop-sidebar {
+        padding-inline: 9px;
+        align-items: center;
+      }
+
+      body.sidebar-collapsed .sidebar-brand,
+      body.sidebar-collapsed .sidebar-toggle,
+      body.sidebar-collapsed .sidebar-link,
+      body.sidebar-collapsed .sidebar-ghost-link {
+        width: 100%;
+        justify-content: center;
+        padding-inline: 0;
+      }
+
+      body.sidebar-collapsed .sidebar-brand-wordmark,
+      body.sidebar-collapsed .sidebar-toggle span,
+      body.sidebar-collapsed .sidebar-link span,
+      body.sidebar-collapsed .sidebar-ghost-link span,
+      body.sidebar-collapsed .sidebar-label,
+      body.sidebar-collapsed .sidebar-divider {
+        display: none;
+      }
+
+      body.sidebar-collapsed .sidebar-link i,
+      body.sidebar-collapsed .sidebar-ghost-link i {
+        width: auto;
+      }
+
+      header {
+        top: 12px;
+        border-radius: 24px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(8, 15, 27, 0.84);
+      }
+
+      .header-inner {
+        min-height: 80px;
+        padding: 14px 18px;
+        display: grid;
+        grid-template-columns: auto minmax(300px, 1fr) auto;
+        gap: 14px;
+      }
+
+      .brand {
+        font-family: 'Outfit', sans-serif;
+        font-size: 24px;
+      }
+
+      .brand img {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+      }
+
+      .search-wrap {
+        margin-left: 0;
+        max-width: none;
+      }
+
+      .search {
+        height: 48px;
+        background: rgba(12, 24, 44, 0.86);
+      }
+
+      .top-nav {
+        display: none;
+      }
+
+      .auth-actions .btn {
+        height: 42px;
+        border-radius: 13px;
+        background: rgba(255,255,255,0.05);
+      }
+
+      .auth-actions .btn.btn-primary {
+        background: linear-gradient(120deg, #f9b444 0%, #ffd27a 100%);
+      }
+
+      .page-shell {
+        margin-top: 16px;
+        gap: 16px;
+      }
+
+      .spotlight {
+        min-height: 500px;
+        border-radius: 30px;
+      }
+
+      .spotlight-inner {
+        min-height: 500px;
+        padding: clamp(24px, 3.4vw, 38px);
+        max-width: calc(100% - 360px);
+        gap: 12px;
+      }
+
+      .spotlight-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: clamp(38px, 4.8vw, 68px);
+      }
+
+      .spotlight-summary {
+        max-width: 690px;
+        font-size: 16px;
+      }
+
+      .spotlight-media {
+        right: 24px;
+        width: clamp(240px, 24vw, 294px);
+      }
+
+      .section {
+        border-radius: 24px;
+        background: linear-gradient(160deg, rgba(9, 17, 34, 0.9), rgba(12, 24, 45, 0.9));
+      }
+
+      .section-head {
+        padding: 18px 20px;
+      }
+
+      .section-head h2 {
+        font-family: 'Outfit', sans-serif;
+      }
+
+      .desktop-reviews-shell,
+      .desktop-curated-shelf {
+        display: block;
+      }
+
+      .reviews-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .reviews-head-btn {
+        flex-shrink: 0;
+      }
+
+      .review-slider {
+        display: grid;
+        grid-template-columns: 46px minmax(0, 1fr) 46px;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 18px 12px;
+      }
+
+      .review-nav {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(255,255,255,0.05);
+        color: #e4eeff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .review-nav:hover {
+        border-color: rgba(245, 158, 11, 0.78);
+        color: #ffd38a;
+      }
+
+      .review-stage-card {
+        position: relative;
+        border-radius: 22px;
+        border: 1px solid rgba(255,255,255,0.14);
+        overflow: hidden;
+        min-height: 258px;
+      }
+
+      .review-stage-backdrop {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        transform: scale(1.03);
+        filter: saturate(1.1) brightness(0.66);
+      }
+
+      .review-stage-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(110deg, rgba(6, 13, 26, 0.92) 8%, rgba(6, 13, 26, 0.74) 48%, rgba(6, 13, 26, 0.32) 100%);
+      }
+
+      .review-stage-content {
+        position: relative;
+        z-index: 2;
+        padding: 24px 26px;
+        max-width: 72%;
+        display: grid;
+        gap: 10px;
+      }
+
+      .review-stage-kicker {
+        text-transform: uppercase;
+        letter-spacing: 0.9px;
+        font-size: 11px;
+        color: #b5c8ea;
+        font-weight: 700;
+      }
+
+      .review-stage-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: clamp(26px, 3.2vw, 42px);
+        line-height: 1.06;
+      }
+
+      .review-stage-quote {
+        color: #d7e6ff;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      .review-stage-footer {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        color: #dce9ff;
+      }
+
+      .review-stage-footer strong {
+        color: #ffd48f;
+      }
+
+      .review-pagination {
+        padding: 0 0 18px;
+        display: inline-flex;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+      }
+
+      .review-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        border: 0;
+        background: rgba(255,255,255,0.32);
+        cursor: pointer;
+      }
+
+      .review-dot.active {
+        width: 24px;
+        border-radius: 999px;
+        background: #f5a623;
+      }
+
+      .legal-strip {
+        width: 100%;
+        margin: 12px auto 22px;
+      }
+    }
+
+    @media (min-width: 1025px) and (max-width: 1360px) {
+      .header-inner {
+        grid-template-columns: auto minmax(220px, 1fr) auto;
+      }
+
+      .review-stage-content {
+        max-width: 82%;
+      }
+    }
+
+    @media (min-width: 1025px) and (prefers-reduced-motion: no-preference) {
+      .page-shell > .spotlight,
+      .page-shell > .section {
+        animation: desktopRevealIn 0.58s ease both;
+      }
+
+      .page-shell > .section:nth-of-type(2) {
+        animation-delay: 0.08s;
+      }
+
+      .page-shell > .section:nth-of-type(3) {
+        animation-delay: 0.16s;
+      }
+
+      .page-shell > .section:nth-of-type(4) {
+        animation-delay: 0.24s;
+      }
+    }
+
+    @keyframes desktopRevealIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @keyframes spotlightFade {
@@ -1868,132 +2335,204 @@
   <script src="/js/mobile-webapp.js?v=20260227e" defer></script>
 </head>
 <body>
-  <header>
-    <div class="container header-inner">
-      <a class="brand" href="index.html">
+  <div class="desktop-app-shell">
+    <aside class="desktop-sidebar" aria-label="Desktop navigation">
+      <a class="sidebar-brand" href="index.html">
         <img src="images/logo.png" alt="Zo2y" />
-        <span>Zo2y</span>
+        <span class="sidebar-brand-wordmark">ZO2Y</span>
       </a>
+      <button class="sidebar-toggle" id="sidebarToggleBtn" type="button" aria-expanded="true" aria-label="Toggle navigation sidebar">
+        <i class="fa-solid fa-bars"></i>
+        <span>Collapse Menu</span>
+      </button>
+      <nav class="sidebar-nav" aria-label="Desktop sections">
+        <a class="sidebar-link active" href="index.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
+        <a class="sidebar-link" href="movies.html"><i class="fa-solid fa-film"></i><span>Movies</span></a>
+        <a class="sidebar-link" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>TV Shows</span></a>
+        <a class="sidebar-link" href="animes.html"><i class="fa-solid fa-dragon"></i><span>Anime</span></a>
+        <a class="sidebar-link" href="games.html"><i class="fa-solid fa-gamepad"></i><span>Games</span></a>
+        <a class="sidebar-link" href="books.html"><i class="fa-solid fa-book"></i><span>Books</span></a>
+        <a class="sidebar-link" href="music.html"><i class="fa-solid fa-music"></i><span>Music</span></a>
+        <a class="sidebar-link accent" href="reviews.html"><i class="fa-solid fa-star"></i><span>Reviews</span></a>
+      </nav>
+      <div class="sidebar-divider"></div>
+      <p class="sidebar-label">Quick Picks</p>
+      <a class="sidebar-ghost-link" href="#desktopReviewsSection"><i class="fa-solid fa-comments"></i><span>Review Slides</span></a>
+      <a class="sidebar-ghost-link" href="#imdbTop10Rail"><i class="fa-solid fa-ranking-star"></i><span>IMDb Top 10</span></a>
+      <a class="sidebar-ghost-link" href="#awardGamesRail"><i class="fa-solid fa-trophy"></i><span>Award Games</span></a>
+    </aside>
 
-      <div class="search-wrap">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input class="search" id="globalSearch" placeholder="Search all media..." />
-      </div>
+    <div class="desktop-main-panel">
+      <header>
+        <div class="container header-inner">
+          <a class="brand" href="index.html">
+            <img src="images/logo.png" alt="Zo2y" />
+            <span>Zo2y</span>
+          </a>
 
-      <div class="header-actions">
-        <nav class="top-nav" aria-label="Browse media">
-          <a class="nav-pill" href="movies.html">Movies</a>
-          <a class="nav-pill" href="tvshows.html">TV</a>
-          <a class="nav-pill" href="animes.html">Anime</a>
-          <a class="nav-pill" href="games.html">Games</a>
-          <a class="nav-pill" href="books.html">Books</a>
-          <a class="nav-pill" href="music.html">Music</a>
-          <a class="nav-pill" href="reviews.html">Reviews</a>
-        </nav>
-        <div class="auth-actions">
-          <a class="btn" href="login.html" id="loginBtn">Login</a>
-          <a class="btn btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
-          <a class="btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+          <div class="search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input class="search" id="globalSearch" placeholder="Search all media..." />
+          </div>
+
+          <div class="header-actions">
+            <nav class="top-nav" aria-label="Browse media">
+              <a class="nav-pill" href="movies.html">Movies</a>
+              <a class="nav-pill" href="tvshows.html">TV</a>
+              <a class="nav-pill" href="animes.html">Anime</a>
+              <a class="nav-pill" href="games.html">Games</a>
+              <a class="nav-pill" href="books.html">Books</a>
+              <a class="nav-pill" href="music.html">Music</a>
+              <a class="nav-pill" href="reviews.html">Reviews</a>
+            </nav>
+            <div class="auth-actions">
+              <a class="btn" href="login.html" id="loginBtn">Login</a>
+              <a class="btn btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+              <a class="btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+            </div>
+          </div>
         </div>
+      </header>
+
+      <main class="container page-shell">
+        <section class="spotlight" id="spotlightSection" role="link" tabindex="0" aria-label="Open spotlight item">
+          <div class="spotlight-bg" id="spotlightBackground"></div>
+          <div class="spotlight-media" id="spotlightMedia">
+            <img id="spotlightImage" alt="Spotlight artwork" loading="eager" fetchpriority="high" />
+          </div>
+          <div class="spotlight-inner" id="spotlightInner">
+            <p class="spotlight-kicker" id="spotlightKicker">Discover</p>
+            <h1 class="spotlight-title" id="spotlightTitle">Loading spotlight...</h1>
+            <p class="spotlight-summary" id="spotlightSummary">Pulling trends and personalization signals.</p>
+            <div class="spotlight-meta">
+              <span class="chip" id="spotlightReason"><i class="fa-solid fa-compass"></i> Discovery engine warming up</span>
+              <span class="chip" id="spotlightTrend"><i class="fa-solid fa-bolt"></i> Global buzz sync</span>
+            </div>
+            <div class="spotlight-actions">
+              <a class="btn btn-primary" href="movies.html" id="spotlightOpenBtn"><i class="fa-solid fa-play"></i> Open</a>
+              <button class="btn" id="spotlightNextBtn" type="button"><i class="fa-solid fa-forward"></i> Next Pulse</button>
+            </div>
+            <div class="spotlight-dots" id="spotlightDots" aria-label="Spotlight items"></div>
+            <div class="status" id="loadStatus">Loading live feed...</div>
+          </div>
+        </section>
+
+        <section class="section desktop-reviews-shell" id="desktopReviewsSection" aria-label="Featured community reviews">
+          <div class="section-head reviews-head">
+            <div>
+              <h2>Reviews Spotlight</h2>
+              <p>Desktop review slideshow with quick verdicts before you dive into the full review feed.</p>
+            </div>
+            <a class="btn btn-primary reviews-head-btn" href="reviews.html"><i class="fa-solid fa-star"></i> Browse Reviews</a>
+          </div>
+          <div class="review-slider">
+            <button class="review-nav" id="reviewSlidePrev" type="button" aria-label="Previous review"><i class="fa-solid fa-arrow-left"></i></button>
+            <article class="review-stage-card">
+              <div class="review-stage-backdrop" id="reviewStageBackdrop"></div>
+              <div class="review-stage-content">
+                <p class="review-stage-kicker" id="reviewStageKicker">Review Highlight</p>
+                <h3 class="review-stage-title" id="reviewStageTitle">Loading review...</h3>
+                <p class="review-stage-quote" id="reviewStageQuote">Fetching community highlights.</p>
+                <div class="review-stage-footer">
+                  <span id="reviewStageAuthor">@zo2y</span>
+                  <span><strong id="reviewStageScore">9.0/10</strong></span>
+                </div>
+              </div>
+            </article>
+            <button class="review-nav" id="reviewSlideNext" type="button" aria-label="Next review"><i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+          <div class="review-pagination" id="reviewSlideDots" aria-label="Review slide controls"></div>
+        </section>
+
+        <section class="section mobile-reviews-section" aria-label="Community reviews">
+          <div class="section-head">
+            <h2>Community Reviews</h2>
+            <p>Quick access to the latest ratings and reactions from the community.</p>
+          </div>
+          <div class="mobile-reviews-actions">
+            <a class="mobile-reviews-link mobile-reviews-link-primary" href="reviews.html"><i class="fa-solid fa-star"></i> Browse Reviews</a>
+            <a class="mobile-reviews-link" href="reviews.html#mediaFilters"><i class="fa-solid fa-layer-group"></i> Filter by Category</a>
+          </div>
+        </section>
+
+        <section class="section desktop-curated-shelf" aria-label="Curated rankings">
+          <div class="section-head">
+            <h2>Curated Rankings</h2>
+            <p>Top 10 IMDb movie picks and award-winning games, preloaded for quick browsing.</p>
+          </div>
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-ranking-star"></i> Top 10 IMDb Movies</span><a href="movies.html">Browse movies</a></div>
+            <div class="rail" id="imdbTop10Rail"></div>
+          </div>
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-trophy"></i> Award-Winning Games</span><a href="games.html">Browse games</a></div>
+            <div class="rail" id="awardGamesRail"></div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <h2>Culture Stream</h2>
+            <p>One swipeable feed blending movies, TV, anime, games, books, and music.</p>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-wave-square"></i> Mixed for you</span><a href="profile.html">Tune taste</a></div>
+            <div class="rail unified-rail" id="unifiedRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-calendar-check"></i> New Releases</span><a href="#newReleasesRail">Live</a></div>
+            <div class="rail unified-rail" id="newReleasesRail"></div>
+          </div>
+
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <h2>Trending by Category</h2>
+            <p>Dive into a lane when you want focused browsing.</p>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-film"></i> Movies</span><a href="movies.html">View all</a></div>
+            <div class="rail" id="moviesRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-tv"></i> TV Shows</span><a href="tvshows.html">View all</a></div>
+            <div class="rail" id="tvRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-dragon"></i> Anime</span><a href="animes.html">View all</a></div>
+            <div class="rail" id="animeRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-gamepad"></i> Games</span><a href="games.html">View all</a></div>
+            <div class="rail" id="gamesRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-book"></i> Books</span><a href="books.html">View all</a></div>
+            <div class="rail" id="booksRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-music"></i> Music</span><a href="music.html">View all</a></div>
+            <div class="rail" id="musicRail"></div>
+          </div>
+
+        </section>
+      </main>
+
+      <div class="legal-strip">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="mailto:zo2yhq@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
       </div>
     </div>
-  </header>
-
-  <main class="container page-shell">
-    <section class="spotlight" id="spotlightSection" role="link" tabindex="0" aria-label="Open spotlight item">
-      <div class="spotlight-bg" id="spotlightBackground"></div>
-      <div class="spotlight-media" id="spotlightMedia">
-        <img id="spotlightImage" alt="Spotlight artwork" loading="eager" fetchpriority="high" />
-      </div>
-      <div class="spotlight-inner" id="spotlightInner">
-        <p class="spotlight-kicker" id="spotlightKicker">Discover</p>
-        <h1 class="spotlight-title" id="spotlightTitle">Loading spotlight...</h1>
-        <p class="spotlight-summary" id="spotlightSummary">Pulling trends and personalization signals.</p>
-        <div class="spotlight-meta">
-          <span class="chip" id="spotlightReason"><i class="fa-solid fa-compass"></i> Discovery engine warming up</span>
-          <span class="chip" id="spotlightTrend"><i class="fa-solid fa-bolt"></i> Global buzz sync</span>
-        </div>
-        <div class="spotlight-actions">
-          <a class="btn btn-primary" href="movies.html" id="spotlightOpenBtn"><i class="fa-solid fa-play"></i> Open</a>
-          <button class="btn" id="spotlightNextBtn" type="button"><i class="fa-solid fa-forward"></i> Next Pulse</button>
-        </div>
-        <div class="spotlight-dots" id="spotlightDots" aria-label="Spotlight items"></div>
-        <div class="status" id="loadStatus">Loading live feed...</div>
-      </div>
-    </section>
-
-    <section class="section mobile-reviews-section" aria-label="Community reviews">
-      <div class="section-head">
-        <h2>Community Reviews</h2>
-        <p>Quick access to the latest ratings and reactions from the community.</p>
-      </div>
-      <div class="mobile-reviews-actions">
-        <a class="mobile-reviews-link mobile-reviews-link-primary" href="reviews.html"><i class="fa-solid fa-star"></i> Browse Reviews</a>
-        <a class="mobile-reviews-link" href="reviews.html#mediaFilters"><i class="fa-solid fa-layer-group"></i> Filter by Category</a>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-head">
-        <h2>Culture Stream</h2>
-        <p>One swipeable feed blending movies, TV, anime, games, books, and music.</p>
-      </div>
-
-      <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-wave-square"></i> Mixed for you</span><a href="profile.html">Tune taste</a></div>
-        <div class="rail unified-rail" id="unifiedRail"></div>
-      </div>
-
-      <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-calendar-check"></i> New Releases</span><a href="#newReleasesRail">Live</a></div>
-        <div class="rail unified-rail" id="newReleasesRail"></div>
-      </div>
-
-    </section>
-
-    <section class="section">
-      <div class="section-head">
-        <h2>Trending by Category</h2>
-        <p>Dive into a lane when you want focused browsing.</p>
-      </div>
-
-      <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-film"></i> Movies</span><a href="movies.html">View all</a></div>
-        <div class="rail" id="moviesRail"></div>
-      </div>
-
-      <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-tv"></i> TV Shows</span><a href="tvshows.html">View all</a></div>
-        <div class="rail" id="tvRail"></div>
-      </div>
-
-      <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-dragon"></i> Anime</span><a href="animes.html">View all</a></div>
-        <div class="rail" id="animeRail"></div>
-      </div>
-
-      <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-gamepad"></i> Games</span><a href="games.html">View all</a></div>
-        <div class="rail" id="gamesRail"></div>
-      </div>
-
-      <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-book"></i> Books</span><a href="books.html">View all</a></div>
-        <div class="rail" id="booksRail"></div>
-      </div>
-
-      <div class="rail-wrap">
-        <div class="rail-title"><span><i class="fa-solid fa-music"></i> Music</span><a href="music.html">View all</a></div>
-        <div class="rail" id="musicRail"></div>
-      </div>
-
-    </section>
-  </main>
-
-  <div class="legal-strip">
-    <a href="privacy.html">Privacy</a>
-    <a href="terms.html">Terms</a>
-    <a href="mailto:zo2yhq@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
   </div>
 
   <nav class="mobile-bottom-nav" aria-label="Mobile sections">
@@ -7020,6 +7559,7 @@
     });
   </script>
   <script src="js/production-runtime.js?v=20260227d" defer></script>
+  <script src="js/home-desktop-rebrand.js?v=20260228a" defer></script>
 </body>
 </html>
 
