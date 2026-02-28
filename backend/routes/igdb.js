@@ -109,6 +109,14 @@ function imageUrl(imageId, size = "t_1080p") {
   return `https://images.igdb.com/igdb/image/upload/${size}/${id}.jpg`;
 }
 
+function toHttpsUrl(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (text.startsWith("//")) return `https:${text}`;
+  if (/^http:\/\//i.test(text)) return text.replace(/^http:\/\//i, "https://");
+  return text;
+}
+
 function pickFirstImage(game, coverMap, screenshotMap, artworkMap) {
   const screenshotId = Array.isArray(game?.screenshots) ? game.screenshots[0] : null;
   const artworkId = Array.isArray(game?.artworks) ? game.artworks[0] : null;
@@ -1657,6 +1665,103 @@ function parseIdsQuery(value) {
     .map((entry) => Number(String(entry || "").trim())));
 }
 
+function mapGameDetailToListRow(detail) {
+  if (!detail || typeof detail !== "object") return null;
+  const id = Number(detail?.id || 0);
+  if (!Number.isFinite(id) || id <= 0) return null;
+  return {
+    id,
+    name: String(detail?.name || "Game").trim() || "Game",
+    slug: String(detail?.slug || "").trim(),
+    released: String(detail?.released || "").trim(),
+    cover: toHttpsUrl(detail?.cover || ""),
+    hero: toHttpsUrl(detail?.hero || detail?.background_image || detail?.cover || ""),
+    screenshots: (Array.isArray(detail?.screenshots) ? detail.screenshots : []).map((entry) => toHttpsUrl(entry || "")).filter(Boolean),
+    background_image: toHttpsUrl(detail?.background_image || detail?.hero || detail?.cover || ""),
+    short_screenshots: (Array.isArray(detail?.short_screenshots) ? detail.short_screenshots : [])
+      .map((entry, index) => ({
+        id: Number(entry?.id || index + 1),
+        image: toHttpsUrl(entry?.image || "")
+      }))
+      .filter((entry) => !!entry.image),
+    rating: Number.isFinite(Number(detail?.rating || NaN)) ? Number(detail.rating) : null,
+    ratings_count: Number(detail?.ratings_count || 0),
+    metacritic: Number.isFinite(Number(detail?.metacritic || NaN)) ? Number(detail.metacritic) : null,
+    genres: (Array.isArray(detail?.genres) ? detail.genres : []).map((genre) => ({
+      id: Number(genre?.id || 0),
+      name: String(genre?.name || "").trim(),
+      slug: String(genre?.slug || "").trim().toLowerCase()
+    })).filter((genre) => genre.id > 0 || !!genre.name),
+    platforms: (Array.isArray(detail?.platforms) ? detail.platforms : [])
+      .map((platform) => ({ platform: { name: String(platform?.platform?.name || "").trim() } }))
+      .filter((platform) => !!platform.platform.name),
+    source: String(detail?.source || "").trim() || "rawg"
+  };
+}
+
+function remapLegacyDetailId(detail, requestedId) {
+  if (!detail || typeof detail !== "object") return null;
+  const safeRequestedId = Number(requestedId);
+  if (!Number.isFinite(safeRequestedId) || safeRequestedId <= 0) return detail;
+  const fallbackRawgId = Number(detail?.rawg_id || decodeRawgId(detail?.id) || decodeRawgId(safeRequestedId) || 0);
+  const normalized = {
+    ...detail,
+    id: safeRequestedId
+  };
+  if (Number.isFinite(fallbackRawgId) && fallbackRawgId > 0) {
+    normalized.rawg_id = fallbackRawgId;
+  }
+  return normalized;
+}
+
+async function resolveLegacyGameDetailById(requestedId) {
+  const safeRequestedId = Number(requestedId);
+  if (!Number.isFinite(safeRequestedId) || safeRequestedId <= 0) return null;
+
+  const rawgCandidates = uniqNumbers([decodeRawgId(safeRequestedId), safeRequestedId]);
+  for (const rawgId of rawgCandidates) {
+    try {
+      const detail = await fetchRawgGameDetailsByRawgId(rawgId);
+      if (detail) return remapLegacyDetailId(detail, safeRequestedId);
+    } catch (_error) {
+      // Continue to next candidate provider.
+    }
+  }
+
+  try {
+    const game = await fetchGameBrainGameInfo(safeRequestedId);
+    const mapped = mapGameBrainDetailRow(game, null);
+    if (mapped) {
+      return {
+        ...mapped,
+        id: safeRequestedId
+      };
+    }
+  } catch (_error) {
+    // No-op. Fall through to null.
+  }
+  return null;
+}
+
+async function resolveLegacyListRowsByIds(ids = [], limit = 20) {
+  const safeLimit = clampInt(limit, 1, 50, 20);
+  const out = [];
+  const seen = new Set();
+  const candidates = uniqNumbers(ids).slice(0, safeLimit);
+  for (const requestedId of candidates) {
+    const detail = await resolveLegacyGameDetailById(requestedId);
+    if (!detail) continue;
+    const row = mapGameDetailToListRow(detail);
+    if (!row) continue;
+    const key = `${row.id}:${String(row.name || "").toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+    if (out.length >= safeLimit) break;
+  }
+  return out;
+}
+
 async function fetchGameBrainGamesList({ page = 1, pageSize = 20, search = "", id = "", ids = "" } = {}) {
   const safePage = clampInt(page, 1, 100000, 1);
   const safePageSize = clampInt(pageSize, 1, 50, 20);
@@ -1732,6 +1837,10 @@ router.get("/games", async (req, res) => {
     const ordering = String(req.query.ordering || "-added").trim();
     const dates = String(req.query.dates || "").trim();
     const genres = String(req.query.genres || "").trim();
+    const explicitIds = uniqNumbers([
+      ...parseIdsQuery(id),
+      ...parseIdsQuery(ids)
+    ]);
 
     const payload = await fetchWikipediaGamesList({
       page,
@@ -1743,16 +1852,25 @@ router.get("/games", async (req, res) => {
       dates,
       genres
     });
-    const results = Array.isArray(payload?.results) ? payload.results : [];
+    let results = Array.isArray(payload?.results) ? payload.results : [];
+    let count = Number(payload?.count || results.length);
+    if (!results.length && explicitIds.length) {
+      const legacyRows = await resolveLegacyListRowsByIds(explicitIds, pageSize);
+      if (legacyRows.length) {
+        results = legacyRows;
+        count = legacyRows.length;
+      }
+    }
+    const fromLegacySource = results.some((row) => String(row?.source || "").trim().toLowerCase() === "rawg" || String(row?.source || "").trim().toLowerCase() === "gamebrain");
 
     return res.json({
-      count: Number(payload?.count || results.length),
+      count: count,
       page,
       page_size: pageSize,
       results: results.slice(0, pageSize),
       sources: {
         igdb: false,
-        rawg: false,
+        rawg: fromLegacySource,
         wikipedia: true
       }
     });
@@ -1781,9 +1899,17 @@ router.get("/games/:id", async (req, res) => {
       return res.status(400).json({ message: "Invalid game id." });
     }
 
-    const mapped = await fetchWikipediaGameDetailsById(requestedId);
-    if (!mapped) return res.status(404).json({ message: "Game not found." });
-    return res.json(mapped);
+    let mapped = null;
+    try {
+      mapped = await fetchWikipediaGameDetailsById(requestedId);
+    } catch (_wikiError) {
+      mapped = null;
+    }
+    if (mapped) return res.json(mapped);
+
+    const legacyMapped = await resolveLegacyGameDetailById(requestedId);
+    if (legacyMapped) return res.json(legacyMapped);
+    return res.status(404).json({ message: "Game not found." });
   } catch (error) {
     res.status(500).json({ message: "Failed to load game details.", error: String(error?.message || error) });
   }

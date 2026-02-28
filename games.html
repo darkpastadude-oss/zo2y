@@ -740,7 +740,7 @@
     </div>
   </div>
 
-    <script src="js/igdb-client.js"></script>
+    <script src="js/igdb-client.js?v=20260228a"></script>
     <script>
     (function () {
       if (window.innerWidth <= 768) {
@@ -786,7 +786,7 @@
         Object.entries(params).forEach(([k, v]) => {
           if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
         });
-        if (!url.searchParams.has('rev')) url.searchParams.set('rev', 'wiki20260227b');
+        if (!url.searchParams.has('rev')) url.searchParams.set('rev', 'wiki20260228a');
         const res = await fetch(url.toString());
         if (!res.ok) throw new Error(`IGDB error ${res.status}`);
         return res.json();
