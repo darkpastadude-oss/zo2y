@@ -1478,10 +1478,10 @@
 
       .desktop-sidebar {
         position: sticky;
-        top: 104px;
+        top: 12px;
         align-self: start;
-        max-height: calc(100vh - 116px);
-        height: auto;
+        max-height: calc(100vh - 24px);
+        height: calc(100vh - 24px);
         border: 1px solid rgba(255,255,255,0.14);
         border-radius: 28px;
         background:
@@ -6938,33 +6938,98 @@
     }
 
     async function loadGames(signal) {
-      const dateRange = '2000-01-01,2026-12-31';
-      const attempts = ['-rating', '-added', '-metacritic', '-released'];
-      const allRows = [];
+      const dateRange = '1978-01-01,2027-12-31';
+      const orderingPool = shuffleArray(['-released', 'released', '-name', '-rating', '-added', '-metacritic']);
+      const genrePool = shuffleArray([
+        'action',
+        'action-adventure',
+        'adventure',
+        'role-playing',
+        'strategy',
+        'simulation',
+        'sports',
+        'racing',
+        'fighting',
+        'shooter',
+        'platformer',
+        'puzzle',
+        'horror',
+        'stealth',
+        'survival',
+        'sandbox',
+        'mmo',
+        'indie'
+      ]);
+      const requestPlans = [];
+      const cappedCatalogPage = 80;
 
-      for (let index = 0; index < attempts.length; index += 1) {
-        const ordering = attempts[index];
-        const page = index === 0 ? 1 : (index === 1 ? 2 : 1);
+      orderingPool.slice(0, 4).forEach((ordering, idx) => {
+        requestPlans.push({
+          ordering,
+          page: randomInt(1, cappedCatalogPage),
+          genres: ''
+        });
+        if (idx < 2) {
+          requestPlans.push({
+            ordering,
+            page: randomInt(1, cappedCatalogPage),
+            genres: ''
+          });
+        }
+      });
+
+      genrePool.slice(0, 8).forEach((genres) => {
+        requestPlans.push({
+          ordering: orderingPool[randomInt(0, Math.max(0, orderingPool.length - 1))] || '-released',
+          page: randomInt(1, 28),
+          genres
+        });
+      });
+
+      const allRows = [];
+      const targetRawPool = HOME_CHANNEL_TARGET_ITEMS * 6;
+      for (const plan of requestPlans) {
         try {
           const json = await homeIgdbFetch('/games', {
             page_size: 32,
-            ordering,
+            ordering: plan.ordering,
             dates: dateRange,
-            page
+            page: plan.page,
+            genres: plan.genres
           }, signal);
           const rows = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
           if (rows.length) allRows.push(...rows);
-          if (allRows.length >= HOME_CHANNEL_TARGET_ITEMS * 2) break;
+          if (allRows.length >= targetRawPool) break;
         } catch (_err) {
-          // Try next ordering before giving up.
+          // Continue trying other catalog slices.
         }
       }
+
+      if (allRows.length < HOME_CHANNEL_TARGET_ITEMS) {
+        try {
+          const fallbackJson = await homeIgdbFetch('/games', {
+            page_size: 32,
+            ordering: '-released',
+            dates: dateRange,
+            page: randomInt(1, 12)
+          }, signal);
+          const fallbackRows = Array.isArray(fallbackJson?.results) ? fallbackJson.results : (Array.isArray(fallbackJson) ? fallbackJson : []);
+          if (fallbackRows.length) allRows.push(...fallbackRows);
+        } catch (_err) {}
+      }
+
+      const overexposedNamePattern = /\b(fortnite|valorant|counter[-\s]?strike|league of legends|dota 2|roblox|minecraft)\b/i;
+      const shuffledRows = shuffleArray(allRows);
+      const diversifiedRows = [
+        ...shuffledRows.filter((row) => !overexposedNamePattern.test(String(row?.name || ''))),
+        ...shuffleArray(shuffledRows.filter((row) => overexposedNamePattern.test(String(row?.name || ''))))
+      ];
 
       const seenIds = new Set();
       const seenNames = new Set();
       const candidates = [];
 
-      for (const row of allRows) {
+      for (const row of diversifiedRows) {
         const idKey = String(row?.id || '').trim();
         const nameKey = String(row?.name || '').trim().toLowerCase();
         if (!idKey || !nameKey || seenIds.has(idKey) || seenNames.has(nameKey)) continue;
@@ -6988,10 +7053,10 @@
           _spotShape: hasDedicatedCover ? 'poster' : ((heroImage || backgroundImage) ? 'landscape' : 'poster'),
           _spotFit: hasDedicatedCover ? 'contain' : ((heroImage || backgroundImage) ? 'cover' : 'contain')
         });
-        if (candidates.length >= HOME_CHANNEL_TARGET_ITEMS) break;
+        if (candidates.length >= HOME_CHANNEL_TARGET_ITEMS * 2) break;
       }
 
-      const mapped = candidates.slice(0, HOME_CHANNEL_TARGET_ITEMS).map((g) => {
+      const mapped = shuffleArray(candidates).slice(0, HOME_CHANNEL_TARGET_ITEMS).map((g) => {
         return {
           mediaType: 'game',
           itemId: String(g.id || ''),
@@ -7676,7 +7741,7 @@
     });
   </script>
   <script src="js/production-runtime.js?v=20260227d" defer></script>
-  <script src="js/home-desktop-rebrand.js?v=20260228c" defer></script>
+  <script src="js/home-desktop-rebrand.js?v=20260228d" defer></script>
 </body>
 </html>
 
