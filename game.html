@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Game</title>
-  <script>
-    window.location.replace('index.html?games_disabled=1');
-  </script>
   <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -775,12 +772,10 @@
 
     <script src="js/list-utils.js?v=20260221c"></script>
     <script src="js/index-list-menu-adapter.js?v=20260221b"></script>
-    <script src="js/igdb-client.js?v=20260228a"></script>
     <script>
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      const IGDB_PROXY_BASE = '/api/igdb';
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
       const gameId = id ? Number(id) : null;
@@ -796,65 +791,69 @@
       let modalSelectedLists = new Set();
       let selectedIcon = 'fas fa-gamepad';
 
-      function pickGameFromPayload(payload) {
-        if (!payload) return null;
-        if (Array.isArray(payload)) return payload.find(Boolean) || null;
-        if (Array.isArray(payload.results)) return payload.results.find(Boolean) || null;
-        if (Array.isArray(payload.data)) return payload.data.find(Boolean) || null;
-        return null;
+      function normalizeGameGenres(extra) {
+        const rawGenres = Array.isArray(extra?.genres) ? extra.genres : [];
+        const out = [];
+        const seen = new Set();
+        rawGenres.forEach((entry) => {
+          const name = String(entry?.name || '').trim();
+          const slug = String(entry?.slug || name).trim().toLowerCase().replace(/\s+/g, '-');
+          if (!name || !slug || seen.has(slug)) return;
+          seen.add(slug);
+          out.push({ name, slug });
+        });
+        return out;
       }
 
-      async function igdbFetch(path, params = {}) {
-        const normalizedPath = String(path || '').trim();
-        const detailMatch = normalizedPath.match(/^\/games\/([^/?#]+)$/i);
-        const detailId = detailMatch ? decodeURIComponent(String(detailMatch[1] || '').trim()) : '';
+      function normalizeGamePlatforms(extra) {
+        const raw = Array.isArray(extra?.platforms) ? extra.platforms : [];
+        const out = [];
+        const seen = new Set();
+        raw.forEach((entry) => {
+          const name = String(entry || '').trim();
+          const key = name.toLowerCase();
+          if (!name || seen.has(key)) return;
+          seen.add(key);
+          out.push(name);
+        });
+        return out;
+      }
 
-        if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
-          try {
-            const payload = await window.ZO2Y_IGDB.request(normalizedPath, params);
-            if (!detailId) return payload;
-            return pickGameFromPayload(payload) || payload;
-          } catch (detailError) {
-            if (!detailId) throw detailError;
-            const fallbackPayload = await window.ZO2Y_IGDB.request('/games', {
-              ...(params || {}),
-              id: detailId,
-              page_size: 1
-            });
-            const fallbackGame = pickGameFromPayload(fallbackPayload);
-            if (fallbackGame) return fallbackGame;
-            throw detailError;
+      function stripHtml(value) {
+        return String(value || '').replace(/<[^>]+>/g, '').trim();
+      }
+
+      function normalizeNameList(input, nestedKey = '') {
+        const rows = Array.isArray(input) ? input : [];
+        const out = [];
+        const seen = new Set();
+        rows.forEach((entry) => {
+          let name = '';
+          if (typeof entry === 'string') {
+            name = entry;
+          } else if (nestedKey && entry?.[nestedKey]) {
+            name = entry[nestedKey];
+          } else {
+            name = entry?.name || '';
           }
-        }
+          const normalized = String(name || '').trim();
+          const key = normalized.toLowerCase();
+          if (!normalized || seen.has(key)) return;
+          seen.add(key);
+          out.push(normalized);
+        });
+        return out;
+      }
 
-        const fetchFromProxy = async (fetchPath, fetchParams = {}) => {
-          const url = new URL(IGDB_PROXY_BASE + fetchPath, window.location.origin);
-          Object.entries(fetchParams || {}).forEach(([k, v]) => {
-            if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
-          });
-          if (!url.searchParams.has('rev')) url.searchParams.set('rev', 'wiki20260228a');
-          const res = await fetch(url.toString());
-          if (!res.ok) throw new Error('IGDB error');
-          return res.json();
-        };
-
-        if (!detailId) {
-          return fetchFromProxy(normalizedPath, params);
-        }
-
-        try {
-          const detailPayload = await fetchFromProxy(normalizedPath, params);
-          return pickGameFromPayload(detailPayload) || detailPayload;
-        } catch (detailError) {
-          const fallbackPayload = await fetchFromProxy('/games', {
-            ...(params || {}),
-            id: detailId,
-            page_size: 1
-          });
-          const fallbackGame = pickGameFromPayload(fallbackPayload);
-          if (fallbackGame) return fallbackGame;
-          throw detailError;
-        }
+      async function fetchCatalogGameById() {
+        if (!supabaseClient || !Number.isFinite(gameId)) return null;
+        const { data, error } = await supabaseClient
+          .from('games')
+          .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,source,igdb_id,rawg_id,slug,extra')
+          .eq('id', gameId)
+          .maybeSingle();
+        if (error) return null;
+        return data || null;
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -913,55 +912,70 @@
       }
 
       async function load() {
-        if (!id) return;
-        const data = await igdbFetch(`/games/${id}`);
-        const description = data.description_raw || (data.description || '').replace(/<[^>]+>/g, '').trim();
-        document.getElementById('title').textContent = data.name || 'Untitled';
+        if (!Number.isFinite(gameId)) return;
+        const data = await fetchCatalogGameById();
+        if (!data) throw new Error('Game not found');
+
+        const extra = data.extra && typeof data.extra === 'object' ? data.extra : {};
+        const title = String(data.title || 'Untitled').trim() || 'Untitled';
+        const description = stripHtml(data.description || extra.description || extra.summary || '');
+        const releaseDate = String(data.release_date || '').trim();
+        const playtime = Number(extra.playtime || 0);
+        const metaParts = [];
+        if (releaseDate) metaParts.push(releaseDate);
+        if (Number.isFinite(playtime) && playtime > 0) metaParts.push(`${playtime} hrs`);
+
+        document.getElementById('title').textContent = title;
         document.getElementById('overview').textContent = description || 'No description available.';
-        document.getElementById('meta').textContent = `${data.released || ''}${data.playtime ? ` • ${data.playtime} hrs` : ''}`;
-        document.getElementById('poster').src = data.cover || 'images/placeholder.jpg';
+        document.getElementById('meta').textContent = metaParts.join(' | ');
+        document.getElementById('poster').src = data.cover_url || data.hero_url || 'images/placeholder.jpg';
+
+        const genres = normalizeGameGenres(extra);
         const tags = document.getElementById('tags');
-        if (tags && Array.isArray(data.genres)) {
-          tags.innerHTML = data.genres.map(g => `<span class="tag">${g.name}</span>`).join('');
+        if (tags) {
+          tags.innerHTML = genres.length
+            ? genres.map((genre) => `<span class="tag">${genre.name}</span>`).join('')
+            : '<span class="tag">Game</span>';
         }
+
+        const platforms = normalizeGamePlatforms(extra);
         const metaGrid = document.getElementById('metaGrid');
         if (metaGrid) {
           const items = [];
-          if (typeof data.rating === 'number') items.push(`Rating: ${data.rating.toFixed(1)} (${data.ratings_count || 0})`);
-          if (typeof data.metacritic === 'number') items.push(`Metacritic: ${data.metacritic}`);
-          if (data.esrb_rating?.name) items.push(`ESRB: ${data.esrb_rating.name}`);
-          if (data.platforms?.length) items.push(`Platforms: ${data.platforms.map(p => p.platform?.name).filter(Boolean).slice(0, 4).join(', ')}`);
-          if (data.released) items.push(`Released: ${data.released}`);
-          metaGrid.innerHTML = items.map(i => `<div class="meta-item">${i}</div>`).join('');
+          if (typeof data.rating === 'number') items.push(`Rating: ${Number(data.rating).toFixed(1)} (${data.rating_count || 0})`);
+          if (releaseDate) items.push(`Released: ${releaseDate}`);
+          if (platforms.length) items.push(`Platforms: ${platforms.slice(0, 4).join(', ')}`);
+          if (data.source) items.push(`Source: ${String(data.source).toUpperCase()}`);
+          metaGrid.innerHTML = items.length
+            ? items.map((item) => `<div class="meta-item">${item}</div>`).join('')
+            : '<div class="meta-item">No metadata available.</div>';
         }
+
         const detailsEl = document.getElementById('details');
         if (detailsEl) {
           const detailRows = [];
-          if (data.developers?.length) detailRows.push(`<div class="list-row"><span class="list-label">Developers:</span> ${data.developers.map(d => d.name).join(', ')}</div>`);
-          if (data.publishers?.length) detailRows.push(`<div class="list-row"><span class="list-label">Publishers:</span> ${data.publishers.map(p => p.name).join(', ')}</div>`);
-          if (data.stores?.length) detailRows.push(`<div class="list-row"><span class="list-label">Stores:</span> ${data.stores.map(s => s.store?.name).filter(Boolean).slice(0, 4).join(', ')}</div>`);
-          if (data.website) detailRows.push(`<div class="list-row"><span class="list-label">Website:</span> <a class="tag" href="${data.website}" target="_blank" rel="noopener">Open</a></div>`);
-          if (data.reddit_url) detailRows.push(`<div class="list-row"><span class="list-label">Reddit:</span> <a class="tag" href="${data.reddit_url}" target="_blank" rel="noopener">Open</a></div>`);
+          if (data.slug) detailRows.push(`<div class="list-row"><span class="list-label">Slug:</span> ${data.slug}</div>`);
+          if (data.igdb_id) detailRows.push(`<div class="list-row"><span class="list-label">IGDB ID:</span> ${data.igdb_id}</div>`);
+          if (data.rawg_id) detailRows.push(`<div class="list-row"><span class="list-label">RAWG ID:</span> ${data.rawg_id}</div>`);
+          if (extra.website) detailRows.push(`<div class="list-row"><span class="list-label">Website:</span> <a class="tag" href="${extra.website}" target="_blank" rel="noopener">Open</a></div>`);
+          if (extra.reddit_url) detailRows.push(`<div class="list-row"><span class="list-label">Reddit:</span> <a class="tag" href="${extra.reddit_url}" target="_blank" rel="noopener">Open</a></div>`);
           detailsEl.innerHTML = detailRows.length ? detailRows.join('') : '<div class="list-row">No extra details available.</div>';
         }
+
         const trailerEl = document.getElementById('trailer');
         if (trailerEl) {
-          if (data.clip?.clip) {
-            trailerEl.innerHTML = `<video class="video-frame" controls src="${data.clip.clip}"></video>`;
-          } else if (data.youtube_url) {
-            const youtubeUrl = String(data.youtube_url || '');
-            const match = youtubeUrl.match(/[?&]v=([^&]+)/) || youtubeUrl.match(/youtu\.be\/([^?&]+)/);
-            const videoId = match ? match[1] : '';
-            trailerEl.innerHTML = videoId
-              ? `<iframe class="video-frame" src="https://www.youtube.com/embed/${encodeURIComponent(videoId)}" title="Game trailer" frameborder="0" allowfullscreen></iframe>`
-              : '<div class="meta-item">No trailer available.</div>';
+          const trailerUrl = String(extra.clip || extra.video_url || extra.youtube_url || '').trim();
+          const youtubeMatch = trailerUrl.match(/[?&]v=([^&]+)/) || trailerUrl.match(/youtu\.be\/([^?&]+)/);
+          const youtubeId = youtubeMatch ? youtubeMatch[1] : '';
+          if (youtubeId) {
+            trailerEl.innerHTML = `<iframe class="video-frame" src="https://www.youtube.com/embed/${encodeURIComponent(youtubeId)}" title="Game trailer" frameborder="0" allowfullscreen></iframe>`;
           } else {
             trailerEl.innerHTML = '<div class="meta-item">No trailer available.</div>';
           }
         }
-        const developers = (data.developers || []).map(d => d.name);
-        const publishers = (data.publishers || []).map(p => p.name);
-        const platforms = (data.platforms || []).map(p => p.platform?.name).filter(Boolean);
+
+        const developers = normalizeNameList(extra.developers);
+        const publishers = normalizeNameList(extra.publishers);
         const directorsEl = document.getElementById('directors');
         if (directorsEl) {
           directorsEl.innerHTML = developers.length ? developers.map(n => `<span class="person-chip">${n}</span>`).join('') : '<span class="person-chip">N/A</span>';
@@ -1614,12 +1628,19 @@
             return;
           }
           try {
-            const json = await igdbFetch('/games', { search: q, page_size: 6 });
-            suggestions = (json.results || []).slice(0, 6).map((g) => ({
+            const { data, error } = await supabaseClient
+              .from('games')
+              .select('id,title,release_date,cover_url,hero_url,rating,rating_count')
+              .ilike('title', `%${q}%`)
+              .order('rating', { ascending: false, nullsFirst: false })
+              .order('rating_count', { ascending: false, nullsFirst: false })
+              .limit(6);
+            if (error) throw error;
+            suggestions = (Array.isArray(data) ? data : []).slice(0, 6).map((g) => ({
               id: g.id,
-              title: g.name || 'Game',
-              sub: g.released ? String(g.released).slice(0, 4) : 'Game',
-              image: g.cover || ''
+              title: g.title || 'Game',
+              sub: g.release_date ? String(g.release_date).slice(0, 4) : 'Game',
+              image: g.cover_url || g.hero_url || ''
             }));
             activeIndex = -1;
             renderSuggest();

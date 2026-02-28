@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Games</title>
-  <script>
-    window.location.replace('index.html?games_disabled=1');
-  </script>
   <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -698,7 +695,7 @@
 
   <section class="hero">
     <h1>Popular Games</h1>
-    <p>Discover trending and popular games powered by Wikipedia.</p>
+    <p>Discover trending and popular games from the Zo2y game catalog.</p>
   </section>
 
   <div class="controls">
@@ -743,7 +740,6 @@
     </div>
   </div>
 
-    <script src="js/igdb-client.js?v=20260228a"></script>
     <script>
     (function () {
       if (window.innerWidth <= 768) {
@@ -752,7 +748,6 @@
       }
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      const IGDB_PROXY_BASE = '/api/igdb';
       const state = {
         genres: [],
         activeGenre: '',
@@ -765,6 +760,7 @@
         currentUser: null,
         listStatusMap: new Map(),
         customLists: [],
+        catalog: [],
         activeGameId: null,
         modalSelectedLists: new Set(),
         selectedIcon: 'fas fa-gamepad',
@@ -781,18 +777,90 @@
         }, delayMs);
       }
 
-      async function igdbFetch(path, params = {}) {
-        if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
-          return window.ZO2Y_IGDB.request(path, params);
-        }
-        const url = new URL(IGDB_PROXY_BASE + path, window.location.origin);
-        Object.entries(params).forEach(([k, v]) => {
-          if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
+      function normalizeGameGenres(extra) {
+        const rawGenres = Array.isArray(extra?.genres) ? extra.genres : [];
+        const out = [];
+        const seen = new Set();
+        rawGenres.forEach((entry) => {
+          const name = String(entry?.name || '').trim();
+          const slug = String(entry?.slug || name).trim().toLowerCase().replace(/\s+/g, '-');
+          if (!name || !slug || seen.has(slug)) return;
+          seen.add(slug);
+          out.push({ name, slug });
         });
-        if (!url.searchParams.has('rev')) url.searchParams.set('rev', 'wiki20260228a');
-        const res = await fetch(url.toString());
-        if (!res.ok) throw new Error(`IGDB error ${res.status}`);
-        return res.json();
+        return out;
+      }
+
+      function buildGenreCatalog() {
+        const bySlug = new Map();
+        state.catalog.forEach((item) => {
+          normalizeGameGenres(item?.extra).forEach((genre) => {
+            if (!bySlug.has(genre.slug)) bySlug.set(genre.slug, genre);
+          });
+        });
+        state.genres = [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name));
+      }
+
+      function populateGenreSelect() {
+        const select = document.getElementById('genreSelect');
+        if (!select) return;
+        const previous = state.activeGenre;
+        select.innerHTML = '<option value="">All Genres</option>';
+        state.genres.forEach((genre) => {
+          const opt = document.createElement('option');
+          opt.value = genre.slug;
+          opt.textContent = genre.name;
+          select.appendChild(opt);
+        });
+        if (previous && state.genres.some((genre) => genre.slug === previous)) {
+          select.value = previous;
+        } else {
+          state.activeGenre = '';
+          select.value = '';
+        }
+      }
+
+      async function ensureGamesCatalogLoaded(force = false) {
+        if (!supabaseClient) return false;
+        if (state.catalog.length && !force) return true;
+        const { data, error } = await supabaseClient
+          .from('games')
+          .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra')
+          .order('rating', { ascending: false, nullsFirst: false })
+          .order('rating_count', { ascending: false, nullsFirst: false })
+          .order('release_date', { ascending: false, nullsFirst: false })
+          .limit(2000);
+        if (error) return false;
+        state.catalog = Array.isArray(data) ? data : [];
+        buildGenreCatalog();
+        populateGenreSelect();
+        return true;
+      }
+
+      function filterCatalogGames() {
+        const query = String(state.query || '').trim().toLowerCase();
+        const activeGenre = String(state.activeGenre || '').trim().toLowerCase();
+        const year = String(state.year || '').trim();
+        return state.catalog.filter((item) => {
+          const title = String(item?.title || '').trim();
+          if (!title) return false;
+
+          if (query) {
+            const haystack = `${title} ${String(item?.description || '')}`.toLowerCase();
+            if (!haystack.includes(query)) return false;
+          }
+
+          if (activeGenre) {
+            const genres = normalizeGameGenres(item?.extra);
+            if (!genres.some((genre) => genre.slug === activeGenre)) return false;
+          }
+
+          if (year) {
+            const releaseYear = String(item?.release_date || '').slice(0, 4);
+            if (releaseYear !== year) return false;
+          }
+          return true;
+        });
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -914,46 +982,30 @@
         });
       }
 
-      async function loadGenres() {
-        const data = await igdbFetch('/genres', { page_size: 50 });
-        state.genres = data.results || [];
-        const select = document.getElementById('genreSelect');
-        if (!select) return;
-        state.genres.forEach(g => {
-          const opt = document.createElement('option');
-          opt.value = String(g.slug || g.id);
-          opt.textContent = g.name;
-          select.appendChild(opt);
-        });
-      }
-
       async function loadGames() {
         const grid = document.getElementById('gamesGrid');
         const empty = document.getElementById('emptyState');
         if (!grid) return;
         const requestId = ++state.requestId;
 
-        let data;
-        const pageSize = 20;
-        try {
-          const params = {
-            page: state.page,
-            page_size: pageSize,
-            ordering: '-added'
-          };
-          if (state.query) params.search = state.query;
-          if (state.activeGenre) params.genres = state.activeGenre;
-          if (state.year) params.dates = `${state.year}-01-01,${state.year}-12-31`;
-          data = await igdbFetch('/games', params);
-          if (requestId !== state.requestId) return;
-        } catch (e) {
-          if (requestId !== state.requestId) return;
+        const loaded = await ensureGamesCatalogLoaded();
+        if (requestId !== state.requestId) return;
+        if (!loaded) {
           if (empty) empty.style.display = 'block';
+          grid.innerHTML = '';
+          state.hasMore = false;
+          updatePagination();
           return;
         }
 
-        const rawResults = data.results || [];
-        const results = rawResults.filter((item) => String(item?.cover || '').trim());
+        const allMatches = filterCatalogGames();
+        const pageSize = 20;
+        const totalMatches = allMatches.length;
+        state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
+        if (state.page > state.totalPages) state.page = state.totalPages;
+        const start = (state.page - 1) * pageSize;
+        const end = start + pageSize;
+        const results = allMatches.slice(start, end);
 
         if (!results.length) {
           if (empty) empty.style.display = 'block';
@@ -965,21 +1017,24 @@
 
         const fragment = document.createDocumentFragment();
         results.forEach(item => {
-          const gameTitle = item.name || item.slug || 'Untitled';
-          const gameDate = item.released || '';
-          const gameCover = item.cover;
-          const genreText = Array.isArray(item.genres)
-            ? item.genres.map((g) => String(g?.name || '').trim()).filter(Boolean).slice(0, 2).join(' | ')
-            : '';
+          const gameTitle = item.title || item.slug || 'Untitled';
+          const gameDate = item.release_date ? String(item.release_date).slice(0, 10) : '';
+          const gameCover = item.cover_url || item.hero_url || 'images/logo.png';
+          const genreText = normalizeGameGenres(item.extra)
+            .map((genre) => genre.name)
+            .slice(0, 2)
+            .join(' | ');
           const ratingValue = Number(item.rating || 0);
           const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
-          const summaryText = String(item.description_raw || item.description || '').trim();
+          const summaryText = String(item.description || '').trim();
           const gameDescription = [genreText, ratingText].filter(Boolean).join(' | ') || summaryText || 'Popular game';
+          const gameId = Number(item.id);
+          if (!Number.isFinite(gameId)) return;
           const card = document.createElement('div');
           card.className = 'card';
-          card.setAttribute('data-game-id', item.id);
+          card.setAttribute('data-game-id', gameId);
           card.innerHTML = `
-            <img src="${gameCover}" alt="${gameTitle}">
+            <img src="${gameCover}" alt="${gameTitle}" onerror="this.onerror=null;this.src='images/logo.png';">
             <div class="card-body">
               <h3 class="card-title">${gameTitle}</h3>
               <div class="card-meta-row">
@@ -993,22 +1048,17 @@
           `;
           card.onclick = (e) => {
             if (e.target.closest('.menu-btn')) return;
-            window.location.href = `game.html?id=${item.id}`;
+            window.location.href = `game.html?id=${encodeURIComponent(String(gameId))}`;
           };
-          wireCardMenu(card, item.id);
-          updateCardMenuUI(card, item.id);
+          wireCardMenu(card, gameId);
+          updateCardMenuUI(card, gameId);
           fragment.appendChild(card);
         });
         grid.innerHTML = '';
         grid.appendChild(fragment);
         if (empty) empty.style.display = 'none';
 
-        const totalCount = Number(data?.count || 0);
-        const rawCount = Array.isArray(rawResults) ? rawResults.length : results.length;
-        state.hasMore = rawCount >= pageSize || totalCount > (state.page * pageSize);
-        state.totalPages = state.hasMore
-          ? Math.max(state.totalPages || 1, state.page + 1)
-          : Math.max(1, state.page);
+        state.hasMore = end < totalMatches;
         updatePagination();
       }
 
@@ -1338,7 +1388,7 @@
         await initSupabase();
         wireUI();
         syncSearchStateFromUrl();
-        await Promise.all([loadGenres(), initAuth()]);
+        await initAuth();
         renderFilters();
         loadGames();
       })();

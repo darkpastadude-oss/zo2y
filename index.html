@@ -2462,6 +2462,7 @@
         <a class="sidebar-link" href="movies.html"><i class="fa-solid fa-film"></i><span>Movies</span></a>
         <a class="sidebar-link" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>TV Shows</span></a>
         <a class="sidebar-link" href="animes.html"><i class="fa-solid fa-dragon"></i><span>Anime</span></a>
+        <a class="sidebar-link" href="games.html"><i class="fa-solid fa-gamepad"></i><span>Games</span></a>
         <a class="sidebar-link" href="books.html"><i class="fa-solid fa-book"></i><span>Books</span></a>
         <a class="sidebar-link" href="music.html"><i class="fa-solid fa-music"></i><span>Music</span></a>
         <a class="sidebar-link accent" href="reviews.html"><i class="fa-solid fa-star"></i><span>Reviews</span></a>
@@ -2499,6 +2500,7 @@
               <a class="nav-pill" href="movies.html">Movies</a>
               <a class="nav-pill" href="tvshows.html">TV</a>
               <a class="nav-pill" href="animes.html">Anime</a>
+              <a class="nav-pill" href="games.html">Games</a>
               <a class="nav-pill" href="books.html">Books</a>
               <a class="nav-pill" href="music.html">Music</a>
               <a class="nav-pill" href="reviews.html">Reviews</a>
@@ -2587,7 +2589,7 @@
         <section class="section">
           <div class="section-head">
             <h2>Culture Stream</h2>
-            <p>One swipeable feed blending movies, TV, anime, books, and music.</p>
+            <p>One swipeable feed blending movies, TV, anime, games, books, and music.</p>
           </div>
 
           <div class="rail-wrap">
@@ -2624,6 +2626,11 @@
           </div>
 
           <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-gamepad"></i> Games</span><a href="games.html">View all</a></div>
+            <div class="rail games-rail" id="gamesRail"></div>
+          </div>
+
+          <div class="rail-wrap">
             <div class="rail-title"><span><i class="fa-solid fa-book"></i> Books</span><a href="books.html">View all</a></div>
             <div class="rail" id="booksRail"></div>
           </div>
@@ -2649,6 +2656,7 @@
     <a class="mobile-nav-item" href="movies.html" aria-label="Movies"><i class="fa-solid fa-film"></i></a>
     <a class="mobile-nav-item" href="tvshows.html" aria-label="TV Shows"><i class="fa-solid fa-tv"></i></a>
     <a class="mobile-nav-item" href="animes.html" aria-label="Anime"><i class="fa-solid fa-dragon"></i></a>
+    <a class="mobile-nav-item" href="games.html" aria-label="Games"><i class="fa-solid fa-gamepad"></i></a>
     <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
     <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
   </nav>
@@ -2705,7 +2713,7 @@
 
   <script src="js/igdb-client.js?v=20260228a"></script>
   <script>
-    const ENABLE_GAMES = false;
+    const ENABLE_GAMES = true;
     const ENABLE_RESTAURANTS = false;
     const HOME_BASE_MEDIA_TYPES = ENABLE_GAMES
       ? ['movie', 'tv', 'anime', 'game', 'book', 'music']
@@ -3588,25 +3596,33 @@
         return list.slice(0, takeCount).map((row) => {
           const releaseDate = formatDateLabel(row?.released || row?.release_date || '');
           const releaseDateSort = toSortEpoch(row?.released || row?.release_date || releaseDate);
-          const cover = String(row?.cover || '').trim();
-          const hero = String(row?.hero || '').trim();
-          const bg = String(row?.background_image || '').trim();
+          const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
+          const cover = String(row?.cover || row?.cover_url || '').trim();
+          const hero = String(row?.hero || row?.hero_url || row?.background_image || '').trim();
+          const bg = String(row?.background_image || row?.hero_url || '').trim();
           const image = cover || hero || bg;
           const spotlightBackdrop = hero || bg || cover || image;
           const spotlightCover = cover || hero || bg || image;
           const hasDedicatedCover = !!cover && String(cover).toLowerCase() !== String(spotlightBackdrop || '').toLowerCase();
+          const rowId = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
+          const rowTitle = String(row?.name || row?.title || 'Game').trim() || 'Game';
+          const genreText = Array.isArray(extra?.genres)
+            ? extra.genres.map((entry) => String(entry?.name || '').trim()).filter(Boolean).slice(0, 2).join(' | ')
+            : '';
+          const ratingValue = Number(row?.rating || 0);
           const item = {
             mediaType: 'game',
-            itemId: String(row?.id || ''),
-            title: String(row?.name || 'Game').trim() || 'Game',
+            itemId: rowId,
+            title: rowTitle,
             subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
+            extra: [genreText, Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : ''].filter(Boolean).join(' | '),
             image,
             backgroundImage: spotlightBackdrop || image,
             spotlightImage: spotlightBackdrop || image,
             spotlightMediaImage: spotlightCover || image,
             spotlightMediaFit: hasDedicatedCover ? 'contain' : ((hero || bg) ? 'cover' : 'contain'),
             spotlightMediaShape: hasDedicatedCover ? 'poster' : ((hero || bg) ? 'landscape' : 'poster'),
-            href: row?.id ? `game.html?id=${encodeURIComponent(row.id)}` : 'games.html'
+            href: rowId ? `game.html?id=${encodeURIComponent(rowId)}` : 'games.html'
           };
           return withReleaseTag({ ...item, releaseDateSort }, label, { detail: releaseDate });
         }).filter((item) => String(item.itemId || '').trim() && String(item.image || '').trim());
@@ -3767,12 +3783,18 @@
           { signal, cacheKey: `tmdb:new-releases:anime-season:${recentSeasonDate}` }
         ),
         ENABLE_GAMES
-          ? homeIgdbFetch('/games', {
-            page_size: 24,
-            ordering: '-released',
-            dates: `${recentSeasonDate},${upcomingDate}`,
-            page: 1
-          }, signal)
+          ? (async () => {
+            const client = await ensureHomeSupabase();
+            if (!client) return { results: [] };
+            const { data } = await client
+              .from('games')
+              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra')
+              .gte('release_date', recentSeasonDate)
+              .lte('release_date', upcomingDate)
+              .order('release_date', { ascending: false, nullsFirst: false })
+              .limit(24);
+            return { results: Array.isArray(data) ? data : [] };
+          })()
           : Promise.resolve({ results: [] }),
         fetchJsonWithPerfCache(
           `/api/books/popular?limit=30&page=1&language=en&orderBy=newest&q=${bookReleaseQuery}`,
@@ -6940,190 +6962,48 @@
     }
 
     async function loadGames(signal) {
-      const dateRange = '1978-01-01,2028-12-31';
-      const orderingPool = shuffleArray(['-released', 'released', '-name', '-rating', '-added', '-metacritic']);
-      const genrePool = shuffleArray([
-        'action',
-        'action-adventure',
-        'adventure',
-        'role-playing',
-        'strategy',
-        'simulation',
-        'sports',
-        'racing',
-        'fighting',
-        'shooter',
-        'platformer',
-        'puzzle',
-        'horror',
-        'stealth',
-        'survival',
-        'sandbox',
-        'mmo',
-        'indie'
-      ]);
-      const RECENT_GAME_IDS_KEY = 'zo2y_home_recent_games_v2';
-      const readRecentGameIds = () => {
-        try {
-          const raw = localStorage.getItem(RECENT_GAME_IDS_KEY);
-          if (!raw) return new Set();
-          const parsed = JSON.parse(raw);
-          const ids = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.ids) ? parsed.ids : []);
-          return new Set(ids.map((id) => String(id || '').trim()).filter(Boolean));
-        } catch (_err) {
-          return new Set();
-        }
-      };
-      const writeRecentGameIds = (ids = []) => {
-        try {
-          const normalized = Array.from(new Set((ids || []).map((id) => String(id || '').trim()).filter(Boolean))).slice(0, 96);
-          localStorage.setItem(RECENT_GAME_IDS_KEY, JSON.stringify(normalized));
-        } catch (_err) {}
-      };
-      const requestPlans = [];
-      const seenPlans = new Set();
-      const addPlan = (ordering, page, genres = '') => {
-        const normalizedOrdering = String(ordering || '').trim() || '-released';
-        const normalizedGenres = String(genres || '').trim();
-        const normalizedPage = Math.max(1, Number(page || 1));
-        const key = `${normalizedOrdering}|${normalizedPage}|${normalizedGenres}`;
-        if (seenPlans.has(key)) return;
-        seenPlans.add(key);
-        requestPlans.push({
-          ordering: normalizedOrdering,
-          page: normalizedPage,
-          genres: normalizedGenres
-        });
-      };
+      const client = await ensureHomeSupabase();
+      if (!client) return [];
+      const { data } = await client
+        .from('games')
+        .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra')
+        .order('rating', { ascending: false, nullsFirst: false })
+        .order('rating_count', { ascending: false, nullsFirst: false })
+        .order('release_date', { ascending: false, nullsFirst: false })
+        .limit(Math.max(HOME_CHANNEL_TARGET_ITEMS * 6, 84));
+      if (signal?.aborted) return [];
 
-      const maxCatalogPage = 130;
-      orderingPool.slice(0, 5).forEach((ordering, idx) => {
-        addPlan(ordering, randomInt(1, maxCatalogPage));
-        if (idx < 3) {
-          addPlan(ordering, randomInt(1, maxCatalogPage));
-        }
-      });
-
-      genrePool.slice(0, 10).forEach((genre, idx) => {
-        const ordering = orderingPool[idx % orderingPool.length] || '-released';
-        addPlan(ordering, randomInt(1, 56), genre);
-      });
-
-      const fetchRowsForPlan = async (plan) => {
-        try {
-          const json = await homeIgdbFetch('/games', {
-            page_size: 34,
-            ordering: plan.ordering,
-            dates: dateRange,
-            page: plan.page,
-            genres: plan.genres
-          }, signal);
-          return Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
-        } catch (_err) {
-          return [];
-        }
-      };
-
-      const primaryPlans = shuffleArray(requestPlans).slice(0, 12);
-      const primaryRows = (await Promise.all(primaryPlans.map((plan) => fetchRowsForPlan(plan)))).flat();
-      let allRows = primaryRows;
-
-      if (allRows.length < HOME_CHANNEL_TARGET_ITEMS * 4) {
-        const fallbackPlans = [
-          { ordering: '-added', page: randomInt(1, 48), genres: '' },
-          { ordering: '-released', page: randomInt(1, 48), genres: '' },
-          { ordering: '-metacritic', page: randomInt(1, 36), genres: '' }
-        ];
-        const fallbackRows = (await Promise.all(fallbackPlans.map((plan) => fetchRowsForPlan(plan)))).flat();
-        allRows = [...allRows, ...fallbackRows];
-      }
-
-      if (!allRows.length) return [];
-
-      const overexposedNamePattern = /\b(fortnite|valorant|counter[-\s]?strike|league of legends|dota 2|roblox|minecraft)\b/i;
-      const recentIds = readRecentGameIds();
-      const seenIds = new Set();
-      const seenNames = new Set();
-      const preparedRows = [];
-
-      for (const row of shuffleArray(allRows)) {
-        const idKey = String(row?.id || '').trim();
-        const nameKey = String(row?.name || '').trim().toLowerCase();
-        if (!idKey || !nameKey || seenIds.has(idKey) || seenNames.has(nameKey)) continue;
-
-        const coverImage = String(row?.cover || '').trim();
-        const heroImage = String(row?.hero || '').trim();
-        const backgroundImage = String(row?.background_image || '').trim();
-        const primaryImage = coverImage || heroImage || backgroundImage;
-        if (!primaryImage) continue;
-
-        const spotlightBackdrop = heroImage || backgroundImage || coverImage || primaryImage;
-        const spotlightCover = coverImage || heroImage || backgroundImage || primaryImage;
-        const hasDedicatedCover = !!coverImage && String(coverImage).toLowerCase() !== String(spotlightBackdrop || '').toLowerCase();
-
-        seenIds.add(idKey);
-        seenNames.add(nameKey);
-        preparedRows.push({
-          ...row,
-          itemId: idKey,
-          title: String(row?.name || 'Game').trim() || 'Game',
-          _image: primaryImage,
-          _bg: spotlightBackdrop,
-          _spotPoster: spotlightCover,
-          _spotShape: hasDedicatedCover ? 'poster' : ((heroImage || backgroundImage) ? 'landscape' : 'poster'),
-          _spotFit: hasDedicatedCover ? 'contain' : ((heroImage || backgroundImage) ? 'cover' : 'contain')
-        });
-        if (preparedRows.length >= HOME_CHANNEL_TARGET_ITEMS * 8) break;
-      }
-
-      if (!preparedRows.length) return [];
-
-      const nonRepeatRows = preparedRows.filter((row) => !recentIds.has(String(row.itemId || '')));
-      const repeatRows = preparedRows.filter((row) => recentIds.has(String(row.itemId || '')));
-      const safeFreshRows = shuffleArray(nonRepeatRows.filter((row) => !overexposedNamePattern.test(String(row?.title || ''))));
-      const safeRepeatRows = shuffleArray(repeatRows.filter((row) => !overexposedNamePattern.test(String(row?.title || ''))));
-      const overexposedRows = shuffleArray(preparedRows.filter((row) => overexposedNamePattern.test(String(row?.title || ''))));
-      const prioritizedRows = [...safeFreshRows, ...safeRepeatRows, ...overexposedRows];
-
-      const selected = [];
-      const selectedKeys = new Set();
-      for (const row of prioritizedRows) {
-        const key = String(row?.itemId || '').trim();
-        if (!key || selectedKeys.has(key)) continue;
-        selectedKeys.add(key);
-        selected.push(row);
-        if (selected.length >= HOME_CHANNEL_TARGET_ITEMS) break;
-      }
-
-      if (selected.length < HOME_CHANNEL_TARGET_ITEMS) {
-        for (const row of shuffleArray(preparedRows)) {
-          const key = String(row?.itemId || '').trim();
-          if (!key || selectedKeys.has(key)) continue;
-          selectedKeys.add(key);
-          selected.push(row);
-          if (selected.length >= HOME_CHANNEL_TARGET_ITEMS) break;
-        }
-      }
-
-      if (!selected.length) return [];
-      writeRecentGameIds(selected.map((row) => row.itemId));
-
-      return selected.map((g) => {
-        return {
-          mediaType: 'game',
-          itemId: String(g.itemId || g.id || ''),
-          title: g.title || 'Game',
-          subtitle: g.released ? String(g.released).slice(0, 4) : 'Game',
-          extra: `${Array.isArray(g.genres) && g.genres.length ? g.genres.slice(0, 2).map(x => x?.name).filter(Boolean).join(' | ') : 'Video Game'}${g.rating ? ` | ${Number(g.rating).toFixed(1)}/5` : ''}`,
-          image: g._image,
-          backgroundImage: g._bg,
-          spotlightImage: g._bg,
-          spotlightMediaImage: g._spotPoster,
-          spotlightMediaFit: g._spotFit || 'contain',
-          spotlightMediaShape: g._spotShape || 'poster',
-          href: g.id ? `game.html?id=${encodeURIComponent(g.id)}` : 'games.html'
-        };
-      });
+      const rows = Array.isArray(data) ? data : [];
+      if (!rows.length) return [];
+      const randomizedRows = shuffleArray(rows);
+      return randomizedRows
+        .map((row) => {
+          const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
+          const genres = Array.isArray(extra?.genres) ? extra.genres : [];
+          const cover = String(row?.cover_url || '').trim();
+          const hero = String(row?.hero_url || '').trim();
+          const image = cover || hero;
+          if (!image) return null;
+          const backdrop = hero || cover || image;
+          const poster = cover || hero || image;
+          const hasDedicatedCover = !!cover && String(cover).toLowerCase() !== String(backdrop || '').toLowerCase();
+          return {
+            mediaType: 'game',
+            itemId: String(row?.id || ''),
+            title: String(row?.title || 'Game').trim() || 'Game',
+            subtitle: row?.release_date ? String(row.release_date).slice(0, 4) : 'Game',
+            extra: `${genres.length ? genres.slice(0, 2).map((entry) => entry?.name).filter(Boolean).join(' | ') : 'Video Game'}${row?.rating ? ` | ${Number(row.rating).toFixed(1)}/5` : ''}`,
+            image,
+            backgroundImage: backdrop,
+            spotlightImage: backdrop,
+            spotlightMediaImage: poster,
+            spotlightMediaFit: hasDedicatedCover ? 'contain' : (hero ? 'cover' : 'contain'),
+            spotlightMediaShape: hasDedicatedCover ? 'poster' : (hero ? 'landscape' : 'poster'),
+            href: row?.id ? `game.html?id=${encodeURIComponent(String(row.id))}` : 'games.html'
+          };
+        })
+        .filter((item) => item && String(item.itemId || '').trim())
+        .slice(0, HOME_CHANNEL_TARGET_ITEMS);
     }
 
     async function loadBooks(signal) {

@@ -10,6 +10,8 @@ const ENV_FILE_VALUES = readEnvFile("backend/.env");
 const RAWG_ID_OFFSET = 9_000_000_000_000;
 const WIKIPEDIA_ID_OFFSET = 8_000_000_000_000;
 const GAMEBRAIN_ID_OFFSET = 7_000_000_000_000;
+const RAWG_API_BASE = "https://api.rawg.io/api";
+const RAWG_BACKUP_KEY = "83b2a55ac54c4c1db7099212e740f680";
 
 const DEFAULT_BASE_URL = normalizeBaseUrl(
   process.env.IMPORT_SOURCE_BASE_URL ||
@@ -24,6 +26,8 @@ const DEFAULT_DATES = "1990-01-01,2035-12-31";
 const DEFAULT_MAX_PAGES = 40;
 const DEFAULT_DETAIL_CONCURRENCY = 6;
 const DEFAULT_BATCH_SIZE = 200;
+const DEFAULT_RAWG_PAGE_SIZE = 40;
+const DEFAULT_RAWG_MAX_PAGES = 80;
 
 function normalizeBaseUrl(value) {
   return String(value || "").trim().replace(/\/+$/, "");
@@ -90,6 +94,9 @@ function printHelp() {
       "  --with-details <bool>       Enrich each game via /api/igdb/games/:id (default: true)",
       "  --detail-concurrency <n>    Parallel detail requests (default: 6)",
       "  --batch-size <n>            Supabase upsert batch size (default: 200)",
+      "  --rawg-key <key>            Optional RAWG API key (fallback source)",
+      "  --rawg-page-size <n>        RAWG page size, max 40 (default: 40)",
+      "  --rawg-max-pages <n>        RAWG max pages to scan (default: 80)",
       "  --dry-run <bool>            Fetch/map only, do not write (default: false)",
       "  --help                      Show help",
       "",
@@ -151,6 +158,10 @@ function toHttpsUrl(value) {
   return raw;
 }
 
+function stripHtml(value) {
+  return String(value || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 function toIsoDateOrNull(value) {
   const text = String(value || "").trim();
   if (!text) return null;
@@ -177,6 +188,39 @@ function decodeRawgId(value) {
   if (!Number.isFinite(id) || id <= RAWG_ID_OFFSET) return null;
   const decoded = id - RAWG_ID_OFFSET;
   return Number.isFinite(decoded) && decoded > 0 ? Math.floor(decoded) : null;
+}
+
+function resolveRawgApiKey(options = {}) {
+  return String(
+    options.rawgKey ||
+    process.env.RAWG_API_KEY ||
+    process.env.RAWG_KEY ||
+    ENV_FILE_VALUES.RAWG_API_KEY ||
+    ENV_FILE_VALUES.RAWG_KEY ||
+    RAWG_BACKUP_KEY ||
+    ""
+  ).trim();
+}
+
+function mapOrderingToRawg(orderingRaw) {
+  const ordering = String(orderingRaw || "").trim().toLowerCase();
+  if (ordering === "-released") return "-released";
+  if (ordering === "-rating") return "-rating";
+  if (ordering === "-metacritic") return "-metacritic";
+  if (ordering === "-name") return "name";
+  if (ordering === "released") return "released";
+  if (ordering === "rating") return "rating";
+  if (ordering === "name") return "name";
+  return "-added";
+}
+
+function toRawgGenresParam(genresRaw) {
+  return String(genresRaw || "")
+    .split(",")
+    .map((token) => token.trim().toLowerCase())
+    .filter(Boolean)
+    .filter((token) => !/^\d+$/.test(token))
+    .join(",");
 }
 
 function normalizeGenres(input) {
@@ -336,6 +380,64 @@ function mapProviderRowToCandidate(row) {
   };
 }
 
+function mapRawgRowToCandidate(row) {
+  const rawgId = toPositiveIntOrNull(row?.id);
+  if (!rawgId) return null;
+  const title = String(row?.name || row?.title || "").trim();
+  if (!title) return null;
+
+  const shortScreenshots = Array.isArray(row?.short_screenshots)
+    ? row.short_screenshots.map((entry) => entry?.image)
+    : [];
+  const screenshots = normalizeScreenshots({ short_screenshots: shortScreenshots });
+  const coverUrl = toHttpsUrl(
+    row?.cover ||
+    row?.cover_url ||
+    row?.background_image ||
+    row?.background_image_additional ||
+    screenshots[0] ||
+    ""
+  );
+  const heroUrl = toHttpsUrl(
+    row?.hero ||
+    row?.hero_url ||
+    row?.background_image_additional ||
+    row?.background_image ||
+    screenshots[0] ||
+    coverUrl
+  );
+  const releaseDate = toIsoDateOrNull(row?.released || row?.release_date);
+  const rating = toNumberOrNull(row?.rating);
+  const ratingCount = toPositiveIntOrNull(row?.ratings_count || row?.rating_count) || 0;
+  const genres = normalizeGenres(row?.genres);
+  const platforms = normalizePlatforms(row?.platforms);
+
+  return {
+    canonicalId: RAWG_ID_OFFSET + rawgId,
+    sourceItemId: rawgId,
+    detailLookupId: null,
+    source: "rawg",
+    igdbId: null,
+    rawgId,
+    slug: String(row?.slug || "").trim() || undefined,
+    title,
+    description: stripHtml(row?.description_raw || row?.description || "") || undefined,
+    coverUrl: coverUrl || undefined,
+    heroUrl: heroUrl || undefined,
+    releaseDate: releaseDate || undefined,
+    rating: Number.isFinite(rating) ? Number(rating.toFixed(2)) : undefined,
+    ratingCount,
+    genres,
+    platforms,
+    screenshots,
+    extra: compactObject({
+      imported_from: "rawg/api",
+      metacritic: toNumberOrNull(row?.metacritic),
+      source_item_id: rawgId
+    })
+  };
+}
+
 async function fetchJson(url, { timeoutMs = 12000, retries = 2 } = {}) {
   let lastError = null;
   for (let attempt = 0; attempt <= retries; attempt += 1) {
@@ -382,6 +484,21 @@ function buildGamesListUrl(baseUrl, options, page) {
 function buildGameDetailUrl(baseUrl, detailLookupId) {
   const encodedId = encodeURIComponent(String(detailLookupId));
   return new URL(`/api/igdb/games/${encodedId}`, `${baseUrl}/`).toString();
+}
+
+function buildRawgListUrl(options, page) {
+  const rawgKey = resolveRawgApiKey(options);
+  if (!rawgKey) return "";
+  const url = new URL(`${RAWG_API_BASE}/games`);
+  url.searchParams.set("key", rawgKey);
+  url.searchParams.set("page", String(page));
+  url.searchParams.set("page_size", String(options.rawgPageSize || DEFAULT_RAWG_PAGE_SIZE));
+  url.searchParams.set("ordering", mapOrderingToRawg(options.ordering));
+  if (options.search) url.searchParams.set("search", options.search);
+  if (options.dates) url.searchParams.set("dates", options.dates);
+  const rawgGenres = toRawgGenresParam(options.genres);
+  if (rawgGenres) url.searchParams.set("genres", rawgGenres);
+  return url.toString();
 }
 
 function chunkArray(values, size) {
@@ -431,24 +548,94 @@ async function collectPopularCandidates(baseUrl, options) {
   };
 }
 
+async function collectRawgCandidates(options, seedCandidates = []) {
+  const rawgKey = resolveRawgApiKey(options);
+  if (!rawgKey) {
+    return {
+      candidates: [...seedCandidates],
+      pagesFetched: 0,
+      exhausted: true,
+      added: 0
+    };
+  }
+
+  const byId = new Map();
+  (seedCandidates || []).forEach((candidate) => {
+    if (!candidate?.canonicalId) return;
+    byId.set(candidate.canonicalId, candidate);
+  });
+
+  let page = 1;
+  let pagesFetched = 0;
+  let exhausted = false;
+  const maxPages = Math.max(1, Number(options.rawgMaxPages || DEFAULT_RAWG_MAX_PAGES));
+
+  while (byId.size < options.limit && page <= maxPages) {
+    const url = buildRawgListUrl(options, page);
+    if (!url) break;
+    let payload = null;
+    try {
+      payload = await fetchJson(url, { timeoutMs: 15000, retries: 2 });
+    } catch (_error) {
+      break;
+    }
+    pagesFetched += 1;
+
+    const rows = Array.isArray(payload?.results) ? payload.results : [];
+    if (!rows.length) {
+      exhausted = true;
+      break;
+    }
+
+    rows.forEach((row) => {
+      const mapped = mapRawgRowToCandidate(row);
+      if (!mapped) return;
+      const existing = byId.get(mapped.canonicalId);
+      byId.set(mapped.canonicalId, mergeCandidate(existing, mapped));
+    });
+
+    const hasNext = !!payload?.next;
+    if (!hasNext || rows.length < Number(options.rawgPageSize || DEFAULT_RAWG_PAGE_SIZE)) {
+      exhausted = true;
+      break;
+    }
+    page += 1;
+  }
+
+  const candidates = [...byId.values()].slice(0, options.limit);
+  return {
+    candidates,
+    pagesFetched,
+    exhausted,
+    added: Math.max(0, candidates.length - (seedCandidates || []).length)
+  };
+}
+
 async function enrichCandidatesWithDetails(baseUrl, candidates, options) {
   if (!options.withDetails || !candidates.length) {
+    return { total: 0, success: 0, failed: 0 };
+  }
+
+  const targets = candidates
+    .map((candidate, index) => ({ candidate, index }))
+    .filter(({ candidate }) => !!candidate?.detailLookupId);
+  if (!targets.length) {
     return { total: 0, success: 0, failed: 0 };
   }
 
   let cursor = 0;
   let success = 0;
   let failed = 0;
-  const total = candidates.length;
+  const total = targets.length;
 
   const workerCount = Math.max(1, Math.min(options.detailConcurrency, 12));
   const workers = Array.from({ length: workerCount }).map(async () => {
     while (true) {
-      const index = cursor;
+      const targetIndex = cursor;
       cursor += 1;
-      if (index >= candidates.length) return;
-      const candidate = candidates[index];
-      if (!candidate?.detailLookupId) continue;
+      if (targetIndex >= targets.length) return;
+      const target = targets[targetIndex];
+      const candidate = target.candidate;
 
       const detailUrl = buildGameDetailUrl(baseUrl, candidate.detailLookupId);
       try {
@@ -458,7 +645,7 @@ async function enrichCandidatesWithDetails(baseUrl, candidates, options) {
           failed += 1;
           continue;
         }
-        candidates[index] = mergeCandidate(candidate, mapped);
+        candidates[target.index] = mergeCandidate(candidate, mapped);
         success += 1;
       } catch (_error) {
         failed += 1;
@@ -531,6 +718,9 @@ async function main() {
     withDetails: parseBoolean(args["with-details"], true),
     detailConcurrency: clampInt(args["detail-concurrency"], 1, 12, DEFAULT_DETAIL_CONCURRENCY),
     batchSize: clampInt(args["batch-size"], 10, 500, DEFAULT_BATCH_SIZE),
+    rawgKey: String(args["rawg-key"] || "").trim(),
+    rawgPageSize: clampInt(args["rawg-page-size"], 1, 40, DEFAULT_RAWG_PAGE_SIZE),
+    rawgMaxPages: clampInt(args["rawg-max-pages"], 1, 500, DEFAULT_RAWG_MAX_PAGES),
     dryRun: parseBoolean(args["dry-run"], false)
   };
 
@@ -542,14 +732,31 @@ async function main() {
   console.log(`Target limit: ${options.limit}`);
   console.log(`Details enrichment: ${options.withDetails ? "on" : "off"}`);
 
-  const { candidates, pagesFetched, exhausted } = await collectPopularCandidates(options.baseUrl, options);
+  let { candidates, pagesFetched, exhausted } = await collectPopularCandidates(options.baseUrl, options);
   if (!candidates.length) {
-    console.log("No candidates found. Nothing to import.");
-    return;
+    console.log("No source API candidates found from /api/igdb/games.");
   }
 
   console.log(`Fetched ${pagesFetched} pages and collected ${candidates.length} unique games.`);
   if (exhausted) console.log("Source exhausted before hitting requested limit.");
+
+  if (candidates.length < options.limit) {
+    const rawgSupplement = await collectRawgCandidates(options, candidates);
+    candidates = rawgSupplement.candidates;
+    if (rawgSupplement.pagesFetched > 0) {
+      console.log(
+        `RAWG supplement fetched ${rawgSupplement.pagesFetched} pages and added ${rawgSupplement.added} games.`
+      );
+    }
+    if (rawgSupplement.exhausted && candidates.length < options.limit) {
+      console.log("RAWG source exhausted before hitting requested limit.");
+    }
+  }
+
+  if (!candidates.length) {
+    console.log("No candidates found. Nothing to import.");
+    return;
+  }
 
   const detailStats = await enrichCandidatesWithDetails(options.baseUrl, candidates, options);
   if (options.withDetails) {
