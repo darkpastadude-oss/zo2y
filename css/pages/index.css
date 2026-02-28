@@ -1416,22 +1416,44 @@
       }
 
       .desktop-app-shell {
+        position: relative;
         width: 100%;
-        min-height: 100vh;
-        display: block;
+        min-height: 100%;
+        display: grid;
+        grid-template-columns: var(--desktop-sidebar-expanded) minmax(0, 1fr);
+        align-items: stretch;
+      }
+
+      .desktop-app-shell::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--desktop-sidebar-expanded);
+        border-right: 1px solid rgba(255,255,255,0.14);
+        background: linear-gradient(180deg, rgba(12, 18, 31, 0.93) 0%, rgba(8, 14, 26, 0.97) 100%);
+        pointer-events: none;
+        z-index: 0;
       }
 
       .desktop-main-panel {
         min-width: 0;
-        width: calc(100% - var(--desktop-sidebar-expanded));
-        margin-left: var(--desktop-sidebar-expanded);
+        width: 100%;
         padding: 14px 0 0;
-        transition: margin-left 0.22s ease, width 0.22s ease;
+        transition: width 0.22s ease;
       }
 
       body.sidebar-collapsed .desktop-main-panel {
-        width: calc(100% - var(--desktop-sidebar-collapsed));
-        margin-left: var(--desktop-sidebar-collapsed);
+        width: 100%;
+      }
+
+      body.sidebar-collapsed .desktop-app-shell {
+        grid-template-columns: var(--desktop-sidebar-collapsed) minmax(0, 1fr);
+      }
+
+      body.sidebar-collapsed .desktop-app-shell::before {
+        width: var(--desktop-sidebar-collapsed);
       }
 
       .desktop-main-panel .container {
@@ -1440,18 +1462,16 @@
       }
 
       .desktop-sidebar {
-        position: fixed;
+        position: sticky;
         top: 0;
-        left: 0;
-        bottom: 0;
-        width: var(--desktop-sidebar-expanded);
+        left: auto;
+        bottom: auto;
+        width: 100%;
         min-height: 100vh;
         max-height: 100vh;
         border: 0;
-        border-right: 1px solid rgba(255,255,255,0.14);
         border-radius: 0;
-        background:
-          linear-gradient(180deg, rgba(12, 18, 31, 0.93) 0%, rgba(8, 14, 26, 0.97) 100%);
+        background: transparent;
         box-shadow: none;
         display: flex;
         flex-direction: column;
@@ -1667,7 +1687,7 @@
       }
 
       body.sidebar-collapsed .desktop-sidebar {
-        width: var(--desktop-sidebar-collapsed);
+        width: 100%;
         padding-inline: 9px;
         align-items: center;
       }
