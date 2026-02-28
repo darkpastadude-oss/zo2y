@@ -1479,7 +1479,9 @@
       .desktop-sidebar {
         position: sticky;
         top: 12px;
-        height: calc(100vh - 24px);
+        align-self: start;
+        max-height: calc(100vh - 24px);
+        height: auto;
         border: 1px solid rgba(255,255,255,0.14);
         border-radius: 28px;
         background:
@@ -1489,7 +1491,17 @@
         flex-direction: column;
         gap: 12px;
         padding: 18px 14px 16px;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+
+      .desktop-sidebar::-webkit-scrollbar {
+        width: 7px;
+      }
+
+      .desktop-sidebar::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.16);
+        border-radius: 999px;
       }
 
       .sidebar-brand {
@@ -1597,6 +1609,95 @@
         padding: 2px 9px 0;
       }
 
+      .sidebar-lists-preview {
+        margin-top: auto;
+        border: 1px solid rgba(255,255,255,0.13);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.03);
+        padding: 10px 8px 8px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .sidebar-lists-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .sidebar-lists-head .sidebar-label {
+        padding: 0 2px;
+      }
+
+      .sidebar-lists-link {
+        color: #ffd792;
+        font-family: 'Sora', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.14);
+        padding: 4px 7px;
+      }
+
+      .sidebar-list-items {
+        display: grid;
+        gap: 6px;
+      }
+
+      .sidebar-list-row {
+        min-height: 36px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.08);
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 8px;
+        padding: 0 8px;
+        color: #dbe9ff;
+        font-family: 'Sora', sans-serif;
+        font-size: 12px;
+      }
+
+      .sidebar-list-row:hover {
+        border-color: rgba(245, 158, 11, 0.62);
+        background: rgba(245, 158, 11, 0.1);
+      }
+
+      .sidebar-list-row i {
+        width: 14px;
+        text-align: center;
+        color: #f9be5b;
+      }
+
+      .sidebar-list-row-text {
+        min-width: 0;
+        display: grid;
+        gap: 1px;
+      }
+
+      .sidebar-list-row-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #eff5ff;
+      }
+
+      .sidebar-list-row-meta {
+        color: #8da5cc;
+        font-size: 10px;
+      }
+
+      .sidebar-list-empty {
+        border-radius: 10px;
+        border: 1px dashed rgba(255,255,255,0.16);
+        color: #99afd4;
+        font-family: 'Sora', sans-serif;
+        font-size: 11px;
+        line-height: 1.45;
+        padding: 8px 9px;
+      }
+
       body.sidebar-collapsed .desktop-sidebar {
         padding-inline: 9px;
         align-items: center;
@@ -1616,7 +1717,8 @@
       body.sidebar-collapsed .sidebar-link span,
       body.sidebar-collapsed .sidebar-ghost-link span,
       body.sidebar-collapsed .sidebar-label,
-      body.sidebar-collapsed .sidebar-divider {
+      body.sidebar-collapsed .sidebar-divider,
+      body.sidebar-collapsed .sidebar-lists-preview {
         display: none;
       }
 
@@ -2360,6 +2462,15 @@
       <a class="sidebar-ghost-link" href="#desktopReviewsSection"><i class="fa-solid fa-comments"></i><span>Review Slides</span></a>
       <a class="sidebar-ghost-link" href="#imdbTop10Rail"><i class="fa-solid fa-ranking-star"></i><span>IMDb Top 10</span></a>
       <a class="sidebar-ghost-link" href="#awardGamesRail"><i class="fa-solid fa-trophy"></i><span>Award Games</span></a>
+      <section class="sidebar-lists-preview" id="sidebarCustomListPreview" aria-label="Custom list preview">
+        <div class="sidebar-lists-head">
+          <p class="sidebar-label">Your Lists</p>
+          <a class="sidebar-lists-link" href="profile.html">View</a>
+        </div>
+        <div class="sidebar-list-items" id="sidebarCustomListItems">
+          <div class="sidebar-list-empty">Loading your custom lists...</div>
+        </div>
+      </section>
     </aside>
 
     <div class="desktop-main-panel">
@@ -3481,19 +3592,20 @@
           const hero = String(row?.hero || '').trim();
           const bg = String(row?.background_image || '').trim();
           const image = cover || hero || bg;
-          const spotlightVisual = hero || bg || cover || image;
-          const useLandscapeSpotlight = !!(hero || bg) && String(spotlightVisual || '').trim().toLowerCase() !== String(cover || '').trim().toLowerCase();
+          const spotlightBackdrop = hero || bg || cover || image;
+          const spotlightCover = cover || hero || bg || image;
+          const hasDedicatedCover = !!cover && String(cover).toLowerCase() !== String(spotlightBackdrop || '').toLowerCase();
           const item = {
             mediaType: 'game',
             itemId: String(row?.id || ''),
             title: String(row?.name || 'Game').trim() || 'Game',
             subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
             image,
-            backgroundImage: spotlightVisual || image,
-            spotlightImage: spotlightVisual || image,
-            spotlightMediaImage: spotlightVisual || image,
-            spotlightMediaFit: useLandscapeSpotlight ? 'cover' : 'contain',
-            spotlightMediaShape: useLandscapeSpotlight ? 'landscape' : 'poster',
+            backgroundImage: spotlightBackdrop || image,
+            spotlightImage: spotlightBackdrop || image,
+            spotlightMediaImage: spotlightCover || image,
+            spotlightMediaFit: hasDedicatedCover ? 'contain' : ((hero || bg) ? 'cover' : 'contain'),
+            spotlightMediaShape: hasDedicatedCover ? 'poster' : ((hero || bg) ? 'landscape' : 'poster'),
             href: row?.id ? `game.html?id=${encodeURIComponent(row.id)}` : 'games.html'
           };
           return withReleaseTag({ ...item, releaseDateSort }, label, { detail: releaseDate });
@@ -6857,8 +6969,9 @@
         const heroImage = String(row?.hero || '').trim();
         const backgroundImage = String(row?.background_image || '').trim();
         const mainImage = coverImage || heroImage || backgroundImage;
-        const spotlightVisual = heroImage || backgroundImage || coverImage || mainImage;
-        const useLandscapeSpotlight = !!(heroImage || backgroundImage) && String(spotlightVisual || '').trim().toLowerCase() !== String(coverImage || '').trim().toLowerCase();
+        const spotlightBackdrop = heroImage || backgroundImage || coverImage || mainImage;
+        const spotlightCover = coverImage || heroImage || backgroundImage || mainImage;
+        const hasDedicatedCover = !!coverImage && String(coverImage).toLowerCase() !== String(spotlightBackdrop || '').toLowerCase();
         if (!mainImage) continue;
 
         seenIds.add(idKey);
@@ -6866,10 +6979,10 @@
         candidates.push({
           ...row,
           _image: mainImage,
-          _bg: spotlightVisual,
-          _spotPoster: spotlightVisual,
-          _spotShape: useLandscapeSpotlight ? 'landscape' : 'poster',
-          _spotFit: useLandscapeSpotlight ? 'cover' : 'contain'
+          _bg: spotlightBackdrop,
+          _spotPoster: spotlightCover,
+          _spotShape: hasDedicatedCover ? 'poster' : ((heroImage || backgroundImage) ? 'landscape' : 'poster'),
+          _spotFit: hasDedicatedCover ? 'contain' : ((heroImage || backgroundImage) ? 'cover' : 'contain')
         });
         if (candidates.length >= HOME_CHANNEL_TARGET_ITEMS) break;
       }
