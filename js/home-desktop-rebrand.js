@@ -282,8 +282,6 @@
       sidebar.style.top = '';
       sidebar.style.left = '';
       sidebar.style.bottom = '';
-      sidebar.style.transform = '';
-      sidebar.style.willChange = '';
       sidebar.style.height = '';
       sidebar.style.maxHeight = '';
       sidebar.style.width = '';
@@ -294,20 +292,18 @@
     const collapsed = document.body.classList.contains('sidebar-collapsed');
     const railWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH;
     const visual = window.visualViewport;
-    const top = Math.max(0, Math.round(window.scrollY + (visual?.offsetTop || 0)));
-    const left = Math.max(0, Math.round(window.scrollX + (visual?.offsetLeft || 0)));
+    const top = Math.max(0, Math.round(visual?.offsetTop || 0));
+    const left = Math.max(0, Math.round(visual?.offsetLeft || 0));
     const viewportHeight = Math.max(
       0,
       Math.ceil(visual?.height || window.innerHeight || document.documentElement.clientHeight || 0)
     );
 
-    // Popup-style floating: anchor to document and translate with scroll in RAF.
-    sidebar.style.position = 'absolute';
-    sidebar.style.top = '0';
-    sidebar.style.left = '0';
+    // Fixed viewport anchoring avoids scroll jitter.
+    sidebar.style.position = 'fixed';
+    sidebar.style.top = `${top}px`;
+    sidebar.style.left = `${left}px`;
     sidebar.style.bottom = 'auto';
-    sidebar.style.transform = `translate3d(${left}px, ${top}px, 0)`;
-    sidebar.style.willChange = 'transform';
     sidebar.style.height = `${viewportHeight}px`;
     sidebar.style.maxHeight = `${viewportHeight}px`;
     sidebar.style.width = `${railWidth}px`;
@@ -328,7 +324,6 @@
     const apply = () => requestDesktopSidebarFloatingSync();
     window.addEventListener('resize', apply, { passive: true });
     window.addEventListener('orientationchange', apply, { passive: true });
-    window.addEventListener('scroll', apply, { passive: true });
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', apply, { passive: true });
       window.visualViewport.addEventListener('scroll', apply, { passive: true });
