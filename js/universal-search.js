@@ -4,6 +4,7 @@
   const IGDB_PROXY_BASE = '/api/igdb';
   const BOOKS_PROXY_BASE = '/api/books';
   const MUSIC_PROXY_BASE = '/api/music';
+  const GAMES_DISABLED = true;
   const MIN_QUERY_LEN = 2;
   const SEARCH_DEBOUNCE_MS = 140;
   const REQUEST_TIMEOUT_MS = 3400;
@@ -409,13 +410,18 @@
 
     const [moviesTv, games, books, music] = await Promise.all([
       fetchMoviesAndTv(normalized, signal).catch(() => []),
-      fetchGames(normalized, signal).catch(() => []),
+      GAMES_DISABLED ? Promise.resolve([]) : fetchGames(normalized, signal).catch(() => []),
       fetchBooks(normalized, signal).catch(() => []),
       fetchMusic(normalized, signal).catch(() => [])
     ]);
 
     const merged = [...moviesTv, ...games, ...books, ...music]
-      .filter((item) => !/restaurant/i.test(String(item?.type || '')))
+      .filter((item) => {
+        const type = String(item?.type || '').toLowerCase();
+        if (type.includes('restaurant')) return false;
+        if (GAMES_DISABLED && type.includes('game')) return false;
+        return true;
+      })
       .slice(0, 18);
     writeCachedSuggestions(normalized, merged);
     return merged;

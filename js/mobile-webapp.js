@@ -4,7 +4,7 @@
   const base = path === '/' ? 'index.html' : path.split('/').pop();
   const pageKey = String(base || 'index.html').replace(/\.html?$/i, '').toLowerCase();
   const AUTH_PAGE_KEYS = new Set(['login', 'sign-up', 'signup', 'auth-callback', 'update-password']);
-  const GAMES_DISABLED = false;
+  const GAMES_DISABLED = true;
   const GAME_PAGE_KEYS = new Set(['games', 'games-mobile', 'game']);
   const GAME_ENTRY_SELECTOR = [
     'a[href="games.html"]',
