@@ -1423,13 +1423,15 @@
 
       .desktop-main-panel {
         min-width: 0;
-        width: 100%;
-        padding: 14px 0 0 var(--desktop-sidebar-expanded);
-        transition: padding-left 0.22s ease;
+        width: calc(100% - var(--desktop-sidebar-expanded));
+        margin-left: var(--desktop-sidebar-expanded);
+        padding: 14px 0 0;
+        transition: margin-left 0.22s ease, width 0.22s ease;
       }
 
       body.sidebar-collapsed .desktop-main-panel {
-        padding-left: var(--desktop-sidebar-collapsed);
+        width: calc(100% - var(--desktop-sidebar-collapsed));
+        margin-left: var(--desktop-sidebar-collapsed);
       }
 
       .desktop-main-panel .container {
