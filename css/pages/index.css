@@ -1439,6 +1439,8 @@
 
       .desktop-main-panel {
         grid-column: 2;
+        position: relative;
+        z-index: 1;
         min-width: 0;
         width: 100%;
         padding: 14px 0 0;
@@ -1463,7 +1465,7 @@
       }
 
       .desktop-sidebar {
-        position: fixed;
+        position: fixed !important;
         top: 0;
         left: 0;
         bottom: 0;
@@ -1482,7 +1484,9 @@
         overflow-x: hidden;
         overflow-y: auto;
         overscroll-behavior: contain;
-        z-index: 210;
+        pointer-events: auto;
+        transform: translateZ(0);
+        z-index: 320;
         transition: width 0.22s ease, padding-inline 0.22s ease;
       }
 

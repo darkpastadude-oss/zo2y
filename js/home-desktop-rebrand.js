@@ -1,6 +1,8 @@
 ﻿(() => {
   const DESKTOP_BREAKPOINT = 1025;
   const SIDEBAR_STORAGE_KEY = 'zo2y_home_sidebar_collapsed_v1';
+  const SIDEBAR_EXPANDED_WIDTH = 292;
+  const SIDEBAR_COLLAPSED_WIDTH = 96;
   const REVIEW_ROTATE_MS = 6200;
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
@@ -268,6 +270,43 @@
 
   function isDesktopViewport() {
     return window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`).matches;
+  }
+
+  function syncDesktopSidebarFloatingState() {
+    const sidebar = document.querySelector('.desktop-sidebar');
+    if (!sidebar) return;
+
+    if (!isDesktopViewport()) {
+      sidebar.style.position = '';
+      sidebar.style.top = '';
+      sidebar.style.left = '';
+      sidebar.style.bottom = '';
+      sidebar.style.height = '';
+      sidebar.style.maxHeight = '';
+      sidebar.style.width = '';
+      sidebar.style.zIndex = '';
+      return;
+    }
+
+    const collapsed = document.body.classList.contains('sidebar-collapsed');
+    const railWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH;
+    sidebar.style.position = 'fixed';
+    sidebar.style.top = '0';
+    sidebar.style.left = '0';
+    sidebar.style.bottom = '0';
+    sidebar.style.height = '100vh';
+    sidebar.style.maxHeight = '100vh';
+    sidebar.style.width = `${railWidth}px`;
+    sidebar.style.zIndex = '320';
+  }
+
+  function bindDesktopSidebarFloatingState() {
+    if (bindDesktopSidebarFloatingState.bound) return;
+    bindDesktopSidebarFloatingState.bound = true;
+    const apply = () => syncDesktopSidebarFloatingState();
+    window.addEventListener('resize', apply, { passive: true });
+    window.addEventListener('orientationchange', apply, { passive: true });
+    apply();
   }
 
   function escapeHtml(value) {
@@ -640,6 +679,7 @@
       if (label) {
         label.textContent = collapsed ? 'Expand Menu' : 'Collapse Menu';
       }
+      syncDesktopSidebarFloatingState();
     };
 
     let savedCollapsed = false;
@@ -889,6 +929,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    bindDesktopSidebarFloatingState();
     initSidebarToggle();
     void initReviewSlideshow();
     renderCuratedRails();
