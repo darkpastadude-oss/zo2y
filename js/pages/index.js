@@ -216,6 +216,7 @@
       savedAt: 0,
       payload: null
     };
+    const homeTravelPhotoCache = new Map();
     const homeMusicPreviewState = {
       audio: null,
       btn: null
@@ -4780,11 +4781,73 @@
     }
 
     function buildTravelPhotoUrl(countryName, countryCode) {
-      const name = String(countryName || '').trim();
       const code = String(countryCode || '').trim().toUpperCase() || 'XX';
-      if (!name) return '';
-      const query = encodeURIComponent(`${name},country,landscape,travel`);
-      return `https://source.unsplash.com/1600x900/?${query}&sig=${encodeURIComponent(code)}`;
+      const cached = String(homeTravelPhotoCache.get(code) || '').trim();
+      if (cached) return cached;
+      return `https://picsum.photos/seed/zo2y-country-${encodeURIComponent(code.toLowerCase())}/1600/900`;
+    }
+
+    function normalizeCountryNameForWiki(name) {
+      return String(name || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+\(country\)\s*$/i, '');
+    }
+
+    async function fetchTravelWikipediaPhotos(rows = [], signal) {
+      const list = Array.isArray(rows) ? rows : [];
+      const unresolved = list.filter((row) => {
+        const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+        const name = String(row?.name?.common || row?.name?.official || '').trim();
+        return !!code && !!name && !homeTravelPhotoCache.has(code);
+      });
+      if (!unresolved.length) return homeTravelPhotoCache;
+
+      const chunkSize = 14;
+      for (let i = 0; i < unresolved.length; i += chunkSize) {
+        if (signal?.aborted) break;
+        const chunk = unresolved.slice(i, i + chunkSize);
+        const titles = [];
+        const codesByName = new Map();
+
+        chunk.forEach((row) => {
+          const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+          const name = String(row?.name?.common || row?.name?.official || '').trim();
+          if (!code || !name) return;
+          const normalized = normalizeCountryNameForWiki(name);
+          if (!normalized) return;
+          if (!codesByName.has(normalized)) codesByName.set(normalized, []);
+          codesByName.get(normalized).push(code);
+          titles.push(name);
+          titles.push(`${name} (country)`);
+        });
+        if (!titles.length) continue;
+
+        const endpoint = `https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=1400&titles=${encodeURIComponent(titles.join('|'))}`;
+        try {
+          const payload = await fetchJsonWithPerfCache(endpoint, {
+            signal,
+            cacheKey: `wiki:country:home:${chunk.map((row) => String(row?.cca2 || row?.cca3 || '').trim().toUpperCase()).filter(Boolean).join(',')}`,
+            ttlMs: 1000 * 60 * 60 * 24 * 7,
+            timeoutMs: 7500,
+            retries: 1
+          });
+          const pages = Array.isArray(payload?.query?.pages) ? payload.query.pages : [];
+          pages.forEach((page) => {
+            const image = toHttpsUrl(page?.thumbnail?.source || '');
+            if (!image) return;
+            const normalized = normalizeCountryNameForWiki(page?.title);
+            const codes = codesByName.get(normalized) || [];
+            codes.forEach((code) => {
+              if (!homeTravelPhotoCache.has(code)) homeTravelPhotoCache.set(code, image);
+            });
+          });
+        } catch (_error) {
+          // keep seeded fallback photos if wikipedia lookup fails
+        }
+      }
+
+      return homeTravelPhotoCache;
     }
 
     function mapFallbackTravelItems() {
@@ -4795,7 +4858,7 @@
         const capital = String(row?.capital || '').trim();
         const subtitle = [capital ? `Capital: ${capital}` : '', region].filter(Boolean).join(' | ') || 'Country';
         const flagImage = code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : HOME_LOCAL_FALLBACK_IMAGE;
-        const photoImage = buildTravelPhotoUrl(title, code) || flagImage;
+        const photoImage = buildTravelPhotoUrl(title, code) || HOME_LOCAL_FALLBACK_IMAGE;
         return {
           mediaType: 'travel',
           itemId: code || title.toLowerCase(),
@@ -4811,13 +4874,13 @@
           spotlightMediaFit: 'contain',
           spotlightMediaPosition: 'center center',
           spotlightMediaShape: 'square',
-          fallbackImage: flagImage || HOME_LOCAL_FALLBACK_IMAGE,
+          fallbackImage: buildTravelPhotoUrl(title, code) || HOME_LOCAL_FALLBACK_IMAGE,
           href: code ? `country.html?code=${encodeURIComponent(code)}` : 'travel.html'
         };
       }).filter((item) => String(item?.itemId || '').trim());
     }
 
-    function mapTravelCountryToHomeItem(row) {
+    function mapTravelCountryToHomeItem(row, photoMap = null) {
       const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
       const title = String(row?.name?.common || row?.name?.official || '').trim();
       if (!code || !title) return null;
@@ -4833,8 +4896,10 @@
       const extra = [
         subregion && subregion !== region ? subregion : ''
       ].filter(Boolean).join(' | ');
-      const flagImage = safeHttps(row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
-      const photoImage = buildTravelPhotoUrl(title, code) || flagImage;
+      const flagImage = toHttpsUrl(row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
+      const photoFromWiki = photoMap instanceof Map ? String(photoMap.get(code) || '').trim() : '';
+      if (photoFromWiki) homeTravelPhotoCache.set(code, photoFromWiki);
+      const photoImage = photoFromWiki || buildTravelPhotoUrl(title, code) || HOME_LOCAL_FALLBACK_IMAGE;
       return {
         mediaType: 'travel',
         itemId: code,
@@ -4850,7 +4915,7 @@
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
-        fallbackImage: flagImage || HOME_LOCAL_FALLBACK_IMAGE,
+        fallbackImage: buildTravelPhotoUrl(title, code) || HOME_LOCAL_FALLBACK_IMAGE,
         href: `country.html?code=${encodeURIComponent(code)}`
       };
     }
@@ -4877,12 +4942,16 @@
             return left.localeCompare(right);
           });
 
+        const photoCandidates = sortedRows.slice(0, Math.max(HOME_CHANNEL_TARGET_ITEMS * 8, 180));
+        const photoMap = await fetchTravelWikipediaPhotos(photoCandidates, signal);
+        if (signal?.aborted) return [];
+
         const shortlist = shuffleArray(sortedRows.slice(0, Math.max(HOME_CHANNEL_TARGET_ITEMS * 5, 120)));
         const seenCodes = new Set();
         const out = [];
 
         const pushRow = (row) => {
-          const item = mapTravelCountryToHomeItem(row);
+          const item = mapTravelCountryToHomeItem(row, photoMap);
           if (!item) return;
           const code = String(item.itemId || '').trim().toUpperCase();
           if (!code || seenCodes.has(code)) return;

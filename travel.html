@@ -277,6 +277,7 @@
       listStatus: new Map(),
       pending: new Set()
     };
+    const countryPhotoCache = new Map();
 
     const emptyStatus = () => ({ favorites: false, visited: false, bucketlist: false });
     const ESCAPE_MAP = {
@@ -304,11 +305,82 @@
     }
 
     function buildCountryPhotoUrl(name, code) {
-      const safeName = String(name || '').trim();
       const safeCountryCode = safeCode(code) || 'XX';
-      if (!safeName) return '';
-      const query = encodeURIComponent(`${safeName},country,landscape,travel`);
-      return `https://source.unsplash.com/1400x1000/?${query}&sig=${encodeURIComponent(safeCountryCode)}`;
+      return `https://picsum.photos/seed/zo2y-country-${encodeURIComponent(safeCountryCode.toLowerCase())}/1400/1000`;
+    }
+
+    function normalizeCountryNameForWiki(name) {
+      return String(name || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+\(country\)\s*$/i, '');
+    }
+
+    async function hydrateWikipediaCountryPhotos(rows = []) {
+      const list = Array.isArray(rows) ? rows : [];
+      if (!list.length) return;
+
+      const unresolved = list.filter((item) => {
+        const code = safeCode(item && item.code);
+        return code && !countryPhotoCache.has(code);
+      });
+      if (!unresolved.length) {
+        list.forEach((item) => {
+          const code = safeCode(item && item.code);
+          if (!code) return;
+          const cached = countryPhotoCache.get(code);
+          if (cached) item.photo = cached;
+        });
+        return;
+      }
+
+      const chunkSize = 16;
+      for (let i = 0; i < unresolved.length; i += chunkSize) {
+        const chunk = unresolved.slice(i, i + chunkSize);
+        if (!chunk.length) continue;
+
+        const codesByNormalizedName = new Map();
+        const titles = [];
+        chunk.forEach((item) => {
+          const code = safeCode(item && item.code);
+          const name = String(item && item.name || '').trim();
+          if (!code || !name) return;
+          const normalized = normalizeCountryNameForWiki(name);
+          if (!normalized) return;
+          if (!codesByNormalizedName.has(normalized)) codesByNormalizedName.set(normalized, []);
+          codesByNormalizedName.get(normalized).push(code);
+          titles.push(name);
+          titles.push(`${name} (country)`);
+        });
+        if (!titles.length) continue;
+
+        const endpoint = `https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=1400&titles=${encodeURIComponent(titles.join('|'))}`;
+        try {
+          const response = await fetch(endpoint, { headers: { Accept: 'application/json' } });
+          if (!response.ok) continue;
+          const payload = await response.json();
+          const pages = Array.isArray(payload && payload.query && payload.query.pages) ? payload.query.pages : [];
+          pages.forEach((page) => {
+            const image = safeHttps(page && page.thumbnail && page.thumbnail.source || '');
+            if (!image) return;
+            const normalized = normalizeCountryNameForWiki(page && page.title);
+            if (!normalized) return;
+            const codes = codesByNormalizedName.get(normalized) || [];
+            codes.forEach((code) => {
+              if (!countryPhotoCache.has(code)) countryPhotoCache.set(code, image);
+            });
+          });
+        } catch (_error) {
+          // fall back to seeded photos below
+        }
+      }
+
+      list.forEach((item) => {
+        const code = safeCode(item && item.code);
+        if (!code) return;
+        const cached = countryPhotoCache.get(code);
+        item.photo = cached || buildCountryPhotoUrl(item && item.name, code) || item.flag;
+      });
     }
 
     function showToast(message, type = 'inf') {
@@ -401,7 +473,9 @@
         const payload = await response.json();
         state.rows = (Array.isArray(payload) ? payload : [])
           .map(normalizeCountryRow)
-          .filter(Boolean)
+          .filter(Boolean);
+        await hydrateWikipediaCountryPhotos(state.rows);
+        state.rows = state.rows
           .sort((a, b) => a.name.localeCompare(b.name));
 
         const select = document.getElementById('region');
@@ -495,7 +569,7 @@
         node.setAttribute('data-image', item.photo);
         node.innerHTML = `
           <div class="card-photo-wrap">
-            <img class="card-photo" src="${escapeHtml(item.photo)}" alt="${escapeHtml(item.name)} photo" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
+            <img class="card-photo" src="${escapeHtml(item.photo)}" alt="${escapeHtml(item.name)} photo" loading="lazy" onerror="this.onerror=null;this.src='${escapeHtml(item.flag)}';">
           </div>
           <div class="body">
             <div class="row">
