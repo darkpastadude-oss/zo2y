@@ -83,6 +83,99 @@
             padding: 0 20px;
         }
 
+        /* === SHARED SITE HEADER (MATCH INDEX) === */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 1200;
+            border-bottom: 1px solid var(--border);
+            background: rgba(11, 22, 51, 0.92);
+            backdrop-filter: blur(10px) saturate(160%);
+        }
+
+        .site-header-inner {
+            min-height: 64px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+        }
+
+        .site-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--white);
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .site-brand img {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            object-fit: cover;
+        }
+
+        .site-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+            margin-left: 8px;
+            padding-bottom: 2px;
+        }
+
+        .site-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .site-nav-pill {
+            border: 1px solid transparent;
+            color: #dbe7ff;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 10px;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .site-nav-pill:hover,
+        .site-nav-pill.active {
+            border-color: var(--border);
+            color: var(--accent);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .site-profile-link {
+            margin-left: auto;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--white);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .site-profile-link:hover,
+        .site-profile-link.active {
+            border-color: rgba(245, 158, 11, 0.6);
+            color: var(--accent);
+            background: rgba(245, 158, 11, 0.12);
+        }
+
         /* === UNIFIED COLLECTION CARD === */
         .collection-grid {
             display: grid;
@@ -841,7 +934,7 @@
 
         .mobile-viewing-indicator {
             position: fixed;
-            top: 60px;
+            top: 120px;
             left: 0;
             right: 0;
             z-index: 900;
@@ -2580,6 +2673,19 @@
                 padding: 0;
                 background: var(--bg);
             }
+
+            .site-header-inner {
+                min-height: 60px;
+                gap: 10px;
+            }
+
+            .site-brand span {
+                display: none;
+            }
+
+            .site-nav {
+                display: none;
+            }
             
             /* Mobile List Detail */
             .mobile-list-restaurant-card {
@@ -2631,7 +2737,7 @@
             /* Mobile Top Bar */
             .mobile-topbar {
                 position: fixed;
-                top: 0;
+                top: 60px;
                 left: 0;
                 right: 0;
                 height: 60px;
@@ -3378,7 +3484,7 @@
             /* Mobile Toast */
             .mobile-toast-container {
                 position: fixed;
-                top: 80px;
+                top: 140px;
                 left: 16px;
                 right: 16px;
                 z-index: 4000;
@@ -4129,13 +4235,29 @@ header, .top-stripe, .section-nav {
   <script src="/js/mobile-webapp.js?v=20260228b" defer></script>
 </head>
 <body>
+    <header class="site-header" role="banner">
+        <div class="container site-header-inner">
+            <a class="site-brand" href="index.html">
+                <img src="images/logo.png" alt="Zo2y Logo">
+                <span>Zo2y</span>
+            </a>
+            <nav class="site-nav" aria-label="Primary navigation">
+                <a class="site-nav-pill" href="index.html">Home</a>
+                <a class="site-nav-pill" href="movies.html">Movies</a>
+                <a class="site-nav-pill" href="tvshows.html">TV</a>
+                <a class="site-nav-pill" href="animes.html">Anime</a>
+                <a class="site-nav-pill" href="games.html">Games</a>
+                <a class="site-nav-pill" href="books.html">Books</a>
+                <a class="site-nav-pill" href="music.html">Music</a>
+                <a class="site-nav-pill" href="travel.html">Travel</a>
+                <a class="site-nav-pill" href="reviews.html">Reviews</a>
+            </nav>
+            <a class="site-profile-link active" href="profile.html"><i class="fas fa-user"></i> Profile</a>
+        </div>
+    </header>
+
     <!-- Desktop View -->
     <div class="desktop-only">
-        <!-- Home Button -->
-        <a href="index.html" class="home-button">
-            <img src="images/logo.png" alt="Zo2y Logo">
-        </a>
-
         <!-- Viewing Other Profile Indicator -->
         <div class="container">
             <div class="viewing-other-profile" id="viewingOtherProfile">
@@ -4239,7 +4361,7 @@ header, .top-stripe, .section-nav {
             <!-- Navigation Tabs -->
             <div class="nav-tabs">
                 <div class="nav-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
-                    <i class="fas fa-clapperboard"></i> <span id="restaurantsTabText">Anime</span>
+                    <i class="fas fa-clapperboard"></i> <span id="restaurantsTabText">Collections</span>
                 </div>
                 <div class="nav-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')">
                     <i class="fas fa-film"></i> Movies
@@ -4269,8 +4391,8 @@ header, .top-stripe, .section-nav {
                 <div class="section">
                     <div class="section-header">
                         <div>
-                            <h2 class="section-title" id="restaurantsTitle">My Restaurants</h2>
-                            <p class="section-subtitle" id="restaurantsSubtitle">Organize your favorite restaurants</p>
+                            <h2 class="section-title" id="restaurantsTitle">My Collections</h2>
+                            <p class="section-subtitle" id="restaurantsSubtitle">Organize your custom collections</p>
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" onclick="ProfileManager.showCreateListModal()" id="createRestaurantListBtn">
@@ -4311,7 +4433,7 @@ header, .top-stripe, .section-nav {
                                 <i class="fas fa-edit"></i> Edit
                             </button>
                             <button class="btn btn-primary btn-sm" onclick="window.location.href='index.html'" id="addToRestaurantListBtn">
-                                <i class="fas fa-search"></i> Browse Restaurants
+                                <i class="fas fa-search"></i> Browse Home
                             </button>
                         </div>
                     </div>
@@ -4319,8 +4441,8 @@ header, .top-stripe, .section-nav {
                     <div id="restaurantItemsContainer">
                         <div class="empty-state">
                             <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No Restaurants Yet</h3>
-                            <p class="empty-description">Start adding restaurants to this collection!</p>
+                            <h3 class="empty-title">No Collections Yet</h3>
+                            <p class="empty-description">Start adding items to this collection!</p>
                         </div>
                     </div>
                 </div>
@@ -4927,7 +5049,7 @@ header, .top-stripe, .section-nav {
         <div class="mobile-tabs">
             <div class="mobile-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
                 <i class="fas fa-clapperboard"></i>
-                <span id="mobileTabRestaurants">Anime</span>
+                <span id="mobileTabRestaurants">Collections</span>
             </div>
             <div class="mobile-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')">
                 <i class="fas fa-film"></i>
@@ -4968,14 +5090,14 @@ header, .top-stripe, .section-nav {
             <!-- Mobile Restaurants Section -->
             <div class="mobile-section active" id="mobileRestaurantsSection">
                 <div class="mobile-section-title">
-                    <span id="mobileRestaurantsTitle">My Restaurants</span>
+                    <span id="mobileRestaurantsTitle">My Collections</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="mobile-action-btn" id="mobileCreateRestaurantListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.showCreateListModal()">
                             <i class="fas fa-plus"></i> New Collection
                         </button>
                     </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileRestaurantsSubtitle">Organize your favorite restaurants</div>
+                <div class="mobile-section-subtitle" id="mobileRestaurantsSubtitle">Organize your custom collections</div>
                 
                 <div class="collection-grid" id="mobileRestaurantsGrid">
                     <div class="mobile-empty-state">
@@ -5008,8 +5130,8 @@ header, .top-stripe, .section-nav {
                 <div id="mobileRestaurantItems">
                     <div class="mobile-empty-state">
                         <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <div class="mobile-empty-title">No Restaurants Yet</div>
-                        <div class="mobile-empty-description">Start adding restaurants!</div>
+                        <div class="mobile-empty-title">No Collections Yet</div>
+                        <div class="mobile-empty-description">Start adding items!</div>
                     </div>
                 </div>
             </div>
@@ -6742,14 +6864,14 @@ header, .top-stripe, .section-nav {
                 const followingSectionTitle = document.getElementById('followingSectionTitle');
                 
                 if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
-                if (restaurantsTabText) restaurantsTabText.textContent = `${userName}'s Restaurants`;
+                if (restaurantsTabText) restaurantsTabText.textContent = `${userName}'s Collections`;
                 if (tvTabText) tvTabText.textContent = `${userName}'s TV Shows`;
                 if (animeTabText) animeTabText.textContent = `${userName}'s Anime`;
                 if (gamesTabText) gamesTabText.textContent = `${userName}'s Games`;
                 if (booksTabText) booksTabText.textContent = `${userName}'s Books`;
                 if (musicTabText) musicTabText.textContent = `${userName}'s Music`;
                 if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
-                if (restaurantsTitle) restaurantsTitle.textContent = `${userName}'s Restaurants`;
+                if (restaurantsTitle) restaurantsTitle.textContent = `${userName}'s Collections`;
                 if (tvTitle) tvTitle.textContent = `${userName}'s TV Shows`;
                 if (animeTitle) animeTitle.textContent = `${userName}'s Anime`;
                 if (gamesTitle) gamesTitle.textContent = `${userName}'s Games`;
@@ -6757,7 +6879,7 @@ header, .top-stripe, .section-nav {
                 if (musicTitle) musicTitle.textContent = `${userName}'s Music`;
                 if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
                 if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
-                if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
+                if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s featured collections`;
                 if (tvSubtitle) tvSubtitle.textContent = `${userName}'s favorite TV shows`;
                 if (animeSubtitle) animeSubtitle.textContent = `${userName}'s favorite anime`;
                 if (gamesSubtitle) gamesSubtitle.textContent = `${userName}'s favorite games`;
@@ -6792,21 +6914,21 @@ header, .top-stripe, .section-nav {
                 
                 if (mobileJournalTabText) mobileJournalTabText.textContent = `${userName}'s Journal`;
                 if (mobileTabJournal) mobileTabJournal.textContent = `${userName}'s Journal`;
-                if (mobileTabRestaurants) mobileTabRestaurants.textContent = `${userName}'s Restaurants`;
+                if (mobileTabRestaurants) mobileTabRestaurants.textContent = `${userName}'s Collections`;
                 if (mobileTabTv) mobileTabTv.textContent = `${userName}'s TV Shows`;
                 if (mobileTabAnime) mobileTabAnime.textContent = `${userName}'s Anime`;
                 if (mobileTabGames) mobileTabGames.textContent = `${userName}'s Games`;
                 if (mobileTabBooks) mobileTabBooks.textContent = `${userName}'s Books`;
                 if (mobileTabMusic) mobileTabMusic.textContent = `${userName}'s Music`;
                 if (mobileJournalTitle) mobileJournalTitle.textContent = `${userName}'s Food Journal`;
-                if (mobileRestaurantsTitle) mobileRestaurantsTitle.textContent = `${userName}'s Restaurants`;
+                if (mobileRestaurantsTitle) mobileRestaurantsTitle.textContent = `${userName}'s Collections`;
                 if (mobileAnimeTitle) mobileAnimeTitle.textContent = `${userName}'s Anime`;
                 if (mobileGamesTitle) mobileGamesTitle.textContent = `${userName}'s Games`;
                 if (mobileBooksTitle) mobileBooksTitle.textContent = `${userName}'s Books`;
                 if (mobileMusicTitle) mobileMusicTitle.textContent = `${userName}'s Music`;
                 if (mobileCommunityTitle) mobileCommunityTitle.textContent = `${userName}'s Community`;
                 if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
-                if (mobileRestaurantsSubtitle) mobileRestaurantsSubtitle.textContent = `${userName}'s favorite restaurant collections`;
+                if (mobileRestaurantsSubtitle) mobileRestaurantsSubtitle.textContent = `${userName}'s featured collections`;
                 if (mobileAnimeSubtitle) mobileAnimeSubtitle.textContent = `${userName}'s favorite anime`;
                 if (mobileGamesSubtitle) mobileGamesSubtitle.textContent = `${userName}'s favorite games`;
                 if (mobileBooksSubtitle) mobileBooksSubtitle.textContent = `${userName}'s favorite books`;
@@ -7427,13 +7549,13 @@ header, .top-stripe, .section-nav {
                     
                     if (isViewingOwnProfile) {
                         if (!this.currentLists.favorites) {
-                            this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants', userId, 'heart');
+                            this.currentLists.favorites = await this.createList('Favorites', 'My favorite picks', userId, 'heart');
                         }
                         if (!this.currentLists.visited) {
-                            this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited', userId, 'check');
+                            this.currentLists.visited = await this.createList('Visited', 'Places I have visited', userId, 'check');
                         }
                         if (!this.currentLists.wantToGo) {
-                            this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try', userId, 'bookmark');
+                            this.currentLists.wantToGo = await this.createList('Want to Go', 'Places I want to try', userId, 'bookmark');
                         }
                     }
                 },
@@ -7612,7 +7734,7 @@ header, .top-stripe, .section-nav {
                         {
                             id: 'visited',
                             title: 'Visited',
-                            description: 'Restaurants you have checked out.',
+                            description: 'Places you have checked out.',
                             icon: 'check',
                             color: 'var(--success)',
                             restaurants: this.currentLists.visited?.restaurants || [],
@@ -7742,7 +7864,7 @@ header, .top-stripe, .section-nav {
                         {
                             id: 'visited',
                             title: 'Visited',
-                            description: 'Restaurants you have checked out.',
+                            description: 'Places you have checked out.',
                             icon: 'check',
                             color: 'var(--success)',
                             restaurants: this.currentLists.visited?.restaurants || [],
@@ -8183,18 +8305,18 @@ header, .top-stripe, .section-nav {
                 grid.innerHTML = '';
 
                 if (!listRestaurants || listRestaurants.length === 0) {
-                    const emptyStateText = isViewingOwnProfile ? 
-                        'Start adding restaurants to your list!' : 
+                    const emptyStateText = isViewingOwnProfile ?
+                        'Start adding items to your list!' :
                         'This list is currently empty.';
 
                     grid.innerHTML = `
                         <div class="empty-state">
                             <div class="empty-icon">${iconGlyph('list')}</div>
-                            <h3 class="empty-title">No Restaurants Yet</h3>
+                            <h3 class="empty-title">No Collections Yet</h3>
                             <p class="empty-description">${emptyStateText}</p>
                             ${isViewingOwnProfile ? `
                                 <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
-                                    <i class="fas fa-search"></i> Browse Restaurants
+                                    <i class="fas fa-search"></i> Browse Places
                                 </button>
                             ` : ''}
                         </div>
@@ -8311,18 +8433,18 @@ header, .top-stripe, .section-nav {
                 container.innerHTML = '';
 
                 if (!listRestaurants || listRestaurants.length === 0) {
-                    const emptyStateText = isViewingOwnProfile ? 
-                        'Start adding restaurants to your list!' : 
+                    const emptyStateText = isViewingOwnProfile ?
+                        'Start adding items to your list!' :
                         'This list is currently empty.';
 
                     container.innerHTML = `
                         <div class="mobile-empty-state">
                             <div class="mobile-empty-icon">${iconGlyph('list')}</div>
-                            <div class="mobile-empty-title">No Restaurants Yet</div>
+                            <div class="mobile-empty-title">No Collections Yet</div>
                             <div class="mobile-empty-description">${emptyStateText}</div>
                             ${isViewingOwnProfile ? `
                                 <button class="mobile-action-btn" onclick="window.location.href='index.html'">
-                                    <i class="fas fa-search"></i> Browse Restaurants
+                                    <i class="fas fa-search"></i> Browse Places
                                 </button>
                             ` : ''}
                         </div>
@@ -8438,7 +8560,7 @@ header, .top-stripe, .section-nav {
                         
                         if (!entries || entries.length === 0) {
                             const emptyText = isViewingOwnProfile ? 
-                                'Start reviewing restaurants to build your food journey!' :
+                                'Start reviewing places to build your journey!' :
                                 'This user hasn\'t reviewed any restaurants yet.';
                             
                             if (isMobile) {
@@ -8449,7 +8571,7 @@ header, .top-stripe, .section-nav {
                                         <div class="mobile-empty-description">${emptyText}</div>
                                         ${isViewingOwnProfile ? `
                                             <button class="mobile-action-btn" onclick="window.location.href='index.html'">
-                                                <i class="fas fa-search"></i> Browse Restaurants
+                                                <i class="fas fa-search"></i> Browse Places
                                             </button>
                                         ` : ''}
                                     </div>
@@ -8462,7 +8584,7 @@ header, .top-stripe, .section-nav {
                                         <p class="empty-description">${emptyText}</p>
                                         ${isViewingOwnProfile ? `
                                             <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
-                                                <i class="fas fa-clapperboard"></i> Browse Restaurants
+                                                <i class="fas fa-clapperboard"></i> Browse Places
                                             </button>
                                         ` : ''}
                                     </div>
@@ -14033,11 +14155,11 @@ header, .top-stripe, .section-nav {
                     container.innerHTML = `
                         <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
                             <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('restaurant')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Restaurants Yet</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Start adding restaurants!</p>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Collections Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Start adding items!</p>
                             ${isViewingOwnProfile ? `
                                 <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='index.html'">
-                                    <i class="fas fa-search"></i> Browse Restaurants
+                                    <i class="fas fa-search"></i> Browse Places
                                 </button>
                             ` : ''}
                         </div>
@@ -16450,7 +16572,7 @@ header, .top-stripe, .section-nav {
                 const normalized = String(type || '').toLowerCase();
                 if (normalized === 'restaurants') {
                     if (!ENABLE_RESTAURANTS) {
-                        showToast('Restaurants are temporarily unavailable', 'info');
+                        showToast('Collections are temporarily unavailable', 'info');
                         showTab(DEFAULT_PROFILE_TAB);
                         return;
                     }
@@ -17080,20 +17202,4 @@ header, .top-stripe, .section-nav {
 <script src="js/profile-theme.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

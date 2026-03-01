@@ -40,16 +40,39 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
-    .top img { height: 34px; border-radius: 8px; }
+    .top-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .top-brand img { height: 34px; border-radius: 8px; }
     .pill {
       border: 1px solid var(--border);
       padding: 7px 10px;
       border-radius: 999px;
       font-size: 12px;
       color: var(--muted);
+      white-space: nowrap;
     }
     .pill.active { color: var(--accent); }
+    .top-links {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      white-space: nowrap;
+      padding-bottom: 2px;
+      flex: 1;
+      min-width: 220px;
+    }
+    .top-links::-webkit-scrollbar {
+      display: none;
+    }
     .acct {
       margin-left: auto;
       border: 1px solid var(--border);
@@ -357,6 +380,12 @@
     .err { background: #ef4444; }
     .inf { background: #3b82f6; }
     @media (max-width: 760px) {
+      .top {
+        padding: 10px 0;
+      }
+      .top-brand span {
+        display: none;
+      }
       .hero {
         grid-template-columns: 1fr;
       }
@@ -376,9 +405,19 @@
 </head>
 <body>
   <header class="top">
-    <a href="index.html"><img src="images/logo.png" alt="Zo2y"></a>
-    <a class="pill" href="travel.html"><i class="fas fa-chevron-left"></i> Back</a>
-    <a class="pill active" href="#">Country</a>
+    <a class="top-brand" href="index.html"><img src="images/logo.png" alt="Zo2y"><span>Zo2y</span></a>
+    <nav class="top-links" aria-label="Primary navigation">
+      <a class="pill" href="index.html">Home</a>
+      <a class="pill" href="movies.html">Movies</a>
+      <a class="pill" href="tvshows.html">TV</a>
+      <a class="pill" href="animes.html">Anime</a>
+      <a class="pill" href="games.html">Games</a>
+      <a class="pill" href="books.html">Books</a>
+      <a class="pill" href="music.html">Music</a>
+      <a class="pill" href="travel.html">Travel</a>
+      <span class="pill active">Country</span>
+      <a class="pill" href="reviews.html">Reviews</a>
+    </nav>
     <button id="acctBtn" class="acct"><i class="fas fa-user"></i> Account</button>
   </header>
 
