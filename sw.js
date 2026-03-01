@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v21';
-const PAGE_CACHE = 'zo2y-pages-v21';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v22';
+const PAGE_CACHE = 'zo2y-pages-v22';
 const IMAGE_CACHE = 'zo2y-images-v4';
 const API_CACHE = 'zo2y-api-v3';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -9,13 +9,13 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/css/pages/index.css?v=20260228j',
+  '/css/pages/index.css?v=20260301a',
   '/js/pages/index.js?v=20260228a',
+  '/js/home-desktop-rebrand.js?v=20260301n',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260228b',
+  '/js/mobile-webapp.js?v=20260301c',
   '/js/mobile-app.css',
-  '/js/mobile-app.css?v=20260226a',
-  '/js/mobile-app.css?v=20260227f',
+  '/js/mobile-app.css?v=20260301b',
   '/favicon.ico',
   '/images/logo.png'
 ];
@@ -148,6 +148,7 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
+  if (url.origin === self.location.origin && url.pathname === '/sw.js') return;
   const isImageRequest = request.destination === 'image'
     || /\.(avif|bmp|gif|ico|jpe?g|png|svg|webp)$/i.test(url.pathname);
 

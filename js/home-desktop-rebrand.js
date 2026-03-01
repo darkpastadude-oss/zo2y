@@ -298,6 +298,62 @@
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  function readSidebarWidthPx(collapsed) {
+    const rootStyle = window.getComputedStyle(document.documentElement);
+    const expandedRaw = String(rootStyle.getPropertyValue('--desktop-sidebar-expanded') || '').trim();
+    const collapsedRaw = String(rootStyle.getPropertyValue('--desktop-sidebar-collapsed') || '').trim();
+    const expanded = Number.parseFloat(expandedRaw) || 292;
+    const compact = Number.parseFloat(collapsedRaw) || 96;
+    return collapsed ? compact : expanded;
+  }
+
+  function syncDesktopSidebarDocking() {
+    const shell = document.querySelector('.desktop-app-shell');
+    const sidebar = document.querySelector('.desktop-sidebar');
+    const mainPanel = document.querySelector('.desktop-main-panel');
+    if (!shell || !sidebar || !mainPanel) return;
+
+    const isDesktop = window.matchMedia('(min-width: 940px)').matches;
+    if (!isDesktop) {
+      sidebar.style.removeProperty('display');
+      sidebar.style.removeProperty('position');
+      sidebar.style.removeProperty('top');
+      sidebar.style.removeProperty('left');
+      sidebar.style.removeProperty('bottom');
+      sidebar.style.removeProperty('width');
+      sidebar.style.removeProperty('height');
+      sidebar.style.removeProperty('min-height');
+      sidebar.style.removeProperty('max-height');
+      sidebar.style.removeProperty('z-index');
+      mainPanel.style.removeProperty('margin-left');
+      mainPanel.style.removeProperty('width');
+      document.body.style.removeProperty('transform');
+      document.body.style.removeProperty('opacity');
+      return;
+    }
+
+    // Keep fixed desktop sidebar behavior stable even if app shell classes inject transforms.
+    document.body.style.transform = 'none';
+    document.body.style.opacity = '1';
+
+    const collapsed = document.body.classList.contains('sidebar-collapsed');
+    const sidebarWidth = readSidebarWidthPx(collapsed);
+
+    sidebar.style.display = 'flex';
+    sidebar.style.position = 'fixed';
+    sidebar.style.top = '0';
+    sidebar.style.left = '0';
+    sidebar.style.bottom = '0';
+    sidebar.style.width = `${sidebarWidth}px`;
+    sidebar.style.height = '100vh';
+    sidebar.style.minHeight = '100vh';
+    sidebar.style.maxHeight = '100vh';
+    sidebar.style.zIndex = '210';
+
+    mainPanel.style.marginLeft = `${sidebarWidth}px`;
+    mainPanel.style.width = `calc(100% - ${sidebarWidth}px)`;
+  }
+
   let supabaseClient = null;
   async function ensureSupabaseClient() {
     if (supabaseClient) return supabaseClient;
@@ -640,6 +696,7 @@
       if (label) {
         label.textContent = collapsed ? 'Expand Menu' : 'Collapse Menu';
       }
+      syncDesktopSidebarDocking();
     };
 
     let savedCollapsed = false;
@@ -890,12 +947,16 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     initSidebarToggle();
+    syncDesktopSidebarDocking();
     void initReviewSlideshow();
     renderCuratedRails();
     void loadSidebarCustomListPreview();
     void bindSidebarListAuthRefresh();
     window.setTimeout(() => { void loadSidebarCustomListPreview(); }, 1200);
     window.setTimeout(() => { void loadSidebarCustomListPreview(); }, 3600);
+    window.addEventListener('resize', syncDesktopSidebarDocking, { passive: true });
+    window.addEventListener('orientationchange', syncDesktopSidebarDocking, { passive: true });
+    window.addEventListener('pageshow', syncDesktopSidebarDocking);
   });
 })();
 
