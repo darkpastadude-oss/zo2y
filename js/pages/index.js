@@ -73,6 +73,8 @@
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v3';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
+    const HOME_TRAVEL_IMAGE_CHECK_TTL_MS = 1000 * 60 * 60 * 6;
+    const HOME_TRAVEL_IMAGE_CHECK_TIMEOUT_MS = 2200;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
@@ -219,6 +221,7 @@
       payload: null
     };
     const homeTravelPhotoCache = new Map();
+    const homeTravelImageReachabilityCache = new Map();
     let homeTravelPhotoCacheSaveTimer = null;
     const homeMusicPreviewState = {
       audio: null,
@@ -364,6 +367,94 @@
         spotlightMediaShape: 'square',
         fallbackImage
       };
+    }
+
+    function getHomeTravelImageReachability(urlRaw) {
+      const url = toHttpsUrl(String(urlRaw || '').trim());
+      if (!url) return null;
+      const cached = homeTravelImageReachabilityCache.get(url);
+      if (!cached) return null;
+      if ((Date.now() - Number(cached.checkedAt || 0)) > HOME_TRAVEL_IMAGE_CHECK_TTL_MS) {
+        homeTravelImageReachabilityCache.delete(url);
+        return null;
+      }
+      return !!cached.ok;
+    }
+
+    function setHomeTravelImageReachability(urlRaw, ok) {
+      const url = toHttpsUrl(String(urlRaw || '').trim());
+      if (!url) return;
+      homeTravelImageReachabilityCache.set(url, {
+        ok: !!ok,
+        checkedAt: Date.now()
+      });
+    }
+
+    async function verifyHomeTravelImageReachable(urlRaw, signal, timeoutMs = HOME_TRAVEL_IMAGE_CHECK_TIMEOUT_MS) {
+      const url = toHttpsUrl(String(urlRaw || '').trim());
+      if (!url) return false;
+      const cached = getHomeTravelImageReachability(url);
+      if (typeof cached === 'boolean') return cached;
+      if (signal?.aborted) return false;
+
+      const result = await new Promise((resolve) => {
+        let settled = false;
+        const img = new Image();
+        const done = (ok) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          img.onload = null;
+          img.onerror = null;
+          if (abortHandler && signal) signal.removeEventListener('abort', abortHandler);
+          resolve(!!ok);
+        };
+        const timer = setTimeout(() => done(false), timeoutMs);
+        const abortHandler = signal ? () => done(false) : null;
+        if (abortHandler && signal) signal.addEventListener('abort', abortHandler, { once: true });
+        img.decoding = 'async';
+        img.referrerPolicy = 'no-referrer';
+        img.onload = () => done(true);
+        img.onerror = () => done(false);
+        img.src = url;
+      });
+
+      setHomeTravelImageReachability(url, result);
+      return result;
+    }
+
+    async function filterHomeTravelItemsByReachableImage(items = [], signal, limit = HOME_CHANNEL_TARGET_ITEMS) {
+      const list = (Array.isArray(items) ? items : [])
+        .filter((item) => item && typeof item === 'object');
+      if (!list.length) return [];
+
+      const maxCandidates = Math.min(list.length, Math.max(Number(limit || HOME_CHANNEL_TARGET_ITEMS) * 5, 90));
+      const candidates = list.slice(0, maxCandidates);
+      const accepted = [];
+      const workerCount = Math.min(8, candidates.length);
+      let cursor = 0;
+
+      const workers = Array.from({ length: workerCount }, async () => {
+        while (cursor < candidates.length) {
+          if (signal?.aborted) return;
+          const index = cursor;
+          cursor += 1;
+          const item = candidates[index];
+          if (!item) continue;
+          const primary = toHttpsUrl(String(item.image || item.spotlightImage || item.backgroundImage || '').trim());
+          const fallback = toHttpsUrl(String(item.fallbackImage || '').trim());
+          let ok = await verifyHomeTravelImageReachable(primary, signal);
+          if (!ok && fallback && fallback !== primary) {
+            ok = await verifyHomeTravelImageReachable(fallback, signal);
+          }
+          if (ok) {
+            accepted.push(item);
+          }
+        }
+      });
+
+      await Promise.all(workers);
+      return accepted.slice(0, limit);
     }
 
     readHomeTravelPhotoCacheFromStorage();
@@ -3511,7 +3602,18 @@
         img.addEventListener('error', () => {
           const fallback = String(img.getAttribute('data-fallback-image') || '').trim();
           const alreadyApplied = img.getAttribute('data-fallback-applied') === '1';
-          if (!fallback || alreadyApplied) return;
+          if (!fallback || alreadyApplied) {
+            const card = img.closest('.card');
+            const mediaType = String(card?.getAttribute('data-media-type') || '').toLowerCase();
+            if (mediaType === 'travel' && card?.parentElement) {
+              const rail = card.parentElement;
+              card.remove();
+              if (!rail.querySelector('.card')) {
+                rail.innerHTML = '<div class="empty">No items right now.</div>';
+              }
+            }
+            return;
+          }
           img.setAttribute('data-fallback-applied', '1');
           if (String(img.currentSrc || img.src).trim() === fallback) return;
           img.src = fallback;
@@ -5239,10 +5341,13 @@
 
         const safeItems = filterHomeSafeItems(out);
         if (safeItems.length) {
-          return safeItems.slice(0, HOME_CHANNEL_TARGET_ITEMS);
+          const liveItems = await filterHomeTravelItemsByReachableImage(safeItems, signal, HOME_CHANNEL_TARGET_ITEMS);
+          if (liveItems.length) return liveItems;
         }
       } catch (_err) {}
-      return fallbackItems.slice(0, HOME_CHANNEL_TARGET_ITEMS);
+      const fallbackSafe = filterHomeSafeItems(fallbackItems);
+      const liveFallback = await filterHomeTravelItemsByReachableImage(fallbackSafe, signal, HOME_CHANNEL_TARGET_ITEMS);
+      return liveFallback;
     }
 
     async function initUniversalHome() {
