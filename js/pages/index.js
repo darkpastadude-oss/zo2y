@@ -71,7 +71,7 @@
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
     const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v9';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
-    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v2';
+    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v3';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
@@ -256,6 +256,12 @@
       return String(value || '').replace(/^http:\/\//i, 'https://');
     }
 
+    function canonicalTravelCountryCode(value) {
+      const raw = String(value || '').trim().toUpperCase();
+      if (raw === 'IL') return 'PS';
+      return raw;
+    }
+
     function isLikelyTravelFlagAsset(url) {
       const raw = String(url || '').trim().toLowerCase();
       if (!raw) return false;
@@ -276,7 +282,7 @@
         if (!savedAt || !entries) return;
         if ((Date.now() - savedAt) > HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS) return;
         Object.entries(entries).forEach(([codeRaw, urlRaw]) => {
-          const code = String(codeRaw || '').trim().toUpperCase();
+          const code = canonicalTravelCountryCode(codeRaw);
           const url = toHttpsUrl(String(urlRaw || '').trim());
           if (!code || !url) return;
           homeTravelPhotoCache.set(code, url);
@@ -291,7 +297,7 @@
         try {
           const entries = {};
           homeTravelPhotoCache.forEach((urlRaw, codeRaw) => {
-            const code = String(codeRaw || '').trim().toUpperCase();
+            const code = canonicalTravelCountryCode(codeRaw);
             const url = toHttpsUrl(String(urlRaw || '').trim());
             if (!code || !url) return;
             entries[code] = url;
@@ -305,7 +311,7 @@
     }
 
     function setHomeTravelPhotoCache(codeRaw, urlRaw) {
-      const code = String(codeRaw || '').trim().toUpperCase();
+      const code = canonicalTravelCountryCode(codeRaw);
       const url = toHttpsUrl(String(urlRaw || '').trim());
       if (!code || !url) return;
       const current = String(homeTravelPhotoCache.get(code) || '').trim();
@@ -315,7 +321,7 @@
     }
 
     function getSafeTravelScenicImage(title, codeRaw, preferredUrl = '') {
-      const code = String(codeRaw || '').trim().toUpperCase();
+      const code = canonicalTravelCountryCode(codeRaw);
       const preferred = toHttpsUrl(String(preferredUrl || '').trim());
       if (preferred && !isLikelyTravelFlagAsset(preferred)) return preferred;
       const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
@@ -325,8 +331,12 @@
 
     function sanitizeHomeTravelItem(item) {
       if (!item || typeof item !== 'object') return null;
-      const code = String(item.itemId || item.code || '').trim().toUpperCase();
-      const title = String(item.title || item.name || code || 'Country').trim();
+      const rawCode = String(item.itemId || item.code || '').trim().toUpperCase();
+      if (rawCode === 'IL') return null;
+      const code = canonicalTravelCountryCode(rawCode);
+      const rawTitle = String(item.title || item.name || code || 'Country').trim();
+      if (/\bisrael\b/i.test(rawTitle)) return null;
+      const title = code === 'PS' ? 'Palestine' : rawTitle;
       const rawImage = toHttpsUrl(String(item.image || '').trim());
       const rawBackground = toHttpsUrl(String(item.backgroundImage || '').trim());
       const rawSpotlight = toHttpsUrl(String(item.spotlightImage || '').trim());
@@ -4918,10 +4928,10 @@
     }
 
     function buildTravelPhotoUrl(countryName, countryCode) {
-      const code = String(countryCode || '').trim().toUpperCase() || 'XX';
+      const code = canonicalTravelCountryCode(countryCode) || 'XX';
       const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
       if (cached && !isLikelyTravelFlagAsset(cached)) return cached;
-      return `https://picsum.photos/seed/zo2y-country-${encodeURIComponent(code.toLowerCase())}/1600/900`;
+      return HOME_LOCAL_FALLBACK_IMAGE;
     }
 
     function normalizeTravelSearchText(value) {
@@ -5042,8 +5052,11 @@
     async function fetchTravelCommonsPhotos(rows = [], signal) {
       const list = Array.isArray(rows) ? rows : [];
       const unresolved = list.filter((row) => {
-        const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+        const rawCode = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+        if (rawCode === 'IL') return false;
+        const code = canonicalTravelCountryCode(rawCode);
         const name = String(row?.name?.common || row?.name?.official || '').trim();
+        if (/\bisrael\b/i.test(name)) return false;
         const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
         return !!code && !!name && (!cached || isLikelyTravelFlagAsset(cached));
       });
@@ -5058,8 +5071,11 @@
           cursor += 1;
           const row = queue[index];
           if (!row || signal?.aborted) return;
-          const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+          const rawCode = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+          if (rawCode === 'IL') continue;
+          const code = canonicalTravelCountryCode(rawCode);
           const name = String(row?.name?.common || row?.name?.official || '').trim();
+          if (/\bisrael\b/i.test(name)) continue;
           const capital = Array.isArray(row?.capital)
             ? String(row.capital[0] || '').trim()
             : String(row?.capital || '').trim();
@@ -5110,8 +5126,12 @@
     }
 
     function mapTravelCountryToHomeItem(row, photoMap = null) {
-      const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
-      const title = String(row?.name?.common || row?.name?.official || '').trim();
+      const rawCode = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+      if (!rawCode || rawCode === 'IL') return null;
+      const code = canonicalTravelCountryCode(rawCode);
+      const baseTitle = String(row?.name?.common || row?.name?.official || '').trim();
+      if (/\bisrael\b/i.test(baseTitle)) return null;
+      const title = code === 'PS' ? 'Palestine' : baseTitle;
       if (!code || !title) return null;
       const capital = Array.isArray(row?.capital)
         ? String(row.capital[0] || '').trim()
@@ -5166,7 +5186,14 @@
         if (!rows.length) return fallbackItems.slice(0, HOME_CHANNEL_TARGET_ITEMS);
 
         const sortedRows = rows
-          .filter((row) => row && (row.cca2 || row.cca3) && (row?.name?.common || row?.name?.official))
+          .filter((row) => {
+            if (!row || !(row.cca2 || row.cca3) || !(row?.name?.common || row?.name?.official)) return false;
+            const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+            const name = String(row?.name?.common || row?.name?.official || '').trim();
+            if (code === 'IL') return false;
+            if (/\bisrael\b/i.test(name)) return false;
+            return true;
+          })
           .sort((a, b) => {
             const left = String(a?.name?.common || a?.name?.official || '').trim();
             const right = String(b?.name?.common || b?.name?.official || '').trim();

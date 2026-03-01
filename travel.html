@@ -262,9 +262,9 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
     const COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
     const PAGE_SIZE = 24;
-    const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v2';
+    const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v3';
     const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-    const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v1';
+    const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v2';
     const TRAVEL_COUNTRY_ROWS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 
     let client = null;
@@ -320,12 +320,38 @@
       return String(value || '').trim().toUpperCase();
     }
 
+    function canonicalCountryCode(value) {
+      const raw = safeCode(value);
+      if (raw === 'IL') return 'PS';
+      return raw;
+    }
+
     function safeHttps(url) {
       const text = String(url || '').trim();
       if (!text) return '';
       if (text.startsWith('//')) return `https:${text}`;
       if (text.startsWith('http://')) return text.replace(/^http:\/\//i, 'https://');
       return text;
+    }
+
+    function isBadTravelPhotoUrl(url) {
+      const raw = String(url || '').trim().toLowerCase();
+      if (!raw) return true;
+      if (raw.includes('picsum.photos')) return true;
+      if (raw.includes('images/logo.png')) return true;
+      if (raw.includes('flagcdn.com')) return true;
+      if (raw.includes('/flags/')) return true;
+      if (raw.includes('flag_of_') || raw.includes('flag-of-')) return true;
+      const blocked = ['painting', 'artwork', 'illustration', 'drawing', 'poster', 'coat_of_arms', 'coat-of-arms', 'emblem', 'seal', 'map_of_', 'map-of-'];
+      return blocked.some((token) => raw.includes(token));
+    }
+
+    function normalizeTravelSearchQuery(value) {
+      const query = String(value || '').trim().toLowerCase();
+      if (!query) return '';
+      return query
+        .replace(/\bisrael\b/g, 'palestine')
+        .replace(/\bisreal\b/g, 'palestine');
     }
 
     function loadCountryPhotoCacheFromStorage() {
@@ -340,9 +366,9 @@
         if (!savedAt || !entries) return;
         if ((Date.now() - savedAt) > TRAVEL_PHOTO_CACHE_TTL_MS) return;
         Object.entries(entries).forEach(([code, url]) => {
-          const safeCountryCode = safeCode(code);
+          const safeCountryCode = canonicalCountryCode(code);
           const safeUrl = safeHttps(url);
-          if (!safeCountryCode || !safeUrl) return;
+          if (!safeCountryCode || !safeUrl || isBadTravelPhotoUrl(safeUrl)) return;
           countryPhotoCache.set(safeCountryCode, safeUrl);
         });
       } catch (_error) {}
@@ -357,7 +383,7 @@
           countryPhotoCache.forEach((url, code) => {
             const safeCountryCode = safeCode(code);
             const safeUrl = safeHttps(url);
-            if (!safeCountryCode || !safeUrl) return;
+            if (!safeCountryCode || !safeUrl || isBadTravelPhotoUrl(safeUrl)) return;
             entries[safeCountryCode] = safeUrl;
           });
           localStorage.setItem(TRAVEL_PHOTO_CACHE_KEY, JSON.stringify({
@@ -369,9 +395,9 @@
     }
 
     function setCountryPhotoCache(code, url) {
-      const safeCountryCode = safeCode(code);
+      const safeCountryCode = canonicalCountryCode(code);
       const safeUrl = safeHttps(url);
-      if (!safeCountryCode || !safeUrl) return;
+      if (!safeCountryCode || !safeUrl || isBadTravelPhotoUrl(safeUrl)) return;
       const current = String(countryPhotoCache.get(safeCountryCode) || '').trim();
       if (current === safeUrl) return;
       countryPhotoCache.set(safeCountryCode, safeUrl);
@@ -406,13 +432,16 @@
         return rows
           .map((row) => {
             const code = safeCode(row && row.code);
+            if (code === 'IL') return null;
             const name = String(row && row.name || '').trim();
             if (!code || !name) return null;
+            if (/\bisrael\b/i.test(name)) return null;
             const capital = String(row && row.capital || '').trim();
             const region = String(row && row.region || '').trim();
             const subregion = String(row && row.subregion || '').trim();
             const flag = safeHttps(row && row.flag || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
-            const photo = safeHttps(row && row.photo || '') || buildCountryPhotoUrl(name, code) || flag;
+            const cachedPhoto = safeHttps(row && row.photo || '');
+            const photo = (cachedPhoto && !isBadTravelPhotoUrl(cachedPhoto)) ? cachedPhoto : (buildCountryPhotoUrl(name, code) || flag);
             const cities = Array.isArray(row && row.cities) ? row.cities.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3) : pickCountryCities(code, capital);
             return { code, name, capital, region, subregion, cities, flag, photo };
           })
@@ -427,8 +456,10 @@
         const list = (Array.isArray(rows) ? rows : [])
           .map((row) => {
             const code = safeCode(row && row.code);
+            if (code === 'IL') return null;
             const name = String(row && row.name || '').trim();
             if (!code || !name) return null;
+            if (/\bisrael\b/i.test(name)) return null;
             return {
               code,
               name,
@@ -437,7 +468,10 @@
               subregion: String(row && row.subregion || '').trim(),
               cities: Array.isArray(row && row.cities) ? row.cities.slice(0, 3) : [],
               flag: safeHttps(row && row.flag || ''),
-              photo: safeHttps(row && row.photo || '')
+              photo: (() => {
+                const value = safeHttps(row && row.photo || '');
+                return value && !isBadTravelPhotoUrl(value) ? value : '';
+              })()
             };
           })
           .filter(Boolean);
@@ -449,10 +483,10 @@
     }
 
     function buildCountryPhotoUrl(name, code) {
-      const safeCountryCode = safeCode(code) || 'XX';
+      const safeCountryCode = canonicalCountryCode(code) || 'XX';
       const cached = String(countryPhotoCache.get(safeCountryCode) || '').trim();
-      if (cached) return cached;
-      return `https://picsum.photos/seed/zo2y-country-${encodeURIComponent(safeCountryCode.toLowerCase())}/1400/1000`;
+      if (cached && !isBadTravelPhotoUrl(cached)) return cached;
+      return '';
     }
 
     function normalizeCountryName(value) {
@@ -495,7 +529,12 @@
         'administrative map',
         'province map',
         'political map',
-        'banner'
+        'banner',
+        'painting',
+        'artwork',
+        'illustration',
+        'drawing',
+        'poster'
       ];
       if (blocked.some((token) => raw.includes(token))) return true;
       const countryNeedle = normalizeCountryName(countryName);
@@ -508,7 +547,7 @@
     }
 
     async function fetchCommonsScenicPhoto(name, code, capital, signal) {
-      const safeCountryCode = safeCode(code);
+      const safeCountryCode = canonicalCountryCode(code);
       if (!safeCountryCode) return '';
       if (countryPhotoCache.has(safeCountryCode)) return countryPhotoCache.get(safeCountryCode);
 
@@ -591,7 +630,7 @@
         const code = safeCode(item && item.code);
         if (!code) return;
         const cached = countryPhotoCache.get(code);
-        item.photo = cached || buildCountryPhotoUrl(item && item.name, code) || item.flag;
+        item.photo = (cached && !isBadTravelPhotoUrl(cached)) ? cached : (buildCountryPhotoUrl(item && item.name, code) || item.flag);
       });
     }
 
@@ -651,9 +690,12 @@
     }
 
     function normalizeCountryRow(row) {
-      const code = safeCode(row && (row.cca2 || row.cca3));
-      const name = String(row && row.name && (row.name.common || row.name.official) || '').trim();
+      const rawCode = safeCode(row && (row.cca2 || row.cca3));
+      if (!rawCode || rawCode === 'IL') return null;
+      const code = canonicalCountryCode(rawCode);
+      let name = String(row && row.name && (row.name.common || row.name.official) || '').trim();
       if (!code || !name) return null;
+      if (/\bisrael\b/i.test(name)) return null;
       const capital = Array.isArray(row && row.capital)
         ? String(row.capital[0] || '').trim()
         : String(row && row.capital || '').trim();
@@ -721,7 +763,7 @@
     }
 
     function applyFilter() {
-      const query = state.search.toLowerCase();
+      const query = normalizeTravelSearchQuery(state.search);
       const region = state.region.toLowerCase();
       let output = state.rows.filter((item) => {
         if (region && item.region.toLowerCase() !== region) return false;
