@@ -559,7 +559,8 @@
     if (coercedId === null || coercedId === undefined || String(coercedId).trim() === '') return null;
     const title = card.querySelector('.card-title, .card-name')?.textContent || '';
     const subtitle = card.querySelector('.card-meta, .card-sub')?.textContent || '';
-    const image = card.querySelector('img')?.getAttribute('src') || '';
+    const listImage = card.getAttribute('data-list-image') || '';
+    const image = listImage || card.querySelector('img')?.getAttribute('src') || '';
     return {
       mediaType,
       itemId: coercedId,

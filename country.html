@@ -329,10 +329,11 @@
     }
 
     function buildCountryPhotoUrl(name, code) {
-      const safeName = String(name || '').trim().replace(/\s+/g, ',');
+      const safeName = String(name || '').trim();
       const safeCountryCode = safeCode(code) || 'XX';
       if (!safeName) return '';
-      return `https://loremflickr.com/1200/1200/${encodeURIComponent(safeName)},country,landscape?lock=${encodeURIComponent(safeCountryCode)}`;
+      const query = encodeURIComponent(`${safeName},country,landscape,travel`);
+      return `https://source.unsplash.com/1600x1200/?${query}&sig=${encodeURIComponent(safeCountryCode)}`;
     }
 
     function showToast(message, type = 'inf') {

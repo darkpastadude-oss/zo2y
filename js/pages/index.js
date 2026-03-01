@@ -2484,7 +2484,7 @@
         itemId: normalizedItemId,
         title: card.getAttribute('data-title') || '',
         subtitle: card.getAttribute('data-subtitle') || '',
-        image: card.getAttribute('data-image') || ''
+        image: card.getAttribute('data-list-image') || card.getAttribute('data-image') || ''
       };
       homeItemMenuState.quickRows = getQuickRowsForMenu(mediaType);
       homeItemMenuState.quickStatus = readHomeMenuQuickStatusCache(
@@ -3281,6 +3281,8 @@
         const subtitle = escapeHtml(item.subtitle || media.label);
         const extra = escapeHtml(item.extra || '');
         const image = escapeHtml(item.image || '');
+        const flagImage = escapeHtml(item.flagImage || '');
+        const listImage = escapeHtml(item.listImage || (mediaTypeRaw === 'travel' ? (item.flagImage || '') : (item.image || '')));
         const logo = escapeHtml(item.logo || '');
         const fallbackImage = escapeHtml(item.fallbackImage || '');
         const coverImage = image || logo;
@@ -3306,6 +3308,7 @@
         if (landscape) mediaClasses.push('landscape');
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
         if (mediaTypeRaw === 'music') mediaClasses.push('music-cover');
+        if (mediaTypeRaw === 'travel') mediaClasses.push('travel-photo');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         const mediaHtml = restaurantComposite
           ? `
@@ -3314,6 +3317,9 @@
             `
           : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
         const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
+        const titleMarkup = (mediaTypeRaw === 'travel' && flagImage)
+          ? `<span class="country-title-wrap"><img class="country-inline-flag" src="${flagImage}" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="country-title-text">${title}</span></span>`
+          : title;
         const trailingControl = supportsLists
           ? `
             <div class="card-menu-wrap">
@@ -3328,7 +3334,7 @@
             </div>
           `;
         return `
-          <article class="card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}">
+          <article class="card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${listImage}">
             <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
             <div class="${mediaClasses.join(' ')}">
               ${mediaHtml}
@@ -3336,7 +3342,7 @@
             <div class="card-meta">
               <span class="card-type"><i class="fa-solid ${media.icon}"></i> ${escapeHtml(media.label)}</span>
               <div class="card-meta-top">
-                <p class="card-name">${title}</p>
+                <p class="card-name">${titleMarkup}</p>
                 ${trailingControl}
               </div>
               <p class="card-sub">${subtitle}</p>
@@ -4774,10 +4780,11 @@
     }
 
     function buildTravelPhotoUrl(countryName, countryCode) {
-      const name = String(countryName || '').trim().replace(/\s+/g, ',');
+      const name = String(countryName || '').trim();
       const code = String(countryCode || '').trim().toUpperCase() || 'XX';
       if (!name) return '';
-      return `https://loremflickr.com/960/960/${encodeURIComponent(name)},country,landscape?lock=${encodeURIComponent(code)}`;
+      const query = encodeURIComponent(`${name},country,landscape,travel`);
+      return `https://source.unsplash.com/1600x900/?${query}&sig=${encodeURIComponent(code)}`;
     }
 
     function mapFallbackTravelItems() {
@@ -4795,11 +4802,14 @@
           title,
           subtitle,
           extra: region || 'Travel',
+          flagImage,
+          listImage: flagImage,
           image: photoImage,
           backgroundImage: photoImage,
           spotlightImage: photoImage,
-          spotlightMediaImage: photoImage,
-          spotlightMediaFit: 'cover',
+          spotlightMediaImage: flagImage,
+          spotlightMediaFit: 'contain',
+          spotlightMediaPosition: 'center center',
           spotlightMediaShape: 'square',
           fallbackImage: flagImage || HOME_LOCAL_FALLBACK_IMAGE,
           href: code ? `country.html?code=${encodeURIComponent(code)}` : 'travel.html'
@@ -4836,11 +4846,14 @@
         title,
         subtitle,
         extra: extra || 'Travel',
+        flagImage,
+        listImage: flagImage,
         image: photoImage,
         backgroundImage: photoImage,
         spotlightImage: photoImage,
-        spotlightMediaImage: photoImage,
-        spotlightMediaFit: 'cover',
+        spotlightMediaImage: flagImage,
+        spotlightMediaFit: 'contain',
+        spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
         fallbackImage: flagImage || HOME_LOCAL_FALLBACK_IMAGE,
         href: `country.html?code=${encodeURIComponent(code)}`
