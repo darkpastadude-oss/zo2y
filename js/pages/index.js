@@ -277,6 +277,17 @@
       return false;
     }
 
+    function isUsableHomeTravelScenicUrl(urlRaw) {
+      const url = toHttpsUrl(String(urlRaw || '').trim());
+      if (!url) return false;
+      if (isLikelyTravelFlagAsset(url)) return false;
+      const lower = url.toLowerCase();
+      if (lower.includes('images/logo.png')) return false;
+      if (lower.startsWith('data:image/')) return false;
+      if (lower.includes('source.unsplash.com/')) return false;
+      return true;
+    }
+
     function readHomeTravelPhotoCacheFromStorage() {
       try {
         const raw = localStorage.getItem(HOME_TRAVEL_PHOTO_CACHE_KEY);
@@ -318,7 +329,7 @@
     function setHomeTravelPhotoCache(codeRaw, urlRaw) {
       const code = canonicalTravelCountryCode(codeRaw);
       const url = toHttpsUrl(String(urlRaw || '').trim());
-      if (!code || !url) return;
+      if (!code || !isUsableHomeTravelScenicUrl(url)) return;
       const current = String(homeTravelPhotoCache.get(code) || '').trim();
       if (current === url) return;
       homeTravelPhotoCache.set(code, url);
@@ -328,9 +339,9 @@
     function getSafeTravelScenicImage(title, codeRaw, preferredUrl = '') {
       const code = canonicalTravelCountryCode(codeRaw);
       const preferred = toHttpsUrl(String(preferredUrl || '').trim());
-      if (preferred && !isLikelyTravelFlagAsset(preferred)) return preferred;
+      if (isUsableHomeTravelScenicUrl(preferred)) return preferred;
       const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
-      if (cached && !isLikelyTravelFlagAsset(cached)) return cached;
+      if (isUsableHomeTravelScenicUrl(cached)) return cached;
       return buildTravelPhotoUrl(title, code);
     }
 
@@ -347,11 +358,12 @@
       const rawSpotlight = toHttpsUrl(String(item.spotlightImage || '').trim());
       const rawFallback = toHttpsUrl(String(item.fallbackImage || '').trim());
       const scenicImage = getSafeTravelScenicImage(title, code, rawImage || rawBackground || rawSpotlight);
-      if (code && scenicImage && !isLikelyTravelFlagAsset(scenicImage)) {
+      if (!isUsableHomeTravelScenicUrl(scenicImage)) return null;
+      if (code && isUsableHomeTravelScenicUrl(scenicImage)) {
         setHomeTravelPhotoCache(code, scenicImage);
       }
       const flagImage = toHttpsUrl(String(item.flagImage || '').trim()) || (code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : '');
-      const fallbackImage = getSafeTravelScenicImage(title, code, rawFallback || scenicImage);
+      const fallbackImage = getSafeTravelScenicImage(title, code, rawFallback || '');
       return {
         ...item,
         mediaType: 'travel',
@@ -365,7 +377,7 @@
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
-        fallbackImage
+        fallbackImage: isUsableHomeTravelScenicUrl(fallbackImage) ? fallbackImage : ''
       };
     }
 
@@ -5034,11 +5046,8 @@
     function buildTravelPhotoUrl(countryName, countryCode) {
       const code = canonicalTravelCountryCode(countryCode) || 'XX';
       const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
-      if (cached && !isLikelyTravelFlagAsset(cached)) return cached;
-      const safeName = String(countryName || '').trim();
-      if (!safeName) return HOME_LOCAL_FALLBACK_IMAGE;
-      const query = encodeURIComponent(`${safeName},country,landscape,scenery,travel`);
-      return `https://source.unsplash.com/1600x900/?${query}&sig=${encodeURIComponent(code.toLowerCase())}`;
+      if (isUsableHomeTravelScenicUrl(cached)) return cached;
+      return '';
     }
 
     function normalizeTravelSearchText(value) {
@@ -5117,7 +5126,7 @@
       if (!safeCode) return '';
       if (homeTravelPhotoCache.has(safeCode)) {
         const cached = toHttpsUrl(String(homeTravelPhotoCache.get(safeCode) || '').trim());
-        if (cached && !isLikelyTravelFlagAsset(cached)) return cached;
+        if (isUsableHomeTravelScenicUrl(cached)) return cached;
       }
 
       const queries = [
@@ -5154,7 +5163,7 @@
             return !blocked.some((token) => title.includes(token));
           });
           const image = toHttpsUrl(preferred?.imageinfo?.[0]?.thumburl || preferred?.imageinfo?.[0]?.url || '');
-          if (image) {
+          if (isUsableHomeTravelScenicUrl(image)) {
             setHomeTravelPhotoCache(safeCode, image);
             return image;
           }
@@ -5175,7 +5184,7 @@
         const name = String(row?.name?.common || row?.name?.official || '').trim();
         if (/\bisrael\b/i.test(name)) return false;
         const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
-        return !!code && !!name && (!cached || isLikelyTravelFlagAsset(cached));
+        return !!code && !!name && !isUsableHomeTravelScenicUrl(cached);
       });
       if (!unresolved.length) return homeTravelPhotoCache;
 
@@ -5197,7 +5206,7 @@
             ? String(row.capital[0] || '').trim()
             : String(row?.capital || '').trim();
           const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
-          if (!code || !name || (cached && !isLikelyTravelFlagAsset(cached))) continue;
+          if (!code || !name || isUsableHomeTravelScenicUrl(cached)) continue;
           const scenic = await fetchTravelCommonsPhoto(name, code, capital, signal);
           if (scenic) setHomeTravelPhotoCache(code, scenic);
         }
@@ -5219,7 +5228,8 @@
         if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
         if (!extraParts.length && region) extraParts.push(region);
         const flagImage = code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : HOME_LOCAL_FALLBACK_IMAGE;
-        const photoImage = getSafeTravelScenicImage(title, code) || HOME_LOCAL_FALLBACK_IMAGE;
+        const photoImage = getSafeTravelScenicImage(title, code);
+        if (!isUsableHomeTravelScenicUrl(photoImage)) return null;
         return {
           mediaType: 'travel',
           itemId: code || title.toLowerCase(),
@@ -5236,10 +5246,10 @@
           spotlightMediaFit: 'contain',
           spotlightMediaPosition: 'center center',
           spotlightMediaShape: 'square',
-          fallbackImage: getSafeTravelScenicImage(title, code) || HOME_LOCAL_FALLBACK_IMAGE,
+          fallbackImage: '',
           href: code ? `country.html?code=${encodeURIComponent(code)}` : 'travel.html'
         };
-      }).filter((item) => String(item?.itemId || '').trim());
+      }).filter((item) => item && String(item?.itemId || '').trim());
     }
 
     function mapTravelCountryToHomeItem(row, photoMap = null) {
@@ -5266,7 +5276,8 @@
       const flagImage = toHttpsUrl(row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
       const photoFromCommons = photoMap instanceof Map ? String(photoMap.get(code) || '').trim() : '';
       if (photoFromCommons) setHomeTravelPhotoCache(code, photoFromCommons);
-      const photoImage = getSafeTravelScenicImage(title, code, photoFromCommons) || HOME_LOCAL_FALLBACK_IMAGE;
+      const photoImage = getSafeTravelScenicImage(title, code, photoFromCommons);
+      if (!isUsableHomeTravelScenicUrl(photoImage)) return null;
       return {
         mediaType: 'travel',
         itemId: code,
@@ -5283,7 +5294,7 @@
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
-        fallbackImage: getSafeTravelScenicImage(title, code, photoImage) || HOME_LOCAL_FALLBACK_IMAGE,
+        fallbackImage: '',
         href: `country.html?code=${encodeURIComponent(code)}`
       };
     }

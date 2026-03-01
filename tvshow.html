@@ -188,6 +188,11 @@
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       white-space: nowrap;
     }
+    .nav a.ghost.current {
+      color: var(--accent);
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid var(--border);
+    }
     .nav a.ghost:hover { color: var(--accent); background: rgba(245, 158, 11, 0.05); }
     .account-btn {
       display: inline-flex;
@@ -607,7 +612,7 @@
     @media (max-width: 640px) {
       .nav { padding: 10px 12px; }
       .logo { height: 32px; }
-      .nav-right > a.ghost:nth-of-type(2) { display: none; }
+      .nav-right > a.ghost:not(.current):not([href="index.html"]) { display: none; }
       .nav a.ghost {
         padding: 6px 10px;
         font-size: 12px;
@@ -657,7 +662,13 @@
           <button id="pageSearchBtn" class="nav-search-btn" type="button" aria-label="Search TV shows"><i class="fas fa-search"></i></button>
           <div id="pageSearchSuggest" class="search-suggest"></div>
         </div>
-        <a class="ghost" href="tvshows.html">TV Shows</a>
+        <a class="ghost" href="movies.html">Movies</a>
+        <a class="ghost current" href="tvshows.html">TV</a>
+        <a class="ghost" href="animes.html">Anime</a>
+        <a class="ghost" href="games.html">Games</a>
+        <a class="ghost" href="books.html">Books</a>
+        <a class="ghost" href="music.html">Music</a>
+        <a class="ghost" href="travel.html">Travel</a>
         <a class="ghost" href="reviews.html">Reviews</a>
         <a class="ghost" href="index.html">Home</a>
         <button class="account-btn" id="userAccountBtn"><i class="fas fa-user"></i><span>Account</span></button>

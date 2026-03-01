@@ -833,10 +833,7 @@
         const first = safeHttps(gallery[0]);
         if (first && !isBadScenicUrl(first)) return first;
       }
-      const safeName = String(name || '').trim();
-      if (!safeName) return '';
-      const query = encodeURIComponent(`${safeName},country,landscape,scenery,travel`);
-      return `https://source.unsplash.com/1600x1200/?${query}&sig=${encodeURIComponent(safeCountryCode.toLowerCase())}`;
+      return '';
     }
 
     function renderGallery(images = [], countryName = '', flag = '') {

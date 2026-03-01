@@ -540,10 +540,7 @@
       const safeCountryCode = canonicalCountryCode(code) || 'XX';
       const cached = String(countryPhotoCache.get(safeCountryCode) || '').trim();
       if (cached && !isBadTravelPhotoUrl(cached)) return cached;
-      const safeName = String(name || '').trim();
-      if (!safeName) return '';
-      const query = encodeURIComponent(`${safeName},country,landscape,scenery,travel`);
-      return `https://source.unsplash.com/1600x1200/?${query}&sig=${encodeURIComponent(safeCountryCode.toLowerCase())}`;
+      return '';
     }
 
     function normalizeCountryName(value) {
