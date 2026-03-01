@@ -269,6 +269,8 @@
       if (raw.includes('/flags/')) return true;
       if (raw.includes('restcountries.com/data/')) return true;
       if (raw.includes('commons.wikimedia.org') && (raw.includes('flag_of_') || raw.includes('flag-of-'))) return true;
+      const blocked = ['coat_of_arms', 'coat-of-arms', 'emblem', 'seal', 'map_of_', 'map-of-', 'painting', 'illustration', 'drawing', 'watercolor', 'etching', 'engraving', 'lithograph', 'oil_on_canvas'];
+      if (blocked.some((token) => raw.includes(token))) return true;
       return false;
     }
 
@@ -4931,7 +4933,10 @@
       const code = canonicalTravelCountryCode(countryCode) || 'XX';
       const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
       if (cached && !isLikelyTravelFlagAsset(cached)) return cached;
-      return HOME_LOCAL_FALLBACK_IMAGE;
+      const safeName = String(countryName || '').trim();
+      if (!safeName) return HOME_LOCAL_FALLBACK_IMAGE;
+      const query = encodeURIComponent(`${safeName},country,landscape,scenery,travel`);
+      return `https://source.unsplash.com/1600x900/?${query}&sig=${encodeURIComponent(code.toLowerCase())}`;
     }
 
     function normalizeTravelSearchText(value) {
@@ -4978,7 +4983,17 @@
         'administrative map',
         'province map',
         'political map',
-        'banner'
+        'banner',
+        'painting',
+        'artwork',
+        'illustration',
+        'drawing',
+        'poster',
+        'watercolor',
+        'etching',
+        'engraving',
+        'lithograph',
+        'oil on canvas'
       ];
       if (blocked.some((token) => raw.includes(token))) return true;
       const countryNeedle = normalizeTravelSearchText(countryName);

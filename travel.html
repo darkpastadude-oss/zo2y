@@ -342,7 +342,24 @@
       if (raw.includes('flagcdn.com')) return true;
       if (raw.includes('/flags/')) return true;
       if (raw.includes('flag_of_') || raw.includes('flag-of-')) return true;
-      const blocked = ['painting', 'artwork', 'illustration', 'drawing', 'poster', 'coat_of_arms', 'coat-of-arms', 'emblem', 'seal', 'map_of_', 'map-of-'];
+      const blocked = [
+        'painting',
+        'artwork',
+        'illustration',
+        'drawing',
+        'poster',
+        'coat_of_arms',
+        'coat-of-arms',
+        'emblem',
+        'seal',
+        'map_of_',
+        'map-of-',
+        'watercolor',
+        'etching',
+        'engraving',
+        'lithograph',
+        'oil_on_canvas'
+      ];
       return blocked.some((token) => raw.includes(token));
     }
 
@@ -486,7 +503,10 @@
       const safeCountryCode = canonicalCountryCode(code) || 'XX';
       const cached = String(countryPhotoCache.get(safeCountryCode) || '').trim();
       if (cached && !isBadTravelPhotoUrl(cached)) return cached;
-      return '';
+      const safeName = String(name || '').trim();
+      if (!safeName) return '';
+      const query = encodeURIComponent(`${safeName},country,landscape,scenery,travel`);
+      return `https://source.unsplash.com/1600x1200/?${query}&sig=${encodeURIComponent(safeCountryCode.toLowerCase())}`;
     }
 
     function normalizeCountryName(value) {
@@ -534,7 +554,12 @@
         'artwork',
         'illustration',
         'drawing',
-        'poster'
+        'poster',
+        'watercolor',
+        'etching',
+        'engraving',
+        'lithograph',
+        'oil on canvas'
       ];
       if (blocked.some((token) => raw.includes(token))) return true;
       const countryNeedle = normalizeCountryName(countryName);
