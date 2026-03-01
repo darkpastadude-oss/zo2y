@@ -29,7 +29,6 @@
       <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
       <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
       <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
-      <button class="zo2y-shared-btn" id="userAccountBtn" type="button"><i class="fas fa-user"></i><span>Account</span></button>
     </div>
   </div>
 </header>`;
@@ -68,6 +67,9 @@
     }
 
     const activePage = normalizePageName(window.location.pathname);
+    const accountBtn = sharedHeader.querySelector('#userAccountBtn');
+    if (accountBtn) accountBtn.remove();
+
     sharedHeader.querySelectorAll('[data-nav-page]').forEach((link) => {
       const page = String(link.getAttribute('data-nav-page') || '');
       if (!page) return;
@@ -77,12 +79,6 @@
       else link.removeAttribute('aria-current');
     });
 
-    if (activePage === 'profile') {
-      const profileBtn = sharedHeader.querySelector('#profileBtn');
-      const accountBtn = sharedHeader.querySelector('#userAccountBtn');
-      if (profileBtn) profileBtn.style.display = 'inline-flex';
-      if (accountBtn) accountBtn.style.display = 'none';
-    }
   }
 
   function ensureSupabaseClient() {
@@ -98,14 +94,10 @@
     const loginBtn = document.getElementById('loginBtn');
     const signupBtn = document.getElementById('signupBtn');
     const profileBtn = document.getElementById('profileBtn');
-    const accountBtn = document.getElementById('userAccountBtn');
-    if (!loginBtn && !signupBtn && !profileBtn && !accountBtn) return;
+    if (!loginBtn && !signupBtn && !profileBtn) return;
 
     const client = ensureSupabaseClient();
     if (!client || !client.auth || typeof client.auth.getSession !== 'function') {
-      if (accountBtn) {
-        accountBtn.onclick = () => { window.location.href = 'login.html'; };
-      }
       return;
     }
 
@@ -113,27 +105,36 @@
       const { data } = await client.auth.getSession();
       const session = data && data.session ? data.session : null;
       const loggedIn = !!session;
+      const user = session && session.user ? session.user : null;
 
       if (loginBtn) loginBtn.style.display = loggedIn ? 'none' : 'inline-flex';
       if (signupBtn) signupBtn.style.display = loggedIn ? 'none' : 'inline-flex';
       if (profileBtn) {
         profileBtn.style.display = loggedIn ? 'inline-flex' : 'none';
-        if (loggedIn) profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+        if (loggedIn) {
+          let label = 'Profile';
+          try {
+            if (user && user.id && client.from) {
+              const { data: profile } = await client
+                .from('user_profiles')
+                .select('username, full_name')
+                .eq('id', user.id)
+                .single();
+              const raw = profile?.username || profile?.full_name || '';
+              const clean = String(raw || '').trim();
+              if (clean) label = clean.startsWith('@') ? clean : `@${clean}`;
+            }
+          } catch (_profileErr) {
+            const fallback =
+              (user && user.user_metadata && (user.user_metadata.username || user.user_metadata.full_name || user.user_metadata.name)) ||
+              (user && user.email ? String(user.email).split('@')[0] : '');
+            const cleanFallback = String(fallback || '').trim();
+            if (cleanFallback) label = cleanFallback.startsWith('@') ? cleanFallback : `@${cleanFallback}`;
+          }
+          profileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
+        }
       }
-
-      if (accountBtn) {
-        accountBtn.innerHTML = loggedIn
-          ? '<i class="fas fa-user"></i><span>Profile</span>'
-          : '<i class="fas fa-user"></i><span>Account</span>';
-        accountBtn.onclick = () => {
-          window.location.href = loggedIn ? 'profile.html' : 'login.html';
-        };
-      }
-    } catch (_err) {
-      if (accountBtn) {
-        accountBtn.onclick = () => { window.location.href = 'login.html'; };
-      }
-    }
+    } catch (_err) {}
   }
 
   function wireSearchButton() {
