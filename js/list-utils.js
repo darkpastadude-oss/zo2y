@@ -824,6 +824,7 @@
     if (!cfg || !client || !userId) return [];
     setTierSyncContext(client, userId);
     const rpcLists = await loadAccessibleCustomListsViaRpc(client, userId, type);
+    let enhancedRpc = null;
     if (Array.isArray(rpcLists)) {
       const groups = new Map();
       rpcLists.forEach((row) => {
@@ -840,11 +841,7 @@
           hydratedById.set(key, row);
         });
       }
-      const enhancedRpc = rpcLists.map((row) => hydratedById.get(String(row.id || '').trim()) || row);
-      if (cfg.filterTitles && cfg.filterTitles.length) {
-        return enhancedRpc.filter(list => !cfg.filterTitles.includes(list.title));
-      }
-      return enhancedRpc;
+      enhancedRpc = rpcLists.map((row) => hydratedById.get(String(row.id || '').trim()) || row);
     }
 
     const { data, error } = await client
@@ -906,10 +903,26 @@
       const key = String(row?.id || '').trim();
       return hydratedById.get(key) || row;
     });
-    if (cfg.filterTitles && cfg.filterTitles.length) {
-      return enhanced.filter(list => !cfg.filterTitles.includes(list.title));
+
+    let combined = enhanced;
+    if (Array.isArray(enhancedRpc) && enhancedRpc.length) {
+      const seen = new Set(combined
+        .map((row) => String(row?.id || row?.list_id || '').trim())
+        .filter(Boolean));
+      enhancedRpc.forEach((row) => {
+        const key = String(row?.id || row?.list_id || '').trim();
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        combined.push(row);
+      });
+    } else if (Array.isArray(enhancedRpc)) {
+      combined = combined.length ? combined : enhancedRpc;
     }
-    return enhanced;
+
+    if (cfg.filterTitles && cfg.filterTitles.length) {
+      return combined.filter(list => !cfg.filterTitles.includes(list.title));
+    }
+    return combined;
   }
 
   async function loadCustomListMembership(client, userId, type, itemId, listIds) {

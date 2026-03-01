@@ -81,6 +81,7 @@
     const HOME_CHANNEL_TIMEOUT_MS = 1600;
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 1200;
     const HOME_LOCAL_FALLBACK_IMAGE = 'images/logo.png';
+    const HOME_TRAVEL_SCENIC_FALLBACK_IMAGE = 'images/country.jpg';
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 16;
     const HOME_SPOTLIGHT_POOL_SIZE = 16;
@@ -5047,6 +5048,7 @@
       const code = canonicalTravelCountryCode(countryCode) || 'XX';
       const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
       if (isUsableHomeTravelScenicUrl(cached)) return cached;
+      if (isUsableHomeTravelScenicUrl(HOME_TRAVEL_SCENIC_FALLBACK_IMAGE)) return HOME_TRAVEL_SCENIC_FALLBACK_IMAGE;
       return '';
     }
 

@@ -304,7 +304,7 @@
         gap: 10px;
         justify-content: flex-end;
       }
-      .menu-btn {
+      .menu-modal-actions .menu-btn {
         padding: 10px 20px;
         border-radius: 10px;
         font-size: 14px;
@@ -313,20 +313,20 @@
         border: 1px solid var(--border, rgba(255,255,255,0.12));
         transition: all 0.2s ease;
       }
-      .menu-btn-primary {
+      .menu-modal-actions .menu-btn-primary {
         background: var(--gradient, linear-gradient(135deg, #f59e0b, #ffb84d));
         color: #0b1633;
         border: none;
       }
-      .menu-btn-primary:hover {
+      .menu-modal-actions .menu-btn-primary:hover {
         filter: brightness(1.1);
         transform: translateY(-1px);
       }
-      .menu-btn-secondary {
+      .menu-modal-actions .menu-btn-secondary {
         background: transparent;
         color: var(--white, #fff);
       }
-      .menu-btn-secondary:hover {
+      .menu-modal-actions .menu-btn-secondary:hover {
         background: rgba(255, 255, 255, 0.1);
       }
       .menu-empty {

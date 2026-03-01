@@ -9,8 +9,8 @@
   <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260301d" defer></script>
-  <script src="js/index-list-menu-adapter.js?v=20260301e" defer></script>
+  <script src="js/list-utils.js?v=20260301e" defer></script>
+  <script src="js/index-list-menu-adapter.js?v=20260301f" defer></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -196,7 +196,7 @@
     .meta, .sub { font-size: 12px; }
     .meta { color: #dce8ff; }
     .sub { color: var(--muted); }
-    .menu-btn {
+    .card-menu-btn {
       width: 32px;
       height: 32px;
       border: 1px solid var(--border);
@@ -205,7 +205,7 @@
       color: #dce8ff;
       cursor: pointer;
     }
-    .menu-btn.saved {
+    .card-menu-btn.saved {
       border-color: rgba(34,197,94,0.6);
       color: #86efac;
       background: rgba(22,163,74,0.2);
@@ -874,7 +874,7 @@
       if (!code) return;
       const status = state.listStatus.get(code) || emptyStatus();
       const saved = !!(status.favorites || status.visited || status.bucketlist);
-      const btn = card.querySelector('.menu-btn');
+      const btn = card.querySelector('.card-menu-btn');
       if (btn) btn.classList.toggle('saved', saved);
     }
 
@@ -930,7 +930,7 @@
                 </h2>
                 <div class="code">${escapeHtml(item.code)}</div>
               </div>
-              <button class="menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
+              <button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
             </div>
             <div class="meta">${escapeHtml(item.capital ? `Capital: ${item.capital}` : 'Capital: N/A')}</div>
             <div class="sub">${escapeHtml([item.region, item.subregion].filter(Boolean).join(' | ') || 'Region unavailable')}</div>
@@ -939,11 +939,11 @@
         `;
 
         node.addEventListener('click', (event) => {
-          if (event.target && event.target.closest('.menu-btn')) return;
+          if (event.target && event.target.closest('.card-menu-btn')) return;
           window.location.href = `country.html?code=${encodeURIComponent(item.code)}`;
         });
 
-        const menuBtn = node.querySelector('.menu-btn');
+        const menuBtn = node.querySelector('.card-menu-btn');
         if (menuBtn) {
           menuBtn.addEventListener('click', (event) => {
             event.stopPropagation();
