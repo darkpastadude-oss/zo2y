@@ -4773,6 +4773,13 @@
       return [];
     }
 
+    function buildTravelPhotoUrl(countryName, countryCode) {
+      const name = String(countryName || '').trim().replace(/\s+/g, ',');
+      const code = String(countryCode || '').trim().toUpperCase() || 'XX';
+      if (!name) return '';
+      return `https://loremflickr.com/960/960/${encodeURIComponent(name)},country,landscape?lock=${encodeURIComponent(code)}`;
+    }
+
     function mapFallbackTravelItems() {
       return FALLBACK_TRAVEL_COUNTRIES.map((row) => {
         const code = String(row?.code || '').trim().toUpperCase();
@@ -4780,20 +4787,21 @@
         const region = String(row?.region || '').trim();
         const capital = String(row?.capital || '').trim();
         const subtitle = [capital ? `Capital: ${capital}` : '', region].filter(Boolean).join(' | ') || 'Country';
-        const image = code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : HOME_LOCAL_FALLBACK_IMAGE;
+        const flagImage = code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : HOME_LOCAL_FALLBACK_IMAGE;
+        const photoImage = buildTravelPhotoUrl(title, code) || flagImage;
         return {
           mediaType: 'travel',
           itemId: code || title.toLowerCase(),
           title,
           subtitle,
           extra: region || 'Travel',
-          image,
-          backgroundImage: image,
-          spotlightImage: image,
-          spotlightMediaImage: image,
+          image: photoImage,
+          backgroundImage: photoImage,
+          spotlightImage: photoImage,
+          spotlightMediaImage: photoImage,
           spotlightMediaFit: 'cover',
-          spotlightMediaShape: 'poster',
-          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+          spotlightMediaShape: 'square',
+          fallbackImage: flagImage || HOME_LOCAL_FALLBACK_IMAGE,
           href: code ? `country.html?code=${encodeURIComponent(code)}` : 'travel.html'
         };
       }).filter((item) => String(item?.itemId || '').trim());
@@ -4820,20 +4828,21 @@
         subregion && subregion !== region ? subregion : '',
         populationText
       ].filter(Boolean).join(' | ');
-      const image = safeHttps(row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
+      const flagImage = safeHttps(row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
+      const photoImage = buildTravelPhotoUrl(title, code) || flagImage;
       return {
         mediaType: 'travel',
         itemId: code,
         title,
         subtitle,
         extra: extra || 'Travel',
-        image,
-        backgroundImage: image,
-        spotlightImage: image,
-        spotlightMediaImage: image,
+        image: photoImage,
+        backgroundImage: photoImage,
+        spotlightImage: photoImage,
+        spotlightMediaImage: photoImage,
         spotlightMediaFit: 'cover',
-        spotlightMediaShape: 'poster',
-        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+        spotlightMediaShape: 'square',
+        fallbackImage: flagImage || HOME_LOCAL_FALLBACK_IMAGE,
         href: `country.html?code=${encodeURIComponent(code)}`
       };
     }

@@ -46,6 +46,7 @@
     game: { tab: 'games', collection: 'game' },
     book: { tab: 'books', collection: 'book' },
     music: { tab: 'music', collection: 'music' },
+    travel: { tab: 'travel', collection: 'travel' },
     restaurant: { tab: 'restaurants', collection: 'restaurant' }
   };
 
@@ -303,8 +304,15 @@
     const safeType = String(mediaType || '').trim().toLowerCase();
     const route = SIDEBAR_MEDIA_PROFILE_ROUTE[safeType];
     const safeListId = String(listId || '').trim();
-    if (!route || !safeListId) {
-      return SIDEBAR_MEDIA_ROUTE[safeType] || 'profile.html';
+    if (!safeListId) {
+      return 'profile.html';
+    }
+    if (!route) {
+      const params = new URLSearchParams({
+        listId: safeListId,
+        listType: 'custom'
+      });
+      return `profile.html?${params.toString()}`;
     }
     const params = new URLSearchParams({
       tab: route.tab,
