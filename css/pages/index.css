@@ -1424,10 +1424,11 @@
 
       .desktop-app-shell::before {
         content: "";
-        position: absolute;
+        position: fixed;
         left: 0;
         top: 0;
         bottom: 0;
+        height: 100dvh;
         width: var(--desktop-sidebar-expanded);
         border-right: 1px solid rgba(255,255,255,0.14);
         background: linear-gradient(180deg, rgba(12, 18, 31, 0.93) 0%, rgba(8, 14, 26, 0.97) 100%);
@@ -1465,9 +1466,9 @@
         left: 0;
         bottom: 0;
         width: var(--desktop-sidebar-expanded);
-        height: 100vh;
-        min-height: 100vh;
-        max-height: 100vh;
+        height: 100dvh;
+        min-height: 100dvh;
+        max-height: 100dvh;
         border: 0;
         border-right: 0;
         border-radius: 0;
@@ -1480,6 +1481,8 @@
         overflow-x: hidden;
         overflow-y: auto;
         overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+        contain: paint;
         z-index: 210;
         transition: width 0.22s ease, flex-basis 0.22s ease, padding-inline 0.22s ease;
       }
