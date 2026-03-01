@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -781,27 +781,11 @@
         if (!supabaseClient) return;
         const { data: { user } } = await supabaseClient.auth.getUser();
         state.currentUser = user || null;
-        updateAccountButton();
         await loadUserListStatus();
         supabaseClient.auth.onAuthStateChange((_event, session) => {
           state.currentUser = session?.user || null;
-          updateAccountButton();
           loadUserListStatus();
         });
-      }
-
-      function updateAccountButton() {
-        const btn = document.getElementById('userAccountBtn');
-        if (!btn) return;
-        if (state.currentUser) {
-          btn.classList.add('logged-in');
-          btn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
-          btn.onclick = () => window.location.href = 'profile.html';
-        } else {
-          btn.classList.remove('logged-in');
-          btn.innerHTML = '<i class="fas fa-user"></i><span>Account</span>';
-          btn.onclick = () => window.location.href = 'login.html';
-        }
       }
 
       async function loadUserListStatus() {
@@ -1271,6 +1255,7 @@
   <script src="js/production-runtime.js?v=20260227d" defer></script>
 </body>
 </html>
+
 
 
 

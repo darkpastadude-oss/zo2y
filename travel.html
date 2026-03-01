@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -319,6 +319,25 @@
     const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
     const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v2';
     const TRAVEL_COUNTRY_ROWS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
+    const TRAVEL_GENERIC_SCENIC_FALLBACK = 'images/country.jpg';
+    const TRAVEL_SCENIC_FALLBACK_BY_CODE = Object.freeze({
+      US: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      JP: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      FR: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      IT: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      ES: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      BR: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      EG: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      AU: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      GB: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      DE: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      CA: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      MX: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      TR: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      TH: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      ID: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      ZA: TRAVEL_GENERIC_SCENIC_FALLBACK
+    });
 
     let client = null;
     const state = {
@@ -556,7 +575,9 @@
       const safeCountryCode = canonicalCountryCode(code) || 'XX';
       const cached = String(countryPhotoCache.get(safeCountryCode) || '').trim();
       if (cached && !isBadTravelPhotoUrl(cached)) return cached;
-      return '';
+      const fallback = safeHttps(TRAVEL_SCENIC_FALLBACK_BY_CODE[safeCountryCode] || TRAVEL_GENERIC_SCENIC_FALLBACK);
+      if (fallback && !isBadTravelPhotoUrl(fallback)) return fallback;
+      return TRAVEL_GENERIC_SCENIC_FALLBACK;
     }
 
     function normalizeCountryName(value) {
@@ -705,7 +726,9 @@
         const code = safeCode(item && item.code);
         if (!code) return;
         const cached = countryPhotoCache.get(code);
-        item.photo = (cached && !isBadTravelPhotoUrl(cached)) ? cached : (buildCountryPhotoUrl(item && item.name, code) || item.flag);
+        const fallbackPhoto = buildCountryPhotoUrl(item && item.name, code) || item.flag;
+        item.fallbackPhoto = fallbackPhoto;
+        item.photo = (cached && !isBadTravelPhotoUrl(cached)) ? cached : fallbackPhoto;
       });
     }
 
@@ -731,22 +754,9 @@
       return null;
     }
 
-    function updateAccountButton() {
-      const btn = document.getElementById('userAccountBtn');
-      if (!btn) return;
-      if (state.user) {
-        btn.innerHTML = '<i class="fas fa-user"></i> Profile';
-        btn.onclick = () => { window.location.href = 'profile.html'; };
-        return;
-      }
-      btn.innerHTML = '<i class="fas fa-user"></i> Account';
-      btn.onclick = () => { window.location.href = 'login.html'; };
-    }
-
     async function syncAuth() {
       const sb = await ensureClient();
       if (!sb) {
-        updateAccountButton();
         return;
       }
       try {
@@ -755,11 +765,9 @@
       } catch (_error) {
         state.user = null;
       }
-      updateAccountButton();
       await loadTravelListStatus();
       sb.auth.onAuthStateChange((_event, session) => {
         state.user = session && session.user ? session.user : null;
-        updateAccountButton();
         void loadTravelListStatus();
       });
     }
@@ -777,7 +785,8 @@
       const region = String(row && row.region || '').trim();
       const subregion = String(row && row.subregion || '').trim();
       const flag = safeHttps(row && row.flags && (row.flags.png || row.flags.svg)) || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
-      const photo = buildCountryPhotoUrl(name, code) || flag;
+      const fallbackPhoto = buildCountryPhotoUrl(name, code) || flag;
+      const photo = fallbackPhoto;
       return {
         code,
         name,
@@ -786,7 +795,8 @@
         subregion,
         cities: pickCountryCities(code, capital),
         flag,
-        photo
+        photo,
+        fallbackPhoto
       };
     }
 
@@ -909,7 +919,7 @@
         node.setAttribute('data-image', item.photo);
         node.innerHTML = `
           <div class="card-photo-wrap">
-            <img class="card-photo" src="${escapeHtml(item.photo)}" alt="${escapeHtml(item.name)} photo" loading="lazy" onerror="this.onerror=null;this.src='${escapeHtml(item.flag)}';">
+            <img class="card-photo" src="${escapeHtml(item.photo)}" alt="${escapeHtml(item.name)} photo" loading="lazy" onerror="this.onerror=null;this.src='${escapeHtml(item.fallbackPhoto || item.flag)}';">
           </div>
           <div class="body">
             <div class="row">
@@ -1158,3 +1168,4 @@
   <script src="js/production-runtime.js?v=20260227d" defer></script>
 </body>
 </html>
+

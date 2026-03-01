@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1067,7 +1067,7 @@
       function truncateText(text, maxLen) {
         if (!text) return '';
         if (text.length <= maxLen) return text;
-        return `${text.slice(0, maxLen - 1)}…`;
+        return `${text.slice(0, maxLen - 1)}â€¦`;
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -1160,27 +1160,11 @@
         if (!supabaseClient) return;
         const { data: { user } } = await supabaseClient.auth.getUser();
         state.currentUser = user || null;
-        updateAccountButton();
         await loadUserListStatus();
         supabaseClient.auth.onAuthStateChange((_event, session) => {
           state.currentUser = session?.user || null;
-          updateAccountButton();
           loadUserListStatus();
         });
-      }
-
-      function updateAccountButton() {
-        const btn = document.getElementById('userAccountBtn');
-        if (!btn) return;
-        if (state.currentUser) {
-          btn.classList.add('logged-in');
-          btn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
-          btn.onclick = () => window.location.href = 'profile.html';
-        } else {
-          btn.classList.remove('logged-in');
-          btn.innerHTML = '<i class="fas fa-user"></i><span>Account</span>';
-          btn.onclick = () => window.location.href = 'login.html';
-        }
       }
 
       async function loadUserListStatus() {
@@ -1398,7 +1382,7 @@
             <div class="card-body">
               <h3 class="card-title">${item.title || 'Untitled'}</h3>
               <div class="card-meta-row">
-                <div class="card-meta">${authors}${year ? ` � ${year}` : ''}</div>
+                <div class="card-meta">${authors}${year ? ` ï¿½ ${year}` : ''}</div>
                 <div class="card-menu-wrap">
                   <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
                 </div>
@@ -1782,6 +1766,7 @@
   <script src="js/production-runtime.js?v=20260227d" defer></script>
 </body>
 </html>
+
 
 
 

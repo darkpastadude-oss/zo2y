@@ -82,7 +82,7 @@
       padding: 8px 12px;
       cursor: pointer;
     }
-    .hero, .gallery, .guide, .reviews {
+    .hero, .gallery, .guide, .planner, .reviews {
       max-width: 1100px;
       margin: 14px auto 0;
       border: 1px solid var(--border);
@@ -304,6 +304,99 @@
       color: var(--muted);
       font-size: 13px;
     }
+    .planner {
+      padding: 14px;
+    }
+    .planner-head h2 {
+      margin: 0 0 6px;
+      font-size: 24px;
+    }
+    .planner-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .planner-auth-note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .planner-auth-note a {
+      color: var(--accent);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .planner-form {
+      margin-top: 12px;
+      display: grid;
+      gap: 10px;
+    }
+    .planner-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .planner-field {
+      display: grid;
+      gap: 6px;
+    }
+    .planner-field label {
+      font-size: 12px;
+      color: #dce8ff;
+      font-weight: 700;
+    }
+    .planner-field input,
+    .planner-field select,
+    .planner-field textarea {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #10224a;
+      color: #fff;
+      padding: 10px 11px;
+      font-size: 13px;
+      outline: none;
+      width: 100%;
+    }
+    .planner-field textarea {
+      min-height: 96px;
+      resize: vertical;
+    }
+    .planner-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .planner-summary {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(255,255,255,0.04);
+      display: none;
+    }
+    .planner-summary.show {
+      display: block;
+    }
+    .planner-summary h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+    .planner-list {
+      margin: 0;
+      padding-left: 16px;
+      display: grid;
+      gap: 5px;
+      font-size: 13px;
+      color: #dce8ff;
+    }
+    .planner-list li::marker {
+      color: var(--accent);
+    }
+    .planner-inline-hint {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
     .stats {
       display: flex;
       gap: 12px;
@@ -394,6 +487,9 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
       .guide-grid {
+        grid-template-columns: 1fr;
+      }
+      .planner-grid {
         grid-template-columns: 1fr;
       }
       .flag-wrap {
@@ -507,6 +603,56 @@
     </div>
   </section>
 
+  <section class="planner">
+    <div class="planner-head">
+      <h2>Travel Planner</h2>
+      <p>Save your city picks, activities, budget, and notes for this country.</p>
+    </div>
+    <div id="plannerAuthNote" class="planner-auth-note" style="display:none">
+      Please <a href="login.html">sign in</a> to save your travel plan.
+    </div>
+    <form id="plannerForm" class="planner-form" style="display:none">
+      <div class="planner-grid">
+        <div class="planner-field">
+          <label for="plannerCitiesInput">Cities (comma separated)</label>
+          <input id="plannerCitiesInput" type="text" placeholder="Tokyo, Kyoto, Osaka">
+        </div>
+        <div class="planner-field">
+          <label for="plannerBestMonthsInput">Best Months</label>
+          <input id="plannerBestMonthsInput" type="text" placeholder="March, April, October">
+        </div>
+      </div>
+      <div class="planner-grid">
+        <div class="planner-field">
+          <label for="plannerBudgetSelect">Budget</label>
+          <select id="plannerBudgetSelect">
+            <option value="">Select budget</option>
+            <option value="budget">Budget</option>
+            <option value="midrange">Mid-range</option>
+            <option value="luxury">Luxury</option>
+          </select>
+        </div>
+        <div class="planner-field">
+          <label for="plannerActivitiesInput">Activities (comma separated)</label>
+          <input id="plannerActivitiesInput" type="text" placeholder="Temple visits, food tours, hiking">
+        </div>
+      </div>
+      <div class="planner-field">
+        <label for="plannerNotesInput">Notes</label>
+        <textarea id="plannerNotesInput" maxlength="1200" placeholder="Any local tips, booking notes, neighborhoods, transport plans..."></textarea>
+        <div class="planner-inline-hint">This plan is private to your account.</div>
+      </div>
+      <div class="planner-actions">
+        <button class="btn" type="submit" id="plannerSaveBtn"><i class="fas fa-floppy-disk"></i> Save Plan</button>
+        <button class="btn" type="button" id="plannerClearBtn"><i class="fas fa-trash"></i> Clear Plan</button>
+      </div>
+    </form>
+    <div id="plannerSummary" class="planner-summary">
+      <h3>Saved Plan Snapshot</h3>
+      <ul id="plannerSummaryList" class="planner-list"></ul>
+    </div>
+  </section>
+
   <section class="reviews">
     <h2 style="margin:0 0 8px">Travel Reviews</h2>
     <div class="stats">
@@ -536,6 +682,25 @@
     const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
     const COUNTRY_GALLERY_CACHE_KEY = 'zo2y_country_gallery_cache_v1';
     const COUNTRY_GALLERY_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+    const TRAVEL_GENERIC_SCENIC_FALLBACK = 'images/country.jpg';
+    const TRAVEL_SCENIC_FALLBACK_BY_CODE = Object.freeze({
+      US: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      JP: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      FR: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      IT: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      ES: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      BR: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      EG: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      AU: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      GB: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      DE: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      CA: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      MX: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      TR: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      TH: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      ID: TRAVEL_GENERIC_SCENIC_FALLBACK,
+      ZA: TRAVEL_GENERIC_SCENIC_FALLBACK
+    });
 
     let client = null;
     const params = new URLSearchParams(window.location.search);
@@ -547,7 +712,8 @@
       users: new Map(),
       rating: 0,
       editId: null,
-      status: { favorites: false, visited: false, bucketlist: false }
+      status: { favorites: false, visited: false, bucketlist: false },
+      planner: null
     };
     const sharedTravelPhotoCache = new Map();
     const countryGalleryCache = new Map();
@@ -848,10 +1014,12 @@
         const first = safeHttps(gallery[0]);
         if (first && !isBadScenicUrl(first)) return first;
       }
-      return '';
+      const fallback = safeHttps(TRAVEL_SCENIC_FALLBACK_BY_CODE[safeCountryCode] || TRAVEL_GENERIC_SCENIC_FALLBACK);
+      if (fallback && !isBadScenicUrl(fallback)) return fallback;
+      return TRAVEL_GENERIC_SCENIC_FALLBACK;
     }
 
-    function renderGallery(images = [], countryName = '', flag = '') {
+    function renderGallery(images = [], countryName = '', flag = '', fallbackPhoto = '') {
       const grid = document.getElementById('galleryGrid');
       if (!grid) return;
       const list = (Array.isArray(images) ? images : [])
@@ -864,7 +1032,7 @@
       }
       grid.innerHTML = list.map((url) => `
         <div class="gallery-item">
-          <img src="${escapeHtml(url)}" alt="${escapeHtml(countryName)} scenery" loading="lazy" onerror="this.onerror=null;this.src='${escapeHtml(flag || 'images/logo.png')}';">
+          <img src="${escapeHtml(url)}" alt="${escapeHtml(countryName)} scenery" loading="lazy" onerror="this.onerror=null;this.src='${escapeHtml(fallbackPhoto || flag || 'images/country.jpg')}';">
         </div>
       `).join('');
     }
@@ -944,18 +1112,6 @@
       return null;
     }
 
-    function updateAccountButton() {
-      const btn = document.getElementById('userAccountBtn');
-      if (!btn) return;
-      if (state.user) {
-        btn.innerHTML = '<i class="fas fa-user"></i> Profile';
-        btn.onclick = () => { window.location.href = 'profile.html'; };
-        return;
-      }
-      btn.innerHTML = '<i class="fas fa-user"></i> Account';
-      btn.onclick = () => { window.location.href = 'login.html'; };
-    }
-
     function syncReviewFormVisibility() {
       const form = document.getElementById('reviewForm');
       const authMsg = document.getElementById('authMsg');
@@ -963,10 +1119,174 @@
       authMsg.style.display = state.user ? 'none' : 'block';
     }
 
+    function splitPlannerList(value, limit = 14) {
+      const out = [];
+      String(value || '')
+        .split(',')
+        .map((entry) => String(entry || '').trim())
+        .filter(Boolean)
+        .forEach((entry) => {
+          if (out.length >= limit) return;
+          if (out.some((existing) => existing.toLowerCase() === entry.toLowerCase())) return;
+          out.push(entry);
+        });
+      return out;
+    }
+
+    function budgetLabel(value) {
+      const key = String(value || '').trim().toLowerCase();
+      if (key === 'budget') return 'Budget';
+      if (key === 'midrange') return 'Mid-range';
+      if (key === 'luxury') return 'Luxury';
+      return 'Not set';
+    }
+
+    function setPlannerFormValues(plan) {
+      document.getElementById('plannerCitiesInput').value = Array.isArray(plan && plan.cities) ? plan.cities.join(', ') : '';
+      document.getElementById('plannerBestMonthsInput').value = Array.isArray(plan && plan.best_months) ? plan.best_months.join(', ') : '';
+      document.getElementById('plannerBudgetSelect').value = String(plan && plan.budget_tier || '');
+      document.getElementById('plannerActivitiesInput').value = Array.isArray(plan && plan.activities) ? plan.activities.join(', ') : '';
+      document.getElementById('plannerNotesInput').value = String(plan && plan.notes || '');
+    }
+
+    function renderPlannerSummary(plan) {
+      const host = document.getElementById('plannerSummary');
+      const list = document.getElementById('plannerSummaryList');
+      if (!host || !list) return;
+      if (!plan) {
+        host.classList.remove('show');
+        list.innerHTML = '';
+        return;
+      }
+
+      const cities = Array.isArray(plan.cities) ? plan.cities : [];
+      const activities = Array.isArray(plan.activities) ? plan.activities : [];
+      const bestMonths = Array.isArray(plan.best_months) ? plan.best_months : [];
+      const notes = String(plan.notes || '').trim();
+      const budget = budgetLabel(plan.budget_tier);
+      const items = [
+        `Cities: ${cities.length ? cities.join(', ') : 'Not set'}`,
+        `Activities: ${activities.length ? activities.join(', ') : 'Not set'}`,
+        `Budget: ${budget}`,
+        `Best months: ${bestMonths.length ? bestMonths.join(', ') : 'Not set'}`,
+        `Notes: ${notes || 'Not set'}`
+      ];
+      list.innerHTML = items.map((entry) => `<li>${escapeHtml(entry)}</li>`).join('');
+      host.classList.add('show');
+    }
+
+    function syncPlannerVisibility() {
+      const form = document.getElementById('plannerForm');
+      const auth = document.getElementById('plannerAuthNote');
+      if (!form || !auth) return;
+      form.style.display = state.user ? 'grid' : 'none';
+      auth.style.display = state.user ? 'none' : 'block';
+    }
+
+    async function loadPlanner() {
+      const sb = await ensureClient();
+      if (!sb || !state.user || !state.user.id || !state.code) {
+        state.planner = null;
+        setPlannerFormValues(null);
+        renderPlannerSummary(null);
+        return;
+      }
+      const { data, error } = await sb
+        .from('travel_plans')
+        .select('id,user_id,country_code,cities,activities,budget_tier,best_months,notes,updated_at')
+        .eq('user_id', state.user.id)
+        .eq('country_code', state.code)
+        .maybeSingle();
+      if (error) {
+        state.planner = null;
+        setPlannerFormValues(null);
+        renderPlannerSummary(null);
+        return;
+      }
+      state.planner = data || null;
+      setPlannerFormValues(state.planner);
+      renderPlannerSummary(state.planner);
+    }
+
+    function getPlannerPayloadFromForm() {
+      const cities = splitPlannerList(document.getElementById('plannerCitiesInput').value, 18);
+      const bestMonths = splitPlannerList(document.getElementById('plannerBestMonthsInput').value, 12);
+      const activities = splitPlannerList(document.getElementById('plannerActivitiesInput').value, 18);
+      const budgetTier = String(document.getElementById('plannerBudgetSelect').value || '').trim().toLowerCase();
+      const notes = String(document.getElementById('plannerNotesInput').value || '').trim();
+      return {
+        country_code: state.code,
+        user_id: state.user && state.user.id ? state.user.id : null,
+        cities,
+        activities,
+        budget_tier: budgetTier || null,
+        best_months: bestMonths,
+        notes: notes || null
+      };
+    }
+
+    async function savePlanner(event) {
+      event.preventDefault();
+      if (!state.user || !state.user.id) {
+        showToast('Please sign in', 'inf');
+        return;
+      }
+      const sb = await ensureClient();
+      if (!sb) return;
+      const payload = getPlannerPayloadFromForm();
+      const hasContent =
+        payload.cities.length ||
+        payload.activities.length ||
+        payload.best_months.length ||
+        payload.budget_tier ||
+        payload.notes;
+      if (!hasContent) {
+        showToast('Add at least one planner field', 'inf');
+        return;
+      }
+      const saveBtn = document.getElementById('plannerSaveBtn');
+      if (saveBtn) saveBtn.disabled = true;
+      const { error } = await sb
+        .from('travel_plans')
+        .upsert(payload, { onConflict: 'user_id,country_code' });
+      if (saveBtn) saveBtn.disabled = false;
+      if (error) {
+        showToast('Could not save plan', 'err');
+        return;
+      }
+      await loadPlanner();
+      showToast('Travel plan saved', 'ok');
+    }
+
+    async function clearPlanner() {
+      if (!state.user || !state.user.id) {
+        showToast('Please sign in', 'inf');
+        return;
+      }
+      if (!window.confirm('Clear saved travel plan for this country?')) return;
+      const sb = await ensureClient();
+      if (!sb) return;
+      const { error } = await sb
+        .from('travel_plans')
+        .delete()
+        .eq('user_id', state.user.id)
+        .eq('country_code', state.code);
+      if (error) {
+        showToast('Could not clear plan', 'err');
+        return;
+      }
+      state.planner = null;
+      setPlannerFormValues(null);
+      renderPlannerSummary(null);
+      showToast('Travel plan cleared', 'inf');
+    }
+
     async function syncAuth() {
       const sb = await ensureClient();
       if (!sb) {
-        updateAccountButton();
+        state.user = null;
+        syncReviewFormVisibility();
+        syncPlannerVisibility();
         return;
       }
       try {
@@ -975,14 +1295,16 @@
       } catch (_error) {
         state.user = null;
       }
-      updateAccountButton();
       syncReviewFormVisibility();
+      syncPlannerVisibility();
       await loadListStatus();
+      await loadPlanner();
       sb.auth.onAuthStateChange((_event, session) => {
         state.user = session && session.user ? session.user : null;
-        updateAccountButton();
         syncReviewFormVisibility();
+        syncPlannerVisibility();
         void loadListStatus();
+        void loadPlanner();
       });
     }
 
@@ -1011,7 +1333,8 @@
       const region = String(row && row.region || '').trim();
       const subregion = String(row && row.subregion || '').trim();
       const flag = safeHttps(row && row.flags && (row.flags.png || row.flags.svg) || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
-      const photo = buildCountryPhotoUrl(name, code) || flag;
+      const fallbackPhoto = buildCountryPhotoUrl(name, code) || flag;
+      const photo = fallbackPhoto;
       const mapsUrl = safeHttps(row && row.maps && row.maps.googleMaps || '');
 
       const languagesList = row && row.languages && typeof row.languages === 'object'
@@ -1027,9 +1350,14 @@
       document.getElementById('meta').innerHTML = `${escapeHtml(capital ? `Capital: ${capital}` : 'Capital: N/A')}<br>${escapeHtml([region, subregion].filter(Boolean).join(' | ') || 'Region unavailable')}`;
       document.getElementById('photo').src = photo;
       document.getElementById('photo').alt = `${name} photo`;
+      document.getElementById('photo').setAttribute('data-fallback-photo', fallbackPhoto);
+      document.getElementById('photo').onerror = function onCountryPhotoError() {
+        this.onerror = null;
+        this.src = fallbackPhoto || flag || 'images/country.jpg';
+      };
       document.getElementById('flag').src = flag;
       document.getElementById('flag').alt = `${name} flag`;
-      renderGallery(countryGalleryCache.get(code) || [], name, flag);
+      renderGallery(countryGalleryCache.get(code) || [], name, flag, fallbackPhoto);
 
       const chips = [];
       if (languages) chips.push(`Languages: ${languages}`);
@@ -1064,7 +1392,7 @@
       void fetchCommonsCountryGallery(name, code, capital)
         .then((images) => {
           const list = Array.isArray(images) ? images : [];
-          renderGallery(list, name, flag);
+          renderGallery(list, name, flag, fallbackPhoto);
           const heroPhoto = list.find((value) => value && !isBadScenicUrl(value));
           if (heroPhoto) {
             document.getElementById('photo').src = heroPhoto;
@@ -1366,6 +1694,14 @@
         state.rating = Number(star.dataset.v || 0) || 0;
         drawRatingStars();
       });
+      const plannerForm = document.getElementById('plannerForm');
+      const plannerClear = document.getElementById('plannerClearBtn');
+      if (plannerForm) {
+        plannerForm.addEventListener('submit', (event) => { void savePlanner(event); });
+      }
+      if (plannerClear) {
+        plannerClear.addEventListener('click', () => { void clearPlanner(); });
+      }
       document.getElementById('reviewList').addEventListener('click', (event) => {
         const button = event.target && event.target.closest('button[data-act]');
         if (!button) return;

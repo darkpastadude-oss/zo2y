@@ -34,11 +34,26 @@ create table if not exists public.travel_reviews (
   updated_at timestamptz default now()
 );
 
+create table if not exists public.travel_plans (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  country_code text not null check (char_length(country_code) between 2 and 3),
+  cities text[] not null default '{}',
+  activities text[] not null default '{}',
+  budget_tier text check (budget_tier in ('budget', 'midrange', 'luxury')),
+  best_months text[] not null default '{}',
+  notes text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
 create index if not exists idx_travel_lists_user on public.travel_lists(user_id);
 create index if not exists idx_travel_list_items_user on public.travel_list_items(user_id);
 create index if not exists idx_travel_list_items_country on public.travel_list_items(country_code);
 create index if not exists idx_travel_reviews_country on public.travel_reviews(country_code);
 create index if not exists idx_travel_reviews_user on public.travel_reviews(user_id);
+create index if not exists idx_travel_plans_user on public.travel_plans(user_id);
+create index if not exists idx_travel_plans_country on public.travel_plans(country_code);
 
 drop index if exists ux_travel_list_items_unique;
 create unique index if not exists ux_travel_default_items_unique
@@ -49,6 +64,8 @@ create unique index if not exists ux_travel_custom_items_unique
   where list_id is not null;
 create unique index if not exists ux_travel_reviews_user_country
   on public.travel_reviews (user_id, country_code);
+create unique index if not exists ux_travel_plans_user_country
+  on public.travel_plans (user_id, country_code);
 
 create or replace function public.touch_travel_reviews_updated_at()
 returns trigger as $$
@@ -64,9 +81,16 @@ before update on public.travel_reviews
 for each row
 execute function public.touch_travel_reviews_updated_at();
 
+drop trigger if exists travel_plans_touch_updated_at on public.travel_plans;
+create trigger travel_plans_touch_updated_at
+before update on public.travel_plans
+for each row
+execute function public.touch_travel_reviews_updated_at();
+
 alter table public.travel_lists enable row level security;
 alter table public.travel_list_items enable row level security;
 alter table public.travel_reviews enable row level security;
+alter table public.travel_plans enable row level security;
 
 drop policy if exists "Public select on travel_lists" on public.travel_lists;
 drop policy if exists "Insert own travel_lists" on public.travel_lists;
@@ -94,3 +118,12 @@ create policy "Public select on travel_reviews" on public.travel_reviews for sel
 create policy "Insert own travel_reviews" on public.travel_reviews for insert with check (user_id = auth.uid());
 create policy "Update own travel_reviews" on public.travel_reviews for update using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "Delete own travel_reviews" on public.travel_reviews for delete using (user_id = auth.uid());
+
+drop policy if exists "Public select on travel_plans" on public.travel_plans;
+drop policy if exists "Insert own travel_plans" on public.travel_plans;
+drop policy if exists "Update own travel_plans" on public.travel_plans;
+drop policy if exists "Delete own travel_plans" on public.travel_plans;
+create policy "Public select on travel_plans" on public.travel_plans for select using (true);
+create policy "Insert own travel_plans" on public.travel_plans for insert with check (user_id = auth.uid());
+create policy "Update own travel_plans" on public.travel_plans for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "Delete own travel_plans" on public.travel_plans for delete using (user_id = auth.uid());

@@ -67,8 +67,6 @@
     }
 
     const activePage = normalizePageName(window.location.pathname);
-    const accountBtn = sharedHeader.querySelector('#userAccountBtn');
-    if (accountBtn) accountBtn.remove();
 
     sharedHeader.querySelectorAll('[data-nav-page]').forEach((link) => {
       const page = String(link.getAttribute('data-nav-page') || '');
@@ -149,16 +147,8 @@
     });
   }
 
-  function hideLegacyProfileTopbar() {
-    const topbar = document.querySelector('.mobile-topbar');
-    if (topbar) {
-      topbar.style.display = 'none';
-    }
-  }
-
   function boot() {
     mountSharedHeader();
-    hideLegacyProfileTopbar();
     wireSearchButton();
     void syncAuthHeaderState();
   }
