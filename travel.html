@@ -278,6 +278,24 @@
       pending: new Set()
     };
     const countryPhotoCache = new Map();
+    const countryCityHints = {
+      US: ['New York', 'Los Angeles', 'Chicago'],
+      JP: ['Tokyo', 'Kyoto', 'Osaka'],
+      FR: ['Paris', 'Lyon', 'Nice'],
+      IT: ['Rome', 'Florence', 'Milan'],
+      ES: ['Madrid', 'Barcelona', 'Seville'],
+      BR: ['Rio de Janeiro', 'Sao Paulo', 'Salvador'],
+      EG: ['Cairo', 'Alexandria', 'Luxor'],
+      AU: ['Sydney', 'Melbourne', 'Brisbane'],
+      GB: ['London', 'Edinburgh', 'Manchester'],
+      DE: ['Berlin', 'Munich', 'Hamburg'],
+      CA: ['Toronto', 'Vancouver', 'Montreal'],
+      MX: ['Mexico City', 'Guadalajara', 'Merida'],
+      TR: ['Istanbul', 'Ankara', 'Antalya'],
+      TH: ['Bangkok', 'Chiang Mai', 'Phuket'],
+      ID: ['Bali', 'Jakarta', 'Yogyakarta'],
+      ZA: ['Cape Town', 'Johannesburg', 'Durban']
+    };
 
     const emptyStatus = () => ({ favorites: false, visited: false, bucketlist: false });
     const ESCAPE_MAP = {
@@ -309,14 +327,108 @@
       return `https://picsum.photos/seed/zo2y-country-${encodeURIComponent(safeCountryCode.toLowerCase())}/1400/1000`;
     }
 
-    function normalizeCountryNameForWiki(name) {
-      return String(name || '')
+    function normalizeCountryName(value) {
+      return String(value || '')
         .trim()
         .toLowerCase()
-        .replace(/\s+\(country\)\s*$/i, '');
+        .replace(/\s+\(country\)\s*$/i, '')
+        .replace(/[^a-z0-9 ]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
     }
 
-    async function hydrateWikipediaCountryPhotos(rows = []) {
+    function pickCountryCities(code, capital) {
+      const safeCountryCode = safeCode(code);
+      const seeded = Array.isArray(countryCityHints[safeCountryCode]) ? countryCityHints[safeCountryCode] : [];
+      const out = [];
+      if (capital) out.push(capital);
+      seeded.forEach((city) => {
+        if (!city) return;
+        if (out.some((value) => value.toLowerCase() === String(city).toLowerCase())) return;
+        out.push(city);
+      });
+      return out.slice(0, 3);
+    }
+
+    function isBadScenicTitle(title, countryName, capital) {
+      const raw = String(title || '').toLowerCase();
+      if (!raw) return true;
+      const blocked = [
+        'flag',
+        'coat of arms',
+        'emblem',
+        'seal',
+        'map of',
+        'locator map',
+        'location map',
+        'orthographic',
+        'equirectangular',
+        'blank map',
+        'administrative map',
+        'province map',
+        'political map',
+        'banner'
+      ];
+      if (blocked.some((token) => raw.includes(token))) return true;
+      const countryNeedle = normalizeCountryName(countryName);
+      const capitalNeedle = normalizeCountryName(capital);
+      if (!countryNeedle && !capitalNeedle) return false;
+      const normalizedTitle = normalizeCountryName(title);
+      const hasCountry = countryNeedle && normalizedTitle.includes(countryNeedle);
+      const hasCapital = capitalNeedle && normalizedTitle.includes(capitalNeedle);
+      return !(hasCountry || hasCapital);
+    }
+
+    async function fetchCommonsScenicPhoto(name, code, capital, signal) {
+      const safeCountryCode = safeCode(code);
+      if (!safeCountryCode) return '';
+      if (countryPhotoCache.has(safeCountryCode)) return countryPhotoCache.get(safeCountryCode);
+
+      const queries = [
+        `${name} landscape`,
+        `${name} travel photography`,
+        `${name} city skyline`,
+        `${capital ? `${capital} skyline` : ''}`,
+        `${name} nature`
+      ].map((value) => String(value || '').trim()).filter(Boolean);
+
+      for (const query of queries) {
+        if (signal && signal.aborted) break;
+        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=10&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=1400`;
+        try {
+          const response = await fetch(endpoint, { signal, headers: { Accept: 'application/json' } });
+          if (!response.ok) continue;
+          const payload = await response.json();
+          const pages = Array.isArray(payload && payload.query && payload.query.pages) ? payload.query.pages : [];
+          const preferred = pages.find((page) => {
+            const title = String(page && page.title || '');
+            const mime = String(page && page.imageinfo && page.imageinfo[0] && page.imageinfo[0].mime || '').toLowerCase();
+            const isPhotoLike = mime === 'image/jpeg' || mime === 'image/jpg' || mime === 'image/webp';
+            if (!isPhotoLike) return false;
+            if (isBadScenicTitle(title, name, capital)) return false;
+            return true;
+          }) || pages.find((page) => {
+            const title = String(page && page.title || '');
+            const mime = String(page && page.imageinfo && page.imageinfo[0] && page.imageinfo[0].mime || '').toLowerCase();
+            const isPhotoLike = mime === 'image/jpeg' || mime === 'image/jpg' || mime === 'image/webp';
+            if (!isPhotoLike) return false;
+            const blocked = ['flag', 'coat of arms', 'emblem', 'seal', 'map of', 'locator map', 'location map', 'orthographic', 'equirectangular', 'blank map'];
+            return !blocked.some((token) => title.toLowerCase().includes(token));
+          });
+          const image = safeHttps(preferred && preferred.imageinfo && preferred.imageinfo[0] && (preferred.imageinfo[0].thumburl || preferred.imageinfo[0].url));
+          if (image) {
+            countryPhotoCache.set(safeCountryCode, image);
+            return image;
+          }
+        } catch (_error) {
+          // try next query
+        }
+      }
+
+      return '';
+    }
+
+    async function hydrateScenicCountryPhotos(rows = [], signal) {
       const list = Array.isArray(rows) ? rows : [];
       if (!list.length) return;
 
@@ -324,55 +436,14 @@
         const code = safeCode(item && item.code);
         return code && !countryPhotoCache.has(code);
       });
-      if (!unresolved.length) {
-        list.forEach((item) => {
-          const code = safeCode(item && item.code);
-          if (!code) return;
-          const cached = countryPhotoCache.get(code);
-          if (cached) item.photo = cached;
-        });
-        return;
-      }
-
-      const chunkSize = 16;
-      for (let i = 0; i < unresolved.length; i += chunkSize) {
-        const chunk = unresolved.slice(i, i + chunkSize);
-        if (!chunk.length) continue;
-
-        const codesByNormalizedName = new Map();
-        const titles = [];
-        chunk.forEach((item) => {
-          const code = safeCode(item && item.code);
-          const name = String(item && item.name || '').trim();
-          if (!code || !name) return;
-          const normalized = normalizeCountryNameForWiki(name);
-          if (!normalized) return;
-          if (!codesByNormalizedName.has(normalized)) codesByNormalizedName.set(normalized, []);
-          codesByNormalizedName.get(normalized).push(code);
-          titles.push(name);
-          titles.push(`${name} (country)`);
-        });
-        if (!titles.length) continue;
-
-        const endpoint = `https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=1400&titles=${encodeURIComponent(titles.join('|'))}`;
-        try {
-          const response = await fetch(endpoint, { headers: { Accept: 'application/json' } });
-          if (!response.ok) continue;
-          const payload = await response.json();
-          const pages = Array.isArray(payload && payload.query && payload.query.pages) ? payload.query.pages : [];
-          pages.forEach((page) => {
-            const image = safeHttps(page && page.thumbnail && page.thumbnail.source || '');
-            if (!image) return;
-            const normalized = normalizeCountryNameForWiki(page && page.title);
-            if (!normalized) return;
-            const codes = codesByNormalizedName.get(normalized) || [];
-            codes.forEach((code) => {
-              if (!countryPhotoCache.has(code)) countryPhotoCache.set(code, image);
-            });
-          });
-        } catch (_error) {
-          // fall back to seeded photos below
-        }
+      for (const item of unresolved) {
+        if (signal && signal.aborted) break;
+        const code = safeCode(item && item.code);
+        if (!code) continue;
+        const name = String(item && item.name || '').trim();
+        const capital = String(item && item.capital || '').trim();
+        const scenic = await fetchCommonsScenicPhoto(name, code, capital, signal);
+        if (scenic) countryPhotoCache.set(code, scenic);
       }
 
       list.forEach((item) => {
@@ -455,6 +526,7 @@
         capital,
         region,
         subregion,
+        cities: pickCountryCities(code, capital),
         flag,
         photo
       };
@@ -473,8 +545,9 @@
         const payload = await response.json();
         state.rows = (Array.isArray(payload) ? payload : [])
           .map(normalizeCountryRow)
-          .filter(Boolean);
-        await hydrateWikipediaCountryPhotos(state.rows);
+          .filter(Boolean)
+          .sort((a, b) => a.name.localeCompare(b.name));
+        await hydrateScenicCountryPhotos(state.rows.slice(0, 90), controller.signal);
         state.rows = state.rows
           .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -504,7 +577,8 @@
       let output = state.rows.filter((item) => {
         if (region && item.region.toLowerCase() !== region) return false;
         if (!query) return true;
-        const haystack = `${item.name} ${item.capital} ${item.region} ${item.subregion} ${item.code}`.toLowerCase();
+        const cityText = Array.isArray(item.cities) ? item.cities.join(' ') : '';
+        const haystack = `${item.name} ${item.capital} ${item.region} ${item.subregion} ${item.code} ${cityText}`.toLowerCase();
         return haystack.includes(query);
       });
       if (state.sort === 'name') {
@@ -584,6 +658,7 @@
             </div>
             <div class="meta">${escapeHtml(item.capital ? `Capital: ${item.capital}` : 'Capital: N/A')}</div>
             <div class="sub">${escapeHtml([item.region, item.subregion].filter(Boolean).join(' | ') || 'Region unavailable')}</div>
+            <div class="sub">${escapeHtml(item.cities && item.cities.length ? `Cities: ${item.cities.join(', ')}` : 'Cities: N/A')}</div>
           </div>
         `;
 
@@ -605,6 +680,16 @@
       state.hasMore = end < count;
       syncPager();
       syncAllCardStatuses();
+      void hydrateScenicCountryPhotos(pageRows).then(() => {
+        pageRows.forEach((item) => {
+          const node = grid.querySelector(`.card[data-country-code="${item.code}"] .card-photo`);
+          if (!node) return;
+          const nextPhoto = String(item.photo || '').trim();
+          if (!nextPhoto) return;
+          if (node.getAttribute('src') === nextPhoto) return;
+          node.setAttribute('src', nextPhoto);
+        });
+      }).catch(() => {});
     }
 
     async function loadTravelListStatus() {

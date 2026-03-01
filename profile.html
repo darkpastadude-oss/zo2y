@@ -9864,7 +9864,10 @@ header, .top-stripe, .section-nav {
                     type === 'travel' ? 'country' :
                     'track'
                 );
-                return `${count} ${singular}${count === 1 ? '' : 's'}`;
+                if (count === 1) return `${count} ${singular}`;
+                if (type === 'travel') return `${count} countries`;
+                if (type === 'tv') return `${count} TV shows`;
+                return `${count} ${singular}s`;
             }
 
             function getCollaborativeAccessKey(contentType, listId) {
@@ -13622,7 +13625,19 @@ header, .top-stripe, .section-nav {
                 const countLabel = getCollectionItemLabel(contentType, count);
 
                 const previewLimit = 3;
-                const previewIds = orderedIds.slice(0, previewLimit);
+                const travelPreviewIds = contentType === 'travel'
+                    ? Array.from(new Set(
+                        [
+                            ...(Array.isArray(list?.countryCodes) ? list.countryCodes : []),
+                            ...orderedIds
+                        ]
+                            .map((id) => normalizeCountryCode(id))
+                            .filter(Boolean)
+                    ))
+                    : [];
+                const previewIds = contentType === 'travel'
+                    ? travelPreviewIds.slice(0, previewLimit)
+                    : orderedIds.slice(0, previewLimit);
                 const previewOrientationClass = getPreviewOrientationClass(contentType);
                 const fallbackPreviewIcon = contentType === 'restaurant'
                     ? 'restaurant'
@@ -13663,7 +13678,14 @@ header, .top-stripe, .section-nav {
                     }
                     return html;
                 };
-                const cachedPreviewItems = previewIds.map((id) => readPreviewAssetCache(contentType, id));
+                const cachedPreviewItems = contentType === 'travel'
+                    ? previewIds.map((id) => {
+                        const code = normalizeCountryCode(id);
+                        const flagUrl = countryFlagFromCode(code || id);
+                        writePreviewAssetCache(contentType, code || id, flagUrl);
+                        return flagUrl;
+                    })
+                    : previewIds.map((id) => readPreviewAssetCache(contentType, id));
                 const previewHtml = buildPreviewHtml(cachedPreviewItems);
 
                 const canEditCollection = isViewingOwnProfile && isCustom && !!collabAccess.canEdit;
@@ -13843,7 +13865,7 @@ header, .top-stripe, .section-nav {
                     if (cached) return cached;
                     if (contentType === 'book') return FALLBACK_BOOK_IMAGE;
                     if (contentType === 'music') return 'images/logo.png';
-                    if (contentType === 'travel') return countryFlagFromCode(id);
+                    if (contentType === 'travel') return countryFlagFromCode(normalizeCountryCode(id) || id);
                     return null;
                 });
             }

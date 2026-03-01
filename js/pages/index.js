@@ -221,6 +221,24 @@
       audio: null,
       btn: null
     };
+    const homeCountryCityHints = {
+      US: ['New York', 'Los Angeles', 'Chicago'],
+      JP: ['Tokyo', 'Kyoto', 'Osaka'],
+      FR: ['Paris', 'Lyon', 'Nice'],
+      IT: ['Rome', 'Florence', 'Milan'],
+      ES: ['Madrid', 'Barcelona', 'Seville'],
+      BR: ['Rio de Janeiro', 'Sao Paulo', 'Salvador'],
+      EG: ['Cairo', 'Alexandria', 'Luxor'],
+      AU: ['Sydney', 'Melbourne', 'Brisbane'],
+      GB: ['London', 'Edinburgh', 'Manchester'],
+      DE: ['Berlin', 'Munich', 'Hamburg'],
+      CA: ['Toronto', 'Vancouver', 'Montreal'],
+      MX: ['Mexico City', 'Guadalajara', 'Merida'],
+      TR: ['Istanbul', 'Ankara', 'Antalya'],
+      TH: ['Bangkok', 'Chiang Mai', 'Phuket'],
+      ID: ['Bali', 'Jakarta', 'Yogyakarta'],
+      ZA: ['Cape Town', 'Johannesburg', 'Durban']
+    };
 
     function escapeHtml(value) {
       return String(value || '')
@@ -4787,14 +4805,119 @@
       return `https://picsum.photos/seed/zo2y-country-${encodeURIComponent(code.toLowerCase())}/1600/900`;
     }
 
-    function normalizeCountryNameForWiki(name) {
-      return String(name || '')
+    function normalizeTravelSearchText(value) {
+      return String(value || '')
         .trim()
         .toLowerCase()
-        .replace(/\s+\(country\)\s*$/i, '');
+        .replace(/\s+\(country\)\s*$/i, '')
+        .replace(/[^a-z0-9 ]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
     }
 
-    async function fetchTravelWikipediaPhotos(rows = [], signal) {
+    function pickHomeCountryCities(code, capital) {
+      const safeCode = String(code || '').trim().toUpperCase();
+      const seeded = Array.isArray(homeCountryCityHints[safeCode]) ? homeCountryCityHints[safeCode] : [];
+      const out = [];
+      const firstCapital = Array.isArray(capital)
+        ? String(capital[0] || '').trim()
+        : String(capital || '').trim();
+      if (firstCapital) out.push(firstCapital);
+      seeded.forEach((city) => {
+        const clean = String(city || '').trim();
+        if (!clean) return;
+        if (out.some((entry) => entry.toLowerCase() === clean.toLowerCase())) return;
+        out.push(clean);
+      });
+      return out.slice(0, 3);
+    }
+
+    function isBlockedTravelCommonsTitle(title, countryName, capital) {
+      const raw = String(title || '').toLowerCase();
+      if (!raw) return true;
+      const blocked = [
+        'flag',
+        'coat of arms',
+        'emblem',
+        'seal',
+        'map of',
+        'locator map',
+        'location map',
+        'orthographic',
+        'equirectangular',
+        'blank map',
+        'administrative map',
+        'province map',
+        'political map',
+        'banner'
+      ];
+      if (blocked.some((token) => raw.includes(token))) return true;
+      const countryNeedle = normalizeTravelSearchText(countryName);
+      const capitalNeedle = normalizeTravelSearchText(capital);
+      if (!countryNeedle && !capitalNeedle) return false;
+      const normalizedTitle = normalizeTravelSearchText(title);
+      const hasCountry = countryNeedle && normalizedTitle.includes(countryNeedle);
+      const hasCapital = capitalNeedle && normalizedTitle.includes(capitalNeedle);
+      return !(hasCountry || hasCapital);
+    }
+
+    function isTravelCommonsPhotoMime(mime) {
+      const value = String(mime || '').toLowerCase().trim();
+      return value === 'image/jpeg' || value === 'image/jpg' || value === 'image/webp';
+    }
+
+    async function fetchTravelCommonsPhoto(name, code, capital, signal) {
+      const safeCode = String(code || '').trim().toUpperCase();
+      if (!safeCode) return '';
+      if (homeTravelPhotoCache.has(safeCode)) return String(homeTravelPhotoCache.get(safeCode) || '').trim();
+
+      const queries = [
+        `${name} landscape`,
+        `${name} travel photography`,
+        `${name} city skyline`,
+        `${capital ? `${capital} skyline` : ''}`,
+        `${name} nature`
+      ].map((value) => String(value || '').trim()).filter(Boolean);
+
+      for (const query of queries) {
+        if (signal?.aborted) break;
+        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=10&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=1400`;
+        try {
+          const payload = await fetchJsonWithPerfCache(endpoint, {
+            signal,
+            cacheKey: `commons:travel:home:${safeCode}:${query.toLowerCase()}`,
+            ttlMs: 1000 * 60 * 60 * 24 * 7,
+            timeoutMs: 7600,
+            retries: 1
+          });
+          const pages = Array.isArray(payload?.query?.pages) ? payload.query.pages : [];
+          const preferred = pages.find((page) => {
+            const title = String(page?.title || '');
+            const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
+            if (!isTravelCommonsPhotoMime(mime)) return false;
+            if (isBlockedTravelCommonsTitle(title, name, capital)) return false;
+            return true;
+          }) || pages.find((page) => {
+            const title = String(page?.title || '').toLowerCase();
+            const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
+            if (!isTravelCommonsPhotoMime(mime)) return false;
+            const blocked = ['flag', 'coat of arms', 'emblem', 'seal', 'map of', 'locator map', 'location map', 'orthographic', 'equirectangular', 'blank map', 'administrative map', 'province map', 'political map', 'banner'];
+            return !blocked.some((token) => title.includes(token));
+          });
+          const image = toHttpsUrl(preferred?.imageinfo?.[0]?.thumburl || preferred?.imageinfo?.[0]?.url || '');
+          if (image) {
+            homeTravelPhotoCache.set(safeCode, image);
+            return image;
+          }
+        } catch (_error) {
+          // continue with next query
+        }
+      }
+
+      return '';
+    }
+
+    async function fetchTravelCommonsPhotos(rows = [], signal) {
       const list = Array.isArray(rows) ? rows : [];
       const unresolved = list.filter((row) => {
         const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
@@ -4803,49 +4926,26 @@
       });
       if (!unresolved.length) return homeTravelPhotoCache;
 
-      const chunkSize = 14;
-      for (let i = 0; i < unresolved.length; i += chunkSize) {
-        if (signal?.aborted) break;
-        const chunk = unresolved.slice(i, i + chunkSize);
-        const titles = [];
-        const codesByName = new Map();
-
-        chunk.forEach((row) => {
+      const queue = unresolved.slice(0, 100);
+      const workerCount = Math.min(6, queue.length);
+      let cursor = 0;
+      const workers = Array.from({ length: workerCount }, async () => {
+        while (cursor < queue.length) {
+          const index = cursor;
+          cursor += 1;
+          const row = queue[index];
+          if (!row || signal?.aborted) return;
           const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
           const name = String(row?.name?.common || row?.name?.official || '').trim();
-          if (!code || !name) return;
-          const normalized = normalizeCountryNameForWiki(name);
-          if (!normalized) return;
-          if (!codesByName.has(normalized)) codesByName.set(normalized, []);
-          codesByName.get(normalized).push(code);
-          titles.push(name);
-          titles.push(`${name} (country)`);
-        });
-        if (!titles.length) continue;
-
-        const endpoint = `https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=1400&titles=${encodeURIComponent(titles.join('|'))}`;
-        try {
-          const payload = await fetchJsonWithPerfCache(endpoint, {
-            signal,
-            cacheKey: `wiki:country:home:${chunk.map((row) => String(row?.cca2 || row?.cca3 || '').trim().toUpperCase()).filter(Boolean).join(',')}`,
-            ttlMs: 1000 * 60 * 60 * 24 * 7,
-            timeoutMs: 7500,
-            retries: 1
-          });
-          const pages = Array.isArray(payload?.query?.pages) ? payload.query.pages : [];
-          pages.forEach((page) => {
-            const image = toHttpsUrl(page?.thumbnail?.source || '');
-            if (!image) return;
-            const normalized = normalizeCountryNameForWiki(page?.title);
-            const codes = codesByName.get(normalized) || [];
-            codes.forEach((code) => {
-              if (!homeTravelPhotoCache.has(code)) homeTravelPhotoCache.set(code, image);
-            });
-          });
-        } catch (_error) {
-          // keep seeded fallback photos if wikipedia lookup fails
+          const capital = Array.isArray(row?.capital)
+            ? String(row.capital[0] || '').trim()
+            : String(row?.capital || '').trim();
+          if (!code || !name || homeTravelPhotoCache.has(code)) continue;
+          const scenic = await fetchTravelCommonsPhoto(name, code, capital, signal);
+          if (scenic) homeTravelPhotoCache.set(code, scenic);
         }
-      }
+      });
+      await Promise.all(workers);
 
       return homeTravelPhotoCache;
     }
@@ -4856,7 +4956,11 @@
         const title = String(row?.name || '').trim() || 'Country';
         const region = String(row?.region || '').trim();
         const capital = String(row?.capital || '').trim();
+        const cities = pickHomeCountryCities(code, capital);
         const subtitle = [capital ? `Capital: ${capital}` : '', region].filter(Boolean).join(' | ') || 'Country';
+        const extraParts = [];
+        if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
+        if (!extraParts.length && region) extraParts.push(region);
         const flagImage = code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : HOME_LOCAL_FALLBACK_IMAGE;
         const photoImage = buildTravelPhotoUrl(title, code) || HOME_LOCAL_FALLBACK_IMAGE;
         return {
@@ -4864,7 +4968,8 @@
           itemId: code || title.toLowerCase(),
           title,
           subtitle,
-          extra: region || 'Travel',
+          extra: extraParts.join(' | ') || 'Travel',
+          cities,
           flagImage,
           listImage: flagImage,
           image: photoImage,
@@ -4889,23 +4994,25 @@
         : String(row?.capital || '').trim();
       const region = String(row?.region || '').trim();
       const subregion = String(row?.subregion || '').trim();
+      const cities = pickHomeCountryCities(code, capital);
       const subtitle = [
         capital ? `Capital: ${capital}` : '',
         region
       ].filter(Boolean).join(' | ') || 'Country';
-      const extra = [
-        subregion && subregion !== region ? subregion : ''
-      ].filter(Boolean).join(' | ');
+      const extraParts = [];
+      if (subregion && subregion !== region) extraParts.push(subregion);
+      if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
       const flagImage = toHttpsUrl(row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
-      const photoFromWiki = photoMap instanceof Map ? String(photoMap.get(code) || '').trim() : '';
-      if (photoFromWiki) homeTravelPhotoCache.set(code, photoFromWiki);
-      const photoImage = photoFromWiki || buildTravelPhotoUrl(title, code) || HOME_LOCAL_FALLBACK_IMAGE;
+      const photoFromCommons = photoMap instanceof Map ? String(photoMap.get(code) || '').trim() : '';
+      if (photoFromCommons) homeTravelPhotoCache.set(code, photoFromCommons);
+      const photoImage = photoFromCommons || buildTravelPhotoUrl(title, code) || HOME_LOCAL_FALLBACK_IMAGE;
       return {
         mediaType: 'travel',
         itemId: code,
         title,
         subtitle,
-        extra: extra || 'Travel',
+        extra: extraParts.join(' | ') || 'Travel',
+        cities,
         flagImage,
         listImage: flagImage,
         image: photoImage,
@@ -4942,8 +5049,8 @@
             return left.localeCompare(right);
           });
 
-        const photoCandidates = sortedRows.slice(0, Math.max(HOME_CHANNEL_TARGET_ITEMS * 8, 180));
-        const photoMap = await fetchTravelWikipediaPhotos(photoCandidates, signal);
+        const photoCandidates = sortedRows.slice(0, Math.max(HOME_CHANNEL_TARGET_ITEMS * 4, 100));
+        const photoMap = await fetchTravelCommonsPhotos(photoCandidates, signal);
         if (signal?.aborted) return [];
 
         const shortlist = shuffleArray(sortedRows.slice(0, Math.max(HOME_CHANNEL_TARGET_ITEMS * 5, 120)));
