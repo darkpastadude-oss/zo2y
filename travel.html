@@ -262,6 +262,10 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
     const COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
     const PAGE_SIZE = 24;
+    const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v2';
+    const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
+    const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v1';
+    const TRAVEL_COUNTRY_ROWS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 
     let client = null;
     const state = {
@@ -278,6 +282,8 @@
       pending: new Set()
     };
     const countryPhotoCache = new Map();
+    const countryPhotoPending = new Set();
+    let countryPhotoSaveTimer = null;
     const countryCityHints = {
       US: ['New York', 'Los Angeles', 'Chicago'],
       JP: ['Tokyo', 'Kyoto', 'Osaka'],
@@ -322,8 +328,130 @@
       return text;
     }
 
+    function loadCountryPhotoCacheFromStorage() {
+      try {
+        const raw = localStorage.getItem(TRAVEL_PHOTO_CACHE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed && parsed.savedAt || 0);
+        const entries = parsed && parsed.entries && typeof parsed.entries === 'object'
+          ? parsed.entries
+          : null;
+        if (!savedAt || !entries) return;
+        if ((Date.now() - savedAt) > TRAVEL_PHOTO_CACHE_TTL_MS) return;
+        Object.entries(entries).forEach(([code, url]) => {
+          const safeCountryCode = safeCode(code);
+          const safeUrl = safeHttps(url);
+          if (!safeCountryCode || !safeUrl) return;
+          countryPhotoCache.set(safeCountryCode, safeUrl);
+        });
+      } catch (_error) {}
+    }
+
+    function scheduleCountryPhotoCacheSave() {
+      if (countryPhotoSaveTimer) window.clearTimeout(countryPhotoSaveTimer);
+      countryPhotoSaveTimer = window.setTimeout(() => {
+        countryPhotoSaveTimer = null;
+        try {
+          const entries = {};
+          countryPhotoCache.forEach((url, code) => {
+            const safeCountryCode = safeCode(code);
+            const safeUrl = safeHttps(url);
+            if (!safeCountryCode || !safeUrl) return;
+            entries[safeCountryCode] = safeUrl;
+          });
+          localStorage.setItem(TRAVEL_PHOTO_CACHE_KEY, JSON.stringify({
+            savedAt: Date.now(),
+            entries
+          }));
+        } catch (_error) {}
+      }, 180);
+    }
+
+    function setCountryPhotoCache(code, url) {
+      const safeCountryCode = safeCode(code);
+      const safeUrl = safeHttps(url);
+      if (!safeCountryCode || !safeUrl) return;
+      const current = String(countryPhotoCache.get(safeCountryCode) || '').trim();
+      if (current === safeUrl) return;
+      countryPhotoCache.set(safeCountryCode, safeUrl);
+      scheduleCountryPhotoCacheSave();
+    }
+
+    function hydrateRegionOptions() {
+      const select = document.getElementById('region');
+      if (!select) return;
+      const current = state.region;
+      const regions = [...new Set(state.rows.map((item) => item.region).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b));
+      select.innerHTML = '<option value="">All Regions</option>';
+      regions.forEach((value) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+      select.value = current;
+    }
+
+    function readCountryRowsCache() {
+      try {
+        const raw = localStorage.getItem(TRAVEL_COUNTRY_ROWS_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed && parsed.savedAt || 0);
+        const rows = Array.isArray(parsed && parsed.rows) ? parsed.rows : null;
+        if (!savedAt || !rows) return null;
+        if ((Date.now() - savedAt) > TRAVEL_COUNTRY_ROWS_CACHE_TTL_MS) return null;
+        return rows
+          .map((row) => {
+            const code = safeCode(row && row.code);
+            const name = String(row && row.name || '').trim();
+            if (!code || !name) return null;
+            const capital = String(row && row.capital || '').trim();
+            const region = String(row && row.region || '').trim();
+            const subregion = String(row && row.subregion || '').trim();
+            const flag = safeHttps(row && row.flag || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
+            const photo = safeHttps(row && row.photo || '') || buildCountryPhotoUrl(name, code) || flag;
+            const cities = Array.isArray(row && row.cities) ? row.cities.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3) : pickCountryCities(code, capital);
+            return { code, name, capital, region, subregion, cities, flag, photo };
+          })
+          .filter(Boolean);
+      } catch (_error) {
+        return null;
+      }
+    }
+
+    function writeCountryRowsCache(rows = []) {
+      try {
+        const list = (Array.isArray(rows) ? rows : [])
+          .map((row) => {
+            const code = safeCode(row && row.code);
+            const name = String(row && row.name || '').trim();
+            if (!code || !name) return null;
+            return {
+              code,
+              name,
+              capital: String(row && row.capital || '').trim(),
+              region: String(row && row.region || '').trim(),
+              subregion: String(row && row.subregion || '').trim(),
+              cities: Array.isArray(row && row.cities) ? row.cities.slice(0, 3) : [],
+              flag: safeHttps(row && row.flag || ''),
+              photo: safeHttps(row && row.photo || '')
+            };
+          })
+          .filter(Boolean);
+        localStorage.setItem(TRAVEL_COUNTRY_ROWS_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          rows: list
+        }));
+      } catch (_error) {}
+    }
+
     function buildCountryPhotoUrl(name, code) {
       const safeCountryCode = safeCode(code) || 'XX';
+      const cached = String(countryPhotoCache.get(safeCountryCode) || '').trim();
+      if (cached) return cached;
       return `https://picsum.photos/seed/zo2y-country-${encodeURIComponent(safeCountryCode.toLowerCase())}/1400/1000`;
     }
 
@@ -417,7 +545,7 @@
           });
           const image = safeHttps(preferred && preferred.imageinfo && preferred.imageinfo[0] && (preferred.imageinfo[0].thumburl || preferred.imageinfo[0].url));
           if (image) {
-            countryPhotoCache.set(safeCountryCode, image);
+            setCountryPhotoCache(safeCountryCode, image);
             return image;
           }
         } catch (_error) {
@@ -434,17 +562,30 @@
 
       const unresolved = list.filter((item) => {
         const code = safeCode(item && item.code);
-        return code && !countryPhotoCache.has(code);
+        return code && !countryPhotoCache.has(code) && !countryPhotoPending.has(code);
       });
-      for (const item of unresolved) {
-        if (signal && signal.aborted) break;
+      const queue = unresolved.slice(0, 120);
+      queue.forEach((item) => {
         const code = safeCode(item && item.code);
-        if (!code) continue;
-        const name = String(item && item.name || '').trim();
-        const capital = String(item && item.capital || '').trim();
-        const scenic = await fetchCommonsScenicPhoto(name, code, capital, signal);
-        if (scenic) countryPhotoCache.set(code, scenic);
-      }
+        if (code) countryPhotoPending.add(code);
+      });
+      const workers = Array.from({ length: Math.min(5, queue.length) }, async () => {
+        while (queue.length) {
+          if (signal && signal.aborted) return;
+          const item = queue.shift();
+          const code = safeCode(item && item.code);
+          if (!item || !code) continue;
+          const name = String(item && item.name || '').trim();
+          const capital = String(item && item.capital || '').trim();
+          try {
+            const scenic = await fetchCommonsScenicPhoto(name, code, capital, signal);
+            if (scenic) setCountryPhotoCache(code, scenic);
+          } finally {
+            countryPhotoPending.delete(code);
+          }
+        }
+      });
+      await Promise.all(workers);
 
       list.forEach((item) => {
         const code = safeCode(item && item.code);
@@ -534,6 +675,20 @@
 
     async function loadCountries(force = false) {
       if (state.rows.length && !force) return true;
+      if (!force && !state.rows.length) {
+        const cachedRows = readCountryRowsCache();
+        if (Array.isArray(cachedRows) && cachedRows.length) {
+          state.rows = cachedRows.sort((a, b) => a.name.localeCompare(b.name));
+          hydrateRegionOptions();
+          void hydrateScenicCountryPhotos(state.rows.slice(0, 90))
+            .then(() => {
+              writeCountryRowsCache(state.rows);
+              render();
+            })
+            .catch(() => {});
+          return true;
+        }
+      }
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), 9000);
       try {
@@ -547,22 +702,16 @@
           .map(normalizeCountryRow)
           .filter(Boolean)
           .sort((a, b) => a.name.localeCompare(b.name));
-        await hydrateScenicCountryPhotos(state.rows.slice(0, 90), controller.signal);
+        void hydrateScenicCountryPhotos(state.rows.slice(0, 90), controller.signal)
+          .then(() => {
+            writeCountryRowsCache(state.rows);
+            render();
+          })
+          .catch(() => {});
         state.rows = state.rows
           .sort((a, b) => a.name.localeCompare(b.name));
-
-        const select = document.getElementById('region');
-        const current = state.region;
-        const regions = [...new Set(state.rows.map((item) => item.region).filter(Boolean))]
-          .sort((a, b) => a.localeCompare(b));
-        select.innerHTML = '<option value="">All Regions</option>';
-        regions.forEach((value) => {
-          const option = document.createElement('option');
-          option.value = value;
-          option.textContent = value;
-          select.appendChild(option);
-        });
-        select.value = current;
+        hydrateRegionOptions();
+        writeCountryRowsCache(state.rows);
         return true;
       } catch (_error) {
         return false;
@@ -864,6 +1013,7 @@
     }
 
     async function init() {
+      loadCountryPhotoCacheFromStorage();
       await ensureClient();
       wireEvents();
       const params = new URLSearchParams(window.location.search);

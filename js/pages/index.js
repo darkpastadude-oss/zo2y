@@ -67,10 +67,12 @@
       music: { table: 'music_list_items', itemField: 'track_id' },
       travel: { table: 'travel_list_items', itemField: 'country_code' }
     };
-    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v9';
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v10';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v8';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v9';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
+    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v2';
+    const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
@@ -217,6 +219,7 @@
       payload: null
     };
     const homeTravelPhotoCache = new Map();
+    let homeTravelPhotoCacheSaveTimer = null;
     const homeMusicPreviewState = {
       audio: null,
       btn: null
@@ -252,6 +255,106 @@
     function toHttpsUrl(value) {
       return String(value || '').replace(/^http:\/\//i, 'https://');
     }
+
+    function isLikelyTravelFlagAsset(url) {
+      const raw = String(url || '').trim().toLowerCase();
+      if (!raw) return false;
+      if (raw.includes('flagcdn.com')) return true;
+      if (raw.includes('/flags/')) return true;
+      if (raw.includes('restcountries.com/data/')) return true;
+      if (raw.includes('commons.wikimedia.org') && (raw.includes('flag_of_') || raw.includes('flag-of-'))) return true;
+      return false;
+    }
+
+    function readHomeTravelPhotoCacheFromStorage() {
+      try {
+        const raw = localStorage.getItem(HOME_TRAVEL_PHOTO_CACHE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed?.savedAt || 0);
+        const entries = parsed?.entries && typeof parsed.entries === 'object' ? parsed.entries : null;
+        if (!savedAt || !entries) return;
+        if ((Date.now() - savedAt) > HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS) return;
+        Object.entries(entries).forEach(([codeRaw, urlRaw]) => {
+          const code = String(codeRaw || '').trim().toUpperCase();
+          const url = toHttpsUrl(String(urlRaw || '').trim());
+          if (!code || !url) return;
+          homeTravelPhotoCache.set(code, url);
+        });
+      } catch (_err) {}
+    }
+
+    function scheduleHomeTravelPhotoCacheSave() {
+      if (homeTravelPhotoCacheSaveTimer) clearTimeout(homeTravelPhotoCacheSaveTimer);
+      homeTravelPhotoCacheSaveTimer = setTimeout(() => {
+        homeTravelPhotoCacheSaveTimer = null;
+        try {
+          const entries = {};
+          homeTravelPhotoCache.forEach((urlRaw, codeRaw) => {
+            const code = String(codeRaw || '').trim().toUpperCase();
+            const url = toHttpsUrl(String(urlRaw || '').trim());
+            if (!code || !url) return;
+            entries[code] = url;
+          });
+          localStorage.setItem(HOME_TRAVEL_PHOTO_CACHE_KEY, JSON.stringify({
+            savedAt: Date.now(),
+            entries
+          }));
+        } catch (_err) {}
+      }, 160);
+    }
+
+    function setHomeTravelPhotoCache(codeRaw, urlRaw) {
+      const code = String(codeRaw || '').trim().toUpperCase();
+      const url = toHttpsUrl(String(urlRaw || '').trim());
+      if (!code || !url) return;
+      const current = String(homeTravelPhotoCache.get(code) || '').trim();
+      if (current === url) return;
+      homeTravelPhotoCache.set(code, url);
+      scheduleHomeTravelPhotoCacheSave();
+    }
+
+    function getSafeTravelScenicImage(title, codeRaw, preferredUrl = '') {
+      const code = String(codeRaw || '').trim().toUpperCase();
+      const preferred = toHttpsUrl(String(preferredUrl || '').trim());
+      if (preferred && !isLikelyTravelFlagAsset(preferred)) return preferred;
+      const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
+      if (cached && !isLikelyTravelFlagAsset(cached)) return cached;
+      return buildTravelPhotoUrl(title, code);
+    }
+
+    function sanitizeHomeTravelItem(item) {
+      if (!item || typeof item !== 'object') return null;
+      const code = String(item.itemId || item.code || '').trim().toUpperCase();
+      const title = String(item.title || item.name || code || 'Country').trim();
+      const rawImage = toHttpsUrl(String(item.image || '').trim());
+      const rawBackground = toHttpsUrl(String(item.backgroundImage || '').trim());
+      const rawSpotlight = toHttpsUrl(String(item.spotlightImage || '').trim());
+      const rawFallback = toHttpsUrl(String(item.fallbackImage || '').trim());
+      const scenicImage = getSafeTravelScenicImage(title, code, rawImage || rawBackground || rawSpotlight);
+      if (code && scenicImage && !isLikelyTravelFlagAsset(scenicImage)) {
+        setHomeTravelPhotoCache(code, scenicImage);
+      }
+      const flagImage = toHttpsUrl(String(item.flagImage || '').trim()) || (code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : '');
+      const fallbackImage = getSafeTravelScenicImage(title, code, rawFallback || scenicImage);
+      return {
+        ...item,
+        mediaType: 'travel',
+        itemId: code || String(item.itemId || '').trim(),
+        flagImage,
+        listImage: flagImage || String(item.listImage || '').trim() || scenicImage,
+        image: scenicImage,
+        backgroundImage: scenicImage,
+        spotlightImage: getSafeTravelScenicImage(title, code, rawSpotlight || scenicImage),
+        spotlightMediaImage: flagImage || String(item.spotlightMediaImage || '').trim() || scenicImage,
+        spotlightMediaFit: 'contain',
+        spotlightMediaPosition: 'center center',
+        spotlightMediaShape: 'square',
+        fallbackImage
+      };
+    }
+
+    readHomeTravelPhotoCacheFromStorage();
 
     function withTimeout(promise, timeoutMs, fallbackValue = null) {
       let timer = null;
@@ -622,9 +725,19 @@
       if (!bg || !spotlightSection || !mediaWrap || !mediaImage || !title || !kicker || !summary || !reason || !trend || !openBtn) return;
 
       const meta = getHomeMediaMeta(item.mediaType);
-      const fallbackSpotlightBackground = String(item.spotlightImage || item.backgroundImage || item.image || '').trim();
+      const isTravelSpotlight = String(item.mediaType || '').toLowerCase() === 'travel';
+      const travelScenicImage = isTravelSpotlight
+        ? getSafeTravelScenicImage(item.title, item.itemId, item.spotlightImage || item.backgroundImage || item.image)
+        : '';
+      const fallbackSpotlightBackground = isTravelSpotlight
+        ? travelScenicImage
+        : String(item.spotlightImage || item.backgroundImage || item.image || '').trim();
       const spotlightBackground = getHomeSpotlightBackgroundByType(item.mediaType) || fallbackSpotlightBackground;
-      const spotlightMediaImage = String(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
+      let spotlightMediaImage = String(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
+      if (isTravelSpotlight) {
+        const safeFlag = toHttpsUrl(String(item.flagImage || '').trim());
+        spotlightMediaImage = safeFlag || travelScenicImage || spotlightMediaImage;
+      }
       const spotlightBackgroundPosition = String(item.spotlightBackgroundPosition || item.backgroundPosition || '').trim() || 'center 28%';
       const spotlightMediaPosition = String(item.spotlightMediaPosition || item.imagePosition || '').trim();
       let spotlightMediaFit = String(item.spotlightMediaFit || '').trim() || 'contain';
@@ -3111,7 +3224,10 @@
         const channelItems = Array.isArray(feedMap[channel.key])
           ? feedMap[channel.key].filter((item) => item && typeof item === 'object')
           : [];
-        normalized[channel.key] = filterHomeSafeItems(channelItems);
+        const safeItems = channel.key === 'travel'
+          ? channelItems.map((item) => sanitizeHomeTravelItem(item)).filter(Boolean)
+          : channelItems;
+        normalized[channel.key] = filterHomeSafeItems(safeItems);
       });
       return normalized;
     }
@@ -3292,27 +3408,30 @@
 
       rail.innerHTML = items.map((item) => {
         const mediaTypeRaw = String(item.mediaType || opts?.mediaType || '').toLowerCase();
+        const itemData = mediaTypeRaw === 'travel'
+          ? (sanitizeHomeTravelItem(item) || item)
+          : item;
         const media = getHomeMediaMeta(mediaTypeRaw);
         const uniformMedia = !!opts?.uniformMedia;
         const landscape = !uniformMedia && (!!opts?.landscape || mediaTypeRaw === 'restaurant');
         const restaurantComposite = !!opts?.restaurantComposite && mediaTypeRaw === 'restaurant';
-        const title = escapeHtml(item.title || 'Untitled');
-        const subtitle = escapeHtml(item.subtitle || media.label);
-        const extra = escapeHtml(item.extra || '');
-        const image = escapeHtml(item.image || '');
-        const flagImage = escapeHtml(item.flagImage || '');
-        const listImage = escapeHtml(item.listImage || (mediaTypeRaw === 'travel' ? (item.flagImage || '') : (item.image || '')));
-        const logo = escapeHtml(item.logo || '');
-        const fallbackImage = escapeHtml(item.fallbackImage || '');
+        const title = escapeHtml(itemData.title || 'Untitled');
+        const subtitle = escapeHtml(itemData.subtitle || media.label);
+        const extra = escapeHtml(itemData.extra || '');
+        const image = escapeHtml(itemData.image || '');
+        const flagImage = escapeHtml(itemData.flagImage || '');
+        const listImage = escapeHtml(itemData.listImage || (mediaTypeRaw === 'travel' ? (itemData.flagImage || '') : (itemData.image || '')));
+        const logo = escapeHtml(itemData.logo || '');
+        const fallbackImage = escapeHtml(itemData.fallbackImage || '');
         const coverImage = image || logo;
-        const hrefRaw = item.href || '#';
+        const hrefRaw = itemData.href || '#';
         const href = escapeHtml(hrefRaw);
         const mediaType = escapeHtml(mediaTypeRaw);
-        const itemId = escapeHtml(item.itemId || '');
-        const supportsLists = supportsHomeLists(mediaTypeRaw) && !item.isPlaceholder && item.disableLists !== true;
+        const itemId = escapeHtml(itemData.itemId || '');
+        const supportsLists = supportsHomeLists(mediaTypeRaw) && !itemData.isPlaceholder && itemData.disableLists !== true;
         const opensExternal = /^https?:\/\//i.test(String(hrefRaw || ''));
-        const previewUrlRaw = (mediaTypeRaw === 'music' && !item?.isMusicAlbum)
-          ? String(item?.previewUrl || '').trim()
+        const previewUrlRaw = (mediaTypeRaw === 'music' && !itemData?.isMusicAlbum)
+          ? String(itemData?.previewUrl || '').trim()
           : '';
         const previewControl = previewUrlRaw
           ? `<button class="card-preview-btn" data-preview="${escapeHtml(previewUrlRaw)}" aria-label="Play preview"><i class="fas fa-play"></i></button>`
@@ -4800,8 +4919,8 @@
 
     function buildTravelPhotoUrl(countryName, countryCode) {
       const code = String(countryCode || '').trim().toUpperCase() || 'XX';
-      const cached = String(homeTravelPhotoCache.get(code) || '').trim();
-      if (cached) return cached;
+      const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
+      if (cached && !isLikelyTravelFlagAsset(cached)) return cached;
       return `https://picsum.photos/seed/zo2y-country-${encodeURIComponent(code.toLowerCase())}/1600/900`;
     }
 
@@ -4869,7 +4988,10 @@
     async function fetchTravelCommonsPhoto(name, code, capital, signal) {
       const safeCode = String(code || '').trim().toUpperCase();
       if (!safeCode) return '';
-      if (homeTravelPhotoCache.has(safeCode)) return String(homeTravelPhotoCache.get(safeCode) || '').trim();
+      if (homeTravelPhotoCache.has(safeCode)) {
+        const cached = toHttpsUrl(String(homeTravelPhotoCache.get(safeCode) || '').trim());
+        if (cached && !isLikelyTravelFlagAsset(cached)) return cached;
+      }
 
       const queries = [
         `${name} landscape`,
@@ -4906,7 +5028,7 @@
           });
           const image = toHttpsUrl(preferred?.imageinfo?.[0]?.thumburl || preferred?.imageinfo?.[0]?.url || '');
           if (image) {
-            homeTravelPhotoCache.set(safeCode, image);
+            setHomeTravelPhotoCache(safeCode, image);
             return image;
           }
         } catch (_error) {
@@ -4922,7 +5044,8 @@
       const unresolved = list.filter((row) => {
         const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
         const name = String(row?.name?.common || row?.name?.official || '').trim();
-        return !!code && !!name && !homeTravelPhotoCache.has(code);
+        const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
+        return !!code && !!name && (!cached || isLikelyTravelFlagAsset(cached));
       });
       if (!unresolved.length) return homeTravelPhotoCache;
 
@@ -4940,9 +5063,10 @@
           const capital = Array.isArray(row?.capital)
             ? String(row.capital[0] || '').trim()
             : String(row?.capital || '').trim();
-          if (!code || !name || homeTravelPhotoCache.has(code)) continue;
+          const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
+          if (!code || !name || (cached && !isLikelyTravelFlagAsset(cached))) continue;
           const scenic = await fetchTravelCommonsPhoto(name, code, capital, signal);
-          if (scenic) homeTravelPhotoCache.set(code, scenic);
+          if (scenic) setHomeTravelPhotoCache(code, scenic);
         }
       });
       await Promise.all(workers);
@@ -4962,7 +5086,7 @@
         if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
         if (!extraParts.length && region) extraParts.push(region);
         const flagImage = code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : HOME_LOCAL_FALLBACK_IMAGE;
-        const photoImage = buildTravelPhotoUrl(title, code) || HOME_LOCAL_FALLBACK_IMAGE;
+        const photoImage = getSafeTravelScenicImage(title, code) || HOME_LOCAL_FALLBACK_IMAGE;
         return {
           mediaType: 'travel',
           itemId: code || title.toLowerCase(),
@@ -4979,7 +5103,7 @@
           spotlightMediaFit: 'contain',
           spotlightMediaPosition: 'center center',
           spotlightMediaShape: 'square',
-          fallbackImage: buildTravelPhotoUrl(title, code) || HOME_LOCAL_FALLBACK_IMAGE,
+          fallbackImage: getSafeTravelScenicImage(title, code) || HOME_LOCAL_FALLBACK_IMAGE,
           href: code ? `country.html?code=${encodeURIComponent(code)}` : 'travel.html'
         };
       }).filter((item) => String(item?.itemId || '').trim());
@@ -5004,8 +5128,8 @@
       if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
       const flagImage = toHttpsUrl(row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
       const photoFromCommons = photoMap instanceof Map ? String(photoMap.get(code) || '').trim() : '';
-      if (photoFromCommons) homeTravelPhotoCache.set(code, photoFromCommons);
-      const photoImage = photoFromCommons || buildTravelPhotoUrl(title, code) || HOME_LOCAL_FALLBACK_IMAGE;
+      if (photoFromCommons) setHomeTravelPhotoCache(code, photoFromCommons);
+      const photoImage = getSafeTravelScenicImage(title, code, photoFromCommons) || HOME_LOCAL_FALLBACK_IMAGE;
       return {
         mediaType: 'travel',
         itemId: code,
@@ -5022,7 +5146,7 @@
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
-        fallbackImage: buildTravelPhotoUrl(title, code) || HOME_LOCAL_FALLBACK_IMAGE,
+        fallbackImage: getSafeTravelScenicImage(title, code, photoImage) || HOME_LOCAL_FALLBACK_IMAGE,
         href: `country.html?code=${encodeURIComponent(code)}`
       };
     }
