@@ -1416,22 +1416,42 @@
       }
 
       .desktop-app-shell {
+        position: relative;
         width: 100%;
         min-height: 100%;
-        display: flex;
-        align-items: flex-start;
+        display: block;
+      }
+
+      .desktop-app-shell::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--desktop-sidebar-expanded);
+        border-right: 1px solid rgba(255,255,255,0.14);
+        background: linear-gradient(180deg, rgba(12, 18, 31, 0.93) 0%, rgba(8, 14, 26, 0.97) 100%);
+        pointer-events: none;
+        z-index: 0;
       }
 
       .desktop-main-panel {
         position: relative;
+        z-index: 1;
         min-width: 0;
-        flex: 1;
+        width: calc(100% - var(--desktop-sidebar-expanded));
+        margin-left: var(--desktop-sidebar-expanded);
         padding: 14px 0 0;
-        transition: none;
+        transition: margin-left 0.22s ease, width 0.22s ease;
       }
 
       body.sidebar-collapsed .desktop-main-panel {
-        width: auto;
+        width: calc(100% - var(--desktop-sidebar-collapsed));
+        margin-left: var(--desktop-sidebar-collapsed);
+      }
+
+      body.sidebar-collapsed .desktop-app-shell::before {
+        width: var(--desktop-sidebar-collapsed);
       }
 
       .desktop-main-panel .container {
@@ -1440,18 +1460,18 @@
       }
 
       .desktop-sidebar {
-        position: sticky;
+        position: fixed;
         top: 0;
-        align-self: flex-start;
+        left: 0;
+        bottom: 0;
         width: var(--desktop-sidebar-expanded);
-        flex: 0 0 var(--desktop-sidebar-expanded);
         height: 100vh;
         min-height: 100vh;
         max-height: 100vh;
         border: 0;
-        border-right: 1px solid rgba(255,255,255,0.14);
+        border-right: 0;
         border-radius: 0;
-        background: linear-gradient(180deg, rgba(12, 18, 31, 0.93) 0%, rgba(8, 14, 26, 0.97) 100%);
+        background: transparent;
         box-shadow: none;
         display: flex;
         flex-direction: column;
@@ -1669,7 +1689,6 @@
 
       body.sidebar-collapsed .desktop-sidebar {
         width: var(--desktop-sidebar-collapsed);
-        flex-basis: var(--desktop-sidebar-collapsed);
         padding-inline: 9px;
         align-items: center;
       }
