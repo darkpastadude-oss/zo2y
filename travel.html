@@ -170,10 +170,9 @@
       max-width: 100%;
     }
     .code { font-size: 11px; color: var(--muted); text-transform: uppercase; }
-    .meta, .sub, .pop { font-size: 12px; }
+    .meta, .sub { font-size: 12px; }
     .meta { color: #dce8ff; }
     .sub { color: var(--muted); }
-    .pop { margin-top: auto; color: #f4d8a4; font-weight: 700; }
     .menu-btn {
       width: 32px;
       height: 32px;
@@ -240,7 +239,6 @@
     <input id="q" placeholder="Search countries, capitals, regions...">
     <select id="region"><option value="">All Regions</option></select>
     <select id="sort">
-      <option value="pop">Most Populous</option>
       <option value="name">Name A-Z</option>
       <option value="region">Region</option>
     </select>
@@ -262,9 +260,8 @@
   (() => {
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-    const COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,population,flags';
+    const COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
     const PAGE_SIZE = 24;
-    const FORMAT = new Intl.NumberFormat('en-US');
 
     let client = null;
     const state = {
@@ -273,7 +270,7 @@
       filtered: [],
       search: '',
       region: '',
-      sort: 'pop',
+      sort: 'name',
       page: 1,
       totalPages: 1,
       hasMore: false,
@@ -378,7 +375,6 @@
         : String(row && row.capital || '').trim();
       const region = String(row && row.region || '').trim();
       const subregion = String(row && row.subregion || '').trim();
-      const population = Number(row && row.population || 0);
       const flag = safeHttps(row && row.flags && (row.flags.png || row.flags.svg)) || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
       const photo = buildCountryPhotoUrl(name, code) || flag;
       return {
@@ -387,7 +383,6 @@
         capital,
         region,
         subregion,
-        population: Number.isFinite(population) ? population : 0,
         flag,
         photo
       };
@@ -407,7 +402,7 @@
         state.rows = (Array.isArray(payload) ? payload : [])
           .map(normalizeCountryRow)
           .filter(Boolean)
-          .sort((a, b) => b.population - a.population);
+          .sort((a, b) => a.name.localeCompare(b.name));
 
         const select = document.getElementById('region');
         const current = state.region;
@@ -446,8 +441,6 @@
           const right = b.region || '';
           return left.localeCompare(right) || a.name.localeCompare(b.name);
         });
-      } else {
-        output = output.sort((a, b) => (b.population - a.population) || a.name.localeCompare(b.name));
       }
       state.filtered = output;
     }
@@ -517,7 +510,6 @@
             </div>
             <div class="meta">${escapeHtml(item.capital ? `Capital: ${item.capital}` : 'Capital: N/A')}</div>
             <div class="sub">${escapeHtml([item.region, item.subregion].filter(Boolean).join(' | ') || 'Region unavailable')}</div>
-            <div class="pop">Population: ${escapeHtml(FORMAT.format(item.population || 0))}</div>
           </div>
         `;
 

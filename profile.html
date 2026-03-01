@@ -4209,6 +4209,9 @@ header, .top-stripe, .section-nav {
                 <div class="nav-tab" data-tab="music" onclick="ProfileManager.showTab('music')">
                     <i class="fas fa-music"></i> <span id="musicTabText">Music</span>
                 </div>
+                <div class="nav-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')">
+                    <i class="fas fa-earth-americas"></i> <span id="travelTabText">Travel</span>
+                </div>
             </div>
 
             <!-- Restaurants Tab Content -->
@@ -4723,6 +4726,69 @@ header, .top-stripe, .section-nav {
                     <div id="musicItemsContainer"></div>
                 </div>
             </div>
+
+            <!-- Travel Tab Content -->
+            <div class="tab-content" id="travel-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="travelTitle">My Travel</h2>
+                            <p class="section-subtitle" id="travelSubtitle">Organize countries you want to explore</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createTravelListBtn" onclick="ProfileManager.createTravelList()">
+                                <i class="fas fa-plus"></i> New Collection
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='travel.html'">
+                                <i class="fas fa-earth-americas"></i> Browse Travel
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="travelGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Travel Lists Yet</h3>
+                            <p class="empty-description">Save countries to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='travel.html'">
+                                <i class="fas fa-earth-americas"></i> Explore Travel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Travel Detail View -->
+            <div class="tab-content" id="travel-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideTravelDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="travelDetailTitle">
+                                <span id="travelDetailIcon"></span>
+                                <span id="travelDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="travelDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="travel">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('travel', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('travel', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions" id="travelDetailActions" style="display: none;">
+                            <button class="btn btn-secondary btn-sm" id="travelListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="travelListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="travelItemsContainer"></div>
+                </div>
+            </div>
         </div>
         
         <!-- Footer -->
@@ -4836,6 +4902,10 @@ header, .top-stripe, .section-nav {
             <div class="mobile-tab" data-tab="music" onclick="ProfileManager.showTab('music')">
                 <i class="fas fa-music"></i>
                 <span id="mobileTabMusic">Music</span>
+            </div>
+            <div class="mobile-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')">
+                <i class="fas fa-earth-americas"></i>
+                <span id="mobileTabTravel">Travel</span>
             </div>
         </div>
         <div class="mobile-tabs-swipe-hint" id="mobileTabsSwipeHint">
@@ -5248,6 +5318,56 @@ header, .top-stripe, .section-nav {
                     <div id="mobileMusicItems"></div>
                 </div>
             </div>
+
+            <!-- Travel Section -->
+            <div class="mobile-section" id="mobileTravelSection">
+                <div class="mobile-section-title">
+                    <span id="mobileTravelTitle">My Travel</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn" id="mobileCreateTravelListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createTravelList()">
+                            <i class="fas fa-plus"></i> New Collection
+                        </button>
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='travel.html'">
+                            <i class="fas fa-earth-americas"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileTravelSubtitle">Organize countries you want to explore</div>
+
+                <div class="collection-grid" id="mobileTravelGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <div class="mobile-empty-title">No Travel Lists Yet</div>
+                        <div class="mobile-empty-description">Save countries to see them here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='travel.html'">
+                            <i class="fas fa-earth-americas"></i> Explore Travel
+                        </button>
+                    </div>
+                </div>
+
+                <div id="mobileTravelDetailSection" style="display:none; margin-top: 16px;">
+                    <div class="mobile-section-title">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideTravelDetail()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <span id="mobileTravelDetailTitle">Collection</span>
+                    </div>
+                    <div class="mobile-section-subtitle" id="mobileTravelDetailDescription"></div>
+                    <div class="collection-view-toggle" data-media="travel" style="margin-bottom: 10px;">
+                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('travel', 'grid', true)"><i class="fas fa-th"></i></button>
+                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('travel', 'list', true)"><i class="fas fa-list"></i></button>
+                    </div>
+                    <div id="mobileTravelDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px;">
+                        <button class="mobile-action-btn secondary" id="mobileTravelListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-pen"></i> Edit
+                        </button>
+                        <button class="mobile-action-btn secondary" id="mobileTravelListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                    <div id="mobileTravelItems"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Mobile Bottom Navigation -->
@@ -5431,6 +5551,7 @@ header, .top-stripe, .section-nav {
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="trophy"><i class="fas fa-trophy"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="gift"><i class="fas fa-gift"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="music"><i class="fas fa-music"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="travel"><i class="fas fa-earth-americas"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="camera"><i class="fas fa-camera"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="soccer"><i class="fas fa-futbol"></i></button>
                         </div>
@@ -5461,6 +5582,7 @@ header, .top-stripe, .section-nav {
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('games')">Games</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('books')">Books</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('music')">Music</button>
+                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('travel')">Travel</button>
                 </div>
             </div>
         </div>
@@ -5501,6 +5623,7 @@ header, .top-stripe, .section-nav {
                             <button type="button" class="edit-list-icon-option" data-icon="trophy"><i class="fas fa-trophy"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="gift"><i class="fas fa-gift"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="music"><i class="fas fa-music"></i></button>
+                            <button type="button" class="edit-list-icon-option" data-icon="travel"><i class="fas fa-earth-americas"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="camera"><i class="fas fa-camera"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="soccer"><i class="fas fa-futbol"></i></button>
                         </div>
@@ -5759,12 +5882,14 @@ header, .top-stripe, .section-nav {
             let gameCache = new Map();
             let bookCache = new Map();
             let musicCache = new Map();
+            let travelCountryCache = new Map();
             let renderMoviesToken = 0;
             let renderTvToken = 0;
             let renderAnimeToken = 0;
             let renderGamesToken = 0;
             let renderBooksToken = 0;
             let renderMusicToken = 0;
+            let renderTravelToken = 0;
             let renderRestaurantsToken = 0;
             let editingMediaList = null;
             let currentMediaDetail = null;
@@ -5791,7 +5916,8 @@ header, .top-stripe, .section-nav {
                 anime: 'anime_lists',
                 game: 'game_lists',
                 book: 'book_lists',
-                music: 'music_lists'
+                music: 'music_lists',
+                travel: 'travel_lists'
             };
             const MEDIA_ITEM_TABLES = {
                 movie: 'movie_list_items',
@@ -5799,7 +5925,8 @@ header, .top-stripe, .section-nav {
                 anime: 'anime_list_items',
                 game: 'game_list_items',
                 book: 'book_list_items',
-                music: 'music_list_items'
+                music: 'music_list_items',
+                travel: 'travel_list_items'
             };
             const MEDIA_ITEM_FIELDS = {
                 movie: 'movie_id',
@@ -5807,7 +5934,8 @@ header, .top-stripe, .section-nav {
                 anime: 'anime_id',
                 game: 'game_id',
                 book: 'book_id',
-                music: 'track_id'
+                music: 'track_id',
+                travel: 'country_code'
             };
             let manualProfileBadges = [];
             let profileStatsSnapshot = {
@@ -5829,8 +5957,8 @@ header, .top-stripe, .section-nav {
             const STATS_REALTIME_DEBOUNCE_MS = 220;
             const VALID_PROFILE_TABS = new Set(
                 ENABLE_RESTAURANTS
-                    ? ['restaurants', 'movies', 'tv', 'anime', 'games', 'books', 'music', 'community']
-                    : ['movies', 'tv', 'anime', 'games', 'books', 'music', 'community']
+                    ? ['restaurants', 'movies', 'tv', 'anime', 'games', 'books', 'music', 'travel', 'community']
+                    : ['movies', 'tv', 'anime', 'games', 'books', 'music', 'travel', 'community']
             );
             const VALID_COLLECTION_TYPES = new Set([
                 ...(ENABLE_RESTAURANTS ? ['restaurant'] : []),
@@ -5839,7 +5967,8 @@ header, .top-stripe, .section-nav {
                 'anime',
                 'game',
                 'book',
-                'music'
+                'music',
+                'travel'
             ]);
             const COLLECTION_TO_TAB = {
                 ...(ENABLE_RESTAURANTS ? { restaurant: 'restaurants' } : {}),
@@ -5848,7 +5977,8 @@ header, .top-stripe, .section-nav {
                 anime: 'anime',
                 game: 'games',
                 book: 'books',
-                music: 'music'
+                music: 'music',
+                travel: 'travel'
             };
             const COLLECTION_VIEW_STORAGE_KEY = 'zo2y_profile_collection_view_modes_v2';
             let collectionViewModes = loadCollectionViewModes();
@@ -6013,6 +6143,7 @@ header, .top-stripe, .section-nav {
                     if (!hasFreshTabRender('games')) preloadTasks.push(renderGames());
                     if (!hasFreshTabRender('books')) preloadTasks.push(renderBooks());
                     if (!hasFreshTabRender('music')) preloadTasks.push(renderMusic());
+                    if (!hasFreshTabRender('travel')) preloadTasks.push(renderTravel());
                     if (!preloadTasks.length) return;
                     Promise.allSettled(preloadTasks).catch(() => {});
                 }, deferMs);
@@ -6069,7 +6200,7 @@ header, .top-stripe, .section-nav {
 
             function getPreviewOrientationClass(contentType) {
                 const type = String(contentType || '').toLowerCase();
-                return (type === 'restaurant') ? 'is-landscape' : 'is-portrait';
+                return (type === 'restaurant' || type === 'travel') ? 'is-landscape' : 'is-portrait';
             }
 
             function playProfileModalFlyUp(modal) {
@@ -9596,7 +9727,8 @@ header, .top-stripe, .section-nav {
                 if (raw.includes('fa-tv')) return 'tv';
                 if (raw.includes('fa-dragon')) return 'anime';
                 if (raw.includes('fa-gamepad')) return 'game';
-                if (raw === 'heart' || raw === 'check' || raw === 'bookmark' || raw === 'restaurant' || raw === 'movie' || raw === 'book' || raw === 'tv' || raw === 'anime' || raw === 'game' || raw === 'list' || raw === 'user' || raw === 'star' || raw === 'fire' || raw === 'sparkles' || raw === 'rocket' || raw === 'trophy' || raw === 'gift' || raw === 'music' || raw === 'camera' || raw === 'soccer') return raw;
+                if (raw.includes('fa-earth-americas') || raw.includes('fa-globe')) return 'travel';
+                if (raw === 'heart' || raw === 'check' || raw === 'bookmark' || raw === 'restaurant' || raw === 'movie' || raw === 'book' || raw === 'tv' || raw === 'anime' || raw === 'game' || raw === 'list' || raw === 'user' || raw === 'star' || raw === 'fire' || raw === 'sparkles' || raw === 'rocket' || raw === 'trophy' || raw === 'gift' || raw === 'music' || raw === 'travel' || raw === 'camera' || raw === 'soccer') return raw;
                 return raw;
             }
 
@@ -9621,6 +9753,7 @@ header, .top-stripe, .section-nav {
                     trophy: "\u{1F3C6}",
                     gift: "\u{1F381}",
                     music: "\u{1F3B5}",
+                    travel: "\u{1F30D}",
                     camera: "\u{1F4F7}",
                     soccer: "\u26BD"
                 };
@@ -9652,7 +9785,8 @@ header, .top-stripe, .section-nav {
                         anime: 'grid',
                         game: 'grid',
                         book: 'grid',
-                        music: 'grid'
+                        music: 'grid',
+                        travel: 'grid'
                     };
                     Object.keys(base).forEach((key) => {
                         const mode = parsed?.[key];
@@ -9667,7 +9801,8 @@ header, .top-stripe, .section-nav {
                         anime: 'grid',
                         game: 'grid',
                         book: 'grid',
-                        music: 'grid'
+                        music: 'grid',
+                        travel: 'grid'
                     };
                 }
             }
@@ -9726,6 +9861,7 @@ header, .top-stripe, .section-nav {
                     type === 'anime' ? 'anime' :
                     type === 'game' ? 'game' :
                     type === 'book' ? 'book' :
+                    type === 'travel' ? 'country' :
                     'track'
                 );
                 return `${count} ${singular}${count === 1 ? '' : 's'}`;
@@ -10313,6 +10449,10 @@ header, .top-stripe, .section-nav {
                 }
                 if (contentType === 'music') {
                     await renderMusic();
+                    return;
+                }
+                if (contentType === 'travel') {
+                    await renderTravel();
                 }
             }
 
@@ -10491,6 +10631,8 @@ header, .top-stripe, .section-nav {
                     await showBookDetail(listId, listType, isMobile);
                 } else if (mediaType === 'music') {
                     await showMusicDetail(listId, listType, isMobile);
+                } else if (mediaType === 'travel') {
+                    await showTravelDetail(listId, listType, isMobile);
                 }
             }
 
@@ -10642,6 +10784,94 @@ header, .top-stripe, .section-nav {
                 } catch (_err) {
                     return null;
                 }
+            }
+
+            function normalizeCountryCode(value) {
+                const raw = String(value || '').trim().toUpperCase();
+                return /^[A-Z]{2,3}$/.test(raw) ? raw : '';
+            }
+
+            function countryFlagFromCode(code) {
+                const safeCode = normalizeCountryCode(code);
+                if (!safeCode) return 'images/logo.png';
+                return `https://flagcdn.com/w640/${safeCode.toLowerCase()}.png`;
+            }
+
+            function toHttpsUrl(url) {
+                const text = String(url || '').trim();
+                if (!text) return '';
+                if (text.startsWith('//')) return `https:${text}`;
+                if (text.startsWith('http://')) return text.replace(/^http:\/\//i, 'https://');
+                return text;
+            }
+
+            async function fetchTravelCountriesByCodes(codes = []) {
+                const normalizedCodes = Array.from(new Set(
+                    (Array.isArray(codes) ? codes : [])
+                        .map((code) => normalizeCountryCode(code))
+                        .filter(Boolean)
+                ));
+                if (!normalizedCodes.length) return new Map();
+
+                const byCode = new Map();
+                const missing = [];
+                normalizedCodes.forEach((code) => {
+                    if (travelCountryCache.has(code)) {
+                        byCode.set(code, travelCountryCache.get(code));
+                    } else {
+                        missing.push(code);
+                    }
+                });
+
+                if (missing.length) {
+                    const chunks = [];
+                    for (let i = 0; i < missing.length; i += 30) {
+                        chunks.push(missing.slice(i, i + 30));
+                    }
+                    for (const chunk of chunks) {
+                        const endpoint = `https://restcountries.com/v3.1/alpha?codes=${encodeURIComponent(chunk.join(','))}&fields=name,cca2,cca3,capital,region,subregion,flags`;
+                        try {
+                            const response = await fetch(endpoint, { headers: { Accept: 'application/json' } });
+                            if (!response.ok) continue;
+                            const payload = await response.json();
+                            const rows = Array.isArray(payload) ? payload : [payload];
+                            rows.forEach((row) => {
+                                const code = normalizeCountryCode(row?.cca2 || row?.cca3);
+                                if (!code) return;
+                                const capital = Array.isArray(row?.capital)
+                                    ? String(row.capital[0] || '').trim()
+                                    : String(row?.capital || '').trim();
+                                const travelCountry = {
+                                    code,
+                                    name: String(row?.name?.common || row?.name?.official || code).trim(),
+                                    capital,
+                                    region: String(row?.region || '').trim(),
+                                    subregion: String(row?.subregion || '').trim(),
+                                    flag: toHttpsUrl(row?.flags?.png || row?.flags?.svg || '') || countryFlagFromCode(code)
+                                };
+                                travelCountryCache.set(code, travelCountry);
+                                byCode.set(code, travelCountry);
+                            });
+                        } catch (_error) {
+                            // keep fallback behavior if remote fetch fails
+                        }
+                    }
+                }
+
+                normalizedCodes.forEach((code) => {
+                    if (byCode.has(code)) return;
+                    const fallback = {
+                        code,
+                        name: code,
+                        capital: '',
+                        region: '',
+                        subregion: '',
+                        flag: countryFlagFromCode(code)
+                    };
+                    travelCountryCache.set(code, fallback);
+                    byCode.set(code, fallback);
+                });
+                return byCode;
             }
 
             function renderMovieListIcon(icon) {
@@ -10927,7 +11157,8 @@ header, .top-stripe, .section-nav {
                     anime: { table: 'anime_lists', fallback: 'anime', label: 'Anime', rerender: renderAnimeShows },
                     game: { table: 'game_lists', fallback: 'game', label: 'Game', rerender: renderGames },
                     book: { table: 'book_lists', fallback: 'book', label: 'Book', rerender: renderBooks },
-                    music: { table: 'music_lists', fallback: 'music', label: 'Music', rerender: renderMusic }
+                    music: { table: 'music_lists', fallback: 'music', label: 'Music', rerender: renderMusic },
+                    travel: { table: 'travel_lists', fallback: 'travel', label: 'Travel', rerender: renderTravel }
                 };
                 return configMap[type] || null;
             }
@@ -10939,7 +11170,8 @@ header, .top-stripe, .section-nav {
                     anime: ['favorites', 'watched', 'watchlist'],
                     game: ['favorites', 'watched', 'watchlist'],
                     book: ['favorites', 'read', 'readlist'],
-                    music: ['favorites', 'listened', 'listenlist']
+                    music: ['favorites', 'listened', 'listenlist'],
+                    travel: ['favorites', 'visited', 'bucket list', 'bucketlist']
                 };
                 return new Set(map[type] || []);
             }
@@ -10950,7 +11182,7 @@ header, .top-stripe, .section-nav {
                     if (!raw) return fallback;
                     if (raw === 'tier' || raw === 'tierlist' || raw === 'tier_list') return 'tier';
                     if (raw === 'standard' || raw === 'list' || raw === 'custom' || raw === 'default') return 'standard';
-                    if (raw === 'movie' || raw === 'tv' || raw === 'anime' || raw === 'game' || raw === 'book' || raw === 'music' || raw === 'restaurant') {
+                    if (raw === 'movie' || raw === 'tv' || raw === 'anime' || raw === 'game' || raw === 'book' || raw === 'music' || raw === 'travel' || raw === 'restaurant') {
                         return 'standard';
                     }
                     return fallback;
@@ -12356,7 +12588,8 @@ header, .top-stripe, .section-nav {
                     ['anime-tab', 'anime-detail-view'],
                     ['games-tab', 'game-detail-view'],
                     ['books-tab', 'book-detail-view'],
-                    ['music-tab', 'music-detail-view']
+                    ['music-tab', 'music-detail-view'],
+                    ['travel-tab', 'travel-detail-view']
                 ];
                 desktopPairs.forEach(([mainId, detailId]) => {
                     const main = document.getElementById(mainId);
@@ -12375,7 +12608,8 @@ header, .top-stripe, .section-nav {
                     { main: 'mobileAnimeSection', detail: 'mobileAnimeDetailSection', grid: 'mobileAnimeGrid' },
                     { main: 'mobileGamesSection', detail: 'mobileGameDetailSection', grid: 'mobileGamesGrid' },
                     { main: 'mobileBooksSection', detail: 'mobileBookDetailSection', grid: 'mobileBooksGrid' },
-                    { main: 'mobileMusicSection', detail: 'mobileMusicDetailSection', grid: 'mobileMusicGrid' }
+                    { main: 'mobileMusicSection', detail: 'mobileMusicDetailSection', grid: 'mobileMusicGrid' },
+                    { main: 'mobileTravelSection', detail: 'mobileTravelDetailSection', grid: 'mobileTravelGrid' }
                 ];
                 mobileConfigs.forEach((cfg) => {
                     const mainSection = document.getElementById(cfg.main);
@@ -12409,6 +12643,7 @@ header, .top-stripe, .section-nav {
                     anime: () => renderAnimeShows(),
                     books: () => renderBooks(),
                     music: () => renderMusic(),
+                    travel: () => renderTravel(),
                     community: () => showCommunitySection('followers')
                 };
                 const handler = handlers[safeTab] || handlers[DEFAULT_PROFILE_TAB] || handlers.movies;
@@ -13247,6 +13482,101 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            async function renderTravel() {
+                const isMobile = window.innerWidth <= 768;
+                const grid = isMobile ? document.getElementById('mobileTravelGrid') : document.getElementById('travelGrid');
+                if (!grid) return;
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                const renderToken = ++renderTravelToken;
+
+                try {
+                    await ensurePinnedCollectionsLoaded(userId);
+                    const defaultLists = [
+                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Countries you love', type: 'default' },
+                        { id: 'visited', title: 'Visited', icon: 'check', description: 'Countries you visited', type: 'default' },
+                        { id: 'bucketlist', title: 'Bucket List', icon: 'bookmark', description: 'Countries you want to visit', type: 'default' }
+                    ];
+
+                    let customLists = await loadCollaborativeCustomLists('travel', userId);
+                    const allItems = await loadMediaListItems('travel', userId, customLists.map((list) => list.id));
+
+                    if (renderToken !== renderTravelToken) return;
+
+                    const reservedTitles = new Set(['favorites', 'visited', 'bucketlist', 'bucket list']);
+                    const seenCustomIds = new Set();
+                    const normalizedCustomLists = [];
+
+                    for (const raw of (customLists || [])) {
+                        const id = String(raw.id || '').trim();
+                        if (!id || seenCustomIds.has(id)) continue;
+                        const titleNorm = String(raw.title || '').trim().toLowerCase();
+                        if (reservedTitles.has(titleNorm)) continue;
+                        seenCustomIds.add(id);
+                        normalizedCustomLists.push({ ...raw, type: 'custom' });
+                    }
+
+                    customLists = await hydrateListMetaByOwner('travel', normalizedCustomLists, userId);
+                    if (renderToken !== renderTravelToken) return;
+
+                    for (const list of defaultLists) {
+                        list.countryCodes = Array.from(new Set(
+                            allItems
+                                .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
+                                .map((row) => normalizeCountryCode(row.country_code || row.item_id))
+                                .filter(Boolean)
+                        ));
+                    }
+
+                    for (const list of customLists) {
+                        list.countryCodes = Array.from(new Set(
+                            allItems
+                                .filter((row) => String(row.list_id || '') === String(list.id || ''))
+                                .map((row) => normalizeCountryCode(row.country_code || row.item_id))
+                                .filter(Boolean)
+                        ));
+                    }
+
+                    const allLists = applyPinnedListSorting('travel', [...defaultLists, ...customLists]);
+                    if (!allLists.length) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Travel Lists Yet</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save countries to see them here.</p>
+                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='travel.html'">
+                                    <i class="fas fa-earth-americas"></i> Explore Travel
+                                </button>
+                            </div>
+                        `;
+                        markTabRendered('travel');
+                        return;
+                    }
+
+                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
+                        list,
+                        'travel',
+                        isMobile,
+                        String(list?.user_id || userId || '').trim() || userId
+                    )));
+                    grid.innerHTML = '';
+                    const fragment = document.createDocumentFragment();
+                    cards.forEach((card) => fragment.appendChild(card));
+                    grid.appendChild(fragment);
+                    markTabRendered('travel');
+                } catch (error) {
+                    console.error('Error loading travel:', error);
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Travel</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your travel lists</p>
+                        </div>
+                    `;
+                }
+            }
+
             async function createCollectionCard(list, contentType, isMobile, ownerUserId = null) {
                 const card = document.createElement('div');
                 card.className = 'collection-card';
@@ -13261,7 +13591,9 @@ header, .top-stripe, .section-nav {
                                 ? (list.animeIds || [])
                             : (contentType === 'game'
                                 ? (list.gameIds || [])
-                                : (contentType === 'book' ? (list.bookIds || []) : (list.trackIds || []))))));
+                                : (contentType === 'book'
+                                    ? (list.bookIds || [])
+                                    : (contentType === 'travel' ? (list.countryCodes || []) : (list.trackIds || [])))))));
                 const resolvedListType = resolveCollectionListType(contentType, list);
                 const routeListId = String(list.id || '');
                 const { tierMeta, orderedIds } = await resolveTierOrderedIds(contentType, list, routeListId, itemIds, {
@@ -13294,15 +13626,19 @@ header, .top-stripe, .section-nav {
                 const previewOrientationClass = getPreviewOrientationClass(contentType);
                 const fallbackPreviewIcon = contentType === 'restaurant'
                     ? 'restaurant'
-                    : (contentType === 'movie'
+                    : contentType === 'movie'
                         ? 'movie'
-                        : (contentType === 'tv'
+                        : contentType === 'tv'
                             ? 'tv'
-                            : (contentType === 'anime'
+                            : contentType === 'anime'
                                 ? 'anime'
-                                : (contentType === 'game'
+                                : contentType === 'game'
                                     ? 'game'
-                                    : (contentType === 'book' ? 'book' : 'music')))));
+                                    : contentType === 'book'
+                                        ? 'book'
+                                        : contentType === 'travel'
+                                            ? 'travel'
+                                            : 'music';
                 const buildPreviewHtml = (previewItems = []) => {
                     let html = '';
                     for (let i = 0; i < previewLimit; i++) {
@@ -13364,7 +13700,7 @@ header, .top-stripe, .section-nav {
                     ${kebabHtml}
                     <div class="collection-card-header">
                         <div class="collection-card-title-group">
-                            <div class="collection-card-icon">${iconGlyph(list.icon, contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'anime' ? 'anime' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : 'music'))))))}</div>
+                            <div class="collection-card-icon">${iconGlyph(list.icon, contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'anime' ? 'anime' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : (contentType === 'travel' ? 'travel' : 'music')))))))}</div>
                             <div class="collection-card-info">
                                 <div class="collection-card-title">${list.title}</div>
                                 <div class="collection-card-count">${countLabel}</div>
@@ -13469,6 +13805,12 @@ header, .top-stripe, .section-nav {
                             const imageUrl = row.image_url || 'images/logo.png';
                             writePreviewAssetCache(contentType, id, imageUrl);
                         });
+                    } else if (contentType === 'travel') {
+                        missingIds.forEach((id) => {
+                            const code = normalizeCountryCode(id);
+                            if (!code) return;
+                            writePreviewAssetCache(contentType, id, countryFlagFromCode(code));
+                        });
                     } else if (contentType === 'game') {
                         await Promise.all(missingIds.map(async (id) => {
                             const game = await fetchGameDetails(id);
@@ -13501,6 +13843,7 @@ header, .top-stripe, .section-nav {
                     if (cached) return cached;
                     if (contentType === 'book') return FALLBACK_BOOK_IMAGE;
                     if (contentType === 'music') return 'images/logo.png';
+                    if (contentType === 'travel') return countryFlagFromCode(id);
                     return null;
                 });
             }
@@ -13518,6 +13861,8 @@ header, .top-stripe, .section-nav {
                     await showTvDetail(listId, listType, isMobile);
                 } else if (contentType === 'anime') {
                     await showAnimeDetail(listId, listType, isMobile);
+                } else if (contentType === 'travel') {
+                    await showTravelDetail(listId, listType, isMobile);
                 } else if (contentType === 'music') {
                     await showMusicDetail(listId, listType, isMobile);
                 } else {
@@ -14899,6 +15244,205 @@ header, .top-stripe, .section-nav {
                 );
             }
 
+            async function showTravelDetail(listId, listType, isMobile) {
+                if (isMobile) {
+                    const mainSection = document.getElementById('mobileTravelSection');
+                    const detailSection = document.getElementById('mobileTravelDetailSection');
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileTravelGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
+                    if (detailSection) {
+                        detailSection.style.display = 'block';
+                        detailSection.classList.add('active');
+                    }
+                } else {
+                    const mainTab = document.getElementById('travel-tab');
+                    const detailView = document.getElementById('travel-detail-view');
+                    if (mainTab) mainTab.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'block';
+                        detailView.classList.add('active');
+                    }
+                }
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                let list = null;
+
+                if (listType === 'default') {
+                    const titles = { favorites: 'Favorites', visited: 'Visited', bucketlist: 'Bucket List' };
+                    const icons = { favorites: 'heart', visited: 'check', bucketlist: 'bookmark' };
+                    const descriptions = {
+                        favorites: 'Countries you love',
+                        visited: 'Countries you visited',
+                        bucketlist: 'Countries you want to visit'
+                    };
+                    list = { id: listId, title: titles[listId] || 'Travel', icon: icons[listId] || 'travel', description: descriptions[listId] || '', type: 'default' };
+                } else {
+                    const { data, error } = await supabase.from('travel_lists').select('*').eq('id', listId).single();
+                    if (error || !data) {
+                        showToast('Collection not found', 'error');
+                        return;
+                    }
+                    list = { ...data, type: 'custom' };
+                }
+
+                if (listType === 'custom' && window.ListUtils) {
+                    const [hydrated] = await ListUtils.hydrateListMetaForLists('travel', [list], {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId: list?.user_id || userId
+                    });
+                    if (hydrated) list = hydrated;
+                }
+                if (listType === 'custom') {
+                    await ensureCollaborativeAccessForList('travel', list);
+                }
+
+                const listOwnerUserId = String(list?.user_id || userId || '').trim() || userId;
+                const countryCodes = await fetchMediaCollectionItemIds('travel', listOwnerUserId, listId, listType);
+                const tierMeta = getTierMetaForList('travel', list, countryCodes.length);
+                const detailTitle = getCollectionTitleWithKind('travel', list, listType);
+                const detailDescription = tierMeta.isTier
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
+                    : (list.description || '');
+                const canEditList = listType === 'custom' && canEditCustomCollection('travel', listId, list);
+                const canDeleteList = listType === 'custom' && canDeleteCustomCollection('travel', listId, list);
+
+                if (isMobile) {
+                    const titleEl = document.getElementById('mobileTravelDetailTitle');
+                    const descEl = document.getElementById('mobileTravelDetailDescription');
+                    const actions = document.getElementById('mobileTravelDetailActions');
+                    const editBtn = document.getElementById('mobileTravelListEditBtn');
+                    const deleteBtn = document.getElementById('mobileTravelListDeleteBtn');
+                    if (titleEl) titleEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameTravelList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteTravelList(listId);
+                } else {
+                    const iconEl = document.getElementById('travelDetailIcon');
+                    const nameEl = document.getElementById('travelDetailName');
+                    const descEl = document.getElementById('travelDetailDescription');
+                    const actions = document.getElementById('travelDetailActions');
+                    const editBtn = document.getElementById('travelListEditBtn');
+                    const deleteBtn = document.getElementById('travelListDeleteBtn');
+                    if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'travel');
+                    if (nameEl) nameEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameTravelList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteTravelList(listId);
+                }
+
+                currentMediaDetail = { mediaType: 'travel', listId, listType, isMobile };
+                updateCollectionViewToggleButtons('travel');
+                await renderTravelItems(countryCodes, listId, listType, isMobile, list, listOwnerUserId);
+            }
+
+            async function renderTravelItems(countryCodes, listId, listType, isMobile, list = null, ownerUserId = null) {
+                const container = isMobile ? document.getElementById('mobileTravelItems') : document.getElementById('travelItemsContainer');
+                if (!container) return;
+                applyCollectionViewToContainer(container, 'travel');
+
+                if (!countryCodes || countryCodes.length === 0) {
+                    container.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('travel')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Countries Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add countries to this collection!</p>
+                        </div>
+                    `;
+                    wireTierDragAndDrop(container, null, null, 'default');
+                    return;
+                }
+
+                const { tierMeta, orderedIds: rankedCountryCodes } = await resolveTierOrderedIds('travel', list, listId, countryCodes, {
+                    listType,
+                    ownerUserId
+                });
+                const canReorderList = canReorderCollectionItems('travel', listId, listType, list);
+                const canEditItems = canEditCollectionItems('travel', listId, listType, list);
+                const countryMap = await fetchTravelCountriesByCodes(rankedCountryCodes);
+                container.innerHTML = '';
+
+                for (let i = 0; i < rankedCountryCodes.length; i++) {
+                    const code = normalizeCountryCode(rankedCountryCodes[i]);
+                    if (!code) continue;
+                    const country = countryMap.get(code) || {
+                        code,
+                        name: code,
+                        capital: '',
+                        region: '',
+                        subregion: '',
+                        flag: countryFlagFromCode(code)
+                    };
+                    const title = String(country.name || code).trim() || code;
+                    const capital = String(country.capital || '').trim();
+                    const region = String(country.region || '').trim();
+                    const subregion = String(country.subregion || '').trim();
+                    const metaRegion = [region, subregion].filter(Boolean).join(' | ');
+                    const image = String(country.flag || '').trim() || countryFlagFromCode(code);
+                    const canReorder = canReorderList;
+                    const rankMarkup = tierMeta.isTier
+                        ? buildTierRankControlMarkup(
+                            i + 1,
+                            rankedCountryCodes.length,
+                            canReorder
+                        )
+                        : '';
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'collection-item-card';
+                    itemCard.onclick = () => {
+                        window.location.href = `country.html?code=${encodeURIComponent(code)}`;
+                    };
+
+                    itemCard.innerHTML = `
+                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} flag" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
+                        <div class="collection-item-body">
+                            <h3 class="collection-item-title">${escapeHtml(title)}</h3>
+                            ${canEditItems ? `
+                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(code)}', '${listId}', 'travel', '${listType}')">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            ` : ''}
+                            <div class="collection-item-meta">
+                                <span><i class="fas fa-map-pin"></i> ${escapeHtml(capital ? `Capital: ${capital}` : 'Capital: N/A')}</span>
+                                <span><i class="fas fa-earth-americas"></i> ${escapeHtml(metaRegion || 'Region unavailable')}</span>
+                            </div>
+                            ${rankMarkup}
+                        </div>
+                        ${canEditItems ? `
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(code)}', '${listId}', 'travel', '${listType}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    `;
+                    if (canReorder) {
+                        itemCard.dataset.tierItemId = code;
+                    }
+                    container.appendChild(itemCard);
+                }
+
+                wireTierDragAndDrop(
+                    container,
+                    canReorderList ? 'travel' : null,
+                    canReorderList ? listId : null,
+                    canReorderList ? listType : 'default'
+                );
+            }
+
             function escapeHtml(text) {
                 if (!text) return '';
                 return String(text)
@@ -15024,6 +15568,46 @@ header, .top-stripe, .section-nav {
                 }
             }
 
+            async function createTravelList() {
+                await openMediaListCreator('travel');
+            }
+
+            async function renameTravelList(listId) {
+                await openMediaListEditor('travel', listId);
+            }
+
+            async function deleteTravelList(listId) {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const accessRecord = await fetchCustomListAccessRecord('travel', listId);
+                if (!accessRecord || !canDeleteCustomCollection('travel', listId, accessRecord)) {
+                    showToast('Only the list owner can delete this list', 'warning');
+                    return;
+                }
+                if (!confirm('Delete this travel list? This cannot be undone.')) return;
+
+                try {
+                    const userId = currentUser.id;
+                    await supabase
+                        .from('travel_list_items')
+                        .delete()
+                        .eq('user_id', userId)
+                        .eq('list_id', listId);
+                    const { error } = await supabase
+                        .from('travel_lists')
+                        .delete()
+                        .eq('id', listId)
+                        .eq('user_id', userId);
+                    if (error) throw error;
+
+                    hideTravelDetail();
+                    await renderTravel();
+                    showToast('List deleted', 'success');
+                } catch (error) {
+                    console.error('Error deleting travel list:', error);
+                    showToast('Could not delete list', 'error');
+                }
+            }
+
             function hideRestaurantDetail() {
                 if (leaveCollectionRoute('restaurants')) return;
                 currentMediaDetail = null;
@@ -15097,6 +15681,35 @@ header, .top-stripe, .section-nav {
                 } else {
                     const detailView = document.getElementById('music-detail-view');
                     const mainTab = document.getElementById('music-tab');
+                    if (detailView) detailView.style.display = 'none';
+                    if (mainTab) {
+                        mainTab.style.display = 'block';
+                        mainTab.classList.add('active');
+                    }
+                }
+            }
+
+            function hideTravelDetail() {
+                if (leaveCollectionRoute('travel')) return;
+                currentMediaDetail = null;
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    const detailSection = document.getElementById('mobileTravelDetailSection');
+                    const mainSection = document.getElementById('mobileTravelSection');
+                    if (detailSection) detailSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileTravelGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
+                    }
+                } else {
+                    const detailView = document.getElementById('travel-detail-view');
+                    const mainTab = document.getElementById('travel-tab');
                     if (detailView) detailView.style.display = 'none';
                     if (mainTab) {
                         mainTab.style.display = 'block';
@@ -15316,6 +15929,23 @@ header, .top-stripe, .section-nav {
                         }
                         showToast('Removed from collection', 'success');
                         await showMusicDetail(collectionId, listType, window.innerWidth <= 768);
+                    } else if (type === 'travel') {
+                        if (listType === 'default') {
+                            await supabase
+                                .from('travel_list_items')
+                                .delete()
+                                .eq('user_id', userId)
+                                .eq('country_code', itemId)
+                                .eq('list_type', collectionId);
+                        } else {
+                            await supabase
+                                .from('travel_list_items')
+                                .delete()
+                                .eq('country_code', itemId)
+                                .eq('list_id', collectionId);
+                        }
+                        showToast('Removed from collection', 'success');
+                        await showTravelDetail(collectionId, listType, window.innerWidth <= 768);
                     } else {
                         if (listType === 'default') {
                             await supabase
@@ -15347,6 +15977,8 @@ header, .top-stripe, .section-nav {
                         await renderGames();
                     } else if (type === 'music') {
                         await renderMusic();
+                    } else if (type === 'travel') {
+                        await renderTravel();
                     } else {
                         await renderBooks();
                     }
@@ -15444,6 +16076,17 @@ header, .top-stripe, .section-nav {
                                 }
                                 await supabase.from('music_list_items').delete().eq('list_id', id);
                                 await supabase.from('music_lists').delete().eq('id', id);
+                            } else if (type === 'travel') {
+                                const collabCleanup = await supabase
+                                    .from(LIST_COLLAB_TABLE)
+                                    .delete()
+                                    .eq('media_type', 'travel')
+                                    .eq('list_id', String(id));
+                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
+                                    console.warn('Could not remove collaborators for travel list:', collabCleanup.error);
+                                }
+                                await supabase.from('travel_list_items').delete().eq('list_id', id);
+                                await supabase.from('travel_lists').delete().eq('id', id);
                             } else {
                                 const collabCleanup = await supabase
                                     .from(LIST_COLLAB_TABLE)
@@ -15477,6 +16120,9 @@ header, .top-stripe, .section-nav {
                             } else if (type === 'music') {
                                 hideMusicDetail();
                                 await renderMusic();
+                            } else if (type === 'travel') {
+                                hideTravelDetail();
+                                await renderTravel();
                             } else {
                                 hideBookDetail();
                                 await renderBooks();
@@ -15767,6 +16413,11 @@ header, .top-stripe, .section-nav {
                 if (normalized === 'music') {
                     showTab('music');
                     createMusicList();
+                    return;
+                }
+                if (normalized === 'travel') {
+                    showTab('travel');
+                    createTravelList();
                 }
             }
 
@@ -16279,6 +16930,8 @@ header, .top-stripe, .section-nav {
                 hideMobileBookDetail: hideBookDetail,
                 hideMusicDetail,
                 hideMobileMusicDetail: hideMusicDetail,
+                hideTravelDetail,
+                hideMobileTravelDetail: hideTravelDetail,
                 toggleCollectionMenu,
                 createMovieList,
                 createTvList,
@@ -16286,6 +16939,7 @@ header, .top-stripe, .section-nav {
                 createGameList,
                 createBookList,
                 createMusicList,
+                createTravelList,
                 addMediaListCollaborator,
                 removeMediaListCollaborator,
                 renameMovieList,
@@ -16300,6 +16954,8 @@ header, .top-stripe, .section-nav {
                 deleteBookList,
                 renameMusicList,
                 deleteMusicList,
+                renameTravelList,
+                deleteTravelList,
                 removeFromCollection,
                 editCollection,
                 deleteCollection,

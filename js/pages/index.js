@@ -13,7 +13,7 @@
     const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
     const TMDB_SPOT_POSTER = 'https://image.tmdb.org/t/p/w780';
     const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
-    const REST_COUNTRIES_ALL_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,population,flags';
+    const REST_COUNTRIES_ALL_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
     const FALLBACK_RESTAURANTS = [
       { id: 'fallback-r1', name: 'Top Rated Picks', category: 'Community', rating: '4.8' },
       { id: 'fallback-r2', name: 'Most Saved', category: 'Trending', rating: '4.7' },
@@ -4826,17 +4826,12 @@
         : String(row?.capital || '').trim();
       const region = String(row?.region || '').trim();
       const subregion = String(row?.subregion || '').trim();
-      const population = Number(row?.population || 0);
-      const populationText = Number.isFinite(population) && population > 0
-        ? `Population ${new Intl.NumberFormat('en-US').format(population)}`
-        : '';
       const subtitle = [
         capital ? `Capital: ${capital}` : '',
         region
       ].filter(Boolean).join(' | ') || 'Country';
       const extra = [
-        subregion && subregion !== region ? subregion : '',
-        populationText
+        subregion && subregion !== region ? subregion : ''
       ].filter(Boolean).join(' | ');
       const flagImage = safeHttps(row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
       const photoImage = buildTravelPhotoUrl(title, code) || flagImage;
@@ -4874,11 +4869,15 @@
         const rows = Array.isArray(payload) ? payload : [];
         if (!rows.length) return fallbackItems.slice(0, HOME_CHANNEL_TARGET_ITEMS);
 
-        const byPopulation = rows
+        const sortedRows = rows
           .filter((row) => row && (row.cca2 || row.cca3) && (row?.name?.common || row?.name?.official))
-          .sort((a, b) => Number(b?.population || 0) - Number(a?.population || 0));
+          .sort((a, b) => {
+            const left = String(a?.name?.common || a?.name?.official || '').trim();
+            const right = String(b?.name?.common || b?.name?.official || '').trim();
+            return left.localeCompare(right);
+          });
 
-        const shortlist = shuffleArray(byPopulation.slice(0, Math.max(HOME_CHANNEL_TARGET_ITEMS * 5, 120)));
+        const shortlist = shuffleArray(sortedRows.slice(0, Math.max(HOME_CHANNEL_TARGET_ITEMS * 5, 120)));
         const seenCodes = new Set();
         const out = [];
 
@@ -4893,7 +4892,7 @@
 
         shortlist.forEach(pushRow);
         if (out.length < HOME_CHANNEL_TARGET_ITEMS) {
-          byPopulation.forEach(pushRow);
+          sortedRows.forEach(pushRow);
         }
 
         const safeItems = filterHomeSafeItems(out);
