@@ -11,7 +11,8 @@
     { mediaType: 'anime', table: 'anime_reviews', idField: 'anime_id', label: 'Anime', icon: 'fa-dragon' },
     { mediaType: 'game', table: 'game_reviews', idField: 'game_id', label: 'Game', icon: 'fa-gamepad' },
     { mediaType: 'book', table: 'book_reviews', idField: 'book_id', label: 'Book', icon: 'fa-book' },
-    { mediaType: 'music', table: 'music_reviews', idField: 'track_id', label: 'Music', icon: 'fa-music' }
+    { mediaType: 'music', table: 'music_reviews', idField: 'track_id', label: 'Music', icon: 'fa-music' },
+    { mediaType: 'travel', table: 'travel_reviews', idField: 'country_code', label: 'Travel', icon: 'fa-earth-americas' }
   ];
 
   const LABEL_BY_MEDIA = Object.fromEntries(SOURCES.map((r) => [r.mediaType, r.label]));
@@ -75,6 +76,8 @@
               ? `book.html?id=${encodeURIComponent(id)}`
               : type === 'music'
                 ? `song.html?id=${encodeURIComponent(id)}`
+                : type === 'travel'
+                  ? `country.html?code=${encodeURIComponent(String(id || '').toUpperCase())}`
                 : '#';
     return {
       title: `${label} ${id}`.trim(),
@@ -260,7 +263,8 @@
       anime: [],
       game: [],
       book: [],
-      music: []
+      music: [],
+      travel: []
     };
 
     rows.forEach((row) => {
@@ -334,7 +338,38 @@
       });
     });
 
-    await Promise.allSettled([...movieTasks, ...tvTasks, ...gameTasks, ...musicTasks, ...bookTasks]);
+    const travelTasks = (async () => {
+      const codes = Array.from(new Set(grouped.travel
+        .map((id) => String(id || '').trim().toUpperCase())
+        .filter((code) => code.length >= 2 && code.length <= 3)));
+      if (!codes.length) return;
+      const json = await fetchJson(
+        `https://restcountries.com/v3.1/alpha?codes=${encodeURIComponent(codes.join(','))}&fields=name,cca2,cca3,capital,region,flags`,
+        9000
+      );
+      (Array.isArray(json) ? json : []).forEach((row) => {
+        const cca2 = String(row?.cca2 || '').trim().toUpperCase();
+        const cca3 = String(row?.cca3 || '').trim().toUpperCase();
+        const title = String(row?.name?.common || row?.name?.official || cca2 || cca3 || 'Country').trim();
+        const capital = Array.isArray(row?.capital)
+          ? String(row.capital[0] || '').trim()
+          : String(row?.capital || '').trim();
+        const region = String(row?.region || '').trim();
+        const subtitle = [capital ? `Capital: ${capital}` : '', region].filter(Boolean).join(' | ') || 'Country';
+        const image = safeHttps(row?.flags?.png || row?.flags?.svg || '') || FALLBACK_IMAGE;
+        [cca2, cca3].forEach((code) => {
+          if (!code) return;
+          itemMeta.set(makeKey('travel', code), {
+            title,
+            subtitle,
+            image,
+            href: `country.html?code=${encodeURIComponent(code)}`
+          });
+        });
+      });
+    })();
+
+    await Promise.allSettled([...movieTasks, ...tvTasks, ...gameTasks, ...musicTasks, ...bookTasks, travelTasks]);
   }
 
   function filteredRows() {

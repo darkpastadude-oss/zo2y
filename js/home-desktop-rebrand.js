@@ -14,10 +14,11 @@
     { mediaType: 'anime', table: 'anime_reviews', idField: 'anime_id', label: 'Anime' },
     { mediaType: 'game', table: 'game_reviews', idField: 'game_id', label: 'Game' },
     { mediaType: 'book', table: 'book_reviews', idField: 'book_id', label: 'Book' },
-    { mediaType: 'music', table: 'music_reviews', idField: 'track_id', label: 'Music' }
+    { mediaType: 'music', table: 'music_reviews', idField: 'track_id', label: 'Music' },
+    { mediaType: 'travel', table: 'travel_reviews', idField: 'country_code', label: 'Travel' }
   ];
 
-  const SIDEBAR_MEDIA_TYPES = ['movie', 'tv', 'anime', 'game', 'book', 'music', 'restaurant'];
+  const SIDEBAR_MEDIA_TYPES = ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'restaurant'];
   const SIDEBAR_MEDIA_LABEL = {
     movie: 'Movies',
     tv: 'TV',
@@ -25,6 +26,7 @@
     game: 'Games',
     book: 'Books',
     music: 'Music',
+    travel: 'Travel',
     restaurant: 'Places'
   };
   const SIDEBAR_MEDIA_ROUTE = {
@@ -34,7 +36,17 @@
     game: 'games.html',
     book: 'books.html',
     music: 'music.html',
+    travel: 'travel.html',
     restaurant: 'restraunts.html'
+  };
+  const SIDEBAR_MEDIA_PROFILE_ROUTE = {
+    movie: { tab: 'movies', collection: 'movie' },
+    tv: { tab: 'tv', collection: 'tv' },
+    anime: { tab: 'anime', collection: 'anime' },
+    game: { tab: 'games', collection: 'game' },
+    book: { tab: 'books', collection: 'book' },
+    music: { tab: 'music', collection: 'music' },
+    restaurant: { tab: 'restaurants', collection: 'restaurant' }
   };
 
   const SOURCE_BY_MEDIA = Object.fromEntries(REVIEW_SOURCES.map((source) => [source.mediaType, source]));
@@ -287,6 +299,22 @@
     return text;
   }
 
+  function buildSidebarCustomListHref(mediaType, listId) {
+    const safeType = String(mediaType || '').trim().toLowerCase();
+    const route = SIDEBAR_MEDIA_PROFILE_ROUTE[safeType];
+    const safeListId = String(listId || '').trim();
+    if (!route || !safeListId) {
+      return SIDEBAR_MEDIA_ROUTE[safeType] || 'profile.html';
+    }
+    const params = new URLSearchParams({
+      tab: route.tab,
+      collection: route.collection,
+      listId: safeListId,
+      listType: 'custom'
+    });
+    return `profile.html?${params.toString()}`;
+  }
+
   function makeReviewKey(mediaType, itemId) {
     const type = String(mediaType || '').trim().toLowerCase();
     const id = String(itemId || '').trim();
@@ -432,10 +460,12 @@
           ? `anime.html?id=${encodeURIComponent(id)}`
           : type === 'game'
             ? `game.html?id=${encodeURIComponent(id)}`
-            : type === 'book'
-              ? `book.html?id=${encodeURIComponent(id)}`
-              : type === 'music'
-                ? `song.html?id=${encodeURIComponent(id)}`
+          : type === 'book'
+            ? `book.html?id=${encodeURIComponent(id)}`
+            : type === 'music'
+              ? `song.html?id=${encodeURIComponent(id)}`
+              : type === 'travel'
+                ? `country.html?code=${encodeURIComponent(String(id || '').toUpperCase())}`
                 : '#';
 
     return {
@@ -520,7 +550,8 @@
       anime: new Set(),
       game: new Set(),
       book: new Set(),
-      music: new Set()
+      music: new Set(),
+      travel: new Set()
     };
 
     (Array.isArray(rows) ? rows : []).forEach((row) => {
@@ -572,6 +603,42 @@
             href: `song.html?id=${encodeURIComponent(id)}`
           });
         });
+      } catch (_err) {}
+    }
+
+    if (groupedIds.travel.size) {
+      try {
+        const codes = [...groupedIds.travel]
+          .map((value) => String(value || '').trim().toUpperCase())
+          .filter((value) => value.length >= 2 && value.length <= 3)
+          .slice(0, 90);
+        if (codes.length) {
+          const json = await fetchJson(
+            `https://restcountries.com/v3.1/alpha?codes=${encodeURIComponent(codes.join(','))}&fields=name,cca2,cca3,capital,region,flags`,
+            9000
+          );
+          (Array.isArray(json) ? json : []).forEach((row) => {
+            const cca2 = String(row?.cca2 || '').trim().toUpperCase();
+            const cca3 = String(row?.cca3 || '').trim().toUpperCase();
+            const title = String(row?.name?.common || row?.name?.official || cca2 || cca3 || 'Country').trim();
+            const capital = Array.isArray(row?.capital)
+              ? String(row.capital[0] || '').trim()
+              : String(row?.capital || '').trim();
+            const region = String(row?.region || '').trim();
+            const subtitle = [capital ? `Capital: ${capital}` : '', region].filter(Boolean).join(' | ') || 'Country';
+            const image = safeHttps(row?.flags?.png || row?.flags?.svg || '');
+            [cca2, cca3].forEach((code) => {
+              if (!code) return;
+              metaByKey.set(makeReviewKey('travel', code), {
+                title,
+                subtitle,
+                image: image || 'images/logo.png',
+                background: '',
+                href: `country.html?code=${encodeURIComponent(code)}`
+              });
+            });
+          });
+        }
       } catch (_err) {}
     }
 
@@ -902,7 +969,7 @@
       const mediaType = String(list.mediaType || '').toLowerCase();
       const title = escapeHtml(String(list.title || 'Custom List').trim() || 'Custom List');
       const mediaLabel = escapeHtml(SIDEBAR_MEDIA_LABEL[mediaType] || 'Media');
-      const href = escapeHtml(SIDEBAR_MEDIA_ROUTE[mediaType] || 'profile.html');
+      const href = escapeHtml(buildSidebarCustomListHref(mediaType, list.id));
       const icon = typeof window.ListUtils.renderListIcon === 'function'
         ? window.ListUtils.renderListIcon(list.icon, 'fas fa-list')
         : '<i class="fas fa-list"></i>';

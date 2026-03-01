@@ -1,8 +1,8 @@
     const ENABLE_GAMES = false;
     const ENABLE_RESTAURANTS = false;
     const HOME_BASE_MEDIA_TYPES = ENABLE_GAMES
-      ? ['movie', 'tv', 'anime', 'game', 'book', 'music']
-      : ['movie', 'tv', 'anime', 'book', 'music'];
+      ? ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel']
+      : ['movie', 'tv', 'anime', 'book', 'music', 'travel'];
     const HOME_ACTIVE_MEDIA_TYPES = ENABLE_RESTAURANTS
       ? ['restaurant', ...HOME_BASE_MEDIA_TYPES]
       : HOME_BASE_MEDIA_TYPES;
@@ -13,6 +13,7 @@
     const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
     const TMDB_SPOT_POSTER = 'https://image.tmdb.org/t/p/w780';
     const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
+    const REST_COUNTRIES_ALL_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,population,flags';
     const FALLBACK_RESTAURANTS = [
       { id: 'fallback-r1', name: 'Top Rated Picks', category: 'Community', rating: '4.8' },
       { id: 'fallback-r2', name: 'Most Saved', category: 'Trending', rating: '4.7' },
@@ -32,6 +33,16 @@
       'the weeknd',
       'sabrina carpenter'
     ];
+    const FALLBACK_TRAVEL_COUNTRIES = [
+      { code: 'US', name: 'United States', region: 'Americas', capital: 'Washington, D.C.' },
+      { code: 'JP', name: 'Japan', region: 'Asia', capital: 'Tokyo' },
+      { code: 'FR', name: 'France', region: 'Europe', capital: 'Paris' },
+      { code: 'IT', name: 'Italy', region: 'Europe', capital: 'Rome' },
+      { code: 'EG', name: 'Egypt', region: 'Africa', capital: 'Cairo' },
+      { code: 'BR', name: 'Brazil', region: 'Americas', capital: 'Brasilia' },
+      { code: 'AU', name: 'Australia', region: 'Oceania', capital: 'Canberra' },
+      { code: 'ES', name: 'Spain', region: 'Europe', capital: 'Madrid' }
+    ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-clapperboard', accent: '#f59e0b' },
       movie: { label: 'Movie', icon: 'fa-film', accent: '#ef4444' },
@@ -39,7 +50,8 @@
       anime: { label: 'Anime', icon: 'fa-dragon', accent: '#f97316' },
       ...(ENABLE_GAMES ? { game: { label: 'Game', icon: 'fa-gamepad', accent: '#38bdf8' } } : {}),
       book: { label: 'Book', icon: 'fa-book', accent: '#f97316' },
-      music: { label: 'Music', icon: 'fa-music', accent: '#f59e0b' }
+      music: { label: 'Music', icon: 'fa-music', accent: '#f59e0b' },
+      travel: { label: 'Travel', icon: 'fa-earth-americas', accent: '#22d3ee' }
     };
     const HOME_RESTAURANT_LIST_META = {
       favorites: { title: 'Favorites', description: 'My favorite restaurants', icon: 'heart' },
@@ -52,7 +64,8 @@
       anime: { table: 'anime_list_items', itemField: 'anime_id' },
       ...(ENABLE_GAMES ? { game: { table: 'game_list_items', itemField: 'game_id' } } : {}),
       book: { table: 'book_list_items', itemField: 'book_id' },
-      music: { table: 'music_list_items', itemField: 'track_id' }
+      music: { table: 'music_list_items', itemField: 'track_id' },
+      travel: { table: 'travel_list_items', itemField: 'country_code' }
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v9';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
@@ -398,6 +411,7 @@
       if (type === 'game') return 'Games';
       if (type === 'book') return 'Books';
       if (type === 'music') return 'Music';
+      if (type === 'travel') return 'Travel';
       if (type === 'restaurant') return 'Restaurants';
       return 'Discover';
     }
@@ -466,6 +480,16 @@
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
             { key: 'listened', label: 'Listened', icon: 'fas fa-eye' },
             { key: 'listenlist', label: 'Listenlist', icon: 'fas fa-bookmark' }
+          ]
+        };
+      }
+      if (type === 'travel') {
+        return {
+          customHref: 'travel.html',
+          rows: [
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'visited', label: 'Visited', icon: 'fas fa-check' },
+            { key: 'bucketlist', label: 'Bucket List', icon: 'fas fa-bookmark' }
           ]
         };
       }
@@ -1195,7 +1219,7 @@
       const value = String(listType || '').toLowerCase();
       if (value === 'favorites') return 0.75;
       if (value === 'watched' || value === 'read' || value === 'listened' || value === 'visited') return 0.6;
-      if (value === 'watchlist' || value === 'readlist' || value === 'listenlist' || value === 'wanttogo') return 0.35;
+      if (value === 'watchlist' || value === 'readlist' || value === 'listenlist' || value === 'wanttogo' || value === 'bucketlist') return 0.35;
       return 0.28;
     }
 
@@ -1508,7 +1532,7 @@
       const client = await ensureHomeSupabase();
       if (!client) return weights;
       try {
-        const [movieRes, tvRes, animeRes, gameRes, bookRes, musicRes, listRes] = await Promise.all([
+        const [movieRes, tvRes, animeRes, gameRes, bookRes, musicRes, travelRes, listRes] = await Promise.all([
           client.from('movie_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('tv_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('anime_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
@@ -1519,6 +1543,9 @@
             : Promise.resolve({ count: 0 }),
           client.from('book_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('music_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
+          client.from('travel_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
+            .then((res) => res)
+            .catch(() => ({ count: 0 })),
           ENABLE_RESTAURANTS
             ? client.from('lists').select('id').eq('user_id', homeCurrentUser.id)
             : Promise.resolve({ data: [] })
@@ -1541,6 +1568,7 @@
           ...(ENABLE_GAMES ? { game: Number(gameRes?.count || 0) } : {}),
           book: Number(bookRes?.count || 0),
           music: Number(musicRes?.count || 0),
+          travel: Number(travelRes?.count || 0),
           ...(ENABLE_RESTAURANTS ? { restaurant: restaurantCount } : {})
         };
         const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
@@ -1656,6 +1684,10 @@
       if (type === 'movie' || type === 'tv' || type === 'anime' || type === 'game') {
         const numericId = Number(itemId);
         return Number.isFinite(numericId) ? numericId : null;
+      }
+      if (type === 'travel') {
+        const code = String(itemId || '').trim().toUpperCase();
+        return code || null;
       }
       const text = String(itemId || '').trim();
       return text || null;
@@ -2280,6 +2312,14 @@
           image: item.image || ''
         };
       }
+      if (mediaType === 'travel') {
+        return {
+          id: String(item.itemId || '').toUpperCase(),
+          name: item.title || '',
+          region: item.subtitle || '',
+          image: item.image || ''
+        };
+      }
       return null;
     }
 
@@ -2649,6 +2689,7 @@
         game: 'Custom Game Lists',
         book: 'Custom Book Lists',
         music: 'Custom Music Lists',
+        travel: 'Custom Travel Lists',
         restaurant: 'Custom Restaurant Lists'
       };
       title.textContent = map[type] || 'Custom Lists';
@@ -3025,7 +3066,8 @@
           game: makeSeedItems('game', ['Top Games', 'New Releases', 'Community Picks', 'Multiplayer Hits', 'Story Games'], 'games.html')
         } : {}),
         music: makeSeedItems('music', ['Global Hits', 'Viral Tracks', 'Fresh Releases', 'Chill Vibes', 'Late Night Mix'], 'music.html'),
-        book: makeSeedItems('book', ['Bestselling Books', 'Popular Fiction', 'Book Club Picks', 'Page-Turners', 'Must Read Stories'], 'books.html')
+        book: makeSeedItems('book', ['Bestselling Books', 'Popular Fiction', 'Book Club Picks', 'Page-Turners', 'Must Read Stories'], 'books.html'),
+        travel: makeSeedItems('travel', ['Top Countries', 'Popular Destinations', 'City Break Ideas', 'Bucket List Places', 'Trending Travel Spots'], 'travel.html')
       };
     }
 
@@ -3037,7 +3079,8 @@
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
         ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 5600 }] : []),
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 8500 },
-        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 }
+        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 },
+        { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 6800 }
       ];
     }
 
@@ -3557,7 +3600,8 @@
         anime: 'Anime',
         game: 'Game',
         book: 'Book',
-        music: 'Track'
+        music: 'Track',
+        travel: 'Country'
       };
       return map[key] || 'Pick';
     }
@@ -4727,6 +4771,115 @@
       }
 
       return [];
+    }
+
+    function mapFallbackTravelItems() {
+      return FALLBACK_TRAVEL_COUNTRIES.map((row) => {
+        const code = String(row?.code || '').trim().toUpperCase();
+        const title = String(row?.name || '').trim() || 'Country';
+        const region = String(row?.region || '').trim();
+        const capital = String(row?.capital || '').trim();
+        const subtitle = [capital ? `Capital: ${capital}` : '', region].filter(Boolean).join(' | ') || 'Country';
+        const image = code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : HOME_LOCAL_FALLBACK_IMAGE;
+        return {
+          mediaType: 'travel',
+          itemId: code || title.toLowerCase(),
+          title,
+          subtitle,
+          extra: region || 'Travel',
+          image,
+          backgroundImage: image,
+          spotlightImage: image,
+          spotlightMediaImage: image,
+          spotlightMediaFit: 'cover',
+          spotlightMediaShape: 'poster',
+          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+          href: code ? `country.html?code=${encodeURIComponent(code)}` : 'travel.html'
+        };
+      }).filter((item) => String(item?.itemId || '').trim());
+    }
+
+    function mapTravelCountryToHomeItem(row) {
+      const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+      const title = String(row?.name?.common || row?.name?.official || '').trim();
+      if (!code || !title) return null;
+      const capital = Array.isArray(row?.capital)
+        ? String(row.capital[0] || '').trim()
+        : String(row?.capital || '').trim();
+      const region = String(row?.region || '').trim();
+      const subregion = String(row?.subregion || '').trim();
+      const population = Number(row?.population || 0);
+      const populationText = Number.isFinite(population) && population > 0
+        ? `Population ${new Intl.NumberFormat('en-US').format(population)}`
+        : '';
+      const subtitle = [
+        capital ? `Capital: ${capital}` : '',
+        region
+      ].filter(Boolean).join(' | ') || 'Country';
+      const extra = [
+        subregion && subregion !== region ? subregion : '',
+        populationText
+      ].filter(Boolean).join(' | ');
+      const image = safeHttps(row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
+      return {
+        mediaType: 'travel',
+        itemId: code,
+        title,
+        subtitle,
+        extra: extra || 'Travel',
+        image,
+        backgroundImage: image,
+        spotlightImage: image,
+        spotlightMediaImage: image,
+        spotlightMediaFit: 'cover',
+        spotlightMediaShape: 'poster',
+        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+        href: `country.html?code=${encodeURIComponent(code)}`
+      };
+    }
+
+    async function loadTravel(signal) {
+      const fallbackItems = mapFallbackTravelItems();
+      try {
+        const payload = await fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
+          signal,
+          cacheKey: 'restcountries:all:v3.1:home',
+          ttlMs: 1000 * 60 * 60 * 12,
+          timeoutMs: 9500,
+          retries: 1
+        });
+        if (signal?.aborted) return [];
+        const rows = Array.isArray(payload) ? payload : [];
+        if (!rows.length) return fallbackItems.slice(0, HOME_CHANNEL_TARGET_ITEMS);
+
+        const byPopulation = rows
+          .filter((row) => row && (row.cca2 || row.cca3) && (row?.name?.common || row?.name?.official))
+          .sort((a, b) => Number(b?.population || 0) - Number(a?.population || 0));
+
+        const shortlist = shuffleArray(byPopulation.slice(0, Math.max(HOME_CHANNEL_TARGET_ITEMS * 5, 120)));
+        const seenCodes = new Set();
+        const out = [];
+
+        const pushRow = (row) => {
+          const item = mapTravelCountryToHomeItem(row);
+          if (!item) return;
+          const code = String(item.itemId || '').trim().toUpperCase();
+          if (!code || seenCodes.has(code)) return;
+          seenCodes.add(code);
+          out.push(item);
+        };
+
+        shortlist.forEach(pushRow);
+        if (out.length < HOME_CHANNEL_TARGET_ITEMS) {
+          byPopulation.forEach(pushRow);
+        }
+
+        const safeItems = filterHomeSafeItems(out);
+        if (safeItems.length) {
+          return safeItems.slice(0, HOME_CHANNEL_TARGET_ITEMS);
+        }
+      } catch (_err) {}
+      return fallbackItems.slice(0, HOME_CHANNEL_TARGET_ITEMS);
     }
 
     async function initUniversalHome() {

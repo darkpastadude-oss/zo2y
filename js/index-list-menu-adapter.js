@@ -45,6 +45,11 @@
       { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
       { key: 'listened', label: 'Listened', icon: 'fas fa-eye' },
       { key: 'listenlist', label: 'Listenlist', icon: 'fas fa-bookmark' }
+    ],
+    travel: [
+      { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+      { key: 'visited', label: 'Visited', icon: 'fas fa-check' },
+      { key: 'bucketlist', label: 'Bucket List', icon: 'fas fa-bookmark' }
     ]
   };
 
@@ -53,7 +58,8 @@
     tv: { table: 'tv_list_items', itemField: 'tv_id' },
     game: { table: 'game_list_items', itemField: 'game_id' },
     book: { table: 'book_list_items', itemField: 'book_id' },
-    music: { table: 'music_list_items', itemField: 'track_id' }
+    music: { table: 'music_list_items', itemField: 'track_id' },
+    travel: { table: 'travel_list_items', itemField: 'country_code' }
   };
 
   function escapeHtml(value) {
@@ -390,6 +396,7 @@
               <button class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
               <button class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
               <button class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
+              <button class="menu-icon-option" data-icon="fas fa-earth-americas"><i class="fas fa-earth-americas"></i></button>
               <button class="menu-icon-option" data-icon="fas fa-clapperboard"><i class="fas fa-clapperboard"></i></button>
             </div>
             <div class="menu-modal-actions">

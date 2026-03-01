@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y | Reviews</title>
-  <meta name="description" content="Browse reviews across movies, TV, anime, games, books, and music." />
+  <meta name="description" content="Browse reviews across movies, TV, anime, games, books, music, and travel." />
   <link rel="canonical" href="https://www.zo2y.com/reviews.html" />
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -94,7 +94,7 @@
         right: 10px;
         bottom: 10px;
         display: grid;
-        grid-template-columns: repeat(8, minmax(0, 1fr));
+        grid-template-columns: repeat(9, minmax(0, 1fr));
         border: 1px solid var(--border);
         border-radius: 18px;
         background: rgba(12, 24, 52, 0.95);
@@ -154,6 +154,7 @@
           <a class="nav-pill" href="games.html">Games</a>
           <a class="nav-pill" href="books.html">Books</a>
           <a class="nav-pill" href="music.html">Music</a>
+          <a class="nav-pill" href="travel.html">Travel</a>
           <a class="nav-pill" href="reviews.html">Reviews</a>
         </nav>
         <div class="auth-actions">
@@ -179,6 +180,7 @@
         <button class="chip" type="button" data-media="game">Games</button>
         <button class="chip" type="button" data-media="book">Books</button>
         <button class="chip" type="button" data-media="music">Music</button>
+        <button class="chip" type="button" data-media="travel">Travel</button>
         <div class="sort"><label for="sortSelect">Sort</label><select id="sortSelect"><option value="newest">Newest</option><option value="highest">Highest Rated</option><option value="lowest">Lowest Rated</option></select></div>
       </div>
       <div class="summary" id="summaryText"></div>
@@ -194,10 +196,11 @@
     <a class="mobile-nav-item" href="games.html" aria-label="Games"><i class="fa-solid fa-gamepad"></i></a>
     <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
     <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
+    <a class="mobile-nav-item" href="travel.html" aria-label="Travel"><i class="fa-solid fa-earth-americas"></i></a>
     <a class="mobile-nav-item active" href="reviews.html" aria-label="Reviews"><i class="fa-solid fa-star"></i></a>
   </nav>
 
-  <script src="js/reviews-page.js?v=20260225a" defer></script>
+  <script src="js/reviews-page.js?v=20260301a" defer></script>
   <script src="js/production-runtime.js?v=20260227d" defer></script>
 </body>
 </html>

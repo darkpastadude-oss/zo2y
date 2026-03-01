@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y | All Your Interests in One Place</title>
-  <meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, games, books, and music." />
+  <meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, games, books, music, and travel." />
   <link rel="canonical" href="https://www.zo2y.com/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Zo2y" />
   <meta property="og:title" content="Zo2y | All Your Interests in One Place" />
-  <meta property="og:description" content="Track favorites, build custom lists, and follow friends across movies, TV, games, books, and music." />
+  <meta property="og:description" content="Track favorites, build custom lists, and follow friends across movies, TV, games, books, music, and travel." />
   <meta property="og:url" content="https://www.zo2y.com/" />
   <meta property="og:image" content="https://www.zo2y.com/images/zo2y-search-illustration.png" />
   <meta property="og:image:alt" content="Zo2y illustration with gaming, movies, and TV." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Zo2y | All Your Interests in One Place" />
-  <meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, games, books, and music." />
+  <meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, games, books, music, and travel." />
   <meta name="twitter:image" content="https://www.zo2y.com/images/zo2y-search-illustration.png" />
   <script type="application/ld+json">
     {
@@ -38,7 +38,7 @@
   <link rel="preconnect" href="https://i.scdn.co" crossorigin>
   <link rel="preconnect" href="https://images.igdb.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260221c" defer></script>
+  <script src="js/list-utils.js?v=20260301d" defer></script>
   <script src="js/universal-search.js?v=20260228e" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -74,6 +74,7 @@
         <a class="sidebar-link" href="games.html"><i class="fa-solid fa-gamepad"></i><span>Games</span></a>
         <a class="sidebar-link" href="books.html"><i class="fa-solid fa-book"></i><span>Books</span></a>
         <a class="sidebar-link" href="music.html"><i class="fa-solid fa-music"></i><span>Music</span></a>
+        <a class="sidebar-link" href="travel.html"><i class="fa-solid fa-earth-americas"></i><span>Travel</span></a>
         <a class="sidebar-link accent" href="reviews.html"><i class="fa-solid fa-star"></i><span>Reviews</span></a>
       </nav>
       <div class="sidebar-divider"></div>
@@ -112,6 +113,7 @@
               <a class="nav-pill" href="games.html">Games</a>
               <a class="nav-pill" href="books.html">Books</a>
               <a class="nav-pill" href="music.html">Music</a>
+              <a class="nav-pill" href="travel.html">Travel</a>
               <a class="nav-pill" href="reviews.html">Reviews</a>
             </nav>
             <div class="auth-actions">
@@ -198,7 +200,7 @@
         <section class="section">
           <div class="section-head">
             <h2>Culture Stream</h2>
-            <p>One swipeable feed blending movies, TV, anime, games, books, and music.</p>
+            <p>One swipeable feed blending movies, TV, anime, games, books, music, and travel.</p>
           </div>
 
           <div class="rail-wrap">
@@ -249,6 +251,11 @@
             <div class="rail" id="musicRail"></div>
           </div>
 
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-earth-americas"></i> Travel</span><a href="travel.html">View all</a></div>
+            <div class="rail" id="travelRail"></div>
+          </div>
+
         </section>
       </main>
 
@@ -268,6 +275,7 @@
     <a class="mobile-nav-item" href="games.html" aria-label="Games"><i class="fa-solid fa-gamepad"></i></a>
     <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
     <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
+    <a class="mobile-nav-item" href="travel.html" aria-label="Travel"><i class="fa-solid fa-earth-americas"></i></a>
   </nav>
 
   <div id="itemMenuModal" class="menu-modal" aria-hidden="true">
@@ -310,6 +318,7 @@
           <button class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
           <button class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
           <button class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-earth-americas"><i class="fas fa-earth-americas"></i></button>
           <button class="menu-icon-option" data-icon="fas fa-clapperboard"><i class="fas fa-clapperboard"></i></button>
         </div>
         <div class="menu-modal-actions">
@@ -321,9 +330,9 @@
   </div>
 
   <script src="js/igdb-client.js?v=20260228a"></script>
-  <script src="js/pages/index.js?v=20260228a"></script>
+  <script src="js/pages/index.js?v=20260301b"></script>
   <script src="js/production-runtime.js?v=20260227d" defer></script>
-  <script src="js/home-desktop-rebrand.js?v=20260301n" defer></script>
+  <script src="js/home-desktop-rebrand.js?v=20260301p" defer></script>
 </body>
 </html>
 

@@ -42,6 +42,13 @@
       usesUserId: true,
       defaultIcon: 'fas fa-music'
     },
+    travel: {
+      listTable: 'travel_lists',
+      itemsTable: 'travel_list_items',
+      itemIdField: 'country_code',
+      usesUserId: true,
+      defaultIcon: 'fas fa-earth-americas'
+    },
     restaurant: {
       listTable: 'lists',
       itemsTable: 'lists_restraunts',
@@ -125,6 +132,7 @@
     if (raw.includes('fa-film')) return 'movie';
     if (raw.includes('fa-book')) return 'book';
     if (raw.includes('fa-music')) return 'music';
+    if (raw.includes('fa-earth')) return 'travel';
     if (raw.includes('fa-user')) return 'user';
     if (raw.includes('fa-tv')) return 'tv';
     if (raw.includes('fa-dragon')) return 'anime';
@@ -279,6 +287,7 @@
       raw === 'game' ||
       raw === 'book' ||
       raw === 'music' ||
+      raw === 'travel' ||
       raw === 'restaurant'
     ) {
       return 'standard';
