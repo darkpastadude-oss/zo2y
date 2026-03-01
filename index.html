@@ -54,6 +54,8 @@
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260301b" />
   <script src="/js/mobile-webapp.js?v=20260301c" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260301c">
+  <script src="js/shared-header.js?v=20260301c" defer></script>
 </head>
 <body>
   <div class="desktop-app-shell">
@@ -93,37 +95,36 @@
     </aside>
 
     <div class="desktop-main-panel">
-      <header>
-        <div class="container header-inner">
-          <a class="brand" href="index.html">
-            <img src="images/logo.png" alt="Zo2y" />
-            <span>Zo2y</span>
-          </a>
-
-          <div class="search-wrap">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input class="search" id="globalSearch" placeholder="Search all media..." />
-          </div>
-
-          <div class="header-actions">
-            <nav class="top-nav" aria-label="Browse media">
-              <a class="nav-pill" href="movies.html">Movies</a>
-              <a class="nav-pill" href="tvshows.html">TV</a>
-              <a class="nav-pill" href="animes.html">Anime</a>
-              <a class="nav-pill" href="games.html">Games</a>
-              <a class="nav-pill" href="books.html">Books</a>
-              <a class="nav-pill" href="music.html">Music</a>
-              <a class="nav-pill" href="travel.html">Travel</a>
-              <a class="nav-pill" href="reviews.html">Reviews</a>
-            </nav>
-            <div class="auth-actions">
-              <a class="btn" href="login.html" id="loginBtn">Login</a>
-              <a class="btn btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
-              <a class="btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
-            </div>
-          </div>
-        </div>
-      </header>
+      <header class="zo2y-shared-header" role="banner" data-shared-header="1">
+  <div class="zo2y-shared-header-inner">
+    <a class="zo2y-shared-brand" href="index.html">
+      <img src="images/logo.png" alt="Zo2y" />
+      <span>Zo2y</span>
+    </a>
+    <div class="nav-search zo2y-shared-search">
+      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+      <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
+    </div>
+    <nav class="zo2y-shared-nav" aria-label="Primary navigation">
+      <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
+      <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
+      <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
+      <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
+      <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
+      <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
+      <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
+      <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
+      <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
+    </nav>
+    <div class="zo2y-shared-auth">
+      <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
+      <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+      <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+      <button class="zo2y-shared-btn" id="userAccountBtn" type="button"><i class="fas fa-user"></i><span>Account</span></button>
+    </div>
+  </div>
+</header>
 
       <main class="container page-shell" data-dedupe-exempt="1">
         <section class="spotlight" id="spotlightSection" role="link" tabindex="0" aria-label="Open spotlight item">

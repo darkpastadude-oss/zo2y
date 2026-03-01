@@ -402,24 +402,40 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260301c">
+  <script src="js/shared-header.js?v=20260301c" defer></script>
 </head>
 <body>
-  <header class="top">
-    <a class="top-brand" href="index.html"><img src="images/logo.png" alt="Zo2y"><span>Zo2y</span></a>
-    <nav class="top-links" aria-label="Primary navigation">
-      <a class="pill" href="index.html">Home</a>
-      <a class="pill" href="movies.html">Movies</a>
-      <a class="pill" href="tvshows.html">TV</a>
-      <a class="pill" href="animes.html">Anime</a>
-      <a class="pill" href="games.html">Games</a>
-      <a class="pill" href="books.html">Books</a>
-      <a class="pill" href="music.html">Music</a>
-      <a class="pill" href="travel.html">Travel</a>
-      <span class="pill active">Country</span>
-      <a class="pill" href="reviews.html">Reviews</a>
+  <header class="zo2y-shared-header" role="banner" data-shared-header="1">
+  <div class="zo2y-shared-header-inner">
+    <a class="zo2y-shared-brand" href="index.html">
+      <img src="images/logo.png" alt="Zo2y" />
+      <span>Zo2y</span>
+    </a>
+    <div class="nav-search zo2y-shared-search">
+      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+      <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
+    </div>
+    <nav class="zo2y-shared-nav" aria-label="Primary navigation">
+      <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
+      <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
+      <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
+      <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
+      <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
+      <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
+      <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
+      <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
+      <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
     </nav>
-    <button id="acctBtn" class="acct"><i class="fas fa-user"></i> Account</button>
-  </header>
+    <div class="zo2y-shared-auth">
+      <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
+      <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+      <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+      <button class="zo2y-shared-btn" id="userAccountBtn" type="button"><i class="fas fa-user"></i><span>Account</span></button>
+    </div>
+  </div>
+</header>
 
   <section class="hero">
     <div class="hero-left">
@@ -930,7 +946,7 @@
     }
 
     function updateAccountButton() {
-      const btn = document.getElementById('acctBtn');
+      const btn = document.getElementById('userAccountBtn');
       if (!btn) return;
       if (state.user) {
         btn.innerHTML = '<i class="fas fa-user"></i> Profile';

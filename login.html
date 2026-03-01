@@ -24,15 +24,12 @@
 body{
   background: var(--bg-color);
   min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
   color:var(--text-primary);
-  padding:20px;
+  padding:0;
   background-image: radial-gradient(circle at 20% 80%, rgba(66,133,244,0.1) 0%, transparent 20%),
                   radial-gradient(circle at 80% 20%, rgba(245,158,11,0.1) 0%, transparent 20%);
 }
-.auth-container{width:100%;max-width:450px;animation:fadeIn 0.5s ease-out;}
+.auth-container{width:min(100%,450px);animation:fadeIn 0.5s ease-out;margin:28px auto 24px;padding:0 20px;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 .logo-header{text-align:center;margin-bottom:30px;}
 .logo-header h1{color:var(--secondary-color);font-size:2.5rem;display:flex;align-items:center;justify-content:center;gap:10px;}
@@ -123,8 +120,40 @@ body{
   <link rel="apple-touch-icon" href="/images/logo.png" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260226a" />
   <script src="/js/mobile-webapp.js?v=20260228b" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260301c">
+  <script src="js/shared-header.js?v=20260301c" defer></script>
 </head>
 <body>
+<header class="zo2y-shared-header" role="banner" data-shared-header="1">
+  <div class="zo2y-shared-header-inner">
+    <a class="zo2y-shared-brand" href="index.html">
+      <img src="images/logo.png" alt="Zo2y" />
+      <span>Zo2y</span>
+    </a>
+    <div class="nav-search zo2y-shared-search">
+      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+      <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
+    </div>
+    <nav class="zo2y-shared-nav" aria-label="Primary navigation">
+      <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
+      <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
+      <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
+      <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
+      <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
+      <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
+      <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
+      <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
+      <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
+    </nav>
+    <div class="zo2y-shared-auth">
+      <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
+      <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+      <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+      <button class="zo2y-shared-btn" id="userAccountBtn" type="button"><i class="fas fa-user"></i><span>Account</span></button>
+    </div>
+  </div>
+</header>
 <div class="auth-container">
   <div class="logo-header">
     <h1><img src="images/logo.png" alt="Zo2y Logo">Zo2y</h1>
