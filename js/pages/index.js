@@ -5303,6 +5303,22 @@
 
     async function loadTravel(signal) {
       const fallbackItems = mapFallbackTravelItems();
+      const targetCount = Math.max(1, Number(HOME_CHANNEL_TARGET_ITEMS || 16));
+      const mergeWithFallback = (items = []) => {
+        const merged = [];
+        const seen = new Set();
+        const push = (item) => {
+          if (!item || typeof item !== 'object') return;
+          const code = String(item.itemId || '').trim().toUpperCase();
+          if (!code || seen.has(code)) return;
+          seen.add(code);
+          merged.push(item);
+        };
+        (Array.isArray(items) ? items : []).forEach(push);
+        fallbackItems.forEach(push);
+        return filterHomeSafeItems(merged).slice(0, targetCount);
+      };
+
       try {
         const payload = await fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
           signal,
@@ -5313,7 +5329,7 @@
         });
         if (signal?.aborted) return [];
         const rows = Array.isArray(payload) ? payload : [];
-        if (!rows.length) return fallbackItems.slice(0, HOME_CHANNEL_TARGET_ITEMS);
+        if (!rows.length) return mergeWithFallback([]);
 
         const sortedRows = rows
           .filter((row) => {
@@ -5330,37 +5346,25 @@
             return left.localeCompare(right);
           });
 
-        const photoCandidates = sortedRows.slice(0, Math.max(HOME_CHANNEL_TARGET_ITEMS * 4, 100));
-        const photoMap = await fetchTravelCommonsPhotos(photoCandidates, signal);
-        if (signal?.aborted) return [];
-
-        const shortlist = shuffleArray(sortedRows.slice(0, Math.max(HOME_CHANNEL_TARGET_ITEMS * 5, 120)));
+        const shortlist = shuffleArray(sortedRows.slice(0, Math.max(targetCount * 5, 120)));
         const seenCodes = new Set();
         const out = [];
-
         const pushRow = (row) => {
-          const item = mapTravelCountryToHomeItem(row, photoMap);
+          const item = mapTravelCountryToHomeItem(row, null);
           if (!item) return;
           const code = String(item.itemId || '').trim().toUpperCase();
           if (!code || seenCodes.has(code)) return;
           seenCodes.add(code);
           out.push(item);
         };
-
         shortlist.forEach(pushRow);
-        if (out.length < HOME_CHANNEL_TARGET_ITEMS) {
-          sortedRows.forEach(pushRow);
-        }
+        if (out.length < targetCount) sortedRows.forEach(pushRow);
 
-        const safeItems = filterHomeSafeItems(out);
-        if (safeItems.length) {
-          const liveItems = await filterHomeTravelItemsByReachableImage(safeItems, signal, HOME_CHANNEL_TARGET_ITEMS);
-          if (liveItems.length) return liveItems;
-        }
+        const merged = mergeWithFallback(out);
+        if (merged.length) return merged;
       } catch (_err) {}
-      const fallbackSafe = filterHomeSafeItems(fallbackItems);
-      const liveFallback = await filterHomeTravelItemsByReachableImage(fallbackSafe, signal, HOME_CHANNEL_TARGET_ITEMS);
-      return liveFallback;
+
+      return mergeWithFallback([]);
     }
 
     async function initUniversalHome() {

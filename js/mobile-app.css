@@ -264,12 +264,17 @@ body.app-ready #appLoadLine {
   }
 
   body[data-zo2y-page="profile"] .mobile-profile-header {
-    padding: calc(80px + var(--app-safe-top)) 14px 12px;
+    padding: 18px 14px 12px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(12px) saturate(160%);
     display: flex;
     flex-direction: column;
     align-items: center;
+  }
+
+  body[data-zo2y-page="profile"] .mobile-profile-menu-btn {
+    top: 8px;
+    right: 10px;
   }
 
   body[data-zo2y-page="profile"] .mobile-avatar-container {

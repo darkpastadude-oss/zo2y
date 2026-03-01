@@ -48,21 +48,29 @@
     return 'index';
   }
 
+  function isHeaderSuppressedPage(pathname) {
+    const file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
+    return file === 'login.html' || file === 'sign-up.html' || file === 'signup.html' || file === 'update-password.html';
+  }
+
   function mountSharedHeader() {
     if (!document.body) return;
-    let sharedHeader = document.querySelector('[data-shared-header="1"]');
+    const parser = document.createElement('div');
+    parser.innerHTML = HEADER_HTML.trim();
+    const nextSharedHeader = parser.firstElementChild;
+    if (!nextSharedHeader) return;
 
-    if (!sharedHeader) {
-      const parser = document.createElement('div');
-      parser.innerHTML = HEADER_HTML.trim();
-      sharedHeader = parser.firstElementChild;
-      if (!sharedHeader) return;
+    const existingSharedHeader = document.querySelector('[data-shared-header="1"]');
+    let sharedHeader = nextSharedHeader;
 
+    if (existingSharedHeader) {
+      existingSharedHeader.replaceWith(nextSharedHeader);
+    } else {
       const legacyHeader = document.querySelector('header');
       if (legacyHeader) {
-        legacyHeader.replaceWith(sharedHeader);
+        legacyHeader.replaceWith(nextSharedHeader);
       } else {
-        document.body.insertBefore(sharedHeader, document.body.firstChild);
+        document.body.insertBefore(nextSharedHeader, document.body.firstChild);
       }
     }
 
@@ -148,6 +156,7 @@
   }
 
   function boot() {
+    if (isHeaderSuppressedPage(window.location.pathname)) return;
     mountSharedHeader();
     wireSearchButton();
     void syncAuthHeaderState();
