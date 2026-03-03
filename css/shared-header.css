@@ -206,9 +206,18 @@
 }
 
 @media (max-width: 760px) {
+  body[data-zo2y-compact-header="1"] .zo2y-shared-search {
+    display: none;
+  }
+
   .zo2y-shared-header-inner {
     width: calc(100% - 18px);
     min-height: 60px;
+  }
+
+  body[data-zo2y-compact-header="1"] .zo2y-shared-header-inner {
+    min-height: 52px;
+    padding: 6px 0;
   }
 
   .zo2y-shared-brand span,

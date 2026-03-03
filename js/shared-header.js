@@ -48,6 +48,11 @@
     return 'index';
   }
 
+  function isMobileContentPage(pathname) {
+    const file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
+    return file.endsWith('-mobile.html');
+  }
+
   function isHeaderSuppressedPage(pathname) {
     const file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
     return file === 'login.html' || file === 'sign-up.html' || file === 'signup.html' || file === 'update-password.html';
@@ -72,6 +77,14 @@
       } else {
         document.body.insertBefore(nextSharedHeader, document.body.firstChild);
       }
+    }
+
+    const mobilePage = isMobileContentPage(window.location.pathname);
+    document.body.setAttribute('data-zo2y-compact-header', mobilePage ? '1' : '0');
+
+    if (mobilePage) {
+      const gamesNavItem = sharedHeader.querySelector('[data-nav-page="games"]');
+      if (gamesNavItem) gamesNavItem.remove();
     }
 
     const activePage = normalizePageName(window.location.pathname);
