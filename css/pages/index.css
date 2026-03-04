@@ -2078,6 +2078,11 @@
         gap: 8px;
       }
 
+      .spotlight.has-square-media .spotlight-inner,
+      .spotlight.has-landscape-media .spotlight-inner {
+        max-width: none;
+      }
+
       .spotlight.no-media .spotlight-inner {
         padding-right: 18px;
       }
@@ -2193,6 +2198,11 @@
         padding: 14px 16px 16px;
         padding-right: 120px;
         gap: 9px;
+      }
+
+      .spotlight.has-square-media .spotlight-inner,
+      .spotlight.has-landscape-media .spotlight-inner {
+        max-width: none;
       }
       .spotlight.no-media .spotlight-inner {
         padding-right: 16px;
