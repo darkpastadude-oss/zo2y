@@ -2074,7 +2074,7 @@
         min-height: 340px;
         max-width: none;
         padding: 16px 18px 18px;
-        padding-right: clamp(150px, 34vw, 246px);
+        padding-right: clamp(128px, 30vw, 206px);
         gap: 8px;
       }
 
@@ -2108,21 +2108,43 @@
         font-size: clamp(20px, 4.6vw, 30px);
         line-height: 1.06;
         display: -webkit-box;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        overflow-wrap: normal;
+        word-break: normal;
+        hyphens: none;
       }
 
       .spotlight-summary {
         font-size: 13px;
         display: -webkit-box;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        overflow-wrap: normal;
+        word-break: normal;
       }
 
       .spotlight.has-landscape-media .spotlight-title {
         font-size: clamp(18px, 4.2vw, 25px);
+      }
+
+      .spotlight-meta {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+        width: 100%;
+      }
+
+      .spotlight-meta .chip {
+        width: 100%;
+        max-width: none;
+        white-space: normal;
+        overflow-wrap: normal;
+        word-break: normal;
+        border-radius: 14px;
+        line-height: 1.24;
       }
     }
 
@@ -2169,7 +2191,7 @@
         min-height: 332px;
         max-width: none;
         padding: 14px 16px 16px;
-        padding-right: 136px;
+        padding-right: 120px;
         gap: 9px;
       }
       .spotlight.no-media .spotlight-inner {
@@ -2235,17 +2257,22 @@
         font-size: clamp(16px, 5.8vw, 22px);
         line-height: 1.08;
         display: -webkit-box;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        overflow-wrap: normal;
+        word-break: normal;
+        hyphens: none;
       }
 
       .spotlight-summary {
         font-size: 12px;
         display: -webkit-box;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        overflow-wrap: normal;
+        word-break: normal;
       }
 
       .spotlight-meta {
@@ -2267,6 +2294,9 @@
         padding: 7px 9px;
         align-items: flex-start;
         gap: 7px;
+        border-radius: 12px;
+        overflow-wrap: normal;
+        word-break: normal;
       }
 
       .spotlight-meta .chip i {
@@ -2451,7 +2481,7 @@
       }
 
       .spotlight-inner {
-        padding-right: 102px;
+        padding-right: 92px;
       }
 
       .spotlight.has-square-media .spotlight-inner {
