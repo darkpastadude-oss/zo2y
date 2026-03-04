@@ -6,8 +6,11 @@
     quickRows: [],
     quickStatus: {},
     pendingQuickKeys: new Set(),
+    quickMutationVersions: {},
     customLists: [],
     selectedCustomLists: new Set(),
+    pendingCustomListIds: new Set(),
+    customMutationVersion: 0,
     selectedIcon: 'fas fa-list'
   };
   const CACHE = {
@@ -241,6 +244,9 @@
         border-color: var(--accent, #f59e0b);
         background: rgba(245, 158, 11, 0.1);
       }
+      .menu-custom-item[aria-busy="true"] {
+        opacity: 0.82;
+      }
       .menu-custom-left {
         display: flex;
         align-items: center;
@@ -338,6 +344,83 @@
         border-radius: 12px;
         border: 1px dashed var(--border, rgba(255,255,255,0.12));
       }
+      @media (max-width: 768px) {
+        .menu-modal {
+          align-items: flex-end;
+          justify-content: center;
+          background: rgba(3, 10, 28, 0.8);
+          backdrop-filter: blur(8px);
+        }
+        .menu-modal-content {
+          width: calc(100vw - 14px);
+          max-width: 100vw;
+          max-height: min(86dvh, 740px);
+          border-radius: 18px 18px 14px 14px;
+          transform: translate(-50%, -50%);
+        }
+        .menu-modal-header {
+          padding: 14px 16px;
+        }
+        .menu-modal-header h3 {
+          font-size: 17px;
+        }
+        .menu-modal-close {
+          width: 40px;
+          height: 40px;
+          font-size: 26px;
+        }
+        .menu-modal-body {
+          padding: 12px 14px 16px;
+        }
+        .menu-quick-lists,
+        .menu-custom-lists {
+          gap: 10px;
+        }
+        .menu-custom-lists {
+          max-height: min(38dvh, 340px);
+        }
+        .menu-quick-item,
+        .menu-custom-item {
+          min-height: 48px;
+          padding: 12px 14px;
+          border-radius: 13px;
+        }
+        .menu-quick-left span,
+        .menu-custom-left span {
+          font-size: 15px;
+        }
+        .menu-create-list-btn {
+          min-height: 40px;
+          padding: 8px 12px;
+          font-size: 13px;
+          border-radius: 999px;
+        }
+        .menu-input {
+          min-height: 46px;
+          font-size: 15px;
+          padding: 12px 14px;
+        }
+        .menu-icon-option {
+          min-height: 46px;
+          border-radius: 12px;
+        }
+        .menu-modal-actions {
+          position: sticky;
+          bottom: 0;
+          background: linear-gradient(180deg, rgba(19,35,71,0.92), rgba(19,35,71,1));
+          margin: 12px -14px -16px;
+          padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+          border-top: 1px solid var(--border, rgba(255,255,255,0.12));
+          flex-direction: column-reverse;
+          gap: 8px;
+        }
+        .menu-modal-actions .menu-btn {
+          width: 100%;
+          min-height: 44px;
+          font-size: 15px;
+          border-radius: 12px;
+        }
+      }
     `;
     document.head.appendChild(style);
   }
@@ -379,7 +462,7 @@
       createModal.className = 'menu-modal';
       createModal.setAttribute('aria-hidden', 'true');
       createModal.innerHTML = `
-        <div class="menu-modal-content" style="max-width: 320px;">
+        <div class="menu-modal-content">
           <div class="menu-modal-header">
             <h3>Create New List</h3>
             <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
@@ -752,6 +835,9 @@
       itemModal.setAttribute('aria-hidden', 'true');
     }
     STATE.pendingQuickKeys = new Set();
+    STATE.quickMutationVersions = {};
+    STATE.pendingCustomListIds = new Set();
+    STATE.customMutationVersion = 0;
     syncMenuModalBodyLock();
   }
 
@@ -792,7 +878,7 @@
     }).join('');
 
     quickContainer.querySelectorAll('.menu-quick-item').forEach((node) => {
-      node.addEventListener('click', async () => {
+      node.addEventListener('click', () => {
         const key = node.getAttribute('data-quick-key');
         if (!key || STATE.pendingQuickKeys.has(key)) return;
         const user = getCurrentUser();
@@ -805,31 +891,38 @@
         const previousSaved = !!STATE.quickStatus[key];
         const nextSaved = !previousSaved;
         const listKeys = STATE.quickRows.map((row) => row.key).filter(Boolean);
+        const nextVersion = Number(STATE.quickMutationVersions[key] || 0) + 1;
+        STATE.quickMutationVersions[key] = nextVersion;
         STATE.pendingQuickKeys.add(key);
         STATE.quickStatus[key] = nextSaved;
         writeCachedQuickStatus(item.itemId, STATE.quickStatus, listKeys);
         renderItemMenuQuickLists();
 
-        let saveResult = null;
-        try {
-          if (bridge && typeof bridge.toggleDefaultList === 'function') {
-            saveResult = await bridge.toggleDefaultList({
-              itemId: item.itemId,
-              listType: key,
-              card: STATE.currentCard,
-              nextSaved
-            });
-          }
-        } catch (_err) {}
+        void (async () => {
+          let saveResult = null;
+          try {
+            if (bridge && typeof bridge.toggleDefaultList === 'function') {
+              saveResult = await bridge.toggleDefaultList({
+                itemId: item.itemId,
+                listType: key,
+                card: STATE.currentCard,
+                nextSaved
+              });
+            }
+          } catch (_err) {}
 
-        if (!saveResult?.ok) {
-          STATE.quickStatus[key] = previousSaved;
-        } else if (typeof saveResult.saved === 'boolean') {
-          STATE.quickStatus[key] = saveResult.saved;
-        }
-        writeCachedQuickStatus(item.itemId, STATE.quickStatus, listKeys);
-        STATE.pendingQuickKeys.delete(key);
-        renderItemMenuQuickLists();
+          const isLatest = Number(STATE.quickMutationVersions[key] || 0) === nextVersion;
+          if (!isLatest) return;
+
+          if (!saveResult?.ok) {
+            STATE.quickStatus[key] = previousSaved;
+          } else if (typeof saveResult.saved === 'boolean') {
+            STATE.quickStatus[key] = saveResult.saved;
+          }
+          writeCachedQuickStatus(item.itemId, STATE.quickStatus, listKeys);
+          STATE.pendingQuickKeys.delete(key);
+          renderItemMenuQuickLists();
+        })();
       });
     });
   }
@@ -848,13 +941,14 @@
 
     customContainer.innerHTML = STATE.customLists.map((list) => {
       const isActive = STATE.selectedCustomLists.has(list.id);
+      const isBusy = STATE.pendingCustomListIds.has(String(list.id || '').trim());
       return `
-        <div class="menu-custom-item ${isActive ? 'active' : ''}" data-list-id="${list.id}">
+        <div class="menu-custom-item ${isActive ? 'active' : ''}" data-list-id="${list.id}" aria-busy="${isBusy ? 'true' : 'false'}">
           <div class="menu-custom-left">
             ${window.ListUtils ? ListUtils.renderListIcon(list.icon, 'fas fa-list') : '<i class="fas fa-list"></i>'}
             <span>${escapeHtml(list.title || 'Custom List')}</span>
           </div>
-          <span class="menu-custom-state">${isActive ? 'Saved' : 'Add'}</span>
+          <span class="menu-custom-state">${isBusy ? 'Syncing' : (isActive ? 'Saved' : 'Add')}</span>
         </div>
       `;
     }).join('');
@@ -881,6 +975,9 @@
     if (!item) return;
     STATE.quickRows = getQuickRowsForMenu();
     STATE.pendingQuickKeys = new Set();
+    STATE.quickMutationVersions = {};
+    STATE.pendingCustomListIds = new Set();
+    STATE.customMutationVersion = 0;
     const listKeys = STATE.quickRows.map((row) => row.key).filter(Boolean);
     STATE.quickStatus = readCachedQuickStatus(item.itemId, listKeys);
     if (!STATE.customLists.length) {
@@ -944,8 +1041,11 @@
     const listKeys = STATE.quickRows.map((row) => row.key).filter(Boolean);
     STATE.quickStatus = readCachedQuickStatus(item.itemId, listKeys);
     STATE.pendingQuickKeys = new Set();
+    STATE.quickMutationVersions = {};
     STATE.customLists = readCachedCustomLists();
     STATE.selectedCustomLists = readCachedMembership(item.itemId);
+    STATE.pendingCustomListIds = new Set();
+    STATE.customMutationVersion = 0;
 
     const titleEl = document.getElementById('menuModalTitle');
     if (titleEl) titleEl.textContent = item.title || 'Add to List';
@@ -981,25 +1081,36 @@
     const next = new Set(STATE.selectedCustomLists);
     if (next.has(listId)) next.delete(listId);
     else next.add(listId);
-    const previous = STATE.selectedCustomLists;
+    const previous = new Set(STATE.selectedCustomLists);
+    const saveVersion = Number(STATE.customMutationVersion || 0) + 1;
+    STATE.customMutationVersion = saveVersion;
+    STATE.pendingCustomListIds.add(String(listId || '').trim());
     STATE.selectedCustomLists = next;
     writeCachedMembership(item.itemId, STATE.selectedCustomLists);
     renderItemMenuCustomLists();
-    try {
-      await ListUtils.saveCustomListChanges(
-        client,
-        user.id,
-        getMediaType(),
-        item.itemId,
-        [...next],
-        buildCustomListPayload()
-      );
-    } catch (_err) {
-      STATE.selectedCustomLists = previous;
-      writeCachedMembership(item.itemId, STATE.selectedCustomLists);
-      renderItemMenuCustomLists();
-      notify('Could not update custom list', true);
-    }
+
+    void (async () => {
+      try {
+        await ListUtils.saveCustomListChanges(
+          client,
+          user.id,
+          getMediaType(),
+          item.itemId,
+          [...next],
+          buildCustomListPayload()
+        );
+      } catch (_err) {
+        if (Number(STATE.customMutationVersion || 0) !== saveVersion) return;
+        STATE.selectedCustomLists = previous;
+        writeCachedMembership(item.itemId, STATE.selectedCustomLists);
+        renderItemMenuCustomLists();
+        notify('Could not update custom list', true);
+      } finally {
+        if (Number(STATE.customMutationVersion || 0) !== saveVersion) return;
+        STATE.pendingCustomListIds.delete(String(listId || '').trim());
+        renderItemMenuCustomLists();
+      }
+    })();
   }
 
   function openCreateListModalFromMenu() {

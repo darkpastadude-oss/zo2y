@@ -680,7 +680,7 @@
                     full_name: currentUser.email.split('@')[0],
                     bio: "",
                     location: "",
-                    avatar_icon: iconGlyph('user'),
+                    avatar_icon: iconGlyphText('user'),
                     is_private: false,
                     created_at: new Date().toISOString()
                 };
@@ -825,14 +825,14 @@
                     document.getElementById('mobileProfileName').textContent = profile?.full_name || profile?.username || currentUser.email.split('@')[0];
                     document.getElementById('mobileProfileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
                     document.getElementById('mobileProfileBio').textContent = profile?.bio || "No bio yet. Tap edit to add one!";
-                    document.getElementById('mobileAvatar').textContent = profile?.avatar_icon || iconGlyph('user');
+                    document.getElementById('mobileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
                 } else {
                     document.getElementById('profileName').textContent = profile?.full_name || profile?.username || currentUser.email.split('@')[0];
                     document.getElementById('profileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
                     document.getElementById('profileBio').textContent = profile?.bio || "No bio yet. Click edit to add one!";
                     document.getElementById('profileLocation').textContent = profile?.location || "Location not set";
                     document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
-                    document.getElementById('profileAvatar').textContent = profile?.avatar_icon || iconGlyph('user');
+                    document.getElementById('profileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
                 }
             }
 
@@ -1486,7 +1486,8 @@
                     const avatarsHtml = uniqueIds.map((id) => {
                         const user = userMap.get(id);
                         const label = escapeHtml(user?.full_name || user?.username || 'User');
-                        const avatar = escapeHtml(user?.avatar_icon || iconGlyph('user'));
+                        const rawAvatar = String(user?.avatar_icon || '').trim();
+                        const avatar = rawAvatar ? escapeHtml(rawAvatar) : iconGlyph('user');
                         return `<button class="social-preview-avatar" title="${label}" onclick="ProfileManager.viewUserProfile('${id}')">${avatar}</button>`;
                     }).join('');
 
@@ -2566,7 +2567,7 @@
                             if (isMobile) {
                                 journalEntries.innerHTML = `
                                     <div class="mobile-empty-state">
-                                        <div class="mobile-empty-icon">[N]</div>
+                                        <div class="mobile-empty-icon">${iconGlyph('restaurant')}</div>
                                         <div class="mobile-empty-title">No Reviews Yet</div>
                                         <div class="mobile-empty-description">${emptyText}</div>
                                         ${isViewingOwnProfile ? `
@@ -2579,7 +2580,7 @@
                             } else {
                                 journalEntries.innerHTML = `
                                     <div class="empty-state">
-                                        <div class="empty-icon">[N]</div>
+                                        <div class="empty-icon">${iconGlyph('restaurant')}</div>
                                         <h3 class="empty-title">No Reviews Yet</h3>
                                         <p class="empty-description">${emptyText}</p>
                                         ${isViewingOwnProfile ? `
@@ -3904,32 +3905,56 @@
                 return raw;
             }
 
-            function iconGlyph(icon, fallback = 'list') {
+            function iconClass(icon, fallback = 'list') {
                 const key = normalizeIconKey(icon, fallback);
                 const map = {
-                    heart: "\u2764\uFE0F",
-                    check: "\u2705",
-                    bookmark: "\u{1F516}",
-                    restaurant: "\u{1F3AC}",
-                    movie: "\u{1F3AC}",
-                    tv: "\u{1F4FA}",
-                    anime: "\u{1F409}",
-                    game: "\u{1F3AE}",
-                    book: "\u{1F4DA}",
-                    list: "\u{1F4CB}",
-                    user: "\u{1F464}",
-                    star: "\u2B50",
-                    fire: "\u{1F525}",
-                    sparkles: "\u2728",
-                    rocket: "\u{1F680}",
-                    trophy: "\u{1F3C6}",
-                    gift: "\u{1F381}",
-                    music: "\u{1F3B5}",
-                    travel: "\u{1F30D}",
-                    camera: "\u{1F4F7}",
-                    soccer: "\u26BD"
+                    heart: 'fas fa-heart',
+                    check: 'fas fa-check',
+                    bookmark: 'fas fa-bookmark',
+                    restaurant: 'fas fa-clapperboard',
+                    movie: 'fas fa-film',
+                    tv: 'fas fa-tv',
+                    anime: 'fas fa-dragon',
+                    game: 'fas fa-gamepad',
+                    book: 'fas fa-book',
+                    list: 'fas fa-list',
+                    user: 'fas fa-user',
+                    star: 'fas fa-star',
+                    fire: 'fas fa-fire',
+                    sparkles: 'fas fa-sparkles',
+                    rocket: 'fas fa-rocket',
+                    trophy: 'fas fa-trophy',
+                    gift: 'fas fa-gift',
+                    music: 'fas fa-music',
+                    travel: 'fas fa-earth-americas',
+                    camera: 'fas fa-camera',
+                    soccer: 'fas fa-futbol'
                 };
                 return map[key] || map[fallback] || map.list;
+            }
+
+            function iconGlyph(icon, fallback = 'list') {
+                return `<span class="zo2y-orange-illustration" aria-hidden="true"><i class="${iconClass(icon, fallback)}"></i></span>`;
+            }
+
+            function iconGlyphText(icon, fallback = 'user') {
+                const key = normalizeIconKey(icon, fallback);
+                const map = {
+                    user: 'U',
+                    list: 'L',
+                    heart: 'H',
+                    check: 'C',
+                    bookmark: 'B',
+                    restaurant: 'R',
+                    movie: 'M',
+                    tv: 'T',
+                    anime: 'A',
+                    game: 'G',
+                    book: 'B',
+                    music: 'M',
+                    travel: 'T'
+                };
+                return map[key] || map[fallback] || 'U';
             }
 
             function getUserIdFromUrl() {
@@ -6556,44 +6581,44 @@
                     const desktopName = document.getElementById('movieDetailName');
                     const desktopIcon = document.getElementById('movieDetailIcon');
                     const mobileName = document.getElementById('mobileMovieDetailTitle');
-                    if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
-                    if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
-                    if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
+                    if (desktopName) desktopName.textContent = safeTitle;
+                    if (desktopIcon) desktopIcon.innerHTML = iconText;
+                    if (mobileName) mobileName.textContent = safeTitle;
                 } else if (type === 'tv') {
                     const desktopName = document.getElementById('tvDetailName');
                     const desktopIcon = document.getElementById('tvDetailIcon');
                     const mobileName = document.getElementById('mobileTvDetailTitle');
-                    if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
-                    if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
-                    if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
+                    if (desktopName) desktopName.textContent = safeTitle;
+                    if (desktopIcon) desktopIcon.innerHTML = iconText;
+                    if (mobileName) mobileName.textContent = safeTitle;
                 } else if (type === 'anime') {
                     const desktopName = document.getElementById('animeDetailName');
                     const desktopIcon = document.getElementById('animeDetailIcon');
                     const mobileName = document.getElementById('mobileAnimeDetailTitle');
-                    if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
-                    if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
-                    if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
+                    if (desktopName) desktopName.textContent = safeTitle;
+                    if (desktopIcon) desktopIcon.innerHTML = iconText;
+                    if (mobileName) mobileName.textContent = safeTitle;
                 } else if (type === 'game') {
                     const desktopName = document.getElementById('gameDetailName');
                     const desktopIcon = document.getElementById('gameDetailIcon');
                     const mobileName = document.getElementById('mobileGameDetailTitle');
-                    if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
-                    if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
-                    if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
+                    if (desktopName) desktopName.textContent = safeTitle;
+                    if (desktopIcon) desktopIcon.innerHTML = iconText;
+                    if (mobileName) mobileName.textContent = safeTitle;
                 } else if (type === 'book') {
                     const desktopName = document.getElementById('bookDetailName');
                     const desktopIcon = document.getElementById('bookDetailIcon');
                     const mobileName = document.getElementById('mobileBookDetailTitle');
-                    if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
-                    if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
-                    if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
+                    if (desktopName) desktopName.textContent = safeTitle;
+                    if (desktopIcon) desktopIcon.innerHTML = iconText;
+                    if (mobileName) mobileName.textContent = safeTitle;
                 } else if (type === 'music') {
                     const desktopName = document.getElementById('musicDetailName');
                     const desktopIcon = document.getElementById('musicDetailIcon');
                     const mobileName = document.getElementById('mobileMusicDetailTitle');
-                    if (desktopName && desktopName.textContent) desktopName.textContent = safeTitle;
-                    if (desktopIcon && desktopIcon.textContent) desktopIcon.textContent = iconText;
-                    if (mobileName && mobileName.textContent) mobileName.textContent = safeTitle;
+                    if (desktopName) desktopName.textContent = safeTitle;
+                    if (desktopIcon) desktopIcon.innerHTML = iconText;
+                    if (mobileName) mobileName.textContent = safeTitle;
                 }
             }
 
@@ -8133,7 +8158,7 @@
                     const nameEl = document.getElementById('restaurantDetailName');
                     const descEl = document.getElementById('restaurantDetailDescription');
                     const actions = document.getElementById('restaurantDetailActions');
-                    if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'restaurant');
+                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'restaurant');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = isViewingOwnProfile && !list.is_default ? 'flex' : 'none';
@@ -8331,7 +8356,7 @@
                     const actions = document.getElementById('movieDetailActions');
                     const editBtn = document.getElementById('movieListEditBtn');
                     const deleteBtn = document.getElementById('movieListDeleteBtn');
-                    if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'list');
+                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'list');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
@@ -8526,7 +8551,7 @@
                     const actions = document.getElementById('tvDetailActions');
                     const editBtn = document.getElementById('tvListEditBtn');
                     const deleteBtn = document.getElementById('tvListDeleteBtn');
-                    if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'tv');
+                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'tv');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
@@ -8723,7 +8748,7 @@
                     const actions = document.getElementById('animeDetailActions');
                     const editBtn = document.getElementById('animeListEditBtn');
                     const deleteBtn = document.getElementById('animeListDeleteBtn');
-                    if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'anime');
+                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'anime');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
@@ -8920,7 +8945,7 @@
                     const actions = document.getElementById('gameDetailActions');
                     const editBtn = document.getElementById('gameListEditBtn');
                     const deleteBtn = document.getElementById('gameListDeleteBtn');
-                    if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'game');
+                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'game');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
@@ -9113,7 +9138,7 @@
                     const actions = document.getElementById('bookDetailActions');
                     const editBtn = document.getElementById('bookListEditBtn');
                     const deleteBtn = document.getElementById('bookListDeleteBtn');
-                    if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'list');
+                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'list');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
@@ -9339,7 +9364,7 @@
                     const actions = document.getElementById('musicDetailActions');
                     const editBtn = document.getElementById('musicListEditBtn');
                     const deleteBtn = document.getElementById('musicListDeleteBtn');
-                    if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'music');
+                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'music');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
@@ -9530,7 +9555,7 @@
                     const actions = document.getElementById('travelDetailActions');
                     const editBtn = document.getElementById('travelListEditBtn');
                     const deleteBtn = document.getElementById('travelListDeleteBtn');
-                    if (iconEl) iconEl.textContent = iconGlyph(list.icon, 'travel');
+                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'travel');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
@@ -10013,6 +10038,42 @@
 
             async function removeFromCollection(itemId, collectionId, type, listType = 'custom') {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                const trigger = window.event?.currentTarget instanceof HTMLElement
+                    ? window.event.currentTarget
+                    : null;
+                const removableNode = trigger
+                    ? trigger.closest('.collection-item-card, .movie-list-movie-card, .mobile-list-restaurant-card, .mobile-journal-entry')
+                    : null;
+                let restoreRemovedNode = null;
+
+                const refreshCollectionViews = () => {
+                    if (type === 'restaurant') {
+                        void showRestaurantDetail(collectionId, window.innerWidth <= 768);
+                        void renderRestaurants();
+                    } else if (type === 'movie') {
+                        void showMovieDetail(collectionId, listType, window.innerWidth <= 768);
+                        void renderMovies();
+                    } else if (type === 'tv') {
+                        void showTvDetail(collectionId, listType, window.innerWidth <= 768);
+                        void renderTvShows();
+                    } else if (type === 'anime') {
+                        void showAnimeDetail(collectionId, listType, window.innerWidth <= 768);
+                        void renderAnimeShows();
+                    } else if (type === 'game') {
+                        void showGameDetail(collectionId, listType, window.innerWidth <= 768);
+                        void renderGames();
+                    } else if (type === 'music') {
+                        void showMusicDetail(collectionId, listType, window.innerWidth <= 768);
+                        void renderMusic();
+                    } else if (type === 'travel') {
+                        void showTravelDetail(collectionId, listType, window.innerWidth <= 768);
+                        void renderTravel();
+                    } else {
+                        void showBookDetail(collectionId, listType, window.innerWidth <= 768);
+                        void renderBooks();
+                    }
+                };
+
                 try {
                     if (type !== 'restaurant') {
                         let canEdit = canEditCollectionItems(type, collectionId, listType);
@@ -10026,6 +10087,25 @@
                         }
                     }
 
+                    if (removableNode instanceof HTMLElement) {
+                        const previousDisplay = removableNode.style.display;
+                        const previousOpacity = removableNode.style.opacity;
+                        const previousTransform = removableNode.style.transform;
+                        const previousPointerEvents = removableNode.style.pointerEvents;
+                        removableNode.style.pointerEvents = 'none';
+                        removableNode.style.opacity = '0.22';
+                        removableNode.style.transform = 'scale(0.98)';
+                        window.setTimeout(() => {
+                            removableNode.style.display = 'none';
+                        }, 60);
+                        restoreRemovedNode = () => {
+                            removableNode.style.display = previousDisplay;
+                            removableNode.style.opacity = previousOpacity;
+                            removableNode.style.transform = previousTransform;
+                            removableNode.style.pointerEvents = previousPointerEvents;
+                        };
+                    }
+
                     if (type === 'restaurant') {
                         await supabase
                             .from('lists_restraunts')
@@ -10034,7 +10114,6 @@
                             .eq('restraunt_id', itemId);
 
                         showToast('Removed from collection', 'success');
-                        await showRestaurantDetail(collectionId, window.innerWidth <= 768);
                     } else if (type === 'movie') {
                         if (listType === 'default') {
                             await supabase
@@ -10052,7 +10131,6 @@
                         }
 
                         showToast('Removed from collection', 'success');
-                        await showMovieDetail(collectionId, listType, window.innerWidth <= 768);
                     } else if (type === 'tv') {
                         if (listType === 'default') {
                             await supabase
@@ -10070,7 +10148,6 @@
                         }
 
                         showToast('Removed from collection', 'success');
-                        await showTvDetail(collectionId, listType, window.innerWidth <= 768);
                     } else if (type === 'anime') {
                         if (listType === 'default') {
                             await supabase
@@ -10088,7 +10165,6 @@
                         }
 
                         showToast('Removed from collection', 'success');
-                        await showAnimeDetail(collectionId, listType, window.innerWidth <= 768);
                     } else if (type === 'game') {
                         if (listType === 'default') {
                             await supabase
@@ -10106,7 +10182,6 @@
                         }
 
                         showToast('Removed from collection', 'success');
-                        await showGameDetail(collectionId, listType, window.innerWidth <= 768);
                     } else if (type === 'music') {
                         if (listType === 'default') {
                             await supabase
@@ -10123,7 +10198,6 @@
                                 .eq('list_id', collectionId);
                         }
                         showToast('Removed from collection', 'success');
-                        await showMusicDetail(collectionId, listType, window.innerWidth <= 768);
                     } else if (type === 'travel') {
                         if (listType === 'default') {
                             await supabase
@@ -10140,7 +10214,6 @@
                                 .eq('list_id', collectionId);
                         }
                         showToast('Removed from collection', 'success');
-                        await showTravelDetail(collectionId, listType, window.innerWidth <= 768);
                     } else {
                         if (listType === 'default') {
                             await supabase
@@ -10157,29 +10230,15 @@
                                 .eq('list_id', collectionId);
                         }
                         showToast('Removed from collection', 'success');
-                        await showBookDetail(collectionId, listType, window.innerWidth <= 768);
                     }
-
-                    if (type === 'restaurant') {
-                        await renderRestaurants();
-                    } else if (type === 'movie') {
-                        await renderMovies();
-                    } else if (type === 'tv') {
-                        await renderTvShows();
-                    } else if (type === 'anime') {
-                        await renderAnimeShows();
-                    } else if (type === 'game') {
-                        await renderGames();
-                    } else if (type === 'music') {
-                        await renderMusic();
-                    } else if (type === 'travel') {
-                        await renderTravel();
-                    } else {
-                        await renderBooks();
-                    }
+                    refreshCollectionViews();
                 } catch (error) {
+                    if (typeof restoreRemovedNode === 'function') {
+                        restoreRemovedNode();
+                    }
                     console.error('Error removing item:', error);
                     showToast('Failed to remove item', 'error');
+                    refreshCollectionViews();
                 }
             }
 
@@ -10471,7 +10530,7 @@
                                     iconOption.classList.add('selected');
                                     selectedAvatarIcon = icon;
                                 };
-                                if (icon === (userProfile?.avatar_icon || iconGlyph('user'))) {
+                                if (icon === (userProfile?.avatar_icon || iconGlyphText('user'))) {
                                     iconOption.classList.add('selected');
                                     selectedAvatarIcon = icon;
                                 }
