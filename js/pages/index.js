@@ -3800,6 +3800,9 @@
       const loginBtn = document.getElementById('loginBtn');
       const signupBtn = document.getElementById('signupBtn');
       const profileBtn = document.getElementById('profileBtn');
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      const mobileSignupBtn = document.getElementById('mobileSignupBtn');
+      const mobileProfileBtn = document.getElementById('mobileProfileBtn');
       try {
         const user = await getVerifiedHomeUser(client);
         homeCurrentUser = user;
@@ -3807,6 +3810,8 @@
         if (isLoggedIn) {
           if (loginBtn) loginBtn.style.display = 'none';
           if (signupBtn) signupBtn.style.display = 'none';
+          if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
+          if (mobileSignupBtn) mobileSignupBtn.style.display = 'none';
           let label = 'Profile';
           try {
             const { data: profile } = await client
@@ -3822,16 +3827,26 @@
             profileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
             profileBtn.style.display = 'inline-flex';
           }
+          if (mobileProfileBtn) {
+            mobileProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+            mobileProfileBtn.style.display = 'inline-flex';
+          }
         } else {
           if (loginBtn) loginBtn.style.display = 'inline-flex';
           if (signupBtn) signupBtn.style.display = 'inline-flex';
+          if (mobileLoginBtn) mobileLoginBtn.style.display = 'inline-flex';
+          if (mobileSignupBtn) mobileSignupBtn.style.display = 'inline-flex';
           if (profileBtn) profileBtn.style.display = 'none';
+          if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
         }
       } catch (_e) {
         homeCurrentUser = null;
         if (loginBtn) loginBtn.style.display = 'inline-flex';
         if (signupBtn) signupBtn.style.display = 'inline-flex';
+        if (mobileLoginBtn) mobileLoginBtn.style.display = 'inline-flex';
+        if (mobileSignupBtn) mobileSignupBtn.style.display = 'inline-flex';
         if (profileBtn) profileBtn.style.display = 'none';
+        if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
       }
     }
 

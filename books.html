@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -699,8 +699,8 @@
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260226a" />
   <script src="/js/mobile-webapp.js?v=20260228b" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260301d">
-  <script src="js/shared-header.js?v=20260301d" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260304a">
+  <script src="js/shared-header.js?v=20260304a" defer></script>
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -1067,7 +1067,7 @@
       function truncateText(text, maxLen) {
         if (!text) return '';
         if (text.length <= maxLen) return text;
-        return `${text.slice(0, maxLen - 1)}â€¦`;
+        return `${text.slice(0, maxLen - 1)}…`;
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -1382,7 +1382,7 @@
             <div class="card-body">
               <h3 class="card-title">${item.title || 'Untitled'}</h3>
               <div class="card-meta-row">
-                <div class="card-meta">${authors}${year ? ` ï¿½ ${year}` : ''}</div>
+                <div class="card-meta">${authors}${year ? ` � ${year}` : ''}</div>
                 <div class="card-menu-wrap">
                   <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
                 </div>
