@@ -388,6 +388,13 @@
       box-shadow: var(--shadow);
     }
 
+    @supports (content-visibility: auto) {
+      .page-shell > .section {
+        content-visibility: auto;
+        contain-intrinsic-size: 520px;
+      }
+    }
+
     .section-head {
       padding: 14px 16px;
       border-bottom: 1px solid var(--border);
@@ -479,6 +486,14 @@
     .card-media.travel-photo img {
       object-fit: cover;
       object-position: center center;
+    }
+    .card-media.travel-photo.travel-flag-only img {
+      object-fit: contain;
+      object-position: center center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 22% 18%, rgba(245,158,11,0.18), transparent 32%),
+        linear-gradient(160deg, rgba(23,43,88,0.96), rgba(11,22,51,0.98));
     }
 
     .card-media.landscape { aspect-ratio: 16/10; }
@@ -666,6 +681,13 @@
     .rail.unified-rail .card-media.travel-photo img {
       object-fit: cover;
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+    }
+    .rail.unified-rail .card-media.travel-photo.travel-flag-only img {
+      object-fit: contain;
+      padding: 18px;
+      background:
+        radial-gradient(circle at 22% 18%, rgba(245,158,11,0.18), transparent 32%),
+        linear-gradient(160deg, rgba(23,43,88,0.96), rgba(11,22,51,0.98));
     }
 
     .rail.unified-rail .card-media.landscape img,
@@ -2387,6 +2409,10 @@
       .rail .card-media.travel-photo img {
         object-fit: cover !important;
         object-position: center center !important;
+      }
+      .rail .card-media.travel-photo.travel-flag-only img {
+        object-fit: contain !important;
+        padding: 16px;
       }
 
       #restaurantsRail .card-media.restaurant-composite .restaurant-cover {

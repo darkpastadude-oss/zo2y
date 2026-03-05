@@ -778,7 +778,7 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js?v=20260301e').catch(() => {
+      navigator.serviceWorker.register('/sw.js?v=20260305a').catch(() => {
         // silent fail to avoid runtime noise
       });
     });

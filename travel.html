@@ -148,6 +148,62 @@
       background: #10224a;
       overflow: hidden;
     }
+    .card-photo-wrap.no-photo {
+      background:
+        radial-gradient(circle at 22% 18%, rgba(245,158,11,0.22), transparent 32%),
+        linear-gradient(160deg, rgba(23,43,88,0.96), rgba(11,22,51,0.98));
+    }
+    .card-photo-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(7,16,34,0.14), rgba(7,16,34,0.58));
+    }
+    .card-photo-fallback::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 42%;
+      background: linear-gradient(180deg, rgba(11,22,51,0), rgba(11,22,51,0.7));
+      pointer-events: none;
+    }
+    .card-photo-fallback-badge {
+      position: relative;
+      z-index: 1;
+      width: 86px;
+      height: 62px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.24);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.28);
+      background: rgba(9, 20, 44, 0.9);
+    }
+    .card-photo-fallback-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .card-photo-fallback-copy {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 4px;
+      justify-items: center;
+    }
+    .card-photo-fallback-copy strong {
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+    .card-photo-fallback-copy span {
+      font-size: 12px;
+      color: rgba(220,232,255,0.84);
+    }
     .card-photo {
       width: 100%;
       height: 100%;
@@ -319,25 +375,6 @@
     const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
     const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v2';
     const TRAVEL_COUNTRY_ROWS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
-    const TRAVEL_GENERIC_SCENIC_FALLBACK = 'images/country.jpg';
-    const TRAVEL_SCENIC_FALLBACK_BY_CODE = Object.freeze({
-      US: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      JP: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      FR: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      IT: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      ES: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      BR: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      EG: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      AU: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      GB: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      DE: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      CA: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      MX: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      TR: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      TH: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      ID: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      ZA: TRAVEL_GENERIC_SCENIC_FALLBACK
-    });
 
     let client = null;
     const state = {
@@ -530,7 +567,7 @@
             const subregion = String(row && row.subregion || '').trim();
             const flag = safeHttps(row && row.flag || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
             const cachedPhoto = safeHttps(row && row.photo || '');
-            const photo = (cachedPhoto && !isBadTravelPhotoUrl(cachedPhoto)) ? cachedPhoto : (buildCountryPhotoUrl(name, code) || flag);
+            const photo = (cachedPhoto && !isBadTravelPhotoUrl(cachedPhoto)) ? cachedPhoto : '';
             const cities = Array.isArray(row && row.cities) ? row.cities.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3) : pickCountryCities(code, capital);
             return { code, name, capital, region, subregion, cities, flag, photo };
           })
@@ -571,13 +608,31 @@
       } catch (_error) {}
     }
 
-    function buildCountryPhotoUrl(name, code) {
-      const safeCountryCode = canonicalCountryCode(code) || 'XX';
-      const cached = String(countryPhotoCache.get(safeCountryCode) || '').trim();
-      if (cached && !isBadTravelPhotoUrl(cached)) return cached;
-      const fallback = safeHttps(TRAVEL_SCENIC_FALLBACK_BY_CODE[safeCountryCode] || TRAVEL_GENERIC_SCENIC_FALLBACK);
-      if (fallback && !isBadTravelPhotoUrl(fallback)) return fallback;
-      return TRAVEL_GENERIC_SCENIC_FALLBACK;
+    function isSlowTravelNetwork() {
+      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (!connection) return false;
+      if (connection.saveData) return true;
+      const effectiveType = String(connection.effectiveType || '').toLowerCase();
+      return effectiveType === 'slow-2g' || effectiveType === '2g' || effectiveType === '3g';
+    }
+
+    function getTravelInitialHydrationLimit() {
+      return isSlowTravelNetwork() ? 36 : 90;
+    }
+
+    function getTravelHydrationQueueLimit() {
+      return isSlowTravelNetwork() ? 48 : 120;
+    }
+
+    function getTravelHydrationWorkerCount(queueLength) {
+      return Math.min(isSlowTravelNetwork() ? 2 : 5, queueLength);
+    }
+
+    function getCountryCachedScenicPhoto(code, preferred = '') {
+      const safeCountryCode = canonicalCountryCode(code);
+      if (!safeCountryCode) return '';
+      const candidate = safeHttps(preferred || '') || safeHttps(countryPhotoCache.get(safeCountryCode) || '');
+      return candidate && !isBadTravelPhotoUrl(candidate) ? candidate : '';
     }
 
     function normalizeCountryName(value) {
@@ -699,12 +754,12 @@
         const code = safeCode(item && item.code);
         return code && !countryPhotoCache.has(code) && !countryPhotoPending.has(code);
       });
-      const queue = unresolved.slice(0, 120);
+      const queue = unresolved.slice(0, getTravelHydrationQueueLimit());
       queue.forEach((item) => {
         const code = safeCode(item && item.code);
         if (code) countryPhotoPending.add(code);
       });
-      const workers = Array.from({ length: Math.min(5, queue.length) }, async () => {
+      const workers = Array.from({ length: getTravelHydrationWorkerCount(queue.length) }, async () => {
         while (queue.length) {
           if (signal && signal.aborted) return;
           const item = queue.shift();
@@ -726,9 +781,7 @@
         const code = safeCode(item && item.code);
         if (!code) return;
         const cached = countryPhotoCache.get(code);
-        const fallbackPhoto = buildCountryPhotoUrl(item && item.name, code) || item.flag;
-        item.fallbackPhoto = fallbackPhoto;
-        item.photo = (cached && !isBadTravelPhotoUrl(cached)) ? cached : fallbackPhoto;
+        item.photo = (cached && !isBadTravelPhotoUrl(cached)) ? cached : '';
       });
     }
 
@@ -785,8 +838,7 @@
       const region = String(row && row.region || '').trim();
       const subregion = String(row && row.subregion || '').trim();
       const flag = safeHttps(row && row.flags && (row.flags.png || row.flags.svg)) || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
-      const fallbackPhoto = buildCountryPhotoUrl(name, code) || flag;
-      const photo = fallbackPhoto;
+      const photo = getCountryCachedScenicPhoto(code);
       return {
         code,
         name,
@@ -795,8 +847,7 @@
         subregion,
         cities: pickCountryCities(code, capital),
         flag,
-        photo,
-        fallbackPhoto
+        photo
       };
     }
 
@@ -807,7 +858,7 @@
         if (Array.isArray(cachedRows) && cachedRows.length) {
           state.rows = cachedRows.sort((a, b) => a.name.localeCompare(b.name));
           hydrateRegionOptions();
-          void hydrateScenicCountryPhotos(state.rows.slice(0, 90))
+          void hydrateScenicCountryPhotos(state.rows.slice(0, getTravelInitialHydrationLimit()))
             .then(() => {
               writeCountryRowsCache(state.rows);
               render();
@@ -829,7 +880,7 @@
           .map(normalizeCountryRow)
           .filter(Boolean)
           .sort((a, b) => a.name.localeCompare(b.name));
-        void hydrateScenicCountryPhotos(state.rows.slice(0, 90), controller.signal)
+        void hydrateScenicCountryPhotos(state.rows.slice(0, getTravelInitialHydrationLimit()), controller.signal)
           .then(() => {
             writeCountryRowsCache(state.rows);
             render();
@@ -911,6 +962,23 @@
       }
       empty.style.display = 'none';
 
+      const buildPhotoShellMarkup = (item) => {
+        const photo = String(item && item.photo || '').trim();
+        const hasPhoto = !!photo;
+        return `
+          <div class="card-photo-wrap${hasPhoto ? '' : ' no-photo'}">
+            <div class="card-photo-fallback">
+              <span class="card-photo-fallback-badge"><img src="${escapeHtml(item.flag)}" alt="${escapeHtml(item.name)} flag" loading="lazy"></span>
+              <span class="card-photo-fallback-copy">
+                <strong>${escapeHtml(item.code)}</strong>
+                <span>${escapeHtml(item.region || 'Travel')}</span>
+              </span>
+            </div>
+            ${hasPhoto ? `<img class="card-photo" src="${escapeHtml(photo)}" alt="${escapeHtml(item.name)} photo" loading="lazy" onerror="this.remove(); this.parentElement.classList.add('no-photo');">` : ''}
+          </div>
+        `;
+      };
+
       pageRows.forEach((item) => {
         const node = document.createElement('article');
         node.className = 'card';
@@ -918,9 +986,7 @@
         node.setAttribute('data-list-image', item.flag);
         node.setAttribute('data-image', item.photo);
         node.innerHTML = `
-          <div class="card-photo-wrap">
-            <img class="card-photo" src="${escapeHtml(item.photo)}" alt="${escapeHtml(item.name)} photo" loading="lazy" onerror="this.onerror=null;this.src='${escapeHtml(item.fallbackPhoto || item.flag)}';">
-          </div>
+          ${buildPhotoShellMarkup(item)}
           <div class="body">
             <div class="row">
               <div>
@@ -958,12 +1024,13 @@
       syncAllCardStatuses();
       void hydrateScenicCountryPhotos(pageRows).then(() => {
         pageRows.forEach((item) => {
-          const node = grid.querySelector(`.card[data-country-code="${item.code}"] .card-photo`);
-          if (!node) return;
           const nextPhoto = String(item.photo || '').trim();
           if (!nextPhoto) return;
-          if (node.getAttribute('src') === nextPhoto) return;
-          node.setAttribute('src', nextPhoto);
+          const wrap = grid.querySelector(`.card[data-country-code="${item.code}"] .card-photo-wrap`);
+          const current = wrap?.querySelector('.card-photo');
+          if (!wrap) return;
+          if (current && current.getAttribute('src') === nextPhoto) return;
+          wrap.outerHTML = buildPhotoShellMarkup(item);
         });
       }).catch(() => {});
     }

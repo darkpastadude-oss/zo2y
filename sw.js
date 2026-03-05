@@ -1,7 +1,7 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v22';
-const PAGE_CACHE = 'zo2y-pages-v22';
-const IMAGE_CACHE = 'zo2y-images-v4';
-const API_CACHE = 'zo2y-api-v3';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v23';
+const PAGE_CACHE = 'zo2y-pages-v23';
+const IMAGE_CACHE = 'zo2y-images-v5';
+const API_CACHE = 'zo2y-api-v4';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
 
@@ -9,15 +9,22 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/css/pages/index.css?v=20260301a',
-  '/js/pages/index.js?v=20260228a',
-  '/js/home-desktop-rebrand.js?v=20260301n',
+  '/css/pages/index.css?v=20260305d',
+  '/css/shared-header.css?v=20260304a',
+  '/js/pages/index.js?v=20260305c',
+  '/js/home-desktop-rebrand.js?v=20260301q',
+  '/js/shared-header.js?v=20260304a',
+  '/js/list-utils.js?v=20260301e',
+  '/js/universal-search.js?v=20260228e',
+  '/js/production-runtime.js?v=20260227d',
+  '/js/igdb-client.js?v=20260228a',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260301c',
+  '/js/mobile-webapp.js?v=20260305a',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260301b',
   '/favicon.ico',
-  '/images/logo.png'
+  '/images/logo.png',
+  '/images/apple-touch-icon-180.png'
 ];
 
 const ACTIVE_CACHES = [APP_SHELL_CACHE, PAGE_CACHE, IMAGE_CACHE, API_CACHE];
@@ -101,6 +108,31 @@ async function networkFirst(request, cacheName, fallbackPath = '') {
   }
 }
 
+async function networkFirstWithTimeout(request, cacheName, fallbackPath = '', timeoutMs = 1400) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+  let timer = null;
+  try {
+    const networkResponse = await Promise.race([
+      fetch(request),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error('network_timeout')), timeoutMs);
+      })
+    ]);
+    if (timer) clearTimeout(timer);
+    queueCachePut(cacheName, request, networkResponse);
+    return networkResponse;
+  } catch (_error) {
+    if (timer) clearTimeout(timer);
+    if (cached) return cached;
+    if (fallbackPath) {
+      const fallback = await caches.match(fallbackPath);
+      if (fallback) return fallback;
+    }
+    return Response.error();
+  }
+}
+
 async function staleWhileRevalidate(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
@@ -166,7 +198,7 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith('/api/')) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirst(request, PAGE_CACHE, '/index.html'));
+    event.respondWith(networkFirstWithTimeout(request, PAGE_CACHE, '/index.html'));
     return;
   }
 

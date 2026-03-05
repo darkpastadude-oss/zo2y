@@ -63,6 +63,8 @@
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v3';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
+    const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v2';
+    const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
     const HOME_TRAVEL_IMAGE_CHECK_TTL_MS = 1000 * 60 * 60 * 6;
     const HOME_TRAVEL_IMAGE_CHECK_TIMEOUT_MS = 2200;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
@@ -348,7 +350,6 @@
       const rawBackground = toHttpsUrl(String(item.backgroundImage || '').trim());
       const rawSpotlight = toHttpsUrl(String(item.spotlightImage || '').trim());
       const scenicImage = getSafeTravelScenicImage(title, code, rawImage || rawBackground || rawSpotlight);
-      if (!isUsableHomeTravelScenicUrl(scenicImage)) return null;
       if (code && isUsableHomeTravelScenicUrl(scenicImage)) {
         setHomeTravelPhotoCache(code, scenicImage);
       }
@@ -360,14 +361,30 @@
         flagImage,
         listImage: flagImage || String(item.listImage || '').trim() || scenicImage,
         image: scenicImage,
-        backgroundImage: scenicImage,
-        spotlightImage: getSafeTravelScenicImage(title, code, rawSpotlight || scenicImage),
+        backgroundImage: scenicImage || '',
+        spotlightImage: getSafeTravelScenicImage(title, code, rawSpotlight || scenicImage) || '',
         spotlightMediaImage: flagImage || String(item.spotlightMediaImage || '').trim() || scenicImage,
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
+        travelNeedsScenicHydration: !isUsableHomeTravelScenicUrl(scenicImage),
         fallbackImage: ''
       };
+    }
+
+    function readHomeTravelCountryRowsCache() {
+      try {
+        const raw = localStorage.getItem(HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed?.savedAt || 0);
+        const rows = Array.isArray(parsed?.rows) ? parsed.rows : [];
+        if (!savedAt || !rows.length) return [];
+        if ((Date.now() - savedAt) > HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS) return [];
+        return rows;
+      } catch (_err) {
+        return [];
+      }
     }
 
     function getHomeTravelImageReachability(urlRaw) {
@@ -1599,7 +1616,7 @@
       const localFeed = feedMap || homeFeedState;
       const localPool = Array.isArray(scoredPool) ? scoredPool : buildScoredDiscoveryPool(localFeed);
       const seq = ++homeBecauseRefreshSeq;
-      const fallbackItems = buildUnifiedFeed(localPool, HOME_UNIFIED_TARGET_ITEMS);
+      const fallbackItems = buildUnifiedFeed(localPool, getHomeUnifiedTargetItems());
 
       if (!homeCurrentUser?.id) {
         renderRail('unifiedRail', fallbackItems, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
@@ -1609,7 +1626,7 @@
       const signalPayload = await getActivitySignalsCached();
       if (seq !== homeBecauseRefreshSeq) return;
       const boostedPool = applyActivitySignalsToPool(localPool, signalPayload);
-      const unified = buildUnifiedFeed(boostedPool, HOME_UNIFIED_TARGET_ITEMS);
+      const unified = buildUnifiedFeed(boostedPool, getHomeUnifiedTargetItems());
       renderRail('unifiedRail', unified.length ? unified : fallbackItems, {
         mediaType: 'mixed',
         uniformMedia: true,
@@ -1737,14 +1754,15 @@
         return;
       }
 
-      const topPool = safePool.slice(0, HOME_SPOTLIGHT_POOL_SIZE * 4);
-      const mixedCandidates = buildUnifiedFeed(topPool, HOME_SPOTLIGHT_POOL_SIZE * 4);
+      const spotlightPoolSize = getHomeSpotlightPoolSize();
+      const topPool = safePool.slice(0, spotlightPoolSize * 4);
+      const mixedCandidates = buildUnifiedFeed(topPool, spotlightPoolSize * 4);
       const shortlist = buildBalancedSpotlightShortlist(
         mixedCandidates.length ? mixedCandidates : topPool,
-        HOME_SPOTLIGHT_POOL_SIZE
+        spotlightPoolSize
       );
       if (!shortlist.length) {
-        homeSpotlightItems = safePool.slice(0, HOME_SPOTLIGHT_POOL_SIZE);
+        homeSpotlightItems = safePool.slice(0, spotlightPoolSize);
       } else {
         const seed = getSpotlightSeedOffset();
         const offset = seed % shortlist.length;
@@ -3119,6 +3137,36 @@
       return effectiveType === 'slow-2g' || effectiveType === '2g' || effectiveType === '3g';
     }
 
+    function getHomeChannelTargetItems() {
+      return isHomeSlowNetwork()
+        ? Math.max(8, HOME_CHANNEL_TARGET_ITEMS - 8)
+        : HOME_CHANNEL_TARGET_ITEMS;
+    }
+
+    function getHomeUnifiedTargetItems() {
+      return isHomeSlowNetwork()
+        ? Math.max(12, HOME_UNIFIED_TARGET_ITEMS - 10)
+        : HOME_UNIFIED_TARGET_ITEMS;
+    }
+
+    function getHomeSpotlightPoolSize() {
+      return isHomeSlowNetwork()
+        ? Math.max(8, HOME_SPOTLIGHT_POOL_SIZE - 8)
+        : HOME_SPOTLIGHT_POOL_SIZE;
+    }
+
+    function getHomeTmdbSourceCount() {
+      return isHomeSlowNetwork() ? 1 : 2;
+    }
+
+    function shouldUseLightweightHomeBooksLoad() {
+      return isHomeSlowNetwork();
+    }
+
+    function shouldUseLightweightHomeMusicLoad() {
+      return isHomeSlowNetwork();
+    }
+
     function getHomePreloadPerChannelBudget() {
       if (isHomeSlowNetwork()) return Math.max(1, HOME_PRELOAD_PER_CHANNEL - 1);
       return HOME_PRELOAD_PER_CHANNEL;
@@ -3256,6 +3304,8 @@
 
     function buildInstantFallbackFeed() {
       const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE;
+      const targetCount = getHomeChannelTargetItems();
+      const instantTravelItems = getCachedHomeTravelItems(targetCount);
       const makeSeedItems = (mediaType, titles, href) => titles.map((title, index) => ({
         mediaType,
         itemId: `seed-${mediaType}-${index + 1}`,
@@ -3299,7 +3349,7 @@
         } : {}),
         music: makeSeedItems('music', ['Global Hits', 'Viral Tracks', 'Fresh Releases', 'Chill Vibes', 'Late Night Mix'], 'music.html'),
         book: makeSeedItems('book', ['Bestselling Books', 'Popular Fiction', 'Book Club Picks', 'Page-Turners', 'Must Read Stories'], 'books.html'),
-        travel: []
+        travel: instantTravelItems
       };
     }
 
@@ -3474,7 +3524,7 @@
       });
 
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
-      const unified = buildUnifiedFeed(scoredPool, HOME_UNIFIED_TARGET_ITEMS);
+      const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
       renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
       void refreshHomeNewReleases(homeFeedState);
       void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
@@ -3488,12 +3538,31 @@
       if (!hasItems) return;
       homeTasteWeights = await loadTasteWeights();
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
-      const unified = buildUnifiedFeed(scoredPool, HOME_UNIFIED_TARGET_ITEMS);
+      const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
       renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
       void refreshHomeNewReleases(homeFeedState);
       void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
       hydrateSpotlightFromPool(scoredPool);
       scheduleHomeMenuCachePrime();
+    }
+
+    function scheduleDeferredHomeStartupTasks() {
+      const run = () => {
+        maybeShowHomeOnboarding();
+        void refreshHomePersonalization();
+        scheduleHomeMenuCachePrime();
+      };
+      if (isHomeSlowNetwork()) {
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(() => {
+            setTimeout(run, 1800);
+          }, { timeout: 2600 });
+        } else {
+          setTimeout(run, 1800);
+        }
+        return;
+      }
+      run();
     }
 
     function renderRail(railId, items, opts) {
@@ -3536,7 +3605,9 @@
         const previewControl = previewUrlRaw
           ? `<button class="card-preview-btn" data-preview="${escapeHtml(previewUrlRaw)}" aria-label="Play preview"><i class="fas fa-play"></i></button>`
           : '';
-        const hasVisualImage = restaurantComposite ? !!coverImage || !!logo : !!image;
+        const useTravelFlagVisual = mediaTypeRaw === 'travel' && !image && !!flagImage;
+        const primaryImage = useTravelFlagVisual ? flagImage : image;
+        const hasVisualImage = restaurantComposite ? !!coverImage || !!logo : !!primaryImage;
         const imagePolicy = hasVisualImage
           ? consumeHomeImageRequestBudget()
           : { loading: 'lazy', priority: 'low' };
@@ -3547,13 +3618,14 @@
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
         if (mediaTypeRaw === 'music') mediaClasses.push('music-cover');
         if (mediaTypeRaw === 'travel') mediaClasses.push('travel-photo');
+        if (useTravelFlagVisual) mediaClasses.push('travel-flag-only');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         const mediaHtml = restaurantComposite
           ? `
               ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage || logo}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
               ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage || coverImage}" data-fallback-applied="0"></span>` : ''}
             `
-          : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
+          : `${primaryImage ? `<img src="${primaryImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
         const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
         const titleMarkup = (mediaTypeRaw === 'travel' && flagImage)
           ? `<span class="country-title-wrap"><img class="country-inline-flag" src="${flagImage}" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="country-title-text">${title}</span></span>`
@@ -4424,12 +4496,13 @@
     }
 
     async function loadMovies(signal) {
+      const targetCount = getHomeChannelTargetItems();
       const sourceBuilders = shuffleArray([
         () => `${TMDB_PROXY_BASE}/movie/popular?language=en-US&page=${randomInt(1, 5)}`,
         () => `${TMDB_PROXY_BASE}/movie/top_rated?language=en-US&page=${randomInt(1, 5)}`,
         () => `${TMDB_PROXY_BASE}/movie/now_playing?language=en-US&page=${randomInt(1, 4)}`,
         () => `${TMDB_PROXY_BASE}/trending/movie/week?page=${randomInt(1, 3)}`
-      ]).slice(0, 2);
+      ]).slice(0, getHomeTmdbSourceCount());
       const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
         try {
           const url = buildUrl();
@@ -4450,7 +4523,7 @@
         if (!item?.poster_path && !item?.backdrop_path) continue;
         seen.add(key);
         results.push(item);
-        if (results.length >= HOME_CHANNEL_TARGET_ITEMS) break;
+        if (results.length >= targetCount) break;
       }
       return results.map(m => ({
         mediaType: 'movie',
@@ -4469,12 +4542,13 @@
     }
 
     async function loadTv(signal) {
+      const targetCount = getHomeChannelTargetItems();
       const sourceBuilders = shuffleArray([
         () => `${TMDB_PROXY_BASE}/tv/popular?language=en-US&page=${randomInt(1, 5)}`,
         () => `${TMDB_PROXY_BASE}/tv/top_rated?language=en-US&page=${randomInt(1, 5)}`,
         () => `${TMDB_PROXY_BASE}/tv/airing_today?language=en-US&page=${randomInt(1, 4)}`,
         () => `${TMDB_PROXY_BASE}/trending/tv/week?page=${randomInt(1, 3)}`
-      ]).slice(0, 2);
+      ]).slice(0, getHomeTmdbSourceCount());
       const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
         try {
           const url = buildUrl();
@@ -4495,7 +4569,7 @@
         if (!item?.poster_path && !item?.backdrop_path) continue;
         seen.add(key);
         results.push(item);
-        if (results.length >= HOME_CHANNEL_TARGET_ITEMS) break;
+        if (results.length >= targetCount) break;
       }
       return results.map(t => ({
         mediaType: 'tv',
@@ -4514,11 +4588,12 @@
     }
 
     async function loadAnime(signal) {
+      const targetCount = getHomeChannelTargetItems();
       const sourceBuilders = shuffleArray([
         () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=popularity.desc&page=${randomInt(1, 5)}&with_genres=16&with_original_language=ja`,
         () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=vote_count.desc&page=${randomInt(1, 5)}&with_genres=16&with_original_language=ja`,
         () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=vote_average.desc&page=${randomInt(1, 4)}&with_genres=16&with_original_language=ja&vote_count.gte=120`
-      ]).slice(0, 2);
+      ]).slice(0, getHomeTmdbSourceCount());
       const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
         try {
           const url = buildUrl();
@@ -4538,7 +4613,7 @@
         if (!item?.poster_path && !item?.backdrop_path) continue;
         seen.add(key);
         results.push(item);
-        if (results.length >= HOME_CHANNEL_TARGET_ITEMS) break;
+        if (results.length >= targetCount) break;
       }
       return results.map((show) => ({
         mediaType: 'anime',
@@ -4557,6 +4632,7 @@
     }
 
     async function loadGames(signal) {
+      const targetCount = getHomeChannelTargetItems();
       const client = await ensureHomeSupabase();
       if (!client) return [];
       const { data } = await client
@@ -4565,7 +4641,7 @@
         .order('rating', { ascending: false, nullsFirst: false })
         .order('rating_count', { ascending: false, nullsFirst: false })
         .order('release_date', { ascending: false, nullsFirst: false })
-        .limit(Math.max(HOME_CHANNEL_TARGET_ITEMS * 6, 84));
+        .limit(Math.max(targetCount * 4, 40));
       if (signal?.aborted) return [];
 
       const rows = Array.isArray(data) ? data : [];
@@ -4594,10 +4670,12 @@
           };
         })
         .filter((item) => item && String(item.itemId || '').trim())
-        .slice(0, HOME_CHANNEL_TARGET_ITEMS);
+        .slice(0, targetCount);
     }
 
     async function loadBooks(signal) {
+      const targetCount = getHomeChannelTargetItems();
+      const lightweightMode = shouldUseLightweightHomeBooksLoad();
       const buildOpenLibraryCoverUrl = (doc, size = 'L') => {
         const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
           ? String(size || 'L').toUpperCase()
@@ -4740,7 +4818,7 @@
       };
 
       try {
-        const limit = Math.max(HOME_CHANNEL_TARGET_ITEMS, 24);
+        const limit = lightweightMode ? Math.max(targetCount, 16) : Math.max(targetCount, 24);
         const booksRequestOptions = { signal, timeoutMs: 4200, retries: 1 };
         const queryUrls = [
           `/api/books/popular?q=${encodeURIComponent('subject:fiction bestseller 2023 2024 2025')}&limit=${limit}&page=1&orderBy=relevance`,
@@ -4748,7 +4826,7 @@
           `/api/books/popular?q=${encodeURIComponent('subject:romance bestseller')}&limit=${limit}&page=1&orderBy=relevance`,
           `/api/books/popular?q=${encodeURIComponent('bestseller popular books')}&limit=${limit}&page=1&orderBy=relevance`,
           `/api/books/trending?period=weekly&limit=${limit}`
-        ];
+        ].slice(0, lightweightMode ? 3 : 5);
         const results = await Promise.allSettled(queryUrls.map((url) => (
           fetchJsonWithPerfCache(url, { ...booksRequestOptions, cacheKey: `books:${url}` })
         )));
@@ -4770,7 +4848,7 @@
         const safeMerged = filterHomeSafeItems(merged);
         if (safeMerged.length) {
           const shuffled = shuffleArray(safeMerged);
-          return shuffled.slice(0, HOME_CHANNEL_TARGET_ITEMS);
+          return shuffled.slice(0, targetCount);
         }
       } catch (_e) {}
 
@@ -4778,8 +4856,12 @@
     }
 
     async function loadMusic(signal) {
+      const targetCount = getHomeChannelTargetItems();
+      const lightweightMode = shouldUseLightweightHomeMusicLoad();
       const market = 'US';
-      const HOME_MUSIC_MIN_ITEMS = Math.max(8, Math.min(HOME_CHANNEL_TARGET_ITEMS, 12));
+      const HOME_MUSIC_MIN_ITEMS = lightweightMode
+        ? Math.max(5, Math.min(targetCount, 8))
+        : Math.max(8, Math.min(targetCount, 12));
       const getTrackContainerLabel = (track = {}) => {
         const title = String(track?.name || '').trim().toLowerCase();
         const albumName = String(track?.album?.name || track?.album_name || '').trim();
@@ -4892,7 +4974,7 @@
         return deduped;
       };
 
-      const mixMusicItems = (trackItems = [], albumItems = [], takeCount = HOME_CHANNEL_TARGET_ITEMS) => {
+      const mixMusicItems = (trackItems = [], albumItems = [], takeCount = targetCount) => {
         const trackQueue = [...(Array.isArray(trackItems) ? trackItems : [])];
         const albumQueue = [...(Array.isArray(albumItems) ? albumItems : [])];
         const mixed = [];
@@ -4906,7 +4988,7 @@
         return mixed.slice(0, takeCount);
       };
 
-      const buildMixedMusicItems = (trackRows = [], albumRows = [], takeCount = HOME_CHANNEL_TARGET_ITEMS) => {
+      const buildMixedMusicItems = (trackRows = [], albumRows = [], takeCount = targetCount) => {
         const dedupedTracks = dedupeMusicTrackRows(trackRows);
         const dedupedAlbums = dedupeMusicAlbumRows(albumRows);
         const tracksWithArtwork = dedupedTracks.filter((track) => String(track?.image || '').trim());
@@ -4937,8 +5019,8 @@
       const getCollectedTrackRows = () => dedupeMusicTrackRows(collectedTrackRows);
       const getCollectedAlbumRows = () => dedupeMusicAlbumRows(collectedAlbumRows);
 
-      const top50Limit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 4, 64);
-      const newReleaseLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 3, 36);
+      const top50Limit = lightweightMode ? Math.max(targetCount * 3, 28) : Math.max(targetCount * 4, 64);
+      const newReleaseLimit = lightweightMode ? Math.max(targetCount * 2, 18) : Math.max(targetCount * 3, 36);
       const musicFetchOptions = { signal, timeoutMs: 3600, retries: 1 };
       const [top50Res, topAlbumsRes, topReleaseAlbumsRes] = await Promise.allSettled([
         fetchJsonWithPerfCache(
@@ -4960,8 +5042,9 @@
         ...(topReleaseAlbumsRes.status === 'fulfilled' && Array.isArray(topReleaseAlbumsRes.value?.results) ? topReleaseAlbumsRes.value.results : [])
       ];
       collectMusicRows({ tracks: top50Rows, albums: topAlbumRows });
-      const topBatch = filterHomeSafeItems(buildMixedMusicItems(top50Rows, topAlbumRows, HOME_CHANNEL_TARGET_ITEMS));
+      const topBatch = filterHomeSafeItems(buildMixedMusicItems(top50Rows, topAlbumRows, targetCount));
       if (isHealthyMusicBatch(topBatch)) return topBatch;
+      if (lightweightMode && topBatch.length >= Math.min(6, HOME_MUSIC_MIN_ITEMS)) return topBatch;
 
       const [popularRes, popularAlbumsRes, popularReleaseAlbumsRes] = await Promise.allSettled([
         fetchJsonWithPerfCache(
@@ -4987,8 +5070,20 @@
           : [])
       ];
       collectMusicRows({ tracks: popularRows, albums: popularAlbumRows });
-      const popularBatch = filterHomeSafeItems(buildMixedMusicItems(popularRows, popularAlbumRows, HOME_CHANNEL_TARGET_ITEMS));
+      const popularBatch = filterHomeSafeItems(buildMixedMusicItems(popularRows, popularAlbumRows, targetCount));
       if (isHealthyMusicBatch(popularBatch)) return popularBatch;
+      if (lightweightMode && popularBatch.length >= Math.min(6, HOME_MUSIC_MIN_ITEMS)) return popularBatch;
+
+      if (lightweightMode) {
+        const bestEffortLightBatch = filterHomeSafeItems(
+          buildMixedMusicItems(
+            getCollectedTrackRows(),
+            getCollectedAlbumRows(),
+            Math.max(targetCount, HOME_MUSIC_MIN_ITEMS)
+          )
+        );
+        return bestEffortLightBatch.slice(0, targetCount);
+      }
 
       const searchFallbackTerms = ['top albums and songs', 'new music albums and songs'];
       for (const term of searchFallbackTerms) {
@@ -5000,7 +5095,7 @@
           const fallbackTracks = Array.isArray(fallbackSearch?.tracks) ? fallbackSearch.tracks : [];
           const fallbackAlbums = Array.isArray(fallbackSearch?.albums) ? fallbackSearch.albums : [];
           collectMusicRows({ tracks: fallbackTracks, albums: fallbackAlbums });
-          const searchBatch = filterHomeSafeItems(buildMixedMusicItems(fallbackTracks, fallbackAlbums, HOME_CHANNEL_TARGET_ITEMS));
+          const searchBatch = filterHomeSafeItems(buildMixedMusicItems(fallbackTracks, fallbackAlbums, targetCount));
           if (isHealthyMusicBatch(searchBatch)) return searchBatch;
         } catch (_err) {}
       }
@@ -5030,7 +5125,7 @@
         buildMixedMusicItems(
           getCollectedTrackRows(),
           getCollectedAlbumRows(),
-          Math.max(HOME_CHANNEL_TARGET_ITEMS, HOME_MUSIC_MIN_ITEMS)
+          Math.max(targetCount, HOME_MUSIC_MIN_ITEMS)
         )
       );
       if (bestEffortBatch.length) {
@@ -5234,7 +5329,7 @@
       const photoFromCommons = photoMap instanceof Map ? String(photoMap.get(code) || '').trim() : '';
       if (photoFromCommons) setHomeTravelPhotoCache(code, photoFromCommons);
       const photoImage = getSafeTravelScenicImage(title, code, photoFromCommons);
-      if (!isUsableHomeTravelScenicUrl(photoImage)) return null;
+      const hasScenic = isUsableHomeTravelScenicUrl(photoImage);
       return {
         mediaType: 'travel',
         itemId: code,
@@ -5245,19 +5340,80 @@
         flagImage,
         listImage: flagImage,
         image: photoImage,
-        backgroundImage: photoImage,
-        spotlightImage: photoImage,
+        backgroundImage: photoImage || '',
+        spotlightImage: photoImage || '',
         spotlightMediaImage: flagImage,
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
+        travelNeedsScenicHydration: !hasScenic,
         fallbackImage: '',
         href: `country.html?code=${encodeURIComponent(code)}`
       };
     }
 
+    function mapCachedTravelCountryRowToHomeItem(row) {
+      const code = canonicalTravelCountryCode(row?.code || row?.cca2 || row?.cca3 || '');
+      const baseTitle = String(row?.name || row?.title || '').trim();
+      if (!code || !baseTitle || /\bisrael\b/i.test(baseTitle)) return null;
+      const title = code === 'PS' ? 'Palestine' : baseTitle;
+      const capital = String(row?.capital || '').trim();
+      const region = String(row?.region || '').trim();
+      const subregion = String(row?.subregion || '').trim();
+      const cities = Array.isArray(row?.cities)
+        ? row.cities.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3)
+        : pickHomeCountryCities(code, capital);
+      const subtitle = [
+        capital ? `Capital: ${capital}` : '',
+        region
+      ].filter(Boolean).join(' | ') || 'Country';
+      const extraParts = [];
+      if (subregion && subregion !== region) extraParts.push(subregion);
+      if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
+      const flagImage = toHttpsUrl(row?.flag || row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
+      const scenicImage = getSafeTravelScenicImage(title, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
+      const hasScenic = isUsableHomeTravelScenicUrl(scenicImage);
+      if (hasScenic) setHomeTravelPhotoCache(code, scenicImage);
+      return {
+        mediaType: 'travel',
+        itemId: code,
+        title,
+        subtitle,
+        extra: extraParts.join(' | ') || 'Travel',
+        cities,
+        flagImage,
+        listImage: flagImage,
+        image: scenicImage,
+        backgroundImage: scenicImage || '',
+        spotlightImage: scenicImage || '',
+        spotlightMediaImage: flagImage,
+        spotlightMediaFit: 'contain',
+        spotlightMediaPosition: 'center center',
+        spotlightMediaShape: 'square',
+        travelNeedsScenicHydration: !hasScenic,
+        fallbackImage: '',
+        href: `country.html?code=${encodeURIComponent(code)}`
+      };
+    }
+
+    function getCachedHomeTravelItems(limit = getHomeChannelTargetItems()) {
+      const rows = readHomeTravelCountryRowsCache();
+      if (!rows.length) return [];
+      const seenCodes = new Set();
+      const items = [];
+      rows.forEach((row) => {
+        const item = mapCachedTravelCountryRowToHomeItem(row);
+        const code = String(item?.itemId || '').trim().toUpperCase();
+        if (!item || !code || seenCodes.has(code)) return;
+        seenCodes.add(code);
+        items.push(item);
+      });
+      return shuffleArray(items).slice(0, Math.max(1, Number(limit || getHomeChannelTargetItems())));
+    }
+
     async function loadTravel(signal) {
-      const targetCount = Math.max(1, Number(HOME_CHANNEL_TARGET_ITEMS || 16));
+      const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
+      const cachedRowItems = getCachedHomeTravelItems(targetCount);
 
       try {
         const payload = await fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
@@ -5303,26 +5459,23 @@
           return out;
         };
 
-        const cachedCandidates = collectTravelItems(homeTravelPhotoCache);
-        const cachedVerified = await filterHomeTravelItemsByReachableImage(cachedCandidates, signal, targetCount);
-        if (cachedVerified.length >= Math.min(targetCount, 6)) {
-          return cachedVerified;
+        const cachedCandidates = collectTravelItems(homeTravelPhotoCache).slice(0, targetCount);
+        if (cachedCandidates.length >= Math.min(targetCount, 6)) {
+          return cachedCandidates;
         }
 
-        const photoMap = await loadHomeTravelPhotoMap(
+        const photoMap = await fetchTravelCommonsPhotos(
           sortedRows.slice(0, Math.max(targetCount * 6, 140)),
           signal
         ).catch(() => homeTravelPhotoCache);
 
-        const verified = await filterHomeTravelItemsByReachableImage(
-          collectTravelItems(photoMap),
-          signal,
-          targetCount
-        );
-        if (verified.length) return verified;
+        const hydrated = collectTravelItems(photoMap).slice(0, targetCount);
+        if (hydrated.length) return hydrated;
+        if (cachedCandidates.length) return cachedCandidates;
+        if (cachedRowItems.length) return cachedRowItems;
       } catch (_err) {}
 
-      return [];
+      return cachedRowItems;
     }
 
     async function initUniversalHome() {
@@ -5350,12 +5503,14 @@
         }
       }
 
-      const tastePromise = loadTasteWeights().catch(() => homeTasteWeights);
-      void tastePromise.then((weights) => {
-        if (weights && typeof weights === 'object') {
-          homeTasteWeights = weights;
-        }
-      }).catch(() => {});
+      if (!isHomeSlowNetwork()) {
+        const tastePromise = loadTasteWeights().catch(() => homeTasteWeights);
+        void tastePromise.then((weights) => {
+          if (weights && typeof weights === 'object') {
+            homeTasteWeights = weights;
+          }
+        }).catch(() => {});
+      }
       const loadedPromise = Promise.all(initialChannels.map(async (channel) => {
         const items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
         return { ...channel, items };
@@ -5438,9 +5593,7 @@
         await setupHomeAuthListener();
         await completeHomeOAuthReturnIfNeeded();
         await initAuthUi();
-        maybeShowHomeOnboarding();
-        void refreshHomePersonalization();
-        scheduleHomeMenuCachePrime();
+        scheduleDeferredHomeStartupTasks();
       })();
 
       const itemMenuModal = document.getElementById('itemMenuModal');
