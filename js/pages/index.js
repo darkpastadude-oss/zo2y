@@ -346,28 +346,21 @@
       const rawTitle = String(item.title || item.name || code || 'Country').trim();
       if (/\bisrael\b/i.test(rawTitle)) return null;
       const title = code === 'PS' ? 'Palestine' : rawTitle;
-      const rawImage = toHttpsUrl(String(item.image || '').trim());
-      const rawBackground = toHttpsUrl(String(item.backgroundImage || '').trim());
-      const rawSpotlight = toHttpsUrl(String(item.spotlightImage || '').trim());
-      const scenicImage = getSafeTravelScenicImage(title, code, rawImage || rawBackground || rawSpotlight);
-      if (code && isUsableHomeTravelScenicUrl(scenicImage)) {
-        setHomeTravelPhotoCache(code, scenicImage);
-      }
       const flagImage = toHttpsUrl(String(item.flagImage || '').trim()) || (code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : '');
       return {
         ...item,
         mediaType: 'travel',
         itemId: code || String(item.itemId || '').trim(),
         flagImage,
-        listImage: flagImage || String(item.listImage || '').trim() || scenicImage,
-        image: scenicImage,
-        backgroundImage: scenicImage || '',
-        spotlightImage: getSafeTravelScenicImage(title, code, rawSpotlight || scenicImage) || '',
-        spotlightMediaImage: flagImage || String(item.spotlightMediaImage || '').trim() || scenicImage,
+        listImage: flagImage || String(item.listImage || '').trim(),
+        image: '',
+        backgroundImage: '',
+        spotlightImage: '',
+        spotlightMediaImage: flagImage || String(item.spotlightMediaImage || '').trim(),
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
-        travelNeedsScenicHydration: !isUsableHomeTravelScenicUrl(scenicImage),
+        travelNeedsScenicHydration: false,
         fallbackImage: ''
       };
     }
@@ -5327,9 +5320,6 @@
       if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
       const flagImage = toHttpsUrl(row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
       const photoFromCommons = photoMap instanceof Map ? String(photoMap.get(code) || '').trim() : '';
-      if (photoFromCommons) setHomeTravelPhotoCache(code, photoFromCommons);
-      const photoImage = getSafeTravelScenicImage(title, code, photoFromCommons);
-      const hasScenic = isUsableHomeTravelScenicUrl(photoImage);
       return {
         mediaType: 'travel',
         itemId: code,
@@ -5339,14 +5329,14 @@
         cities,
         flagImage,
         listImage: flagImage,
-        image: photoImage,
-        backgroundImage: photoImage || '',
-        spotlightImage: photoImage || '',
+        image: '',
+        backgroundImage: '',
+        spotlightImage: '',
         spotlightMediaImage: flagImage,
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
-        travelNeedsScenicHydration: !hasScenic,
+        travelNeedsScenicHydration: false,
         fallbackImage: '',
         href: `country.html?code=${encodeURIComponent(code)}`
       };
@@ -5371,9 +5361,6 @@
       if (subregion && subregion !== region) extraParts.push(subregion);
       if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
       const flagImage = toHttpsUrl(row?.flag || row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
-      const scenicImage = getSafeTravelScenicImage(title, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
-      const hasScenic = isUsableHomeTravelScenicUrl(scenicImage);
-      if (hasScenic) setHomeTravelPhotoCache(code, scenicImage);
       return {
         mediaType: 'travel',
         itemId: code,
@@ -5383,14 +5370,14 @@
         cities,
         flagImage,
         listImage: flagImage,
-        image: scenicImage,
-        backgroundImage: scenicImage || '',
-        spotlightImage: scenicImage || '',
+        image: '',
+        backgroundImage: '',
+        spotlightImage: '',
         spotlightMediaImage: flagImage,
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
-        travelNeedsScenicHydration: !hasScenic,
+        travelNeedsScenicHydration: false,
         fallbackImage: '',
         href: `country.html?code=${encodeURIComponent(code)}`
       };
@@ -5459,19 +5446,8 @@
           return out;
         };
 
-        const cachedCandidates = collectTravelItems(homeTravelPhotoCache).slice(0, targetCount);
-        if (cachedCandidates.length >= Math.min(targetCount, 6)) {
-          return cachedCandidates;
-        }
-
-        const photoMap = await fetchTravelCommonsPhotos(
-          sortedRows.slice(0, Math.max(targetCount * 6, 140)),
-          signal
-        ).catch(() => homeTravelPhotoCache);
-
-        const hydrated = collectTravelItems(photoMap).slice(0, targetCount);
-        if (hydrated.length) return hydrated;
-        if (cachedCandidates.length) return cachedCandidates;
+        const directItems = collectTravelItems(null).slice(0, targetCount);
+        if (directItems.length) return directItems;
         if (cachedRowItems.length) return cachedRowItems;
       } catch (_err) {}
 
