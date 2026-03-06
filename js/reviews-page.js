@@ -558,7 +558,7 @@
       btn.addEventListener('mouseenter', () => {
         if (isMobileReviewSpotlight() || !Number.isInteger(nextIndex)) return;
         reviewSpotlightHoverIndex = nextIndex;
-        renderReviewSpotlightHover(reviewSpotlightItems[nextIndex] || null);
+        renderReviewSpotlightHover(reviewSpotlightItems[nextIndex] || null, btn);
       });
       btn.addEventListener('mouseleave', () => {
         if (isMobileReviewSpotlight()) return;
@@ -568,7 +568,7 @@
       btn.addEventListener('focus', () => {
         if (!Number.isInteger(nextIndex)) return;
         reviewSpotlightHoverIndex = nextIndex;
-        renderReviewSpotlightHover(reviewSpotlightItems[nextIndex] || null);
+        renderReviewSpotlightHover(reviewSpotlightItems[nextIndex] || null, btn);
       });
       btn.addEventListener('blur', () => {
         reviewSpotlightHoverIndex = null;
@@ -588,9 +588,37 @@
     const shell = document.getElementById('reviewsSpotlightPopover');
     if (!shell) return;
     shell.classList.remove('is-visible');
+    shell.style.left = '';
+    shell.style.top = '';
+    shell.style.right = '';
+    shell.style.bottom = '';
   }
 
-  function renderReviewSpotlightHover(item) {
+  function positionReviewSpotlightPopover(sourceEl) {
+    const shell = document.getElementById('reviewsSpotlightPopover');
+    const stage = document.getElementById('reviewsSpotlightStage');
+    if (!shell || !stage || !sourceEl || isMobileReviewSpotlight()) return;
+    const stageRect = stage.getBoundingClientRect();
+    const sourceRect = sourceEl.getBoundingClientRect();
+    const gap = 14;
+    const maxLeft = Math.max(12, stageRect.width - shell.offsetWidth - 12);
+    const maxTop = Math.max(12, stageRect.height - shell.offsetHeight - 12);
+    let left;
+    if ((sourceRect.left - stageRect.left) < (stageRect.width * 0.52)) {
+      left = (sourceRect.right - stageRect.left) + gap;
+    } else {
+      left = (sourceRect.left - stageRect.left) - shell.offsetWidth - gap;
+    }
+    let top = (sourceRect.top - stageRect.top) + ((sourceRect.height - shell.offsetHeight) / 2);
+    left = Math.min(Math.max(12, left), maxLeft);
+    top = Math.min(Math.max(12, top), maxTop);
+    shell.style.left = `${Math.round(left)}px`;
+    shell.style.top = `${Math.round(top)}px`;
+    shell.style.right = 'auto';
+    shell.style.bottom = 'auto';
+  }
+
+  function renderReviewSpotlightHover(item, sourceEl = null) {
     const shell = document.getElementById('reviewsSpotlightPopover');
     if (!shell) return;
     const target = item || null;
@@ -628,6 +656,7 @@
     byline.textContent = `${target.reviewer} • ${target.rating.toFixed(1)}/5 • ${target.dateLabel}`;
     quote.textContent = String(target.quote || '').trim();
     link.href = target.href || 'reviews.html';
+    positionReviewSpotlightPopover(sourceEl);
     shell.classList.add('is-visible');
   }
 
