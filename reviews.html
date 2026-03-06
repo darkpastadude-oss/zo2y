@@ -51,15 +51,28 @@
     .hero h1 { font-size:clamp(28px, 4vw, 44px); line-height:1; }
     .hero p { color:var(--muted); font-size:14px; max-width:760px; }
     .reviews-spotlight-shell {
+      position:relative;
       padding:16px;
       display:grid;
       gap:16px;
       overflow:hidden;
       background:
-        linear-gradient(135deg, #d8a86d, #b68247 36%, #8f6231 62%, #c89658 100%);
+        repeating-linear-gradient(102deg, rgba(106, 66, 27, .22) 0 10px, rgba(206, 157, 92, .08) 10px 18px, rgba(118, 74, 31, .18) 18px 28px),
+        repeating-linear-gradient(-14deg, rgba(88, 53, 19, .16) 0 8px, transparent 8px 19px),
+        linear-gradient(135deg, #d9ac72, #b98448 36%, #8f6231 62%, #ca9a5b 100%);
       border:1px solid rgba(68, 41, 16, .6);
       border-radius:8px;
       box-shadow:0 20px 40px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.14);
+    }
+    .reviews-spotlight-shell::before {
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), transparent 18%),
+        radial-gradient(circle at 18% 14%, rgba(255,255,255,.08), transparent 22%),
+        radial-gradient(circle at 84% 76%, rgba(0,0,0,.08), transparent 24%);
+      pointer-events:none;
     }
     .reviews-spotlight-head {
       display:flex;
@@ -123,10 +136,14 @@
       border-radius:4px;
       border:8px solid rgba(182, 132, 73, .92);
       background:
-        radial-gradient(circle at 18% 22%, rgba(255,255,255,.06) 0 2px, transparent 2px 100%),
-        radial-gradient(circle at 68% 34%, rgba(255,255,255,.05) 0 1px, transparent 1px 100%),
-        radial-gradient(circle at 54% 72%, rgba(255,255,255,.03) 0 1px, transparent 1px 100%),
-        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)),
+        radial-gradient(circle at 20% 24%, rgba(255,255,255,.09) 0 2px, transparent 2px 100%),
+        radial-gradient(circle at 74% 36%, rgba(255,255,255,.07) 0 1px, transparent 1px 100%),
+        radial-gradient(circle at 54% 72%, rgba(255,255,255,.05) 0 1px, transparent 1px 100%),
+        radial-gradient(ellipse at 30% 30%, rgba(255,255,255,.05), transparent 34%),
+        radial-gradient(ellipse at 72% 60%, rgba(255,255,255,.04), transparent 38%),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 2px, transparent 2px 14px),
+        repeating-linear-gradient(90deg, rgba(0,0,0,.025) 0 2px, transparent 2px 20px),
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0)),
         linear-gradient(180deg, #1e5a2d, #133f20 58%, #0d2c16);
       box-shadow:
         inset 0 0 0 1px rgba(9, 30, 15, .46),
@@ -143,7 +160,10 @@
       border-radius:4px;
       border:1px solid rgba(96, 81, 34, .24);
       background:
-        linear-gradient(180deg, rgba(255,255,255,.16), transparent 18%),
+        radial-gradient(circle at 18% 14%, rgba(255,255,255,.18), transparent 24%),
+        radial-gradient(circle at 82% 22%, rgba(168,133,61,.16), transparent 18%),
+        radial-gradient(circle at 26% 82%, rgba(150,120,55,.12), transparent 20%),
+        linear-gradient(140deg, rgba(255,255,255,.08), transparent 36%),
         repeating-linear-gradient(180deg, rgba(84, 92, 115, .18) 0 2px, transparent 2px 26px),
         linear-gradient(180deg, #ffe28a, #f4d35f);
       color:#17233d;
@@ -179,6 +199,20 @@
       box-shadow:-1px -1px 0 rgba(96,81,34,.14), -8px -8px 14px rgba(80,57,21,.12);
       pointer-events:none;
       z-index:4;
+    }
+    .reviews-spotlight-card .reviews-spotlight-card-body::before {
+      content:"";
+      position:absolute;
+      inset:-8px -4px -10px -6px;
+      background:
+        radial-gradient(circle at 14% 22%, rgba(255,255,255,.18), transparent 18%),
+        radial-gradient(circle at 78% 18%, rgba(255,255,255,.12), transparent 15%),
+        radial-gradient(circle at 24% 74%, rgba(120,94,38,.1), transparent 18%),
+        radial-gradient(circle at 82% 78%, rgba(120,94,38,.08), transparent 16%);
+      mix-blend-mode:multiply;
+      opacity:.55;
+      pointer-events:none;
+      z-index:-1;
     }
     .reviews-spotlight-card:hover,
     .reviews-spotlight-card.is-active {
@@ -306,31 +340,46 @@
     }
     .reviews-spotlight-card.tone-sun {
       background:
-        linear-gradient(180deg, rgba(255,255,255,.16), transparent 18%),
+        radial-gradient(circle at 18% 14%, rgba(255,255,255,.18), transparent 24%),
+        radial-gradient(circle at 82% 22%, rgba(168,133,61,.16), transparent 18%),
+        radial-gradient(circle at 26% 82%, rgba(150,120,55,.12), transparent 20%),
+        linear-gradient(140deg, rgba(255,255,255,.08), transparent 36%),
         repeating-linear-gradient(180deg, rgba(53, 64, 86, .08) 0 1px, transparent 1px 32px),
         linear-gradient(180deg, #ffe28a, #f4d35f);
     }
     .reviews-spotlight-card.tone-rose {
       background:
-        linear-gradient(180deg, rgba(255,255,255,.16), transparent 18%),
+        radial-gradient(circle at 18% 14%, rgba(255,255,255,.18), transparent 24%),
+        radial-gradient(circle at 82% 22%, rgba(180,122,129,.14), transparent 18%),
+        radial-gradient(circle at 26% 82%, rgba(160,95,108,.1), transparent 20%),
+        linear-gradient(140deg, rgba(255,255,255,.08), transparent 36%),
         repeating-linear-gradient(180deg, rgba(53, 64, 86, .08) 0 1px, transparent 1px 32px),
         linear-gradient(180deg, #ffd8df, #ffbcc8);
     }
     .reviews-spotlight-card.tone-sky {
       background:
-        linear-gradient(180deg, rgba(255,255,255,.16), transparent 18%),
+        radial-gradient(circle at 18% 14%, rgba(255,255,255,.18), transparent 24%),
+        radial-gradient(circle at 82% 22%, rgba(105,144,176,.14), transparent 18%),
+        radial-gradient(circle at 26% 82%, rgba(93,123,157,.1), transparent 20%),
+        linear-gradient(140deg, rgba(255,255,255,.08), transparent 36%),
         repeating-linear-gradient(180deg, rgba(53, 64, 86, .08) 0 1px, transparent 1px 32px),
         linear-gradient(180deg, #d6ecff, #afd8f4);
     }
     .reviews-spotlight-card.tone-mint {
       background:
-        linear-gradient(180deg, rgba(255,255,255,.16), transparent 18%),
+        radial-gradient(circle at 18% 14%, rgba(255,255,255,.18), transparent 24%),
+        radial-gradient(circle at 82% 22%, rgba(92,136,90,.14), transparent 18%),
+        radial-gradient(circle at 26% 82%, rgba(84,118,78,.1), transparent 20%),
+        linear-gradient(140deg, rgba(255,255,255,.08), transparent 36%),
         repeating-linear-gradient(180deg, rgba(53, 64, 86, .08) 0 1px, transparent 1px 32px),
         linear-gradient(180deg, #ddf2d7, #bae1b4);
     }
     .reviews-spotlight-card.tone-cream {
       background:
-        linear-gradient(180deg, rgba(255,255,255,.16), transparent 18%),
+        radial-gradient(circle at 18% 14%, rgba(255,255,255,.18), transparent 24%),
+        radial-gradient(circle at 82% 22%, rgba(156,137,98,.14), transparent 18%),
+        radial-gradient(circle at 26% 82%, rgba(134,113,77,.1), transparent 20%),
+        linear-gradient(140deg, rgba(255,255,255,.08), transparent 36%),
         repeating-linear-gradient(180deg, rgba(53, 64, 86, .08) 0 1px, transparent 1px 32px),
         linear-gradient(180deg, #f7efd9, #e9dab5);
     }
