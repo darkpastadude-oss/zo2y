@@ -509,6 +509,7 @@
     const stageEl = document.getElementById('reviewsSpotlightStage');
     if (!stageEl) return;
     const positions = ['is-front', 'is-right', 'is-lower', 'is-left'];
+    const tones = ['tone-sun', 'tone-sky', 'tone-rose', 'tone-mint', 'tone-cream'];
     const visible = getReviewSpotlightVisibleCards();
     if (!visible.length) {
       stageEl.innerHTML = '';
@@ -519,6 +520,7 @@
       const cardClasses = [
         'reviews-spotlight-card',
         positions[offset] || 'is-left',
+        tones[(reviewSpotlightIndex + offset) % tones.length],
         offset === 0 ? 'is-active' : '',
         offset >= 3 ? 'is-back' : ''
       ].filter(Boolean).join(' ');

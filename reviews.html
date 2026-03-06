@@ -120,28 +120,44 @@
       min-height:176px;
       padding:18px;
       border-radius:22px;
-      border:1px solid rgba(255,255,255,.12);
-      background:linear-gradient(160deg, rgba(20,37,75,.95), rgba(10,20,42,.98));
-      color:inherit;
+      border:1px solid rgba(45, 56, 78, .14);
+      background:linear-gradient(180deg, #ffe9a8, #f7cf71);
+      color:#17233d;
       text-align:left;
       cursor:pointer;
       overflow:hidden;
-      box-shadow:0 24px 48px rgba(0,0,0,.24);
+      box-shadow:0 24px 48px rgba(0,0,0,.24), 0 4px 0 rgba(23,35,61,.12);
       transition:transform .4s cubic-bezier(.2,.8,.2,1), border-color .25s ease, box-shadow .25s ease, opacity .25s ease, filter .25s ease;
     }
     .reviews-spotlight-card::before {
       content:"";
       position:absolute;
+      top:-8px;
+      left:50%;
+      width:76px;
+      height:24px;
+      transform:translateX(-50%) rotate(-3deg);
+      border-radius:6px;
+      background:linear-gradient(180deg, rgba(255,248,221,.74), rgba(244,229,184,.54));
+      border:1px solid rgba(255,255,255,.34);
+      box-shadow:0 6px 14px rgba(0,0,0,.12);
+      pointer-events:none;
+    }
+    .reviews-spotlight-card::after {
+      content:"";
+      position:absolute;
       inset:0;
       background:
-        radial-gradient(circle at top right, rgba(245,158,11,.14), transparent 26%),
-        linear-gradient(145deg, rgba(255,255,255,.03), transparent 55%);
+        linear-gradient(180deg, rgba(255,255,255,.18), transparent 24%),
+        repeating-linear-gradient(180deg, rgba(35,48,74,.045) 0 1px, transparent 1px 34px),
+        radial-gradient(circle at top right, rgba(255,255,255,.16), transparent 30%);
+      opacity:.72;
       pointer-events:none;
     }
     .reviews-spotlight-card:hover,
     .reviews-spotlight-card.is-active {
-      border-color:rgba(245,158,11,.55);
-      box-shadow:0 28px 54px rgba(0,0,0,.28);
+      border-color:rgba(143,108,34,.34);
+      box-shadow:0 30px 56px rgba(0,0,0,.3), 0 4px 0 rgba(23,35,61,.12);
     }
     .reviews-spotlight-card.is-front {
       top:28px;
@@ -168,7 +184,7 @@
       transform:rotate(1.8deg);
     }
     .reviews-spotlight-card.is-back {
-      opacity:.64;
+      opacity:.74;
       filter:saturate(.88);
     }
     .reviews-spotlight-card.is-front .reviews-spotlight-card-quote {
@@ -179,7 +195,7 @@
     }
     .reviews-spotlight-card-body {
       position:relative;
-      z-index:2;
+      z-index:3;
       display:grid;
       align-content:start;
       gap:10px;
@@ -195,30 +211,31 @@
       min-height:30px;
       padding:0 10px;
       border-radius:10px;
-      background:rgba(255,255,255,.07);
-      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.42);
+      border:1px solid rgba(23,35,61,.08);
       display:inline-flex;
       align-items:center;
       gap:7px;
-      color:#edf4ff;
+      color:#21324e;
       font-size:11px;
       font-weight:700;
       letter-spacing:.04em;
       text-transform:uppercase;
     }
     .reviews-spotlight-card-pill.is-muted {
-      color:#c6d7f7;
+      color:#42516d;
     }
     .reviews-spotlight-card-title {
       font-size:22px;
       line-height:1;
+      color:#132038;
       display:-webkit-box;
       -webkit-line-clamp:2;
       -webkit-box-orient:vertical;
       overflow:hidden;
     }
     .reviews-spotlight-card-quote {
-      color:#d7e5fb;
+      color:#2d3a58;
       font-size:15px;
       line-height:1.55;
       display:-webkit-box;
@@ -231,13 +248,13 @@
       flex-wrap:wrap;
       gap:10px;
       align-items:center;
-      color:#b5c9e9;
+      color:#4b5b79;
       font-size:12px;
       font-weight:700;
     }
     .reviews-spotlight-card-thumb-wrap {
       position:relative;
-      z-index:2;
+      z-index:3;
       display:flex;
       align-items:flex-start;
       justify-content:flex-end;
@@ -247,10 +264,39 @@
       max-width:88px;
       aspect-ratio:3 / 4;
       object-fit:cover;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.06);
-      box-shadow:0 16px 28px rgba(0,0,0,.28);
+      border-radius:8px;
+      border:5px solid rgba(255,255,255,.9);
+      background:#fff;
+      box-shadow:0 14px 24px rgba(0,0,0,.18);
+      transform:rotate(3deg);
+    }
+    .reviews-spotlight-card-thumb-wrap::before {
+      content:"";
+      position:absolute;
+      top:-6px;
+      right:20px;
+      width:28px;
+      height:28px;
+      border-radius:999px;
+      background:radial-gradient(circle at 35% 35%, #fff7c7, #f59e0b 72%);
+      box-shadow:0 3px 8px rgba(0,0,0,.18);
+      z-index:4;
+      pointer-events:none;
+    }
+    .reviews-spotlight-card.tone-sun {
+      background:linear-gradient(180deg, #ffeaa6, #f7d170);
+    }
+    .reviews-spotlight-card.tone-rose {
+      background:linear-gradient(180deg, #ffd6db, #ffb7c3);
+    }
+    .reviews-spotlight-card.tone-sky {
+      background:linear-gradient(180deg, #d5edff, #a9d7fb);
+    }
+    .reviews-spotlight-card.tone-mint {
+      background:linear-gradient(180deg, #d9f4dd, #b4e0b8);
+    }
+    .reviews-spotlight-card.tone-cream {
+      background:linear-gradient(180deg, #f6eed8, #eadab7);
     }
     .reviews-spotlight-footer {
       display:flex;
@@ -489,7 +535,7 @@
     <a class="mobile-nav-item active" href="reviews.html" aria-label="Reviews"><i class="fa-solid fa-star"></i></a>
   </nav>
 
-  <script src="js/reviews-page.js?v=20260306d" defer></script>
+  <script src="js/reviews-page.js?v=20260306e" defer></script>
   <script src="js/production-runtime.js?v=20260306a" defer></script>
 </body>
 </html>
