@@ -42,7 +42,7 @@ body[data-auth-variant="signup"] {
   min-height: calc(100vh - 28px);
   margin: 14px auto;
   display: grid;
-  grid-template-columns: minmax(0, 1.02fr) minmax(420px, 0.98fr);
+  grid-template-columns: minmax(300px, 0.74fr) minmax(460px, 1.26fr);
   border: 1px solid var(--auth-border);
   border-radius: 24px;
   overflow: hidden;
@@ -53,7 +53,7 @@ body[data-auth-variant="signup"] {
 }
 
 body[data-auth-variant="signup"] .auth-entry-shell {
-  grid-template-columns: minmax(320px, 0.76fr) minmax(0, 1.24fr);
+  grid-template-columns: minmax(300px, 0.72fr) minmax(460px, 1.28fr);
 }
 
 .auth-entry-showcase,
@@ -62,11 +62,11 @@ body[data-auth-variant="signup"] .auth-entry-shell {
 }
 
 .auth-entry-showcase {
-  padding: 28px 32px 32px;
+  padding: 24px 24px 24px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 22px;
+  justify-content: flex-start;
+  gap: 18px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)),
     linear-gradient(90deg, rgba(255, 255, 255, 0.02), transparent 14%);
@@ -151,7 +151,7 @@ body[data-auth-variant="signup"] .auth-entry-showcase {
 }
 
 .auth-showcase-copy {
-  max-width: 580px;
+  max-width: 420px;
 }
 
 .auth-showcase-kicker {
@@ -163,24 +163,24 @@ body[data-auth-variant="signup"] .auth-entry-showcase {
 }
 
 .auth-showcase-copy h1 {
-  margin: 18px 0 0;
+  margin: 14px 0 0;
   font-family: 'Space Grotesk', 'Manrope', sans-serif;
-  font-size: clamp(44px, 5.8vw, 70px);
-  line-height: 0.94;
+  font-size: clamp(34px, 4.6vw, 54px);
+  line-height: 0.96;
   letter-spacing: -0.05em;
-  max-width: 10ch;
+  max-width: 8ch;
 }
 
 body[data-auth-variant="signup"] .auth-showcase-copy h1 {
-  max-width: 11ch;
+  max-width: 8ch;
 }
 
 .auth-showcase-copy p {
-  margin: 18px 0 0;
+  margin: 14px 0 0;
   color: var(--auth-muted);
-  line-height: 1.78;
-  font-size: 15px;
-  max-width: 58ch;
+  line-height: 1.68;
+  font-size: 14px;
+  max-width: 40ch;
 }
 
 .auth-showcase-grid {
@@ -208,10 +208,44 @@ body[data-auth-variant="signup"] .auth-showcase-row {
 .auth-mobile-ribbon-card,
 .auth-panel-side,
 .auth-panel-side-item,
-.auth-panel-footnote {
+.auth-panel-footnote,
+.auth-showcase-note,
+.auth-inline-point {
   border: 1px solid var(--auth-border);
   background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.auth-showcase-note {
+  margin-top: auto;
+  padding: 16px;
+  border-radius: 14px;
+  max-width: 420px;
+}
+
+.auth-showcase-note p {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 10px;
+  font-weight: 800;
+  color: rgba(232, 241, 255, 0.52);
+}
+
+.auth-showcase-note strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 24px;
+  line-height: 1.12;
+  font-family: 'Space Grotesk', 'Manrope', sans-serif;
+}
+
+.auth-showcase-note span {
+  display: block;
+  margin-top: 10px;
+  color: rgba(232, 241, 255, 0.76);
+  line-height: 1.6;
+  font-size: 13px;
 }
 
 .auth-showcase-card {
@@ -313,70 +347,30 @@ body[data-auth-variant="signup"] .auth-showcase-card {
   max-width: 44ch;
 }
 
-.auth-panel-split {
+.auth-inline-points {
   display: grid;
-  grid-template-columns: minmax(220px, 0.76fr) minmax(0, 1fr);
-  gap: 24px;
-  margin-top: 22px;
-  align-items: start;
-}
-
-.auth-panel-side {
-  padding: 18px;
-  border-radius: 14px;
-}
-
-.auth-panel-side p {
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-size: 10px;
-  font-weight: 800;
-  color: rgba(232, 241, 255, 0.5);
-}
-
-.auth-panel-side strong {
-  display: block;
-  margin-top: 10px;
-  font-family: 'Space Grotesk', 'Manrope', sans-serif;
-  font-size: 24px;
-  line-height: 1.08;
-}
-
-.auth-panel-side span {
-  display: block;
-  margin-top: 10px;
-  color: rgba(232, 241, 255, 0.78);
-  line-height: 1.68;
-  font-size: 14px;
-}
-
-.auth-panel-side-list {
-  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 18px;
 }
 
-.auth-panel-side-item {
+.auth-inline-point {
   padding: 14px;
   border-radius: 12px;
 }
 
-.auth-panel-side-item strong {
-  margin-top: 0;
+.auth-inline-point strong {
+  display: block;
   font-size: 15px;
-  line-height: 1.25;
-  font-family: 'Manrope', sans-serif;
+  line-height: 1.2;
 }
 
-.auth-panel-side-item span {
+.auth-inline-point span {
+  display: block;
   margin-top: 6px;
+  color: rgba(232, 241, 255, 0.76);
+  line-height: 1.5;
   font-size: 13px;
-  line-height: 1.55;
-}
-
-.auth-panel-main {
-  min-width: 0;
 }
 
 .message {
@@ -604,39 +598,9 @@ body[data-auth-variant="signup"] .auth-showcase-card {
     display: none;
   }
 
-  .auth-mobile-ribbon {
-    display: grid;
-    gap: 12px;
-  }
-
-  .auth-mobile-ribbon-card {
-    padding: 16px;
-    border-radius: 14px;
-  }
-
-  .auth-mobile-ribbon-card p {
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    font-size: 10px;
-    color: rgba(228, 237, 255, 0.54);
-    font-weight: 800;
-  }
-
-  .auth-mobile-ribbon-card strong {
-    display: block;
-    margin-top: 10px;
-    font-size: 18px;
-    line-height: 1.16;
-    font-family: 'Space Grotesk', 'Manrope', sans-serif;
-  }
-
-  .auth-mobile-ribbon-card span {
-    display: block;
-    margin-top: 8px;
-    color: rgba(229, 238, 255, 0.74);
-    line-height: 1.55;
-    font-size: 13px;
+  .auth-showcase-note {
+    margin-top: 0;
+    max-width: none;
   }
 
   .auth-panel-card,
@@ -647,9 +611,8 @@ body[data-auth-variant="signup"] .auth-showcase-card {
     border-radius: 16px;
   }
 
-  .auth-panel-split {
+  .auth-inline-points {
     grid-template-columns: 1fr;
-    gap: 18px;
   }
 }
 
