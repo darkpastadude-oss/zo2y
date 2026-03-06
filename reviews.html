@@ -140,15 +140,15 @@
     }
     .reviews-spotlight-stage {
       position:relative;
-      width:min(100%, 1160px);
-      min-height:640px;
-      aspect-ratio:auto;
-      padding:24px 28px;
-      margin:4px auto 0;
+      width:min(100%, 1020px);
+      min-height:unset;
+      aspect-ratio:4070 / 2760;
+      padding:44px 52px 40px;
+      margin:6px auto 0;
       border:0;
-      border-radius:18px;
-      background:url('images/reviews/chalkboard-board.svg?v=20260306f') center/100% 100% no-repeat;
-      box-shadow:0 18px 32px rgba(0,0,0,.24);
+      border-radius:28px;
+      background:url('images/reviews/board-photo.jpg?v=20260306j') center/100% 100% no-repeat;
+      box-shadow:0 20px 36px rgba(0,0,0,.24);
       isolation:isolate;
       z-index:1;
       overflow:hidden;
@@ -156,9 +156,9 @@
     .reviews-spotlight-card {
       position:absolute;
       display:block;
-      width:min(100%, 404px);
-      min-height:336px;
-      padding:52px 28px 38px;
+      width:min(100%, 336px);
+      min-height:286px;
+      padding:36px 20px 26px;
       border:0;
       background-position:center;
       background-repeat:no-repeat;
@@ -170,15 +170,15 @@
       overflow:visible;
       box-shadow:none;
       transition:transform .4s cubic-bezier(.2,.8,.2,1), opacity .25s ease, filter .25s ease;
-      filter:drop-shadow(0 14px 20px rgba(0,0,0,.16));
+      filter:drop-shadow(0 11px 14px rgba(0,0,0,.22));
     }
     .reviews-spotlight-card::before {
       content:"";
       position:absolute;
-      top:18px;
+      top:12px;
       left:50%;
-      width:34px;
-      height:34px;
+      width:26px;
+      height:26px;
       transform:translateX(-50%);
       background:url('images/reviews/pushpin-red.svg?v=20260306f') center/contain no-repeat;
       box-shadow:none;
@@ -193,35 +193,35 @@
     }
     .reviews-spotlight-card:hover,
     .reviews-spotlight-card.is-active {
-      filter:drop-shadow(0 18px 24px rgba(0,0,0,.22));
+      filter:drop-shadow(0 15px 18px rgba(0,0,0,.28));
     }
     .reviews-spotlight-card.is-front {
-      top:34px;
-      left:26px;
+      top:48px;
+      left:54px;
       z-index:4;
-      transform:rotate(-7deg);
+      transform:rotate(-8deg);
     }
     .reviews-spotlight-card.is-right {
-      top:30px;
-      right:36px;
+      top:40px;
+      right:56px;
       z-index:3;
-      transform:rotate(6deg);
+      transform:rotate(7deg);
     }
     .reviews-spotlight-card.is-lower {
-      bottom:18px;
-      right:82px;
+      bottom:42px;
+      right:92px;
       z-index:2;
-      transform:rotate(-5deg);
+      transform:rotate(-6deg);
     }
     .reviews-spotlight-card.is-left {
-      bottom:24px;
-      left:106px;
+      bottom:34px;
+      left:126px;
       z-index:1;
-      transform:rotate(4.5deg);
+      transform:rotate(5deg);
     }
     .reviews-spotlight-card.is-back {
       opacity:.96;
-      filter:drop-shadow(0 10px 14px rgba(0,0,0,.12)) saturate(.98) brightness(1);
+      filter:drop-shadow(0 8px 12px rgba(0,0,0,.18)) saturate(.98) brightness(1);
     }
     .reviews-spotlight-card.is-front .reviews-spotlight-card-quote {
       -webkit-line-clamp:5;
@@ -234,15 +234,16 @@
       z-index:3;
       display:grid;
       align-content:start;
-      gap:7px;
+      gap:6px;
       min-width:0;
-      padding-left:58px;
-      padding-right:126px;
+      padding-top:28px;
+      padding-left:46px;
+      padding-right:96px;
     }
     .reviews-spotlight-card-rating {
       font-family:var(--marker-font);
       color:#26384f;
-      font-size:18px;
+      font-size:16px;
       letter-spacing:.4px;
       line-height:1;
       transform:rotate(-2deg);
@@ -250,14 +251,14 @@
     .reviews-spotlight-card-media {
       font-family:var(--marker-font);
       color:#4b6079;
-      font-size:13px;
+      font-size:12px;
       letter-spacing:.4px;
       text-transform:uppercase;
       transform:rotate(-1deg);
     }
     .reviews-spotlight-card-title {
       font-family:var(--marker-font);
-      font-size:20px;
+      font-size:17px;
       line-height:1.1;
       color:#223246;
       display:-webkit-box;
@@ -268,8 +269,8 @@
     .reviews-spotlight-card-quote {
       color:#31455a;
       font-family:var(--hand-font);
-      font-size:28px;
-      line-height:1.02;
+      font-size:24px;
+      line-height:1.04;
       display:-webkit-box;
       -webkit-line-clamp:4;
       -webkit-box-orient:vertical;
@@ -279,13 +280,13 @@
       margin-top:2px;
       color:#385069;
       font-family:var(--hand-font);
-      font-size:24px;
+      font-size:22px;
       line-height:1;
     }
     .reviews-spotlight-card-thumb-wrap {
       position:absolute;
-      top:56px;
-      right:20px;
+      top:44px;
+      right:18px;
       z-index:3;
       display:flex;
       align-items:flex-start;
@@ -293,32 +294,32 @@
     }
     .reviews-spotlight-card-thumb {
       width:100%;
-      max-width:102px;
+      max-width:86px;
       aspect-ratio:3 / 4;
       object-fit:cover;
       border-radius:2px;
       border:4px solid rgba(255,255,255,.92);
       background:#fff;
-      box-shadow:0 14px 20px rgba(0,0,0,.18);
+      box-shadow:0 10px 16px rgba(0,0,0,.22);
       transform:rotate(5deg);
     }
     .reviews-spotlight-card-thumb-wrap::before {
       display:none;
     }
     .reviews-spotlight-card.tone-sun {
-      background-image:url('images/reviews/sticky-note-yellow.svg?v=20260306i');
+      background-image:url('images/reviews/note-yellow.png?v=20260306j');
     }
     .reviews-spotlight-card.tone-rose {
-      background-image:url('images/reviews/sticky-note-pink.svg?v=20260306i');
+      background-image:url('images/reviews/note-pink-real.png?v=20260306j');
     }
     .reviews-spotlight-card.tone-sky {
-      background-image:url('images/reviews/sticky-note-blue.svg?v=20260306i');
+      background-image:url('images/reviews/note-blue.png?v=20260306j');
     }
     .reviews-spotlight-card.tone-mint {
-      background-image:url('images/reviews/sticky-note-green.svg?v=20260306i');
+      background-image:url('images/reviews/note-green-real.png?v=20260306j');
     }
     .reviews-spotlight-card.tone-cream {
-      background-image:url('images/reviews/sticky-note-cream.svg?v=20260306i');
+      background-image:url('images/reviews/note-cream.png?v=20260306j');
     }
     .reviews-spotlight-footer {
       display:flex;
@@ -404,12 +405,13 @@
         min-height:unset;
         display:grid;
         grid-auto-flow:column;
-        grid-auto-columns:minmax(348px, 90vw);
-        gap:18px;
+        grid-auto-columns:minmax(316px, 88vw);
+        gap:14px;
         overflow-x:auto;
-        padding:18px 16px 14px;
+        padding:20px 18px 18px;
         width:100%;
         margin:0;
+        background:url('images/reviews/board-photo.jpg?v=20260306j') center/cover no-repeat;
       }
       .reviews-spotlight-card,
       .reviews-spotlight-card.is-front,
@@ -419,18 +421,18 @@
         position:relative;
         inset:auto;
         width:100%;
-        min-height:320px;
+        min-height:296px;
         transform:none;
       }
-      .reviews-spotlight-card { padding:48px 24px 32px; }
+      .reviews-spotlight-card { padding:34px 18px 24px; }
       .reviews-spotlight-card.is-front .reviews-spotlight-card-title { font-size:20px; }
-      .reviews-spotlight-card-body { padding-left:44px; padding-right:106px; gap:6px; }
-      .reviews-spotlight-card-rating { font-size:17px; }
+      .reviews-spotlight-card-body { padding-top:24px; padding-left:36px; padding-right:88px; gap:6px; }
+      .reviews-spotlight-card-rating { font-size:15px; }
       .reviews-spotlight-card-media { font-size:12px; }
-      .reviews-spotlight-card-thumb-wrap { top:52px; right:16px; }
-      .reviews-spotlight-card-thumb { max-width:84px; transform:rotate(4deg); }
-      .reviews-spotlight-card-quote { -webkit-line-clamp:4; font-size:26px; }
-      .reviews-spotlight-card-signoff { font-size:22px; }
+      .reviews-spotlight-card-thumb-wrap { top:44px; right:14px; }
+      .reviews-spotlight-card-thumb { max-width:72px; transform:rotate(4deg); }
+      .reviews-spotlight-card-quote { -webkit-line-clamp:4; font-size:23px; }
+      .reviews-spotlight-card-signoff { font-size:20px; }
       .reviews-spotlight-card.is-tearing-out {
         animation: noteTearOut .28s cubic-bezier(.32,.02,.68,.95) forwards;
         pointer-events:none;
