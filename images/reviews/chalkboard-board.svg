@@ -1,0 +1,42 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 760" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="woodBase" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e4b97f"/>
+      <stop offset="28%" stop-color="#b87c43"/>
+      <stop offset="58%" stop-color="#8b5b2d"/>
+      <stop offset="100%" stop-color="#d7a267"/>
+    </linearGradient>
+    <pattern id="woodGrain" width="220" height="220" patternUnits="userSpaceOnUse">
+      <rect width="220" height="220" fill="url(#woodBase)"/>
+      <path d="M-10 35 C 40 10, 80 65, 145 38 S 240 62, 280 28" fill="none" stroke="rgba(88,50,20,.24)" stroke-width="10"/>
+      <path d="M-20 110 C 35 82, 95 145, 165 108 S 245 132, 300 94" fill="none" stroke="rgba(255,233,197,.12)" stroke-width="7"/>
+      <path d="M-30 185 C 24 155, 96 220, 168 182 S 252 206, 310 168" fill="none" stroke="rgba(96,56,24,.22)" stroke-width="11"/>
+      <circle cx="66" cy="70" r="22" fill="none" stroke="rgba(87,53,25,.18)" stroke-width="6"/>
+      <circle cx="172" cy="152" r="18" fill="none" stroke="rgba(255,239,211,.14)" stroke-width="5"/>
+    </pattern>
+    <filter id="chalkNoise" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="8" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0" result="mono"/>
+      <feComponentTransfer in="mono" result="faded">
+        <feFuncA type="table" tableValues="0 0 .02 .05"/>
+      </feComponentTransfer>
+    </filter>
+    <linearGradient id="boardGreen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#235f34"/>
+      <stop offset="52%" stop-color="#134221"/>
+      <stop offset="100%" stop-color="#0b2814"/>
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="760" fill="#0b1633"/>
+  <rect x="22" y="22" width="1356" height="716" rx="14" fill="url(#woodGrain)"/>
+  <rect x="38" y="38" width="1324" height="684" rx="10" fill="none" stroke="rgba(255,242,214,.28)" stroke-width="6"/>
+  <rect x="92" y="92" width="1216" height="576" rx="6" fill="url(#boardGreen)"/>
+  <rect x="92" y="92" width="1216" height="576" rx="6" fill="#fff" filter="url(#chalkNoise)" opacity=".95"/>
+  <g opacity=".18" stroke="#f6f8ed" stroke-linecap="round">
+    <path d="M170 178 C 288 146, 376 212, 490 180" stroke-width="8" fill="none"/>
+    <path d="M880 162 C 944 146, 1010 184, 1100 154" stroke-width="6" fill="none"/>
+    <path d="M286 526 C 416 502, 560 560, 728 520" stroke-width="9" fill="none"/>
+    <path d="M1008 492 C 1080 474, 1142 514, 1222 488" stroke-width="7" fill="none"/>
+  </g>
+  <rect x="92" y="92" width="1216" height="576" rx="6" fill="none" stroke="rgba(232,245,224,.08)" stroke-width="2"/>
+</svg>

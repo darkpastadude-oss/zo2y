@@ -56,22 +56,17 @@
       display:grid;
       gap:16px;
       overflow:hidden;
-      background:
-        repeating-linear-gradient(102deg, rgba(106, 66, 27, .22) 0 10px, rgba(206, 157, 92, .08) 10px 18px, rgba(118, 74, 31, .18) 18px 28px),
-        repeating-linear-gradient(-14deg, rgba(88, 53, 19, .16) 0 8px, transparent 8px 19px),
-        linear-gradient(135deg, #d9ac72, #b98448 36%, #8f6231 62%, #ca9a5b 100%);
-      border:1px solid rgba(68, 41, 16, .6);
-      border-radius:8px;
-      box-shadow:0 20px 40px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.14);
+      background:linear-gradient(180deg, rgba(6,18,10,.48), rgba(6,18,10,.58));
+      border:1px solid rgba(111, 79, 33, .42);
+      border-radius:12px;
+      box-shadow:0 20px 40px rgba(0,0,0,.24);
     }
     .reviews-spotlight-shell::before {
       content:"";
       position:absolute;
       inset:0;
       background:
-        linear-gradient(180deg, rgba(255,255,255,.08), transparent 18%),
-        radial-gradient(circle at 18% 14%, rgba(255,255,255,.08), transparent 22%),
-        radial-gradient(circle at 84% 76%, rgba(0,0,0,.08), transparent 24%);
+        linear-gradient(180deg, rgba(255,255,255,.05), transparent 18%);
       pointer-events:none;
     }
     .reviews-spotlight-head {
@@ -132,92 +127,52 @@
     .reviews-spotlight-stage {
       position:relative;
       min-height:430px;
-      padding:18px;
-      border-radius:4px;
-      border:8px solid rgba(182, 132, 73, .92);
-      background:
-        radial-gradient(circle at 20% 24%, rgba(255,255,255,.09) 0 2px, transparent 2px 100%),
-        radial-gradient(circle at 74% 36%, rgba(255,255,255,.07) 0 1px, transparent 1px 100%),
-        radial-gradient(circle at 54% 72%, rgba(255,255,255,.05) 0 1px, transparent 1px 100%),
-        radial-gradient(ellipse at 30% 30%, rgba(255,255,255,.05), transparent 34%),
-        radial-gradient(ellipse at 72% 60%, rgba(255,255,255,.04), transparent 38%),
-        repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 2px, transparent 2px 14px),
-        repeating-linear-gradient(90deg, rgba(0,0,0,.025) 0 2px, transparent 2px 20px),
-        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0)),
-        linear-gradient(180deg, #1e5a2d, #133f20 58%, #0d2c16);
-      box-shadow:
-        inset 0 0 0 1px rgba(9, 30, 15, .46),
-        inset 0 20px 42px rgba(255,255,255,.02),
-        inset 0 -20px 42px rgba(0,0,0,.14),
-        0 14px 28px rgba(0,0,0,.16);
+      padding:52px 64px 48px;
+      border:0;
+      border-radius:8px;
+      background:url('images/reviews/chalkboard-board.svg') center/100% 100% no-repeat;
+      box-shadow:0 14px 28px rgba(0,0,0,.16);
     }
     .reviews-spotlight-card {
       position:absolute;
       display:block;
       width:min(100%, 330px);
       min-height:248px;
-      padding:26px 18px 20px;
-      border-radius:4px;
-      border:1px solid rgba(96, 81, 34, .24);
-      background:
-        radial-gradient(circle at 18% 14%, rgba(255,255,255,.18), transparent 24%),
-        radial-gradient(circle at 82% 22%, rgba(168,133,61,.16), transparent 18%),
-        radial-gradient(circle at 26% 82%, rgba(150,120,55,.12), transparent 20%),
-        linear-gradient(140deg, rgba(255,255,255,.08), transparent 36%),
-        repeating-linear-gradient(180deg, rgba(84, 92, 115, .18) 0 2px, transparent 2px 26px),
-        linear-gradient(180deg, #ffe28a, #f4d35f);
+      padding:40px 24px 30px;
+      border:0;
+      background-position:center;
+      background-repeat:no-repeat;
+      background-size:100% 100%;
+      background-color:transparent;
       color:#17233d;
       text-align:left;
       cursor:pointer;
-      overflow:hidden;
-      box-shadow:0 18px 28px rgba(0,0,0,.22), 0 2px 0 rgba(61,42,16,.12);
-      transition:transform .4s cubic-bezier(.2,.8,.2,1), border-color .25s ease, box-shadow .25s ease, opacity .25s ease, filter .25s ease;
+      overflow:visible;
+      box-shadow:none;
+      transition:transform .4s cubic-bezier(.2,.8,.2,1), opacity .25s ease, filter .25s ease;
     }
     .reviews-spotlight-card::before {
       content:"";
       position:absolute;
-      top:8px;
+      top:6px;
       left:50%;
-      width:16px;
-      height:16px;
+      width:22px;
+      height:22px;
       transform:translateX(-50%);
-      border-radius:999px;
-      background:radial-gradient(circle at 34% 34%, #fff8da, #d44b36 68%, #8f2718 100%);
-      box-shadow:0 2px 6px rgba(0,0,0,.18);
+      background:url('images/reviews/pushpin-red.svg') center/contain no-repeat;
+      box-shadow:none;
       pointer-events:none;
       z-index:5;
     }
     .reviews-spotlight-card::after {
-      content:"";
-      position:absolute;
-      right:0;
-      bottom:0;
-      width:44px;
-      height:44px;
-      background:
-        linear-gradient(135deg, rgba(183,148,65,.95) 0 50%, rgba(255,239,191,.98) 50% 100%);
-      box-shadow:-1px -1px 0 rgba(96,81,34,.14), -8px -8px 14px rgba(80,57,21,.12);
-      pointer-events:none;
-      z-index:4;
+      display:none;
     }
     .reviews-spotlight-card .reviews-spotlight-card-body::before {
-      content:"";
-      position:absolute;
-      inset:-8px -4px -10px -6px;
-      background:
-        radial-gradient(circle at 14% 22%, rgba(255,255,255,.18), transparent 18%),
-        radial-gradient(circle at 78% 18%, rgba(255,255,255,.12), transparent 15%),
-        radial-gradient(circle at 24% 74%, rgba(120,94,38,.1), transparent 18%),
-        radial-gradient(circle at 82% 78%, rgba(120,94,38,.08), transparent 16%);
-      mix-blend-mode:multiply;
-      opacity:.55;
-      pointer-events:none;
-      z-index:-1;
+      display:none;
     }
     .reviews-spotlight-card:hover,
     .reviews-spotlight-card.is-active {
-      border-color:rgba(143,108,34,.34);
-      box-shadow:0 24px 34px rgba(0,0,0,.28), 0 2px 0 rgba(61,42,16,.12);
+      filter:drop-shadow(0 20px 26px rgba(0,0,0,.24));
     }
     .reviews-spotlight-card.is-front {
       top:28px;
@@ -260,7 +215,7 @@
       align-content:start;
       gap:6px;
       min-width:0;
-      padding-right:94px;
+      padding-right:102px;
     }
     .reviews-spotlight-card-rating {
       font-family:var(--marker-font);
@@ -307,8 +262,8 @@
     }
     .reviews-spotlight-card-thumb-wrap {
       position:absolute;
-      top:30px;
-      right:14px;
+      top:34px;
+      right:18px;
       z-index:3;
       display:flex;
       align-items:flex-start;
@@ -323,65 +278,25 @@
       border:5px solid rgba(255,255,255,.9);
       background:#fff;
       box-shadow:0 14px 24px rgba(0,0,0,.18);
-      transform:rotate(4deg);
+      transform:rotate(5deg);
     }
     .reviews-spotlight-card-thumb-wrap::before {
-      content:"";
-      position:absolute;
-      top:-4px;
-      right:18px;
-      width:10px;
-      height:10px;
-      border-radius:999px;
-      background:radial-gradient(circle at 35% 35%, #fff8da, #d44b36 72%, #8f2718 100%);
-      box-shadow:0 2px 4px rgba(0,0,0,.16);
-      z-index:4;
-      pointer-events:none;
+      display:none;
     }
     .reviews-spotlight-card.tone-sun {
-      background:
-        radial-gradient(circle at 18% 14%, rgba(255,255,255,.18), transparent 24%),
-        radial-gradient(circle at 82% 22%, rgba(168,133,61,.16), transparent 18%),
-        radial-gradient(circle at 26% 82%, rgba(150,120,55,.12), transparent 20%),
-        linear-gradient(140deg, rgba(255,255,255,.08), transparent 36%),
-        repeating-linear-gradient(180deg, rgba(53, 64, 86, .08) 0 1px, transparent 1px 32px),
-        linear-gradient(180deg, #ffe28a, #f4d35f);
+      background-image:url('images/reviews/sticky-note-yellow.svg');
     }
     .reviews-spotlight-card.tone-rose {
-      background:
-        radial-gradient(circle at 18% 14%, rgba(255,255,255,.18), transparent 24%),
-        radial-gradient(circle at 82% 22%, rgba(180,122,129,.14), transparent 18%),
-        radial-gradient(circle at 26% 82%, rgba(160,95,108,.1), transparent 20%),
-        linear-gradient(140deg, rgba(255,255,255,.08), transparent 36%),
-        repeating-linear-gradient(180deg, rgba(53, 64, 86, .08) 0 1px, transparent 1px 32px),
-        linear-gradient(180deg, #ffd8df, #ffbcc8);
+      background-image:url('images/reviews/sticky-note-pink.svg');
     }
     .reviews-spotlight-card.tone-sky {
-      background:
-        radial-gradient(circle at 18% 14%, rgba(255,255,255,.18), transparent 24%),
-        radial-gradient(circle at 82% 22%, rgba(105,144,176,.14), transparent 18%),
-        radial-gradient(circle at 26% 82%, rgba(93,123,157,.1), transparent 20%),
-        linear-gradient(140deg, rgba(255,255,255,.08), transparent 36%),
-        repeating-linear-gradient(180deg, rgba(53, 64, 86, .08) 0 1px, transparent 1px 32px),
-        linear-gradient(180deg, #d6ecff, #afd8f4);
+      background-image:url('images/reviews/sticky-note-blue.svg');
     }
     .reviews-spotlight-card.tone-mint {
-      background:
-        radial-gradient(circle at 18% 14%, rgba(255,255,255,.18), transparent 24%),
-        radial-gradient(circle at 82% 22%, rgba(92,136,90,.14), transparent 18%),
-        radial-gradient(circle at 26% 82%, rgba(84,118,78,.1), transparent 20%),
-        linear-gradient(140deg, rgba(255,255,255,.08), transparent 36%),
-        repeating-linear-gradient(180deg, rgba(53, 64, 86, .08) 0 1px, transparent 1px 32px),
-        linear-gradient(180deg, #ddf2d7, #bae1b4);
+      background-image:url('images/reviews/sticky-note-green.svg');
     }
     .reviews-spotlight-card.tone-cream {
-      background:
-        radial-gradient(circle at 18% 14%, rgba(255,255,255,.18), transparent 24%),
-        radial-gradient(circle at 82% 22%, rgba(156,137,98,.14), transparent 18%),
-        radial-gradient(circle at 26% 82%, rgba(134,113,77,.1), transparent 20%),
-        linear-gradient(140deg, rgba(255,255,255,.08), transparent 36%),
-        repeating-linear-gradient(180deg, rgba(53, 64, 86, .08) 0 1px, transparent 1px 32px),
-        linear-gradient(180deg, #f7efd9, #e9dab5);
+      background-image:url('images/reviews/sticky-note-cream.svg');
     }
     .reviews-spotlight-footer {
       display:flex;
@@ -464,7 +379,7 @@
         grid-auto-columns:minmax(274px, 84vw);
         gap:12px;
         overflow-x:auto;
-        padding-bottom:6px;
+        padding:34px 22px 24px;
       }
       .reviews-spotlight-card,
       .reviews-spotlight-card.is-front,
@@ -477,12 +392,12 @@
         min-height:232px;
         transform:none;
       }
-      .reviews-spotlight-card { padding:24px 15px 18px; }
+      .reviews-spotlight-card { padding:34px 18px 24px; }
       .reviews-spotlight-card.is-front .reviews-spotlight-card-title { font-size:18px; }
       .reviews-spotlight-card-body { padding-right:82px; gap:5px; }
       .reviews-spotlight-card-rating { font-size:15px; }
       .reviews-spotlight-card-media { font-size:12px; }
-      .reviews-spotlight-card-thumb-wrap { top:26px; right:12px; }
+      .reviews-spotlight-card-thumb-wrap { top:30px; right:14px; }
       .reviews-spotlight-card-thumb { max-width:64px; transform:rotate(4deg); }
       .reviews-spotlight-card-quote { -webkit-line-clamp:5; font-size:24px; }
       .reviews-spotlight-card-signoff { font-size:22px; }

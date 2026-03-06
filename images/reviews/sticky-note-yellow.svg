@@ -1,0 +1,39 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 720">
+  <defs>
+    <filter id="paperNoise" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="17" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0" result="mono"/>
+      <feComponentTransfer in="mono" result="paperDust">
+        <feFuncA type="table" tableValues="0 0 .02 .05"/>
+      </feComponentTransfer>
+    </filter>
+    <linearGradient id="paperTone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f9e78c"/>
+      <stop offset="100%" stop-color="#efd166"/>
+    </linearGradient>
+    <linearGradient id="curlTone" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d8bf71"/>
+      <stop offset="100%" stop-color="rgba(117,89,39,.72)"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="160%" height="160%">
+      <feDropShadow dx="18" dy="26" stdDeviation="22" flood-color="rgba(0,0,0,.22)"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="M124 118 L528 92 Q 604 96 608 160 L620 498 Q 620 552 576 582 Q 520 624 436 626 L166 628 Q 110 626 108 572 L96 184 Q 96 128 124 118 Z" fill="url(#paperTone)"/>
+    <path d="M124 118 L528 92 Q 604 96 608 160 L620 498 Q 620 552 576 582 Q 520 624 436 626 L166 628 Q 110 626 108 572 L96 184 Q 96 128 124 118 Z" fill="#fff" filter="url(#paperNoise)" opacity=".85"/>
+    <path d="M450 626 C 520 610 570 574 592 508 C 610 560 616 610 606 650 C 570 658 514 656 450 626 Z" fill="url(#curlTone)" opacity=".92"/>
+    <path d="M448 624 C 498 618 538 594 576 548" fill="none" stroke="rgba(111,84,33,.35)" stroke-width="3"/>
+    <path d="M206 118 L488 104" stroke="rgba(255,255,255,.2)" stroke-width="12" stroke-linecap="round"/>
+    <path d="M160 176 L576 144" stroke="rgba(74,87,127,.22)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M150 224 L586 196" stroke="rgba(74,87,127,.22)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M144 272 L592 246" stroke="rgba(74,87,127,.22)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M138 320 L596 294" stroke="rgba(74,87,127,.22)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M134 368 L598 344" stroke="rgba(74,87,127,.22)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M132 416 L598 394" stroke="rgba(74,87,127,.22)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M130 464 L594 444" stroke="rgba(74,87,127,.22)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M132 512 L586 494" stroke="rgba(74,87,127,.22)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M136 560 L560 546" stroke="rgba(74,87,127,.22)" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>
+
