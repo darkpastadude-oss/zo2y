@@ -284,6 +284,68 @@
                 if (visitedMeta) visitedMeta.textContent = '0 saved items';
             }
 
+            const RESERVED_PROFILE_USERNAMES = new Set([
+                'admin', 'api', 'app', 'auth', 'authcallback', 'blog', 'book', 'books',
+                'country', 'edit', 'explore', 'game', 'games', 'help', 'home', 'index',
+                'login', 'movie', 'movies', 'music', 'new', 'privacy', 'profile',
+                'resetpassword', 'reviews', 'search', 'settings', 'signup', 'support',
+                'terms', 'travel', 'tv', 'tvshow', 'tvshows', 'updatepassword', 'user',
+                'users', 'zo2y'
+            ]);
+
+            function normalizeProfileUsername(value) {
+                const normalized = String(value || '')
+                    .trim()
+                    .replace(/^@+/, '')
+                    .toLowerCase()
+                    .replace(/['’]/g, '')
+                    .replace(/[^a-z0-9_]+/g, '_')
+                    .replace(/_+/g, '_')
+                    .replace(/^_+|_+$/g, '')
+                    .slice(0, 30);
+                return normalized;
+            }
+
+            function isValidProfileUsername(value) {
+                return /^[a-z0-9_]{3,30}$/.test(String(value || ''));
+            }
+
+            function buildProfileUsernameCandidates(seed, userId) {
+                const rawBaseSeed = normalizeProfileUsername(seed) || 'user';
+                const baseSeed = RESERVED_PROFILE_USERNAMES.has(rawBaseSeed.replace(/_/g, ''))
+                    ? `${rawBaseSeed.slice(0, 24)}_user`.slice(0, 30)
+                    : rawBaseSeed;
+                const uniqueSeed = String(userId || '').replace(/-/g, '').slice(0, 6).toLowerCase() || 'user';
+                const paddedBase = baseSeed.length >= 3 ? baseSeed : normalizeProfileUsername(`user_${baseSeed}`) || 'user';
+                const suffixCandidate = `${paddedBase.slice(0, Math.max(3, 30 - uniqueSeed.length - 1))}_${uniqueSeed}`.slice(0, 30);
+                return Array.from(new Set([paddedBase.slice(0, 30), suffixCandidate]));
+            }
+
+            async function ensureProfileUsernameAvailable(username, currentProfileId = '') {
+                const normalizedUsername = normalizeProfileUsername(username);
+                if (!isValidProfileUsername(normalizedUsername)) {
+                    throw new Error('Username must be 3-30 characters and use only letters, numbers, or underscores.');
+                }
+                if (RESERVED_PROFILE_USERNAMES.has(normalizedUsername.replace(/_/g, ''))) {
+                    throw new Error('That username is reserved. Choose another one.');
+                }
+
+                const { data, error } = await supabase
+                    .from('user_profiles')
+                    .select('id')
+                    .eq('username', normalizedUsername)
+                    .limit(10);
+
+                if (error) throw error;
+
+                const isTaken = Array.isArray(data) && data.some((row) => String(row?.id || '') !== String(currentProfileId || currentUser?.id || ''));
+                if (isTaken) {
+                    throw new Error('That username is already taken.');
+                }
+
+                return normalizedUsername;
+            }
+
             function setupMobileTabsHint() {
                 const tabs = document.querySelector('.mobile-tabs');
                 const hint = document.getElementById('mobileTabsSwipeHint');
@@ -674,10 +736,24 @@
                 userProfile = profile || {};
                 if (profile) return;
 
+                const usernameCandidates = buildProfileUsernameCandidates(
+                    currentUser?.user_metadata?.username ||
+                    currentUser?.user_metadata?.full_name ||
+                    currentUser?.email?.split('@')[0] ||
+                    'user',
+                    currentUser?.id
+                );
+                const bootstrapUsername = usernameCandidates[0] || 'user';
+                const bootstrapDisplayName = String(
+                    currentUser?.user_metadata?.full_name ||
+                    currentUser?.user_metadata?.name ||
+                    bootstrapUsername
+                ).trim().slice(0, 80) || bootstrapUsername;
+
                 const basePayload = {
                     id: currentUser.id,
-                    username: currentUser.email.split('@')[0],
-                    full_name: currentUser.email.split('@')[0],
+                    username: bootstrapUsername,
+                    full_name: bootstrapDisplayName,
                     bio: "",
                     location: "",
                     avatar_icon: iconGlyphText('user'),
@@ -10743,15 +10819,16 @@
                             currentUser?.email?.split('@')[0] ||
                             `user_${String(currentUser?.id || '').slice(0, 8)}`
                         ).trim();
+                        const usernameCandidates = buildProfileUsernameCandidates(usernameSeed, currentUser?.id);
                         const fullNameSeed = String(
                             userProfile?.full_name ||
-                            usernameSeed ||
+                            usernameCandidates[0] ||
                             'User'
                         ).trim();
                         const upsertPayload = {
                             id: currentUser.id,
                             user_id: currentUser.id,
-                            username: usernameSeed,
+                            username: usernameCandidates[0] || 'user',
                             full_name: fullNameSeed,
                             bio: String(userProfile?.bio || ''),
                             location: String(userProfile?.location || ''),
@@ -10875,7 +10952,7 @@
 
                 try {
                     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                        redirectTo: `${window.location.origin}/login.html`
+                        redirectTo: `${window.location.origin}/update-password.html`
                     });
                     if (error) throw error;
                     showToast('Password reset email sent', 'success');
@@ -11068,23 +11145,24 @@
 
             // ===== SAVE PROFILE CHANGES =====
             async function saveProfileChanges() {
-                const displayName = document.getElementById('editDisplayName')?.value;
-                const username = document.getElementById('editUsername')?.value;
-                const bio = document.getElementById('editBio')?.value;
-                const location = document.getElementById('editLocation')?.value;
+                const displayName = String(document.getElementById('editDisplayName')?.value || '').trim().slice(0, 80);
+                const rawUsername = document.getElementById('editUsername')?.value;
+                const bio = String(document.getElementById('editBio')?.value || '').trim();
+                const location = String(document.getElementById('editLocation')?.value || '').trim();
                 const profileTheme = normalizeProfileTheme(document.getElementById('editProfileTheme')?.value);
                 const customBadges = normalizeProfileBadges(document.getElementById('editCustomBadges')?.value || '');
                 const isPrivate = document.getElementById('editIsPrivate')?.checked || false;
                 
-                if (!displayName || !username) {
+                if (!displayName || !rawUsername) {
                     showToast('Please enter display name and username', 'error');
                     return;
                 }
                 
                 try {
+                    const normalizedUsername = await ensureProfileUsernameAvailable(rawUsername, currentUser?.id);
                     const updatePayload = {
                         full_name: displayName,
-                        username: username,
+                        username: normalizedUsername,
                         bio: bio,
                         location: location,
                         profile_theme: profileTheme,
@@ -11112,7 +11190,7 @@
                     userProfile = {
                         ...(userProfile || {}),
                         full_name: displayName,
-                        username: username,
+                        username: normalizedUsername,
                         bio: bio,
                         location: location,
                         profile_theme: profileTheme,
@@ -11120,15 +11198,28 @@
                         is_private: isPrivate
                     };
                     manualProfileBadges = [...customBadges];
+
+                    const authMetadataResult = await supabase.auth.updateUser({
+                        data: {
+                            full_name: displayName,
+                            username: normalizedUsername
+                        }
+                    });
+                    if (authMetadataResult?.error) {
+                        console.warn('Could not sync auth metadata after profile update:', authMetadataResult.error);
+                    }
                     
                     updateProfileUI(userProfile);
+
+                    const usernameInput = document.getElementById('editUsername');
+                    if (usernameInput) usernameInput.value = normalizedUsername;
                     
                     closeModal('editProfileModal');
                     showToast('Profile updated successfully!', 'success');
                     
                 } catch (error) {
                     console.error('Error updating profile:', error);
-                    showToast('Error updating profile', 'error');
+                    showToast(error?.message || 'Error updating profile', 'error');
                 }
             }
 

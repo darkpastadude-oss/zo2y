@@ -174,14 +174,30 @@
         return new URLSearchParams(hash);
       }
 
+      const RESERVED_USERNAMES = new Set([
+        'admin', 'api', 'app', 'auth', 'authcallback', 'blog', 'book', 'books',
+        'country', 'edit', 'explore', 'game', 'games', 'help', 'home', 'index',
+        'login', 'movie', 'movies', 'music', 'new', 'privacy', 'profile',
+        'resetpassword', 'reviews', 'search', 'settings', 'signup', 'support',
+        'terms', 'travel', 'tv', 'tvshow', 'tvshows', 'updatepassword', 'user',
+        'users', 'zo2y'
+      ]);
+
       function cleanUsername(value) {
         const base = String(value || '')
+          .trim()
+          .replace(/^@+/, '')
           .toLowerCase()
+          .replace(/['’]/g, '')
           .replace(/\s+/g, '_')
-          .replace(/[^a-z0-9_]/g, '')
+          .replace(/[^a-z0-9_]/g, '_')
           .replace(/_+/g, '_')
-          .replace(/^_+|_+$/g, '');
-        return (base || 'user').slice(0, 30);
+          .replace(/^_+|_+$/g, '')
+          .slice(0, 30);
+        if (!base) return 'user';
+        if (base.length < 3) return cleanUsername(`user_${base}`);
+        if (RESERVED_USERNAMES.has(base.replace(/_/g, ''))) return `${base.slice(0, 24)}_user`.slice(0, 30);
+        return base;
       }
 
       function usernameWithSuffix(base, suffix) {
@@ -244,6 +260,38 @@
 
           if (existingProfile) {
             log(`Profile found: ${existingProfile.username || '(no username)'}`);
+            const existingUsername = cleanUsername(existingProfile.username || '');
+            const needsUsernameRepair = !existingProfile.username || existingUsername !== existingProfile.username;
+            const existingDisplayName = String(existingProfile.full_name || '').trim();
+            if (!needsUsernameRepair && existingDisplayName) {
+              return { ok: true, created: false };
+            }
+
+            const userData = user.user_metadata || {};
+            const emailPrefix = String(user.email || '').split('@')[0] || 'user';
+            const repairedUsername = cleanUsername(
+              existingProfile.username ||
+              userData.preferred_username ||
+              userData.user_name ||
+              userData.full_name ||
+              userData.name ||
+              emailPrefix
+            );
+            const repairedDisplayName = String(existingProfile.full_name || userData.full_name || userData.name || emailPrefix || repairedUsername).slice(0, 80);
+            const { error: repairError } = await client
+              .from('user_profiles')
+              .update({
+                username: repairedUsername,
+                full_name: repairedDisplayName || repairedUsername,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', user.id);
+
+            if (repairError) {
+              log(`Profile repair warning: ${repairError.message}`, true);
+            } else {
+              log(`Profile normalized: ${repairedUsername}`);
+            }
             return { ok: true, created: false };
           }
 

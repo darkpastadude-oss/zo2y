@@ -181,7 +181,7 @@ body{
       </div>
       <div class="input-group">
         <i class="fas fa-lock"></i>
-        <input type="password" placeholder="Password" id="password" required minlength="6">
+        <input type="password" placeholder="Password" id="password" required minlength="8">
       </div>
       <button type="submit" class="submit-btn" id="submitBtn">
         <i class="fas fa-user-plus"></i> <span>Create Account</span>
@@ -320,8 +320,8 @@ body{
       return;
     }
     
-    if (password.length < 6) {
-      showError('Password must be at least 6 characters');
+    if (password.length < 8) {
+      showError('Password must be at least 8 characters');
       analyticsTrack('signup_validation_error', { reason: 'password_short', path: window.location.pathname });
       return;
     }
