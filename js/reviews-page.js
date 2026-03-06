@@ -32,6 +32,8 @@
   const itemMeta = new Map();
   const REVIEW_SPOTLIGHT_ROTATE_MS = 7000;
   const REVIEW_SPOTLIGHT_MOBILE_QUERY = '(max-width: 760px)';
+  const REVIEW_NOTE_STYLE_KEY = 'zo2y-review-note-style';
+  let reviewNoteStyle = 'wrinkled';
 
   function escapeHtml(value) {
     return String(value ?? '')
@@ -414,6 +416,36 @@
     } catch (_err) {
       return false;
     }
+  }
+
+  function applyReviewNoteStyle(style, persist = true) {
+    reviewNoteStyle = style === 'curled' ? 'curled' : 'wrinkled';
+    document.body?.setAttribute('data-review-note-style', reviewNoteStyle);
+    document.querySelectorAll('[data-note-style]').forEach((button) => {
+      button.classList.toggle('is-active', button.getAttribute('data-note-style') === reviewNoteStyle);
+    });
+    if (!persist) return;
+    try {
+      window.localStorage?.setItem(REVIEW_NOTE_STYLE_KEY, reviewNoteStyle);
+    } catch (_err) {
+      // Ignore persistence failures.
+    }
+  }
+
+  function initReviewNoteStyleControls() {
+    let savedStyle = 'wrinkled';
+    try {
+      const localValue = window.localStorage?.getItem(REVIEW_NOTE_STYLE_KEY);
+      if (localValue === 'curled' || localValue === 'wrinkled') savedStyle = localValue;
+    } catch (_err) {
+      savedStyle = 'wrinkled';
+    }
+    applyReviewNoteStyle(savedStyle, false);
+    document.querySelectorAll('[data-note-style]').forEach((button) => {
+      button.addEventListener('click', () => {
+        applyReviewNoteStyle(button.getAttribute('data-note-style') || 'wrinkled', true);
+      });
+    });
   }
 
   function normalizeReviewSpotlightIndex(index) {
@@ -811,6 +843,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    initReviewNoteStyleControls();
     wireFilters();
     wireReviewSpotlight();
     void loadAuthState();
