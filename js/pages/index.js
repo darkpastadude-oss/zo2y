@@ -361,7 +361,7 @@
         image: scenicImage,
         backgroundImage: scenicImage || '',
         spotlightImage: getSafeTravelScenicImage(title, code, rawSpotlight || scenicImage) || scenicImage,
-        spotlightMediaImage: String(item.spotlightMediaImage || '').trim() || scenicImage,
+        spotlightMediaImage: flagImage || String(item.spotlightMediaImage || '').trim() || scenicImage,
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
@@ -850,7 +850,8 @@
       const spotlightBackground = getHomeSpotlightBackgroundByType(item.mediaType) || fallbackSpotlightBackground;
       let spotlightMediaImage = String(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
       if (isTravelSpotlight) {
-        spotlightMediaImage = travelScenicImage || spotlightMediaImage;
+        const safeFlag = toHttpsUrl(String(item.flagImage || '').trim());
+        spotlightMediaImage = safeFlag || travelScenicImage || spotlightMediaImage;
       }
       const spotlightBackgroundPosition = String(item.spotlightBackgroundPosition || item.backgroundPosition || '').trim() || 'center 28%';
       const spotlightMediaPosition = String(item.spotlightMediaPosition || item.imagePosition || '').trim();
@@ -5337,7 +5338,7 @@
         image: photoImage,
         backgroundImage: photoImage || '',
         spotlightImage: photoImage || '',
-        spotlightMediaImage: photoImage,
+        spotlightMediaImage: flagImage || photoImage,
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
@@ -5381,7 +5382,7 @@
         image: scenicImage,
         backgroundImage: scenicImage || '',
         spotlightImage: scenicImage || '',
-        spotlightMediaImage: scenicImage,
+        spotlightMediaImage: flagImage || scenicImage,
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
@@ -5690,3 +5691,4 @@
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
+
