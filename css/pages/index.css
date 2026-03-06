@@ -111,7 +111,7 @@
       gap: 8px;
       min-height: 46px;
       padding: 0 18px;
-      border-radius: 999px;
+      border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(255,255,255,0.05);
       color: #f8fbff;
@@ -156,7 +156,7 @@
     .landing-section {
       position: relative;
       border: 1px solid rgba(255,255,255,0.11);
-      border-radius: 30px;
+      border-radius: 22px;
       background:
         linear-gradient(145deg, rgba(12, 28, 67, 0.92), rgba(7, 18, 43, 0.95)),
         radial-gradient(circle at top right, rgba(255, 188, 66, 0.16), transparent 34%);
@@ -221,7 +221,7 @@
     .landing-auth-notice {
       margin-top: 18px;
       padding: 14px 16px;
-      border-radius: 18px;
+      border-radius: 12px;
       border: 1px solid rgba(255, 188, 66, 0.32);
       background: rgba(255, 188, 66, 0.12);
       color: #fff0cb;
@@ -248,7 +248,7 @@
 
     .landing-proof-chip {
       padding: 16px 18px;
-      border-radius: 18px;
+      border-radius: 14px;
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.05);
       color: rgba(235, 243, 255, 0.84);
@@ -342,7 +342,7 @@
       align-items: center;
       min-height: 30px;
       padding: 0 12px;
-      border-radius: 999px;
+      border-radius: 8px;
       background: rgba(255,255,255,0.08);
       color: #d7e4ff;
       font-size: 12px;
@@ -358,7 +358,7 @@
 
     .landing-stage-tags span {
       padding: 9px 12px;
-      border-radius: 999px;
+      border-radius: 8px;
       background: rgba(255,255,255,0.07);
       font-size: 12px;
       color: #dbe7ff;
@@ -436,7 +436,7 @@
     .landing-feature-card,
     .landing-why-card,
     .landing-mobile-flow-item {
-      border-radius: 24px;
+      border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.05);
       padding: 24px;
@@ -483,7 +483,7 @@
       grid-template-columns: 64px minmax(0, 1fr);
       gap: 16px;
       align-items: start;
-      border-radius: 22px;
+      border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.11);
       background: rgba(255,255,255,0.04);
       padding: 20px;
@@ -515,7 +515,7 @@
     }
 
     .landing-demo-board {
-      border-radius: 28px;
+      border-radius: 18px;
       border: 1px solid rgba(255,255,255,0.12);
       background:
         linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
@@ -526,7 +526,7 @@
     .landing-demo-window {
       height: 100%;
       min-height: 360px;
-      border-radius: 22px;
+      border-radius: 16px;
       background: linear-gradient(180deg, rgba(5, 16, 39, 0.96), rgba(8, 22, 54, 0.96));
       border: 1px solid rgba(255,255,255,0.08);
       padding: 22px;
@@ -549,7 +549,7 @@
     }
 
     .landing-demo-column {
-      border-radius: 20px;
+      border-radius: 14px;
       border: 1px solid rgba(255,255,255,0.08);
       background: rgba(255,255,255,0.04);
       padding: 20px;

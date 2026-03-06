@@ -9,7 +9,7 @@
 <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="css/pages/auth-entry.css?v=20260306a">
+<link rel="stylesheet" href="css/pages/auth-entry.css?v=20260306b">
   <meta name="theme-color" content="#0b1633" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -20,7 +20,7 @@
   <script src="/js/mobile-webapp.js?v=20260305a" defer></script>
 </head>
 <body data-auth-variant="login">
-<div class="auth-entry-shell">
+<div class="auth-entry-shell auth-entry-shell-login">
   <section class="auth-entry-showcase">
     <div class="auth-entry-topbar">
       <a class="auth-entry-home" href="index.html"><i class="fas fa-home"></i> Landing</a>
@@ -29,39 +29,39 @@
 
     <div class="auth-showcase-copy">
       <p class="auth-showcase-kicker">Members-only culture map</p>
-      <h1>Return to your taste, not a generic homepage.</h1>
-      <p>Log in to open your saved lists, personalized rails, review activity, and profile identity across every medium you track.</p>
+      <h1>Return to the system you already trained.</h1>
+      <p>Log in to reopen your saved lists, tuned home feed, review history, and profile identity without dropping back into a generic public page.</p>
     </div>
 
     <div class="auth-showcase-grid">
       <div class="auth-showcase-row">
         <article class="auth-showcase-card featured">
           <p>Home feed</p>
-          <strong>Spotlights and rails tuned to what you actually save.</strong>
-          <span>Your feed shifts with your lists, ratings, and the people you follow.</span>
+          <strong>Open the rails that already know your taste.</strong>
+          <span>Your saves, reviews, and follows shape what shows up first instead of forcing the same front page every time.</span>
           <div class="auth-showcase-badges">
             <span>Movies</span>
+            <span>TV</span>
             <span>Anime</span>
-            <span>Books</span>
             <span>Travel</span>
           </div>
         </article>
         <article class="auth-showcase-card">
           <p>Profile</p>
-          <strong>Custom lists, pinned identity, one username.</strong>
-          <span>Your profile works like a taste system, not a dead account page.</span>
+          <strong>One account, one visible taste record.</strong>
+          <span>Custom lists, pinned picks, and your username stay connected across every category.</span>
         </article>
       </div>
       <div class="auth-showcase-row">
         <article class="auth-showcase-card">
           <p>Community</p>
-          <strong>Follow people for their taste.</strong>
-          <span>Track saves and reviews from people you trust instead of random trending noise.</span>
+          <strong>Follow people because their taste is useful.</strong>
+          <span>Track real saves and review activity from people you actually trust instead of generic trend noise.</span>
         </article>
         <article class="auth-showcase-card">
           <p>Mobile</p>
-          <strong>Fast list actions built for taps.</strong>
-          <span>Quick add/remove flows and cleaner modals keep the app usable on weak connections too.</span>
+          <strong>Built to stay usable on a weak connection.</strong>
+          <span>Quick list actions, lighter rails, and tighter mobile flows let you get in and out fast.</span>
         </article>
       </div>
     </div>
@@ -70,12 +70,12 @@
       <article class="auth-mobile-ribbon-card">
         <p>Feed</p>
         <strong>Your saved taste comes back immediately.</strong>
-        <span>Open home and pick up where you left off across every category.</span>
+        <span>Home opens like a continuation, not a reset.</span>
       </article>
       <article class="auth-mobile-ribbon-card">
         <p>Profile</p>
-        <strong>Lists, reviews, and identity in one place.</strong>
-        <span>No more split apps for split interests.</span>
+        <strong>Identity, lists, and reviews stay connected.</strong>
+        <span>No more splitting your taste across disconnected apps.</span>
       </article>
     </div>
   </section>
@@ -83,9 +83,9 @@
   <section class="auth-entry-panel">
     <div class="auth-panel-brand"><img src="images/logo.png" alt="Zo2y Logo"><span>ZO2Y</span></div>
 
-    <div class="auth-panel-card auth-card">
+    <div class="auth-panel-card auth-panel-card-login auth-card">
       <h2>Log in</h2>
-      <p class="auth-panel-subtitle">Use your email or Google account to get back into the full app.</p>
+      <p class="auth-panel-subtitle">Use your email or Google account to reopen the full app and continue where you left off.</p>
 
       <div id="errorMessage" class="message error"></div>
       <div id="successMessage" class="message success"></div>
@@ -124,6 +124,10 @@
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
         <a href="mailto:zo2yhq@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
+      </div>
+
+      <div class="auth-panel-footnote">
+        Password resets, Google sign-in, and email sign-in all converge on the same account path. If you already signed up before, do not create a second account.
       </div>
     </div>
   </section>
