@@ -126,34 +126,6 @@
       justify-content:flex-end;
       align-self:start;
     }
-    .reviews-spotlight-note-toggle {
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:4px;
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:14px;
-      background:rgba(10, 24, 44, .52);
-    }
-    .reviews-spotlight-note-toggle button {
-      min-height:32px;
-      padding:0 12px;
-      border:0;
-      border-radius:10px;
-      background:transparent;
-      color:#d8e4ff;
-      font-size:12px;
-      font-weight:800;
-      cursor:pointer;
-      transition:background .2s ease, color .2s ease, transform .2s ease;
-    }
-    .reviews-spotlight-note-toggle button.is-active {
-      background:rgba(245,158,11,.18);
-      color:#fff6e0;
-    }
-    .reviews-spotlight-note-toggle button:hover {
-      transform:translateY(-1px);
-    }
     .reviews-spotlight-stat {
       min-height:34px;
       padding:0 12px;
@@ -170,6 +142,75 @@
     .reviews-spotlight-stat {
       color:#e9eeff;
       font-weight:600;
+    }
+    .reviews-spotlight-hover {
+      width:min(100%, 340px);
+      padding:14px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(10,22,46,.78), rgba(8,18,36,.88));
+      box-shadow:0 12px 26px rgba(0,0,0,.24);
+      display:grid;
+      grid-template-columns:96px 1fr;
+      gap:14px;
+      align-items:start;
+      min-height:148px;
+    }
+    .reviews-spotlight-hover-thumb {
+      width:100%;
+      aspect-ratio:3 / 4;
+      object-fit:cover;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.16);
+      background:#112142;
+      box-shadow:0 10px 18px rgba(0,0,0,.24);
+    }
+    .reviews-spotlight-hover-body {
+      display:grid;
+      gap:6px;
+      min-width:0;
+    }
+    .reviews-spotlight-hover-meta {
+      color:#ffc874;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:1px;
+      text-transform:uppercase;
+    }
+    .reviews-spotlight-hover-title {
+      font-size:18px;
+      line-height:1.1;
+      color:#f7fbff;
+      font-weight:800;
+    }
+    .reviews-spotlight-hover-stars {
+      color:#ffd36b;
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.6px;
+    }
+    .reviews-spotlight-hover-byline {
+      color:#d7e5ff;
+      font-size:13px;
+      line-height:1.45;
+    }
+    .reviews-spotlight-hover-quote {
+      color:#b9ccec;
+      font-size:13px;
+      line-height:1.45;
+      display:-webkit-box;
+      -webkit-line-clamp:3;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+    .reviews-spotlight-hover-link {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      color:#fff6df;
+      font-size:12px;
+      font-weight:800;
+      margin-top:4px;
     }
     .reviews-spotlight-stage {
       position:relative;
@@ -339,65 +380,20 @@
     .reviews-spotlight-card-thumb-wrap::before {
       display:none;
     }
-    body[data-review-note-style="wrinkled"] .reviews-spotlight-card.tone-sun {
-      background-image:url('images/reviews/note-yellow.png?v=20260306k');
+    .reviews-spotlight-card.tone-sun {
+      background-image:url('images/reviews/note-yellow.png?v=20260306m');
     }
-    body[data-review-note-style="wrinkled"] .reviews-spotlight-card.tone-rose {
-      background-image:url('images/reviews/note-pink-real.png?v=20260306k');
+    .reviews-spotlight-card.tone-rose {
+      background-image:url('images/reviews/note-pink-real.png?v=20260306m');
     }
-    body[data-review-note-style="wrinkled"] .reviews-spotlight-card.tone-sky {
-      background-image:url('images/reviews/note-blue.png?v=20260306k');
+    .reviews-spotlight-card.tone-sky {
+      background-image:url('images/reviews/note-blue.png?v=20260306m');
     }
-    body[data-review-note-style="wrinkled"] .reviews-spotlight-card.tone-mint {
-      background-image:url('images/reviews/note-green-real.png?v=20260306k');
+    .reviews-spotlight-card.tone-mint {
+      background-image:url('images/reviews/note-green-real.png?v=20260306m');
     }
-    body[data-review-note-style="wrinkled"] .reviews-spotlight-card.tone-cream {
-      background-image:url('images/reviews/note-cream.png?v=20260306k');
-    }
-    body[data-review-note-style="curled"] .reviews-spotlight-card.tone-sun {
-      background-image:url('images/reviews/note-curled-yellow.png?v=20260306l');
-    }
-    body[data-review-note-style="curled"] .reviews-spotlight-card.tone-rose {
-      background-image:url('images/reviews/note-curled-pink.png?v=20260306l');
-    }
-    body[data-review-note-style="curled"] .reviews-spotlight-card.tone-sky {
-      background-image:url('images/reviews/note-curled-blue.png?v=20260306l');
-    }
-    body[data-review-note-style="curled"] .reviews-spotlight-card.tone-mint {
-      background-image:url('images/reviews/note-curled-green.png?v=20260306l');
-    }
-    body[data-review-note-style="curled"] .reviews-spotlight-card.tone-cream {
-      background-image:url('images/reviews/note-curled-cream.png?v=20260306l');
-    }
-    .reviews-spotlight-footer {
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .reviews-spotlight-current {
-      color:#dce9ff;
-      font-size:14px;
-      line-height:1.5;
-      max-width:520px;
-    }
-    .reviews-spotlight-current strong {
-      color:#fff;
-      font-weight:800;
-    }
-    .reviews-spotlight-dot {
-      width:9px;
-      height:9px;
-      border-radius:999px;
-      border:0;
-      background:rgba(255,255,255,.24);
-      cursor:pointer;
-      transition:width .2s ease, background .2s ease;
-    }
-    .reviews-spotlight-dot.active {
-      width:24px;
-      background:var(--accent);
+    .reviews-spotlight-card.tone-cream {
+      background-image:url('images/reviews/note-cream.png?v=20260306m');
     }
     .filters { padding:12px; display:grid; gap:9px; }
     .chips { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
@@ -452,37 +448,45 @@
         justify-items:start;
       }
       .reviews-spotlight-stats { justify-content:flex-start; }
+      .reviews-spotlight-hover { display:none; }
       .reviews-spotlight-stage {
-        min-height:unset;
-        display:grid;
-        grid-auto-flow:column;
-        grid-auto-columns:minmax(316px, 88vw);
-        gap:14px;
-        overflow-x:auto;
-        padding:20px 18px 18px;
+        min-height:420px;
+        display:block;
+        overflow:hidden;
+        padding:14px 14px 18px;
         width:100%;
         margin:0;
         background:url('images/reviews/board-photo.jpg?v=20260306j') center/cover no-repeat;
+        border-radius:22px;
       }
       .reviews-spotlight-card,
       .reviews-spotlight-card.is-front,
       .reviews-spotlight-card.is-right,
       .reviews-spotlight-card.is-lower,
       .reviews-spotlight-card.is-left {
-        position:relative;
+        position:absolute;
+        top:50%;
+        left:50%;
         inset:auto;
-        width:100%;
-        min-height:296px;
-        transform:none;
+        width:min(82vw, 286px);
+        min-height:252px;
+        transform:translate(-50%, -50%) rotate(-4deg);
+        opacity:0;
+        pointer-events:none;
       }
-      .reviews-spotlight-card { padding:34px 18px 24px; }
+      .reviews-spotlight-card { padding:32px 18px 22px; }
+      .reviews-spotlight-card.is-active {
+        opacity:1;
+        pointer-events:auto;
+        z-index:5;
+      }
       .reviews-spotlight-card.is-front .reviews-spotlight-card-title { font-size:20px; }
-      .reviews-spotlight-card-body { padding-top:24px; padding-left:36px; padding-right:88px; gap:6px; }
+      .reviews-spotlight-card-body { padding-top:22px; padding-left:36px; padding-right:84px; gap:6px; }
       .reviews-spotlight-card-rating { font-size:15px; }
       .reviews-spotlight-card-media { font-size:12px; }
-      .reviews-spotlight-card-thumb-wrap { top:44px; right:14px; }
-      .reviews-spotlight-card-thumb { max-width:72px; transform:rotate(4deg); }
-      .reviews-spotlight-card-quote { -webkit-line-clamp:4; font-size:23px; }
+      .reviews-spotlight-card-thumb-wrap { top:38px; right:12px; }
+      .reviews-spotlight-card-thumb { max-width:68px; transform:rotate(4deg); }
+      .reviews-spotlight-card-quote { -webkit-line-clamp:4; font-size:22px; }
       .reviews-spotlight-card-signoff { font-size:20px; }
       .reviews-spotlight-card.is-tearing-out {
         animation: noteTearOut .28s cubic-bezier(.32,.02,.68,.95) forwards;
@@ -492,9 +496,7 @@
         animation: noteTearIn .38s cubic-bezier(.2,.84,.28,1) both;
         transform-origin:top center;
       }
-      .reviews-spotlight-footer { align-items:flex-start; }
       .reviews-spotlight-stats { width:100%; }
-      .reviews-spotlight-current { max-width:none; font-size:13px; }
 
       .mobile-bottom-nav {
         position: fixed;
@@ -530,14 +532,14 @@
       }
 
       @keyframes noteTearOut {
-        0% { opacity:1; transform:translateX(0) rotate(0deg) scale(1); filter:drop-shadow(0 16px 22px rgba(0,0,0,.18)); }
-        55% { opacity:.84; transform:translateX(-12px) rotate(-5deg) scale(.985); }
-        100% { opacity:0; transform:translateX(-58px) translateY(18px) rotate(-12deg) scale(.92); filter:drop-shadow(0 4px 10px rgba(0,0,0,.08)); }
+        0% { opacity:1; transform:translate(-50%, -50%) rotate(-4deg) scale(1); filter:drop-shadow(0 16px 22px rgba(0,0,0,.18)); }
+        55% { opacity:.84; transform:translate(-58%, -48%) rotate(-8deg) scale(.97); }
+        100% { opacity:0; transform:translate(-68%, -40%) rotate(-14deg) scale(.9); filter:drop-shadow(0 4px 10px rgba(0,0,0,.08)); }
       }
       @keyframes noteTearIn {
-        0% { opacity:0; transform:translateX(52px) translateY(-16px) rotate(9deg) scale(.9); filter:drop-shadow(0 4px 10px rgba(0,0,0,.08)); }
-        60% { opacity:1; transform:translateX(-4px) translateY(4px) rotate(-3deg) scale(1.02); }
-        100% { opacity:1; transform:translateX(0) translateY(0) rotate(0deg) scale(1); filter:drop-shadow(0 14px 20px rgba(0,0,0,.18)); }
+        0% { opacity:0; transform:translate(-40%, -58%) rotate(9deg) scale(.9); filter:drop-shadow(0 4px 10px rgba(0,0,0,.08)); }
+        60% { opacity:1; transform:translate(-52%, -48%) rotate(-2deg) scale(1.02); }
+        100% { opacity:1; transform:translate(-50%, -50%) rotate(-4deg) scale(1); filter:drop-shadow(0 14px 20px rgba(0,0,0,.18)); }
       }
     }
   </style>
@@ -599,25 +601,23 @@
           <p class="reviews-spotlight-subtext">This stack rotates through the sharpest active reviews and keeps the art, rating, and reviewer visible inside each card.</p>
         </div>
         <div class="reviews-spotlight-side">
-          <div class="reviews-spotlight-note-toggle" aria-label="Sticky note style">
-            <button id="reviewNoteStyleWrinkled" class="is-active" type="button" data-note-style="wrinkled">Wrinkled</button>
-            <button id="reviewNoteStyleCurled" type="button" data-note-style="curled">Curled</button>
-          </div>
           <div class="reviews-spotlight-stats" id="reviewsSpotlightStats">
             <span class="reviews-spotlight-stat">Loading review pulse...</span>
+          </div>
+          <div class="reviews-spotlight-hover" id="reviewsSpotlightHover" aria-live="polite">
+            <img class="reviews-spotlight-hover-thumb" id="reviewsSpotlightHoverThumb" src="images/logo.png" alt="" loading="lazy" decoding="async" />
+            <div class="reviews-spotlight-hover-body">
+              <div class="reviews-spotlight-hover-meta" id="reviewsSpotlightHoverMeta">Hover a note</div>
+              <div class="reviews-spotlight-hover-title" id="reviewsSpotlightHoverTitle">Review details will appear here.</div>
+              <div class="reviews-spotlight-hover-stars" id="reviewsSpotlightHoverStars">☆☆☆☆☆</div>
+              <div class="reviews-spotlight-hover-byline" id="reviewsSpotlightHoverByline">Hover any note to inspect the reviewer and rating.</div>
+              <div class="reviews-spotlight-hover-quote" id="reviewsSpotlightHoverQuote"></div>
+              <a class="reviews-spotlight-hover-link" id="reviewsSpotlightHoverLink" href="reviews.html">Open item <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+            </div>
           </div>
         </div>
       </div>
       <div class="reviews-spotlight-stage" id="reviewsSpotlightStage" aria-label="Floating review spotlight cards"></div>
-      <div class="reviews-spotlight-footer">
-        <div class="reviews-spotlight-current" id="reviewsSpotlightCurrent">Loading review spotlight...</div>
-        <div class="reviews-spotlight-actions">
-          <a class="btn btn-primary" id="reviewsSpotlightOpen" href="reviews.html"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open Item</a>
-          <button class="btn" id="reviewsSpotlightPrev" type="button"><i class="fa-solid fa-arrow-left"></i> Prev</button>
-          <button class="btn" id="reviewsSpotlightNext" type="button">Next <i class="fa-solid fa-arrow-right"></i></button>
-        </div>
-        <div class="reviews-spotlight-dots" id="reviewsSpotlightDots" aria-label="Review spotlight controls"></div>
-      </div>
     </section>
     <section class="filters">
       <div class="chips" id="mediaFilters">
@@ -648,7 +648,7 @@
     <a class="mobile-nav-item active" href="reviews.html" aria-label="Reviews"><i class="fa-solid fa-star"></i></a>
   </nav>
 
-  <script src="js/reviews-page.js?v=20260306h" defer></script>
+  <script src="js/reviews-page.js?v=20260306i" defer></script>
   <script src="js/production-runtime.js?v=20260306a" defer></script>
 </body>
 </html>

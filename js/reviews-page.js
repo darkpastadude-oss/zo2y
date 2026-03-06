@@ -28,12 +28,11 @@
   let reviewSpotlightTimer = null;
   let reviewSpotlightTransitioning = false;
   let reviewSpotlightPendingIndex = null;
+  let reviewSpotlightHoverIndex = null;
   const users = new Map();
   const itemMeta = new Map();
   const REVIEW_SPOTLIGHT_ROTATE_MS = 7000;
   const REVIEW_SPOTLIGHT_MOBILE_QUERY = '(max-width: 760px)';
-  const REVIEW_NOTE_STYLE_KEY = 'zo2y-review-note-style';
-  let reviewNoteStyle = 'wrinkled';
 
   function escapeHtml(value) {
     return String(value ?? '')
@@ -418,36 +417,6 @@
     }
   }
 
-  function applyReviewNoteStyle(style, persist = true) {
-    reviewNoteStyle = style === 'curled' ? 'curled' : 'wrinkled';
-    document.body?.setAttribute('data-review-note-style', reviewNoteStyle);
-    document.querySelectorAll('[data-note-style]').forEach((button) => {
-      button.classList.toggle('is-active', button.getAttribute('data-note-style') === reviewNoteStyle);
-    });
-    if (!persist) return;
-    try {
-      window.localStorage?.setItem(REVIEW_NOTE_STYLE_KEY, reviewNoteStyle);
-    } catch (_err) {
-      // Ignore persistence failures.
-    }
-  }
-
-  function initReviewNoteStyleControls() {
-    let savedStyle = 'wrinkled';
-    try {
-      const localValue = window.localStorage?.getItem(REVIEW_NOTE_STYLE_KEY);
-      if (localValue === 'curled' || localValue === 'wrinkled') savedStyle = localValue;
-    } catch (_err) {
-      savedStyle = 'wrinkled';
-    }
-    applyReviewNoteStyle(savedStyle, false);
-    document.querySelectorAll('[data-note-style]').forEach((button) => {
-      button.addEventListener('click', () => {
-        applyReviewNoteStyle(button.getAttribute('data-note-style') || 'wrinkled', true);
-      });
-    });
-  }
-
   function normalizeReviewSpotlightIndex(index) {
     if (!reviewSpotlightItems.length) return 0;
     return ((Number(index) || 0) % reviewSpotlightItems.length + reviewSpotlightItems.length) % reviewSpotlightItems.length;
@@ -530,25 +499,6 @@
     `).join('');
   }
 
-  function renderReviewSpotlightDots() {
-    const dotsEl = document.getElementById('reviewsSpotlightDots');
-    if (!dotsEl) return;
-    dotsEl.innerHTML = reviewSpotlightItems.map((item, index) => `
-      <button
-        class="reviews-spotlight-dot${index === reviewSpotlightIndex ? ' active' : ''}"
-        type="button"
-        data-review-spotlight-index="${index}"
-        aria-label="Show review spotlight ${index + 1}: ${escapeHtml(item.title)}"></button>
-    `).join('');
-    dotsEl.querySelectorAll('[data-review-spotlight-index]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const nextIndex = Number(btn.getAttribute('data-review-spotlight-index'));
-        if (!Number.isInteger(nextIndex)) return;
-        showReviewSpotlight(nextIndex, true);
-      });
-    });
-  }
-
   function getReviewSpotlightVisibleCards() {
     const total = reviewSpotlightItems.length;
     if (!total) return [];
@@ -587,7 +537,7 @@
       const drawnStars = `${'★'.repeat(starCount)}${'☆'.repeat(Math.max(0, 5 - starCount))}`;
       const noteReviewer = String(item.reviewer || '').trim().replace(/^@/, '');
       return `
-        <button class="${cardClasses}" type="button" data-review-spotlight-index="${index}" aria-label="Show review spotlight for ${escapeHtml(item.title)}">
+        <a class="${cardClasses}" href="${escapeHtml(item.href)}" data-review-spotlight-index="${index}" aria-label="Open ${escapeHtml(item.title)}">
           <div class="reviews-spotlight-card-body">
             <div class="reviews-spotlight-card-rating">${escapeHtml(drawnStars)}</div>
             <div class="reviews-spotlight-card-media">${escapeHtml(item.mediaLabel)}</div>
@@ -598,15 +548,30 @@
           <div class="reviews-spotlight-card-thumb-wrap">
             <img class="reviews-spotlight-card-thumb" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)} artwork" loading="lazy" decoding="async" />
           </div>
-        </button>
+        </a>
       `;
     }).join('');
 
     stageEl.querySelectorAll('[data-review-spotlight-index]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const nextIndex = Number(btn.getAttribute('data-review-spotlight-index'));
+      const nextIndex = Number(btn.getAttribute('data-review-spotlight-index'));
+      btn.addEventListener('mouseenter', () => {
+        if (isMobileReviewSpotlight() || !Number.isInteger(nextIndex)) return;
+        reviewSpotlightHoverIndex = nextIndex;
+        renderReviewSpotlightHover(reviewSpotlightItems[nextIndex] || null);
+      });
+      btn.addEventListener('mouseleave', () => {
+        if (isMobileReviewSpotlight()) return;
+        reviewSpotlightHoverIndex = null;
+        renderReviewSpotlightHover(reviewSpotlightItems[reviewSpotlightIndex] || null);
+      });
+      btn.addEventListener('focus', () => {
         if (!Number.isInteger(nextIndex)) return;
-        showReviewSpotlight(nextIndex, true);
+        reviewSpotlightHoverIndex = nextIndex;
+        renderReviewSpotlightHover(reviewSpotlightItems[nextIndex] || null);
+      });
+      btn.addEventListener('blur', () => {
+        reviewSpotlightHoverIndex = null;
+        renderReviewSpotlightHover(reviewSpotlightItems[reviewSpotlightIndex] || null);
       });
       const image = btn.querySelector('.reviews-spotlight-card-thumb');
       if (image) {
@@ -618,18 +583,50 @@
     });
   }
 
+  function renderReviewSpotlightHover(item) {
+    const shell = document.getElementById('reviewsSpotlightHover');
+    if (!shell) return;
+    const target = item || reviewSpotlightItems[reviewSpotlightIndex] || null;
+    const thumb = document.getElementById('reviewsSpotlightHoverThumb');
+    const meta = document.getElementById('reviewsSpotlightHoverMeta');
+    const title = document.getElementById('reviewsSpotlightHoverTitle');
+    const starsEl = document.getElementById('reviewsSpotlightHoverStars');
+    const byline = document.getElementById('reviewsSpotlightHoverByline');
+    const quote = document.getElementById('reviewsSpotlightHoverQuote');
+    const link = document.getElementById('reviewsSpotlightHoverLink');
+    if (!thumb || !meta || !title || !starsEl || !byline || !quote || !link) return;
+
+    if (!target) {
+      meta.textContent = 'Hover a note';
+      title.textContent = 'Review details will appear here.';
+      starsEl.textContent = '☆☆☆☆☆';
+      byline.textContent = 'Hover any note to inspect the reviewer and rating.';
+      quote.textContent = '';
+      thumb.src = FALLBACK_IMAGE;
+      thumb.alt = '';
+      link.href = 'reviews.html';
+      return;
+    }
+
+    thumb.src = target.image || FALLBACK_IMAGE;
+    thumb.alt = `${target.title} artwork`;
+    thumb.onerror = () => {
+      thumb.onerror = null;
+      thumb.src = FALLBACK_IMAGE;
+    };
+    meta.textContent = `${target.mediaLabel} review`;
+    title.textContent = target.title;
+    starsEl.textContent = stars(Number(target.rating || 0));
+    byline.textContent = `${target.reviewer} • ${target.rating.toFixed(1)}/5 • ${target.dateLabel}`;
+    quote.textContent = String(target.quote || '').trim();
+    link.href = target.href || 'reviews.html';
+  }
+
   function applyReviewSpotlight(index, fromUser = false, incomingClass = '') {
     if (!reviewSpotlightItems.length) return;
     reviewSpotlightIndex = normalizeReviewSpotlightIndex(index);
-    const item = reviewSpotlightItems[reviewSpotlightIndex];
-    const current = document.getElementById('reviewsSpotlightCurrent');
-    const open = document.getElementById('reviewsSpotlightOpen');
-    if (!current || !open) return;
-
-    current.innerHTML = `<strong>${escapeHtml(item.title)}</strong> is the note pinned front-and-center right now. ${escapeHtml(item.mediaLabel)} review, ${escapeHtml(item.rating.toFixed(1))}/5, from ${escapeHtml(item.reviewer)}.`;
-    open.href = item.href;
-    renderReviewSpotlightDots();
     renderReviewSpotlightCards(incomingClass);
+    renderReviewSpotlightHover(reviewSpotlightHoverIndex == null ? reviewSpotlightItems[reviewSpotlightIndex] : reviewSpotlightItems[reviewSpotlightHoverIndex] || reviewSpotlightItems[reviewSpotlightIndex]);
     if (fromUser) resetReviewSpotlightTimer();
   }
 
@@ -722,23 +719,9 @@
 
   function wireReviewSpotlight() {
     const stage = document.getElementById('reviewsSpotlightStage');
-    const prevBtn = document.getElementById('reviewsSpotlightPrev');
-    const nextBtn = document.getElementById('reviewsSpotlightNext');
-    if (!stage || !prevBtn || !nextBtn) return;
+    if (!stage) return;
     if (stage.dataset.wired === '1') return;
     stage.dataset.wired = '1';
-
-    prevBtn.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      showReviewSpotlight(reviewSpotlightIndex - 1, true);
-    });
-
-    nextBtn.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      showReviewSpotlight(reviewSpotlightIndex + 1, true);
-    });
 
     stage.addEventListener('mouseenter', stopReviewSpotlightTimer);
     stage.addEventListener('mouseleave', resetReviewSpotlightTimer);
@@ -843,7 +826,6 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    initReviewNoteStyleControls();
     wireFilters();
     wireReviewSpotlight();
     void loadAuthState();
