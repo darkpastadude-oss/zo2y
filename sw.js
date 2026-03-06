@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v24';
-const PAGE_CACHE = 'zo2y-pages-v24';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v25';
+const PAGE_CACHE = 'zo2y-pages-v25';
 const IMAGE_CACHE = 'zo2y-images-v5';
 const API_CACHE = 'zo2y-api-v4';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -11,7 +11,7 @@ const STATIC_ASSETS = [
   '/manifest.webmanifest',
   '/css/pages/index.css?v=20260306g',
   '/css/shared-header.css?v=20260304a',
-  '/js/pages/index.js?v=20260306j',
+  '/js/pages/index.js?v=20260306k',
   '/js/home-desktop-rebrand.js?v=20260301q',
   '/js/shared-header.js?v=20260306c',
   '/js/list-utils.js?v=20260301e',
@@ -204,3 +204,4 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
+

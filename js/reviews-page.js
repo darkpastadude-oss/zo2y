@@ -493,6 +493,49 @@
     });
   }
 
+  function renderReviewSpotlightFloatingCards() {
+    const stackEl = document.getElementById('reviewsSpotlightFloatingStack');
+    if (!stackEl) return;
+    const cards = reviewSpotlightItems
+      .filter((_, index) => index !== reviewSpotlightIndex)
+      .slice(0, 3);
+
+    if (!cards.length) {
+      stackEl.innerHTML = '';
+      return;
+    }
+
+    stackEl.innerHTML = cards.map((item) => {
+      const targetIndex = reviewSpotlightItems.findIndex((entry) => entry.key === item.key);
+      const backgroundImage = String(item.image || '').trim();
+      const safeBackground = backgroundImage
+        ? ` style="background-image:url('${escapeHtml(backgroundImage)}')"`
+        : '';
+      return `
+        <button class="reviews-floating-card${targetIndex === reviewSpotlightIndex ? ' is-active' : ''}" type="button" data-review-floating-index="${targetIndex}">
+          <div class="reviews-floating-card-bg"${safeBackground}></div>
+          <div class="reviews-floating-card-overlay"></div>
+          <div class="reviews-floating-card-content">
+            <p class="reviews-floating-card-kicker">${escapeHtml(item.mediaLabel)}</p>
+            <h3 class="reviews-floating-card-title">${escapeHtml(item.title)}</h3>
+            <div class="reviews-floating-card-meta">
+              <span><i class="fa-solid fa-star-half-stroke"></i> ${escapeHtml(item.rating.toFixed(1))}/5</span>
+              <span>${escapeHtml(item.reviewer)}</span>
+            </div>
+          </div>
+        </button>
+      `;
+    }).join('');
+
+    stackEl.querySelectorAll('[data-review-floating-index]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const nextIndex = Number(btn.getAttribute('data-review-floating-index'));
+        if (!Number.isInteger(nextIndex)) return;
+        showReviewSpotlight(nextIndex, true);
+      });
+    });
+  }
+
   function showReviewSpotlight(index, fromUser = false) {
     if (!reviewSpotlightItems.length) return;
     reviewSpotlightIndex = ((Number(index) || 0) % reviewSpotlightItems.length + reviewSpotlightItems.length) % reviewSpotlightItems.length;
@@ -530,6 +573,7 @@
       art.src = FALLBACK_IMAGE;
     };
     renderReviewSpotlightDots();
+    renderReviewSpotlightFloatingCards();
     if (fromUser) resetReviewSpotlightTimer();
   }
 

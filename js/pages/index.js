@@ -176,8 +176,13 @@
     }
 
     const statusEl = document.getElementById('loadStatus');
-    const homeAuthGateState = window.ZO2Y_AUTH_GATE || null;
-    const homeLandingMode = document.documentElement?.dataset?.authShell === 'landing';
+    function getHomeAuthGateState() {
+      return window.ZO2Y_AUTH_GATE || null;
+    }
+
+    function isHomeLandingMode() {
+      return document.documentElement?.dataset?.authShell === 'landing';
+    }
     let homeSupabaseClient = null;
     let homeCurrentUser = null;
     let homeAuthListenerReady = false;
@@ -1660,7 +1665,14 @@
 
     function buildBalancedSpotlightShortlist(pool, limit = HOME_SPOTLIGHT_POOL_SIZE) {
       const maxItems = Math.max(1, Number(limit || HOME_SPOTLIGHT_POOL_SIZE));
-      const candidates = filterHomeSafeItems(Array.isArray(pool) ? pool : []);
+      const candidates = [];
+      const usedCandidateKeys = new Set();
+      filterHomeSafeItems(Array.isArray(pool) ? pool : []).forEach((item, index) => {
+        const key = getHomeSpotlightPoolKey(item, index);
+        if (!key || usedCandidateKeys.has(key)) return;
+        usedCandidateKeys.add(key);
+        candidates.push(item);
+      });
       if (!candidates.length) return [];
 
       const typePool = (Array.isArray(HOME_ACTIVE_MEDIA_TYPES) && HOME_ACTIVE_MEDIA_TYPES.length)
@@ -5712,22 +5724,42 @@
       });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      if (homeLandingMode && !homeAuthGateState?.authenticated) {
-        initLandingExperience();
-        return;
-      }
-
-      void (async () => {
+    let homeAppBootPromise = null;
+    function bootAuthenticatedHome() {
+      if (homeAppBootPromise) return homeAppBootPromise;
+      homeAppBootPromise = (async () => {
         await setupHomeAuthListener();
         await completeHomeOAuthReturnIfNeeded();
         await initAuthUi();
         await initUniversalHome();
         scheduleDeferredHomeStartupTasks();
       })().catch((error) => {
-        console.error('Home boot failed:', error);
-        setStatus('Could not load your home feed right now. Please refresh.', true);
-      })();
+        homeAppBootPromise = null;
+        throw error;
+      });
+      return homeAppBootPromise;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const authGateState = getHomeAuthGateState();
+      if (isHomeLandingMode() && !authGateState?.authenticated) {
+        initLandingExperience();
+      } else {
+        void bootAuthenticatedHome().catch((error) => {
+          console.error('Home boot failed:', error);
+          setStatus('Could not load your home feed right now. Please refresh.', true);
+        });
+      }
+
+      window.addEventListener('zo2y-auth-gate-verified', (event) => {
+        const authenticated = !!event?.detail?.authenticated;
+        if (!authenticated || isHomeLandingMode()) return;
+        document.body?.classList.remove('landing-mode');
+        void bootAuthenticatedHome().catch((error) => {
+          console.error('Home boot failed after auth verification:', error);
+          setStatus('Could not load your home feed right now. Please refresh.', true);
+        });
+      });
 
       const itemMenuModal = document.getElementById('itemMenuModal');
       const createListModal = document.getElementById('createListModal');

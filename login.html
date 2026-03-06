@@ -154,7 +154,18 @@
     return sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || localStorage.getItem('postAuthRedirect') || initialNextPath || 'index.html');
   }
 
-  function finalizeAuthRedirect() {
+  async function waitForStableSession(timeoutMs = 5000) {
+    const startedAt = Date.now();
+    while ((Date.now() - startedAt) < timeoutMs) {
+      const user = await getVerifiedUser();
+      if (user?.id) return user;
+      await new Promise((resolve) => setTimeout(resolve, 180));
+    }
+    return null;
+  }
+
+  async function finalizeAuthRedirect() {
+    await waitForStableSession(5000);
     const nextPath = getPostAuthRedirect();
     localStorage.removeItem('postAuthRedirect');
     window.location.href = nextPath;
@@ -274,9 +285,7 @@
       else localStorage.removeItem('rememberedEmail');
       
       showSuccess('Login successful! Redirecting...');
-      setTimeout(() => {
-        finalizeAuthRedirect();
-      }, 1000);
+      await finalizeAuthRedirect();
       
     } catch (err) {
       console.error('Login error:', err);
