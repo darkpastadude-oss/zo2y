@@ -1,51 +1,41 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1100" preserveAspectRatio="none">
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 980" preserveAspectRatio="none">
   <defs>
-    <linearGradient id="frameWood" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#8b5627"/>
-      <stop offset="22%" stop-color="#b5773f"/>
-      <stop offset="48%" stop-color="#6d411f"/>
-      <stop offset="74%" stop-color="#bf8348"/>
-      <stop offset="100%" stop-color="#7f4b22"/>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7b4d22"/>
+      <stop offset="24%" stop-color="#b67a45"/>
+      <stop offset="48%" stop-color="#6d421d"/>
+      <stop offset="72%" stop-color="#bb8049"/>
+      <stop offset="100%" stop-color="#815126"/>
     </linearGradient>
-    <filter id="corkNoise" x="-20%" y="-20%" width="140%" height="140%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.92" numOctaves="2" seed="11" result="noise"/>
-      <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.34  0 0 0 0 0.20  0 0 0 0 0.08  0 0 0 .9 0" result="brownNoise"/>
-    </filter>
-    <linearGradient id="corkBase" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#d1a067"/>
-      <stop offset="50%" stop-color="#b77a42"/>
-      <stop offset="100%" stop-color="#d39d60"/>
+    <linearGradient id="boardGreen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3f7746"/>
+      <stop offset="38%" stop-color="#25562d"/>
+      <stop offset="100%" stop-color="#173b21"/>
     </linearGradient>
-    <radialGradient id="vignette" cx="50%" cy="50%" r="72%">
-      <stop offset="58%" stop-color="rgba(0,0,0,0)"/>
-      <stop offset="100%" stop-color="rgba(0,0,0,.16)"/>
-    </radialGradient>
-    <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="0" stdDeviation="18" flood-color="rgba(0,0,0,.22)"/>
+    <filter id="greenNoise" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="2" seed="8" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0" result="mono"/>
+      <feComponentTransfer in="mono" result="texture">
+        <feFuncA type="table" tableValues="0 0 .02 .05"/>
+      </feComponentTransfer>
     </filter>
   </defs>
-  <rect width="1600" height="1100" fill="transparent"/>
-  <rect x="20" y="20" width="1560" height="1060" rx="26" fill="url(#frameWood)"/>
-  <rect x="34" y="34" width="1532" height="1032" rx="20" fill="none" stroke="rgba(255,232,198,.25)" stroke-width="8"/>
+  <rect width="1600" height="980" fill="transparent"/>
+  <rect x="28" y="28" width="1544" height="924" rx="22" fill="url(#wood)"/>
+  <rect x="42" y="42" width="1516" height="896" rx="18" fill="none" stroke="rgba(255,238,210,.22)" stroke-width="8"/>
   <g opacity=".18" fill="none" stroke-linecap="round">
-    <path d="M58 164 C 248 108, 432 196, 660 146 S 1132 126, 1528 180" stroke="rgba(255,237,211,.55)" stroke-width="14"/>
-    <path d="M64 334 C 280 274, 518 374, 760 322 S 1186 294, 1528 350" stroke="rgba(68,37,13,.45)" stroke-width="18"/>
-    <path d="M68 612 C 262 550, 478 646, 714 590 S 1186 556, 1528 616" stroke="rgba(255,231,204,.28)" stroke-width="16"/>
-    <path d="M62 844 C 276 782, 484 880, 742 826 S 1198 792, 1520 850" stroke="rgba(73,40,16,.42)" stroke-width="18"/>
+    <path d="M70 170 C 320 96, 612 206, 888 150 S 1300 118, 1516 182" stroke="rgba(255,240,220,.42)" stroke-width="15"/>
+    <path d="M74 338 C 276 278, 590 394, 864 334 S 1258 292, 1508 356" stroke="rgba(73,42,15,.35)" stroke-width="17"/>
+    <path d="M80 560 C 326 500, 604 612, 892 548 S 1272 520, 1512 582" stroke="rgba(255,240,220,.28)" stroke-width="14"/>
+    <path d="M72 790 C 320 722, 598 838, 900 774 S 1282 740, 1512 800" stroke="rgba(73,42,15,.34)" stroke-width="18"/>
   </g>
-  <rect x="84" y="84" width="1432" height="932" rx="18" fill="url(#corkBase)"/>
-  <rect x="84" y="84" width="1432" height="932" rx="18" fill="#fff" filter="url(#corkNoise)" opacity=".68"/>
-  <rect x="84" y="84" width="1432" height="932" rx="18" fill="url(#vignette)" opacity=".92"/>
-  <rect x="84" y="84" width="1432" height="932" rx="18" fill="none" stroke="rgba(255,237,214,.22)" stroke-width="5"/>
-  <g opacity=".1">
-    <circle cx="246" cy="210" r="3.4" fill="#291508"/>
-    <circle cx="812" cy="174" r="2.8" fill="#2d1609"/>
-    <circle cx="1290" cy="286" r="3.1" fill="#2c1509"/>
-    <circle cx="342" cy="516" r="3.2" fill="#331a0c"/>
-    <circle cx="1032" cy="482" r="2.6" fill="#281408"/>
-    <circle cx="622" cy="758" r="3.3" fill="#2b1609"/>
-    <circle cx="1368" cy="710" r="3.0" fill="#2a1408"/>
-    <circle cx="408" cy="922" r="2.8" fill="#31190b"/>
-    <circle cx="1176" cy="878" r="3.2" fill="#2c1609"/>
+  <rect x="92" y="92" width="1416" height="796" rx="12" fill="url(#boardGreen)"/>
+  <rect x="92" y="92" width="1416" height="796" rx="12" fill="#fff" filter="url(#greenNoise)" opacity=".95"/>
+  <g opacity=".14" fill="none" stroke="#d6ead7" stroke-linecap="round">
+    <path d="M210 216 C 386 166, 570 232, 782 192" stroke-width="9"/>
+    <path d="M1086 238 C 1196 202, 1320 246, 1416 214" stroke-width="8"/>
+    <path d="M214 706 C 432 662, 658 736, 914 676" stroke-width="10"/>
+    <path d="M1048 650 C 1168 616, 1292 664, 1414 626" stroke-width="9"/>
   </g>
+  <rect x="92" y="92" width="1416" height="796" rx="12" fill="none" stroke="rgba(242,249,240,.12)" stroke-width="2"/>
 </svg>

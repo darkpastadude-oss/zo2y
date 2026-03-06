@@ -52,24 +52,24 @@
     .hero p { color:var(--muted); font-size:14px; max-width:760px; }
     .reviews-spotlight-shell {
       position:relative;
-      padding:34px 34px 28px;
+      padding:24px 24px 26px;
       display:grid;
-      gap:18px;
+      gap:16px;
       overflow:hidden;
-      background:url('images/reviews/chalkboard-board.svg?v=20260306e') center/100% 100% no-repeat;
-      border:0;
+      background:linear-gradient(160deg, rgba(16,30,63,.94), rgba(10,22,50,.92));
+      border:1px solid rgba(255,255,255,.08);
       border-radius:22px;
-      box-shadow:0 24px 44px rgba(0,0,0,.28);
+      box-shadow:0 20px 38px rgba(0,0,0,.24);
       isolation:isolate;
     }
     .reviews-spotlight-shell::before {
       content:"";
       position:absolute;
-      inset:24px;
-      border-radius:14px;
+      inset:0;
+      border-radius:22px;
       background:
-        radial-gradient(circle at 20% 10%, rgba(255,255,255,.04), transparent 24%),
-        radial-gradient(circle at 80% 78%, rgba(0,0,0,.08), transparent 28%);
+        radial-gradient(circle at 20% -10%, rgba(245,158,11,.08), transparent 28%),
+        radial-gradient(circle at 90% 110%, rgba(21,84,167,.08), transparent 30%);
       pointer-events:none;
       z-index:0;
     }
@@ -78,7 +78,7 @@
       grid-template-columns:minmax(0, 1.35fr) minmax(280px, .95fr);
       align-items:start;
       gap:18px;
-      padding:18px 20px 10px;
+      padding:4px 4px 0;
       position:relative;
       z-index:1;
       border:0;
@@ -87,7 +87,7 @@
       box-shadow:none;
     }
     .reviews-spotlight-kicker {
-      color:#fff4df;
+      color:#ffc874;
       font-size:11px;
       font-weight:800;
       letter-spacing:1.2px;
@@ -96,19 +96,19 @@
     }
     .reviews-spotlight-heading {
       margin-top:8px;
-      font-size:clamp(18px, 2.2vw, 28px);
+      font-size:clamp(24px, 2.8vw, 34px);
       line-height:1.02;
-      max-width:520px;
-      color:#f8f4e7;
-      text-shadow:0 2px 0 rgba(0,0,0,.22);
+      max-width:560px;
+      color:#f8fbff;
+      text-shadow:none;
     }
     .reviews-spotlight-subtext {
       margin-top:10px;
-      color:#f3e7d2;
+      color:#d7e3ff;
       font-size:13px;
       line-height:1.5;
       max-width:560px;
-      opacity:.92;
+      opacity:.96;
     }
     .reviews-spotlight-stats,
     .reviews-spotlight-dots {
@@ -124,9 +124,9 @@
     .reviews-spotlight-stat {
       min-height:34px;
       padding:0 12px;
-      border:1px solid rgba(255,239,213,.14);
-      background:rgba(71,39,17,.34);
-      color:#fff5df;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(10, 24, 44, .58);
+      color:#f6f8ff;
       border-radius:12px;
       display:inline-flex;
       align-items:center;
@@ -135,18 +135,20 @@
       font-weight:700;
     }
     .reviews-spotlight-stat {
-      color:#fff0d9;
+      color:#e9eeff;
       font-weight:600;
     }
     .reviews-spotlight-stage {
       position:relative;
-      min-height:720px;
+      width:min(100%, 1160px);
+      min-height:640px;
       aspect-ratio:auto;
-      padding:8px 8px 0;
+      padding:24px 28px;
+      margin:4px auto 0;
       border:0;
-      border-radius:0;
-      background:none;
-      box-shadow:none;
+      border-radius:18px;
+      background:url('images/reviews/chalkboard-board.svg?v=20260306f') center/100% 100% no-repeat;
+      box-shadow:0 18px 32px rgba(0,0,0,.24);
       isolation:isolate;
       z-index:1;
       overflow:hidden;
@@ -178,7 +180,7 @@
       width:34px;
       height:34px;
       transform:translateX(-50%);
-      background:url('images/reviews/pushpin-red.svg?v=20260306e') center/contain no-repeat;
+      background:url('images/reviews/pushpin-red.svg?v=20260306f') center/contain no-repeat;
       box-shadow:none;
       pointer-events:none;
       z-index:5;
@@ -194,26 +196,26 @@
       filter:drop-shadow(0 24px 30px rgba(0,0,0,.28));
     }
     .reviews-spotlight-card.is-front {
-      top:32px;
-      left:28px;
+      top:34px;
+      left:26px;
       z-index:4;
       transform:rotate(-7deg);
     }
     .reviews-spotlight-card.is-right {
-      top:48px;
-      right:34px;
+      top:30px;
+      right:36px;
       z-index:3;
       transform:rotate(6deg);
     }
     .reviews-spotlight-card.is-lower {
       bottom:18px;
-      right:72px;
+      right:82px;
       z-index:2;
       transform:rotate(-5deg);
     }
     .reviews-spotlight-card.is-left {
-      bottom:26px;
-      left:112px;
+      bottom:24px;
+      left:106px;
       z-index:1;
       transform:rotate(4.5deg);
     }
@@ -234,11 +236,12 @@
       align-content:start;
       gap:7px;
       min-width:0;
+      padding-left:24px;
       padding-right:126px;
     }
     .reviews-spotlight-card-rating {
       font-family:var(--marker-font);
-      color:#253546;
+      color:#26384f;
       font-size:18px;
       letter-spacing:.4px;
       line-height:1;
@@ -246,7 +249,7 @@
     }
     .reviews-spotlight-card-media {
       font-family:var(--marker-font);
-      color:#405367;
+      color:#4b6079;
       font-size:13px;
       letter-spacing:.4px;
       text-transform:uppercase;
@@ -256,14 +259,14 @@
       font-family:var(--marker-font);
       font-size:20px;
       line-height:1.1;
-      color:#1d2d3c;
+      color:#223246;
       display:-webkit-box;
       -webkit-line-clamp:2;
       -webkit-box-orient:vertical;
       overflow:hidden;
     }
     .reviews-spotlight-card-quote {
-      color:#26394d;
+      color:#31455a;
       font-family:var(--hand-font);
       font-size:28px;
       line-height:1.02;
@@ -274,7 +277,7 @@
     }
     .reviews-spotlight-card-signoff {
       margin-top:2px;
-      color:#2c4054;
+      color:#385069;
       font-family:var(--hand-font);
       font-size:24px;
       line-height:1;
@@ -303,19 +306,19 @@
       display:none;
     }
     .reviews-spotlight-card.tone-sun {
-      background-image:url('images/reviews/sticky-note-yellow.svg?v=20260306e');
+      background-image:url('images/reviews/sticky-note-yellow.svg?v=20260306f');
     }
     .reviews-spotlight-card.tone-rose {
-      background-image:url('images/reviews/sticky-note-pink.svg?v=20260306e');
+      background-image:url('images/reviews/sticky-note-pink.svg?v=20260306f');
     }
     .reviews-spotlight-card.tone-sky {
-      background-image:url('images/reviews/sticky-note-blue.svg?v=20260306e');
+      background-image:url('images/reviews/sticky-note-blue.svg?v=20260306f');
     }
     .reviews-spotlight-card.tone-mint {
-      background-image:url('images/reviews/sticky-note-green.svg?v=20260306e');
+      background-image:url('images/reviews/sticky-note-green.svg?v=20260306f');
     }
     .reviews-spotlight-card.tone-cream {
-      background-image:url('images/reviews/sticky-note-cream.svg?v=20260306e');
+      background-image:url('images/reviews/sticky-note-cream.svg?v=20260306f');
     }
     .reviews-spotlight-footer {
       display:flex;
@@ -390,11 +393,11 @@
       .card { grid-template-columns:minmax(0,1fr) 72px; }
       .art { min-height:94px; }
       .title { font-size:16px; }
-      .reviews-spotlight-shell { padding:24px 18px 20px; }
+      .reviews-spotlight-shell { padding:22px 16px 20px; }
       .reviews-spotlight-head {
         display:grid;
         grid-template-columns:1fr;
-        padding:6px 10px 8px;
+        padding:0;
       }
       .reviews-spotlight-stats { justify-content:flex-start; }
       .reviews-spotlight-stage {
@@ -404,7 +407,9 @@
         grid-auto-columns:minmax(348px, 90vw);
         gap:18px;
         overflow-x:auto;
-        padding:12px 0 4px;
+        padding:18px 16px 14px;
+        width:100%;
+        margin:0;
       }
       .reviews-spotlight-card,
       .reviews-spotlight-card.is-front,
@@ -419,7 +424,7 @@
       }
       .reviews-spotlight-card { padding:48px 24px 32px; }
       .reviews-spotlight-card.is-front .reviews-spotlight-card-title { font-size:20px; }
-      .reviews-spotlight-card-body { padding-right:106px; gap:6px; }
+      .reviews-spotlight-card-body { padding-left:20px; padding-right:106px; gap:6px; }
       .reviews-spotlight-card-rating { font-size:17px; }
       .reviews-spotlight-card-media { font-size:12px; }
       .reviews-spotlight-card-thumb-wrap { top:52px; right:16px; }
