@@ -143,20 +143,33 @@
       color:#e9eeff;
       font-weight:600;
     }
-    .reviews-spotlight-hover {
-      width:min(100%, 340px);
+    .reviews-spotlight-popover {
+      position:absolute;
+      right:24px;
+      bottom:24px;
+      width:min(320px, calc(100% - 48px));
       padding:14px;
       border:1px solid rgba(255,255,255,.12);
       border-radius:18px;
-      background:linear-gradient(180deg, rgba(10,22,46,.78), rgba(8,18,36,.88));
-      box-shadow:0 12px 26px rgba(0,0,0,.24);
+      background:linear-gradient(180deg, rgba(10,22,46,.82), rgba(8,18,36,.92));
+      box-shadow:0 16px 30px rgba(0,0,0,.28);
       display:grid;
-      grid-template-columns:96px 1fr;
+      grid-template-columns:92px 1fr;
       gap:14px;
       align-items:start;
-      min-height:148px;
+      min-height:144px;
+      opacity:0;
+      transform:translateY(10px);
+      pointer-events:none;
+      transition:opacity .18s ease, transform .18s ease;
+      z-index:7;
     }
-    .reviews-spotlight-hover-thumb {
+    .reviews-spotlight-popover.is-visible {
+      opacity:1;
+      transform:translateY(0);
+      pointer-events:auto;
+    }
+    .reviews-spotlight-popover-thumb {
       width:100%;
       aspect-ratio:3 / 4;
       object-fit:cover;
@@ -165,36 +178,36 @@
       background:#112142;
       box-shadow:0 10px 18px rgba(0,0,0,.24);
     }
-    .reviews-spotlight-hover-body {
+    .reviews-spotlight-popover-body {
       display:grid;
       gap:6px;
       min-width:0;
     }
-    .reviews-spotlight-hover-meta {
+    .reviews-spotlight-popover-meta {
       color:#ffc874;
       font-size:11px;
       font-weight:800;
       letter-spacing:1px;
       text-transform:uppercase;
     }
-    .reviews-spotlight-hover-title {
+    .reviews-spotlight-popover-title {
       font-size:18px;
       line-height:1.1;
       color:#f7fbff;
       font-weight:800;
     }
-    .reviews-spotlight-hover-stars {
+    .reviews-spotlight-popover-stars {
       color:#ffd36b;
       font-size:13px;
       font-weight:800;
       letter-spacing:.6px;
     }
-    .reviews-spotlight-hover-byline {
+    .reviews-spotlight-popover-byline {
       color:#d7e5ff;
       font-size:13px;
       line-height:1.45;
     }
-    .reviews-spotlight-hover-quote {
+    .reviews-spotlight-popover-quote {
       color:#b9ccec;
       font-size:13px;
       line-height:1.45;
@@ -203,7 +216,7 @@
       -webkit-box-orient:vertical;
       overflow:hidden;
     }
-    .reviews-spotlight-hover-link {
+    .reviews-spotlight-popover-link {
       display:inline-flex;
       align-items:center;
       gap:8px;
@@ -226,6 +239,36 @@
       isolation:isolate;
       z-index:1;
       overflow:hidden;
+    }
+    .reviews-spotlight-card-layer {
+      position:absolute;
+      inset:0;
+      z-index:1;
+    }
+    .reviews-spotlight-mobile-controls {
+      display:none;
+    }
+    .reviews-spotlight-mobile-next {
+      position:absolute;
+      right:14px;
+      bottom:14px;
+      min-height:38px;
+      padding:0 14px;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:12px;
+      background:rgba(10,22,46,.74);
+      color:#fff4de;
+      font-size:12px;
+      font-weight:800;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      z-index:8;
+      box-shadow:0 10px 20px rgba(0,0,0,.22);
+    }
+    .reviews-spotlight-mobile-next:hover {
+      border-color:rgba(245,158,11,.45);
     }
     .reviews-spotlight-card {
       position:absolute;
@@ -448,16 +491,19 @@
         justify-items:start;
       }
       .reviews-spotlight-stats { justify-content:flex-start; }
-      .reviews-spotlight-hover { display:none; }
+      .reviews-spotlight-popover { display:none; }
       .reviews-spotlight-stage {
-        min-height:420px;
+        min-height:360px;
         display:block;
         overflow:hidden;
-        padding:14px 14px 18px;
+        padding:0;
         width:100%;
         margin:0;
         background:url('images/reviews/board-photo.jpg?v=20260306j') center/cover no-repeat;
         border-radius:22px;
+      }
+      .reviews-spotlight-mobile-controls {
+        display:block;
       }
       .reviews-spotlight-card,
       .reviews-spotlight-card.is-front,
@@ -468,8 +514,8 @@
         top:50%;
         left:50%;
         inset:auto;
-        width:min(82vw, 286px);
-        min-height:252px;
+        width:min(78vw, 272px);
+        min-height:242px;
         transform:translate(-50%, -50%) rotate(-4deg);
         opacity:0;
         pointer-events:none;
@@ -488,6 +534,13 @@
       .reviews-spotlight-card-thumb { max-width:68px; transform:rotate(4deg); }
       .reviews-spotlight-card-quote { -webkit-line-clamp:4; font-size:22px; }
       .reviews-spotlight-card-signoff { font-size:20px; }
+      .reviews-spotlight-mobile-next {
+        right:12px;
+        bottom:12px;
+        min-height:36px;
+        padding:0 12px;
+        font-size:11px;
+      }
       .reviews-spotlight-card.is-tearing-out {
         animation: noteTearOut .28s cubic-bezier(.32,.02,.68,.95) forwards;
         pointer-events:none;
@@ -604,20 +657,25 @@
           <div class="reviews-spotlight-stats" id="reviewsSpotlightStats">
             <span class="reviews-spotlight-stat">Loading review pulse...</span>
           </div>
-          <div class="reviews-spotlight-hover" id="reviewsSpotlightHover" aria-live="polite">
-            <img class="reviews-spotlight-hover-thumb" id="reviewsSpotlightHoverThumb" src="images/logo.png" alt="" loading="lazy" decoding="async" />
-            <div class="reviews-spotlight-hover-body">
-              <div class="reviews-spotlight-hover-meta" id="reviewsSpotlightHoverMeta">Hover a note</div>
-              <div class="reviews-spotlight-hover-title" id="reviewsSpotlightHoverTitle">Review details will appear here.</div>
-              <div class="reviews-spotlight-hover-stars" id="reviewsSpotlightHoverStars">☆☆☆☆☆</div>
-              <div class="reviews-spotlight-hover-byline" id="reviewsSpotlightHoverByline">Hover any note to inspect the reviewer and rating.</div>
-              <div class="reviews-spotlight-hover-quote" id="reviewsSpotlightHoverQuote"></div>
-              <a class="reviews-spotlight-hover-link" id="reviewsSpotlightHoverLink" href="reviews.html">Open item <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
-            </div>
-          </div>
         </div>
       </div>
-      <div class="reviews-spotlight-stage" id="reviewsSpotlightStage" aria-label="Floating review spotlight cards"></div>
+      <div class="reviews-spotlight-stage" id="reviewsSpotlightStage" aria-label="Floating review spotlight cards">
+        <div class="reviews-spotlight-card-layer" id="reviewsSpotlightCardLayer"></div>
+        <div class="reviews-spotlight-popover" id="reviewsSpotlightPopover" aria-live="polite">
+          <img class="reviews-spotlight-popover-thumb" id="reviewsSpotlightPopoverThumb" src="images/logo.png" alt="" loading="lazy" decoding="async" />
+          <div class="reviews-spotlight-popover-body">
+            <div class="reviews-spotlight-popover-meta" id="reviewsSpotlightPopoverMeta">Review card</div>
+            <div class="reviews-spotlight-popover-title" id="reviewsSpotlightPopoverTitle">Hover a note to inspect the review.</div>
+            <div class="reviews-spotlight-popover-stars" id="reviewsSpotlightPopoverStars">5 stars</div>
+            <div class="reviews-spotlight-popover-byline" id="reviewsSpotlightPopoverByline">Reviewer, date, and media data appear here.</div>
+            <div class="reviews-spotlight-popover-quote" id="reviewsSpotlightPopoverQuote"></div>
+            <a class="reviews-spotlight-popover-link" id="reviewsSpotlightPopoverLink" href="reviews.html">Open item <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+          </div>
+        </div>
+        <div class="reviews-spotlight-mobile-controls">
+          <button class="reviews-spotlight-mobile-next" id="reviewsSpotlightMobileNext" type="button">Next Note <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
     </section>
     <section class="filters">
       <div class="chips" id="mediaFilters">
@@ -648,7 +706,7 @@
     <a class="mobile-nav-item active" href="reviews.html" aria-label="Reviews"><i class="fa-solid fa-star"></i></a>
   </nav>
 
-  <script src="js/reviews-page.js?v=20260306i" defer></script>
+  <script src="js/reviews-page.js?v=20260306j" defer></script>
   <script src="js/production-runtime.js?v=20260306a" defer></script>
 </body>
 </html>

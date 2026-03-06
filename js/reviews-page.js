@@ -513,16 +513,17 @@
 
   function renderReviewSpotlightCards(incomingClass = '') {
     const stageEl = document.getElementById('reviewsSpotlightStage');
-    if (!stageEl) return;
+    const layerEl = document.getElementById('reviewsSpotlightCardLayer');
+    if (!stageEl || !layerEl) return;
     const positions = ['is-front', 'is-right', 'is-lower', 'is-left'];
     const tones = ['tone-sun', 'tone-sky', 'tone-rose', 'tone-mint', 'tone-cream'];
     const visible = getReviewSpotlightVisibleCards();
     if (!visible.length) {
-      stageEl.innerHTML = '';
+      layerEl.innerHTML = '';
       return;
     }
 
-    stageEl.innerHTML = visible.map(({ item, index, offset }) => {
+    layerEl.innerHTML = visible.map(({ item, index, offset }) => {
       const cardClasses = [
         'reviews-spotlight-card',
         positions[offset] || 'is-left',
@@ -552,7 +553,7 @@
       `;
     }).join('');
 
-    stageEl.querySelectorAll('[data-review-spotlight-index]').forEach((btn) => {
+    layerEl.querySelectorAll('[data-review-spotlight-index]').forEach((btn) => {
       const nextIndex = Number(btn.getAttribute('data-review-spotlight-index'));
       btn.addEventListener('mouseenter', () => {
         if (isMobileReviewSpotlight() || !Number.isInteger(nextIndex)) return;
@@ -562,7 +563,7 @@
       btn.addEventListener('mouseleave', () => {
         if (isMobileReviewSpotlight()) return;
         reviewSpotlightHoverIndex = null;
-        renderReviewSpotlightHover(reviewSpotlightItems[reviewSpotlightIndex] || null);
+        hideReviewSpotlightPopover();
       });
       btn.addEventListener('focus', () => {
         if (!Number.isInteger(nextIndex)) return;
@@ -571,7 +572,7 @@
       });
       btn.addEventListener('blur', () => {
         reviewSpotlightHoverIndex = null;
-        renderReviewSpotlightHover(reviewSpotlightItems[reviewSpotlightIndex] || null);
+        hideReviewSpotlightPopover();
       });
       const image = btn.querySelector('.reviews-spotlight-card-thumb');
       if (image) {
@@ -583,28 +584,35 @@
     });
   }
 
-  function renderReviewSpotlightHover(item) {
-    const shell = document.getElementById('reviewsSpotlightHover');
+  function hideReviewSpotlightPopover() {
+    const shell = document.getElementById('reviewsSpotlightPopover');
     if (!shell) return;
-    const target = item || reviewSpotlightItems[reviewSpotlightIndex] || null;
-    const thumb = document.getElementById('reviewsSpotlightHoverThumb');
-    const meta = document.getElementById('reviewsSpotlightHoverMeta');
-    const title = document.getElementById('reviewsSpotlightHoverTitle');
-    const starsEl = document.getElementById('reviewsSpotlightHoverStars');
-    const byline = document.getElementById('reviewsSpotlightHoverByline');
-    const quote = document.getElementById('reviewsSpotlightHoverQuote');
-    const link = document.getElementById('reviewsSpotlightHoverLink');
+    shell.classList.remove('is-visible');
+  }
+
+  function renderReviewSpotlightHover(item) {
+    const shell = document.getElementById('reviewsSpotlightPopover');
+    if (!shell) return;
+    const target = item || null;
+    const thumb = document.getElementById('reviewsSpotlightPopoverThumb');
+    const meta = document.getElementById('reviewsSpotlightPopoverMeta');
+    const title = document.getElementById('reviewsSpotlightPopoverTitle');
+    const starsEl = document.getElementById('reviewsSpotlightPopoverStars');
+    const byline = document.getElementById('reviewsSpotlightPopoverByline');
+    const quote = document.getElementById('reviewsSpotlightPopoverQuote');
+    const link = document.getElementById('reviewsSpotlightPopoverLink');
     if (!thumb || !meta || !title || !starsEl || !byline || !quote || !link) return;
 
     if (!target) {
-      meta.textContent = 'Hover a note';
-      title.textContent = 'Review details will appear here.';
-      starsEl.textContent = '☆☆☆☆☆';
-      byline.textContent = 'Hover any note to inspect the reviewer and rating.';
+      meta.textContent = 'Review card';
+      title.textContent = 'Hover a note to inspect the review.';
+      starsEl.textContent = '5 stars';
+      byline.textContent = 'Reviewer, date, and media data appear here.';
       quote.textContent = '';
       thumb.src = FALLBACK_IMAGE;
       thumb.alt = '';
       link.href = 'reviews.html';
+      hideReviewSpotlightPopover();
       return;
     }
 
@@ -620,13 +628,15 @@
     byline.textContent = `${target.reviewer} • ${target.rating.toFixed(1)}/5 • ${target.dateLabel}`;
     quote.textContent = String(target.quote || '').trim();
     link.href = target.href || 'reviews.html';
+    shell.classList.add('is-visible');
   }
 
   function applyReviewSpotlight(index, fromUser = false, incomingClass = '') {
     if (!reviewSpotlightItems.length) return;
     reviewSpotlightIndex = normalizeReviewSpotlightIndex(index);
     renderReviewSpotlightCards(incomingClass);
-    renderReviewSpotlightHover(reviewSpotlightHoverIndex == null ? reviewSpotlightItems[reviewSpotlightIndex] : reviewSpotlightItems[reviewSpotlightHoverIndex] || reviewSpotlightItems[reviewSpotlightIndex]);
+    reviewSpotlightHoverIndex = null;
+    hideReviewSpotlightPopover();
     if (fromUser) resetReviewSpotlightTimer();
   }
 
@@ -719,12 +729,23 @@
 
   function wireReviewSpotlight() {
     const stage = document.getElementById('reviewsSpotlightStage');
+    const nextBtn = document.getElementById('reviewsSpotlightMobileNext');
     if (!stage) return;
     if (stage.dataset.wired === '1') return;
     stage.dataset.wired = '1';
 
     stage.addEventListener('mouseenter', stopReviewSpotlightTimer);
-    stage.addEventListener('mouseleave', resetReviewSpotlightTimer);
+    stage.addEventListener('mouseleave', () => {
+      reviewSpotlightHoverIndex = null;
+      hideReviewSpotlightPopover();
+      resetReviewSpotlightTimer();
+    });
+
+    nextBtn?.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      showReviewSpotlight(reviewSpotlightIndex + 1, true);
+    });
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) stopReviewSpotlightTimer();
