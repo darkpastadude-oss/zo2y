@@ -115,7 +115,6 @@
   // Initialize Supabase
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: {
-      flowType: 'pkce',
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: false  // Important: Don't auto-detect on signup page
@@ -326,13 +325,17 @@
       analyticsTrack('signup_google_start', { path: window.location.pathname }, true);
       
       // Store that this is a signup flow
+      const nextPath = getPostAuthRedirect();
+      const callbackUrl = new URL('/auth-callback.html', window.location.origin);
+      callbackUrl.searchParams.set('flow', 'signup');
+      callbackUrl.searchParams.set('next', nextPath);
       localStorage.setItem('oauthFlow', 'signup');
-      localStorage.setItem('postAuthRedirect', getPostAuthRedirect());
+      localStorage.setItem('postAuthRedirect', nextPath);
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth-callback.html`,
+          redirectTo: callbackUrl.toString(),
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'

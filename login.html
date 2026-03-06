@@ -103,7 +103,6 @@
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s',
     {
       auth: {
-        flowType: 'pkce',
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: false  // Important: Don't auto-detect on login page
@@ -297,13 +296,17 @@
       analyticsTrack('login_google_start', { path: window.location.pathname }, true);
       
       // Store that this is a login flow
+      const nextPath = getPostAuthRedirect();
+      const callbackUrl = new URL('/auth-callback.html', window.location.origin);
+      callbackUrl.searchParams.set('flow', 'login');
+      callbackUrl.searchParams.set('next', nextPath);
       localStorage.setItem('oauthFlow', 'login');
-      localStorage.setItem('postAuthRedirect', getPostAuthRedirect());
+      localStorage.setItem('postAuthRedirect', nextPath);
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth-callback.html`,
+          redirectTo: callbackUrl.toString(),
           queryParams: { 
             access_type: 'offline', 
             prompt: 'consent' 
