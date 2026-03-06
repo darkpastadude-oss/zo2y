@@ -108,6 +108,11 @@
       border: 1px solid var(--border);
       background: #10224a;
     }
+    .photo-wrap.no-photo {
+      background:
+        radial-gradient(circle at 24% 20%, rgba(245, 158, 11, 0.14), transparent 34%),
+        linear-gradient(160deg, rgba(18,34,74,0.98), rgba(12,24,52,0.98));
+    }
     .photo-wrap img {
       width: 100%;
       height: 100%;
@@ -682,26 +687,6 @@
     const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
     const COUNTRY_GALLERY_CACHE_KEY = 'zo2y_country_gallery_cache_v1';
     const COUNTRY_GALLERY_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
-    const TRAVEL_GENERIC_SCENIC_FALLBACK = 'images/country.jpg';
-    const TRAVEL_SCENIC_FALLBACK_BY_CODE = Object.freeze({
-      US: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      JP: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      FR: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      IT: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      ES: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      BR: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      EG: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      AU: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      GB: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      DE: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      CA: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      MX: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      TR: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      TH: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      ID: TRAVEL_GENERIC_SCENIC_FALLBACK,
-      ZA: TRAVEL_GENERIC_SCENIC_FALLBACK
-    });
-
     let client = null;
     const params = new URLSearchParams(window.location.search);
     const routeCode = String(params.get('code') || '').trim().toUpperCase();
@@ -1014,12 +999,10 @@
         const first = safeHttps(gallery[0]);
         if (first && !isBadScenicUrl(first)) return first;
       }
-      const fallback = safeHttps(TRAVEL_SCENIC_FALLBACK_BY_CODE[safeCountryCode] || TRAVEL_GENERIC_SCENIC_FALLBACK);
-      if (fallback && !isBadScenicUrl(fallback)) return fallback;
-      return TRAVEL_GENERIC_SCENIC_FALLBACK;
+      return '';
     }
 
-    function renderGallery(images = [], countryName = '', flag = '', fallbackPhoto = '') {
+    function renderGallery(images = [], countryName = '') {
       const grid = document.getElementById('galleryGrid');
       if (!grid) return;
       const list = (Array.isArray(images) ? images : [])
@@ -1032,7 +1015,7 @@
       }
       grid.innerHTML = list.map((url) => `
         <div class="gallery-item">
-          <img src="${escapeHtml(url)}" alt="${escapeHtml(countryName)} scenery" loading="lazy" onerror="this.onerror=null;this.src='${escapeHtml(fallbackPhoto || flag || 'images/country.jpg')}';">
+          <img src="${escapeHtml(url)}" alt="${escapeHtml(countryName)} scenery" loading="lazy" onerror="this.onerror=null;this.closest('.gallery-item')?.remove();">
         </div>
       `).join('');
     }
@@ -1333,7 +1316,7 @@
       const region = String(row && row.region || '').trim();
       const subregion = String(row && row.subregion || '').trim();
       const flag = safeHttps(row && row.flags && (row.flags.png || row.flags.svg) || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
-      const fallbackPhoto = buildCountryPhotoUrl(name, code) || flag;
+      const fallbackPhoto = buildCountryPhotoUrl(name, code);
       const photo = fallbackPhoto;
       const mapsUrl = safeHttps(row && row.maps && row.maps.googleMaps || '');
 
@@ -1348,16 +1331,28 @@
 
       document.getElementById('title').textContent = name;
       document.getElementById('meta').innerHTML = `${escapeHtml(capital ? `Capital: ${capital}` : 'Capital: N/A')}<br>${escapeHtml([region, subregion].filter(Boolean).join(' | ') || 'Region unavailable')}`;
-      document.getElementById('photo').src = photo;
-      document.getElementById('photo').alt = `${name} photo`;
-      document.getElementById('photo').setAttribute('data-fallback-photo', fallbackPhoto);
-      document.getElementById('photo').onerror = function onCountryPhotoError() {
+      const photoEl = document.getElementById('photo');
+      const photoWrap = photoEl ? photoEl.closest('.photo-wrap') : null;
+      if (photo) {
+        photoEl.src = photo;
+        photoEl.alt = `${name} photo`;
+        photoEl.style.display = 'block';
+        photoWrap && photoWrap.classList.remove('no-photo');
+      } else {
+        photoEl.removeAttribute('src');
+        photoEl.alt = `${name} photo unavailable`;
+        photoEl.style.display = 'none';
+        photoWrap && photoWrap.classList.add('no-photo');
+      }
+      photoEl.onerror = function onCountryPhotoError() {
         this.onerror = null;
-        this.src = fallbackPhoto || flag || 'images/country.jpg';
+        this.removeAttribute('src');
+        this.style.display = 'none';
+        this.closest('.photo-wrap')?.classList.add('no-photo');
       };
       document.getElementById('flag').src = flag;
       document.getElementById('flag').alt = `${name} flag`;
-      renderGallery(countryGalleryCache.get(code) || [], name, flag, fallbackPhoto);
+      renderGallery(countryGalleryCache.get(code) || [], name);
 
       const chips = [];
       if (languages) chips.push(`Languages: ${languages}`);
@@ -1392,11 +1387,13 @@
       void fetchCommonsCountryGallery(name, code, capital)
         .then((images) => {
           const list = Array.isArray(images) ? images : [];
-          renderGallery(list, name, flag, fallbackPhoto);
+          renderGallery(list, name);
           const heroPhoto = list.find((value) => value && !isBadScenicUrl(value));
           if (heroPhoto) {
-            document.getElementById('photo').src = heroPhoto;
-            document.getElementById('photo').alt = `${name} photo`;
+            photoEl.src = heroPhoto;
+            photoEl.alt = `${name} photo`;
+            photoEl.style.display = 'block';
+            photoWrap && photoWrap.classList.remove('no-photo');
           }
         })
         .catch(() => {});
