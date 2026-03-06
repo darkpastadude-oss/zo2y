@@ -207,6 +207,7 @@
     let homeNewReleasesLastFetchAt = 0;
     let homeNewReleasesRequestSeq = 0;
     let homeNewReleasesInFlight = null;
+    let homeFeedInitSeq = 0;
     let homeWeakFeedRetryTimer = null;
     let homeWeakFeedRetryCount = 0;
     let homeMenuPrimeScheduled = false;
@@ -3542,7 +3543,7 @@
       }
     }
 
-    function applyHomeFeedMap(feedMap) {
+    function applyHomeFeedMap(feedMap, options = {}) {
       const normalizedFeed = normalizeHomeFeedMap(feedMap) || Object.fromEntries(
         getHomeChannels().map((channel) => [channel.key, []])
       );
@@ -3560,8 +3561,10 @@
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
       renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
-      void refreshHomeNewReleases(homeFeedState);
-      void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
+      if (options.refreshSecondary !== false) {
+        void refreshHomeNewReleases(homeFeedState);
+        void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
+      }
       hydrateSpotlightFromPool(scoredPool);
 
       return { activeChannels, scoredPool, channelsCount: channels.length };
@@ -5511,6 +5514,11 @@
     }
 
     async function initUniversalHome() {
+      const initSeq = ++homeFeedInitSeq;
+      if (homeWeakFeedRetryTimer) {
+        clearTimeout(homeWeakFeedRetryTimer);
+        homeWeakFeedRetryTimer = null;
+      }
       setStatus('Loading spotlight and live feed...', false);
       resetSpotlightTimer(false);
       const channels = getHomeChannels();
@@ -5519,6 +5527,9 @@
       const baselineFeed = cachedFeed || null;
       let quickFallbackFeed = null;
       const precomputedFeedPromise = loadPrecomputedHomeFeed().catch(() => null);
+      const blankFeed = Object.fromEntries(initialChannels.map((channel) => [channel.key, []]));
+      const freshLoadedKeys = new Set();
+      let workingFeed = normalizeHomeFeedMap(baselineFeed) || blankFeed;
 
       if (!baselineFeed) {
         quickFallbackFeed = buildInstantFallbackFeed();
@@ -5526,6 +5537,7 @@
         if (quickResult.scoredPool.length) {
           setStatus('Quick feed ready. Syncing live data...', false);
         }
+        workingFeed = normalizeHomeFeedMap(quickFallbackFeed) || blankFeed;
       }
 
       if (baselineFeed) {
@@ -5545,32 +5557,48 @@
       }
       const loadedPromise = Promise.all(initialChannels.map(async (channel) => {
         const items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
+        if (initSeq === homeFeedInitSeq && Array.isArray(items) && items.length) {
+          freshLoadedKeys.add(channel.key);
+          workingFeed = {
+            ...workingFeed,
+            [channel.key]: items
+          };
+          const progressive = applyHomeFeedMap(workingFeed, { refreshSecondary: false });
+          if (progressive.scoredPool.length) {
+            setStatus(`Loading live feed... ${freshLoadedKeys.size}/${initialChannels.length} channels ready.`, false);
+          }
+        }
         return { ...channel, items };
       }));
-      let mergeBaselineFeed = baselineFeed || quickFallbackFeed;
       const precomputedFeed = await withTimeout(precomputedFeedPromise, 220, null);
+      if (initSeq !== homeFeedInitSeq) return;
       if (precomputedFeed) {
         const precomputedActiveChannels = countActiveHomeChannels(precomputedFeed);
         const baselineActiveChannels = countActiveHomeChannels(baselineFeed);
         if (precomputedActiveChannels > baselineActiveChannels) {
-          const precomputedResult = applyHomeFeedMap(precomputedFeed);
+          const mergedPrecomputedFeed = {
+            ...workingFeed
+          };
+          const normalizedPrecomputedFeed = normalizeHomeFeedMap(precomputedFeed) || blankFeed;
+          initialChannels.forEach((channel) => {
+            if (freshLoadedKeys.has(channel.key)) return;
+            const items = Array.isArray(normalizedPrecomputedFeed[channel.key]) ? normalizedPrecomputedFeed[channel.key] : [];
+            if (items.length) {
+              mergedPrecomputedFeed[channel.key] = items;
+            }
+          });
+          workingFeed = mergedPrecomputedFeed;
+          const precomputedResult = applyHomeFeedMap(workingFeed, { refreshSecondary: false });
           if (precomputedResult.scoredPool.length) {
             setStatus('Spotlight ready from precomputed feed. Syncing live data...', false);
-            mergeBaselineFeed = precomputedFeed;
           }
         }
       }
 
-      const loaded = await loadedPromise;
+      await loadedPromise;
+      if (initSeq !== homeFeedInitSeq) return;
 
-      const mergedFeed = {};
-      const loadedByKey = new Map(loaded.map((channel) => [channel.key, channel]));
-      channels.forEach((channel) => {
-        const loadedChannel = loadedByKey.get(channel.key);
-        const freshItems = Array.isArray(loadedChannel?.items) ? loadedChannel.items : [];
-        const cachedItems = Array.isArray(mergeBaselineFeed?.[channel.key]) ? mergeBaselineFeed[channel.key] : [];
-        mergedFeed[channel.key] = freshItems.length ? freshItems : cachedItems;
-      });
+      const mergedFeed = normalizeHomeFeedMap(workingFeed) || blankFeed;
 
       const { scoredPool } = applyHomeFeedMap(mergedFeed);
 
@@ -5595,7 +5623,7 @@
       }
 
       const initialChannelsCount = initialChannels.length;
-      const freshActiveChannels = loaded.filter((channel) => Array.isArray(channel.items) && channel.items.length).length;
+      const freshActiveChannels = freshLoadedKeys.size;
       if (freshActiveChannels > 0) {
         writeHomeFeedCache(mergedFeed);
         writePrecomputedHomeFeedCache(mergedFeed, {
