@@ -73,7 +73,6 @@
     const HOME_CHANNEL_TIMEOUT_MS = 1600;
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 1200;
     const HOME_LOCAL_FALLBACK_IMAGE = 'images/logo.png';
-    const HOME_TRAVEL_SCENIC_FALLBACK_IMAGE = 'images/country.jpg';
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 16;
     const HOME_SPOTLIGHT_POOL_SIZE = 16;
@@ -346,17 +345,23 @@
       const rawTitle = String(item.title || item.name || code || 'Country').trim();
       if (/\bisrael\b/i.test(rawTitle)) return null;
       const title = code === 'PS' ? 'Palestine' : rawTitle;
+      const rawImage = toHttpsUrl(String(item.image || '').trim());
+      const rawBackground = toHttpsUrl(String(item.backgroundImage || '').trim());
+      const rawSpotlight = toHttpsUrl(String(item.spotlightImage || '').trim());
+      const scenicImage = getSafeTravelScenicImage(title, code, rawImage || rawBackground || rawSpotlight);
+      if (!isUsableHomeTravelScenicUrl(scenicImage)) return null;
+      if (code) setHomeTravelPhotoCache(code, scenicImage);
       const flagImage = toHttpsUrl(String(item.flagImage || '').trim()) || (code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : '');
       return {
         ...item,
         mediaType: 'travel',
         itemId: code || String(item.itemId || '').trim(),
         flagImage,
-        listImage: flagImage || String(item.listImage || '').trim(),
-        image: '',
-        backgroundImage: '',
-        spotlightImage: '',
-        spotlightMediaImage: flagImage || String(item.spotlightMediaImage || '').trim(),
+        listImage: flagImage || String(item.listImage || '').trim() || scenicImage,
+        image: scenicImage,
+        backgroundImage: scenicImage || '',
+        spotlightImage: getSafeTravelScenicImage(title, code, rawSpotlight || scenicImage) || scenicImage,
+        spotlightMediaImage: String(item.spotlightMediaImage || '').trim() || scenicImage,
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
@@ -845,8 +850,7 @@
       const spotlightBackground = getHomeSpotlightBackgroundByType(item.mediaType) || fallbackSpotlightBackground;
       let spotlightMediaImage = String(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
       if (isTravelSpotlight) {
-        const safeFlag = toHttpsUrl(String(item.flagImage || '').trim());
-        spotlightMediaImage = safeFlag || travelScenicImage || spotlightMediaImage;
+        spotlightMediaImage = travelScenicImage || spotlightMediaImage;
       }
       const spotlightBackgroundPosition = String(item.spotlightBackgroundPosition || item.backgroundPosition || '').trim() || 'center 28%';
       const spotlightMediaPosition = String(item.spotlightMediaPosition || item.imagePosition || '').trim();
@@ -3571,8 +3575,9 @@
       rail.innerHTML = items.map((item) => {
         const mediaTypeRaw = String(item.mediaType || opts?.mediaType || '').toLowerCase();
         const itemData = mediaTypeRaw === 'travel'
-          ? (sanitizeHomeTravelItem(item) || item)
+          ? sanitizeHomeTravelItem(item)
           : item;
+        if (!itemData) return '';
         const media = getHomeMediaMeta(mediaTypeRaw);
         const uniformMedia = !!opts?.uniformMedia;
         const landscape = !uniformMedia && (!!opts?.landscape || mediaTypeRaw === 'restaurant');
@@ -3582,7 +3587,7 @@
         const extra = escapeHtml(itemData.extra || '');
         const image = escapeHtml(itemData.image || '');
         const flagImage = escapeHtml(itemData.flagImage || '');
-        const listImage = escapeHtml(itemData.listImage || (mediaTypeRaw === 'travel' ? (itemData.flagImage || '') : (itemData.image || '')));
+        const listImage = escapeHtml(itemData.listImage || itemData.image || '');
         const logo = escapeHtml(itemData.logo || '');
         const fallbackImage = escapeHtml(itemData.fallbackImage || '');
         const coverImage = image || logo;
@@ -3598,9 +3603,7 @@
         const previewControl = previewUrlRaw
           ? `<button class="card-preview-btn" data-preview="${escapeHtml(previewUrlRaw)}" aria-label="Play preview"><i class="fas fa-play"></i></button>`
           : '';
-        const useTravelFlagVisual = mediaTypeRaw === 'travel' && !image && !!flagImage;
-        const primaryImage = useTravelFlagVisual ? flagImage : image;
-        const hasVisualImage = restaurantComposite ? !!coverImage || !!logo : !!primaryImage;
+        const hasVisualImage = restaurantComposite ? !!coverImage || !!logo : !!image;
         const imagePolicy = hasVisualImage
           ? consumeHomeImageRequestBudget()
           : { loading: 'lazy', priority: 'low' };
@@ -3611,14 +3614,13 @@
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
         if (mediaTypeRaw === 'music') mediaClasses.push('music-cover');
         if (mediaTypeRaw === 'travel') mediaClasses.push('travel-photo');
-        if (useTravelFlagVisual) mediaClasses.push('travel-flag-only');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         const mediaHtml = restaurantComposite
           ? `
               ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage || logo}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
               ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage || coverImage}" data-fallback-applied="0"></span>` : ''}
             `
-          : `${primaryImage ? `<img src="${primaryImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
+          : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
         const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
         const titleMarkup = (mediaTypeRaw === 'travel' && flagImage)
           ? `<span class="country-title-wrap"><img class="country-inline-flag" src="${flagImage}" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="country-title-text">${title}</span></span>`
@@ -5320,6 +5322,9 @@
       if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
       const flagImage = toHttpsUrl(row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
       const photoFromCommons = photoMap instanceof Map ? String(photoMap.get(code) || '').trim() : '';
+      if (photoFromCommons) setHomeTravelPhotoCache(code, photoFromCommons);
+      const photoImage = getSafeTravelScenicImage(title, code, photoFromCommons);
+      if (!isUsableHomeTravelScenicUrl(photoImage)) return null;
       return {
         mediaType: 'travel',
         itemId: code,
@@ -5329,10 +5334,10 @@
         cities,
         flagImage,
         listImage: flagImage,
-        image: '',
-        backgroundImage: '',
-        spotlightImage: '',
-        spotlightMediaImage: flagImage,
+        image: photoImage,
+        backgroundImage: photoImage || '',
+        spotlightImage: photoImage || '',
+        spotlightMediaImage: photoImage,
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
@@ -5361,6 +5366,9 @@
       if (subregion && subregion !== region) extraParts.push(subregion);
       if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
       const flagImage = toHttpsUrl(row?.flag || row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
+      const scenicImage = getSafeTravelScenicImage(title, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
+      if (!isUsableHomeTravelScenicUrl(scenicImage)) return null;
+      setHomeTravelPhotoCache(code, scenicImage);
       return {
         mediaType: 'travel',
         itemId: code,
@@ -5370,10 +5378,10 @@
         cities,
         flagImage,
         listImage: flagImage,
-        image: '',
-        backgroundImage: '',
-        spotlightImage: '',
-        spotlightMediaImage: flagImage,
+        image: scenicImage,
+        backgroundImage: scenicImage || '',
+        spotlightImage: scenicImage || '',
+        spotlightMediaImage: scenicImage,
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
@@ -5446,8 +5454,19 @@
           return out;
         };
 
-        const directItems = collectTravelItems(null).slice(0, targetCount);
-        if (directItems.length) return directItems;
+        const cachedCandidates = collectTravelItems(homeTravelPhotoCache).slice(0, targetCount);
+        if (cachedCandidates.length >= Math.min(targetCount, 6)) {
+          return cachedCandidates;
+        }
+
+        const photoMap = await fetchTravelCommonsPhotos(
+          sortedRows.slice(0, Math.max(targetCount * 6, 140)),
+          signal
+        ).catch(() => homeTravelPhotoCache);
+
+        const hydrated = collectTravelItems(photoMap).slice(0, targetCount);
+        if (hydrated.length) return hydrated;
+        if (cachedCandidates.length) return cachedCandidates;
         if (cachedRowItems.length) return cachedRowItems;
       } catch (_err) {}
 
