@@ -1765,6 +1765,8 @@
         return;
       }
 
+      const previousKey = getHomeSpotlightPoolKey(getCurrentSpotlightItem(), homeSpotlightIndex);
+      const previousIndex = Number(homeSpotlightIndex || 0);
       const spotlightPoolSize = getHomeSpotlightPoolSize();
       const topPool = safePool.slice(0, spotlightPoolSize * 4);
       const mixedCandidates = buildUnifiedFeed(topPool, spotlightPoolSize * 4);
@@ -1781,8 +1783,13 @@
       }
 
       warmSpotlightImages(homeSpotlightItems);
-      homeSpotlightIndex = 0;
-      showSpotlightByIndex(0, false);
+      const preservedIndex = previousKey
+        ? homeSpotlightItems.findIndex((item, index) => getHomeSpotlightPoolKey(item, index) === previousKey)
+        : -1;
+      homeSpotlightIndex = preservedIndex >= 0
+        ? preservedIndex
+        : Math.max(0, Math.min(previousIndex, homeSpotlightItems.length - 1));
+      showSpotlightByIndex(homeSpotlightIndex, false);
       resetSpotlightTimer(true);
     }
 
@@ -5744,7 +5751,9 @@
       });
 
       if (nextSpotlightBtn) {
-        nextSpotlightBtn.addEventListener('click', () => {
+        nextSpotlightBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
           showSpotlightByIndex(homeSpotlightIndex + 1, true);
           resetSpotlightTimer(true);
         });

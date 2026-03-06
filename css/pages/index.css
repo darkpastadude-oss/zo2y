@@ -2241,7 +2241,7 @@
         min-width: 0;
         width: calc(100% - var(--desktop-sidebar-expanded));
         margin-left: var(--desktop-sidebar-expanded);
-        padding: 14px 0 0;
+        padding: 10px 0 0;
         transition: margin-left 0.22s ease, width 0.22s ease;
       }
 
@@ -2257,6 +2257,24 @@
       .desktop-main-panel .container {
         width: 100%;
         margin: 0;
+      }
+
+      .desktop-main-panel > .zo2y-shared-header {
+        top: 10px;
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(8, 15, 27, 0.84);
+      }
+
+      .desktop-main-panel > .zo2y-shared-header .zo2y-shared-header-inner {
+        width: min(1240px, calc(100% - 36px));
+        min-height: 60px;
+        gap: 12px;
+        padding: 8px 0;
+      }
+
+      .desktop-main-panel > .zo2y-shared-header .zo2y-shared-search {
+        max-width: 360px;
       }
 
       .desktop-sidebar {
@@ -2570,8 +2588,8 @@
       }
 
       .page-shell {
-        margin-top: 10px;
-        gap: 10px;
+        margin-top: 6px;
+        gap: 8px;
       }
 
       .spotlight {

@@ -10,7 +10,7 @@
   <link rel="canonical" href="https://www.zo2y.com/reviews.html" />
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/universal-search.js?v=20260228e" defer></script>
+  <script src="js/universal-search.js?v=20260306a" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 
   <style>
@@ -42,9 +42,142 @@
     .mobile-bottom-nav { display:none; }
 
     .page { padding:18px 0 36px; display:grid; gap:12px; }
-    .hero,.filters,.card { border:1px solid var(--border); border-radius:14px; background:linear-gradient(160deg, rgba(23,43,88,.92), rgba(19,35,71,.95)); }
+    .hero,.filters,.card,.reviews-spotlight-shell { border:1px solid var(--border); border-radius:14px; background:linear-gradient(160deg, rgba(23,43,88,.92), rgba(19,35,71,.95)); }
     .hero { padding:16px; display:grid; gap:8px; }
-    .hero p { color:var(--muted); font-size:14px; }
+    .hero-kicker { color:#ffc874; font-size:11px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; }
+    .hero h1 { font-size:clamp(28px, 4vw, 44px); line-height:1; }
+    .hero p { color:var(--muted); font-size:14px; max-width:760px; }
+    .reviews-spotlight-shell { padding:10px; display:grid; gap:10px; overflow:hidden; }
+    .reviews-spotlight-card {
+      position:relative;
+      min-height:290px;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.12);
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) 210px;
+      background:linear-gradient(145deg, rgba(12,26,57,.95), rgba(10,20,42,.98));
+    }
+    .reviews-spotlight-backdrop,
+    .reviews-spotlight-overlay {
+      position:absolute;
+      inset:0;
+    }
+    .reviews-spotlight-backdrop {
+      background:
+        radial-gradient(circle at 82% 18%, rgba(245,158,11,.24), transparent 26%),
+        linear-gradient(135deg, rgba(18,37,74,.96), rgba(10,19,40,.88));
+      background-size:cover;
+      background-position:center;
+      transform:scale(1.03);
+      filter:saturate(1.05) brightness(.82);
+    }
+    .reviews-spotlight-overlay {
+      background:linear-gradient(105deg, rgba(6,13,26,.96) 10%, rgba(6,13,26,.78) 56%, rgba(6,13,26,.18) 100%);
+      z-index:1;
+    }
+    .reviews-spotlight-content {
+      position:relative;
+      z-index:2;
+      padding:20px;
+      display:grid;
+      align-content:end;
+      gap:10px;
+      min-width:0;
+    }
+    .reviews-spotlight-kicker {
+      color:#b8caea;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:1.1px;
+      text-transform:uppercase;
+    }
+    .reviews-spotlight-title {
+      font-size:clamp(26px, 4vw, 42px);
+      line-height:.96;
+      max-width:700px;
+    }
+    .reviews-spotlight-quote {
+      color:#dce8ff;
+      font-size:14px;
+      line-height:1.55;
+      max-width:720px;
+      display:-webkit-box;
+      -webkit-line-clamp:3;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+    .reviews-spotlight-pills,
+    .reviews-spotlight-stats,
+    .reviews-spotlight-dots {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .reviews-spotlight-pill,
+    .reviews-spotlight-stat {
+      min-height:34px;
+      padding:0 12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      color:#ecf3ff;
+      border-radius:11px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      font-weight:700;
+    }
+    .reviews-spotlight-stat {
+      color:#c6d7f7;
+      font-weight:600;
+    }
+    .reviews-spotlight-actions {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+    .reviews-spotlight-art {
+      position:relative;
+      z-index:2;
+      padding:18px 18px 18px 0;
+      display:flex;
+      align-items:flex-end;
+      justify-content:flex-end;
+    }
+    .reviews-spotlight-art img {
+      width:100%;
+      max-width:172px;
+      aspect-ratio:3 / 4;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.05);
+      object-fit:cover;
+      box-shadow:0 18px 36px rgba(0,0,0,.32);
+    }
+    .reviews-spotlight-footer {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      padding:0 4px 2px;
+    }
+    .reviews-spotlight-dot {
+      width:9px;
+      height:9px;
+      border-radius:999px;
+      border:0;
+      background:rgba(255,255,255,.24);
+      cursor:pointer;
+      transition:width .2s ease, background .2s ease;
+    }
+    .reviews-spotlight-dot.active {
+      width:24px;
+      background:var(--accent);
+    }
     .filters { padding:12px; display:grid; gap:9px; }
     .chips { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
     .chip { border:1px solid var(--border); border-radius:999px; background:rgba(255,255,255,.02); color:var(--muted); padding:6px 10px; font-size:12px; font-weight:700; cursor:pointer; }
@@ -88,6 +221,14 @@
       .card { grid-template-columns:minmax(0,1fr) 72px; }
       .art { min-height:94px; }
       .title { font-size:16px; }
+      .reviews-spotlight-card { grid-template-columns:1fr; min-height:unset; }
+      .reviews-spotlight-content { padding:16px; }
+      .reviews-spotlight-title { font-size:28px; }
+      .reviews-spotlight-quote { -webkit-line-clamp:4; font-size:13px; }
+      .reviews-spotlight-art { padding:0 16px 16px; justify-content:flex-start; }
+      .reviews-spotlight-art img { max-width:118px; border-radius:14px; }
+      .reviews-spotlight-footer { align-items:flex-start; }
+      .reviews-spotlight-stats { width:100%; }
 
       .mobile-bottom-nav {
         position: fixed;
@@ -134,7 +275,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260226a" />
   <script src="/js/mobile-webapp.js?v=20260305a" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260304a">
-  <script src="js/shared-header.js?v=20260304a" defer></script>
+  <script src="js/shared-header.js?v=20260306c" defer></script>
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -169,8 +310,40 @@
 
   <main class="container page">
     <section class="hero">
+      <p class="hero-kicker">Live community pulse</p>
       <h1>Community Reviews</h1>
-      <p>See what was reviewed, when it was reviewed, how many stars it got, and who posted it. Click a card to open that item.</p>
+      <p>Track the strongest reactions across movies, TV, anime, games, books, music, and travel. The spotlight below rotates through the reviews carrying the most signal right now.</p>
+    </section>
+    <section class="reviews-spotlight-shell" aria-label="Review spotlight">
+      <article class="reviews-spotlight-card" id="reviewsSpotlightCard">
+        <div class="reviews-spotlight-backdrop" id="reviewsSpotlightBackdrop"></div>
+        <div class="reviews-spotlight-overlay"></div>
+        <div class="reviews-spotlight-content">
+          <p class="reviews-spotlight-kicker" id="reviewsSpotlightKicker">Review spotlight</p>
+          <h2 class="reviews-spotlight-title" id="reviewsSpotlightTitle">Loading review spotlight...</h2>
+          <p class="reviews-spotlight-quote" id="reviewsSpotlightQuote">Fetching the strongest recent reviews from the community.</p>
+          <div class="reviews-spotlight-pills">
+            <span class="reviews-spotlight-pill" id="reviewsSpotlightMedia"><i class="fa-solid fa-star"></i> Media</span>
+            <span class="reviews-spotlight-pill" id="reviewsSpotlightScore"><i class="fa-solid fa-star-half-stroke"></i> 0/5</span>
+            <span class="reviews-spotlight-pill" id="reviewsSpotlightAuthor"><i class="fa-solid fa-user"></i> @zo2y</span>
+            <span class="reviews-spotlight-pill" id="reviewsSpotlightDate"><i class="fa-regular fa-calendar"></i> Today</span>
+          </div>
+          <div class="reviews-spotlight-actions">
+            <a class="btn btn-primary" id="reviewsSpotlightOpen" href="reviews.html"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open Item</a>
+            <button class="btn" id="reviewsSpotlightPrev" type="button"><i class="fa-solid fa-arrow-left"></i> Prev</button>
+            <button class="btn" id="reviewsSpotlightNext" type="button">Next <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+        <div class="reviews-spotlight-art">
+          <img id="reviewsSpotlightArt" alt="Review spotlight artwork" loading="eager" decoding="async" />
+        </div>
+      </article>
+      <div class="reviews-spotlight-footer">
+        <div class="reviews-spotlight-stats" id="reviewsSpotlightStats">
+          <span class="reviews-spotlight-stat">Loading review pulse...</span>
+        </div>
+        <div class="reviews-spotlight-dots" id="reviewsSpotlightDots" aria-label="Review spotlight controls"></div>
+      </div>
     </section>
     <section class="filters">
       <div class="chips" id="mediaFilters">
@@ -201,13 +374,7 @@
     <a class="mobile-nav-item active" href="reviews.html" aria-label="Reviews"><i class="fa-solid fa-star"></i></a>
   </nav>
 
-  <script src="js/reviews-page.js?v=20260301a" defer></script>
+  <script src="js/reviews-page.js?v=20260306b" defer></script>
   <script src="js/production-runtime.js?v=20260306a" defer></script>
 </body>
 </html>
-
-
-
-
-
-

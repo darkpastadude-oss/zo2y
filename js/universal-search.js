@@ -5,8 +5,8 @@
   const MUSIC_PROXY_BASE = '/api/music';
   const GAMES_DISABLED = true;
   const MIN_QUERY_LEN = 2;
-  const SEARCH_DEBOUNCE_MS = 40;
-  const REQUEST_TIMEOUT_MS = 2200;
+  const SEARCH_DEBOUNCE_MS = 60;
+  const REQUEST_TIMEOUT_MS = 5000;
   const SEARCH_CACHE_TTL_MS = 3 * 60 * 1000;
   const SEARCH_CACHE_MAX_ENTRIES = 60;
 
@@ -63,6 +63,13 @@
 
       .universal-search-group:last-child {
         border-bottom: 0;
+      }
+
+      .universal-search-empty {
+        padding: 12px 12px 13px;
+        color: #8ca3c7;
+        font-size: 12px;
+        line-height: 1.45;
       }
 
       .universal-search-group-title {
@@ -458,6 +465,8 @@
     let activeIndex = -1;
     let activeRequestId = 0;
     let activeAbortController = null;
+    let lastQuery = '';
+    let hasResolvedQuery = false;
 
     function hide() {
       dropdown.style.display = 'none';
@@ -473,6 +482,12 @@
 
     function render() {
       if (!suggestions.length) {
+        if (hasResolvedQuery && lastQuery.length >= MIN_QUERY_LEN) {
+          dropdown.innerHTML = `<div class="universal-search-empty">No results for "${escapeHtml(lastQuery)}".</div>`;
+          position();
+          dropdown.style.display = 'block';
+          return;
+        }
         dropdown.innerHTML = '';
         hide();
         return;
@@ -514,9 +529,11 @@
 
     const loadSuggestions = debounce(async (query) => {
       const normalized = normalizeQuery(query);
+      lastQuery = normalized;
       if (!normalized || normalized.length < MIN_QUERY_LEN) {
         if (activeAbortController) activeAbortController.abort();
         suggestions = [];
+        hasResolvedQuery = false;
         render();
         return;
       }
@@ -525,6 +542,7 @@
       if (cached) {
         suggestions = cached;
         activeIndex = -1;
+        hasResolvedQuery = true;
         render();
         return;
       }
@@ -535,6 +553,7 @@
         activeIndex = -1;
         render();
       }
+      hasResolvedQuery = false;
 
       activeRequestId += 1;
       const requestId = activeRequestId;
@@ -546,11 +565,13 @@
         if (requestId !== activeRequestId) return;
         suggestions = next;
         activeIndex = -1;
+        hasResolvedQuery = true;
         render();
       } catch (err) {
         if (requestId !== activeRequestId) return;
         if (String(err?.name || '') === 'AbortError') return;
         suggestions = [];
+        hasResolvedQuery = true;
         render();
       }
     }, SEARCH_DEBOUNCE_MS);
@@ -577,7 +598,7 @@
     });
 
     input.addEventListener('focus', () => {
-      if (suggestions.length) {
+      if (suggestions.length || (hasResolvedQuery && lastQuery.length >= MIN_QUERY_LEN)) {
         position();
         dropdown.style.display = 'block';
       }
@@ -591,9 +612,42 @@
     });
 
     window.addEventListener('resize', position);
+    window.addEventListener('scroll', position, { passive: true });
     document.addEventListener('click', (e) => {
       if (e.target === input || dropdown.contains(e.target)) return;
       hide();
     });
   };
+
+  function initSharedHeaderSearch() {
+    if (!document.body) return;
+    if (!window.initUniversalSearch) return;
+    window.initUniversalSearch({
+      input: '#globalSearch',
+      fallbackRoute: 'movies.html'
+    });
+  }
+
+  function observeSharedHeaderSearch() {
+    if (typeof MutationObserver !== 'function') return;
+    const start = () => {
+      if (!document.body) return;
+      const observer = new MutationObserver(() => {
+        initSharedHeaderSearch();
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', start, { once: true });
+      return;
+    }
+    start();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSharedHeaderSearch, { once: true });
+  } else {
+    initSharedHeaderSearch();
+  }
+  observeSharedHeaderSearch();
 })();

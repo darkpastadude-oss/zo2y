@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v23';
-const PAGE_CACHE = 'zo2y-pages-v23';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v24';
+const PAGE_CACHE = 'zo2y-pages-v24';
 const IMAGE_CACHE = 'zo2y-images-v5';
 const API_CACHE = 'zo2y-api-v4';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -9,13 +9,13 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/css/pages/index.css?v=20260305d',
+  '/css/pages/index.css?v=20260306g',
   '/css/shared-header.css?v=20260304a',
-  '/js/pages/index.js?v=20260305c',
+  '/js/pages/index.js?v=20260306j',
   '/js/home-desktop-rebrand.js?v=20260301q',
-  '/js/shared-header.js?v=20260304a',
+  '/js/shared-header.js?v=20260306c',
   '/js/list-utils.js?v=20260301e',
-  '/js/universal-search.js?v=20260228e',
+  '/js/universal-search.js?v=20260306a',
   '/js/production-runtime.js?v=20260227d',
   '/js/igdb-client.js?v=20260228a',
   '/js/mobile-webapp.js',

@@ -77,7 +77,7 @@
   <div class="zo2y-mobile-drawer-divider"></div>
   <p class="zo2y-mobile-drawer-label">Quick Picks</p>
   <div class="zo2y-mobile-drawer-quick">
-    <a class="zo2y-mobile-drawer-link" href="index.html#desktopReviewsSection"><i class="fa-solid fa-comments"></i><span>Review Slides</span></a>
+    <a class="zo2y-mobile-drawer-link" href="index.html#newReleasesRail"><i class="fa-solid fa-satellite-dish"></i><span>New Releases</span></a>
     <a class="zo2y-mobile-drawer-link" href="index.html#imdbTop10Rail"><i class="fa-solid fa-ranking-star"></i><span>IMDb Top 10</span></a>
     <a class="zo2y-mobile-drawer-link" href="profile.html"><i class="fa-solid fa-list"></i><span>Your Lists</span></a>
   </div>

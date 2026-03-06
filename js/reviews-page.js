@@ -23,8 +23,12 @@
   let mediaFilter = 'all';
   let sortMode = 'newest';
   let reviews = [];
+  let reviewSpotlightItems = [];
+  let reviewSpotlightIndex = 0;
+  let reviewSpotlightTimer = null;
   const users = new Map();
   const itemMeta = new Map();
+  const REVIEW_SPOTLIGHT_ROTATE_MS = 7000;
 
   function escapeHtml(value) {
     return String(value ?? '')
@@ -387,12 +391,221 @@
     return out;
   }
 
+  function stopReviewSpotlightTimer() {
+    if (!reviewSpotlightTimer) return;
+    window.clearInterval(reviewSpotlightTimer);
+    reviewSpotlightTimer = null;
+  }
+
+  function resetReviewSpotlightTimer() {
+    stopReviewSpotlightTimer();
+    if (reviewSpotlightItems.length < 2) return;
+    reviewSpotlightTimer = window.setInterval(() => {
+      showReviewSpotlight(reviewSpotlightIndex + 1, false);
+    }, REVIEW_SPOTLIGHT_ROTATE_MS);
+  }
+
+  function buildReviewSpotlightStats(rows) {
+    const safeRows = Array.isArray(rows) ? rows : [];
+    if (!safeRows.length) {
+      return [
+        { icon: 'fa-wave-square', label: '0 live reviews' },
+        { icon: 'fa-star-half-stroke', label: 'No rating signal yet' }
+      ];
+    }
+    const avg = safeRows.reduce((sum, row) => sum + Math.max(0, Math.min(5, Number(row?.rating || 0))), 0) / safeRows.length;
+    const commented = safeRows.filter((row) => String(row?.comment || '').trim()).length;
+    const mediaCount = new Set(safeRows.map((row) => String(row?.mediaType || '').trim()).filter(Boolean)).size;
+    return [
+      { icon: 'fa-wave-square', label: `${safeRows.length} live review${safeRows.length === 1 ? '' : 's'}` },
+      { icon: 'fa-star-half-stroke', label: `${avg.toFixed(1)}/5 average` },
+      { icon: 'fa-pen-line', label: `${commented} with written takes` },
+      { icon: 'fa-layer-group', label: `${mediaCount} active lanes` }
+    ];
+  }
+
+  function reviewSpotlightRank(row) {
+    const rating = Math.max(0, Math.min(5, Number(row?.rating || 0)));
+    const commentLen = Math.min(String(row?.comment || '').trim().length, 240);
+    const createdAt = new Date(row?.createdAt || 0).getTime();
+    const recencyScore = Number.isFinite(createdAt) ? (createdAt / 1e11) : 0;
+    return (rating * 100) + (commentLen / 18) + recencyScore;
+  }
+
+  function buildReviewSpotlightItems(rows) {
+    const ranked = (Array.isArray(rows) ? rows : [])
+      .filter((row) => row && (String(row.comment || '').trim() || Number(row.rating || 0) > 0))
+      .slice()
+      .sort((a, b) => reviewSpotlightRank(b) - reviewSpotlightRank(a));
+
+    const out = [];
+    const used = new Set();
+    ranked.forEach((row) => {
+      if (out.length >= 10) return;
+      const media = String(row?.mediaType || '').toLowerCase();
+      const key = makeKey(media, row?.itemId);
+      if (!key || used.has(key)) return;
+      used.add(key);
+      const meta = getMeta(media, row?.itemId);
+      out.push({
+        key,
+        media,
+        mediaLabel: LABEL_BY_MEDIA[media] || 'Media',
+        mediaIcon: ICON_BY_MEDIA[media] || 'fa-star',
+        title: String(meta.title || 'Untitled').trim() || 'Untitled',
+        subtitle: String(meta.subtitle || '').trim(),
+        quote: String(row?.comment || '').trim() || `Rated ${Math.max(0, Math.min(5, Number(row?.rating || 0)))}/5`,
+        reviewer: getReviewer(row?.userId),
+        rating: Math.max(0, Math.min(5, Number(row?.rating || 0))),
+        dateLabel: formatDate(row?.createdAt),
+        href: String(meta.href || 'reviews.html').trim() || 'reviews.html',
+        image: safeHttps(meta.image || '') || FALLBACK_IMAGE
+      });
+    });
+    return out;
+  }
+
+  function renderReviewSpotlightStats(rows) {
+    const statsEl = document.getElementById('reviewsSpotlightStats');
+    if (!statsEl) return;
+    const stats = buildReviewSpotlightStats(rows);
+    statsEl.innerHTML = stats.map((entry) => `
+      <span class="reviews-spotlight-stat"><i class="fa-solid ${escapeHtml(entry.icon)}"></i> ${escapeHtml(entry.label)}</span>
+    `).join('');
+  }
+
+  function renderReviewSpotlightDots() {
+    const dotsEl = document.getElementById('reviewsSpotlightDots');
+    if (!dotsEl) return;
+    dotsEl.innerHTML = reviewSpotlightItems.map((item, index) => `
+      <button
+        class="reviews-spotlight-dot${index === reviewSpotlightIndex ? ' active' : ''}"
+        type="button"
+        data-review-spotlight-index="${index}"
+        aria-label="Show review spotlight ${index + 1}: ${escapeHtml(item.title)}"></button>
+    `).join('');
+    dotsEl.querySelectorAll('[data-review-spotlight-index]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const nextIndex = Number(btn.getAttribute('data-review-spotlight-index'));
+        if (!Number.isInteger(nextIndex)) return;
+        showReviewSpotlight(nextIndex, true);
+      });
+    });
+  }
+
+  function showReviewSpotlight(index, fromUser = false) {
+    if (!reviewSpotlightItems.length) return;
+    reviewSpotlightIndex = ((Number(index) || 0) % reviewSpotlightItems.length + reviewSpotlightItems.length) % reviewSpotlightItems.length;
+    const item = reviewSpotlightItems[reviewSpotlightIndex];
+    const card = document.getElementById('reviewsSpotlightCard');
+    const backdrop = document.getElementById('reviewsSpotlightBackdrop');
+    const kicker = document.getElementById('reviewsSpotlightKicker');
+    const title = document.getElementById('reviewsSpotlightTitle');
+    const quote = document.getElementById('reviewsSpotlightQuote');
+    const media = document.getElementById('reviewsSpotlightMedia');
+    const score = document.getElementById('reviewsSpotlightScore');
+    const author = document.getElementById('reviewsSpotlightAuthor');
+    const date = document.getElementById('reviewsSpotlightDate');
+    const open = document.getElementById('reviewsSpotlightOpen');
+    const art = document.getElementById('reviewsSpotlightArt');
+    if (!card || !backdrop || !kicker || !title || !quote || !media || !score || !author || !date || !open || !art) return;
+
+    const backdropImage = String(item.image || '').trim();
+    backdrop.style.backgroundImage = backdropImage
+      ? `radial-gradient(circle at 82% 18%, rgba(245,158,11,.24), transparent 26%), linear-gradient(135deg, rgba(18,37,74,.96), rgba(10,19,40,.88)), url("${backdropImage}")`
+      : 'radial-gradient(circle at 82% 18%, rgba(245,158,11,.24), transparent 26%), linear-gradient(135deg, rgba(18,37,74,.96), rgba(10,19,40,.88))';
+    kicker.textContent = `${item.mediaLabel} spotlight`;
+    title.textContent = item.title;
+    quote.textContent = item.quote;
+    media.innerHTML = `<i class="fa-solid ${escapeHtml(item.mediaIcon)}"></i> ${escapeHtml(item.mediaLabel)}`;
+    score.innerHTML = `<i class="fa-solid fa-star-half-stroke"></i> ${escapeHtml(item.rating.toFixed(1))}/5`;
+    author.innerHTML = `<i class="fa-solid fa-user"></i> ${escapeHtml(item.reviewer)}`;
+    date.innerHTML = `<i class="fa-regular fa-calendar"></i> ${escapeHtml(item.dateLabel)}`;
+    open.href = item.href;
+    card.dataset.href = item.href;
+    art.src = item.image;
+    art.alt = item.title;
+    art.onerror = () => {
+      art.onerror = null;
+      art.src = FALLBACK_IMAGE;
+    };
+    renderReviewSpotlightDots();
+    if (fromUser) resetReviewSpotlightTimer();
+  }
+
+  function renderReviewSpotlight(rows) {
+    renderReviewSpotlightStats(rows);
+    const nextItems = buildReviewSpotlightItems(rows);
+    const currentKey = reviewSpotlightItems[reviewSpotlightIndex]?.key || '';
+    reviewSpotlightItems = nextItems;
+
+    if (!reviewSpotlightItems.length) {
+      reviewSpotlightItems = [{
+        key: 'empty',
+        media: 'all',
+        mediaLabel: 'Reviews',
+        mediaIcon: 'fa-star',
+        title: 'No reviews yet',
+        subtitle: '',
+        quote: 'As soon as people start posting ratings and writeups, this spotlight will fill in automatically.',
+        reviewer: '@zo2y',
+        rating: 0,
+        dateLabel: 'Waiting',
+        href: 'reviews.html',
+        image: FALLBACK_IMAGE
+      }];
+    }
+
+    const preservedIndex = currentKey
+      ? reviewSpotlightItems.findIndex((item) => item.key === currentKey)
+      : -1;
+    reviewSpotlightIndex = preservedIndex >= 0 ? preservedIndex : 0;
+    showReviewSpotlight(reviewSpotlightIndex, false);
+    resetReviewSpotlightTimer();
+  }
+
+  function wireReviewSpotlight() {
+    const card = document.getElementById('reviewsSpotlightCard');
+    const prevBtn = document.getElementById('reviewsSpotlightPrev');
+    const nextBtn = document.getElementById('reviewsSpotlightNext');
+    if (!card || !prevBtn || !nextBtn) return;
+    if (card.dataset.wired === '1') return;
+    card.dataset.wired = '1';
+
+    prevBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      showReviewSpotlight(reviewSpotlightIndex - 1, true);
+    });
+
+    nextBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      showReviewSpotlight(reviewSpotlightIndex + 1, true);
+    });
+
+    card.addEventListener('click', (event) => {
+      if (event.target.closest('button, a')) return;
+      const href = String(card.dataset.href || '').trim();
+      if (href) window.location.href = href;
+    });
+
+    card.addEventListener('mouseenter', stopReviewSpotlightTimer);
+    card.addEventListener('mouseleave', resetReviewSpotlightTimer);
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopReviewSpotlightTimer();
+      else resetReviewSpotlightTimer();
+    });
+  }
+
   function render() {
     const listEl = document.getElementById('reviewsList');
     const summaryEl = document.getElementById('summaryText');
     if (!listEl) return;
 
     const rows = filteredRows();
+    renderReviewSpotlight(rows);
     if (summaryEl) {
       const label = mediaFilter === 'all' ? 'all media' : (LABEL_BY_MEDIA[mediaFilter] || mediaFilter);
       summaryEl.textContent = `${rows.length} review${rows.length === 1 ? '' : 's'} shown for ${label}.`;
@@ -481,6 +694,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     wireFilters();
+    wireReviewSpotlight();
     void loadAuthState();
     void loadPage();
     if (window.initUniversalSearch) {

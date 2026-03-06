@@ -44,12 +44,12 @@
   <link rel="dns-prefetch" href="//restcountries.com">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/list-utils.js?v=20260301e" defer></script>
-  <script src="js/universal-search.js?v=20260228e" defer></script>
+  <script src="js/universal-search.js?v=20260306a" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="css/pages/index.css?v=20260306e" />
+<link rel="stylesheet" href="css/pages/index.css?v=20260306g" />
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -60,7 +60,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260301b" />
   <script src="/js/mobile-webapp.js?v=20260305a" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260304a">
-  <script src="js/shared-header.js?v=20260304a" defer></script>
+  <script src="js/shared-header.js?v=20260306c" defer></script>
 </head>
 <body>
   <div class="landing-experience" id="homeLandingPage" aria-label="Zo2y introduction">
@@ -304,7 +304,7 @@
       </nav>
       <div class="sidebar-divider"></div>
       <p class="sidebar-label">Quick Picks</p>
-      <a class="sidebar-ghost-link" href="#desktopReviewsSection"><i class="fa-solid fa-comments"></i><span>Review Slides</span></a>
+      <a class="sidebar-ghost-link" href="#newReleasesRail"><i class="fa-solid fa-satellite-dish"></i><span>New Releases</span></a>
       <a class="sidebar-ghost-link" href="#imdbTop10Rail"><i class="fa-solid fa-ranking-star"></i><span>IMDb Top 10</span></a>
       <section class="sidebar-lists-preview" id="sidebarCustomListPreview" aria-label="Custom list preview">
         <div class="sidebar-lists-head">
@@ -368,44 +368,6 @@
             </div>
             <div class="spotlight-dots" id="spotlightDots" aria-label="Spotlight items"></div>
             <div class="status" id="loadStatus">Loading live feed...</div>
-          </div>
-        </section>
-
-        <section class="section desktop-reviews-shell" id="desktopReviewsSection" aria-label="Featured community reviews">
-          <div class="section-head reviews-head">
-            <div>
-              <h2>Reviews Spotlight</h2>
-              <p>Desktop review slideshow with quick verdicts before you dive into the full review feed.</p>
-            </div>
-            <a class="btn btn-primary reviews-head-btn" href="reviews.html"><i class="fa-solid fa-star"></i> Browse Reviews</a>
-          </div>
-          <div class="review-slider">
-            <button class="review-nav" id="reviewSlidePrev" type="button" aria-label="Previous review"><i class="fa-solid fa-arrow-left"></i></button>
-            <article class="review-stage-card">
-              <div class="review-stage-backdrop" id="reviewStageBackdrop"></div>
-              <div class="review-stage-content">
-                <p class="review-stage-kicker" id="reviewStageKicker">Review Highlight</p>
-                <h3 class="review-stage-title" id="reviewStageTitle">Loading review...</h3>
-                <p class="review-stage-quote" id="reviewStageQuote">Fetching community highlights.</p>
-                <div class="review-stage-footer">
-                  <span id="reviewStageAuthor">@zo2y</span>
-                  <span><strong id="reviewStageScore">9.0/10</strong></span>
-                </div>
-              </div>
-            </article>
-            <button class="review-nav" id="reviewSlideNext" type="button" aria-label="Next review"><i class="fa-solid fa-arrow-right"></i></button>
-          </div>
-          <div class="review-pagination" id="reviewSlideDots" aria-label="Review slide controls"></div>
-        </section>
-
-        <section class="section mobile-reviews-section" aria-label="Community reviews">
-          <div class="section-head">
-            <h2>Community Reviews</h2>
-            <p>Quick access to the latest ratings and reactions from the community.</p>
-          </div>
-          <div class="mobile-reviews-actions">
-            <a class="mobile-reviews-link mobile-reviews-link-primary" href="reviews.html"><i class="fa-solid fa-star"></i> Browse Reviews</a>
-            <a class="mobile-reviews-link" href="reviews.html#mediaFilters"><i class="fa-solid fa-layer-group"></i> Filter by Category</a>
           </div>
         </section>
 
@@ -553,7 +515,7 @@
   </div>
 
   <script src="js/igdb-client.js?v=20260228a"></script>
-  <script src="js/pages/index.js?v=20260306h"></script>
+  <script src="js/pages/index.js?v=20260306j"></script>
   <script src="js/production-runtime.js?v=20260306a" defer></script>
   <script src="js/home-desktop-rebrand.js?v=20260301q" defer></script>
 </body>
