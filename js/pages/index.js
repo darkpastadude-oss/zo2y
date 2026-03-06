@@ -70,7 +70,7 @@
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
-    const HOME_CHANNEL_TIMEOUT_MS = 1600;
+    const HOME_CHANNEL_TIMEOUT_MS = 4200;
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 1200;
     const HOME_LOCAL_FALLBACK_IMAGE = 'images/logo.png';
     const SPOTLIGHT_ROTATE_MS = 5000;
@@ -207,6 +207,8 @@
     let homeNewReleasesLastFetchAt = 0;
     let homeNewReleasesRequestSeq = 0;
     let homeNewReleasesInFlight = null;
+    let homeWeakFeedRetryTimer = null;
+    let homeWeakFeedRetryCount = 0;
     let homeMenuPrimeScheduled = false;
     let homeBecauseRefreshSeq = 0;
     let homeBecauseSignalCache = {
@@ -5611,6 +5613,21 @@
         }
       } else {
         setStatus(`Live feed ready. ${freshActiveChannels}/${initialChannelsCount} core channels live.`, false);
+      }
+
+      const healthyChannelFloor = Math.min(initialChannelsCount, 3);
+      if (freshActiveChannels >= healthyChannelFloor) {
+        if (homeWeakFeedRetryTimer) {
+          clearTimeout(homeWeakFeedRetryTimer);
+          homeWeakFeedRetryTimer = null;
+        }
+        homeWeakFeedRetryCount = 0;
+      } else if (homeWeakFeedRetryCount < 1 && !homeWeakFeedRetryTimer) {
+        homeWeakFeedRetryTimer = setTimeout(() => {
+          homeWeakFeedRetryTimer = null;
+          homeWeakFeedRetryCount += 1;
+          void initUniversalHome();
+        }, 1600);
       }
 
       scheduleHomeMenuCachePrime();
