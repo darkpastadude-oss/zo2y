@@ -1845,7 +1845,6 @@
       if (!window.supabase || !window.supabase.createClient) return null;
       homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
-          flowType: 'pkce',
           persistSession: true,
           autoRefreshToken: true,
           // OAuth callback is handled on auth-callback.html, keep homepage parser off.
@@ -5667,13 +5666,15 @@
         return;
       }
 
-      void initUniversalHome();
-
       void (async () => {
         await setupHomeAuthListener();
         await completeHomeOAuthReturnIfNeeded();
         await initAuthUi();
+        await initUniversalHome();
         scheduleDeferredHomeStartupTasks();
+      })().catch((error) => {
+        console.error('Home boot failed:', error);
+        setStatus('Could not load your home feed right now. Please refresh.', true);
       })();
 
       const itemMenuModal = document.getElementById('itemMenuModal');
