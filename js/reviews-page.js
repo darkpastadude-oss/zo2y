@@ -493,46 +493,71 @@
     });
   }
 
-  function renderReviewSpotlightFloatingCards() {
-    const stackEl = document.getElementById('reviewsSpotlightFloatingStack');
-    if (!stackEl) return;
-    const cards = reviewSpotlightItems
-      .filter((_, index) => index !== reviewSpotlightIndex)
-      .slice(0, 3);
+  function getReviewSpotlightVisibleCards() {
+    const total = reviewSpotlightItems.length;
+    if (!total) return [];
+    const visible = [];
+    const visibleCount = Math.min(total, 4);
+    for (let offset = 0; offset < visibleCount; offset += 1) {
+      const index = (reviewSpotlightIndex + offset) % total;
+      visible.push({ item: reviewSpotlightItems[index], index, offset });
+    }
+    return visible;
+  }
 
-    if (!cards.length) {
-      stackEl.innerHTML = '';
+  function renderReviewSpotlightCards() {
+    const stageEl = document.getElementById('reviewsSpotlightStage');
+    if (!stageEl) return;
+    const positions = ['is-front', 'is-right', 'is-lower', 'is-left'];
+    const visible = getReviewSpotlightVisibleCards();
+    if (!visible.length) {
+      stageEl.innerHTML = '';
       return;
     }
 
-    stackEl.innerHTML = cards.map((item) => {
-      const targetIndex = reviewSpotlightItems.findIndex((entry) => entry.key === item.key);
-      const backgroundImage = String(item.image || '').trim();
-      const safeBackground = backgroundImage
-        ? ` style="background-image:url('${escapeHtml(backgroundImage)}')"`
-        : '';
+    stageEl.innerHTML = visible.map(({ item, index, offset }) => {
+      const cardClasses = [
+        'reviews-spotlight-card',
+        positions[offset] || 'is-left',
+        offset === 0 ? 'is-active' : '',
+        offset >= 3 ? 'is-back' : ''
+      ].filter(Boolean).join(' ');
+      const quote = String(item.quote || '').trim();
+      const safeQuote = quote || `Rated ${Number(item.rating || 0).toFixed(1)}/5`;
       return `
-        <button class="reviews-floating-card${targetIndex === reviewSpotlightIndex ? ' is-active' : ''}" type="button" data-review-floating-index="${targetIndex}">
-          <div class="reviews-floating-card-bg"${safeBackground}></div>
-          <div class="reviews-floating-card-overlay"></div>
-          <div class="reviews-floating-card-content">
-            <p class="reviews-floating-card-kicker">${escapeHtml(item.mediaLabel)}</p>
-            <h3 class="reviews-floating-card-title">${escapeHtml(item.title)}</h3>
-            <div class="reviews-floating-card-meta">
-              <span><i class="fa-solid fa-star-half-stroke"></i> ${escapeHtml(item.rating.toFixed(1))}/5</span>
-              <span>${escapeHtml(item.reviewer)}</span>
+        <button class="${cardClasses}" type="button" data-review-spotlight-index="${index}" aria-label="Show review spotlight for ${escapeHtml(item.title)}">
+          <div class="reviews-spotlight-card-body">
+            <div class="reviews-spotlight-card-top">
+              <span class="reviews-spotlight-card-pill"><i class="fa-solid ${escapeHtml(item.mediaIcon)}"></i> ${escapeHtml(item.mediaLabel)}</span>
+              <span class="reviews-spotlight-card-pill is-muted"><i class="fa-solid fa-star-half-stroke"></i> ${escapeHtml(item.rating.toFixed(1))}/5</span>
             </div>
+            <h3 class="reviews-spotlight-card-title">${escapeHtml(item.title)}</h3>
+            <p class="reviews-spotlight-card-quote">${escapeHtml(safeQuote)}</p>
+            <div class="reviews-spotlight-card-meta">
+              <span>${escapeHtml(item.reviewer)}</span>
+              <span>${escapeHtml(item.dateLabel)}</span>
+            </div>
+          </div>
+          <div class="reviews-spotlight-card-thumb-wrap">
+            <img class="reviews-spotlight-card-thumb" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)} artwork" loading="lazy" decoding="async" />
           </div>
         </button>
       `;
     }).join('');
 
-    stackEl.querySelectorAll('[data-review-floating-index]').forEach((btn) => {
+    stageEl.querySelectorAll('[data-review-spotlight-index]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const nextIndex = Number(btn.getAttribute('data-review-floating-index'));
+        const nextIndex = Number(btn.getAttribute('data-review-spotlight-index'));
         if (!Number.isInteger(nextIndex)) return;
         showReviewSpotlight(nextIndex, true);
       });
+      const image = btn.querySelector('.reviews-spotlight-card-thumb');
+      if (image) {
+        image.onerror = () => {
+          image.onerror = null;
+          image.src = FALLBACK_IMAGE;
+        };
+      }
     });
   }
 
@@ -540,40 +565,14 @@
     if (!reviewSpotlightItems.length) return;
     reviewSpotlightIndex = ((Number(index) || 0) % reviewSpotlightItems.length + reviewSpotlightItems.length) % reviewSpotlightItems.length;
     const item = reviewSpotlightItems[reviewSpotlightIndex];
-    const card = document.getElementById('reviewsSpotlightCard');
-    const backdrop = document.getElementById('reviewsSpotlightBackdrop');
-    const kicker = document.getElementById('reviewsSpotlightKicker');
-    const title = document.getElementById('reviewsSpotlightTitle');
-    const quote = document.getElementById('reviewsSpotlightQuote');
-    const media = document.getElementById('reviewsSpotlightMedia');
-    const score = document.getElementById('reviewsSpotlightScore');
-    const author = document.getElementById('reviewsSpotlightAuthor');
-    const date = document.getElementById('reviewsSpotlightDate');
+    const current = document.getElementById('reviewsSpotlightCurrent');
     const open = document.getElementById('reviewsSpotlightOpen');
-    const art = document.getElementById('reviewsSpotlightArt');
-    if (!card || !backdrop || !kicker || !title || !quote || !media || !score || !author || !date || !open || !art) return;
+    if (!current || !open) return;
 
-    const backdropImage = String(item.image || '').trim();
-    backdrop.style.backgroundImage = backdropImage
-      ? `radial-gradient(circle at 82% 18%, rgba(245,158,11,.24), transparent 26%), linear-gradient(135deg, rgba(18,37,74,.96), rgba(10,19,40,.88)), url("${backdropImage}")`
-      : 'radial-gradient(circle at 82% 18%, rgba(245,158,11,.24), transparent 26%), linear-gradient(135deg, rgba(18,37,74,.96), rgba(10,19,40,.88))';
-    kicker.textContent = `${item.mediaLabel} spotlight`;
-    title.textContent = item.title;
-    quote.textContent = item.quote;
-    media.innerHTML = `<i class="fa-solid ${escapeHtml(item.mediaIcon)}"></i> ${escapeHtml(item.mediaLabel)}`;
-    score.innerHTML = `<i class="fa-solid fa-star-half-stroke"></i> ${escapeHtml(item.rating.toFixed(1))}/5`;
-    author.innerHTML = `<i class="fa-solid fa-user"></i> ${escapeHtml(item.reviewer)}`;
-    date.innerHTML = `<i class="fa-regular fa-calendar"></i> ${escapeHtml(item.dateLabel)}`;
+    current.innerHTML = `<strong>${escapeHtml(item.title)}</strong> is currently front-carded in ${escapeHtml(item.mediaLabel)} with a ${escapeHtml(item.rating.toFixed(1))}/5 signal from ${escapeHtml(item.reviewer)}.`;
     open.href = item.href;
-    card.dataset.href = item.href;
-    art.src = item.image;
-    art.alt = item.title;
-    art.onerror = () => {
-      art.onerror = null;
-      art.src = FALLBACK_IMAGE;
-    };
     renderReviewSpotlightDots();
-    renderReviewSpotlightFloatingCards();
+    renderReviewSpotlightCards();
     if (fromUser) resetReviewSpotlightTimer();
   }
 
@@ -609,12 +608,12 @@
   }
 
   function wireReviewSpotlight() {
-    const card = document.getElementById('reviewsSpotlightCard');
+    const stage = document.getElementById('reviewsSpotlightStage');
     const prevBtn = document.getElementById('reviewsSpotlightPrev');
     const nextBtn = document.getElementById('reviewsSpotlightNext');
-    if (!card || !prevBtn || !nextBtn) return;
-    if (card.dataset.wired === '1') return;
-    card.dataset.wired = '1';
+    if (!stage || !prevBtn || !nextBtn) return;
+    if (stage.dataset.wired === '1') return;
+    stage.dataset.wired = '1';
 
     prevBtn.addEventListener('click', (event) => {
       event.preventDefault();
@@ -628,14 +627,8 @@
       showReviewSpotlight(reviewSpotlightIndex + 1, true);
     });
 
-    card.addEventListener('click', (event) => {
-      if (event.target.closest('button, a')) return;
-      const href = String(card.dataset.href || '').trim();
-      if (href) window.location.href = href;
-    });
-
-    card.addEventListener('mouseenter', stopReviewSpotlightTimer);
-    card.addEventListener('mouseleave', resetReviewSpotlightTimer);
+    stage.addEventListener('mouseenter', stopReviewSpotlightTimer);
+    stage.addEventListener('mouseleave', resetReviewSpotlightTimer);
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) stopReviewSpotlightTimer();
