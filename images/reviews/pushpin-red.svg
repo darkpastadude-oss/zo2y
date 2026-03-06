@@ -1,17 +1,23 @@
-﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
   <defs>
-    <radialGradient id="pinHead" cx="35%" cy="30%" r="70%">
-      <stop offset="0%" stop-color="#fff0dc"/>
-      <stop offset="32%" stop-color="#f36a4b"/>
-      <stop offset="72%" stop-color="#c73323"/>
-      <stop offset="100%" stop-color="#7e160f"/>
+    <filter id="pinShadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="2" dy="5" stdDeviation="4" flood-color="rgba(0,0,0,.28)"/>
+    </filter>
+    <radialGradient id="head" cx="34%" cy="28%" r="72%">
+      <stop offset="0%" stop-color="#ffd9c9"/>
+      <stop offset="24%" stop-color="#ff745e"/>
+      <stop offset="62%" stop-color="#d93423"/>
+      <stop offset="100%" stop-color="#8d160d"/>
     </radialGradient>
-    <linearGradient id="pinNeedle" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#d8dee6"/>
-      <stop offset="100%" stop-color="#7e8791"/>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eef3f8"/>
+      <stop offset="100%" stop-color="#79838b"/>
     </linearGradient>
   </defs>
-  <path d="M40 26 L50 62 L40 56 L30 62 Z" fill="url(#pinNeedle)"/>
-  <circle cx="40" cy="24" r="18" fill="url(#pinHead)"/>
-  <circle cx="34" cy="18" r="5" fill="rgba(255,255,255,.55)"/>
+  <g filter="url(#pinShadow)">
+    <path d="M60 46 L67 99 L60 111 L53 99 Z" fill="url(#metal)"/>
+    <path d="M42 36 C 40 24 47 15 60 15 C 73 15 80 24 78 36 C 76 51 68 61 60 61 C 52 61 44 51 42 36 Z" fill="url(#head)"/>
+    <ellipse cx="53" cy="27" rx="10" ry="6" fill="rgba(255,255,255,.4)" transform="rotate(-20 53 27)"/>
+    <path d="M47 48 C 51 53 56 56 60 56 C 64 56 69 53 73 48" fill="none" stroke="rgba(0,0,0,.16)" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
 </svg>
