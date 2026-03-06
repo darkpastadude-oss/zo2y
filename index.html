@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="/js/auth-gate.js?v=20260306a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y | All Your Interests in One Place</title>
   <meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, games, books, music, and travel." />
@@ -48,7 +49,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/pages/index.css?v=20260306a" />
+  <link rel="stylesheet" href="css/pages/index.css?v=20260306d" />
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -62,7 +63,226 @@
   <script src="js/shared-header.js?v=20260304a" defer></script>
 </head>
 <body>
-  <div class="desktop-app-shell">
+  <div class="landing-experience" id="homeLandingPage" aria-label="Zo2y introduction">
+    <header class="landing-header">
+      <a class="landing-brand" href="index.html" aria-label="Zo2y home">
+        <img src="images/logo.png" alt="Zo2y logo" />
+        <span>ZO2Y</span>
+      </a>
+      <div class="landing-header-actions">
+        <a class="landing-header-link" href="privacy.html">Privacy</a>
+        <a class="landing-header-link" href="terms.html">Terms</a>
+        <a class="landing-header-btn" data-auth-entry="login" href="login.html">Login</a>
+        <a class="landing-header-btn landing-header-btn-primary" data-auth-entry="signup" href="sign-up.html">Start free</a>
+      </div>
+    </header>
+
+    <main class="landing-main">
+      <section class="landing-hero">
+        <div class="landing-hero-copy">
+          <p class="landing-kicker">Your taste map, not another feed</p>
+          <h1 class="landing-title">Track movies, TV, anime, books, music, travel, and reviews in one account.</h1>
+          <p class="landing-summary">
+            Zo2y is a private-first culture tracker. Save what matters, build custom lists, write reviews, follow friends,
+            and keep every obsession in one place without juggling separate apps.
+          </p>
+          <div class="landing-auth-notice" id="landingAuthNotice" hidden>
+            Sign in to keep browsing. This app is members-only once you leave the landing page.
+          </div>
+          <div class="landing-hero-actions">
+            <a class="landing-cta landing-cta-primary" data-auth-entry="signup" href="sign-up.html">
+              <i class="fa-solid fa-user-plus"></i> Create your account
+            </a>
+            <a class="landing-cta" data-auth-entry="login" href="login.html">
+              <i class="fa-solid fa-right-to-bracket"></i> Log in
+            </a>
+          </div>
+          <div class="landing-proof-strip">
+            <div class="landing-proof-chip"><span>01</span> Custom lists across every medium</div>
+            <div class="landing-proof-chip"><span>02</span> Review feeds and friend activity</div>
+            <div class="landing-proof-chip"><span>03</span> Fast mobile-first saves and ranking</div>
+          </div>
+        </div>
+
+        <div class="landing-stage landing-desktop-only" aria-hidden="true">
+          <div class="landing-stage-orb landing-stage-orb-a"></div>
+          <div class="landing-stage-orb landing-stage-orb-b"></div>
+          <article class="landing-stage-card landing-stage-card-primary">
+            <div class="landing-stage-card-top">
+              <span class="landing-stage-label">Taste Engine</span>
+              <span class="landing-stage-pill">Live</span>
+            </div>
+            <h3>One home feed for all your interests.</h3>
+            <p>Spotlights, category rails, and review highlights adapt to what you save and rate.</p>
+            <div class="landing-stage-tags">
+              <span>Movies</span>
+              <span>Anime</span>
+              <span>Books</span>
+              <span>Travel</span>
+            </div>
+          </article>
+          <article class="landing-stage-card landing-stage-card-secondary">
+            <p class="landing-stage-mini-label">Custom list demo</p>
+            <div class="landing-stage-list">
+              <div><i class="fa-solid fa-film"></i><span>Neo-noir movies</span></div>
+              <div><i class="fa-solid fa-book"></i><span>Books that wrecked me</span></div>
+              <div><i class="fa-solid fa-earth-americas"></i><span>Dream trips 2026</span></div>
+            </div>
+          </article>
+          <article class="landing-stage-card landing-stage-card-tertiary">
+            <p class="landing-stage-mini-label">Community pulse</p>
+            <strong>@mika added 4 new anime picks</strong>
+            <span>Friend activity lands next to your own lists and reviews.</span>
+          </article>
+        </div>
+
+        <div class="landing-mobile-stack landing-mobile-only" aria-hidden="true">
+          <article class="landing-mobile-card">
+            <p class="landing-mobile-card-kicker">Feed</p>
+            <strong>One clean home for every category</strong>
+            <span>Movies, TV, anime, books, music, and travel stay connected.</span>
+          </article>
+          <article class="landing-mobile-card landing-mobile-card-accent">
+            <p class="landing-mobile-card-kicker">Lists</p>
+            <strong>Save fast, rank fast</strong>
+            <span>Built for taps, popups, and quick edits on mobile.</span>
+          </article>
+          <article class="landing-mobile-card">
+            <p class="landing-mobile-card-kicker">Friends</p>
+            <strong>Follow taste you trust</strong>
+            <span>See what people you follow are saving and reviewing.</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="landing-section" data-landing-reveal>
+        <div class="landing-section-head">
+          <p class="landing-section-kicker">What it is</p>
+          <h2>Zo2y gives structure to the chaos of your interests.</h2>
+        </div>
+        <div class="landing-feature-grid">
+          <article class="landing-feature-card">
+            <i class="fa-solid fa-layer-group"></i>
+            <h3>Everything in one profile</h3>
+            <p>Stop splitting your identity across niche apps. Your lists, reviews, travel plans, and saves live together.</p>
+          </article>
+          <article class="landing-feature-card">
+            <i class="fa-solid fa-list-check"></i>
+            <h3>Default lists plus custom systems</h3>
+            <p>Use fast defaults like favorites and watchlist, then create private custom collections when you want more control.</p>
+          </article>
+          <article class="landing-feature-card">
+            <i class="fa-solid fa-users"></i>
+            <h3>Social without the noise</h3>
+            <p>Follow people for their taste, not for endless posting. Activity is tied to what they actually save and review.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="landing-section landing-demo-band" data-landing-reveal>
+        <div class="landing-section-head">
+          <p class="landing-section-kicker">How it works</p>
+          <h2>A guided flow on desktop and a faster stack on mobile.</h2>
+        </div>
+        <div class="landing-demo-layout landing-desktop-only">
+          <div class="landing-demo-track">
+            <div class="landing-demo-step">
+              <span>1</span>
+              <div>
+                <h3>Save instantly from any media page</h3>
+                <p>One tap adds an item to a default list or a custom collection without leaving the page.</p>
+              </div>
+            </div>
+            <div class="landing-demo-step">
+              <span>2</span>
+              <div>
+                <h3>Build your own language of taste</h3>
+                <p>Name lists however you want and pin the strongest ones on your profile.</p>
+              </div>
+            </div>
+            <div class="landing-demo-step">
+              <span>3</span>
+              <div>
+                <h3>Turn saves into reviews and signals</h3>
+                <p>Your ratings and reviews shape your home feed and expose patterns in what you actually like.</p>
+              </div>
+            </div>
+          </div>
+          <div class="landing-demo-board">
+            <div class="landing-demo-window">
+              <div class="landing-demo-window-bar"></div>
+              <div class="landing-demo-columns">
+                <div class="landing-demo-column">
+                  <p>For you</p>
+                  <strong>Spotlight + category rails</strong>
+                  <span>Mixed home feed that keeps different interests connected.</span>
+                </div>
+                <div class="landing-demo-column">
+                  <p>On profile</p>
+                  <strong>Custom lists + pinned identity</strong>
+                  <span>Profile becomes a taste hub instead of a dead settings page.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="landing-mobile-flow landing-mobile-only">
+          <div class="landing-mobile-flow-item">
+            <span>Tap save</span>
+            <strong>Drop an item into favorites or a custom list.</strong>
+          </div>
+          <div class="landing-mobile-flow-item">
+            <span>Open profile</span>
+            <strong>See every medium organized in one place.</strong>
+          </div>
+          <div class="landing-mobile-flow-item">
+            <span>Follow people</span>
+            <strong>Watch real activity instead of algorithm sludge.</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="landing-section" data-landing-reveal>
+        <div class="landing-why-grid">
+          <article class="landing-why-card">
+            <p class="landing-section-kicker">Why sign up</p>
+            <h3>Because memory is weak and taste evolves.</h3>
+            <p>Zo2y keeps a durable record of what you loved, what you dropped, and what you still want to explore.</p>
+          </article>
+          <article class="landing-why-card">
+            <p class="landing-section-kicker">Who it is for</p>
+            <h3>People who bounce between categories constantly.</h3>
+            <p>If you move from an anime binge to a travel rabbit hole to a music run in one night, this is built for you.</p>
+          </article>
+          <article class="landing-why-card">
+            <p class="landing-section-kicker">What changes</p>
+            <h3>Your profile becomes a usable identity layer.</h3>
+            <p>Friends can actually read your taste, not just see that you have an account.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="landing-section landing-close-band" data-landing-reveal>
+        <div class="landing-close-copy">
+          <p class="landing-section-kicker">Ready</p>
+          <h2>Join before you lose track of the next thing you care about.</h2>
+          <p>Make one account, save your first list, and start shaping a home feed around your actual taste.</p>
+        </div>
+        <div class="landing-close-actions">
+          <a class="landing-cta landing-cta-primary" data-auth-entry="signup" href="sign-up.html">Create account</a>
+          <a class="landing-cta" data-auth-entry="login" href="login.html">I already have an account</a>
+        </div>
+      </section>
+    </main>
+
+    <div class="landing-legal-strip">
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="mailto:zo2yhq@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
+    </div>
+  </div>
+
+  <div class="desktop-app-shell authenticated-only">
     <aside class="desktop-sidebar" aria-label="Desktop navigation">
       <a class="sidebar-brand" href="index.html">
         <img src="images/logo.png" alt="Zo2y" />
@@ -271,7 +491,7 @@
     </div>
   </div>
 
-  <nav class="mobile-bottom-nav" aria-label="Mobile sections">
+  <nav class="mobile-bottom-nav authenticated-only" aria-label="Mobile sections">
     <a class="mobile-nav-item active" href="index.html" aria-label="Home"><i class="fa-solid fa-house"></i></a>
     <a class="mobile-nav-item" href="movies.html" aria-label="Movies"><i class="fa-solid fa-film"></i></a>
     <a class="mobile-nav-item" href="tvshows.html" aria-label="TV Shows"><i class="fa-solid fa-tv"></i></a>
@@ -282,7 +502,7 @@
     <a class="mobile-nav-item" href="travel.html" aria-label="Travel"><i class="fa-solid fa-earth-americas"></i></a>
   </nav>
 
-  <div id="itemMenuModal" class="menu-modal" aria-hidden="true">
+  <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
     <div class="menu-modal-content">
       <div class="menu-modal-header">
         <h3 id="menuModalTitle">Add to List</h3>
@@ -303,7 +523,7 @@
     </div>
   </div>
 
-  <div id="createListModal" class="menu-modal" aria-hidden="true">
+  <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
     <div class="menu-modal-content" style="max-width: 320px;">
       <div class="menu-modal-header">
         <h3>Create New List</h3>
@@ -334,7 +554,7 @@
   </div>
 
   <script src="js/igdb-client.js?v=20260228a"></script>
-  <script src="js/pages/index.js?v=20260306b"></script>
+  <script src="js/pages/index.js?v=20260306d"></script>
   <script src="js/production-runtime.js?v=20260306a" defer></script>
   <script src="js/home-desktop-rebrand.js?v=20260301q" defer></script>
 </body>

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/js/auth-gate.js?v=20260306a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Restaurant Details</title>
 <!-- FAVICON -->
@@ -61,7 +62,7 @@
 
 <div class="top-stripe">
     <button class="back-btn" onclick="window.location.href='restraunts.html'">
-        ← Back to Restaurants
+        â† Back to Restaurants
 </button>
     <div class="top-actions">
         <button class="top-btn" onclick="window.location.href='index.html'">
@@ -76,8 +77,8 @@
 <!-- Login/Signup Modal -->
 <div class="login-modal" id="loginModal">
     <div class="login-modal-content">
-        <button class="login-modal-close" onclick="closeLoginModal()">×</button>
-        <div class="login-modal-icon">🔐</div>
+        <button class="login-modal-close" onclick="closeLoginModal()">Ã—</button>
+        <div class="login-modal-icon">ðŸ”</div>
         <h2 class="login-modal-title">Join Zo2y</h2>
         <p class="login-modal-text">
             Create an account or sign in to save restaurants to your lists, 
@@ -85,10 +86,10 @@
         </p>
         <div class="login-modal-actions">
             <button class="login-modal-btn login" onclick="window.location.href='login.html'">
-                <span>→</span> Sign In
+                <span>â†’</span> Sign In
             </button>
             <button class="login-modal-btn signup" onclick="window.location.href='sign-up.html'">
-                <span>📝</span> Create Account
+                <span>ðŸ“</span> Create Account
             </button>
         </div>
     </div>
@@ -117,16 +118,16 @@
         
         <div class="btn-group">
             <a id="call-hotline" class="btn" href="#">
-                <span>📞</span> Call Hotline
+                <span>ðŸ“ž</span> Call Hotline
             </a>
             <a id="order-online" class="btn secondary" href="#" target="_blank" rel="noopener">
-                <span>🛒</span> Order Online
+                <span>ðŸ›’</span> Order Online
             </a>
             <a id="instagram-link" class="btn secondary" href="#" target="_blank" rel="noopener" style="display:none;">
-                <span>📷</span> Instagram
+                <span>ðŸ“·</span> Instagram
             </a>
             <a id="facebook-link" class="btn secondary" href="#" target="_blank" rel="noopener" style="display:none;">
-                <span>👍</span> Facebook
+                <span>ðŸ‘</span> Facebook
             </a>
         </div>
     </section>
@@ -169,13 +170,13 @@
         <div id="other-platforms" class="other-platforms" style="display: none;">
             <h3>Other Platforms</h3>
                 <div class="website-card">
-                <div class="website-icon">🌐</div>
+                <div class="website-icon">ðŸŒ</div>
                 <div class="website-info">
                     <h4>Website Ordering</h4>
                     <p class="website-desc">Order directly from their website</p>
                 </div>
                 <a id="website-order-link" class="website-btn" href="#" target="_blank" rel="noopener">
-                    Visit Website →
+                    Visit Website â†’
                 </a>
             </div>
         </div>
@@ -201,7 +202,7 @@
         <h2>Menu</h2>
         <div id="menu-container"></div>
         <a id="full-menu-link" class="btn secondary" style="margin-top: 20px; display: none;" href="#" target="_blank" rel="noopener">
-            <span>📋</span> View Full Menu
+            <span>ðŸ“‹</span> View Full Menu
         </a>
     </section>
 
@@ -231,11 +232,11 @@
                 <div class="rating-input">
                     <label>Your Rating:</label>
                     <div class="stars-rating">
-                        <span class="star" data-rating="1">★</span>
-                        <span class="star" data-rating="2">★</span>
-                        <span class="star" data-rating="3">★</span>
-                        <span class="star" data-rating="4">★</span>
-                        <span class="star" data-rating="5">★</span>
+                        <span class="star" data-rating="1">â˜…</span>
+                        <span class="star" data-rating="2">â˜…</span>
+                        <span class="star" data-rating="3">â˜…</span>
+                        <span class="star" data-rating="4">â˜…</span>
+                        <span class="star" data-rating="5">â˜…</span>
                     </div>
                     <span class="rating-text" id="ratingText">Select your rating</span>
                 </div>
@@ -262,27 +263,27 @@
             </form>
             
             <div id="auth-prompt" class="auth-prompt">
-                <div class="auth-icon">🔐</div>
+                <div class="auth-icon">ðŸ”</div>
                 <p>Please <a href="login.html" class="auth-link">sign in</a> to share your experience</p>
             </div>
         </div>
     </section>
 
     <footer>
-        <p id="footer-copyright">© 2025 Zo2y. All rights reserved.</p>
+        <p id="footer-copyright">Â© 2025 Zo2y. All rights reserved.</p>
         <p id="footer-tagline" style="margin-top: 10px; font-size: 0.8rem;"></p>
     </footer>
 </main>
 
 <!-- Lightbox Modal -->
 <div class="lightbox" id="lightbox">
-    <button class="lightbox-close" onclick="closeLightbox()">×</button>
+    <button class="lightbox-close" onclick="closeLightbox()">Ã—</button>
     <div class="lightbox-content">
         <img id="lightbox-image" class="lightbox-image" src="" alt="">
         <div id="lightbox-caption" class="lightbox-caption"></div>
     </div>
-    <button class="lightbox-nav prev" onclick="changeImage(-1)">‹</button>
-    <button class="lightbox-nav next" onclick="changeImage(1)">›</button>
+    <button class="lightbox-nav prev" onclick="changeImage(-1)">â€¹</button>
+    <button class="lightbox-nav next" onclick="changeImage(1)">â€º</button>
 </div>
 
 <!-- Error State -->
@@ -290,7 +291,7 @@
     <h2>Restaurant Not Found</h2>
     <p>We couldn't find the restaurant you're looking for.</p>
     <button class="btn" onclick="window.location.href='restraunts.html'">
-        <span>←</span> Back to Restaurants
+        <span>â†</span> Back to Restaurants
     </button>
 </div>
 

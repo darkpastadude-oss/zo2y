@@ -3,134 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="/js/auth-gate.js?v=20260306a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Sign Up</title>
 <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-<style>
-
-:root {
-  --primary-color: #4285F4;
-  --secondary-color: #f59e0b;
-  --bg-color: #0b1633;
-  --card-color: #132347;
-  --text-primary: #fff;
-  --text-secondary: #cbd5e1;
-  --border-color: rgba(255,255,255,0.1);
-  --shadow: 0 10px 30px rgba(0,0,0,0.3);
-  --transition: all 0.3s ease;
-}
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-body{
-  background: var(--bg-color);
-  min-height:100vh;
-  color:var(--text-primary);
-  padding:0;
-  background-image: radial-gradient(circle at 20% 80%, rgba(66,133,244,0.1) 0%, transparent 20%),
-                  radial-gradient(circle at 80% 20%, rgba(245,158,11,0.1) 0%, transparent 20%);
-}
-.auth-container{width:min(100%,450px);animation:fadeIn 0.5s ease-out;margin:28px auto 24px;padding:0 20px;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-.logo-header{text-align:center;margin-bottom:30px;}
-.logo-header h1{color:var(--secondary-color);font-size:2.5rem;display:flex;align-items:center;justify-content:center;gap:10px;}
-.logo-header img{height:40px;border-radius:8px;}
-.logo-header p{color:var(--text-secondary);font-size:0.9rem;opacity:0.8;}
-.auth-card{
-  background:var(--card-color);
-  padding:40px;
-  border-radius:20px;
-  box-shadow:var(--shadow);
-  backdrop-filter: blur(10px);
-  border:1px solid rgba(255,255,255,0.05);
-}
-.auth-card h2{text-align:center;margin-bottom:30px;font-size:1.8rem;color:var(--text-primary);}
-.google-btn {
-  width: 100%;
-  padding: 16px;
-  background: white;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  color: #3c4043;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: var(--transition);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.google-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); background: #f8f9fa; }
-.google-btn:disabled { opacity: .8; cursor: not-allowed; }
-.divider{display:flex;align-items:center;text-align:center;margin:25px 0;color:var(--text-secondary);font-size:0.9rem;}
-.divider::before,.divider::after{content:'';flex:1;border-bottom:1px solid var(--border-color);}
-.divider span{padding:0 15px;}
-.auth-card form{display:flex;flex-direction:column;gap:20px;margin-bottom:30px;}
-.input-group{position:relative;}
-.input-group i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--text-secondary);transition:var(--transition);}
-.input-group input{
-  width:100%;
-  padding:16px 15px 16px 50px;
-  border-radius:12px;
-  border:1px solid var(--border-color);
-  background:rgba(11,22,51,0.5);
-  color:var(--text-primary);
-  font-size:1rem;
-  outline:none;
-  transition:var(--transition);
-}
-.input-group input:focus{border-color:var(--primary-color);box-shadow:0 0 0 3px rgba(66,133,244,0.2);}
-.actions-row{display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;}
-.actions-row label{display:flex;align-items:center;gap:8px;color:var(--text-secondary);}
-.actions-row a{color:var(--primary-color);text-decoration:none;}
-.actions-row a:hover{text-decoration:underline;}
-.submit-btn{
-  padding:16px;
-  background:linear-gradient(135deg,var(--primary-color),#357ae8);
-  border:none;
-  border-radius:12px;
-  color:white;
-  font-weight:600;
-  font-size:1rem;
-  cursor:pointer;
-  transition:var(--transition);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:10px;
-}
-.submit-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(66,133,244,0.4);}
-.submit-btn:disabled{opacity:0.7;cursor:not-allowed;}
-.alt-link{text-align:center;margin-top:25px;font-size:0.95rem;color:var(--text-secondary);}
-.alt-link a{color:var(--secondary-color);text-decoration:none;font-weight:600;}
-.alt-link a:hover{text-decoration:underline;color:#fbbf24;}
-.loading{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.message{padding:12px 16px;border-radius:12px;font-size:0.9rem;margin-bottom:20px;display:none;}
-.message.show{display:block;}
-.message.error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;}
-.message.success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;}
-.auth-topbar{width:min(100%,450px);margin:20px auto 0;padding:0 20px;}
-.home-btn{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  border:1px solid var(--border-color);
-  background:var(--card-color);
-  color:var(--text-primary);
-  text-decoration:none;
-  border-radius:12px;
-  padding:10px 14px;
-  font-size:14px;
-  font-weight:600;
-  transition:var(--transition);
-}
-.home-btn:hover{border-color:var(--secondary-color);color:var(--secondary-color);}
-
-</style>
+<link rel="stylesheet" href="css/pages/auth-entry.css?v=20260306a">
   <meta name="theme-color" content="#0b1633" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -140,65 +19,117 @@ body{
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260226a" />
   <script src="/js/mobile-webapp.js?v=20260305a" defer></script>
 </head>
-<body>
-<div class="auth-topbar">
-  <a class="home-btn" href="index.html"><i class="fas fa-home"></i> Home</a>
-</div>
-
-<div class="auth-container">
-  <div class="logo-header">
-    <h1><img src="images/logo.png" alt="Zo2y Logo">Zo2y</h1>
-    <p>Join thousands of users who trust Zo2y</p>
-  </div>
-
-  <div class="auth-card">
-    <h2>Create your account</h2>
-    
-    <!-- Messages -->
-    <div id="errorMessage" class="message error"></div>
-    <div id="successMessage" class="message success"></div>
-
-    <button class="google-btn" id="googleSignup">
-      <svg width="20" height="20" viewBox="0 0 24 24">
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-      </svg>
-      Sign up with Google
-    </button>
-
-    <div class="divider"><span>or continue with email</span></div>
-
-    <form id="signupForm">
-      <div class="input-group">
-        <i class="fas fa-user"></i>
-        <input type="text" placeholder="Full Name" id="fullName" required>
-      </div>
-      <div class="input-group">
-        <i class="fas fa-envelope"></i>
-        <input type="email" placeholder="Email" id="email" required>
-      </div>
-      <div class="input-group">
-        <i class="fas fa-lock"></i>
-        <input type="password" placeholder="Password" id="password" required minlength="8">
-      </div>
-      <button type="submit" class="submit-btn" id="submitBtn">
-        <i class="fas fa-user-plus"></i> <span>Create Account</span>
-      </button>
-    </form>
-
-    <div class="alt-link">
-      Already have an account? <a href="login.html">Log in now</a>
+<body data-auth-variant="signup">
+<div class="auth-entry-shell">
+  <section class="auth-entry-showcase">
+    <div class="auth-entry-topbar">
+      <a class="auth-entry-home" href="index.html"><i class="fas fa-home"></i> Landing</a>
+      <div class="auth-entry-wordmark"><img src="images/logo.png" alt="Zo2y Logo"><span>ZO2Y</span></div>
     </div>
-  </div>
-  <div class="legal-strip" style="margin-top:16px;text-align:center;font-size:12px;opacity:0.9;">
-    <a href="privacy.html" style="color:#f59e0b;text-decoration:none;">Privacy</a>
-    <span style="margin:0 8px;color:#94a3b8;">&bull;</span>
-    <a href="terms.html" style="color:#f59e0b;text-decoration:none;">Terms</a>
-    <span style="margin:0 8px;color:#94a3b8;">&bull;</span>
-    <a href="mailto:zo2yhq@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener" style="color:#f59e0b;text-decoration:none;">Contact</a>
-  </div>
+
+    <div class="auth-showcase-copy">
+      <p class="auth-showcase-kicker">Build your taste system</p>
+      <h1>Make one account for everything you care about.</h1>
+      <p>Create a Zo2y account to save favorites, build custom lists, review what you love, and follow people whose taste actually matters to you.</p>
+    </div>
+
+    <div class="auth-showcase-grid">
+      <div class="auth-showcase-row">
+        <article class="auth-showcase-card featured">
+          <p>Start here</p>
+          <strong>Save your first list in minutes.</strong>
+          <span>Default quick lists get you moving immediately, then custom collections take over when you want structure.</span>
+          <div class="auth-showcase-badges">
+            <span>Favorites</span>
+            <span>Watchlist</span>
+            <span>Custom Lists</span>
+          </div>
+        </article>
+        <article class="auth-showcase-card">
+          <p>Identity</p>
+          <strong>One username across your whole profile.</strong>
+          <span>Your lists, reviews, badges, and pinned picks all sit behind one clean account.</span>
+        </article>
+      </div>
+      <div class="auth-showcase-row">
+        <article class="auth-showcase-card">
+          <p>Discovery</p>
+          <strong>Feeds shaped by what you save.</strong>
+          <span>Home becomes useful after the first few saves instead of showing the same generic front page forever.</span>
+        </article>
+        <article class="auth-showcase-card">
+          <p>Community</p>
+          <strong>Follow people for reviews, not noise.</strong>
+          <span>See activity tied to real lists and ratings, not random posting for engagement.</span>
+        </article>
+      </div>
+    </div>
+
+    <div class="auth-mobile-ribbon">
+      <article class="auth-mobile-ribbon-card">
+        <p>Start</p>
+        <strong>Open one account for every medium.</strong>
+        <span>Movies, anime, books, music, and travel stay connected from day one.</span>
+      </article>
+      <article class="auth-mobile-ribbon-card">
+        <p>Build</p>
+        <strong>Grow from quick saves to a real profile.</strong>
+        <span>Your lists and reviews become a usable identity layer.</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="auth-entry-panel">
+    <div class="auth-panel-brand"><img src="images/logo.png" alt="Zo2y Logo"><span>ZO2Y</span></div>
+
+    <div class="auth-panel-card auth-card">
+      <h2>Create account</h2>
+      <p class="auth-panel-subtitle">Start with Google or sign up with email to unlock the full app.</p>
+      
+      <div id="errorMessage" class="message error"></div>
+      <div id="successMessage" class="message success"></div>
+
+      <button class="google-btn" id="googleSignup">
+        <svg width="20" height="20" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Sign up with Google
+      </button>
+
+      <div class="divider"><span>or continue with email</span></div>
+
+      <form id="signupForm">
+        <div class="input-group">
+          <i class="fas fa-user"></i>
+          <input type="text" placeholder="Full Name" id="fullName" required>
+        </div>
+        <div class="input-group">
+          <i class="fas fa-envelope"></i>
+          <input type="email" placeholder="Email" id="email" required>
+        </div>
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input type="password" placeholder="Password" id="password" required minlength="8">
+        </div>
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <i class="fas fa-user-plus"></i> <span>Create Account</span>
+        </button>
+      </form>
+
+      <div class="alt-link">
+        Already have an account? <a href="login.html">Log in</a>
+      </div>
+
+      <div class="legal-strip">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="mailto:zo2yhq@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
+      </div>
+    </div>
+  </section>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -229,6 +160,7 @@ body{
   const submitBtn = document.getElementById('submitBtn');
   const errorMessage = document.getElementById('errorMessage');
   const successMessage = document.getElementById('successMessage');
+  const initialNextPath = sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || localStorage.getItem('postAuthRedirect') || 'index.html');
 
   function analyticsTrack(eventName, properties = {}, essential = false) {
     try {
@@ -246,6 +178,24 @@ body{
         analyticsTrack(eventName, properties, true);
       }
     } catch (_err) {}
+  }
+
+  function sanitizeNextPath(raw) {
+    const value = String(raw || '').trim();
+    if (!value) return 'index.html';
+    if (/^https?:\/\//i.test(value) || value.startsWith('//')) return 'index.html';
+    if (value.startsWith('/')) return value.slice(1) || 'index.html';
+    return value;
+  }
+
+  function getPostAuthRedirect() {
+    return sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || localStorage.getItem('postAuthRedirect') || initialNextPath || 'index.html');
+  }
+
+  function finalizeAuthRedirect() {
+    const nextPath = getPostAuthRedirect();
+    localStorage.removeItem('postAuthRedirect');
+    window.location.href = nextPath;
   }
 
   function getOnboardingPendingKey(userId) {
@@ -382,7 +332,7 @@ body{
         }
         showSuccess('Account created! Redirecting...');
         setTimeout(() => {
-          window.location.href = 'index.html';
+          finalizeAuthRedirect();
         }, 1500);
       }
       
@@ -406,7 +356,7 @@ body{
       
       // Store that this is a signup flow
       localStorage.setItem('oauthFlow', 'signup');
-      localStorage.setItem('postAuthRedirect', 'index.html');
+      localStorage.setItem('postAuthRedirect', getPostAuthRedirect());
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/js/auth-gate.js?v=20260306a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Processing Authentication - Zo2y</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -188,7 +189,7 @@
           .trim()
           .replace(/^@+/, '')
           .toLowerCase()
-          .replace(/['’]/g, '')
+          .replace(/['â€™]/g, '')
           .replace(/\s+/g, '_')
           .replace(/[^a-z0-9_]/g, '_')
           .replace(/_+/g, '_')

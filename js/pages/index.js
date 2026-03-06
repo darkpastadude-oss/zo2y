@@ -176,6 +176,8 @@
     }
 
     const statusEl = document.getElementById('loadStatus');
+    const homeAuthGateState = window.ZO2Y_AUTH_GATE || null;
+    const homeLandingMode = document.documentElement?.dataset?.authShell === 'landing';
     let homeSupabaseClient = null;
     let homeCurrentUser = null;
     let homeAuthListenerReady = false;
@@ -335,6 +337,14 @@
       const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
       if (isUsableHomeTravelScenicUrl(cached)) return cached;
       return '';
+    }
+
+    function sanitizeHomeNextPath(raw) {
+      const value = String(raw || '').trim();
+      if (!value) return 'index.html';
+      if (/^https?:\/\//i.test(value) || value.startsWith('//')) return 'index.html';
+      if (value.startsWith('/')) return value.slice(1) || 'index.html';
+      return value;
     }
 
     function sanitizeHomeTravelItem(item) {
@@ -5607,7 +5617,56 @@
       scheduleHomeMenuCachePrime();
     }
 
+    function initLandingExperience() {
+      document.body?.classList.add('landing-mode');
+      const authNotice = document.getElementById('landingAuthNotice');
+      const revealNodes = Array.from(document.querySelectorAll('[data-landing-reveal]'));
+      const params = new URLSearchParams(window.location.search || '');
+      const next = sanitizeHomeNextPath(params.get('next') || localStorage.getItem('postAuthRedirect') || 'index.html');
+      const authRequired = params.get('auth') === 'required';
+
+      if (authRequired && authNotice) {
+        const readableNext = next && next !== 'index.html'
+          ? next.replace(/\.html?$/i, '').replace(/[?#].*$/, '').replace(/[-_/]+/g, ' ').trim()
+          : 'the app';
+        authNotice.hidden = false;
+        authNotice.textContent = `Sign in to continue to ${readableNext || 'the app'}.`;
+      }
+
+      document.querySelectorAll('[data-auth-entry]').forEach((link) => {
+        link.addEventListener('click', () => {
+          localStorage.setItem('postAuthRedirect', next || 'index.html');
+        });
+      });
+
+      if (!revealNodes.length || typeof window.IntersectionObserver !== 'function') {
+        revealNodes.forEach((node) => node.classList.add('is-visible'));
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        });
+      }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' });
+
+      revealNodes.forEach((node, index) => {
+        if (index === 0) {
+          node.classList.add('is-visible');
+          return;
+        }
+        observer.observe(node);
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+      if (homeLandingMode && !homeAuthGateState?.authenticated) {
+        initLandingExperience();
+        return;
+      }
+
       void initUniversalHome();
 
       void (async () => {

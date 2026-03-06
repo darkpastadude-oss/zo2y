@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/js/auth-gate.js?v=20260306a"></script>
   <title>Zo2y Support Admin</title>
   <style>
     :root {
@@ -129,7 +130,7 @@
         return `
           <article class="ticket">
             <div class="meta">
-              #${ticket.id} • ${ticket.category} • ${ticket.status} • ${ticket.priority} • ${ticket.created_at || ''}
+              #${ticket.id} â€¢ ${ticket.category} â€¢ ${ticket.status} â€¢ ${ticket.priority} â€¢ ${ticket.created_at || ''}
             </div>
             <div style="font-weight:700;">${ticket.name || 'Anonymous'} ${ticket.email ? `(${ticket.email})` : ''}</div>
             <p style="margin:8px 0 10px;white-space:pre-wrap;">${ticket.message || ''}</p>
