@@ -526,19 +526,17 @@
       ].filter(Boolean).join(' ');
       const quote = String(item.quote || '').trim();
       const safeQuote = quote || `Rated ${Number(item.rating || 0).toFixed(1)}/5`;
+      const starCount = Math.max(0, Math.min(5, Math.round(Number(item.rating || 0))));
+      const drawnStars = `${'★'.repeat(starCount)}${'☆'.repeat(Math.max(0, 5 - starCount))}`;
+      const noteReviewer = String(item.reviewer || '').trim().replace(/^@/, '');
       return `
         <button class="${cardClasses}" type="button" data-review-spotlight-index="${index}" aria-label="Show review spotlight for ${escapeHtml(item.title)}">
           <div class="reviews-spotlight-card-body">
-            <div class="reviews-spotlight-card-top">
-              <span class="reviews-spotlight-card-pill"><i class="fa-solid ${escapeHtml(item.mediaIcon)}"></i> ${escapeHtml(item.mediaLabel)}</span>
-              <span class="reviews-spotlight-card-pill is-muted"><i class="fa-solid fa-star-half-stroke"></i> ${escapeHtml(item.rating.toFixed(1))}/5</span>
-            </div>
+            <div class="reviews-spotlight-card-rating">${escapeHtml(drawnStars)}</div>
+            <div class="reviews-spotlight-card-media">${escapeHtml(item.mediaLabel)}</div>
             <h3 class="reviews-spotlight-card-title">${escapeHtml(item.title)}</h3>
             <p class="reviews-spotlight-card-quote">${escapeHtml(safeQuote)}</p>
-            <div class="reviews-spotlight-card-meta">
-              <span>${escapeHtml(item.reviewer)}</span>
-              <span>${escapeHtml(item.dateLabel)}</span>
-            </div>
+            <div class="reviews-spotlight-card-signoff">-(${escapeHtml(noteReviewer || 'zo2y')})</div>
           </div>
           <div class="reviews-spotlight-card-thumb-wrap">
             <img class="reviews-spotlight-card-thumb" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)} artwork" loading="lazy" decoding="async" />
@@ -571,7 +569,7 @@
     const open = document.getElementById('reviewsSpotlightOpen');
     if (!current || !open) return;
 
-    current.innerHTML = `<strong>${escapeHtml(item.title)}</strong> is currently front-carded in ${escapeHtml(item.mediaLabel)} with a ${escapeHtml(item.rating.toFixed(1))}/5 signal from ${escapeHtml(item.reviewer)}.`;
+    current.innerHTML = `<strong>${escapeHtml(item.title)}</strong> is the note pinned front-and-center right now. ${escapeHtml(item.mediaLabel)} review, ${escapeHtml(item.rating.toFixed(1))}/5, from ${escapeHtml(item.reviewer)}.`;
     open.href = item.href;
     renderReviewSpotlightDots();
     renderReviewSpotlightCards();

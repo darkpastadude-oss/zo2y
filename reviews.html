@@ -12,9 +12,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/universal-search.js?v=20260306a" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Permanent+Marker&display=swap" rel="stylesheet">
 
   <style>
-    :root { --bg:#0b1633; --card:#132347; --muted:#8ca3c7; --accent:#f59e0b; --white:#fff; --border:rgba(255,255,255,.12); --surface:rgba(12,26,57,.86); --gradient:linear-gradient(135deg,#f59e0b,#ffb84d); }
+    :root { --bg:#0b1633; --card:#132347; --muted:#8ca3c7; --accent:#f59e0b; --white:#fff; --border:rgba(255,255,255,.12); --surface:rgba(12,26,57,.86); --gradient:linear-gradient(135deg,#f59e0b,#ffb84d); --hand-font:'Patrick Hand', cursive; --marker-font:'Permanent Marker', cursive; }
     * { box-sizing:border-box; margin:0; padding:0; }
     html,body { min-height:100%; background:radial-gradient(circle at 20% -10%, rgba(245,158,11,.15), transparent 35%), var(--bg); color:var(--white); font-family:Inter,system-ui,-apple-system,sans-serif; overflow-x:hidden; }
     a { color:inherit; text-decoration:none; }
@@ -48,14 +51,15 @@
     .hero h1 { font-size:clamp(28px, 4vw, 44px); line-height:1; }
     .hero p { color:var(--muted); font-size:14px; max-width:760px; }
     .reviews-spotlight-shell {
-      padding:18px;
+      padding:16px;
       display:grid;
       gap:16px;
       overflow:hidden;
-      border-color:rgba(81, 52, 18, .68);
       background:
-        linear-gradient(180deg, rgba(68, 39, 14, .95), rgba(45, 26, 9, .98));
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 20px 40px rgba(0,0,0,.24);
+        linear-gradient(135deg, #d8a86d, #b68247 36%, #8f6231 62%, #c89658 100%);
+      border:1px solid rgba(68, 41, 16, .6);
+      border-radius:8px;
+      box-shadow:0 20px 40px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.14);
     }
     .reviews-spotlight-head {
       display:flex;
@@ -63,23 +67,27 @@
       justify-content:space-between;
       gap:14px;
       flex-wrap:wrap;
+      padding:8px 10px 0;
     }
     .reviews-spotlight-kicker {
-      color:#ffc874;
+      color:#f4efd9;
       font-size:11px;
       font-weight:800;
       letter-spacing:1.2px;
       text-transform:uppercase;
+      text-shadow:0 1px 0 rgba(0,0,0,.16);
     }
     .reviews-spotlight-heading {
       margin-top:8px;
       font-size:clamp(24px, 3vw, 36px);
       line-height:.96;
       max-width:520px;
+      color:#f8f4e7;
+      text-shadow:0 2px 0 rgba(8,27,13,.28);
     }
     .reviews-spotlight-subtext {
       margin-top:10px;
-      color:#b7c9e9;
+      color:#d8e4cd;
       font-size:14px;
       line-height:1.6;
       max-width:620px;
@@ -94,9 +102,9 @@
     .reviews-spotlight-stat {
       min-height:34px;
       padding:0 12px;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.06);
-      color:#ecf3ff;
+      border:1px solid rgba(232,245,224,.14);
+      background:rgba(7, 35, 15, .28);
+      color:#eff8e7;
       border-radius:11px;
       display:inline-flex;
       align-items:center;
@@ -105,36 +113,38 @@
       font-weight:700;
     }
     .reviews-spotlight-stat {
-      color:#c6d7f7;
+      color:#d8e5cf;
       font-weight:600;
     }
     .reviews-spotlight-stage {
       position:relative;
       min-height:430px;
-      border-radius:12px;
-      border:1px solid rgba(72, 45, 16, .72);
+      padding:18px;
+      border-radius:4px;
+      border:8px solid rgba(182, 132, 73, .92);
       background:
-        radial-gradient(circle at 12% 18%, rgba(255,235,190,.12) 0 2px, transparent 2px 100%),
-        radial-gradient(circle at 66% 34%, rgba(255,235,190,.1) 0 1px, transparent 1px 100%),
-        radial-gradient(circle at 28% 70%, rgba(62,35,12,.18) 0 2px, transparent 2px 100%),
-        repeating-linear-gradient(25deg, rgba(117,78,34,.16) 0 2px, transparent 2px 8px),
-        repeating-linear-gradient(-22deg, rgba(93,60,23,.12) 0 2px, transparent 2px 11px),
-        linear-gradient(180deg, #946634, #7c5428 48%, #6f4922);
-      box-shadow:inset 0 0 0 1px rgba(255,255,255,.04), inset 0 20px 40px rgba(255,255,255,.03), inset 0 -18px 34px rgba(0,0,0,.12);
+        radial-gradient(circle at 18% 22%, rgba(255,255,255,.06) 0 2px, transparent 2px 100%),
+        radial-gradient(circle at 68% 34%, rgba(255,255,255,.05) 0 1px, transparent 1px 100%),
+        radial-gradient(circle at 54% 72%, rgba(255,255,255,.03) 0 1px, transparent 1px 100%),
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0)),
+        linear-gradient(180deg, #1e5a2d, #133f20 58%, #0d2c16);
+      box-shadow:
+        inset 0 0 0 1px rgba(9, 30, 15, .46),
+        inset 0 20px 42px rgba(255,255,255,.02),
+        inset 0 -20px 42px rgba(0,0,0,.14),
+        0 14px 28px rgba(0,0,0,.16);
     }
     .reviews-spotlight-card {
       position:absolute;
-      display:grid;
-      grid-template-columns:minmax(0, 1fr) 88px;
-      gap:14px;
-      width:min(100%, 390px);
-      min-height:176px;
-      padding:18px;
+      display:block;
+      width:min(100%, 330px);
+      min-height:248px;
+      padding:26px 18px 20px;
       border-radius:4px;
       border:1px solid rgba(96, 81, 34, .24);
       background:
         linear-gradient(180deg, rgba(255,255,255,.16), transparent 18%),
-        repeating-linear-gradient(180deg, rgba(53, 64, 86, .08) 0 1px, transparent 1px 32px),
+        repeating-linear-gradient(180deg, rgba(84, 92, 115, .18) 0 2px, transparent 2px 26px),
         linear-gradient(180deg, #ffe28a, #f4d35f);
       color:#17233d;
       text-align:left;
@@ -146,7 +156,7 @@
     .reviews-spotlight-card::before {
       content:"";
       position:absolute;
-      top:10px;
+      top:8px;
       left:50%;
       width:16px;
       height:16px;
@@ -162,10 +172,11 @@
       position:absolute;
       right:0;
       bottom:0;
-      width:34px;
-      height:34px;
-      background:linear-gradient(135deg, rgba(184,154,58,.9) 0 50%, rgba(255,240,188,.96) 50% 100%);
-      box-shadow:-1px -1px 0 rgba(96,81,34,.1);
+      width:44px;
+      height:44px;
+      background:
+        linear-gradient(135deg, rgba(183,148,65,.95) 0 50%, rgba(255,239,191,.98) 50% 100%);
+      box-shadow:-1px -1px 0 rgba(96,81,34,.14), -8px -8px 14px rgba(80,57,21,.12);
       pointer-events:none;
       z-index:4;
     }
@@ -178,71 +189,65 @@
       top:28px;
       left:14px;
       z-index:4;
-      transform:rotate(-2deg);
+      transform:rotate(-4deg);
     }
     .reviews-spotlight-card.is-right {
-      top:0;
-      right:18px;
+      top:10px;
+      right:30px;
       z-index:3;
-      transform:rotate(2.8deg);
+      transform:rotate(6deg);
     }
     .reviews-spotlight-card.is-lower {
-      bottom:10px;
-      right:92px;
+      bottom:16px;
+      right:112px;
       z-index:2;
-      transform:rotate(-2deg);
+      transform:rotate(-1.5deg);
     }
     .reviews-spotlight-card.is-left {
-      bottom:2px;
-      left:164px;
+      bottom:8px;
+      left:170px;
       z-index:1;
-      transform:rotate(1.8deg);
+      transform:rotate(4deg);
     }
     .reviews-spotlight-card.is-back {
       opacity:.82;
-      filter:saturate(.88);
+      filter:saturate(.88) brightness(.96);
     }
     .reviews-spotlight-card.is-front .reviews-spotlight-card-quote {
-      -webkit-line-clamp:4;
+      -webkit-line-clamp:5;
     }
     .reviews-spotlight-card.is-front .reviews-spotlight-card-title {
-      font-size:28px;
+      font-size:21px;
     }
     .reviews-spotlight-card-body {
       position:relative;
       z-index:3;
       display:grid;
       align-content:start;
-      gap:10px;
+      gap:6px;
       min-width:0;
+      padding-right:94px;
     }
-    .reviews-spotlight-card-top {
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap:wrap;
+    .reviews-spotlight-card-rating {
+      font-family:var(--marker-font);
+      color:#1c3455;
+      font-size:18px;
+      letter-spacing:1px;
+      line-height:1;
+      transform:rotate(-2deg);
     }
-    .reviews-spotlight-card-pill {
-      min-height:30px;
-      padding:0 10px;
-      border-radius:4px;
-      background:rgba(255,255,255,.34);
-      border:1px solid rgba(23,35,61,.06);
-      display:inline-flex;
-      align-items:center;
-      gap:7px;
-      color:#21324e;
-      font-size:11px;
-      font-weight:700;
-      letter-spacing:.04em;
+    .reviews-spotlight-card-media {
+      font-family:var(--marker-font);
+      color:#244c7a;
+      font-size:13px;
+      letter-spacing:1.2px;
       text-transform:uppercase;
-    }
-    .reviews-spotlight-card-pill.is-muted {
-      color:#42516d;
+      transform:rotate(-1deg);
     }
     .reviews-spotlight-card-title {
-      font-size:22px;
-      line-height:1;
+      font-family:var(--hand-font);
+      font-size:19px;
+      line-height:1.05;
       color:#132038;
       display:-webkit-box;
       -webkit-line-clamp:2;
@@ -250,25 +255,26 @@
       overflow:hidden;
     }
     .reviews-spotlight-card-quote {
-      color:#2d3a58;
-      font-size:15px;
-      line-height:1.55;
+      color:#22314d;
+      font-family:var(--hand-font);
+      font-size:29px;
+      line-height:1.02;
       display:-webkit-box;
-      -webkit-line-clamp:3;
+      -webkit-line-clamp:5;
       -webkit-box-orient:vertical;
       overflow:hidden;
     }
-    .reviews-spotlight-card-meta {
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-      color:#4b5b79;
-      font-size:12px;
-      font-weight:700;
+    .reviews-spotlight-card-signoff {
+      margin-top:2px;
+      color:#253d63;
+      font-family:var(--hand-font);
+      font-size:26px;
+      line-height:1;
     }
     .reviews-spotlight-card-thumb-wrap {
-      position:relative;
+      position:absolute;
+      top:30px;
+      right:14px;
       z-index:3;
       display:flex;
       align-items:flex-start;
@@ -283,18 +289,18 @@
       border:5px solid rgba(255,255,255,.9);
       background:#fff;
       box-shadow:0 14px 24px rgba(0,0,0,.18);
-      transform:rotate(3deg) translateY(8px);
+      transform:rotate(4deg);
     }
     .reviews-spotlight-card-thumb-wrap::before {
       content:"";
       position:absolute;
-      top:8px;
-      right:24px;
-      width:18px;
-      height:18px;
+      top:-4px;
+      right:18px;
+      width:10px;
+      height:10px;
       border-radius:999px;
-      background:radial-gradient(circle at 35% 35%, #f4f5f7, #b9c0ca 72%);
-      box-shadow:0 3px 8px rgba(0,0,0,.18);
+      background:radial-gradient(circle at 35% 35%, #fff8da, #d44b36 72%, #8f2718 100%);
+      box-shadow:0 2px 4px rgba(0,0,0,.16);
       z-index:4;
       pointer-events:none;
     }
@@ -406,7 +412,7 @@
         min-height:unset;
         display:grid;
         grid-auto-flow:column;
-        grid-auto-columns:minmax(258px, 82vw);
+        grid-auto-columns:minmax(274px, 84vw);
         gap:12px;
         overflow-x:auto;
         padding-bottom:6px;
@@ -419,13 +425,18 @@
         position:relative;
         inset:auto;
         width:100%;
-        min-height:198px;
+        min-height:232px;
         transform:none;
       }
-      .reviews-spotlight-card { grid-template-columns:minmax(0, 1fr) 74px; padding:16px; }
-      .reviews-spotlight-card.is-front .reviews-spotlight-card-title { font-size:22px; }
-      .reviews-spotlight-card-thumb { max-width:74px; }
-      .reviews-spotlight-card-quote { -webkit-line-clamp:4; font-size:14px; }
+      .reviews-spotlight-card { padding:24px 15px 18px; }
+      .reviews-spotlight-card.is-front .reviews-spotlight-card-title { font-size:18px; }
+      .reviews-spotlight-card-body { padding-right:82px; gap:5px; }
+      .reviews-spotlight-card-rating { font-size:15px; }
+      .reviews-spotlight-card-media { font-size:12px; }
+      .reviews-spotlight-card-thumb-wrap { top:26px; right:12px; }
+      .reviews-spotlight-card-thumb { max-width:64px; transform:rotate(4deg); }
+      .reviews-spotlight-card-quote { -webkit-line-clamp:5; font-size:24px; }
+      .reviews-spotlight-card-signoff { font-size:22px; }
       .reviews-spotlight-footer { align-items:flex-start; }
       .reviews-spotlight-stats { width:100%; }
       .reviews-spotlight-current { max-width:none; font-size:13px; }
@@ -565,7 +576,7 @@
     <a class="mobile-nav-item active" href="reviews.html" aria-label="Reviews"><i class="fa-solid fa-star"></i></a>
   </nav>
 
-  <script src="js/reviews-page.js?v=20260306e" defer></script>
+  <script src="js/reviews-page.js?v=20260306f" defer></script>
   <script src="js/production-runtime.js?v=20260306a" defer></script>
 </body>
 </html>
