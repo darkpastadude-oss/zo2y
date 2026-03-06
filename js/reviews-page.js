@@ -26,9 +26,12 @@
   let reviewSpotlightItems = [];
   let reviewSpotlightIndex = 0;
   let reviewSpotlightTimer = null;
+  let reviewSpotlightTransitioning = false;
+  let reviewSpotlightPendingIndex = null;
   const users = new Map();
   const itemMeta = new Map();
   const REVIEW_SPOTLIGHT_ROTATE_MS = 7000;
+  const REVIEW_SPOTLIGHT_MOBILE_QUERY = '(max-width: 760px)';
 
   function escapeHtml(value) {
     return String(value ?? '')
@@ -397,6 +400,27 @@
     reviewSpotlightTimer = null;
   }
 
+  function prefersReducedMotion() {
+    try {
+      return !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function isMobileReviewSpotlight() {
+    try {
+      return !!window.matchMedia?.(REVIEW_SPOTLIGHT_MOBILE_QUERY)?.matches;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function normalizeReviewSpotlightIndex(index) {
+    if (!reviewSpotlightItems.length) return 0;
+    return ((Number(index) || 0) % reviewSpotlightItems.length + reviewSpotlightItems.length) % reviewSpotlightItems.length;
+  }
+
   function resetReviewSpotlightTimer() {
     stopReviewSpotlightTimer();
     if (reviewSpotlightItems.length < 2) return;
@@ -505,7 +529,7 @@
     return visible;
   }
 
-  function renderReviewSpotlightCards() {
+  function renderReviewSpotlightCards(incomingClass = '') {
     const stageEl = document.getElementById('reviewsSpotlightStage');
     if (!stageEl) return;
     const positions = ['is-front', 'is-right', 'is-lower', 'is-left'];
@@ -522,6 +546,7 @@
         positions[offset] || 'is-left',
         tones[(reviewSpotlightIndex + offset) % tones.length],
         offset === 0 ? 'is-active' : '',
+        offset === 0 && incomingClass ? incomingClass : '',
         offset >= 3 ? 'is-back' : ''
       ].filter(Boolean).join(' ');
       const quote = String(item.quote || '').trim();
@@ -561,9 +586,9 @@
     });
   }
 
-  function showReviewSpotlight(index, fromUser = false) {
+  function applyReviewSpotlight(index, fromUser = false, incomingClass = '') {
     if (!reviewSpotlightItems.length) return;
-    reviewSpotlightIndex = ((Number(index) || 0) % reviewSpotlightItems.length + reviewSpotlightItems.length) % reviewSpotlightItems.length;
+    reviewSpotlightIndex = normalizeReviewSpotlightIndex(index);
     const item = reviewSpotlightItems[reviewSpotlightIndex];
     const current = document.getElementById('reviewsSpotlightCurrent');
     const open = document.getElementById('reviewsSpotlightOpen');
@@ -572,8 +597,64 @@
     current.innerHTML = `<strong>${escapeHtml(item.title)}</strong> is the note pinned front-and-center right now. ${escapeHtml(item.mediaLabel)} review, ${escapeHtml(item.rating.toFixed(1))}/5, from ${escapeHtml(item.reviewer)}.`;
     open.href = item.href;
     renderReviewSpotlightDots();
-    renderReviewSpotlightCards();
+    renderReviewSpotlightCards(incomingClass);
     if (fromUser) resetReviewSpotlightTimer();
+  }
+
+  function finishMobileReviewSpotlightTransition(stageEl) {
+    reviewSpotlightTransitioning = false;
+    if (stageEl) stageEl.classList.remove('is-mobile-shuffling');
+  }
+
+  function showReviewSpotlight(index, fromUser = false) {
+    if (!reviewSpotlightItems.length) return;
+    const nextIndex = normalizeReviewSpotlightIndex(index);
+    if (
+      !isMobileReviewSpotlight()
+      || prefersReducedMotion()
+      || reviewSpotlightItems.length < 2
+      || nextIndex === reviewSpotlightIndex
+    ) {
+      applyReviewSpotlight(nextIndex, fromUser);
+      return;
+    }
+
+    const stageEl = document.getElementById('reviewsSpotlightStage');
+    const activeCard = stageEl?.querySelector('.reviews-spotlight-card.is-active') || null;
+    if (!stageEl || !activeCard) {
+      applyReviewSpotlight(nextIndex, fromUser, 'is-tearing-in');
+      return;
+    }
+
+    if (reviewSpotlightTransitioning) {
+      reviewSpotlightPendingIndex = nextIndex;
+      return;
+    }
+
+    reviewSpotlightTransitioning = true;
+    stageEl.classList.add('is-mobile-shuffling');
+    activeCard.classList.add('is-tearing-out');
+
+    window.setTimeout(() => {
+      applyReviewSpotlight(nextIndex, fromUser, 'is-tearing-in');
+      const incomingCard = stageEl.querySelector('.reviews-spotlight-card.is-active');
+      if (!incomingCard) {
+        finishMobileReviewSpotlightTransition(stageEl);
+        reviewSpotlightPendingIndex = null;
+        return;
+      }
+      incomingCard.addEventListener('animationend', () => {
+        incomingCard.classList.remove('is-tearing-in');
+        const pendingIndex = reviewSpotlightPendingIndex;
+        finishMobileReviewSpotlightTransition(stageEl);
+        if (pendingIndex != null && pendingIndex !== reviewSpotlightIndex) {
+          reviewSpotlightPendingIndex = null;
+          showReviewSpotlight(pendingIndex, false);
+          return;
+        }
+        reviewSpotlightPendingIndex = null;
+      }, { once: true });
+    }, 170);
   }
 
   function renderReviewSpotlight(rows) {

@@ -306,19 +306,19 @@
       display:none;
     }
     .reviews-spotlight-card.tone-sun {
-      background-image:url('images/reviews/sticky-note-yellow.svg?v=20260306g');
+      background-image:url('images/reviews/sticky-note-yellow.svg?v=20260306h');
     }
     .reviews-spotlight-card.tone-rose {
-      background-image:url('images/reviews/sticky-note-pink.svg?v=20260306g');
+      background-image:url('images/reviews/sticky-note-pink.svg?v=20260306h');
     }
     .reviews-spotlight-card.tone-sky {
-      background-image:url('images/reviews/sticky-note-blue.svg?v=20260306g');
+      background-image:url('images/reviews/sticky-note-blue.svg?v=20260306h');
     }
     .reviews-spotlight-card.tone-mint {
-      background-image:url('images/reviews/sticky-note-green.svg?v=20260306g');
+      background-image:url('images/reviews/sticky-note-green.svg?v=20260306h');
     }
     .reviews-spotlight-card.tone-cream {
-      background-image:url('images/reviews/sticky-note-cream.svg?v=20260306g');
+      background-image:url('images/reviews/sticky-note-cream.svg?v=20260306h');
     }
     .reviews-spotlight-footer {
       display:flex;
@@ -431,6 +431,14 @@
       .reviews-spotlight-card-thumb { max-width:84px; transform:rotate(4deg); }
       .reviews-spotlight-card-quote { -webkit-line-clamp:4; font-size:26px; }
       .reviews-spotlight-card-signoff { font-size:22px; }
+      .reviews-spotlight-card.is-tearing-out {
+        animation: noteTearOut .28s cubic-bezier(.32,.02,.68,.95) forwards;
+        pointer-events:none;
+      }
+      .reviews-spotlight-card.is-tearing-in {
+        animation: noteTearIn .38s cubic-bezier(.2,.84,.28,1) both;
+        transform-origin:top center;
+      }
       .reviews-spotlight-footer { align-items:flex-start; }
       .reviews-spotlight-stats { width:100%; }
       .reviews-spotlight-current { max-width:none; font-size:13px; }
@@ -466,6 +474,17 @@
       .mobile-nav-item:hover {
         color: var(--accent);
         background: rgba(245, 158, 11, 0.16);
+      }
+
+      @keyframes noteTearOut {
+        0% { opacity:1; transform:translateX(0) rotate(0deg) scale(1); filter:drop-shadow(0 16px 22px rgba(0,0,0,.18)); }
+        55% { opacity:.84; transform:translateX(-12px) rotate(-5deg) scale(.985); }
+        100% { opacity:0; transform:translateX(-58px) translateY(18px) rotate(-12deg) scale(.92); filter:drop-shadow(0 4px 10px rgba(0,0,0,.08)); }
+      }
+      @keyframes noteTearIn {
+        0% { opacity:0; transform:translateX(52px) translateY(-16px) rotate(9deg) scale(.9); filter:drop-shadow(0 4px 10px rgba(0,0,0,.08)); }
+        60% { opacity:1; transform:translateX(-4px) translateY(4px) rotate(-3deg) scale(1.02); }
+        100% { opacity:1; transform:translateX(0) translateY(0) rotate(0deg) scale(1); filter:drop-shadow(0 14px 20px rgba(0,0,0,.18)); }
       }
     }
   </style>
@@ -570,7 +589,7 @@
     <a class="mobile-nav-item active" href="reviews.html" aria-label="Reviews"><i class="fa-solid fa-star"></i></a>
   </nav>
 
-  <script src="js/reviews-page.js?v=20260306f" defer></script>
+  <script src="js/reviews-page.js?v=20260306g" defer></script>
   <script src="js/production-runtime.js?v=20260306a" defer></script>
 </body>
 </html>
