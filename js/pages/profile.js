@@ -2162,6 +2162,18 @@
                         listManager.userLists.push(newList);
                         
                         showToast(`Created list "${title}"`, 'success');
+                        if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
+                            window.ZO2Y_ANALYTICS.track('custom_list_created', {
+                                media_type: 'restaurant',
+                                source: 'profile_modal'
+                            }, { essential: true });
+                        }
+                        if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
+                            window.ZO2Y_ANALYTICS.markFirstAction('first_custom_list_created', {
+                                media_type: 'restaurant',
+                                user_id: currentUser?.id || ''
+                            }, { essential: true });
+                        }
                     }
                     
                     // Close modal and reset form

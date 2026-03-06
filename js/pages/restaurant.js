@@ -946,6 +946,7 @@ function updateCharCount() {
 
 async function submitReview(e) {
     e.preventDefault();
+    const wasEditing = !!editingReviewId;
     
     if (!currentUser) {
         showNotification('Please sign in to submit a review', 'error');
@@ -1015,6 +1016,13 @@ async function submitReview(e) {
             if (error) throw error;
             
             showNotification('Review submitted successfully!', 'success');
+        }
+
+        if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
+            window.ZO2Y_ANALYTICS.track('review_saved', { media_type: 'restaurant', is_edit: wasEditing }, { essential: true });
+        }
+        if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
+            window.ZO2Y_ANALYTICS.markFirstAction('first_review_saved', {}, { essential: true });
         }
 
         document.getElementById('review-form').reset();
@@ -1965,3 +1973,4 @@ if (document.readyState === 'loading') {
 } else {
     initializeRestaurantPage();
 }
+

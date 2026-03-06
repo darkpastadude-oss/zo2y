@@ -3,6 +3,7 @@
   const CLIENT_ID_KEY = "zo2y_client_id_v1";
   const SESSION_ID_KEY = "zo2y_session_id_v1";
   const SESSION_STARTED_KEY = "zo2y_session_started_v1";
+  const FIRST_ACTION_KEY = "zo2y_first_action_v1";
   const TRACK_URL = "/api/analytics/track";
   const ERROR_URL = "/api/analytics/error";
   const MAX_QUEUE = 40;
@@ -94,6 +95,33 @@
     } catch (_err) {
       return {};
     }
+  }
+
+  function buildFirstActionKey(kind, identity = "") {
+    const safeKind = String(kind || "").trim().toLowerCase();
+    const safeIdentity = String(identity || "").trim().toLowerCase();
+    if (!safeKind) return "";
+    return safeIdentity ? `${safeKind}:${safeIdentity}` : safeKind;
+  }
+
+  function markFirstAction(kind, properties = {}, options = {}) {
+    const storage = getStorage();
+    const identity =
+      String(properties?.user_id || properties?.userId || properties?.user || "").trim() ||
+      getClientId();
+    const key = buildFirstActionKey(kind, identity);
+    if (!key) return false;
+
+    try {
+      const raw = storage?.getItem(FIRST_ACTION_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      if (parsed && parsed[key]) return false;
+      parsed[key] = nowIso();
+      storage?.setItem(FIRST_ACTION_KEY, JSON.stringify(parsed));
+    } catch (_err) {}
+
+    track(kind, properties, options);
+    return true;
   }
 
   function scheduleFlush() {
@@ -357,12 +385,34 @@
 
     const loginForm =
       document.getElementById("loginForm") ||
+      document.getElementById("authForm") ||
       document.querySelector("form[data-form='login']");
     if (loginForm) {
       loginForm.addEventListener("submit", () => {
         track("login_submit", { path: window.location.pathname });
       });
     }
+
+    const signupInputs = Array.from(document.querySelectorAll("#signupForm input, form[data-form='signup'] input"));
+    signupInputs.forEach((input) => {
+      input.addEventListener("focus", () => {
+        markFirstAction("signup_start", { path: window.location.pathname }, { essential: true });
+      }, { once: true });
+    });
+
+    const loginInputs = Array.from(document.querySelectorAll("#authForm input, #loginForm input, form[data-form='login'] input"));
+    loginInputs.forEach((input) => {
+      input.addEventListener("focus", () => {
+        markFirstAction("login_start", { path: window.location.pathname }, { essential: true });
+      }, { once: true });
+    });
+
+    document.getElementById("googleSignup")?.addEventListener("click", () => {
+      track("signup_google_start", { path: window.location.pathname });
+    });
+    document.getElementById("googleAuthBtn")?.addEventListener("click", () => {
+      track("login_google_start", { path: window.location.pathname });
+    });
   }
 
   function ensureGlobalLegalFooterStyles() {
@@ -674,6 +724,7 @@
 
     window.ZO2Y_ANALYTICS = {
       track,
+      markFirstAction,
       flush: () => flushQueue(),
       getConsent,
       setConsent: (value) => setConsent(value === "granted" ? "granted" : "denied")

@@ -9,7 +9,8 @@
     "dev": "cd backend && nodemon index.js",
     "import:books": "node scripts/import-books.mjs",
     "import:games:popular": "node scripts/import-popular-games.mjs",
-    "smoke": "node scripts/smoke-check.mjs"
+    "smoke": "node scripts/smoke-check.mjs",
+    "smoke:launch": "node scripts/smoke-check.mjs"
   },
   "keywords": [
     "restaurant",

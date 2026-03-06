@@ -1554,8 +1554,15 @@
           showNotification('Error submitting review', 'error');
           return;
         }
+        const wasEditing = !!editingReviewId;
         resetReviewForm();
         await loadReviews();
+        if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
+          window.ZO2Y_ANALYTICS.track('review_saved', { media_type: 'movie', is_edit: wasEditing }, { essential: true });
+        }
+        if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
+          window.ZO2Y_ANALYTICS.markFirstAction('first_review_saved', {}, { essential: true });
+        }
         showNotification('Review saved', 'success');
       }
 
@@ -1743,9 +1750,11 @@
       })();
     })();
   </script>
-  <script src="js/production-runtime.js?v=20260227d" defer></script>
+  <script src="js/production-runtime.js?v=20260306a" defer></script>
 </body>
 </html>
+
+
 
 
 

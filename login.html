@@ -222,6 +222,24 @@ body{
   const googleDefaultHtml = googleBtn.innerHTML;
   const submitDefaultHtml = submitBtn.innerHTML;
 
+  function analyticsTrack(eventName, properties = {}, essential = false) {
+    try {
+      if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
+        window.ZO2Y_ANALYTICS.track(eventName, properties, essential ? { essential: true } : {});
+      }
+    } catch (_err) {}
+  }
+
+  function analyticsMarkFirstAction(eventName, properties = {}) {
+    try {
+      if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
+        window.ZO2Y_ANALYTICS.markFirstAction(eventName, properties, { essential: true });
+      } else {
+        analyticsTrack(eventName, properties, true);
+      }
+    } catch (_err) {}
+  }
+
   function showError(msg) {
     console.error('Error:', msg);
     errorEl.textContent = msg;
@@ -314,6 +332,7 @@ body{
     const password = passwordInput.value;
     if (!email || !password) {
       showError('Email and password are required.');
+      analyticsTrack('login_validation_error', { reason: 'missing_credentials', path: window.location.pathname });
       return;
     }
 
@@ -329,6 +348,8 @@ body{
       if (error) throw error;
       
       console.log('Login successful');
+      analyticsTrack('login_success', { method: 'password', path: window.location.pathname }, true);
+      analyticsMarkFirstAction('first_login_success', { method: 'password' });
       if (remember.checked) localStorage.setItem('rememberedEmail', email);
       else localStorage.removeItem('rememberedEmail');
       
@@ -339,6 +360,7 @@ body{
       
     } catch (err) {
       console.error('Login error:', err);
+      analyticsTrack('login_error', { method: 'password', message: String(err?.message || 'unknown').slice(0, 180) }, true);
       showError(getReadableAuthError(err, 'Login failed.'));
       setSubmitLoading(false);
     }
@@ -351,6 +373,7 @@ body{
     
     try {
       console.log('Starting Google OAuth...');
+      analyticsTrack('login_google_start', { path: window.location.pathname }, true);
       
       // Store that this is a login flow
       localStorage.setItem('oauthFlow', 'login');
@@ -376,6 +399,7 @@ body{
       
     } catch (err) {
       console.error('Google login error:', err);
+      analyticsTrack('login_google_error', { message: String(err?.message || 'unknown').slice(0, 180) }, true);
       showError(err?.message || 'Google login failed.');
       setGoogleLoading(false);
     }
@@ -398,14 +422,16 @@ body{
         'Password reset request timed out'
       );
       if (error) throw error;
+      analyticsTrack('password_reset_requested', { path: window.location.pathname }, true);
       showSuccess('Reset email sent. Check your inbox.');
     } catch (err) {
+      analyticsTrack('password_reset_error', { message: String(err?.message || 'unknown').slice(0, 180) }, true);
       showError(getReadableAuthError(err, 'Failed to send reset email.'));
     }
   });
 })();
 </script>
-  <script src="js/production-runtime.js?v=20260227d" defer></script>
+  <script src="js/production-runtime.js?v=20260306a" defer></script>
 </body>
 </html>
 

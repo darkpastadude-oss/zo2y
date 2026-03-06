@@ -2801,6 +2801,19 @@
           [...next],
           buildCustomListItemPayloadForMenu()
         );
+        const addedToList = next.size > previous.size;
+        if (addedToList && window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
+          window.ZO2Y_ANALYTICS.track('list_item_saved', {
+            media_type: item.mediaType,
+            source: 'home_menu'
+          }, { essential: true });
+        }
+        if (addedToList && window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
+          window.ZO2Y_ANALYTICS.markFirstAction('first_list_item_saved', {
+            media_type: item.mediaType,
+            user_id: homeCurrentUser?.id || ''
+          }, { essential: true });
+        }
       } catch (_err) {
         homeItemMenuState.selectedCustomLists = previous;
         writeHomeMenuMembershipCache(item.mediaType, item.itemId, homeItemMenuState.selectedCustomLists);
@@ -2872,6 +2885,18 @@
       homeItemMenuState.selectedCustomLists.add(created.id);
       writeHomeMenuCustomListsCache(item.mediaType, homeItemMenuState.customLists);
       writeHomeMenuMembershipCache(item.mediaType, item.itemId, homeItemMenuState.selectedCustomLists);
+      if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
+        window.ZO2Y_ANALYTICS.track('custom_list_created', {
+          media_type: item.mediaType,
+          source: 'home_menu'
+        }, { essential: true });
+      }
+      if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
+        window.ZO2Y_ANALYTICS.markFirstAction('first_custom_list_created', {
+          media_type: item.mediaType,
+          user_id: homeCurrentUser?.id || ''
+        }, { essential: true });
+      }
       closeCreateListModal();
       const itemModal = document.getElementById('itemMenuModal');
       if (itemModal) {

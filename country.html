@@ -1629,8 +1629,15 @@
         return;
       }
 
+      const wasEditing = !!state.editId;
       resetReviewForm();
       await loadReviews();
+      if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
+        window.ZO2Y_ANALYTICS.track('review_saved', { media_type: 'travel', is_edit: wasEditing }, { essential: true });
+      }
+      if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
+        window.ZO2Y_ANALYTICS.markFirstAction('first_review_saved', {}, { essential: true });
+      }
       showToast('Review saved', 'ok');
     }
 
@@ -1744,3 +1751,4 @@
   </script>
 </body>
 </html>
+

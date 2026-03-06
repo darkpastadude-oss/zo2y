@@ -13,13 +13,24 @@ const SKIP_REDIRECTS = boolFromEnv(process.env.SMOKE_SKIP_REDIRECTS, true);
 const REDIRECT_PROBE_PATH = String(process.env.SMOKE_REDIRECT_PROBE_PATH || "/").trim() || "/";
 
 const checks = [
-  { name: "home", url: "/" },
-  { name: "index", url: "/index.html" },
-  { name: "health", url: "/api/health" },
-  { name: "analytics-health", url: "/api/analytics/health" },
-  { name: "support-health", url: "/api/support/health" },
-  { name: "igdb-health", url: "/api/igdb" },
-  { name: "music-health", url: "/api/music" }
+  { name: "home", url: "/", expectIncludes: ["Zo2y"] },
+  { name: "index", url: "/index.html", expectIncludes: ["All your interests in one place"] },
+  { name: "login", url: "/login.html", expectIncludes: ["Log in to your account"] },
+  { name: "signup", url: "/sign-up.html", expectIncludes: ["Create your account"] },
+  { name: "movies", url: "/movies.html", expectIncludes: ["Movies"] },
+  { name: "tvshows", url: "/tvshows.html", expectIncludes: ["TV"] },
+  { name: "games", url: "/games.html", expectIncludes: ["Games"] },
+  { name: "books", url: "/books.html", expectIncludes: ["Books"] },
+  { name: "travel", url: "/travel.html", expectIncludes: ["Travel"] },
+  { name: "profile", url: "/profile.html", expectIncludes: ["Profile"] },
+  { name: "privacy", url: "/privacy.html", expectIncludes: ["Privacy Policy"] },
+  { name: "terms", url: "/terms.html", expectIncludes: ["Terms of Service"] },
+  { name: "support", url: "/support.html", expectIncludes: ["Support"] },
+  { name: "health", url: "/api/health", expectJsonKeys: ["ok", "service"] },
+  { name: "analytics-health", url: "/api/analytics/health", expectJsonKeys: ["ok", "service"] },
+  { name: "support-health", url: "/api/support/health", expectJsonKeys: ["ok", "service"] },
+  { name: "igdb-health", url: "/api/igdb", expectStatus: 200 },
+  { name: "music-health", url: "/api/music", expectStatus: 200 }
 ];
 
 function buildUrl(baseUrl, path) {
@@ -63,9 +74,25 @@ async function runCheck(baseUrl, item) {
   const started = Date.now();
   const response = await fetch(buildUrl(baseUrl, item.url));
   const elapsed = Date.now() - started;
-  if (!response.ok) {
+  const expectedStatus = Number(item.expectStatus || 200);
+  if (response.status !== expectedStatus && !response.ok) {
     const body = await response.text().catch(() => "");
     throw new Error(`${item.name} failed (${response.status}) ${item.url} ${body.slice(0, 300)}`);
+  }
+  if (Array.isArray(item.expectIncludes) && item.expectIncludes.length) {
+    const body = await response.text();
+    for (const token of item.expectIncludes) {
+      if (!body.includes(token)) {
+        throw new Error(`${item.name} missing expected content "${token}"`);
+      }
+    }
+  } else if (Array.isArray(item.expectJsonKeys) && item.expectJsonKeys.length) {
+    const json = await response.json();
+    for (const key of item.expectJsonKeys) {
+      if (!(key in json)) {
+        throw new Error(`${item.name} missing expected json key "${key}"`);
+      }
+    }
   }
   return { ...item, elapsed };
 }

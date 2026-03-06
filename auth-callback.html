@@ -134,6 +134,33 @@
         }
       }
 
+      function sendAnalyticsEvent(eventName, properties = {}) {
+        const payload = {
+          event: String(eventName || '').trim().toLowerCase(),
+          properties,
+          context: {
+            page_url: window.location.href,
+            path: window.location.pathname,
+            referrer: document.referrer || '',
+            user_agent: navigator.userAgent || ''
+          }
+        };
+        if (!payload.event) return;
+        try {
+          const body = JSON.stringify(payload);
+          if (navigator.sendBeacon) {
+            const blob = new Blob([body], { type: 'application/json' });
+            if (navigator.sendBeacon('/api/analytics/track', blob)) return;
+          }
+          void fetch('/api/analytics/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body,
+            keepalive: true
+          }).catch(() => {});
+        } catch (_err) {}
+      }
+
       function sanitizeNextPath(raw) {
         const value = String(raw || '').trim();
         if (!value) return 'index.html';
@@ -300,8 +327,13 @@
         });
 
         const params = new URLSearchParams(window.location.search);
+        const oauthFlow = String(localStorage.getItem('oauthFlow') || '').trim().toLowerCase();
         const oauthError = params.get('error_description') || params.get('error');
         if (oauthError) {
+          sendAnalyticsEvent('oauth_callback_error', {
+            flow: oauthFlow || 'unknown',
+            message: String(oauthError).slice(0, 180)
+          });
           throw new Error(oauthError);
         }
 
@@ -339,6 +371,22 @@
           localStorage.setItem(getOnboardingPendingKey(user.id), '1');
         }
 
+        sendAnalyticsEvent('oauth_callback_success', {
+          flow: oauthFlow || 'unknown',
+          created_profile: !!profileResult?.created,
+          next
+        });
+        if (oauthFlow === 'signup') {
+          sendAnalyticsEvent('signup_success', {
+            method: 'google',
+            created_profile: !!profileResult?.created
+          });
+        } else if (oauthFlow === 'login') {
+          sendAnalyticsEvent('login_success', {
+            method: 'google'
+          });
+        }
+
         statusText.textContent = 'Success! Redirecting...';
         localStorage.removeItem('postAuthRedirect');
         localStorage.removeItem('oauthFlow');
@@ -348,6 +396,11 @@
         }, 800);
       } catch (err) {
         const msg = (err && err.message) ? err.message : 'Authentication failed';
+        const oauthFlow = String(localStorage.getItem('oauthFlow') || '').trim().toLowerCase();
+        sendAnalyticsEvent('oauth_callback_error', {
+          flow: oauthFlow || 'unknown',
+          message: String(msg).slice(0, 180)
+        });
         log(`Fatal error: ${msg}`, true);
         statusText.textContent = 'Could not complete authentication.';
         errorText.textContent = msg;
@@ -358,7 +411,7 @@
       }
     })();
   </script>
-  <script src="js/production-runtime.js?v=20260227d" defer></script>
+  <script src="js/production-runtime.js?v=20260306a" defer></script>
 </body>
 </html>
 
