@@ -718,9 +718,16 @@
     setupErrorObservers();
     setupWebVitals();
     setupFunnelTracking();
-    renderConsentBanner();
-    mountGlobalLegalFooter();
-    setupDuplicateCardCleanup();
+    const runDeferredUiWork = () => {
+      renderConsentBanner();
+      mountGlobalLegalFooter();
+      setupDuplicateCardCleanup();
+    };
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(runDeferredUiWork, { timeout: 1500 });
+    } else {
+      setTimeout(runDeferredUiWork, 0);
+    }
 
     window.ZO2Y_ANALYTICS = {
       track,

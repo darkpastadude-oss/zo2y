@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v25';
-const PAGE_CACHE = 'zo2y-pages-v42';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v26';
+const PAGE_CACHE = 'zo2y-pages-v43';
 const IMAGE_CACHE = 'zo2y-images-v18';
 const API_CACHE = 'zo2y-api-v4';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -11,12 +11,12 @@ const STATIC_ASSETS = [
   '/manifest.webmanifest',
   '/css/pages/index.css?v=20260306g',
   '/css/shared-header.css?v=20260304a',
-  '/js/pages/index.js?v=20260306k',
+  '/js/pages/index.js?v=20260307a',
   '/js/home-desktop-rebrand.js?v=20260301q',
-  '/js/shared-header.js?v=20260306c',
+  '/js/shared-header.js?v=20260307a',
   '/js/list-utils.js?v=20260301e',
-  '/js/universal-search.js?v=20260306a',
-  '/js/production-runtime.js?v=20260227d',
+  '/js/universal-search.js?v=20260307a',
+  '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260228a',
   '/js/mobile-webapp.js',
   '/js/mobile-webapp.js?v=20260305a',
@@ -204,4 +204,5 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
+
 

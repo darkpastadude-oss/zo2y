@@ -650,4 +650,13 @@
     initSharedHeaderSearch();
   }
   observeSharedHeaderSearch();
+  window.__ZO2Y_UNIVERSAL_SEARCH_READY = true;
+  if (Array.isArray(window.__ZO2Y_UNIVERSAL_SEARCH_QUEUE) && window.__ZO2Y_UNIVERSAL_SEARCH_QUEUE.length) {
+    const queued = window.__ZO2Y_UNIVERSAL_SEARCH_QUEUE.splice(0);
+    queued.forEach((options) => {
+      try {
+        window.initUniversalSearch(options || {});
+      } catch (_err) {}
+    });
+  }
 })();

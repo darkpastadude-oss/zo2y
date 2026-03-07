@@ -881,7 +881,12 @@
     void loadAuthState();
     void loadPage();
     if (window.initUniversalSearch) {
-      window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'movies.html' });
+      const initSearch = () => window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'movies.html' });
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(initSearch, { timeout: 1200 });
+      } else {
+        window.setTimeout(initSearch, 0);
+      }
     }
   });
 })();

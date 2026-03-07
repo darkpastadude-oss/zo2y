@@ -1,6 +1,8 @@
 (() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260307a';
+  let universalSearchLoaderPromise = null;
 
   const HEADER_HTML = `
 <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -82,6 +84,64 @@
     <a class="zo2y-mobile-drawer-link" href="profile.html"><i class="fa-solid fa-list"></i><span>Your Lists</span></a>
   </div>
 </aside>`;
+
+  function flushQueuedUniversalSearchInits() {
+    if (!window.__ZO2Y_UNIVERSAL_SEARCH_READY || typeof window.initUniversalSearch !== 'function') return;
+    const queued = Array.isArray(window.__ZO2Y_UNIVERSAL_SEARCH_QUEUE)
+      ? window.__ZO2Y_UNIVERSAL_SEARCH_QUEUE.splice(0)
+      : [];
+    queued.forEach((options) => {
+      try {
+        window.initUniversalSearch(options || {});
+      } catch (_err) {}
+    });
+  }
+
+  function loadUniversalSearchScript() {
+    if (window.__ZO2Y_UNIVERSAL_SEARCH_READY && typeof window.initUniversalSearch === 'function') {
+      return Promise.resolve(window.initUniversalSearch);
+    }
+    if (universalSearchLoaderPromise) return universalSearchLoaderPromise;
+
+    universalSearchLoaderPromise = new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[data-zo2y-universal-search="1"]`);
+      if (existing) {
+        existing.addEventListener('load', () => {
+          flushQueuedUniversalSearchInits();
+          resolve(window.initUniversalSearch);
+        }, { once: true });
+        existing.addEventListener('error', reject, { once: true });
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = UNIVERSAL_SEARCH_SRC;
+      script.defer = true;
+      script.dataset.zo2yUniversalSearch = '1';
+      script.onload = () => {
+        flushQueuedUniversalSearchInits();
+        resolve(window.initUniversalSearch);
+      };
+      script.onerror = reject;
+      document.head.appendChild(script);
+    }).catch((_err) => {
+      universalSearchLoaderPromise = null;
+      return null;
+    });
+
+    return universalSearchLoaderPromise;
+  }
+
+  if (!Array.isArray(window.__ZO2Y_UNIVERSAL_SEARCH_QUEUE)) {
+    window.__ZO2Y_UNIVERSAL_SEARCH_QUEUE = [];
+  }
+
+  if (!window.__ZO2Y_UNIVERSAL_SEARCH_READY) {
+    window.initUniversalSearch = function initUniversalSearchProxy(options = {}) {
+      window.__ZO2Y_UNIVERSAL_SEARCH_QUEUE.push(options);
+      void loadUniversalSearchScript();
+    };
+  }
 
   function normalizePageName(pathname) {
     const file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
@@ -278,8 +338,17 @@
     if (btn.dataset.wired === '1') return;
     btn.dataset.wired = '1';
 
+    const warmSearch = () => {
+      void loadUniversalSearchScript();
+    };
+
+    input.addEventListener('focus', warmSearch, { once: true });
+    input.addEventListener('pointerdown', warmSearch, { once: true });
+
     btn.addEventListener('click', () => {
-      if (input) input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      void loadUniversalSearchScript().finally(() => {
+        if (input) input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      });
     });
   }
 

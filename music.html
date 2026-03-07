@@ -12,8 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/list-utils.js?v=20260221c" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260221b" defer></script>
-  <script src="js/universal-search.js?v=20260306a" defer></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     :root {
       --bg: #0b1633;
@@ -292,7 +291,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260226a" />
   <script src="/js/mobile-webapp.js?v=20260305a" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260304a">
-  <script src="js/shared-header.js?v=20260306c" defer></script>
+  <script src="js/shared-header.js?v=20260307a" defer></script>
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -948,10 +947,15 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       if (window.initUniversalSearch) {
-        window.initUniversalSearch({
+        const initSearch = () => window.initUniversalSearch({
           input: '#globalSearch',
           fallbackRoute: 'music.html'
         });
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(initSearch, { timeout: 1500 });
+        } else {
+          window.setTimeout(initSearch, 0);
+        }
       }
       if (window.initIndexStyleListMenu) {
         window.initIndexStyleListMenu({
@@ -980,9 +984,11 @@
       loadPage();
     });
   </script>
-  <script src="js/production-runtime.js?v=20260306a" defer></script>
+  <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
+
 
 
 

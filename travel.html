@@ -273,7 +273,7 @@
     }
   </style>
   <link rel="stylesheet" href="css/shared-header.css?v=20260304a">
-  <script src="js/shared-header.js?v=20260306c" defer></script>
+  <script src="js/shared-header.js?v=20260307a" defer></script>
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -1169,7 +1169,6 @@
 
     async function init() {
       loadCountryPhotoCacheFromStorage();
-      await ensureClient();
       wireEvents();
       const params = new URLSearchParams(window.location.search);
       const initialSearch = String(params.get('search') || '').trim();
@@ -1187,15 +1186,18 @@
       }
       render();
       wireListMenuBridge();
-      await syncAuth();
+      window.setTimeout(() => {
+        void syncAuth();
+      }, 0);
     }
 
     document.addEventListener('DOMContentLoaded', () => { void init(); });
   })();
   </script>
-  <script src="js/production-runtime.js?v=20260306a" defer></script>
+  <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
 
 
 

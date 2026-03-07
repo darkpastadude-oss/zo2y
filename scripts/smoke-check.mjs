@@ -15,8 +15,8 @@ const REDIRECT_PROBE_PATH = String(process.env.SMOKE_REDIRECT_PROBE_PATH || "/")
 const checks = [
   { name: "home", url: "/", expectIncludes: ["Zo2y"] },
   { name: "index", url: "/index.html", expectIncludes: ["All your interests in one place"] },
-  { name: "login", url: "/login.html", expectIncludes: ["Log in to your account"] },
-  { name: "signup", url: "/sign-up.html", expectIncludes: ["Create your account"] },
+  { name: "login", url: "/login.html", expectIncludes: ["Return to your account.", "Log in"] },
+  { name: "signup", url: "/sign-up.html", expectIncludes: ["Create account", "Sign up with Google"] },
   { name: "movies", url: "/movies.html", expectIncludes: ["Movies"] },
   { name: "tvshows", url: "/tvshows.html", expectIncludes: ["TV"] },
   { name: "games", url: "/games.html", expectIncludes: ["Games"] },
