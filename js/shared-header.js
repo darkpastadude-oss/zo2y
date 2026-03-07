@@ -5,7 +5,6 @@
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
   let authStateListenerBound = false;
-  let mobileHeaderOffsetBound = false;
 
   const HEADER_HTML = `
 <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -261,22 +260,6 @@
     });
   }
 
-  function syncMobileHeaderOffset() {
-    const sharedHeader = document.querySelector('.zo2y-shared-header');
-    if (!sharedHeader) return;
-    const isMobileViewport = window.matchMedia('(max-width: 1024px)').matches;
-    const nextOffset = isMobileViewport ? Math.ceil(sharedHeader.getBoundingClientRect().height) : 0;
-    document.documentElement.style.setProperty('--zo2y-mobile-header-offset', `${nextOffset}px`);
-  }
-
-  function wireMobileHeaderOffsetSync() {
-    syncMobileHeaderOffset();
-    if (mobileHeaderOffsetBound) return;
-    mobileHeaderOffsetBound = true;
-    window.addEventListener('resize', syncMobileHeaderOffset, { passive: true });
-    window.addEventListener('orientationchange', syncMobileHeaderOffset, { passive: true });
-  }
-
   async function syncAuthHeaderState() {
     const loginBtn = document.getElementById('loginBtn');
     const signupBtn = document.getElementById('signupBtn');
@@ -350,7 +333,6 @@
     menuBtn.dataset.wired = '1';
 
     const setDrawerState = (isOpen) => {
-      syncMobileHeaderOffset();
       drawer.classList.toggle('open', isOpen);
       backdrop.classList.toggle('active', isOpen);
       drawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
@@ -412,7 +394,6 @@
   function boot() {
     if (isHeaderSuppressedPage(window.location.pathname)) return;
     mountSharedHeader();
-    wireMobileHeaderOffsetSync();
     wireSearchButton();
     wireMobileDrawer();
     wireAuthStateSync();

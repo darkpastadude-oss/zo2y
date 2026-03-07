@@ -6,7 +6,6 @@
   --zo2y-header-muted: #8ca3c7;
   --zo2y-header-accent: #f59e0b;
   --zo2y-header-card: #132347;
-  --zo2y-mobile-header-offset: 0px;
 }
 
 .zo2y-shared-header {
@@ -44,10 +43,9 @@
 
 .zo2y-mobile-drawer {
   position: fixed;
-  top: var(--zo2y-mobile-header-offset, 64px);
+  top: 0;
   left: 0;
-  bottom: auto;
-  height: calc(100dvh - var(--zo2y-mobile-header-offset, 64px));
+  bottom: 0;
   width: min(88vw, 340px);
   background: linear-gradient(180deg, rgba(9, 16, 30, 0.98) 0%, rgba(7, 14, 25, 0.99) 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.14);
@@ -58,10 +56,10 @@
   pointer-events: none;
   overflow-x: hidden;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  align-content: start;
   gap: 10px;
-  padding: 14px 11px max(14px, env(safe-area-inset-bottom));
+  padding: 14px 11px 16px;
 }
 
 .zo2y-mobile-drawer.open {
@@ -176,7 +174,7 @@
 }
 
 .zo2y-mobile-drawer-footer {
-  margin-top: auto;
+  margin-top: 2px;
   display: grid;
   gap: 6px;
   padding-top: 2px;
@@ -431,21 +429,11 @@ body.zo2y-mobile-menu-open {
 
 @media (max-width: 1024px) {
   .zo2y-shared-header {
-    position: fixed;
-    left: 0;
-    right: 0;
+    position: sticky;
     border-radius: 0;
     border-left: 0;
     border-right: 0;
     top: 0;
-  }
-
-  html {
-    scroll-padding-top: var(--zo2y-mobile-header-offset, 108px);
-  }
-
-  body {
-    padding-top: var(--zo2y-mobile-header-offset, 108px);
   }
 
   .zo2y-mobile-topbar {
