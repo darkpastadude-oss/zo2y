@@ -853,12 +853,12 @@
     }
 
     .spotlight.theme-book .spotlight-bg::before {
-      opacity: 0.9;
+      opacity: 0.92;
       background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='260' viewBox='0 0 420 260'%3E%3Cg opacity='0.95'%3E%3Cpath d='M56 188c38-19 71-28 113-28 39 0 71 8 104 26V74c-34-18-65-26-104-26-40 0-74 10-113 30z' fill='%23f6dfaa'/%3E%3Cpath d='M364 188c-38-19-71-28-113-28-39 0-71 8-104 26V74c34-18 65-26 104-26 40 0 74 10 113 30z' fill='%23ffeccb'/%3E%3Cpath d='M210 54v134' stroke='%23d09b46' stroke-width='8' stroke-linecap='round' opacity='0.82'/%3E%3Cpath d='M80 96c34-11 60-16 96-16' stroke='%23dbb36a' stroke-width='5' stroke-linecap='round' opacity='0.78'/%3E%3Cpath d='M245 79c34 0 62 5 94 16' stroke='%23d7ab5d' stroke-width='5' stroke-linecap='round' opacity='0.76'/%3E%3Cpath d='M80 124c36-11 64-16 98-16' stroke='%23e5c786' stroke-width='5' stroke-linecap='round' opacity='0.62'/%3E%3Cpath d='M242 108c35 0 64 5 99 16' stroke='%23e9d3a3' stroke-width='5' stroke-linecap='round' opacity='0.6'/%3E%3Crect x='42' y='60' width='16' height='134' rx='8' fill='%23a66027' opacity='0.62'/%3E%3Crect x='362' y='60' width='16' height='134' rx='8' fill='%23905723' opacity='0.52'/%3E%3C/g%3E%3C/svg%3E"),
-        url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='220' viewBox='0 0 280 220'%3E%3Cg opacity='0.85'%3E%3Crect x='36' y='64' width='86' height='104' rx='10' fill='%23f4c36c'/%3E%3Crect x='50' y='52' width='86' height='104' rx='10' fill='%23ffdf97'/%3E%3Cpath d='M64 80h58M64 98h58M64 116h58M64 134h58' stroke='%23d39c45' stroke-width='4' stroke-linecap='round' opacity='0.72'/%3E%3Crect x='158' y='72' width='88' height='108' rx='10' fill='%23af6b36'/%3E%3Crect x='144' y='60' width='88' height='108' rx='10' fill='%23df9f62'/%3E%3Cpath d='M158 88h58M158 106h58M158 124h58M158 142h58' stroke='%23814f27' stroke-width='4' stroke-linecap='round' opacity='0.68'/%3E%3C/g%3E%3C/svg%3E");
-      background-size: 430px 265px, 315px 230px;
-      background-position: 0 0, 170px 135px;
+        url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='280' viewBox='0 0 420 280'%3E%3Cg opacity='0.96'%3E%3Cpath d='M58 202c42-24 82-34 126-34 34 0 63 7 103 24V66c-35-19-67-27-103-27-44 0-83 12-126 38z' fill='%23ffe3a1'/%3E%3Cpath d='M362 202c-42-24-82-34-126-34-34 0-63 7-103 24V66c35-19 67-27 103-27 44 0 83 12 126 38z' fill='%23fff0cd'/%3E%3Cpath d='M210 46v156' stroke='%23bc7d2f' stroke-width='9' stroke-linecap='round' opacity='0.88'/%3E%3Cpath d='M84 96c38-12 67-16 102-16' stroke='%23d6aa62' stroke-width='5' stroke-linecap='round' opacity='0.82'/%3E%3Cpath d='M84 126c40-11 70-15 104-15' stroke='%23e7ca8d' stroke-width='5' stroke-linecap='round' opacity='0.68'/%3E%3Cpath d='M236 82c35 0 65 5 100 16' stroke='%23d3a45b' stroke-width='5' stroke-linecap='round' opacity='0.82'/%3E%3Cpath d='M236 112c39 0 69 5 102 16' stroke='%23ead2a5' stroke-width='5' stroke-linecap='round' opacity='0.66'/%3E%3Cpath d='M50 198l34-16' stroke='%23b87435' stroke-width='8' stroke-linecap='round' opacity='0.42'/%3E%3Cpath d='M370 198l-34-16' stroke='%23b87435' stroke-width='8' stroke-linecap='round' opacity='0.42'/%3E%3C/g%3E%3C/svg%3E"),
+        url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='240' viewBox='0 0 340 240'%3E%3Cg opacity='0.82'%3E%3Cpath d='M40 176c30-16 56-24 86-24 28 0 50 5 82 18V80c-28-15-52-21-82-21-31 0-58 8-86 28z' fill='%23f4b85d'/%3E%3Cpath d='M300 176c-30-16-56-24-86-24-28 0-50 5-82 18V80c28-15 52-21 82-21 31 0 58 8 86 28z' fill='%23ffd98a'/%3E%3Cpath d='M170 62v114' stroke='%23985d22' stroke-width='8' stroke-linecap='round' opacity='0.82'/%3E%3Cpath d='M62 108c28-9 50-12 78-12' stroke='%23cf8f3d' stroke-width='4' stroke-linecap='round' opacity='0.66'/%3E%3Cpath d='M200 96c28 0 50 4 80 12' stroke='%23d39b4d' stroke-width='4' stroke-linecap='round' opacity='0.66'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: 440px 290px, 350px 245px;
+      background-position: 0 0, 170px 120px;
       background-repeat: repeat;
       mix-blend-mode: screen;
       animation: spotlightBooksFloat 28s linear infinite;
@@ -2920,7 +2920,7 @@
         transform: translate3d(0, 0, 0);
       }
       to {
-        transform: translate3d(-120px, -70px, 0);
+        transform: translate3d(-165px, -135px, 0);
       }
     }
 
