@@ -152,6 +152,112 @@
     });
   };
 
+  const ensureMobileUiPolishStyle = () => {
+    if (!isMobileLike || !document.head || document.getElementById('zo2yMobileUiPolish')) return;
+    const style = document.createElement('style');
+    style.id = 'zo2yMobileUiPolish';
+    style.textContent = `
+      body.mobile-webapp {
+        --zo2y-mobile-control-radius: 14px;
+      }
+      body.mobile-webapp .hero,
+      body.mobile-webapp .controls,
+      body.mobile-webapp .chip-row,
+      body.mobile-webapp .grid,
+      body.mobile-webapp .section,
+      body.mobile-webapp .section-head,
+      body.mobile-webapp .rail-wrap,
+      body.mobile-webapp .container,
+      body.mobile-webapp .page-shell {
+        max-width: 100%;
+      }
+      body.mobile-webapp input[type="search"],
+      body.mobile-webapp input[type="text"],
+      body.mobile-webapp input[type="number"],
+      body.mobile-webapp input[type="email"],
+      body.mobile-webapp input[type="password"],
+      body.mobile-webapp input[type="date"],
+      body.mobile-webapp select,
+      body.mobile-webapp textarea,
+      body.mobile-webapp .search-input,
+      body.mobile-webapp .filter-select,
+      body.mobile-webapp .form-input,
+      body.mobile-webapp .menu-input,
+      body.mobile-webapp .form-textarea,
+      body.mobile-webapp #globalSearch {
+        font-size: 16px !important;
+        line-height: 1.35;
+        border-radius: var(--zo2y-mobile-control-radius) !important;
+        min-height: 46px;
+      }
+      body.mobile-webapp textarea,
+      body.mobile-webapp .form-textarea {
+        min-height: 120px;
+      }
+      body.mobile-webapp .search-input,
+      body.mobile-webapp .filter-select,
+      body.mobile-webapp .form-input,
+      body.mobile-webapp .menu-input,
+      body.mobile-webapp #globalSearch {
+        padding-top: 12px !important;
+        padding-bottom: 12px !important;
+      }
+      body.mobile-webapp .btn,
+      body.mobile-webapp button,
+      body.mobile-webapp .chip,
+      body.mobile-webapp .zo2y-shared-btn,
+      body.mobile-webapp .zo2y-mobile-auth-btn,
+      body.mobile-webapp .zo2y-mobile-drawer-link {
+        border-radius: 14px !important;
+      }
+      body.mobile-webapp .btn,
+      body.mobile-webapp .zo2y-shared-btn,
+      body.mobile-webapp .zo2y-mobile-auth-btn {
+        min-height: 44px;
+        font-size: 14px;
+      }
+      body.mobile-webapp .chip {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+      body.mobile-webapp .hero,
+      body.mobile-webapp .controls,
+      body.mobile-webapp .chip-row,
+      body.mobile-webapp .grid {
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+      }
+      body.mobile-webapp .hero {
+        margin-top: 14px;
+      }
+      body.mobile-webapp .hero h1,
+      body.mobile-webapp .section-head h2 {
+        letter-spacing: -0.02em;
+      }
+      body.mobile-webapp .hero p,
+      body.mobile-webapp .section-head p,
+      body.mobile-webapp .status,
+      body.mobile-webapp .card-extra {
+        font-size: 13px !important;
+        line-height: 1.5;
+      }
+      body.mobile-webapp .controls {
+        gap: 10px !important;
+      }
+      body.mobile-webapp .chip-row {
+        gap: 8px !important;
+      }
+      body.mobile-webapp .rail-wrap,
+      body.mobile-webapp .section {
+        margin-top: 14px;
+      }
+      body.mobile-webapp .zo2y-mobile-topbar {
+        width: calc(100% - 16px) !important;
+      }
+    `;
+    document.head.appendChild(style);
+  };
+
   const hideGameEntryPoints = (scope = document) => {
     if (!GAMES_DISABLED || !scope) return;
     const canQuery = typeof scope.querySelectorAll === 'function';
@@ -192,6 +298,7 @@
   };
 
   ensureResourceHints();
+  ensureMobileUiPolishStyle();
   hideGameEntryPoints();
 
   const dismissInstallPrompt = (options = {}) => {
