@@ -14,25 +14,13 @@
     </button>
     <a class="zo2y-mobile-wordmark" href="index.html" aria-label="Home">
       <img src="/newlogo.webp" alt="Logo" />
-      <span class="zo2y-brand-outline sidebar-brand-wordmark">zo2y</span>
     </a>
     <span class="zo2y-mobile-topbar-spacer" aria-hidden="true"></span>
-  </div>
-  <div class="zo2y-mobile-searchbar">
-    <div class="nav-search zo2y-mobile-search">
-      <input id="mobileGlobalSearch" class="nav-search-input zo2y-mobile-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
-      <button id="mobileGlobalSearchBtn" class="nav-search-btn zo2y-mobile-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
-    </div>
   </div>
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
       <img src="/newlogo.webp" alt="Logo" />
     </a>
-    <div class="nav-search zo2y-shared-search">
-      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
-      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
-      <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
-    </div>
     <nav class="zo2y-shared-nav" aria-label="Primary navigation">
       <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
       <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
@@ -56,7 +44,6 @@
   <div class="zo2y-mobile-drawer-head">
     <a class="zo2y-mobile-drawer-brand" href="index.html" aria-label="Home">
       <img src="/newlogo.webp" alt="Logo" />
-      <span class="zo2y-brand-outline sidebar-brand-wordmark">zo2y</span>
     </a>
     <button class="zo2y-mobile-drawer-close" id="zo2yMobileMenuCloseBtn" type="button" aria-label="Close navigation menu">
       <i class="fa-solid fa-xmark"></i>
@@ -374,6 +361,7 @@
       document.body.classList.toggle('zo2y-mobile-menu-open', isOpen);
       if (isOpen) lockBodyScrollForMenu();
       else unlockBodyScrollForMenu();
+      if (isOpen) drawer.scrollTop = 0;
     };
 
     const closeDrawer = () => setDrawerState(false);
@@ -405,8 +393,6 @@
     };
 
     const searchTargets = [
-      { input: document.getElementById('globalSearch'), button: document.getElementById('globalSearchBtn') },
-      { input: document.getElementById('mobileGlobalSearch'), button: document.getElementById('mobileGlobalSearchBtn') },
       { input: document.getElementById('mobileMenuSearch'), button: document.getElementById('mobileMenuSearchBtn') }
     ];
 

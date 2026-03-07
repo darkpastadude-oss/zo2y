@@ -3402,3 +3402,17 @@
         -webkit-line-clamp: 2;
       }
     }
+
+    @media (max-width: 1024px) {
+      .zo2y-shared-header,
+      .desktop-main-panel > .zo2y-shared-header {
+        position: sticky !important;
+        top: 0 !important;
+        margin-top: 0 !important;
+        z-index: 1600 !important;
+      }
+
+      .desktop-main-panel > .zo2y-shared-header {
+        border-radius: 0 !important;
+      }
+    }
