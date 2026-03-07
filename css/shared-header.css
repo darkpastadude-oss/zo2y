@@ -442,11 +442,12 @@ body.zo2y-mobile-menu-open {
 
 @media (max-width: 1024px) {
   .zo2y-shared-header {
-    position: sticky;
+    position: sticky !important;
     border-radius: 0;
     border-left: 0;
     border-right: 0;
-    top: 0;
+    top: 0 !important;
+    z-index: 1800 !important;
   }
 
   .zo2y-mobile-topbar {

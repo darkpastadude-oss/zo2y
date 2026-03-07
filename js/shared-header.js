@@ -1,7 +1,7 @@
 (() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260307b';
+  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260307c';
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
   let authStateListenerBound = false;
@@ -191,7 +191,13 @@
     if (existingMobileDrawer) existingMobileDrawer.remove();
     if (existingMobileBackdrop) existingMobileBackdrop.remove();
 
-    if (existingSharedHeader) {
+    const isMobileViewport = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+    if (isMobileViewport) {
+      if (existingSharedHeader) existingSharedHeader.remove();
+      const legacyHeader = document.querySelector('header');
+      if (legacyHeader && !legacyHeader.matches('.landing-header')) legacyHeader.remove();
+      document.body.insertBefore(nextSharedHeader, document.body.firstChild);
+    } else if (existingSharedHeader) {
       existingSharedHeader.replaceWith(nextSharedHeader);
     } else {
       const legacyHeader = document.querySelector('header');
@@ -459,7 +465,26 @@
       void loadUniversalSearchScript();
     };
 
+    const initInputUniversalSearch = (input) => {
+      if (!input) return;
+      if (input.dataset.zo2yUniversalWired === '1') return;
+      const init = () => {
+        if (typeof window.initUniversalSearch !== 'function') return;
+        try {
+          window.initUniversalSearch({ input, fallbackRoute: 'movies.html' });
+          input.dataset.zo2yUniversalWired = '1';
+        } catch (_err) {}
+      };
+      if (window.__ZO2Y_UNIVERSAL_SEARCH_READY && typeof window.initUniversalSearch === 'function') {
+        init();
+        return;
+      }
+      void loadUniversalSearchScript().finally(init);
+    };
+
     const searchTargets = [
+      { input: document.getElementById('globalSearch'), button: document.getElementById('globalSearchBtn') },
+      { input: document.getElementById('mobileGlobalSearch'), button: document.getElementById('mobileGlobalSearchBtn') },
       { input: document.getElementById('mobileMenuSearch'), button: document.getElementById('mobileMenuSearchBtn') }
     ];
 
@@ -468,11 +493,18 @@
       if (button.dataset.wired === '1') return;
       button.dataset.wired = '1';
 
-      input.addEventListener('focus', warmSearch, { once: true });
-      input.addEventListener('pointerdown', warmSearch, { once: true });
+      input.addEventListener('focus', () => {
+        warmSearch();
+        initInputUniversalSearch(input);
+      });
+      input.addEventListener('pointerdown', () => {
+        warmSearch();
+        initInputUniversalSearch(input);
+      });
 
       button.addEventListener('click', () => {
         void loadUniversalSearchScript().finally(() => {
+          initInputUniversalSearch(input);
           input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
         });
       });
