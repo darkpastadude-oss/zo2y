@@ -342,6 +342,18 @@
       document.body.style.overscrollBehavior = '';
     };
 
+    const resetDrawerScrollTop = () => {
+      if (!drawer) return;
+      drawer.scrollTop = 0;
+      // Mobile Safari can restore scroll after paint; force again.
+      requestAnimationFrame(() => {
+        drawer.scrollTop = 0;
+      });
+      setTimeout(() => {
+        drawer.scrollTop = 0;
+      }, 60);
+    };
+
     const setDrawerState = (isOpen) => {
       drawer.classList.toggle('open', isOpen);
       backdrop.classList.toggle('active', isOpen);
@@ -352,7 +364,7 @@
       document.body.classList.toggle('zo2y-mobile-menu-open', isOpen);
       if (isOpen) lockBodyScrollForMenu();
       else unlockBodyScrollForMenu();
-      if (isOpen) drawer.scrollTop = 0;
+      resetDrawerScrollTop();
     };
 
     const closeDrawer = () => setDrawerState(false);
