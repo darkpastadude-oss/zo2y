@@ -2325,22 +2325,20 @@
         margin: 0;
       }
 
-      .desktop-main-panel > .zo2y-shared-header {
-        top: 10px;
-        border-radius: 20px;
-        border: 1px solid rgba(255,255,255,0.14);
-        background: rgba(8, 15, 27, 0.84);
-      }
+      @media (min-width: 1025px) {
+        .desktop-main-panel > .zo2y-shared-header {
+          top: 10px;
+          border-radius: 20px;
+          border: 1px solid rgba(255,255,255,0.14);
+          background: rgba(8, 15, 27, 0.84);
+        }
 
-      .desktop-main-panel > .zo2y-shared-header .zo2y-shared-header-inner {
-        width: min(1240px, calc(100% - 36px));
-        min-height: 60px;
-        gap: 12px;
-        padding: 8px 0;
-      }
-
-      .desktop-main-panel > .zo2y-shared-header .zo2y-shared-search {
-        max-width: 360px;
+        .desktop-main-panel > .zo2y-shared-header .zo2y-shared-header-inner {
+          width: min(1240px, calc(100% - 36px));
+          min-height: 60px;
+          gap: 12px;
+          padding: 8px 0;
+        }
       }
 
       .desktop-sidebar {
@@ -3403,16 +3401,4 @@
       }
     }
 
-    @media (max-width: 1024px) {
-      .zo2y-shared-header,
-      .desktop-main-panel > .zo2y-shared-header {
-        position: sticky !important;
-        top: 0 !important;
-        margin-top: 0 !important;
-        z-index: 1600 !important;
-      }
-
-      .desktop-main-panel > .zo2y-shared-header {
-        border-radius: 0 !important;
-      }
-    }
+    
