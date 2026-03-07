@@ -8,7 +8,7 @@
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
             const OPEN_LIBRARY_BASE = "https://openlibrary.org";
             const OPEN_LIBRARY_PROXY_BASE = "/api/openlibrary";
-            const FALLBACK_BOOK_IMAGE = "images/logo.png";
+            const FALLBACK_BOOK_IMAGE = "/newlogo.webp";
 
             async function igdbFetch(path, params = {}, signal = null) {
                 if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === "function") {
@@ -3242,7 +3242,7 @@
                             const data = await fetchMusicDetails(safeId);
                             return data ? {
                                 title: String(data.name || '').trim(),
-                                image: String(data.image_url || '').trim() || 'images/logo.png'
+                                image: String(data.image_url || '').trim() || '/newlogo.webp'
                             } : null;
                         }
                         if (safeType === 'restaurant') {
@@ -5082,7 +5082,7 @@
 
             function countryFlagFromCode(code) {
                 const safeCode = normalizeCountryCode(code);
-                if (!safeCode) return 'images/logo.png';
+                if (!safeCode) return '/newlogo.webp';
                 return `https://flagcdn.com/w640/${safeCode.toLowerCase()}.png`;
             }
 
@@ -7949,7 +7949,7 @@
                         if (previewItems[i]) {
                             html += `
                                 <div class="collection-preview-item ${previewOrientationClass}">
-                                    <img src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
+                                    <img src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                                     ${overflowHtml}
                                 </div>
                             `;
@@ -8110,7 +8110,7 @@
                             .in('id', missingIds);
                         (data || []).forEach((row) => {
                             const id = String(row.id || '').trim();
-                            const imageUrl = row.image_url || 'images/logo.png';
+                            const imageUrl = row.image_url || '/newlogo.webp';
                             writePreviewAssetCache(contentType, id, imageUrl);
                         });
                     } else if (contentType === 'travel') {
@@ -8150,7 +8150,7 @@
                     const cached = readPreviewAssetCache(contentType, id);
                     if (cached) return cached;
                     if (contentType === 'book') return FALLBACK_BOOK_IMAGE;
-                    if (contentType === 'music') return 'images/logo.png';
+                    if (contentType === 'music') return '/newlogo.webp';
                     if (contentType === 'travel') return countryFlagFromCode(normalizeCountryCode(id) || id);
                     return null;
                 });
@@ -9327,7 +9327,7 @@
                     itemCard.onclick = () => window.location.href = `book.html?id=${encodeURIComponent(id)}`;
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
+                        <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${ProfileManager.escapeHtml(title)}</h3>
                             ${canEditItems ? `
@@ -9500,7 +9500,7 @@
                     const title = track?.name || 'Track';
                     const artists = String(track?.artists || 'Unknown Artist').trim() || 'Unknown Artist';
                     const album = String(track?.album_name || 'Album').trim() || 'Album';
-                    const image = String(track?.image_url || '').trim() || 'images/logo.png';
+                    const image = String(track?.image_url || '').trim() || '/newlogo.webp';
                     const openUrl = trackId ? `song.html?id=${encodeURIComponent(trackId)}` : 'music.html';
                     const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
@@ -9518,7 +9518,7 @@
                     };
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${image}" alt="${ProfileManager.escapeHtml(title)}" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
+                        <img class="collection-item-image" src="${image}" alt="${ProfileManager.escapeHtml(title)}" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${ProfileManager.escapeHtml(title)}</h3>
                             ${canEditItems ? `
@@ -9717,7 +9717,7 @@
                     };
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} flag" loading="lazy" onerror="this.onerror=null;this.src='images/logo.png';">
+                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} flag" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${escapeHtml(title)}</h3>
                             ${canEditItems ? `

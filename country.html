@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <script src="/js/auth-gate.js?v=20260306a"></script>
+  
+  <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
+<script src="/js/auth-gate.js?v=20260306a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex">
   <title>Zo2y - Country</title>
   <meta name="description" content="Country details, travel lists, and travel reviews.">
-  <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
+  <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <style>
@@ -504,15 +506,14 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260307b">
-  <script src="js/shared-header.js?v=20260307a" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260307c">
+  <script src="js/shared-header.js?v=20260307b" defer></script>
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-shared-header-inner">
-    <a class="zo2y-shared-brand" href="index.html">
-      <img src="images/logo.png" alt="Zo2y" />
-      <span>Zo2y</span>
+    <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
+      <img src="/newlogo.webp" alt="Logo" />
     </a>
     <div class="nav-search zo2y-shared-search">
       <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
@@ -541,10 +542,10 @@
   <section class="hero">
     <div class="hero-left">
       <div class="photo-wrap">
-        <img id="photo" src="images/logo.png" alt="Country photo">
+        <img id="photo" src="/newlogo.webp" alt="Country photo">
       </div>
       <div class="flag-wrap">
-        <img id="flag" src="images/logo.png" alt="Country flag">
+        <img id="flag" src="/newlogo.webp" alt="Country flag">
       </div>
     </div>
     <div>
@@ -1752,6 +1753,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 

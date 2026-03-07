@@ -447,9 +447,9 @@
 
     if (canPromptInstall) {
       overlay.innerHTML = `
-        <div class="zo2y-install-prompt" role="dialog" aria-modal="true" aria-label="Install Zo2y App">
+        <div class="zo2y-install-prompt" role="dialog" aria-modal="true" aria-label="Install app">
           <button type="button" class="zo2y-install-close" id="zo2yInstallCloseBtn" aria-label="Close">&times;</button>
-          <p class="zo2y-install-title">Install Zo2y App</p>
+          <p class="zo2y-install-title">Install App</p>
           <p class="zo2y-install-copy">Install the mobile web app for faster launch, full-screen mode, and app-style navigation.</p>
           <div class="zo2y-install-actions">
             <button type="button" class="zo2y-install-btn primary" id="zo2yInstallNowBtn">Install now</button>
@@ -482,9 +482,9 @@
       });
     } else if (useIosHint) {
       overlay.innerHTML = `
-        <div class="zo2y-install-prompt" role="dialog" aria-modal="true" aria-label="Install Zo2y App">
+        <div class="zo2y-install-prompt" role="dialog" aria-modal="true" aria-label="Install app">
           <button type="button" class="zo2y-install-close" id="zo2yInstallCloseBtn" aria-label="Close">&times;</button>
-          <p class="zo2y-install-title">Install Zo2y App</p>
+          <p class="zo2y-install-title">Install App</p>
           <p class="zo2y-install-copy">On iPhone Safari: tap <strong>Share</strong>, then choose <strong>Add to Home Screen</strong>.</p>
           <div class="zo2y-install-actions">
             <button type="button" class="zo2y-install-btn primary" id="zo2yInstallGotItBtn">Got it</button>
@@ -500,9 +500,9 @@
       });
     } else if (useGenericHint) {
       overlay.innerHTML = `
-        <div class="zo2y-install-prompt" role="dialog" aria-modal="true" aria-label="Install Zo2y App">
+        <div class="zo2y-install-prompt" role="dialog" aria-modal="true" aria-label="Install app">
           <button type="button" class="zo2y-install-close" id="zo2yInstallCloseBtn" aria-label="Close">&times;</button>
-          <p class="zo2y-install-title">Install Zo2y App</p>
+          <p class="zo2y-install-title">Install App</p>
           <p class="zo2y-install-copy">Open your browser menu and tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.</p>
           <div class="zo2y-install-actions">
             <button type="button" class="zo2y-install-btn primary" id="zo2yInstallGenericOkBtn">Got it</button>

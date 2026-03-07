@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="/js/auth-gate.js?v=20260306a"></script>
+  
+  <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
+<script src="/js/auth-gate.js?v=20260306a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Books</title>
-  <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
+  <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -680,18 +682,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest?v=2" />
-  <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
+  <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260226a" />
-  <script src="/js/mobile-webapp.js?v=20260307b" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260307b">
-  <script src="js/shared-header.js?v=20260307a" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260307c" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260307c">
+  <script src="js/shared-header.js?v=20260307b" defer></script>
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-shared-header-inner">
-    <a class="zo2y-shared-brand" href="index.html">
-      <img src="images/logo.png" alt="Zo2y" />
-      <span>Zo2y</span>
+    <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
+      <img src="/newlogo.webp" alt="Logo" />
     </a>
     <div class="nav-search zo2y-shared-search">
       <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
@@ -771,7 +772,7 @@
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
-      const FALLBACK_BOOK_IMAGE = 'images/logo.png';
+      const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
       const BOOKS_PER_PAGE = 20;
       const CATEGORY_OPTIONS = [
         'Fiction',
@@ -1346,7 +1347,7 @@
               src="${thumb || FALLBACK_BOOK_IMAGE}"
               alt="${item.title || 'Book'}"
               loading="lazy"
-              onerror="this.onerror=null;this.src='images/logo.png';">
+              onerror="this.onerror=null;this.src='/newlogo.webp';">
             <div class="card-body">
               <h3 class="card-title">${item.title || 'Untitled'}</h3>
               <div class="card-desc">${desc}</div>
@@ -1724,6 +1725,8 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
+
 
 
 

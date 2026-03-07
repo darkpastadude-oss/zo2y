@@ -75,21 +75,15 @@
 .zo2y-mobile-drawer-brand {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 0;
   text-decoration: none;
-  color: #ffffff;
-  font-family: "Outfit", "Inter", system-ui, sans-serif;
-  font-weight: 800;
-  font-size: 28px;
-  line-height: 1;
-  letter-spacing: 0.35px;
-  text-transform: lowercase;
 }
 
 .zo2y-mobile-drawer-brand img {
-  width: 27px;
-  height: 27px;
+  width: 40px;
+  height: 40px;
   object-fit: cover;
+  border-radius: 10px;
 }
 
 .zo2y-mobile-drawer-close {
@@ -223,18 +217,15 @@ body.zo2y-mobile-menu-open {
 .zo2y-shared-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: #fff;
-  font-size: 21px;
-  font-weight: 800;
+  gap: 0;
   text-decoration: none;
   flex-shrink: 0;
 }
 
 .zo2y-shared-brand img {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   object-fit: cover;
 }
 
@@ -451,21 +442,15 @@ body.zo2y-mobile-menu-open {
     justify-self: center;
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: 0;
     text-decoration: none;
-    color: #ffffff;
-    font-family: "Outfit", "Inter", system-ui, sans-serif;
-    font-size: 31px;
-    font-weight: 800;
-    letter-spacing: 0.2px;
-    line-height: 1;
-    text-transform: lowercase;
   }
 
   .zo2y-mobile-wordmark img {
-    width: 29px;
-    height: 29px;
+    width: 40px;
+    height: 40px;
     object-fit: cover;
+    border-radius: 10px;
   }
 
   .zo2y-shared-header-inner {
@@ -480,12 +465,12 @@ body.zo2y-mobile-menu-open {
   }
 
   .zo2y-mobile-wordmark {
-    font-size: 31px;
+    transform: translateX(-6px);
   }
 
   .zo2y-mobile-wordmark img {
-    width: 30px;
-    height: 30px;
+    width: 38px;
+    height: 38px;
   }
 
   .zo2y-mobile-drawer {

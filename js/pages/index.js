@@ -70,7 +70,7 @@
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
     const HOME_CHANNEL_TIMEOUT_MS = 4200;
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 1200;
-    const HOME_LOCAL_FALLBACK_IMAGE = 'images/logo.png';
+    const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 16;
     const HOME_SPOTLIGHT_POOL_SIZE = 16;
@@ -281,7 +281,7 @@ let homeTravelPhotoCacheSaveTimer = null;
       if (!url) return false;
       if (isLikelyTravelFlagAsset(url)) return false;
       const lower = url.toLowerCase();
-      if (lower.includes('images/logo.png')) return false;
+      if (lower.includes('/newlogo.webp')) return false;
       if (lower.startsWith('data:image/')) return false;
       if (lower.includes('source.unsplash.com/')) return false;
       return true;
@@ -3924,13 +3924,13 @@ let homeTravelPhotoCacheSaveTimer = null;
     function getHomeOnboardingSteps() {
       return [
         {
-          title: 'Welcome to Zo2y',
+          title: 'Welcome',
           body: 'Quick tour: how to add places to lists, create your own lists, and connect with friends.',
           art: `
             <div class="onboarding-hero">
               <div class="onboarding-hero-badge"><i class="fas fa-star"></i> Fresh account</div>
               <div class="onboarding-hero-row">
-                <img src="images/logo.png" alt="Zo2y logo" class="onboarding-hero-logo">
+                <img src="/newlogo.webp" alt="Logo" class="onboarding-hero-logo">
                 <div class="onboarding-hero-cards">
                   <span><i class="fas fa-clapperboard"></i> Anime Picks</span>
                   <span><i class="fas fa-film"></i> Movies</span>

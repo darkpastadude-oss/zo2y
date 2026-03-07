@@ -204,7 +204,7 @@
     title: seed.title,
     subtitle: seed.subtitle,
     extra: seed.extra,
-    image: 'images/logo.png',
+    image: '/newlogo.webp',
     href: 'games.html',
     disableLists: true
   }));
@@ -253,7 +253,7 @@
           title: seed.title,
           subtitle: seed.subtitle,
           extra: seed.extra,
-          image: 'images/logo.png',
+          image: '/newlogo.webp',
           href: 'games.html',
           disableLists: true
         };
@@ -267,7 +267,7 @@
         title: String(best?.name || seed.title).trim() || seed.title,
         subtitle: seed.subtitle,
         extra: seed.extra,
-        image: cover || hero || 'images/logo.png',
+        image: cover || hero || '/newlogo.webp',
         href: `game.html?id=${encodeURIComponent(bestId)}`
       };
     });
@@ -479,7 +479,7 @@
     return {
       title: `${(SOURCE_BY_MEDIA[type]?.label || 'Item')} ${id}`.trim(),
       subtitle: SOURCE_BY_MEDIA[type]?.label || 'Item',
-      image: 'images/logo.png',
+      image: '/newlogo.webp',
       background: '',
       href
     };
@@ -583,7 +583,7 @@
           metaByKey.set(makeReviewKey('book', id), {
             title: String(row?.title || `Book ${id}`).trim(),
             subtitle: String(row?.authors || 'Book').trim(),
-            image: safeHttps(row?.thumbnail || '') || 'images/logo.png',
+            image: safeHttps(row?.thumbnail || '') || '/newlogo.webp',
             background: '',
             href: `book.html?id=${encodeURIComponent(id)}`
           });
@@ -602,7 +602,7 @@
         (Array.isArray(data) ? data : []).forEach((row) => {
           const id = String(row?.id || '').trim();
           if (!id) return;
-          const image = safeHttps(row?.image_url || '') || 'images/logo.png';
+          const image = safeHttps(row?.image_url || '') || '/newlogo.webp';
           metaByKey.set(makeReviewKey('music', id), {
             title: String(row?.name || `Track ${id}`).trim(),
             subtitle: String(row?.artists || row?.album_name || 'Music').trim(),
@@ -640,7 +640,7 @@
               metaByKey.set(makeReviewKey('travel', code), {
                 title,
                 subtitle,
-                image: image || 'images/logo.png',
+                image: image || '/newlogo.webp',
                 background: '',
                 href: `country.html?code=${encodeURIComponent(code)}`
               });
@@ -657,7 +657,7 @@
       metaByKey.set(makeReviewKey('movie', id), {
         title,
         subtitle: String(json?.release_date || '').slice(0, 4) || 'Movie',
-        image: json?.poster_path ? `${TMDB_POSTER}${json.poster_path}` : 'images/logo.png',
+        image: json?.poster_path ? `${TMDB_POSTER}${json.poster_path}` : '/newlogo.webp',
         background: json?.backdrop_path ? `${TMDB_BACKDROP}${json.backdrop_path}` : '',
         href: `movie.html?id=${encodeURIComponent(id)}`
       });
@@ -671,7 +671,7 @@
       const baseMeta = {
         title,
         subtitle: String(json?.first_air_date || '').slice(0, 4) || 'TV',
-        image: json?.poster_path ? `${TMDB_POSTER}${json.poster_path}` : 'images/logo.png',
+        image: json?.poster_path ? `${TMDB_POSTER}${json.poster_path}` : '/newlogo.webp',
         background: json?.backdrop_path ? `${TMDB_BACKDROP}${json.backdrop_path}` : ''
       };
       if (groupedIds.tv.has(id)) {
@@ -699,7 +699,7 @@
       metaByKey.set(makeReviewKey('game', id), {
         title,
         subtitle: String(row?.released || '').slice(0, 4) || 'Game',
-        image: cover || hero || 'images/logo.png',
+        image: cover || hero || '/newlogo.webp',
         background: hero || cover || '',
         href: `game.html?id=${encodeURIComponent(id)}`
       });

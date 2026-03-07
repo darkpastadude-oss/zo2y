@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <script src="/js/auth-gate.js?v=20260306a"></script>
+  
+  <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
+<script src="/js/auth-gate.js?v=20260306a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Song</title>
+<link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <meta name="description" content="Listen to song previews and save tracks to your Zo2y lists." />
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
@@ -393,18 +396,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="/images/logo.png" />
+  <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260226a" />
-  <script src="/js/mobile-webapp.js?v=20260307b" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260307b">
-  <script src="js/shared-header.js?v=20260307a" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260307c" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260307c">
+  <script src="js/shared-header.js?v=20260307b" defer></script>
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-shared-header-inner">
-    <a class="zo2y-shared-brand" href="index.html">
-      <img src="images/logo.png" alt="Zo2y" />
-      <span>Zo2y</span>
+    <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
+      <img src="/newlogo.webp" alt="Logo" />
     </a>
     <div class="nav-search zo2y-shared-search">
       <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
@@ -433,7 +435,7 @@
   <main class="container">
     <section class="shell">
       <div class="cover">
-        <img id="songCover" src="images/logo.png" alt="Song cover" />
+        <img id="songCover" src="/newlogo.webp" alt="Song cover" />
       </div>
       <div class="meta">
         <h1 id="songTitle">Loading song...</h1>
@@ -751,11 +753,11 @@
       qs('artistFollowers').innerHTML = '<i class="fa-solid fa-users"></i> Followers --';
       const coverEl = qs('songCover');
       const coverUrl = pickTrackImage(data);
-      coverEl.src = coverUrl || 'images/logo.png';
+      coverEl.src = coverUrl || '/newlogo.webp';
       track.image = coverUrl || String(track.image || '').trim();
       coverEl.onerror = () => {
         coverEl.onerror = null;
-        coverEl.src = 'images/logo.png';
+        coverEl.src = '/newlogo.webp';
       };
       qs('songStatus').textContent = data.preview_url ? 'Ready to play preview.' : 'Preview not available for this track.';
       qs('songStatus').classList.remove('error');
@@ -1081,10 +1083,10 @@
 
       const coverUrl = pickTrackImage({ image: album?.image, album: { images: album?.images || [] } });
       const coverEl = qs('songCover');
-      coverEl.src = coverUrl || 'images/logo.png';
+      coverEl.src = coverUrl || '/newlogo.webp';
       coverEl.onerror = () => {
         coverEl.onerror = null;
-        coverEl.src = 'images/logo.png';
+        coverEl.src = '/newlogo.webp';
       };
 
       const artistPanel = qs('artistPanel');
@@ -1299,6 +1301,8 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
+
 
 
 

@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v27';
-const PAGE_CACHE = 'zo2y-pages-v44';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v29';
+const PAGE_CACHE = 'zo2y-pages-v46';
 const IMAGE_CACHE = 'zo2y-images-v18';
 const API_CACHE = 'zo2y-api-v4';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -9,21 +9,23 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/css/pages/index.css?v=20260306g',
-  '/css/shared-header.css?v=20260307b',
-  '/js/pages/index.js?v=20260307a',
+  '/css/pages/index.css?v=20260307h',
+  '/css/shared-header.css?v=20260307c',
+  '/js/pages/index.js?v=20260307b',
   '/js/home-desktop-rebrand.js?v=20260301q',
-  '/js/shared-header.js?v=20260307a',
+  '/js/shared-header.js?v=20260307b',
+  '/js/vercel-analytics.js?v=20260307a',
   '/js/list-utils.js?v=20260301e',
   '/js/universal-search.js?v=20260307a',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260228a',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260307b',
+  '/js/mobile-webapp.js?v=20260307c',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260301b',
   '/favicon.ico',
-  '/images/logo.png',
+  '/favicon.ico?v=20260307a',
+  '/newlogo.webp',
   '/images/apple-touch-icon-180.png'
 ];
 
@@ -181,6 +183,7 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin === self.location.origin && url.pathname === '/sw.js') return;
+  if (url.origin === self.location.origin && url.pathname.startsWith('/_vercel/insights/')) return;
   const isImageRequest = request.destination === 'image'
     || /\.(avif|bmp|gif|ico|jpe?g|png|svg|webp)$/i.test(url.pathname);
 

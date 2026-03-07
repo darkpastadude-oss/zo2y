@@ -25,7 +25,7 @@ function baseTemplate({ title, subtitle, bodyHtml, ctaLabel, ctaUrl, footerText 
   const safeCtaLabel = escapeHtml(ctaLabel || "Open Zo2y");
   const safeCtaUrl = escapeHtml(ctaUrl || process.env.APP_BASE_URL || "https://zo2y.com");
   const baseUrl = String(process.env.APP_BASE_URL || "https://zo2y.com").replace(/\/+$/, "");
-  const safeLogoUrl = escapeHtml(`${baseUrl}/images/logo.png`);
+  const safeLogoUrl = escapeHtml(`${baseUrl}/newlogo.webp`);
 
   return `
   <html>

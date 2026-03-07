@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="/js/auth-gate.js?v=20260306a"></script>
+  
+  <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
+<script src="/js/auth-gate.js?v=20260306a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Games</title>
-  <link rel="icon" href="/favicon.ico?v=3" type="image/x-icon">
+  <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/list-utils.js?v=20260221c"></script>
@@ -677,18 +679,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="/images/logo.png" />
+  <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260227f" />
-  <script src="/js/mobile-webapp.js?v=20260307b" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260307b">
-  <script src="js/shared-header.js?v=20260307a" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260307c" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260307c">
+  <script src="js/shared-header.js?v=20260307b" defer></script>
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-shared-header-inner">
-    <a class="zo2y-shared-brand" href="index.html">
-      <img src="images/logo.png" alt="Zo2y" />
-      <span>Zo2y</span>
+    <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
+      <img src="/newlogo.webp" alt="Logo" />
     </a>
     <div class="nav-search zo2y-shared-search">
       <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
@@ -1024,7 +1025,7 @@
         results.forEach(item => {
           const gameTitle = item.title || item.slug || 'Untitled';
           const gameDate = item.release_date ? String(item.release_date).slice(0, 10) : '';
-          const gameCover = item.cover_url || 'images/logo.png';
+          const gameCover = item.cover_url || '/newlogo.webp';
           const genreText = normalizeGameGenres(item.extra)
             .map((genre) => genre.name)
             .slice(0, 2)
@@ -1039,7 +1040,7 @@
           card.className = 'card';
           card.setAttribute('data-game-id', gameId);
           card.innerHTML = `
-            <img src="${gameCover}" alt="${gameTitle}" onerror="this.onerror=null;this.src='images/logo.png';">
+            <img src="${gameCover}" alt="${gameTitle}" onerror="this.onerror=null;this.src='/newlogo.webp';">
             <div class="card-body">
               <h3 class="card-title">${gameTitle}</h3>
               <div class="card-meta-row">
@@ -1402,6 +1403,8 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
+
 
 
 

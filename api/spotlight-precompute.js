@@ -147,7 +147,7 @@ function mapBooks(rows = []) {
       const coverById = coverId ? `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg` : "";
       const coverByIsbn = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : "";
       const googleThumb = String(row?._googleThumbnail || row?.coverImage || "").trim().replace(/^http:\/\//i, "https://");
-      const primaryImage = googleThumb || coverById || coverByIsbn || "images/logo.png";
+      const primaryImage = googleThumb || coverById || coverByIsbn || "/newlogo.webp";
       const workKey = String(row?.key || "").trim();
       const googleVolumeId = String(row?._googleVolumeId || "").trim();
       const itemId = googleVolumeId || workKey.replace(/^\/works\//i, "").trim() || `pre-book-${index + 1}`;
@@ -188,7 +188,7 @@ function mapMusic(rows = []) {
     .slice(0, TARGET_ITEMS)
     .map((track) => {
       const artists = Array.isArray(track.artists) ? track.artists.filter(Boolean).join(", ") : "Artist";
-      const image = String(track.image || "").trim() || "images/logo.png";
+      const image = String(track.image || "").trim() || "/newlogo.webp";
       return {
         mediaType: "music",
         itemId: String(track.id || ""),
