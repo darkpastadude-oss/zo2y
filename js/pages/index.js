@@ -796,8 +796,14 @@ let homeTravelPhotoCacheSaveTimer = null;
       const usesLandscapeMedia = spotlightMediaShape === 'landscape';
       const mediaToken = ++homeSpotlightImageToken;
 
-      spotlightSection.classList.remove('has-square-media', 'has-landscape-media');
+      spotlightSection.classList.remove('has-square-media', 'has-landscape-media', 'theme-music', 'theme-book');
       mediaWrap.classList.remove('square', 'landscape');
+      const mediaTypeKey = String(item.mediaType || '').toLowerCase();
+      if (mediaTypeKey === 'music') {
+        spotlightSection.classList.add('theme-music');
+      } else if (mediaTypeKey === 'book') {
+        spotlightSection.classList.add('theme-book');
+      }
       if (usesLandscapeMedia) {
         spotlightSection.classList.add('has-landscape-media');
         mediaWrap.classList.add('landscape');
