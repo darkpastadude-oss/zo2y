@@ -5,6 +5,7 @@
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
   let authStateListenerBound = false;
+  let mobileDrawerAnchorBound = false;
 
   const HEADER_HTML = `
 <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -69,6 +70,13 @@
     </a>
     <a class="zo2y-mobile-auth-btn" href="login.html" id="mobileLoginBtn">Login</a>
     <a class="zo2y-mobile-auth-btn zo2y-mobile-auth-btn-primary" href="sign-up.html" id="mobileSignupBtn">Sign Up</a>
+  </div>
+
+  <div class="zo2y-mobile-drawer-search">
+    <div class="nav-search zo2y-mobile-drawer-search-wrap">
+      <input id="mobileMenuSearch" class="nav-search-input zo2y-mobile-drawer-search-input" type="search" placeholder="Search all media..." aria-label="Search all media in menu" />
+      <button id="mobileMenuSearchBtn" class="nav-search-btn zo2y-mobile-drawer-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+    </div>
   </div>
 
   <nav class="zo2y-mobile-drawer-nav" aria-label="Mobile sections">
@@ -260,6 +268,22 @@
     });
   }
 
+  function syncMobileDrawerAnchor() {
+    const header = document.querySelector('.zo2y-shared-header');
+    if (!header) return;
+    const isMobile = window.matchMedia('(max-width: 1024px)').matches;
+    const headerHeight = isMobile ? Math.max(0, Math.ceil(header.getBoundingClientRect().height)) : 0;
+    document.documentElement.style.setProperty('--zo2y-mobile-header-height', `${headerHeight}px`);
+  }
+
+  function wireMobileDrawerAnchor() {
+    syncMobileDrawerAnchor();
+    if (mobileDrawerAnchorBound) return;
+    mobileDrawerAnchorBound = true;
+    window.addEventListener('resize', syncMobileDrawerAnchor, { passive: true });
+    window.addEventListener('orientationchange', syncMobileDrawerAnchor, { passive: true });
+  }
+
   async function syncAuthHeaderState() {
     const loginBtn = document.getElementById('loginBtn');
     const signupBtn = document.getElementById('signupBtn');
@@ -333,6 +357,7 @@
     menuBtn.dataset.wired = '1';
 
     const setDrawerState = (isOpen) => {
+      syncMobileDrawerAnchor();
       drawer.classList.toggle('open', isOpen);
       backdrop.classList.toggle('active', isOpen);
       drawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
@@ -372,7 +397,8 @@
 
     const searchTargets = [
       { input: document.getElementById('globalSearch'), button: document.getElementById('globalSearchBtn') },
-      { input: document.getElementById('mobileGlobalSearch'), button: document.getElementById('mobileGlobalSearchBtn') }
+      { input: document.getElementById('mobileGlobalSearch'), button: document.getElementById('mobileGlobalSearchBtn') },
+      { input: document.getElementById('mobileMenuSearch'), button: document.getElementById('mobileMenuSearchBtn') }
     ];
 
     searchTargets.forEach(({ input, button }) => {
@@ -394,6 +420,7 @@
   function boot() {
     if (isHeaderSuppressedPage(window.location.pathname)) return;
     mountSharedHeader();
+    wireMobileDrawerAnchor();
     wireSearchButton();
     wireMobileDrawer();
     wireAuthStateSync();

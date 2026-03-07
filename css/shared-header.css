@@ -6,6 +6,7 @@
   --zo2y-header-muted: #8ca3c7;
   --zo2y-header-accent: #f59e0b;
   --zo2y-header-card: #132347;
+  --zo2y-mobile-header-height: 0px;
 }
 
 .zo2y-shared-header {
@@ -27,7 +28,7 @@
 
 .zo2y-mobile-drawer-backdrop {
   position: fixed;
-  inset: 0;
+  inset: var(--zo2y-mobile-header-height, 0px) 0 0 0;
   background: rgba(1, 7, 18, 0.58);
   backdrop-filter: blur(4px);
   z-index: 1590;
@@ -43,9 +44,10 @@
 
 .zo2y-mobile-drawer {
   position: fixed;
-  top: 0;
+  top: var(--zo2y-mobile-header-height, 0px);
   left: 0;
-  bottom: 0;
+  bottom: auto;
+  height: calc(100dvh - var(--zo2y-mobile-header-height, 0px));
   width: min(88vw, 340px);
   background: linear-gradient(180deg, rgba(9, 16, 30, 0.98) 0%, rgba(7, 14, 25, 0.99) 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.14);
@@ -130,6 +132,42 @@
 .zo2y-mobile-drawer-auth {
   display: grid;
   gap: 7px;
+}
+
+.zo2y-mobile-drawer-search {
+  margin-top: 2px;
+}
+
+.zo2y-mobile-drawer-search-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.zo2y-mobile-drawer-search .nav-search-input,
+.zo2y-mobile-drawer-search-input {
+  width: 100%;
+  height: 41px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f2f7ff;
+  padding: 0 40px 0 12px;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.zo2y-mobile-drawer-search .nav-search-btn,
+.zo2y-mobile-drawer-search-btn {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: #dbe8ff;
+  cursor: pointer;
 }
 
 .zo2y-mobile-auth-btn {
