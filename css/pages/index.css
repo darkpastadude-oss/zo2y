@@ -2313,7 +2313,7 @@
       .sidebar-brand {
         display: inline-flex;
         align-items: center;
-        gap: 0;
+        gap: 10px;
         min-height: 46px;
         padding: 0 8px;
       }
@@ -2327,9 +2327,17 @@
 
       .sidebar-brand-wordmark {
         font-family: 'Outfit', sans-serif;
-        font-size: 28px;
+        font-size: 30px;
         font-weight: 800;
-        letter-spacing: 0.8px;
+        letter-spacing: 0.03em;
+        text-transform: lowercase;
+        color: #fff4e1;
+        text-shadow:
+          -1px -1px 0 #f59e0b,
+          1px -1px 0 #f59e0b,
+          -1px 1px 0 #f59e0b,
+          1px 1px 0 #f59e0b,
+          0 6px 16px rgba(245, 158, 11, 0.16);
       }
 
       .sidebar-toggle {

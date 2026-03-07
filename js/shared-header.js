@@ -12,6 +12,7 @@
     </button>
     <a class="zo2y-mobile-wordmark" href="index.html" aria-label="Home">
       <img src="/newlogo.webp" alt="Logo" />
+      <span class="zo2y-brand-outline">zo2y</span>
     </a>
     <span class="zo2y-mobile-topbar-spacer" aria-hidden="true"></span>
   </div>
@@ -47,6 +48,7 @@
   <div class="zo2y-mobile-drawer-head">
     <a class="zo2y-mobile-drawer-brand" href="index.html" aria-label="Home">
       <img src="/newlogo.webp" alt="Logo" />
+      <span class="zo2y-brand-outline">zo2y</span>
     </a>
     <button class="zo2y-mobile-drawer-close" id="zo2yMobileMenuCloseBtn" type="button" aria-label="Close navigation menu">
       <i class="fa-solid fa-xmark"></i>
