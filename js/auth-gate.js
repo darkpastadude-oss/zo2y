@@ -106,29 +106,78 @@
   function scheduleSessionVerification(pageKey) {
     if (typeof window === 'undefined') return;
     var attempts = 0;
-    var timer = window.setInterval(async function () {
-      attempts += 1;
-      if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-        if (attempts > 30) window.clearInterval(timer);
-        return;
-      }
-      window.clearInterval(timer);
+    var client = null;
+    var protectedPage = !PUBLIC_PAGE_KEYS.has(pageKey);
+
+    async function verifyAndApply() {
+      if (!client || !client.auth || typeof client.auth.getSession !== 'function') return false;
       try {
-        var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         var sessionResult = await client.auth.getSession();
         var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
         var authenticated = !!(session && session.user);
         applyShellState(authenticated, pageKey);
-        if (!authenticated && !PUBLIC_PAGE_KEYS.has(pageKey)) {
-          redirectToLanding();
+
+        if (!authenticated && protectedPage) {
+          // Retry once before redirect to avoid false negatives during token hydration.
+          var retryResult = await client.auth.getSession();
+          var retrySession = retryResult && retryResult.data ? retryResult.data.session : null;
+          var retryAuthenticated = !!(retrySession && retrySession.user);
+          applyShellState(retryAuthenticated, pageKey);
+          if (!retryAuthenticated && !hasStoredSupabaseSession()) {
+            redirectToLanding();
+            return false;
+          }
         }
+
         window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
           detail: { authenticated: authenticated, pageKey: pageKey }
         }));
+        return true;
       } catch (_err) {
-        if (!PUBLIC_PAGE_KEYS.has(pageKey)) {
-          redirectToLanding();
+        var fallbackAuthenticated = hasStoredSupabaseSession();
+        applyShellState(fallbackAuthenticated, pageKey);
+        return false;
+      }
+    }
+
+    var timer = window.setInterval(async function () {
+      attempts += 1;
+      if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+        if (attempts > 30) {
+          window.clearInterval(timer);
+          if (protectedPage && !hasStoredSupabaseSession()) redirectToLanding();
         }
+        return;
+      }
+      if (!client) {
+        try {
+          client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: {
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: true
+            }
+          });
+        } catch (_clientErr) {
+          client = null;
+        }
+      }
+      if (!client) return;
+      window.clearInterval(timer);
+      await verifyAndApply();
+      if (!window.__ZO2Y_AUTH_GATE_LISTENER_BOUND && client.auth && typeof client.auth.onAuthStateChange === 'function') {
+        window.__ZO2Y_AUTH_GATE_LISTENER_BOUND = true;
+        client.auth.onAuthStateChange(function (_event, session) {
+          var authenticated = !!(session && session.user);
+          applyShellState(authenticated, pageKey);
+          if (!authenticated && protectedPage && !hasStoredSupabaseSession()) {
+            redirectToLanding();
+            return;
+          }
+          window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
+            detail: { authenticated: authenticated, pageKey: pageKey }
+          }));
+        });
       }
     }, 150);
   }
@@ -136,11 +185,6 @@
   var pageKey = normalizePageKey(window.location.pathname);
   var authenticated = hasStoredSupabaseSession();
   applyShellState(authenticated, pageKey);
-
-  if (!authenticated && !PUBLIC_PAGE_KEYS.has(pageKey)) {
-    redirectToLanding();
-    return;
-  }
 
   if (pageKey === 'index' || !PUBLIC_PAGE_KEYS.has(pageKey)) {
     scheduleSessionVerification(pageKey);

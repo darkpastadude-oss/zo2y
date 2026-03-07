@@ -1,8 +1,11 @@
 (() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260307a';
+  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260307b';
   let universalSearchLoaderPromise = null;
+  let supabaseClient = null;
+  let authStateListenerBound = false;
+  let mobileHeaderOffsetBound = false;
 
   const HEADER_HTML = `
 <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -12,9 +15,15 @@
     </button>
     <a class="zo2y-mobile-wordmark" href="index.html" aria-label="Home">
       <img src="/newlogo.webp" alt="Logo" />
-      <span class="zo2y-brand-outline">zo2y</span>
+      <span class="zo2y-brand-outline sidebar-brand-wordmark">zo2y</span>
     </a>
     <span class="zo2y-mobile-topbar-spacer" aria-hidden="true"></span>
+  </div>
+  <div class="zo2y-mobile-searchbar">
+    <div class="nav-search zo2y-mobile-search">
+      <input id="mobileGlobalSearch" class="nav-search-input zo2y-mobile-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+      <button id="mobileGlobalSearchBtn" class="nav-search-btn zo2y-mobile-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+    </div>
   </div>
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -48,7 +57,7 @@
   <div class="zo2y-mobile-drawer-head">
     <a class="zo2y-mobile-drawer-brand" href="index.html" aria-label="Home">
       <img src="/newlogo.webp" alt="Logo" />
-      <span class="zo2y-brand-outline">zo2y</span>
+      <span class="zo2y-brand-outline sidebar-brand-wordmark">zo2y</span>
     </a>
     <button class="zo2y-mobile-drawer-close" id="zo2yMobileMenuCloseBtn" type="button" aria-label="Close navigation menu">
       <i class="fa-solid fa-xmark"></i>
@@ -75,12 +84,14 @@
     <a class="zo2y-mobile-drawer-link accent" data-nav-page="reviews" href="reviews.html"><i class="fa-solid fa-star"></i><span>Reviews</span></a>
   </nav>
 
-  <div class="zo2y-mobile-drawer-divider"></div>
-  <p class="zo2y-mobile-drawer-label">Quick Picks</p>
-  <div class="zo2y-mobile-drawer-quick">
-    <a class="zo2y-mobile-drawer-link" href="index.html#newReleasesRail"><i class="fa-solid fa-satellite-dish"></i><span>New Releases</span></a>
-    <a class="zo2y-mobile-drawer-link" href="index.html#imdbTop10Rail"><i class="fa-solid fa-ranking-star"></i><span>IMDb Top 10</span></a>
-    <a class="zo2y-mobile-drawer-link" href="profile.html"><i class="fa-solid fa-list"></i><span>Your Lists</span></a>
+  <div class="zo2y-mobile-drawer-footer">
+    <div class="zo2y-mobile-drawer-divider"></div>
+    <p class="zo2y-mobile-drawer-label">Quick Picks</p>
+    <div class="zo2y-mobile-drawer-quick">
+      <a class="zo2y-mobile-drawer-link" href="index.html#newReleasesRail"><i class="fa-solid fa-satellite-dish"></i><span>New Releases</span></a>
+      <a class="zo2y-mobile-drawer-link" href="index.html#imdbTop10Rail"><i class="fa-solid fa-ranking-star"></i><span>IMDb Top 10</span></a>
+      <a class="zo2y-mobile-drawer-link" href="profile.html"><i class="fa-solid fa-list"></i><span>Your Lists</span></a>
+    </div>
   </div>
 </aside>`;
 
@@ -217,12 +228,53 @@
   }
 
   function ensureSupabaseClient() {
+    if (supabaseClient) return supabaseClient;
     if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
     try {
-      return window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
+      });
+      return supabaseClient;
     } catch (_err) {
       return null;
     }
+  }
+
+  function wireAuthStateSync() {
+    if (authStateListenerBound) return;
+    const client = ensureSupabaseClient();
+    if (!client || !client.auth || typeof client.auth.onAuthStateChange !== 'function') return;
+
+    authStateListenerBound = true;
+    client.auth.onAuthStateChange(() => {
+      void syncAuthHeaderState();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) void syncAuthHeaderState();
+    });
+    window.addEventListener('focus', () => {
+      void syncAuthHeaderState();
+    });
+  }
+
+  function syncMobileHeaderOffset() {
+    const sharedHeader = document.querySelector('.zo2y-shared-header');
+    if (!sharedHeader) return;
+    const isMobileViewport = window.matchMedia('(max-width: 1024px)').matches;
+    const nextOffset = isMobileViewport ? Math.ceil(sharedHeader.getBoundingClientRect().height) : 0;
+    document.documentElement.style.setProperty('--zo2y-mobile-header-offset', `${nextOffset}px`);
+  }
+
+  function wireMobileHeaderOffsetSync() {
+    syncMobileHeaderOffset();
+    if (mobileHeaderOffsetBound) return;
+    mobileHeaderOffsetBound = true;
+    window.addEventListener('resize', syncMobileHeaderOffset, { passive: true });
+    window.addEventListener('orientationchange', syncMobileHeaderOffset, { passive: true });
   }
 
   async function syncAuthHeaderState() {
@@ -298,6 +350,7 @@
     menuBtn.dataset.wired = '1';
 
     const setDrawerState = (isOpen) => {
+      syncMobileHeaderOffset();
       drawer.classList.toggle('open', isOpen);
       backdrop.classList.toggle('active', isOpen);
       drawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
@@ -331,22 +384,27 @@
   }
 
   function wireSearchButton() {
-    const input = document.getElementById('globalSearch');
-    const btn = document.getElementById('globalSearchBtn');
-    if (!input || !btn) return;
-    if (btn.dataset.wired === '1') return;
-    btn.dataset.wired = '1';
-
     const warmSearch = () => {
       void loadUniversalSearchScript();
     };
 
-    input.addEventListener('focus', warmSearch, { once: true });
-    input.addEventListener('pointerdown', warmSearch, { once: true });
+    const searchTargets = [
+      { input: document.getElementById('globalSearch'), button: document.getElementById('globalSearchBtn') },
+      { input: document.getElementById('mobileGlobalSearch'), button: document.getElementById('mobileGlobalSearchBtn') }
+    ];
 
-    btn.addEventListener('click', () => {
-      void loadUniversalSearchScript().finally(() => {
-        if (input) input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    searchTargets.forEach(({ input, button }) => {
+      if (!input || !button) return;
+      if (button.dataset.wired === '1') return;
+      button.dataset.wired = '1';
+
+      input.addEventListener('focus', warmSearch, { once: true });
+      input.addEventListener('pointerdown', warmSearch, { once: true });
+
+      button.addEventListener('click', () => {
+        void loadUniversalSearchScript().finally(() => {
+          input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        });
       });
     });
   }
@@ -354,8 +412,10 @@
   function boot() {
     if (isHeaderSuppressedPage(window.location.pathname)) return;
     mountSharedHeader();
+    wireMobileHeaderOffsetSync();
     wireSearchButton();
     wireMobileDrawer();
+    wireAuthStateSync();
     void syncAuthHeaderState();
   }
 

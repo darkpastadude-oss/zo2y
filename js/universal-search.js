@@ -622,9 +622,11 @@
   function initSharedHeaderSearch() {
     if (!document.body) return;
     if (!window.initUniversalSearch) return;
-    window.initUniversalSearch({
-      input: '#globalSearch',
-      fallbackRoute: 'movies.html'
+    ['#globalSearch', '#mobileGlobalSearch'].forEach((selector) => {
+      window.initUniversalSearch({
+        input: selector,
+        fallbackRoute: 'movies.html'
+      });
     });
   }
 
