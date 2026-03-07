@@ -339,6 +339,31 @@
     if (menuBtn.dataset.wired === '1') return;
     menuBtn.dataset.wired = '1';
 
+    const lockBodyScrollForMenu = () => {
+      if (document.body.dataset.zo2yMenuScrollLock === '1') return;
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      document.body.dataset.zo2yMenuScrollLock = '1';
+      document.body.dataset.zo2yMenuScrollY = String(scrollY);
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
+    };
+
+    const unlockBodyScrollForMenu = () => {
+      if (document.body.dataset.zo2yMenuScrollLock !== '1') return;
+      const scrollY = Number(document.body.dataset.zo2yMenuScrollY || '0');
+      delete document.body.dataset.zo2yMenuScrollLock;
+      delete document.body.dataset.zo2yMenuScrollY;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
+      window.scrollTo(0, Number.isFinite(scrollY) ? scrollY : 0);
+    };
+
     const setDrawerState = (isOpen) => {
       drawer.classList.toggle('open', isOpen);
       backdrop.classList.toggle('active', isOpen);
@@ -347,6 +372,8 @@
       menuBtn.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
       backdrop.hidden = !isOpen;
       document.body.classList.toggle('zo2y-mobile-menu-open', isOpen);
+      if (isOpen) lockBodyScrollForMenu();
+      else unlockBodyScrollForMenu();
     };
 
     const closeDrawer = () => setDrawerState(false);

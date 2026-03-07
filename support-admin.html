@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -59,8 +59,8 @@
     }
     .meta { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
   </style>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260307g">
-  <script src="js/shared-header.js?v=20260307f" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260307h">
+  <script src="js/shared-header.js?v=20260307g" defer></script>
 </head>
 <body>
 <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -132,7 +132,7 @@
         return `
           <article class="ticket">
             <div class="meta">
-              #${ticket.id} Ã¢â‚¬Â¢ ${ticket.category} Ã¢â‚¬Â¢ ${ticket.status} Ã¢â‚¬Â¢ ${ticket.priority} Ã¢â‚¬Â¢ ${ticket.created_at || ''}
+              #${ticket.id} â€¢ ${ticket.category} â€¢ ${ticket.status} â€¢ ${ticket.priority} â€¢ ${ticket.created_at || ''}
             </div>
             <div style="font-weight:700;">${ticket.name || 'Anonymous'} ${ticket.email ? `(${ticket.email})` : ''}</div>
             <p style="margin:8px 0 10px;white-space:pre-wrap;">${ticket.message || ''}</p>
