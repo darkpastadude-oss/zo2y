@@ -173,6 +173,10 @@
 
   function mountSharedHeader() {
     if (!document.body) return;
+    document.querySelectorAll('header.landing-header').forEach((landingHeader) => {
+      landingHeader.remove();
+    });
+
     const parser = document.createElement('div');
     parser.innerHTML = HEADER_HTML.trim();
     const nextSharedHeader = parser.firstElementChild;
@@ -325,6 +329,40 @@
     if (!menuBtn || !closeBtn || !drawer || !backdrop) return;
     if (menuBtn.dataset.wired === '1') return;
     menuBtn.dataset.wired = '1';
+    const DRAWER_FRAME = 8;
+
+    const syncDrawerViewport = () => {
+      const visual = window.visualViewport;
+      const top = (visual?.offsetTop || 0) + window.scrollY;
+      const left = (visual?.offsetLeft || 0) + window.scrollX;
+      const width = Math.max(
+        0,
+        Math.ceil(visual?.width || window.innerWidth || document.documentElement.clientWidth || 0)
+      );
+      const height = Math.max(
+        0,
+        Math.ceil(visual?.height || window.innerHeight || document.documentElement.clientHeight || 0)
+      );
+
+      backdrop.style.top = `${top}px`;
+      backdrop.style.left = `${left}px`;
+      backdrop.style.width = `${width}px`;
+      backdrop.style.height = `${height}px`;
+
+      const drawerTop = top + DRAWER_FRAME;
+      const drawerLeft = left + DRAWER_FRAME;
+      const drawerHeight = Math.max(220, height - DRAWER_FRAME * 2);
+      const cappedWidth = Math.min(
+        340,
+        Math.max(260, Math.floor(width * 0.88))
+      );
+      const drawerWidth = Math.min(cappedWidth, Math.max(220, width - DRAWER_FRAME * 2 - 14));
+
+      drawer.style.top = `${drawerTop}px`;
+      drawer.style.left = `${drawerLeft}px`;
+      drawer.style.height = `${drawerHeight}px`;
+      drawer.style.width = `${drawerWidth}px`;
+    };
 
     const lockBodyScrollForMenu = () => {
       if (document.body.dataset.zo2yMenuScrollLock === '1') return;
@@ -355,6 +393,7 @@
     };
 
     const setDrawerState = (isOpen) => {
+      syncDrawerViewport();
       drawer.classList.toggle('open', isOpen);
       backdrop.classList.toggle('active', isOpen);
       drawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
@@ -365,6 +404,12 @@
       if (isOpen) lockBodyScrollForMenu();
       else unlockBodyScrollForMenu();
       resetDrawerScrollTop();
+      if (isOpen) {
+        requestAnimationFrame(() => {
+          syncDrawerViewport();
+          resetDrawerScrollTop();
+        });
+      }
     };
 
     const closeDrawer = () => setDrawerState(false);
@@ -387,7 +432,26 @@
 
     window.addEventListener('resize', () => {
       if (window.innerWidth > 1024) closeDrawer();
+      else if (drawer.classList.contains('open')) syncDrawerViewport();
     });
+
+    window.addEventListener('scroll', () => {
+      if (!drawer.classList.contains('open')) return;
+      syncDrawerViewport();
+    }, { passive: true });
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => {
+        if (!drawer.classList.contains('open')) return;
+        syncDrawerViewport();
+      });
+      window.visualViewport.addEventListener('scroll', () => {
+        if (!drawer.classList.contains('open')) return;
+        syncDrawerViewport();
+      });
+    }
+
+    syncDrawerViewport();
   }
 
   function wireSearchButton() {
