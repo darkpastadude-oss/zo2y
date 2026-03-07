@@ -6,7 +6,6 @@
   --zo2y-header-muted: #8ca3c7;
   --zo2y-header-accent: #f59e0b;
   --zo2y-header-card: #132347;
-  --zo2y-mobile-header-height: 0px;
 }
 
 .zo2y-shared-header {
@@ -28,7 +27,7 @@
 
 .zo2y-mobile-drawer-backdrop {
   position: fixed;
-  inset: var(--zo2y-mobile-header-height, 0px) 0 0 0;
+  inset: 0;
   background: rgba(1, 7, 18, 0.58);
   backdrop-filter: blur(4px);
   z-index: 1590;
@@ -44,10 +43,10 @@
 
 .zo2y-mobile-drawer {
   position: fixed;
-  top: var(--zo2y-mobile-header-height, 0px);
+  top: 0;
   left: 0;
   bottom: auto;
-  height: calc(100dvh - var(--zo2y-mobile-header-height, 0px));
+  height: 100dvh;
   width: min(88vw, 340px);
   background: linear-gradient(180deg, rgba(9, 16, 30, 0.98) 0%, rgba(7, 14, 25, 0.99) 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.14);
@@ -58,8 +57,8 @@
   pointer-events: none;
   overflow-x: hidden;
   overflow-y: auto;
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   padding: 14px 11px 16px;
 }
@@ -212,7 +211,7 @@
 }
 
 .zo2y-mobile-drawer-footer {
-  margin-top: 2px;
+  margin-top: auto;
   display: grid;
   gap: 6px;
   padding-top: 2px;
