@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
+  <script src="/js/auth-gate.js?v=20260308a"></script>
+  <meta name="robots" content="index,follow,max-image-preview:none,noimageindex">
+  <title>zo2y - credits</title>
+  <meta name="description" content="Source credits for the APIs and services used across zo2y.">
+  <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="css/shared-header.css?v=20260308l">
+  <script src="js/shared-header.js?v=20260308l" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+  <style>
+    :root {
+      --bg: #08142f;
+      --card: rgba(16, 34, 73, 0.82);
+      --card-strong: rgba(21, 43, 91, 0.94);
+      --border: rgba(255,255,255,0.12);
+      --muted: #90a6c8;
+      --text: #f5f7fb;
+      --accent: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(245,158,11,0.14), transparent 28%),
+        linear-gradient(180deg, #08142f 0%, #0b1736 100%);
+      color: var(--text);
+    }
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 18px 56px;
+    }
+    .hero {
+      padding: 28px;
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      background: linear-gradient(145deg, rgba(17, 35, 75, 0.96), rgba(10, 23, 51, 0.98));
+      box-shadow: 0 30px 80px rgba(0,0,0,0.28);
+    }
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(32px, 4.2vw, 56px);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+    }
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .sections {
+      display: grid;
+      gap: 18px;
+      margin-top: 22px;
+    }
+    .section {
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: var(--card);
+      padding: 22px;
+      backdrop-filter: blur(12px);
+    }
+    .section h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      letter-spacing: 0.08em;
+      color: #dce8ff;
+    }
+    .credits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .credit-card {
+      min-height: 100%;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: var(--card-strong);
+    }
+    .credit-card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: #fff3d6;
+    }
+    .credit-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+    .credit-card a {
+      color: var(--accent);
+    }
+    .micro {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    @media (max-width: 760px) {
+      .page {
+        padding: 20px 14px 36px;
+      }
+      .hero, .section {
+        border-radius: 18px;
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <h1>credits</h1>
+      <p>These are the external APIs, catalogs, and platform services currently used across zo2y for media data, travel data, caching, auth, analytics, and email delivery.</p>
+    </section>
+
+    <div class="sections">
+      <section class="section">
+        <h2>content sources</h2>
+        <div class="credits-grid">
+          <article class="credit-card">
+            <h3>TMDB</h3>
+            <p>Movie, TV, and anime metadata, posters, credits, and popularity feeds for <a href="movies.html">movies</a>, <a href="tvshows.html">tv shows</a>, <a href="animes.html">anime</a>, and their detail pages.</p>
+          </article>
+          <article class="credit-card">
+            <h3>Google Books</h3>
+            <p>Primary search and popular discovery source for <a href="books.html">books</a>.</p>
+          </article>
+          <article class="credit-card">
+            <h3>Open Library</h3>
+            <p>Trending books, work metadata, and cover fallbacks for the books feed.</p>
+          </article>
+          <article class="credit-card">
+            <h3>Spotify</h3>
+            <p>Music discovery, catalog enrichment, album detail data, and current chart signals for <a href="music.html">music</a>.</p>
+          </article>
+          <article class="credit-card">
+            <h3>Apple / iTunes</h3>
+            <p>Music search, track previews, and album popularity signals blended into the music feed.</p>
+          </article>
+          <article class="credit-card">
+            <h3>IGDB + RAWG</h3>
+            <p>Game catalog data, covers, descriptions, ratings, and release metadata for the games pages.</p>
+          </article>
+          <article class="credit-card">
+            <h3>REST Countries</h3>
+            <p>Country names, regions, capitals, flags, and map metadata for <a href="travel.html">travel</a>.</p>
+          </article>
+          <article class="credit-card">
+            <h3>Wikimedia Commons</h3>
+            <p>Scenic country photography used in travel cards, travel spotlight visuals, and country pages.</p>
+          </article>
+          <article class="credit-card">
+            <h3>Wikimedia Pageviews</h3>
+            <p>Recent Wikipedia article view counts used to rank current popular travel destinations.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>platform services</h2>
+        <div class="credits-grid">
+          <article class="credit-card">
+            <h3>Supabase</h3>
+            <p>Authentication, profile data, lists, reviews, notifications, social graph data, and cached application records.</p>
+          </article>
+          <article class="credit-card">
+            <h3>Resend</h3>
+            <p>Transactional email delivery for auth and account email flows.</p>
+          </article>
+          <article class="credit-card">
+            <h3>Vercel Analytics</h3>
+            <p>Visitor analytics and performance measurement for page traffic.</p>
+          </article>
+        </div>
+        <p class="micro">Source availability can vary by provider rate limits, upstream outages, and local cache freshness. When one feed is unavailable, zo2y falls back to the next available provider where that page supports one.</p>
+      </section>
+    </div>
+  </main>
+  <script src="js/production-runtime.js?v=20260307a" defer></script>
+</body>
+</html>

@@ -100,6 +100,15 @@
     .hero { padding: 14px; }
     .hero h1 { margin: 0 0 6px; font-size: 28px; }
     .hero p { margin: 0; color: var(--muted); font-size: 14px; }
+    .hero-note {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      opacity: 0.86;
+    }
+    .hero-note a {
+      color: var(--accent);
+    }
     .controls {
       display: grid;
       grid-template-columns: 1fr 180px 160px auto;
@@ -309,14 +318,16 @@
 </header>
 
   <section class="hero">
-    <h1><i class="fa-solid fa-earth-americas"></i> Travel</h1>
-    <p>Browse countries with photos, save to Favorites/Visited/Bucket List, and open each country page for reviews.</p>
+    <h1><i class="fa-solid fa-earth-americas"></i> popular destinations right now</h1>
+    <p>Browse live travel picks ranked by recent global attention, then save them to your lists.</p>
+    <div class="hero-note">sources: Wikimedia Pageviews, Wikimedia Commons, and REST Countries. <a href="credits.html">all credits</a></div>
   </section>
 
   <section class="controls">
     <input id="q" placeholder="Search countries, capitals, regions...">
     <select id="region"><option value="">All Regions</option></select>
     <select id="sort">
+      <option value="popular">popular right now</option>
       <option value="name">Name A-Z</option>
       <option value="region">Region</option>
     </select>
@@ -344,6 +355,32 @@
     const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
     const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v2';
     const TRAVEL_COUNTRY_ROWS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
+    const TRAVEL_POPULARITY_CACHE_KEY = 'zo2y_travel_popularity_v1';
+    const TRAVEL_POPULARITY_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
+    const TRAVEL_POPULARITY_WINDOW_DAYS = 7;
+    const TRAVEL_POPULARITY_CODES = [
+      'JP','FR','IT','ES','TH','TR','ID','US','GB','AE','MX','BR',
+      'EG','GR','PT','DE','MA','ZA','CH','AT','NL','BE','HR','IS',
+      'NO','SE','FI','DK','IE','CZ','HU','PL','RO','KE','TZ','VN',
+      'KR','IN','LK','AU','NZ','CA','AR','CL','PE','CR','PH','SG','MY'
+    ];
+    const TRAVEL_PAGEVIEW_ARTICLES = {
+      US: 'United_States',
+      GB: 'United_Kingdom',
+      AE: 'United_Arab_Emirates',
+      CZ: 'Czech_Republic',
+      KR: 'South_Korea',
+      NZ: 'New_Zealand',
+      LK: 'Sri_Lanka',
+      PS: 'State_of_Palestine',
+      MK: 'North_Macedonia',
+      BA: 'Bosnia_and_Herzegovina',
+      DO: 'Dominican_Republic',
+      CV: 'Cape_Verde',
+      LA: 'Laos',
+      VN: 'Vietnam',
+      CI: "Ivory_Coast"
+    };
 
     let client = null;
     const state = {
@@ -352,7 +389,7 @@
       filtered: [],
       search: '',
       region: '',
-      sort: 'name',
+      sort: 'popular',
       page: 1,
       totalPages: 1,
       hasMore: false,
@@ -447,6 +484,137 @@
       return query
         .replace(/\bisrael\b/g, 'palestine')
         .replace(/\bisreal\b/g, 'palestine');
+    }
+
+    function readTravelPopularityCache() {
+      try {
+        const raw = localStorage.getItem(TRAVEL_POPULARITY_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed?.savedAt || 0);
+        const scores = parsed?.scores && typeof parsed.scores === 'object' ? parsed.scores : null;
+        if (!savedAt || !scores) return null;
+        if ((Date.now() - savedAt) > TRAVEL_POPULARITY_CACHE_TTL_MS) return null;
+        return { savedAt, scores };
+      } catch (_error) {
+        return null;
+      }
+    }
+
+    function writeTravelPopularityCache(scores = {}) {
+      try {
+        localStorage.setItem(TRAVEL_POPULARITY_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          scores
+        }));
+      } catch (_error) {}
+    }
+
+    function applyTravelPopularityScores(scores = {}) {
+      const normalizedScores = {};
+      Object.entries(scores || {}).forEach(([code, value]) => {
+        const safeCountryCode = safeCode(code);
+        const safeValue = Number(value || 0);
+        if (!safeCountryCode || !Number.isFinite(safeValue) || safeValue <= 0) return;
+        normalizedScores[safeCountryCode] = safeValue;
+      });
+
+      const rankedCodes = Object.entries(normalizedScores)
+        .sort((left, right) => {
+          const scoreDiff = Number(right[1] || 0) - Number(left[1] || 0);
+          if (scoreDiff !== 0) return scoreDiff;
+          return String(left[0] || '').localeCompare(String(right[0] || ''));
+        })
+        .map(([code]) => safeCode(code));
+      const rankMap = new Map(rankedCodes.map((code, index) => [code, index + 1]));
+
+      state.rows = state.rows.map((item) => {
+        const score = Number(normalizedScores[item.code] || 0);
+        return {
+          ...item,
+          popularityScore: score,
+          popularityRank: rankMap.get(item.code) || null
+        };
+      });
+    }
+
+    function getTravelPopularityDateRange() {
+      const end = new Date();
+      end.setUTCDate(end.getUTCDate() - 1);
+      const start = new Date(end);
+      start.setUTCDate(end.getUTCDate() - (TRAVEL_POPULARITY_WINDOW_DAYS - 1));
+      const format = (value) => {
+        const year = value.getUTCFullYear();
+        const month = String(value.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(value.getUTCDate()).padStart(2, '0');
+        return `${year}${month}${day}`;
+      };
+      return {
+        start: format(start),
+        end: format(end)
+      };
+    }
+
+    function getTravelPopularityArticle(item) {
+      const code = safeCode(item?.code);
+      if (!code) return '';
+      if (TRAVEL_PAGEVIEW_ARTICLES[code]) return TRAVEL_PAGEVIEW_ARTICLES[code];
+      const name = String(item?.name || '').trim();
+      if (!name) return '';
+      return name
+        .replace(/&/g, 'and')
+        .replace(/'/g, '')
+        .replace(/\./g, '')
+        .replace(/,/g, '')
+        .replace(/\s+/g, '_');
+    }
+
+    async function fetchTravelPopularityScore(item, signal) {
+      const article = getTravelPopularityArticle(item);
+      if (!article) return 0;
+      const { start, end } = getTravelPopularityDateRange();
+      const endpoint = `https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/all-agents/${encodeURIComponent(article)}/daily/${start}/${end}`;
+      const response = await fetch(endpoint, { signal });
+      if (!response.ok) return 0;
+      const payload = await response.json();
+      const items = Array.isArray(payload?.items) ? payload.items : [];
+      return items.reduce((sum, entry) => sum + Number(entry?.views || 0), 0);
+    }
+
+    async function runWithConcurrency(items = [], limit = 6, worker = async () => null) {
+      const queue = Array.isArray(items) ? items.slice() : [];
+      const width = Math.max(1, Number(limit || 1));
+      await Promise.all(Array.from({ length: Math.min(width, queue.length) }, async () => {
+        while (queue.length) {
+          const next = queue.shift();
+          if (!next) continue;
+          await worker(next);
+        }
+      }));
+    }
+
+    async function hydrateTravelPopularity(force = false, signal) {
+      const candidates = state.rows.filter((item) => TRAVEL_POPULARITY_CODES.includes(item.code));
+      if (!candidates.length) return;
+
+      if (!force) {
+        const cached = readTravelPopularityCache();
+        if (cached?.scores) {
+          applyTravelPopularityScores(cached.scores);
+        }
+      }
+
+      const scores = {};
+      await runWithConcurrency(candidates, 6, async (item) => {
+        try {
+          const score = await fetchTravelPopularityScore(item, signal);
+          if (score > 0) scores[item.code] = score;
+        } catch (_error) {}
+      });
+
+      if (!Object.keys(scores).length) return;
+      writeTravelPopularityCache(scores);
+      applyTravelPopularityScores(scores);
     }
 
     function loadCountryPhotoCacheFromStorage() {
@@ -816,7 +984,9 @@
         subregion,
         cities: pickCountryCities(code, capital),
         flag,
-        photo
+        photo,
+        popularityScore: 0,
+        popularityRank: null
       };
     }
 
@@ -826,7 +996,14 @@
         const cachedRows = readCountryRowsCache();
         if (Array.isArray(cachedRows) && cachedRows.length) {
           state.rows = cachedRows.sort((a, b) => a.name.localeCompare(b.name));
+          const cachedPopularity = readTravelPopularityCache();
+          if (cachedPopularity?.scores) {
+            applyTravelPopularityScores(cachedPopularity.scores);
+          }
           hydrateRegionOptions();
+          void hydrateTravelPopularity(false)
+            .then(() => render())
+            .catch(() => {});
           void hydrateScenicCountryPhotos(state.rows.slice(0, getTravelInitialHydrationLimit()))
             .then(() => {
               writeCountryRowsCache(state.rows);
@@ -849,6 +1026,15 @@
           .map(normalizeCountryRow)
           .filter(Boolean)
           .sort((a, b) => a.name.localeCompare(b.name));
+        const cachedPopularity = readTravelPopularityCache();
+        if (cachedPopularity?.scores) {
+          applyTravelPopularityScores(cachedPopularity.scores);
+        }
+        void hydrateTravelPopularity(force, controller.signal)
+          .then(() => {
+            render();
+          })
+          .catch(() => {});
         void hydrateScenicCountryPhotos(state.rows.slice(0, getTravelInitialHydrationLimit()), controller.signal)
           .then(() => {
             writeCountryRowsCache(state.rows);
@@ -884,6 +1070,14 @@
           const left = a.region || '';
           const right = b.region || '';
           return left.localeCompare(right) || a.name.localeCompare(b.name);
+        });
+      } else {
+        output = output.sort((a, b) => {
+          const scoreDiff = Number(b?.popularityScore || 0) - Number(a?.popularityScore || 0);
+          if (scoreDiff !== 0) return scoreDiff;
+          const rankDiff = Number(a?.popularityRank || 9999) - Number(b?.popularityRank || 9999);
+          if (rankDiff !== 0) return rankDiff;
+          return a.name.localeCompare(b.name);
         });
       }
       state.filtered = output;
@@ -962,7 +1156,11 @@
               <button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
             </div>
             <div class="meta">${escapeHtml(item.capital ? `Capital: ${item.capital}` : 'Capital: N/A')}</div>
-            <div class="sub">${escapeHtml([item.region, item.subregion].filter(Boolean).join(' | ') || 'Region unavailable')}</div>
+            <div class="sub">${escapeHtml([
+              item.popularityRank ? `Live rank #${item.popularityRank}` : '',
+              item.region,
+              item.subregion
+            ].filter(Boolean).join(' | ') || 'Region unavailable')}</div>
             <div class="sub">${escapeHtml(item.cities && item.cities.length ? `Cities: ${item.cities.join(', ')}` : 'Cities: N/A')}</div>
           </div>
         `;
