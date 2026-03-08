@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v45';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v47';
 const PAGE_CACHE = 'zo2y-pages-v61';
 const IMAGE_CACHE = 'zo2y-images-v18';
 const API_CACHE = 'zo2y-api-v4';
@@ -10,10 +10,10 @@ const STATIC_ASSETS = [
   '/index.html',
   '/manifest.webmanifest',
   '/css/pages/index.css?v=20260307l',
-  '/css/shared-header.css?v=20260308b',
+  '/css/shared-header.css?v=20260308g',
   '/js/pages/index.js?v=20260307c',
   '/js/home-desktop-rebrand.js?v=20260301q',
-  '/js/shared-header.js?v=20260308b',
+  '/js/shared-header.js?v=20260308g',
   '/js/vercel-analytics.js?v=20260307a',
   '/js/list-utils.js?v=20260301e',
   '/js/universal-search.js?v=20260308f',
@@ -23,7 +23,7 @@ const STATIC_ASSETS = [
   '/js/mobile-webapp.js',
   '/js/mobile-webapp.js?v=20260307c',
   '/js/mobile-app.css',
-  '/js/mobile-app.css?v=20260301b',
+  '/js/mobile-app.css?v=20260308a',
   '/favicon.ico',
   '/favicon.ico?v=20260307a',
   '/newlogo.webp',
@@ -208,5 +208,9 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
+
+
+
+
 
 

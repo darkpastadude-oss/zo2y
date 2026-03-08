@@ -20,13 +20,11 @@ body.mobile-webapp {
 
 body.mobile-webapp.app-booting {
   opacity: 0;
-  transform: translateY(6px);
 }
 
 body.mobile-webapp.app-ready {
   opacity: 1;
-  transform: translateY(0);
-  transition: opacity 220ms ease, transform 220ms ease;
+  transition: opacity 220ms ease;
 }
 
 @media (max-width: 900px) {

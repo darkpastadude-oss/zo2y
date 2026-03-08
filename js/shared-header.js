@@ -460,6 +460,12 @@
   function boot() {
     if (isHeaderSuppressedPage(window.location.pathname)) return;
     mountSharedHeader();
+    const applyMobileHeaderState = () => {
+      const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+      document.body.classList.toggle('zo2y-mobile-header-fixed', !!isMobile);
+    };
+    applyMobileHeaderState();
+    window.addEventListener('resize', applyMobileHeaderState);
     wireSearchButton();
     wireMobileDrawer();
     wireAuthStateSync();

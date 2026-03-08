@@ -454,12 +454,19 @@ body.zo2y-mobile-menu-open {
 
 @media (max-width: 1024px) {
   .zo2y-shared-header {
-    position: sticky !important;
+    position: fixed !important;
     border-radius: 0;
     border-left: 0;
     border-right: 0;
     top: 0 !important;
+    left: 0;
+    right: 0;
+    width: 100%;
     z-index: 1800 !important;
+  }
+
+  body.zo2y-mobile-header-fixed {
+    padding-top: 60px;
   }
 
   .zo2y-mobile-topbar {
