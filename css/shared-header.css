@@ -8,6 +8,25 @@
   --zo2y-header-card: #132347;
 }
 
+/* Global UI chrome lowercase (keeps media/item titles untouched) */
+.zo2y-shared-pill,
+.zo2y-shared-btn,
+.zo2y-mobile-drawer-link span,
+.zo2y-mobile-auth-btn span,
+.zo2y-mobile-drawer-label,
+.chip,
+.btn,
+.menu-btn,
+.mobile-nav-item,
+.sidebar-link span,
+.sidebar-ghost-link span,
+.rail-title a,
+.rail-title span,
+.section-head p,
+.status {
+  text-transform: lowercase;
+}
+
 .rail {
   scrollbar-width: none;
   -ms-overflow-style: none;
