@@ -120,11 +120,16 @@
 
   async function ensureSupabase() {
     if (client) return client;
+    if (window.__ZO2Y_SUPABASE_CLIENT) {
+      client = window.__ZO2Y_SUPABASE_CLIENT;
+      return client;
+    }
     for (let i = 0; i < 20; i += 1) {
       if (window.supabase?.createClient) {
         client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
           auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
         });
+        window.__ZO2Y_SUPABASE_CLIENT = client;
         return client;
       }
       await new Promise((resolve) => setTimeout(resolve, 150));

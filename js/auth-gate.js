@@ -151,13 +151,18 @@
       }
       if (!client) {
         try {
-          client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: {
-              persistSession: true,
-              autoRefreshToken: true,
-              detectSessionInUrl: true
-            }
-          });
+          if (window.__ZO2Y_SUPABASE_CLIENT) {
+            client = window.__ZO2Y_SUPABASE_CLIENT;
+          } else {
+            client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+              auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true
+              }
+            });
+            window.__ZO2Y_SUPABASE_CLIENT = client;
+          }
         } catch (_clientErr) {
           client = null;
         }

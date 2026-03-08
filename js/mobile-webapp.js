@@ -818,8 +818,8 @@
 
   window.addEventListener('beforeinstallprompt', (event) => {
     deferredInstallPrompt = event;
-    event.preventDefault();
     if (!ENABLE_MOBILE_INSTALL_PROMPT) return;
+    event.preventDefault();
     showInstallPromptCard({ force: true });
   });
 

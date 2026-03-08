@@ -1783,6 +1783,10 @@ let homeTravelPhotoCacheSaveTimer = null;
 
     async function ensureHomeSupabase() {
       if (homeSupabaseClient) return homeSupabaseClient;
+      if (window.__ZO2Y_SUPABASE_CLIENT) {
+        homeSupabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
+        return homeSupabaseClient;
+      }
       if (!window.supabase || !window.supabase.createClient) return null;
       homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
@@ -1792,6 +1796,7 @@ let homeTravelPhotoCacheSaveTimer = null;
           detectSessionInUrl: false
         }
       });
+      window.__ZO2Y_SUPABASE_CLIENT = homeSupabaseClient;
       return homeSupabaseClient;
     }
 
@@ -2454,9 +2459,28 @@ let homeTravelPhotoCacheSaveTimer = null;
       }
     }
 
+    function moveFocusOutsideModal(modal) {
+      if (!modal) return;
+      const active = document.activeElement;
+      if (!(active instanceof HTMLElement)) return;
+      if (!modal.contains(active)) return;
+      active.blur();
+      const fallback = document.getElementById('zo2yMobileMenuBtn')
+        || document.getElementById('sidebarToggleBtn')
+        || document.querySelector('.zo2y-shared-brand')
+        || document.body;
+      if (fallback && typeof fallback.focus === 'function') {
+        if (fallback === document.body && !document.body.hasAttribute('tabindex')) {
+          document.body.setAttribute('tabindex', '-1');
+        }
+        fallback.focus({ preventScroll: true });
+      }
+    }
+
     function closeItemMenuModal() {
       const itemModal = document.getElementById('itemMenuModal');
       if (itemModal) {
+        moveFocusOutsideModal(itemModal);
         itemModal.classList.remove('active');
         itemModal.setAttribute('aria-hidden', 'true');
       }
@@ -2467,6 +2491,7 @@ let homeTravelPhotoCacheSaveTimer = null;
     function closeCreateListModal() {
       const createModal = document.getElementById('createListModal');
       if (createModal) {
+        moveFocusOutsideModal(createModal);
         createModal.classList.remove('active');
         createModal.setAttribute('aria-hidden', 'true');
       }
@@ -2976,6 +3001,7 @@ let homeTravelPhotoCacheSaveTimer = null;
     function closeHomeListsModal() {
       const modal = document.getElementById('homeListsModal');
       if (modal) {
+        moveFocusOutsideModal(modal);
         modal.classList.remove('active');
         modal.setAttribute('aria-hidden', 'true');
       }

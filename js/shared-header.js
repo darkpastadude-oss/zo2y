@@ -236,6 +236,10 @@
 
   function ensureSupabaseClient() {
     if (supabaseClient) return supabaseClient;
+    if (window.__ZO2Y_SUPABASE_CLIENT) {
+      supabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
+      return supabaseClient;
+    }
     if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
     try {
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -245,6 +249,7 @@
           detectSessionInUrl: true
         }
       });
+      window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
       return supabaseClient;
     } catch (_err) {
       return null;
