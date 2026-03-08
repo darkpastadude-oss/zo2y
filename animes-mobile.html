@@ -702,7 +702,6 @@
       <option value="">All Genres</option>
     </select>
     <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year">
-    <input id="actorInput" class="search-input full-span" type="text" placeholder="Actor (e.g., Ahmed Helmy)">
     <button class="btn full-span" id="refreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
   </div>
   <div id="activeFilters" class="chip-row"></div>
@@ -751,7 +750,6 @@
         genres: [],
         activeGenre: '',
         query: '',
-        actor: '',
         year: '',
         page: 1,
         totalPages: 1,
@@ -860,7 +858,6 @@
         if (state.activeGenre) items.push({ label: state.activeGenre, type: 'genre' });
         if (state.query) items.push({ label: state.query, type: 'query' });
         if (state.year) items.push({ label: state.year, type: 'year' });
-        if (state.actor) items.push({ label: state.actor, type: 'actor' });
         items.forEach(item => {
           const chip = document.createElement('div');
           chip.className = 'chip active';
@@ -869,11 +866,9 @@
             if (item.type === 'genre') state.activeGenre = '';
             if (item.type === 'query') state.query = '';
             if (item.type === 'year') state.year = '';
-            if (item.type === 'actor') state.actor = '';
             document.getElementById('searchInput').value = state.query;
             document.getElementById('genreSelect').value = state.activeGenre;
             document.getElementById('yearInput').value = state.year;
-            document.getElementById('actorInput').value = state.actor;
             renderFilters();
             state.page = 1;
             loadTvShows();
@@ -884,7 +879,7 @@
 
       async function loadGenres() {
         const data = await tmdbFetch('/genre/tv/list', { language: 'en' });
-        state.genres = data.genres || [];
+        state.genres = (data.genres || []).filter((genre) => Number(genre?.id || 0) !== 16);
         const select = document.getElementById('genreSelect');
         if (!select) return;
         state.genres.forEach(g => {
@@ -895,15 +890,20 @@
         });
       }
 
-      async function resolveActorId() {
-        if (!state.actor) return null;
-        const res = await tmdbFetch('/search/person', {
-          query: state.actor,
-          language: 'en',
-          page: 1
-        });
-        const person = (res.results || [])[0];
-        return person ? person.id : null;
+      function isAnimeResult(item) {
+        const genreIds = Array.isArray(item?.genre_ids) ? item.genre_ids.map((entry) => Number(entry)) : [];
+        const originalLanguage = String(item?.original_language || '').trim().toLowerCase();
+        const originCountries = Array.isArray(item?.origin_country)
+          ? item.origin_country.map((entry) => String(entry || '').trim().toUpperCase())
+          : [];
+        const fromJapan = originalLanguage === 'ja' || originCountries.includes('JP');
+        return genreIds.includes(16) && fromJapan;
+      }
+
+      function matchesAnimeYear(item) {
+        if (!state.year) return true;
+        const airDate = String(item?.first_air_date || item?.release_date || '').trim();
+        return airDate.startsWith(String(state.year));
       }
 
       async function loadTvShows() {
@@ -913,29 +913,25 @@
 
         let data;
         try {
-          const actorId = await resolveActorId();
           const animeGenreFilter = state.activeGenre
-            ? (String(state.activeGenre) === '16' ? '16' : `16,${state.activeGenre}`)
+            ? `16,${state.activeGenre}`
             : '16';
-          if (state.query || state.year || state.activeGenre || actorId) {
+          if (state.query) {
+            data = await tmdbFetch('/search/tv', {
+              query: state.query,
+              language: 'en',
+              include_adult: false,
+              page: state.page
+            });
+          } else if (state.year || state.activeGenre) {
             data = await tmdbFetch('/discover/tv', {
               language: 'en',
               page: state.page,
               with_genres: animeGenreFilter,
               with_original_language: 'ja',
               first_air_date_year: state.year,
-              with_cast: actorId || undefined,
               sort_by: 'popularity.desc'
             });
-            if (state.query) {
-              const searchData = await tmdbFetch('/search/tv', {
-                query: state.query,
-                language: 'en',
-                include_adult: false,
-                page: state.page
-              });
-              data = searchData;
-            }
           } else {
             data = await tmdbFetch('/discover/tv', {
               language: 'en',
@@ -951,7 +947,8 @@
         }
 
         let results = data.results || [];
-        results = results.filter((entry) => Array.isArray(entry.genre_ids) && entry.genre_ids.includes(16));
+        results = results.filter(isAnimeResult);
+        results = results.filter(matchesAnimeYear);
         if (state.activeGenre) {
           const genreId = parseInt(state.activeGenre, 10);
           results = results.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(genreId));
@@ -1208,7 +1205,6 @@
         const searchInput = document.getElementById('searchInput');
         const genreSelect = document.getElementById('genreSelect');
         const yearInput = document.getElementById('yearInput');
-        const actorInput = document.getElementById('actorInput');
         const refreshBtn = document.getElementById('refreshBtn');
         const prevBtn = document.getElementById('prevPageBtn');
         const nextBtn = document.getElementById('nextPageBtn');
@@ -1236,14 +1232,6 @@
         if (yearInput) {
           yearInput.addEventListener('input', (e) => {
             state.year = e.target.value.trim();
-            renderFilters();
-            state.page = 1;
-            loadTvShows();
-          });
-        }
-        if (actorInput) {
-          actorInput.addEventListener('change', (e) => {
-            state.actor = e.target.value.trim();
             renderFilters();
             state.page = 1;
             loadTvShows();

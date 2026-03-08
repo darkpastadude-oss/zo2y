@@ -702,7 +702,7 @@
       <option value="">All Genres</option>
     </select>
     <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year">
-    <input id="actorInput" class="search-input full-span" type="text" placeholder="Actor (e.g., Ahmed Helmy)">
+    <input id="actorInput" class="search-input full-span" type="text" placeholder="Cast member">
     <button class="btn full-span" id="refreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
   </div>
   <div id="activeFilters" class="chip-row"></div>
@@ -1038,32 +1038,47 @@
         return person ? person.id : null;
       }
 
+      async function resolveActorCreditIds(actorId) {
+        if (!actorId) return null;
+        const data = await tmdbFetch(`/person/${actorId}/tv_credits`, { language: 'en' });
+        const rows = Array.isArray(data?.cast) ? data.cast : [];
+        return new Set(rows.map((entry) => Number(entry?.id || 0)).filter(Boolean));
+      }
+
+      function matchesTvYear(item) {
+        if (!state.year) return true;
+        const airDate = String(item?.first_air_date || item?.release_date || '').trim();
+        return airDate.startsWith(String(state.year));
+      }
+
       async function loadTvShows() {
         const grid = document.getElementById('moviesGrid');
         const empty = document.getElementById('emptyState');
         if (!grid) return;
 
         let data;
+        let actorCreditIds = null;
         try {
           const actorId = await resolveActorId();
-          if (state.query || state.year || state.activeGenre || actorId) {
+          if (state.query) {
+            data = await tmdbFetch('/search/tv', {
+              query: state.query,
+              language: 'en',
+              include_adult: false,
+              page: state.page
+            });
+            if (actorId) {
+              actorCreditIds = await resolveActorCreditIds(actorId);
+            }
+          } else if (state.year || state.activeGenre || actorId) {
             data = await tmdbFetch('/discover/tv', {
               language: 'en',
               page: state.page,
               with_genres: state.activeGenre,
-              primary_release_year: state.year,
+              first_air_date_year: state.year,
               with_cast: actorId || undefined,
               sort_by: 'popularity.desc'
             });
-            if (state.query) {
-              const searchData = await tmdbFetch('/search/tv', {
-                query: state.query,
-                language: 'en',
-                include_adult: false,
-                page: state.page
-              });
-              data = searchData;
-            }
           } else {
             data = await tmdbFetch('/tv/popular', {
               language: 'en',
@@ -1079,6 +1094,10 @@
         const animeFilter = filterOutAnimeTv(results);
         results = animeFilter.filtered;
         const nonAnimeCountBeforeGenreFilter = results.length;
+        if (actorCreditIds instanceof Set) {
+          results = results.filter((item) => actorCreditIds.has(Number(item?.id || 0)));
+        }
+        results = results.filter(matchesTvYear);
         if (state.activeGenre) {
           const genreId = parseInt(state.activeGenre, 10);
           results = results.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(genreId));
@@ -1388,11 +1407,15 @@
           });
         }
         if (actorInput) {
-          actorInput.addEventListener('change', (e) => {
-            state.actor = e.target.value.trim();
-            renderFilters();
-            state.page = 1;
-            loadTvShows();
+          let actorTimer = null;
+          actorInput.addEventListener('input', (e) => {
+            window.clearTimeout(actorTimer);
+            actorTimer = window.setTimeout(() => {
+              state.actor = e.target.value.trim();
+              renderFilters();
+              state.page = 1;
+              loadTvShows();
+            }, 260);
           });
         }
         if (refreshBtn) refreshBtn.addEventListener('click', () => loadTvShows());
