@@ -344,12 +344,22 @@
     if (!menuBtn || !closeBtn || !drawer || !backdrop) return;
     if (menuBtn.dataset.wired === '1') return;
     menuBtn.dataset.wired = '1';
+    let touchScrollGuard = null;
+
     const lockBodyScrollForMenu = () => {
       if (document.body.dataset.zo2yMenuScrollLock === '1') return;
       document.body.dataset.zo2yMenuScrollLock = '1';
       document.documentElement.style.overflow = 'hidden';
       document.documentElement.style.overscrollBehavior = 'none';
       document.body.style.overscrollBehavior = 'none';
+      document.body.style.overflow = 'hidden';
+
+      touchScrollGuard = (event) => {
+        const target = event.target;
+        if (target instanceof Element && drawer.contains(target)) return;
+        event.preventDefault();
+      };
+      document.addEventListener('touchmove', touchScrollGuard, { passive: false });
     };
 
     const unlockBodyScrollForMenu = () => {
@@ -358,6 +368,11 @@
       document.documentElement.style.overflow = '';
       document.documentElement.style.overscrollBehavior = '';
       document.body.style.overscrollBehavior = '';
+      document.body.style.overflow = '';
+      if (touchScrollGuard) {
+        document.removeEventListener('touchmove', touchScrollGuard);
+        touchScrollGuard = null;
+      }
     };
 
     const resetDrawerScrollTop = () => {
