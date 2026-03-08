@@ -85,6 +85,41 @@ create table if not exists public.review_replies (
   updated_at timestamptz not null default now()
 );
 
+alter table public.review_replies add column if not exists review_source text;
+alter table public.review_replies add column if not exists media_type text;
+alter table public.review_replies add column if not exists review_id uuid;
+alter table public.review_replies add column if not exists parent_reply_id uuid;
+alter table public.review_replies add column if not exists user_id uuid;
+alter table public.review_replies add column if not exists body text;
+alter table public.review_replies add column if not exists created_at timestamptz default now();
+alter table public.review_replies add column if not exists updated_at timestamptz default now();
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.review_replies'::regclass
+      and conname = 'review_replies_parent_reply_id_fkey'
+  ) then
+    alter table public.review_replies
+      add constraint review_replies_parent_reply_id_fkey
+      foreign key (parent_reply_id) references public.review_replies(id) on delete cascade;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.review_replies'::regclass
+      and conname = 'review_replies_user_id_fkey'
+  ) then
+    alter table public.review_replies
+      add constraint review_replies_user_id_fkey
+      foreign key (user_id) references auth.users(id) on delete cascade;
+  end if;
+end
+$$;
+
 create index if not exists idx_review_replies_lookup
   on public.review_replies (review_source, review_id, created_at asc);
 
@@ -109,6 +144,82 @@ create table if not exists public.review_reactions (
   updated_at timestamptz not null default now(),
   unique (review_source, target_type, target_id, user_id)
 );
+
+alter table public.review_reactions add column if not exists review_source text;
+alter table public.review_reactions add column if not exists media_type text;
+alter table public.review_reactions add column if not exists review_id uuid;
+alter table public.review_reactions add column if not exists target_type text;
+alter table public.review_reactions add column if not exists target_id uuid;
+alter table public.review_reactions add column if not exists user_id uuid;
+alter table public.review_reactions add column if not exists reaction_type text;
+alter table public.review_reactions add column if not exists created_at timestamptz default now();
+alter table public.review_reactions add column if not exists updated_at timestamptz default now();
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.review_reactions'::regclass
+      and conname = 'review_reactions_user_id_fkey'
+  ) then
+    alter table public.review_reactions
+      add constraint review_reactions_user_id_fkey
+      foreign key (user_id) references auth.users(id) on delete cascade;
+  end if;
+end
+$$;
+
+do $$
+begin
+  alter table public.review_replies
+    drop constraint if exists review_replies_review_source_check;
+  alter table public.review_replies
+    drop constraint if exists review_replies_media_type_check;
+  alter table public.review_replies
+    drop constraint if exists review_replies_body_check;
+
+  alter table public.review_reactions
+    drop constraint if exists review_reactions_review_source_check;
+  alter table public.review_reactions
+    drop constraint if exists review_reactions_media_type_check;
+  alter table public.review_reactions
+    drop constraint if exists review_reactions_target_type_check;
+  alter table public.review_reactions
+    drop constraint if exists review_reactions_reaction_type_check;
+end
+$$;
+
+alter table public.review_replies
+  add constraint review_replies_review_source_check
+  check (public.zo2y_review_source_media_type(review_source) is not null);
+
+alter table public.review_replies
+  add constraint review_replies_media_type_check
+  check (media_type in ('movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'restaurant'));
+
+alter table public.review_replies
+  add constraint review_replies_body_check
+  check (char_length(trim(body)) between 1 and 1200);
+
+alter table public.review_reactions
+  add constraint review_reactions_review_source_check
+  check (public.zo2y_review_source_media_type(review_source) is not null);
+
+alter table public.review_reactions
+  add constraint review_reactions_media_type_check
+  check (media_type in ('movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'restaurant'));
+
+alter table public.review_reactions
+  add constraint review_reactions_target_type_check
+  check (target_type in ('review', 'reply'));
+
+alter table public.review_reactions
+  add constraint review_reactions_reaction_type_check
+  check (reaction_type in ('like', 'dislike'));
+
+create unique index if not exists ux_review_reactions_unique
+  on public.review_reactions (review_source, target_type, target_id, user_id);
 
 create index if not exists idx_review_reactions_lookup
   on public.review_reactions (review_source, review_id, created_at desc);
