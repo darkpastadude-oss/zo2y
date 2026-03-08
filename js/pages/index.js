@@ -3858,6 +3858,7 @@ let homeTravelPhotoCacheSaveTimer = null;
       const mobileLoginBtn = document.getElementById('mobileLoginBtn');
       const mobileSignupBtn = document.getElementById('mobileSignupBtn');
       const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+      const sidebarProfileBtn = document.getElementById('sidebarProfileBtn');
       try {
         const user = await getVerifiedHomeUser(client);
         homeCurrentUser = user;
@@ -3886,6 +3887,10 @@ let homeTravelPhotoCacheSaveTimer = null;
             mobileProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
             mobileProfileBtn.style.display = 'inline-flex';
           }
+          if (sidebarProfileBtn) {
+            sidebarProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+            sidebarProfileBtn.style.display = 'inline-flex';
+          }
         } else {
           if (loginBtn) loginBtn.style.display = 'inline-flex';
           if (signupBtn) signupBtn.style.display = 'inline-flex';
@@ -3893,6 +3898,7 @@ let homeTravelPhotoCacheSaveTimer = null;
           if (mobileSignupBtn) mobileSignupBtn.style.display = 'inline-flex';
           if (profileBtn) profileBtn.style.display = 'none';
           if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
+          if (sidebarProfileBtn) sidebarProfileBtn.style.display = 'none';
         }
       } catch (_e) {
         homeCurrentUser = null;
@@ -3902,6 +3908,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         if (mobileSignupBtn) mobileSignupBtn.style.display = 'inline-flex';
         if (profileBtn) profileBtn.style.display = 'none';
         if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
+        if (sidebarProfileBtn) sidebarProfileBtn.style.display = 'none';
       }
     }
 
@@ -5790,6 +5797,18 @@ let homeTravelPhotoCacheSaveTimer = null;
           input: '#globalSearch',
           fallbackRoute: 'movies.html'
         });
+        window.initUniversalSearch({
+          input: '#sidebarSearch',
+          fallbackRoute: 'movies.html'
+        });
+        const sidebarInput = document.getElementById('sidebarSearch');
+        const sidebarBtn = document.getElementById('sidebarSearchBtn');
+        if (sidebarInput && sidebarBtn && sidebarBtn.dataset.wired !== '1') {
+          sidebarBtn.dataset.wired = '1';
+          sidebarBtn.addEventListener('click', () => {
+            sidebarInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+          });
+        }
       }, 1400);
 
       document.addEventListener('keydown', (e) => {

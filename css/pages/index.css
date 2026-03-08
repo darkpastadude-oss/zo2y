@@ -2327,17 +2327,11 @@
 
       @media (min-width: 1025px) {
         .desktop-main-panel > .zo2y-shared-header {
-          top: 10px;
-          border-radius: 20px;
-          border: 1px solid rgba(255,255,255,0.14);
-          background: rgba(8, 15, 27, 0.84);
+          display: none !important;
         }
 
         .desktop-main-panel > .zo2y-shared-header .zo2y-shared-header-inner {
-          width: min(1240px, calc(100% - 36px));
-          min-height: 60px;
-          gap: 12px;
-          padding: 8px 0;
+          display: none !important;
         }
       }
 
@@ -2423,6 +2417,50 @@
         padding: 0 10px;
         cursor: pointer;
         transition: border-color 0.2s ease, background 0.2s ease;
+      }
+
+      .sidebar-search-wrap {
+        position: relative;
+        width: 100%;
+      }
+
+      .sidebar-search-input {
+        width: 100%;
+        height: 42px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(255,255,255,0.05);
+        color: #f2f7ff;
+        padding: 0 42px 0 12px;
+        font-size: 13px;
+      }
+
+      .sidebar-search-btn {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        border: 1px solid rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.06);
+        color: #dbe8ff;
+        cursor: pointer;
+      }
+
+      .sidebar-profile-btn {
+        min-height: 40px;
+        border-radius: 11px;
+        border: 1px solid rgba(245,158,11,0.45);
+        background: linear-gradient(120deg, rgba(245,158,11,0.2), rgba(245,158,11,0.06));
+        color: #ffe2a6;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 11px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
       }
 
       .sidebar-toggle:hover {
@@ -2596,11 +2634,16 @@
 
       body.sidebar-collapsed .sidebar-brand-wordmark,
       body.sidebar-collapsed .sidebar-toggle span,
+      body.sidebar-collapsed .sidebar-profile-btn span,
       body.sidebar-collapsed .sidebar-link span,
       body.sidebar-collapsed .sidebar-ghost-link span,
       body.sidebar-collapsed .sidebar-label,
       body.sidebar-collapsed .sidebar-divider,
       body.sidebar-collapsed .sidebar-lists-preview {
+        display: none;
+      }
+
+      body.sidebar-collapsed .sidebar-search-wrap {
         display: none;
       }
 
