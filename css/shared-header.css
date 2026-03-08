@@ -73,11 +73,18 @@
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 14px 11px calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+body.zo2y-mobile-menu-open .zo2y-mobile-drawer {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .zo2y-mobile-drawer.open {
