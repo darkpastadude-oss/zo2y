@@ -490,6 +490,7 @@
         .from('review_reactions')
         .insert({
           review_source: state.reviewSource,
+          media_type: state.mediaType || null,
           review_id: payload.reviewId,
           target_type: payload.targetType,
           target_id: payload.targetId,
@@ -558,6 +559,7 @@
       .from('review_replies')
       .insert({
         review_source: state.reviewSource,
+        media_type: state.mediaType || null,
         review_id: reviewId,
         parent_reply_id: parentReplyId || null,
         user_id: state.currentUserId,
@@ -643,6 +645,7 @@
       container: config?.container || null,
       reviews: Array.isArray(config?.reviews) ? config.reviews : [],
       reviewSource: String(config?.reviewSource || '').trim(),
+      mediaType: String(config?.mediaType || '').trim(),
       currentUserId: String(config?.currentUser?.id || config?.currentUserId || '').trim(),
       supabaseClient: config?.supabaseClient || null,
       notify: config?.notify || null,

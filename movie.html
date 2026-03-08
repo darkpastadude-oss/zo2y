@@ -1451,28 +1451,12 @@
         const userIds = [...new Set(reviewsToDisplay.map(r => r.user_id))];
         let userMap = {};
         if (userIds.length && supabaseClient) {
-          let users = [];
-          const profileSelects = [
-            'user_id, id, username, full_name',
-            'user_id, username, full_name',
-            'user_id, username',
-            'user_id, full_name',
-            'id, username, full_name',
-            'id, username',
-            'id, full_name'
-          ];
-          for (const cols of profileSelects) {
-            const { data, error } = await supabaseClient
-              .from('user_profiles')
-              .select(cols)
-              .in(cols.includes('user_id') ? 'user_id' : 'id', userIds);
-            if (!error) {
-              users = data || [];
-              break;
-            }
-          }
+          const { data: users } = await supabaseClient
+            .from('user_profiles')
+            .select('id, username, full_name')
+            .in('id', userIds);
           (users || []).forEach(u => {
-            const key = u.user_id || u.id;
+            const key = u.id;
             if (key) userMap[key] = u;
           });
         }
@@ -1521,6 +1505,7 @@
             container,
             reviews: reviewsToDisplay,
             reviewSource: 'movie_reviews',
+            mediaType: 'movie',
             currentUser,
             supabaseClient,
             notify: (message, level) => showNotification(message, level || 'info'),
