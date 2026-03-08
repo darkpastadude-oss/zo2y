@@ -1,7 +1,7 @@
 (() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260307c';
+  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260308f';
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
   let authStateListenerBound = false;
@@ -21,6 +21,10 @@
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
       <img src="/newlogo.webp" alt="Logo" />
     </a>
+    <div class="nav-search zo2y-shared-search">
+      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+    </div>
     <nav class="zo2y-shared-nav" aria-label="Primary navigation">
       <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
       <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
@@ -335,41 +339,6 @@
     if (!menuBtn || !closeBtn || !drawer || !backdrop) return;
     if (menuBtn.dataset.wired === '1') return;
     menuBtn.dataset.wired = '1';
-    const DRAWER_FRAME = 8;
-
-    const syncDrawerViewport = () => {
-      const visual = window.visualViewport;
-      const top = (visual?.offsetTop || 0) + window.scrollY;
-      const left = (visual?.offsetLeft || 0) + window.scrollX;
-      const width = Math.max(
-        0,
-        Math.ceil(visual?.width || window.innerWidth || document.documentElement.clientWidth || 0)
-      );
-      const height = Math.max(
-        0,
-        Math.ceil(visual?.height || window.innerHeight || document.documentElement.clientHeight || 0)
-      );
-
-      backdrop.style.top = `${top}px`;
-      backdrop.style.left = `${left}px`;
-      backdrop.style.width = `${width}px`;
-      backdrop.style.height = `${height}px`;
-
-      const drawerTop = top + DRAWER_FRAME;
-      const drawerLeft = left + DRAWER_FRAME;
-      const drawerHeight = Math.max(220, height - DRAWER_FRAME * 2);
-      const cappedWidth = Math.min(
-        340,
-        Math.max(260, Math.floor(width * 0.88))
-      );
-      const drawerWidth = Math.min(cappedWidth, Math.max(220, width - DRAWER_FRAME * 2 - 14));
-
-      drawer.style.top = `${drawerTop}px`;
-      drawer.style.left = `${drawerLeft}px`;
-      drawer.style.height = `${drawerHeight}px`;
-      drawer.style.width = `${drawerWidth}px`;
-    };
-
     const lockBodyScrollForMenu = () => {
       if (document.body.dataset.zo2yMenuScrollLock === '1') return;
       document.body.dataset.zo2yMenuScrollLock = '1';
@@ -399,7 +368,6 @@
     };
 
     const setDrawerState = (isOpen) => {
-      syncDrawerViewport();
       drawer.classList.toggle('open', isOpen);
       backdrop.classList.toggle('active', isOpen);
       drawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
@@ -410,12 +378,7 @@
       if (isOpen) lockBodyScrollForMenu();
       else unlockBodyScrollForMenu();
       resetDrawerScrollTop();
-      if (isOpen) {
-        requestAnimationFrame(() => {
-          syncDrawerViewport();
-          resetDrawerScrollTop();
-        });
-      }
+      if (isOpen) requestAnimationFrame(resetDrawerScrollTop);
     };
 
     const closeDrawer = () => setDrawerState(false);
@@ -438,26 +401,7 @@
 
     window.addEventListener('resize', () => {
       if (window.innerWidth > 1024) closeDrawer();
-      else if (drawer.classList.contains('open')) syncDrawerViewport();
     });
-
-    window.addEventListener('scroll', () => {
-      if (!drawer.classList.contains('open')) return;
-      syncDrawerViewport();
-    }, { passive: true });
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', () => {
-        if (!drawer.classList.contains('open')) return;
-        syncDrawerViewport();
-      });
-      window.visualViewport.addEventListener('scroll', () => {
-        if (!drawer.classList.contains('open')) return;
-        syncDrawerViewport();
-      });
-    }
-
-    syncDrawerViewport();
   }
 
   function wireSearchButton() {
@@ -492,6 +436,8 @@
       if (!input || !button) return;
       if (button.dataset.wired === '1') return;
       button.dataset.wired = '1';
+
+      initInputUniversalSearch(input);
 
       input.addEventListener('focus', () => {
         warmSearch();

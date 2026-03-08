@@ -3,6 +3,7 @@
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
   const BOOKS_PROXY_BASE = '/api/books';
   const MUSIC_PROXY_BASE = '/api/music';
+  const TRAVEL_API_BASE = 'https://restcountries.com/v3.1';
   const GAMES_DISABLED = true;
   const MIN_QUERY_LEN = 2;
   const SEARCH_DEBOUNCE_MS = 60;
@@ -428,18 +429,48 @@
     return merged.slice(0, 6);
   }
 
+  async function fetchTravel(query, signal) {
+    const normalized = normalizeQuery(query);
+    if (!normalized || normalized.length < MIN_QUERY_LEN) return [];
+
+    const url = `${TRAVEL_API_BASE}/name/${encodeURIComponent(normalized)}?fields=name,cca2,cca3,capital,region,flags`;
+    const rows = await fetchJsonWithTimeout(url, { signal, timeoutMs: 8000 });
+    const list = Array.isArray(rows) ? rows : [];
+
+    return list.slice(0, 6).map((row) => {
+      const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+      const title = String(row?.name?.common || row?.name?.official || code || 'Country').trim();
+      const capital = Array.isArray(row?.capital)
+        ? String(row.capital[0] || '').trim()
+        : String(row?.capital || '').trim();
+      const region = String(row?.region || '').trim();
+      const sub = [capital ? `Capital: ${capital}` : '', region].filter(Boolean).join(' | ') || 'Country';
+      const image = toHttpsUrl(row?.flags?.png || row?.flags?.svg || '');
+
+      return {
+        type: 'Travel',
+        title: title || 'Country',
+        sub,
+        href: code ? `country.html?code=${encodeURIComponent(code)}` : 'travel.html',
+        image,
+        landscape: false
+      };
+    });
+  }
+
   async function fetchAllSuggestions(query, signal) {
     const normalized = normalizeQuery(query);
     const cached = readCachedSuggestions(normalized);
     if (cached) return cached;
 
-    const [moviesTv, books, music] = await Promise.all([
+    const [moviesTv, books, music, travel] = await Promise.all([
       fetchMoviesAndTv(normalized, signal).catch(() => []),
       fetchBooks(normalized, signal).catch(() => []),
-      fetchMusic(normalized, signal).catch(() => [])
+      fetchMusic(normalized, signal).catch(() => []),
+      fetchTravel(normalized, signal).catch(() => [])
     ]);
 
-    const merged = sanitizeSuggestions([...moviesTv, ...books, ...music]);
+    const merged = sanitizeSuggestions([...moviesTv, ...books, ...music, ...travel]);
     writeCachedSuggestions(normalized, merged);
     return merged;
   }
