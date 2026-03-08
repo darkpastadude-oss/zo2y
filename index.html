@@ -51,7 +51,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="css/pages/index.css?v=20260308a" />
+<link rel="stylesheet" href="css/pages/index.css?v=20260308c" />
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -61,8 +61,8 @@
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
   <script src="/js/mobile-webapp.js?v=20260308a" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260308k">
-  <script src="js/shared-header.js?v=20260308k" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260308l">
+  <script src="js/shared-header.js?v=20260308l" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -291,7 +291,7 @@
       </a>
       <button class="sidebar-toggle" id="sidebarToggleBtn" type="button" aria-expanded="true" aria-label="Toggle navigation sidebar">
         <i class="fa-solid fa-bars"></i>
-        <span>Collapse Menu</span>
+        <span>collapse menu</span>
       </button>
       <div class="sidebar-search-wrap" role="search" aria-label="Search all media">
         <input id="sidebarSearch" class="sidebar-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
@@ -331,6 +331,15 @@
 
     <div class="desktop-main-panel">
       <header class="zo2y-shared-header" role="banner" data-shared-header="1">
+  <div class="zo2y-mobile-topbar">
+    <button class="zo2y-mobile-menu-btn" id="zo2yMobileMenuBtn" type="button" aria-label="Open navigation menu" aria-controls="zo2yMobileDrawer" aria-expanded="false">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <a class="zo2y-mobile-wordmark" href="index.html" aria-label="Home">
+      <img src="/newlogo.webp" alt="Logo" />
+    </a>
+    <span class="zo2y-mobile-topbar-spacer" aria-hidden="true"></span>
+  </div>
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
       <img src="/newlogo.webp" alt="Logo" />

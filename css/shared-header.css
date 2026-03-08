@@ -6,6 +6,9 @@
   --zo2y-header-muted: #8ca3c7;
   --zo2y-header-accent: #f59e0b;
   --zo2y-header-card: #132347;
+  --zo2y-rail-expanded: 300px;
+  --zo2y-rail-collapsed: 92px;
+  --zo2y-rail-offset: 24px;
 }
 
 /* Global UI chrome lowercase (keeps media/item titles untouched) */
@@ -485,7 +488,7 @@ body.zo2y-mobile-menu-open {
     top: 14px;
     left: 12px;
     bottom: 14px;
-    width: 300px;
+    width: var(--zo2y-rail-expanded);
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background:
@@ -530,7 +533,7 @@ body.zo2y-mobile-menu-open {
     font-size: 16px;
     font-weight: 700;
     text-transform: lowercase;
-    cursor: default;
+    cursor: pointer;
   }
 
   .zo2y-desktop-rail-search {
@@ -614,13 +617,40 @@ body.zo2y-mobile-menu-open {
   }
 
   body.zo2y-desktop-rail-layout {
-    padding-left: 324px !important;
+    padding-left: calc(var(--zo2y-rail-expanded) + var(--zo2y-rail-offset)) !important;
   }
 
   body.zo2y-desktop-rail-layout .app-main,
   body.zo2y-desktop-rail-layout .desktop-main-panel,
   body.zo2y-desktop-rail-layout .home-main {
     margin-left: 0 !important;
+  }
+
+  body.sidebar-collapsed .zo2y-desktop-rail {
+    width: var(--zo2y-rail-collapsed);
+    padding-inline: 9px;
+    align-items: center;
+  }
+
+  body.sidebar-collapsed .zo2y-desktop-rail-brand,
+  body.sidebar-collapsed .zo2y-desktop-rail-collapse,
+  body.sidebar-collapsed .zo2y-desktop-rail-profile,
+  body.sidebar-collapsed .zo2y-desktop-rail-link {
+    width: 100%;
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  body.sidebar-collapsed .zo2y-desktop-rail-search,
+  body.sidebar-collapsed .sidebar-brand-wordmark,
+  body.sidebar-collapsed .zo2y-desktop-rail-collapse span,
+  body.sidebar-collapsed .zo2y-desktop-rail-profile span,
+  body.sidebar-collapsed .zo2y-desktop-rail-link span {
+    display: none;
+  }
+
+  body.sidebar-collapsed.zo2y-desktop-rail-layout {
+    padding-left: calc(var(--zo2y-rail-collapsed) + var(--zo2y-rail-offset)) !important;
   }
 
   .zo2y-mobile-drawer,
