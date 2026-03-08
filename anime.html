@@ -795,6 +795,7 @@
 
     <script src="js/list-utils.js?v=20260221c"></script>
     <script src="js/index-list-menu-adapter.js?v=20260221b"></script>
+    <script src="js/review-interactions.js?v=20260308a"></script>
     <script>
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
@@ -1401,7 +1402,7 @@
           const profileHref = `profile.html?id=${encodeURIComponent(review.user_id)}`;
           const canEditDelete = currentUser && currentUser.id === review.user_id;
           return `
-            <div class="review-card" id="review-${review.id}">
+            <div class="review-card" id="review-${review.id}" data-review-id="${review.id}">
               <div class="review-header">
                 <div class="reviewer-info">
                   <a class="reviewer-avatar reviewer-link" href="${profileHref}" aria-label="View ${escapeHtml(displayName)} profile">${escapeHtml(initials)}</a>
@@ -1422,6 +1423,18 @@
             </div>
           `;
         }).join('');
+        if (window.ZO2Y_REVIEW_INTERACTIONS && supabaseClient) {
+          await window.ZO2Y_REVIEW_INTERACTIONS.mount({
+            container,
+            reviews: reviewsToDisplay,
+            reviewSource: 'anime_reviews',
+            currentUser,
+            supabaseClient,
+            notify: (message, level) => showNotification(message, level || 'info'),
+            cardSelector: '.review-card',
+            reviewIdAttribute: 'data-review-id'
+          });
+        }
       }
 
       function updateStarDisplay() {

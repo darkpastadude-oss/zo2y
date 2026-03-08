@@ -682,6 +682,7 @@
     </div>
   </section>
 
+  <script src="js/review-interactions.js?v=20260308a"></script>
   <script>
   (() => {
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
@@ -1553,7 +1554,7 @@
           : 'Unknown date';
 
         return `
-          <article class="r" data-id="${escapeHtml(review.id)}">
+          <article class="r" data-id="${escapeHtml(review.id)}" data-review-id="${escapeHtml(review.id)}">
             <div class="rh">
               <div>
                 <div class="ru">${escapeHtml(resolveUsername(review.user_id))}</div>
@@ -1566,6 +1567,21 @@
           </article>
         `;
       }).join('');
+      if (window.ZO2Y_REVIEW_INTERACTIONS && sb) {
+        await window.ZO2Y_REVIEW_INTERACTIONS.mount({
+          container: list,
+          reviews: state.reviews,
+          reviewSource: 'travel_reviews',
+          currentUser: state.user,
+          supabaseClient: sb,
+          notify: (message, level) => showToast(
+            message,
+            level === 'error' ? 'err' : level === 'success' ? 'ok' : 'inf'
+          ),
+          cardSelector: '.r',
+          reviewIdAttribute: 'data-review-id'
+        });
+      }
     }
 
     function drawRatingStars() {
