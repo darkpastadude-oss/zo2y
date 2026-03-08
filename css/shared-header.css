@@ -314,6 +314,10 @@ body.zo2y-mobile-menu-open {
   overflow: hidden;
 }
 
+.zo2y-desktop-rail {
+  display: none;
+}
+
 .zo2y-shared-header-inner {
   width: min(1240px, calc(100% - 32px));
   margin: 0 auto;
@@ -472,6 +476,153 @@ body.zo2y-mobile-menu-open {
 }
 
 @media (min-width: 1025px) {
+  .zo2y-shared-header {
+    display: none !important;
+  }
+
+  .zo2y-desktop-rail {
+    position: fixed;
+    top: 14px;
+    left: 12px;
+    bottom: 14px;
+    width: 300px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background:
+      linear-gradient(180deg, rgba(15, 30, 64, 0.92), rgba(6, 16, 40, 0.96)),
+      radial-gradient(circle at 16% 10%, rgba(245, 158, 11, 0.12), transparent 52%);
+    box-shadow: 0 20px 42px rgba(2, 8, 24, 0.45);
+    padding: 14px 12px;
+    z-index: 1300;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .zo2y-desktop-rail-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    padding: 2px 4px 4px;
+  }
+
+  .zo2y-desktop-rail-brand img {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    object-fit: cover;
+  }
+
+  .zo2y-desktop-rail-collapse {
+    height: 44px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.04);
+    color: #dce9ff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 0 12px;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: lowercase;
+    cursor: default;
+  }
+
+  .zo2y-desktop-rail-search {
+    position: relative;
+    width: 100%;
+  }
+
+  .zo2y-desktop-rail-search .nav-search-input {
+    width: 100%;
+    height: 46px;
+    border-radius: 13px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.04);
+    color: #f2f7ff;
+    padding: 0 44px 0 12px;
+    font-size: 15px;
+  }
+
+  .zo2y-desktop-rail-search .nav-search-btn {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: #dbe8ff;
+  }
+
+  .zo2y-desktop-rail-profile {
+    min-height: 46px;
+    border-radius: 13px;
+    border: 1px solid rgba(245, 158, 11, 0.65);
+    background: linear-gradient(120deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.06));
+    color: #ffe1a0;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: lowercase;
+  }
+
+  .zo2y-desktop-rail-nav {
+    display: grid;
+    gap: 7px;
+    margin-top: 2px;
+  }
+
+  .zo2y-desktop-rail-link {
+    min-height: 44px;
+    border-radius: 13px;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    padding: 0 12px;
+    color: #dbe8ff;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: lowercase;
+  }
+
+  .zo2y-desktop-rail-link:hover {
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .zo2y-desktop-rail-link.active {
+    border-color: rgba(245, 158, 11, 0.72);
+    background: linear-gradient(120deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.06));
+    color: #ffe2a6;
+  }
+
+  .zo2y-desktop-rail-link.accent {
+    color: #ffd898;
+  }
+
+  body.zo2y-desktop-rail-layout {
+    padding-left: 324px !important;
+  }
+
+  body.zo2y-desktop-rail-layout .app-main,
+  body.zo2y-desktop-rail-layout .desktop-main-panel,
+  body.zo2y-desktop-rail-layout .home-main {
+    margin-left: 0 !important;
+  }
+
   .zo2y-mobile-drawer,
   .zo2y-mobile-drawer-backdrop {
     display: none !important;

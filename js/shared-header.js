@@ -6,7 +6,7 @@
   let supabaseClient = null;
   let authStateListenerBound = false;
 
-  const HEADER_HTML = `
+const HEADER_HTML = `
 <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-mobile-topbar">
     <button class="zo2y-mobile-menu-btn" id="zo2yMobileMenuBtn" type="button" aria-label="Open navigation menu" aria-controls="zo2yMobileDrawer" aria-expanded="false">
@@ -43,6 +43,38 @@
     </div>
   </div>
 </header>
+<aside class="zo2y-desktop-rail" id="zo2yDesktopRail" aria-label="Desktop navigation">
+  <a class="zo2y-desktop-rail-brand" href="index.html" aria-label="Home">
+    <img src="/newlogo.webp" alt="Logo" />
+    <span class="sidebar-brand-wordmark">zo2y</span>
+  </a>
+
+  <button class="zo2y-desktop-rail-collapse" id="zo2yDesktopRailCollapseBtn" type="button" aria-label="Toggle menu">
+    <i class="fa-solid fa-bars"></i>
+    <span>collapse menu</span>
+  </button>
+
+  <div class="zo2y-desktop-rail-search nav-search">
+    <input id="desktopRailSearch" class="nav-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+    <button id="desktopRailSearchBtn" class="nav-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+  </div>
+
+  <a class="zo2y-desktop-rail-profile" href="profile.html" id="desktopRailProfileBtn" style="display:none;">
+    <i class="fa-solid fa-user"></i><span>profile</span>
+  </a>
+
+  <nav class="zo2y-desktop-rail-nav" aria-label="Desktop sections">
+    <a class="zo2y-desktop-rail-link" data-nav-page="index" href="index.html"><i class="fa-solid fa-house"></i><span>home</span></a>
+    <a class="zo2y-desktop-rail-link" data-nav-page="movies" href="movies.html"><i class="fa-solid fa-film"></i><span>movies</span></a>
+    <a class="zo2y-desktop-rail-link" data-nav-page="tvshows" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>tv shows</span></a>
+    <a class="zo2y-desktop-rail-link" data-nav-page="animes" href="animes.html"><i class="fa-solid fa-dragon"></i><span>anime</span></a>
+    <a class="zo2y-desktop-rail-link" data-nav-page="games" href="games.html"><i class="fa-solid fa-gamepad"></i><span>games</span></a>
+    <a class="zo2y-desktop-rail-link" data-nav-page="books" href="books.html"><i class="fa-solid fa-book"></i><span>books</span></a>
+    <a class="zo2y-desktop-rail-link" data-nav-page="music" href="music.html"><i class="fa-solid fa-music"></i><span>music</span></a>
+    <a class="zo2y-desktop-rail-link" data-nav-page="travel" href="travel.html"><i class="fa-solid fa-earth-americas"></i><span>travel</span></a>
+    <a class="zo2y-desktop-rail-link accent" data-nav-page="reviews" href="reviews.html"><i class="fa-solid fa-star"></i><span>reviews</span></a>
+  </nav>
+</aside>
 <div class="zo2y-mobile-drawer-backdrop" id="zo2yMobileDrawerBackdrop" hidden></div>
 <aside class="zo2y-mobile-drawer" id="zo2yMobileDrawer" aria-hidden="true" aria-label="Mobile navigation">
   <div class="zo2y-mobile-drawer-head">
@@ -184,14 +216,17 @@
     const parser = document.createElement('div');
     parser.innerHTML = HEADER_HTML.trim();
     const nextSharedHeader = parser.firstElementChild;
+    const nextDesktopRail = parser.querySelector('#zo2yDesktopRail');
     const nextMobileDrawer = parser.querySelector('#zo2yMobileDrawer');
     const nextMobileBackdrop = parser.querySelector('#zo2yMobileDrawerBackdrop');
     if (!nextSharedHeader) return;
 
     const existingSharedHeader = document.querySelector('[data-shared-header="1"]');
+    const existingDesktopRail = document.getElementById('zo2yDesktopRail');
     const existingMobileDrawer = document.getElementById('zo2yMobileDrawer');
     const existingMobileBackdrop = document.getElementById('zo2yMobileDrawerBackdrop');
 
+    if (existingDesktopRail) existingDesktopRail.remove();
     if (existingMobileDrawer) existingMobileDrawer.remove();
     if (existingMobileBackdrop) existingMobileBackdrop.remove();
 
@@ -214,6 +249,14 @@
 
     if (nextMobileBackdrop) document.body.appendChild(nextMobileBackdrop);
     if (nextMobileDrawer) document.body.appendChild(nextMobileDrawer);
+
+    const hasNativeDesktopSidebar = !!document.querySelector('.desktop-sidebar');
+    if (nextDesktopRail && !hasNativeDesktopSidebar) {
+      document.body.appendChild(nextDesktopRail);
+      document.body.classList.add('zo2y-desktop-rail-layout');
+    } else {
+      document.body.classList.remove('zo2y-desktop-rail-layout');
+    }
 
     const mobilePage = isMobileContentPage(window.location.pathname);
     document.body.setAttribute('data-zo2y-compact-header', mobilePage ? '1' : '0');
@@ -280,7 +323,8 @@
     const mobileLoginBtn = document.getElementById('mobileLoginBtn');
     const mobileSignupBtn = document.getElementById('mobileSignupBtn');
     const mobileProfileBtn = document.getElementById('mobileProfileBtn');
-    if (!loginBtn && !signupBtn && !profileBtn && !mobileLoginBtn && !mobileSignupBtn && !mobileProfileBtn) return;
+    const desktopRailProfileBtn = document.getElementById('desktopRailProfileBtn');
+    if (!loginBtn && !signupBtn && !profileBtn && !mobileLoginBtn && !mobileSignupBtn && !mobileProfileBtn && !desktopRailProfileBtn) return;
 
     const client = ensureSupabaseClient();
     if (!client || !client.auth || typeof client.auth.getSession !== 'function') {
@@ -303,6 +347,9 @@
       }
       if (mobileProfileBtn) {
         mobileProfileBtn.style.display = loggedIn ? 'inline-flex' : hiddenDisplay;
+      }
+      if (desktopRailProfileBtn) {
+        desktopRailProfileBtn.style.display = loggedIn ? 'inline-flex' : hiddenDisplay;
       }
 
       if (loggedIn) {
@@ -331,6 +378,9 @@
         }
         if (mobileProfileBtn) {
           mobileProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
+        }
+        if (desktopRailProfileBtn) {
+          desktopRailProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
         }
       }
     } catch (_err) {}
@@ -449,6 +499,7 @@
 
     const searchTargets = [
       { input: document.getElementById('globalSearch'), button: document.getElementById('globalSearchBtn') },
+      { input: document.getElementById('desktopRailSearch'), button: document.getElementById('desktopRailSearchBtn') },
       { input: document.getElementById('mobileGlobalSearch'), button: document.getElementById('mobileGlobalSearchBtn') },
       { input: document.getElementById('mobileMenuSearch'), button: document.getElementById('mobileMenuSearchBtn') }
     ];
