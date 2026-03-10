@@ -631,6 +631,16 @@
     <p>Trending titles from the catalog.</p>
   </section>
 
+  <div class="controls">
+    <input id="searchInput" class="search-input full-span" type="text" placeholder="Search games...">
+    <select id="genreSelect" class="filter-select">
+      <option value="">All Genres</option>
+    </select>
+    <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year">
+    <button class="btn full-span" id="refreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
+  </div>
+  <div id="activeFilters" class="chip-row"></div>
+
   <section class="popular-section">
     <div class="popular-header">
       <div>
@@ -641,16 +651,6 @@
     </div>
     <div class="popular-rail" id="popularGamesRail"></div>
   </section>
-
-  <div class="controls">
-    <input id="searchInput" class="search-input full-span" type="text" placeholder="Search games...">
-    <select id="genreSelect" class="filter-select">
-      <option value="">All Genres</option>
-    </select>
-    <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year">
-    <button class="btn full-span" id="refreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
-  </div>
-  <div id="activeFilters" class="chip-row"></div>
 
   <div id="gamesGrid" class="grid"></div>
   <div id="emptyState" class="empty" style="display:none;">No games found.</div>
@@ -691,7 +691,7 @@
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const IGDB_PROXY_BASE = '/api/igdb';
-      const IGDB_PAGE_SIZE = 120;
+      const IGDB_PAGE_SIZE = 50;
       const state = {
         genres: [],
         activeGenre: '',
@@ -743,12 +743,15 @@
         const title = String(row?.name || row?.title || row?.slug || 'Game').trim() || 'Game';
         const released = row?.released ? String(row.released).slice(0, 10) : '';
         const rating = Number(row?.rating || 0);
+        const cover = String(row?.cover || row?.cover_url || '').trim();
+        const hero = String(row?.hero || row?.background_image || '').trim();
+        if (!cover && !hero) return null;
         return {
           id,
           title,
           description: String(row?.description || row?.summary || '').trim(),
-          cover_url: String(row?.cover || row?.cover_url || '').trim(),
-          hero_url: String(row?.hero || row?.background_image || '').trim(),
+          cover_url: cover || hero,
+          hero_url: hero || cover,
           release_date: released,
           rating: Number.isFinite(rating) ? rating : null,
           rating_count: Number(row?.ratings_count || row?.rating_count || 0),
@@ -787,6 +790,36 @@
         }
       }
 
+      async function fetchIgdbPage(options = {}) {
+        try {
+          const params = new URLSearchParams();
+          const search = String(options.search || '').trim();
+          const pageSize = Number(options.pageSize || 24);
+          const page = Number(options.page || 1);
+          const ordering = String(options.ordering || '-rating_count').trim();
+          const dates = String(options.dates || '').trim();
+          const genres = String(options.genres || '').trim();
+          if (search) params.set('search', search);
+          if (ordering) params.set('ordering', ordering);
+          if (dates) params.set('dates', dates);
+          if (genres) params.set('genres', genres);
+          params.set('page_size', String(Math.max(1, Math.min(pageSize, 50))));
+          params.set('page', String(Math.max(1, page)));
+          const url = `${IGDB_PROXY_BASE}/games?${params.toString()}`;
+          const res = await fetch(url);
+          if (!res.ok) return null;
+          const json = await res.json();
+          const rows = Array.isArray(json?.results) ? json.results : [];
+          const mapped = rows.map(mapIgdbRowToCatalog).filter(Boolean);
+          return {
+            rows: mapped,
+            count: Number(json?.count || mapped.length || 0)
+          };
+        } catch (_err) {
+          return null;
+        }
+      }
+
       function buildGenreCatalog() {
         const bySlug = new Map();
         state.catalog.forEach((item) => {
@@ -813,6 +846,26 @@
         } else {
           state.activeGenre = '';
           select.value = '';
+        }
+      }
+
+      async function loadGenreCatalog() {
+        try {
+          const res = await fetch(`${IGDB_PROXY_BASE}/genres`);
+          if (!res.ok) return false;
+          const json = await res.json();
+          const rows = Array.isArray(json?.results) ? json.results : [];
+          state.genres = rows
+            .map((row) => ({
+              name: String(row?.name || '').trim(),
+              slug: String(row?.slug || row?.name || '').trim().toLowerCase().replace(/\s+/g, '-')
+            }))
+            .filter((row) => row.name && row.slug)
+            .sort((a, b) => a.name.localeCompare(b.name));
+          populateGenreSelect();
+          return state.genres.length > 0;
+        } catch (_err) {
+          return false;
         }
       }
 
@@ -991,7 +1044,9 @@
         const ratingValue = Number(item.rating || 0);
         const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
         const gameDesc = [genreText, ratingText].filter(Boolean).join(' | ') || String(item.description || '').trim() || 'Popular pick';
-        const gameCover = item.cover_url || item.hero_url || '/newlogo.webp';
+        const rawCover = item.cover_url || item.hero_url || '';
+        if (!rawCover) return null;
+        const gameCover = rawCover;
         const gameId = Number(item.id);
         if (!Number.isFinite(gameId)) return null;
         const card = document.createElement('div');
@@ -1050,6 +1105,46 @@
         const grid = document.getElementById('gamesGrid');
         const empty = document.getElementById('emptyState');
         if (!grid) return;
+        const pageSize = 24;
+        const dates = state.year ? `${state.year}-01-01,${state.year}-12-31` : '';
+        const ordering = state.query ? '-rating' : '-rating_count';
+        const igdbPayload = await fetchIgdbPage({
+          page: state.page,
+          pageSize,
+          ordering,
+          search: state.query,
+          dates,
+          genres: state.activeGenre
+        });
+
+        if (igdbPayload) {
+          state.catalogSource = 'igdb';
+          void renderPopularGames();
+
+          const results = igdbPayload.rows || [];
+          const totalMatches = Number(igdbPayload.count || results.length || 0);
+          state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
+          if (!results.length) {
+            if (empty) empty.style.display = 'block';
+            grid.innerHTML = '';
+            state.hasMore = false;
+            updatePagination();
+            return;
+          }
+
+          const fragment = document.createDocumentFragment();
+          results.forEach((item) => {
+            const card = createGameCard(item);
+            if (card) fragment.appendChild(card);
+          });
+          grid.innerHTML = '';
+          grid.appendChild(fragment);
+          if (empty) empty.style.display = 'none';
+
+          state.hasMore = state.page < state.totalPages;
+          updatePagination();
+          return;
+        }
 
         const loaded = await ensureGamesCatalogLoaded();
         if (!loaded) {
@@ -1060,23 +1155,9 @@
           return;
         }
 
-        let sourceCatalog = state.catalog;
-        if (state.catalogSource === 'igdb' && (state.query || state.year)) {
-          const dates = state.year ? `${state.year}-01-01,${state.year}-12-31` : '';
-          const remoteRows = await fetchIgdbCatalog({
-            search: state.query,
-            ordering: '-rating',
-            pageSize: IGDB_PAGE_SIZE,
-            page: 1,
-            dates
-          });
-          if (remoteRows.length) sourceCatalog = remoteRows;
-        }
-
         void renderPopularGames();
 
-        const allMatches = filterCatalogGames(sourceCatalog);
-        const pageSize = 20;
+        const allMatches = filterCatalogGames(state.catalog);
         const totalMatches = allMatches.length;
         state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
         if (state.page > state.totalPages) state.page = state.totalPages;
@@ -1427,6 +1508,7 @@
       (async function init() {
         await initSupabase();
         wireUI();
+        await loadGenreCatalog();
         await initAuth();
         renderFilters();
         loadGames();
