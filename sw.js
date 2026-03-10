@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v57';
-const PAGE_CACHE = 'zo2y-pages-v63';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v61';
+const PAGE_CACHE = 'zo2y-pages-v67';
 const IMAGE_CACHE = 'zo2y-images-v18';
 const API_CACHE = 'zo2y-api-v4';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -13,7 +13,7 @@ const STATIC_ASSETS = [
   '/css/pages/index.css?v=20260308c',
   '/css/shared-header.css?v=20260308l',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260308b',
+  '/js/pages/index.js?v=20260310b',
   '/js/home-desktop-rebrand.js?v=20260301q',
   '/js/shared-header.js?v=20260308l',
   '/js/review-interactions.js?v=20260308a',
@@ -188,6 +188,16 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin === self.location.origin && url.pathname === '/sw.js') return;
   if (url.origin === self.location.origin && url.pathname.startsWith('/_vercel/insights/')) return;
+  // OAuth callbacks must always load the real callback page. A timeout fallback to `/index.html`
+  // can silently break sign-in (it looks like "landing refreshed" with no error).
+  if (
+    request.mode === 'navigate' &&
+    url.origin === self.location.origin &&
+    (url.pathname === '/auth-callback.html' || url.searchParams.has('code') || url.searchParams.has('error') || url.searchParams.has('error_description'))
+  ) {
+    event.respondWith(fetch(request));
+    return;
+  }
   const isImageRequest = request.destination === 'image'
     || /\.(avif|bmp|gif|ico|jpe?g|png|svg|webp)$/i.test(url.pathname);
 

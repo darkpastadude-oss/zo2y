@@ -1,4 +1,4 @@
-    const ENABLE_GAMES = false;
+    const ENABLE_GAMES = true;
     const ENABLE_RESTAURANTS = false;
     const HOME_BASE_MEDIA_TYPES = ENABLE_GAMES
       ? ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel']
@@ -4639,44 +4639,78 @@ let homeTravelPhotoCacheSaveTimer = null;
 
     async function loadGames(signal) {
       const targetCount = getHomeChannelTargetItems();
-      const client = await ensureHomeSupabase();
-      if (!client) return [];
-      const { data } = await client
-        .from('games')
-        .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra')
-        .order('rating', { ascending: false, nullsFirst: false })
-        .order('rating_count', { ascending: false, nullsFirst: false })
-        .order('release_date', { ascending: false, nullsFirst: false })
-        .limit(Math.max(targetCount * 4, 40));
-      if (signal?.aborted) return [];
+      const mapToItem = (row) => {
+        const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
+        const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
+        const cover = String(row?.cover_url || row?.cover || '').trim();
+        const hero = String(row?.hero_url || row?.hero || '').trim();
+        const image = cover || hero || HOME_LOCAL_FALLBACK_IMAGE;
+        const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
+        const title = String(row?.title || row?.name || 'Game').trim() || 'Game';
+        const releaseDate = String(row?.release_date || row?.released || '').trim();
+        const ratingValue = Number(row?.rating || 0);
+        const genreText = genres.length
+          ? genres.slice(0, 2).map((entry) => String(entry?.name || entry || '').trim()).filter(Boolean).join(' | ')
+          : 'Video Game';
+        const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
+        return {
+          mediaType: 'game',
+          itemId: id,
+          title,
+          subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
+          extra: [genreText, ratingText].filter(Boolean).join(' | '),
+          image,
+          backgroundImage: hero || image,
+          spotlightImage: hero || image,
+          spotlightMediaImage: image,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+          href: id ? `game.html?id=${encodeURIComponent(String(id))}` : 'games.html'
+        };
+      };
 
-      const rows = Array.isArray(data) ? data : [];
-      if (!rows.length) return [];
-      const randomizedRows = shuffleArray(rows);
-      return randomizedRows
-        .map((row) => {
-          const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
-          const genres = Array.isArray(extra?.genres) ? extra.genres : [];
-          const cover = String(row?.cover_url || '').trim();
-          const image = cover || HOME_LOCAL_FALLBACK_IMAGE;
-          return {
-            mediaType: 'game',
-            itemId: String(row?.id || ''),
-            title: String(row?.title || 'Game').trim() || 'Game',
-            subtitle: row?.release_date ? String(row.release_date).slice(0, 4) : 'Game',
-            extra: `${genres.length ? genres.slice(0, 2).map((entry) => entry?.name).filter(Boolean).join(' | ') : 'Video Game'}${row?.rating ? ` | ${Number(row.rating).toFixed(1)}/5` : ''}`,
-            image,
-            backgroundImage: image,
-            spotlightImage: image,
-            spotlightMediaImage: image,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-            href: row?.id ? `game.html?id=${encodeURIComponent(String(row.id))}` : 'games.html'
-          };
-        })
-        .filter((item) => item && String(item.itemId || '').trim())
-        .slice(0, targetCount);
+      try {
+        const client = await ensureHomeSupabase();
+        if (client) {
+          const { data } = await client
+            .from('games')
+            .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra')
+            .order('rating', { ascending: false, nullsFirst: false })
+            .order('rating_count', { ascending: false, nullsFirst: false })
+            .order('release_date', { ascending: false, nullsFirst: false })
+            .limit(Math.max(targetCount * 4, 40));
+          if (signal?.aborted) return [];
+
+          const rows = Array.isArray(data) ? data : [];
+          if (rows.length) {
+            const randomizedRows = shuffleArray(rows);
+            return randomizedRows
+              .map((row) => mapToItem(row))
+              .filter((item) => item && String(item.itemId || '').trim())
+              .slice(0, targetCount);
+          }
+        }
+      } catch (_error) {
+        // Fallback to live provider below.
+      }
+
+      try {
+        const payload = await homeIgdbFetch('/games', {
+          page: 1,
+          page_size: Math.max(targetCount * 2, 40),
+          ordering: '-rating',
+          dates: '1990-01-01,2036-12-31'
+        }, signal);
+        const rows = Array.isArray(payload?.results) ? payload.results : [];
+        if (!rows.length || signal?.aborted) return [];
+        return rows
+          .map((row) => mapToItem(row))
+          .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
+          .slice(0, targetCount);
+      } catch (_error) {
+        return [];
+      }
     }
 
     async function loadBooks(signal) {
