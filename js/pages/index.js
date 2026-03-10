@@ -4713,6 +4713,15 @@ let homeTravelPhotoCacheSaveTimer = null;
       }
     }
 
+    function toggleHomeGamesRailForSearch() {
+      const input = document.querySelector('#globalSearch');
+      const rail = document.getElementById('gamesRail');
+      if (!input || !rail) return;
+      const wrap = rail.closest('.rail-wrap') || rail;
+      const shouldHide = String(input.value || '').trim().length > 0;
+      wrap.style.display = shouldHide ? 'none' : '';
+    }
+
     async function loadBooks(signal) {
       const targetCount = getHomeChannelTargetItems();
       const lightweightMode = shouldUseLightweightHomeBooksLoad();
@@ -5842,6 +5851,15 @@ let homeTravelPhotoCacheSaveTimer = null;
           sidebarBtn.addEventListener('click', () => {
             sidebarInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
           });
+        }
+
+        const globalSearch = document.getElementById('globalSearch');
+        if (globalSearch && !globalSearch.dataset.gamesRailBound) {
+          globalSearch.dataset.gamesRailBound = '1';
+          globalSearch.addEventListener('input', toggleHomeGamesRailForSearch);
+          globalSearch.addEventListener('blur', toggleHomeGamesRailForSearch);
+          globalSearch.addEventListener('focus', toggleHomeGamesRailForSearch);
+          toggleHomeGamesRailForSearch();
         }
       }, 1400);
 

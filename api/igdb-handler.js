@@ -293,6 +293,20 @@ function mapOrderingToRawg(orderingRaw) {
   return "-added";
 }
 
+async function fetchRawgGenres() {
+  const json = await rawgRequest("/genres", { page_size: 200 });
+  const rows = Array.isArray(json?.results) ? json.results : [];
+  const results = rows.map((row) => ({
+    id: Number(row?.id || 0),
+    name: String(row?.name || "").trim(),
+    slug: String(row?.slug || "").trim().toLowerCase()
+  })).filter((row) => row.id > 0 && row.name && row.slug);
+  return {
+    count: Number(json?.count || results.length || 0),
+    results
+  };
+}
+
 function encodeRawgId(rawgId) {
   const id = Number(rawgId);
   if (!Number.isFinite(id) || id <= 0) return 0;
@@ -1371,6 +1385,32 @@ app.get("/api/igdb", (_req, res) => {
 });
 
 app.get("/api/igdb/genres", async (_req, res) => {
+  try {
+    if (hasIgdbCredentials()) {
+      const cache = await ensureIgdbGenreCache();
+      const results = Array.from(cache.byId.values()).map((row) => ({
+        id: row.id,
+        name: row.name,
+        slug: row.slug
+      }));
+      return res.json({
+        count: results.length,
+        source: "igdb",
+        results
+      });
+    }
+    if (hasRawgKey()) {
+      const payload = await fetchRawgGenres();
+      return res.json({
+        count: payload.count,
+        source: "rawg",
+        results: payload.results
+      });
+    }
+  } catch (error) {
+    console.warn("[igdb-handler] genres fallback:", String(error?.message || error));
+  }
+
   return res.json({
     count: WIKIPEDIA_GAME_GENRES.length,
     source: "wikipedia",
@@ -1389,6 +1429,64 @@ app.get("/api/igdb/games", async (req, res) => {
   const genres = String(req.query.genres || "").trim();
 
   try {
+    if (hasIgdbCredentials()) {
+      const explicitIds = dedupeNumbers([
+        ...parseIdsQuery(id),
+        ...parseIdsQuery(ids)
+      ]);
+      const { startUnix, endUnix } = parseDatesRange(dates);
+      const genreIds = await resolveGenreIds(genres);
+      const whereClause = buildIgdbWhereClause({ genreIds, startUnix, endUnix });
+      const payload = await fetchIgdbGamesList({
+        page,
+        pageSize,
+        orderingRaw: ordering,
+        search,
+        whereClause
+      });
+      let results = Array.isArray(payload?.results) ? payload.results : [];
+      if (!results.length && explicitIds.length) {
+        const legacyRows = await resolveLegacyListRowsByIds(explicitIds, pageSize);
+        if (legacyRows.length) {
+          results = legacyRows;
+        }
+      }
+      return res.json({
+        count: Number(payload?.count || results.length),
+        page,
+        page_size: pageSize,
+        results: results.slice(0, pageSize),
+        sources: {
+          igdb: true,
+          rawg: false,
+          wikipedia: false
+        }
+      });
+    }
+    if (hasRawgKey()) {
+      const payload = await fetchRawgGamesList({
+        page,
+        pageSize,
+        orderingRaw: ordering,
+        search,
+        dates,
+        genres
+      });
+      const filtered = (Array.isArray(payload?.results) ? payload.results : [])
+        .filter((row) => String(row?.cover || row?.hero || row?.background_image || "").trim().length > 0);
+      return res.json({
+        count: Number(payload?.count || filtered.length),
+        page,
+        page_size: pageSize,
+        results: filtered.slice(0, pageSize),
+        sources: {
+          igdb: false,
+          rawg: true,
+          wikipedia: false
+        }
+      });
+    }
+
     const explicitIds = dedupeNumbers([
       ...parseIdsQuery(id),
       ...parseIdsQuery(ids)
@@ -1448,6 +1546,26 @@ app.get("/api/igdb/games/:id", async (req, res) => {
   }
 
   try {
+    const rawgId = decodeRawgId(requestedId);
+    if (rawgId && hasRawgKey()) {
+      const rawgDetail = await fetchRawgGameDetails(rawgId);
+      if (rawgDetail) {
+        return res.json(remapLegacyDetailId(rawgDetail, requestedId));
+      }
+    }
+
+    if (hasIgdbCredentials()) {
+      const igdbDetail = await fetchIgdbGameDetails(requestedId);
+      if (igdbDetail) return res.json(igdbDetail);
+    }
+
+    if (hasRawgKey()) {
+      const rawgDetail = await fetchRawgGameDetails(requestedId);
+      if (rawgDetail) {
+        return res.json(remapLegacyDetailId(rawgDetail, requestedId));
+      }
+    }
+
     let mapped = null;
     try {
       mapped = await fetchWikipediaGameDetailsById(requestedId);

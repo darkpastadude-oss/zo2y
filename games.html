@@ -1144,6 +1144,7 @@
         const row = document.getElementById('activeFilters');
         if (!row) return;
         row.innerHTML = '';
+        updatePopularVisibility();
         const items = [];
         if (state.activeGenre) items.push({ label: state.activeGenre, type: 'genre' });
         if (state.query) items.push({ label: state.query, type: 'query' });
@@ -1165,6 +1166,16 @@
           };
           row.appendChild(chip);
         });
+      }
+
+      function shouldHidePopularRail() {
+        return !!(state.query || state.activeGenre || state.year);
+      }
+
+      function updatePopularVisibility() {
+        const section = document.querySelector('.popular-section');
+        if (!section) return;
+        section.style.display = shouldHidePopularRail() ? 'none' : '';
       }
 
       function createGameCard(item) {
@@ -1210,6 +1221,10 @@
       async function renderPopularGames(force = false) {
         const rail = document.getElementById('popularGamesRail');
         if (!rail || (popularLoaded && !force)) return;
+        if (shouldHidePopularRail()) {
+          rail.innerHTML = '';
+          return;
+        }
         rail.innerHTML = '<div class="empty">Loading popular games...</div>';
         let popularRows = [];
         const igdbRows = await fetchIgdbCatalog({ ordering: '-rating_count', pageSize: 12, page: 1 });
@@ -1239,6 +1254,7 @@
         const empty = document.getElementById('emptyState');
         if (!grid) return;
         const requestId = ++state.requestId;
+        updatePopularVisibility();
 
         const pageSize = 24;
         const dates = state.year ? `${state.year}-01-01,${state.year}-12-31` : '';
