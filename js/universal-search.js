@@ -4,7 +4,7 @@
   const BOOKS_PROXY_BASE = '/api/books';
   const MUSIC_PROXY_BASE = '/api/music';
   const TRAVEL_API_BASE = 'https://restcountries.com/v3.1';
-  const GAMES_DISABLED = true;
+  const GAMES_DISABLED = false;
   const MIN_QUERY_LEN = 2;
   const SEARCH_DEBOUNCE_MS = 60;
   const REQUEST_TIMEOUT_MS = 5000;
