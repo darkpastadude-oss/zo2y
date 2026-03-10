@@ -5748,7 +5748,7 @@ let homeTravelPhotoCacheSaveTimer = null;
 
       window.addEventListener('zo2y-auth-gate-verified', (event) => {
         const authenticated = !!event?.detail?.authenticated;
-        if (!authenticated || isHomeLandingMode()) return;
+        if (!authenticated) return;
         document.body?.classList.remove('landing-mode');
         void bootAuthenticatedHome().catch((error) => {
           console.error('Home boot failed after auth verification:', error);
