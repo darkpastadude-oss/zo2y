@@ -273,9 +273,11 @@ function mapOrderingToIgdb(orderingRaw) {
   const ordering = String(orderingRaw || "-added").trim().toLowerCase();
   if (ordering === "-released") return "first_release_date desc";
   if (ordering === "-rating") return "total_rating desc";
+  if (ordering === "-rating_count" || ordering === "-ratings_count") return "total_rating_count desc";
   if (ordering === "-name") return "name asc";
   if (ordering === "released") return "first_release_date asc";
   if (ordering === "rating") return "total_rating asc";
+  if (ordering === "rating_count" || ordering === "ratings_count") return "total_rating_count asc";
   return "first_release_date desc";
 }
 
@@ -283,9 +285,11 @@ function mapOrderingToRawg(orderingRaw) {
   const ordering = String(orderingRaw || "-added").trim().toLowerCase();
   if (ordering === "-released") return "-released";
   if (ordering === "-rating") return "-rating";
+  if (ordering === "-rating_count" || ordering === "-ratings_count") return "-ratings_count";
   if (ordering === "-metacritic") return "-metacritic";
   if (ordering === "released") return "released";
   if (ordering === "rating") return "rating";
+  if (ordering === "rating_count" || ordering === "ratings_count") return "ratings_count";
   return "-added";
 }
 

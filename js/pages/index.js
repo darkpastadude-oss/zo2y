@@ -3621,10 +3621,10 @@ let homeTravelPhotoCacheSaveTimer = null;
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         const mediaHtml = restaurantComposite
           ? `
-              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage || logo}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
-              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage || coverImage}" data-fallback-applied="0"></span>` : ''}
+              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage || logo}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
+              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage || coverImage}" data-fallback-applied="0"></span>` : ''}
             `
-          : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
+          : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
         const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
         const titleMarkup = (mediaTypeRaw === 'travel' && flagImage)
           ? `<span class="country-title-wrap"><img class="country-inline-flag" src="${flagImage}" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="country-title-text">${title}</span></span>`
@@ -4684,8 +4684,7 @@ let homeTravelPhotoCacheSaveTimer = null;
 
           const rows = Array.isArray(data) ? data : [];
           if (rows.length) {
-            const randomizedRows = shuffleArray(rows);
-            return randomizedRows
+            return rows
               .map((row) => mapToItem(row))
               .filter((item) => item && String(item.itemId || '').trim())
               .slice(0, targetCount);
@@ -4699,7 +4698,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         const payload = await homeIgdbFetch('/games', {
           page: 1,
           page_size: Math.max(targetCount * 2, 40),
-          ordering: '-rating',
+          ordering: '-rating_count',
           dates: '1990-01-01,2036-12-31'
         }, signal);
         const rows = Array.isArray(payload?.results) ? payload.results : [];

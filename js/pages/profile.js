@@ -9104,7 +9104,7 @@
                         : '';
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${gameImage}" alt="${gameTitle}" loading="lazy">
+                        <img class="collection-item-image" src="${gameImage}" alt="${gameTitle}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${gameTitle}</h3>
                             ${canEditItems ? `

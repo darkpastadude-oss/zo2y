@@ -172,6 +172,46 @@
       color: var(--muted);
     }
 
+    .popular-section {
+      max-width: 1200px;
+      margin: 18px auto 0;
+      padding: 0 20px;
+    }
+
+    .popular-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .popular-header h2 {
+      margin: 0 0 4px;
+      font-size: 18px;
+    }
+
+    .popular-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .popular-rail {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 170px;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scroll-snap-type: x mandatory;
+    }
+
+    .popular-rail .card {
+      scroll-snap-align: start;
+      min-height: 100%;
+    }
+
     .controls {
       max-width: 1200px;
       margin: 16px auto 0;
@@ -717,8 +757,19 @@
 </header>
 
   <section class="hero">
-    <h1>Popular Games</h1>
+    <h1>Games</h1>
     <p>Discover trending and popular games from the Zo2y game catalog.</p>
+  </section>
+
+  <section class="popular-section">
+    <div class="popular-header">
+      <div>
+        <h2>Popular right now</h2>
+        <p>Top picks based on community ratings and activity.</p>
+      </div>
+      <button class="btn" id="popularRefreshBtn"><i class="fas fa-bolt"></i> Refresh</button>
+    </div>
+    <div class="popular-rail" id="popularGamesRail"></div>
   </section>
 
   <div class="controls">
@@ -795,6 +846,7 @@
 
       let supabaseClient = null;
       let loadGamesTimer = null;
+      let popularLoaded = false;
 
       function scheduleGamesLoad(delayMs = 360) {
         if (loadGamesTimer) clearTimeout(loadGamesTimer);
@@ -919,7 +971,7 @@
           return true;
         }
 
-        const igdbRows = await fetchIgdbCatalog({ ordering: '-rating', pageSize: IGDB_PAGE_SIZE, page: 1 });
+        const igdbRows = await fetchIgdbCatalog({ ordering: '-rating_count', pageSize: IGDB_PAGE_SIZE, page: 1 });
         if (igdbRows.length) {
           state.catalog = igdbRows;
           state.catalogSource = 'igdb';
@@ -1062,6 +1114,71 @@
         });
       }
 
+      function createGameCard(item) {
+        const gameTitle = item.title || item.slug || 'Untitled';
+        const gameDate = item.release_date ? String(item.release_date).slice(0, 10) : '';
+        const genreText = normalizeGameGenres(item.extra)
+          .map((genre) => genre.name)
+          .slice(0, 2)
+          .join(' | ');
+        const ratingValue = Number(item.rating || 0);
+        const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
+        const gameDescription = [genreText, ratingText].filter(Boolean).join(' | ') || String(item.description || '').trim() || 'Popular game';
+        const gameCover = item.cover_url || item.hero_url || '/newlogo.webp';
+        const gameId = Number(item.id);
+        if (!Number.isFinite(gameId)) return null;
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.setAttribute('data-game-id', gameId);
+        card.innerHTML = `
+          <img src="${gameCover}" alt="${gameTitle}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/newlogo.webp';">
+          <div class="card-body">
+            <h3 class="card-title">${gameTitle}</h3>
+            <div class="card-meta-row">
+              <div class="card-meta">${gameDate}</div>
+              <div class="card-menu-wrap">
+                <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
+              </div>
+            </div>
+            <div class="card-desc">${gameDescription}</div>
+          </div>
+        `;
+        card.onclick = (e) => {
+          if (e.target.closest('.menu-btn')) return;
+          window.location.href = `game.html?id=${encodeURIComponent(String(gameId))}`;
+        };
+        wireCardMenu(card, gameId);
+        updateCardMenuUI(card, gameId);
+        return card;
+      }
+
+      async function renderPopularGames(force = false) {
+        const rail = document.getElementById('popularGamesRail');
+        if (!rail || (popularLoaded && !force)) return;
+        rail.innerHTML = '<div class="empty">Loading popular games...</div>';
+        let popularRows = [];
+        const igdbRows = await fetchIgdbCatalog({ ordering: '-rating_count', pageSize: 12, page: 1 });
+        if (igdbRows.length) {
+          popularRows = igdbRows;
+        } else if (state.catalog.length) {
+          popularRows = state.catalog.slice(0, 12);
+        }
+
+        if (!popularRows.length) {
+          rail.innerHTML = '<div class="empty">No popular games available.</div>';
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        popularRows.forEach((item) => {
+          const card = createGameCard(item);
+          if (card) fragment.appendChild(card);
+        });
+        rail.innerHTML = '';
+        rail.appendChild(fragment);
+        popularLoaded = true;
+      }
+
       async function loadGames() {
         const grid = document.getElementById('gamesGrid');
         const empty = document.getElementById('emptyState');
@@ -1092,6 +1209,8 @@
           if (remoteRows.length) sourceCatalog = remoteRows;
         }
 
+        void renderPopularGames();
+
         const allMatches = filterCatalogGames(sourceCatalog);
         const pageSize = 20;
         const totalMatches = allMatches.length;
@@ -1110,43 +1229,9 @@
         }
 
         const fragment = document.createDocumentFragment();
-        results.forEach(item => {
-          const gameTitle = item.title || item.slug || 'Untitled';
-          const gameDate = item.release_date ? String(item.release_date).slice(0, 10) : '';
-          const gameCover = item.cover_url || '/newlogo.webp';
-          const genreText = normalizeGameGenres(item.extra)
-            .map((genre) => genre.name)
-            .slice(0, 2)
-            .join(' | ');
-          const ratingValue = Number(item.rating || 0);
-          const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
-          const summaryText = String(item.description || '').trim();
-          const gameDescription = [genreText, ratingText].filter(Boolean).join(' | ') || summaryText || 'Popular game';
-          const gameId = Number(item.id);
-          if (!Number.isFinite(gameId)) return;
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.setAttribute('data-game-id', gameId);
-          card.innerHTML = `
-            <img src="${gameCover}" alt="${gameTitle}" onerror="this.onerror=null;this.src='/newlogo.webp';">
-            <div class="card-body">
-              <h3 class="card-title">${gameTitle}</h3>
-              <div class="card-meta-row">
-                <div class="card-meta">${gameDate}</div>
-                <div class="card-menu-wrap">
-                  <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-                </div>
-              </div>
-              <div class="card-desc">${gameDescription}</div>
-            </div>
-          `;
-          card.onclick = (e) => {
-            if (e.target.closest('.menu-btn')) return;
-            window.location.href = `game.html?id=${encodeURIComponent(String(gameId))}`;
-          };
-          wireCardMenu(card, gameId);
-          updateCardMenuUI(card, gameId);
-          fragment.appendChild(card);
+        results.forEach((item) => {
+          const card = createGameCard(item);
+          if (card) fragment.appendChild(card);
         });
         grid.innerHTML = '';
         grid.appendChild(fragment);
@@ -1367,6 +1452,7 @@
         const genreSelect = document.getElementById('genreSelect');
         const yearInput = document.getElementById('yearInput');
         const refreshBtn = document.getElementById('refreshBtn');
+        const popularRefreshBtn = document.getElementById('popularRefreshBtn');
         const prevBtn = document.getElementById('prevPageBtn');
         const nextBtn = document.getElementById('nextPageBtn');
         const closeListsBtn = document.getElementById('closeGameListsBtn');
@@ -1399,6 +1485,12 @@
         }
         if (refreshBtn) {
           refreshBtn.addEventListener('click', () => loadGames());
+        }
+        if (popularRefreshBtn) {
+          popularRefreshBtn.addEventListener('click', () => {
+            popularLoaded = false;
+            renderPopularGames(true);
+          });
         }
         if (prevBtn) {
           prevBtn.addEventListener('click', () => {
