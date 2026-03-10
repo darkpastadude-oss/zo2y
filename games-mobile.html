@@ -639,6 +639,8 @@
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+      const IGDB_PROXY_BASE = '/api/igdb';
+      const IGDB_PAGE_SIZE = 120;
       const state = {
         genres: [],
         activeGenre: '',
@@ -651,6 +653,7 @@
         listStatusMap: new Map(),
         customLists: [],
         catalog: [],
+        catalogSource: 'supabase',
         activeGameId: null,
         modalSelectedLists: new Set(),
         selectedIcon: 'fas fa-gamepad',
@@ -679,6 +682,57 @@
           out.push({ name, slug });
         });
         return out;
+      }
+
+      function mapIgdbRowToCatalog(row) {
+        if (!row) return null;
+        const id = Number(row?.id || 0);
+        if (!Number.isFinite(id) || id <= 0) return null;
+        const title = String(row?.name || row?.title || row?.slug || 'Game').trim() || 'Game';
+        const released = row?.released ? String(row.released).slice(0, 10) : '';
+        const rating = Number(row?.rating || 0);
+        return {
+          id,
+          title,
+          description: String(row?.description || row?.summary || '').trim(),
+          cover_url: String(row?.cover || row?.cover_url || '').trim(),
+          hero_url: String(row?.hero || row?.background_image || '').trim(),
+          release_date: released,
+          rating: Number.isFinite(rating) ? rating : null,
+          rating_count: Number(row?.ratings_count || row?.rating_count || 0),
+          slug: String(row?.slug || '').trim(),
+          source: String(row?.source || 'igdb').trim(),
+          extra: {
+            genres: Array.isArray(row?.genres) ? row.genres : [],
+            platforms: Array.isArray(row?.platforms)
+              ? row.platforms.map((entry) => entry?.platform?.name || entry?.name).filter(Boolean)
+              : []
+          }
+        };
+      }
+
+      async function fetchIgdbCatalog(options = {}) {
+        try {
+          const params = new URLSearchParams();
+          const search = String(options.search || '').trim();
+          const pageSize = Number(options.pageSize || IGDB_PAGE_SIZE);
+          const page = Number(options.page || 1);
+          const ordering = String(options.ordering || '-rating').trim();
+          const dates = String(options.dates || '').trim();
+          if (search) params.set('search', search);
+          if (ordering) params.set('ordering', ordering);
+          if (dates) params.set('dates', dates);
+          params.set('page_size', String(Math.max(1, Math.min(pageSize, 200))));
+          params.set('page', String(Math.max(1, page)));
+          const url = `${IGDB_PROXY_BASE}/games?${params.toString()}`;
+          const res = await fetch(url);
+          if (!res.ok) return [];
+          const json = await res.json();
+          const rows = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
+          return rows.map(mapIgdbRowToCatalog).filter(Boolean);
+        } catch (_err) {
+          return [];
+        }
       }
 
       function buildGenreCatalog() {
@@ -711,27 +765,46 @@
       }
 
       async function ensureGamesCatalogLoaded(force = false) {
-        if (!supabaseClient) return false;
         if (state.catalog.length && !force) return true;
-        const { data, error } = await supabaseClient
-          .from('games')
-          .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra')
-          .order('rating', { ascending: false, nullsFirst: false })
-          .order('rating_count', { ascending: false, nullsFirst: false })
-          .order('release_date', { ascending: false, nullsFirst: false })
-          .limit(2000);
-        if (error) return false;
-        state.catalog = Array.isArray(data) ? data : [];
-        buildGenreCatalog();
-        populateGenreSelect();
-        return true;
+        let rows = [];
+        if (supabaseClient) {
+          const { data, error } = await supabaseClient
+            .from('games')
+            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra')
+            .order('rating', { ascending: false, nullsFirst: false })
+            .order('rating_count', { ascending: false, nullsFirst: false })
+            .order('release_date', { ascending: false, nullsFirst: false })
+            .limit(2000);
+          if (!error && Array.isArray(data)) rows = data;
+        }
+
+        if (rows.length) {
+          state.catalog = rows;
+          state.catalogSource = 'supabase';
+          buildGenreCatalog();
+          populateGenreSelect();
+          return true;
+        }
+
+        const igdbRows = await fetchIgdbCatalog({ ordering: '-rating', pageSize: IGDB_PAGE_SIZE, page: 1 });
+        if (igdbRows.length) {
+          state.catalog = igdbRows;
+          state.catalogSource = 'igdb';
+          buildGenreCatalog();
+          populateGenreSelect();
+          return true;
+        }
+
+        state.catalog = [];
+        return false;
       }
 
-      function filterCatalogGames() {
+      function filterCatalogGames(catalogOverride) {
+        const catalog = Array.isArray(catalogOverride) ? catalogOverride : state.catalog;
         const query = String(state.query || '').trim().toLowerCase();
         const activeGenre = String(state.activeGenre || '').trim().toLowerCase();
         const year = String(state.year || '').trim();
-        return state.catalog.filter((item) => {
+        return catalog.filter((item) => {
           const title = String(item?.title || '').trim();
           if (!title) return false;
 
@@ -870,7 +943,20 @@
           return;
         }
 
-        const allMatches = filterCatalogGames();
+        let sourceCatalog = state.catalog;
+        if (state.catalogSource === 'igdb' && (state.query || state.year)) {
+          const dates = state.year ? `${state.year}-01-01,${state.year}-12-31` : '';
+          const remoteRows = await fetchIgdbCatalog({
+            search: state.query,
+            ordering: '-rating',
+            pageSize: IGDB_PAGE_SIZE,
+            page: 1,
+            dates
+          });
+          if (remoteRows.length) sourceCatalog = remoteRows;
+        }
+
+        const allMatches = filterCatalogGames(sourceCatalog);
         const pageSize = 20;
         const totalMatches = allMatches.length;
         state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));

@@ -803,6 +803,7 @@
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
       const gameId = id ? Number(id) : null;
+      const IGDB_PROXY_BASE = '/api/igdb';
       let supabaseClient = null;
       let currentUser = null;
       let currentRating = 0;
@@ -869,15 +870,65 @@
         return out;
       }
 
+      function mapIgdbDetailToCatalog(row) {
+        if (!row) return null;
+        const id = Number(row?.id || 0);
+        if (!Number.isFinite(id) || id <= 0) return null;
+        const title = String(row?.name || row?.title || row?.slug || 'Game').trim() || 'Game';
+        const description = String(row?.description || row?.description_raw || row?.summary || '').trim();
+        const cover = String(row?.cover || row?.cover_url || row?.hero || row?.background_image || '').trim();
+        const hero = String(row?.hero || row?.background_image || row?.cover || '').trim();
+        const genres = Array.isArray(row?.genres) ? row.genres : [];
+        const platforms = Array.isArray(row?.platforms)
+          ? row.platforms.map((entry) => entry?.platform?.name || entry?.name).filter(Boolean)
+          : [];
+        return {
+          id,
+          title,
+          description,
+          cover_url: cover,
+          hero_url: hero,
+          release_date: row?.released ? String(row.released).slice(0, 10) : '',
+          rating: Number.isFinite(Number(row?.rating)) ? Number(row.rating) : null,
+          rating_count: Number(row?.ratings_count || row?.rating_count || 0),
+          source: String(row?.source || 'igdb').trim(),
+          igdb_id: id,
+          rawg_id: null,
+          slug: String(row?.slug || '').trim(),
+          extra: {
+            genres,
+            platforms,
+            screenshots: Array.isArray(row?.screenshots) ? row.screenshots : [],
+            description
+          }
+        };
+      }
+
+      async function fetchIgdbGameById() {
+        if (!Number.isFinite(gameId)) return null;
+        try {
+          const res = await fetch(`${IGDB_PROXY_BASE}/games/${encodeURIComponent(String(gameId))}`);
+          if (!res.ok) return null;
+          const json = await res.json();
+          return mapIgdbDetailToCatalog(json);
+        } catch (_err) {
+          return null;
+        }
+      }
+
       async function fetchCatalogGameById() {
-        if (!supabaseClient || !Number.isFinite(gameId)) return null;
-        const { data, error } = await supabaseClient
-          .from('games')
-          .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,source,igdb_id,rawg_id,slug,extra')
-          .eq('id', gameId)
-          .maybeSingle();
-        if (error) return null;
-        return data || null;
+        if (!Number.isFinite(gameId)) return null;
+        let data = null;
+        if (supabaseClient) {
+          const result = await supabaseClient
+            .from('games')
+            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,source,igdb_id,rawg_id,slug,extra')
+            .eq('id', gameId)
+            .maybeSingle();
+          if (!result?.error) data = result?.data || null;
+        }
+        if (data) return data;
+        return await fetchIgdbGameById();
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
