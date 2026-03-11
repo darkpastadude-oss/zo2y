@@ -154,6 +154,12 @@ function toHttpsUrl(value) {
   return raw;
 }
 
+function normalizeIgdbImageUrl(urlValue, size = IGDB_COVER_SIZE) {
+  const url = toHttpsUrl(urlValue);
+  if (!url) return "";
+  return url.replace(/\/t_[^/]+\//, `/${size}/`);
+}
+
 function escapeIgdbText(value) {
   return String(value || "")
     .replace(/\\/g, "\\\\")
@@ -358,7 +364,7 @@ function rawgCoverLookupKey(name, slug, released) {
 function pickIgdbCoverImage(game) {
   const imageId = String(game?.cover?.image_id || "").trim();
   if (imageId) return imageUrl(imageId, IGDB_COVER_SIZE);
-  const url = toHttpsUrl(game?.cover?.url || "");
+  const url = normalizeIgdbImageUrl(game?.cover?.url || "", IGDB_COVER_SIZE);
   return url || "";
 }
 
@@ -781,7 +787,7 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
     })();
 
     const queryParts = [
-      "fields id,name,slug,first_release_date,total_rating,total_rating_count,aggregated_rating,cover.image_id,cover.url,screenshots.image_id,genres.id,genres.name,genres.slug;"
+      "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,cover.url,cover.image_id,screenshots.url,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name;"
     ];
     if (search) queryParts.push(`search "${escapeIgdbText(search)}";`);
     if (whereClause) queryParts.push(`where ${whereClause};`);
@@ -849,25 +855,29 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
 
       const coverImage = game?.cover?.image_id
         ? imageUrl(game.cover.image_id, IGDB_COVER_SIZE)
-        : toHttpsUrl(game?.cover?.url || "");
+        : normalizeIgdbImageUrl(game?.cover?.url || "", IGDB_COVER_SIZE);
       const screenshotRows = (Array.isArray(game?.screenshots) ? game.screenshots : [])
         .map((entry) => {
-          if (entry && typeof entry === "object" && entry.image_id) {
-            return imageUrl(entry.image_id, IGDB_SCREENSHOT_SIZE);
+          if (entry && typeof entry === "object") {
+            if (entry.image_id) return imageUrl(entry.image_id, IGDB_SCREENSHOT_SIZE);
+            if (entry.url) return normalizeIgdbImageUrl(entry.url, IGDB_SCREENSHOT_SIZE);
           }
+          if (typeof entry === "string") return normalizeIgdbImageUrl(entry, IGDB_SCREENSHOT_SIZE);
           return "";
         })
         .filter(Boolean)
         .slice(0, 12);
       const hero = screenshotRows[0] || coverImage || "";
-      const rating = Number(game?.total_rating || game?.aggregated_rating || 0);
+      const rating = Number(game?.total_rating || 0);
       const ratingCount = Number(game?.total_rating_count || 0);
+      const summary = String(game?.summary || "").trim();
 
       return {
         id: Number(game?.id || 0),
         name: String(game?.name || "Game"),
         slug: String(game?.slug || ""),
         released: toReleaseDate(game?.first_release_date),
+        summary,
         cover: coverImage,
         hero,
         screenshots: screenshotRows,
@@ -875,8 +885,18 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
         short_screenshots: screenshotRows.map((image, index) => ({ id: index + 1, image })),
         rating: rating ? Number((rating / 20).toFixed(1)) : null,
         ratings_count: ratingCount || 0,
-        metacritic: Number.isFinite(Number(game?.aggregated_rating)) ? Math.round(Number(game.aggregated_rating)) : null,
+        metacritic: null,
         genres: mappedGenres,
+        platforms: (Array.isArray(game?.platforms) ? game.platforms : [])
+          .map((platform) => {
+            if (platform && typeof platform === "object") {
+              const name = String(platform?.name || "").trim();
+              return name ? { platform: { name } } : null;
+            }
+            const name = String(platform || "").trim();
+            return name ? { platform: { name } } : null;
+          })
+          .filter(Boolean),
         source: "igdb"
       };
     }).filter((row) => row.id > 0);
@@ -901,7 +921,7 @@ async function fetchIgdbGameDetails(id) {
   if (cached) return cached;
 
   const query = [
-    "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,aggregated_rating,cover.image_id,cover.url,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name;",
+    "fields id,name,slug,summary,storyline,first_release_date,total_rating,total_rating_count,cover.url,cover.image_id,screenshots.url,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,game_modes.name,multiplayer_modes,themes.name,videos.video_id;",
     `where id = ${Number(id)};`,
     "limit 1;"
   ].join(" ");
@@ -936,24 +956,48 @@ async function fetchIgdbGameDetails(id) {
 
   const coverImage = game?.cover?.image_id
     ? imageUrl(game.cover.image_id, IGDB_COVER_SIZE)
-    : toHttpsUrl(game?.cover?.url || "");
+    : normalizeIgdbImageUrl(game?.cover?.url || "", IGDB_COVER_SIZE);
   const screenshotRows = (Array.isArray(game?.screenshots) ? game.screenshots : [])
     .map((entry) => {
-      if (entry && typeof entry === "object" && entry.image_id) return imageUrl(entry.image_id, IGDB_HERO_SIZE);
+      if (entry && typeof entry === "object") {
+        if (entry.image_id) return imageUrl(entry.image_id, IGDB_HERO_SIZE);
+        if (entry.url) return normalizeIgdbImageUrl(entry.url, IGDB_HERO_SIZE);
+      }
+      if (typeof entry === "string") return normalizeIgdbImageUrl(entry, IGDB_HERO_SIZE);
       return "";
     })
     .filter(Boolean)
     .slice(0, 16);
   const hero = screenshotRows[0] || coverImage;
-  const rating = Number(game?.total_rating || game?.aggregated_rating || 0);
+  const rating = Number(game?.total_rating || 0);
   const ratingsCount = Number(game?.total_rating_count || 0);
+  const descriptionRaw = String(game?.summary || game?.storyline || "").trim();
+  const involvedCompanies = Array.isArray(game?.involved_companies) ? game.involved_companies : [];
+  const developers = involvedCompanies
+    .filter((entry) => entry?.developer && entry?.company?.name)
+    .map((entry) => ({ name: String(entry.company.name || "").trim() }))
+    .filter((entry) => entry.name);
+  const publishers = involvedCompanies
+    .filter((entry) => entry?.publisher && entry?.company?.name)
+    .map((entry) => ({ name: String(entry.company.name || "").trim() }))
+    .filter((entry) => entry.name);
+  const gameModes = (Array.isArray(game?.game_modes) ? game.game_modes : [])
+    .map((mode) => String(mode?.name || "").trim())
+    .filter(Boolean);
+  const themes = (Array.isArray(game?.themes) ? game.themes : [])
+    .map((theme) => String(theme?.name || "").trim())
+    .filter(Boolean);
+  const videos = (Array.isArray(game?.videos) ? game.videos : [])
+    .map((video) => String(video?.video_id || "").trim())
+    .filter(Boolean);
+  const youtubeUrl = videos.length ? `https://www.youtube.com/watch?v=${videos[0]}` : "";
 
   const payload = {
     id: Number(game?.id || 0),
     name: String(game?.name || "Game"),
     slug: String(game?.slug || ""),
-    description_raw: String(game?.summary || "").trim(),
-    description: String(game?.summary || "").trim(),
+    description_raw: descriptionRaw,
+    description: descriptionRaw,
     released: toReleaseDate(game?.first_release_date),
     playtime: null,
     cover: coverImage || hero || "",
@@ -989,7 +1033,7 @@ async function fetchIgdbGameDetails(id) {
       .filter(Boolean),
     rating: rating ? Number((rating / 20).toFixed(1)) : null,
     ratings_count: ratingsCount || 0,
-    metacritic: Number.isFinite(Number(game?.aggregated_rating)) ? Math.round(Number(game.aggregated_rating)) : null,
+    metacritic: null,
     platforms: (Array.isArray(game?.platforms) ? game.platforms : [])
       .map((platform) => {
         if (platform && typeof platform === "object") {
@@ -1001,13 +1045,19 @@ async function fetchIgdbGameDetails(id) {
         return name ? { platform: { name } } : null;
       })
       .filter(Boolean),
-    developers: [],
-    publishers: [],
+    developers,
+    publishers,
     stores: [],
     website: "",
     reddit_url: "",
     clip: null,
-    youtube_url: "",
+    youtube_url: youtubeUrl,
+    extra: {
+      game_modes: gameModes,
+      themes,
+      multiplayer_modes: Array.isArray(game?.multiplayer_modes) ? game.multiplayer_modes : [],
+      videos: videos
+    },
     source: "igdb"
   };
   writeTimedCache(detailCache, cacheKey, payload, DETAIL_CACHE_TTL_MS, MAX_DETAIL_CACHE_ENTRIES);
