@@ -1,7 +1,7 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v65';
-const PAGE_CACHE = 'zo2y-pages-v71';
-const IMAGE_CACHE = 'zo2y-images-v18';
-const API_CACHE = 'zo2y-api-v4';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v66';
+const PAGE_CACHE = 'zo2y-pages-v72';
+const IMAGE_CACHE = 'zo2y-images-v19';
+const API_CACHE = 'zo2y-api-v5';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
 
@@ -13,16 +13,16 @@ const STATIC_ASSETS = [
   '/css/pages/index.css?v=20260308c',
   '/css/shared-header.css?v=20260308l',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260310f',
-  '/js/home-desktop-rebrand.js?v=20260301q',
-  '/js/shared-header.js?v=20260310b',
+  '/js/pages/index.js?v=20260311e',
+  '/js/home-desktop-rebrand.js?v=20260311d',
+  '/js/shared-header.js?v=20260311c',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
   '/js/list-utils.js?v=20260301e',
-  '/js/universal-search.js?v=20260310b',
+  '/js/universal-search.js?v=20260311c',
   '/js/auth-gate.js?v=20260308a',
   '/js/production-runtime.js?v=20260307a',
-  '/js/igdb-client.js?v=20260228a',
+  '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
   '/js/mobile-webapp.js?v=20260310b',
   '/js/mobile-app.css',

@@ -1,7 +1,7 @@
 (() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260310b';
+  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260311c';
   const DESKTOP_RAIL_COLLAPSE_KEY = 'zo2y_desktop_rail_collapsed';
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;

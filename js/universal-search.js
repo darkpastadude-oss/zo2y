@@ -464,9 +464,28 @@
     const normalized = normalizeQuery(query);
     if (!normalized || normalized.length < MIN_QUERY_LEN) return [];
 
-    const url = `${GAMES_PROXY_BASE}/games?search=${encodeURIComponent(normalized)}&page=1&page_size=8&ordering=-rating_count`;
-    const json = await fetchJsonWithTimeout(url, { signal, timeoutMs: REQUEST_TIMEOUT_MS });
-    const rows = Array.isArray(json?.results) ? json.results : [];
+    const requestParams = {
+      search: normalized,
+      page: 1,
+      page_size: 8
+    };
+    let json = null;
+    if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
+      try {
+        json = await window.ZO2Y_IGDB.request('/games', requestParams, signal ? { signal } : undefined);
+      } catch (_err) {
+        json = null;
+      }
+    }
+    if (!json) {
+      const url = `${GAMES_PROXY_BASE}/games?search=${encodeURIComponent(normalized)}&page=1&page_size=8`;
+      json = await fetchJsonWithTimeout(url, { signal, timeoutMs: Math.max(REQUEST_TIMEOUT_MS, 6500) });
+    }
+    if (!json) {
+      const fallbackUrl = `/api/igdb-handler?path=games&search=${encodeURIComponent(normalized)}&page=1&page_size=8`;
+      json = await fetchJsonWithTimeout(fallbackUrl, { signal, timeoutMs: Math.max(REQUEST_TIMEOUT_MS, 6500) });
+    }
+    const rows = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
 
     return rows
       .slice(0, 8)
