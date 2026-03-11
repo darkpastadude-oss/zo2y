@@ -1032,6 +1032,193 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
   }
 }
 
+async function fetchIgdbGamesByPopscore({
+  page,
+  pageSize,
+  popularityType,
+  minRatingCount = 0,
+  minFollows = 0
+}) {
+  const cacheKey = `igdb:popscore:${popularityType}:${page}:${pageSize}:${minRatingCount}:${minFollows}`;
+  const cached = readTimedCache(listCache, cacheKey);
+  if (cached) return cached;
+  const staleCached = readStaleCache(listCache, cacheKey);
+
+  try {
+    const offset = Math.max(0, (page - 1) * pageSize);
+    const primitiveLimit = clampInt(pageSize * 4, pageSize, 500, pageSize);
+
+    const countPromise = (async () => {
+      try {
+        const countJson = await igdbRequest(
+          "popularity_primitives/count",
+          `where popularity_type = ${Math.floor(popularityType)};`,
+          { timeoutMs: IGDB_COUNT_TIMEOUT_MS, maxRetries: 0 }
+        );
+        return Number(countJson?.count || 0);
+      } catch (_error) {
+        return 0;
+      }
+    })();
+
+    const primitiveQuery = [
+      "fields game_id,value,popularity_type;",
+      `where popularity_type = ${Math.floor(popularityType)};`,
+      "sort value desc;",
+      `limit ${primitiveLimit};`,
+      `offset ${offset};`
+    ].join(" ");
+    const primitives = await igdbRequest("popularity_primitives", primitiveQuery);
+    const primitiveRows = Array.isArray(primitives) ? primitives : [];
+    const gameIds = primitiveRows
+      .map((row) => Number(row?.game_id || 0))
+      .filter((id) => Number.isFinite(id) && id > 0);
+    if (!gameIds.length) {
+      return { count: 0, results: [] };
+    }
+
+    const idList = dedupeNumbers(gameIds);
+    const filters = [
+      `id = (${idList.join(",")})`,
+      "category = 0",
+      "cover != null"
+    ];
+    if (Number.isFinite(minRatingCount) && minRatingCount > 0) {
+      filters.push(`total_rating_count >= ${Math.floor(minRatingCount)}`);
+    }
+    if (Number.isFinite(minFollows) && minFollows > 0) {
+      filters.push(`follows >= ${Math.floor(minFollows)}`);
+    }
+
+    const gameQuery = [
+      "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,follows,category,version_parent,parent_game,cover.url,cover.image_id,screenshots.url,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name;",
+      `where ${filters.join(" & ")};`,
+      `limit ${idList.length};`
+    ].join(" ");
+    const games = await igdbRequest("games", gameQuery);
+    const cleanedGames = dedupeIgdbGames(Array.isArray(games) ? games : []);
+
+    const valueMap = new Map();
+    const orderMap = new Map();
+    primitiveRows.forEach((row, idx) => {
+      const id = Number(row?.game_id || 0);
+      if (!Number.isFinite(id) || id <= 0) return;
+      if (!orderMap.has(id)) orderMap.set(id, idx);
+      valueMap.set(id, Number(row?.value || 0));
+    });
+
+    let genreData = null;
+    const hasNumericGenreRefs = cleanedGames.some((game) =>
+      (Array.isArray(game?.genres) ? game.genres : []).some((genre) => Number.isFinite(Number(genre)))
+    );
+    if (hasNumericGenreRefs) {
+      try {
+        genreData = await ensureIgdbGenreCache();
+      } catch (_genreError) {
+        genreData = null;
+      }
+    }
+
+    const mappedRows = cleanedGames.map((game) => {
+      const mappedGenres = (Array.isArray(game?.genres) ? game.genres : [])
+        .map((genre) => {
+          if (genre && typeof genre === "object") {
+            const id = Number(genre?.id || 0);
+            const name = String(genre?.name || "").trim();
+            const slug = String(genre?.slug || "").trim().toLowerCase();
+            if (id > 0 || name) {
+              return {
+                id: id > 0 ? id : 0,
+                name: name || "Genre",
+                slug
+              };
+            }
+            return null;
+          }
+          const genreId = Number(genre);
+          if (!Number.isFinite(genreId) || genreId <= 0 || !genreData) return null;
+          const mapped = genreData.byId.get(genreId);
+          if (!mapped) return null;
+          return {
+            id: mapped.id,
+            name: mapped.name,
+            slug: mapped.slug
+          };
+        })
+        .filter(Boolean);
+
+      const coverImage = game?.cover?.image_id
+        ? imageUrl(game.cover.image_id, IGDB_COVER_SIZE)
+        : normalizeIgdbImageUrl(game?.cover?.url || "", IGDB_COVER_SIZE);
+      const screenshotRows = (Array.isArray(game?.screenshots) ? game.screenshots : [])
+        .map((entry) => {
+          if (entry && typeof entry === "object") {
+            if (entry.image_id) return imageUrl(entry.image_id, IGDB_SCREENSHOT_SIZE);
+            if (entry.url) return normalizeIgdbImageUrl(entry.url, IGDB_SCREENSHOT_SIZE);
+          }
+          if (typeof entry === "string") return normalizeIgdbImageUrl(entry, IGDB_SCREENSHOT_SIZE);
+          return "";
+        })
+        .filter(Boolean)
+        .slice(0, 12);
+      const hero = screenshotRows[0] || coverImage || "";
+      const rating = Number(game?.total_rating || 0);
+      const ratingCount = Number(game?.total_rating_count || 0);
+      const summary = String(game?.summary || "").trim();
+      const popValue = Number(valueMap.get(Number(game?.id || 0)) || 0);
+
+      return {
+        id: Number(game?.id || 0),
+        name: String(game?.name || "Game"),
+        slug: String(game?.slug || ""),
+        released: toReleaseDate(game?.first_release_date),
+        summary,
+        cover: coverImage,
+        hero,
+        screenshots: screenshotRows,
+        background_image: hero || coverImage,
+        short_screenshots: screenshotRows.map((image, index) => ({ id: index + 1, image })),
+        rating: rating ? Number((rating / 20).toFixed(1)) : null,
+        ratings_count: ratingCount || 0,
+        follows: Number(game?.follows || 0),
+        popularity_value: popValue,
+        metacritic: null,
+        genres: mappedGenres,
+        platforms: (Array.isArray(game?.platforms) ? game.platforms : [])
+          .map((platform) => {
+            if (platform && typeof platform === "object") {
+              const name = String(platform?.name || "").trim();
+              return name ? { platform: { name } } : null;
+            }
+            const name = String(platform || "").trim();
+            return name ? { platform: { name } } : null;
+          })
+          .filter(Boolean),
+        source: "igdb"
+      };
+    });
+
+    mappedRows.sort((a, b) => {
+      const aOrder = orderMap.has(a.id) ? orderMap.get(a.id) : Number.POSITIVE_INFINITY;
+      const bOrder = orderMap.has(b.id) ? orderMap.get(b.id) : Number.POSITIVE_INFINITY;
+      if (aOrder !== bOrder) return aOrder - bOrder;
+      return (Number(b.popularity_value || 0) - Number(a.popularity_value || 0));
+    });
+
+    const timedCount = await withTimeout(countPromise, IGDB_COUNT_TIMEOUT_MS).catch(() => 0);
+    const fallbackCount = offset + mappedRows.length + (mappedRows.length >= pageSize ? pageSize : 0);
+    const payload = {
+      count: timedCount || fallbackCount,
+      results: mappedRows.slice(0, pageSize)
+    };
+    writeTimedCache(listCache, cacheKey, payload, LIST_CACHE_TTL_MS, MAX_LIST_CACHE_ENTRIES);
+    return payload;
+  } catch (error) {
+    if (staleCached) return staleCached;
+    throw error;
+  }
+}
+
 async function fetchIgdbGameDetails(id) {
   const cacheKey = `igdb:${Number(id)}`;
   const cached = readTimedCache(detailCache, cacheKey);
@@ -1606,7 +1793,7 @@ app.get("/api/igdb", (_req, res) => {
       client_secret: !!clientSecret,
       access_token: !!staticAccessToken
     },
-    routes: ["/genres", "/games", "/games/:id"]
+    routes: ["/genres", "/games", "/games/:id", "/popularity-types", "/popularity-primitives"]
   });
 });
 app.get("/api/igdb/genres", async (_req, res) => {
@@ -1642,6 +1829,77 @@ app.get("/api/igdb/genres", async (_req, res) => {
     });
   }
 });
+app.get("/api/igdb/popularity-types", async (req, res) => {
+  if (!hasIgdbCredentials()) {
+    return res.status(503).json({
+      count: 0,
+      source: "igdb",
+      results: [],
+      message: "IGDB credentials are not configured."
+    });
+  }
+  try {
+    const rawQuery = String(req.query.q || req.query.query || "").trim();
+    const query = rawQuery || "fields id,name,popularity_source,updated_at; sort id asc; limit 50;";
+    const rows = await igdbRequest("popularity_types", query);
+    const results = Array.isArray(rows) ? rows : [];
+    return res.json({
+      count: results.length,
+      source: "igdb",
+      results
+    });
+  } catch (error) {
+    console.warn("[igdb-handler] popularity types failed:", String(error?.message || error));
+    return res.status(502).json({
+      count: 0,
+      source: "igdb",
+      results: [],
+      message: "IGDB request failed.",
+      detail: String(error?.message || error || ""),
+      code: String(error?.code || "")
+    });
+  }
+});
+app.get("/api/igdb/popularity-primitives", async (req, res) => {
+  if (!hasIgdbCredentials()) {
+    return res.status(503).json({
+      count: 0,
+      source: "igdb",
+      results: [],
+      message: "IGDB credentials are not configured."
+    });
+  }
+  try {
+    const popularityType = clampInt(req.query.popularity_type, 0, 5000, 0);
+    const limit = clampInt(req.query.limit, 1, 500, 50);
+    const offset = clampInt(req.query.offset, 0, 1000000, 0);
+    const rawQuery = String(req.query.q || req.query.query || "").trim();
+    const query = rawQuery || [
+      "fields game_id,value,popularity_type;",
+      popularityType ? `where popularity_type = ${Math.floor(popularityType)};` : "",
+      "sort value desc;",
+      `limit ${limit};`,
+      `offset ${offset};`
+    ].filter(Boolean).join(" ");
+    const rows = await igdbRequest("popularity_primitives", query);
+    const results = Array.isArray(rows) ? rows : [];
+    return res.json({
+      count: results.length,
+      source: "igdb",
+      results
+    });
+  } catch (error) {
+    console.warn("[igdb-handler] popularity primitives failed:", String(error?.message || error));
+    return res.status(502).json({
+      count: 0,
+      source: "igdb",
+      results: [],
+      message: "IGDB request failed.",
+      detail: String(error?.message || error || ""),
+      code: String(error?.code || "")
+    });
+  }
+});
 app.get("/api/igdb/games", async (req, res) => {
   const page = clampInt(req.query.page, 1, 100000, 1);
   const pageSize = clampInt(req.query.page_size, 1, 50, 20);
@@ -1649,6 +1907,7 @@ app.get("/api/igdb/games", async (req, res) => {
   const id = String(req.query.id || "").trim();
   const ids = String(req.query.ids || "").trim();
   const ordering = String(req.query.ordering || "-follows").trim();
+  const popularityType = clampInt(req.query.popularity_type, 0, 5000, 0);
   const dates = String(req.query.dates || "").trim();
   const genres = String(req.query.genres || "").trim();
   const provider = String(req.query.provider || req.query.source || "").trim().toLowerCase();
@@ -1682,13 +1941,21 @@ app.get("/api/igdb/games", async (req, res) => {
       minRatingCount: effectiveMinRatingCount,
       minFollows: minFollows || null
     });
-    const payload = await fetchIgdbGamesList({
-      page,
-      pageSize,
-      orderingRaw: ordering,
-      search,
-      whereClause
-    });
+    const payload = popularityType && !search
+      ? await fetchIgdbGamesByPopscore({
+        page,
+        pageSize,
+        popularityType,
+        minRatingCount: effectiveMinRatingCount,
+        minFollows: minFollows || 0
+      })
+      : await fetchIgdbGamesList({
+        page,
+        pageSize,
+        orderingRaw: ordering,
+        search,
+        whereClause
+      });
     let results = Array.isArray(payload?.results) ? payload.results : [];
     if (!results.length && explicitIds.length) {
       return res.json({

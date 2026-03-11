@@ -4677,7 +4677,8 @@ let homeTravelPhotoCacheSaveTimer = null;
         const payload = await homeIgdbFetch('/games', {
           page: 1,
           page_size: Math.max(targetCount * 3, 60),
-          ordering: '-rating_count'
+          popularity_type: 1,
+          min_rating_count: 50
         }, signal);
         const rows = Array.isArray(payload?.results) ? payload.results : [];
         if (!rows.length || signal?.aborted) return [];
