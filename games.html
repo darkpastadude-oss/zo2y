@@ -793,46 +793,39 @@
         return raw;
       }
 
-      function isCoverLikeUrl(url) {
-        const text = String(url || '').trim().toLowerCase();
-        if (!text) return false;
-        if (text.includes('wikimedia') || text.includes('wikipedia')) return true;
-        if (text.includes('images.igdb.com') && text.includes('t_cover')) return true;
-        if (text.includes('media.rawg.io') && !text.includes('/screenshots/')) return true;
-        if (text.includes('t_1080p') || text.includes('t_screenshot')) return false;
-        if (text.includes('screenshot') || text.includes('background') || text.includes('hero') || text.includes('wallpaper')) return false;
-        return false;
-      }
-
       function pickPreferredCoverUrl(candidates = []) {
         const cleaned = candidates.map(normalizeGameImageUrl).filter(Boolean);
-        const wiki = cleaned.find((url) => /wikimedia|wikipedia/.test(url));
-        if (wiki) return wiki;
-        const coverLike = cleaned.find((url) => isCoverLikeUrl(url));
-        return coverLike || cleaned[0] || '';
+        return cleaned.find((url) => /wikimedia|wikipedia/.test(url)) || '';
+      }
+
+      function pickBackdropUrl(candidates = [], fallback = '') {
+        const cleaned = candidates.map(normalizeGameImageUrl).filter(Boolean);
+        const fallbackUrl = normalizeGameImageUrl(fallback);
+        if (fallbackUrl) {
+          const different = cleaned.find((url) => url !== fallbackUrl);
+          return different || fallbackUrl;
+        }
+        return cleaned[0] || '';
       }
 
       function resolveGameImageSource(row) {
         const candidates = [
           row?.cover,
           row?.cover?.url,
-          row?.cover_url,
-          ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
-          ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : []),
-          row?.background_image,
-          row?.hero,
-          row?.hero_url
+          row?.cover_url
         ];
         const cover = pickPreferredCoverUrl(candidates);
         return cover || '';
       }
 
       function resolveGameHeroSource(row, fallback) {
-        const hero = pickPreferredCoverUrl([
+        const hero = pickBackdropUrl([
           row?.hero_url,
           row?.hero,
-          row?.background_image
-        ]);
+          row?.background_image,
+          ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+          ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
+        ], fallback);
         return hero || fallback || IGDB_FALLBACK_IMAGE;
       }
 
@@ -961,6 +954,34 @@
         });
         return out;
       }
+
+      function scoreSearchMatch(title, query) {
+        const cleanTitle = String(title || '').trim().toLowerCase();
+        const cleanQuery = String(query || '').trim().toLowerCase();
+        if (!cleanTitle || !cleanQuery) return 0;
+        if (cleanTitle === cleanQuery) return 3;
+        if (cleanTitle.startsWith(cleanQuery)) return 2;
+        if (cleanTitle.includes(cleanQuery)) return 1;
+        return 0;
+      }
+
+      function sortSearchResults(rows = [], query = '') {
+        const cleanQuery = String(query || '').trim().toLowerCase();
+        if (!cleanQuery) return Array.isArray(rows) ? rows : [];
+        const list = Array.isArray(rows) ? rows.slice() : [];
+        return list.sort((a, b) => {
+          const aTitle = String(a?.title || a?.name || a?.slug || '').trim();
+          const bTitle = String(b?.title || b?.name || b?.slug || '').trim();
+          const scoreDiff = scoreSearchMatch(bTitle, cleanQuery) - scoreSearchMatch(aTitle, cleanQuery);
+          if (scoreDiff !== 0) return scoreDiff;
+          const aRating = Number(a?.rating || 0);
+          const bRating = Number(b?.rating || 0);
+          if (Number.isFinite(aRating) && Number.isFinite(bRating) && aRating !== bRating) {
+            return bRating - aRating;
+          }
+          return aTitle.localeCompare(bTitle);
+        });
+      }
       function mapIgdbRowToCatalog(row) {
         if (!row) return null;
         const id = Number(row?.id || 0);
@@ -974,7 +995,7 @@
           id,
           title,
           description: String(row?.description || row?.summary || '').trim(),
-          cover_url: cover || hero,
+          cover_url: cover,
           hero_url: hero || cover,
           release_date: released,
           rating: Number.isFinite(rating) ? rating : null,
@@ -1339,7 +1360,7 @@
         card.className = 'card';
         card.setAttribute('data-game-id', gameId);
         card.innerHTML = `
-          <img src="${gameCover}" alt="${gameTitle}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/newlogo.webp';">
+          <img src="${gameCover}" alt="${gameTitle}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;const c=this.closest('.card');if(c)c.remove();">
           <div class="card-body">
             <h3 class="card-title">${gameTitle}</h3>
             <div class="card-meta-row">
@@ -1395,7 +1416,7 @@
         if (igdbPayload) {
           state.catalogSource = 'igdb';
 
-          const results = igdbPayload.rows || [];
+          const results = sortSearchResults(igdbPayload.rows || [], state.query);
           const totalMatches = Number(igdbPayload.count || results.length || 0);
           state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
           if (!results.length) {
@@ -1407,13 +1428,22 @@
           }
 
           const fragment = document.createDocumentFragment();
+          let appended = 0;
           results.forEach((item) => {
             const card = createGameCard(item);
-            if (card) fragment.appendChild(card);
+            if (card) {
+              fragment.appendChild(card);
+              appended += 1;
+            }
           });
           grid.innerHTML = '';
-          grid.appendChild(fragment);
-          if (empty) empty.style.display = 'none';
+          if (appended) {
+            grid.appendChild(fragment);
+            if (empty) empty.style.display = 'none';
+          } else if (empty) {
+            empty.style.display = 'block';
+            empty.textContent = 'No official posters found for this search.';
+          }
 
           state.hasMore = state.page < state.totalPages;
           updatePagination();

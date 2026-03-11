@@ -4646,44 +4646,37 @@ let homeTravelPhotoCacheSaveTimer = null;
       return toHttpsUrl(raw);
     }
 
-    function isCoverLikeGameUrl(url) {
-      const text = String(url || '').trim().toLowerCase();
-      if (!text) return false;
-      if (text.includes('wikimedia') || text.includes('wikipedia')) return true;
-      if (text.includes('images.igdb.com') && text.includes('t_cover')) return true;
-      if (text.includes('media.rawg.io') && !text.includes('/screenshots/')) return true;
-      if (text.includes('t_1080p') || text.includes('t_screenshot')) return false;
-      if (text.includes('screenshot') || text.includes('background') || text.includes('hero') || text.includes('wallpaper')) return false;
-      return false;
-    }
-
     function pickPreferredGameCoverUrl(candidates = []) {
       const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
-      const wiki = cleaned.find((url) => /wikimedia|wikipedia/.test(url));
-      if (wiki) return wiki;
-      const coverLike = cleaned.find((url) => isCoverLikeGameUrl(url));
-      return coverLike || cleaned[0] || '';
+      return cleaned.find((url) => /wikimedia|wikipedia/.test(url)) || '';
+    }
+
+    function pickBackdropGameUrl(candidates = [], fallback = '') {
+      const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
+      const fallbackUrl = normalizeGameCoverUrl(fallback);
+      if (fallbackUrl) {
+        const different = cleaned.find((url) => url !== fallbackUrl);
+        return different || fallbackUrl;
+      }
+      return cleaned[0] || '';
     }
 
     function resolveHomeGameCover(row) {
       return pickPreferredGameCoverUrl([
         row?.cover,
         row?.cover?.url,
-        row?.cover_url,
-        ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
-        ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : []),
-        row?.background_image,
-        row?.hero,
-        row?.hero_url
+        row?.cover_url
       ]);
     }
 
     function resolveHomeGameHero(row, fallback) {
-      const hero = pickPreferredGameCoverUrl([
+      const hero = pickBackdropGameUrl([
         row?.hero_url,
         row?.hero,
-        row?.background_image
-      ]);
+        row?.background_image,
+        ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+        ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
+      ], fallback);
       return hero || fallback || '';
     }
 
