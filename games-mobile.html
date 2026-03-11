@@ -943,12 +943,21 @@
           return true;
         }
 
-        const igdbRows = await fetchIgdbCatalog({
+        let igdbRows = await fetchIgdbCatalog({
           popularity_type: 1,
+          ordering: '-follows',
           pageSize: IGDB_PAGE_SIZE,
           page: 1,
           min_rating_count: 50
         });
+        if (!igdbRows.length) {
+          igdbRows = await fetchIgdbCatalog({
+            ordering: '-follows',
+            pageSize: IGDB_PAGE_SIZE,
+            page: 1,
+            min_rating_count: 50
+          });
+        }
         if (igdbRows.length) {
           state.catalog = igdbRows;
           state.catalogSource = 'igdb';
@@ -1150,19 +1159,23 @@
           return;
         }
         rail.innerHTML = '<div class="empty">Loading popular games...</div>';
-        let popularRows = [];
-        const igdbRows = await fetchIgdbCatalog({
+        let popularRows = await fetchIgdbCatalog({
           popularity_type: 1,
+          ordering: '-follows',
           pageSize: 12,
           page: 1,
           min_rating_count: 50
         });
-        if (igdbRows.length) {
-          popularRows = igdbRows;
-        }
-
         if (!popularRows.length) {
-          rail.innerHTML = '<div class="empty">No popular games available from IGDB.</div>';
+          popularRows = await fetchIgdbCatalog({
+            ordering: '-follows',
+            pageSize: 12,
+            page: 1,
+            min_rating_count: 50
+          });
+        }
+        if (!popularRows.length) {
+          rail.innerHTML = '<div class="empty">IGDB is unavailable right now.</div>';
           return;
         }
 

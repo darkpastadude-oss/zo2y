@@ -843,7 +843,9 @@ function buildIgdbWhereClause({
 } = {}) {
   const clauses = [
     "category = 0",
-    "cover != null"
+    "cover != null",
+    "version_parent = null",
+    "parent_game = null"
   ];
   const ids = dedupeNumbers(genreIds);
   if (ids.length) clauses.push(`genres = (${ids.join(",")})`);
@@ -1081,7 +1083,9 @@ async function fetchIgdbGamesByPopscore({
     const filters = [
       `id = (${idList.join(",")})`,
       "category = 0",
-      "cover != null"
+      "cover != null",
+      "version_parent = null",
+      "parent_game = null"
     ];
     if (Number.isFinite(minRatingCount) && minRatingCount > 0) {
       filters.push(`total_rating_count >= ${Math.floor(minRatingCount)}`);
@@ -1957,6 +1961,21 @@ app.get("/api/igdb/games", async (req, res) => {
       }
     }
     if (!payload) {
+      payload = await fetchIgdbGamesList({
+        page,
+        pageSize,
+        orderingRaw: ordering,
+        search,
+        whereClause
+      });
+    }
+    if (
+      payload &&
+      popularityType &&
+      !search &&
+      Array.isArray(payload?.results) &&
+      payload.results.length === 0
+    ) {
       payload = await fetchIgdbGamesList({
         page,
         pageSize,

@@ -458,12 +458,12 @@
 
   async function fetchIgdbJson(path, params = {}, timeoutMs = 8000) {
     try {
-      if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
-        return await window.ZO2Y_IGDB.request(path, params);
-      }
-      const url = new URL(`/api/igdb${path}`, window.location.origin);
       const requestParams = { ...(params || {}) };
       if (requestParams.search) delete requestParams.ordering;
+      if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
+        return await window.ZO2Y_IGDB.request(path, requestParams);
+      }
+      const url = new URL(`/api/igdb${path}`, window.location.origin);
       Object.entries(requestParams).forEach(([key, value]) => {
         if (value === undefined || value === null || value === '') return;
         url.searchParams.set(key, String(value));

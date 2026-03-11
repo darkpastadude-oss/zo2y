@@ -4674,13 +4674,23 @@ let homeTravelPhotoCacheSaveTimer = null;
       };
 
       try {
-        const payload = await homeIgdbFetch('/games', {
+        const baseParams = {
           page: 1,
           page_size: Math.max(targetCount * 3, 60),
-          popularity_type: 1,
           min_rating_count: 50
+        };
+        let payload = await homeIgdbFetch('/games', {
+          ...baseParams,
+          popularity_type: 1
         }, signal);
-        const rows = Array.isArray(payload?.results) ? payload.results : [];
+        let rows = Array.isArray(payload?.results) ? payload.results : [];
+        if (!rows.length && !signal?.aborted) {
+          payload = await homeIgdbFetch('/games', {
+            ...baseParams,
+            ordering: '-follows'
+          }, signal);
+          rows = Array.isArray(payload?.results) ? payload.results : [];
+        }
         if (!rows.length || signal?.aborted) return [];
         return rows
           .map((row) => mapToItem(row))
