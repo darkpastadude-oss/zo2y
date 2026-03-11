@@ -11,6 +11,10 @@
   <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script>
+    // Allow games browsing even when IGDB is not configured by accepting a Wikipedia-only backend.
+    window.ZO2Y_REQUIRE_IGDB = false;
+  </script>
   <script src="js/igdb-client.js?v=20260311b"></script>
   <script src="js/list-utils.js?v=20260221c"></script>
   <script src="js/index-list-menu-adapter.js?v=20260221b"></script>
@@ -957,7 +961,6 @@
             dates: dates || undefined,
             min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
             min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
-            provider: 'igdb',
             page_size: Math.max(1, Math.min(pageSize, 200)),
             page: Math.max(1, page)
           });
@@ -987,7 +990,6 @@
             genres: genres || undefined,
             min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
             min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
-            provider: 'igdb',
             page_size: Math.max(1, Math.min(pageSize, 50)),
             page: Math.max(1, page)
           });

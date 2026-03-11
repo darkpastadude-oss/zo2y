@@ -1484,7 +1484,7 @@ app.get("/api/igdb", (_req, res) => {
     providers: {
       igdb: igdbEnabled,
       rawg: false,
-      wikipedia: false
+      wikipedia: true
     },
     igdb_env: {
       client_id: !!clientId,
@@ -1538,12 +1538,50 @@ app.get("/api/igdb/games", async (req, res) => {
   const genres = String(req.query.genres || "").trim();
   const provider = String(req.query.provider || req.query.source || "").trim().toLowerCase();
   const igdbOnly = provider === "igdb" || isTruthyFlag(req.query.igdb_only) || isTruthyFlag(req.query.igdbOnly);
+  const wikiOnly = provider === "wikipedia" || provider === "wiki";
   const minRatingCount = clampInt(req.query.min_rating_count, 0, 5_000_000, 0);
   const minFollows = clampInt(req.query.min_follows, 0, 50_000_000, 0);
   const explicitIds = dedupeNumbers([
     ...parseIdsQuery(id),
     ...parseIdsQuery(ids)
   ]);
+
+  // If caller explicitly requests Wikipedia, or IGDB credentials are missing and the caller
+  // has not opted into IGDB-only, serve from the Wikipedia games provider instead of failing.
+  if (wikiOnly || (!hasIgdbCredentials() && !igdbOnly)) {
+    try {
+      const wikiPayload = await fetchWikipediaGamesList({
+        page,
+        pageSize,
+        search,
+        id,
+        ids,
+        ordering,
+        dates,
+        genres
+      });
+      const wikiResults = Array.isArray(wikiPayload?.results) ? wikiPayload.results : [];
+      return res.json({
+        count: Number(wikiPayload?.count || wikiResults.length || 0),
+        page,
+        page_size: pageSize,
+        results: wikiResults.slice(0, pageSize),
+        sources: { igdb: false, rawg: false, wikipedia: true }
+      });
+    } catch (error) {
+      console.warn("[igdb-handler] wikipedia games fallback failed:", String(error?.message || error));
+      return res.status(502).json({
+        count: 0,
+        page,
+        page_size: pageSize,
+        results: [],
+        message: "Wikipedia games request failed.",
+        detail: String(error?.message || error || ""),
+        code: String(error?.code || ""),
+        sources: { igdb: false, rawg: false, wikipedia: false }
+      });
+    }
+  }
 
   if (!hasIgdbCredentials()) {
     return res.status(503).json({
@@ -1552,7 +1590,7 @@ app.get("/api/igdb/games", async (req, res) => {
       page_size: pageSize,
       results: [],
       message: "IGDB credentials are not configured.",
-      sources: { igdb: false, rawg: false, wikipedia: false }
+      sources: { igdb: false, rawg: false, wikipedia: true }
     });
   }
 
@@ -1596,6 +1634,34 @@ app.get("/api/igdb/games", async (req, res) => {
     });
   } catch (error) {
     console.warn("[igdb-handler] igdb games failed:", String(error?.message || error));
+
+    // On IGDB failures, fall back to Wikipedia unless the caller explicitly requested IGDB-only.
+    if (!igdbOnly) {
+      try {
+        const wikiFallback = await fetchWikipediaGamesList({
+          page,
+          pageSize,
+          search,
+          id,
+          ids,
+          ordering,
+          dates,
+          genres
+        });
+        const wikiResults = Array.isArray(wikiFallback?.results) ? wikiFallback.results : [];
+        return res.json({
+          count: Number(wikiFallback?.count || wikiResults.length || 0),
+          page,
+          page_size: pageSize,
+          results: wikiResults.slice(0, pageSize),
+          message: "IGDB request failed; served Wikipedia fallback.",
+          sources: { igdb: false, rawg: false, wikipedia: true }
+        });
+      } catch (wikiError) {
+        console.warn("[igdb-handler] wikipedia games secondary fallback failed:", String(wikiError?.message || wikiError));
+      }
+    }
+
     return res.status(502).json({
       count: 0,
       page,

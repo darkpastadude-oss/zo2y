@@ -22,6 +22,11 @@
   <meta name="twitter:title" content="Zo2y | All Your Interests in One Place" />
   <meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, games, books, music, and travel." />
   <meta name="twitter:image" content="https://www.zo2y.com/images/zo2y-search-illustration.png" />
+  <script>
+    // Allow the games client to operate even when IGDB credentials are missing
+    // by accepting any healthy /api/igdb base that responds ok (including Wikipedia-only mode).
+    window.ZO2Y_REQUIRE_IGDB = false;
+  </script>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
