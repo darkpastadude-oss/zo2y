@@ -959,6 +959,7 @@
           const json = await fetchIgdbJson('/games', {
             search: search || undefined,
             ordering: safeOrdering || undefined,
+            provider: 'all',
             popularity_type: popularityType > 0 ? Math.floor(popularityType) : undefined,
             dates: dates || undefined,
             min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
@@ -989,6 +990,7 @@
           const json = await fetchIgdbJson('/games', {
             search: search || undefined,
             ordering: safeOrdering || undefined,
+            provider: 'all',
             popularity_type: popularityType > 0 ? Math.floor(popularityType) : undefined,
             dates: dates || undefined,
             genres: genres || undefined,

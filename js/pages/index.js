@@ -4677,7 +4677,8 @@ let homeTravelPhotoCacheSaveTimer = null;
         const baseParams = {
           page: 1,
           page_size: Math.max(targetCount * 3, 60),
-          min_rating_count: 50
+          min_rating_count: 50,
+          provider: 'all'
         };
         let payload = await homeIgdbFetch('/games', {
           ...baseParams,

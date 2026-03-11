@@ -460,6 +460,9 @@
     try {
       const requestParams = { ...(params || {}) };
       if (requestParams.search) delete requestParams.ordering;
+      if (!requestParams.provider && String(path || '').includes('/games')) {
+        requestParams.provider = 'all';
+      }
       if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
         return await window.ZO2Y_IGDB.request(path, requestParams);
       }

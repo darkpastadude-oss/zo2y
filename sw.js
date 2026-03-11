@@ -13,8 +13,8 @@ const STATIC_ASSETS = [
   '/css/pages/index.css?v=20260308c',
   '/css/shared-header.css?v=20260308l',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260311e',
-  '/js/home-desktop-rebrand.js?v=20260311d',
+  '/js/pages/index.js?v=20260311f',
+  '/js/home-desktop-rebrand.js?v=20260311e',
   '/js/shared-header.js?v=20260311c',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
@@ -85,7 +85,7 @@ function queueCachePut(cacheName, request, response) {
 
 function isMediaApiRequest(url) {
   if (!url || url.origin !== self.location.origin) return false;
-  return /^\/api\/(tmdb|igdb|books|music|openlibrary)(\/|$)/i.test(url.pathname);
+  return /^\/api\/(tmdb|igdb|igdb-handler|books|music|openlibrary)(\/|$)/i.test(url.pathname);
 }
 
 async function cacheFirst(request, cacheName) {
