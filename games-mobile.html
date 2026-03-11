@@ -695,6 +695,10 @@
       const IGDB_PAGE_SIZE = 50;
 
       const IGDB_FALLBACK_IMAGE = '/newlogo.webp';
+      const IGDB_CACHE_TTL_MS = 1000 * 60 * 4;
+      const IGDB_CACHE_MAX = 160;
+      const igdbCache = new Map();
+      const igdbInFlight = new Map();
 
       function normalizeGameImageUrl(value) {
         const raw = String(value || '').trim();
@@ -732,21 +736,71 @@
         return hero || fallback || IGDB_FALLBACK_IMAGE;
       }
 
-      async function fetchIgdbJson(path, params = {}) {
-        try {
-          if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
-            return await window.ZO2Y_IGDB.request(path, params);
-          }
-          const url = new URL(`${IGDB_PROXY_BASE}${path}`, window.location.origin);
-          Object.entries(params || {}).forEach(([key, value]) => {
-            if (value === undefined || value === null || value === '') return;
-            url.searchParams.set(key, String(value));
-          });
-          const res = await fetch(url.toString());
-          if (!res.ok) return null;
-          return await res.json();
-        } catch (_err) {
+      function buildIgdbCacheKey(path, params = {}) {
+        const pairs = Object.entries(params || {})
+          .filter(([, value]) => value !== undefined && value !== null && value !== '')
+          .map(([key, value]) => [String(key), String(value)]);
+        pairs.sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]));
+        const query = pairs.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join('&');
+        return query ? `${path}?${query}` : String(path || '');
+      }
+
+      function readIgdbCache(key) {
+        const entry = igdbCache.get(key);
+        if (!entry) return null;
+        if (entry.expiresAt <= Date.now()) {
+          igdbCache.delete(key);
           return null;
+        }
+        return entry.data || null;
+      }
+
+      function writeIgdbCache(key, data, ttlMs = IGDB_CACHE_TTL_MS) {
+        if (!key || !data) return;
+        igdbCache.set(key, { data, expiresAt: Date.now() + ttlMs });
+        while (igdbCache.size > IGDB_CACHE_MAX) {
+          const firstKey = igdbCache.keys().next().value;
+          if (!firstKey) break;
+          igdbCache.delete(firstKey);
+        }
+      }
+
+      async function fetchIgdbJson(path, params = {}, options = {}) {
+        const cacheKey = buildIgdbCacheKey(path, params);
+        const useCache = !options?.cacheBust;
+        if (useCache) {
+          const cached = readIgdbCache(cacheKey);
+          if (cached) return cached;
+          if (igdbInFlight.has(cacheKey)) return igdbInFlight.get(cacheKey);
+        }
+
+        const fetchPromise = (async () => {
+          try {
+            if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
+              const data = await window.ZO2Y_IGDB.request(path, params, options?.signal ? { signal: options.signal } : undefined);
+              if (useCache && data) writeIgdbCache(cacheKey, data);
+              return data;
+            }
+            const url = new URL(`${IGDB_PROXY_BASE}${path}`, window.location.origin);
+            Object.entries(params || {}).forEach(([key, value]) => {
+              if (value === undefined || value === null || value === '') return;
+              url.searchParams.set(key, String(value));
+            });
+            const res = await fetch(url.toString(), options?.signal ? { signal: options.signal } : undefined);
+            if (!res.ok) return null;
+            const data = await res.json();
+            if (useCache && data) writeIgdbCache(cacheKey, data);
+            return data;
+          } catch (_err) {
+            return null;
+          }
+        })();
+
+        if (useCache) igdbInFlight.set(cacheKey, fetchPromise);
+        try {
+          return await fetchPromise;
+        } finally {
+          if (useCache) igdbInFlight.delete(cacheKey);
         }
       }
       const state = {
@@ -757,6 +811,7 @@
         page: 1,
         totalPages: 1,
         hasMore: true,
+        requestId: 0,
         currentUser: null,
         listStatusMap: new Map(),
         customLists: [],
@@ -771,12 +826,26 @@
       let supabaseClient = null;
       let loadGamesTimer = null;
       let popularLoaded = false;
+      let igdbAbortController = null;
 
       function scheduleGamesLoad(delayMs = 360) {
         if (loadGamesTimer) clearTimeout(loadGamesTimer);
+        const effectiveDelay = isSlowNetwork() ? Math.max(420, delayMs) : delayMs;
         loadGamesTimer = setTimeout(() => {
           loadGames();
-        }, delayMs);
+        }, effectiveDelay);
+      }
+
+      function isSlowNetwork() {
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        if (!connection) return false;
+        if (connection.saveData) return true;
+        const effectiveType = String(connection.effectiveType || '').toLowerCase();
+        return effectiveType === 'slow-2g' || effectiveType === '2g' || effectiveType === '3g';
+      }
+
+      function getGamesPageSize() {
+        return isSlowNetwork() ? 16 : 20;
       }
 
       function normalizeGameGenres(extra) {
@@ -821,7 +890,7 @@
         };
       }
 
-      async function fetchIgdbCatalog(options = {}) {
+      async function fetchIgdbCatalog(options = {}, requestOptions = {}) {
         try {
           const search = String(options.search || '').trim();
           const pageSize = Number(options.pageSize || IGDB_PAGE_SIZE);
@@ -842,7 +911,7 @@
             min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
             page_size: Math.max(1, Math.min(pageSize, 200)),
             page: Math.max(1, page)
-          });
+          }, requestOptions);
           if (!json) return [];
           const rows = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
           return rows.map(mapIgdbRowToCatalog).filter(Boolean);
@@ -851,7 +920,7 @@
         }
       }
 
-      async function fetchIgdbPage(options = {}) {
+      async function fetchIgdbPage(options = {}, requestOptions = {}) {
         try {
           const search = String(options.search || '').trim();
           const pageSize = Number(options.pageSize || 24);
@@ -874,7 +943,7 @@
             min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
             page_size: Math.max(1, Math.min(pageSize, 50)),
             page: Math.max(1, page)
-          });
+          }, requestOptions);
           if (!json) return null;
           const rows = Array.isArray(json?.results) ? json.results : [];
           const mapped = rows.map(mapIgdbRowToCatalog).filter(Boolean);
@@ -915,8 +984,41 @@
           select.value = '';
         }
       }
+
+      const GENRE_CACHE_KEY = 'zo2y_game_genres_cache_v2';
+      const GENRE_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
+
+      function readCachedGenres() {
+        try {
+          const raw = localStorage.getItem(GENRE_CACHE_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (!parsed || !Array.isArray(parsed.items)) return null;
+          if (Number(parsed.savedAt || 0) + GENRE_CACHE_TTL_MS < Date.now()) return null;
+          return parsed.items;
+        } catch (_err) {
+          return null;
+        }
+      }
+
+      function writeCachedGenres(items) {
+        try {
+          if (!Array.isArray(items) || !items.length) return;
+          localStorage.setItem(GENRE_CACHE_KEY, JSON.stringify({
+            savedAt: Date.now(),
+            items
+          }));
+        } catch (_err) {}
+      }
+
       async function loadGenreCatalog() {
         try {
+          const cached = readCachedGenres();
+          if (cached) {
+            state.genres = cached;
+            populateGenreSelect();
+            return true;
+          }
           const json = await fetchIgdbJson('/genres');
           if (!json) return false;
           const rows = Array.isArray(json?.results) ? json.results : [];
@@ -928,6 +1030,7 @@
             .filter((row) => row.name && row.slug)
             .sort((a, b) => a.name.localeCompare(b.name));
           populateGenreSelect();
+          writeCachedGenres(state.genres);
           return state.genres.length > 0;
         } catch (_err) {
           return false;
@@ -1172,20 +1275,21 @@
           return;
         }
         rail.innerHTML = '<div class="empty">Loading popular games...</div>';
+        const requestOptions = force ? { cacheBust: true } : {};
         let popularRows = await fetchIgdbCatalog({
           popularity_type: 1,
           ordering: '-follows',
-          pageSize: 12,
+          pageSize: isSlowNetwork() ? 10 : 12,
           page: 1,
           min_rating_count: 50
-        });
+        }, requestOptions);
         if (!popularRows.length) {
           popularRows = await fetchIgdbCatalog({
             ordering: '-follows',
-            pageSize: 12,
+            pageSize: isSlowNetwork() ? 10 : 12,
             page: 1,
             min_rating_count: 50
-          });
+          }, requestOptions);
         }
         if (!popularRows.length) {
           rail.innerHTML = '<div class="empty">IGDB is unavailable right now.</div>';
@@ -1202,15 +1306,22 @@
         popularLoaded = true;
       }
 
-      async function loadGames() {
+      async function loadGames(options = {}) {
         const grid = document.getElementById('gamesGrid');
         const empty = document.getElementById('emptyState');
         if (!grid) return;
+        const requestId = ++state.requestId;
         updatePopularVisibility();
-        const pageSize = 24;
+        if (igdbAbortController) {
+          igdbAbortController.abort();
+        }
+        igdbAbortController = new AbortController();
+        const signal = igdbAbortController.signal;
+        const pageSize = getGamesPageSize();
         const dates = state.year ? `${state.year}-01-01,${state.year}-12-31` : '';
         const ordering = state.query ? '-rating' : '-follows';
         const minRatingCount = (!state.query && !state.activeGenre && !state.year) ? 50 : 0;
+        const popularityType = (!state.query && !state.activeGenre && !state.year) ? 1 : 0;
         const igdbPayload = await fetchIgdbPage({
           page: state.page,
           pageSize,
@@ -1218,8 +1329,10 @@
           search: state.query,
           dates,
           genres: state.activeGenre,
-          min_rating_count: minRatingCount
-        });
+          min_rating_count: minRatingCount,
+          popularity_type: popularityType || undefined
+        }, { signal, cacheBust: options?.cacheBust });
+        if (requestId !== state.requestId) return;
 
         if (igdbPayload) {
           state.catalogSource = 'igdb';
@@ -1502,7 +1615,7 @@
             scheduleGamesLoad(340);
           });
         }
-        if (refreshBtn) refreshBtn.addEventListener('click', () => loadGames());
+        if (refreshBtn) refreshBtn.addEventListener('click', () => loadGames({ cacheBust: true }));
         if (popularRefreshBtn) {
           popularRefreshBtn.addEventListener('click', () => {
             popularLoaded = false;

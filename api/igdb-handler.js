@@ -67,6 +67,13 @@ let wikiListResponseCache = new Map();
 let wikiDetailResponseCache = new Map();
 let wikiEntityCache = new Map();
 
+function setResponseCache(res, { maxAge = 300, staleWhileRevalidate = 900 } = {}) {
+  res.setHeader(
+    "Cache-Control",
+    `public, s-maxage=${Math.max(0, Math.floor(maxAge))}, stale-while-revalidate=${Math.max(0, Math.floor(staleWhileRevalidate))}`
+  );
+}
+
 function pushQueryParam(params, key, value) {
   if (value === undefined || value === null) return;
   if (Array.isArray(value)) {
@@ -2207,6 +2214,7 @@ app.get("/api/igdb", (_req, res) => {
   });
 });
 app.get("/api/igdb/genres", async (req, res) => {
+  setResponseCache(res, { maxAge: 21600, staleWhileRevalidate: 43200 });
   const providerSet = parseProviderList(req.query.provider || req.query.source || "");
   const igdbEnabled = hasIgdbCredentials();
   if (providerSet.has("igdb") && igdbEnabled) {
@@ -2239,6 +2247,7 @@ app.get("/api/igdb/genres", async (req, res) => {
   });
 });
 app.get("/api/igdb/popularity-types", async (req, res) => {
+  setResponseCache(res, { maxAge: 21600, staleWhileRevalidate: 43200 });
   if (!hasIgdbCredentials()) {
     return res.status(503).json({
       count: 0,
@@ -2270,6 +2279,7 @@ app.get("/api/igdb/popularity-types", async (req, res) => {
   }
 });
 app.get("/api/igdb/popularity-primitives", async (req, res) => {
+  setResponseCache(res, { maxAge: 120, staleWhileRevalidate: 300 });
   if (!hasIgdbCredentials()) {
     return res.status(503).json({
       count: 0,
@@ -2310,6 +2320,7 @@ app.get("/api/igdb/popularity-primitives", async (req, res) => {
   }
 });
 app.get("/api/igdb/games", async (req, res) => {
+  setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 900 });
   const page = clampInt(req.query.page, 1, 100000, 1);
   const pageSize = clampInt(req.query.page_size, 1, 80, 20);
   const search = String(req.query.search || "").trim().slice(0, 120);
@@ -2631,6 +2642,7 @@ app.get("/api/igdb/games", async (req, res) => {
   }
 });
 app.get("/api/igdb/games/:id", async (req, res) => {
+  setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 1800 });
   const requestedId = Number(req.params.id);
   if (!Number.isFinite(requestedId) || requestedId <= 0) {
     return res.status(400).json({ message: "Invalid game id." });
