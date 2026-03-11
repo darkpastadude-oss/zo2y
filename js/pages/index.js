@@ -4671,30 +4671,6 @@ let homeTravelPhotoCacheSaveTimer = null;
       };
 
       try {
-        const client = await ensureHomeSupabase();
-        if (client) {
-          const { data } = await client
-            .from('games')
-            .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra')
-            .order('rating', { ascending: false, nullsFirst: false })
-            .order('rating_count', { ascending: false, nullsFirst: false })
-            .order('release_date', { ascending: false, nullsFirst: false })
-            .limit(Math.max(targetCount * 4, 40));
-          if (signal?.aborted) return [];
-
-          const rows = Array.isArray(data) ? data : [];
-          if (rows.length) {
-            return rows
-              .map((row) => mapToItem(row))
-              .filter((item) => item && String(item.itemId || '').trim())
-              .slice(0, targetCount);
-          }
-        }
-      } catch (_error) {
-        // Fallback to live provider below.
-      }
-
-      try {
         const payload = await homeIgdbFetch('/games', {
           page: 1,
           page_size: Math.max(targetCount * 2, 40),

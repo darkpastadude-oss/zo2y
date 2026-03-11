@@ -11,7 +11,7 @@
   <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/igdb-client.js?v=20260228a"></script>
+  <script src="js/igdb-client.js?v=20260311a"></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -961,21 +961,8 @@
         }
       }
 
-            async function fetchCatalogGameById() {
+      async function fetchCatalogGameById() {
         if (!Number.isFinite(gameId)) return null;
-        let data = null;
-        if (supabaseClient) {
-          const result = await supabaseClient
-            .from('games')
-            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,source,igdb_id,rawg_id,slug,extra')
-            .eq('id', gameId)
-            .maybeSingle();
-          if (!result?.error) data = result?.data || null;
-        }
-        if (data) {
-          const coverCandidate = resolveGameImageSource(data);
-          if (coverCandidate && coverCandidate !== IGDB_FALLBACK_IMAGE) return data;
-        }
         return await fetchIgdbGameById();
       }
 

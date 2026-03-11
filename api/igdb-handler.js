@@ -1410,65 +1410,49 @@ async function fetchGameBrainGamesList({ page = 1, pageSize = 20, search = "", i
 
 app.get("/api/igdb", (_req, res) => {
   const igdbEnabled = hasIgdbCredentials();
-  const rawgEnabled = hasRawgKey();
   return res.json({
     ok: true,
-    service: igdbEnabled ? "igdb-proxy" : (rawgEnabled ? "rawg-proxy" : "wikipedia-proxy"),
-    configured: true,
-    auth_mode: igdbEnabled ? "twitch" : (rawgEnabled ? "rawg" : "none"),
+    service: "igdb-proxy",
+    configured: igdbEnabled,
+    auth_mode: igdbEnabled ? "twitch" : "none",
     providers: {
       igdb: igdbEnabled,
-      rawg: rawgEnabled,
-      wikipedia: true
+      rawg: false,
+      wikipedia: false
     },
     routes: ["/genres", "/games", "/games/:id"]
   });
 });
 app.get("/api/igdb/genres", async (_req, res) => {
-  let lastError = null;
-
-  if (hasIgdbCredentials()) {
-    try {
-      const cache = await ensureIgdbGenreCache();
-      const results = Array.from(cache.byId.values()).map((row) => ({
-        id: row.id,
-        name: row.name,
-        slug: row.slug
-      }));
-      return res.json({
-        count: results.length,
-        source: "igdb",
-        results
-      });
-    } catch (error) {
-      lastError = error;
-      console.warn("[igdb-handler] genres igdb fallback:", String(error?.message || error));
-    }
+  if (!hasIgdbCredentials()) {
+    return res.status(503).json({
+      count: 0,
+      source: "igdb",
+      results: [],
+      message: "IGDB credentials are not configured."
+    });
   }
-
-  if (hasRawgKey()) {
-    try {
-      const payload = await fetchRawgGenres();
-      return res.json({
-        count: payload.count,
-        source: "rawg",
-        results: payload.results
-      });
-    } catch (error) {
-      lastError = error;
-      console.warn("[igdb-handler] genres rawg fallback:", String(error?.message || error));
-    }
+  try {
+    const cache = await ensureIgdbGenreCache();
+    const results = Array.from(cache.byId.values()).map((row) => ({
+      id: row.id,
+      name: row.name,
+      slug: row.slug
+    }));
+    return res.json({
+      count: results.length,
+      source: "igdb",
+      results
+    });
+  } catch (error) {
+    console.warn("[igdb-handler] genres igdb failed:", String(error?.message || error));
+    return res.status(502).json({
+      count: 0,
+      source: "igdb",
+      results: [],
+      message: "IGDB request failed."
+    });
   }
-
-  if (lastError) {
-    console.warn("[igdb-handler] genres wikipedia fallback:", String(lastError?.message || lastError));
-  }
-
-  return res.json({
-    count: WIKIPEDIA_GAME_GENRES.length,
-    source: "wikipedia",
-    results: WIKIPEDIA_GAME_GENRES
-  });
 });
 app.get("/api/igdb/games", async (req, res) => {
   const page = clampInt(req.query.page, 1, 100000, 1);
@@ -1488,7 +1472,7 @@ app.get("/api/igdb/games", async (req, res) => {
     ...parseIdsQuery(ids)
   ]);
 
-  if (igdbOnly && !hasIgdbCredentials()) {
+  if (!hasIgdbCredentials()) {
     return res.status(503).json({
       count: 0,
       page,
@@ -1499,131 +1483,53 @@ app.get("/api/igdb/games", async (req, res) => {
     });
   }
 
-  if (hasIgdbCredentials()) {
-    try {
-      const { startUnix, endUnix } = parseDatesRange(dates);
-      const genreIds = await resolveGenreIds(genres);
-      const whereClause = buildIgdbWhereClause({
-        genreIds,
-        startUnix,
-        endUnix,
-        minRatingCount: minRatingCount || null,
-        minFollows: minFollows || null
-      });
-      const payload = await fetchIgdbGamesList({
-        page,
-        pageSize,
-        orderingRaw: ordering,
-        search,
-        whereClause
-      });
-      let results = Array.isArray(payload?.results) ? payload.results : [];
-      if (!results.length && explicitIds.length) {
-        const legacyRows = await resolveLegacyListRowsByIds(explicitIds, pageSize);
-        if (legacyRows.length) {
-          results = legacyRows;
-        }
-      }
-      return res.json({
-        count: Number(payload?.count || results.length),
-        page,
-        page_size: pageSize,
-        results: results.slice(0, pageSize),
-        sources: {
-          igdb: true,
-          rawg: false,
-          wikipedia: false
-        }
-      });
-    } catch (error) {
-      console.warn("[igdb-handler] igdb games fallback:", String(error?.message || error));
-      if (igdbOnly) {
-        return res.status(502).json({
-          count: 0,
-          page,
-          page_size: pageSize,
-          results: [],
-          message: "IGDB request failed.",
-          sources: { igdb: false, rawg: false, wikipedia: false }
-        });
-      }
-    }
-  }
-
-  if (hasRawgKey()) {
-    try {
-      const payload = await fetchRawgGamesList({
-        page,
-        pageSize,
-        orderingRaw: ordering,
-        search,
-        dates,
-        genres,
-        minRatingCount: minRatingCount || null
-      });
-      const filtered = (Array.isArray(payload?.results) ? payload.results : [])
-        .filter((row) => String(row?.cover || row?.hero || row?.background_image || "").trim().length > 0);
-      return res.json({
-        count: Number(payload?.count || filtered.length),
-        page,
-        page_size: pageSize,
-        results: filtered.slice(0, pageSize),
-        sources: {
-          igdb: false,
-          rawg: true,
-          wikipedia: false
-        }
-      });
-    } catch (error) {
-      console.warn("[igdb-handler] rawg games fallback:", String(error?.message || error));
-    }
-  }
-
   try {
-    const payload = await fetchWikipediaGamesList({
+    const { startUnix, endUnix } = parseDatesRange(dates);
+    const genreIds = await resolveGenreIds(genres);
+    const whereClause = buildIgdbWhereClause({
+      genreIds,
+      startUnix,
+      endUnix,
+      minRatingCount: minRatingCount || null,
+      minFollows: minFollows || null
+    });
+    const payload = await fetchIgdbGamesList({
       page,
       pageSize,
+      orderingRaw: ordering,
       search,
-      id,
-      ids,
-      ordering,
-      dates,
-      genres
+      whereClause
     });
     let results = Array.isArray(payload?.results) ? payload.results : [];
-    let count = Number(payload?.count || results.length);
     if (!results.length && explicitIds.length) {
-      const legacyRows = await resolveLegacyListRowsByIds(explicitIds, pageSize);
-      if (legacyRows.length) {
-        results = legacyRows;
-        count = legacyRows.length;
-      }
+      return res.json({
+        count: 0,
+        page,
+        page_size: pageSize,
+        results: [],
+        sources: { igdb: true, rawg: false, wikipedia: false }
+      });
     }
-    const fromLegacySource = results.some((row) => String(row?.source || "").trim().toLowerCase() === "rawg" || String(row?.source || "").trim().toLowerCase() === "gamebrain");
-
     return res.json({
-      count: count,
+      count: Number(payload?.count || results.length),
       page,
       page_size: pageSize,
       results: results.slice(0, pageSize),
       sources: {
-        igdb: false,
-        rawg: fromLegacySource,
-        wikipedia: true
+        igdb: true,
+        rawg: false,
+        wikipedia: false
       }
     });
   } catch (error) {
-    console.warn("[igdb-handler] wikipedia games failed:", String(error?.message || error));
-    return res.json({
+    console.warn("[igdb-handler] igdb games failed:", String(error?.message || error));
+    return res.status(502).json({
       count: 0,
       page,
       page_size: pageSize,
       results: [],
-      sources: {
-        igdb: false,
-        rawg: false,
-        wikipedia: true
-      }
+      message: "IGDB request failed.",
+      sources: { igdb: false, rawg: false, wikipedia: false }
     });
   }
 });
@@ -1635,65 +1541,17 @@ app.get("/api/igdb/games/:id", async (req, res) => {
   const provider = String(req.query.provider || req.query.source || "").trim().toLowerCase();
   const igdbOnly = provider === "igdb" || isTruthyFlag(req.query.igdb_only) || isTruthyFlag(req.query.igdbOnly);
 
-  if (igdbOnly && !hasIgdbCredentials()) {
+  if (!hasIgdbCredentials()) {
     return res.status(503).json({ message: "IGDB credentials are not configured." });
   }
 
-  if (!igdbOnly) {
-    const rawgId = decodeRawgId(requestedId);
-    if (rawgId && hasRawgKey()) {
-      try {
-        const rawgDetail = await fetchRawgGameDetails(rawgId);
-        if (rawgDetail) {
-          return res.json(remapLegacyDetailId(rawgDetail, requestedId));
-        }
-      } catch (error) {
-        console.warn("[igdb-handler] rawg detail lookup failed:", String(error?.message || error));
-      }
-    }
-  }
-
-  if (hasIgdbCredentials()) {
-    try {
-      const igdbDetail = await fetchIgdbGameDetails(requestedId);
-      if (igdbDetail) return res.json(igdbDetail);
-    } catch (error) {
-      console.warn("[igdb-handler] igdb detail fallback:", String(error?.message || error));
-      if (igdbOnly) {
-        const status = String(error?.code || "").toUpperCase() === "NOT_FOUND" ? 404 : 502;
-        return res.status(status).json({ message: "IGDB detail lookup failed." });
-      }
-    }
-  }
-
-  if (!igdbOnly && hasRawgKey()) {
-    try {
-      const rawgDetail = await fetchRawgGameDetails(requestedId);
-      if (rawgDetail) {
-        return res.json(remapLegacyDetailId(rawgDetail, requestedId));
-      }
-    } catch (error) {
-      console.warn("[igdb-handler] rawg detail fallback:", String(error?.message || error));
-    }
-  }
-
-  if (!igdbOnly) {
-    let mapped = null;
-    try {
-      mapped = await fetchWikipediaGameDetailsById(requestedId);
-    } catch (_wikiError) {
-      mapped = null;
-    }
-    if (mapped) {
-      return res.json(mapped);
-    }
-  }
-
-  if (!igdbOnly) {
-    const legacyMapped = await resolveLegacyGameDetailById(requestedId);
-    if (legacyMapped) {
-      return res.json(legacyMapped);
-    }
+  try {
+    const igdbDetail = await fetchIgdbGameDetails(requestedId);
+    if (igdbDetail) return res.json(igdbDetail);
+  } catch (error) {
+    console.warn("[igdb-handler] igdb detail failed:", String(error?.message || error));
+    const status = String(error?.code || "").toUpperCase() === "NOT_FOUND" ? 404 : 502;
+    return res.status(status).json({ message: "IGDB detail lookup failed." });
   }
 
   return res.status(404).json({ message: "Game not found." });
@@ -1717,7 +1575,7 @@ app.use((error, req, res, _next) => {
     sources: {
       igdb: false,
       rawg: false,
-      wikipedia: true
+      wikipedia: false
     }
   });
 });
@@ -1753,7 +1611,7 @@ export default function handler(req, res) {
       sources: {
         igdb: false,
         rawg: false,
-        wikipedia: true
+        wikipedia: false
       }
     });
   }

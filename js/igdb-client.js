@@ -1,6 +1,9 @@
 (function initZo2yIgdbClient(global) {
   if (global.ZO2Y_IGDB && typeof global.ZO2Y_IGDB.request === 'function') return;
   const GAME_DATA_REV = 'wiki20260228a';
+  const REQUIRE_IGDB = global.ZO2Y_REQUIRE_IGDB !== undefined
+    ? !!global.ZO2Y_REQUIRE_IGDB
+    : true;
 
   function normalizeBase(value) {
     const raw = String(value || '').trim();
@@ -24,6 +27,11 @@
     if (!candidates.includes(next)) candidates.push(next);
   }
 
+  const host = String(global.location?.hostname || '').toLowerCase();
+  if (host === 'localhost' || host === '127.0.0.1') {
+    pushCandidate('/api/igdb');
+    pushCandidate('http://localhost:5000/api/igdb');
+  }
   pushCandidate(toIgdbBase(global.__ZO2Y_IGDB_BASE, false));
   pushCandidate(toIgdbBase(global.__ZO2Y_API_BASE, true));
   pushCandidate(toIgdbBase(global.document?.querySelector('meta[name="zo2y-igdb-base"]')?.getAttribute('content'), false));
@@ -35,11 +43,6 @@
   } catch (_err) {}
 
   pushCandidate('/api/igdb');
-
-  const host = String(global.location?.hostname || '').toLowerCase();
-  if (host === 'localhost' || host === '127.0.0.1') {
-    pushCandidate('http://localhost:5000/api/igdb');
-  }
 
   function buildUrl(base, path, params = {}) {
     const normalizedBase = String(base || '').replace(/\/+$/, '');
@@ -126,8 +129,12 @@
 
   async function probe(base) {
     try {
-      const meta = await fetchWithMeta(base, '/genres', { page_size: 1 });
-      if (meta.status === 404) return false;
+      const meta = await fetchWithMeta(base, '/', {});
+      if (!meta.ok) return false;
+      const providers = meta.data?.providers || null;
+      if (REQUIRE_IGDB) {
+        return !!providers?.igdb;
+      }
       return true;
     } catch (_err) {
       return false;
@@ -146,7 +153,7 @@
           return resolvedBase;
         }
       }
-      resolvedBase = candidates[0] || '/api/igdb';
+      resolvedBase = REQUIRE_IGDB ? '' : (candidates[0] || '/api/igdb');
       return resolvedBase;
     })();
 
@@ -161,6 +168,9 @@
     const primaryBase = await resolveBase();
     const orderedBases = [];
     if (primaryBase) orderedBases.push(primaryBase);
+    if (!primaryBase && REQUIRE_IGDB) {
+      throw new Error('IGDB is not configured. Set TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET.');
+    }
     candidates.forEach((base) => {
       if (!orderedBases.includes(base)) orderedBases.push(base);
     });

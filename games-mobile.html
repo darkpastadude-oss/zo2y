@@ -11,7 +11,7 @@
   <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/igdb-client.js?v=20260228a"></script>
+  <script src="js/igdb-client.js?v=20260311a"></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -1153,17 +1153,10 @@
         });
         if (igdbRows.length) {
           popularRows = igdbRows;
-        } else {
-          if (!state.catalog.length) {
-            await ensureGamesCatalogLoaded();
-          }
-          if (state.catalog.length) {
-            popularRows = state.catalog.slice(0, 12);
-          }
         }
 
         if (!popularRows.length) {
-          rail.innerHTML = '<div class="empty">No popular games available.</div>';
+          rail.innerHTML = '<div class="empty">No popular games available from IGDB.</div>';
           return;
         }
 
@@ -1225,43 +1218,12 @@
           return;
         }
 
-        const loaded = await ensureGamesCatalogLoaded();
-        if (!loaded) {
-          if (empty) empty.style.display = 'block';
-          grid.innerHTML = '';
-          state.hasMore = false;
-          updatePagination();
-          return;
+        if (empty) {
+          empty.style.display = 'block';
+          empty.textContent = 'IGDB is unavailable right now. Check your credentials and try again.';
         }
-
-        void renderPopularGames();
-
-        const allMatches = filterCatalogGames(state.catalog);
-        const totalMatches = allMatches.length;
-        state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
-        if (state.page > state.totalPages) state.page = state.totalPages;
-        const start = (state.page - 1) * pageSize;
-        const end = start + pageSize;
-        const results = allMatches.slice(start, end);
-
-        if (!results.length) {
-          if (empty) empty.style.display = 'block';
-          grid.innerHTML = '';
-          state.hasMore = false;
-          updatePagination();
-          return;
-        }
-
-        const fragment = document.createDocumentFragment();
-        results.forEach((item) => {
-          const card = createGameCard(item);
-          if (card) fragment.appendChild(card);
-        });
         grid.innerHTML = '';
-        grid.appendChild(fragment);
-        if (empty) empty.style.display = 'none';
-
-        state.hasMore = end < totalMatches;
+        state.hasMore = false;
         updatePagination();
       }
 
