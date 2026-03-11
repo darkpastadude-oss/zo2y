@@ -4646,20 +4646,29 @@ let homeTravelPhotoCacheSaveTimer = null;
       return toHttpsUrl(raw);
     }
 
+    function isCoverLikeGameUrl(url) {
+      const text = String(url || '').trim().toLowerCase();
+      if (!text) return false;
+      if (text.includes('wikimedia') || text.includes('wikipedia')) return true;
+      if (text.includes('images.igdb.com') && text.includes('t_cover')) return true;
+      if (text.includes('t_1080p') || text.includes('t_screenshot')) return false;
+      if (text.includes('screenshot') || text.includes('background') || text.includes('hero') || text.includes('wallpaper')) return false;
+      return false;
+    }
+
     function pickPreferredGameCoverUrl(candidates = []) {
       const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
       const wiki = cleaned.find((url) => /wikimedia|wikipedia/.test(url));
-      return wiki || cleaned[0] || '';
+      if (wiki) return wiki;
+      const coverLike = cleaned.find((url) => isCoverLikeGameUrl(url));
+      return coverLike || '';
     }
 
     function resolveHomeGameCover(row) {
       return pickPreferredGameCoverUrl([
         row?.cover,
         row?.cover?.url,
-        row?.cover_url,
-        row?.hero,
-        row?.hero_url,
-        row?.background_image
+        row?.cover_url
       ]);
     }
 
