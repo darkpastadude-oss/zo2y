@@ -781,14 +781,31 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
     })();
 
     const queryParts = [
-      "fields id,name,slug,first_release_date,total_rating,total_rating_count,aggregated_rating,follows,cover.image_id,cover.url,screenshots.image_id,genres.id,genres.name,genres.slug;"
+      "fields id,name,slug,first_release_date,total_rating,total_rating_count,aggregated_rating,cover.image_id,cover.url,screenshots.image_id,genres.id,genres.name,genres.slug;"
     ];
     if (search) queryParts.push(`search "${escapeIgdbText(search)}";`);
     if (whereClause) queryParts.push(`where ${whereClause};`);
     queryParts.push(`sort ${sortClause};`);
     queryParts.push(`limit ${pageSize};`);
     queryParts.push(`offset ${offset};`);
-    const games = await igdbRequest("games", queryParts.join(" "));
+    let games = null;
+    try {
+      games = await igdbRequest("games", queryParts.join(" "));
+    } catch (error) {
+      const orderingKey = String(orderingRaw || "").toLowerCase();
+      if (orderingKey.includes("follows")) {
+        const fallbackParts = [...queryParts];
+        const fallbackSort = "total_rating_count desc";
+        for (let i = 0; i < fallbackParts.length; i += 1) {
+          if (fallbackParts[i].startsWith("sort ")) {
+            fallbackParts[i] = `sort ${fallbackSort};`;
+          }
+        }
+        games = await igdbRequest("games", fallbackParts.join(" "));
+      } else {
+        throw error;
+      }
+    }
 
     let genreData = null;
     const hasNumericGenreRefs = (Array.isArray(games) ? games : []).some((game) =>
@@ -845,7 +862,6 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
       const hero = screenshotRows[0] || coverImage || "";
       const rating = Number(game?.total_rating || game?.aggregated_rating || 0);
       const ratingCount = Number(game?.total_rating_count || 0);
-      const follows = Number(game?.follows || 0);
 
       return {
         id: Number(game?.id || 0),
@@ -859,7 +875,6 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
         short_screenshots: screenshotRows.map((image, index) => ({ id: index + 1, image })),
         rating: rating ? Number((rating / 20).toFixed(1)) : null,
         ratings_count: ratingCount || 0,
-        follows: follows || 0,
         metacritic: Number.isFinite(Number(game?.aggregated_rating)) ? Math.round(Number(game.aggregated_rating)) : null,
         genres: mappedGenres,
         source: "igdb"
@@ -886,7 +901,7 @@ async function fetchIgdbGameDetails(id) {
   if (cached) return cached;
 
   const query = [
-    "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,aggregated_rating,follows,cover.image_id,cover.url,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name;",
+    "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,aggregated_rating,cover.image_id,cover.url,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name;",
     `where id = ${Number(id)};`,
     "limit 1;"
   ].join(" ");
@@ -932,7 +947,6 @@ async function fetchIgdbGameDetails(id) {
   const hero = screenshotRows[0] || coverImage;
   const rating = Number(game?.total_rating || game?.aggregated_rating || 0);
   const ratingsCount = Number(game?.total_rating_count || 0);
-  const follows = Number(game?.follows || 0);
 
   const payload = {
     id: Number(game?.id || 0),
@@ -975,7 +989,6 @@ async function fetchIgdbGameDetails(id) {
       .filter(Boolean),
     rating: rating ? Number((rating / 20).toFixed(1)) : null,
     ratings_count: ratingsCount || 0,
-    follows: follows || 0,
     metacritic: Number.isFinite(Number(game?.aggregated_rating)) ? Math.round(Number(game.aggregated_rating)) : null,
     platforms: (Array.isArray(game?.platforms) ? game.platforms : [])
       .map((platform) => {
@@ -1410,6 +1423,7 @@ async function fetchGameBrainGamesList({ page = 1, pageSize = 20, search = "", i
 
 app.get("/api/igdb", (_req, res) => {
   const igdbEnabled = hasIgdbCredentials();
+  const { clientId, clientSecret, staticAccessToken } = getIgdbCredentials();
   return res.json({
     ok: true,
     service: "igdb-proxy",
@@ -1419,6 +1433,11 @@ app.get("/api/igdb", (_req, res) => {
       igdb: igdbEnabled,
       rawg: false,
       wikipedia: false
+    },
+    igdb_env: {
+      client_id: !!clientId,
+      client_secret: !!clientSecret,
+      access_token: !!staticAccessToken
     },
     routes: ["/genres", "/games", "/games/:id"]
   });
@@ -1450,7 +1469,9 @@ app.get("/api/igdb/genres", async (_req, res) => {
       count: 0,
       source: "igdb",
       results: [],
-      message: "IGDB request failed."
+      message: "IGDB request failed.",
+      detail: String(error?.message || error || ""),
+      code: String(error?.code || "")
     });
   }
 });
@@ -1529,6 +1550,8 @@ app.get("/api/igdb/games", async (req, res) => {
       page_size: pageSize,
       results: [],
       message: "IGDB request failed.",
+      detail: String(error?.message || error || ""),
+      code: String(error?.code || ""),
       sources: { igdb: false, rawg: false, wikipedia: false }
     });
   }
@@ -1551,7 +1574,11 @@ app.get("/api/igdb/games/:id", async (req, res) => {
   } catch (error) {
     console.warn("[igdb-handler] igdb detail failed:", String(error?.message || error));
     const status = String(error?.code || "").toUpperCase() === "NOT_FOUND" ? 404 : 502;
-    return res.status(status).json({ message: "IGDB detail lookup failed." });
+    return res.status(status).json({
+      message: "IGDB detail lookup failed.",
+      detail: String(error?.message || error || ""),
+      code: String(error?.code || "")
+    });
   }
 
   return res.status(404).json({ message: "Game not found." });
