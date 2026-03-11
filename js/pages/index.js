@@ -4646,7 +4646,8 @@ let homeTravelPhotoCacheSaveTimer = null;
         const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
         const cover = String(row?.cover_url || row?.cover || '').trim();
         const hero = String(row?.hero_url || row?.hero || '').trim();
-        if (!cover) return null;
+        // Drop games that don't have a real cover image.
+        if (!cover || cover.includes('/newlogo.webp')) return null;
         const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
         const title = String(row?.title || row?.name || 'Game').trim() || 'Game';
         const releaseDate = String(row?.release_date || row?.released || '').trim();
@@ -4675,11 +4676,8 @@ let homeTravelPhotoCacheSaveTimer = null;
       try {
         const payload = await homeIgdbFetch('/games', {
           page: 1,
-          page_size: Math.max(targetCount * 2, 40),
-          ordering: '-follows',
-          min_rating_count: 50,
-          dates: '1990-01-01,2036-12-31',
-          provider: 'igdb'
+          page_size: Math.max(targetCount * 3, 60),
+          ordering: '-rating_count'
         }, signal);
         const rows = Array.isArray(payload?.results) ? payload.results : [];
         if (!rows.length || signal?.aborted) return [];
@@ -4693,12 +4691,12 @@ let homeTravelPhotoCacheSaveTimer = null;
     }
 
     function toggleHomeGamesRailForSearch() {
-      const input = document.querySelector('#globalSearch');
+      // Keep the home games rail visible regardless of global search input,
+      // so it always advertises popular games.
       const rail = document.getElementById('gamesRail');
-      if (!input || !rail) return;
+      if (!rail) return;
       const wrap = rail.closest('.rail-wrap') || rail;
-      const shouldHide = String(input.value || '').trim().length > 0;
-      wrap.style.display = shouldHide ? 'none' : '';
+      wrap.style.display = '';
     }
 
     async function loadBooks(signal) {

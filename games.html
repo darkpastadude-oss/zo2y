@@ -832,6 +832,44 @@
 
       const IGDB_FALLBACK_IMAGE = '/newlogo.webp';
 
+      const POPULAR_GAMES_FALLBACK = [
+        {
+          id: 119133,
+          title: 'The Legend of Zelda: Breath of the Wild',
+          release_date: '2017-03-03',
+          rating: 4.8,
+          cover_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co3p23.jpg'
+        },
+        {
+          id: 1942,
+          title: 'The Elder Scrolls V: Skyrim',
+          release_date: '2011-11-11',
+          rating: 4.6,
+          cover_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1r77.jpg'
+        },
+        {
+          id: 1877,
+          title: 'The Witcher 3: Wild Hunt',
+          release_date: '2015-05-19',
+          rating: 4.7,
+          cover_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.jpg'
+        },
+        {
+          id: 732,
+          title: 'Dark Souls III',
+          release_date: '2016-03-24',
+          rating: 4.6,
+          cover_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1qjg.jpg'
+        },
+        {
+          id: 26192,
+          title: 'Red Dead Redemption 2',
+          release_date: '2018-10-26',
+          rating: 4.7,
+          cover_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1q1i.jpg'
+        }
+      ];
+
       function resolveGameImageSource(row) {
         const candidates = [
           row?.cover_url,
@@ -1245,6 +1283,10 @@
         const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
         const gameDescription = [genreText, ratingText].filter(Boolean).join(' | ') || String(item.description || '').trim() || 'Popular game';
         const gameCover = String(item.cover_url || item.cover || IGDB_FALLBACK_IMAGE).trim() || IGDB_FALLBACK_IMAGE;
+        // Skip entries that don't have a real cover image.
+        if (!gameCover || gameCover === IGDB_FALLBACK_IMAGE || gameCover.includes('/newlogo.webp')) {
+          return null;
+        }
 
         const gameId = Number(item.id);
         if (!Number.isFinite(gameId)) return null;
@@ -1283,18 +1325,15 @@
         rail.innerHTML = '<div class="empty">Loading popular games...</div>';
         let popularRows = [];
         const igdbRows = await fetchIgdbCatalog({
-          ordering: '-follows',
-          pageSize: 12,
-          page: 1,
-          min_rating_count: 50
+          ordering: '-rating_count',
+          pageSize: 24,
+          page: 1
         });
         if (igdbRows.length) {
           popularRows = igdbRows;
-        }
-
-        if (!popularRows.length) {
-          rail.innerHTML = '<div class="empty">No popular games available from IGDB.</div>';
-          return;
+        } else {
+          // Use a curated static fallback if IGDB returns nothing.
+          popularRows = POPULAR_GAMES_FALLBACK.slice();
         }
 
         const fragment = document.createDocumentFragment();
