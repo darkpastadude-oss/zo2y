@@ -770,6 +770,7 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
 
   const offset = Math.max(0, (page - 1) * pageSize);
   try {
+    const hasSearch = !!search;
     const sortClause = mapOrderingToIgdb(orderingRaw);
     const countPromise = (async () => {
       try {
@@ -791,13 +792,14 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
     ];
     if (search) queryParts.push(`search "${escapeIgdbText(search)}";`);
     if (whereClause) queryParts.push(`where ${whereClause};`);
-    queryParts.push(`sort ${sortClause};`);
+    if (!hasSearch) queryParts.push(`sort ${sortClause};`);
     queryParts.push(`limit ${pageSize};`);
     queryParts.push(`offset ${offset};`);
     let games = null;
     try {
       games = await igdbRequest("games", queryParts.join(" "));
     } catch (error) {
+      if (hasSearch) throw error;
       const orderingKey = String(orderingRaw || "").toLowerCase();
       if (orderingKey.includes("follows")) {
         const fallbackParts = [...queryParts];

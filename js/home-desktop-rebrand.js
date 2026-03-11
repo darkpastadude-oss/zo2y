@@ -462,7 +462,9 @@
         return await window.ZO2Y_IGDB.request(path, params);
       }
       const url = new URL(`/api/igdb${path}`, window.location.origin);
-      Object.entries(params || {}).forEach(([key, value]) => {
+      const requestParams = { ...(params || {}) };
+      if (requestParams.search) delete requestParams.ordering;
+      Object.entries(requestParams).forEach(([key, value]) => {
         if (value === undefined || value === null || value === '') return;
         url.searchParams.set(key, String(value));
       });

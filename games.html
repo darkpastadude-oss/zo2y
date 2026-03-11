@@ -947,12 +947,13 @@
           const pageSize = Number(options.pageSize || IGDB_PAGE_SIZE);
           const page = Number(options.page || 1);
           const ordering = String(options.ordering || '-rating').trim();
+          const safeOrdering = search ? '' : ordering;
           const dates = String(options.dates || '').trim();
           const minRatingCount = Number(options.minRatingCount || options.min_rating_count || 0);
           const minFollows = Number(options.minFollows || options.min_follows || 0);
           const json = await fetchIgdbJson('/games', {
             search: search || undefined,
-            ordering: ordering || undefined,
+            ordering: safeOrdering || undefined,
             dates: dates || undefined,
             min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
             min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
@@ -974,13 +975,14 @@
           const pageSize = Number(options.pageSize || 24);
           const page = Number(options.page || 1);
           const ordering = String(options.ordering || '-rating_count').trim();
+          const safeOrdering = search ? '' : ordering;
           const dates = String(options.dates || '').trim();
           const genres = String(options.genres || '').trim();
           const minRatingCount = Number(options.minRatingCount || options.min_rating_count || 0);
           const minFollows = Number(options.minFollows || options.min_follows || 0);
           const json = await fetchIgdbJson('/games', {
             search: search || undefined,
-            ordering: ordering || undefined,
+            ordering: safeOrdering || undefined,
             dates: dates || undefined,
             genres: genres || undefined,
             min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,

@@ -158,11 +158,13 @@
     ];
 
     async function homeIgdbFetch(path, params = {}, signal) {
+      const requestParams = { ...(params || {}) };
+      if (requestParams.search) delete requestParams.ordering;
       if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
-        return window.ZO2Y_IGDB.request(path, params, signal ? { signal } : undefined);
+        return window.ZO2Y_IGDB.request(path, requestParams, signal ? { signal } : undefined);
       }
       const url = new URL(`${IGDB_PROXY_BASE}${path}`, window.location.origin);
-      Object.entries(params || {}).forEach(([key, value]) => {
+      Object.entries(requestParams).forEach(([key, value]) => {
         if (value === undefined || value === null || value === '') return;
         url.searchParams.set(key, String(value));
       });
