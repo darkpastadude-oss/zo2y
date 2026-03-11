@@ -4668,7 +4668,12 @@ let homeTravelPhotoCacheSaveTimer = null;
       return pickPreferredGameCoverUrl([
         row?.cover,
         row?.cover?.url,
-        row?.cover_url
+        row?.cover_url,
+        ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+        ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : []),
+        row?.background_image,
+        row?.hero,
+        row?.hero_url
       ]);
     }
 
