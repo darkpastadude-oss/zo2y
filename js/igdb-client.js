@@ -43,6 +43,7 @@
   } catch (_err) {}
 
   pushCandidate('/api/igdb');
+  pushCandidate('/api/igdb-handler');
 
   function buildUrl(base, path, params = {}) {
     const normalizedBase = String(base || '').replace(/\/+$/, '');
@@ -50,8 +51,13 @@
     const normalizedPath = rawPath
       ? (rawPath.startsWith('/') ? rawPath : `/${rawPath}`)
       : '';
-    const url = new URL(`${normalizedBase}${normalizedPath}`, global.location.origin);
-    Object.entries(params || {}).forEach(([key, value]) => {
+    const isHandler = normalizedBase.endsWith('/api/igdb-handler');
+    const url = new URL(isHandler ? normalizedBase : `${normalizedBase}${normalizedPath}`, global.location.origin);
+    const requestParams = { ...(params || {}) };
+    if (isHandler && normalizedPath && !requestParams.path) {
+      requestParams.path = normalizedPath.replace(/^\/+/, '');
+    }
+    Object.entries(requestParams).forEach(([key, value]) => {
       if (value === undefined || value === null || value === '') return;
       url.searchParams.set(key, String(value));
     });
@@ -156,7 +162,7 @@
           return resolvedBase;
         }
       }
-      resolvedBase = REQUIRE_IGDB ? '' : (candidates[0] || '/api/igdb');
+      resolvedBase = candidates[0] || '/api/igdb';
       return resolvedBase;
     })();
 
