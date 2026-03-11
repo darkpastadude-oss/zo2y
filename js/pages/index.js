@@ -4639,13 +4639,48 @@ let homeTravelPhotoCacheSaveTimer = null;
       })).filter((item) => isHomeSafeContentItem(item));
     }
 
-    async function loadGames(signal) {
+    function normalizeGameCoverUrl(value) {
+      const raw = String(value || '').trim();
+      if (!raw || raw === '[object Object]') return '';
+      if (raw.startsWith('//')) return `https:${raw}`;
+      return toHttpsUrl(raw);
+    }
+
+    function pickPreferredGameCoverUrl(candidates = []) {
+      const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
+      const wiki = cleaned.find((url) => /wikimedia|wikipedia/.test(url));
+      return wiki || cleaned[0] || '';
+    }
+
+    function resolveHomeGameCover(row) {
+      return pickPreferredGameCoverUrl([
+        row?.cover,
+        row?.cover?.url,
+        row?.cover_url,
+        row?.hero,
+        row?.hero_url,
+        row?.background_image
+      ]);
+    }
+
+    function resolveHomeGameHero(row, fallback) {
+      const hero = pickPreferredGameCoverUrl([
+        row?.hero_url,
+        row?.hero,
+        row?.background_image
+      ]);
+      return hero || fallback || '';
+    }
+
+    async function loadGames(signal, options = {}) {
       const targetCount = getHomeChannelTargetItems();
+      const cacheBust = options?.cacheBust ? Date.now() : 0;
+      const cacheParams = cacheBust ? { cache_bust: cacheBust } : {};
       const mapToItem = (row) => {
         const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
         const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
-        const cover = String(row?.cover_url || row?.cover || '').trim();
-        const hero = String(row?.hero_url || row?.hero || '').trim();
+        const cover = resolveHomeGameCover(row);
+        const hero = resolveHomeGameHero(row, cover);
         // Drop games that don't have a real cover image.
         if (!cover || cover.includes('/newlogo.webp')) return null;
         const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
@@ -4682,12 +4717,14 @@ let homeTravelPhotoCacheSaveTimer = null;
         };
         let payload = await homeIgdbFetch('/games', {
           ...baseParams,
+          ...cacheParams,
           popularity_type: 1
         }, signal);
         let rows = Array.isArray(payload?.results) ? payload.results : [];
         if (!rows.length && !signal?.aborted) {
           payload = await homeIgdbFetch('/games', {
             ...baseParams,
+            ...cacheParams,
             ordering: '-follows'
           }, signal);
           rows = Array.isArray(payload?.results) ? payload.results : [];
@@ -4700,6 +4737,20 @@ let homeTravelPhotoCacheSaveTimer = null;
       } catch (_error) {
         return [];
       }
+    }
+
+    async function refreshHomeGamesRail() {
+      if (!ENABLE_GAMES) return;
+      const rail = document.getElementById('gamesRail');
+      if (!rail) return;
+      rail.innerHTML = '<div class="empty">Refreshing popular games...</div>';
+      const items = await loadGames(null, { cacheBust: true });
+      if (!items || !items.length) {
+        renderRail('gamesRail', [], { mediaType: 'game' });
+        return;
+      }
+      homeFeedState.game = items;
+      renderRail('gamesRail', items, { mediaType: 'game' });
     }
 
     function toggleHomeGamesRailForSearch() {
@@ -5758,6 +5809,7 @@ let homeTravelPhotoCacheSaveTimer = null;
       const createListModal = document.getElementById('createListModal');
       const nextSpotlightBtn = document.getElementById('spotlightNextBtn');
       const spotlightSection = document.getElementById('spotlightSection');
+      const popularGamesRefreshBtn = document.getElementById('popularGamesRefreshBtn');
 
       document.querySelectorAll('.menu-icon-option').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -5774,6 +5826,17 @@ let homeTravelPhotoCacheSaveTimer = null;
       document.getElementById('saveNewListBtn')?.addEventListener('click', () => {
         void saveNewCustomListFromMenu();
       });
+
+      if (popularGamesRefreshBtn) {
+        popularGamesRefreshBtn.addEventListener('click', () => {
+          popularGamesRefreshBtn.disabled = true;
+          refreshHomeGamesRail()
+            .catch(() => {})
+            .finally(() => {
+              popularGamesRefreshBtn.disabled = false;
+            });
+        });
+      }
 
       if (nextSpotlightBtn) {
         nextSpotlightBtn.addEventListener('click', (event) => {

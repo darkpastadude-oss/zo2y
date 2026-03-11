@@ -1249,6 +1249,30 @@
       font-weight: 600;
     }
 
+    .popular-title {
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .popular-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .popular-actions .btn {
+      height: 32px;
+      padding: 0 12px;
+      font-size: 12px;
+    }
+
+    .rail-subtitle {
+      margin: -6px 0 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
     .rail {
       display: grid;
       grid-auto-flow: column;

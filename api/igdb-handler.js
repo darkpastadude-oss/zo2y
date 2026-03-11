@@ -548,9 +548,22 @@ function scoreCoverUrl(value) {
 }
 
 function pickBestCover(rows = []) {
+  const list = Array.isArray(rows) ? rows : [];
+  const wikiRows = list.filter((row) => String(row?.source || "").trim().toLowerCase() === "wikipedia");
+  const pool = wikiRows.length ? wikiRows : list;
   let best = "";
   let bestScore = 0;
-  (Array.isArray(rows) ? rows : []).forEach((row) => {
+  pool.forEach((row) => {
+    const candidate = String(row?.cover || row?.hero || "").trim();
+    const score = scoreCoverUrl(candidate);
+    if (score > bestScore) {
+      bestScore = score;
+      best = candidate;
+    }
+  });
+  if (best) return best;
+  // Fallback to any non-wiki cover if wiki is empty.
+  list.forEach((row) => {
     const candidate = String(row?.cover || row?.hero || "").trim();
     const score = scoreCoverUrl(candidate);
     if (score > bestScore) {

@@ -177,46 +177,6 @@
       color: var(--muted);
     }
 
-    .popular-section {
-      max-width: 1200px;
-      margin: 18px auto 0;
-      padding: 0 20px;
-    }
-
-    .popular-header {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .popular-header h2 {
-      margin: 0 0 4px;
-      font-size: 18px;
-    }
-
-    .popular-header p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .popular-rail {
-      display: grid;
-      grid-auto-flow: column;
-      grid-auto-columns: 170px;
-      gap: 12px;
-      overflow-x: auto;
-      padding-bottom: 6px;
-      scroll-snap-type: x mandatory;
-    }
-
-    .popular-rail .card {
-      scroll-snap-align: start;
-      min-height: 100%;
-    }
-
     .controls {
       max-width: 1200px;
       margin: 16px auto 0;
@@ -776,17 +736,6 @@
   </div>
   <div id="activeFilters" class="chip-row"></div>
 
-  <section class="popular-section">
-    <div class="popular-header">
-      <div>
-        <h2>Popular right now</h2>
-        <p>Top picks based on community ratings and activity.</p>
-      </div>
-      <button class="btn" id="popularRefreshBtn"><i class="fas fa-bolt"></i> Refresh</button>
-    </div>
-    <div class="popular-rail" id="popularGamesRail"></div>
-  </section>
-
   <div id="gamesGrid" class="grid"></div>
   <div id="emptyState" class="empty" style="display:none;">No games found.</div>
   <div class="pagination">
@@ -832,27 +781,40 @@
 
       const IGDB_FALLBACK_IMAGE = '/newlogo.webp';
 
+      function normalizeGameImageUrl(value) {
+        const raw = String(value || '').trim();
+        if (!raw || raw === '[object Object]') return '';
+        if (raw.startsWith('//')) return `https:${raw}`;
+        if (raw.startsWith('http://')) return raw.replace(/^http:\/\//i, 'https://');
+        return raw;
+      }
+
+      function pickPreferredCoverUrl(candidates = []) {
+        const cleaned = candidates.map(normalizeGameImageUrl).filter(Boolean);
+        const wiki = cleaned.find((url) => /wikimedia|wikipedia/.test(url));
+        return wiki || cleaned[0] || '';
+      }
+
       function resolveGameImageSource(row) {
         const candidates = [
-          row?.cover_url,
           row?.cover,
-          row?.cover?.url
+          row?.cover?.url,
+          row?.cover_url,
+          row?.hero,
+          row?.hero_url,
+          row?.background_image
         ];
-        const screenshots = Array.isArray(row?.screenshots) ? row.screenshots : [];
-        const shortScreens = Array.isArray(row?.short_screenshots)
-          ? row.short_screenshots.map((entry) => entry?.image)
-          : [];
-        for (const entry of candidates) {
-          const url = String(entry || '').trim();
-          if (url) return url;
-        }
-        return IGDB_FALLBACK_IMAGE;
+        const cover = pickPreferredCoverUrl(candidates);
+        return cover || IGDB_FALLBACK_IMAGE;
       }
 
       function resolveGameHeroSource(row, fallback) {
-        const hero = String(row?.hero_url || row?.hero || row?.background_image || '').trim();
-        if (hero) return hero;
-        return fallback || IGDB_FALLBACK_IMAGE;
+        const hero = pickPreferredCoverUrl([
+          row?.hero_url,
+          row?.hero,
+          row?.background_image
+        ]);
+        return hero || fallback || IGDB_FALLBACK_IMAGE;
       }
 
       async function fetchIgdbJson(path, params = {}) {
@@ -894,7 +856,6 @@
 
       let supabaseClient = null;
       let loadGamesTimer = null;
-      let popularLoaded = false;
 
       function scheduleGamesLoad(delayMs = 360) {
         if (loadGamesTimer) clearTimeout(loadGamesTimer);
@@ -1215,7 +1176,6 @@
         const row = document.getElementById('activeFilters');
         if (!row) return;
         row.innerHTML = '';
-        updatePopularVisibility();
         const items = [];
         if (state.activeGenre) items.push({ label: state.activeGenre, type: 'genre' });
         if (state.query) items.push({ label: state.query, type: 'query' });
@@ -1239,16 +1199,6 @@
         });
       }
 
-      function shouldHidePopularRail() {
-        return !!(state.query || state.activeGenre || state.year);
-      }
-
-      function updatePopularVisibility() {
-        const section = document.querySelector('.popular-section');
-        if (!section) return;
-        section.style.display = shouldHidePopularRail() ? 'none' : '';
-      }
-
       function createGameCard(item) {
         const gameTitle = item.title || item.slug || 'Untitled';
         const gameDate = item.release_date ? String(item.release_date).slice(0, 10) : '';
@@ -1259,7 +1209,7 @@
         const ratingValue = Number(item.rating || 0);
         const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
         const gameDescription = [genreText, ratingText].filter(Boolean).join(' | ') || String(item.description || '').trim() || 'Popular game';
-        const gameCover = String(item.cover_url || item.cover || IGDB_FALLBACK_IMAGE).trim() || IGDB_FALLBACK_IMAGE;
+        const gameCover = resolveGameImageSource(item);
         // Skip entries that don't have a real cover image.
         if (!gameCover || gameCover === IGDB_FALLBACK_IMAGE || gameCover.includes('/newlogo.webp')) {
           return null;
@@ -1292,50 +1242,11 @@
         return card;
       }
 
-      async function renderPopularGames(force = false) {
-        const rail = document.getElementById('popularGamesRail');
-        if (!rail || (popularLoaded && !force)) return;
-        if (shouldHidePopularRail()) {
-          rail.innerHTML = '';
-          return;
-        }
-        rail.innerHTML = '<div class="empty">Loading popular games...</div>';
-        let popularRows = await fetchIgdbCatalog({
-          popularity_type: 1,
-          ordering: '-follows',
-          pageSize: 24,
-          page: 1,
-          min_rating_count: 50
-        });
-        if (!popularRows.length) {
-          popularRows = await fetchIgdbCatalog({
-            ordering: '-follows',
-            pageSize: 24,
-            page: 1,
-            min_rating_count: 50
-          });
-        }
-        if (!popularRows.length) {
-          rail.innerHTML = '<div class="empty">IGDB is unavailable right now.</div>';
-          return;
-        }
-
-        const fragment = document.createDocumentFragment();
-        popularRows.forEach((item) => {
-          const card = createGameCard(item);
-          if (card) fragment.appendChild(card);
-        });
-        rail.innerHTML = '';
-        rail.appendChild(fragment);
-        popularLoaded = true;
-      }
-
       async function loadGames() {
         const grid = document.getElementById('gamesGrid');
         const empty = document.getElementById('emptyState');
         if (!grid) return;
         const requestId = ++state.requestId;
-        updatePopularVisibility();
 
         const pageSize = 24;
         const dates = state.year ? `${state.year}-01-01,${state.year}-12-31` : '';
@@ -1354,7 +1265,6 @@
 
         if (igdbPayload) {
           state.catalogSource = 'igdb';
-          void renderPopularGames();
 
           const results = igdbPayload.rows || [];
           const totalMatches = Number(igdbPayload.count || results.length || 0);
@@ -1602,7 +1512,6 @@
         const genreSelect = document.getElementById('genreSelect');
         const yearInput = document.getElementById('yearInput');
         const refreshBtn = document.getElementById('refreshBtn');
-        const popularRefreshBtn = document.getElementById('popularRefreshBtn');
         const prevBtn = document.getElementById('prevPageBtn');
         const nextBtn = document.getElementById('nextPageBtn');
         const closeListsBtn = document.getElementById('closeGameListsBtn');
@@ -1635,12 +1544,6 @@
         }
         if (refreshBtn) {
           refreshBtn.addEventListener('click', () => loadGames());
-        }
-        if (popularRefreshBtn) {
-          popularRefreshBtn.addEventListener('click', () => {
-            popularLoaded = false;
-            renderPopularGames(true);
-          });
         }
         if (prevBtn) {
           prevBtn.addEventListener('click', () => {

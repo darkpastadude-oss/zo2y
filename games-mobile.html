@@ -696,27 +696,40 @@
 
       const IGDB_FALLBACK_IMAGE = '/newlogo.webp';
 
+      function normalizeGameImageUrl(value) {
+        const raw = String(value || '').trim();
+        if (!raw || raw === '[object Object]') return '';
+        if (raw.startsWith('//')) return `https:${raw}`;
+        if (raw.startsWith('http://')) return raw.replace(/^http:\/\//i, 'https://');
+        return raw;
+      }
+
+      function pickPreferredCoverUrl(candidates = []) {
+        const cleaned = candidates.map(normalizeGameImageUrl).filter(Boolean);
+        const wiki = cleaned.find((url) => /wikimedia|wikipedia/.test(url));
+        return wiki || cleaned[0] || '';
+      }
+
       function resolveGameImageSource(row) {
         const candidates = [
-          row?.cover_url,
           row?.cover,
-          row?.cover?.url
+          row?.cover?.url,
+          row?.cover_url,
+          row?.hero,
+          row?.hero_url,
+          row?.background_image
         ];
-        const screenshots = Array.isArray(row?.screenshots) ? row.screenshots : [];
-        const shortScreens = Array.isArray(row?.short_screenshots)
-          ? row.short_screenshots.map((entry) => entry?.image)
-          : [];
-        for (const entry of candidates) {
-          const url = String(entry || '').trim();
-          if (url) return url;
-        }
-        return IGDB_FALLBACK_IMAGE;
+        const cover = pickPreferredCoverUrl(candidates);
+        return cover || IGDB_FALLBACK_IMAGE;
       }
 
       function resolveGameHeroSource(row, fallback) {
-        const hero = String(row?.hero_url || row?.hero || row?.background_image || '').trim();
-        if (hero) return hero;
-        return fallback || IGDB_FALLBACK_IMAGE;
+        const hero = pickPreferredCoverUrl([
+          row?.hero_url,
+          row?.hero,
+          row?.background_image
+        ]);
+        return hero || fallback || IGDB_FALLBACK_IMAGE;
       }
 
       async function fetchIgdbJson(path, params = {}) {
@@ -1122,7 +1135,7 @@
         const ratingValue = Number(item.rating || 0);
         const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
         const gameDesc = [genreText, ratingText].filter(Boolean).join(' | ') || String(item.description || '').trim() || 'Popular pick';
-        const gameCover = String(item.cover_url || item.cover || IGDB_FALLBACK_IMAGE).trim() || IGDB_FALLBACK_IMAGE;
+        const gameCover = resolveGameImageSource(item);
 
         const gameId = Number(item.id);
         if (!Number.isFinite(gameId)) return null;
