@@ -988,7 +988,7 @@
         if (!Number.isFinite(gameId)) return null;
         try {
           const json = await fetchIgdbJson(`/games/${encodeURIComponent(String(gameId))}`, {
-            provider: 'igdb'
+            provider: 'igdb,wikipedia'
           });
           if (!json) return null;
 

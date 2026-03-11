@@ -868,10 +868,11 @@
       async function fetchIgdbJson(path, params = {}, options = {}) {
         const cacheKey = buildIgdbCacheKey(path, params);
         const useCache = !options?.cacheBust;
+        const reuseInFlight = useCache && !options?.signal;
         if (useCache) {
           const cached = readIgdbCache(cacheKey);
           if (cached) return cached;
-          if (igdbInFlight.has(cacheKey)) return igdbInFlight.get(cacheKey);
+          if (reuseInFlight && igdbInFlight.has(cacheKey)) return igdbInFlight.get(cacheKey);
         }
 
         const fetchPromise = (async () => {
@@ -896,11 +897,11 @@
           }
         })();
 
-        if (useCache) igdbInFlight.set(cacheKey, fetchPromise);
+        if (reuseInFlight) igdbInFlight.set(cacheKey, fetchPromise);
         try {
           return await fetchPromise;
         } finally {
-          if (useCache) igdbInFlight.delete(cacheKey);
+          if (reuseInFlight) igdbInFlight.delete(cacheKey);
         }
       }
       const state = {
@@ -1003,7 +1004,7 @@
           const json = await fetchIgdbJson('/games', {
             search: search || undefined,
             ordering: safeOrdering || undefined,
-            provider: 'all',
+            provider: 'igdb,wikipedia',
             popularity_type: popularityType > 0 ? Math.floor(popularityType) : undefined,
             dates: dates || undefined,
             min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
@@ -1034,7 +1035,7 @@
           const json = await fetchIgdbJson('/games', {
             search: search || undefined,
             ordering: safeOrdering || undefined,
-            provider: 'all',
+            provider: 'igdb,wikipedia',
             popularity_type: popularityType > 0 ? Math.floor(popularityType) : undefined,
             dates: dates || undefined,
             genres: genres || undefined,
