@@ -798,6 +798,7 @@
         if (!text) return false;
         if (text.includes('wikimedia') || text.includes('wikipedia')) return true;
         if (text.includes('images.igdb.com') && text.includes('t_cover')) return true;
+        if (text.includes('media.rawg.io') && !text.includes('/screenshots/')) return true;
         if (text.includes('t_1080p') || text.includes('t_screenshot')) return false;
         if (text.includes('screenshot') || text.includes('background') || text.includes('hero') || text.includes('wallpaper')) return false;
         return false;
@@ -808,7 +809,7 @@
         const wiki = cleaned.find((url) => /wikimedia|wikipedia/.test(url));
         if (wiki) return wiki;
         const coverLike = cleaned.find((url) => isCoverLikeUrl(url));
-        return coverLike || '';
+        return coverLike || cleaned[0] || '';
       }
 
       function resolveGameImageSource(row) {
@@ -1368,6 +1369,10 @@
         }
         igdbAbortController = new AbortController();
         const signal = igdbAbortController.signal;
+
+        if (state.page === 1) {
+          grid.innerHTML = '<div class="empty">Loading games...</div>';
+        }
 
         const pageSize = getGamesPageSize();
         const dates = state.year ? `${state.year}-01-01,${state.year}-12-31` : '';

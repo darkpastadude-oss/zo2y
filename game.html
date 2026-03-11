@@ -221,7 +221,16 @@
     }
     .account-btn.logged-in:hover { background: rgba(245, 158, 11, 0.25); }
     .wrap { max-width: 1200px; margin: 24px auto 40px; padding: 0 20px; display: grid; grid-template-columns: 320px 1fr; gap: 24px; }
-    .poster { width: 100%; border-radius: 14px; border: 1px solid var(--border); background: #0f1f40; }
+    .poster {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #0f1f40;
+    }
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
     .title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
     .title { margin: 0 0 8px; font-size: 28px; }
@@ -820,6 +829,7 @@
         if (!text) return false;
         if (text.includes('wikimedia') || text.includes('wikipedia')) return true;
         if (text.includes('images.igdb.com') && text.includes('t_cover')) return true;
+        if (text.includes('media.rawg.io') && !text.includes('/screenshots/')) return true;
         if (text.includes('t_1080p') || text.includes('t_screenshot')) return false;
         if (text.includes('screenshot') || text.includes('background') || text.includes('hero') || text.includes('wallpaper')) return false;
         return false;
@@ -830,7 +840,7 @@
         const wiki = cleaned.find((url) => /wikimedia|wikipedia/.test(url));
         if (wiki) return wiki;
         const coverLike = cleaned.find((url) => isCoverLikeUrl(url));
-        return coverLike || '';
+        return coverLike || cleaned[0] || '';
       }
 
       function resolveGameImageSource(row) {
