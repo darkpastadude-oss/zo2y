@@ -106,11 +106,11 @@ function mapTv(rows = []) {
 
 function mapGames(rows = []) {
   return rows
-    .filter((g) => g && g.id && g.cover)
+    .filter((g) => g && g.id && (g.cover || g.hero || g.background_image))
     .slice(0, TARGET_ITEMS)
     .map((g) => {
-      const coverImage = String(g.cover || "").trim();
-      const heroImage = String(g.hero || "").trim();
+      const coverImage = String(g.cover || g.hero || g.background_image || "").trim();
+      const heroImage = String(g.hero || g.background_image || "").trim();
       const backgroundImage = heroImage || coverImage || "";
       return {
         mediaType: "game",
@@ -120,10 +120,10 @@ function mapGames(rows = []) {
         extra: Array.isArray(g.genres) && g.genres.length
           ? g.genres.slice(0, 2).map((x) => x?.name).filter(Boolean).join(" | ")
           : "Video Game",
-        image: coverImage,
+        image: coverImage || heroImage,
         backgroundImage,
         spotlightImage: backgroundImage || coverImage,
-        spotlightMediaImage: coverImage,
+        spotlightMediaImage: coverImage || heroImage,
         spotlightMediaFit: "contain",
         spotlightMediaShape: "poster",
         href: g.id ? `game.html?id=${encodeURIComponent(String(g.id))}` : "games.html"

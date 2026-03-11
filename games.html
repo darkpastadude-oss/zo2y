@@ -11,6 +11,7 @@
   <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/igdb-client.js?v=20260228a"></script>
   <script src="js/list-utils.js?v=20260221c"></script>
   <script src="js/index-list-menu-adapter.js?v=20260221b"></script>
   <style>
@@ -824,6 +825,52 @@
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const IGDB_PROXY_BASE = '/api/igdb';
       const IGDB_PAGE_SIZE = 50;
+
+      const IGDB_FALLBACK_IMAGE = '/newlogo.webp';
+
+      function resolveGameImageSource(row) {
+        const candidates = [
+          row?.cover_url,
+          row?.cover,
+          row?.hero_url,
+          row?.hero,
+          row?.background_image
+        ];
+        const screenshots = Array.isArray(row?.screenshots) ? row.screenshots : [];
+        const shortScreens = Array.isArray(row?.short_screenshots)
+          ? row.short_screenshots.map((entry) => entry?.image)
+          : [];
+        candidates.push(screenshots[0], shortScreens[0]);
+        for (const entry of candidates) {
+          const url = String(entry || '').trim();
+          if (url) return url;
+        }
+        return IGDB_FALLBACK_IMAGE;
+      }
+
+      function resolveGameHeroSource(row, fallback) {
+        const hero = String(row?.hero_url || row?.hero || row?.background_image || '').trim();
+        if (hero) return hero;
+        return fallback || IGDB_FALLBACK_IMAGE;
+      }
+
+      async function fetchIgdbJson(path, params = {}) {
+        try {
+          if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
+            return await window.ZO2Y_IGDB.request(path, params);
+          }
+          const url = new URL(`${IGDB_PROXY_BASE}${path}`, window.location.origin);
+          Object.entries(params || {}).forEach(([key, value]) => {
+            if (value === undefined || value === null || value === '') return;
+            url.searchParams.set(key, String(value));
+          });
+          const res = await fetch(url.toString());
+          if (!res.ok) return null;
+          return await res.json();
+        } catch (_err) {
+          return null;
+        }
+      }
       const state = {
         genres: [],
         activeGenre: '',
@@ -868,7 +915,6 @@
         });
         return out;
       }
-
       function mapIgdbRowToCatalog(row) {
         if (!row) return null;
         const id = Number(row?.id || 0);
@@ -876,9 +922,8 @@
         const title = String(row?.name || row?.title || row?.slug || 'Game').trim() || 'Game';
         const released = row?.released ? String(row.released).slice(0, 10) : '';
         const rating = Number(row?.rating || 0);
-        const cover = String(row?.cover || row?.cover_url || '').trim();
-        const hero = String(row?.hero || row?.background_image || '').trim();
-        if (!cover && !hero) return null;
+        const cover = resolveGameImageSource(row);
+        const hero = resolveGameHeroSource(row, cover);
         return {
           id,
           title,
@@ -901,21 +946,19 @@
 
       async function fetchIgdbCatalog(options = {}) {
         try {
-          const params = new URLSearchParams();
           const search = String(options.search || '').trim();
           const pageSize = Number(options.pageSize || IGDB_PAGE_SIZE);
           const page = Number(options.page || 1);
           const ordering = String(options.ordering || '-rating').trim();
           const dates = String(options.dates || '').trim();
-          if (search) params.set('search', search);
-          if (ordering) params.set('ordering', ordering);
-          if (dates) params.set('dates', dates);
-          params.set('page_size', String(Math.max(1, Math.min(pageSize, 200))));
-          params.set('page', String(Math.max(1, page)));
-          const url = `${IGDB_PROXY_BASE}/games?${params.toString()}`;
-          const res = await fetch(url);
-          if (!res.ok) return [];
-          const json = await res.json();
+          const json = await fetchIgdbJson('/games', {
+            search: search || undefined,
+            ordering: ordering || undefined,
+            dates: dates || undefined,
+            page_size: Math.max(1, Math.min(pageSize, 200)),
+            page: Math.max(1, page)
+          });
+          if (!json) return [];
           const rows = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
           return rows.map(mapIgdbRowToCatalog).filter(Boolean);
         } catch (_err) {
@@ -925,23 +968,21 @@
 
       async function fetchIgdbPage(options = {}) {
         try {
-          const params = new URLSearchParams();
           const search = String(options.search || '').trim();
           const pageSize = Number(options.pageSize || 24);
           const page = Number(options.page || 1);
           const ordering = String(options.ordering || '-rating_count').trim();
           const dates = String(options.dates || '').trim();
           const genres = String(options.genres || '').trim();
-          if (search) params.set('search', search);
-          if (ordering) params.set('ordering', ordering);
-          if (dates) params.set('dates', dates);
-          if (genres) params.set('genres', genres);
-          params.set('page_size', String(Math.max(1, Math.min(pageSize, 50))));
-          params.set('page', String(Math.max(1, page)));
-          const url = `${IGDB_PROXY_BASE}/games?${params.toString()}`;
-          const res = await fetch(url);
-          if (!res.ok) return null;
-          const json = await res.json();
+          const json = await fetchIgdbJson('/games', {
+            search: search || undefined,
+            ordering: ordering || undefined,
+            dates: dates || undefined,
+            genres: genres || undefined,
+            page_size: Math.max(1, Math.min(pageSize, 50)),
+            page: Math.max(1, page)
+          });
+          if (!json) return null;
           const rows = Array.isArray(json?.results) ? json.results : [];
           const mapped = rows.map(mapIgdbRowToCatalog).filter(Boolean);
           return {
@@ -981,12 +1022,10 @@
           select.value = '';
         }
       }
-
       async function loadGenreCatalog() {
         try {
-          const res = await fetch(`${IGDB_PROXY_BASE}/genres`);
-          if (!res.ok) return false;
-          const json = await res.json();
+          const json = await fetchIgdbJson('/genres');
+          if (!json) return false;
           const rows = Array.isArray(json?.results) ? json.results : [];
           state.genres = rows
             .map((row) => ({
@@ -1063,6 +1102,7 @@
           return true;
         });
       }
+
 
       function showNotification(message, type = 'info', duration = 3000) {
         const existing = document.querySelectorAll('.notification');
@@ -1188,9 +1228,8 @@
         const ratingValue = Number(item.rating || 0);
         const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
         const gameDescription = [genreText, ratingText].filter(Boolean).join(' | ') || String(item.description || '').trim() || 'Popular game';
-        const rawCover = item.cover_url || item.hero_url || '';
-        if (!rawCover) return null;
-        const gameCover = rawCover;
+        const gameCover = String(item.cover_url || item.hero_url || IGDB_FALLBACK_IMAGE).trim() || IGDB_FALLBACK_IMAGE;
+
         const gameId = Number(item.id);
         if (!Number.isFinite(gameId)) return null;
         const card = document.createElement('div');

@@ -234,8 +234,7 @@
 
   async function buildAwardWinningGamesRail() {
     const tasks = awardWinningGameSeeds.map(async (seed) => {
-      const searchUrl = `/api/igdb/games?search=${encodeURIComponent(seed.title)}&ordering=-rating&page_size=8&page=1`;
-      const json = await fetchJson(searchUrl, 9000);
+      const json = await fetchIgdbJson(`/games`, { search: seed.title, ordering: "-rating", page_size: 8, page: 1 }, 9000);
       const rows = Array.isArray(json?.results) ? json.results : [];
       const ranked = rows
         .map((row) => ({
@@ -455,6 +454,22 @@
     } finally {
       if (timer) clearTimeout(timer);
     }
+
+  async function fetchIgdbJson(path, params = {}, timeoutMs = 8000) {
+    try {
+      if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
+        return await window.ZO2Y_IGDB.request(path, params);
+      }
+      const url = new URL(`/api/igdb${path}`, window.location.origin);
+      Object.entries(params || {}).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '') return;
+        url.searchParams.set(key, String(value));
+      });
+      return await fetchJson(url.toString(), timeoutMs);
+    } catch (_err) {
+      return null;
+    }
+  }
   }
 
   function fallbackReviewMeta(mediaType, itemId) {
@@ -690,7 +705,7 @@
     });
 
     const gameTasks = [...groupedIds.game].slice(0, 20).map(async (id) => {
-      const json = await fetchJson(`/api/igdb/games?id=${encodeURIComponent(id)}&page_size=1`, 8500);
+      const json = await fetchIgdbJson(`/games`, { id: id, page_size: 1 }, 8500);
       const row = Array.isArray(json?.results) ? (json.results[0] || null) : null;
       const title = String(row?.name || '').trim();
       if (!title) return;

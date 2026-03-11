@@ -11,6 +11,7 @@
   <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/igdb-client.js?v=20260228a"></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -689,7 +690,7 @@
 </header>
 
   <div class="wrap">
-    <img id="poster" class="poster" src="images/placeholder.jpg" alt="Poster" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+    <img id="poster" class="poster" src="images/placeholder.jpg" alt="Poster" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/newlogo.webp';">
     <div class="card">
       <div class="title-row">
         <h1 id="title" class="title">Loading...</h1>
@@ -804,6 +805,51 @@
       const id = params.get('id');
       const gameId = id ? Number(id) : null;
       const IGDB_PROXY_BASE = '/api/igdb';
+      const IGDB_FALLBACK_IMAGE = '/newlogo.webp';
+
+      function resolveGameImageSource(row) {
+        const candidates = [
+          row?.cover_url,
+          row?.cover,
+          row?.hero_url,
+          row?.hero,
+          row?.background_image
+        ];
+        const screenshots = Array.isArray(row?.screenshots) ? row.screenshots : [];
+        const shortScreens = Array.isArray(row?.short_screenshots)
+          ? row.short_screenshots.map((entry) => entry?.image)
+          : [];
+        candidates.push(screenshots[0], shortScreens[0]);
+        for (const entry of candidates) {
+          const url = String(entry || '').trim();
+          if (url) return url;
+        }
+        return IGDB_FALLBACK_IMAGE;
+      }
+
+      function resolveGameHeroSource(row, fallback) {
+        const hero = String(row?.hero_url || row?.hero || row?.background_image || '').trim();
+        if (hero) return hero;
+        return fallback || IGDB_FALLBACK_IMAGE;
+      }
+
+      async function fetchIgdbJson(path, params = {}) {
+        try {
+          if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
+            return await window.ZO2Y_IGDB.request(path, params);
+          }
+          const url = new URL(`${IGDB_PROXY_BASE}${path}`, window.location.origin);
+          Object.entries(params || {}).forEach(([key, value]) => {
+            if (value === undefined || value === null || value === '') return;
+            url.searchParams.set(key, String(value));
+          });
+          const res = await fetch(url.toString());
+          if (!json) return null;
+          return await res.json();
+        } catch (_err) {
+          return null;
+        }
+      }
       let supabaseClient = null;
       let currentUser = null;
       let currentRating = 0;
@@ -876,8 +922,8 @@
         if (!Number.isFinite(id) || id <= 0) return null;
         const title = String(row?.name || row?.title || row?.slug || 'Game').trim() || 'Game';
         const description = String(row?.description || row?.description_raw || row?.summary || '').trim();
-        const cover = String(row?.cover || row?.cover_url || row?.hero || row?.background_image || '').trim();
-        const hero = String(row?.hero || row?.background_image || row?.cover || '').trim();
+        const cover = resolveGameImageSource(row);
+        const hero = resolveGameHeroSource(row, cover);
         const genres = Array.isArray(row?.genres) ? row.genres : [];
         const platforms = Array.isArray(row?.platforms)
           ? row.platforms.map((entry) => entry?.platform?.name || entry?.name).filter(Boolean)
@@ -907,16 +953,16 @@
       async function fetchIgdbGameById() {
         if (!Number.isFinite(gameId)) return null;
         try {
-          const res = await fetch(`${IGDB_PROXY_BASE}/games/${encodeURIComponent(String(gameId))}`);
-          if (!res.ok) return null;
-          const json = await res.json();
+          const json = await fetchIgdbJson(`/games/${encodeURIComponent(String(gameId))}`);
+          if (!json) return null;
+
           return mapIgdbDetailToCatalog(json);
         } catch (_err) {
           return null;
         }
       }
 
-      async function fetchCatalogGameById() {
+            async function fetchCatalogGameById() {
         if (!Number.isFinite(gameId)) return null;
         let data = null;
         if (supabaseClient) {
@@ -927,18 +973,11 @@
             .maybeSingle();
           if (!result?.error) data = result?.data || null;
         }
-        if (data) return data;
+        if (data) {
+          const coverCandidate = resolveGameImageSource(data);
+          if (coverCandidate && coverCandidate !== IGDB_FALLBACK_IMAGE) return data;
+        }
         return await fetchIgdbGameById();
-      }
-
-      function showNotification(message, type = 'info', duration = 3000) {
-        const existing = document.querySelectorAll('.notification');
-        existing.forEach(n => n.remove());
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), duration);
       }
 
       function renderListIcon(icon) {
@@ -987,7 +1026,7 @@
         document.getElementById('title').textContent = title;
         document.getElementById('overview').textContent = description || 'No description available.';
         document.getElementById('meta').textContent = metaParts.join(' | ');
-        document.getElementById('poster').src = data.cover_url || 'images/placeholder.jpg';
+        document.getElementById('poster').src = resolveGameImageSource(data) || 'images/placeholder.jpg';
 
         const genres = normalizeGameGenres(extra);
         const tags = document.getElementById('tags');

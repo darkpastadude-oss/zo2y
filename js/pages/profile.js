@@ -4971,13 +4971,25 @@
                 return data;
             }
 
-            function normalizeGameImageSource(game) {
-                if (!game || typeof game !== 'object') return 'images/placeholder.jpg';
-                return String(
-                    game.cover ||
-                    game.cover_url ||
-                    ''
-                ).trim() || 'images/placeholder.jpg';
+                        function normalizeGameImageSource(game) {
+                if (!game || typeof game !== 'object') return '/newlogo.webp';
+                const candidates = [
+                    game.cover,
+                    game.cover_url,
+                    game.hero,
+                    game.hero_url,
+                    game.background_image
+                ];
+                const screenshots = Array.isArray(game.screenshots) ? game.screenshots : [];
+                const shortScreens = Array.isArray(game.short_screenshots)
+                    ? game.short_screenshots.map((entry) => entry?.image)
+                    : [];
+                candidates.push(screenshots[0], shortScreens[0]);
+                for (const entry of candidates) {
+                    const url = String(entry || '').trim();
+                    if (url) return url;
+                }
+                return '/newlogo.webp';
             }
 
             function normalizeSupabaseGameRecord(row, fallbackId = '') {
@@ -9104,7 +9116,7 @@
                         : '';
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${gameImage}" alt="${gameTitle}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+                        <img class="collection-item-image" src="${gameImage}" alt="${gameTitle}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/newlogo.webp';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${gameTitle}</h3>
                             ${canEditItems ? `

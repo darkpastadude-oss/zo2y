@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
@@ -49,6 +49,19 @@
     if (text.startsWith('//')) return `https:${text}`;
     if (text.startsWith('http://')) return text.replace(/^http:\/\//i, 'https://');
     return text;
+  }
+
+  async function fetchIgdbGameMeta(id) {
+    const gameId = String(id || '').trim();
+    if (!gameId) return null;
+    try {
+      if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
+        return await window.ZO2Y_IGDB.request(`/games/${encodeURIComponent(gameId)}`);
+      }
+      return await fetchJson(`/api/igdb/games/${encodeURIComponent(gameId)}`, 8500);
+    } catch (_err) {
+      return null;
+    }
   }
 
   function makeKey(mediaType, itemId) {
@@ -314,7 +327,7 @@
     });
 
     const gameTasks = Array.from(new Set(grouped.game)).map(async (id) => {
-      const json = await fetchJson(`/api/igdb/games/${encodeURIComponent(id)}`, 8500);
+      const json = await fetchIgdbGameMeta(id);
       const title = String(json?.name || '').trim();
       if (!title) return;
       itemMeta.set(makeKey('game', id), {
@@ -540,7 +553,7 @@
       const quote = String(item.quote || '').trim();
       const safeQuote = quote || `Rated ${Number(item.rating || 0).toFixed(1)}/5`;
       const starCount = Math.max(0, Math.min(5, Math.round(Number(item.rating || 0))));
-      const drawnStars = `${'★'.repeat(starCount)}${'☆'.repeat(Math.max(0, 5 - starCount))}`;
+      const drawnStars = `${'?'.repeat(starCount)}${'?'.repeat(Math.max(0, 5 - starCount))}`;
       const noteReviewer = String(item.reviewer || '').trim().replace(/^@/, '');
       return `
         <a class="${cardClasses}" href="${escapeHtml(item.href)}" data-review-spotlight-index="${index}" aria-label="Open ${escapeHtml(item.title)}">
@@ -658,7 +671,7 @@
     meta.textContent = `${target.mediaLabel} review`;
     title.textContent = target.title;
     starsEl.textContent = stars(Number(target.rating || 0));
-    byline.textContent = `${target.reviewer} • ${target.rating.toFixed(1)}/5 • ${target.dateLabel}`;
+    byline.textContent = `${target.reviewer} � ${target.rating.toFixed(1)}/5 � ${target.dateLabel}`;
     quote.textContent = String(target.quote || '').trim();
     link.href = target.href || 'reviews.html';
     positionReviewSpotlightPopover(sourceEl);
@@ -825,7 +838,7 @@
               <span class="date">${dateText}</span>
             </div>
             <h3 class="title" title="${title}">${title}</h3>
-            <div class="meta">Reviewed by ${reviewer} • ${subtitle}</div>
+            <div class="meta">Reviewed by ${reviewer} � ${subtitle}</div>
             <div class="stars">${stars(rating)}<span>${rating}/5</span></div>
             <p class="comment">${comment}</p>
           </div>
