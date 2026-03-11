@@ -1941,21 +1941,30 @@ app.get("/api/igdb/games", async (req, res) => {
       minRatingCount: effectiveMinRatingCount,
       minFollows: minFollows || null
     });
-    const payload = popularityType && !search
-      ? await fetchIgdbGamesByPopscore({
-        page,
-        pageSize,
-        popularityType,
-        minRatingCount: effectiveMinRatingCount,
-        minFollows: minFollows || 0
-      })
-      : await fetchIgdbGamesList({
+    let payload = null;
+    if (popularityType && !search) {
+      try {
+        payload = await fetchIgdbGamesByPopscore({
+          page,
+          pageSize,
+          popularityType,
+          minRatingCount: effectiveMinRatingCount,
+          minFollows: minFollows || 0
+        });
+      } catch (popError) {
+        console.warn("[igdb-handler] popscore failed, falling back:", String(popError?.message || popError));
+        payload = null;
+      }
+    }
+    if (!payload) {
+      payload = await fetchIgdbGamesList({
         page,
         pageSize,
         orderingRaw: ordering,
         search,
         whereClause
       });
+    }
     let results = Array.isArray(payload?.results) ? payload.results : [];
     if (!results.length && explicitIds.length) {
       return res.json({
