@@ -253,6 +253,17 @@ function normalizeGameKey(value) {
     .trim();
 }
 
+function titleIncludesQuery(title, query) {
+  const titleKey = normalizeGameKey(title);
+  const queryKey = normalizeGameKey(query);
+  if (!queryKey) return true;
+  if (titleKey.includes(queryKey)) return true;
+  const compactTitle = titleKey.replace(/\s+/g, "");
+  const compactQuery = queryKey.replace(/\s+/g, "");
+  if (!compactQuery) return false;
+  return compactTitle.includes(compactQuery);
+}
+
 function canonicalGenreSlugFromText(value) {
   const normalized = normalizeGameKey(value);
   if (!normalized) return "";
@@ -962,7 +973,7 @@ async function fetchCategoryCandidates(datesRaw = "", target = 80) {
   return out;
 }
 
-async function fetchSearchCandidates(search, offset = 0, limit = 40) {
+async function fetchSearchCandidates(search, offset = 0, limit = 40, titleOnly = false) {
   const q = String(search || "").trim();
   if (!q) return { rows: [], totalHits: 0 };
   const queryKey = normalizeGameKey(q);
@@ -984,6 +995,7 @@ async function fetchSearchCandidates(search, offset = 0, limit = 40) {
         titleKey.includes(queryKey) ||
         (queryTokens.length > 0 && queryTokens.every((token) => titleKey.includes(token)))
       );
+      if (titleOnly) return titleMatchesQuery;
       return snippetLooksLikeGame || titleMatchesQuery;
     })
     .map((row) => ({ pageid: Number(row?.pageid || 0), title: normalizeTitle(row?.title || "") }))
@@ -1238,7 +1250,7 @@ async function fetchGamesByExplicitIds(ids = []) {
   }));
 }
 
-export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search = "", id = "", ids = "", ordering = "-added", dates = "", genres = "" } = {}) {
+export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search = "", id = "", ids = "", ordering = "-added", dates = "", genres = "", titleOnly = false } = {}) {
   const safePage = clampInt(page, 1, 100000, 1);
   const safePageSize = clampInt(pageSize, 1, 50, 20);
   const offset = (safePage - 1) * safePageSize;
@@ -1255,7 +1267,7 @@ export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search 
     return { count: totalCount, results: rows };
   }
 
-  const cacheKey = JSON.stringify({ safePage, safePageSize, search: String(search || "").trim().toLowerCase(), ordering: String(ordering || "").trim().toLowerCase(), dates: String(dates || "").trim(), genres: String(genres || "").trim().toLowerCase() });
+  const cacheKey = JSON.stringify({ safePage, safePageSize, search: String(search || "").trim().toLowerCase(), ordering: String(ordering || "").trim().toLowerCase(), dates: String(dates || "").trim(), genres: String(genres || "").trim().toLowerCase(), titleOnly: !!titleOnly });
   const cached = readTimedCache(listCache, cacheKey);
   if (cached) return cached;
 
@@ -1263,34 +1275,41 @@ export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search 
   let count = 0;
   const genreTokens = parseGenreFilterTokens(genres);
   if (String(search || "").trim()) {
-    const searched = await fetchSearchCandidates(search, offset, Math.max(36, safePageSize * 4));
-    const popularSeeds = await fetchPopularSeedCandidates(36);
-    const seedQueryMatches = buildSeedQueryMatchCandidates(search, 24);
-    const genreSeedMatches = buildGenreSeedCandidates(genres, Math.max(18, safePageSize * 2));
-    const genreSearchMatches = genreTokens.size ? await fetchGenreSearchCandidates(genres, Math.max(28, safePageSize * 2)) : [];
+    const searchLimit = titleOnly ? Math.max(20, safePageSize * 2) : Math.max(36, safePageSize * 4);
+    const searched = await fetchSearchCandidates(search, offset, searchLimit, titleOnly);
     rows = await hydrateRows(searched.rows);
-    if (rows.length < safePageSize) {
-      const [popularBackfill, queryBackfill, genreBackfill, genreQueryBackfill] = await Promise.all([
-        hydrateRows(popularSeeds),
-        hydrateRows(seedQueryMatches),
-        hydrateRows(genreSeedMatches),
-        hydrateRows(genreSearchMatches)
-      ]);
-      rows = [...rows, ...queryBackfill, ...genreBackfill, ...genreQueryBackfill, ...popularBackfill];
+    if (!titleOnly) {
+      const popularSeeds = await fetchPopularSeedCandidates(36);
+      const seedQueryMatches = buildSeedQueryMatchCandidates(search, 24);
+      const genreSeedMatches = buildGenreSeedCandidates(genres, Math.max(18, safePageSize * 2));
+      const genreSearchMatches = genreTokens.size ? await fetchGenreSearchCandidates(genres, Math.max(28, safePageSize * 2)) : [];
+      if (rows.length < safePageSize) {
+        const [popularBackfill, queryBackfill, genreBackfill, genreQueryBackfill] = await Promise.all([
+          hydrateRows(popularSeeds),
+          hydrateRows(seedQueryMatches),
+          hydrateRows(genreSeedMatches),
+          hydrateRows(genreSearchMatches)
+        ]);
+        rows = [...rows, ...queryBackfill, ...genreBackfill, ...genreQueryBackfill, ...popularBackfill];
+      }
     }
     rows = dedupeRows(rows);
     rows = filterRowsByDates(filterRowsByGenres(rows, genres), dates);
     rows = dedupeRows(rows);
     rows = sortSearchRowsByQuery(rows, search);
-    if (String(ordering || "").trim().toLowerCase() !== "-added") {
+    if (titleOnly) {
+      rows = rows.filter((row) => titleIncludesQuery(row?.name || row?.title || "", search));
+    } else if (String(ordering || "").trim().toLowerCase() !== "-added") {
       rows = sortRowsByPopularity(rows, ordering);
     }
     const hasExtraFilters = !!String(dates || "").trim() || genreTokens.size > 0;
-    count = hasExtraFilters
-      ? offset + rows.length + (rows.length >= safePageSize ? safePageSize : 0)
-      : Math.max(Number(searched.totalHits || 0), offset + rows.length);
+    count = titleOnly
+      ? Math.max(offset + rows.length, rows.length)
+      : hasExtraFilters
+        ? offset + rows.length + (rows.length >= safePageSize ? safePageSize : 0)
+        : Math.max(Number(searched.totalHits || 0), offset + rows.length);
     rows = rows.slice(0, safePageSize);
-    rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(10, safePageSize));
+    rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(titleOnly ? 6 : 10, safePageSize));
   } else {
     const candidateTarget = Math.min(Math.max(offset + (safePageSize * 3) + 24, 96), 560);
     const candidates = await fetchCategoryCandidates(dates, candidateTarget);

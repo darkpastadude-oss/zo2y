@@ -2331,6 +2331,7 @@ app.get("/api/igdb/games", async (req, res) => {
   const dates = String(req.query.dates || "").trim();
   const genres = String(req.query.genres || "").trim();
   const provider = String(req.query.provider || req.query.source || "").trim().toLowerCase();
+  const titleOnly = isTruthyFlag(req.query.title_only || req.query.search_title_only || req.query.titleOnly);
   let providerSet = parseProviderList(provider);
   if (isTruthyFlag(req.query.igdb_only) || isTruthyFlag(req.query.igdbOnly)) {
     providerSet = new Set(["igdb"]);
@@ -2481,7 +2482,8 @@ app.get("/api/igdb/games", async (req, res) => {
         search,
         ordering,
         dates,
-        genres
+        genres,
+        titleOnly
       });
       const results = (Array.isArray(payload?.results) ? payload.results : [])
         .map(mapWikipediaListRow)
@@ -2591,7 +2593,8 @@ app.get("/api/igdb/games", async (req, res) => {
           search,
           ordering,
           dates,
-          genres
+          genres,
+          titleOnly
         });
         const rows = (Array.isArray(payload?.results) ? payload.results : [])
           .map(mapWikipediaListRow)

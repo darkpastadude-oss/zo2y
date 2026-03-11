@@ -152,46 +152,6 @@
       font-size: 12px;
     }
 
-    .popular-section {
-      max-width: 1200px;
-      margin: 14px auto 0;
-      padding: 0 12px;
-    }
-
-    .popular-header {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .popular-header h2 {
-      margin: 0 0 4px;
-      font-size: 16px;
-    }
-
-    .popular-header p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 11px;
-    }
-
-    .popular-rail {
-      display: grid;
-      grid-auto-flow: column;
-      grid-auto-columns: 150px;
-      gap: 10px;
-      overflow-x: auto;
-      padding-bottom: 6px;
-      scroll-snap-type: x mandatory;
-    }
-
-    .popular-rail .card {
-      scroll-snap-align: start;
-      min-height: 100%;
-    }
-
     .controls {
       max-width: 1200px;
       margin: 12px auto 0;
@@ -642,17 +602,6 @@
   </div>
   <div id="activeFilters" class="chip-row"></div>
 
-  <section class="popular-section">
-    <div class="popular-header">
-      <div>
-        <h2>Popular right now</h2>
-        <p>Top picks based on ratings and activity.</p>
-      </div>
-      <button class="btn" id="popularRefreshBtn"><i class="fas fa-bolt"></i> Refresh</button>
-    </div>
-    <div class="popular-rail" id="popularGamesRail"></div>
-  </section>
-
   <div id="gamesGrid" class="grid"></div>
   <div id="emptyState" class="empty" style="display:none;">No games found.</div>
   <div class="pagination">
@@ -834,8 +783,9 @@
 
       let supabaseClient = null;
       let loadGamesTimer = null;
-      let popularLoaded = false;
       let igdbAbortController = null;
+      let prefetchTimer = null;
+      let prefetchKey = '';
 
       function scheduleGamesLoad(delayMs = 360) {
         if (loadGamesTimer) clearTimeout(loadGamesTimer);
@@ -857,6 +807,22 @@
         return isSlowNetwork() ? 16 : 20;
       }
 
+      function schedulePrefetch(nextPage, params = {}) {
+        if (!Number.isFinite(nextPage) || nextPage <= 0) return;
+        const key = JSON.stringify({ ...params, page: nextPage });
+        if (key === prefetchKey) return;
+        prefetchKey = key;
+        if (prefetchTimer) clearTimeout(prefetchTimer);
+        const run = () => {
+          fetchIgdbPage({ ...params, page: nextPage }).catch(() => null);
+        };
+        if (typeof requestIdleCallback === 'function') {
+          requestIdleCallback(run, { timeout: 1200 });
+        } else {
+          prefetchTimer = setTimeout(run, 350);
+        }
+      }
+
       function normalizeGameGenres(extra) {
         const rawGenres = Array.isArray(extra?.genres) ? extra.genres : [];
         const out = [];
@@ -867,6 +833,48 @@
           if (!name || !slug || seen.has(slug)) return;
           seen.add(slug);
           out.push({ name, slug });
+        });
+        return out;
+      }
+
+      function normalizeTitleKey(value) {
+        return String(value || '')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      function titleMatchesQuery(title, query) {
+        const titleKey = normalizeTitleKey(title);
+        const queryKey = normalizeTitleKey(query);
+        if (!queryKey) return true;
+        if (titleKey.includes(queryKey)) return true;
+        const compactTitle = titleKey.replace(/\s+/g, '');
+        const compactQuery = queryKey.replace(/\s+/g, '');
+        if (!compactQuery) return false;
+        return compactTitle.includes(compactQuery);
+      }
+
+      function filterTitleMatches(rows = [], query = '') {
+        const queryKey = normalizeTitleKey(query);
+        if (!queryKey) return Array.isArray(rows) ? rows : [];
+        return (Array.isArray(rows) ? rows : []).filter((row) => {
+          const title = String(row?.title || row?.name || row?.slug || '').trim();
+          return titleMatchesQuery(title, queryKey);
+        });
+      }
+
+      function dedupeRowsById(rows = []) {
+        const out = [];
+        const seen = new Set();
+        (Array.isArray(rows) ? rows : []).forEach((row) => {
+          const rawId = row?.id;
+          const key = Number.isFinite(Number(rawId)) ? String(rawId) : String(rawId || '').trim();
+          if (!key || seen.has(key)) return;
+          seen.add(key);
+          out.push(row);
         });
         return out;
       }
@@ -934,6 +942,7 @@
           const page = Number(options.page || 1);
           const ordering = String(options.ordering || '-rating').trim();
           const popularityType = Number(options.popularityType || options.popularity_type || 0);
+          const titleOnly = !!options.title_only || !!options.search_title_only;
           const safeOrdering = search ? '' : ordering;
           const dates = String(options.dates || '').trim();
           const minRatingCount = Number(options.minRatingCount || options.min_rating_count || 0);
@@ -944,6 +953,7 @@
             provider: 'wikipedia',
             popularity_type: popularityType > 0 ? Math.floor(popularityType) : undefined,
             dates: dates || undefined,
+            title_only: titleOnly && search ? 1 : undefined,
             min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
             min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
             page_size: Math.max(1, Math.min(pageSize, 200)),
@@ -964,6 +974,7 @@
           const page = Number(options.page || 1);
           const ordering = String(options.ordering || '-rating_count').trim();
           const popularityType = Number(options.popularityType || options.popularity_type || 0);
+          const titleOnly = !!options.title_only || !!options.search_title_only;
           const safeOrdering = search ? '' : ordering;
           const dates = String(options.dates || '').trim();
           const genres = String(options.genres || '').trim();
@@ -976,6 +987,7 @@
             popularity_type: popularityType > 0 ? Math.floor(popularityType) : undefined,
             dates: dates || undefined,
             genres: genres || undefined,
+            title_only: titleOnly && search ? 1 : undefined,
             min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
             min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
             page_size: Math.max(1, Math.min(pageSize, 50)),
@@ -1255,17 +1267,7 @@
         });
       }
 
-      function shouldHidePopularRail() {
-        return !!(state.query || state.activeGenre || state.year);
-      }
-
-      function updatePopularVisibility() {
-        const section = document.querySelector('.popular-section');
-        if (!section) return;
-        section.style.display = shouldHidePopularRail() ? 'none' : '';
-      }
-
-      function createGameCard(item) {
+      function createGameCard(item, index = 0) {
         const gameTitle = item.title || item.slug || 'Untitled';
         const gameDate = item.release_date ? String(item.release_date).slice(0, 10) : '';
         const genreText = normalizeGameGenres(item.extra)
@@ -1286,8 +1288,9 @@
         const card = document.createElement('div');
         card.className = 'card';
         card.setAttribute('data-game-id', gameId);
+        const isPriority = Number.isFinite(index) && index < 4;
         card.innerHTML = `
-          <img src="${gameCover}" alt="${gameTitle}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;const c=this.closest('.card');if(c)c.remove();">
+          <img src="${gameCover}" alt="${gameTitle}" loading="${isPriority ? 'eager' : 'lazy'}" fetchpriority="${isPriority ? 'high' : 'auto'}" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;const c=this.closest('.card');if(c)c.remove();">
           <div class="card-body">
             <h3 class="card-title">${gameTitle}</h3>
             <div class="card-meta-row">
@@ -1308,59 +1311,11 @@
         return card;
       }
 
-      async function renderPopularGames(force = false) {
-        const rail = document.getElementById('popularGamesRail');
-        if (!rail || (popularLoaded && !force)) return;
-        if (shouldHidePopularRail()) {
-          rail.innerHTML = '';
-          return;
-        }
-        rail.innerHTML = '<div class="empty">Loading popular games...</div>';
-        const requestOptions = force ? { cacheBust: true } : {};
-        let popularRows = await fetchIgdbCatalog({
-          popularity_type: 1,
-          ordering: '-follows',
-          pageSize: isSlowNetwork() ? 10 : 12,
-          page: 1,
-          min_rating_count: 50
-        }, requestOptions);
-        if (!popularRows.length) {
-          popularRows = await fetchIgdbCatalog({
-            ordering: '-follows',
-            pageSize: isSlowNetwork() ? 10 : 12,
-            page: 1,
-            min_rating_count: 50
-          }, requestOptions);
-        }
-        if (!popularRows.length) {
-          rail.innerHTML = '<div class="empty">IGDB is unavailable right now.</div>';
-          return;
-        }
-
-        const fragment = document.createDocumentFragment();
-        let appended = 0;
-        popularRows.forEach((item) => {
-          const card = createGameCard(item);
-          if (card) {
-            fragment.appendChild(card);
-            appended += 1;
-          }
-        });
-        rail.innerHTML = '';
-        if (appended) {
-          rail.appendChild(fragment);
-        } else {
-          rail.innerHTML = '<div class="empty">No official posters found.</div>';
-        }
-        popularLoaded = true;
-      }
-
       async function loadGames(options = {}) {
         const grid = document.getElementById('gamesGrid');
         const empty = document.getElementById('emptyState');
         if (!grid) return;
         const requestId = ++state.requestId;
-        updatePopularVisibility();
         if (igdbAbortController) {
           igdbAbortController.abort();
         }
@@ -1370,29 +1325,53 @@
           grid.innerHTML = '<div class="empty">Loading games...</div>';
         }
         const pageSize = getGamesPageSize();
+        const fetchLimitCap = isSlowNetwork() ? 30 : 50;
+        const fetchPageSize = Math.min(pageSize * (state.query ? 3 : 2), fetchLimitCap);
         const dates = state.year ? `${state.year}-01-01,${state.year}-12-31` : '';
         const ordering = state.query ? '-rating' : '-follows';
         const minRatingCount = (!state.query && !state.activeGenre && !state.year) ? 50 : 0;
         const popularityType = (!state.query && !state.activeGenre && !state.year) ? 1 : 0;
         const igdbPayload = await fetchIgdbPage({
           page: state.page,
-          pageSize,
+          pageSize: fetchPageSize,
           ordering,
           search: state.query,
           dates,
           genres: state.activeGenre,
           min_rating_count: minRatingCount,
-          popularity_type: popularityType || undefined
+          popularity_type: popularityType || undefined,
+          title_only: state.query ? 1 : undefined
         }, { signal, cacheBust: options?.cacheBust });
         if (requestId !== state.requestId) return;
 
         if (igdbPayload) {
           state.catalogSource = 'igdb';
-          void renderPopularGames();
 
-          const results = sortSearchResults(igdbPayload.rows || [], state.query);
-          const totalMatches = Number(igdbPayload.count || results.length || 0);
-          state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
+          const sortedResults = sortSearchResults(igdbPayload.rows || [], state.query);
+          let filteredResults = filterTitleMatches(sortedResults, state.query);
+          const totalMatches = Number(igdbPayload.count || 0);
+          const totalPages = Math.max(1, Math.ceil(Math.max(totalMatches, filteredResults.length) / pageSize));
+          if (filteredResults.length < pageSize && state.page < totalPages && !isSlowNetwork()) {
+            const nextPayload = await fetchIgdbPage({
+              page: state.page + 1,
+              pageSize: fetchPageSize,
+              ordering,
+              search: state.query,
+              dates,
+              genres: state.activeGenre,
+              min_rating_count: minRatingCount,
+              popularity_type: popularityType || undefined,
+              title_only: state.query ? 1 : undefined
+            }, { cacheBust: options?.cacheBust });
+            if (requestId !== state.requestId) return;
+            if (nextPayload) {
+              const nextSorted = sortSearchResults(nextPayload.rows || [], state.query);
+              const nextFiltered = filterTitleMatches(nextSorted, state.query);
+              filteredResults = dedupeRowsById([...filteredResults, ...nextFiltered]);
+            }
+          }
+          const results = filteredResults.slice(0, pageSize);
+          state.totalPages = totalPages;
           if (!results.length) {
             if (empty) empty.style.display = 'block';
             grid.innerHTML = '';
@@ -1403,8 +1382,8 @@
 
           const fragment = document.createDocumentFragment();
           let appended = 0;
-          results.forEach((item) => {
-            const card = createGameCard(item);
+          results.forEach((item, idx) => {
+            const card = createGameCard(item, idx);
             if (card) {
               fragment.appendChild(card);
               appended += 1;
@@ -1421,6 +1400,18 @@
 
           state.hasMore = state.page < state.totalPages;
           updatePagination();
+          if (state.page < state.totalPages) {
+            schedulePrefetch(state.page + 1, {
+              pageSize: fetchPageSize,
+              ordering,
+              search: state.query,
+              dates,
+              genres: state.activeGenre,
+              min_rating_count: minRatingCount,
+              popularity_type: popularityType || undefined,
+              title_only: state.query ? 1 : undefined
+            });
+          }
           return;
         }
 
@@ -1644,7 +1635,6 @@
         const genreSelect = document.getElementById('genreSelect');
         const yearInput = document.getElementById('yearInput');
         const refreshBtn = document.getElementById('refreshBtn');
-        const popularRefreshBtn = document.getElementById('popularRefreshBtn');
         const prevBtn = document.getElementById('prevPageBtn');
         const nextBtn = document.getElementById('nextPageBtn');
         const closeListsBtn = document.getElementById('closeGameListsBtn');
@@ -1677,12 +1667,6 @@
           });
         }
         if (refreshBtn) refreshBtn.addEventListener('click', () => loadGames({ cacheBust: true }));
-        if (popularRefreshBtn) {
-          popularRefreshBtn.addEventListener('click', () => {
-            popularLoaded = false;
-            renderPopularGames(true);
-          });
-        }
         if (prevBtn) {
           prevBtn.addEventListener('click', () => {
             if (state.page > 1) {
