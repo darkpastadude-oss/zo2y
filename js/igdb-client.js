@@ -46,7 +46,10 @@
 
   function buildUrl(base, path, params = {}) {
     const normalizedBase = String(base || '').replace(/\/+$/, '');
-    const normalizedPath = String(path || '').startsWith('/') ? String(path || '') : `/${String(path || '')}`;
+    const rawPath = String(path || '');
+    const normalizedPath = rawPath
+      ? (rawPath.startsWith('/') ? rawPath : `/${rawPath}`)
+      : '';
     const url = new URL(`${normalizedBase}${normalizedPath}`, global.location.origin);
     Object.entries(params || {}).forEach(([key, value]) => {
       if (value === undefined || value === null || value === '') return;
@@ -129,7 +132,7 @@
 
   async function probe(base) {
     try {
-      const meta = await fetchWithMeta(base, '/', {});
+      const meta = await fetchWithMeta(base, '', {});
       if (!meta.ok) return false;
       const providers = meta.data?.providers || null;
       if (REQUIRE_IGDB) {
