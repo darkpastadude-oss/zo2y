@@ -741,15 +741,39 @@ async function resolveGenreIds(genresRaw) {
 function buildIgdbWhereClause({
   genreIds = [],
   startUnix = null,
-  endUnix = null
+  endUnix = null,
+  minRatingCount = null,
+  excludeDlc = false
 } = {}) {
   const clauses = [];
+  if (excludeDlc) {
+    // category: 0 = main game, 1 = DLC/expansion, we hide DLC from primary listings.
+    clauses.push("category != 1");
+  }
   const ids = dedupeNumbers(genreIds);
   if (ids.length) clauses.push(`genres = (${ids.join(",")})`);
   if (Number.isFinite(startUnix)) clauses.push(`first_release_date >= ${Math.floor(startUnix)}`);
   if (Number.isFinite(endUnix)) clauses.push(`first_release_date <= ${Math.floor(endUnix)}`);
-  // If no filters were requested, let IGDB decide what to return instead of forcing a where.
+  if (Number.isFinite(minRatingCount) && minRatingCount > 0) {
+    clauses.push(`total_rating_count > ${Math.floor(minRatingCount)}`);
+  }
   return clauses.length ? clauses.join(" & ") : "";
+}
+
+function dedupeGamesByNameAndYear(rows = []) {
+  const map = new Map();
+  (Array.isArray(rows) ? rows : []).forEach((row) => {
+    const name = String(row?.name || "").trim().toLowerCase();
+    if (!name) return;
+    const year = String(row?.released || "").slice(0, 4);
+    const key = year ? `${name}|${year}` : name;
+    const follows = Number(row?.follows || 0);
+    const existing = map.get(key);
+    if (!existing || follows > Number(existing.follows || 0)) {
+      map.set(key, row);
+    }
+  });
+  return Array.from(map.values());
 }
 
 async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereClause }) {
@@ -778,7 +802,7 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
     })();
 
     const queryParts = [
-      "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,cover.url,cover.image_id,screenshots.url,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name;"
+      "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,follows,cover.url,cover.image_id,screenshots.url,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name,category;"
     ];
     if (search) queryParts.push(`search "${escapeIgdbText(search)}";`);
     if (whereClause) queryParts.push(`where ${whereClause};`);
@@ -817,7 +841,7 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
       }
     }
 
-    const results = (Array.isArray(games) ? games : []).map((game) => {
+    const mappedRows = (Array.isArray(games) ? games : []).map((game) => {
       const mappedGenres = (Array.isArray(game?.genres) ? game.genres : [])
         .map((genre) => {
           if (genre && typeof genre === "object") {
@@ -892,6 +916,8 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
         source: "igdb"
       };
     }).filter((row) => row.id > 0);
+
+    const results = dedupeGamesByNameAndYear(mappedRows);
 
     const timedCount = await withTimeout(countPromise, IGDB_COUNT_TIMEOUT_MS).catch(() => 0);
     const fallbackCount = offset + results.length + (results.length >= pageSize ? pageSize : 0);
@@ -1523,7 +1549,7 @@ app.get("/api/igdb/games", async (req, res) => {
   const search = String(req.query.search || "").trim().slice(0, 120);
   const id = String(req.query.id || "").trim();
   const ids = String(req.query.ids || "").trim();
-  const ordering = String(req.query.ordering || "-added").trim();
+  const ordering = String(req.query.ordering || "-follows").trim();
   const dates = String(req.query.dates || "").trim();
   const genres = String(req.query.genres || "").trim();
   const provider = String(req.query.provider || req.query.source || "").trim().toLowerCase();
@@ -1549,10 +1575,13 @@ app.get("/api/igdb/games", async (req, res) => {
   try {
     const { startUnix, endUnix } = parseDatesRange(dates);
     const genreIds = await resolveGenreIds(genres);
+    const effectiveMinRatingCount = search ? minRatingCount : (minRatingCount || 10);
     const whereClause = buildIgdbWhereClause({
       genreIds,
       startUnix,
-      endUnix
+      endUnix,
+      minRatingCount: effectiveMinRatingCount,
+      excludeDlc: true
     });
     const payload = await fetchIgdbGamesList({
       page,

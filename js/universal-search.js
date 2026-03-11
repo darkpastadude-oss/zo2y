@@ -4,6 +4,7 @@
   const BOOKS_PROXY_BASE = '/api/books';
   const MUSIC_PROXY_BASE = '/api/music';
   const TRAVEL_API_BASE = 'https://restcountries.com/v3.1';
+  const GAMES_PROXY_BASE = '/api/igdb';
   const GAMES_DISABLED = false;
   const MIN_QUERY_LEN = 2;
   const SEARCH_DEBOUNCE_MS = 60;
@@ -458,19 +459,50 @@
     });
   }
 
+  async function fetchGames(query, signal) {
+    if (GAMES_DISABLED) return [];
+    const normalized = normalizeQuery(query);
+    if (!normalized || normalized.length < MIN_QUERY_LEN) return [];
+
+    const url = `${GAMES_PROXY_BASE}/games?search=${encodeURIComponent(normalized)}&page=1&page_size=8&ordering=-rating_count`;
+    const json = await fetchJsonWithTimeout(url, { signal, timeoutMs: REQUEST_TIMEOUT_MS });
+    const rows = Array.isArray(json?.results) ? json.results : [];
+
+    return rows
+      .slice(0, 8)
+      .map((row) => {
+        const id = Number(row?.id || 0);
+        const name = String(row?.name || row?.title || 'Game').trim() || 'Game';
+        const released = String(row?.released || row?.release_date || '').trim();
+        const year = released ? released.slice(0, 4) : '';
+        const cover = toHttpsUrl(row?.cover || row?.cover_url || row?.background_image || '');
+        if (!id || !name) return null;
+        return {
+          type: 'Games',
+          title: name,
+          sub: year || 'Game',
+          href: `game.html?id=${encodeURIComponent(String(id))}`,
+          image: cover,
+          landscape: false
+        };
+      })
+      .filter((item) => item && item.image);
+  }
+
   async function fetchAllSuggestions(query, signal) {
     const normalized = normalizeQuery(query);
     const cached = readCachedSuggestions(normalized);
     if (cached) return cached;
 
-    const [moviesTv, books, music, travel] = await Promise.all([
+    const [moviesTv, games, books, music, travel] = await Promise.all([
       fetchMoviesAndTv(normalized, signal).catch(() => []),
+      fetchGames(normalized, signal).catch(() => []),
       fetchBooks(normalized, signal).catch(() => []),
       fetchMusic(normalized, signal).catch(() => []),
       fetchTravel(normalized, signal).catch(() => [])
     ]);
 
-    const merged = sanitizeSuggestions([...moviesTv, ...books, ...music, ...travel]);
+    const merged = sanitizeSuggestions([...moviesTv, ...games, ...books, ...music, ...travel]);
     writeCachedSuggestions(normalized, merged);
     return merged;
   }
