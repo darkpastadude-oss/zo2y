@@ -106,10 +106,10 @@ function mapTv(rows = []) {
 
 function mapGames(rows = []) {
   return rows
-    .filter((g) => g && g.id && (g.cover || g.hero || g.background_image))
+    .filter((g) => g && g.id && g.cover)
     .slice(0, TARGET_ITEMS)
     .map((g) => {
-      const coverImage = String(g.cover || g.hero || g.background_image || "").trim();
+      const coverImage = String(g.cover || "").trim();
       const heroImage = String(g.hero || g.background_image || "").trim();
       const backgroundImage = heroImage || coverImage || "";
       return {
@@ -227,7 +227,7 @@ export default async function handler(req, res) {
   const [moviesJson, tvJson, gamesJson, booksTrendingJson, booksPopularJson, musicBatches] = await Promise.all([
     fetchJson(`${baseUrl}/api/tmdb/movie/popular?language=en-US&page=1`),
     fetchJson(`${baseUrl}/api/tmdb/tv/popular?language=en-US&page=1`),
-    fetchJson(`${baseUrl}/api/igdb/games?page_size=32&ordering=-follows&min_rating_count=50&dates=2000-01-01,2026-12-31&page=1`),
+    fetchJson(`${baseUrl}/api/igdb/games?page_size=32&ordering=-follows&min_rating_count=50&provider=igdb&dates=2000-01-01,2026-12-31&page=1`),
     fetchJson(`${baseUrl}/api/books/trending?period=weekly&limit=36`),
     fetchJson(`${baseUrl}/api/books/popular?subject=fiction&limit=36&page=1&orderBy=relevance`),
     Promise.all([

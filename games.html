@@ -832,15 +832,12 @@
         const candidates = [
           row?.cover_url,
           row?.cover,
-          row?.hero_url,
-          row?.hero,
-          row?.background_image
+          row?.cover?.url
         ];
         const screenshots = Array.isArray(row?.screenshots) ? row.screenshots : [];
         const shortScreens = Array.isArray(row?.short_screenshots)
           ? row.short_screenshots.map((entry) => entry?.image)
           : [];
-        candidates.push(screenshots[0], shortScreens[0]);
         for (const entry of candidates) {
           const url = String(entry || '').trim();
           if (url) return url;
@@ -959,6 +956,7 @@
             dates: dates || undefined,
             min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
             min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
+            provider: 'igdb',
             page_size: Math.max(1, Math.min(pageSize, 200)),
             page: Math.max(1, page)
           });
@@ -987,6 +985,7 @@
             genres: genres || undefined,
             min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
             min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
+            provider: 'igdb',
             page_size: Math.max(1, Math.min(pageSize, 50)),
             page: Math.max(1, page)
           });
@@ -1241,7 +1240,7 @@
         const ratingValue = Number(item.rating || 0);
         const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
         const gameDescription = [genreText, ratingText].filter(Boolean).join(' | ') || String(item.description || '').trim() || 'Popular game';
-        const gameCover = String(item.cover_url || item.hero_url || IGDB_FALLBACK_IMAGE).trim() || IGDB_FALLBACK_IMAGE;
+        const gameCover = String(item.cover_url || item.cover || IGDB_FALLBACK_IMAGE).trim() || IGDB_FALLBACK_IMAGE;
 
         const gameId = Number(item.id);
         if (!Number.isFinite(gameId)) return null;
@@ -1321,13 +1320,15 @@
         const pageSize = 24;
         const dates = state.year ? `${state.year}-01-01,${state.year}-12-31` : '';
         const ordering = state.query ? '-rating' : '-follows';
+        const minRatingCount = (!state.query && !state.activeGenre && !state.year) ? 50 : 0;
         const igdbPayload = await fetchIgdbPage({
           page: state.page,
           pageSize,
           ordering,
           search: state.query,
           dates,
-          genres: state.activeGenre
+          genres: state.activeGenre,
+          min_rating_count: minRatingCount
         });
         if (requestId !== state.requestId) return;
 

@@ -471,6 +471,7 @@ function buildGamesListUrl(baseUrl, options, page) {
   if (Number.isFinite(Number(options.minRatingCount)) && Number(options.minRatingCount) > 0) {
     url.searchParams.set("min_rating_count", String(Math.floor(Number(options.minRatingCount))));
   }
+  url.searchParams.set("provider", "igdb");
   if (options.genres) url.searchParams.set("genres", options.genres);
   if (options.search) url.searchParams.set("search", options.search);
   return url.toString();

@@ -4644,8 +4644,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
         const cover = String(row?.cover_url || row?.cover || '').trim();
         const hero = String(row?.hero_url || row?.hero || '').trim();
-        const image = cover || hero;
-        if (!image) return null;
+        if (!cover) return null;
         const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
         const title = String(row?.title || row?.name || 'Game').trim() || 'Game';
         const releaseDate = String(row?.release_date || row?.released || '').trim();
@@ -4660,10 +4659,10 @@ let homeTravelPhotoCacheSaveTimer = null;
           title,
           subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
           extra: [genreText, ratingText].filter(Boolean).join(' | '),
-          image,
-          backgroundImage: hero || image,
-          spotlightImage: hero || image,
-          spotlightMediaImage: image,
+          image: cover,
+          backgroundImage: hero || cover,
+          spotlightImage: hero || cover,
+          spotlightMediaImage: cover,
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'poster',
           fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
@@ -4701,7 +4700,8 @@ let homeTravelPhotoCacheSaveTimer = null;
           page_size: Math.max(targetCount * 2, 40),
           ordering: '-follows',
           min_rating_count: 50,
-          dates: '1990-01-01,2036-12-31'
+          dates: '1990-01-01,2036-12-31',
+          provider: 'igdb'
         }, signal);
         const rows = Array.isArray(payload?.results) ? payload.results : [];
         if (!rows.length || signal?.aborted) return [];

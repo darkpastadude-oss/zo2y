@@ -811,15 +811,12 @@
         const candidates = [
           row?.cover_url,
           row?.cover,
-          row?.hero_url,
-          row?.hero,
-          row?.background_image
+          row?.cover?.url
         ];
         const screenshots = Array.isArray(row?.screenshots) ? row.screenshots : [];
         const shortScreens = Array.isArray(row?.short_screenshots)
           ? row.short_screenshots.map((entry) => entry?.image)
           : [];
-        candidates.push(screenshots[0], shortScreens[0]);
         for (const entry of candidates) {
           const url = String(entry || '').trim();
           if (url) return url;
@@ -953,7 +950,9 @@
       async function fetchIgdbGameById() {
         if (!Number.isFinite(gameId)) return null;
         try {
-          const json = await fetchIgdbJson(`/games/${encodeURIComponent(String(gameId))}`);
+          const json = await fetchIgdbJson(`/games/${encodeURIComponent(String(gameId))}`, {
+            provider: 'igdb'
+          });
           if (!json) return null;
 
           return mapIgdbDetailToCatalog(json);

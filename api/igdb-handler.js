@@ -35,7 +35,7 @@ const MAX_DETAIL_CACHE_ENTRIES = 300;
 const IGDB_REQUEST_TIMEOUT_MS = 8000;
 const IGDB_COUNT_TIMEOUT_MS = 1200;
 const IGDB_MAX_RETRIES = 2;
-const IGDB_COVER_SIZE = "t_cover_big_2x";
+const IGDB_COVER_SIZE = "t_cover_big";
 const IGDB_SCREENSHOT_SIZE = "t_screenshot_big";
 const IGDB_HERO_SIZE = "t_1080p";
 const RAWG_IGDB_COVER_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
@@ -139,6 +139,11 @@ function clampInt(value, min, max, fallback) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
   return Math.max(min, Math.min(max, Math.floor(n)));
+}
+
+function isTruthyFlag(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return ["1", "true", "yes", "on", "igdb"].includes(normalized);
 }
 
 function toHttpsUrl(value) {
@@ -776,7 +781,7 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
     })();
 
     const queryParts = [
-      "fields id,name,slug,first_release_date,total_rating,total_rating_count,aggregated_rating,follows,cover.image_id,screenshots.image_id,genres.id,genres.name,genres.slug;"
+      "fields id,name,slug,first_release_date,total_rating,total_rating_count,aggregated_rating,follows,cover.image_id,cover.url,screenshots.image_id,genres.id,genres.name,genres.slug;"
     ];
     if (search) queryParts.push(`search "${escapeIgdbText(search)}";`);
     if (whereClause) queryParts.push(`where ${whereClause};`);
@@ -825,7 +830,9 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
         })
         .filter(Boolean);
 
-      const coverImage = game?.cover?.image_id ? imageUrl(game.cover.image_id, IGDB_COVER_SIZE) : "";
+      const coverImage = game?.cover?.image_id
+        ? imageUrl(game.cover.image_id, IGDB_COVER_SIZE)
+        : toHttpsUrl(game?.cover?.url || "");
       const screenshotRows = (Array.isArray(game?.screenshots) ? game.screenshots : [])
         .map((entry) => {
           if (entry && typeof entry === "object" && entry.image_id) {
@@ -879,7 +886,7 @@ async function fetchIgdbGameDetails(id) {
   if (cached) return cached;
 
   const query = [
-    "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,aggregated_rating,follows,cover.image_id,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name;",
+    "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,aggregated_rating,follows,cover.image_id,cover.url,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name;",
     `where id = ${Number(id)};`,
     "limit 1;"
   ].join(" ");
@@ -912,7 +919,9 @@ async function fetchIgdbGameDetails(id) {
     }
   }
 
-  const coverImage = game?.cover?.image_id ? imageUrl(game.cover.image_id, IGDB_COVER_SIZE) : "";
+  const coverImage = game?.cover?.image_id
+    ? imageUrl(game.cover.image_id, IGDB_COVER_SIZE)
+    : toHttpsUrl(game?.cover?.url || "");
   const screenshotRows = (Array.isArray(game?.screenshots) ? game.screenshots : [])
     .map((entry) => {
       if (entry && typeof entry === "object" && entry.image_id) return imageUrl(entry.image_id, IGDB_HERO_SIZE);
@@ -1470,12 +1479,25 @@ app.get("/api/igdb/games", async (req, res) => {
   const ordering = String(req.query.ordering || "-added").trim();
   const dates = String(req.query.dates || "").trim();
   const genres = String(req.query.genres || "").trim();
+  const provider = String(req.query.provider || req.query.source || "").trim().toLowerCase();
+  const igdbOnly = provider === "igdb" || isTruthyFlag(req.query.igdb_only) || isTruthyFlag(req.query.igdbOnly);
   const minRatingCount = clampInt(req.query.min_rating_count, 0, 5_000_000, 0);
   const minFollows = clampInt(req.query.min_follows, 0, 50_000_000, 0);
   const explicitIds = dedupeNumbers([
     ...parseIdsQuery(id),
     ...parseIdsQuery(ids)
   ]);
+
+  if (igdbOnly && !hasIgdbCredentials()) {
+    return res.status(503).json({
+      count: 0,
+      page,
+      page_size: pageSize,
+      results: [],
+      message: "IGDB credentials are not configured.",
+      sources: { igdb: false, rawg: false, wikipedia: false }
+    });
+  }
 
   if (hasIgdbCredentials()) {
     try {
@@ -1515,6 +1537,16 @@ app.get("/api/igdb/games", async (req, res) => {
       });
     } catch (error) {
       console.warn("[igdb-handler] igdb games fallback:", String(error?.message || error));
+      if (igdbOnly) {
+        return res.status(502).json({
+          count: 0,
+          page,
+          page_size: pageSize,
+          results: [],
+          message: "IGDB request failed.",
+          sources: { igdb: false, rawg: false, wikipedia: false }
+        });
+      }
     }
   }
 
@@ -1600,16 +1632,24 @@ app.get("/api/igdb/games/:id", async (req, res) => {
   if (!Number.isFinite(requestedId) || requestedId <= 0) {
     return res.status(400).json({ message: "Invalid game id." });
   }
+  const provider = String(req.query.provider || req.query.source || "").trim().toLowerCase();
+  const igdbOnly = provider === "igdb" || isTruthyFlag(req.query.igdb_only) || isTruthyFlag(req.query.igdbOnly);
 
-  const rawgId = decodeRawgId(requestedId);
-  if (rawgId && hasRawgKey()) {
-    try {
-      const rawgDetail = await fetchRawgGameDetails(rawgId);
-      if (rawgDetail) {
-        return res.json(remapLegacyDetailId(rawgDetail, requestedId));
+  if (igdbOnly && !hasIgdbCredentials()) {
+    return res.status(503).json({ message: "IGDB credentials are not configured." });
+  }
+
+  if (!igdbOnly) {
+    const rawgId = decodeRawgId(requestedId);
+    if (rawgId && hasRawgKey()) {
+      try {
+        const rawgDetail = await fetchRawgGameDetails(rawgId);
+        if (rawgDetail) {
+          return res.json(remapLegacyDetailId(rawgDetail, requestedId));
+        }
+      } catch (error) {
+        console.warn("[igdb-handler] rawg detail lookup failed:", String(error?.message || error));
       }
-    } catch (error) {
-      console.warn("[igdb-handler] rawg detail lookup failed:", String(error?.message || error));
     }
   }
 
@@ -1619,10 +1659,14 @@ app.get("/api/igdb/games/:id", async (req, res) => {
       if (igdbDetail) return res.json(igdbDetail);
     } catch (error) {
       console.warn("[igdb-handler] igdb detail fallback:", String(error?.message || error));
+      if (igdbOnly) {
+        const status = String(error?.code || "").toUpperCase() === "NOT_FOUND" ? 404 : 502;
+        return res.status(status).json({ message: "IGDB detail lookup failed." });
+      }
     }
   }
 
-  if (hasRawgKey()) {
+  if (!igdbOnly && hasRawgKey()) {
     try {
       const rawgDetail = await fetchRawgGameDetails(requestedId);
       if (rawgDetail) {
@@ -1633,19 +1677,23 @@ app.get("/api/igdb/games/:id", async (req, res) => {
     }
   }
 
-  let mapped = null;
-  try {
-    mapped = await fetchWikipediaGameDetailsById(requestedId);
-  } catch (_wikiError) {
-    mapped = null;
-  }
-  if (mapped) {
-    return res.json(mapped);
+  if (!igdbOnly) {
+    let mapped = null;
+    try {
+      mapped = await fetchWikipediaGameDetailsById(requestedId);
+    } catch (_wikiError) {
+      mapped = null;
+    }
+    if (mapped) {
+      return res.json(mapped);
+    }
   }
 
-  const legacyMapped = await resolveLegacyGameDetailById(requestedId);
-  if (legacyMapped) {
-    return res.json(legacyMapped);
+  if (!igdbOnly) {
+    const legacyMapped = await resolveLegacyGameDetailById(requestedId);
+    if (legacyMapped) {
+      return res.json(legacyMapped);
+    }
   }
 
   return res.status(404).json({ message: "Game not found." });
