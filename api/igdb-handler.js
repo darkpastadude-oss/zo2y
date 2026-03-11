@@ -42,6 +42,7 @@ const RAWG_IGDB_COVER_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const MAX_RAWG_IGDB_COVER_CACHE_ENTRIES = 1200;
 const IGDB_COVER_LOOKUP_BACKOFF_MS = 1000 * 60;
 const RAWG_IGDB_FALLBACK_LOOKUPS_PER_REQUEST = 10;
+const IGDB_ADDON_TITLE_PATTERN = /\b(expansion|dlc|add-?on|bundle|pack|pass|season|episode|chapter|story|campaign|multiplayer|co-?op|online|mobile|mod|randomizer|soundtrack|art book|demo|beta|alpha|prologue|collector'?s|deluxe|ultimate|definitive|complete|goty|gold|limited|starter|special|master|edition|anniversary|remaster|remake|director'?s cut|vr|hd|enhanced|update|expansion pass)\b/i;
 
 let tokenCache = {
   accessToken: "",
@@ -344,6 +345,101 @@ function normalizeGameKey(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+function stripAddonSuffix(title) {
+  let cleaned = String(title || "").trim();
+  if (!cleaned) return "";
+  const separators = [" - ", ": "];
+  const suffixStrip = /\s+(expansion pass|season pass|expansion|dlc|bundle|pack|pass|edition|collector'?s|deluxe|ultimate|definitive|complete|goty|gold|limited|starter|special|master|anniversary|enhanced|remaster(?:ed)?|remake|director'?s cut|vr|hd).*$/i;
+  let changed = true;
+  let safety = 0;
+  while (changed && safety < 4) {
+    safety += 1;
+    changed = false;
+    for (const sep of separators) {
+      if (!cleaned.includes(sep)) continue;
+      const parts = cleaned.split(sep);
+      if (parts.length < 2) continue;
+      const left = parts[0].trim();
+      const right = parts.slice(1).join(sep).trim();
+      if (right && IGDB_ADDON_TITLE_PATTERN.test(right)) {
+        cleaned = left;
+        changed = true;
+        break;
+      }
+    }
+    const editionMatch = cleaned.match(/^(.*)\s+(collector'?s|deluxe|ultimate|definitive|complete|goty|gold|limited|starter|special|master|anniversary|enhanced|remaster(?:ed)?|remake|director'?s cut|vr|hd|edition|bundle|pack)$/i);
+    if (editionMatch) {
+      cleaned = editionMatch[1].trim();
+      changed = true;
+    }
+    if (suffixStrip.test(cleaned)) {
+      cleaned = cleaned.replace(suffixStrip, "").trim();
+      changed = true;
+    }
+  }
+  return cleaned || String(title || "").trim();
+}
+
+function normalizeIgdbTitleKey(title) {
+  const stripped = stripAddonSuffix(title);
+  const normalized = normalizeGameKey(stripped);
+  return normalized || normalizeGameKey(title);
+}
+
+function scoreIgdbCandidate(game) {
+  let score = 0;
+  const category = Number(game?.category);
+  if (!Number.isFinite(category) || category === 0) score += 1000;
+  if (!game?.version_parent && !game?.parent_game) score += 300;
+  if (IGDB_ADDON_TITLE_PATTERN.test(String(game?.name || ""))) score -= 200;
+  const follows = Number(game?.follows || 0);
+  const ratingCount = Number(game?.total_rating_count || 0);
+  const rating = Number(game?.total_rating || 0);
+  score += Math.min(follows / 1000, 600);
+  score += Math.min(ratingCount / 10, 400);
+  score += rating;
+  return score;
+}
+
+function pickBestIgdbCandidate(group) {
+  const baseCandidates = group.filter((row) => {
+    const category = Number(row?.category);
+    const isBaseCategory = !Number.isFinite(category) || category === 0;
+    const hasParent = !!row?.version_parent || !!row?.parent_game;
+    const hasAddonTitle = IGDB_ADDON_TITLE_PATTERN.test(String(row?.name || ""));
+    return isBaseCategory && !hasParent && !hasAddonTitle;
+  });
+  const pool = baseCandidates.length ? baseCandidates : group;
+  let best = null;
+  let bestScore = -Infinity;
+  pool.forEach((row) => {
+    const score = scoreIgdbCandidate(row);
+    if (score > bestScore) {
+      bestScore = score;
+      best = row;
+    }
+  });
+  return best;
+}
+
+function dedupeIgdbGames(rows = []) {
+  const list = Array.isArray(rows) ? rows : [];
+  if (!list.length) return list;
+  const groups = new Map();
+  list.forEach((row) => {
+    const key = normalizeIgdbTitleKey(row?.name || row?.title || row?.slug || "");
+    if (!key) return;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(row);
+  });
+  const results = [];
+  groups.forEach((group) => {
+    const best = pickBestIgdbCandidate(group);
+    if (best) results.push(best);
+  });
+  return results;
 }
 
 function yearFromRelease(value) {
@@ -743,21 +839,23 @@ function buildIgdbWhereClause({
   startUnix = null,
   endUnix = null,
   minRatingCount = null,
-  excludeDlc = false
+  minFollows = null
 } = {}) {
-  const clauses = [];
-  if (excludeDlc) {
-    // category: 0 = main game, 1 = DLC/expansion, we hide DLC from primary listings.
-    clauses.push("category != 1");
-  }
+  const clauses = [
+    "category = 0",
+    "cover != null"
+  ];
   const ids = dedupeNumbers(genreIds);
   if (ids.length) clauses.push(`genres = (${ids.join(",")})`);
   if (Number.isFinite(startUnix)) clauses.push(`first_release_date >= ${Math.floor(startUnix)}`);
   if (Number.isFinite(endUnix)) clauses.push(`first_release_date <= ${Math.floor(endUnix)}`);
   if (Number.isFinite(minRatingCount) && minRatingCount > 0) {
-    clauses.push(`total_rating_count > ${Math.floor(minRatingCount)}`);
+    clauses.push(`total_rating_count >= ${Math.floor(minRatingCount)}`);
   }
-  return clauses.length ? clauses.join(" & ") : "";
+  if (Number.isFinite(minFollows) && minFollows > 0) {
+    clauses.push(`follows >= ${Math.floor(minFollows)}`);
+  }
+  return clauses.join(" & ");
 }
 
 function dedupeGamesByNameAndYear(rows = []) {
@@ -802,7 +900,7 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
     })();
 
     const queryParts = [
-      "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,follows,cover.url,cover.image_id,screenshots.url,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name,category;"
+      "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,follows,category,version_parent,parent_game,cover.url,cover.image_id,screenshots.url,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name;"
     ];
     if (search) queryParts.push(`search "${escapeIgdbText(search)}";`);
     if (whereClause) queryParts.push(`where ${whereClause};`);
@@ -841,7 +939,8 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
       }
     }
 
-    const mappedRows = (Array.isArray(games) ? games : []).map((game) => {
+    const cleanedGames = dedupeIgdbGames(Array.isArray(games) ? games : []);
+    const mappedRows = cleanedGames.map((game) => {
       const mappedGenres = (Array.isArray(game?.genres) ? game.genres : [])
         .map((genre) => {
           if (genre && typeof genre === "object") {
@@ -917,7 +1016,7 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
       };
     }).filter((row) => row.id > 0);
 
-    const results = dedupeGamesByNameAndYear(mappedRows);
+    const results = mappedRows;
 
     const timedCount = await withTimeout(countPromise, IGDB_COUNT_TIMEOUT_MS).catch(() => 0);
     const fallbackCount = offset + results.length + (results.length >= pageSize ? pageSize : 0);
@@ -1581,7 +1680,7 @@ app.get("/api/igdb/games", async (req, res) => {
       startUnix,
       endUnix,
       minRatingCount: effectiveMinRatingCount,
-      excludeDlc: true
+      minFollows: minFollows || null
     });
     const payload = await fetchIgdbGamesList({
       page,
