@@ -839,6 +839,8 @@
 
       function normalizeTitleKey(value) {
         return String(value || '')
+          .normalize('NFKD')
+          .replace(/[\u0300-\u036f]/g, '')
           .trim()
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, ' ')
@@ -880,8 +882,8 @@
       }
 
       function scoreSearchMatch(title, query) {
-        const cleanTitle = String(title || '').trim().toLowerCase();
-        const cleanQuery = String(query || '').trim().toLowerCase();
+        const cleanTitle = normalizeTitleKey(title);
+        const cleanQuery = normalizeTitleKey(query);
         if (!cleanTitle || !cleanQuery) return 0;
         if (cleanTitle === cleanQuery) return 3;
         if (cleanTitle.startsWith(cleanQuery)) return 2;
@@ -942,6 +944,7 @@
           const page = Number(options.page || 1);
           const ordering = String(options.ordering || '-rating').trim();
           const popularityType = Number(options.popularityType || options.popularity_type || 0);
+          const spotlight = !!options.spotlight;
           const titleOnly = !!options.title_only || !!options.search_title_only;
           const safeOrdering = search ? '' : ordering;
           const dates = String(options.dates || '').trim();
@@ -953,6 +956,7 @@
             provider: 'wikipedia',
             popularity_type: popularityType > 0 ? Math.floor(popularityType) : undefined,
             dates: dates || undefined,
+            spotlight: spotlight ? 1 : undefined,
             title_only: titleOnly && search ? 1 : undefined,
             min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
             min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
@@ -974,6 +978,7 @@
           const page = Number(options.page || 1);
           const ordering = String(options.ordering || '-rating_count').trim();
           const popularityType = Number(options.popularityType || options.popularity_type || 0);
+          const spotlight = !!options.spotlight;
           const titleOnly = !!options.title_only || !!options.search_title_only;
           const safeOrdering = search ? '' : ordering;
           const dates = String(options.dates || '').trim();
@@ -987,6 +992,7 @@
             popularity_type: popularityType > 0 ? Math.floor(popularityType) : undefined,
             dates: dates || undefined,
             genres: genres || undefined,
+            spotlight: spotlight ? 1 : undefined,
             title_only: titleOnly && search ? 1 : undefined,
             min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
             min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
@@ -1137,7 +1143,7 @@
 
       function filterCatalogGames(catalogOverride) {
         const catalog = Array.isArray(catalogOverride) ? catalogOverride : state.catalog;
-        const query = String(state.query || '').trim().toLowerCase();
+        const query = String(state.query || '').trim();
         const activeGenre = String(state.activeGenre || '').trim().toLowerCase();
         const year = String(state.year || '').trim();
         return catalog.filter((item) => {
@@ -1145,8 +1151,7 @@
           if (!title) return false;
 
           if (query) {
-            const haystack = `${title} ${String(item?.description || '')}`.toLowerCase();
-            if (!haystack.includes(query)) return false;
+            if (!titleMatchesQuery(title, query)) return false;
           }
 
           if (activeGenre) {

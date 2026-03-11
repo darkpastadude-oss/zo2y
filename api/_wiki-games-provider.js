@@ -248,6 +248,8 @@ async function runWithConcurrency(items = [], concurrency = 6, worker) {
 
 function normalizeGameKey(value) {
   return String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
@@ -978,12 +980,14 @@ async function fetchSearchCandidates(search, offset = 0, limit = 40, titleOnly =
   if (!q) return { rows: [], totalHits: 0 };
   const queryKey = normalizeGameKey(q);
   const queryTokens = queryKey.split(/\s+/).filter(Boolean);
+  const compactQueryKey = queryKey.replace(/\s+/g, "");
   const json = await wikiQuery({ list: "search", srsearch: `${q} video game`, srnamespace: "0", sroffset: String(Math.max(0, offset)), srlimit: String(clampInt(limit, 1, 50, 40)) }).catch(() => null);
   const rows = (Array.isArray(json?.query?.search) ? json.query.search : [])
     .filter((row) => !isExcludedTitle(row?.title))
     .filter((row) => {
       const title = normalizeTitle(row?.title || "");
       const titleKey = normalizeGameKey(title);
+      const compactTitleKey = titleKey.replace(/\s+/g, "");
       const snippet = stripHtml(row?.snippet || "").toLowerCase();
       const snippetLooksLikeGame = (
         snippet.includes("video game") ||
@@ -993,6 +997,7 @@ async function fetchSearchCandidates(search, offset = 0, limit = 40, titleOnly =
       );
       const titleMatchesQuery = !!titleKey && (
         titleKey.includes(queryKey) ||
+        (compactQueryKey && compactTitleKey.includes(compactQueryKey)) ||
         (queryTokens.length > 0 && queryTokens.every((token) => titleKey.includes(token)))
       );
       if (titleOnly) return titleMatchesQuery;
@@ -1065,16 +1070,19 @@ function sortRowsByPopularity(rows = [], orderingRaw = "") {
 function sortSearchRowsByQuery(rows = [], query = "") {
   const normalizedQuery = normalizeGameKey(query);
   const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
+  const compactQuery = normalizedQuery.replace(/\s+/g, "");
   if (!normalizedQuery) return [...(Array.isArray(rows) ? rows : [])];
   const scored = (Array.isArray(rows) ? rows : []).map((row, index) => {
     const title = String(row?.name || "").trim();
     const titleKey = normalizeGameKey(title);
     const slugKey = normalizeGameKey(row?.slug || "");
     const combined = `${titleKey} ${slugKey}`.trim();
+    const compactCombined = combined.replace(/\s+/g, "");
     let score = 0;
     if (titleKey === normalizedQuery) score += 1200;
     if (combined.startsWith(normalizedQuery)) score += 880;
     if (combined.includes(normalizedQuery)) score += 620;
+    if (compactQuery && compactCombined.includes(compactQuery)) score += 520;
     queryTokens.forEach((token) => {
       if (!token) return;
       if (combined.startsWith(token)) score += 60;
@@ -1102,12 +1110,15 @@ function sortSearchRowsByQuery(rows = [], query = "") {
 function buildSeedQueryMatchCandidates(query, limit = 20) {
   const queryKey = normalizeGameKey(query);
   const tokens = queryKey.split(/\s+/).filter(Boolean);
+  const compactQueryKey = queryKey.replace(/\s+/g, "");
   if (!queryKey) return [];
   const matched = POPULAR_GAME_TITLE_SEEDS
     .map((title) => ({ title, key: normalizeGameKey(title) }))
     .filter((entry) => {
       if (!entry.key) return false;
+      const compactKey = entry.key.replace(/\s+/g, "");
       if (entry.key.includes(queryKey)) return true;
+      if (compactQueryKey && compactKey.includes(compactQueryKey)) return true;
       if (tokens.length && tokens.every((token) => entry.key.includes(token))) return true;
       if (tokens.length === 1 && tokens[0].length >= 3 && entry.key.startsWith(tokens[0])) return true;
       return false;
@@ -1250,7 +1261,7 @@ async function fetchGamesByExplicitIds(ids = []) {
   }));
 }
 
-export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search = "", id = "", ids = "", ordering = "-added", dates = "", genres = "", titleOnly = false } = {}) {
+export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search = "", id = "", ids = "", ordering = "-added", dates = "", genres = "", titleOnly = false, spotlight = false } = {}) {
   const safePage = clampInt(page, 1, 100000, 1);
   const safePageSize = clampInt(pageSize, 1, 50, 20);
   const offset = (safePage - 1) * safePageSize;
@@ -1263,11 +1274,13 @@ export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search 
     rows = dedupeRows(sortRows(filterRowsByDates(filterRowsByGenres(rows, genres), dates), ordering));
     const totalCount = rows.length;
     rows = rows.slice(0, safePageSize);
-    rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(10, safePageSize));
+    if (spotlight) {
+      rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(10, safePageSize));
+    }
     return { count: totalCount, results: rows };
   }
 
-  const cacheKey = JSON.stringify({ safePage, safePageSize, search: String(search || "").trim().toLowerCase(), ordering: String(ordering || "").trim().toLowerCase(), dates: String(dates || "").trim(), genres: String(genres || "").trim().toLowerCase(), titleOnly: !!titleOnly });
+  const cacheKey = JSON.stringify({ safePage, safePageSize, search: String(search || "").trim().toLowerCase(), ordering: String(ordering || "").trim().toLowerCase(), dates: String(dates || "").trim(), genres: String(genres || "").trim().toLowerCase(), titleOnly: !!titleOnly, spotlight: !!spotlight });
   const cached = readTimedCache(listCache, cacheKey);
   if (cached) return cached;
 
@@ -1309,7 +1322,9 @@ export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search 
         ? offset + rows.length + (rows.length >= safePageSize ? safePageSize : 0)
         : Math.max(Number(searched.totalHits || 0), offset + rows.length);
     rows = rows.slice(0, safePageSize);
-    rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(titleOnly ? 6 : 10, safePageSize));
+    if (spotlight) {
+      rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(titleOnly ? 6 : 10, safePageSize));
+    }
   } else {
     const candidateTarget = Math.min(Math.max(offset + (safePageSize * 3) + 24, 96), 560);
     const candidates = await fetchCategoryCandidates(dates, candidateTarget);
@@ -1339,7 +1354,9 @@ export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search 
     }
     count = rows.length;
     rows = rows.slice(offset, offset + safePageSize);
-    rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(12, safePageSize));
+    if (spotlight) {
+      rows = await enrichRowsWithSpotlightScreenshots(rows, Math.min(12, safePageSize));
+    }
   }
 
   const payload = { count: Number(count || rows.length || 0), results: rows };

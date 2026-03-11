@@ -4718,27 +4718,34 @@ let homeTravelPhotoCacheSaveTimer = null;
 
       try {
         const baseParams = {
-          page: 1,
-          page_size: Math.max(targetCount * 3, 60),
-          min_rating_count: 50,
-          provider: 'wikipedia'
+          page_size: Math.min(Math.max(targetCount * 4, 80), 140),
+          provider: 'wikipedia',
+          spotlight: 1
         };
-        let payload = await homeIgdbFetch('/games', {
-          ...baseParams,
-          ...cacheParams,
-          popularity_type: 1
-        }, signal);
-        let rows = Array.isArray(payload?.results) ? payload.results : [];
-        if (!rows.length && !signal?.aborted) {
-          payload = await homeIgdbFetch('/games', {
-            ...baseParams,
-            ...cacheParams,
-            ordering: '-follows'
-          }, signal);
-          rows = Array.isArray(payload?.results) ? payload.results : [];
+        const requests = [
+          { ...baseParams, page: 1, popularity_type: 1 },
+          { ...baseParams, page: 2, popularity_type: 1 },
+          { ...baseParams, page: 1, ordering: '-released' },
+          { ...baseParams, page: 1, ordering: '-name' }
+        ];
+        const merged = [];
+        const seen = new Set();
+        for (const params of requests) {
+          if (signal?.aborted) break;
+          const payload = await homeIgdbFetch('/games', { ...params, ...cacheParams }, signal);
+          const rows = Array.isArray(payload?.results) ? payload.results : [];
+          rows.forEach((row) => {
+            const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
+            const title = String(row?.title || row?.name || '').trim().toLowerCase();
+            const key = id || title;
+            if (!key || seen.has(key)) return;
+            seen.add(key);
+            merged.push(row);
+          });
+          if (merged.length >= targetCount * 4) break;
         }
-        if (!rows.length || signal?.aborted) return [];
-        return rows
+        if (!merged.length || signal?.aborted) return [];
+        return merged
           .map((row) => mapToItem(row))
           .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
           .slice(0, targetCount);
