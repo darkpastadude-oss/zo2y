@@ -21,8 +21,9 @@ const DEFAULT_BASE_URL = normalizeBaseUrl(
 );
 const DEFAULT_LIMIT = 300;
 const DEFAULT_PAGE_SIZE = 50;
-const DEFAULT_ORDERING = "-rating";
+const DEFAULT_ORDERING = "-follows";
 const DEFAULT_DATES = "1990-01-01,2035-12-31";
+const DEFAULT_MIN_RATING_COUNT = 50;
 const DEFAULT_MAX_PAGES = 40;
 const DEFAULT_DETAIL_CONCURRENCY = 6;
 const DEFAULT_BATCH_SIZE = 200;
@@ -87,8 +88,9 @@ function printHelp() {
       "  --limit <n>                 Number of games to import (default: 300)",
       "  --page-size <n>             Items per source page, max 50 (default: 50)",
       "  --max-pages <n>             Max pages to scan (default: 40)",
-      "  --ordering <value>          Source ordering (default: -rating)",
+      "  --ordering <value>          Source ordering (default: -follows)",
       "  --dates <start,end>         Date range filter (default: 1990-01-01,2035-12-31)",
+      "  --min-rating-count <n>      Minimum total rating count filter (default: 50)",
       "  --genres <csv>              Optional genre ids/slugs/names",
       "  --search <text>             Optional search text",
       "  --with-details <bool>       Enrich each game via /api/igdb/games/:id (default: true)",
@@ -466,6 +468,9 @@ function buildGamesListUrl(baseUrl, options, page) {
   url.searchParams.set("page_size", String(options.pageSize));
   if (options.ordering) url.searchParams.set("ordering", options.ordering);
   if (options.dates) url.searchParams.set("dates", options.dates);
+  if (Number.isFinite(Number(options.minRatingCount)) && Number(options.minRatingCount) > 0) {
+    url.searchParams.set("min_rating_count", String(Math.floor(Number(options.minRatingCount))));
+  }
   if (options.genres) url.searchParams.set("genres", options.genres);
   if (options.search) url.searchParams.set("search", options.search);
   return url.toString();
@@ -703,6 +708,7 @@ async function main() {
     maxPages: clampInt(args["max-pages"], 1, 500, DEFAULT_MAX_PAGES),
     ordering: String(args.ordering || DEFAULT_ORDERING).trim(),
     dates: String(args.dates || DEFAULT_DATES).trim(),
+    minRatingCount: clampInt(args["min-rating-count"], 0, 5_000_000, DEFAULT_MIN_RATING_COUNT),
     genres: String(args.genres || "").trim(),
     search: String(args.search || "").trim(),
     withDetails: parseBoolean(args["with-details"], true),

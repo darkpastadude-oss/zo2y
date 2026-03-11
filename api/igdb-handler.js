@@ -277,10 +277,12 @@ function mapOrderingToIgdb(orderingRaw) {
   if (ordering === "-released") return "first_release_date desc";
   if (ordering === "-rating") return "total_rating desc";
   if (ordering === "-rating_count" || ordering === "-ratings_count") return "total_rating_count desc";
+  if (ordering === "-follows") return "follows desc";
   if (ordering === "-name") return "name asc";
   if (ordering === "released") return "first_release_date asc";
   if (ordering === "rating") return "total_rating asc";
   if (ordering === "rating_count" || ordering === "ratings_count") return "total_rating_count asc";
+  if (ordering === "follows") return "follows asc";
   return "first_release_date desc";
 }
 
@@ -289,10 +291,12 @@ function mapOrderingToRawg(orderingRaw) {
   if (ordering === "-released") return "-released";
   if (ordering === "-rating") return "-rating";
   if (ordering === "-rating_count" || ordering === "-ratings_count") return "-ratings_count";
+  if (ordering === "-follows") return "-added";
   if (ordering === "-metacritic") return "-metacritic";
   if (ordering === "released") return "released";
   if (ordering === "rating") return "rating";
   if (ordering === "rating_count" || ordering === "ratings_count") return "ratings_count";
+  if (ordering === "follows") return "added";
   return "-added";
 }
 
@@ -723,7 +727,13 @@ async function resolveGenreIds(genresRaw) {
   return [...ids];
 }
 
-function buildIgdbWhereClause({ genreIds = [], startUnix = null, endUnix = null } = {}) {
+function buildIgdbWhereClause({
+  genreIds = [],
+  startUnix = null,
+  endUnix = null,
+  minRatingCount = null,
+  minFollows = null
+} = {}) {
   const clauses = [
     "category = 0",
     "cover != null"
@@ -732,6 +742,12 @@ function buildIgdbWhereClause({ genreIds = [], startUnix = null, endUnix = null 
   if (ids.length) clauses.push(`genres = (${ids.join(",")})`);
   if (Number.isFinite(startUnix)) clauses.push(`first_release_date >= ${Math.floor(startUnix)}`);
   if (Number.isFinite(endUnix)) clauses.push(`first_release_date <= ${Math.floor(endUnix)}`);
+  if (Number.isFinite(minRatingCount) && minRatingCount > 0) {
+    clauses.push(`total_rating_count >= ${Math.floor(minRatingCount)}`);
+  }
+  if (Number.isFinite(minFollows) && minFollows > 0) {
+    clauses.push(`follows >= ${Math.floor(minFollows)}`);
+  }
   return clauses.join(" & ");
 }
 
@@ -760,7 +776,7 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
     })();
 
     const queryParts = [
-      "fields id,name,slug,first_release_date,total_rating,total_rating_count,aggregated_rating,cover.image_id,screenshots.image_id,genres.id,genres.name,genres.slug;"
+      "fields id,name,slug,first_release_date,total_rating,total_rating_count,aggregated_rating,follows,cover.image_id,screenshots.image_id,genres.id,genres.name,genres.slug;"
     ];
     if (search) queryParts.push(`search "${escapeIgdbText(search)}";`);
     if (whereClause) queryParts.push(`where ${whereClause};`);
@@ -822,6 +838,7 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
       const hero = screenshotRows[0] || coverImage || "";
       const rating = Number(game?.total_rating || game?.aggregated_rating || 0);
       const ratingCount = Number(game?.total_rating_count || 0);
+      const follows = Number(game?.follows || 0);
 
       return {
         id: Number(game?.id || 0),
@@ -835,6 +852,7 @@ async function fetchIgdbGamesList({ page, pageSize, orderingRaw, search, whereCl
         short_screenshots: screenshotRows.map((image, index) => ({ id: index + 1, image })),
         rating: rating ? Number((rating / 20).toFixed(1)) : null,
         ratings_count: ratingCount || 0,
+        follows: follows || 0,
         metacritic: Number.isFinite(Number(game?.aggregated_rating)) ? Math.round(Number(game.aggregated_rating)) : null,
         genres: mappedGenres,
         source: "igdb"
@@ -861,7 +879,7 @@ async function fetchIgdbGameDetails(id) {
   if (cached) return cached;
 
   const query = [
-    "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,aggregated_rating,cover.image_id,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name;",
+    "fields id,name,slug,summary,first_release_date,total_rating,total_rating_count,aggregated_rating,follows,cover.image_id,screenshots.image_id,genres.id,genres.name,genres.slug,platforms.name;",
     `where id = ${Number(id)};`,
     "limit 1;"
   ].join(" ");
@@ -905,6 +923,7 @@ async function fetchIgdbGameDetails(id) {
   const hero = screenshotRows[0] || coverImage;
   const rating = Number(game?.total_rating || game?.aggregated_rating || 0);
   const ratingsCount = Number(game?.total_rating_count || 0);
+  const follows = Number(game?.follows || 0);
 
   const payload = {
     id: Number(game?.id || 0),
@@ -947,6 +966,7 @@ async function fetchIgdbGameDetails(id) {
       .filter(Boolean),
     rating: rating ? Number((rating / 20).toFixed(1)) : null,
     ratings_count: ratingsCount || 0,
+    follows: follows || 0,
     metacritic: Number.isFinite(Number(game?.aggregated_rating)) ? Math.round(Number(game.aggregated_rating)) : null,
     platforms: (Array.isArray(game?.platforms) ? game.platforms : [])
       .map((platform) => {
@@ -1032,7 +1052,7 @@ function mapRawgListRow(row) {
   };
 }
 
-async function fetchRawgGamesList({ page, pageSize, orderingRaw, search, dates, genres }) {
+async function fetchRawgGamesList({ page, pageSize, orderingRaw, search, dates, genres, minRatingCount = null }) {
   const json = await rawgRequest("/games", {
     page,
     page_size: pageSize,
@@ -1042,7 +1062,13 @@ async function fetchRawgGamesList({ page, pageSize, orderingRaw, search, dates, 
     genres
   });
   const rows = Array.isArray(json?.results) ? json.results : [];
-  const results = rows.map(mapRawgListRow).filter((row) => Number(row?.id) > 0);
+  const results = rows
+    .map(mapRawgListRow)
+    .filter((row) => Number(row?.id) > 0)
+    .filter((row) => {
+      if (!Number.isFinite(minRatingCount) || minRatingCount <= 0) return true;
+      return Number(row?.ratings_count || 0) >= minRatingCount;
+    });
   await enrichRawgRowsWithIgdbCovers(results);
   return {
     count: Number(json?.count || results.length || 0),
@@ -1254,6 +1280,7 @@ function mapGameDetailToListRow(detail) {
       .filter((entry) => !!entry.image),
     rating: Number.isFinite(Number(detail?.rating || NaN)) ? Number(detail.rating) : null,
     ratings_count: Number(detail?.ratings_count || 0),
+    follows: Number(detail?.follows || 0),
     metacritic: Number.isFinite(Number(detail?.metacritic || NaN)) ? Number(detail.metacritic) : null,
     genres: (Array.isArray(detail?.genres) ? detail.genres : []).map((genre) => ({
       id: Number(genre?.id || 0),
@@ -1443,6 +1470,8 @@ app.get("/api/igdb/games", async (req, res) => {
   const ordering = String(req.query.ordering || "-added").trim();
   const dates = String(req.query.dates || "").trim();
   const genres = String(req.query.genres || "").trim();
+  const minRatingCount = clampInt(req.query.min_rating_count, 0, 5_000_000, 0);
+  const minFollows = clampInt(req.query.min_follows, 0, 50_000_000, 0);
   const explicitIds = dedupeNumbers([
     ...parseIdsQuery(id),
     ...parseIdsQuery(ids)
@@ -1452,7 +1481,13 @@ app.get("/api/igdb/games", async (req, res) => {
     try {
       const { startUnix, endUnix } = parseDatesRange(dates);
       const genreIds = await resolveGenreIds(genres);
-      const whereClause = buildIgdbWhereClause({ genreIds, startUnix, endUnix });
+      const whereClause = buildIgdbWhereClause({
+        genreIds,
+        startUnix,
+        endUnix,
+        minRatingCount: minRatingCount || null,
+        minFollows: minFollows || null
+      });
       const payload = await fetchIgdbGamesList({
         page,
         pageSize,
@@ -1491,7 +1526,8 @@ app.get("/api/igdb/games", async (req, res) => {
         orderingRaw: ordering,
         search,
         dates,
-        genres
+        genres,
+        minRatingCount: minRatingCount || null
       });
       const filtered = (Array.isArray(payload?.results) ? payload.results : [])
         .filter((row) => String(row?.cover || row?.hero || row?.background_image || "").trim().length > 0);

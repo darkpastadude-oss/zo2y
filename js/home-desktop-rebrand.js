@@ -454,6 +454,7 @@
     } finally {
       if (timer) clearTimeout(timer);
     }
+  }
 
   async function fetchIgdbJson(path, params = {}, timeoutMs = 8000) {
     try {
@@ -469,7 +470,6 @@
     } catch (_err) {
       return null;
     }
-  }
   }
 
   function fallbackReviewMeta(mediaType, itemId) {

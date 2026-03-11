@@ -951,10 +951,14 @@
           const page = Number(options.page || 1);
           const ordering = String(options.ordering || '-rating').trim();
           const dates = String(options.dates || '').trim();
+          const minRatingCount = Number(options.minRatingCount || options.min_rating_count || 0);
+          const minFollows = Number(options.minFollows || options.min_follows || 0);
           const json = await fetchIgdbJson('/games', {
             search: search || undefined,
             ordering: ordering || undefined,
             dates: dates || undefined,
+            min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
+            min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
             page_size: Math.max(1, Math.min(pageSize, 200)),
             page: Math.max(1, page)
           });
@@ -974,11 +978,15 @@
           const ordering = String(options.ordering || '-rating_count').trim();
           const dates = String(options.dates || '').trim();
           const genres = String(options.genres || '').trim();
+          const minRatingCount = Number(options.minRatingCount || options.min_rating_count || 0);
+          const minFollows = Number(options.minFollows || options.min_follows || 0);
           const json = await fetchIgdbJson('/games', {
             search: search || undefined,
             ordering: ordering || undefined,
             dates: dates || undefined,
             genres: genres || undefined,
+            min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
+            min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
             page_size: Math.max(1, Math.min(pageSize, 50)),
             page: Math.max(1, page)
           });
@@ -1063,7 +1071,12 @@
           return true;
         }
 
-        const igdbRows = await fetchIgdbCatalog({ ordering: '-rating_count', pageSize: IGDB_PAGE_SIZE, page: 1 });
+        const igdbRows = await fetchIgdbCatalog({
+          ordering: '-follows',
+          pageSize: IGDB_PAGE_SIZE,
+          page: 1,
+          min_rating_count: 50
+        });
         if (igdbRows.length) {
           state.catalog = igdbRows;
           state.catalogSource = 'igdb';
@@ -1266,11 +1279,21 @@
         }
         rail.innerHTML = '<div class="empty">Loading popular games...</div>';
         let popularRows = [];
-        const igdbRows = await fetchIgdbCatalog({ ordering: '-rating_count', pageSize: 12, page: 1 });
+        const igdbRows = await fetchIgdbCatalog({
+          ordering: '-follows',
+          pageSize: 12,
+          page: 1,
+          min_rating_count: 50
+        });
         if (igdbRows.length) {
           popularRows = igdbRows;
-        } else if (state.catalog.length) {
-          popularRows = state.catalog.slice(0, 12);
+        } else {
+          if (!state.catalog.length) {
+            await ensureGamesCatalogLoaded();
+          }
+          if (state.catalog.length) {
+            popularRows = state.catalog.slice(0, 12);
+          }
         }
 
         if (!popularRows.length) {
@@ -1297,7 +1320,7 @@
 
         const pageSize = 24;
         const dates = state.year ? `${state.year}-01-01,${state.year}-12-31` : '';
-        const ordering = state.query ? '-rating' : '-rating_count';
+        const ordering = state.query ? '-rating' : '-follows';
         const igdbPayload = await fetchIgdbPage({
           page: state.page,
           pageSize,
