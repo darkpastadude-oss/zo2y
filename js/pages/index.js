@@ -772,15 +772,19 @@ let homeTravelPhotoCacheSaveTimer = null;
       const spotlightInner = document.getElementById('spotlightInner');
       if (!bg || !spotlightSection || !mediaWrap || !mediaImage || !title || !kicker || !summary || !reason || !trend || !openBtn) return;
 
-      const meta = getHomeMediaMeta(item.mediaType);
-      const isTravelSpotlight = String(item.mediaType || '').toLowerCase() === 'travel';
+      const mediaTypeKey = String(item.mediaType || '').toLowerCase();
+      const meta = getHomeMediaMeta(mediaTypeKey);
+      const isTravelSpotlight = mediaTypeKey === 'travel';
+      const isGameSpotlight = mediaTypeKey === 'game';
       const travelScenicImage = isTravelSpotlight
         ? getSafeTravelScenicImage(item.title, item.itemId, item.spotlightImage || item.backgroundImage || item.image)
         : '';
       const fallbackSpotlightBackground = isTravelSpotlight
         ? travelScenicImage
-        : String(item.spotlightImage || item.backgroundImage || item.image || '').trim();
-      const spotlightBackground = getHomeSpotlightBackgroundByType(item.mediaType) || fallbackSpotlightBackground;
+        : (isGameSpotlight
+          ? String(item.spotlightImage || item.backgroundImage || '').trim()
+          : String(item.spotlightImage || item.backgroundImage || item.image || '').trim());
+      const spotlightBackground = getHomeSpotlightBackgroundByType(mediaTypeKey) || fallbackSpotlightBackground;
       let spotlightMediaImage = String(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
       if (isTravelSpotlight) {
         const safeFlag = toHttpsUrl(String(item.flagImage || '').trim());
@@ -800,7 +804,6 @@ let homeTravelPhotoCacheSaveTimer = null;
 
       spotlightSection.classList.remove('has-square-media', 'has-landscape-media', 'theme-music', 'theme-book');
       mediaWrap.classList.remove('square', 'landscape');
-      const mediaTypeKey = String(item.mediaType || '').toLowerCase();
       if (mediaTypeKey === 'music') {
         spotlightSection.classList.add('theme-music');
       } else if (mediaTypeKey === 'book') {
@@ -836,7 +839,6 @@ let homeTravelPhotoCacheSaveTimer = null;
         spotlightSection.classList.remove('no-media');
         const fallbackCandidates = [
           spotlightMediaImage,
-          item.fallbackImage,
           item.image,
           item.spotlightImage,
           item.backgroundImage
@@ -1092,8 +1094,9 @@ let homeTravelPhotoCacheSaveTimer = null;
           const releaseDate = formatDateLabel(row?.released || row?.release_date || '');
           const releaseDateSort = toSortEpoch(row?.released || row?.release_date || releaseDate);
           const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
-          const cover = String(row?.cover || row?.cover_url || '').trim();
-          const image = cover || HOME_LOCAL_FALLBACK_IMAGE;
+          const cover = resolveHomeGameCover(row);
+          if (!cover) return null;
+          const hero = resolveHomeGameHero(row, '');
           const rowId = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
           const rowTitle = String(row?.name || row?.title || 'Game').trim() || 'Game';
           const genreText = Array.isArray(extra?.genres)
@@ -1106,17 +1109,17 @@ let homeTravelPhotoCacheSaveTimer = null;
             title: rowTitle,
             subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
             extra: [genreText, Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : ''].filter(Boolean).join(' | '),
-            image,
-            backgroundImage: image,
-            spotlightImage: image,
-            spotlightMediaImage: image,
+            image: cover,
+            backgroundImage: hero || '',
+            spotlightImage: hero || '',
+            spotlightMediaImage: cover,
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
-            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+            fallbackImage: '',
             href: rowId ? `game.html?id=${encodeURIComponent(rowId)}` : 'games.html'
           };
           return withReleaseTag({ ...item, releaseDateSort }, label, { detail: releaseDate });
-        }).filter((item) => String(item.itemId || '').trim() && String(item.image || '').trim());
+        }).filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim());
       };
 
       const mapBookRows = (rows, label, takeCount = 6) => {
@@ -1159,7 +1162,7 @@ let homeTravelPhotoCacheSaveTimer = null;
             spotlightMediaShape: 'poster',
             maturityRating: String(row?.maturityRating || row?.volumeInfo?.maturityRating || '').trim(),
             href,
-            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE
+            fallbackImage: ''
           };
           return withReleaseTag({ ...item, releaseDateSort }, label, { detail: year > 0 ? String(year) : '' });
         }).filter(Boolean);
@@ -1713,6 +1716,25 @@ let homeTravelPhotoCacheSaveTimer = null;
         const seed = getSpotlightSeedOffset();
         const offset = seed % shortlist.length;
         homeSpotlightItems = [...shortlist.slice(offset), ...shortlist.slice(0, offset)];
+      }
+
+      if (ENABLE_GAMES) {
+        const spotlightGames = safePool.filter((item) => {
+          const type = String(item?.mediaType || '').toLowerCase();
+          const cover = String(item?.spotlightMediaImage || '').trim();
+          const hero = String(item?.spotlightImage || '').trim();
+          return type === 'game' && cover && hero && cover !== hero;
+        });
+        const desiredGameCount = Math.min(3, spotlightGames.length);
+        const currentGameCount = homeSpotlightItems.filter((item) => String(item?.mediaType || '').toLowerCase() === 'game').length;
+        if (desiredGameCount > currentGameCount) {
+          const existingKeys = new Set(homeSpotlightItems.map((item, index) => getHomeSpotlightPoolKey(item, index)));
+          const needed = desiredGameCount - currentGameCount;
+          const additions = spotlightGames.filter((item, index) => !existingKeys.has(getHomeSpotlightPoolKey(item, index))).slice(0, needed);
+          if (additions.length) {
+            homeSpotlightItems = [...additions, ...homeSpotlightItems].slice(0, spotlightPoolSize);
+          }
+        }
       }
 
       warmSpotlightImages(homeSpotlightItems);
@@ -3304,7 +3326,7 @@ let homeTravelPhotoCacheSaveTimer = null;
     }
 
     function buildInstantFallbackFeed() {
-      const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE;
+      const fallbackImage = '';
       const targetCount = getHomeChannelTargetItems();
       const instantTravelItems = getCachedHomeTravelItems(targetCount);
       const makeSeedItems = (mediaType, titles, href) => titles.map((title, index) => ({
@@ -3578,7 +3600,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         return;
       }
 
-      rail.innerHTML = items.map((item) => {
+      const rendered = items.map((item) => {
         const mediaTypeRaw = String(item.mediaType || opts?.mediaType || '').toLowerCase();
         const itemData = mediaTypeRaw === 'travel'
           ? sanitizeHomeTravelItem(item)
@@ -3595,7 +3617,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         const flagImage = escapeHtml(itemData.flagImage || '');
         const listImage = escapeHtml(itemData.listImage || itemData.image || '');
         const logo = escapeHtml(itemData.logo || '');
-        const fallbackImage = escapeHtml(itemData.fallbackImage || '');
+        const fallbackImage = '';
         const coverImage = image || logo;
         const hrefRaw = itemData.href || '#';
         const href = escapeHtml(hrefRaw);
@@ -3615,18 +3637,45 @@ let homeTravelPhotoCacheSaveTimer = null;
           : { loading: 'lazy', priority: 'low' };
         const imageLoading = imagePolicy.loading;
         const imagePriority = imagePolicy.priority;
+
+        if (mediaTypeRaw === 'game' && String(opts?.mediaType || '').toLowerCase() === 'game') {
+          if (!image) return '';
+          const desc = extra || 'Video game';
+          const trailingControl = supportsLists
+            ? `<button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>`
+            : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
+          return `
+            <article class="card game-card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${image}">
+              <img class="game-card-img" src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">
+              <div class="card-body">
+                <h3 class="card-title">${title}</h3>
+                <div class="card-meta-row">
+                  <div class="card-meta">${subtitle}</div>
+                  <div class="card-menu-wrap">
+                    ${previewControl}
+                    ${trailingControl}
+                  </div>
+                </div>
+                <div class="card-desc">${desc}</div>
+              </div>
+            </article>
+          `;
+        }
+
         const mediaClasses = ['card-media'];
         if (landscape) mediaClasses.push('landscape');
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
         if (mediaTypeRaw === 'music') mediaClasses.push('music-cover');
         if (mediaTypeRaw === 'travel') mediaClasses.push('travel-photo');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
+        if (restaurantComposite && !coverImage && !logo) return '';
+        if (!restaurantComposite && !image) return '';
         const mediaHtml = restaurantComposite
           ? `
-              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage || logo}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
-              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage || coverImage}" data-fallback-applied="0"></span>` : ''}
+              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
+              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0"></span>` : ''}
             `
-          : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
+          : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
         const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
         const titleMarkup = (mediaTypeRaw === 'travel' && flagImage)
           ? `<span class="country-title-wrap"><img class="country-inline-flag" src="${flagImage}" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="country-title-text">${title}</span></span>`
@@ -3661,7 +3710,11 @@ let homeTravelPhotoCacheSaveTimer = null;
             </div>
           </article>
         `;
-      }).join('');
+      }).filter(Boolean);
+
+      const html = rendered.join('');
+      rail.innerHTML = html || '<div class="empty">No items right now.</div>';
+      if (!html) return;
 
       wireHomeCardMenus(rail);
       wireHomeRailImageFallbacks(rail);
@@ -3670,23 +3723,13 @@ let homeTravelPhotoCacheSaveTimer = null;
     function wireHomeRailImageFallbacks(scope) {
       scope.querySelectorAll('img[data-fallback-image]').forEach((img) => {
         img.addEventListener('error', () => {
-          const fallback = String(img.getAttribute('data-fallback-image') || '').trim();
-          const alreadyApplied = img.getAttribute('data-fallback-applied') === '1';
-          if (!fallback || alreadyApplied) {
-            const card = img.closest('.card');
-            const mediaType = String(card?.getAttribute('data-media-type') || '').toLowerCase();
-            if (mediaType === 'travel' && card?.parentElement) {
-              const rail = card.parentElement;
-              card.remove();
-              if (!rail.querySelector('.card')) {
-                rail.innerHTML = '<div class="empty">No items right now.</div>';
-              }
-            }
-            return;
+          const card = img.closest('.card');
+          if (!card) return;
+          const rail = card.parentElement;
+          card.remove();
+          if (rail && !rail.querySelector('.card')) {
+            rail.innerHTML = '<div class="empty">No items right now.</div>';
           }
-          img.setAttribute('data-fallback-applied', '1');
-          if (String(img.currentSrc || img.src).trim() === fallback) return;
-          img.src = fallback;
         });
       });
     }
@@ -4688,7 +4731,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
         const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
         const cover = resolveHomeGameCover(row);
-        const hero = resolveHomeGameHero(row, cover);
+        const hero = resolveHomeGameHero(row, '');
         // Drop games that don't have a real cover image.
         if (!cover || cover.includes('/newlogo.webp')) return null;
         const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
@@ -4706,12 +4749,12 @@ let homeTravelPhotoCacheSaveTimer = null;
           subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
           extra: [genreText, ratingText].filter(Boolean).join(' | '),
           image: cover,
-          backgroundImage: hero || cover,
-          spotlightImage: hero || cover,
+          backgroundImage: hero || '',
+          spotlightImage: hero || '',
           spotlightMediaImage: cover,
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'poster',
-          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+          fallbackImage: '',
           href: id ? `game.html?id=${encodeURIComponent(String(id))}` : 'games.html'
         };
       };
@@ -4899,7 +4942,7 @@ let homeTravelPhotoCacheSaveTimer = null;
             spotlightMediaImage: cover,
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
-            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+            fallbackImage: '',
             maturityRating: String(normalized?.maturityRating || '').trim(),
             isbn,
             href

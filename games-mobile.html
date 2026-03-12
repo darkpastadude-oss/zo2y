@@ -837,8 +837,21 @@
         return out;
       }
 
+      const ROMAN_NUMERAL_MAP = {
+        i: '1',
+        ii: '2',
+        iii: '3',
+        iv: '4',
+        v: '5',
+        vi: '6',
+        vii: '7',
+        viii: '8',
+        ix: '9',
+        x: '10'
+      };
+
       function normalizeTitleKey(value) {
-        return String(value || '')
+        const normalized = String(value || '')
           .normalize('NFKD')
           .replace(/[\u0300-\u036f]/g, '')
           .trim()
@@ -846,6 +859,70 @@
           .replace(/[^a-z0-9]+/g, ' ')
           .replace(/\s+/g, ' ')
           .trim();
+        if (!normalized) return '';
+        return normalized
+          .split(' ')
+          .map((token) => ROMAN_NUMERAL_MAP[token] || token)
+          .join(' ')
+          .trim();
+      }
+
+      function splitTitleTokens(value) {
+        const normalized = normalizeTitleKey(value);
+        if (!normalized) return [];
+        return normalized.split(' ').filter(Boolean);
+      }
+
+      function buildAcronym(tokens = []) {
+        return tokens.map((token) => token.slice(0, 1)).join('');
+      }
+
+      function isOneEditAway(a = '', b = '') {
+        if (a === b) return true;
+        if (Math.abs(a.length - b.length) > 1) return false;
+        let i = 0;
+        let j = 0;
+        let edits = 0;
+        while (i < a.length && j < b.length) {
+          if (a[i] === b[j]) {
+            i += 1;
+            j += 1;
+            continue;
+          }
+          edits += 1;
+          if (edits > 1) return false;
+          if (a.length > b.length) {
+            i += 1;
+          } else if (b.length > a.length) {
+            j += 1;
+          } else {
+            i += 1;
+            j += 1;
+          }
+        }
+        if (i < a.length || j < b.length) edits += 1;
+        return edits <= 1;
+      }
+
+      function isTransposition(a = '', b = '') {
+        if (a.length !== b.length || a.length < 2) return false;
+        const diffs = [];
+        for (let i = 0; i < a.length; i += 1) {
+          if (a[i] !== b[i]) diffs.push(i);
+          if (diffs.length > 2) return false;
+        }
+        if (diffs.length !== 2) return false;
+        if (diffs[1] !== diffs[0] + 1) return false;
+        return a[diffs[0]] === b[diffs[1]] && a[diffs[1]] === b[diffs[0]];
+      }
+
+      function tokenMatchesQuery(titleToken, queryToken) {
+        if (!titleToken || !queryToken) return false;
+        if (titleToken.startsWith(queryToken)) return true;
+        if (queryToken.length >= 3 && titleToken.includes(queryToken)) return true;
+        if (queryToken.length >= 4 && isTransposition(titleToken, queryToken)) return true;
+        if (queryToken.length >= 4 && isOneEditAway(titleToken, queryToken)) return true;
+        return false;
       }
 
       function titleMatchesQuery(title, query) {
@@ -856,7 +933,15 @@
         const compactTitle = titleKey.replace(/\s+/g, '');
         const compactQuery = queryKey.replace(/\s+/g, '');
         if (!compactQuery) return false;
-        return compactTitle.includes(compactQuery);
+        if (compactTitle.includes(compactQuery)) return true;
+        const titleTokens = splitTitleTokens(titleKey);
+        const queryTokens = splitTitleTokens(queryKey);
+        if (!queryTokens.length) return true;
+        if (queryTokens.length === 1) {
+          const acronym = buildAcronym(titleTokens);
+          if (acronym && (acronym === queryKey || acronym.startsWith(queryKey))) return true;
+        }
+        return queryTokens.every((token) => titleTokens.some((titleToken) => tokenMatchesQuery(titleToken, token)));
       }
 
       function filterTitleMatches(rows = [], query = '') {
@@ -907,6 +992,35 @@
           }
           return aTitle.localeCompare(bTitle);
         });
+      }
+
+      const SEARCH_ALIASES = {
+        gta: 'grand theft auto',
+        gtav: 'grand theft auto v',
+        gtas: 'grand theft auto san andreas',
+        cod: 'call of duty',
+        cs: 'counter strike',
+        cs2: 'counter strike 2',
+        csgo: 'counter strike global offensive',
+        lol: 'league of legends',
+        tlou: 'the last of us',
+        tloz: 'the legend of zelda',
+        r6: 'rainbow six',
+        mk: 'mortal kombat',
+        ac: 'assassins creed'
+      };
+
+      function getSearchFallbackQueries(query) {
+        const raw = String(query || '').trim();
+        if (!raw) return [];
+        const normalized = normalizeTitleKey(raw);
+        const compact = normalized.replace(/\s+/g, '');
+        const variants = new Set();
+        const alias = SEARCH_ALIASES[normalized] || SEARCH_ALIASES[compact] || '';
+        if (alias && alias !== raw) variants.add(alias);
+        if (normalized && normalized !== raw) variants.add(normalized);
+        if (compact && compact !== normalized && compact !== raw) variants.add(compact);
+        return [...variants].filter(Boolean);
       }
       function mapIgdbRowToCatalog(row) {
         if (!row) return null;
@@ -1331,7 +1445,8 @@
         }
         const pageSize = getGamesPageSize();
         const fetchLimitCap = isSlowNetwork() ? 30 : 50;
-        const fetchPageSize = Math.min(pageSize * (state.query ? 3 : 2), fetchLimitCap);
+        const fetchMultiplier = state.query ? 2 : 1.5;
+        const fetchPageSize = Math.min(Math.ceil(pageSize * fetchMultiplier), fetchLimitCap);
         const dates = state.year ? `${state.year}-01-01,${state.year}-12-31` : '';
         const ordering = state.query ? '-rating' : '-follows';
         const minRatingCount = (!state.query && !state.activeGenre && !state.year) ? 50 : 0;
@@ -1348,6 +1463,11 @@
           title_only: state.query ? 1 : undefined
         }, { signal, cacheBust: options?.cacheBust });
         if (requestId !== state.requestId) return;
+
+        if (!igdbPayload && !options?._retry && !signal.aborted) {
+          await loadGames({ ...options, _retry: true, cacheBust: true });
+          return;
+        }
 
         if (igdbPayload) {
           state.catalogSource = 'igdb';
@@ -1373,6 +1493,31 @@
               const nextSorted = sortSearchResults(nextPayload.rows || [], state.query);
               const nextFiltered = filterTitleMatches(nextSorted, state.query);
               filteredResults = dedupeRowsById([...filteredResults, ...nextFiltered]);
+            }
+          }
+          if (!filteredResults.length && state.query) {
+            const fallbackQueries = getSearchFallbackQueries(state.query);
+            for (const altQuery of fallbackQueries) {
+              if (!altQuery) continue;
+              const altPayload = await fetchIgdbPage({
+                page: state.page,
+                pageSize: fetchPageSize,
+                ordering,
+                search: altQuery,
+                dates,
+                genres: state.activeGenre,
+                min_rating_count: minRatingCount,
+                popularity_type: popularityType || undefined,
+                title_only: 1
+              }, { cacheBust: options?.cacheBust });
+              if (requestId !== state.requestId) return;
+              if (!altPayload) continue;
+              const altSorted = sortSearchResults(altPayload.rows || [], state.query);
+              const altFiltered = filterTitleMatches(altSorted, state.query);
+              if (altFiltered.length) {
+                filteredResults = altFiltered;
+                break;
+              }
             }
           }
           const results = filteredResults.slice(0, pageSize);
@@ -1653,6 +1798,19 @@
             renderFilters();
             state.page = 1;
             scheduleGamesLoad(380);
+          });
+          searchInput.addEventListener('change', (e) => {
+            state.query = e.target.value.trim();
+            renderFilters();
+            state.page = 1;
+            loadGames();
+          });
+          searchInput.addEventListener('keyup', (e) => {
+            if (e.key !== 'Enter') return;
+            state.query = e.target.value.trim();
+            renderFilters();
+            state.page = 1;
+            loadGames();
           });
         }
         if (genreSelect) {

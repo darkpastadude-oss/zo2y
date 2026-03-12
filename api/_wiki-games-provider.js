@@ -246,24 +246,114 @@ async function runWithConcurrency(items = [], concurrency = 6, worker) {
   }));
 }
 
+const ROMAN_NUMERAL_MAP = {
+  i: "1",
+  ii: "2",
+  iii: "3",
+  iv: "4",
+  v: "5",
+  vi: "6",
+  vii: "7",
+  viii: "8",
+  ix: "9",
+  x: "10"
+};
+
 function normalizeGameKey(value) {
-  return String(value || "")
+  const normalized = String(value || "")
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+  if (!normalized) return "";
+  return normalized
+    .split(/\s+/)
+    .map((token) => ROMAN_NUMERAL_MAP[token] || token)
+    .join(" ")
+    .trim();
 }
 
-function titleIncludesQuery(title, query) {
+function splitTitleTokens(value) {
+  const normalized = normalizeGameKey(value);
+  if (!normalized) return [];
+  return normalized.split(/\s+/).filter(Boolean);
+}
+
+function buildAcronym(tokens = []) {
+  return tokens.map((token) => token.slice(0, 1)).join("");
+}
+
+function isOneEditAway(a = "", b = "") {
+  if (a === b) return true;
+  const lenA = a.length;
+  const lenB = b.length;
+  if (Math.abs(lenA - lenB) > 1) return false;
+  let i = 0;
+  let j = 0;
+  let edits = 0;
+  while (i < lenA && j < lenB) {
+    if (a[i] === b[j]) {
+      i += 1;
+      j += 1;
+      continue;
+    }
+    edits += 1;
+    if (edits > 1) return false;
+    if (lenA > lenB) {
+      i += 1;
+    } else if (lenB > lenA) {
+      j += 1;
+    } else {
+      i += 1;
+      j += 1;
+    }
+  }
+  if (i < lenA || j < lenB) edits += 1;
+  return edits <= 1;
+}
+
+function isTransposition(a = "", b = "") {
+  if (a.length !== b.length || a.length < 2) return false;
+  const diffs = [];
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) diffs.push(i);
+    if (diffs.length > 2) return false;
+  }
+  if (diffs.length !== 2) return false;
+  if (diffs[1] !== diffs[0] + 1) return false;
+  return a[diffs[0]] === b[diffs[1]] && a[diffs[1]] === b[diffs[0]];
+}
+
+function tokenMatchesQuery(titleToken, queryToken) {
+  if (!titleToken || !queryToken) return false;
+  if (titleToken.startsWith(queryToken)) return true;
+  if (queryToken.length >= 3 && titleToken.includes(queryToken)) return true;
+  if (queryToken.length >= 4 && isTransposition(titleToken, queryToken)) return true;
+  if (queryToken.length >= 4 && isOneEditAway(titleToken, queryToken)) return true;
+  return false;
+}
+
+function titleMatchesQueryLoose(title, query) {
   const titleKey = normalizeGameKey(title);
   const queryKey = normalizeGameKey(query);
   if (!queryKey) return true;
   if (titleKey.includes(queryKey)) return true;
   const compactTitle = titleKey.replace(/\s+/g, "");
   const compactQuery = queryKey.replace(/\s+/g, "");
-  if (!compactQuery) return false;
-  return compactTitle.includes(compactQuery);
+  if (compactQuery && compactTitle.includes(compactQuery)) return true;
+  const titleTokens = titleKey.split(/\s+/).filter(Boolean);
+  const queryTokens = queryKey.split(/\s+/).filter(Boolean);
+  if (!queryTokens.length) return true;
+  if (queryTokens.length === 1) {
+    const acronym = buildAcronym(titleTokens);
+    if (acronym && (acronym === queryKey || acronym.startsWith(queryKey))) return true;
+  }
+  return queryTokens.every((token) => titleTokens.some((titleToken) => tokenMatchesQuery(titleToken, token)));
+}
+
+function titleIncludesQuery(title, query) {
+  return titleMatchesQueryLoose(title, query);
 }
 
 function canonicalGenreSlugFromText(value) {
@@ -995,10 +1085,12 @@ async function fetchSearchCandidates(search, offset = 0, limit = 40, titleOnly =
         snippet.includes("published by") ||
         snippet.includes(" game")
       );
-      const titleMatchesQuery = !!titleKey && (
-        titleKey.includes(queryKey) ||
-        (compactQueryKey && compactTitleKey.includes(compactQueryKey)) ||
-        (queryTokens.length > 0 && queryTokens.every((token) => titleKey.includes(token)))
+      const titleMatchesQuery = titleMatchesQueryLoose(title, q) || (
+        !!titleKey && (
+          titleKey.includes(queryKey) ||
+          (compactQueryKey && compactTitleKey.includes(compactQueryKey)) ||
+          (queryTokens.length > 0 && queryTokens.every((token) => titleKey.includes(token)))
+        )
       );
       if (titleOnly) return titleMatchesQuery;
       return snippetLooksLikeGame || titleMatchesQuery;
@@ -1078,11 +1170,14 @@ function sortSearchRowsByQuery(rows = [], query = "") {
     const slugKey = normalizeGameKey(row?.slug || "");
     const combined = `${titleKey} ${slugKey}`.trim();
     const compactCombined = combined.replace(/\s+/g, "");
+    const titleTokens = titleKey.split(/\s+/).filter(Boolean);
+    const acronym = buildAcronym(titleTokens);
     let score = 0;
     if (titleKey === normalizedQuery) score += 1200;
     if (combined.startsWith(normalizedQuery)) score += 880;
     if (combined.includes(normalizedQuery)) score += 620;
     if (compactQuery && compactCombined.includes(compactQuery)) score += 520;
+    if (acronym && (acronym === normalizedQuery || acronym.startsWith(normalizedQuery))) score += 420;
     queryTokens.forEach((token) => {
       if (!token) return;
       if (combined.startsWith(token)) score += 60;
@@ -1116,6 +1211,7 @@ function buildSeedQueryMatchCandidates(query, limit = 20) {
     .map((title) => ({ title, key: normalizeGameKey(title) }))
     .filter((entry) => {
       if (!entry.key) return false;
+      if (titleMatchesQueryLoose(entry.title, query)) return true;
       const compactKey = entry.key.replace(/\s+/g, "");
       if (entry.key.includes(queryKey)) return true;
       if (compactQueryKey && compactKey.includes(compactQueryKey)) return true;
@@ -1291,7 +1387,13 @@ export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search 
     const searchLimit = titleOnly ? Math.max(20, safePageSize * 2) : Math.max(36, safePageSize * 4);
     const searched = await fetchSearchCandidates(search, offset, searchLimit, titleOnly);
     rows = await hydrateRows(searched.rows);
-    if (!titleOnly) {
+    if (titleOnly) {
+      const seedQueryMatches = buildSeedQueryMatchCandidates(search, Math.max(24, safePageSize * 2));
+      if (rows.length < safePageSize) {
+        const queryBackfill = await hydrateRows(seedQueryMatches);
+        rows = [...rows, ...queryBackfill];
+      }
+    } else {
       const popularSeeds = await fetchPopularSeedCandidates(36);
       const seedQueryMatches = buildSeedQueryMatchCandidates(search, 24);
       const genreSeedMatches = buildGenreSeedCandidates(genres, Math.max(18, safePageSize * 2));
