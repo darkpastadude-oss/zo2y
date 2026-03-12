@@ -3641,12 +3641,16 @@ let homeTravelPhotoCacheSaveTimer = null;
         if (mediaTypeRaw === 'game' && String(opts?.mediaType || '').toLowerCase() === 'game') {
           if (!image) return '';
           const desc = extra || 'Video game';
+          const gameBg = escapeHtml(itemData.backgroundImage || itemData.spotlightImage || '');
+          const bgStyle = gameBg ? ` style="background-image:url('${gameBg}')" ` : '';
           const trailingControl = supportsLists
             ? `<button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>`
             : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
           return `
             <article class="card game-card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${image}">
-              <img class="game-card-img" src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">
+              <div class="game-card-media"${bgStyle}>
+                <img class="game-card-img" src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">
+              </div>
               <div class="card-body">
                 <h3 class="card-title">${title}</h3>
                 <div class="card-meta-row">
@@ -4691,7 +4695,7 @@ let homeTravelPhotoCacheSaveTimer = null;
 
     function pickPreferredGameCoverUrl(candidates = []) {
       const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
-      return cleaned.find((url) => /wikimedia|wikipedia/.test(url)) || '';
+      return cleaned.find((url) => /wikimedia|wikipedia/.test(url)) || cleaned[0] || '';
     }
 
     function pickBackdropGameUrl(candidates = [], fallback = '') {
@@ -4724,7 +4728,7 @@ let homeTravelPhotoCacheSaveTimer = null;
     }
 
     async function loadGames(signal, options = {}) {
-      const targetCount = getHomeChannelTargetItems();
+      const targetCount = Math.max(getHomeChannelTargetItems(), isHomeSlowNetwork() ? 18 : 28);
       const cacheBust = options?.cacheBust ? Date.now() : 0;
       const cacheParams = cacheBust ? { cache_bust: cacheBust } : {};
       const mapToItem = (row) => {
@@ -4761,15 +4765,18 @@ let homeTravelPhotoCacheSaveTimer = null;
 
       try {
         const baseParams = {
-          page_size: Math.min(Math.max(targetCount * 4, 80), 140),
+          page_size: Math.min(Math.max(targetCount * 6, 140), 220),
           provider: 'wikipedia',
           spotlight: 1
         };
         const requests = [
-          { ...baseParams, page: 1, popularity_type: 1 },
-          { ...baseParams, page: 2, popularity_type: 1 },
           { ...baseParams, page: 1, ordering: '-released' },
-          { ...baseParams, page: 1, ordering: '-name' }
+          { ...baseParams, page: 2, ordering: '-released' },
+          { ...baseParams, page: 1, ordering: '-rating' },
+          { ...baseParams, page: 1, ordering: '-rating_count' },
+          { ...baseParams, page: 1, ordering: '-name' },
+          { ...baseParams, page: 1, popularity_type: 1 },
+          { ...baseParams, page: 2, popularity_type: 1 }
         ];
         const merged = [];
         const seen = new Set();

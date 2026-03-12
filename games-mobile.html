@@ -253,13 +253,33 @@
       overflow: visible;
     }
 
-    .card img {
+    .card .card-media {
+      position: relative;
       width: 100%;
       aspect-ratio: 2 / 3;
-      height: auto;
+      background: #0f1f40;
+      background-size: cover;
+      background-position: center center;
+      overflow: hidden;
+    }
+
+    .card .card-media::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(9, 18, 36, 0.2) 0%, rgba(9, 18, 36, 0.45) 100%);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .card .card-media img {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       display: block;
-      background: #0f1f40;
+      background: transparent;
     }
 
     .card-body {
@@ -544,11 +564,7 @@
     .icon-option.selected { border-color: var(--accent); color: var(--accent); }
 
     @media (max-width: 760px) {
-      .card img {
-        aspect-ratio: 2 / 3;
-        object-fit: cover;
-        background: #0f1f40;
-      }
+      .card .card-media { aspect-ratio: 2 / 3; }
     }
   </style>
   <meta name="theme-color" content="#0b1633" />
@@ -664,7 +680,7 @@
 
       function pickPreferredCoverUrl(candidates = []) {
         const cleaned = candidates.map(normalizeGameImageUrl).filter(Boolean);
-        return cleaned.find((url) => /wikimedia|wikipedia/.test(url)) || '';
+        return cleaned.find((url) => /wikimedia|wikipedia/.test(url)) || cleaned[0] || '';
       }
 
       function pickBackdropUrl(candidates = [], fallback = '') {
@@ -1409,10 +1425,12 @@
         const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
         const gameDesc = [genreText, ratingText].filter(Boolean).join(' | ') || String(item.description || '').trim() || 'Popular pick';
         const gameCover = resolveGameImageSource(item);
+        const gameHero = resolveGameHeroSource(item, gameCover);
         // Skip entries that don't have a real cover image.
         if (!gameCover || gameCover === IGDB_FALLBACK_IMAGE || gameCover.includes('/newlogo.webp')) {
           return null;
         }
+        const heroStyle = gameHero ? ` style="background-image:url('${encodeURI(gameHero)}')"` : '';
 
         const gameId = Number(item.id);
         if (!Number.isFinite(gameId)) return null;
@@ -1421,7 +1439,9 @@
         card.setAttribute('data-game-id', gameId);
         const isPriority = Number.isFinite(index) && index < 4;
         card.innerHTML = `
-          <img src="${gameCover}" alt="${gameTitle}" loading="${isPriority ? 'eager' : 'lazy'}" fetchpriority="${isPriority ? 'high' : 'low'}" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;const c=this.closest('.card');if(c)c.remove();">
+          <div class="card-media"${heroStyle}>
+            <img src="${gameCover}" alt="${gameTitle}" loading="${isPriority ? 'eager' : 'lazy'}" fetchpriority="${isPriority ? 'high' : 'low'}" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;const c=this.closest('.card');if(c)c.remove();">
+          </div>
           <div class="card-body">
             <h3 class="card-title">${gameTitle}</h3>
             <div class="card-meta-row">

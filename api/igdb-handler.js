@@ -54,6 +54,12 @@ const SUPABASE_SERVICE_ROLE_KEY =
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.SUPABASE_SERVICE_KEY ||
   "";
+const SUPABASE_STORAGE_BUCKET =
+  process.env.GAMES_STORAGE_BUCKET ||
+  process.env.SUPABASE_GAMES_BUCKET ||
+  "game-media";
+const IMAGE_DOWNLOAD_TIMEOUT_MS = 7000;
+const IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 
 let tokenCache = {
   accessToken: "",
@@ -76,6 +82,9 @@ let wikiListResponseCache = new Map();
 let wikiDetailResponseCache = new Map();
 let wikiEntityCache = new Map();
 let supabaseAdmin = null;
+let storageBucketReady = false;
+let storageBucketChecked = false;
+let imageUploadCache = new Map();
 
 function getSupabaseAdmin() {
   if (!SUPABASE_SERVICE_ROLE_KEY) return null;
@@ -85,6 +94,113 @@ function getSupabaseAdmin() {
     });
   }
   return supabaseAdmin;
+}
+
+async function ensureStorageBucket() {
+  if (storageBucketChecked) return storageBucketReady;
+  storageBucketChecked = true;
+  const admin = getSupabaseAdmin();
+  if (!admin) return false;
+  try {
+    const { data } = await admin.storage.getBucket(SUPABASE_STORAGE_BUCKET);
+    if (data?.name) {
+      storageBucketReady = true;
+      return true;
+    }
+  } catch (_error) {}
+  try {
+    const { data } = await admin.storage.createBucket(SUPABASE_STORAGE_BUCKET, { public: true });
+    if (data?.name) {
+      storageBucketReady = true;
+      return true;
+    }
+  } catch (_error) {}
+  storageBucketReady = false;
+  return false;
+}
+
+function isSupabaseStorageUrl(value) {
+  const url = String(value || "").trim().toLowerCase();
+  if (!url) return false;
+  return url.includes("/storage/v1/object/public/") && url.includes(SUPABASE_URL.toLowerCase());
+}
+
+function detectImageExtension(url, contentType) {
+  const type = String(contentType || "").toLowerCase();
+  if (type.includes("image/webp")) return ".webp";
+  if (type.includes("image/png")) return ".png";
+  if (type.includes("image/jpeg")) return ".jpg";
+  if (type.includes("image/jpg")) return ".jpg";
+  if (type.includes("image/avif")) return ".avif";
+  const match = String(url || "").toLowerCase().match(/\.(avif|webp|png|jpe?g)(?:\?|#|$)/);
+  if (match) return `.${match[1].replace("jpeg", "jpg")}`;
+  return ".jpg";
+}
+
+function buildStoragePath(id, kind, ext) {
+  const safeKind = String(kind || "cover").replace(/[^a-z0-9_-]/gi, "");
+  const safeExt = String(ext || ".jpg").startsWith(".") ? ext : `.${ext}`;
+  return `games/${id}/${safeKind}${safeExt}`;
+}
+
+async function fetchImageBuffer(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), IMAGE_DOWNLOAD_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, { signal: controller.signal, redirect: "follow" });
+    if (!response.ok) return null;
+    const length = Number(response.headers.get("content-length") || 0);
+    if (length && length > IMAGE_MAX_BYTES) return null;
+    const contentType = response.headers.get("content-type") || "";
+    const arrayBuffer = await response.arrayBuffer();
+    if (arrayBuffer.byteLength > IMAGE_MAX_BYTES) return null;
+    return {
+      buffer: Buffer.from(arrayBuffer),
+      contentType
+    };
+  } catch (_error) {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function cacheImageToSupabase({ id, kind, url }) {
+  const admin = getSupabaseAdmin();
+  if (!admin) return "";
+  const normalizedUrl = toHttpsUrl(url);
+  if (!normalizedUrl || isSupabaseStorageUrl(normalizedUrl)) return normalizedUrl;
+  const cacheKey = `${id}:${kind}:${normalizedUrl}`;
+  if (imageUploadCache.has(cacheKey)) {
+    return imageUploadCache.get(cacheKey);
+  }
+  const task = (async () => {
+    const ready = await ensureStorageBucket();
+    if (!ready) return "";
+    const image = await fetchImageBuffer(normalizedUrl);
+    if (!image) return "";
+    const ext = detectImageExtension(normalizedUrl, image.contentType);
+    const path = buildStoragePath(id, kind, ext);
+    const upload = await admin.storage
+      .from(SUPABASE_STORAGE_BUCKET)
+      .upload(path, image.buffer, {
+        contentType: image.contentType || "image/jpeg",
+        cacheControl: "31536000",
+        upsert: false
+      });
+    if (upload?.error && upload.error.statusCode !== 409) {
+      return "";
+    }
+    const { data } = admin.storage.from(SUPABASE_STORAGE_BUCKET).getPublicUrl(path);
+    return data?.publicUrl || "";
+  })();
+  imageUploadCache.set(cacheKey, task);
+  try {
+    const result = await task;
+    return result || "";
+  } finally {
+    imageUploadCache.delete(cacheKey);
+  }
 }
 
 function setResponseCache(res, { maxAge = 300, staleWhileRevalidate = 900 } = {}) {
@@ -528,6 +644,24 @@ async function fetchCachedGamesFromSupabase({ search = "", dates = "", ordering 
   return { count: Number(count || rows.length || 0), results: rows };
 }
 
+async function fetchCachedGameById(id, source = "") {
+  const admin = getSupabaseAdmin();
+  if (!admin) return null;
+  const safeSource = String(source || "").trim().toLowerCase();
+  let query = admin
+    .from("games")
+    .select("id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,igdb_id,rawg_id,slug")
+    .eq("id", id)
+    .limit(1)
+    .maybeSingle();
+  if (safeSource) {
+    query = query.eq("source", safeSource);
+  }
+  const { data, error } = await query;
+  if (error || !data) return null;
+  return mapSupabaseGameRow(data);
+}
+
 function buildGameUpsertPayload(row) {
   if (!row || typeof row !== "object") return null;
   const id = Number(row?.id || 0);
@@ -596,6 +730,36 @@ async function cacheGamesToSupabase(rows = []) {
   await Promise.allSettled(payloads.map((payload) => (
     admin.rpc("upsert_game_catalog", payload)
   )));
+  cacheGameMediaToSupabase(rows).catch(() => {});
+}
+
+async function cacheGameMediaToSupabase(rows = []) {
+  const admin = getSupabaseAdmin();
+  if (!admin) return;
+  const ready = await ensureStorageBucket();
+  if (!ready) return;
+  const candidates = (Array.isArray(rows) ? rows : [])
+    .filter((row) => String(row?.source || "").toLowerCase() === "wikipedia")
+    .filter((row) => Number.isFinite(Number(row?.id || 0)))
+    .slice(0, 8);
+  for (const row of candidates) {
+    const id = Number(row.id);
+    const cover = toHttpsUrl(row?.cover || row?.cover_url || row?.image || "");
+    const hero = toHttpsUrl(row?.hero || row?.background_image || row?.hero_url || "");
+    const coverStored = cover && !isSupabaseStorageUrl(cover)
+      ? await cacheImageToSupabase({ id, kind: "cover", url: cover })
+      : cover;
+    const heroStored = hero && hero !== cover && !isSupabaseStorageUrl(hero)
+      ? await cacheImageToSupabase({ id, kind: "hero", url: hero })
+      : hero;
+    const nextCover = coverStored || cover;
+    const nextHero = heroStored || hero || nextCover;
+    if (!nextCover && !nextHero) continue;
+    await admin
+      .from("games")
+      .update({ cover_url: nextCover, hero_url: nextHero })
+      .eq("id", id);
+  }
 }
 
 function mergeUniqueStrings(...lists) {
@@ -2563,6 +2727,14 @@ app.get("/api/igdb/games", async (req, res) => {
   const wantsRawg = providerSet.has("rawg");
   const wantsWiki = providerSet.has("wikipedia");
   const wantsGameBrain = providerSet.has("gamebrain");
+  const cacheSource = providerSet.size === 1
+    ? (wantsWiki ? "wikipedia" : wantsRawg ? "rawg" : wantsIgdb ? "igdb" : wantsGameBrain ? "gamebrain" : "")
+    : "";
+
+  const cachedDetail = await fetchCachedGameById(requestedId, cacheSource);
+  if (cachedDetail) {
+    return res.json(cachedDetail);
+  }
   const onlyOneProvider = providerSet.size === 1;
 
   if (onlyOneProvider && wantsIgdb && !igdbEnabled) {
@@ -2628,7 +2800,8 @@ app.get("/api/igdb/games", async (req, res) => {
       ? (wantsWiki ? "wikipedia" : wantsRawg ? "rawg" : wantsIgdb ? "igdb" : wantsGameBrain ? "gamebrain" : "")
       : "";
     const supabaseBlockedByPopularity = onlyOneProvider && wantsIgdb && popularityType > 0;
-    const shouldUseSupabaseCache = !hasGenreFilter && !supabaseBlockedByPopularity;
+    const allowSupabaseCache = !!search || isTruthyFlag(req.query.cache);
+    const shouldUseSupabaseCache = allowSupabaseCache && !hasGenreFilter && !supabaseBlockedByPopularity;
     if (shouldUseSupabaseCache) {
       const cached = await fetchCachedGamesFromSupabase({ search, dates, ordering, page, pageSize, source: cacheSource });
       const cacheThreshold = search ? Math.min(pageSize, 6) : pageSize;
