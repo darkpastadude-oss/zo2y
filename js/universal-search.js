@@ -468,7 +468,9 @@
       search: normalized,
       page: 1,
       page_size: 8,
-      provider: 'all'
+      provider: 'wikipedia',
+      title_only: 1,
+      cache: 1
     };
     let json = null;
     if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
@@ -479,11 +481,11 @@
       }
     }
     if (!json) {
-      const url = `${GAMES_PROXY_BASE}/games?search=${encodeURIComponent(normalized)}&page=1&page_size=8&provider=all`;
+      const url = `${GAMES_PROXY_BASE}/games?search=${encodeURIComponent(normalized)}&page=1&page_size=8&provider=wikipedia&title_only=1&cache=1`;
       json = await fetchJsonWithTimeout(url, { signal, timeoutMs: Math.max(REQUEST_TIMEOUT_MS, 6500) });
     }
     if (!json) {
-      const fallbackUrl = `/api/igdb-handler?path=games&search=${encodeURIComponent(normalized)}&page=1&page_size=8&provider=all`;
+      const fallbackUrl = `/api/igdb-handler?path=games&search=${encodeURIComponent(normalized)}&page=1&page_size=8&provider=wikipedia&title_only=1&cache=1`;
       json = await fetchJsonWithTimeout(fallbackUrl, { signal, timeoutMs: Math.max(REQUEST_TIMEOUT_MS, 6500) });
     }
     const rows = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
@@ -495,7 +497,14 @@
         const name = String(row?.name || row?.title || 'Game').trim() || 'Game';
         const released = String(row?.released || row?.release_date || '').trim();
         const year = released ? released.slice(0, 4) : '';
-        const cover = toHttpsUrl(row?.cover || row?.cover_url || row?.background_image || '');
+        const cover = toHttpsUrl(
+          row?.cover ||
+          row?.cover_url ||
+          row?.image ||
+          row?.background_image ||
+          row?.hero_url ||
+          ''
+        );
         if (!id || !name) return null;
         return {
           type: 'Games',

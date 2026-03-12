@@ -725,11 +725,14 @@ async function cacheGamesToSupabase(rows = []) {
   const payloads = (Array.isArray(rows) ? rows : [])
     .map(buildGameUpsertPayload)
     .filter(Boolean)
-    .slice(0, 40);
+    .slice(0, 120);
   if (!payloads.length) return;
-  await Promise.allSettled(payloads.map((payload) => (
-    admin.rpc("upsert_game_catalog", payload)
-  )));
+  const batches = chunkArray(payloads, 12);
+  for (const batch of batches) {
+    await Promise.allSettled(batch.map((payload) => (
+      admin.rpc("upsert_game_catalog", payload)
+    )));
+  }
   cacheGameMediaToSupabase(rows).catch(() => {});
 }
 
@@ -759,6 +762,43 @@ async function cacheGameMediaToSupabase(rows = []) {
       .from("games")
       .update({ cover_url: nextCover, hero_url: nextHero })
       .eq("id", id);
+  }
+}
+
+async function warmWikipediaCatalogPages({
+  startPage = 2,
+  pages = 1,
+  pageSize = 40,
+  ordering = '-follows',
+  dates = '',
+  genres = '',
+  titleOnly = false,
+  spotlight = false
+} = {}) {
+  const totalPages = clampInt(pages, 0, 5, 0);
+  if (!totalPages || totalPages <= 0) return;
+  const safePageSize = clampInt(pageSize, 20, 80, 40);
+  for (let i = 0; i < totalPages; i += 1) {
+    const page = Math.max(1, Number(startPage || 1) + i);
+    try {
+      const payload = await fetchWikipediaGamesList({
+        page,
+        pageSize: safePageSize,
+        search: '',
+        ordering,
+        dates,
+        genres,
+        titleOnly,
+        spotlight
+      });
+      const results = (Array.isArray(payload?.results) ? payload.results : [])
+        .map(mapWikipediaListRow)
+        .filter(Boolean);
+      if (results.length) {
+        await cacheGamesToSupabase(results);
+      }
+    } catch (_err) {}
+    await delay(180);
   }
 }
 
@@ -2707,6 +2747,8 @@ app.get("/api/igdb/games", async (req, res) => {
   const dates = String(req.query.dates || "").trim();
   const genres = String(req.query.genres || "").trim();
   const provider = String(req.query.provider || req.query.source || "").trim().toLowerCase();
+  const cacheFlag = isTruthyFlag(req.query.cache || req.query.cache_catalog || req.query.cacheCatalog);
+  const cachePages = clampInt(req.query.cache_pages, 0, 5, cacheFlag ? 2 : 0);
   const titleOnly = isTruthyFlag(req.query.title_only || req.query.search_title_only || req.query.titleOnly);
   const spotlight = isTruthyFlag(req.query.spotlight || req.query.include_spotlight || req.query.includeSpotlight);
   let providerSet = parseProviderList(provider);
@@ -2904,6 +2946,18 @@ app.get("/api/igdb/games", async (req, res) => {
         .map(mapWikipediaListRow)
         .filter(Boolean);
       cacheGamesToSupabase(results).catch(() => {});
+      if (cacheFlag && cachePages > 0 && !search && !genres) {
+        warmWikipediaCatalogPages({
+          startPage: page + 1,
+          pages: cachePages,
+          pageSize,
+          ordering,
+          dates,
+          genres,
+          titleOnly,
+          spotlight
+        }).catch(() => {});
+      }
       return res.json({
         count: Number(payload?.count || results.length),
         page,

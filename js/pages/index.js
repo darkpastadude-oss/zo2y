@@ -4767,7 +4767,9 @@ let homeTravelPhotoCacheSaveTimer = null;
         const baseParams = {
           page_size: Math.min(Math.max(targetCount * 6, 140), 220),
           provider: 'wikipedia',
-          spotlight: 1
+          spotlight: 1,
+          cache: 1,
+          cache_pages: 1
         };
         const requests = [
           { ...baseParams, page: 1, ordering: '-released' },

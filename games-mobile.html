@@ -231,7 +231,7 @@
 
     .card {
       background: var(--card);
-      border: none;
+      border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
       display: flex;
@@ -244,6 +244,7 @@
     }
 
     .card:hover {
+      border-color: var(--accent);
       transform: translateY(-2px);
     }
 
@@ -267,8 +268,8 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(9, 18, 36, 0.2) 0%, rgba(9, 18, 36, 0.45) 100%);
-      opacity: 0.6;
+      background: linear-gradient(180deg, rgba(9, 18, 36, 0.1) 0%, rgba(9, 18, 36, 0.35) 100%);
+      opacity: 0.35;
       pointer-events: none;
     }
 
@@ -1483,6 +1484,9 @@
         const ordering = state.query ? '-rating' : '-follows';
         const minRatingCount = (!state.query && !state.activeGenre && !state.year) ? 50 : 0;
         const popularityType = (!state.query && !state.activeGenre && !state.year) ? 1 : 0;
+        const shouldWarmCache = state.page === 1 && !state.query && !state.activeGenre && !state.year;
+        const cacheFlag = shouldWarmCache ? 1 : undefined;
+        const cachePages = shouldWarmCache ? 2 : undefined;
         const igdbPayload = await fetchIgdbPage({
           page: state.page,
           pageSize: fetchPageSize,
@@ -1492,7 +1496,9 @@
           genres: state.activeGenre,
           min_rating_count: minRatingCount,
           popularity_type: popularityType || undefined,
-          title_only: state.query ? 1 : undefined
+          title_only: state.query ? 1 : undefined,
+          cache: cacheFlag,
+          cache_pages: cachePages
         }, { signal, cacheBust: options?.cacheBust });
         if (requestId !== state.requestId) return;
 
@@ -1518,7 +1524,9 @@
               genres: state.activeGenre,
               min_rating_count: minRatingCount,
               popularity_type: popularityType || undefined,
-              title_only: state.query ? 1 : undefined
+              title_only: state.query ? 1 : undefined,
+              cache: cacheFlag,
+              cache_pages: cachePages
             }, { cacheBust: options?.cacheBust });
             if (requestId !== state.requestId) return;
             if (nextPayload) {
@@ -1540,7 +1548,9 @@
                 genres: state.activeGenre,
                 min_rating_count: minRatingCount,
                 popularity_type: popularityType || undefined,
-                title_only: 1
+                title_only: 1,
+                cache: cacheFlag,
+                cache_pages: cachePages
               }, { cacheBust: options?.cacheBust });
               if (requestId !== state.requestId) return;
               if (!altPayload) continue;
@@ -1591,7 +1601,9 @@
               genres: state.activeGenre,
               min_rating_count: minRatingCount,
               popularity_type: popularityType || undefined,
-              title_only: state.query ? 1 : undefined
+              title_only: state.query ? 1 : undefined,
+              cache: cacheFlag,
+              cache_pages: cachePages
             });
           }
           return;
