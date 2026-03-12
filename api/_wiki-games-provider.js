@@ -184,10 +184,6 @@ const GENRE_SEARCH_QUERY_SEEDS = {
   indie: ["indie video game"]
 };
 
-const POPULAR_TITLE_RANK = new Map(
-  POPULAR_GAME_TITLE_SEEDS.map((title, index) => [normalizeGameKey(title), index + 1])
-);
-
 const CANONICAL_GENRE_BY_SLUG = new Map(
   WIKIPEDIA_GAME_GENRES.map((genre) => [String(genre.slug || "").trim().toLowerCase(), genre])
 );
@@ -273,6 +269,10 @@ function normalizeGameKey(value) {
     .join(" ")
     .trim();
 }
+
+const POPULAR_TITLE_RANK = new Map(
+  POPULAR_GAME_TITLE_SEEDS.map((title, index) => [normalizeGameKey(title), index + 1])
+);
 
 function splitTitleTokens(value) {
   const normalized = normalizeGameKey(value);
