@@ -225,6 +225,8 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
+      justify-content: start;
+      justify-items: start;
     }
 
     .card {
@@ -236,6 +238,9 @@
       flex-direction: column;
       transition: all 0.2s ease;
       position: relative;
+      width: 100%;
+      max-width: 220px;
+      justify-self: start;
     }
 
     .card:hover {
@@ -252,7 +257,7 @@
       width: 100%;
       aspect-ratio: 2 / 3;
       height: auto;
-      object-fit: contain;
+      object-fit: cover;
       display: block;
       background: #0f1f40;
     }
@@ -541,7 +546,7 @@
     @media (max-width: 760px) {
       .card img {
         aspect-ratio: 2 / 3;
-        object-fit: contain;
+        object-fit: cover;
         background: #0f1f40;
       }
     }
@@ -1358,6 +1363,13 @@
         });
       }
 
+      function updatePopularVisibility() {
+        const section = document.getElementById('popularSection');
+        if (!section) return;
+        const shouldShow = !state.query && !state.activeGenre && !state.year;
+        section.style.display = shouldShow ? '' : 'none';
+      }
+
       function renderFilters() {
         const row = document.getElementById('activeFilters');
         if (!row) return;
@@ -1409,7 +1421,7 @@
         card.setAttribute('data-game-id', gameId);
         const isPriority = Number.isFinite(index) && index < 4;
         card.innerHTML = `
-          <img src="${gameCover}" alt="${gameTitle}" loading="${isPriority ? 'eager' : 'lazy'}" fetchpriority="${isPriority ? 'high' : 'auto'}" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;const c=this.closest('.card');if(c)c.remove();">
+          <img src="${gameCover}" alt="${gameTitle}" loading="${isPriority ? 'eager' : 'lazy'}" fetchpriority="${isPriority ? 'high' : 'low'}" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;const c=this.closest('.card');if(c)c.remove();">
           <div class="card-body">
             <h3 class="card-title">${gameTitle}</h3>
             <div class="card-meta-row">
