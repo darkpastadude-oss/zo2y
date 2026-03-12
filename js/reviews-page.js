@@ -1,9 +1,10 @@
-(() => {
+ï»¿(() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
   const FALLBACK_IMAGE = '/newlogo.webp';
   const REVIEW_LIMIT = 70;
+  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
 
   const SOURCES = [
     { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id', label: 'Movie', icon: 'fa-film' },
@@ -13,7 +14,7 @@
     { mediaType: 'book', table: 'book_reviews', idField: 'book_id', label: 'Book', icon: 'fa-book' },
     { mediaType: 'music', table: 'music_reviews', idField: 'track_id', label: 'Music', icon: 'fa-music' },
     { mediaType: 'travel', table: 'travel_reviews', idField: 'country_code', label: 'Travel', icon: 'fa-earth-americas' }
-  ];
+  ].filter((source) => !GAMES_DISABLED || source.mediaType !== 'game');
 
   const LABEL_BY_MEDIA = Object.fromEntries(SOURCES.map((r) => [r.mediaType, r.label]));
   const ICON_BY_MEDIA = Object.fromEntries(SOURCES.map((r) => [r.mediaType, r.icon]));
@@ -671,7 +672,7 @@
     meta.textContent = `${target.mediaLabel} review`;
     title.textContent = target.title;
     starsEl.textContent = stars(Number(target.rating || 0));
-    byline.textContent = `${target.reviewer} • ${target.rating.toFixed(1)}/5 • ${target.dateLabel}`;
+    byline.textContent = `${target.reviewer} â€¢ ${target.rating.toFixed(1)}/5 â€¢ ${target.dateLabel}`;
     quote.textContent = String(target.quote || '').trim();
     link.href = target.href || 'reviews.html';
     positionReviewSpotlightPopover(sourceEl);
@@ -838,7 +839,7 @@
               <span class="date">${dateText}</span>
             </div>
             <h3 class="title" title="${title}">${title}</h3>
-            <div class="meta">Reviewed by ${reviewer} • ${subtitle}</div>
+            <div class="meta">Reviewed by ${reviewer} â€¢ ${subtitle}</div>
             <div class="stars">${stars(rating)}<span>${rating}/5</span></div>
             <p class="comment">${comment}</p>
           </div>
@@ -908,4 +909,8 @@
     }
   });
 })();
+
+
+
+
 

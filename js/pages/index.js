@@ -1,4 +1,5 @@
-    const ENABLE_GAMES = true;
+    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
+    const ENABLE_GAMES = !GAMES_DISABLED;
     const ENABLE_RESTAURANTS = false;
     const HOME_BASE_MEDIA_TYPES = ENABLE_GAMES
       ? ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel']
@@ -4826,6 +4827,10 @@ let homeTravelPhotoCacheSaveTimer = null;
       const rail = document.getElementById('gamesRail');
       if (!rail) return;
       const wrap = rail.closest('.rail-wrap') || rail;
+      if (GAMES_DISABLED) {
+        wrap.style.display = 'none';
+        return;
+      }
       wrap.style.display = '';
     }
 
@@ -5852,6 +5857,10 @@ let homeTravelPhotoCacheSaveTimer = null;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      if (GAMES_DISABLED) {
+        document.querySelectorAll('.popular-games-wrap, #gamesRail').forEach((el) => el.remove());
+        document.querySelectorAll('[data-nav-page="games"], a[href="games.html"], a[href="/games.html"], a[href^="game.html"]').forEach((el) => el.remove());
+      }
       const authGateState = getHomeAuthGateState();
       if (isHomeLandingMode() && !authGateState?.authenticated) {
         initLandingExperience();

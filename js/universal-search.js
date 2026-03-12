@@ -5,7 +5,7 @@
   const MUSIC_PROXY_BASE = '/api/music';
   const TRAVEL_API_BASE = 'https://restcountries.com/v3.1';
   const GAMES_PROXY_BASE = '/api/igdb';
-  const GAMES_DISABLED = false;
+  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
   const MIN_QUERY_LEN = 2;
   const SEARCH_DEBOUNCE_MS = 60;
   const REQUEST_TIMEOUT_MS = 5000;

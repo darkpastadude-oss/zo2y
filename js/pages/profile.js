@@ -36,6 +36,7 @@
             let targetUserId = null;
             let isViewingOwnProfile = true;
             const ENABLE_RESTAURANTS = false;
+            const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
             const DEFAULT_PROFILE_TAB = ENABLE_RESTAURANTS ? 'restaurants' : 'movies';
             let restaurants = [];
             let customLists = [];
@@ -89,7 +90,7 @@
                 movie: 'movie_lists',
                 tv: 'tv_lists',
                 anime: 'anime_lists',
-                game: 'game_lists',
+                ...(GAMES_DISABLED ? {} : { game: 'game_lists' }),
                 book: 'book_lists',
                 music: 'music_lists',
                 travel: 'travel_lists'
@@ -98,7 +99,7 @@
                 movie: 'movie_list_items',
                 tv: 'tv_list_items',
                 anime: 'anime_list_items',
-                game: 'game_list_items',
+                ...(GAMES_DISABLED ? {} : { game: 'game_list_items' }),
                 book: 'book_list_items',
                 music: 'music_list_items',
                 travel: 'travel_list_items'
@@ -107,7 +108,7 @@
                 movie: 'movie_id',
                 tv: 'tv_id',
                 anime: 'anime_id',
-                game: 'game_id',
+                ...(GAMES_DISABLED ? {} : { game: 'game_id' }),
                 book: 'book_id',
                 music: 'track_id',
                 travel: 'country_code'
@@ -132,15 +133,15 @@
             const STATS_REALTIME_DEBOUNCE_MS = 220;
             const VALID_PROFILE_TABS = new Set(
                 ENABLE_RESTAURANTS
-                    ? ['restaurants', 'movies', 'tv', 'anime', 'games', 'books', 'music', 'travel', 'community']
-                    : ['movies', 'tv', 'anime', 'games', 'books', 'music', 'travel', 'community']
+                    ? ['restaurants', 'movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'travel', 'community']
+                    : ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'travel', 'community']
             );
             const VALID_COLLECTION_TYPES = new Set([
                 ...(ENABLE_RESTAURANTS ? ['restaurant'] : []),
                 'movie',
                 'tv',
                 'anime',
-                'game',
+                ...(GAMES_DISABLED ? [] : ['game']),
                 'book',
                 'music',
                 'travel'
@@ -150,7 +151,7 @@
                 movie: 'movies',
                 tv: 'tv',
                 anime: 'anime',
-                game: 'games',
+                ...(GAMES_DISABLED ? {} : { game: 'games' }),
                 book: 'books',
                 music: 'music',
                 travel: 'travel'
@@ -189,6 +190,7 @@
                     }
 
                     disableRestaurantFeatures();
+                    disableGameFeatures();
                     
                     // 5. FIX: Optimized initialization to load faster
                     await loadProfile();
@@ -284,6 +286,39 @@
                 if (visitedMeta) visitedMeta.textContent = '0 saved items';
             }
 
+            function disableGameFeatures() {
+                if (!GAMES_DISABLED) return;
+
+                const removeSelectors = [
+                    '.nav-tab[data-tab="games"]',
+                    '#games-tab',
+                    '#game-detail-view',
+                    '#createGameListBtn',
+                    '.mobile-tab[data-tab="games"]',
+                    '#mobileGamesSection',
+                    '#mobileGameDetailSection',
+                    '#mobileCreateGameListBtn',
+                    'button[onclick*="createListForType(\\'games\\')"]',
+                    'button[onclick*="createListForType(\\'game\\')"]',
+                    'button[onclick*="games.html"]',
+                    'a[href="games.html"]',
+                    'a[href="/games.html"]',
+                    '.list-icon-option[data-icon="game"]',
+                    '.edit-list-icon-option[data-icon="game"]'
+                ];
+                removeSelectors.forEach((selector) => {
+                    document.querySelectorAll(selector).forEach((el) => el.remove());
+                });
+
+                document.querySelectorAll('[onclick*="showTab(\\'games\\')"]').forEach((el) => {
+                    el.setAttribute('onclick', `ProfileManager.showTab('${DEFAULT_PROFILE_TAB}')`);
+                });
+
+                if (currentTab === 'games') {
+                    currentTab = DEFAULT_PROFILE_TAB;
+                }
+            }
+
             const RESERVED_PROFILE_USERNAMES = new Set([
                 'admin', 'api', 'app', 'auth', 'authcallback', 'blog', 'book', 'books',
                 'country', 'edit', 'explore', 'game', 'games', 'help', 'home', 'index',
@@ -377,7 +412,7 @@
                     if (!hasFreshTabRender('movies')) preloadTasks.push(renderMovies());
                     if (!hasFreshTabRender('tv')) preloadTasks.push(renderTvShows());
                     if (!hasFreshTabRender('anime')) preloadTasks.push(renderAnimeShows());
-                    if (!hasFreshTabRender('games')) preloadTasks.push(renderGames());
+                    if (!GAMES_DISABLED && !hasFreshTabRender('games')) preloadTasks.push(renderGames());
                     if (!hasFreshTabRender('books')) preloadTasks.push(renderBooks());
                     if (!hasFreshTabRender('music')) preloadTasks.push(renderMusic());
                     if (!hasFreshTabRender('travel')) preloadTasks.push(renderTravel());
@@ -6939,7 +6974,7 @@
                 const handlers = {
                     ...(ENABLE_RESTAURANTS ? { restaurants: () => renderRestaurants() } : {}),
                     movies: () => renderMovies(),
-                    games: () => renderGames(),
+                    ...(GAMES_DISABLED ? {} : { games: () => renderGames() }),
                     tv: () => renderTvShows(),
                     anime: () => renderAnimeShows(),
                     books: () => renderBooks(),
@@ -7441,6 +7476,10 @@
             }
 
             async function renderGames() {
+                if (GAMES_DISABLED) {
+                    markTabRendered('games');
+                    return;
+                }
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileGamesGrid') : document.getElementById('gamesGrid');
                 if (!grid) return;

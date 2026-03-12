@@ -6,6 +6,10 @@
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
   let authStateListenerBound = false;
+  if (window.ZO2Y_DISABLE_GAMES !== false) {
+    window.ZO2Y_DISABLE_GAMES = true;
+  }
+  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
 
 const HEADER_HTML = `
 <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -262,8 +266,12 @@ const HEADER_HTML = `
     const mobilePage = isMobileContentPage(window.location.pathname);
     document.body.setAttribute('data-zo2y-compact-header', mobilePage ? '1' : '0');
 
-    if (mobilePage) {
+    if (mobilePage || GAMES_DISABLED) {
       document.querySelectorAll('[data-nav-page="games"]').forEach((gamesNavItem) => gamesNavItem.remove());
+    }
+
+    if (document.body) {
+      document.body.dataset.gamesDisabled = GAMES_DISABLED ? '1' : '0';
     }
 
     const activePage = normalizePageName(window.location.pathname);

@@ -7,6 +7,7 @@
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
   const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
   const REVIEW_LIMIT = 22;
+  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
 
   const REVIEW_SOURCES = [
     { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id', label: 'Movie' },
@@ -16,9 +17,11 @@
     { mediaType: 'book', table: 'book_reviews', idField: 'book_id', label: 'Book' },
     { mediaType: 'music', table: 'music_reviews', idField: 'track_id', label: 'Music' },
     { mediaType: 'travel', table: 'travel_reviews', idField: 'country_code', label: 'Travel' }
-  ];
+  ].filter((source) => !GAMES_DISABLED || source.mediaType !== 'game');
 
-  const SIDEBAR_MEDIA_TYPES = ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'restaurant'];
+  const SIDEBAR_MEDIA_TYPES = ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'restaurant'].filter(
+    (type) => !GAMES_DISABLED || type !== 'game'
+  );
   const SIDEBAR_MEDIA_LABEL = {
     movie: 'Movies',
     tv: 'TV',
@@ -49,6 +52,12 @@
     travel: { tab: 'travel', collection: 'travel' },
     restaurant: { tab: 'restaurants', collection: 'restaurant' }
   };
+
+  if (GAMES_DISABLED) {
+    delete SIDEBAR_MEDIA_LABEL.game;
+    delete SIDEBAR_MEDIA_ROUTE.game;
+    delete SIDEBAR_MEDIA_PROFILE_ROUTE.game;
+  }
 
   const SOURCE_BY_MEDIA = Object.fromEntries(REVIEW_SOURCES.map((source) => [source.mediaType, source]));
   let lastLiveReviewSlides = [];
