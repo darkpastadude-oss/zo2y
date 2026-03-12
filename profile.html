@@ -41,7 +41,6 @@
       <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
       <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
       <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
-      <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
       <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
       <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
       <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
@@ -170,9 +169,6 @@
                 </div>
                 <div class="nav-tab" data-tab="anime" onclick="ProfileManager.showTab('anime')">
                     <i class="fas fa-dragon"></i> <span id="animeTabText">Anime</span>
-                </div>
-                <div class="nav-tab" data-tab="games" onclick="ProfileManager.showTab('games')">
-                    <i class="fas fa-gamepad"></i> <span id="gamesTabText">Games</span>
                 </div>
                 <div class="nav-tab" data-tab="books" onclick="ProfileManager.showTab('books')">
                     <i class="fas fa-book"></i> <span id="booksTabText">Books</span>
@@ -433,69 +429,6 @@
                         </div>
                     </div>
                     <div id="animeItemsContainer"></div>
-                </div>
-            </div>
-
-            <!-- Games Tab Content -->
-            <div class="tab-content" id="games-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <h2 class="section-title" id="gamesTitle">My Games</h2>
-                            <p class="section-subtitle" id="gamesSubtitle">Organize your favorite games</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" id="createGameListBtn" onclick="ProfileManager.createGameList()">
-                                <i class="fas fa-plus"></i> New Collection
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='games.html'">
-                                <i class="fas fa-gamepad"></i> Browse Games
-                            </button>
-                        </div>
-                    </div>
-                    <div class="collection-grid" id="gamesGrid">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No Games Yet</h3>
-                            <p class="empty-description">Save games to see them here.</p>
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='games.html'">
-                                <i class="fas fa-gamepad"></i> Explore Games
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Game Detail View -->
-            <div class="tab-content" id="game-detail-view">
-                <div class="section">
-                    <div class="collection-detail-header">
-                        <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideGameDetail()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <div class="collection-detail-title-group">
-                            <h2 class="collection-detail-title" id="gameDetailTitle">
-                                <span id="gameDetailIcon"></span>
-                                <span id="gameDetailName"></span>
-                            </h2>
-                            <p class="collection-detail-subtitle" id="gameDetailDescription">Collection description</p>
-                        </div>
-                        <div class="collection-view-toggle" data-media="game">
-                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid')"><i class="fas fa-th"></i></button>
-                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('game', 'list')"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="collection-detail-actions" id="gameDetailActions" style="display: none;">
-                            <button class="btn btn-secondary btn-sm" id="gameListEditBtn">
-                                <i class="fas fa-pen"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="gameListDeleteBtn">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </div>
-                    </div>
-                    <div id="gameItemsContainer"></div>
                 </div>
             </div>
 
@@ -857,10 +790,6 @@
                 <i class="fas fa-dragon"></i>
                 <span id="mobileTabAnime">Anime</span>
             </div>
-            <div class="mobile-tab" data-tab="games" onclick="ProfileManager.showTab('games')">
-                <i class="fas fa-gamepad"></i>
-                <span id="mobileTabGames">Games</span>
-            </div>
             <div class="mobile-tab" data-tab="books" onclick="ProfileManager.showTab('books')">
                 <i class="fas fa-book"></i>
                 <span id="mobileTabBooks">Books</span>
@@ -1077,56 +1006,6 @@
                         </button>
                     </div>
                     <div id="mobileAnimeItems"></div>
-                </div>
-            </div>
-
-            <!-- Games Section -->
-            <div class="mobile-section" id="mobileGamesSection">
-                <div class="mobile-section-title">
-                    <span id="mobileGamesTitle">My Games</span>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="mobile-action-btn" id="mobileCreateGameListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createGameList()">
-                            <i class="fas fa-plus"></i> New Collection
-                        </button>
-                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='games.html'">
-                            <i class="fas fa-gamepad"></i> Browse
-                        </button>
-                    </div>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileGamesSubtitle">Organize your favorite games</div>
-
-                <div class="collection-grid" id="mobileGamesGrid">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <div class="mobile-empty-title">No Games Yet</div>
-                        <div class="mobile-empty-description">Save games to see them here.</div>
-                        <button class="mobile-action-btn" onclick="window.location.href='games.html'">
-                            <i class="fas fa-gamepad"></i> Explore Games
-                        </button>
-                    </div>
-                </div>
-
-                <div id="mobileGameDetailSection" style="display:none; margin-top: 16px;">
-                    <div class="mobile-section-title">
-                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideGameDetail()">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
-                        <span id="mobileGameDetailTitle">Collection</span>
-                    </div>
-                    <div class="mobile-section-subtitle" id="mobileGameDetailDescription"></div>
-                    <div class="collection-view-toggle" data-media="game" style="margin-bottom: 10px;">
-                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid', true)"><i class="fas fa-th"></i></button>
-                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('game', 'list', true)"><i class="fas fa-list"></i></button>
-                    </div>
-                    <div id="mobileGameDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px; display: none;">
-                        <button class="mobile-action-btn secondary" id="mobileGameListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
-                            <i class="fas fa-pen"></i> Edit
-                        </button>
-                        <button class="mobile-action-btn secondary" id="mobileGameListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                    <div id="mobileGameItems"></div>
                 </div>
             </div>
 
@@ -1507,7 +1386,6 @@
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="movie"><i class="fas fa-film"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="tv"><i class="fas fa-tv"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="anime"><i class="fas fa-dragon"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="game"><i class="fas fa-gamepad"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="book"><i class="fas fa-book"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="list"><i class="fas fa-list"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="star"><i class="fas fa-star"></i></button>
@@ -1545,7 +1423,6 @@
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('movies')">Movies</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('tv')">TV Shows</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('anime')">Anime</button>
-                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('games')">Games</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('books')">Books</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('music')">Music</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('travel')">Travel</button>
@@ -1579,7 +1456,6 @@
                             <button type="button" class="edit-list-icon-option" data-icon="movie"><i class="fas fa-film"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="tv"><i class="fas fa-tv"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="anime"><i class="fas fa-dragon"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="game"><i class="fas fa-gamepad"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="book"><i class="fas fa-book"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="list"><i class="fas fa-list"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="star"><i class="fas fa-star"></i></button>

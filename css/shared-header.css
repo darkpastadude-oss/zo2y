@@ -750,3 +750,21 @@ body.zo2y-mobile-menu-open {
     width: min(90vw, 332px);
   }
 }
+
+body[data-games-disabled="1"] [data-nav-page="games"],
+body[data-games-disabled="1"] a[href="games.html"],
+body[data-games-disabled="1"] a[href="/games.html"],
+body[data-games-disabled="1"] a[href^="game.html"],
+body[data-games-disabled="1"] a[href*="game.html?id="],
+body[data-games-disabled="1"] button[onclick*="games.html"],
+body[data-games-disabled="1"] button[onclick*="game.html"],
+body[data-games-disabled="1"] [data-tab="games"],
+body[data-games-disabled="1"] #gamesRail,
+body[data-games-disabled="1"] .popular-games-wrap,
+body[data-games-disabled="1"] #games-tab,
+body[data-games-disabled="1"] #game-detail-view,
+body[data-games-disabled="1"] #mobileGamesSection,
+body[data-games-disabled="1"] #mobileGameDetailSection,
+body[data-games-disabled="1"] #mobileTabGames {
+  display: none !important;
+}

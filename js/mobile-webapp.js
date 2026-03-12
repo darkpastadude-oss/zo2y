@@ -38,6 +38,7 @@
   document.body?.classList.add('app-booting');
   if (document.body) {
     document.body.dataset.zo2yPage = pageKey;
+    document.body.dataset.gamesDisabled = GAMES_DISABLED ? '1' : '0';
   }
   if (isMobileLike) {
     document.documentElement.classList.add('mobile-webapp');
