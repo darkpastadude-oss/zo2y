@@ -9,6 +9,13 @@ import {
 
 const app = express();
 applyApiGuardrails(app, { keyPrefix: "api-igdb", max: 240 });
+const GAMES_DISABLED = process.env.ZO2Y_DISABLE_GAMES !== "false";
+
+app.use((req, res, next) => {
+  if (!GAMES_DISABLED) return next();
+  res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=300");
+  res.status(410).json({ error: "Games are temporarily disabled." });
+});
 
 const IGDB_API_BASE = "https://api.igdb.com/v4";
 const TWITCH_TOKEN_URL = "https://id.twitch.tv/oauth2/token";
