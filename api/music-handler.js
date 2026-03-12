@@ -15,6 +15,12 @@ const REQUEST_CACHE_TTL_MS = 1000 * 60 * 10;
 
 const requestCache = new Map();
 
+function setResponseCache(res, { maxAge = 300, staleWhileRevalidate = 900 } = {}) {
+  const age = Math.max(0, Math.floor(Number(maxAge) || 0));
+  const swr = Math.max(0, Math.floor(Number(staleWhileRevalidate) || 0));
+  res.setHeader("Cache-Control", `public, s-maxage=${age}, stale-while-revalidate=${swr}`);
+}
+
 function pushQueryParam(params, key, value) {
   if (value === undefined || value === null) return;
   if (Array.isArray(value)) {
@@ -377,6 +383,7 @@ async function fetchItunesTrackDetails(id, market = "US") {
 }
 
 app.get("/api/music", (_req, res) => {
+  setResponseCache(res, { maxAge: 900, staleWhileRevalidate: 3600 });
   return res.json({
     ok: true,
     service: "music-fallback",
@@ -387,6 +394,7 @@ app.get("/api/music", (_req, res) => {
 });
 
 app.get("/api/music/health", (_req, res) => {
+  setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
   return res.json({
     ok: true,
     service: "music-fallback",
@@ -395,6 +403,7 @@ app.get("/api/music/health", (_req, res) => {
 });
 
 app.get("/api/music/top-50", async (req, res) => {
+  setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
   const limit = clampInt(req.query.limit, 1, 100, 50);
   const market = normalizeMarket(req.query.market || "US");
   try {
@@ -420,6 +429,7 @@ app.get("/api/music/top-50", async (req, res) => {
 });
 
 app.get("/api/music/popular", async (req, res) => {
+  setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
   const limit = clampInt(req.query.limit, 1, 100, 24);
   const market = normalizeMarket(req.query.market || "US");
   try {
@@ -446,6 +456,7 @@ app.get("/api/music/popular", async (req, res) => {
 });
 
 app.get("/api/music/popular-albums", async (req, res) => {
+  setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
   const limit = clampInt(req.query.limit, 1, 60, 24);
   const market = normalizeMarket(req.query.market || "US");
   const albumTypes = normalizeAlbumTypes(req.query.album_types || "album");
@@ -472,6 +483,7 @@ app.get("/api/music/popular-albums", async (req, res) => {
 });
 
 app.get("/api/music/new-releases", async (req, res) => {
+  setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
   const limit = clampInt(req.query.limit, 1, 60, 20);
   const market = normalizeMarket(req.query.market || "US");
   const albumTypes = normalizeAlbumTypes(req.query.album_types || "album");
@@ -500,6 +512,7 @@ app.get("/api/music/new-releases", async (req, res) => {
 });
 
 app.get("/api/music/featured-playlists", (req, res) => {
+  setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
   const limit = clampInt(req.query.limit, 1, 20, 8);
   return res.json({
     count: 0,
@@ -510,6 +523,7 @@ app.get("/api/music/featured-playlists", (req, res) => {
 });
 
 app.get("/api/music/search", async (req, res) => {
+  setResponseCache(res, { maxAge: 120, staleWhileRevalidate: 600 });
   const q = String(req.query.q || "").trim().slice(0, 120);
   if (!q) {
     return res.status(400).json({ message: "Missing q query parameter." });
@@ -566,6 +580,7 @@ app.get("/api/music/search", async (req, res) => {
 });
 
 app.get("/api/music/albums/:id", async (req, res) => {
+  setResponseCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
   const id = String(req.params.id || "").trim();
   if (!id) return res.status(400).json({ message: "Invalid album id." });
 
@@ -589,6 +604,7 @@ app.get("/api/music/albums/:id", async (req, res) => {
 });
 
 app.get("/api/music/tracks/:id", async (req, res) => {
+  setResponseCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
   const id = String(req.params.id || "").trim();
   if (!id) return res.status(400).json({ message: "Invalid track id." });
 
@@ -603,6 +619,7 @@ app.get("/api/music/tracks/:id", async (req, res) => {
 });
 
 app.get("/api/music/artists/:id", (_req, res) => {
+  setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
   return res.status(404).json({ message: "Artist details are unavailable right now." });
 });
 

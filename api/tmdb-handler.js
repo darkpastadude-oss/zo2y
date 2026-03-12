@@ -9,6 +9,25 @@ const app = express();
 applyApiGuardrails(app, { keyPrefix: "api-tmdb", max: 260 });
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
+function setResponseCache(res, { maxAge = 300, staleWhileRevalidate = 900 } = {}) {
+  const age = Math.max(0, Math.floor(Number(maxAge) || 0));
+  const swr = Math.max(0, Math.floor(Number(staleWhileRevalidate) || 0));
+  res.setHeader("Cache-Control", `public, s-maxage=${age}, stale-while-revalidate=${swr}`);
+}
+
+function getTmdbCacheProfile(path = "") {
+  const normalized = String(path || "").toLowerCase();
+  if (normalized.includes("/configuration")) return { maxAge: 3600, staleWhileRevalidate: 86400 };
+  if (normalized.includes("/genre/")) return { maxAge: 1800, staleWhileRevalidate: 43200 };
+  if (normalized.includes("/watch/providers")) return { maxAge: 1800, staleWhileRevalidate: 43200 };
+  if (normalized.includes("/images") || normalized.includes("/videos")) return { maxAge: 1800, staleWhileRevalidate: 21600 };
+  if (normalized.includes("/search")) return { maxAge: 120, staleWhileRevalidate: 600 };
+  if (normalized.includes("/discover") || normalized.includes("/trending") || normalized.includes("/popular")) {
+    return { maxAge: 300, staleWhileRevalidate: 1200 };
+  }
+  return { maxAge: 300, staleWhileRevalidate: 900 };
+}
+
 function getTmdbToken() {
   return String(
     process.env.TMDB_TOKEN ||
@@ -60,6 +79,7 @@ function buildTmdbFallbackPayload(relativePath, query = {}) {
 app.get("/api/tmdb/*", async (req, res) => {
   const relativePath = req.path.replace(/^\/api\/tmdb\//, "");
   const fallbackPayload = buildTmdbFallbackPayload(relativePath, req.query || {});
+  setResponseCache(res, getTmdbCacheProfile(relativePath));
   try {
     const token = getTmdbToken();
     if (!token) {
@@ -99,6 +119,7 @@ app.get("/api/tmdb/*", async (req, res) => {
 });
 
 app.get("/api/tmdb", (req, res) => {
+  setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
   res.json({ ok: true, service: "tmdb-proxy", configured: Boolean(getTmdbToken()) });
 });
 
