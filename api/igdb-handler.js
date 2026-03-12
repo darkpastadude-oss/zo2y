@@ -2736,7 +2736,6 @@ app.get("/api/igdb/popularity-primitives", async (req, res) => {
   }
 });
 app.get("/api/igdb/games", async (req, res) => {
-  setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 900 });
   const page = clampInt(req.query.page, 1, 100000, 1);
   const pageSize = clampInt(req.query.page_size, 1, 80, 20);
   const search = String(req.query.search || "").trim().slice(0, 120);
@@ -2761,6 +2760,10 @@ app.get("/api/igdb/games", async (req, res) => {
     ...parseIdsQuery(id),
     ...parseIdsQuery(ids)
   ]);
+  const hasFilters = !!search || !!dates || !!genres || !!explicitIds.length || !!popularityType;
+  const cacheMaxAge = hasFilters ? 180 : 900;
+  const cacheSWR = hasFilters ? 600 : 3600;
+  setResponseCache(res, { maxAge: cacheMaxAge, staleWhileRevalidate: cacheSWR });
 
   const igdbEnabled = hasIgdbCredentials();
   const rawgEnabled = hasRawgKey();
@@ -3118,7 +3121,7 @@ app.get("/api/igdb/games", async (req, res) => {
   }
 });
 app.get("/api/igdb/games/:id", async (req, res) => {
-  setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 1800 });
+  setResponseCache(res, { maxAge: 1800, staleWhileRevalidate: 7200 });
   const requestedId = Number(req.params.id);
   if (!Number.isFinite(requestedId) || requestedId <= 0) {
     return res.status(400).json({ message: "Invalid game id." });
