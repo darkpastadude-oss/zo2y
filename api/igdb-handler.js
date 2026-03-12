@@ -1,4 +1,5 @@
 import express from "express";
+import { createClient } from "@supabase/supabase-js";
 import { applyApiGuardrails } from "./_guardrails.js";
 import {
   WIKIPEDIA_GAME_GENRES,
@@ -45,6 +46,14 @@ const MAX_RAWG_IGDB_COVER_CACHE_ENTRIES = 1200;
 const IGDB_COVER_LOOKUP_BACKOFF_MS = 1000 * 60;
 const RAWG_IGDB_FALLBACK_LOOKUPS_PER_REQUEST = 10;
 const IGDB_ADDON_TITLE_PATTERN = /\b(expansion|dlc|add-?on|bundle|pack|pass|season|episode|chapter|story|campaign|multiplayer|co-?op|online|mobile|mod|randomizer|soundtrack|art book|demo|beta|alpha|prologue|collector'?s|deluxe|ultimate|definitive|complete|goty|gold|limited|starter|special|master|edition|anniversary|remaster|remake|director'?s cut|vr|hd|enhanced|update|expansion pass)\b/i;
+const SUPABASE_URL =
+  process.env.SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://gfkhjbztayjyojsgdpgk.supabase.co";
+const SUPABASE_SERVICE_ROLE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_SERVICE_KEY ||
+  "";
 
 let tokenCache = {
   accessToken: "",
@@ -66,6 +75,17 @@ let wikiSummaryCache = new Map();
 let wikiListResponseCache = new Map();
 let wikiDetailResponseCache = new Map();
 let wikiEntityCache = new Map();
+let supabaseAdmin = null;
+
+function getSupabaseAdmin() {
+  if (!SUPABASE_SERVICE_ROLE_KEY) return null;
+  if (!supabaseAdmin) {
+    supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
+  }
+  return supabaseAdmin;
+}
 
 function setResponseCache(res, { maxAge = 300, staleWhileRevalidate = 900 } = {}) {
   res.setHeader(
@@ -399,6 +419,185 @@ function normalizeGameKey(value) {
     .trim();
 }
 
+function sanitizeIlikeToken(value) {
+  return String(value || "").replace(/[%_]+/g, "").trim();
+}
+
+function buildLooseIlikePattern(query) {
+  const cleaned = sanitizeIlikeToken(query);
+  if (!cleaned) return "";
+  const compact = normalizeGameKey(cleaned).replace(/\s+/g, "");
+  if (!compact) return "";
+  return compact.split("").join("%");
+}
+
+function mapSupabaseGameRow(row) {
+  if (!row) return null;
+  const id = Number(row?.id || 0);
+  if (!Number.isFinite(id) || id <= 0) return null;
+  const cover = toHttpsUrl(row?.cover_url || "");
+  if (!cover) return null;
+  const hero = toHttpsUrl(row?.hero_url || "");
+  const extra = row?.extra && typeof row.extra === "object" ? row.extra : {};
+  const screenshots = Array.isArray(extra?.screenshots) ? extra.screenshots : [];
+  const normalizedScreens = mergeUniqueStrings([hero, cover], screenshots);
+  return {
+    id,
+    igdb_id: Number(row?.igdb_id || 0) || null,
+    rawg_id: Number(row?.rawg_id || 0) || null,
+    wiki_id: extra?.wiki_id || null,
+    gamebrain_id: extra?.gamebrain_id || null,
+    name: String(row?.title || "Game").trim(),
+    slug: String(row?.slug || "").trim(),
+    released: String(row?.release_date || "").trim(),
+    cover,
+    hero: hero || cover,
+    screenshots: normalizedScreens,
+    background_image: hero || cover,
+    short_screenshots: normalizedScreens.map((image, index) => ({ id: index + 1, image })),
+    rating: Number.isFinite(Number(row?.rating || NaN)) ? Number(row.rating) : null,
+    ratings_count: Number(row?.rating_count || 0),
+    metacritic: Number.isFinite(Number(extra?.metacritic || NaN)) ? Number(extra.metacritic) : null,
+    genres: Array.isArray(extra?.genres) ? extra.genres : [],
+    platforms: Array.isArray(extra?.platforms) ? extra.platforms : [],
+    source: String(row?.source || extra?.source || "wikipedia").trim().toLowerCase()
+  };
+}
+
+function mapOrderingToSupabase(orderingRaw) {
+  const ordering = String(orderingRaw || "-follows").trim().toLowerCase();
+  if (ordering === "-released") return { column: "release_date", ascending: false };
+  if (ordering === "released") return { column: "release_date", ascending: true };
+  if (ordering === "-rating") return { column: "rating", ascending: false };
+  if (ordering === "rating") return { column: "rating", ascending: true };
+  if (ordering === "-rating_count" || ordering === "-ratings_count" || ordering === "-follows") {
+    return { column: "rating_count", ascending: false };
+  }
+  if (ordering === "rating_count" || ordering === "ratings_count" || ordering === "follows") {
+    return { column: "rating_count", ascending: true };
+  }
+  if (ordering === "-name") return { column: "title", ascending: true };
+  return { column: "rating_count", ascending: false };
+}
+
+async function fetchCachedGamesFromSupabase({ search = "", dates = "", ordering = "-follows", page = 1, pageSize = 20, source = "" } = {}) {
+  const admin = getSupabaseAdmin();
+  if (!admin) return null;
+  const safeSearch = sanitizeIlikeToken(search);
+  const shouldSearch = !!safeSearch;
+  const safeSource = String(source || "").trim().toLowerCase();
+  const offset = Math.max(0, (Number(page || 1) - 1) * Number(pageSize || 20));
+  let query = admin
+    .from("games")
+    .select("id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,igdb_id,rawg_id,slug", { count: "exact" });
+
+  if (safeSource) {
+    query = query.eq("source", safeSource);
+  }
+
+  if (shouldSearch) {
+    const loosePattern = buildLooseIlikePattern(safeSearch);
+    const patterns = [
+      `title.ilike.%${safeSearch}%`,
+      `slug.ilike.%${safeSearch}%`
+    ];
+    if (loosePattern && loosePattern !== safeSearch) {
+      patterns.push(`title.ilike.%${loosePattern}%`);
+      patterns.push(`slug.ilike.%${loosePattern}%`);
+    }
+    query = query.or(patterns.join(","));
+  }
+
+  const { startUnix, endUnix } = parseDatesRange(dates);
+  if (Number.isFinite(startUnix)) {
+    const startDate = new Date(startUnix * 1000).toISOString().slice(0, 10);
+    query = query.gte("release_date", startDate);
+  }
+  if (Number.isFinite(endUnix)) {
+    const endDate = new Date(endUnix * 1000).toISOString().slice(0, 10);
+    query = query.lte("release_date", endDate);
+  }
+
+  const order = mapOrderingToSupabase(ordering);
+  query = query.order(order.column, { ascending: order.ascending, nullsFirst: false });
+  query = query.range(offset, offset + Math.max(1, Number(pageSize || 20)) - 1);
+
+  const { data, error, count } = await query;
+  if (error) return null;
+  const rows = Array.isArray(data) ? data.map(mapSupabaseGameRow).filter(Boolean) : [];
+  return { count: Number(count || rows.length || 0), results: rows };
+}
+
+function buildGameUpsertPayload(row) {
+  if (!row || typeof row !== "object") return null;
+  const id = Number(row?.id || 0);
+  if (!Number.isFinite(id) || id <= 0) return null;
+
+  const cover = toHttpsUrl(row?.cover || row?.cover_url || row?.image || "");
+  if (!cover) return null;
+
+  const shortScreens = (Array.isArray(row?.short_screenshots) ? row.short_screenshots : [])
+    .map((entry) => toHttpsUrl(entry?.image || entry || ""))
+    .filter(Boolean);
+  const screenshots = (Array.isArray(row?.screenshots) ? row.screenshots : [])
+    .map((entry) => toHttpsUrl(entry || ""))
+    .filter(Boolean);
+  const normalizedScreens = mergeUniqueStrings(screenshots, shortScreens).filter(Boolean);
+  const hero = toHttpsUrl(row?.hero || row?.background_image || row?.hero_url || normalizedScreens[0] || "");
+  const title = String(row?.name || row?.title || "Game").trim();
+  if (!title) return null;
+
+  const source = String(row?.source || "").trim().toLowerCase() || "wikipedia";
+  const igdbId = Number(row?.igdb_id || 0) || (source === "igdb" ? id : 0);
+  const rawgId = Number(row?.rawg_id || 0) || decodeRawgId(id) || 0;
+  const wikiId = Number(row?.wiki_id || 0) || decodeWikiId(id) || 0;
+  const gamebrainId = Number(row?.gamebrain_id || 0) || decodeGameBrainId(id) || 0;
+  const description = String(row?.description || row?.summary || row?.description_raw || "").trim();
+  const releaseDate = normalizeReleaseDate(row?.released || row?.release_date || "");
+  const rating = Number(row?.rating || row?.total_rating || row?.avg_rating || NaN);
+  const ratingCount = Number(row?.ratings_count || row?.rating_count || row?.total_rating_count || 0);
+  const slug = String(row?.slug || "").trim();
+
+  const extra = {
+    source,
+    genres: Array.isArray(row?.genres) ? row.genres : [],
+    platforms: Array.isArray(row?.platforms) ? row.platforms : [],
+    screenshots: normalizedScreens,
+    metacritic: Number.isFinite(Number(row?.metacritic || NaN)) ? Number(row.metacritic) : null,
+    wiki_id: wikiId || null,
+    gamebrain_id: gamebrainId || null
+  };
+
+  return {
+    p_id: id,
+    p_title: title,
+    p_description: description || null,
+    p_cover_url: cover,
+    p_release_date: releaseDate,
+    p_rating: Number.isFinite(rating) ? rating : null,
+    p_rating_count: Number.isFinite(ratingCount) ? ratingCount : null,
+    p_source: source,
+    p_igdb_id: igdbId || null,
+    p_rawg_id: rawgId || null,
+    p_slug: slug || null,
+    p_hero_url: hero || null,
+    p_extra: extra
+  };
+}
+
+async function cacheGamesToSupabase(rows = []) {
+  const admin = getSupabaseAdmin();
+  if (!admin) return;
+  const payloads = (Array.isArray(rows) ? rows : [])
+    .map(buildGameUpsertPayload)
+    .filter(Boolean)
+    .slice(0, 40);
+  if (!payloads.length) return;
+  await Promise.allSettled(payloads.map((payload) => (
+    admin.rpc("upsert_game_catalog", payload)
+  )));
+}
+
 function mergeUniqueStrings(...lists) {
   const seen = new Set();
   const out = [];
@@ -615,6 +814,19 @@ function normalizeGenreEntry(entry) {
     name,
     slug: normalizeGameKey(name).replace(/\s+/g, "-")
   };
+}
+
+function normalizeReleaseDate(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+  if (/^\d{4}-\d{2}$/.test(text)) return `${text}-01`;
+  if (/^\d{4}$/.test(text)) return `${text}-01-01`;
+  const parsed = Date.parse(text);
+  if (Number.isFinite(parsed)) {
+    return new Date(parsed).toISOString().slice(0, 10);
+  }
+  return null;
 }
 
 function mergeGenreRows(rows = []) {
@@ -2411,6 +2623,32 @@ app.get("/api/igdb/games", async (req, res) => {
       });
     }
 
+    const hasGenreFilter = !!String(genres || "").trim();
+    const cacheSource = onlyOneProvider
+      ? (wantsWiki ? "wikipedia" : wantsRawg ? "rawg" : wantsIgdb ? "igdb" : wantsGameBrain ? "gamebrain" : "")
+      : "";
+    const supabaseBlockedByPopularity = onlyOneProvider && wantsIgdb && popularityType > 0;
+    const shouldUseSupabaseCache = !hasGenreFilter && !supabaseBlockedByPopularity;
+    if (shouldUseSupabaseCache) {
+      const cached = await fetchCachedGamesFromSupabase({ search, dates, ordering, page, pageSize, source: cacheSource });
+      const cacheThreshold = search ? Math.min(pageSize, 6) : pageSize;
+      if (cached && Array.isArray(cached.results) && cached.results.length >= cacheThreshold) {
+        return res.json({
+          count: Number(cached.count || cached.results.length),
+          page,
+          page_size: pageSize,
+          results: cached.results.slice(0, pageSize),
+          sources: {
+            igdb: cacheSource === "igdb",
+            rawg: cacheSource === "rawg",
+            wikipedia: cacheSource === "wikipedia",
+            gamebrain: cacheSource === "gamebrain",
+            supabase: true
+          }
+        });
+      }
+    }
+
     if (onlyOneProvider && wantsIgdb) {
       let payload = null;
       if (popularityType && !search) {
@@ -2437,6 +2675,7 @@ app.get("/api/igdb/games", async (req, res) => {
         });
       }
       let results = Array.isArray(payload?.results) ? payload.results : [];
+      cacheGamesToSupabase(results).catch(() => {});
       return res.json({
         count: Number(payload?.count || results.length),
         page,
@@ -2462,6 +2701,7 @@ app.get("/api/igdb/games", async (req, res) => {
         minRatingCount: effectiveMinRatingCount
       });
       const results = Array.isArray(payload?.results) ? payload.results : [];
+      cacheGamesToSupabase(results).catch(() => {});
       return res.json({
         count: Number(payload?.count || results.length),
         page,
@@ -2490,6 +2730,7 @@ app.get("/api/igdb/games", async (req, res) => {
       const results = (Array.isArray(payload?.results) ? payload.results : [])
         .map(mapWikipediaListRow)
         .filter(Boolean);
+      cacheGamesToSupabase(results).catch(() => {});
       return res.json({
         count: Number(payload?.count || results.length),
         page,
@@ -2507,6 +2748,7 @@ app.get("/api/igdb/games", async (req, res) => {
     if (onlyOneProvider && wantsGameBrain) {
       const payload = await fetchGameBrainGamesList({ page, pageSize, search, id, ids });
       const results = Array.isArray(payload?.results) ? payload.results : [];
+      cacheGamesToSupabase(results).catch(() => {});
       return res.json({
         count: Number(payload?.count || results.length),
         page,
@@ -2626,6 +2868,7 @@ app.get("/api/igdb/games", async (req, res) => {
     const fallbackCount = offset + merged.length + (merged.length >= pageSize ? pageSize : 0);
     const count = Math.max(...counts, fallbackCount, paged.length);
 
+    cacheGamesToSupabase(paged).catch(() => {});
     return res.json({
       count,
       page,
@@ -2683,7 +2926,10 @@ app.get("/api/igdb/games/:id", async (req, res) => {
   if (rawgId && wantsRawg && rawgEnabled) {
     try {
       const detail = await fetchRawgGameDetails(rawgId);
-      if (detail) return res.json(detail);
+      if (detail) {
+        cacheGamesToSupabase([detail]).catch(() => {});
+        return res.json(detail);
+      }
     } catch (_error) {}
   }
 
@@ -2691,7 +2937,10 @@ app.get("/api/igdb/games/:id", async (req, res) => {
     try {
       const detail = await fetchWikipediaGameDetailsById(wikiId);
       const normalized = normalizeWikipediaDetail(detail);
-      if (normalized) return res.json(normalized);
+      if (normalized) {
+        cacheGamesToSupabase([normalized]).catch(() => {});
+        return res.json(normalized);
+      }
     } catch (_error) {}
   }
 
@@ -2699,14 +2948,20 @@ app.get("/api/igdb/games/:id", async (req, res) => {
     try {
       const game = await fetchGameBrainGameInfo(gamebrainId);
       const mapped = mapGameBrainDetailRow(game, null);
-      if (mapped) return res.json(mapped);
+      if (mapped) {
+        cacheGamesToSupabase([mapped]).catch(() => {});
+        return res.json(mapped);
+      }
     } catch (_error) {}
   }
 
   if (wantsIgdb && igdbEnabled) {
     try {
       const igdbDetail = await fetchIgdbGameDetails(requestedId);
-      if (igdbDetail) return res.json(igdbDetail);
+      if (igdbDetail) {
+        cacheGamesToSupabase([igdbDetail]).catch(() => {});
+        return res.json(igdbDetail);
+      }
     } catch (error) {
       console.warn("[igdb-handler] igdb detail failed:", String(error?.message || error));
     }
@@ -2715,7 +2970,10 @@ app.get("/api/igdb/games/:id", async (req, res) => {
   if (wantsRawg && rawgEnabled) {
     try {
       const detail = await fetchRawgGameDetails(requestedId);
-      if (detail) return res.json(detail);
+      if (detail) {
+        cacheGamesToSupabase([detail]).catch(() => {});
+        return res.json(detail);
+      }
     } catch (_error) {}
   }
 
@@ -2723,7 +2981,10 @@ app.get("/api/igdb/games/:id", async (req, res) => {
     try {
       const detail = await fetchWikipediaGameDetailsById(requestedId);
       const normalized = normalizeWikipediaDetail(detail);
-      if (normalized) return res.json(normalized);
+      if (normalized) {
+        cacheGamesToSupabase([normalized]).catch(() => {});
+        return res.json(normalized);
+      }
     } catch (_error) {}
   }
 
@@ -2731,7 +2992,10 @@ app.get("/api/igdb/games/:id", async (req, res) => {
     try {
       const game = await fetchGameBrainGameInfo(requestedId);
       const mapped = mapGameBrainDetailRow(game, null);
-      if (mapped) return res.json(mapped);
+      if (mapped) {
+        cacheGamesToSupabase([mapped]).catch(() => {});
+        return res.json(mapped);
+      }
     } catch (_error) {}
   }
 
