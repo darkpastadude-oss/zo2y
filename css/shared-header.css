@@ -63,10 +63,10 @@
   --tongue-thickness: clamp(3px, 10%, 6px);
   --tongue-color: #ff4d5d;
   --tongue-highlight: #ff8fa0;
-  --eye-size: 26;
-  --eye-y: 40;
-  --eye-left: 28;
-  --eye-right: 72;
+  --eye-size: 30;
+  --eye-y: 35;
+  --eye-left: 27;
+  --eye-right: 73;
   --eye-lid-color: #f39a2d;
 }
 
@@ -180,6 +180,28 @@
 .zo2y-logo-anim:hover img,
 .zo2y-logo-anim:focus-within img {
   filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.28)) saturate(1.08);
+}
+
+.zo2y-shared-brand .zo2y-logo-anim {
+  --eye-size: 30;
+  --eye-y: 35;
+  --eye-left: 27;
+  --eye-right: 73;
+}
+
+.zo2y-desktop-rail-brand .zo2y-logo-anim {
+  --eye-size: 29;
+  --eye-y: 34;
+  --eye-left: 27;
+  --eye-right: 73;
+}
+
+.zo2y-mobile-wordmark .zo2y-logo-anim,
+.zo2y-mobile-drawer-brand .zo2y-logo-anim {
+  --eye-size: 31;
+  --eye-y: 36;
+  --eye-left: 27;
+  --eye-right: 73;
 }
 
 @media (prefers-reduced-motion: reduce) {
