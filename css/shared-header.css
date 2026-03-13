@@ -59,8 +59,8 @@
   overflow: visible;
   transition: transform 0.18s ease;
   --tongue-x: 50%;
-  --tongue-y: 66%;
-  --tongue-length: clamp(20px, 58%, 46px);
+  --tongue-y: 71%;
+  --tongue-length: clamp(20px, 64%, 52px);
   --tongue-thickness: clamp(3px, 10%, 6px);
   --tongue-color: #ff4d5d;
   --tongue-highlight: #ff8fa0;
@@ -74,11 +74,11 @@
   --pupil-offset-x: 0;
   --pupil-offset-y: 0;
   --mouth-x: 50;
-  --mouth-y: 68;
-  --mouth-width: 28;
-  --mouth-height: 10;
-  --mouth-color: #2b1a13;
-  --mouth-highlight: #5a2b1c;
+  --mouth-y: 71;
+  --mouth-width: 43;
+  --mouth-height: 7;
+  --mouth-color: #1a0b08;
+  --mouth-highlight: #7a2d1d;
 }
 
 .zo2y-logo-idle,
@@ -113,7 +113,7 @@
   border-radius: 50%;
   transform: translate(-50%, -50%) translate(calc(var(--pupil-offset-x) * 1px), calc(var(--pupil-offset-y) * 1px));
   transition: transform 80ms ease-out;
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
@@ -194,7 +194,7 @@
   transition: transform 120ms ease-out, opacity 120ms ease-out;
   box-shadow: 0 0 6px rgba(255, 77, 93, 0.35);
   pointer-events: none;
-  z-index: 4;
+  z-index: 5;
 }
 
 .zo2y-logo-sprite .zo2y-logo-tongue::after {

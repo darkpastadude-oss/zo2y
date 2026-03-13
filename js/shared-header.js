@@ -16,7 +16,7 @@
   <span class="zo2y-logo-idle">
     <span class="zo2y-logo-pop">
       <span class="zo2y-logo-sprite">
-        <img src="/file.svg" alt="Logo" />
+        <img src="/file-blank.svg" alt="Logo" />
         <span class="zo2y-logo-pupil pupil-left" aria-hidden="true"></span>
         <span class="zo2y-logo-pupil pupil-right" aria-hidden="true"></span>
         <span class="zo2y-logo-eye eye-left" aria-hidden="true"></span>
@@ -586,7 +586,7 @@ const HEADER_HTML = `
         if (logo._chompTimer) window.clearTimeout(logo._chompTimer);
         logo._chompTimer = window.setTimeout(() => {
           logo.classList.remove('is-chomp');
-        }, 260);
+        }, 420);
       };
 
       logo.addEventListener('pointerdown', triggerTongue, { passive: true });

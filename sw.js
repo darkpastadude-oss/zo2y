@@ -1,6 +1,6 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v75';
-const PAGE_CACHE = 'zo2y-pages-v81';
-const IMAGE_CACHE = 'zo2y-images-v19';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v78';
+const PAGE_CACHE = 'zo2y-pages-v84';
+const IMAGE_CACHE = 'zo2y-images-v20';
 const API_CACHE = 'zo2y-api-v5';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
@@ -11,11 +11,11 @@ const STATIC_ASSETS = [
   '/credits.html',
   '/manifest.webmanifest',
   '/css/pages/index.css?v=20260313c',
-  '/css/shared-header.css?v=20260313g',
+  '/css/shared-header.css?v=20260313j',
   '/css/global-lowercase.css?v=20260308a',
   '/js/pages/index.js?v=20260313a',
   '/js/home-desktop-rebrand.js?v=20260311e',
-  '/js/shared-header.js?v=20260313g',
+  '/js/shared-header.js?v=20260313i',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
   '/js/list-utils.js?v=20260301e',
@@ -30,6 +30,7 @@ const STATIC_ASSETS = [
   '/favicon.ico',
   '/favicon.ico?v=20260307a',
   '/newlogo.webp',
+  '/file-blank.svg',
   '/file.svg',
   '/images/apple-touch-icon-180.png'
 ];
