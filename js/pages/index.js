@@ -62,7 +62,7 @@
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
     const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v9';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
-    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v3';
+    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v4';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v2';
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
@@ -290,6 +290,35 @@ let homeTravelPhotoCacheSaveTimer = null;
       return true;
     }
 
+    function normalizeHomeTravelPhotoEntry(entry) {
+      if (!entry) return { scenic: '', city: '', nature: '' };
+      if (typeof entry === 'string') {
+        const scenic = toHttpsUrl(String(entry || '').trim());
+        return {
+          scenic: isUsableHomeTravelScenicUrl(scenic) ? scenic : '',
+          city: '',
+          nature: ''
+        };
+      }
+      if (typeof entry === 'object') {
+        const scenic = toHttpsUrl(String(entry.scenic || entry.photo || entry.image || '').trim());
+        const city = toHttpsUrl(String(entry.city || entry.cityPhoto || '').trim());
+        const nature = toHttpsUrl(String(entry.nature || entry.naturePhoto || '').trim());
+        return {
+          scenic: isUsableHomeTravelScenicUrl(scenic) ? scenic : '',
+          city: isUsableHomeTravelScenicUrl(city) ? city : '',
+          nature: isUsableHomeTravelScenicUrl(nature) ? nature : ''
+        };
+      }
+      return { scenic: '', city: '', nature: '' };
+    }
+
+    function getHomeTravelPhotoSet(codeRaw) {
+      const code = canonicalTravelCountryCode(codeRaw);
+      if (!code) return { scenic: '', city: '', nature: '' };
+      return normalizeHomeTravelPhotoEntry(homeTravelPhotoCache.get(code));
+    }
+
     function readHomeTravelPhotoCacheFromStorage() {
       try {
         const raw = localStorage.getItem(HOME_TRAVEL_PHOTO_CACHE_KEY);
@@ -301,9 +330,10 @@ let homeTravelPhotoCacheSaveTimer = null;
         if ((Date.now() - savedAt) > HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS) return;
         Object.entries(entries).forEach(([codeRaw, urlRaw]) => {
           const code = canonicalTravelCountryCode(codeRaw);
-          const url = toHttpsUrl(String(urlRaw || '').trim());
-          if (!code || !url) return;
-          homeTravelPhotoCache.set(code, url);
+          if (!code) return;
+          const normalized = normalizeHomeTravelPhotoEntry(urlRaw);
+          if (!normalized.scenic && !normalized.city && !normalized.nature) return;
+          homeTravelPhotoCache.set(code, normalized);
         });
       } catch (_err) {}
     }
@@ -314,11 +344,12 @@ let homeTravelPhotoCacheSaveTimer = null;
         homeTravelPhotoCacheSaveTimer = null;
         try {
           const entries = {};
-          homeTravelPhotoCache.forEach((urlRaw, codeRaw) => {
+          homeTravelPhotoCache.forEach((entry, codeRaw) => {
             const code = canonicalTravelCountryCode(codeRaw);
-            const url = toHttpsUrl(String(urlRaw || '').trim());
-            if (!code || !url) return;
-            entries[code] = url;
+            if (!code) return;
+            const normalized = normalizeHomeTravelPhotoEntry(entry);
+            if (!normalized.scenic && !normalized.city && !normalized.nature) return;
+            entries[code] = normalized;
           });
           localStorage.setItem(HOME_TRAVEL_PHOTO_CACHE_KEY, JSON.stringify({
             savedAt: Date.now(),
@@ -328,13 +359,15 @@ let homeTravelPhotoCacheSaveTimer = null;
       }, 160);
     }
 
-    function setHomeTravelPhotoCache(codeRaw, urlRaw) {
+    function setHomeTravelPhotoCache(codeRaw, urlRaw, kind = 'scenic') {
       const code = canonicalTravelCountryCode(codeRaw);
       const url = toHttpsUrl(String(urlRaw || '').trim());
       if (!code || !isUsableHomeTravelScenicUrl(url)) return;
-      const current = String(homeTravelPhotoCache.get(code) || '').trim();
-      if (current === url) return;
-      homeTravelPhotoCache.set(code, url);
+      const targetKind = ['scenic', 'city', 'nature'].includes(kind) ? kind : 'scenic';
+      const current = normalizeHomeTravelPhotoEntry(homeTravelPhotoCache.get(code));
+      if (current[targetKind] === url) return;
+      current[targetKind] = url;
+      homeTravelPhotoCache.set(code, current);
       scheduleHomeTravelPhotoCacheSave();
     }
 
@@ -342,8 +375,10 @@ let homeTravelPhotoCacheSaveTimer = null;
       const code = canonicalTravelCountryCode(codeRaw);
       const preferred = toHttpsUrl(String(preferredUrl || '').trim());
       if (isUsableHomeTravelScenicUrl(preferred)) return preferred;
-      const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
-      if (isUsableHomeTravelScenicUrl(cached)) return cached;
+      const cached = getHomeTravelPhotoSet(code);
+      if (cached.scenic) return cached.scenic;
+      if (cached.city) return cached.city;
+      if (cached.nature) return cached.nature;
       return '';
     }
 
@@ -368,7 +403,9 @@ let homeTravelPhotoCacheSaveTimer = null;
       const rawSpotlight = toHttpsUrl(String(item.spotlightImage || '').trim());
       const scenicImage = getSafeTravelScenicImage(title, code, rawImage || rawBackground || rawSpotlight);
       if (!isUsableHomeTravelScenicUrl(scenicImage)) return null;
-      if (code) setHomeTravelPhotoCache(code, scenicImage);
+      if (code) setHomeTravelPhotoCache(code, scenicImage, 'scenic');
+      const cachedSet = getHomeTravelPhotoSet(code);
+      const travelPhotos = [cachedSet.city, cachedSet.nature].filter(Boolean);
       const flagImage = toHttpsUrl(String(item.flagImage || '').trim()) || (code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : '');
       return {
         ...item,
@@ -383,6 +420,12 @@ let homeTravelPhotoCacheSaveTimer = null;
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
+        travelPhotos,
+        travelPhotoSet: {
+          scenic: cachedSet.scenic || scenicImage,
+          city: cachedSet.city || '',
+          nature: cachedSet.nature || ''
+        },
         travelNeedsScenicHydration: false,
         fallbackImage: ''
       };
@@ -3675,12 +3718,32 @@ let homeTravelPhotoCacheSaveTimer = null;
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         if (restaurantComposite && !coverImage && !logo) return '';
         if (!restaurantComposite && !image) return '';
-        const mediaHtml = restaurantComposite
+        let mediaHtml = restaurantComposite
           ? `
               ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
               ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0"></span>` : ''}
             `
           : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
+
+        if (mediaTypeRaw === 'travel') {
+          const travelSet = itemData.travelPhotoSet || {};
+          const travelTiles = [];
+          if (travelSet.city) travelTiles.push({ url: travelSet.city, label: 'City life', kind: 'city' });
+          if (travelSet.nature) travelTiles.push({ url: travelSet.nature, label: 'Nature', kind: 'nature' });
+          if (!travelTiles.length && image) travelTiles.push({ url: image, label: 'Scenic', kind: 'scenic' });
+          if (travelTiles.length) {
+            mediaHtml = `
+              <div class="travel-photo-grid${travelTiles.length > 1 ? '' : ' single'}">
+                ${travelTiles.map((tile) => `
+                  <div class="travel-photo-tile" data-kind="${escapeHtml(tile.kind)}">
+                    <img src="${escapeHtml(tile.url)}" alt="${escapeHtml(tile.label)}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null; this.parentElement?.remove();">
+                    <span class="travel-photo-label">${escapeHtml(tile.label)}</span>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+          }
+        }
         const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
         const titleMarkup = (mediaTypeRaw === 'travel' && flagImage)
           ? `<span class="country-title-wrap"><img class="country-inline-flag" src="${flagImage}" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="country-title-text">${title}</span></span>`
@@ -4765,43 +4828,48 @@ let homeTravelPhotoCacheSaveTimer = null;
       };
 
       try {
-        const baseParams = {
-          page_size: Math.min(Math.max(targetCount * 6, 140), 220),
-          provider: 'wikipedia',
-          spotlight: 1,
-          cache: 1,
-          cache_pages: 1
-        };
-        const requests = [
-          { ...baseParams, page: 1, ordering: '-released' },
-          { ...baseParams, page: 2, ordering: '-released' },
-          { ...baseParams, page: 1, ordering: '-rating' },
-          { ...baseParams, page: 1, ordering: '-rating_count' },
-          { ...baseParams, page: 1, ordering: '-name' },
-          { ...baseParams, page: 1, popularity_type: 1 },
-          { ...baseParams, page: 2, popularity_type: 1 }
-        ];
-        const merged = [];
-        const seen = new Set();
-        for (const params of requests) {
-          if (signal?.aborted) break;
-          const payload = await homeIgdbFetch('/games', { ...params, ...cacheParams }, signal);
-          const rows = Array.isArray(payload?.results) ? payload.results : [];
-          rows.forEach((row) => {
-            const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
-            const title = String(row?.title || row?.name || '').trim().toLowerCase();
-            const key = id || title;
-            if (!key || seen.has(key)) return;
-            seen.add(key);
-            merged.push(row);
-          });
-          if (merged.length >= targetCount * 4) break;
+        const providerList = ['wikipedia', 'igdb'];
+        for (const provider of providerList) {
+          const baseParams = {
+            page_size: Math.min(Math.max(targetCount * 6, 140), 220),
+            provider,
+            spotlight: 1,
+            cache: 1,
+            cache_pages: 1
+          };
+          const requests = [
+            { ...baseParams, page: 1, ordering: '-released' },
+            { ...baseParams, page: 2, ordering: '-released' },
+            { ...baseParams, page: 1, ordering: '-rating' },
+            { ...baseParams, page: 1, ordering: '-rating_count' },
+            { ...baseParams, page: 1, ordering: '-name' },
+            { ...baseParams, page: 1, popularity_type: 1 },
+            { ...baseParams, page: 2, popularity_type: 1 }
+          ];
+          const merged = [];
+          const seen = new Set();
+          for (const params of requests) {
+            if (signal?.aborted) break;
+            const payload = await homeIgdbFetch('/games', { ...params, ...cacheParams }, signal);
+            const rows = Array.isArray(payload?.results) ? payload.results : [];
+            rows.forEach((row) => {
+              const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
+              const title = String(row?.title || row?.name || '').trim().toLowerCase();
+              const key = id || title;
+              if (!key || seen.has(key)) return;
+              seen.add(key);
+              merged.push(row);
+            });
+            if (merged.length >= targetCount * 4) break;
+          }
+          if (!merged.length || signal?.aborted) continue;
+          const items = merged
+            .map((row) => mapToItem(row))
+            .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
+            .slice(0, targetCount);
+          if (items.length) return items;
         }
-        if (!merged.length || signal?.aborted) return [];
-        return merged
-          .map((row) => mapToItem(row))
-          .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
-          .slice(0, targetCount);
+        return [];
       } catch (_error) {
         return [];
       }
@@ -5326,7 +5394,7 @@ let homeTravelPhotoCacheSaveTimer = null;
       return out.slice(0, 3);
     }
 
-    function isBlockedTravelCommonsTitle(title, countryName, capital) {
+    function isBlockedTravelCommonsTitle(title, countryName, capital, cityHints = []) {
       const raw = String(title || '').toLowerCase();
       if (!raw) return true;
       const blocked = [
@@ -5358,11 +5426,15 @@ let homeTravelPhotoCacheSaveTimer = null;
       if (blocked.some((token) => raw.includes(token))) return true;
       const countryNeedle = normalizeTravelSearchText(countryName);
       const capitalNeedle = normalizeTravelSearchText(capital);
-      if (!countryNeedle && !capitalNeedle) return false;
+      const cityNeedles = (Array.isArray(cityHints) ? cityHints : [])
+        .map((value) => normalizeTravelSearchText(value))
+        .filter(Boolean);
+      if (!countryNeedle && !capitalNeedle && !cityNeedles.length) return false;
       const normalizedTitle = normalizeTravelSearchText(title);
       const hasCountry = countryNeedle && normalizedTitle.includes(countryNeedle);
       const hasCapital = capitalNeedle && normalizedTitle.includes(capitalNeedle);
-      return !(hasCountry || hasCapital);
+      const hasCity = cityNeedles.some((needle) => normalizedTitle.includes(needle));
+      return !(hasCountry || hasCapital || hasCity);
     }
 
     function isTravelCommonsPhotoMime(mime) {
@@ -5370,29 +5442,46 @@ let homeTravelPhotoCacheSaveTimer = null;
       return value === 'image/jpeg' || value === 'image/jpg' || value === 'image/webp';
     }
 
-    async function fetchTravelCommonsPhoto(name, code, capital, signal) {
-      const safeCode = String(code || '').trim().toUpperCase();
-      if (!safeCode) return '';
-      if (homeTravelPhotoCache.has(safeCode)) {
-        const cached = toHttpsUrl(String(homeTravelPhotoCache.get(safeCode) || '').trim());
-        if (isUsableHomeTravelScenicUrl(cached)) return cached;
+    function buildHomeTravelPhotoQueries(kind, name, capital, cities = []) {
+      const primaryCity = String(capital || cities[0] || '').trim();
+      if (kind === 'city') {
+        return [
+          primaryCity ? `${primaryCity} skyline` : '',
+          primaryCity ? `${primaryCity} downtown` : '',
+          `${name} city skyline`,
+          `${name} city center`,
+          `${name} street`
+        ].map((value) => String(value || '').trim()).filter(Boolean);
       }
-
-      const queries = [
+      if (kind === 'nature') {
+        return [
+          `${name} landscape`,
+          `${name} nature`,
+          `${name} national park`,
+          `${name} mountains`,
+          `${name} coast`
+        ].map((value) => String(value || '').trim()).filter(Boolean);
+      }
+      return [
         `${name} landscape`,
         `${name} travel photography`,
-        `${name} city skyline`,
-        `${capital ? `${capital} skyline` : ''}`,
-        `${name} nature`
+        `${name} scenic`,
+        `${name} nature`,
+        `${primaryCity ? `${primaryCity} skyline` : ''}`
       ].map((value) => String(value || '').trim()).filter(Boolean);
+    }
 
+    async function fetchTravelCommonsPhotoByKind(kind, name, code, capital, cities, signal) {
+      const safeCode = String(code || '').trim().toUpperCase();
+      if (!safeCode) return '';
+      const queries = buildHomeTravelPhotoQueries(kind, name, capital, cities);
       for (const query of queries) {
         if (signal?.aborted) break;
-        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=10&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=1400`;
+        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=8&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=1200`;
         try {
           const payload = await fetchJsonWithPerfCache(endpoint, {
             signal,
-            cacheKey: `commons:travel:home:${safeCode}:${query.toLowerCase()}`,
+            cacheKey: `commons:travel:home:${safeCode}:${kind}:${query.toLowerCase()}`,
             ttlMs: 1000 * 60 * 60 * 24 * 7,
             timeoutMs: 7600,
             retries: 1
@@ -5402,7 +5491,7 @@ let homeTravelPhotoCacheSaveTimer = null;
             const title = String(page?.title || '');
             const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
             if (!isTravelCommonsPhotoMime(mime)) return false;
-            if (isBlockedTravelCommonsTitle(title, name, capital)) return false;
+            if (isBlockedTravelCommonsTitle(title, name, capital, cities)) return false;
             return true;
           }) || pages.find((page) => {
             const title = String(page?.title || '').toLowerCase();
@@ -5412,33 +5501,43 @@ let homeTravelPhotoCacheSaveTimer = null;
             return !blocked.some((token) => title.includes(token));
           });
           const image = toHttpsUrl(preferred?.imageinfo?.[0]?.thumburl || preferred?.imageinfo?.[0]?.url || '');
-          if (isUsableHomeTravelScenicUrl(image)) {
-            setHomeTravelPhotoCache(safeCode, image);
-            return image;
-          }
+          if (isUsableHomeTravelScenicUrl(image)) return image;
         } catch (_error) {
           // continue with next query
         }
       }
-
       return '';
     }
 
-    async function fetchTravelCommonsPhotos(rows = [], signal) {
+    async function fetchTravelCommonsPhoto(name, code, capital, cities, signal) {
+      const safeCode = String(code || '').trim().toUpperCase();
+      if (!safeCode) return '';
+      const cached = getHomeTravelPhotoSet(safeCode);
+      if (cached.scenic) return cached.scenic;
+      const scenic = await fetchTravelCommonsPhotoByKind('scenic', name, safeCode, capital, cities, signal);
+      if (scenic) setHomeTravelPhotoCache(safeCode, scenic, 'scenic');
+      return scenic;
+    }
+
+    async function fetchTravelCommonsPhotos(rows = [], signal, opts = {}) {
       const list = Array.isArray(rows) ? rows : [];
+      const includeLifestyle = !!opts.includeLifestyle && !isHomeSlowNetwork();
       const unresolved = list.filter((row) => {
         const rawCode = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
         if (rawCode === 'IL') return false;
         const code = canonicalTravelCountryCode(rawCode);
         const name = String(row?.name?.common || row?.name?.official || '').trim();
         if (/\bisrael\b/i.test(name)) return false;
-        const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
-        return !!code && !!name && !isUsableHomeTravelScenicUrl(cached);
+        const cached = getHomeTravelPhotoSet(code);
+        if (!code || !name) return false;
+        if (!cached.scenic) return true;
+        if (includeLifestyle && (!cached.city || !cached.nature)) return true;
+        return false;
       });
       if (!unresolved.length) return homeTravelPhotoCache;
 
       const queue = unresolved.slice(0, 100);
-      const workerCount = Math.min(6, queue.length);
+      const workerCount = Math.min(includeLifestyle ? 4 : 6, queue.length);
       let cursor = 0;
       const workers = Array.from({ length: workerCount }, async () => {
         while (cursor < queue.length) {
@@ -5454,10 +5553,25 @@ let homeTravelPhotoCacheSaveTimer = null;
           const capital = Array.isArray(row?.capital)
             ? String(row.capital[0] || '').trim()
             : String(row?.capital || '').trim();
-          const cached = toHttpsUrl(String(homeTravelPhotoCache.get(code) || '').trim());
-          if (!code || !name || isUsableHomeTravelScenicUrl(cached)) continue;
-          const scenic = await fetchTravelCommonsPhoto(name, code, capital, signal);
-          if (scenic) setHomeTravelPhotoCache(code, scenic);
+          if (!code || !name) continue;
+          const cities = pickHomeCountryCities(code, capital);
+          const cached = getHomeTravelPhotoSet(code);
+          if (!cached.scenic) {
+            const scenic = await fetchTravelCommonsPhoto(name, code, capital, cities, signal);
+            if (scenic) setHomeTravelPhotoCache(code, scenic, 'scenic');
+          }
+          if (includeLifestyle) {
+            const nextCached = getHomeTravelPhotoSet(code);
+            if (!nextCached.city) {
+              const cityPhoto = await fetchTravelCommonsPhotoByKind('city', name, code, capital, cities, signal);
+              if (cityPhoto) setHomeTravelPhotoCache(code, cityPhoto, 'city');
+            }
+            const afterCity = getHomeTravelPhotoSet(code);
+            if (!afterCity.nature) {
+              const naturePhoto = await fetchTravelCommonsPhotoByKind('nature', name, code, capital, cities, signal);
+              if (naturePhoto) setHomeTravelPhotoCache(code, naturePhoto, 'nature');
+            }
+          }
         }
       });
       await Promise.all(workers);
@@ -5487,10 +5601,13 @@ let homeTravelPhotoCacheSaveTimer = null;
       if (subregion && subregion !== region) extraParts.push(subregion);
       if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
       const flagImage = toHttpsUrl(row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
-      const photoFromCommons = photoMap instanceof Map ? String(photoMap.get(code) || '').trim() : '';
-      if (photoFromCommons) setHomeTravelPhotoCache(code, photoFromCommons);
-      const photoImage = getSafeTravelScenicImage(title, code, photoFromCommons);
+      const photoFromCommons = photoMap instanceof Map ? normalizeHomeTravelPhotoEntry(photoMap.get(code)) : { scenic: '', city: '', nature: '' };
+      if (photoFromCommons.scenic) setHomeTravelPhotoCache(code, photoFromCommons.scenic, 'scenic');
+      if (photoFromCommons.city) setHomeTravelPhotoCache(code, photoFromCommons.city, 'city');
+      if (photoFromCommons.nature) setHomeTravelPhotoCache(code, photoFromCommons.nature, 'nature');
+      const photoImage = getSafeTravelScenicImage(title, code, photoFromCommons.scenic || '');
       if (!isUsableHomeTravelScenicUrl(photoImage)) return null;
+      const cachedSet = getHomeTravelPhotoSet(code);
       return {
         mediaType: 'travel',
         itemId: code,
@@ -5507,6 +5624,12 @@ let homeTravelPhotoCacheSaveTimer = null;
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
+        travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
+        travelPhotoSet: {
+          scenic: cachedSet.scenic || photoImage,
+          city: cachedSet.city || '',
+          nature: cachedSet.nature || ''
+        },
         travelNeedsScenicHydration: false,
         fallbackImage: '',
         href: `country.html?code=${encodeURIComponent(code)}`
@@ -5534,7 +5657,10 @@ let homeTravelPhotoCacheSaveTimer = null;
       const flagImage = toHttpsUrl(row?.flag || row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
       const scenicImage = getSafeTravelScenicImage(title, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
       if (!isUsableHomeTravelScenicUrl(scenicImage)) return null;
-      setHomeTravelPhotoCache(code, scenicImage);
+      setHomeTravelPhotoCache(code, scenicImage, 'scenic');
+      if (row?.photoCity) setHomeTravelPhotoCache(code, row.photoCity, 'city');
+      if (row?.photoNature) setHomeTravelPhotoCache(code, row.photoNature, 'nature');
+      const cachedSet = getHomeTravelPhotoSet(code);
       return {
         mediaType: 'travel',
         itemId: code,
@@ -5551,6 +5677,12 @@ let homeTravelPhotoCacheSaveTimer = null;
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
+        travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
+        travelPhotoSet: {
+          scenic: cachedSet.scenic || scenicImage,
+          city: cachedSet.city || '',
+          nature: cachedSet.nature || ''
+        },
         travelNeedsScenicHydration: false,
         fallbackImage: '',
         href: `country.html?code=${encodeURIComponent(code)}`
@@ -5627,7 +5759,8 @@ let homeTravelPhotoCacheSaveTimer = null;
 
         const photoMap = await fetchTravelCommonsPhotos(
           sortedRows.slice(0, Math.max(targetCount * 6, 140)),
-          signal
+          signal,
+          { includeLifestyle: !isHomeSlowNetwork() }
         ).catch(() => homeTravelPhotoCache);
 
         const hydrated = collectTravelItems(photoMap).slice(0, targetCount);

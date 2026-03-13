@@ -122,6 +122,9 @@
       object-fit: cover;
       display: block;
     }
+    .photo-wrap.no-photo img {
+      display: none;
+    }
     .flag-wrap {
       width: 104px;
       height: 104px;
@@ -140,6 +143,9 @@
       object-fit: cover;
       border-radius: 8px;
       display: block;
+    }
+    .flag-wrap.is-empty img {
+      display: none;
     }
     h1 { margin: 0 0 6px; font-size: 30px; }
     .meta {
@@ -259,12 +265,33 @@
       overflow: hidden;
       background: #10224a;
       aspect-ratio: 1 / 1;
+      position: relative;
     }
     .gallery-item img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
+    }
+    .gallery-label {
+      position: absolute;
+      left: 8px;
+      bottom: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      color: #f8fafc;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(6px);
+    }
+    .gallery-item[data-kind="city"] .gallery-label {
+      background: rgba(59,130,246,0.72);
+    }
+    .gallery-item[data-kind="nature"] .gallery-label {
+      background: rgba(34,197,94,0.7);
     }
     .reviews { padding: 14px; }
     .guide {
@@ -542,11 +569,11 @@
 
   <section class="hero">
     <div class="hero-left">
-      <div class="photo-wrap">
-        <img id="photo" src="/newlogo.webp" alt="Country photo">
+      <div class="photo-wrap no-photo">
+        <img id="photo" alt="Country photo" loading="lazy" decoding="async">
       </div>
       <div class="flag-wrap">
-        <img id="flag" src="/newlogo.webp" alt="Country flag">
+        <img id="flag" alt="Country flag" loading="lazy" decoding="async">
       </div>
     </div>
     <div>
@@ -687,9 +714,9 @@
   (() => {
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-    const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v3';
+    const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v4';
     const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-    const COUNTRY_GALLERY_CACHE_KEY = 'zo2y_country_gallery_cache_v1';
+    const COUNTRY_GALLERY_CACHE_KEY = 'zo2y_country_gallery_cache_v2';
     const COUNTRY_GALLERY_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
     let client = null;
     const params = new URLSearchParams(window.location.search);
@@ -866,6 +893,29 @@
       return blocked.some((token) => raw.includes(token));
     }
 
+    function normalizeSharedPhotoEntry(entry) {
+      if (!entry) return { scenic: '', city: '', nature: '' };
+      if (typeof entry === 'string') {
+        const scenic = safeHttps(entry);
+        return {
+          scenic: scenic && !isBadScenicUrl(scenic) ? scenic : '',
+          city: '',
+          nature: ''
+        };
+      }
+      if (typeof entry === 'object') {
+        const scenic = safeHttps(entry.scenic || entry.photo || entry.image || '');
+        const city = safeHttps(entry.city || entry.cityPhoto || '');
+        const nature = safeHttps(entry.nature || entry.naturePhoto || '');
+        return {
+          scenic: scenic && !isBadScenicUrl(scenic) ? scenic : '',
+          city: city && !isBadScenicUrl(city) ? city : '',
+          nature: nature && !isBadScenicUrl(nature) ? nature : ''
+        };
+      }
+      return { scenic: '', city: '', nature: '' };
+    }
+
     function normalizeCountryName(value) {
       return String(value || '')
         .trim()
@@ -881,7 +931,24 @@
       return value === 'image/jpeg' || value === 'image/jpg' || value === 'image/webp';
     }
 
-    function isBadScenicTitle(title, countryName, capital) {
+    function normalizeGalleryItem(entry) {
+      if (!entry) return null;
+      if (typeof entry === 'string') {
+        const url = safeHttps(entry);
+        if (!url || isBadScenicUrl(url)) return null;
+        return { url, kind: 'scenic' };
+      }
+      if (typeof entry === 'object') {
+        const url = safeHttps(entry.url || entry.src || entry.image || entry.thumbnail || '');
+        if (!url || isBadScenicUrl(url)) return null;
+        const rawKind = String(entry.kind || entry.label || '').trim().toLowerCase();
+        const kind = rawKind === 'city' ? 'city' : rawKind === 'nature' ? 'nature' : 'scenic';
+        return { url, kind };
+      }
+      return null;
+    }
+
+    function isBadScenicTitle(title, countryName, capital, cityHints = []) {
       const raw = String(title || '').toLowerCase();
       if (!raw) return true;
       const blocked = [
@@ -908,11 +975,15 @@
       if (blocked.some((token) => raw.includes(token))) return true;
       const countryNeedle = normalizeCountryName(countryName);
       const capitalNeedle = normalizeCountryName(capital);
-      if (!countryNeedle && !capitalNeedle) return false;
+      const cityNeedles = (Array.isArray(cityHints) ? cityHints : [])
+        .map((value) => normalizeCountryName(value))
+        .filter(Boolean);
+      if (!countryNeedle && !capitalNeedle && !cityNeedles.length) return false;
       const normalizedTitle = normalizeCountryName(title);
       const hasCountry = countryNeedle && normalizedTitle.includes(countryNeedle);
       const hasCapital = capitalNeedle && normalizedTitle.includes(capitalNeedle);
-      return !(hasCountry || hasCapital);
+      const hasCity = cityNeedles.some((needle) => normalizedTitle.includes(needle));
+      return !(hasCountry || hasCapital || hasCity);
     }
 
     function loadSharedTravelPhotoCache() {
@@ -926,27 +997,33 @@
           : null;
         if (!savedAt || !entries) return;
         if ((Date.now() - savedAt) > TRAVEL_PHOTO_CACHE_TTL_MS) return;
-        Object.entries(entries).forEach(([code, url]) => {
+        Object.entries(entries).forEach(([code, entry]) => {
           const safeCountryCode = canonicalCountryCode(code);
-          const safeUrl = safeHttps(url);
-          if (!safeCountryCode || !safeUrl || isBadScenicUrl(safeUrl)) return;
-          sharedTravelPhotoCache.set(safeCountryCode, safeUrl);
+          if (!safeCountryCode) return;
+          const normalized = normalizeSharedPhotoEntry(entry);
+          if (!normalized.scenic && !normalized.city && !normalized.nature) return;
+          sharedTravelPhotoCache.set(safeCountryCode, normalized);
         });
       } catch (_error) {}
     }
 
-    function saveSharedTravelPhoto(code, url) {
+    function saveSharedTravelPhoto(code, url, kind = 'scenic') {
       const safeCountryCode = canonicalCountryCode(code);
       const safeUrl = safeHttps(url);
       if (!safeCountryCode || !safeUrl || isBadScenicUrl(safeUrl)) return;
-      sharedTravelPhotoCache.set(safeCountryCode, safeUrl);
+      const targetKind = ['scenic', 'city', 'nature'].includes(kind) ? kind : 'scenic';
+      const current = normalizeSharedPhotoEntry(sharedTravelPhotoCache.get(safeCountryCode));
+      if (current[targetKind] === safeUrl) return;
+      current[targetKind] = safeUrl;
+      sharedTravelPhotoCache.set(safeCountryCode, current);
       try {
         const entries = {};
         sharedTravelPhotoCache.forEach((value, key) => {
           const safeKey = canonicalCountryCode(key);
-          const safeValue = safeHttps(value);
-          if (!safeKey || !safeValue || isBadScenicUrl(safeValue)) return;
-          entries[safeKey] = safeValue;
+          if (!safeKey) return;
+          const normalized = normalizeSharedPhotoEntry(value);
+          if (!normalized.scenic && !normalized.city && !normalized.nature) return;
+          entries[safeKey] = normalized;
         });
         localStorage.setItem(TRAVEL_PHOTO_CACHE_KEY, JSON.stringify({
           savedAt: Date.now(),
@@ -968,7 +1045,9 @@
         if ((Date.now() - savedAt) > COUNTRY_GALLERY_CACHE_TTL_MS) return;
         Object.entries(entries).forEach(([code, urls]) => {
           const safeCountryCode = canonicalCountryCode(code);
-          const list = Array.isArray(urls) ? urls.map((value) => safeHttps(value)).filter((value) => value && !isBadScenicUrl(value)).slice(0, 12) : [];
+          const list = Array.isArray(urls)
+            ? urls.map((value) => normalizeGalleryItem(value)).filter(Boolean).slice(0, 12)
+            : [];
           if (!safeCountryCode || !list.length) return;
           countryGalleryCache.set(safeCountryCode, list);
         });
@@ -981,8 +1060,8 @@
         countryGalleryCache.forEach((urls, code) => {
           const safeCountryCode = canonicalCountryCode(code);
           const list = (Array.isArray(urls) ? urls : [])
-            .map((value) => safeHttps(value))
-            .filter((value) => value && !isBadScenicUrl(value))
+            .map((value) => normalizeGalleryItem(value))
+            .filter(Boolean)
             .slice(0, 12);
           if (!safeCountryCode || !list.length) return;
           entries[safeCountryCode] = list;
@@ -996,12 +1075,13 @@
 
     function buildCountryPhotoUrl(name, code) {
       const safeCountryCode = canonicalCountryCode(code) || 'XX';
-      const shared = safeHttps(sharedTravelPhotoCache.get(safeCountryCode) || '');
+      const sharedEntry = normalizeSharedPhotoEntry(sharedTravelPhotoCache.get(safeCountryCode));
+      const shared = sharedEntry.scenic || sharedEntry.city || sharedEntry.nature || '';
       if (shared && !isBadScenicUrl(shared)) return shared;
       const gallery = countryGalleryCache.get(safeCountryCode);
       if (Array.isArray(gallery) && gallery.length) {
-        const first = safeHttps(gallery[0]);
-        if (first && !isBadScenicUrl(first)) return first;
+        const first = normalizeGalleryItem(gallery[0]);
+        if (first && first.url && !isBadScenicUrl(first.url)) return first.url;
       }
       return '';
     }
@@ -1010,16 +1090,22 @@
       const grid = document.getElementById('galleryGrid');
       if (!grid) return;
       const list = (Array.isArray(images) ? images : [])
-        .map((value) => safeHttps(value))
-        .filter((value) => value && !isBadScenicUrl(value))
+        .map((value) => normalizeGalleryItem(value))
+        .filter(Boolean)
         .slice(0, 12);
       if (!list.length) {
         grid.innerHTML = '<div class="empty" style="grid-column: 1 / -1;">Gallery unavailable right now.</div>';
         return;
       }
-      grid.innerHTML = list.map((url) => `
-        <div class="gallery-item">
-          <img src="${escapeHtml(url)}" alt="${escapeHtml(countryName)} scenery" loading="lazy" onerror="this.onerror=null;this.closest('.gallery-item')?.remove();">
+      const labelForKind = (kind) => {
+        if (kind === 'city') return 'City life';
+        if (kind === 'nature') return 'Nature';
+        return 'Scenic';
+      };
+      grid.innerHTML = list.map((entry) => `
+        <div class="gallery-item" data-kind="${escapeHtml(entry.kind)}">
+          <img src="${escapeHtml(entry.url)}" alt="${escapeHtml(countryName)} ${escapeHtml(labelForKind(entry.kind))}" loading="lazy" onerror="this.onerror=null;this.closest('.gallery-item')?.remove();">
+          <span class="gallery-label">${escapeHtml(labelForKind(entry.kind))}</span>
         </div>
       `).join('');
     }
@@ -1030,44 +1116,80 @@
       const cached = countryGalleryCache.get(safeCountryCode);
       if (Array.isArray(cached) && cached.length) return cached;
 
-      const queries = [
-        `${name} landscape`,
-        `${name} travel photography`,
-        `${name} skyline`,
-        `${name} nature`,
-        `${capital ? `${capital} skyline` : ''}`
-      ].map((value) => String(value || '').trim()).filter(Boolean);
+      const cityHints = capital ? [capital] : [];
+      const queryGroups = [
+        {
+          kind: 'city',
+          limit: 4,
+          queries: [
+            capital ? `${capital} skyline` : '',
+            capital ? `${capital} downtown` : '',
+            `${name} city skyline`,
+            `${name} city center`,
+            `${name} street`
+          ]
+        },
+        {
+          kind: 'nature',
+          limit: 4,
+          queries: [
+            `${name} landscape`,
+            `${name} nature`,
+            `${name} national park`,
+            `${name} mountains`,
+            `${name} coast`
+          ]
+        },
+        {
+          kind: 'scenic',
+          limit: 4,
+          queries: [
+            `${name} travel photography`,
+            `${name} scenery`,
+            `${name} landmarks`
+          ]
+        }
+      ];
 
       const out = [];
       const seen = new Set();
-      for (const query of queries) {
-        if (out.length >= 12) break;
-        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=20&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=1600`;
-        try {
-          const response = await fetch(endpoint, { headers: { Accept: 'application/json' } });
-          if (!response.ok) continue;
-          const payload = await response.json();
-          const pages = Array.isArray(payload && payload.query && payload.query.pages) ? payload.query.pages : [];
-          pages.forEach((page) => {
-            if (out.length >= 12) return;
-            const title = String(page && page.title || '');
-            const mime = String(page && page.imageinfo && page.imageinfo[0] && page.imageinfo[0].mime || '').toLowerCase();
-            if (!isPhotoMime(mime)) return;
-            if (isBadScenicTitle(title, name, capital)) return;
-            const image = safeHttps(page && page.imageinfo && page.imageinfo[0] && (page.imageinfo[0].thumburl || page.imageinfo[0].url));
-            if (!image || isBadScenicUrl(image) || seen.has(image)) return;
-            seen.add(image);
-            out.push(image);
-          });
-        } catch (_error) {
-          // continue next query
+      const counts = { city: 0, nature: 0, scenic: 0 };
+
+      for (const group of queryGroups) {
+        const queries = group.queries.map((value) => String(value || '').trim()).filter(Boolean);
+        for (const query of queries) {
+          if (out.length >= 12 || counts[group.kind] >= group.limit) break;
+          const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=16&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=1400`;
+          try {
+            const response = await fetch(endpoint, { headers: { Accept: 'application/json' } });
+            if (!response.ok) continue;
+            const payload = await response.json();
+            const pages = Array.isArray(payload && payload.query && payload.query.pages) ? payload.query.pages : [];
+            pages.forEach((page) => {
+              if (out.length >= 12 || counts[group.kind] >= group.limit) return;
+              const title = String(page && page.title || '');
+              const mime = String(page && page.imageinfo && page.imageinfo[0] && page.imageinfo[0].mime || '').toLowerCase();
+              if (!isPhotoMime(mime)) return;
+              if (isBadScenicTitle(title, name, capital, cityHints)) return;
+              const image = safeHttps(page && page.imageinfo && page.imageinfo[0] && (page.imageinfo[0].thumburl || page.imageinfo[0].url));
+              if (!image || isBadScenicUrl(image) || seen.has(image)) return;
+              seen.add(image);
+              out.push({ url: image, kind: group.kind });
+              counts[group.kind] += 1;
+            });
+          } catch (_error) {
+            // continue next query
+          }
         }
       }
 
       if (out.length) {
         countryGalleryCache.set(safeCountryCode, out);
         saveCountryGalleryCache();
-        saveSharedTravelPhoto(safeCountryCode, out[0]);
+        const scenicFirst = out.find((entry) => entry.kind === 'scenic') || out[0];
+        if (scenicFirst && scenicFirst.url) {
+          saveSharedTravelPhoto(safeCountryCode, scenicFirst.url, 'scenic');
+        }
       }
       return out;
     }
@@ -1354,8 +1476,16 @@
         this.style.display = 'none';
         this.closest('.photo-wrap')?.classList.add('no-photo');
       };
-      document.getElementById('flag').src = flag;
-      document.getElementById('flag').alt = `${name} flag`;
+      const flagEl = document.getElementById('flag');
+      if (flagEl) {
+        flagEl.src = flag;
+        flagEl.alt = `${name} flag`;
+        flagEl.onerror = function onFlagError() {
+          this.onerror = null;
+          this.removeAttribute('src');
+          this.closest('.flag-wrap')?.classList.add('is-empty');
+        };
+      }
       renderGallery(countryGalleryCache.get(code) || [], name);
 
       const chips = [];
@@ -1392,9 +1522,9 @@
         .then((images) => {
           const list = Array.isArray(images) ? images : [];
           renderGallery(list, name);
-          const heroPhoto = list.find((value) => value && !isBadScenicUrl(value));
-          if (heroPhoto) {
-            photoEl.src = heroPhoto;
+          const heroEntry = list.map((value) => normalizeGalleryItem(value)).filter(Boolean)[0];
+          if (heroEntry && heroEntry.url) {
+            photoEl.src = heroEntry.url;
             photoEl.alt = `${name} photo`;
             photoEl.style.display = 'block';
             photoWrap && photoWrap.classList.remove('no-photo');

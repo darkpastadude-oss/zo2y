@@ -1351,6 +1351,46 @@
       object-position: center center;
     }
 
+    .card-media.travel-photo .travel-photo-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+    }
+
+    .card-media.travel-photo .travel-photo-grid.single {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .card-media.travel-photo .travel-photo-tile {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-media.travel-photo .travel-photo-label {
+      position: absolute;
+      left: 8px;
+      bottom: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      color: #f8fafc;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(6px);
+    }
+
+    .card-media.travel-photo .travel-photo-tile[data-kind="city"] .travel-photo-label {
+      background: rgba(59, 130, 246, 0.72);
+    }
+
+    .card-media.travel-photo .travel-photo-tile[data-kind="nature"] .travel-photo-label {
+      background: rgba(34, 197, 94, 0.7);
+    }
+
     .card-media.landscape { aspect-ratio: 16/10; }
 
     .card-media.landscape img {

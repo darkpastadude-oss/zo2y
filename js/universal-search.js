@@ -464,58 +464,67 @@
     const normalized = normalizeQuery(query);
     if (!normalized || normalized.length < MIN_QUERY_LEN) return [];
 
-    const requestParams = {
-      search: normalized,
-      page: 1,
-      page_size: 8,
-      provider: 'wikipedia',
-      title_only: 1,
-      cache: 1
-    };
-    let json = null;
-    if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
-      try {
-        json = await window.ZO2Y_IGDB.request('/games', requestParams, signal ? { signal } : undefined);
-      } catch (_err) {
-        json = null;
+    const requestGames = async (provider) => {
+      const requestParams = {
+        search: normalized,
+        page: 1,
+        page_size: 8,
+        provider,
+        title_only: 1,
+        cache: 1
+      };
+      let json = null;
+      if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
+        try {
+          json = await window.ZO2Y_IGDB.request('/games', requestParams, signal ? { signal } : undefined);
+        } catch (_err) {
+          json = null;
+        }
       }
-    }
-    if (!json) {
-      const url = `${GAMES_PROXY_BASE}/games?search=${encodeURIComponent(normalized)}&page=1&page_size=8&provider=wikipedia&title_only=1&cache=1`;
-      json = await fetchJsonWithTimeout(url, { signal, timeoutMs: Math.max(REQUEST_TIMEOUT_MS, 6500) });
-    }
-    if (!json) {
-      const fallbackUrl = `/api/igdb-handler?path=games&search=${encodeURIComponent(normalized)}&page=1&page_size=8&provider=wikipedia&title_only=1&cache=1`;
-      json = await fetchJsonWithTimeout(fallbackUrl, { signal, timeoutMs: Math.max(REQUEST_TIMEOUT_MS, 6500) });
-    }
-    const rows = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
+      if (!json) {
+        const url = `${GAMES_PROXY_BASE}/games?search=${encodeURIComponent(normalized)}&page=1&page_size=8&provider=${encodeURIComponent(provider)}&title_only=1&cache=1`;
+        json = await fetchJsonWithTimeout(url, { signal, timeoutMs: Math.max(REQUEST_TIMEOUT_MS, 6500) });
+      }
+      if (!json) {
+        const fallbackUrl = `/api/igdb-handler?path=games&search=${encodeURIComponent(normalized)}&page=1&page_size=8&provider=${encodeURIComponent(provider)}&title_only=1&cache=1`;
+        json = await fetchJsonWithTimeout(fallbackUrl, { signal, timeoutMs: Math.max(REQUEST_TIMEOUT_MS, 6500) });
+      }
+      return Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
+    };
 
-    return rows
-      .slice(0, 8)
-      .map((row) => {
-        const id = Number(row?.id || 0);
-        const name = String(row?.name || row?.title || 'Game').trim() || 'Game';
-        const released = String(row?.released || row?.release_date || '').trim();
-        const year = released ? released.slice(0, 4) : '';
-        const cover = toHttpsUrl(
-          row?.cover ||
-          row?.cover_url ||
-          row?.image ||
-          row?.background_image ||
-          row?.hero_url ||
-          ''
-        );
-        if (!id || !name) return null;
-        return {
-          type: 'Games',
-          title: name,
-          sub: year || 'Game',
-          href: `game.html?id=${encodeURIComponent(String(id))}`,
-          image: cover,
-          landscape: false
-        };
-      })
-      .filter((item) => item && item.image);
+    const providers = ['wikipedia', 'igdb'];
+    for (const provider of providers) {
+      const rows = await requestGames(provider);
+      const mapped = rows
+        .slice(0, 8)
+        .map((row) => {
+          const id = Number(row?.id || 0);
+          const name = String(row?.name || row?.title || 'Game').trim() || 'Game';
+          const released = String(row?.released || row?.release_date || '').trim();
+          const year = released ? released.slice(0, 4) : '';
+          const cover = toHttpsUrl(
+            row?.cover ||
+            row?.cover_url ||
+            row?.image ||
+            row?.background_image ||
+            row?.hero_url ||
+            ''
+          );
+          if (!id || !name) return null;
+          return {
+            type: 'Games',
+            title: name,
+            sub: year || 'Game',
+            href: `game.html?id=${encodeURIComponent(String(id))}`,
+            image: cover,
+            landscape: false
+          };
+        })
+        .filter((item) => item && item.image);
+      if (mapped.length) return mapped;
+    }
+
+    return [];
   }
 
   async function fetchAllSuggestions(query, signal) {
