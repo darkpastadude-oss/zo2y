@@ -1790,6 +1790,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         : Math.max(0, Math.min(previousIndex, homeSpotlightItems.length - 1));
       showSpotlightByIndex(homeSpotlightIndex, false);
       resetSpotlightTimer(true);
+      void hydrateSpotlightAltImages(homeSpotlightItems);
     }
 
     async function loadTasteWeights() {
@@ -3328,6 +3329,74 @@ let homeTravelPhotoCacheSaveTimer = null;
         preloadImage(item.spotlightImage || item.backgroundImage || item.image);
         preloadImage(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage);
       });
+    }
+
+    function getImageKey(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      const cleaned = raw.split('?')[0];
+      const lastSlash = cleaned.lastIndexOf('/');
+      if (lastSlash >= 0) return cleaned.slice(lastSlash + 1);
+      return cleaned;
+    }
+
+    function isSameImage(a, b) {
+      const keyA = getImageKey(a);
+      const keyB = getImageKey(b);
+      return !!keyA && keyA === keyB;
+    }
+
+    function needsAltSpotlightImage(item) {
+      if (!item) return false;
+      const type = String(item.mediaType || '').toLowerCase();
+      if (type !== 'movie' && type !== 'tv') return false;
+      const mediaImage = String(item.spotlightMediaImage || item.image || '').trim();
+      if (!mediaImage) return false;
+      const backgroundImage = String(item.spotlightImage || item.backgroundImage || '').trim();
+      if (!backgroundImage) return true;
+      return isSameImage(backgroundImage, mediaImage);
+    }
+
+    async function hydrateSpotlightAltImages(items) {
+      if (!Array.isArray(items)) return;
+      const candidates = items
+        .filter((item) => needsAltSpotlightImage(item) && !item.__spotlightAltChecked)
+        .slice(0, 4);
+      if (!candidates.length) return;
+
+      let updated = false;
+      await Promise.allSettled(candidates.map(async (item) => {
+        const type = String(item.mediaType || '').toLowerCase();
+        const id = String(item.itemId || '').trim();
+        if (!id) return;
+        item.__spotlightAltChecked = true;
+
+        const endpoint = `/api/tmdb/${type === 'movie' ? 'movie' : 'tv'}/${encodeURIComponent(id)}/images`;
+        const cacheKey = `tmdb:images:${type}:${id}`;
+        const json = await fetchJsonWithPerfCache(endpoint, { cacheKey, timeoutMs: 6500, retries: 1 });
+        const backdrops = Array.isArray(json?.backdrops) ? json.backdrops : [];
+        if (!backdrops.length) return;
+
+        const mediaKey = getImageKey(item.spotlightMediaImage || item.image || '');
+        const picked = backdrops.find((entry) => {
+          const filePath = String(entry?.file_path || '').trim();
+          if (!filePath) return false;
+          const key = getImageKey(filePath);
+          return !mediaKey || key !== mediaKey;
+        }) || null;
+        if (!picked?.file_path) return;
+
+        const nextUrl = `${TMDB_BACKDROP}${picked.file_path}`;
+        if (!nextUrl || nextUrl === String(item.spotlightImage || '').trim()) return;
+        item.spotlightImage = nextUrl;
+        item.backgroundImage = nextUrl;
+        updated = true;
+      }));
+
+      if (updated) {
+        warmSpotlightImages(items);
+        renderSpotlightItem(getCurrentSpotlightItem(), false);
+      }
     }
 
     function getBookCoverFallback(item) {
