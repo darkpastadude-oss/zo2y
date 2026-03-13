@@ -16,12 +16,18 @@
   <span class="zo2y-logo-idle">
     <span class="zo2y-logo-pop">
       <span class="zo2y-logo-sprite">
-        <img src="/file-blank.svg" alt="Logo" />
+        <span class="zo2y-logo-face zo2y-logo-face-top">
+          <img src="/file.svg" alt="Logo" />
+        </span>
+        <span class="zo2y-logo-face zo2y-logo-face-bottom" aria-hidden="true">
+          <img src="/file.svg" alt="" />
+        </span>
+        <span class="zo2y-logo-eye-white eye-left" aria-hidden="true"></span>
+        <span class="zo2y-logo-eye-white eye-right" aria-hidden="true"></span>
         <span class="zo2y-logo-pupil pupil-left" aria-hidden="true"></span>
         <span class="zo2y-logo-pupil pupil-right" aria-hidden="true"></span>
         <span class="zo2y-logo-eye eye-left" aria-hidden="true"></span>
         <span class="zo2y-logo-eye eye-right" aria-hidden="true"></span>
-        <span class="zo2y-logo-mouth" aria-hidden="true"></span>
         <span class="zo2y-logo-tongue" aria-hidden="true"></span>
       </span>
     </span>

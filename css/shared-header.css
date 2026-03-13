@@ -59,26 +59,23 @@
   overflow: visible;
   transition: transform 0.18s ease;
   --tongue-x: 50%;
-  --tongue-y: 71%;
+  --tongue-y: calc(var(--jaw-hinge-y) * 1%);
   --tongue-length: clamp(20px, 64%, 52px);
   --tongue-thickness: clamp(3px, 10%, 6px);
   --tongue-color: #ff4d5d;
   --tongue-highlight: #ff8fa0;
   --eye-size: 34;
-  --eye-y: 44;
-  --eye-left: 21;
-  --eye-right: 79;
+  --eye-y: 46;
+  --eye-left: 20;
+  --eye-right: 80;
   --eye-lid-color: #f39a2d;
-  --pupil-size: 10;
+  --eye-white-size: 14;
+  --eye-white-color: #fdfcfb;
+  --pupil-size: 8;
   --pupil-color: #111111;
   --pupil-offset-x: 0;
   --pupil-offset-y: 0;
-  --mouth-x: 50;
-  --mouth-y: 71;
-  --mouth-width: 43;
-  --mouth-height: 7;
-  --mouth-color: #1a0b08;
-  --mouth-highlight: #7a2d1d;
+  --jaw-hinge-y: 71;
 }
 
 .zo2y-logo-idle,
@@ -94,6 +91,26 @@
   line-height: 0;
 }
 
+.zo2y-logo-face {
+  position: relative;
+  display: block;
+  z-index: 1;
+}
+
+.zo2y-logo-face-top {
+  clip-path: inset(0 0 calc(100% - (var(--jaw-hinge-y) * 1%)) 0);
+  transform-origin: 50% calc(var(--jaw-hinge-y) * 1%);
+}
+
+.zo2y-logo-face-bottom {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(calc(var(--jaw-hinge-y) * 1%) 0 0 0);
+  transform-origin: 50% calc(var(--jaw-hinge-y) * 1%);
+  z-index: 1;
+  pointer-events: none;
+}
+
 .zo2y-logo-sprite img {
   position: relative;
   z-index: 1;
@@ -101,6 +118,28 @@
   transform-origin: 50% 55%;
   will-change: transform, filter;
   transition: filter 0.18s ease;
+}
+
+.zo2y-logo-sprite .zo2y-logo-eye-white {
+  position: absolute;
+  width: calc(var(--eye-white-size) * 1%);
+  height: calc(var(--eye-white-size) * 1%);
+  left: calc(var(--eye-x) * 1%);
+  top: calc(var(--eye-y) * 1%);
+  background: var(--eye-white-color);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.zo2y-logo-sprite .zo2y-logo-eye-white.eye-left {
+  --eye-x: var(--eye-left);
+}
+
+.zo2y-logo-sprite .zo2y-logo-eye-white.eye-right {
+  --eye-x: var(--eye-right);
 }
 
 .zo2y-logo-sprite .zo2y-logo-pupil {
@@ -113,7 +152,7 @@
   border-radius: 50%;
   transform: translate(-50%, -50%) translate(calc(var(--pupil-offset-x) * 1px), calc(var(--pupil-offset-y) * 1px));
   transition: transform 80ms ease-out;
-  z-index: 3;
+  z-index: 4;
   pointer-events: none;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
@@ -137,7 +176,7 @@
   transform: translate(-50%, -50%) scaleY(0);
   transform-origin: center;
   opacity: 0;
-  z-index: 3;
+  z-index: 5;
   pointer-events: none;
   box-shadow: inset 0 -1px 0 rgba(214, 122, 36, 0.35);
 }
@@ -148,36 +187,6 @@
 
 .zo2y-logo-sprite .zo2y-logo-eye.eye-right {
   --eye-x: var(--eye-right);
-}
-
-.zo2y-logo-sprite .zo2y-logo-mouth {
-  position: absolute;
-  left: calc(var(--mouth-x) * 1%);
-  top: calc(var(--mouth-y) * 1%);
-  width: calc(var(--mouth-width) * 1%);
-  height: calc(var(--mouth-height) * 1%);
-  background: radial-gradient(circle at 50% 20%, var(--mouth-highlight), var(--mouth-color) 70%);
-  border-radius: 0 0 999px 999px;
-  transform: translate(-50%, -50%) scaleY(0);
-  transform-origin: center top;
-  opacity: 0;
-  z-index: 2;
-  pointer-events: none;
-  transition: transform 120ms ease-out, opacity 120ms ease-out;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
-}
-
-.zo2y-logo-sprite .zo2y-logo-mouth::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: -12%;
-  width: 40%;
-  height: 42%;
-  transform: translateX(-50%);
-  border-radius: 999px;
-  background: rgba(255, 120, 140, 0.4);
-  opacity: 0.55;
 }
 
 .zo2y-logo-sprite .zo2y-logo-tongue {
@@ -194,7 +203,7 @@
   transition: transform 120ms ease-out, opacity 120ms ease-out;
   box-shadow: 0 0 6px rgba(255, 77, 93, 0.35);
   pointer-events: none;
-  z-index: 5;
+  z-index: 6;
 }
 
 .zo2y-logo-sprite .zo2y-logo-tongue::after {
@@ -216,26 +225,24 @@
   animation: zo2y-tongue-flick 220ms ease-out;
 }
 
-.zo2y-logo-anim.is-chomp .zo2y-logo-mouth {
-  opacity: 1;
-  transform: translate(-50%, -50%) scaleY(1);
-  animation: zo2y-mouth-open 240ms ease-out;
+.zo2y-logo-anim.is-chomp .zo2y-logo-face-bottom {
+  animation: zo2y-jaw-open 280ms ease-out;
 }
 
-@keyframes zo2y-mouth-open {
-  0% { transform: translate(-50%, -50%) scaleY(0); }
-  60% { transform: translate(-50%, -50%) scaleY(1.2); }
-  100% { transform: translate(-50%, -50%) scaleY(1); }
+.zo2y-logo-anim.is-chomp .zo2y-logo-face-top {
+  animation: zo2y-jaw-top 280ms ease-out;
 }
 
-.zo2y-logo-anim.is-chomp .zo2y-logo-sprite {
-  animation: zo2y-head-nod 240ms ease-out;
-}
-
-@keyframes zo2y-head-nod {
+@keyframes zo2y-jaw-open {
   0% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(2px) rotate(0.6deg); }
-  100% { transform: translateY(0) rotate(0deg); }
+  60% { transform: translateY(2px) rotate(12deg); }
+  100% { transform: translateY(1px) rotate(6deg); }
+}
+
+@keyframes zo2y-jaw-top {
+  0% { transform: translateY(0) rotate(0deg); }
+  60% { transform: translateY(-1px) rotate(-2deg); }
+  100% { transform: translateY(0) rotate(-1deg); }
 }
 
 @keyframes zo2y-logo-blink {
@@ -288,24 +295,31 @@
 
 .zo2y-shared-brand .zo2y-logo-anim {
   --eye-size: 34;
-  --eye-y: 44;
-  --eye-left: 21;
-  --eye-right: 79;
+  --eye-y: 46;
+  --eye-left: 20;
+  --eye-right: 80;
 }
 
 .zo2y-desktop-rail-brand .zo2y-logo-anim {
   --eye-size: 33;
-  --eye-y: 44;
-  --eye-left: 21;
-  --eye-right: 79;
+  --eye-y: 46;
+  --eye-left: 20;
+  --eye-right: 80;
 }
 
 .zo2y-mobile-wordmark .zo2y-logo-anim,
 .zo2y-mobile-drawer-brand .zo2y-logo-anim {
   --eye-size: 35;
-  --eye-y: 45;
-  --eye-left: 21;
-  --eye-right: 79;
+  --eye-y: 46;
+  --eye-left: 20;
+  --eye-right: 80;
+}
+
+@media (max-width: 1024px) {
+  .zo2y-logo-anim .zo2y-logo-eye-white,
+  .zo2y-logo-anim .zo2y-logo-pupil {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -314,16 +328,12 @@
     animation: none;
   }
 
-  .zo2y-logo-anim.is-chomp .zo2y-logo-sprite {
+  .zo2y-logo-anim.is-chomp .zo2y-logo-face-bottom,
+  .zo2y-logo-anim.is-chomp .zo2y-logo-face-top {
     animation: none;
   }
 
   .zo2y-logo-anim .zo2y-logo-eye {
-    animation: none;
-  }
-
-  .zo2y-logo-anim .zo2y-logo-mouth {
-    transition: none;
     animation: none;
   }
 

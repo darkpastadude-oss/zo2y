@@ -298,8 +298,8 @@
                     '#mobileGamesSection',
                     '#mobileGameDetailSection',
                     '#mobileCreateGameListBtn',
-                    'button[onclick*="createListForType(\\'games\\')"]',
-                    'button[onclick*="createListForType(\\'game\\')"]',
+                    "button[onclick*=\"createListForType('games')\"]",
+                    "button[onclick*=\"createListForType('game')\"]",
                     'button[onclick*="games.html"]',
                     'a[href="games.html"]',
                     'a[href="/games.html"]',
@@ -310,7 +310,7 @@
                     document.querySelectorAll(selector).forEach((el) => el.remove());
                 });
 
-                document.querySelectorAll('[onclick*="showTab(\\'games\\')"]').forEach((el) => {
+                document.querySelectorAll("[onclick*=\"showTab('games')\"]").forEach((el) => {
                     el.setAttribute('onclick', `ProfileManager.showTab('${DEFAULT_PROFILE_TAB}')`);
                 });
 
