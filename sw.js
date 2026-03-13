@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v70';
-const PAGE_CACHE = 'zo2y-pages-v76';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v71';
+const PAGE_CACHE = 'zo2y-pages-v77';
 const IMAGE_CACHE = 'zo2y-images-v19';
 const API_CACHE = 'zo2y-api-v5';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
