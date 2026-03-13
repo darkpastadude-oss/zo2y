@@ -551,16 +551,22 @@ const HEADER_HTML = `
     logos.forEach((logo) => {
       if (logo.dataset.zo2yLogoWired === '1') return;
       logo.dataset.zo2yLogoWired = '1';
+      logo.classList.toggle('is-idle', !prefersReducedMotion);
 
       const triggerTongue = () => {
-        if (prefersReducedMotion) return;
         logo.classList.remove('is-tongue');
+        logo.classList.remove('is-pop');
         void logo.offsetWidth;
         logo.classList.add('is-tongue');
+        logo.classList.add('is-pop');
         if (logo._tongueTimer) window.clearTimeout(logo._tongueTimer);
         logo._tongueTimer = window.setTimeout(() => {
           logo.classList.remove('is-tongue');
         }, 260);
+        if (logo._popTimer) window.clearTimeout(logo._popTimer);
+        logo._popTimer = window.setTimeout(() => {
+          logo.classList.remove('is-pop');
+        }, 200);
       };
 
       logo.addEventListener('pointerdown', triggerTongue, { passive: true });
@@ -580,16 +586,21 @@ const HEADER_HTML = `
       const maxDelay = 9200;
       const blinkDuration = 140;
 
+      const runBlink = () => {
+        if (!logo.isConnected) return;
+        logo.classList.add('is-blinking');
+        window.setTimeout(() => logo.classList.remove('is-blinking'), blinkDuration);
+      };
+
       const scheduleBlink = () => {
         const delay = Math.round(minDelay + Math.random() * (maxDelay - minDelay));
         window.setTimeout(() => {
-          if (!logo.isConnected) return;
-          logo.classList.add('is-blinking');
-          window.setTimeout(() => logo.classList.remove('is-blinking'), blinkDuration);
+          runBlink();
           scheduleBlink();
         }, delay);
       };
 
+      window.setTimeout(runBlink, 700 + Math.random() * 500);
       scheduleBlink();
     });
   }

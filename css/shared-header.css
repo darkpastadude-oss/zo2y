@@ -56,6 +56,7 @@
   align-items: center;
   justify-content: center;
   line-height: 0;
+  overflow: visible;
   --tongue-x: 62%;
   --tongue-y: 58%;
   --tongue-length: clamp(18px, 60%, 40px);
@@ -65,9 +66,12 @@
 }
 
 .zo2y-logo-anim img {
+  position: relative;
+  z-index: 1;
   display: block;
   transform-origin: 50% 55%;
-  will-change: transform;
+  will-change: transform, filter;
+  transition: filter 0.18s ease;
 }
 
 .zo2y-logo-anim .zo2y-logo-tongue {
@@ -84,6 +88,7 @@
   transition: transform 120ms ease-out, opacity 120ms ease-out;
   box-shadow: 0 0 6px rgba(255, 77, 93, 0.35);
   pointer-events: none;
+  z-index: 2;
 }
 
 .zo2y-logo-anim .zo2y-logo-tongue::after {
@@ -102,6 +107,7 @@
   opacity: 1;
   transform: translateY(-50%) scaleX(1);
   transition: transform 140ms ease-out, opacity 120ms ease-out;
+  animation: zo2y-tongue-flick 220ms ease-out;
 }
 
 @keyframes zo2y-logo-blink {
@@ -115,9 +121,46 @@
   animation: zo2y-logo-blink 140ms ease-in-out;
 }
 
+@keyframes zo2y-logo-idle {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  35% { transform: translateY(-3px) rotate(-1.4deg) scale(1.02); }
+  70% { transform: translateY(2px) rotate(0.9deg) scale(1.01); }
+}
+
+.zo2y-logo-anim.is-idle {
+  animation: zo2y-logo-idle 6.6s ease-in-out infinite;
+}
+
+@keyframes zo2y-logo-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.07); }
+  100% { transform: scale(1); }
+}
+
+.zo2y-logo-anim.is-pop {
+  animation: zo2y-logo-pop 180ms ease-out;
+}
+
+@keyframes zo2y-tongue-flick {
+  0% { transform: translateY(-50%) scaleX(0); }
+  60% { transform: translateY(-50%) scaleX(1.15); }
+  100% { transform: translateY(-50%) scaleX(1); }
+}
+
+.zo2y-logo-anim:hover img,
+.zo2y-logo-anim:focus-within img {
+  filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.28)) saturate(1.08);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .zo2y-logo-anim.is-idle,
+  .zo2y-logo-anim.is-pop {
+    animation: none;
+  }
+
   .zo2y-logo-anim .zo2y-logo-tongue {
     transition: none;
+    animation: none;
   }
 
   .zo2y-logo-anim.is-blinking img {
