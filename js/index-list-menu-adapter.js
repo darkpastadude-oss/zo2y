@@ -34,6 +34,11 @@
       { key: 'watched', label: 'Watched', icon: 'fas fa-eye' },
       { key: 'watchlist', label: 'Watchlist', icon: 'fas fa-bookmark' }
     ],
+    anime: [
+      { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+      { key: 'watched', label: 'Watched', icon: 'fas fa-eye' },
+      { key: 'watchlist', label: 'Watchlist', icon: 'fas fa-bookmark' }
+    ],
     game: [
       { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
       { key: 'watched', label: 'Played', icon: 'fas fa-eye' },
@@ -59,6 +64,7 @@
   const DEFAULT_TABLE_BY_MEDIA = {
     movie: { table: 'movie_list_items', itemField: 'movie_id' },
     tv: { table: 'tv_list_items', itemField: 'tv_id' },
+    anime: { table: 'anime_list_items', itemField: 'anime_id' },
     game: { table: 'game_list_items', itemField: 'game_id' },
     book: { table: 'book_list_items', itemField: 'book_id' },
     music: { table: 'music_list_items', itemField: 'track_id' },

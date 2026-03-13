@@ -793,8 +793,8 @@
     </div>
   </div>
 
-    <script src="js/list-utils.js?v=20260221c"></script>
-    <script src="js/index-list-menu-adapter.js?v=20260221b"></script>
+    <script src="js/list-utils.js?v=20260313i"></script>
+    <script src="js/index-list-menu-adapter.js?v=20260313c"></script>
     <script src="js/review-interactions.js?v=20260308a"></script>
     <script>
     (function () {
@@ -828,6 +828,7 @@
       let customLists = [];
       let modalSelectedLists = new Set();
       let selectedIcon = 'fas fa-book';
+      let bookSyncWarned = false;
 
       function toHttpsUrl(value) {
         return String(value || '').replace(/^http:\/\//i, 'https://');
@@ -1167,7 +1168,7 @@
       }
 
       async function upsertBookRecordLocal() {
-        if (!supabaseClient || !normalizedBookId) return null;
+        if (!normalizedBookId) return false;
         const payload = {
           id: normalizedBookId,
           title: (bookInfo && bookInfo.title) ? bookInfo.title : (document.getElementById('title')?.textContent || 'Untitled'),
@@ -1181,18 +1182,15 @@
           published_date: bookInfo?.first_publish_date || null,
           updated_at: new Date().toISOString()
         };
-        try {
-          const { data, error } = await supabaseClient.from('books').upsert(payload, { onConflict: 'id' }).select('id').maybeSingle();
-          if (error) {
-            console.error('Upsert book error', error);
-            showNotification(`Could not ensure book record: ${error.message || JSON.stringify(error)}`, 'error');
-            return null;
+        if (window.ListUtils && typeof ListUtils.ensureBookRecord === 'function') {
+          const ok = await ListUtils.ensureBookRecord(supabaseClient, payload);
+          if (!ok && !bookSyncWarned) {
+            bookSyncWarned = true;
+            showNotification('Book info is unavailable right now.', 'error');
           }
-          return data;
-        } catch (e) {
-          console.error('Upsert book exception', e);
-          return null;
+          return !!ok;
         }
+        return false;
       }
 
       async function initAuth() {
@@ -1633,7 +1631,8 @@
 
         try {
           if (nextSaved) {
-            await upsertBookRecordLocal();
+            const ensured = await upsertBookRecordLocal();
+            if (!ensured) throw new Error('book_record_missing');
             const { error } = await supabaseClient
               .from('book_list_items')
               .insert({ user_id: currentUser.id, book_id: normalizedBookId, list_type: listType });
@@ -2126,6 +2125,7 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
 
 
 

@@ -59,6 +59,10 @@
     }
   };
 
+  const BOOK_SYNC_ENDPOINT = '/api/books/sync';
+  let bookSyncSupported = null;
+  let bookDirectWriteSupported = null;
+
   const LIST_META_STORAGE_KEY = 'zo2y_list_meta_v1';
   const TIER_RANK_STORAGE_KEY = 'zo2y_tier_ranks_v1';
   const TIER_META_TABLE = 'list_tier_meta';
@@ -797,15 +801,134 @@
     sync();
   }
 
+  function normalizeBookAuthors(value) {
+    if (Array.isArray(value)) {
+      const joined = value
+        .map((entry) => String(entry || '').trim())
+        .filter(Boolean)
+        .join(', ');
+      return joined || '';
+    }
+    return String(value || '').trim();
+  }
+
+  function normalizeBookCategories(value) {
+    if (!value) return [];
+    const raw = Array.isArray(value) ? value : [value];
+    return raw
+      .map((entry) => String(entry || '').trim())
+      .filter(Boolean)
+      .slice(0, 40);
+  }
+
+  function normalizeBookPublishedDate(value) {
+    if (value === undefined || value === null) return null;
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      const year = Math.floor(value);
+      if (year > 0) return `${year}-01-01`;
+    }
+    const raw = String(value || '').trim();
+    if (!raw) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    const yearMatch = raw.match(/\d{4}/);
+    if (yearMatch) return `${yearMatch[0]}-01-01`;
+    return null;
+  }
+
+  function normalizeBookPayload(payload = {}) {
+    const id = String(payload.id || payload.book_id || payload.bookId || '').trim();
+    if (!id) return null;
+    const titleRaw = String(payload.title || payload.name || '').trim();
+    const title = titleRaw || `Book ${id}`;
+    const authors = normalizeBookAuthors(payload.authors || payload.author_name || payload.author || payload.subtitle);
+    const thumbnail = String(payload.thumbnail || payload.image || payload.cover || '').trim();
+    const publishedDate = normalizeBookPublishedDate(
+      payload.published_date || payload.first_publish_date || payload.first_publish_year || payload.published || payload.year
+    );
+    const categories = normalizeBookCategories(payload.categories || payload.subject);
+    const description = String(payload.description || '').trim();
+    const pageCount = Number(payload.page_count || payload.pageCount || 0);
+    const publisher = String(payload.publisher || '').trim();
+
+    return {
+      id,
+      title,
+      authors,
+      thumbnail,
+      published_date: publishedDate,
+      categories: categories.length ? categories : null,
+      description: description || null,
+      page_count: Number.isFinite(pageCount) && pageCount > 0 ? Math.floor(pageCount) : null,
+      publisher: publisher || null
+    };
+  }
+
+  function isBookWritePermissionError(error) {
+    const code = String(error?.code || '').trim();
+    const message = String(error?.message || '').toLowerCase();
+    const details = String(error?.details || '').toLowerCase();
+    if (code === '42501') return true;
+    if (message.includes('permission') || message.includes('row-level security')) return true;
+    if (details.includes('permission') || details.includes('row-level security')) return true;
+    return false;
+  }
+
+  async function syncBookRecordViaApi(payload) {
+    if (bookSyncSupported === false) return false;
+    if (typeof fetch !== 'function') return false;
+    try {
+      const response = await fetch(BOOK_SYNC_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        bookSyncSupported = true;
+        return true;
+      }
+      if ([401, 403, 404, 405, 503].includes(response.status)) {
+        bookSyncSupported = false;
+      }
+      return false;
+    } catch (_err) {
+      return false;
+    }
+  }
+
   async function ensureBookRecord(client, payload) {
-    if (!client || !payload || !payload.id) return;
-    await client.from('books').upsert({
-      id: String(payload.id),
-      title: payload.title || '',
-      authors: payload.authors || '',
-      thumbnail: payload.thumbnail || '',
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'id' });
+    const normalized = normalizeBookPayload(payload);
+    if (!normalized) return false;
+
+    const synced = await syncBookRecordViaApi(normalized);
+    if (synced) return true;
+
+    if (!client || bookDirectWriteSupported === false) return false;
+    try {
+      const { error } = await client.from('books').upsert({
+        id: normalized.id,
+        title: normalized.title,
+        authors: normalized.authors || '',
+        thumbnail: normalized.thumbnail || '',
+        published_date: normalized.published_date,
+        categories: normalized.categories,
+        description: normalized.description,
+        page_count: normalized.page_count,
+        publisher: normalized.publisher,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+
+      if (error) {
+        if (isBookWritePermissionError(error)) {
+          bookDirectWriteSupported = false;
+        }
+        return false;
+      }
+
+      bookDirectWriteSupported = true;
+      return true;
+    } catch (_err) {
+      return false;
+    }
   }
 
   async function ensureTrackRecord(client, payload) {
@@ -946,7 +1069,8 @@
     if (!cfg || !client || normalizedItemId === null) return;
     if (userId) setTierSyncContext(client, userId);
     if (type === 'book' && itemPayload) {
-      await ensureBookRecord(client, itemPayload);
+      const ok = await ensureBookRecord(client, itemPayload);
+      if (!ok) throw new Error('book_record_missing');
     }
     if (type === 'music' && itemPayload) {
       await ensureTrackRecord(client, itemPayload);

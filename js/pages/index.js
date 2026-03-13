@@ -1992,13 +1992,15 @@ let homeTravelPhotoCacheSaveTimer = null;
 
       const ensureLinkedMediaRecord = async (itemId) => {
         if (mediaType === 'book') {
-          await client.from('books').upsert({
-            id: String(itemId),
-            title: payload.title || '',
-            authors: payload.subtitle || '',
-            thumbnail: payload.image || '',
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
+          if (window.ListUtils && typeof ListUtils.ensureBookRecord === 'function') {
+            return await ListUtils.ensureBookRecord(client, {
+              id: String(itemId),
+              title: payload.title || '',
+              authors: payload.subtitle || '',
+              thumbnail: payload.image || ''
+            });
+          }
+          return false;
         }
 
         if (mediaType === 'music') {
@@ -2010,6 +2012,7 @@ let homeTravelPhotoCacheSaveTimer = null;
             updated_at: new Date().toISOString()
           }, { onConflict: 'id' });
         }
+        return true;
       };
 
       try {
@@ -2042,7 +2045,11 @@ let homeTravelPhotoCacheSaveTimer = null;
           }
 
           if (nextSaved === true) {
-            await ensureLinkedMediaRecord(itemId);
+            const ensured = await ensureLinkedMediaRecord(itemId);
+            if (!ensured) {
+              showHomeToast('Book info is unavailable right now.', true);
+              return result;
+            }
             const insertRow = { user_id: homeCurrentUser.id, list_type: listType };
             insertRow[itemField] = itemId;
             const { error: insertError } = await client.from(table).insert(insertRow);

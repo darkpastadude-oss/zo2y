@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import { applyApiGuardrails } from "./_guardrails.js";
+import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
@@ -10,6 +11,33 @@ const app = express();
 applyApiGuardrails(app, { keyPrefix: "api-books", max: 220 });
 const GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1";
 const OPEN_LIBRARY_BASE = "https://openlibrary.org";
+
+app.post("/api/books/sync", async (req, res) => {
+  try {
+    const client = getSupabaseAdminClient();
+    if (!client) {
+      return res.status(503).json({ ok: false, message: "Supabase admin not configured" });
+    }
+    const payload = sanitizeBookPayload(req.body || {});
+    if (!payload) {
+      return res.status(400).json({ ok: false, message: "Missing book id" });
+    }
+
+    const { data, error } = await client
+      .from("books")
+      .upsert(payload, { onConflict: "id" })
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      return res.status(500).json({ ok: false, message: error.message || "Book sync failed" });
+    }
+
+    return res.json({ ok: true, id: data?.id || payload.id });
+  } catch (error) {
+    return res.status(500).json({ ok: false, message: error?.message || "Book sync error" });
+  }
+});
 
 function getBooksKey() {
   return String(process.env.GOOGLE_BOOKS_KEY || "").trim();
@@ -23,6 +51,71 @@ function clampInt(value, min, max, fallback) {
 
 function toHttpsUrl(value) {
   return String(value || "").replace(/^http:\/\//i, "https://").trim();
+}
+
+function normalizePublishedDate(value) {
+  if (value === undefined || value === null) return null;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const year = Math.floor(value);
+    if (year > 0) return `${year}-01-01`;
+  }
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const yearMatch = raw.match(/\d{4}/);
+  if (yearMatch) return `${yearMatch[0]}-01-01`;
+  return null;
+}
+
+function normalizeAuthors(value) {
+  if (Array.isArray(value)) {
+    const joined = value
+      .map((entry) => String(entry || "").trim())
+      .filter(Boolean)
+      .join(", ");
+    return joined || null;
+  }
+  const text = String(value || "").trim();
+  return text || null;
+}
+
+function normalizeCategories(value) {
+  if (!value) return [];
+  const raw = Array.isArray(value) ? value : [value];
+  return raw
+    .map((entry) => String(entry || "").trim())
+    .filter(Boolean)
+    .slice(0, 40);
+}
+
+function sanitizeBookPayload(body = {}) {
+  const id = String(body.id || body.book_id || body.bookId || "").trim();
+  if (!id) return null;
+
+  const titleRaw = String(body.title || body.name || "").trim();
+  const title = titleRaw || `Book ${id}`;
+  const authors = normalizeAuthors(body.authors || body.author_name || body.author || body.subtitle);
+  const thumbnail = toHttpsUrl(body.thumbnail || body.image || body.cover || "");
+  const publishedDate = normalizePublishedDate(
+    body.published_date || body.first_publish_date || body.first_publish_year || body.published || body.year
+  );
+  const categories = normalizeCategories(body.categories || body.subject);
+  const description = String(body.description || "").trim();
+  const pageCount = Number(body.page_count || body.pageCount || 0);
+  const publisher = String(body.publisher || "").trim();
+
+  return {
+    id,
+    title,
+    authors: authors || null,
+    thumbnail: thumbnail || null,
+    published_date: publishedDate,
+    categories: categories.length ? categories : null,
+    description: description || null,
+    page_count: Number.isFinite(pageCount) && pageCount > 0 ? Math.floor(pageCount) : null,
+    publisher: publisher || null,
+    updated_at: new Date().toISOString()
+  };
 }
 
 function pushQueryParam(params, key, value) {
