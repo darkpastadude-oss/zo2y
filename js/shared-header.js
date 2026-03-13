@@ -13,11 +13,19 @@
 
   const LOGO_HTML = `
 <span class="zo2y-logo-anim" data-zo2y-logo="1">
-  <img src="/file.svg" alt="Logo" />
-  <span class="zo2y-logo-eye eye-left" aria-hidden="true"></span>
-  <span class="zo2y-logo-eye eye-right" aria-hidden="true"></span>
-  <span class="zo2y-logo-mouth" aria-hidden="true"></span>
-  <span class="zo2y-logo-tongue" aria-hidden="true"></span>
+  <span class="zo2y-logo-idle">
+    <span class="zo2y-logo-pop">
+      <span class="zo2y-logo-sprite">
+        <img src="/file.svg" alt="Logo" />
+        <span class="zo2y-logo-pupil pupil-left" aria-hidden="true"></span>
+        <span class="zo2y-logo-pupil pupil-right" aria-hidden="true"></span>
+        <span class="zo2y-logo-eye eye-left" aria-hidden="true"></span>
+        <span class="zo2y-logo-eye eye-right" aria-hidden="true"></span>
+        <span class="zo2y-logo-mouth" aria-hidden="true"></span>
+        <span class="zo2y-logo-tongue" aria-hidden="true"></span>
+      </span>
+    </span>
+  </span>
 </span>`;
 
 const HEADER_HTML = `
@@ -550,6 +558,9 @@ const HEADER_HTML = `
     const logos = Array.from(document.querySelectorAll('[data-zo2y-logo="1"]'));
     if (!logos.length) return;
     const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const canTrackPointer = !prefersReducedMotion
+      && window.matchMedia
+      && window.matchMedia('(pointer: fine)').matches;
 
     logos.forEach((logo) => {
       if (logo.dataset.zo2yLogoWired === '1') return;
@@ -612,6 +623,45 @@ const HEADER_HTML = `
       window.setTimeout(runBlink, 700 + Math.random() * 500);
       scheduleBlink();
     });
+
+    if (canTrackPointer && !window.__ZO2Y_LOGO_TRACKING_BOUND) {
+      window.__ZO2Y_LOGO_TRACKING_BOUND = true;
+      let rafId = null;
+
+      const applyOffsets = (clientX, clientY) => {
+        logos.forEach((logo) => {
+          const rect = logo.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dx = clientX - cx;
+          const dy = clientY - cy;
+          const distance = Math.hypot(dx, dy) || 1;
+          const maxOffset = Math.min(rect.width, rect.height) * 0.12;
+          const strength = Math.min(1, distance / 160);
+          const offsetX = (dx / distance) * maxOffset * strength;
+          const offsetY = (dy / distance) * maxOffset * strength;
+          logo.style.setProperty('--pupil-offset-x', offsetX.toFixed(2));
+          logo.style.setProperty('--pupil-offset-y', offsetY.toFixed(2));
+        });
+      };
+
+      const resetOffsets = () => {
+        logos.forEach((logo) => {
+          logo.style.setProperty('--pupil-offset-x', '0');
+          logo.style.setProperty('--pupil-offset-y', '0');
+        });
+      };
+
+      document.addEventListener('mousemove', (event) => {
+        if (rafId) cancelAnimationFrame(rafId);
+        const { clientX, clientY } = event;
+        rafId = requestAnimationFrame(() => applyOffsets(clientX, clientY));
+      }, { passive: true });
+
+      document.addEventListener('mouseleave', resetOffsets);
+      window.addEventListener('blur', resetOffsets);
+    }
   }
 
   function wireSearchButton() {

@@ -57,6 +57,7 @@
   justify-content: center;
   line-height: 0;
   overflow: visible;
+  transition: transform 0.18s ease;
   --tongue-x: 50%;
   --tongue-y: 66%;
   --tongue-length: clamp(20px, 58%, 46px);
@@ -68,6 +69,10 @@
   --eye-left: 21;
   --eye-right: 79;
   --eye-lid-color: #f39a2d;
+  --pupil-size: 10;
+  --pupil-color: #111111;
+  --pupil-offset-x: 0;
+  --pupil-offset-y: 0;
   --mouth-x: 50;
   --mouth-y: 68;
   --mouth-width: 28;
@@ -76,7 +81,20 @@
   --mouth-highlight: #5a2b1c;
 }
 
-.zo2y-logo-anim img {
+.zo2y-logo-idle,
+.zo2y-logo-pop,
+.zo2y-logo-sprite {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zo2y-logo-sprite {
+  position: relative;
+  line-height: 0;
+}
+
+.zo2y-logo-sprite img {
   position: relative;
   z-index: 1;
   display: block;
@@ -85,7 +103,30 @@
   transition: filter 0.18s ease;
 }
 
-.zo2y-logo-anim .zo2y-logo-eye {
+.zo2y-logo-sprite .zo2y-logo-pupil {
+  position: absolute;
+  width: calc(var(--pupil-size) * 1%);
+  height: calc(var(--pupil-size) * 1%);
+  left: calc(var(--eye-x) * 1%);
+  top: calc(var(--eye-y) * 1%);
+  background: var(--pupil-color);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) translate(calc(var(--pupil-offset-x) * 1px), calc(var(--pupil-offset-y) * 1px));
+  transition: transform 80ms ease-out;
+  z-index: 2;
+  pointer-events: none;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.zo2y-logo-sprite .zo2y-logo-pupil.pupil-left {
+  --eye-x: var(--eye-left);
+}
+
+.zo2y-logo-sprite .zo2y-logo-pupil.pupil-right {
+  --eye-x: var(--eye-right);
+}
+
+.zo2y-logo-sprite .zo2y-logo-eye {
   position: absolute;
   width: calc(var(--eye-size) * 1%);
   height: calc(var(--eye-size) * 1%);
@@ -101,15 +142,15 @@
   box-shadow: inset 0 -1px 0 rgba(214, 122, 36, 0.35);
 }
 
-.zo2y-logo-anim .zo2y-logo-eye.eye-left {
+.zo2y-logo-sprite .zo2y-logo-eye.eye-left {
   --eye-x: var(--eye-left);
 }
 
-.zo2y-logo-anim .zo2y-logo-eye.eye-right {
+.zo2y-logo-sprite .zo2y-logo-eye.eye-right {
   --eye-x: var(--eye-right);
 }
 
-.zo2y-logo-anim .zo2y-logo-mouth {
+.zo2y-logo-sprite .zo2y-logo-mouth {
   position: absolute;
   left: calc(var(--mouth-x) * 1%);
   top: calc(var(--mouth-y) * 1%);
@@ -126,7 +167,7 @@
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
-.zo2y-logo-anim .zo2y-logo-mouth::after {
+.zo2y-logo-sprite .zo2y-logo-mouth::after {
   content: '';
   position: absolute;
   left: 50%;
@@ -139,7 +180,7 @@
   opacity: 0.55;
 }
 
-.zo2y-logo-anim .zo2y-logo-tongue {
+.zo2y-logo-sprite .zo2y-logo-tongue {
   position: absolute;
   left: var(--tongue-x);
   top: var(--tongue-y);
@@ -153,10 +194,10 @@
   transition: transform 120ms ease-out, opacity 120ms ease-out;
   box-shadow: 0 0 6px rgba(255, 77, 93, 0.35);
   pointer-events: none;
-  z-index: 2;
+  z-index: 4;
 }
 
-.zo2y-logo-anim .zo2y-logo-tongue::after {
+.zo2y-logo-sprite .zo2y-logo-tongue::after {
   content: '';
   position: absolute;
   right: -4px;
@@ -187,7 +228,7 @@
   100% { transform: translate(-50%, -50%) scaleY(1); }
 }
 
-.zo2y-logo-anim.is-chomp img {
+.zo2y-logo-anim.is-chomp .zo2y-logo-sprite {
   animation: zo2y-head-nod 240ms ease-out;
 }
 
@@ -215,7 +256,7 @@
   70% { transform: translateY(2px) rotate(0.9deg) scale(1.01); }
 }
 
-.zo2y-logo-anim.is-idle {
+.zo2y-logo-anim.is-idle .zo2y-logo-idle {
   animation: zo2y-logo-idle 6.6s ease-in-out infinite;
 }
 
@@ -225,7 +266,7 @@
   100% { transform: scale(1); }
 }
 
-.zo2y-logo-anim.is-pop {
+.zo2y-logo-anim.is-pop .zo2y-logo-pop {
   animation: zo2y-logo-pop 180ms ease-out;
 }
 
@@ -233,6 +274,11 @@
   0% { transform: translateY(-50%) scaleX(0); }
   60% { transform: translateY(-50%) scaleX(1.15); }
   100% { transform: translateY(-50%) scaleX(1); }
+}
+
+.zo2y-logo-anim:hover,
+.zo2y-logo-anim:focus-within {
+  transform: rotate(-3deg) scale(1.05);
 }
 
 .zo2y-logo-anim:hover img,
@@ -263,8 +309,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .zo2y-logo-anim.is-idle,
-  .zo2y-logo-anim.is-pop {
+  .zo2y-logo-anim.is-idle .zo2y-logo-idle,
+  .zo2y-logo-anim.is-pop .zo2y-logo-pop {
+    animation: none;
+  }
+
+  .zo2y-logo-anim.is-chomp .zo2y-logo-sprite {
     animation: none;
   }
 
@@ -284,6 +334,11 @@
 
   .zo2y-logo-anim.is-blinking .zo2y-logo-eye {
     animation: none;
+  }
+
+  .zo2y-logo-anim:hover,
+  .zo2y-logo-anim:focus-within {
+    transform: none;
   }
 }
 
