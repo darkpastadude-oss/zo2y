@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v85';
-const PAGE_CACHE = 'zo2y-pages-v91';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v86';
+const PAGE_CACHE = 'zo2y-pages-v92';
 const IMAGE_CACHE = 'zo2y-images-v22';
 const API_CACHE = 'zo2y-api-v5';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -10,7 +10,7 @@ const STATIC_ASSETS = [
   '/index.html',
   '/credits.html',
   '/manifest.webmanifest',
-  '/css/pages/index.css?v=20260313i',
+  '/css/pages/index.css?v=20260313k',
   '/css/shared-header.css?v=20260313m',
   '/css/global-lowercase.css?v=20260308a',
   '/js/pages/index.js?v=20260313j',
@@ -32,6 +32,7 @@ const STATIC_ASSETS = [
   '/newlogo.webp',
   '/file-blank.svg',
   '/file.svg',
+  '/images/patterns/open-book-01.svg',
   '/images/apple-touch-icon-180.png'
 ];
 
