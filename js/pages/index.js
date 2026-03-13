@@ -91,22 +91,16 @@
     const HOME_BOOK_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
         <defs>
-          <linearGradient id='bookGrad' x1='0' y1='0' x2='1' y2='1'>
-            <stop offset='0%' stop-color='#0f172a' />
-            <stop offset='55%' stop-color='#312e81' />
-            <stop offset='100%' stop-color='#7c3aed' />
+          <linearGradient id='paperGrad' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0%' stop-color='#f7f0e4' />
+            <stop offset='52%' stop-color='#efe5d2' />
+            <stop offset='100%' stop-color='#f4e9d8' />
           </linearGradient>
         </defs>
-        <rect width='1600' height='900' fill='url(#bookGrad)' />
-        <circle cx='1330' cy='170' r='220' fill='rgba(245,158,11,0.28)' />
-        <circle cx='220' cy='760' r='260' fill='rgba(56,189,248,0.18)' />
-        <g fill='rgba(255,255,255,0.13)'>
-          <rect x='520' y='220' width='56' height='460' rx='12' />
-          <rect x='590' y='250' width='68' height='430' rx='12' />
-          <rect x='672' y='200' width='64' height='480' rx='12' />
-          <rect x='752' y='240' width='60' height='440' rx='12' />
-          <rect x='826' y='208' width='72' height='472' rx='12' />
-        </g>
+        <rect width='1600' height='900' fill='url(#paperGrad)' />
+        <circle cx='1320' cy='200' r='220' fill='rgba(248,200,138,0.22)' />
+        <circle cx='260' cy='740' r='260' fill='rgba(188,214,240,0.18)' />
+        <circle cx='940' cy='660' r='190' fill='rgba(205,231,214,0.18)' />
       </svg>
     `)}`;
     const HOME_MUSIC_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`

@@ -867,25 +867,26 @@
     }
 
     .spotlight.theme-book .spotlight-bg::after {
-      opacity: 0.84;
+      opacity: 0.78;
       background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cg fill='none' stroke='%23ffe2a4' stroke-width='4.2' stroke-linecap='round' stroke-linejoin='round' opacity='0.95'%3E%3Cpath d='M40 154c26-15 50-22 78-22 22 0 40 4 62 16V62c-21-11-40-16-62-16-27 0-51 8-78 25z'/%3E%3Cpath d='M180 154c-26-15-50-22-78-22-22 0-40 4-62 16V62c21-11 40-16 62-16 27 0 51 8 78 25z'/%3E%3Cpath d='M110 48v106' opacity='0.82'/%3E%3Cpath d='M57 89c21-7 37-10 57-10' opacity='0.46'/%3E%3Cpath d='M119 79c21 0 37 3 57 10' opacity='0.46'/%3E%3C/g%3E%3C/svg%3E"),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='none' stroke='%23fff2d3' stroke-width='3.3' stroke-linecap='round' stroke-linejoin='round' opacity='0.7'%3E%3Cpath d='M32 128c20-11 38-17 58-17 18 0 33 4 52 12V56c-18-10-34-14-52-14-21 0-39 6-58 20z'/%3E%3Cpath d='M148 128c-20-11-38-17-58-17-18 0-33 4-52 12V56c18-10 34-14 52-14 21 0 39 6 58 20z'/%3E%3Cpath d='M90 44v84' opacity='0.6'/%3E%3C/g%3E%3C/svg%3E");
-      background-size: 230px 230px, 185px 185px;
-      background-position: 0 0, 120px 80px;
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Crect width='260' height='260' fill='none'/%3E%3Cg stroke='%233a2d23' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'%3E%3Cg transform='translate(18 18) rotate(-6 28 36)'%3E%3Crect x='0' y='0' width='56' height='72' rx='10' fill='%23f6b48a'/%3E%3Crect x='8' y='10' width='40' height='8' rx='4' fill='%23ffe7d6' stroke='none'/%3E%3Crect x='8' y='26' width='32' height='6' rx='3' fill='%23ffe7d6' stroke='none'/%3E%3C/g%3E%3Cg transform='translate(160 26) rotate(8 26 34)'%3E%3Crect x='0' y='0' width='52' height='68' rx='10' fill='%23a9d1e8'/%3E%3Cpath d='M10 12h28' stroke='%23ffffff' stroke-width='4'/%3E%3Cpath d='M10 26h24' stroke='%23ffffff' stroke-width='4'/%3E%3C/g%3E%3Cg transform='translate(32 138) rotate(10 30 40)'%3E%3Crect x='0' y='0' width='60' height='80' rx='12' fill='%239dd8b0'/%3E%3Crect x='10' y='12' width='40' height='6' rx='3' fill='%23e7f6ee' stroke='none'/%3E%3Crect x='10' y='26' width='30' height='6' rx='3' fill='%23e7f6ee' stroke='none'/%3E%3C/g%3E%3Cg transform='translate(152 144) rotate(-8 34 28)'%3E%3Crect x='0' y='0' width='68' height='56' rx='12' fill='%23f2c6da'/%3E%3Cpath d='M12 16h44' stroke='%23fff7fb' stroke-width='4'/%3E%3Cpath d='M12 30h30' stroke='%23fff7fb' stroke-width='4'/%3E%3C/g%3E%3Cpath d='M88 88c16-8 30-12 48-12 14 0 26 2 40 9V56c-14-7-26-10-40-10-18 0-34 5-48 14z' fill='%23ffe59b' stroke='%233a2d23'/%3E%3Cpath d='M176 88c-16-8-30-12-48-12-14 0-26 2-40 9V56c14-7 26-10 40-10 18 0 34 5 48 14z' fill='%23ffe59b' stroke='%233a2d23'/%3E%3Cpath d='M132 52v60' stroke='%233a2d23'/%3E%3C/g%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='210' height='210' viewBox='0 0 210 210'%3E%3Crect width='210' height='210' fill='none'/%3E%3Cg stroke='%233a2d23' stroke-width='2.6' stroke-linejoin='round' stroke-linecap='round' opacity='0.92'%3E%3Cg transform='translate(18 18) rotate(6 24 30)'%3E%3Crect x='0' y='0' width='48' height='60' rx='10' fill='%23f4d3b2'/%3E%3Cpath d='M10 16h26' stroke='%23fff7f1' stroke-width='4'/%3E%3C/g%3E%3Cg transform='translate(128 30) rotate(-10 22 28)'%3E%3Crect x='0' y='0' width='44' height='56' rx='10' fill='%23c5d9f4'/%3E%3Cpath d='M8 14h24' stroke='%23f8fbff' stroke-width='4'/%3E%3C/g%3E%3Cg transform='translate(42 128) rotate(-6 26 32)'%3E%3Crect x='0' y='0' width='52' height='64' rx='10' fill='%23e1f1c4'/%3E%3Cpath d='M10 18h30' stroke='%23fbfff3' stroke-width='4'/%3E%3C/g%3E%3Cpath d='M102 80c12-6 22-8 36-8 10 0 18 2 30 7V56c-12-6-20-8-30-8-14 0-26 4-36 10z' fill='%23f7e3a0'/%3E%3Cpath d='M168 80c-12-6-22-8-36-8-10 0-18 2-30 7V56c12-6 20-8 30-8 14 0 26 4 36 10z' fill='%23f7e3a0'/%3E%3Cpath d='M132 52v34' stroke='%233a2d23'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: 280px 280px, 220px 220px;
+      background-position: 0 0, 120px 90px;
       background-repeat: repeat;
-      mix-blend-mode: screen;
-      animation: spotlightMusicNotesDrift 22s linear infinite;
+      mix-blend-mode: multiply;
+      animation: spotlightBooksFloat 28s linear infinite;
     }
 
     .spotlight.theme-book .spotlight-bg::before {
-      opacity: 0.44;
+      opacity: 0.42;
       background:
-        linear-gradient(90deg, transparent 0%, rgba(255, 210, 132, 0.3) 20%, transparent 42%) 0 0 / 190px 100% repeat-x,
-        linear-gradient(90deg, transparent 0%, rgba(255, 241, 205, 0.22) 18%, transparent 42%) 40px 0 / 240px 100% repeat-x,
-        radial-gradient(circle at 82% 18%, rgba(255, 190, 92, 0.28), transparent 34%);
-      filter: blur(0.2px);
-      animation: spotlightMusicBeams 12s linear infinite;
+        radial-gradient(circle at 12% 22%, rgba(255, 226, 168, 0.32), transparent 45%),
+        radial-gradient(circle at 78% 12%, rgba(255, 210, 132, 0.28), transparent 40%),
+        radial-gradient(circle at 78% 78%, rgba(188, 219, 242, 0.26), transparent 44%),
+        linear-gradient(90deg, transparent 0%, rgba(255, 233, 188, 0.22) 28%, transparent 52%) 0 0 / 210px 100% repeat-x;
+      filter: blur(0.4px);
+      animation: spotlightBookGlow 14s ease-in-out infinite alternate;
     }
 
     .spotlight.theme-music::before {
@@ -897,9 +898,9 @@
 
     .spotlight.theme-book::before {
       background:
-        linear-gradient(100deg, rgba(4, 10, 24, 0.86) 0%, rgba(7, 14, 32, 0.54) 38%, rgba(18, 14, 38, 0.18) 100%),
-        radial-gradient(circle at 82% 18%, rgba(255, 179, 71, 0.28), transparent 42%),
-        radial-gradient(circle at 18% 82%, rgba(255, 216, 141, 0.14), transparent 26%);
+        linear-gradient(100deg, rgba(20, 16, 12, 0.72) 0%, rgba(22, 18, 14, 0.48) 38%, rgba(24, 20, 16, 0.22) 100%),
+        radial-gradient(circle at 82% 18%, rgba(255, 179, 71, 0.24), transparent 42%),
+        radial-gradient(circle at 18% 82%, rgba(255, 216, 141, 0.16), transparent 28%);
     }
 
     .spotlight-inner {
