@@ -50,6 +50,81 @@
   backdrop-filter: blur(10px) saturate(170%);
 }
 
+.zo2y-logo-anim {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  --tongue-x: 62%;
+  --tongue-y: 58%;
+  --tongue-length: clamp(18px, 60%, 40px);
+  --tongue-thickness: clamp(3px, 10%, 6px);
+  --tongue-color: #ff4d5d;
+  --tongue-highlight: #ff8fa0;
+}
+
+.zo2y-logo-anim img {
+  display: block;
+  transform-origin: 50% 55%;
+  will-change: transform;
+}
+
+.zo2y-logo-anim .zo2y-logo-tongue {
+  position: absolute;
+  left: var(--tongue-x);
+  top: var(--tongue-y);
+  width: var(--tongue-length);
+  height: var(--tongue-thickness);
+  background: var(--tongue-color);
+  border-radius: 999px;
+  transform: translateY(-50%) scaleX(0);
+  transform-origin: left center;
+  opacity: 0;
+  transition: transform 120ms ease-out, opacity 120ms ease-out;
+  box-shadow: 0 0 6px rgba(255, 77, 93, 0.35);
+  pointer-events: none;
+}
+
+.zo2y-logo-anim .zo2y-logo-tongue::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  width: clamp(6px, 18%, 10px);
+  height: clamp(6px, 18%, 10px);
+  background: var(--tongue-highlight);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.zo2y-logo-anim.is-tongue .zo2y-logo-tongue {
+  opacity: 1;
+  transform: translateY(-50%) scaleX(1);
+  transition: transform 140ms ease-out, opacity 120ms ease-out;
+}
+
+@keyframes zo2y-logo-blink {
+  0% { transform: scaleY(1); }
+  45% { transform: scaleY(0.2); }
+  70% { transform: scaleY(0.05); }
+  100% { transform: scaleY(1); }
+}
+
+.zo2y-logo-anim.is-blinking img {
+  animation: zo2y-logo-blink 140ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zo2y-logo-anim .zo2y-logo-tongue {
+    transition: none;
+  }
+
+  .zo2y-logo-anim.is-blinking img {
+    animation: none;
+  }
+}
+
 .zo2y-mobile-topbar {
   display: none;
 }

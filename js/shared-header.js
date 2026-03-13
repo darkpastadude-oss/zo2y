@@ -11,6 +11,12 @@
   }
   const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
 
+  const LOGO_HTML = `
+<span class="zo2y-logo-anim" data-zo2y-logo="1">
+  <img src="/newlogo.webp" alt="Logo" />
+  <span class="zo2y-logo-tongue" aria-hidden="true"></span>
+</span>`;
+
 const HEADER_HTML = `
 <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-mobile-topbar">
@@ -18,13 +24,13 @@ const HEADER_HTML = `
       <i class="fa-solid fa-bars"></i>
     </button>
     <a class="zo2y-mobile-wordmark" href="index.html" aria-label="Home">
-      <img src="/newlogo.webp" alt="Logo" />
+      ${LOGO_HTML}
     </a>
     <span class="zo2y-mobile-topbar-spacer" aria-hidden="true"></span>
   </div>
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
-      <img src="/newlogo.webp" alt="Logo" />
+      ${LOGO_HTML}
     </a>
     <div class="nav-search zo2y-shared-search">
       <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
@@ -50,7 +56,7 @@ const HEADER_HTML = `
 </header>
 <aside class="zo2y-desktop-rail" id="zo2yDesktopRail" aria-label="Desktop navigation">
   <a class="zo2y-desktop-rail-brand" href="index.html" aria-label="Home">
-    <img src="/newlogo.webp" alt="Logo" />
+    ${LOGO_HTML}
     <span class="sidebar-brand-wordmark">zo2y</span>
   </a>
 
@@ -84,7 +90,7 @@ const HEADER_HTML = `
 <aside class="zo2y-mobile-drawer" id="zo2yMobileDrawer" aria-hidden="true" aria-label="Mobile navigation">
   <div class="zo2y-mobile-drawer-head">
     <a class="zo2y-mobile-drawer-brand" href="index.html" aria-label="Home">
-      <img src="/newlogo.webp" alt="Logo" />
+      ${LOGO_HTML}
     </a>
     <button class="zo2y-mobile-drawer-close" id="zo2yMobileMenuCloseBtn" type="button" aria-label="Close navigation menu">
       <i class="fa-solid fa-xmark"></i>
@@ -537,6 +543,57 @@ const HEADER_HTML = `
     window.addEventListener('resize', syncState);
   }
 
+  function wireLogoAnim() {
+    const logos = Array.from(document.querySelectorAll('[data-zo2y-logo="1"]'));
+    if (!logos.length) return;
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    logos.forEach((logo) => {
+      if (logo.dataset.zo2yLogoWired === '1') return;
+      logo.dataset.zo2yLogoWired = '1';
+
+      const triggerTongue = () => {
+        if (prefersReducedMotion) return;
+        logo.classList.remove('is-tongue');
+        void logo.offsetWidth;
+        logo.classList.add('is-tongue');
+        if (logo._tongueTimer) window.clearTimeout(logo._tongueTimer);
+        logo._tongueTimer = window.setTimeout(() => {
+          logo.classList.remove('is-tongue');
+        }, 260);
+      };
+
+      logo.addEventListener('pointerdown', triggerTongue, { passive: true });
+
+      const anchor = logo.closest('a');
+      if (anchor) {
+        anchor.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            triggerTongue();
+          }
+        });
+      }
+
+      if (prefersReducedMotion) return;
+
+      const minDelay = 3800;
+      const maxDelay = 9200;
+      const blinkDuration = 140;
+
+      const scheduleBlink = () => {
+        const delay = Math.round(minDelay + Math.random() * (maxDelay - minDelay));
+        window.setTimeout(() => {
+          if (!logo.isConnected) return;
+          logo.classList.add('is-blinking');
+          window.setTimeout(() => logo.classList.remove('is-blinking'), blinkDuration);
+          scheduleBlink();
+        }, delay);
+      };
+
+      scheduleBlink();
+    });
+  }
+
   function wireSearchButton() {
     const warmSearch = () => {
       void loadUniversalSearchScript();
@@ -594,6 +651,7 @@ const HEADER_HTML = `
   function boot() {
     if (isHeaderSuppressedPage(window.location.pathname)) return;
     mountSharedHeader();
+    wireLogoAnim();
     const applyMobileHeaderState = () => {
       const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
       document.body.classList.toggle('zo2y-mobile-header-fixed', !!isMobile);
