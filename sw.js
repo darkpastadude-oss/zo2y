@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v71';
-const PAGE_CACHE = 'zo2y-pages-v77';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v73';
+const PAGE_CACHE = 'zo2y-pages-v79';
 const IMAGE_CACHE = 'zo2y-images-v19';
 const API_CACHE = 'zo2y-api-v5';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -10,12 +10,12 @@ const STATIC_ASSETS = [
   '/index.html',
   '/credits.html',
   '/manifest.webmanifest',
-  '/css/pages/index.css?v=20260308c',
-  '/css/shared-header.css?v=20260313d',
+  '/css/pages/index.css?v=20260313c',
+  '/css/shared-header.css?v=20260313e',
   '/css/global-lowercase.css?v=20260308a',
   '/js/pages/index.js?v=20260313a',
   '/js/home-desktop-rebrand.js?v=20260311e',
-  '/js/shared-header.js?v=20260313d',
+  '/js/shared-header.js?v=20260313e',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
   '/js/list-utils.js?v=20260301e',

@@ -16,6 +16,7 @@
   <img src="/file.svg" alt="Logo" />
   <span class="zo2y-logo-eye eye-left" aria-hidden="true"></span>
   <span class="zo2y-logo-eye eye-right" aria-hidden="true"></span>
+  <span class="zo2y-logo-mouth" aria-hidden="true"></span>
   <span class="zo2y-logo-tongue" aria-hidden="true"></span>
 </span>`;
 
@@ -558,9 +559,11 @@ const HEADER_HTML = `
       const triggerTongue = () => {
         logo.classList.remove('is-tongue');
         logo.classList.remove('is-pop');
+        logo.classList.remove('is-chomp');
         void logo.offsetWidth;
         logo.classList.add('is-tongue');
         logo.classList.add('is-pop');
+        logo.classList.add('is-chomp');
         if (logo._tongueTimer) window.clearTimeout(logo._tongueTimer);
         logo._tongueTimer = window.setTimeout(() => {
           logo.classList.remove('is-tongue');
@@ -569,6 +572,10 @@ const HEADER_HTML = `
         logo._popTimer = window.setTimeout(() => {
           logo.classList.remove('is-pop');
         }, 200);
+        if (logo._chompTimer) window.clearTimeout(logo._chompTimer);
+        logo._chompTimer = window.setTimeout(() => {
+          logo.classList.remove('is-chomp');
+        }, 260);
       };
 
       logo.addEventListener('pointerdown', triggerTongue, { passive: true });

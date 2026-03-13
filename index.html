@@ -56,7 +56,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="css/pages/index.css?v=20260308c" />
+<link rel="stylesheet" href="css/pages/index.css?v=20260313c" />
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -66,23 +66,12 @@
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
   <script src="/js/mobile-webapp.js?v=20260310b" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260313d">
-  <script src="js/shared-header.js?v=20260313d" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260313e">
+  <script src="js/shared-header.js?v=20260313e" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
   <div class="landing-experience" id="homeLandingPage" aria-label="Zo2y introduction">
-    <header class="landing-header">
-      <a class="landing-brand" href="index.html" aria-label="Home">
-        <img src="/file.svg" alt="Logo" />
-      </a>
-      <div class="landing-header-actions">
-        <a class="landing-header-link" href="privacy.html">Privacy</a>
-        <a class="landing-header-link" href="terms.html">Terms</a>
-        <a class="landing-header-btn" data-auth-entry="login" href="login.html">Login</a>
-        <a class="landing-header-btn landing-header-btn-primary" data-auth-entry="signup" href="sign-up.html">Start free</a>
-      </div>
-    </header>
     <main class="landing-main">
       <section class="landing-hero">
         <div class="landing-hero-copy">
@@ -289,88 +278,7 @@
   </div>
 
   <div class="desktop-app-shell authenticated-only">
-    <aside class="desktop-sidebar" aria-label="Desktop navigation">
-      <a class="sidebar-brand" href="index.html" aria-label="Home">
-        <img src="/file.svg" alt="Logo" />
-        <span class="sidebar-brand-wordmark">zo2y</span>
-      </a>
-      <button class="sidebar-toggle" id="sidebarToggleBtn" type="button" aria-expanded="true" aria-label="Toggle navigation sidebar">
-        <i class="fa-solid fa-bars"></i>
-        <span>collapse menu</span>
-      </button>
-      <div class="sidebar-search-wrap" role="search" aria-label="Search all media">
-        <input id="sidebarSearch" class="sidebar-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
-        <button id="sidebarSearchBtn" class="sidebar-search-btn" type="button" aria-label="Search">
-          <i class="fas fa-search"></i>
-        </button>
-      </div>
-      <a class="sidebar-profile-btn" id="sidebarProfileBtn" href="profile.html" style="display:none;">
-        <i class="fa-solid fa-user"></i>
-        <span>profile</span>
-      </a>
-      <nav class="sidebar-nav" aria-label="Desktop sections">
-        <a class="sidebar-link active" href="index.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
-        <a class="sidebar-link" href="movies.html"><i class="fa-solid fa-film"></i><span>Movies</span></a>
-        <a class="sidebar-link" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>TV Shows</span></a>
-        <a class="sidebar-link" href="animes.html"><i class="fa-solid fa-dragon"></i><span>Anime</span></a>
-        <a class="sidebar-link" href="books.html"><i class="fa-solid fa-book"></i><span>Books</span></a>
-        <a class="sidebar-link" href="music.html"><i class="fa-solid fa-music"></i><span>Music</span></a>
-        <a class="sidebar-link" href="travel.html"><i class="fa-solid fa-earth-americas"></i><span>Travel</span></a>
-        <a class="sidebar-link accent" href="reviews.html"><i class="fa-solid fa-star"></i><span>Reviews</span></a>
-      </nav>
-      <div class="sidebar-divider"></div>
-      <p class="sidebar-label">Quick Picks</p>
-      <a class="sidebar-ghost-link" href="#newReleasesRail"><i class="fa-solid fa-satellite-dish"></i><span>New Releases</span></a>
-      <a class="sidebar-ghost-link" href="#imdbTop10Rail"><i class="fa-solid fa-ranking-star"></i><span>IMDb Top 10</span></a>
-      <section class="sidebar-lists-preview" id="sidebarCustomListPreview" aria-label="Custom list preview">
-        <div class="sidebar-lists-head">
-          <p class="sidebar-label">Your Lists</p>
-          <a class="sidebar-lists-link" href="profile.html">View</a>
-        </div>
-        <div class="sidebar-list-items" id="sidebarCustomListItems">
-          <div class="sidebar-list-empty">Loading your custom lists...</div>
-        </div>
-      </section>
-    </aside>
-
     <div class="desktop-main-panel">
-      <header class="zo2y-shared-header" role="banner" data-shared-header="1">
-  <div class="zo2y-mobile-topbar">
-    <button class="zo2y-mobile-menu-btn" id="zo2yMobileMenuBtn" type="button" aria-label="Open navigation menu" aria-controls="zo2yMobileDrawer" aria-expanded="false">
-      <i class="fa-solid fa-bars"></i>
-    </button>
-    <a class="zo2y-mobile-wordmark" href="index.html" aria-label="Home">
-      <img src="/file.svg" alt="Logo" />
-    </a>
-    <span class="zo2y-mobile-topbar-spacer" aria-hidden="true"></span>
-  </div>
-  <div class="zo2y-shared-header-inner">
-    <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
-      <img src="/file.svg" alt="Logo" />
-    </a>
-    <div class="nav-search zo2y-shared-search">
-      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
-      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
-      <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
-    </div>
-    <nav class="zo2y-shared-nav" aria-label="Primary navigation">
-      <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
-      <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
-      <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
-      <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
-      <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
-      <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
-      <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
-      <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
-    </nav>
-    <div class="zo2y-shared-auth">
-      <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
-      <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
-      <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
-</div>
-  </div>
-</header>
-
       <main class="container page-shell" data-dedupe-exempt="1">
         <section class="spotlight" id="spotlightSection" role="link" tabindex="0" aria-label="Open spotlight item">
           <div class="spotlight-bg" id="spotlightBackground"></div>
