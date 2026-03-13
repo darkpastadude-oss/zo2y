@@ -63,10 +63,10 @@
   --tongue-thickness: clamp(3px, 10%, 6px);
   --tongue-color: #ff4d5d;
   --tongue-highlight: #ff8fa0;
-  --eye-size: 30;
-  --eye-y: 35;
-  --eye-left: 27;
-  --eye-right: 73;
+  --eye-size: 34;
+  --eye-y: 44;
+  --eye-left: 21;
+  --eye-right: 79;
   --eye-lid-color: #f39a2d;
 }
 
@@ -183,25 +183,25 @@
 }
 
 .zo2y-shared-brand .zo2y-logo-anim {
-  --eye-size: 30;
-  --eye-y: 35;
-  --eye-left: 27;
-  --eye-right: 73;
+  --eye-size: 34;
+  --eye-y: 44;
+  --eye-left: 21;
+  --eye-right: 79;
 }
 
 .zo2y-desktop-rail-brand .zo2y-logo-anim {
-  --eye-size: 29;
-  --eye-y: 34;
-  --eye-left: 27;
-  --eye-right: 73;
+  --eye-size: 33;
+  --eye-y: 44;
+  --eye-left: 21;
+  --eye-right: 79;
 }
 
 .zo2y-mobile-wordmark .zo2y-logo-anim,
 .zo2y-mobile-drawer-brand .zo2y-logo-anim {
-  --eye-size: 31;
-  --eye-y: 36;
-  --eye-left: 27;
-  --eye-right: 73;
+  --eye-size: 35;
+  --eye-y: 45;
+  --eye-left: 21;
+  --eye-right: 79;
 }
 
 @media (prefers-reduced-motion: reduce) {

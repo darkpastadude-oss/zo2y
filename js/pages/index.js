@@ -4019,7 +4019,7 @@ let homeTravelPhotoCacheSaveTimer = null;
             <div class="onboarding-hero">
               <div class="onboarding-hero-badge"><i class="fas fa-star"></i> Fresh account</div>
               <div class="onboarding-hero-row">
-                <img src="/newlogo.webp" alt="Logo" class="onboarding-hero-logo">
+                <img src="/file.svg" alt="Logo" class="onboarding-hero-logo">
                 <div class="onboarding-hero-cards">
                   <span><i class="fas fa-clapperboard"></i> Anime Picks</span>
                   <span><i class="fas fa-film"></i> Movies</span>

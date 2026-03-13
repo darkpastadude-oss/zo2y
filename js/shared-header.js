@@ -13,7 +13,7 @@
 
   const LOGO_HTML = `
 <span class="zo2y-logo-anim" data-zo2y-logo="1">
-  <img src="/newlogo.webp" alt="Logo" />
+  <img src="/file.svg" alt="Logo" />
   <span class="zo2y-logo-eye eye-left" aria-hidden="true"></span>
   <span class="zo2y-logo-eye eye-right" aria-hidden="true"></span>
   <span class="zo2y-logo-tongue" aria-hidden="true"></span>
