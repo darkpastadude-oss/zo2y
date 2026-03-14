@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v87';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v88';
 const PAGE_CACHE = 'zo2y-pages-v93';
 const IMAGE_CACHE = 'zo2y-images-v22';
 const API_CACHE = 'zo2y-api-v5';
@@ -34,8 +34,8 @@ const STATIC_ASSETS = [
   '/file.svg',
   '/sports.html',
   '/sports-mobile.html',
-  '/css/pages/sports.css?v=20260314a',
-  '/js/pages/sports.js?v=20260314a',
+  '/css/pages/sports.css?v=20260314b',
+  '/js/pages/sports.js?v=20260314b',
   '/images/patterns/open-book-01.svg',
   '/images/icons/star.svg',
   '/images/apple-touch-icon-180.png'

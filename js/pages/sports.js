@@ -67,6 +67,128 @@
     return text;
   }
 
+  function normalizeSearchText(value) {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/['’]/g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+  }
+
+  function dedupeTeams(teams) {
+    const map = new Map();
+    (Array.isArray(teams) ? teams : []).forEach((team) => {
+      if (!team || !team.id) return;
+      const key = String(team.id);
+      if (map.has(key)) return;
+      map.set(key, team);
+    });
+    return [...map.values()];
+  }
+
+  function rankTeamsByQuery(teams, query) {
+    const q = normalizeSearchText(query);
+    if (!q) return Array.isArray(teams) ? teams : [];
+    const tokens = q.split(' ').filter(Boolean);
+    const scored = (Array.isArray(teams) ? teams : []).map((team) => {
+      const name = normalizeSearchText(team?.name || '');
+      const words = name.split(' ').filter(Boolean);
+      const matchesAllTokens = tokens.every((token) => name.includes(token));
+      let score = 50;
+      if (matchesAllTokens) {
+        if (name === q) score = 0;
+        else if (name.startsWith(q)) score = 1;
+        else if (words.some((word) => word.startsWith(q))) score = 2;
+        else if (tokens.every((token) => words.some((word) => word.startsWith(token)))) score = 3;
+        else score = 4;
+      }
+      return {
+        team,
+        score,
+        length: name.length || 999,
+        name
+      };
+    });
+
+    const matching = scored.filter((row) => row.score < 50);
+    const list = matching.length ? matching : scored;
+    return list
+      .sort((a, b) => {
+        if (a.score !== b.score) return a.score - b.score;
+        if (a.length !== b.length) return a.length - b.length;
+        return a.name.localeCompare(b.name);
+      })
+      .map((row) => row.team);
+  }
+
+  function buildTeamUrl(team) {
+    const url = new URL(window.location.href);
+    if (team?.id) {
+      url.searchParams.set('id', team.id);
+      url.searchParams.delete('team');
+    } else if (team?.name) {
+      url.searchParams.set('team', team.name);
+      url.searchParams.delete('id');
+    }
+    return url.toString();
+  }
+
+  function syncTeamUrl(team) {
+    if (!team) return;
+    const nextUrl = buildTeamUrl(team);
+    window.history.replaceState({ teamId: team.id || team.name || '' }, '', nextUrl);
+  }
+
+  function clearTeamUrl() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('id');
+    url.searchParams.delete('team');
+    window.history.replaceState({}, '', url.toString());
+  }
+
+  function setActiveCard(teamId) {
+    if (!ui.grid) return;
+    ui.grid.querySelectorAll('.sports-card').forEach((card) => {
+      const cardId = card.getAttribute('data-team-id');
+      card.classList.toggle('is-active', !!teamId && cardId === String(teamId));
+    });
+  }
+
+  function closeAllMenus() {
+    document.querySelectorAll('.sports-card-menu.open').forEach((menu) => {
+      menu.classList.remove('open');
+      const btn = menu.querySelector('.sports-card-menu-btn');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  function bindMenuDismiss() {
+    document.addEventListener('click', (event) => {
+      if (event.target.closest('.sports-card-menu')) return;
+      closeAllMenus();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeAllMenus();
+    });
+    window.addEventListener('resize', closeAllMenus);
+  }
+
+  function copyTeamLink(team) {
+    const link = buildTeamUrl(team);
+    if (!link) return;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(link).then(() => showToast('Link copied.'));
+      return;
+    }
+    const input = document.createElement('input');
+    input.value = link;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+    showToast('Link copied.');
+  }
+
   function showToast(message, type = 'info') {
     if (!ui.toast) return;
     ui.toast.textContent = message;
@@ -112,11 +234,14 @@
       sport: String(raw.strSport || '').trim(),
       league: String(raw.strLeague || '').trim(),
       stadium: String(raw.strStadium || '').trim(),
-      badge: toHttps(raw.strTeamBadge || raw.strTeamLogo || ''),
-      banner: toHttps(raw.strTeamBanner || ''),
-      fanart: toHttps(raw.strTeamFanart1 || raw.strTeamFanart2 || raw.strTeamFanart3 || ''),
+      badge: toHttps(raw.strBadge || raw.strTeamBadge || raw.strLogo || raw.strTeamLogo || ''),
+      banner: toHttps(raw.strBanner || raw.strTeamBanner || ''),
+      fanart: toHttps(
+        raw.strFanart1 || raw.strFanart2 || raw.strFanart3 || raw.strFanart4 ||
+        raw.strTeamFanart1 || raw.strTeamFanart2 || raw.strTeamFanart3 || ''
+      ),
       stadiumThumb: toHttps(raw.strStadiumThumb || ''),
-      jersey: toHttps(raw.strTeamJersey || '')
+      jersey: toHttps(raw.strEquipment || raw.strTeamJersey || '')
     };
     return team;
   }
@@ -152,6 +277,7 @@
     }
 
     if (!hasTeam) {
+      setActiveCard(null);
       if (ui.heroTitle) ui.heroTitle.textContent = 'Find your team';
       if (ui.heroSubtitle) ui.heroSubtitle.textContent = 'Search teams, save favorites to your profile, and build a sports corner that matches your taste.';
       if (ui.heroTeam) ui.heroTeam.textContent = 'Team spotlight';
@@ -202,10 +328,21 @@
     }
   }
 
+  function openTeam(team, options = {}) {
+    if (!team) return;
+    setHeroTeam(team);
+    setActiveCard(team.id);
+    if (options.updateUrl !== false) syncTeamUrl(team);
+    if (options.scroll && ui.hero?.scrollIntoView) {
+      ui.hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   function buildCard(team) {
     const card = document.createElement('article');
     card.className = 'sports-card';
     card.dataset.teamId = team.id;
+    card.tabIndex = 0;
 
     const mediaImage = team.fanart || team.banner || team.stadiumThumb || FALLBACK_IMAGE;
     const logo = team.badge || FALLBACK_BADGE;
@@ -224,6 +361,26 @@
           <button class="sports-card-save" type="button" data-team-id="${escapeHtml(team.id)}">
             <i class="fas fa-heart"></i><span>Save</span>
           </button>
+          <div class="sports-card-menu">
+            <button class="sports-card-menu-btn" type="button" aria-label="Team actions" aria-expanded="false">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="sports-card-menu-panel" role="menu">
+              <button class="sports-card-menu-item" type="button" data-action="favorite" data-team-id="${escapeHtml(team.id)}">
+                <i class="fas fa-heart"></i>
+                <span class="menu-item-label">Save to favorites</span>
+                <span class="menu-item-state">Add</span>
+              </button>
+              <button class="sports-card-menu-item" type="button" data-action="open">
+                <i class="fas fa-arrow-up-right-from-square"></i>
+                <span class="menu-item-label">Open team</span>
+              </button>
+              <button class="sports-card-menu-item" type="button" data-action="copy">
+                <i class="fas fa-link"></i>
+                <span class="menu-item-label">Copy link</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -237,8 +394,39 @@
       });
     }
 
+    const menuWrap = card.querySelector('.sports-card-menu');
+    const menuBtn = card.querySelector('.sports-card-menu-btn');
+    if (menuWrap && menuBtn) {
+      menuBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const isOpen = menuWrap.classList.contains('open');
+        closeAllMenus();
+        if (!isOpen) {
+          menuWrap.classList.add('open');
+          menuBtn.setAttribute('aria-expanded', 'true');
+        }
+      });
+    }
+
+    card.querySelectorAll('.sports-card-menu-item').forEach((item) => {
+      item.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const action = item.getAttribute('data-action');
+        if (action === 'favorite') toggleFavorite(team);
+        if (action === 'open') openTeam(team, { scroll: true });
+        if (action === 'copy') copyTeamLink(team);
+        closeAllMenus();
+      });
+    });
+
     card.addEventListener('click', () => {
-      setHeroTeam(team);
+      openTeam(team);
+    });
+
+    card.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      openTeam(team);
     });
 
     return card;
@@ -274,6 +462,7 @@
 
     if (!options.keepHero && list.length) {
       setHeroTeam(list[0]);
+      setActiveCard(list[0].id);
     }
 
     syncSavedButtons();
@@ -335,6 +524,15 @@
     document.querySelectorAll('.sports-card-save').forEach((button) => {
       const teamId = button.getAttribute('data-team-id');
       updateSaveButton(button, state.favorites.has(teamId), { label: 'Save', savedLabel: 'Saved' });
+    });
+    document.querySelectorAll('.sports-card-menu-item[data-action="favorite"]').forEach((button) => {
+      const teamId = button.getAttribute('data-team-id');
+      const isSaved = state.favorites.has(teamId);
+      button.classList.toggle('saved', isSaved);
+      const label = button.querySelector('.menu-item-label');
+      const stateEl = button.querySelector('.menu-item-state');
+      if (label) label.textContent = isSaved ? 'Remove from favorites' : 'Save to favorites';
+      if (stateEl) stateEl.textContent = isSaved ? 'Saved' : 'Add';
     });
     if (ui.heroSave && state.heroTeam) {
       updateSaveButton(ui.heroSave, state.favorites.has(state.heroTeam.id), { label: 'Save team', savedLabel: 'Saved' });
@@ -420,6 +618,7 @@
   }
 
   async function loadFeaturedTeams() {
+    clearTeamUrl();
     setLoading(true, 'Loading featured teams...');
     const picks = [];
     const seen = new Set();
@@ -441,16 +640,18 @@
     });
   }
 
-  async function searchTeams(query) {
+  async function searchTeams(query, options = {}) {
     const trimmed = String(query || '').trim();
     if (!trimmed) {
       await loadFeaturedTeams();
       return;
     }
 
+    if (!options.preserveUrl) clearTeamUrl();
     setLoading(true, `Searching "${trimmed}"...`);
     const payload = await fetchSportsDb('searchteams.php', { t: trimmed });
-    const teams = Array.isArray(payload?.teams) ? payload.teams.map(mapTeam).filter(Boolean) : [];
+    const mapped = Array.isArray(payload?.teams) ? payload.teams.map(mapTeam).filter(Boolean) : [];
+    const teams = rankTeamsByQuery(dedupeTeams(mapped), trimmed);
     renderTeams(teams, {
       title: `Results for "${trimmed}"`,
       subtitle: teams.length ? `${teams.length} teams found` : 'No matching teams yet',
@@ -469,6 +670,7 @@
       return false;
     }
     setHeroTeam(team);
+    setActiveCard(team.id);
     renderTeams([team], {
       title: 'Team spotlight',
       subtitle: 'Save this team to your profile.',
@@ -521,6 +723,7 @@
     await ensureSupabase();
     await initAuth();
     wireSearch();
+    bindMenuDismiss();
 
     const params = new URLSearchParams(window.location.search);
     const teamId = params.get('id');
@@ -536,7 +739,7 @@
 
     if (teamName) {
       if (ui.searchInput) ui.searchInput.value = teamName;
-      await searchTeams(teamName);
+      await searchTeams(teamName, { preserveUrl: true });
       return;
     }
 
