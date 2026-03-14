@@ -58,6 +58,9 @@
       { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
       { key: 'visited', label: 'Visited', icon: 'fas fa-check' },
       { key: 'bucketlist', label: 'Bucket List', icon: 'fas fa-bookmark' }
+    ],
+    sports: [
+      { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' }
     ]
   };
 
@@ -694,6 +697,16 @@
 
     const mediaType = getMediaType();
     const tableCfg = DEFAULT_TABLE_BY_MEDIA[mediaType];
+    const bridgeStatus = readBridgeQuickStatus(itemId, listKeys);
+    if (bridgeStatus) return bridgeStatus;
+    if (bridge && typeof bridge.getDefaultListStatusMap === 'function') {
+      try {
+        const customStatus = await bridge.getDefaultListStatusMap(normalizeItemIdValue(itemId), listKeys);
+        if (customStatus && typeof customStatus === 'object') {
+          return cloneQuickStatus(customStatus, listKeys);
+        }
+      } catch (_err) {}
+    }
     if (!tableCfg) return status;
 
     try {

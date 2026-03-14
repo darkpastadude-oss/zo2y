@@ -233,6 +233,7 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  position: relative;
 }
 
 .sports-search-bar input {
@@ -263,6 +264,57 @@ a { color: inherit; text-decoration: none; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+.sports-search-suggest {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: #0f2147;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 6px;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 10;
+  max-height: 260px;
+  overflow-y: auto;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+}
+
+.sports-search-suggest.show {
+  display: flex;
+}
+
+.sports-suggest-item {
+  border: 1px solid transparent;
+  background: rgba(15, 30, 60, 0.7);
+  color: var(--white);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+}
+
+.sports-suggest-item:hover {
+  border-color: rgba(245, 158, 11, 0.6);
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.sports-suggest-item .suggest-name {
+  font-weight: 600;
+}
+
+.sports-suggest-item .suggest-meta {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .sports-search-tags {
@@ -319,7 +371,7 @@ a { color: inherit; text-decoration: none; }
   overflow: visible;
   display: flex;
   flex-direction: column;
-  min-height: 280px;
+  min-height: 320px;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease;
   position: relative;
@@ -333,7 +385,7 @@ a { color: inherit; text-decoration: none; }
 .sports-card-media {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 2 / 3;
   background: #0b1c35;
   overflow: hidden;
   border-radius: 18px 18px 14px 14px;
@@ -410,36 +462,12 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   align-items: center;
   gap: 10px;
+  justify-content: flex-end;
   position: relative;
   z-index: 2;
 }
 
-.sports-card-save {
-  border: 1px solid var(--border);
-  background: rgba(15, 30, 60, 0.65);
-  color: var(--white);
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  cursor: pointer;
-}
-
-.sports-card-save.saved {
-  background: rgba(245, 158, 11, 0.2);
-  border-color: rgba(245, 158, 11, 0.6);
-  color: #fde68a;
-}
-
-.sports-card-menu {
-  position: relative;
-  margin-left: auto;
-}
-
-.sports-card-menu-btn {
+.card-menu-btn {
   border: 1px solid var(--border);
   background: rgba(15, 30, 60, 0.65);
   color: var(--white);
@@ -453,68 +481,10 @@ a { color: inherit; text-decoration: none; }
   transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
-.sports-card-menu-btn:hover {
+.card-menu-btn:hover {
   border-color: rgba(245, 158, 11, 0.6);
   color: #fde68a;
   transform: translateY(-1px);
-}
-
-.sports-card-menu-panel {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 8px);
-  min-width: 190px;
-  background: #0f2147;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 8px;
-  display: none;
-  flex-direction: column;
-  gap: 6px;
-  z-index: 5;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
-}
-
-.sports-card-menu.open .sports-card-menu-panel {
-  display: flex;
-}
-
-.sports-card-menu-item {
-  border: 1px solid transparent;
-  background: rgba(15, 30, 60, 0.72);
-  color: var(--white);
-  border-radius: 10px;
-  padding: 8px 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.sports-card-menu-item i {
-  width: 16px;
-  color: var(--accent);
-}
-
-.sports-card-menu-item .menu-item-label {
-  flex: 1;
-  text-align: left;
-}
-
-.sports-card-menu-item .menu-item-state {
-  font-size: 11px;
-  color: var(--muted);
-}
-
-.sports-card-menu-item:hover {
-  border-color: rgba(245, 158, 11, 0.6);
-}
-
-.sports-card-menu-item.saved {
-  border-color: rgba(245, 158, 11, 0.6);
-  background: rgba(245, 158, 11, 0.18);
-  color: #fde68a;
 }
 
 .sports-card.is-active {

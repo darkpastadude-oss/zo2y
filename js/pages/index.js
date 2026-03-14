@@ -410,35 +410,34 @@ let homeTravelPhotoCacheSaveTimer = null;
       const rawImage = toHttpsUrl(String(item.image || '').trim());
       const rawBackground = toHttpsUrl(String(item.backgroundImage || '').trim());
       const rawSpotlight = toHttpsUrl(String(item.spotlightImage || '').trim());
-      const flagImage = toHttpsUrl(String(item.flagImage || '').trim()) || (code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : '');
       const scenicImage = getSafeTravelScenicImage(title, code, rawImage || rawBackground || rawSpotlight);
       const hasScenic = isUsableHomeTravelScenicUrl(scenicImage);
-      const heroImage = hasScenic ? scenicImage : flagImage;
-      if (!heroImage) return null;
-      if (code && hasScenic) setHomeTravelPhotoCache(code, scenicImage, 'scenic');
+      if (!hasScenic) return null;
+      const heroImage = scenicImage;
+      if (code) setHomeTravelPhotoCache(code, scenicImage, 'scenic');
       const cachedSet = getHomeTravelPhotoSet(code);
       const travelPhotos = [cachedSet.city, cachedSet.nature].filter(Boolean);
       return {
         ...item,
         mediaType: 'travel',
         itemId: code || String(item.itemId || '').trim(),
-        flagImage,
-        listImage: flagImage || String(item.listImage || '').trim() || heroImage,
+        flagImage: '',
+        listImage: heroImage,
         image: heroImage,
         backgroundImage: heroImage || '',
         spotlightImage: getSafeTravelScenicImage(title, code, rawSpotlight || scenicImage) || heroImage,
-        spotlightMediaImage: flagImage || String(item.spotlightMediaImage || '').trim() || heroImage,
-        spotlightMediaFit: 'contain',
+        spotlightMediaImage: heroImage,
+        spotlightMediaFit: 'cover',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
         travelPhotos,
         travelPhotoSet: {
-          scenic: cachedSet.scenic || (hasScenic ? scenicImage : ''),
+          scenic: cachedSet.scenic || scenicImage,
           city: cachedSet.city || '',
           nature: cachedSet.nature || ''
         },
-        travelNeedsScenicHydration: !hasScenic,
-        fallbackImage: hasScenic ? '' : flagImage
+        travelNeedsScenicHydration: false,
+        fallbackImage: ''
       };
     }
 
@@ -661,7 +660,6 @@ let homeTravelPhotoCacheSaveTimer = null;
 
     function supportsHomeLists(mediaType) {
       const type = String(mediaType || '').toLowerCase();
-      if (type === 'sports') return false;
       return HOME_ACTIVE_MEDIA_TYPES.includes(type);
     }
 
@@ -734,6 +732,14 @@ let homeTravelPhotoCacheSaveTimer = null;
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
             { key: 'visited', label: 'Visited', icon: 'fas fa-check' },
             { key: 'bucketlist', label: 'Bucket List', icon: 'fas fa-bookmark' }
+          ]
+        };
+      }
+      if (type === 'sports') {
+        return {
+          customHref: 'sports.html',
+          rows: [
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' }
           ]
         };
       }
@@ -861,8 +867,7 @@ let homeTravelPhotoCacheSaveTimer = null;
       const spotlightBackground = getHomeSpotlightBackgroundByType(mediaTypeKey) || fallbackSpotlightBackground;
       let spotlightMediaImage = String(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
       if (isTravelSpotlight) {
-        const safeFlag = toHttpsUrl(String(item.flagImage || '').trim());
-        spotlightMediaImage = safeFlag || travelScenicImage || spotlightMediaImage;
+        spotlightMediaImage = travelScenicImage || spotlightMediaImage;
       }
       const spotlightBackgroundPosition = String(item.spotlightBackgroundPosition || item.backgroundPosition || '').trim() || 'center 28%';
       const spotlightMediaPosition = String(item.spotlightMediaPosition || item.imagePosition || '').trim();
@@ -2047,6 +2052,76 @@ let homeTravelPhotoCacheSaveTimer = null;
       };
 
       try {
+        if (mediaType === 'sports') {
+          const teamId = String(payload.itemId || '').trim();
+          if (!teamId) {
+            showHomeToast('Could not update list', true);
+            return result;
+          }
+          const subtitle = String(payload.subtitle || '').trim();
+          const [leagueRaw, sportRaw] = subtitle.split('|').map((value) => String(value || '').trim());
+          const teamName = String(payload.title || teamId).trim() || teamId;
+          const teamPayload = {
+            id: teamId,
+            name: teamName,
+            league: leagueRaw || null,
+            sport: sportRaw || null,
+            banner_url: String(payload.image || '').trim() || null,
+            fanart_url: String(payload.image || '').trim() || null,
+            updated_at: new Date().toISOString()
+          };
+
+          let shouldSave = nextSaved;
+          if (shouldSave === null || shouldSave === undefined) {
+            const { data: existing } = await client
+              .from('user_favorite_teams')
+              .select('id')
+              .eq('user_id', homeCurrentUser.id)
+              .eq('team_id', teamId)
+              .maybeSingle();
+            shouldSave = !existing?.id;
+          }
+
+          if (!shouldSave) {
+            const { error: deleteError } = await client
+              .from('user_favorite_teams')
+              .delete()
+              .eq('user_id', homeCurrentUser.id)
+              .eq('team_id', teamId);
+            if (deleteError) {
+              showHomeToast('Could not update list', true);
+              return result;
+            }
+            showHomeToast('Removed from favorites');
+            result.ok = true;
+            result.saved = false;
+            invalidateActivitySignals();
+            return result;
+          }
+
+          const { error: teamError } = await client
+            .from('teams')
+            .upsert(teamPayload, { onConflict: 'id' });
+          if (teamError) {
+            showHomeToast('Could not save team', true);
+            return result;
+          }
+
+          const { error: insertError } = await client
+            .from('user_favorite_teams')
+            .upsert({ user_id: homeCurrentUser.id, team_id: teamId }, { onConflict: 'user_id,team_id' });
+          if (insertError) {
+            showHomeToast('Could not update list', true);
+            return result;
+          }
+
+          showHomeToast('Added to favorites');
+          result.ok = true;
+          result.saved = true;
+          invalidateActivitySignals();
+          return result;
+        }
+
         const defaultListTable = getHomeDefaultListTable(mediaType);
         const itemId = normalizeHomeDefaultItemId(mediaType, payload.itemId);
 
@@ -2223,6 +2298,19 @@ let homeTravelPhotoCacheSaveTimer = null;
       if (!client) return status;
 
       try {
+        if (mediaType === 'sports') {
+          const teamId = String(itemId || '').trim();
+          if (!teamId) return status;
+          const { data } = await client
+            .from('user_favorite_teams')
+            .select('team_id')
+            .eq('user_id', homeCurrentUser.id)
+            .eq('team_id', teamId)
+            .maybeSingle();
+          if (data?.team_id && 'favorites' in status) status.favorites = true;
+          return status;
+        }
+
         const defaultListTable = getHomeDefaultListTable(mediaType);
         if (defaultListTable) {
           const normalizedItemId = normalizeHomeDefaultItemId(mediaType, itemId);
@@ -3537,7 +3625,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 8500 },
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 },
         { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 6800 },
-        { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: true }, timeoutMs: 6800 }
+        { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: false }, timeoutMs: 6800 }
       ];
     }
 
@@ -3766,7 +3854,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         const subtitle = escapeHtml(itemData.subtitle || media.label);
         const extra = escapeHtml(itemData.extra || '');
         const image = escapeHtml(itemData.image || '');
-        const flagImage = escapeHtml(itemData.flagImage || '');
+        const flagImage = '';
         const listImage = escapeHtml(itemData.listImage || itemData.image || '');
         const logo = escapeHtml(itemData.logo || '');
         const fallbackImage = '';
@@ -3844,7 +3932,7 @@ let homeTravelPhotoCacheSaveTimer = null;
               <div class="travel-photo-grid${travelTiles.length > 1 ? '' : ' single'}">
                 ${travelTiles.map((tile) => `
                   <div class="travel-photo-tile" data-kind="${escapeHtml(tile.kind)}">
-                    <img src="${escapeHtml(tile.url)}" alt="${escapeHtml(tile.label)}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null; this.parentElement?.remove();">
+                    <img src="${escapeHtml(tile.url)}" alt="${escapeHtml(tile.label)}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">
                     <span class="travel-photo-label">${escapeHtml(tile.label)}</span>
                   </div>
                 `).join('')}
@@ -3853,9 +3941,7 @@ let homeTravelPhotoCacheSaveTimer = null;
           }
         }
         const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
-        const titleMarkup = (mediaTypeRaw === 'travel' && flagImage)
-          ? `<span class="country-title-wrap"><img class="country-inline-flag" src="${flagImage}" alt="" aria-hidden="true" loading="lazy" decoding="async"><span class="country-title-text">${title}</span></span>`
-          : title;
+        const titleMarkup = title;
         const trailingControl = supportsLists
           ? `
             <div class="card-menu-wrap">
@@ -5708,18 +5794,15 @@ let homeTravelPhotoCacheSaveTimer = null;
       const extraParts = [];
       if (subregion && subregion !== region) extraParts.push(subregion);
       if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
-      const flagImage = toHttpsUrl(row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
       const photoFromCommons = photoMap instanceof Map ? normalizeHomeTravelPhotoEntry(photoMap.get(code)) : { scenic: '', city: '', nature: '' };
       if (photoFromCommons.scenic) setHomeTravelPhotoCache(code, photoFromCommons.scenic, 'scenic');
       if (photoFromCommons.city) setHomeTravelPhotoCache(code, photoFromCommons.city, 'city');
       if (photoFromCommons.nature) setHomeTravelPhotoCache(code, photoFromCommons.nature, 'nature');
       const photoImageRaw = getSafeTravelScenicImage(title, code, photoFromCommons.scenic || '');
       const scenicImage = isUsableHomeTravelScenicUrl(photoImageRaw) ? photoImageRaw : '';
-      const fallbackImage = flagImage || '';
-      const heroImage = scenicImage || fallbackImage;
-      if (!heroImage) return null;
+      if (!scenicImage) return null;
+      const heroImage = scenicImage;
       const cachedSet = getHomeTravelPhotoSet(code);
-      const needsHydration = !scenicImage;
       return {
         mediaType: 'travel',
         itemId: code,
@@ -5727,13 +5810,13 @@ let homeTravelPhotoCacheSaveTimer = null;
         subtitle,
         extra: extraParts.join(' | ') || 'Travel',
         cities,
-        flagImage,
-        listImage: flagImage,
+        flagImage: '',
+        listImage: heroImage,
         image: heroImage,
         backgroundImage: heroImage || '',
         spotlightImage: heroImage || '',
-        spotlightMediaImage: flagImage || heroImage,
-        spotlightMediaFit: 'contain',
+        spotlightMediaImage: heroImage,
+        spotlightMediaFit: 'cover',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
         travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
@@ -5742,8 +5825,8 @@ let homeTravelPhotoCacheSaveTimer = null;
           city: cachedSet.city || '',
           nature: cachedSet.nature || ''
         },
-        travelNeedsScenicHydration: needsHydration,
-        fallbackImage,
+        travelNeedsScenicHydration: false,
+        fallbackImage: '',
         href: `country.html?code=${encodeURIComponent(code)}`
       };
     }
@@ -5766,12 +5849,10 @@ let homeTravelPhotoCacheSaveTimer = null;
       const extraParts = [];
       if (subregion && subregion !== region) extraParts.push(subregion);
       if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
-      const flagImage = toHttpsUrl(row?.flag || row?.flags?.png || row?.flags?.svg || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
       const scenicRaw = getSafeTravelScenicImage(title, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
       const scenicImage = isUsableHomeTravelScenicUrl(scenicRaw) ? scenicRaw : '';
-      const fallbackImage = flagImage || '';
-      const heroImage = scenicImage || fallbackImage;
-      if (!heroImage) return null;
+      if (!scenicImage) return null;
+      const heroImage = scenicImage;
       if (scenicImage) setHomeTravelPhotoCache(code, scenicImage, 'scenic');
       if (row?.photoCity) setHomeTravelPhotoCache(code, row.photoCity, 'city');
       if (row?.photoNature) setHomeTravelPhotoCache(code, row.photoNature, 'nature');
@@ -5783,13 +5864,13 @@ let homeTravelPhotoCacheSaveTimer = null;
         subtitle,
         extra: extraParts.join(' | ') || 'Travel',
         cities,
-        flagImage,
-        listImage: flagImage,
+        flagImage: '',
+        listImage: heroImage,
         image: heroImage,
         backgroundImage: heroImage || '',
         spotlightImage: heroImage || '',
-        spotlightMediaImage: flagImage || heroImage,
-        spotlightMediaFit: 'contain',
+        spotlightMediaImage: heroImage,
+        spotlightMediaFit: 'cover',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
         travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
@@ -5798,8 +5879,8 @@ let homeTravelPhotoCacheSaveTimer = null;
           city: cachedSet.city || '',
           nature: cachedSet.nature || ''
         },
-        travelNeedsScenicHydration: !scenicImage,
-        fallbackImage,
+        travelNeedsScenicHydration: false,
+        fallbackImage: '',
         href: `country.html?code=${encodeURIComponent(code)}`
       };
     }

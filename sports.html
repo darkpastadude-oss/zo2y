@@ -15,7 +15,9 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="css/pages/sports.css?v=20260314c" />
+  <script src="js/list-utils.js?v=20260314j" defer></script>
+  <script src="js/index-list-menu-adapter.js?v=20260314d" defer></script>
+  <link rel="stylesheet" href="css/pages/sports.css?v=20260314d" />
   <meta name="theme-color" content="#0b1633" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
   <script src="/js/mobile-webapp.js?v=20260314a" defer></script>
@@ -90,6 +92,7 @@
       <div class="sports-search-bar">
         <input id="sportsSearchInput" type="search" placeholder="Search a team" aria-label="Search teams" />
         <button id="sportsSearchBtn" type="button"><i class="fas fa-search"></i> Search</button>
+        <div class="sports-search-suggest" id="sportsSearchSuggest"></div>
       </div>
       <div class="sports-search-tags" id="sportsSearchTags">
         <button class="sports-search-tag" type="button" data-team="Liverpool">Liverpool</button>
@@ -114,7 +117,8 @@
 
   <div class="sports-toast" id="sportsToast" role="status" aria-live="polite"></div>
 
-  <script src="js/pages/sports.js?v=20260314c" defer></script>
+  <script src="js/pages/sports.js?v=20260314d" defer></script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+

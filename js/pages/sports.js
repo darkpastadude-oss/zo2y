@@ -15,7 +15,17 @@
     'NBA',
     'NFL',
     'MLB',
-    'NHL'
+    'NHL',
+    'Egyptian Premier League',
+    'Saudi Pro League'
+  ];
+  const SHORT_FALLBACK_LEAGUES = [
+    'English Premier League',
+    'Spanish La Liga',
+    'NBA',
+    'NFL',
+    'Egyptian Premier League',
+    'Saudi Pro League'
   ];
   const SEED_TEAMS = [
     'Liverpool',
@@ -37,6 +47,8 @@
     heroTeam: null,
     teamMap: new Map(),
     searchTimer: null,
+    searchSeq: 0,
+    searchCache: new Map(),
     leagueTeamsCache: new Map(),
     leagueTeamsPending: new Map()
   };
@@ -57,6 +69,7 @@
     searchInput: document.getElementById('sportsSearchInput'),
     searchBtn: document.getElementById('sportsSearchBtn'),
     searchTags: document.getElementById('sportsSearchTags'),
+    searchSuggest: document.getElementById('sportsSearchSuggest'),
     resultsTitle: document.getElementById('sportsResultsTitle'),
     resultsSubtitle: document.getElementById('sportsResultsSubtitle'),
     grid: document.getElementById('sportsGrid'),
@@ -92,6 +105,99 @@
       .trim();
   }
 
+  function buildTeamSearchText(team) {
+    if (!team) return '';
+    const parts = [
+      team.name,
+      team.league,
+      team.sport,
+      team.country,
+      team.stadium
+    ].filter(Boolean).join(' ');
+    return normalizeSearchText(parts);
+  }
+
+  function getTeamSearchText(team) {
+    return team?.searchText || buildTeamSearchText(team);
+  }
+
+  function teamMatchesQuery(team, query) {
+    const q = normalizeSearchText(query);
+    if (!q) return false;
+    const tokens = q.split(' ').filter(Boolean);
+    if (!tokens.length) return false;
+    const haystack = getTeamSearchText(team);
+    if (!haystack) return false;
+    const words = haystack.split(' ').filter(Boolean);
+    return tokens.every((token) => {
+      if (!token) return true;
+      if (haystack.includes(token)) return true;
+      return words.some((word) => word.startsWith(token));
+    });
+  }
+
+  function getCachedTeams() {
+    const bucket = [];
+    state.leagueTeamsCache.forEach((teams) => {
+      if (Array.isArray(teams)) bucket.push(...teams);
+    });
+    return dedupeTeams(bucket);
+  }
+
+  function pickFallbackLeagues(query) {
+    const q = normalizeSearchText(query);
+    if (!q) return [];
+    const tokens = q.split(' ').filter(Boolean);
+    const matches = FALLBACK_LEAGUES.filter((league) => {
+      const leagueText = normalizeSearchText(league);
+      return tokens.some((token) => leagueText.includes(token));
+    });
+    if (matches.length) return matches;
+    if (q.length <= 3) return SHORT_FALLBACK_LEAGUES;
+    return FALLBACK_LEAGUES;
+  }
+
+  function clearSearchSuggestions() {
+    if (!ui.searchSuggest) return;
+    ui.searchSuggest.classList.remove('show');
+    ui.searchSuggest.innerHTML = '';
+  }
+
+  function renderSearchSuggestions(query, items = null) {
+    if (!ui.searchSuggest) return;
+    const q = String(query || '').trim();
+    if (!q) {
+      clearSearchSuggestions();
+      return;
+    }
+    const list = Array.isArray(items) && items.length
+      ? items
+      : rankTeamsByQuery(getCachedTeams().filter((team) => teamMatchesQuery(team, q)), q);
+    const suggestions = list.slice(0, 6);
+    if (!suggestions.length) {
+      clearSearchSuggestions();
+      return;
+    }
+    ui.searchSuggest.innerHTML = suggestions.map((team) => {
+      const meta = [team.league, team.country].filter(Boolean).join(' · ');
+      return `
+        <button type="button" class="sports-suggest-item" data-team="${escapeHtml(team.name)}">
+          <span class="suggest-name">${escapeHtml(team.name)}</span>
+          <span class="suggest-meta">${escapeHtml(meta || 'Team')}</span>
+        </button>
+      `;
+    }).join('');
+    ui.searchSuggest.classList.add('show');
+    ui.searchSuggest.querySelectorAll('.sports-suggest-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const teamName = btn.getAttribute('data-team') || '';
+        if (ui.searchInput) ui.searchInput.value = teamName;
+        clearSearchSuggestions();
+        searchTeams(teamName).catch(() => {});
+      });
+    });
+  }
+
   function dedupeTeams(teams) {
     const map = new Map();
     (Array.isArray(teams) ? teams : []).forEach((team) => {
@@ -109,8 +215,13 @@
     const tokens = q.split(' ').filter(Boolean);
     const scored = (Array.isArray(teams) ? teams : []).map((team) => {
       const name = normalizeSearchText(team?.name || '');
+      const searchText = getTeamSearchText(team) || name;
       const words = name.split(' ').filter(Boolean);
-      const matchesAllTokens = tokens.every((token) => name.includes(token));
+      const matchesAllTokens = tokens.every((token) => {
+        if (!token) return true;
+        if (searchText.includes(token)) return true;
+        return words.some((word) => word.startsWith(token));
+      });
       let score = 50;
       if (matchesAllTokens) {
         if (name === q) score = 0;
@@ -118,6 +229,8 @@
         else if (words.some((word) => word.startsWith(q))) score = 2;
         else if (tokens.every((token) => words.some((word) => word.startsWith(token)))) score = 3;
         else score = 4;
+      } else if (tokens.some((token) => searchText.includes(token))) {
+        score = 12;
       }
       return {
         team,
@@ -159,13 +272,12 @@
   async function getFallbackTeams(query) {
     const q = normalizeSearchText(query);
     if (!q) return [];
-    const leagues = q.length < 4 ? FALLBACK_LEAGUES.slice(0, 6) : FALLBACK_LEAGUES;
+    const leagues = pickFallbackLeagues(query).slice(0, 8);
     const matches = [];
     for (const league of leagues) {
       const teams = await loadLeagueTeams(league);
       teams.forEach((team) => {
-        const name = normalizeSearchText(team?.name || '');
-        if (name.includes(q)) matches.push(team);
+        if (teamMatchesQuery(team, query)) matches.push(team);
       });
       if (matches.length >= 40 && q.length < 3) break;
     }
@@ -193,41 +305,6 @@
       const cardId = card.getAttribute('data-team-id');
       card.classList.toggle('is-active', !!teamId && cardId === String(teamId));
     });
-  }
-
-  function closeAllMenus() {
-    document.querySelectorAll('.sports-card-menu.open').forEach((menu) => {
-      menu.classList.remove('open');
-      const btn = menu.querySelector('.sports-card-menu-btn');
-      if (btn) btn.setAttribute('aria-expanded', 'false');
-    });
-  }
-
-  function bindMenuDismiss() {
-    document.addEventListener('click', (event) => {
-      if (event.target.closest('.sports-card-menu')) return;
-      closeAllMenus();
-    });
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') closeAllMenus();
-    });
-    window.addEventListener('resize', closeAllMenus);
-  }
-
-  function copyTeamLink(team) {
-    const link = buildTeamDetailUrl(team);
-    if (!link) return;
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(link).then(() => showToast('Link copied.'));
-      return;
-    }
-    const input = document.createElement('input');
-    input.value = link;
-    document.body.appendChild(input);
-    input.select();
-    document.execCommand('copy');
-    document.body.removeChild(input);
-    showToast('Link copied.');
   }
 
   function showToast(message, type = 'info') {
@@ -274,6 +351,7 @@
       name,
       sport: String(raw.strSport || '').trim(),
       league: String(raw.strLeague || '').trim(),
+      country: String(raw.strCountry || '').trim(),
       stadium: String(raw.strStadium || '').trim(),
       badge: toHttps(raw.strBadge || raw.strTeamBadge || raw.strLogo || raw.strTeamLogo || ''),
       banner: toHttps(raw.strBanner || raw.strTeamBanner || ''),
@@ -284,6 +362,7 @@
       stadiumThumb: toHttps(raw.strStadiumThumb || ''),
       jersey: toHttps(raw.strEquipment || raw.strTeamJersey || '')
     };
+    team.searchText = buildTeamSearchText(team);
     return team;
   }
 
@@ -363,11 +442,13 @@
     if (ui.heroBadge) {
       ui.heroBadge.src = team.badge || FALLBACK_BADGE;
       ui.heroBadge.alt = `${team.name} logo`;
+      ui.heroBadge.referrerPolicy = 'no-referrer';
     }
     if (ui.heroLogo) {
       const heroLogo = team.badge || team.jersey || FALLBACK_BADGE;
       ui.heroLogo.src = heroLogo;
       ui.heroLogo.alt = `${team.name} logo`;
+      ui.heroLogo.referrerPolicy = 'no-referrer';
       ui.heroLogo.style.opacity = heroLogo ? '0.6' : '0.25';
     }
     if (ui.heroMeta) ui.heroMeta.innerHTML = metaHtml;
@@ -400,83 +481,44 @@
     const card = document.createElement('article');
     card.className = 'sports-card';
     card.dataset.teamId = team.id;
+    card.dataset.itemId = team.id;
+    card.dataset.title = team.name;
     card.tabIndex = 0;
 
     const mediaImage = team.fanart || team.banner || team.stadiumThumb || FALLBACK_IMAGE;
     const logo = team.badge || FALLBACK_BADGE;
     const metaLine = [team.league, team.sport].filter(Boolean).join(' | ') || 'Team';
+    card.dataset.subtitle = metaLine;
+    card.dataset.image = mediaImage;
+    card.dataset.listImage = logo;
     card.dataset.mediaFit = 'cover';
 
     card.innerHTML = `
       <div class="sports-card-media">
-        <img src="${escapeHtml(mediaImage)}" alt="${escapeHtml(team.name)} banner" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}';" />
+        <img src="${escapeHtml(mediaImage)}" alt="${escapeHtml(team.name)} banner" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}';" />
       </div>
-      <div class="sports-card-logo"><img src="${escapeHtml(logo)}" alt="${escapeHtml(team.name)} logo" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_BADGE}';" /></div>
+      <div class="sports-card-logo"><img src="${escapeHtml(logo)}" alt="${escapeHtml(team.name)} logo" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${FALLBACK_BADGE}';" /></div>
       <div class="sports-card-body">
         <div class="sports-card-title">${escapeHtml(team.name)}</div>
         <div class="sports-card-meta">${escapeHtml(metaLine)}</div>
         ${team.stadium ? `<div class="sports-card-stadium"><i class="fas fa-location-dot"></i> ${escapeHtml(team.stadium)}</div>` : ''}
         <div class="sports-card-actions">
-          <button class="sports-card-save" type="button" data-team-id="${escapeHtml(team.id)}">
-            <i class="fas fa-heart"></i><span>Save</span>
+          <button class="card-menu-btn" type="button" aria-label="Add to lists">
+            <i class="fas fa-ellipsis-v"></i>
           </button>
-          <div class="sports-card-menu">
-            <button class="sports-card-menu-btn" type="button" aria-label="Team actions" aria-expanded="false">
-              <i class="fas fa-ellipsis-v"></i>
-            </button>
-            <div class="sports-card-menu-panel" role="menu">
-              <button class="sports-card-menu-item" type="button" data-action="favorite" data-team-id="${escapeHtml(team.id)}">
-                <i class="fas fa-heart"></i>
-                <span class="menu-item-label">Save to favorites</span>
-                <span class="menu-item-state">Add</span>
-              </button>
-              <button class="sports-card-menu-item" type="button" data-action="open">
-                <i class="fas fa-arrow-up-right-from-square"></i>
-                <span class="menu-item-label">Open team</span>
-              </button>
-              <button class="sports-card-menu-item" type="button" data-action="copy">
-                <i class="fas fa-link"></i>
-                <span class="menu-item-label">Copy link</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     `;
 
-    const saveBtn = card.querySelector('.sports-card-save');
-    if (saveBtn) {
-      updateSaveButton(saveBtn, state.favorites.has(team.id), { label: 'Save', savedLabel: 'Saved' });
-      saveBtn.addEventListener('click', (event) => {
-        event.stopPropagation();
-        toggleFavorite(team);
-      });
-    }
-
-    const menuWrap = card.querySelector('.sports-card-menu');
-    const menuBtn = card.querySelector('.sports-card-menu-btn');
-    if (menuWrap && menuBtn) {
+    const menuBtn = card.querySelector('.card-menu-btn');
+    if (menuBtn) {
       menuBtn.addEventListener('click', (event) => {
         event.stopPropagation();
-        const isOpen = menuWrap.classList.contains('open');
-        closeAllMenus();
-        if (!isOpen) {
-          menuWrap.classList.add('open');
-          menuBtn.setAttribute('aria-expanded', 'true');
+        if (typeof window.openIndexStyleListMenu === 'function') {
+          window.openIndexStyleListMenu(card);
         }
       });
     }
-
-    card.querySelectorAll('.sports-card-menu-item').forEach((item) => {
-      item.addEventListener('click', (event) => {
-        event.stopPropagation();
-        const action = item.getAttribute('data-action');
-        if (action === 'favorite') toggleFavorite(team);
-        if (action === 'open') navigateToTeam(team);
-        if (action === 'copy') copyTeamLink(team);
-        closeAllMenus();
-      });
-    });
 
     card.addEventListener('click', () => {
       navigateToTeam(team);
@@ -580,22 +622,76 @@
   }
 
   function syncSavedButtons() {
-    document.querySelectorAll('.sports-card-save').forEach((button) => {
-      const teamId = button.getAttribute('data-team-id');
-      updateSaveButton(button, state.favorites.has(teamId), { label: 'Save', savedLabel: 'Saved' });
-    });
-    document.querySelectorAll('.sports-card-menu-item[data-action="favorite"]').forEach((button) => {
-      const teamId = button.getAttribute('data-team-id');
-      const isSaved = state.favorites.has(teamId);
-      button.classList.toggle('saved', isSaved);
-      const label = button.querySelector('.menu-item-label');
-      const stateEl = button.querySelector('.menu-item-state');
-      if (label) label.textContent = isSaved ? 'Remove from favorites' : 'Save to favorites';
-      if (stateEl) stateEl.textContent = isSaved ? 'Saved' : 'Add';
-    });
     if (ui.heroSave && state.heroTeam) {
       updateSaveButton(ui.heroSave, state.favorites.has(state.heroTeam.id), { label: 'Save team', savedLabel: 'Saved' });
     }
+  }
+
+  function buildTeamFromCard(card, fallbackId) {
+    if (!card) return null;
+    const id = String(fallbackId || card.getAttribute('data-team-id') || card.dataset.itemId || '').trim();
+    if (!id) return null;
+    const title = String(card.dataset.title || card.querySelector('.sports-card-title')?.textContent || id).trim();
+    const subtitle = String(card.dataset.subtitle || card.querySelector('.sports-card-meta')?.textContent || '').trim();
+    const [league, sport] = subtitle.split('|').map((value) => String(value || '').trim());
+    const logo = String(card.dataset.listImage || card.querySelector('.sports-card-logo img')?.getAttribute('src') || '').trim();
+    const banner = String(card.dataset.image || card.querySelector('.sports-card-media img')?.getAttribute('src') || '').trim();
+    return {
+      id,
+      name: title || id,
+      league: league || '',
+      sport: sport || '',
+      badge: logo,
+      banner,
+      fanart: banner
+    };
+  }
+
+  function initListMenu() {
+    if (typeof window.initIndexStyleListMenu !== 'function') return;
+    window.initIndexStyleListMenu({
+      mediaType: 'sports',
+      getCurrentUser: () => state.currentUser,
+      ensureClient: ensureSupabase,
+      notify: (message, isError) => showToast(message, isError ? 'error' : 'info'),
+      getItemFromCard: (card) => {
+        const team = buildTeamFromCard(card);
+        if (!team) return null;
+        return {
+          mediaType: 'sports',
+          itemId: team.id,
+          title: team.name,
+          subtitle: [team.league, team.sport].filter(Boolean).join(' | '),
+          image: team.badge || team.banner || ''
+        };
+      },
+      getVisibleItemIds: () => {
+        if (!ui.grid) return [];
+        return Array.from(ui.grid.querySelectorAll('.sports-card'))
+          .map((card) => String(card.getAttribute('data-team-id') || card.dataset.itemId || '').trim())
+          .filter(Boolean);
+      },
+      getQuickStatusForItem: (itemId, listKeys) => {
+        const status = {};
+        (listKeys || []).forEach((key) => {
+          status[key] = key === 'favorites' && state.favorites.has(String(itemId));
+        });
+        return status;
+      },
+      getDefaultListStatusMap: async (itemId, listKeys) => {
+        const status = {};
+        (listKeys || []).forEach((key) => {
+          status[key] = key === 'favorites' && state.favorites.has(String(itemId));
+        });
+        return status;
+      },
+      toggleDefaultList: async ({ itemId, listType, nextSaved, card }) => {
+        if (listType !== 'favorites') return { ok: false, saved: null };
+        const team = state.teamMap.get(String(itemId)) || buildTeamFromCard(card, itemId);
+        if (!team) return { ok: false, saved: null };
+        return await toggleFavorite(team, nextSaved);
+      }
+    });
   }
 
   async function saveTeam(team) {
@@ -648,19 +744,23 @@
     return true;
   }
 
-  async function toggleFavorite(team) {
-    if (!team || !team.id) return;
+  async function toggleFavorite(team, nextSaved = null) {
+    const result = { ok: false, saved: null };
+    if (!team || !team.id) return result;
     if (!state.currentUser) {
       showToast('Sign in to save teams.', 'error');
-      return;
+      return result;
     }
 
     const isSaved = state.favorites.has(team.id);
-    if (isSaved) {
+    const shouldSave = typeof nextSaved === 'boolean' ? nextSaved : !isSaved;
+    if (!shouldSave) {
       const ok = await removeTeam(team.id);
       if (ok) {
         state.favorites.delete(team.id);
         showToast('Removed from favorites.');
+        result.ok = true;
+        result.saved = false;
       } else {
         showToast('Unable to remove team.', 'error');
       }
@@ -669,11 +769,14 @@
       if (ok) {
         state.favorites.add(team.id);
         showToast('Team saved to your profile.');
+        result.ok = true;
+        result.saved = true;
       } else {
         showToast('Unable to save team.', 'error');
       }
     }
     syncSavedButtons();
+    return result;
   }
 
   async function loadFeaturedTeams() {
@@ -681,17 +784,17 @@
     setLoading(true, 'Loading featured teams...');
     const picks = [];
     const seen = new Set();
-
-    for (const seed of SEED_TEAMS) {
-      if (picks.length >= 12) break;
-      const payload = await fetchSportsDb('searchteams.php', { t: seed });
+    const seeds = SEED_TEAMS.slice(0, 12);
+    const responses = await Promise.all(seeds.map((seed) => fetchSportsDb('searchteams.php', { t: seed })));
+    responses.forEach((payload) => {
+      if (picks.length >= 12) return;
       const teamRaw = Array.isArray(payload?.teams) ? payload.teams[0] : null;
       const mapped = mapTeam(teamRaw);
-      if (!mapped) continue;
-      if (seen.has(mapped.id)) continue;
+      if (!mapped) return;
+      if (seen.has(mapped.id)) return;
       seen.add(mapped.id);
       picks.push(mapped);
-    }
+    });
 
     renderTeams(picks, {
       title: 'Featured teams',
@@ -701,29 +804,47 @@
 
   async function searchTeams(query, options = {}) {
     const trimmed = String(query || '').trim();
+    const seq = ++state.searchSeq;
     if (!trimmed) {
+      clearSearchSuggestions();
       await loadFeaturedTeams();
       return;
     }
 
     if (!options.preserveUrl) clearTeamUrl();
     setLoading(true, `Searching "${trimmed}"...`);
-    const payload = await fetchSportsDb('searchteams.php', { t: trimmed });
-    const mapped = Array.isArray(payload?.teams) ? payload.teams.map(mapTeam).filter(Boolean) : [];
-    let combined = dedupeTeams(mapped);
-
-    const normalizedQuery = normalizeSearchText(trimmed);
-    if (normalizedQuery.length >= 2 && (combined.length < 4 || normalizedQuery.length < 4)) {
-      const fallbackTeams = await getFallbackTeams(trimmed);
-      combined = dedupeTeams([...combined, ...fallbackTeams]);
+    const cacheKey = normalizeSearchText(trimmed);
+    const cached = state.searchCache.get(cacheKey);
+    if (cached && cached.length && !options.forceNetwork) {
+      renderTeams(cached, {
+        title: `Results for "${trimmed}"`,
+        subtitle: `${cached.length} teams found`,
+        emptyMessage: 'No teams found. Try another search.'
+      });
     }
 
-    const teams = rankTeamsByQuery(combined, trimmed);
+    const [payload, fallbackTeams] = await Promise.all([
+      fetchSportsDb('searchteams.php', { t: trimmed }),
+      getFallbackTeams(trimmed)
+    ]);
+
+    if (seq !== state.searchSeq) return;
+
+    const mapped = Array.isArray(payload?.teams) ? payload.teams.map(mapTeam).filter(Boolean) : [];
+    let combined = dedupeTeams([...mapped, ...fallbackTeams]);
+    combined = dedupeTeams([...combined, ...getCachedTeams()]);
+
+    const filtered = combined.filter((team) => teamMatchesQuery(team, trimmed));
+    const ranked = rankTeamsByQuery(filtered.length ? filtered : combined, trimmed);
+    const teams = ranked.filter((team) => teamMatchesQuery(team, trimmed));
+    state.searchCache.set(cacheKey, teams);
+
     renderTeams(teams, {
       title: `Results for "${trimmed}"`,
       subtitle: teams.length ? `${teams.length} teams found` : 'No matching teams yet',
       emptyMessage: 'No teams found. Try another search.'
     });
+    renderSearchSuggestions(trimmed, teams);
   }
 
   async function loadTeamById(teamId) {
@@ -749,21 +870,33 @@
   function wireSearch() {
     if (ui.searchInput) {
       ui.searchInput.addEventListener('input', () => {
+        renderSearchSuggestions(ui.searchInput.value);
         window.clearTimeout(state.searchTimer);
         state.searchTimer = window.setTimeout(() => {
           searchTeams(ui.searchInput.value).catch(() => {});
-        }, 380);
+        }, 220);
       });
 
       ui.searchInput.addEventListener('keydown', (event) => {
-        if (event.key !== 'Enter') return;
-        event.preventDefault();
-        searchTeams(ui.searchInput.value).catch(() => {});
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          clearSearchSuggestions();
+          searchTeams(ui.searchInput.value).catch(() => {});
+          return;
+        }
+        if (event.key === 'Escape') {
+          clearSearchSuggestions();
+        }
+      });
+
+      ui.searchInput.addEventListener('focus', () => {
+        renderSearchSuggestions(ui.searchInput.value);
       });
     }
 
     if (ui.searchBtn) {
       ui.searchBtn.addEventListener('click', () => {
+        clearSearchSuggestions();
         searchTeams(ui.searchInput?.value || '').catch(() => {});
       });
     }
@@ -773,6 +906,7 @@
         button.addEventListener('click', () => {
           const teamName = button.getAttribute('data-team') || '';
           if (ui.searchInput) ui.searchInput.value = teamName;
+          clearSearchSuggestions();
           searchTeams(teamName).catch(() => {});
         });
       });
@@ -784,13 +918,18 @@
         toggleFavorite(state.heroTeam);
       });
     }
+
+    document.addEventListener('click', (event) => {
+      if (event.target.closest('.sports-search-bar')) return;
+      clearSearchSuggestions();
+    });
   }
 
   async function init() {
     await ensureSupabase();
     await initAuth();
+    initListMenu();
     wireSearch();
-    bindMenuDismiss();
 
     const params = new URLSearchParams(window.location.search);
     const teamId = params.get('id');

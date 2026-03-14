@@ -49,6 +49,13 @@
       usesUserId: true,
       defaultIcon: 'fas fa-earth-americas'
     },
+    sports: {
+      listTable: 'sports_lists',
+      itemsTable: 'sports_list_items',
+      itemIdField: 'team_id',
+      usesUserId: true,
+      defaultIcon: 'fas fa-futbol'
+    },
     restaurant: {
       listTable: 'lists',
       itemsTable: 'lists_restraunts',
@@ -137,6 +144,7 @@
     if (raw.includes('fa-book')) return 'book';
     if (raw.includes('fa-music')) return 'music';
     if (raw.includes('fa-earth')) return 'travel';
+    if (raw.includes('fa-futbol') || raw.includes('fa-football')) return 'sports';
     if (raw.includes('fa-user')) return 'user';
     if (raw.includes('fa-tv')) return 'tv';
     if (raw.includes('fa-dragon')) return 'anime';
@@ -292,6 +300,7 @@
       raw === 'book' ||
       raw === 'music' ||
       raw === 'travel' ||
+      raw === 'sports' ||
       raw === 'restaurant'
     ) {
       return 'standard';
