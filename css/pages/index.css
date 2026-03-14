@@ -1348,6 +1348,10 @@
       transform: scale(1.001);
     }
 
+    .card-media.cover img {
+      object-fit: cover;
+    }
+
     .card-media.travel-photo img {
       object-fit: cover;
       object-position: center center;
@@ -1573,6 +1577,10 @@
     .rail.unified-rail .card-media img {
       object-fit: contain;
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+    }
+
+    .rail.unified-rail .card-media.cover img {
+      object-fit: cover;
     }
 
     .rail.unified-rail .card-media.travel-photo img {
@@ -3487,6 +3495,10 @@
       .rail .card-media.travel-photo img {
         object-fit: cover !important;
         object-position: center center !important;
+      }
+
+      .rail .card-media.cover img {
+        object-fit: cover !important;
       }
       #restaurantsRail .card-media.restaurant-composite .restaurant-cover {
         object-fit: cover !important;

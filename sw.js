@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v90';
-const PAGE_CACHE = 'zo2y-pages-v94';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v91';
+const PAGE_CACHE = 'zo2y-pages-v95';
 const IMAGE_CACHE = 'zo2y-images-v22';
 const API_CACHE = 'zo2y-api-v5';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -10,10 +10,10 @@ const STATIC_ASSETS = [
   '/index.html',
   '/credits.html',
   '/manifest.webmanifest',
-  '/css/pages/index.css?v=20260313k',
+  '/css/pages/index.css?v=20260314l',
   '/css/shared-header.css?v=20260313m',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260314c',
+  '/js/pages/index.js?v=20260314d',
   '/js/home-desktop-rebrand.js?v=20260311e',
   '/js/shared-header.js?v=20260314a',
   '/js/review-interactions.js?v=20260308a',
@@ -36,10 +36,10 @@ const STATIC_ASSETS = [
   '/sports.html',
   '/sports-mobile.html',
   '/css/pages/sports.css?v=20260314d',
-  '/js/pages/sports.js?v=20260314d',
+  '/js/pages/sports.js?v=20260314e',
   '/team.html',
   '/css/pages/team.css?v=20260314a',
-  '/js/pages/team.js?v=20260314a',
+  '/js/pages/team.js?v=20260314b',
   '/images/patterns/open-book-01.svg',
   '/images/icons/star.svg',
   '/images/apple-touch-icon-180.png'
@@ -97,7 +97,7 @@ function queueCachePut(cacheName, request, response) {
 
 function isMediaApiRequest(url) {
   if (!url || url.origin !== self.location.origin) return false;
-  return /^\/api\/(tmdb|igdb|igdb-handler|books|music|openlibrary)(\/|$)/i.test(url.pathname);
+  return /^\/api\/(tmdb|igdb|igdb-handler|books|music|openlibrary|sportsdb)(\/|$)/i.test(url.pathname);
 }
 
 async function cacheFirst(request, cacheName) {

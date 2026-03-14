@@ -1,8 +1,9 @@
 (() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  const SPORTSDB_API_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
-  const SPORTSDB_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_API_KEY}`;
+  const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';
+  const SPORTSDB_DIRECT_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
+  const SPORTSDB_DIRECT_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_DIRECT_KEY}`;
   const FALLBACK_BADGE = '/file.svg';
   const FALLBACK_IMAGE = '/newlogo.webp';
 
@@ -61,6 +62,16 @@
     return `https://${text.replace(/^\/+/, '')}`;
   }
 
+  function normalizeTeamName(value) {
+    return String(value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]+/g, '')
+      .replace(/['’]/g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+  }
+
   function showToast(message, type = 'info') {
     if (!ui.toast) return;
     ui.toast.textContent = message;
@@ -72,8 +83,18 @@
     }, 2800);
   }
 
+  function resolveSportsDbBase() {
+    const prefersDirect = window.ZO2Y_SPORTSDB_DIRECT === true || window.ZO2Y_SPORTSDB_DIRECT === '1';
+    const base = prefersDirect ? SPORTSDB_DIRECT_BASE : SPORTSDB_PROXY_BASE;
+    if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, '');
+    const prefix = base.startsWith('/') ? '' : '/';
+    return `${window.location.origin}${prefix}${base}`.replace(/\/+$/, '');
+  }
+
   async function fetchSportsDb(endpoint, params = {}, timeoutMs = 9000) {
-    const url = new URL(`${SPORTSDB_BASE}/${endpoint}`);
+    const path = String(endpoint || '').trim().replace(/^\/+/, '');
+    if (!path) return null;
+    const url = new URL(`${resolveSportsDbBase()}/${path}`);
     Object.entries(params || {}).forEach(([key, value]) => {
       if (value === null || value === undefined || value === '') return;
       url.searchParams.set(key, value);
@@ -178,16 +199,21 @@
 
   function renderMedia(team) {
     if (!ui.mediaGrid || !ui.mediaEmpty) return;
-    const mediaItems = [
-      { url: team.banner, contain: false },
-      { url: team.fanart, contain: false },
-      { url: team.stadiumThumb, contain: false },
-      { url: team.jersey, contain: true },
-      { url: team.badge, contain: true }
-    ].filter((item) => item.url);
+    const mediaItems = [];
+    const seen = new Set();
+    const addMedia = (url, contain = false) => {
+      const safeUrl = String(url || '').trim();
+      if (!safeUrl || seen.has(safeUrl)) return;
+      seen.add(safeUrl);
+      mediaItems.push({ url: safeUrl, contain });
+    };
 
-    const extraFanarts = (team.fanarts || []).filter((url) => url && !mediaItems.some((item) => item.url === url));
-    extraFanarts.forEach((url) => mediaItems.push({ url, contain: false }));
+    addMedia(team.fanart, false);
+    (team.fanarts || []).forEach((url) => addMedia(url, false));
+    addMedia(team.stadiumThumb, false);
+    addMedia(team.banner, true);
+    addMedia(team.jersey, true);
+    addMedia(team.badge, true);
 
     ui.mediaGrid.innerHTML = '';
     if (!mediaItems.length) {
@@ -207,7 +233,7 @@
   }
 
   function setHero(team) {
-    const heroImage = team.fanart || team.banner || team.stadiumThumb || FALLBACK_IMAGE;
+    const heroImage = team.fanart || team.stadiumThumb || team.banner || FALLBACK_IMAGE;
     if (ui.heroMedia) {
       ui.heroMedia.style.setProperty('--hero-bg', `url("${heroImage}")`);
       ui.heroMedia.style.setProperty('--hero-bg-size', 'cover');
@@ -394,7 +420,11 @@
       teamRaw = Array.isArray(payload?.teams) ? payload.teams[0] : null;
     } else if (teamName) {
       const payload = await fetchSportsDb('searchteams.php', { t: teamName });
-      teamRaw = Array.isArray(payload?.teams) ? payload.teams[0] : null;
+      const teams = Array.isArray(payload?.teams) ? payload.teams : [];
+      if (teams.length) {
+        const normalized = normalizeTeamName(teamName);
+        teamRaw = teams.find((entry) => normalizeTeamName(entry?.strTeam) === normalized) || teams[0];
+      }
     }
 
     const team = mapTeam(teamRaw);

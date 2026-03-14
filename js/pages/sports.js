@@ -1,8 +1,9 @@
 (() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  const SPORTSDB_API_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
-  const SPORTSDB_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_API_KEY}`;
+  const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';
+  const SPORTSDB_DIRECT_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
+  const SPORTSDB_DIRECT_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_DIRECT_KEY}`;
   const FALLBACK_IMAGE = '/newlogo.webp';
   const FALLBACK_BADGE = '/file.svg';
   const FALLBACK_LEAGUES = [
@@ -12,32 +13,53 @@
     'German Bundesliga',
     'French Ligue 1',
     'Major League Soccer',
+    'Portuguese Primeira Liga',
+    'Dutch Eredivisie',
+    'Scottish Premiership',
+    'Turkish Super Lig',
+    'Brazilian Serie A',
+    'Argentine Primera Division',
+    'Liga MX',
+    'Egyptian Premier League',
+    'Saudi Pro League',
+    'Indian Super League',
+    'J1 League',
+    'K League 1',
     'NBA',
     'NFL',
     'MLB',
     'NHL',
-    'Egyptian Premier League',
-    'Saudi Pro League'
+    'Indian Premier League'
   ];
   const SHORT_FALLBACK_LEAGUES = [
     'English Premier League',
     'Spanish La Liga',
+    'Egyptian Premier League',
+    'Saudi Pro League',
     'NBA',
     'NFL',
-    'Egyptian Premier League',
-    'Saudi Pro League'
+    'MLB',
+    'Indian Premier League'
   ];
   const SEED_TEAMS = [
     'Liverpool',
     'Real Madrid',
+    'Al Ahly',
+    'Al Hilal',
+    'Boca Juniors',
+    'Flamengo',
+    'Mumbai Indians',
     'Los Angeles Lakers',
     'Golden State Warriors',
     'New York Yankees',
+    'Dallas Cowboys',
     'Boston Celtics',
-    'Manchester City',
     'FC Barcelona',
-    'Green Bay Packers',
-    'Dallas Cowboys'
+    'Manchester City',
+    'Celtic',
+    'Fenerbahce',
+    'LA Galaxy',
+    'Zamalek'
   ];
 
   const state = {
@@ -318,8 +340,18 @@
     }, 2800);
   }
 
+  function resolveSportsDbBase() {
+    const prefersDirect = window.ZO2Y_SPORTSDB_DIRECT === true || window.ZO2Y_SPORTSDB_DIRECT === '1';
+    const base = prefersDirect ? SPORTSDB_DIRECT_BASE : SPORTSDB_PROXY_BASE;
+    if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, '');
+    const prefix = base.startsWith('/') ? '' : '/';
+    return `${window.location.origin}${prefix}${base}`.replace(/\/+$/, '');
+  }
+
   async function fetchSportsDb(endpoint, params = {}, timeoutMs = 8000) {
-    const url = new URL(`${SPORTSDB_BASE}/${endpoint}`);
+    const path = String(endpoint || '').trim().replace(/^\/+/, '');
+    if (!path) return null;
+    const url = new URL(`${resolveSportsDbBase()}/${path}`);
     Object.entries(params || {}).forEach(([key, value]) => {
       if (value === null || value === undefined || value === '') return;
       url.searchParams.set(key, value);
@@ -453,7 +485,7 @@
     }
     if (ui.heroMeta) ui.heroMeta.innerHTML = metaHtml;
 
-    const heroImage = team.fanart || team.banner || team.stadiumThumb || FALLBACK_IMAGE;
+    const heroImage = team.fanart || team.stadiumThumb || team.banner || FALLBACK_IMAGE;
     if (ui.heroMedia) {
       if (heroImage) {
         ui.heroMedia.style.setProperty('--hero-bg', `url("${heroImage}")`);
@@ -485,13 +517,14 @@
     card.dataset.title = team.name;
     card.tabIndex = 0;
 
-    const mediaImage = team.fanart || team.banner || team.stadiumThumb || FALLBACK_IMAGE;
+    const mediaImage = team.fanart || team.stadiumThumb || team.banner || FALLBACK_IMAGE;
     const logo = team.badge || FALLBACK_BADGE;
+    const usesBannerOnly = !team.fanart && !team.stadiumThumb && !!team.banner;
     const metaLine = [team.league, team.sport].filter(Boolean).join(' | ') || 'Team';
     card.dataset.subtitle = metaLine;
     card.dataset.image = mediaImage;
     card.dataset.listImage = logo;
-    card.dataset.mediaFit = 'cover';
+    card.dataset.mediaFit = usesBannerOnly ? 'contain' : 'cover';
 
     card.innerHTML = `
       <div class="sports-card-media">

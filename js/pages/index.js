@@ -14,8 +14,9 @@
     const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
     const TMDB_SPOT_POSTER = 'https://image.tmdb.org/t/p/w780';
     const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
-    const SPORTSDB_API_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
-    const SPORTSDB_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_API_KEY}`;
+    const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';
+    const SPORTSDB_DIRECT_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
+    const SPORTSDB_DIRECT_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_DIRECT_KEY}`;
     const REST_COUNTRIES_ALL_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
     const FALLBACK_RESTAURANTS = [
       { id: 'fallback-r1', name: 'Top Rated Picks', category: 'Community', rating: '4.8' },
@@ -39,14 +40,20 @@
     const HOME_SPORTS_SEEDS = [
       'Liverpool',
       'Real Madrid',
+      'Al Ahly',
+      'Al Hilal',
+      'Boca Juniors',
+      'Flamengo',
       'Los Angeles Lakers',
       'Golden State Warriors',
       'New York Yankees',
-      'Boston Celtics',
-      'Manchester City',
+      'Dallas Cowboys',
+      'Mumbai Indians',
       'FC Barcelona',
-      'Green Bay Packers',
-      'Dallas Cowboys'
+      'Manchester City',
+      'LA Galaxy',
+      'Celtic',
+      'Fenerbahce'
     ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-clapperboard', accent: '#f59e0b' },
@@ -547,10 +554,18 @@ let homeTravelPhotoCacheSaveTimer = null;
       return cloneJson(data, null);
     }
 
+    function resolveSportsDbBase() {
+      const prefersDirect = window.ZO2Y_SPORTSDB_DIRECT === true || window.ZO2Y_SPORTSDB_DIRECT === '1';
+      const base = prefersDirect ? SPORTSDB_DIRECT_BASE : SPORTSDB_PROXY_BASE;
+      if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, '');
+      const prefix = base.startsWith('/') ? '' : '/';
+      return `${window.location.origin}${prefix}${base}`.replace(/\/+$/, '');
+    }
+
     async function fetchSportsDb(endpoint, params = {}, options = {}) {
       const path = String(endpoint || '').trim().replace(/^\/+/, '');
       if (!path) return null;
-      const url = new URL(`${SPORTSDB_BASE}/${path}`);
+      const url = new URL(`${resolveSportsDbBase()}/${path}`);
       Object.entries(params || {}).forEach(([key, value]) => {
         if (value === undefined || value === null || value === '') return;
         url.searchParams.set(key, String(value));
@@ -3907,6 +3922,8 @@ let homeTravelPhotoCacheSaveTimer = null;
         }
 
         const mediaClasses = ['card-media'];
+        const mediaFit = String(itemData.mediaFit || '').trim().toLowerCase();
+        if (mediaFit === 'cover') mediaClasses.push('cover');
         if (landscape) mediaClasses.push('landscape');
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
         if (mediaTypeRaw === 'music') mediaClasses.push('music-cover');
@@ -5985,10 +6002,13 @@ let homeTravelPhotoCacheSaveTimer = null;
       const stadiumImage = toHttpsUrl(team.strStadiumThumb || '');
       const jersey = toHttpsUrl(team.strEquipment || team.strTeamJersey || '');
       const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
-      const background = fanart || banner || stadiumImage || fallbackImage;
-      const image = banner || fanart || stadiumImage || fallbackImage;
+      const posterImage = fanart || stadiumImage || banner || fallbackImage;
+      const background = posterImage || fallbackImage;
+      const image = posterImage;
       if (!image) return null;
       const subtitle = [league, sport].filter(Boolean).join(' | ') || 'Team';
+      const spotlightMedia = badge || jersey || background;
+      const spotlightMediaFit = badge || jersey ? 'contain' : 'cover';
       const href = id
         ? `team.html?id=${encodeURIComponent(id)}`
         : `team.html?team=${encodeURIComponent(title)}`;
@@ -5999,10 +6019,12 @@ let homeTravelPhotoCacheSaveTimer = null;
         subtitle,
         extra: stadium ? `Stadium: ${stadium}` : '',
         image,
+        listImage: badge || image,
+        mediaFit: 'cover',
         backgroundImage: background,
         spotlightImage: background,
-        spotlightMediaImage: badge || jersey || background,
-        spotlightMediaFit: 'contain',
+        spotlightMediaImage: spotlightMedia,
+        spotlightMediaFit,
         spotlightMediaShape: 'square',
         sport,
         league,

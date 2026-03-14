@@ -103,6 +103,14 @@
       "destination": "/api/openlibrary-handler?path=:path*"
     },
     {
+      "source": "/api/sportsdb",
+      "destination": "/api/sportsdb-handler"
+    },
+    {
+      "source": "/api/sportsdb/:path*",
+      "destination": "/api/sportsdb-handler?path=:path*"
+    },
+    {
       "source": "/api/analytics",
       "destination": "/api/analytics-handler"
     },
