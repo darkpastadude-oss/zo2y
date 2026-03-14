@@ -3,11 +3,13 @@
   --card: #132347;
   --card-2: #172b58;
   --muted: #8ca3c7;
-  --accent: #38bdf8;
-  --accent-strong: #0ea5e9;
+  --accent: #f59e0b;
+  --accent-strong: #ffb84d;
   --white: #ffffff;
   --border: rgba(255,255,255,0.12);
   --surface: rgba(12, 26, 57, 0.86);
+  --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+  --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
 }
 
 * {
@@ -18,8 +20,8 @@ body {
   margin: 0;
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   background:
-    radial-gradient(circle at 18% -10%, rgba(56, 189, 248, 0.12), transparent 35%),
-    radial-gradient(circle at 85% -20%, rgba(14, 165, 233, 0.15), transparent 42%),
+    var(--radial-glow),
+    radial-gradient(circle at 85% -20%, rgba(245, 158, 11, 0.12), transparent 42%),
     var(--bg);
   color: var(--white);
   min-height: 100vh;
@@ -51,9 +53,11 @@ a { color: inherit; text-decoration: none; }
   position: absolute;
   inset: 0;
   background: var(--hero-bg, linear-gradient(135deg, rgba(9, 18, 40, 0.9), rgba(15, 36, 70, 0.7)));
-  background-size: cover;
-  background-position: center;
+  background-size: var(--hero-bg-size, cover);
+  background-position: var(--hero-bg-position, center);
+  background-repeat: no-repeat;
   opacity: 0.55;
+  z-index: 0;
 }
 
 .sports-hero::after {
@@ -61,12 +65,30 @@ a { color: inherit; text-decoration: none; }
   position: absolute;
   inset: 0;
   background: linear-gradient(120deg, rgba(9, 18, 40, 0.95) 0%, rgba(15, 36, 70, 0.6) 100%);
+  z-index: 1;
+}
+
+.sports-hero-logo-wrap {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.sports-hero-logo {
+  width: min(360px, 48vw);
+  max-height: 240px;
+  object-fit: contain;
+  opacity: 0.6;
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.45));
 }
 
 .sports-hero-content,
 .sports-hero-card {
   position: relative;
-  z-index: 1;
+  z-index: 3;
 }
 
 .sports-kicker {
@@ -181,15 +203,15 @@ a { color: inherit; text-decoration: none; }
 }
 
 .sports-btn.primary {
-  background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+  background: var(--gradient);
   border: none;
   color: #05223a;
 }
 
 .sports-btn.saved {
-  background: rgba(56, 189, 248, 0.18);
-  border-color: rgba(56, 189, 248, 0.6);
-  color: #7dd3fc;
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.6);
+  color: #fde68a;
 }
 
 .sports-btn:disabled {
@@ -225,8 +247,8 @@ a { color: inherit; text-decoration: none; }
 }
 
 .sports-search-bar input:focus {
-  border-color: rgba(56, 189, 248, 0.7);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.16);
+  border-color: rgba(245, 158, 11, 0.7);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.16);
 }
 
 .sports-search-bar button {
@@ -285,15 +307,16 @@ a { color: inherit; text-decoration: none; }
 .sports-grid {
   padding: 16px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 260px));
   gap: 14px;
+  justify-content: start;
 }
 
 .sports-card {
   background: #0f2147;
   border: 1px solid var(--border);
   border-radius: 18px;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   min-height: 280px;
@@ -304,7 +327,7 @@ a { color: inherit; text-decoration: none; }
 
 .sports-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(56, 189, 248, 0.6);
+  border-color: rgba(245, 158, 11, 0.6);
 }
 
 .sports-card-media {
@@ -313,6 +336,7 @@ a { color: inherit; text-decoration: none; }
   aspect-ratio: 16 / 9;
   background: #0b1c35;
   overflow: hidden;
+  border-radius: 18px 18px 14px 14px;
 }
 
 .sports-card-media img {
@@ -320,6 +344,12 @@ a { color: inherit; text-decoration: none; }
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.sports-card[data-media-fit="contain"] .sports-card-media img {
+  object-fit: contain;
+  background: #0b1633;
+  padding: 16px;
 }
 
 .sports-card-media::after {
@@ -331,7 +361,7 @@ a { color: inherit; text-decoration: none; }
 
 .sports-card-logo {
   position: absolute;
-  bottom: -24px;
+  bottom: -10px;
   left: 16px;
   width: 64px;
   height: 64px;
@@ -380,6 +410,8 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   align-items: center;
   gap: 10px;
+  position: relative;
+  z-index: 2;
 }
 
 .sports-card-save {
@@ -397,9 +429,9 @@ a { color: inherit; text-decoration: none; }
 }
 
 .sports-card-save.saved {
-  background: rgba(56, 189, 248, 0.2);
-  border-color: rgba(56, 189, 248, 0.6);
-  color: #7dd3fc;
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.6);
+  color: #fde68a;
 }
 
 .sports-card-menu {
@@ -422,8 +454,8 @@ a { color: inherit; text-decoration: none; }
 }
 
 .sports-card-menu-btn:hover {
-  border-color: rgba(56, 189, 248, 0.6);
-  color: #7dd3fc;
+  border-color: rgba(245, 158, 11, 0.6);
+  color: #fde68a;
   transform: translateY(-1px);
 }
 
@@ -476,18 +508,18 @@ a { color: inherit; text-decoration: none; }
 }
 
 .sports-card-menu-item:hover {
-  border-color: rgba(56, 189, 248, 0.6);
+  border-color: rgba(245, 158, 11, 0.6);
 }
 
 .sports-card-menu-item.saved {
-  border-color: rgba(56, 189, 248, 0.6);
-  background: rgba(56, 189, 248, 0.18);
-  color: #7dd3fc;
+  border-color: rgba(245, 158, 11, 0.6);
+  background: rgba(245, 158, 11, 0.18);
+  color: #fde68a;
 }
 
 .sports-card.is-active {
-  border-color: rgba(56, 189, 248, 0.9);
-  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35), 0 12px 26px rgba(0, 0, 0, 0.35);
+  border-color: rgba(245, 158, 11, 0.9);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.35), 0 12px 26px rgba(0, 0, 0, 0.35);
 }
 
 .sports-empty,
@@ -537,8 +569,14 @@ a { color: inherit; text-decoration: none; }
     justify-content: flex-start;
   }
 
+  .sports-hero-logo {
+    width: min(300px, 70vw);
+    max-height: 200px;
+    opacity: 0.5;
+  }
+
   .sports-card-logo {
-    bottom: -20px;
+    bottom: -8px;
   }
 }
 

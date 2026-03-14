@@ -7876,7 +7876,7 @@
                 `;
 
                 card.addEventListener('click', () => {
-                    const href = id ? `sports.html?id=${encodeURIComponent(id)}` : `sports.html?team=${encodeURIComponent(name)}`;
+                    const href = id ? `team.html?id=${encodeURIComponent(id)}` : `team.html?team=${encodeURIComponent(name)}`;
                     window.location.href = href;
                 });
 

@@ -61,6 +61,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.zo2y.com/team.html</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.zo2y.com/sports-mobile.html</loc>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>

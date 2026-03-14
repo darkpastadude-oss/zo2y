@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v88';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v89';
 const PAGE_CACHE = 'zo2y-pages-v93';
 const IMAGE_CACHE = 'zo2y-images-v22';
 const API_CACHE = 'zo2y-api-v5';
@@ -13,7 +13,7 @@ const STATIC_ASSETS = [
   '/css/pages/index.css?v=20260313k',
   '/css/shared-header.css?v=20260313m',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260314a',
+  '/js/pages/index.js?v=20260314b',
   '/js/home-desktop-rebrand.js?v=20260311e',
   '/js/shared-header.js?v=20260314a',
   '/js/review-interactions.js?v=20260308a',
@@ -34,8 +34,11 @@ const STATIC_ASSETS = [
   '/file.svg',
   '/sports.html',
   '/sports-mobile.html',
-  '/css/pages/sports.css?v=20260314b',
-  '/js/pages/sports.js?v=20260314b',
+  '/css/pages/sports.css?v=20260314c',
+  '/js/pages/sports.js?v=20260314c',
+  '/team.html',
+  '/css/pages/team.css?v=20260314a',
+  '/js/pages/team.js?v=20260314a',
   '/images/patterns/open-book-01.svg',
   '/images/icons/star.svg',
   '/images/apple-touch-icon-180.png'

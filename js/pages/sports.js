@@ -5,6 +5,18 @@
   const SPORTSDB_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_API_KEY}`;
   const FALLBACK_IMAGE = '/newlogo.webp';
   const FALLBACK_BADGE = '/file.svg';
+  const FALLBACK_LEAGUES = [
+    'English Premier League',
+    'Spanish La Liga',
+    'Italian Serie A',
+    'German Bundesliga',
+    'French Ligue 1',
+    'Major League Soccer',
+    'NBA',
+    'NFL',
+    'MLB',
+    'NHL'
+  ];
   const SEED_TEAMS = [
     'Liverpool',
     'Real Madrid',
@@ -24,7 +36,9 @@
     favorites: new Set(),
     heroTeam: null,
     teamMap: new Map(),
-    searchTimer: null
+    searchTimer: null,
+    leagueTeamsCache: new Map(),
+    leagueTeamsPending: new Map()
   };
 
   const ui = {
@@ -35,6 +49,7 @@
     heroMeta: document.getElementById('sportsHeroMeta'),
     heroCard: document.getElementById('sportsHeroCard'),
     heroBadge: document.getElementById('sportsHeroBadge'),
+    heroLogo: document.getElementById('sportsHeroLogo'),
     heroTeam: document.getElementById('sportsHeroTeam'),
     heroLeague: document.getElementById('sportsHeroLeague'),
     heroStadium: document.getElementById('sportsHeroStadium'),
@@ -70,6 +85,8 @@
   function normalizeSearchText(value) {
     return String(value || '')
       .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]+/g, '')
       .replace(/['’]/g, '')
       .replace(/[^a-z0-9]+/g, ' ')
       .trim();
@@ -121,22 +138,46 @@
       .map((row) => row.team);
   }
 
-  function buildTeamUrl(team) {
-    const url = new URL(window.location.href);
-    if (team?.id) {
-      url.searchParams.set('id', team.id);
-      url.searchParams.delete('team');
-    } else if (team?.name) {
-      url.searchParams.set('team', team.name);
-      url.searchParams.delete('id');
-    }
-    return url.toString();
+  async function loadLeagueTeams(league) {
+    const key = normalizeSearchText(league);
+    if (!key) return [];
+    if (state.leagueTeamsCache.has(key)) return state.leagueTeamsCache.get(key);
+    if (state.leagueTeamsPending.has(key)) return state.leagueTeamsPending.get(key);
+
+    const pending = (async () => {
+      const payload = await fetchSportsDb('search_all_teams.php', { l: league }, 9000);
+      const teams = Array.isArray(payload?.teams) ? payload.teams.map(mapTeam).filter(Boolean) : [];
+      state.leagueTeamsCache.set(key, teams);
+      state.leagueTeamsPending.delete(key);
+      return teams;
+    })();
+
+    state.leagueTeamsPending.set(key, pending);
+    return pending;
   }
 
-  function syncTeamUrl(team) {
-    if (!team) return;
-    const nextUrl = buildTeamUrl(team);
-    window.history.replaceState({ teamId: team.id || team.name || '' }, '', nextUrl);
+  async function getFallbackTeams(query) {
+    const q = normalizeSearchText(query);
+    if (!q) return [];
+    const leagues = q.length < 4 ? FALLBACK_LEAGUES.slice(0, 6) : FALLBACK_LEAGUES;
+    const matches = [];
+    for (const league of leagues) {
+      const teams = await loadLeagueTeams(league);
+      teams.forEach((team) => {
+        const name = normalizeSearchText(team?.name || '');
+        if (name.includes(q)) matches.push(team);
+      });
+      if (matches.length >= 40 && q.length < 3) break;
+    }
+    return matches;
+  }
+
+  function buildTeamDetailUrl(team) {
+    const params = new URLSearchParams();
+    if (team?.id) params.set('id', team.id);
+    else if (team?.name) params.set('team', team.name);
+    const query = params.toString();
+    return query ? `team.html?${query}` : 'team.html';
   }
 
   function clearTeamUrl() {
@@ -174,7 +215,7 @@
   }
 
   function copyTeamLink(team) {
-    const link = buildTeamUrl(team);
+    const link = buildTeamDetailUrl(team);
     if (!link) return;
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(link).then(() => showToast('Link copied.'));
@@ -284,10 +325,19 @@
       if (ui.heroLeague) ui.heroLeague.textContent = 'Search for a team to see details.';
       if (ui.heroStadium) ui.heroStadium.textContent = '';
       if (ui.heroBadge) ui.heroBadge.src = FALLBACK_BADGE;
+      if (ui.heroLogo) {
+        ui.heroLogo.src = FALLBACK_BADGE;
+        ui.heroLogo.alt = '';
+        ui.heroLogo.style.opacity = '0.25';
+      }
       if (ui.heroMeta) {
         ui.heroMeta.innerHTML = '<span class="sports-hero-pill">Powered by TheSportsDB</span><span class="sports-hero-pill">Save teams to your profile</span>';
       }
-      if (ui.heroMedia) ui.heroMedia.style.removeProperty('--hero-bg');
+      if (ui.heroMedia) {
+        ui.heroMedia.style.removeProperty('--hero-bg');
+        ui.heroMedia.style.removeProperty('--hero-bg-size');
+        ui.heroMedia.style.removeProperty('--hero-bg-position');
+      }
       if (ui.heroSave) ui.heroSave.disabled = true;
       return;
     }
@@ -314,12 +364,25 @@
       ui.heroBadge.src = team.badge || FALLBACK_BADGE;
       ui.heroBadge.alt = `${team.name} logo`;
     }
+    if (ui.heroLogo) {
+      const heroLogo = team.badge || team.jersey || FALLBACK_BADGE;
+      ui.heroLogo.src = heroLogo;
+      ui.heroLogo.alt = `${team.name} logo`;
+      ui.heroLogo.style.opacity = heroLogo ? '0.6' : '0.25';
+    }
     if (ui.heroMeta) ui.heroMeta.innerHTML = metaHtml;
 
-    const heroImage = team.fanart || team.banner || team.stadiumThumb || team.badge;
+    const heroImage = team.fanart || team.banner || team.stadiumThumb || FALLBACK_IMAGE;
     if (ui.heroMedia) {
-      if (heroImage) ui.heroMedia.style.setProperty('--hero-bg', `url("${heroImage}")`);
-      else ui.heroMedia.style.removeProperty('--hero-bg');
+      if (heroImage) {
+        ui.heroMedia.style.setProperty('--hero-bg', `url("${heroImage}")`);
+        ui.heroMedia.style.setProperty('--hero-bg-size', 'cover');
+        ui.heroMedia.style.setProperty('--hero-bg-position', 'center');
+      } else {
+        ui.heroMedia.style.removeProperty('--hero-bg');
+        ui.heroMedia.style.removeProperty('--hero-bg-size');
+        ui.heroMedia.style.removeProperty('--hero-bg-position');
+      }
     }
 
     if (ui.heroSave) {
@@ -328,14 +391,9 @@
     }
   }
 
-  function openTeam(team, options = {}) {
+  function navigateToTeam(team) {
     if (!team) return;
-    setHeroTeam(team);
-    setActiveCard(team.id);
-    if (options.updateUrl !== false) syncTeamUrl(team);
-    if (options.scroll && ui.hero?.scrollIntoView) {
-      ui.hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    window.location.href = buildTeamDetailUrl(team);
   }
 
   function buildCard(team) {
@@ -347,6 +405,7 @@
     const mediaImage = team.fanart || team.banner || team.stadiumThumb || FALLBACK_IMAGE;
     const logo = team.badge || FALLBACK_BADGE;
     const metaLine = [team.league, team.sport].filter(Boolean).join(' | ') || 'Team';
+    card.dataset.mediaFit = 'cover';
 
     card.innerHTML = `
       <div class="sports-card-media">
@@ -413,20 +472,20 @@
         event.stopPropagation();
         const action = item.getAttribute('data-action');
         if (action === 'favorite') toggleFavorite(team);
-        if (action === 'open') openTeam(team, { scroll: true });
+        if (action === 'open') navigateToTeam(team);
         if (action === 'copy') copyTeamLink(team);
         closeAllMenus();
       });
     });
 
     card.addEventListener('click', () => {
-      openTeam(team);
+      navigateToTeam(team);
     });
 
     card.addEventListener('keydown', (event) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
-      openTeam(team);
+      navigateToTeam(team);
     });
 
     return card;
@@ -651,7 +710,15 @@
     setLoading(true, `Searching "${trimmed}"...`);
     const payload = await fetchSportsDb('searchteams.php', { t: trimmed });
     const mapped = Array.isArray(payload?.teams) ? payload.teams.map(mapTeam).filter(Boolean) : [];
-    const teams = rankTeamsByQuery(dedupeTeams(mapped), trimmed);
+    let combined = dedupeTeams(mapped);
+
+    const normalizedQuery = normalizeSearchText(trimmed);
+    if (normalizedQuery.length >= 2 && (combined.length < 4 || normalizedQuery.length < 4)) {
+      const fallbackTeams = await getFallbackTeams(trimmed);
+      combined = dedupeTeams([...combined, ...fallbackTeams]);
+    }
+
+    const teams = rankTeamsByQuery(combined, trimmed);
     renderTeams(teams, {
       title: `Results for "${trimmed}"`,
       subtitle: teams.length ? `${teams.length} teams found` : 'No matching teams yet',

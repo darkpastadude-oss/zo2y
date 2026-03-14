@@ -57,7 +57,7 @@
       book: { label: 'Book', icon: 'fa-book', accent: '#f97316' },
       music: { label: 'Music', icon: 'fa-music', accent: '#f59e0b' },
       travel: { label: 'Travel', icon: 'fa-earth-americas', accent: '#22d3ee' },
-      sports: { label: 'Sports', icon: 'fa-futbol', accent: '#38bdf8' }
+      sports: { label: 'Sports', icon: 'fa-futbol', accent: '#f59e0b' }
     };
     const HOME_RESTAURANT_LIST_META = {
       favorites: { title: 'Favorites', description: 'My favorite restaurants', icon: 'heart' },
@@ -410,33 +410,35 @@ let homeTravelPhotoCacheSaveTimer = null;
       const rawImage = toHttpsUrl(String(item.image || '').trim());
       const rawBackground = toHttpsUrl(String(item.backgroundImage || '').trim());
       const rawSpotlight = toHttpsUrl(String(item.spotlightImage || '').trim());
+      const flagImage = toHttpsUrl(String(item.flagImage || '').trim()) || (code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : '');
       const scenicImage = getSafeTravelScenicImage(title, code, rawImage || rawBackground || rawSpotlight);
-      if (!isUsableHomeTravelScenicUrl(scenicImage)) return null;
-      if (code) setHomeTravelPhotoCache(code, scenicImage, 'scenic');
+      const hasScenic = isUsableHomeTravelScenicUrl(scenicImage);
+      const heroImage = hasScenic ? scenicImage : flagImage;
+      if (!heroImage) return null;
+      if (code && hasScenic) setHomeTravelPhotoCache(code, scenicImage, 'scenic');
       const cachedSet = getHomeTravelPhotoSet(code);
       const travelPhotos = [cachedSet.city, cachedSet.nature].filter(Boolean);
-      const flagImage = toHttpsUrl(String(item.flagImage || '').trim()) || (code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : '');
       return {
         ...item,
         mediaType: 'travel',
         itemId: code || String(item.itemId || '').trim(),
         flagImage,
-        listImage: flagImage || String(item.listImage || '').trim() || scenicImage,
-        image: scenicImage,
-        backgroundImage: scenicImage || '',
-        spotlightImage: getSafeTravelScenicImage(title, code, rawSpotlight || scenicImage) || scenicImage,
-        spotlightMediaImage: flagImage || String(item.spotlightMediaImage || '').trim() || scenicImage,
+        listImage: flagImage || String(item.listImage || '').trim() || heroImage,
+        image: heroImage,
+        backgroundImage: heroImage || '',
+        spotlightImage: getSafeTravelScenicImage(title, code, rawSpotlight || scenicImage) || heroImage,
+        spotlightMediaImage: flagImage || String(item.spotlightMediaImage || '').trim() || heroImage,
         spotlightMediaFit: 'contain',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
         travelPhotos,
         travelPhotoSet: {
-          scenic: cachedSet.scenic || scenicImage,
+          scenic: cachedSet.scenic || (hasScenic ? scenicImage : ''),
           city: cachedSet.city || '',
           nature: cachedSet.nature || ''
         },
-        travelNeedsScenicHydration: false,
-        fallbackImage: ''
+        travelNeedsScenicHydration: !hasScenic,
+        fallbackImage: hasScenic ? '' : flagImage
       };
     }
 
@@ -5901,13 +5903,14 @@ let homeTravelPhotoCacheSaveTimer = null;
       );
       const stadiumImage = toHttpsUrl(team.strStadiumThumb || '');
       const jersey = toHttpsUrl(team.strEquipment || team.strTeamJersey || '');
-      const background = fanart || banner || stadiumImage || badge;
-      const image = banner || fanart || stadiumImage || badge;
+      const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
+      const background = fanart || banner || stadiumImage || fallbackImage;
+      const image = banner || fanart || stadiumImage || fallbackImage;
       if (!image) return null;
       const subtitle = [league, sport].filter(Boolean).join(' | ') || 'Team';
       const href = id
-        ? `sports.html?id=${encodeURIComponent(id)}`
-        : `sports.html?team=${encodeURIComponent(title)}`;
+        ? `team.html?id=${encodeURIComponent(id)}`
+        : `team.html?team=${encodeURIComponent(title)}`;
       return {
         mediaType: 'sports',
         itemId: id || title,

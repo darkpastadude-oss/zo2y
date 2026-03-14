@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
+  <script src="/js/auth-gate.js?v=20260308a"></script>
+  <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
+  <title>Zo2y - Team</title>
+  <meta name="description" content="Explore team details, logos, and stadium info on Zo2y." />
+  <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
+  <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://www.thesportsdb.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/pages/team.css?v=20260314a" />
+  <meta name="theme-color" content="#0b1633" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
+  <script src="/js/mobile-webapp.js?v=20260314a" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260313m">
+  <script src="js/shared-header.js?v=20260314a" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+</head>
+<body>
+  <header class="zo2y-shared-header" role="banner" data-shared-header="1">
+  <div class="zo2y-shared-header-inner">
+    <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
+      <img src="/file.svg" alt="Logo" />
+    </a>
+    <div class="nav-search zo2y-shared-search">
+      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+      <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
+    </div>
+    <nav class="zo2y-shared-nav" aria-label="Primary navigation">
+      <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
+      <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
+      <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
+      <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
+      <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
+      <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
+      <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
+      <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
+      <a class="zo2y-shared-pill" data-nav-page="sports" href="sports.html">Sports</a>
+      <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
+    </nav>
+    <div class="zo2y-shared-auth">
+      <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
+      <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+      <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+</div>
+  </div>
+</header>
+
+  <main class="team-main">
+    <section class="team-hero" id="teamHero">
+      <div class="team-hero-media" id="teamHeroMedia"></div>
+      <div class="team-hero-content">
+        <div class="team-badge-wrap">
+          <img id="teamBadge" src="/file.svg" alt="Team logo" />
+        </div>
+        <div class="team-hero-text">
+          <div class="team-kicker" id="teamKicker">Team spotlight</div>
+          <h1 id="teamName">Loading team...</h1>
+          <p id="teamMeta">League | Sport</p>
+          <div class="team-actions">
+            <button class="team-btn primary" id="teamSaveBtn" type="button">
+              <i class="fas fa-heart"></i><span>Save team</span>
+            </button>
+            <a class="team-btn ghost" id="teamWebsite" href="#" target="_blank" rel="noopener">Official site</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="team-grid">
+      <div class="team-card">
+        <h2>Team info</h2>
+        <div class="team-info-list">
+          <div><span>League</span><strong id="teamLeague">-</strong></div>
+          <div><span>Sport</span><strong id="teamSport">-</strong></div>
+          <div><span>Country</span><strong id="teamCountry">-</strong></div>
+          <div><span>Formed</span><strong id="teamFormed">-</strong></div>
+          <div><span>Stadium</span><strong id="teamStadium">-</strong></div>
+          <div><span>Location</span><strong id="teamStadiumLocation">-</strong></div>
+          <div><span>Capacity</span><strong id="teamCapacity">-</strong></div>
+        </div>
+      </div>
+      <div class="team-card">
+        <h2>Social</h2>
+        <div class="team-social" id="teamSocial">
+          <span class="team-social-empty">No social links available.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="team-about" id="teamAbout">
+      <h2>About</h2>
+      <p id="teamDescription">Loading description...</p>
+    </section>
+
+    <section class="team-media" id="teamMedia">
+      <h2>Media</h2>
+      <div class="team-media-grid" id="teamMediaGrid"></div>
+      <p class="team-media-empty" id="teamMediaEmpty">No extra media yet.</p>
+    </section>
+  </main>
+
+  <div class="team-toast" id="teamToast" role="status" aria-live="polite"></div>
+
+  <script src="js/pages/team.js?v=20260314a" defer></script>
+  <script src="js/production-runtime.js?v=20260307a" defer></script>
+</body>
+</html>
