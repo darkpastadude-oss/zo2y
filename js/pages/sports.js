@@ -90,6 +90,42 @@
     welsh: 'wales',
     irish: 'ireland'
   };
+  const SPORT_SEARCH_MAP = {
+    basketball: ['NBA', 'WNBA', 'EuroLeague', 'NCAA Basketball', 'Basketball Africa League', 'NBL'],
+    hockey: ['NHL', 'AHL', 'KHL', 'SHL'],
+    baseball: ['MLB', 'NPB', 'KBO League', 'Mexican League Baseball'],
+    cricket: ['Indian Premier League', 'Big Bash League', 'Pakistan Super League'],
+    rugby: ['Super Rugby', 'National Rugby League', 'NRL'],
+    soccer: [
+      'English Premier League',
+      'Spanish La Liga',
+      'Italian Serie A',
+      'German Bundesliga',
+      'French Ligue 1',
+      'Saudi Pro League',
+      'Egyptian Premier League',
+      'Major League Soccer',
+      'Liga MX',
+      'Brazilian Serie A',
+      'Argentine Primera Division',
+      'Portuguese Primeira Liga',
+      'Dutch Eredivisie'
+    ],
+    football: [
+      'English Premier League',
+      'Spanish La Liga',
+      'Italian Serie A',
+      'German Bundesliga',
+      'French Ligue 1',
+      'Saudi Pro League',
+      'Major League Soccer',
+      'NFL',
+      'NCAA Football',
+      'CFL'
+    ],
+    'american football': ['NFL', 'NCAA Football', 'CFL', 'XFL', 'USFL'],
+    motorsport: ['Formula 1', 'Formula One', 'Formula E', 'MotoGP']
+  };
 
   const state = {
     supabase: null,
@@ -171,8 +207,63 @@
       if (mapped) {
         normalizeSearchText(mapped).split(' ').filter(Boolean).forEach((entry) => expanded.add(entry));
       }
+      if (token === 'f1') {
+        expanded.add('formula');
+        expanded.add('1');
+        expanded.add('formula 1');
+      }
+      if (token === 'nba') expanded.add('basketball');
+      if (token === 'wnba') expanded.add('basketball');
+      if (token === 'mlb') expanded.add('baseball');
+      if (token === 'nfl') expanded.add('football');
     });
     return Array.from(expanded);
+  }
+
+  function getSportSearchConfig(query) {
+    const normalized = normalizeSearchText(query);
+    if (!normalized) return null;
+    const tokens = normalized.split(' ').filter(Boolean);
+    const tokenSet = new Set(tokens);
+
+    const has = (value) => tokenSet.has(value);
+    if (has('basketball') || has('nba') || has('wnba')) {
+      return { key: 'basketball', leagues: SPORT_SEARCH_MAP.basketball, sportTokens: ['basketball'] };
+    }
+    if (has('hockey') || has('nhl')) {
+      return { key: 'hockey', leagues: SPORT_SEARCH_MAP.hockey, sportTokens: ['hockey'] };
+    }
+    if (has('baseball') || has('mlb')) {
+      return { key: 'baseball', leagues: SPORT_SEARCH_MAP.baseball, sportTokens: ['baseball'] };
+    }
+    if (has('cricket') || has('ipl')) {
+      return { key: 'cricket', leagues: SPORT_SEARCH_MAP.cricket, sportTokens: ['cricket'] };
+    }
+    if (has('rugby') || has('nrl')) {
+      return { key: 'rugby', leagues: SPORT_SEARCH_MAP.rugby, sportTokens: ['rugby'] };
+    }
+    if (has('soccer') || has('futbol')) {
+      return { key: 'soccer', leagues: SPORT_SEARCH_MAP.soccer, sportTokens: ['soccer'] };
+    }
+    if (has('football') && !has('american') && !has('nfl')) {
+      return { key: 'football', leagues: SPORT_SEARCH_MAP.soccer, sportTokens: ['soccer', 'football'] };
+    }
+    if (has('football') || has('nfl') || has('american')) {
+      return { key: 'american football', leagues: SPORT_SEARCH_MAP['american football'], sportTokens: ['football'] };
+    }
+    if (has('f1') || (has('formula') && has('1')) || normalized.includes('formula 1') || normalized.includes('formula one') || normalized.includes('motorsport')) {
+      return { key: 'motorsport', leagues: SPORT_SEARCH_MAP.motorsport, sportTokens: ['motorsport', 'formula'] };
+    }
+    return null;
+  }
+
+  function filterTeamsBySportTokens(teams, tokens) {
+    if (!tokens || !tokens.length) return Array.isArray(teams) ? teams : [];
+    return (Array.isArray(teams) ? teams : []).filter((team) => {
+      const sportText = normalizeSearchText([team?.sport, team?.league].filter(Boolean).join(' '));
+      if (!sportText) return false;
+      return tokens.some((token) => sportText.includes(token));
+    });
   }
 
   function normalizeFilterValue(value) {
@@ -394,20 +485,22 @@
     const q = normalizeSearchText(query);
     if (!q) return [];
     const leagues = pickFallbackLeagues(query).slice(0, 8);
+    const responses = await Promise.all(leagues.map((league) => loadLeagueTeams(league)));
     const matches = [];
-    for (const league of leagues) {
-      const teams = await loadLeagueTeams(league);
-      teams.forEach((team) => {
+    responses.forEach((teams) => {
+      (teams || []).forEach((team) => {
         if (teamMatchesQuery(team, query)) matches.push(team);
       });
-      if (matches.length >= 40 && q.length < 3) break;
-    }
+    });
     return matches;
   }
 
   function buildTeamDetailUrl(team) {
     const params = new URLSearchParams();
-    if (team?.id) params.set('id', team.id);
+    const numericId = /^\d+$/.test(String(team?.sportsDbId || team?.id || '').trim())
+      ? String(team?.sportsDbId || team?.id || '').trim()
+      : '';
+    if (numericId) params.set('id', numericId);
     if (team?.name) params.set('team', team.name);
     const query = params.toString();
     return query ? `team.html?${query}` : 'team.html';
@@ -475,10 +568,12 @@
   function mapTeam(raw) {
     if (!raw || typeof raw !== 'object') return null;
     const name = String(raw.strTeam || '').trim();
-    const id = String(raw.idTeam || name || '').trim();
-    if (!name || !id) return null;
+    const rawId = String(raw.idTeam || '').trim();
+    const sportsDbId = /^\d+$/.test(rawId) ? rawId : '';
+    if (!name) return null;
     const team = {
-      id,
+      id: sportsDbId || name,
+      sportsDbId,
       name,
       sport: String(raw.strSport || '').trim(),
       league: String(raw.strLeague || '').trim(),
@@ -616,14 +711,15 @@
     card.dataset.title = team.name;
     card.tabIndex = 0;
 
-    const mediaImage = team.fanart || team.stadiumThumb || team.banner || FALLBACK_IMAGE;
+    const mediaImage = team.fanart || team.stadiumThumb || team.jersey || team.banner || team.badge || FALLBACK_IMAGE;
     const logo = team.badge || FALLBACK_BADGE;
-    const usesBannerOnly = !team.fanart && !team.stadiumThumb && !!team.banner;
+    const usesBannerOnly = !team.fanart && !team.stadiumThumb && !team.jersey && !!team.banner;
+    const usesBadgeOnly = !team.fanart && !team.stadiumThumb && !team.jersey && !team.banner && !!team.badge;
     const metaLine = [team.league, team.sport].filter(Boolean).join(' | ') || 'Team';
     card.dataset.subtitle = metaLine;
     card.dataset.image = mediaImage;
     card.dataset.listImage = logo;
-    card.dataset.mediaFit = usesBannerOnly ? 'contain' : 'cover';
+    card.dataset.mediaFit = (usesBannerOnly || usesBadgeOnly) ? 'contain' : 'cover';
 
     card.innerHTML = `
       <div class="sports-card-media">

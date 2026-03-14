@@ -411,7 +411,8 @@
 
   async function loadTeam() {
     const params = new URLSearchParams(window.location.search);
-    const teamId = params.get('id');
+    const teamIdRaw = params.get('id');
+    const teamId = /^\d+$/.test(String(teamIdRaw || '').trim()) ? String(teamIdRaw || '').trim() : '';
     const teamName = params.get('team');
     let teamRaw = null;
 
