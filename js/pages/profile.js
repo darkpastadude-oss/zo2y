@@ -7846,43 +7846,78 @@
                 return safe;
             }
 
-            function buildSportsTeamCard(team) {
+            async function removeFavoriteTeam(teamId) {
+                if (!teamId) return false;
+                if (!currentUser?.id) {
+                    showToast('Sign in to remove teams', 'error');
+                    return false;
+                }
+                const { error } = await supabase
+                    .from('user_favorite_teams')
+                    .delete()
+                    .eq('user_id', currentUser.id)
+                    .eq('team_id', teamId);
+
+                if (error) {
+                    console.error('Error removing team:', error);
+                    showToast('Unable to remove team', 'error');
+                    return false;
+                }
+                showToast('Removed from favorites', 'success');
+                return true;
+            }
+
+            function buildSportsTeamCard(team, options = {}) {
                 const id = String(team?.id || team?.idTeam || '').trim();
                 const name = String(team?.name || team?.strTeam || '').trim() || 'Team';
                 const league = String(team?.league || team?.strLeague || '').trim();
                 const sport = String(team?.sport || team?.strSport || '').trim();
                 const stadium = String(team?.stadium || team?.strStadium || '').trim();
                 const logo = normalizeSportsImageUrl(team?.logo_url || team?.strTeamBadge || team?.strTeamLogo || '');
-                const banner = normalizeSportsImageUrl(team?.banner_url || team?.strTeamBanner || '');
-                const fanart = normalizeSportsImageUrl(team?.fanart_url || team?.strTeamFanart1 || '');
-                const stadiumImage = normalizeSportsImageUrl(team?.stadium_url || team?.strStadiumThumb || '');
-                const jersey = normalizeSportsImageUrl(team?.jersey_url || team?.strTeamJersey || '');
-                const background = banner || fanart || stadiumImage || logo || FALLBACK_BOOK_IMAGE;
                 const subtitle = [league, sport].filter(Boolean).join(' • ') || 'Team';
+                const logoImage = logo || FALLBACK_BOOK_IMAGE;
+                const canRemove = !!options?.canRemove && !!id;
 
                 const card = document.createElement('div');
-                card.className = 'team-card';
+                card.className = 'team-card logo-only';
                 card.innerHTML = `
-                    <div class="team-card-media">
-                        <img class="team-card-banner" src="${background}" alt="${name} banner" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_BOOK_IMAGE}';">
-                        ${logo ? `<span class="team-card-logo"><img src="${logo}" alt="${name} logo" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_BOOK_IMAGE}';"></span>` : ''}
+                    <div class="team-card-media logo-only">
+                        <img class="team-card-logo-main" src="${logoImage}" alt="${name} logo" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_BOOK_IMAGE}';">
+                        ${canRemove ? `<button class="remove-btn" type="button" aria-label="Remove team"><i class="fas fa-times"></i></button>` : ''}
                     </div>
                     <div class="team-card-body">
                         <div class="team-card-title">${name}</div>
                         <div class="team-card-meta">${subtitle}</div>
                         ${stadium ? `<div class="team-card-stadium"><i class="fas fa-location-dot"></i> ${stadium}</div>` : ''}
                     </div>
-                    ${jersey ? `<div class="team-card-jersey"><img src="${jersey}" alt="${name} jersey" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_BOOK_IMAGE}';"></div>` : ''}
                 `;
 
+                if (canRemove) {
+                    const removeBtn = card.querySelector('.remove-btn');
+                    if (removeBtn) {
+                        removeBtn.addEventListener('click', async (event) => {
+                            event.stopPropagation();
+                            const ok = await removeFavoriteTeam(id);
+                            if (!ok) return;
+                            card.remove();
+                            if (typeof options?.onRemove === 'function') {
+                                options.onRemove();
+                            }
+                        });
+                    }
+                }
+
                 card.addEventListener('click', () => {
-                    const href = id ? `team.html?id=${encodeURIComponent(id)}` : `team.html?team=${encodeURIComponent(name)}`;
+                    const params = new URLSearchParams();
+                    if (id) params.set('id', id);
+                    if (name) params.set('team', name);
+                    const query = params.toString();
+                    const href = query ? `team.html?${query}` : 'team.html';
                     window.location.href = href;
                 });
 
                 return card;
             }
-
             async function renderSports() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileSportsGrid') : document.getElementById('sportsGrid');
@@ -7891,6 +7926,15 @@
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderSportsToken;
+                const renderEmptyState = () => {
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}"><i class="fas fa-futbol"></i></div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Teams Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save teams to see them here.</p>
+                        </div>
+                    `;
+                };
 
                 try {
                     const { data, error } = await supabase
@@ -7907,13 +7951,7 @@
                         .filter(Boolean);
 
                     if (!teams.length) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}"><i class="fas fa-futbol"></i></div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Teams Yet</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save teams to see them here.</p>
-                            </div>
-                        `;
+                        renderEmptyState();
                         markTabRendered('sports');
                         return;
                     }
@@ -7921,7 +7959,14 @@
                     grid.innerHTML = '';
                     const fragment = document.createDocumentFragment();
                     teams.forEach((team) => {
-                        fragment.appendChild(buildSportsTeamCard(team));
+                        fragment.appendChild(buildSportsTeamCard(team, {
+                            canRemove: isViewingOwnProfile,
+                            onRemove: () => {
+                                if (!grid.querySelector('.team-card')) {
+                                    renderEmptyState();
+                                }
+                            }
+                        }));
                     });
                     grid.appendChild(fragment);
                     markTabRendered('sports');

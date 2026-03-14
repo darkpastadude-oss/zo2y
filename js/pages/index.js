@@ -40,20 +40,26 @@
     const HOME_SPORTS_SEEDS = [
       'Liverpool',
       'Real Madrid',
+      'FC Barcelona',
+      'Manchester City',
+      'Bayern Munich',
+      'Juventus',
       'Al Ahly',
       'Al Hilal',
+      'Raja Casablanca',
+      'Kaizer Chiefs',
       'Boca Juniors',
       'Flamengo',
+      'LA Galaxy',
+      'New Zealand All Blacks',
+      'Mumbai Indians',
+      'Chennai Super Kings',
       'Los Angeles Lakers',
       'Golden State Warriors',
       'New York Yankees',
       'Dallas Cowboys',
-      'Mumbai Indians',
-      'FC Barcelona',
-      'Manchester City',
-      'LA Galaxy',
-      'Celtic',
-      'Fenerbahce'
+      'Toronto Maple Leafs',
+      'New Zealand Warriors'
     ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-clapperboard', accent: '#f59e0b' },
@@ -263,6 +269,12 @@ let homeTravelPhotoCacheSaveTimer = null;
       ID: ['Bali', 'Jakarta', 'Yogyakarta'],
       ZA: ['Cape Town', 'Johannesburg', 'Durban']
     };
+    const homeCountryIndex = {
+      byName: new Map(),
+      byCode: new Map()
+    };
+    let homeCountryIndexPromise = null;
+    let homeCountryIndexReady = false;
 
     function escapeHtml(value) {
       return String(value || '')
@@ -275,6 +287,101 @@ let homeTravelPhotoCacheSaveTimer = null;
 
     function toHttpsUrl(value) {
       return String(value || '').replace(/^http:\/\//i, 'https://');
+    }
+
+    function normalizeCountryName(value) {
+      return String(value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]+/g, '')
+        .replace(/&/g, ' and ')
+        .replace(/['’]/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/^the\s+/g, '')
+        .trim();
+    }
+
+    const HOME_COUNTRY_ALIASES = {
+      'england': 'united kingdom',
+      'scotland': 'united kingdom',
+      'wales': 'united kingdom',
+      'northern ireland': 'united kingdom',
+      'great britain': 'united kingdom',
+      'uk': 'united kingdom',
+      'usa': 'united states',
+      'us': 'united states',
+      'u s a': 'united states',
+      'u s': 'united states',
+      'uae': 'united arab emirates',
+      'russia': 'russian federation',
+      'south korea': 'korea republic of',
+      'north korea': 'korea democratic people s republic of',
+      'iran': 'iran islamic republic of',
+      'czech republic': 'czechia',
+      'ivory coast': 'cote d ivoire',
+      'cote divoire': 'cote d ivoire',
+      'cote d ivoire': 'cote d ivoire',
+      'bolivia': 'bolivia plurinational state of',
+      'venezuela': 'venezuela bolivarian republic of',
+      'tanzania': 'tanzania united republic of',
+      'laos': 'lao people s democratic republic',
+      'syria': 'syrian arab republic',
+      'moldova': 'moldova republic of',
+      'macedonia': 'north macedonia'
+    };
+
+    function primeHomeCountryIndex(rows) {
+      if (!Array.isArray(rows) || !rows.length) return homeCountryIndex;
+      rows.forEach((row) => {
+        const flag = toHttpsUrl(row?.flags?.png || row?.flags?.svg || '');
+        if (!flag) return;
+        const names = [
+          row?.name?.common,
+          row?.name?.official,
+          ...(Array.isArray(row?.altSpellings) ? row.altSpellings : [])
+        ];
+        names.forEach((name) => {
+          const key = normalizeCountryName(name);
+          if (!key) return;
+          if (!homeCountryIndex.byName.has(key)) {
+            homeCountryIndex.byName.set(key, flag);
+          }
+        });
+        const cca2 = String(row?.cca2 || '').trim().toUpperCase();
+        const cca3 = String(row?.cca3 || '').trim().toUpperCase();
+        if (cca2 && !homeCountryIndex.byCode.has(cca2)) homeCountryIndex.byCode.set(cca2, flag);
+        if (cca3 && !homeCountryIndex.byCode.has(cca3)) homeCountryIndex.byCode.set(cca3, flag);
+      });
+      homeCountryIndexReady = true;
+      return homeCountryIndex;
+    }
+
+    async function ensureHomeCountryIndex(signal) {
+      if (homeCountryIndexReady) return homeCountryIndex;
+      if (homeCountryIndexPromise) return homeCountryIndexPromise;
+      homeCountryIndexPromise = (async () => {
+        try {
+          const payload = await fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
+            signal,
+            cacheKey: 'restcountries:all:v3.1:home',
+            ttlMs: 1000 * 60 * 60 * 12,
+            timeoutMs: 9500,
+            retries: 1
+          });
+          primeHomeCountryIndex(Array.isArray(payload) ? payload : []);
+        } catch (_err) {}
+        return homeCountryIndex;
+      })();
+      return homeCountryIndexPromise;
+    }
+
+    function getHomeCountryFlag(countryName) {
+      const key = normalizeCountryName(countryName);
+      if (!key) return '';
+      if (homeCountryIndex.byName.has(key)) return homeCountryIndex.byName.get(key);
+      const aliasKey = HOME_COUNTRY_ALIASES[key] ? normalizeCountryName(HOME_COUNTRY_ALIASES[key]) : '';
+      if (aliasKey && homeCountryIndex.byName.has(aliasKey)) return homeCountryIndex.byName.get(aliasKey);
+      return '';
     }
 
     function canonicalTravelCountryCode(value) {
@@ -880,7 +987,7 @@ let homeTravelPhotoCacheSaveTimer = null;
           ? String(item.spotlightImage || item.backgroundImage || '').trim()
           : String(item.spotlightImage || item.backgroundImage || item.image || '').trim());
       const spotlightBackground = getHomeSpotlightBackgroundByType(mediaTypeKey) || fallbackSpotlightBackground;
-      let spotlightMediaImage = String(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
+      let spotlightMediaImage = String(item.spotlightMediaImage || item.flagImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
       if (isTravelSpotlight) {
         spotlightMediaImage = travelScenicImage || spotlightMediaImage;
       }
@@ -5932,6 +6039,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         if (signal?.aborted) return [];
         const rows = Array.isArray(payload) ? payload : [];
         if (!rows.length) return [];
+        primeHomeCountryIndex(rows);
 
         const sortedRows = rows
           .filter((row) => {
@@ -5993,6 +6101,7 @@ let homeTravelPhotoCacheSaveTimer = null;
       const sport = String(team.strSport || '').trim();
       const league = String(team.strLeague || '').trim();
       const stadium = String(team.strStadium || '').trim();
+      const country = String(team.strCountry || '').trim();
       const badge = toHttpsUrl(team.strBadge || team.strTeamBadge || team.strTeamLogo || team.strLogo || '');
       const banner = toHttpsUrl(team.strBanner || team.strTeamBanner || '');
       const fanart = toHttpsUrl(
@@ -6007,11 +6116,14 @@ let homeTravelPhotoCacheSaveTimer = null;
       const image = posterImage;
       if (!image) return null;
       const subtitle = [league, sport].filter(Boolean).join(' | ') || 'Team';
-      const spotlightMedia = badge || jersey || background;
-      const spotlightMediaFit = badge || jersey ? 'contain' : 'cover';
-      const href = id
-        ? `team.html?id=${encodeURIComponent(id)}`
-        : `team.html?team=${encodeURIComponent(title)}`;
+      const flagImage = getHomeCountryFlag(country);
+      const spotlightMedia = flagImage || badge || jersey || background;
+      const spotlightMediaFit = flagImage || badge || jersey ? 'contain' : 'cover';
+      const params = new URLSearchParams();
+      if (id) params.set('id', id);
+      if (title) params.set('team', title);
+      const query = params.toString();
+      const href = query ? `team.html?${query}` : 'team.html';
       return {
         mediaType: 'sports',
         itemId: id || title,
@@ -6019,7 +6131,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         subtitle,
         extra: stadium ? `Stadium: ${stadium}` : '',
         image,
-        listImage: badge || image,
+        listImage: badge || flagImage || image,
         mediaFit: 'cover',
         backgroundImage: background,
         spotlightImage: background,
@@ -6028,6 +6140,8 @@ let homeTravelPhotoCacheSaveTimer = null;
         spotlightMediaShape: 'square',
         sport,
         league,
+        country,
+        flagImage,
         stadium,
         badge,
         banner,
@@ -6043,6 +6157,7 @@ let homeTravelPhotoCacheSaveTimer = null;
       const seedTeams = shuffleArray([...HOME_SPORTS_SEEDS]);
       const items = [];
       const seen = new Set();
+      await ensureHomeCountryIndex(signal);
 
       for (const seed of seedTeams) {
         if (items.length >= targetCount || signal?.aborted) break;

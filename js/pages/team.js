@@ -418,6 +418,14 @@
     if (teamId) {
       const payload = await fetchSportsDb('lookupteam.php', { id: teamId });
       teamRaw = Array.isArray(payload?.teams) ? payload.teams[0] : null;
+      if (!teamRaw && teamName) {
+        const fallback = await fetchSportsDb('searchteams.php', { t: teamName });
+        const teams = Array.isArray(fallback?.teams) ? fallback.teams : [];
+        if (teams.length) {
+          const normalized = normalizeTeamName(teamName);
+          teamRaw = teams.find((entry) => normalizeTeamName(entry?.strTeam) === normalized) || teams[0];
+        }
+      }
     } else if (teamName) {
       const payload = await fetchSportsDb('searchteams.php', { t: teamName });
       const teams = Array.isArray(payload?.teams) ? payload.teams : [];
