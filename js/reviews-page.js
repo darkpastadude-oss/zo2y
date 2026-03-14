@@ -78,8 +78,17 @@
   }
 
   function stars(rating) {
-    const n = Math.max(0, Math.min(5, Number(rating || 0)));
-    return `${'\u2605'.repeat(n)}${'\u2606'.repeat(5 - n)}`;
+    const raw = Number(rating || 0);
+    const safe = Number.isFinite(raw) ? raw : 0;
+    const score = Math.max(0, Math.min(5, safe));
+    const filled = Math.round(score);
+    const label = `${score.toFixed(1)}/5`;
+    let html = `<span class="rating-stars" aria-label="${label}">`;
+    for (let i = 0; i < 5; i += 1) {
+      html += `<span class="rating-star${i < filled ? ' is-filled' : ''}" aria-hidden="true"></span>`;
+    }
+    html += '</span>';
+    return html;
   }
 
   function fallbackMeta(mediaType, itemId) {
@@ -653,7 +662,7 @@
     if (!target) {
       meta.textContent = 'Review card';
       title.textContent = 'Hover a note to inspect the review.';
-      starsEl.textContent = '5 stars';
+      starsEl.innerHTML = stars(5);
       byline.textContent = 'Reviewer, date, and media data appear here.';
       quote.textContent = '';
       thumb.src = FALLBACK_IMAGE;
@@ -671,7 +680,7 @@
     };
     meta.textContent = `${target.mediaLabel} review`;
     title.textContent = target.title;
-    starsEl.textContent = stars(Number(target.rating || 0));
+    starsEl.innerHTML = stars(Number(target.rating || 0));
     byline.textContent = `${target.reviewer} • ${target.rating.toFixed(1)}/5 • ${target.dateLabel}`;
     quote.textContent = String(target.quote || '').trim();
     link.href = target.href || 'reviews.html';
@@ -840,7 +849,7 @@
             </div>
             <h3 class="title" title="${title}">${title}</h3>
             <div class="meta">Reviewed by ${reviewer} • ${subtitle}</div>
-            <div class="stars">${stars(rating)}<span>${rating}/5</span></div>
+        <div class="stars">${stars(rating)}<span>${rating}/5</span></div>
             <p class="comment">${comment}</p>
           </div>
           <div class="art"><img src="${image}" alt="${title}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'" /></div>

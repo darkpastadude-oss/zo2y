@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v86';
-const PAGE_CACHE = 'zo2y-pages-v92';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v87';
+const PAGE_CACHE = 'zo2y-pages-v93';
 const IMAGE_CACHE = 'zo2y-images-v22';
 const API_CACHE = 'zo2y-api-v5';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -13,9 +13,9 @@ const STATIC_ASSETS = [
   '/css/pages/index.css?v=20260313k',
   '/css/shared-header.css?v=20260313m',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260313j',
+  '/js/pages/index.js?v=20260314a',
   '/js/home-desktop-rebrand.js?v=20260311e',
-  '/js/shared-header.js?v=20260313m',
+  '/js/shared-header.js?v=20260314a',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
   '/js/list-utils.js?v=20260313i',
@@ -24,7 +24,7 @@ const STATIC_ASSETS = [
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260310b',
+  '/js/mobile-webapp.js?v=20260314a',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260308a',
   '/favicon.ico',
@@ -32,7 +32,12 @@ const STATIC_ASSETS = [
   '/newlogo.webp',
   '/file-blank.svg',
   '/file.svg',
+  '/sports.html',
+  '/sports-mobile.html',
+  '/css/pages/sports.css?v=20260314a',
+  '/js/pages/sports.js?v=20260314a',
   '/images/patterns/open-book-01.svg',
+  '/images/icons/star.svg',
   '/images/apple-touch-icon-180.png'
 ];
 

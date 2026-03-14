@@ -2,8 +2,8 @@
     const ENABLE_GAMES = !GAMES_DISABLED;
     const ENABLE_RESTAURANTS = false;
     const HOME_BASE_MEDIA_TYPES = ENABLE_GAMES
-      ? ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel']
-      : ['movie', 'tv', 'anime', 'book', 'music', 'travel'];
+      ? ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'sports']
+      : ['movie', 'tv', 'anime', 'book', 'music', 'travel', 'sports'];
     const HOME_ACTIVE_MEDIA_TYPES = ENABLE_RESTAURANTS
       ? ['restaurant', ...HOME_BASE_MEDIA_TYPES]
       : HOME_BASE_MEDIA_TYPES;
@@ -14,6 +14,8 @@
     const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
     const TMDB_SPOT_POSTER = 'https://image.tmdb.org/t/p/w780';
     const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
+    const SPORTSDB_API_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
+    const SPORTSDB_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_API_KEY}`;
     const REST_COUNTRIES_ALL_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
     const FALLBACK_RESTAURANTS = [
       { id: 'fallback-r1', name: 'Top Rated Picks', category: 'Community', rating: '4.8' },
@@ -34,6 +36,18 @@
       'the weeknd',
       'sabrina carpenter'
     ];
+    const HOME_SPORTS_SEEDS = [
+      'Liverpool',
+      'Real Madrid',
+      'Los Angeles Lakers',
+      'Golden State Warriors',
+      'New York Yankees',
+      'Boston Celtics',
+      'Manchester City',
+      'FC Barcelona',
+      'Green Bay Packers',
+      'Dallas Cowboys'
+    ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-clapperboard', accent: '#f59e0b' },
       movie: { label: 'Movie', icon: 'fa-film', accent: '#ef4444' },
@@ -42,7 +56,8 @@
       ...(ENABLE_GAMES ? { game: { label: 'Game', icon: 'fa-gamepad', accent: '#38bdf8' } } : {}),
       book: { label: 'Book', icon: 'fa-book', accent: '#f97316' },
       music: { label: 'Music', icon: 'fa-music', accent: '#f59e0b' },
-      travel: { label: 'Travel', icon: 'fa-earth-americas', accent: '#22d3ee' }
+      travel: { label: 'Travel', icon: 'fa-earth-americas', accent: '#22d3ee' },
+      sports: { label: 'Sports', icon: 'fa-futbol', accent: '#38bdf8' }
     };
     const HOME_RESTAURANT_LIST_META = {
       favorites: { title: 'Favorites', description: 'My favorite restaurants', icon: 'heart' },
@@ -531,6 +546,23 @@ let homeTravelPhotoCacheSaveTimer = null;
       return cloneJson(data, null);
     }
 
+    async function fetchSportsDb(endpoint, params = {}, options = {}) {
+      const path = String(endpoint || '').trim().replace(/^\/+/, '');
+      if (!path) return null;
+      const url = new URL(`${SPORTSDB_BASE}/${path}`);
+      Object.entries(params || {}).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '') return;
+        url.searchParams.set(key, String(value));
+      });
+      const cacheKey = `sportsdb:${url.toString()}`;
+      return fetchJsonWithPerfCache(url.toString(), {
+        cacheKey,
+        signal: options.signal,
+        timeoutMs: Number(options.timeoutMs || 0) || 6500,
+        retries: Number(options.retries || 0) || 1
+      });
+    }
+
     function resolveRestaurantImage(value) {
       const raw = String(value || '').trim();
       if (!raw) return '';
@@ -620,12 +652,14 @@ let homeTravelPhotoCacheSaveTimer = null;
       if (type === 'book') return 'Books';
       if (type === 'music') return 'Music';
       if (type === 'travel') return 'Travel';
+      if (type === 'sports') return 'Sports';
       if (type === 'restaurant') return 'Restaurants';
       return 'Discover';
     }
 
     function supportsHomeLists(mediaType) {
       const type = String(mediaType || '').toLowerCase();
+      if (type === 'sports') return false;
       return HOME_ACTIVE_MEDIA_TYPES.includes(type);
     }
 
@@ -3486,7 +3520,8 @@ let homeTravelPhotoCacheSaveTimer = null;
         } : {}),
         music: makeSeedItems('music', ['Global Hits', 'Viral Tracks', 'Fresh Releases', 'Chill Vibes', 'Late Night Mix'], 'music.html'),
         book: makeSeedItems('book', ['Bestselling Books', 'Popular Fiction', 'Book Club Picks', 'Page-Turners', 'Must Read Stories'], 'books.html'),
-        travel: instantTravelItems
+        travel: instantTravelItems,
+        sports: makeSeedItems('sports', ['Top Teams', 'Fan Favorites', 'Legendary Clubs', 'Home Stadiums', 'Rivalry Picks'], 'sports.html')
       };
     }
 
@@ -3499,7 +3534,8 @@ let homeTravelPhotoCacheSaveTimer = null;
         ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 5600 }] : []),
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 8500 },
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 },
-        { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 6800 }
+        { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 6800 },
+        { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: true }, timeoutMs: 6800 }
       ];
     }
 
@@ -5840,6 +5876,74 @@ let homeTravelPhotoCacheSaveTimer = null;
       } catch (_err) {}
 
       return cachedRowItems;
+    }
+
+    function mapSportsTeamToHomeItem(team) {
+      if (!team || typeof team !== 'object') return null;
+      const id = String(team.idTeam || '').trim();
+      const title = String(team.strTeam || '').trim();
+      if (!title) return null;
+      const sport = String(team.strSport || '').trim();
+      const league = String(team.strLeague || '').trim();
+      const stadium = String(team.strStadium || '').trim();
+      const badge = toHttpsUrl(team.strTeamBadge || team.strTeamLogo || '');
+      const banner = toHttpsUrl(team.strTeamBanner || '');
+      const fanart = toHttpsUrl(team.strTeamFanart1 || team.strTeamFanart2 || team.strTeamFanart3 || '');
+      const stadiumImage = toHttpsUrl(team.strStadiumThumb || '');
+      const jersey = toHttpsUrl(team.strTeamJersey || '');
+      const background = fanart || banner || stadiumImage || badge;
+      const image = banner || fanart || stadiumImage || badge;
+      if (!image) return null;
+      const subtitle = [league, sport].filter(Boolean).join(' | ') || 'Team';
+      const href = id
+        ? `sports.html?id=${encodeURIComponent(id)}`
+        : `sports.html?team=${encodeURIComponent(title)}`;
+      return {
+        mediaType: 'sports',
+        itemId: id || title,
+        title,
+        subtitle,
+        extra: stadium ? `Stadium: ${stadium}` : '',
+        image,
+        backgroundImage: background,
+        spotlightImage: background,
+        spotlightMediaImage: badge || jersey || background,
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'square',
+        sport,
+        league,
+        stadium,
+        badge,
+        banner,
+        fanart,
+        jersey,
+        stadiumImage,
+        href
+      };
+    }
+
+    async function loadSports(signal) {
+      const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
+      const seedTeams = shuffleArray([...HOME_SPORTS_SEEDS]);
+      const items = [];
+      const seen = new Set();
+
+      for (const seed of seedTeams) {
+        if (items.length >= targetCount || signal?.aborted) break;
+        const payload = await fetchSportsDb('searchteams.php', { t: seed }, { signal });
+        const teams = Array.isArray(payload?.teams) ? payload.teams : [];
+        for (const team of teams) {
+          if (items.length >= targetCount) break;
+          const item = mapSportsTeamToHomeItem(team);
+          if (!item) continue;
+          const key = String(item.itemId || item.title || '').toLowerCase();
+          if (!key || seen.has(key)) continue;
+          seen.add(key);
+          items.push(item);
+        }
+      }
+
+      return items;
     }
 
     async function initUniversalHome() {

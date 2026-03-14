@@ -10,7 +10,7 @@
     <title>Zo2y - Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260304b" />
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260314a" />
     <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -20,9 +20,9 @@
   <link rel="manifest" href="/manifest.webmanifest?v=20260220" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260302a" />
-  <script src="/js/mobile-webapp.js?v=20260310b" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260314a" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260313m">
-  <script src="js/shared-header.js?v=20260313m" defer></script>
+  <script src="js/shared-header.js?v=20260314a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -175,6 +175,9 @@
                 </div>
                 <div class="nav-tab" data-tab="music" onclick="ProfileManager.showTab('music')">
                     <i class="fas fa-music"></i> <span id="musicTabText">Music</span>
+                </div>
+                <div class="nav-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')">
+                    <i class="fas fa-futbol"></i> <span id="sportsTabText">Sports</span>
                 </div>
                 <div class="nav-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')">
                     <i class="fas fa-earth-americas"></i> <span id="travelTabText">Travel</span>
@@ -631,6 +634,33 @@
                 </div>
             </div>
 
+            <!-- Sports Tab Content -->
+            <div class="tab-content" id="sports-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="sportsTitle">Favorite Teams</h2>
+                            <p class="section-subtitle" id="sportsSubtitle">Teams you follow across leagues</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='sports.html'">
+                                <i class="fas fa-futbol"></i> Browse Sports
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="sportsGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-futbol"></i></div>
+                            <h3 class="empty-title">No Teams Yet</h3>
+                            <p class="empty-description">Save teams to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='sports.html'">
+                                <i class="fas fa-futbol"></i> Explore Sports
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Travel Tab Content -->
             <div class="tab-content" id="travel-tab">
                 <div class="section">
@@ -797,6 +827,10 @@
             <div class="mobile-tab" data-tab="music" onclick="ProfileManager.showTab('music')">
                 <i class="fas fa-music"></i>
                 <span id="mobileTabMusic">Music</span>
+            </div>
+            <div class="mobile-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')">
+                <i class="fas fa-futbol"></i>
+                <span id="mobileTabSports">Sports</span>
             </div>
             <div class="mobile-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')">
                 <i class="fas fa-earth-americas"></i>
@@ -1164,6 +1198,30 @@
                 </div>
             </div>
 
+            <!-- Sports Section -->
+            <div class="mobile-section" id="mobileSportsSection">
+                <div class="mobile-section-title">
+                    <span id="mobileSportsTitle">Favorite Teams</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='sports.html'">
+                            <i class="fas fa-futbol"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileSportsSubtitle">Teams you follow across leagues</div>
+
+                <div class="collection-grid" id="mobileSportsGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-futbol"></i></div>
+                        <div class="mobile-empty-title">No Teams Yet</div>
+                        <div class="mobile-empty-description">Save teams to see them here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='sports.html'">
+                            <i class="fas fa-futbol"></i> Explore Sports
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Travel Section -->
             <div class="mobile-section" id="mobileTravelSection">
                 <div class="mobile-section-title">
@@ -1266,11 +1324,11 @@
                     <div class="form-group">
                         <label class="form-label">Rating</label>
                         <div class="rating-stars" id="ratingStars">
-                            <span class="rating-star" data-rating="1" onclick="ProfileManager.setRating(1)">*</span>
-                            <span class="rating-star" data-rating="2" onclick="ProfileManager.setRating(2)">*</span>
-                            <span class="rating-star" data-rating="3" onclick="ProfileManager.setRating(3)">*</span>
-                            <span class="rating-star" data-rating="4" onclick="ProfileManager.setRating(4)">*</span>
-                            <span class="rating-star" data-rating="5" onclick="ProfileManager.setRating(5)">*</span>
+                            <span class="rating-star" data-rating="1" onclick="ProfileManager.setRating(1)"></span>
+                            <span class="rating-star" data-rating="2" onclick="ProfileManager.setRating(2)"></span>
+                            <span class="rating-star" data-rating="3" onclick="ProfileManager.setRating(3)"></span>
+                            <span class="rating-star" data-rating="4" onclick="ProfileManager.setRating(4)"></span>
+                            <span class="rating-star" data-rating="5" onclick="ProfileManager.setRating(5)"></span>
                         </div>
                         <input type="hidden" id="selectedRating" value="0">
                     </div>
@@ -1664,7 +1722,7 @@
 
     <script src="js/list-utils.js?v=20260313i"></script>
     <script src="js/igdb-client.js?v=20260311c"></script>
-    <script src="js/pages/profile.js?v=20260313d"></script>
+    <script src="js/pages/profile.js?v=20260314a"></script>
         <script src="js/production-runtime.js?v=20260307a" defer></script>
 
 <!-- THEME SETTINGS UI -->

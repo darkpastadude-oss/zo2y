@@ -1049,9 +1049,27 @@ footer {
 }
 
 .rating-stars {
-    color: #FF9800;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     font-size: 0.9rem;
-    width: 60px;
+    line-height: 1;
+    min-width: 64px;
+}
+.rating-stars.is-compact {
+    font-size: 0.75rem;
+}
+.rating-star {
+    width: 1em;
+    height: 1em;
+    background: #8ca3c7;
+    mask: url('/images/icons/star.svg') center / contain no-repeat;
+    -webkit-mask: url('/images/icons/star.svg') center / contain no-repeat;
+    opacity: 0.45;
+}
+.rating-star.is-filled {
+    background: #FF9800;
+    opacity: 1;
 }
 
 .rating-bar {
@@ -1142,6 +1160,13 @@ footer {
     color: #FF9800;
     font-size: 1.1rem;
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+.review-rating .rating-stars {
+    font-size: 0.95rem;
 }
 
 .review-actions {
@@ -1206,20 +1231,21 @@ footer {
 }
 
 .star {
-    font-size: 2rem;
-    color: #4a5568;
+    width: 32px;
+    height: 32px;
+    background: #4a5568;
     cursor: pointer;
-    transition: all 0.2s ease;
-    line-height: 1;
-    min-width: 40px;
-    text-align: center;
+    transition: transform 0.2s ease, background 0.2s ease;
+    display: inline-block;
+    mask: url('/images/icons/star.svg') center / contain no-repeat;
+    -webkit-mask: url('/images/icons/star.svg') center / contain no-repeat;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
 }
 
 .star:hover,
 .star.active {
-    color: #FF9800;
+    background: #FF9800;
     transform: scale(1.05);
 }
 

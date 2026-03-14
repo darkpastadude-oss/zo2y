@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  
+  <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
+<script src="/js/auth-gate.js?v=20260308a"></script>
+  <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
+  <title>Zo2y - Sports</title>
+  <meta name="description" content="Track your favorite teams, browse leagues, and save sports to your Zo2y profile." />
+  <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
+  <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://www.thesportsdb.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/pages/sports.css?v=20260314a" />
+  <meta name="theme-color" content="#0b1633" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
+  <script src="/js/mobile-webapp.js?v=20260314a" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260313m">
+  <script src="js/shared-header.js?v=20260314a" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+</head>
+<body class="sports-page is-mobile">
+  <header class="zo2y-shared-header" role="banner" data-shared-header="1">
+  <div class="zo2y-shared-header-inner">
+    <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
+      <img src="/file.svg" alt="Logo" />
+    </a>
+    <div class="nav-search zo2y-shared-search">
+      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+      <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
+    </div>
+    <nav class="zo2y-shared-nav" aria-label="Primary navigation">
+      <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
+      <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
+      <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
+      <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
+      <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
+      <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
+      <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
+      <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
+      <a class="zo2y-shared-pill" data-nav-page="sports" href="sports.html">Sports</a>
+      <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
+    </nav>
+    <div class="zo2y-shared-auth">
+      <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
+      <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+      <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+</div>
+  </div>
+</header>
+
+  <main class="sports-main">
+    <section class="sports-hero" id="sportsHero">
+      <div class="sports-hero-media" id="sportsHeroMedia"></div>
+      <div class="sports-hero-content">
+        <div class="sports-kicker">Sports spotlight</div>
+        <h1 class="sports-hero-title" id="sportsHeroTitle">Find your team</h1>
+        <p class="sports-hero-subtitle" id="sportsHeroSubtitle">Search teams, save favorites to your profile, and build a sports corner that matches your taste.</p>
+        <div class="sports-hero-meta" id="sportsHeroMeta">
+          <span class="sports-hero-pill">Powered by TheSportsDB</span>
+          <span class="sports-hero-pill">Save teams to your profile</span>
+        </div>
+        <div class="sports-hero-actions">
+          <button class="sports-btn primary" id="sportsHeroSaveBtn" type="button">
+            <i class="fas fa-heart"></i><span>Save team</span>
+          </button>
+        </div>
+      </div>
+      <div class="sports-hero-card is-empty" id="sportsHeroCard">
+        <div class="sports-hero-card-media">
+          <img id="sportsHeroBadge" src="/file.svg" alt="Team logo" />
+        </div>
+        <div class="sports-hero-card-body">
+          <div class="sports-hero-card-title" id="sportsHeroTeam">Team spotlight</div>
+          <div class="sports-hero-card-meta" id="sportsHeroLeague">Search for a team to see details.</div>
+          <div class="sports-hero-card-stadium" id="sportsHeroStadium"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sports-search">
+      <div class="sports-search-bar">
+        <input id="sportsSearchInput" type="search" placeholder="Search a team" aria-label="Search teams" />
+        <button id="sportsSearchBtn" type="button"><i class="fas fa-search"></i> Search</button>
+      </div>
+      <div class="sports-search-tags" id="sportsSearchTags">
+        <button class="sports-search-tag" type="button" data-team="Liverpool">Liverpool</button>
+        <button class="sports-search-tag" type="button" data-team="Real Madrid">Real Madrid</button>
+        <button class="sports-search-tag" type="button" data-team="Los Angeles Lakers">LA Lakers</button>
+        <button class="sports-search-tag" type="button" data-team="New York Yankees">NY Yankees</button>
+        <button class="sports-search-tag" type="button" data-team="Golden State Warriors">Warriors</button>
+        <button class="sports-search-tag" type="button" data-team="Dallas Cowboys">Cowboys</button>
+      </div>
+    </section>
+
+    <section class="sports-results">
+      <div class="sports-results-head">
+        <h2 id="sportsResultsTitle">Featured teams</h2>
+        <p id="sportsResultsSubtitle">Pick a team to save it to your profile.</p>
+      </div>
+      <div class="sports-loading" id="sportsLoading">Loading teams...</div>
+      <div class="sports-empty" id="sportsEmpty">No teams found. Try another search.</div>
+      <div class="sports-grid" id="sportsGrid"></div>
+    </section>
+  </main>
+
+  <div class="sports-toast" id="sportsToast" role="status" aria-live="polite"></div>
+
+  <script src="js/pages/sports.js?v=20260314a" defer></script>
+  <script src="js/production-runtime.js?v=20260307a" defer></script>
+</body>
+</html>

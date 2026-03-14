@@ -9,18 +9,18 @@
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y | All Your Interests in One Place</title>
 <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
-  <meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, and travel." />
+  <meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />
   <link rel="canonical" href="https://www.zo2y.com/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Zo2y" />
   <meta property="og:title" content="Zo2y | All Your Interests in One Place" />
-  <meta property="og:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, and travel." />
+  <meta property="og:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />
   <meta property="og:url" content="https://www.zo2y.com/" />
   <meta property="og:image" content="https://www.zo2y.com/images/zo2y-search-illustration.png" />
   <meta property="og:image:alt" content="Zo2y illustration with gaming, movies, and TV." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Zo2y | All Your Interests in One Place" />
-  <meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, and travel." />
+  <meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />
   <meta name="twitter:image" content="https://www.zo2y.com/images/zo2y-search-illustration.png" />
   <script>
     // Allow the client to operate even when IGDB credentials are missing.
@@ -50,6 +50,7 @@
   <link rel="dns-prefetch" href="//flagcdn.com">
   <link rel="dns-prefetch" href="//commons.wikimedia.org">
   <link rel="dns-prefetch" href="//restcountries.com">
+  <link rel="dns-prefetch" href="//www.thesportsdb.com">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/list-utils.js?v=20260313i" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -65,9 +66,9 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260310b" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260314a" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260313m">
-  <script src="js/shared-header.js?v=20260313m" defer></script>
+  <script src="js/shared-header.js?v=20260314a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -76,7 +77,7 @@
       <section class="landing-hero">
         <div class="landing-hero-copy">
           <p class="landing-kicker">Your taste map, not another feed</p>
-          <h1 class="landing-title">Track movies, TV, anime, books, music, travel, and reviews in one account.</h1>
+          <h1 class="landing-title">Track movies, TV, anime, books, music, travel, sports, and reviews in one account.</h1>
           <p class="landing-summary">
             Zo2y is a private-first culture tracker. Save what matters, build custom lists, write reviews, follow friends,
             and keep every obsession in one place without juggling separate apps.
@@ -114,6 +115,7 @@
               <span>Anime</span>
               <span>Books</span>
               <span>Travel</span>
+              <span>Sports</span>
             </div>
           </article>
           <article class="landing-stage-card landing-stage-card-secondary">
@@ -135,7 +137,7 @@
           <article class="landing-mobile-card">
             <p class="landing-mobile-card-kicker">Feed</p>
             <strong>One clean home for every category</strong>
-            <span>Movies, TV, anime, books, music, and travel stay connected.</span>
+            <span>Movies, TV, anime, books, music, travel, and sports stay connected.</span>
           </article>
           <article class="landing-mobile-card landing-mobile-card-accent">
             <p class="landing-mobile-card-kicker">Lists</p>
@@ -367,6 +369,11 @@
             <div class="rail" id="travelRail"></div>
           </div>
 
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-futbol"></i> Sports</span><a href="sports.html">View all</a></div>
+            <div class="rail" id="sportsRail"></div>
+          </div>
+
         </section>
       </main>
 
@@ -386,6 +393,7 @@
     <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
     <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
     <a class="mobile-nav-item" href="travel.html" aria-label="Travel"><i class="fa-solid fa-earth-americas"></i></a>
+    <a class="mobile-nav-item" href="sports.html" aria-label="Sports"><i class="fa-solid fa-futbol"></i></a>
   </nav>
 
   <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
@@ -440,7 +448,7 @@
   </div>
 
   <script src="js/igdb-client.js?v=20260311c"></script>
-  <script src="js/pages/index.js?v=20260313j" defer></script>
+  <script src="js/pages/index.js?v=20260314a" defer></script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
   <script src="js/home-desktop-rebrand.js?v=20260311e" defer></script>
 </body>

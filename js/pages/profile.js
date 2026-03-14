@@ -66,6 +66,7 @@
             let renderBooksToken = 0;
             let renderMusicToken = 0;
             let renderTravelToken = 0;
+            let renderSportsToken = 0;
             let renderRestaurantsToken = 0;
             let editingMediaList = null;
             let currentMediaDetail = null;
@@ -133,8 +134,8 @@
             const STATS_REALTIME_DEBOUNCE_MS = 220;
             const VALID_PROFILE_TABS = new Set(
                 ENABLE_RESTAURANTS
-                    ? ['restaurants', 'movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'travel', 'community']
-                    : ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'travel', 'community']
+                    ? ['restaurants', 'movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'community']
+                    : ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'community']
             );
             const VALID_COLLECTION_TYPES = new Set([
                 ...(ENABLE_RESTAURANTS ? ['restaurant'] : []),
@@ -415,6 +416,7 @@
                     if (!GAMES_DISABLED && !hasFreshTabRender('games')) preloadTasks.push(renderGames());
                     if (!hasFreshTabRender('books')) preloadTasks.push(renderBooks());
                     if (!hasFreshTabRender('music')) preloadTasks.push(renderMusic());
+                    if (!hasFreshTabRender('sports')) preloadTasks.push(renderSports());
                     if (!hasFreshTabRender('travel')) preloadTasks.push(renderTravel());
                     if (!preloadTasks.length) return;
                     Promise.allSettled(preloadTasks).catch(() => {});
@@ -955,6 +957,7 @@
                 const gamesTabText = document.getElementById('gamesTabText');
                 const booksTabText = document.getElementById('booksTabText');
                 const musicTabText = document.getElementById('musicTabText');
+                const sportsTabText = document.getElementById('sportsTabText');
                 const journalTitle = document.getElementById('journalTitle');
                 const restaurantsTitle = document.getElementById('restaurantsTitle');
                 const tvTitle = document.getElementById('tvTitle');
@@ -962,6 +965,7 @@
                 const gamesTitle = document.getElementById('gamesTitle');
                 const booksTitle = document.getElementById('booksTitle');
                 const musicTitle = document.getElementById('musicTitle');
+                const sportsTitle = document.getElementById('sportsTitle');
                 const communityTitle = document.getElementById('communityTitle');
                 const journalSubtitle = document.getElementById('journalSubtitle');
                 const restaurantsSubtitle = document.getElementById('restaurantsSubtitle');
@@ -970,6 +974,7 @@
                 const gamesSubtitle = document.getElementById('gamesSubtitle');
                 const booksSubtitle = document.getElementById('booksSubtitle');
                 const musicSubtitle = document.getElementById('musicSubtitle');
+                const sportsSubtitle = document.getElementById('sportsSubtitle');
                 const communitySubtitle = document.getElementById('communitySubtitle');
                 const followersSectionTitle = document.getElementById('followersSectionTitle');
                 const followingSectionTitle = document.getElementById('followingSectionTitle');
@@ -981,6 +986,7 @@
                 if (gamesTabText) gamesTabText.textContent = `${userName}'s Games`;
                 if (booksTabText) booksTabText.textContent = `${userName}'s Books`;
                 if (musicTabText) musicTabText.textContent = `${userName}'s Music`;
+                if (sportsTabText) sportsTabText.textContent = `${userName}'s Sports`;
                 if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
                 if (restaurantsTitle) restaurantsTitle.textContent = `${userName}'s Collections`;
                 if (tvTitle) tvTitle.textContent = `${userName}'s TV Shows`;
@@ -988,6 +994,7 @@
                 if (gamesTitle) gamesTitle.textContent = `${userName}'s Games`;
                 if (booksTitle) booksTitle.textContent = `${userName}'s Books`;
                 if (musicTitle) musicTitle.textContent = `${userName}'s Music`;
+                if (sportsTitle) sportsTitle.textContent = `${userName}'s Teams`;
                 if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
                 if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s featured collections`;
@@ -996,6 +1003,7 @@
                 if (gamesSubtitle) gamesSubtitle.textContent = `${userName}'s favorite games`;
                 if (booksSubtitle) booksSubtitle.textContent = `${userName}'s favorite books`;
                 if (musicSubtitle) musicSubtitle.textContent = `${userName}'s favorite tracks`;
+                if (sportsSubtitle) sportsSubtitle.textContent = `${userName}'s favorite teams`;
                 if (communitySubtitle) communitySubtitle.textContent = `${userName}'s food community connections`;
                 if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
                 if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
@@ -1008,12 +1016,14 @@
                 const mobileTabGames = document.getElementById('mobileTabGames');
                 const mobileTabBooks = document.getElementById('mobileTabBooks');
                 const mobileTabMusic = document.getElementById('mobileTabMusic');
+                const mobileTabSports = document.getElementById('mobileTabSports');
                 const mobileJournalTitle = document.getElementById('mobileJournalTitle');
                 const mobileRestaurantsTitle = document.getElementById('mobileRestaurantsTitle');
                 const mobileAnimeTitle = document.getElementById('mobileAnimeTitle');
                 const mobileGamesTitle = document.getElementById('mobileGamesTitle');
                 const mobileBooksTitle = document.getElementById('mobileBooksTitle');
                 const mobileMusicTitle = document.getElementById('mobileMusicTitle');
+                const mobileSportsTitle = document.getElementById('mobileSportsTitle');
                 const mobileCommunityTitle = document.getElementById('mobileCommunityTitle');
                 const mobileJournalSubtitle = document.getElementById('mobileJournalSubtitle');
                 const mobileRestaurantsSubtitle = document.getElementById('mobileRestaurantsSubtitle');
@@ -1021,6 +1031,7 @@
                 const mobileGamesSubtitle = document.getElementById('mobileGamesSubtitle');
                 const mobileBooksSubtitle = document.getElementById('mobileBooksSubtitle');
                 const mobileMusicSubtitle = document.getElementById('mobileMusicSubtitle');
+                const mobileSportsSubtitle = document.getElementById('mobileSportsSubtitle');
                 const mobileCommunitySubtitle = document.getElementById('mobileCommunitySubtitle');
                 
                 if (mobileJournalTabText) mobileJournalTabText.textContent = `${userName}'s Journal`;
@@ -1031,12 +1042,14 @@
                 if (mobileTabGames) mobileTabGames.textContent = `${userName}'s Games`;
                 if (mobileTabBooks) mobileTabBooks.textContent = `${userName}'s Books`;
                 if (mobileTabMusic) mobileTabMusic.textContent = `${userName}'s Music`;
+                if (mobileTabSports) mobileTabSports.textContent = `${userName}'s Sports`;
                 if (mobileJournalTitle) mobileJournalTitle.textContent = `${userName}'s Food Journal`;
                 if (mobileRestaurantsTitle) mobileRestaurantsTitle.textContent = `${userName}'s Collections`;
                 if (mobileAnimeTitle) mobileAnimeTitle.textContent = `${userName}'s Anime`;
                 if (mobileGamesTitle) mobileGamesTitle.textContent = `${userName}'s Games`;
                 if (mobileBooksTitle) mobileBooksTitle.textContent = `${userName}'s Books`;
                 if (mobileMusicTitle) mobileMusicTitle.textContent = `${userName}'s Music`;
+                if (mobileSportsTitle) mobileSportsTitle.textContent = `${userName}'s Teams`;
                 if (mobileCommunityTitle) mobileCommunityTitle.textContent = `${userName}'s Community`;
                 if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (mobileRestaurantsSubtitle) mobileRestaurantsSubtitle.textContent = `${userName}'s featured collections`;
@@ -1044,6 +1057,7 @@
                 if (mobileGamesSubtitle) mobileGamesSubtitle.textContent = `${userName}'s favorite games`;
                 if (mobileBooksSubtitle) mobileBooksSubtitle.textContent = `${userName}'s favorite books`;
                 if (mobileMusicSubtitle) mobileMusicSubtitle.textContent = `${userName}'s favorite tracks`;
+                if (mobileSportsSubtitle) mobileSportsSubtitle.textContent = `${userName}'s favorite teams`;
                 if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s food community connections`;
             }
 
@@ -6979,6 +6993,7 @@
                     anime: () => renderAnimeShows(),
                     books: () => renderBooks(),
                     music: () => renderMusic(),
+                    sports: () => renderSports(),
                     travel: () => renderTravel(),
                     community: () => showCommunitySection('followers')
                 };
@@ -7817,6 +7832,106 @@
                             <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
                             <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Music</h3>
                             <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your tracks</p>
+                        </div>
+                    `;
+                }
+            }
+
+            function normalizeSportsImageUrl(url) {
+                if (!url) return '';
+                let safe = String(url).trim();
+                if (!safe) return '';
+                if (safe.startsWith('//')) safe = `https:${safe}`;
+                if (safe.startsWith('http:')) safe = safe.replace(/^http:/i, 'https:');
+                return safe;
+            }
+
+            function buildSportsTeamCard(team) {
+                const id = String(team?.id || team?.idTeam || '').trim();
+                const name = String(team?.name || team?.strTeam || '').trim() || 'Team';
+                const league = String(team?.league || team?.strLeague || '').trim();
+                const sport = String(team?.sport || team?.strSport || '').trim();
+                const stadium = String(team?.stadium || team?.strStadium || '').trim();
+                const logo = normalizeSportsImageUrl(team?.logo_url || team?.strTeamBadge || team?.strTeamLogo || '');
+                const banner = normalizeSportsImageUrl(team?.banner_url || team?.strTeamBanner || '');
+                const fanart = normalizeSportsImageUrl(team?.fanart_url || team?.strTeamFanart1 || '');
+                const stadiumImage = normalizeSportsImageUrl(team?.stadium_url || team?.strStadiumThumb || '');
+                const jersey = normalizeSportsImageUrl(team?.jersey_url || team?.strTeamJersey || '');
+                const background = banner || fanart || stadiumImage || logo || FALLBACK_BOOK_IMAGE;
+                const subtitle = [league, sport].filter(Boolean).join(' • ') || 'Team';
+
+                const card = document.createElement('div');
+                card.className = 'team-card';
+                card.innerHTML = `
+                    <div class="team-card-media">
+                        <img class="team-card-banner" src="${background}" alt="${name} banner" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_BOOK_IMAGE}';">
+                        ${logo ? `<span class="team-card-logo"><img src="${logo}" alt="${name} logo" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_BOOK_IMAGE}';"></span>` : ''}
+                    </div>
+                    <div class="team-card-body">
+                        <div class="team-card-title">${name}</div>
+                        <div class="team-card-meta">${subtitle}</div>
+                        ${stadium ? `<div class="team-card-stadium"><i class="fas fa-location-dot"></i> ${stadium}</div>` : ''}
+                    </div>
+                    ${jersey ? `<div class="team-card-jersey"><img src="${jersey}" alt="${name} jersey" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_BOOK_IMAGE}';"></div>` : ''}
+                `;
+
+                card.addEventListener('click', () => {
+                    const href = id ? `sports.html?id=${encodeURIComponent(id)}` : `sports.html?team=${encodeURIComponent(name)}`;
+                    window.location.href = href;
+                });
+
+                return card;
+            }
+
+            async function renderSports() {
+                const isMobile = window.innerWidth <= 768;
+                const grid = isMobile ? document.getElementById('mobileSportsGrid') : document.getElementById('sportsGrid');
+                if (!grid) return;
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                const renderToken = ++renderSportsToken;
+
+                try {
+                    const { data, error } = await supabase
+                        .from('user_favorite_teams')
+                        .select('team_id, teams (id, name, sport, league, logo_url, banner_url, stadium, stadium_url, jersey_url, fanart_url)')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+                    if (renderToken !== renderSportsToken) return;
+
+                    const teams = (data || [])
+                        .map((row) => row?.teams || row?.team || row)
+                        .filter(Boolean);
+
+                    if (!teams.length) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}"><i class="fas fa-futbol"></i></div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Teams Yet</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save teams to see them here.</p>
+                            </div>
+                        `;
+                        markTabRendered('sports');
+                        return;
+                    }
+
+                    grid.innerHTML = '';
+                    const fragment = document.createDocumentFragment();
+                    teams.forEach((team) => {
+                        fragment.appendChild(buildSportsTeamCard(team));
+                    });
+                    grid.appendChild(fragment);
+                    markTabRendered('sports');
+                } catch (error) {
+                    console.error('Error loading sports:', error);
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}"><i class="fas fa-futbol"></i></div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Sports</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your teams.</p>
                         </div>
                     `;
                 }

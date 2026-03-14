@@ -1,4 +1,4 @@
-// ========== GLOBAL STATE ==========
+﻿// ========== GLOBAL STATE ==========
 let currentUser = null;
 let currentRating = 0;
 let editingReviewId = null;
@@ -21,7 +21,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // INITIALIZATION
 // ============================================
 async function initializeRestaurantPage() {
-    console.log('🚀 Starting restaurant page initialization...');
+    console.log('ðŸš€ Starting restaurant page initialization...');
     
     try {
         // Wait for DOM to be ready
@@ -35,7 +35,7 @@ async function initializeRestaurantPage() {
         await initSupabase();
         
         if (!window.supabase || !supabaseClient) {
-            console.error('❌ Supabase not initialized');
+            console.error('âŒ Supabase not initialized');
             showErrorMessage('Failed to initialize database connection');
             return;
         }
@@ -44,7 +44,7 @@ async function initializeRestaurantPage() {
         const restaurantRoute = getRestaurantRouteParams();
         
         if (!restaurantRoute.id && !restaurantRoute.slug) {
-            console.error('❌ No restaurant slug in URL');
+            console.error('âŒ No restaurant slug in URL');
             showNotFoundMessage();
             return;
         }
@@ -61,10 +61,10 @@ async function initializeRestaurantPage() {
         // Setup global event listeners
         setupGlobalEventListeners();
         
-        console.log('✅ Restaurant page initialization complete');
+        console.log('âœ… Restaurant page initialization complete');
         
     } catch (err) {
-        console.error('❌ Fatal error during initialization:', err);
+        console.error('âŒ Fatal error during initialization:', err);
         showErrorMessage('Failed to load restaurant page');
     }
 }
@@ -84,10 +84,10 @@ async function initSupabase() {
         }
         
         supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        console.log('✅ Supabase initialized successfully');
+        console.log('âœ… Supabase initialized successfully');
         return supabaseClient;
     } catch (error) {
-        console.error('❌ Failed to initialize Supabase:', error);
+        console.error('âŒ Failed to initialize Supabase:', error);
         showErrorMessage('Database connection failed');
         throw error;
     }
@@ -262,12 +262,11 @@ function renderRestaurantData(data) {
     
     const ratingElement = document.getElementById('restaurant-rating');
     if (restaurant.rating) {
-        ratingElement.innerHTML = `⭐ ${restaurant.rating.toFixed(1)}/5`;
+        ratingElement.innerHTML = `${renderStarRating(restaurant.rating)} <span class="rating-text">${restaurant.rating.toFixed(1)}/5</span>`;
     } else {
-        ratingElement.innerHTML = '⭐ Rating not available';
+        ratingElement.textContent = 'Rating not available';
     }
-    
-    // Set up buttons
+// Set up buttons
     setupRestaurantButtons(restaurant);
     
     // Render overview
@@ -292,7 +291,7 @@ function setupRestaurantButtons(restaurant) {
     const hotlineBtn = document.getElementById('call-hotline');
     if (restaurant.hotline) {
         hotlineBtn.href = `tel:${restaurant.hotline}`;
-        hotlineBtn.innerHTML = `<span>📞</span> Call: ${restaurant.hotline}`;
+        hotlineBtn.innerHTML = `<span>ðŸ“ž</span> Call: ${restaurant.hotline}`;
     } else {
         hotlineBtn.style.display = 'none';
     }
@@ -329,7 +328,7 @@ function renderOverview(restaurant) {
             <div class="overview-details" style="margin-top: 20px;">
                 ${restaurant.rating ? `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                     <strong style="color: var(--text);">Rating:</strong>
-                    <span class="rating" style="color: #FF9800;">⭐ ${restaurant.rating.toFixed(1)}/5</span>
+                    <span class="rating" style="color: #FF9800;">${renderStarRating(restaurant.rating)} <span class="rating-text">${restaurant.rating.toFixed(1)}/5</span></span>
                 </div>` : ''}
                 ${restaurant.hotline ? `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                     <strong style="color: var(--text);">Hotline:</strong>
@@ -367,8 +366,8 @@ function renderContactInfo(restaurant, branches) {
                 <h3>${branch.branch_name}</h3>
                 <p>${branch.details || 'Location details not available'}</p>
                 ${branch.directions_link
-                    ? `<a href="${branch.directions_link}" target="_blank" rel="noopener">📍 Get directions</a>`
-                    : `<span class="branch-directions disabled">📍 Get directions</span>`
+                    ? `<a href="${branch.directions_link}" target="_blank" rel="noopener">ðŸ“ Get directions</a>`
+                    : `<span class="branch-directions disabled">ðŸ“ Get directions</span>`
                 }
             `;
             branchesContainer.appendChild(branchCard);
@@ -429,7 +428,7 @@ function renderMenu(menuItems, restaurant) {
                 menuItem.innerHTML = `
                     <div class="menu-item-header">
                         <span class="menu-item-name">${item.item_name}</span>
-                        ${hasDescription ? `<button class="menu-expand-btn">▼</button>` : ''}
+                        ${hasDescription ? `<button class="menu-expand-btn">â–¼</button>` : ''}
                     </div>
                     ${hasDescription ? `<div class="menu-item-description">${item.description}</div>` : ''}
                 `;
@@ -440,13 +439,13 @@ function renderMenu(menuItems, restaurant) {
                     
                     menuItemHeader.addEventListener('click', (e) => {
                         menuItem.classList.toggle('expanded');
-                        expandBtn.textContent = menuItem.classList.contains('expanded') ? '▲' : '▼';
+                        expandBtn.textContent = menuItem.classList.contains('expanded') ? 'â–²' : 'â–¼';
                     });
                     
                     expandBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         menuItem.classList.toggle('expanded');
-                        expandBtn.textContent = menuItem.classList.contains('expanded') ? '▲' : '▼';
+                        expandBtn.textContent = menuItem.classList.contains('expanded') ? 'â–²' : 'â–¼';
                     });
                 }
                 
@@ -637,7 +636,7 @@ async function updateTalabatDisplay(slug) {
         if (isAvailable) {
             statusElement.innerHTML = `
                 <span class="status-badge available">
-                    <span class="checkmark">✓</span>
+                    <span class="checkmark">âœ“</span>
                     Available on Talabat
                 </span>
                 <span style="color: var(--text2); font-size: 0.9rem;">Check the Talabat app for ordering</span>
@@ -739,7 +738,7 @@ async function loadReviews() {
         reviews = reviewsData || [];
 
         if (!reviews || reviews.length === 0) {
-            container.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your experience! 🎉</div>';
+            container.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your experience! ðŸŽ‰</div>';
             statsContainer.innerHTML = '<div class="reviews-empty">No reviews yet</div>';
             return;
         }
@@ -767,7 +766,7 @@ async function loadReviews() {
             <div class="rating-breakdown">
                 ${[5, 4, 3, 2, 1].map(stars => `
                     <div class="rating-row">
-                        <div class="rating-stars">${'★'.repeat(stars)}</div>
+                        ${renderStarRating(stars, { compact: true })}
                         <div class="rating-bar">
                             <div class="rating-fill" style="width: ${(ratingDistribution[stars] / totalReviews) * 100}%"></div>
                         </div>
@@ -810,7 +809,7 @@ async function displayReviews(reviewsToDisplay) {
     const container = document.getElementById('reviewsList');
     
     if (!reviewsToDisplay || reviewsToDisplay.length === 0) {
-        container.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your experience! 🎉</div>';
+        container.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your experience! ðŸŽ‰</div>';
         return;
     }
 
@@ -844,7 +843,7 @@ async function displayReviews(reviewsToDisplay) {
                             })}</div>
                         </div>
                     </div>
-                    <div class="review-rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
+                    <div class="review-rating">${renderStarRating(review.rating)}</div>
                 </div>
                 <p class="review-comment">${review.comment}</p>
                 ${canEditDelete ? `
@@ -1147,14 +1146,14 @@ class RestaurantListManager {
         this.dropdownVisible = false;
         this.editingListId = null;
         
-        console.log('📋 List Manager Initialized');
+        console.log('ðŸ“‹ List Manager Initialized');
     }
 
     async init() {
         try {
             // Get restaurant ID
             this.restaurantId = await getRestaurantIdFromSlug();
-            console.log('📋 Restaurant ID:', this.restaurantId);
+            console.log('ðŸ“‹ Restaurant ID:', this.restaurantId);
             
             // Inject UI immediately
             this.injectListMenu();
@@ -1196,11 +1195,11 @@ class RestaurantListManager {
             this.currentUser = resolvedUser;
             
             if (this.currentUser) {
-                console.log('📋 User authenticated:', this.currentUser.id);
+                console.log('ðŸ“‹ User authenticated:', this.currentUser.id);
                 
                 // Listen for auth changes
                 supabaseClient.auth.onAuthStateChange((event, session) => {
-                    console.log('📋 Auth state changed:', event);
+                    console.log('ðŸ“‹ Auth state changed:', event);
                     this.currentUser = session?.user || null;
                     if (this.currentUser && this.restaurantId) {
                         this.loadUserLists().then(() => this.updateDropdown());
@@ -1209,10 +1208,10 @@ class RestaurantListManager {
                     }
                 });
             } else {
-                console.log('📋 No user authenticated');
+                console.log('ðŸ“‹ No user authenticated');
             }
         } catch (error) {
-            console.error('📋 Auth error:', error);
+            console.error('ðŸ“‹ Auth error:', error);
             this.currentUser = null;
         }
     }
@@ -1220,12 +1219,12 @@ class RestaurantListManager {
     async loadUserLists() {
         if (this.isLoading) return;
         this.isLoading = true;
-        console.log('📋 Loading user lists...');
+        console.log('ðŸ“‹ Loading user lists...');
         
         try {
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) {
-                console.log('📋 No user found');
+                console.log('ðŸ“‹ No user found');
                 this.userLists = [];
                 this.customLists = [];
                 return;
@@ -1238,12 +1237,12 @@ class RestaurantListManager {
                 .eq('user_id', user.id);
             
             if (error) {
-                console.error('📋 Error loading lists:', error);
+                console.error('ðŸ“‹ Error loading lists:', error);
                 throw error;
             }
             
             this.userLists = lists || [];
-            console.log('📋 Loaded user lists:', this.userLists.length);
+            console.log('ðŸ“‹ Loaded user lists:', this.userLists.length);
             
             // Filter custom lists
             this.customLists = this.userLists.filter(list => 
@@ -1257,7 +1256,7 @@ class RestaurantListManager {
             await this.loadListRestaurants();
             
         } catch (error) {
-            console.error('📋 Error loading user lists:', error);
+            console.error('ðŸ“‹ Error loading user lists:', error);
             this.userLists = [];
             this.customLists = [];
         } finally {
@@ -1269,7 +1268,7 @@ class RestaurantListManager {
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) return;
         
-        console.log('📋 Setting up default lists...');
+        console.log('ðŸ“‹ Setting up default lists...');
         
         // Find or create default lists
         this.currentLists.favorites = this.userLists.find(list => 
@@ -1284,28 +1283,28 @@ class RestaurantListManager {
         
         // Create missing default lists
         if (!this.currentLists.favorites) {
-            console.log('📋 Creating Favorites list...');
+            console.log('ðŸ“‹ Creating Favorites list...');
             this.currentLists.favorites = await this.createList('Favorites', 'My favorite restaurants');
             if (this.currentLists.favorites) this.userLists.push(this.currentLists.favorites);
         }
         if (!this.currentLists.visited) {
-            console.log('📋 Creating Visited list...');
+            console.log('ðŸ“‹ Creating Visited list...');
             this.currentLists.visited = await this.createList('Visited', 'Restaurants I have visited');
             if (this.currentLists.visited) this.userLists.push(this.currentLists.visited);
         }
         if (!this.currentLists.wantToGo) {
-            console.log('📋 Creating Want to Go list...');
+            console.log('ðŸ“‹ Creating Want to Go list...');
             this.currentLists.wantToGo = await this.createList('Want to Go', 'Restaurants I want to try');
             if (this.currentLists.wantToGo) this.userLists.push(this.currentLists.wantToGo);
         }
     }
     
-    async createList(title, description, icon = '📋') {
+    async createList(title, description, icon = 'ðŸ“‹') {
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) return null;
         
         try {
-            console.log(`📋 Creating list: ${title}`);
+            console.log(`ðŸ“‹ Creating list: ${title}`);
             
             const { data: newList, error } = await supabaseClient
                 .from('lists')
@@ -1322,7 +1321,7 @@ class RestaurantListManager {
                 .single();
             
             if (error) {
-                console.error('📋 Error creating list:', error);
+                console.error('ðŸ“‹ Error creating list:', error);
                 throw error;
             }
             
@@ -1330,7 +1329,7 @@ class RestaurantListManager {
             newList.restaurants = [];
             
             showNotification(`Created "${title}" list`, 'success');
-            console.log(`📋 List created:`, newList);
+            console.log(`ðŸ“‹ List created:`, newList);
             return newList;
             
         } catch (error) {
@@ -1343,11 +1342,11 @@ class RestaurantListManager {
     async loadListRestaurants() {
         const listIds = this.userLists.map(list => list.id);
         if (listIds.length === 0) {
-            console.log('📋 No lists to load restaurants for');
+            console.log('ðŸ“‹ No lists to load restaurants for');
             return;
         }
         
-        console.log('📋 Loading restaurants for lists:', listIds);
+        console.log('ðŸ“‹ Loading restaurants for lists:', listIds);
         
         try {
             const { data: listRestaurants, error } = await supabaseClient
@@ -1356,7 +1355,7 @@ class RestaurantListManager {
                 .in('list_id', listIds);
             
             if (error) {
-                console.error('📋 Error loading list restaurants:', error);
+                console.error('ðŸ“‹ Error loading list restaurants:', error);
                 throw error;
             }
             
@@ -1379,7 +1378,7 @@ class RestaurantListManager {
                 !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
             );
             
-            console.log('📋 Loaded list restaurants');
+            console.log('ðŸ“‹ Loaded list restaurants');
             
         } catch (error) {
             console.error('Error loading list restaurants:', error);
@@ -1388,31 +1387,31 @@ class RestaurantListManager {
     
     async checkIfInList(listId) {
         if (!this.currentUser || !this.restaurantId) {
-            console.log('📋 Cannot check list: no user or restaurant ID');
+            console.log('ðŸ“‹ Cannot check list: no user or restaurant ID');
             return false;
         }
         
         const list = this.userLists.find(l => l.id === listId);
         if (!list || !list.restaurants) {
-            console.log(`📋 List ${listId} not found or has no restaurants`);
+            console.log(`ðŸ“‹ List ${listId} not found or has no restaurants`);
             return false;
         }
         
         const isInList = list.restaurants.includes(this.restaurantId);
-        console.log(`📋 Restaurant ${this.restaurantId} in list ${listId}: ${isInList}`);
+        console.log(`ðŸ“‹ Restaurant ${this.restaurantId} in list ${listId}: ${isInList}`);
         return isInList;
     }
     
     async toggleInList(listId) {
         if (!this.currentUser || !this.restaurantId) {
-            console.log('📋 Cannot toggle list: no user or restaurant ID');
+            console.log('ðŸ“‹ Cannot toggle list: no user or restaurant ID');
             showLoginModal();
             return false;
         }
         
         const list = this.userLists.find(l => l.id === listId);
         if (!list) {
-            console.error(`📋 List ${listId} not found`);
+            console.error(`ðŸ“‹ List ${listId} not found`);
             return false;
         }
         
@@ -1421,7 +1420,7 @@ class RestaurantListManager {
             
             if (isInList) {
                 // Remove from list
-                console.log(`📋 Removing restaurant ${this.restaurantId} from list ${listId}`);
+                console.log(`ðŸ“‹ Removing restaurant ${this.restaurantId} from list ${listId}`);
                 
                 const { error } = await supabaseClient
                     .from('lists_restraunts')
@@ -1432,7 +1431,7 @@ class RestaurantListManager {
                     });
                 
                 if (error) {
-                    console.error('📋 Error removing from list:', error);
+                    console.error('ðŸ“‹ Error removing from list:', error);
                     throw error;
                 }
                 
@@ -1442,11 +1441,11 @@ class RestaurantListManager {
                 }
                 
                 showNotification(`Removed from "${list.title}"`, 'info');
-                console.log(`📋 Successfully removed from list`);
+                console.log(`ðŸ“‹ Successfully removed from list`);
                 return false;
             } else {
                 // Add to list
-                console.log(`📋 Adding restaurant ${this.restaurantId} to list ${listId}`);
+                console.log(`ðŸ“‹ Adding restaurant ${this.restaurantId} to list ${listId}`);
                 
                 const { error } = await supabaseClient
                     .from('lists_restraunts')
@@ -1459,7 +1458,7 @@ class RestaurantListManager {
                     ]);
                 
                 if (error) {
-                    console.error('📋 Error adding to list:', error);
+                    console.error('ðŸ“‹ Error adding to list:', error);
                     throw error;
                 }
                 
@@ -1468,7 +1467,7 @@ class RestaurantListManager {
                 list.restaurants.push(this.restaurantId);
                 
                 showNotification(`Added to "${list.title}"`, 'success');
-                console.log(`📋 Successfully added to list`);
+                console.log(`ðŸ“‹ Successfully added to list`);
                 return true;
             }
             
@@ -1482,7 +1481,7 @@ class RestaurantListManager {
     updateDropdown() {
         const dropdown = document.querySelector('.list-dropdown');
         if (!dropdown) {
-            console.error('📋 Dropdown element not found');
+            console.error('ðŸ“‹ Dropdown element not found');
             return;
         }
         
@@ -1490,7 +1489,7 @@ class RestaurantListManager {
             dropdown.innerHTML = `
                 <div class="dropdown-header">
                     <h3 class="dropdown-title">Save to Lists</h3>
-                    <button class="close-btn" onclick="window.listManager?.hideDropdown()">×</button>
+                    <button class="close-btn" onclick="window.listManager?.hideDropdown()">Ã—</button>
                 </div>
                 <div style="padding: 40px; text-align: center; color: var(--text2);">
                     <div class="loading-spinner" style="width: 24px; height: 24px; margin: 0 auto 10px;"></div>
@@ -1504,15 +1503,15 @@ class RestaurantListManager {
             dropdown.innerHTML = `
                 <div class="dropdown-header">
                     <h3 class="dropdown-title">Save to Lists</h3>
-                    <button class="close-btn" onclick="window.listManager?.hideDropdown()">×</button>
+                    <button class="close-btn" onclick="window.listManager?.hideDropdown()">Ã—</button>
                 </div>
                 <div class="auth-prompt" style="padding: 30px; text-align: center;">
-                    <div class="auth-icon" style="font-size: 2rem; margin-bottom: 15px; opacity: 0.7;">🔐</div>
+                    <div class="auth-icon" style="font-size: 2rem; margin-bottom: 15px; opacity: 0.7;">ðŸ”</div>
                     <div style="color: var(--text2); margin-bottom: 20px; line-height: 1.5;">
                         Sign in to save restaurants to your lists and organize your favorites
                     </div>
                     <button class="btn" onclick="showLoginModal()" style="width: 100%;">
-                        <span>→</span> Sign In
+                        <span>â†’</span> Sign In
                     </button>
                 </div>
             `;
@@ -1542,18 +1541,18 @@ class RestaurantListManager {
         dropdown.innerHTML = `
             <div class="dropdown-header">
                 <h3 class="dropdown-title">Save to Lists</h3>
-                <button class="close-btn" onclick="window.listManager?.hideDropdown()">×</button>
+                <button class="close-btn" onclick="window.listManager?.hideDropdown()">Ã—</button>
             </div>
             
             <div class="lists-scroll-container">
                 <div class="list-section">
-                    <div class="list-section-title">🌟 Quick Actions</div>
+                    <div class="list-section-title">ðŸŒŸ Quick Actions</div>
                     ${defaultLists.map(list => `
                         <div class="list-item" data-list-id="${list.id}">
                             <div class="list-checkbox ${list.isChecked ? 'checked' : ''}"></div>
                             <span class="list-item-text">
-                                ${list.title === 'Favorites' ? '❤️' : 
-                                list.title === 'Want to Go' ? '📍' : '🍽️'}
+                                ${list.title === 'Favorites' ? 'â¤ï¸' : 
+                                list.title === 'Want to Go' ? 'ðŸ“' : 'ðŸ½ï¸'}
                                 ${list.title}
                             </span>
                         </div>
@@ -1562,12 +1561,12 @@ class RestaurantListManager {
                 
                 ${customLists.length > 0 ? `
                 <div class="list-section">
-                    <div class="list-section-title">📋 Your Lists (${customLists.length})</div>
+                    <div class="list-section-title">ðŸ“‹ Your Lists (${customLists.length})</div>
                 ${customLists.map(list => `
                         <div class="list-item" data-list-id="${list.id}">
                             <div class="list-checkbox ${list.isChecked ? 'checked' : ''}"></div>
                             <span class="list-item-text">
-                                <span class="list-item-icon">${list.icon || '📋'}</span>
+                                <span class="list-item-icon">${list.icon || 'ðŸ“‹'}</span>
                                 ${list.title}
                             </span>
                             <button class="list-edit-btn" type="button" data-edit-id="${list.id}">
@@ -1584,17 +1583,17 @@ class RestaurantListManager {
             </div>
             
             <div class="list-section">
-                <div class="list-section-title">🆕 Create New</div>
+                <div class="list-section-title">ðŸ†• Create New</div>
                 <input type="text" class="new-list-input" placeholder="Enter list name..." id="newListName">
                 <div class="list-icon-options" id="newListIconOptions">
-                    <div class="list-icon-option selected" data-icon="📋">📋</div>
-                    <div class="list-icon-option" data-icon="❤️">❤️</div>
-                    <div class="list-icon-option" data-icon="⭐">⭐</div>
-                    <div class="list-icon-option" data-icon="📍">📍</div>
-                    <div class="list-icon-option" data-icon="🍽️">🍽️</div>
-                    <div class="list-icon-option" data-icon="🔥">🔥</div>
+                    <div class="list-icon-option selected" data-icon="ðŸ“‹">ðŸ“‹</div>
+                    <div class="list-icon-option" data-icon="â¤ï¸">â¤ï¸</div>
+                    <div class="list-icon-option" data-icon="â­">â­</div>
+                    <div class="list-icon-option" data-icon="ðŸ“">ðŸ“</div>
+                    <div class="list-icon-option" data-icon="ðŸ½ï¸">ðŸ½ï¸</div>
+                    <div class="list-icon-option" data-icon="ðŸ”¥">ðŸ”¥</div>
                 </div>
-                <input type="hidden" id="newListIcon" value="📋">
+                <input type="hidden" id="newListIcon" value="ðŸ“‹">
                 <button class="add-list-btn" id="createListBtn">
                     <span>+</span> Create Custom List
                 </button>
@@ -1654,7 +1653,7 @@ class RestaurantListManager {
 
         const setSelectedIcon = (icon) => {
             if (!newListIconInput) return;
-            newListIconInput.value = icon || '📋';
+            newListIconInput.value = icon || 'ðŸ“‹';
             if (iconOptions && iconOptions.length > 0) {
                 iconOptions.forEach(option => {
                     option.classList.toggle('selected', option.getAttribute('data-icon') === newListIconInput.value);
@@ -1664,7 +1663,7 @@ class RestaurantListManager {
 
         const resetListForm = () => {
             if (nameInput) nameInput.value = '';
-            setSelectedIcon('📋');
+            setSelectedIcon('ðŸ“‹');
             this.editingListId = null;
             if (createBtn) createBtn.innerHTML = '<span>+</span> Create Custom List';
             if (cancelEditBtn) cancelEditBtn.style.display = 'none';
@@ -1674,7 +1673,7 @@ class RestaurantListManager {
             if (!list || !nameInput) return;
             this.editingListId = list.id;
             nameInput.value = list.title || '';
-            setSelectedIcon(list.icon || '📋');
+            setSelectedIcon(list.icon || 'ðŸ“‹');
             if (createBtn) createBtn.innerHTML = '<i class="fas fa-save"></i> Update List';
             if (cancelEditBtn) cancelEditBtn.style.display = 'block';
             nameInput.focus();
@@ -1705,7 +1704,7 @@ class RestaurantListManager {
                 return;
             }
 
-            const selectedIcon = newListIconInput?.value || '📋';
+            const selectedIcon = newListIconInput?.value || 'ðŸ“‹';
             const existingList = this.customLists.find(list => 
                 list.title.toLowerCase() === name.toLowerCase() && list.id !== this.editingListId
             );
@@ -1857,7 +1856,7 @@ class RestaurantListManager {
         document.body.appendChild(fab);
         document.body.appendChild(dropdown);
         
-        console.log('✅ List manager UI injected');
+        console.log('âœ… List manager UI injected');
     }
 }
 
@@ -1973,4 +1972,5 @@ if (document.readyState === 'loading') {
 } else {
     initializeRestaurantPage();
 }
+
 

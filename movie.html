@@ -486,7 +486,17 @@
     }
     .reviewer-link:hover { color: var(--accent); text-decoration: underline; }
     .review-date { font-size: 0.8rem; color: var(--text2); }
-    .review-rating { color: #FF9800; font-size: 1.1rem; white-space: nowrap; }
+    .review-rating { color: #FF9800; font-size: 1.1rem; white-space: nowrap; display: inline-flex; align-items: center; }
+    .rating-stars { display: inline-flex; align-items: center; gap: 4px; font-size: 0.9rem; line-height: 1; }
+    .rating-star {
+      width: 1em;
+      height: 1em;
+      background: #4a5568;
+      mask: url('/images/icons/star.svg') center / contain no-repeat;
+      -webkit-mask: url('/images/icons/star.svg') center / contain no-repeat;
+      opacity: 0.45;
+    }
+    .rating-star.is-filled { background: #FF9800; opacity: 1; }
     .review-actions { display: flex; gap: 8px; margin-top: 12px; }
     .review-edit, .review-delete {
       background: none;
@@ -511,16 +521,17 @@
     .rating-input label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--white); }
     .stars-rating { display: flex; gap: 4px; margin-bottom: 8px; }
     .star {
-      font-size: 2rem;
-      color: #4a5568;
+      width: 32px;
+      height: 32px;
+      background: #4a5568;
       cursor: pointer;
-      transition: all 0.2s ease;
-      line-height: 1;
-      min-width: 40px;
-      text-align: center;
+      transition: transform 0.2s ease, background 0.2s ease;
+      display: inline-block;
+      mask: url('/images/icons/star.svg') center / contain no-repeat;
+      -webkit-mask: url('/images/icons/star.svg') center / contain no-repeat;
       user-select: none;
     }
-    .star:hover, .star.active { color: #FF9800; transform: scale(1.05); }
+    .star:hover, .star.active { background: #FF9800; transform: scale(1.05); }
     .rating-text { font-size: 0.9rem; color: var(--text2); font-style: italic; }
     .comment-input { margin-bottom: 20px; }
     .comment-input textarea {
@@ -653,9 +664,9 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260310b" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260314a" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260313m">
-  <script src="js/shared-header.js?v=20260313m" defer></script>
+  <script src="js/shared-header.js?v=20260314a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -741,11 +752,11 @@
         <div class="rating-input">
           <label>Your Rating:</label>
           <div class="stars-rating">
-            <span class="star" data-rating="1">â˜…</span>
-            <span class="star" data-rating="2">â˜…</span>
-            <span class="star" data-rating="3">â˜…</span>
-            <span class="star" data-rating="4">â˜…</span>
-            <span class="star" data-rating="5">â˜…</span>
+            <span class="star" data-rating="1"></span>
+            <span class="star" data-rating="2"></span>
+            <span class="star" data-rating="3"></span>
+            <span class="star" data-rating="4"></span>
+            <span class="star" data-rating="5"></span>
           </div>
           <span class="rating-text" id="ratingText">Select your rating</span>
         </div>
@@ -1420,7 +1431,7 @@
           <div class="rating-breakdown">
             ${[5,4,3,2,1].map(stars => `
               <div class="rating-row">
-                <div class="rating-stars">${'?'.repeat(stars)}</div>
+                <div class="rating-stars">${renderStarRating(stars, { wrapper: false })}</div>
                 <div class="rating-bar">
                   <div class="rating-fill" style="width: ${(ratingDistribution[stars] / totalReviews) * 100}%"></div>
                 </div>
@@ -1439,6 +1450,19 @@
         if (currentSort === 'highest') sorted.sort((a, b) => b.rating - a.rating);
         if (currentSort === 'lowest') sorted.sort((a, b) => a.rating - b.rating);
         displayReviews(sorted);
+      }
+
+      function renderStarRating(rating, options = {}) {
+        const raw = Number(rating || 0);
+        const safe = Number.isFinite(raw) ? Math.max(0, Math.min(5, raw)) : 0;
+        const filled = Math.round(safe);
+        const wrapper = options.wrapper !== false;
+        let html = wrapper ? '<span class="rating-stars" aria-label="' + safe.toFixed(1) + '/5">' : '';
+        for (let i = 0; i < 5; i += 1) {
+          html += '<span class="rating-star' + (i < filled ? ' is-filled' : '') + '" aria-hidden="true"></span>';
+        }
+        if (wrapper) html += '</span>';
+        return html;
       }
 
       async function displayReviews(reviewsToDisplay) {
@@ -1488,7 +1512,7 @@
                     <div class="review-date">${new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
                   </div>
                 </div>
-                <div class="review-rating">${'\u2605'.repeat(review.rating)}${'\u2606'.repeat(5 - review.rating)}</div>
+                <div class="review-rating">${renderStarRating(review.rating)}</div>
               </div>
               <p class="review-comment">${escapeHtml(review.comment || '')}</p>
               ${canEditDelete ? `

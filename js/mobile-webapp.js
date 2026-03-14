@@ -75,7 +75,8 @@
     'https://covers.openlibrary.org',
     'https://books.googleusercontent.com',
     'https://i.scdn.co',
-    'https://images.igdb.com'
+    'https://images.igdb.com',
+    'https://www.thesportsdb.com'
   ];
   const INSTALL_DISMISS_KEY = 'zo2y_mobile_install_dismissed_at_v2';
   const INSTALL_DONE_KEY = 'zo2y_mobile_install_done_v2';
