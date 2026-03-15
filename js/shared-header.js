@@ -1,7 +1,7 @@
 (() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260315a';
+  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260315b';
   const DESKTOP_RAIL_COLLAPSE_KEY = 'zo2y_desktop_rail_collapsed';
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
@@ -33,6 +33,9 @@
         <span class="zo2y-logo-tongue" aria-hidden="true"></span>
         <span class="zo2y-logo-sweat sweat-1" aria-hidden="true"></span>
         <span class="zo2y-logo-sweat sweat-2" aria-hidden="true"></span>
+        <span class="zo2y-logo-sweat sweat-3" aria-hidden="true"></span>
+        <span class="zo2y-logo-sweat sweat-4" aria-hidden="true"></span>
+        <span class="zo2y-logo-sweat sweat-5" aria-hidden="true"></span>
       </span>
     </span>
   </span>

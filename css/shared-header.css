@@ -58,6 +58,8 @@
   line-height: 0;
   overflow: visible;
   transition: transform 0.18s ease;
+  width: var(--logo-size, 44px);
+  height: var(--logo-size, 44px);
   --tongue-x: 50%;
   --tongue-y: calc(var(--jaw-hinge-y) * 1%);
   --tongue-length: clamp(20px, 64%, 52px);
@@ -89,12 +91,16 @@
 .zo2y-logo-sprite {
   position: relative;
   line-height: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .zo2y-logo-face {
   position: relative;
   display: block;
   z-index: 1;
+  width: 100%;
+  height: 100%;
 }
 
 .zo2y-logo-face-top {
@@ -138,6 +144,8 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  transform: scale(0.8);
+  transform-origin: center;
   opacity: 0;
 }
 
@@ -243,8 +251,8 @@
   position: absolute;
   left: calc(var(--sweat-x, 72) * 1%);
   top: calc(var(--sweat-y, 34) * 1%);
-  width: 10px;
-  height: 16px;
+  width: var(--sweat-size, 10px);
+  height: calc(var(--sweat-size, 10px) * 1.6);
   background: radial-gradient(circle at 30% 30%, #e0f2fe 0%, #7dd3fc 45%, #38bdf8 100%);
   border-radius: 10px 10px 12px 12px;
   opacity: 0;
@@ -258,12 +266,35 @@
   --sweat-x: 72;
   --sweat-y: 30;
   --sweat-delay: 0ms;
+  --sweat-size: 9px;
 }
 
 .zo2y-logo-sprite .zo2y-logo-sweat.sweat-2 {
   --sweat-x: 82;
   --sweat-y: 42;
   --sweat-delay: 120ms;
+  --sweat-size: 8px;
+}
+
+.zo2y-logo-sprite .zo2y-logo-sweat.sweat-3 {
+  --sweat-x: 18;
+  --sweat-y: 36;
+  --sweat-delay: 200ms;
+  --sweat-size: 7px;
+}
+
+.zo2y-logo-sprite .zo2y-logo-sweat.sweat-4 {
+  --sweat-x: 30;
+  --sweat-y: 20;
+  --sweat-delay: 80ms;
+  --sweat-size: 6px;
+}
+
+.zo2y-logo-sprite .zo2y-logo-sweat.sweat-5 {
+  --sweat-x: 90;
+  --sweat-y: 24;
+  --sweat-delay: 160ms;
+  --sweat-size: 7px;
 }
 
 .zo2y-logo-anim.is-tongue .zo2y-logo-tongue {
@@ -376,13 +407,9 @@
   animation-delay: var(--sweat-delay, 0ms);
 }
 
-.zo2y-logo-anim:hover .zo2y-logo-tongue,
-.zo2y-logo-anim:focus-within .zo2y-logo-tongue {
-  opacity: 1;
-  transform: translateY(-50%) scaleX(1);
-}
 
 .zo2y-shared-brand .zo2y-logo-anim {
+  --logo-size: 44px;
   --eye-size: 34;
   --eye-y: 46;
   --eye-left: 20;
@@ -390,6 +417,7 @@
 }
 
 .zo2y-desktop-rail-brand .zo2y-logo-anim {
+  --logo-size: 56px;
   --eye-size: 33;
   --eye-y: 46;
   --eye-left: 20;
@@ -398,6 +426,7 @@
 
 .zo2y-mobile-wordmark .zo2y-logo-anim,
 .zo2y-mobile-drawer-brand .zo2y-logo-anim {
+  --logo-size: 40px;
   --eye-size: 35;
   --eye-y: 46;
   --eye-left: 20;

@@ -6199,7 +6199,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         });
         if (signal?.aborted) return [];
         const rows = Array.isArray(payload) ? payload : [];
-        if (!rows.length) return [];
+        if (!rows.length) return getHomeTravelFallbackItems(targetCount);
         primeHomeCountryIndex(rows);
 
         const sortedRows = rows
@@ -6327,11 +6327,34 @@ let homeTravelPhotoCacheSaveTimer = null;
       };
     }
 
+    function normalizeHomeSportsName(value) {
+      return String(value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]+/g, '')
+        .replace(/['â€™]/g, '')
+        .replace(/\b(fc|cf|sc|afc|club|the)\b/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+    }
+
     async function loadSports(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
-      const cachedItems = readHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS)
+      const cachedItemsRaw = readHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS)
         .filter((item) => item && item.image);
-      if (cachedItems.length) return cachedItems.slice(0, targetCount);
+      if (cachedItemsRaw.length) {
+        const dedupedCached = [];
+        const seenCached = new Set();
+        cachedItemsRaw.forEach((item) => {
+          const key = String(item?.itemId || item?.title || '').toLowerCase().trim();
+          const nameKey = normalizeHomeSportsName(item?.title || '');
+          const dedupeKey = [key, nameKey].filter(Boolean).join('|');
+          if (!dedupeKey || seenCached.has(dedupeKey)) return;
+          seenCached.add(dedupeKey);
+          dedupedCached.push(item);
+        });
+        if (dedupedCached.length) return dedupedCached.slice(0, targetCount);
+      }
 
       const seedTeams = shuffleArray([...HOME_SPORTS_SEEDS]).slice(0, Math.max(targetCount, 12));
       const items = [];
@@ -6349,9 +6372,11 @@ let homeTravelPhotoCacheSaveTimer = null;
           if (items.length >= targetCount) return;
           const item = mapSportsTeamToHomeItem(team);
           if (!item) return;
-          const key = String(item.itemId || item.title || '').toLowerCase();
-          if (!key || seen.has(key)) return;
-          seen.add(key);
+          const key = String(item.itemId || item.title || '').toLowerCase().trim();
+          const nameKey = normalizeHomeSportsName(item.title || '');
+          const dedupeKey = [key, nameKey].filter(Boolean).join('|');
+          if (!dedupeKey || seen.has(dedupeKey)) return;
+          seen.add(dedupeKey);
           items.push(item);
         });
       });

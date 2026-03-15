@@ -981,8 +981,10 @@
     card.innerHTML = `
       <div class="sports-card-media">
         <img src="${escapeHtml(mediaImage)}" alt="${escapeHtml(team.name)} banner" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}';" />
+        <div class="sports-card-logo">
+          <img src="${escapeHtml(logo)}" alt="${escapeHtml(team.name)} logo" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${FALLBACK_BADGE}';" />
+        </div>
       </div>
-      <div class="sports-card-logo"><img src="${escapeHtml(logo)}" alt="${escapeHtml(team.name)} logo" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${FALLBACK_BADGE}';" /></div>
       <div class="sports-card-body">
         <div class="sports-card-title">${escapeHtml(team.name)}</div>
         <div class="sports-card-meta">${escapeHtml(metaLine)}</div>
