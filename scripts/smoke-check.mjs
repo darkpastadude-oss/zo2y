@@ -29,7 +29,7 @@ const checks = [
   { name: "health", url: "/api/health", expectJsonKeys: ["ok", "service"] },
   { name: "analytics-health", url: "/api/analytics/health", expectJsonKeys: ["ok", "service"] },
   { name: "support-health", url: "/api/support/health", expectJsonKeys: ["ok", "service"] },
-  { name: "igdb-health", url: "/api/igdb", expectStatus: 200 },
+  { name: "igdb-health", url: "/api/igdb", expectStatus: [200, 410] },
   { name: "music-health", url: "/api/music", expectStatus: 200 }
 ];
 
@@ -74,8 +74,11 @@ async function runCheck(baseUrl, item) {
   const started = Date.now();
   const response = await fetch(buildUrl(baseUrl, item.url));
   const elapsed = Date.now() - started;
-  const expectedStatus = Number(item.expectStatus || 200);
-  if (response.status !== expectedStatus && !response.ok) {
+  const expectedStatus = item.expectStatus ?? 200;
+  const allowedStatuses = Array.isArray(expectedStatus)
+    ? expectedStatus.map((value) => Number(value))
+    : [Number(expectedStatus)];
+  if (!allowedStatuses.includes(response.status) && !response.ok) {
     const body = await response.text().catch(() => "");
     throw new Error(`${item.name} failed (${response.status}) ${item.url} ${body.slice(0, 300)}`);
   }

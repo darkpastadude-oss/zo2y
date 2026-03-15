@@ -385,13 +385,11 @@
 
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
           auth: {
-            flowType: 'pkce',
             storageKey: STORAGE_KEY,
             persistSession: true,
             autoRefreshToken: true,
-            // We manually handle `code` + hash tokens below.
-            // Leaving this on can cause a double exchange in some environments.
-            detectSessionInUrl: false
+            // Allow Supabase to detect session tokens in the callback URL.
+            detectSessionInUrl: true
           }
         });
 

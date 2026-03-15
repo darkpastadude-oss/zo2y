@@ -191,7 +191,6 @@
             var detectSessionInUrl = pageKey !== 'auth-callback';
             client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
               auth: {
-                flowType: 'pkce',
                 storageKey: STORAGE_KEY,
                 persistSession: true,
                 autoRefreshToken: true,
