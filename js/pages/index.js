@@ -4139,7 +4139,7 @@
 
     function scheduleDeferredHomeStartupTasks() {
       const run = () => {
-        maybeShowHomeOnboarding();
+        void maybeShowHomeOnboarding();
         void refreshHomePersonalization();
         scheduleHomeMenuCachePrime();
       };
@@ -5295,14 +5295,46 @@
       };
     }
 
-    function maybeShowHomeOnboarding() {
+    async function maybeShowHomeOnboarding() {
       const userId = homeCurrentUser?.id;
       if (!userId) return;
-      if (!isOnboardingPending(userId)) return;
       if (hasSeenOnboarding(userId)) {
         clearOnboardingPending(userId);
         return;
       }
+      let shouldShow = isOnboardingPending(userId);
+      if (!shouldShow) {
+        try {
+          const client = await ensureHomeSupabase();
+          if (!client) return;
+          const { data: profile } = await client
+            .from('user_profiles')
+            .select('username')
+            .eq('id', userId)
+            .maybeSingle();
+          const username = String(profile?.username || '').trim();
+          if (!username) {
+            shouldShow = true;
+          } else {
+            const { data: interestRow } = await client
+              .from('user_interest_profiles')
+              .select('interest_types, interest_tags')
+              .eq('user_id', userId)
+              .maybeSingle();
+            const types = Array.isArray(interestRow?.interest_types) ? interestRow.interest_types.filter(Boolean) : [];
+            const tags = Array.isArray(interestRow?.interest_tags) ? interestRow.interest_tags.filter(Boolean) : [];
+            if (!types.length && !tags.length) {
+              shouldShow = true;
+            }
+          }
+        } catch (_err) {
+          return;
+        }
+        if (shouldShow) {
+          localStorage.setItem(getOnboardingPendingKey(userId), '1');
+        }
+      }
+      if (!shouldShow) return;
       homeOnboardingUserId = userId;
       homeOnboardingIndex = 0;
       // Ensure this is shown only once on first sign-in.
