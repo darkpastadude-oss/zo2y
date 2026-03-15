@@ -219,6 +219,25 @@
       /kiss x sis/i,
       /shinmai maou/i
     ];
+    const HOME_INTEREST_OPTIONS = [
+      { id: 'movie', label: 'Movies', kind: 'type', tags: ['movie', 'movies'] },
+      { id: 'tv', label: 'TV Shows', kind: 'type', tags: ['tv', 'television', 'show', 'series'] },
+      { id: 'anime', label: 'Anime', kind: 'type', tags: ['anime'] },
+      ...(ENABLE_GAMES ? [{ id: 'game', label: 'Games', kind: 'type', tags: ['game', 'games', 'gaming'] }] : []),
+      { id: 'book', label: 'Books', kind: 'type', tags: ['book', 'books', 'reading'] },
+      { id: 'music', label: 'Music', kind: 'type', tags: ['music'] },
+      { id: 'travel', label: 'Travel', kind: 'type', tags: ['travel'] },
+      { id: 'sports', label: 'Sports', kind: 'type', tags: ['sports'] },
+      { id: 'horror', label: 'Horror', kind: 'tag', tags: ['horror'] },
+      { id: 'sci-fi', label: 'Sci-Fi', kind: 'tag', tags: ['sci-fi', 'scifi', 'science fiction'] },
+      { id: 'fantasy', label: 'Fantasy', kind: 'tag', tags: ['fantasy'] },
+      { id: 'romance', label: 'Romance', kind: 'tag', tags: ['romance'] },
+      { id: 'comedy', label: 'Comedy', kind: 'tag', tags: ['comedy'] },
+      { id: 'action', label: 'Action', kind: 'tag', tags: ['action'] },
+      { id: 'thriller', label: 'Thriller', kind: 'tag', tags: ['thriller'] },
+      { id: 'soccer', label: 'Soccer', kind: 'tag', tags: ['soccer', 'football'] },
+      { id: 'basketball', label: 'Basketball', kind: 'tag', tags: ['basketball'] }
+    ];
 
     async function homeIgdbFetch(path, params = {}, signal) {
       if (GAMES_DISABLED) {
@@ -261,7 +280,14 @@
     let homeSpotlightImageToken = 0;
     let homeOnboardingIndex = 0;
     let homeOnboardingUserId = null;
+    let homeOnboardingProfile = {
+      username: '',
+      types: new Set(),
+      tags: new Set(),
+      status: 'idle'
+    };
     let homeTasteWeights = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, 1]));
+    let homeInterestProfile = { types: [], tags: [] };
     const homeFeedState = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, []]));
     const homeHttpCache = new Map();
     const homeCustomListState = {
@@ -292,7 +318,8 @@
       payload: null
     };
     const homeTravelPhotoCache = new Map();
-let homeTravelPhotoCacheSaveTimer = null;
+    let homeTravelPhotoCacheSaveTimer = null;
+    let homeTravelHydrationPromise = null;
     const homeMusicPreviewState = {
       audio: null,
       btn: null
@@ -1269,7 +1296,8 @@ let homeTravelPhotoCacheSaveTimer = null;
         list.forEach((item, index) => {
           const rankWeight = 1 - (index / maxRank);
           const dailySignal = getDailySignal(`${type}:${item.itemId || item.title || index}`);
-          const trendScore = rankWeight * 0.55 + Math.min(weight, 2.1) * 0.32 + dailySignal * 0.13;
+          const interestBoost = getHomeInterestBoost(item);
+          const trendScore = rankWeight * 0.55 + Math.min(weight, 2.1) * 0.32 + dailySignal * 0.13 + interestBoost;
           pool.push({
             ...item,
             mediaType: type,
@@ -2133,13 +2161,30 @@ let homeTravelPhotoCacheSaveTimer = null;
           travel: Number(travelRes?.count || 0),
           ...(ENABLE_RESTAURANTS ? { restaurant: restaurantCount } : {})
         };
+        const interestProfile = await loadHomeInterestProfile(client);
+        homeInterestProfile = interestProfile;
         const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
-        if (!total) return weights;
+        if (!total) {
+          if (interestProfile?.types?.length) {
+            interestProfile.types.forEach((type) => {
+              if (!weights[type]) return;
+              weights[type] = Number(Math.min(2.1, weights[type] + 0.35).toFixed(2));
+            });
+          }
+          return weights;
+        }
 
         Object.entries(counts).forEach(([type, value]) => {
           const share = value / total;
           weights[type] = Number((1 + Math.min(1.1, share * 3.2)).toFixed(2));
         });
+
+        if (interestProfile?.types?.length) {
+          interestProfile.types.forEach((type) => {
+            if (!weights[type]) return;
+            weights[type] = Number(Math.min(2.1, weights[type] + 0.35).toFixed(2));
+          });
+        }
       } catch (_err) {}
       return weights;
     }
@@ -4533,6 +4578,109 @@ let homeTravelPhotoCacheSaveTimer = null;
       return map[key] || 'Pick';
     }
 
+    function buildHomeInterestOptionsMarkup() {
+      return HOME_INTEREST_OPTIONS.map((option) => `
+        <button type="button" class="onboarding-chip" data-interest-id="${escapeHtml(option.id)}" data-interest-kind="${escapeHtml(option.kind)}">
+          ${escapeHtml(option.label)}
+        </button>
+      `).join('');
+    }
+
+    const RESERVED_PROFILE_USERNAMES = new Set([
+      'admin', 'api', 'app', 'auth', 'authcallback', 'blog', 'book', 'books',
+      'country', 'edit', 'explore', 'game', 'games', 'help', 'home', 'index',
+      'login', 'movie', 'movies', 'music', 'new', 'privacy', 'profile',
+      'resetpassword', 'reviews', 'search', 'settings', 'signup', 'support',
+      'terms', 'travel', 'tv', 'tvshow', 'tvshows', 'updatepassword', 'user',
+      'users', 'zo2y'
+    ]);
+
+    function normalizeProfileUsername(value) {
+      const normalized = String(value || '')
+        .trim()
+        .replace(/^@+/, '')
+        .toLowerCase()
+        .replace(/['â€™]/g, '')
+        .replace(/[^a-z0-9_]+/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 30);
+      return normalized;
+    }
+
+    function isValidProfileUsername(value) {
+      return /^[a-z0-9_]{3,30}$/.test(String(value || ''));
+    }
+
+    async function ensureHomeUsernameAvailable(username, currentProfileId = '') {
+      const normalizedUsername = normalizeProfileUsername(username);
+      if (!isValidProfileUsername(normalizedUsername)) {
+        throw new Error('Username must be 3-30 characters and use only letters, numbers, or underscores.');
+      }
+      if (RESERVED_PROFILE_USERNAMES.has(normalizedUsername.replace(/_/g, ''))) {
+        throw new Error('That username is reserved. Choose another one.');
+      }
+      const client = await ensureHomeSupabase();
+      if (!client) throw new Error('Unable to verify username right now.');
+      const { data, error } = await client
+        .from('user_profiles')
+        .select('id')
+        .eq('username', normalizedUsername)
+        .limit(10);
+      if (error) throw error;
+      const isTaken = Array.isArray(data) && data.some((row) => String(row?.id || '') !== String(currentProfileId || homeCurrentUser?.id || ''));
+      if (isTaken) throw new Error('That username is already taken.');
+      return normalizedUsername;
+    }
+
+    async function loadHomeInterestProfile(client) {
+      if (!homeCurrentUser?.id || !client) return { types: [], tags: [] };
+      try {
+        const { data } = await client
+          .from('user_interest_profiles')
+          .select('interest_types, interest_tags')
+          .eq('user_id', homeCurrentUser.id)
+          .maybeSingle();
+        const types = Array.isArray(data?.interest_types) ? data.interest_types.map((t) => String(t || '').trim()).filter(Boolean) : [];
+        const tags = Array.isArray(data?.interest_tags) ? data.interest_tags.map((t) => String(t || '').trim()).filter(Boolean) : [];
+        return { types, tags };
+      } catch (_err) {
+        return { types: [], tags: [] };
+      }
+    }
+
+    function getHomeInterestText(item) {
+      if (!item || typeof item !== 'object') return '';
+      const fields = [
+        item.title,
+        item.subtitle,
+        item.extra,
+        item.overview,
+        item.description,
+        item.genreText,
+        item.tags,
+        item.maturityRating,
+        item.sport,
+        item.league,
+        item.country
+      ];
+      if (Array.isArray(item.genres)) fields.push(item.genres.join(' '));
+      return fields.map((value) => String(value || '').toLowerCase()).join(' ');
+    }
+
+    function getHomeInterestBoost(item) {
+      if (!homeInterestProfile?.tags?.length) return 0;
+      const text = getHomeInterestText(item);
+      if (!text) return 0;
+      let matches = 0;
+      homeInterestProfile.tags.forEach((tag) => {
+        if (text.includes(String(tag || '').toLowerCase())) {
+          matches += 1;
+        }
+      });
+      return Math.min(0.6, matches * 0.12);
+    }
+
     function getHomeRecommendationPoolByType(type) {
       const key = String(type || '').toLowerCase();
       const raw = Array.isArray(homeFeedState?.[key]) ? homeFeedState[key] : [];
@@ -4542,6 +4690,7 @@ let homeTravelPhotoCacheSaveTimer = null;
     function getHomeOnboardingSteps() {
       return [
         {
+          id: 'welcome',
           title: 'Welcome',
           body: 'Quick tour: how to add places to lists, create your own lists, and connect with friends.',
           art: `
@@ -4561,6 +4710,28 @@ let homeTravelPhotoCacheSaveTimer = null;
           action: null
         },
         {
+          id: 'profile-setup',
+          title: 'Claim Your Username',
+          body: 'Pick a unique @username and choose a few interests so your feed adapts from day one.',
+          art: `
+            <div class="onboarding-form">
+              <label class="onboarding-label" for="homeOnboardingUsernameInput">Username</label>
+              <div class="onboarding-input-wrap">
+                <span class="onboarding-at">@</span>
+                <input id="homeOnboardingUsernameInput" class="onboarding-input" type="text" autocomplete="off" placeholder="your_name" />
+              </div>
+              <div id="homeOnboardingUsernameStatus" class="onboarding-status">Choose a username to continue.</div>
+              <div class="onboarding-label">Pick your interests</div>
+              <div class="onboarding-chip-grid">
+                ${buildHomeInterestOptionsMarkup()}
+              </div>
+            </div>
+          `,
+          nextLabel: 'Save & Continue',
+          requiresSave: true
+        },
+        {
+          id: 'lists',
           title: 'Add Places To Lists',
           body: 'On any card, tap the three-dot menu. Use quick list buttons, or choose Custom Lists to organize it your way.',
           art: `
@@ -4590,6 +4761,7 @@ let homeTravelPhotoCacheSaveTimer = null;
           }
         },
         {
+          id: 'custom-lists',
           title: 'Create Your Own Lists',
           body: 'In the Custom Lists modal, enter a list name, pick an icon, then press Create.',
           art: `
@@ -4617,14 +4789,15 @@ let homeTravelPhotoCacheSaveTimer = null;
           }
         },
         {
-          title: 'Add Friends',
-          body: 'Open profiles and tap Follow to build your network. You can manage followers and following from your profile.',
+          id: 'profile',
+          title: 'View Your Profile',
+          body: 'Head to your profile to see every list, rating, and save in one place.',
           art: `
             <div class="onboarding-illustration">
               <div class="mini-card">
-                <div class="friend-row"><span><i class="fas fa-user-circle"></i> @alex</span><span class="friend-pill">Follow</span></div>
-                <div class="friend-row"><span><i class="fas fa-user-circle"></i> @sara</span><span class="friend-pill">Following</span></div>
-                <div class="friend-row"><span><i class="fas fa-user-circle"></i> @mike</span><span class="friend-pill">Follow</span></div>
+                <div class="friend-row"><span><i class="fas fa-user-circle"></i> Your lists</span><span class="friend-pill">Open</span></div>
+                <div class="friend-row"><span><i class="fas fa-star"></i> Reviews</span><span class="friend-pill">View</span></div>
+                <div class="friend-row"><span><i class="fas fa-heart"></i> Favorites</span><span class="friend-pill">See all</span></div>
               </div>
             </div>
           `,
@@ -4691,6 +4864,68 @@ let homeTravelPhotoCacheSaveTimer = null;
             font-size: 16px;
             line-height: 1.55;
             min-height: 56px;
+          }
+          .onboarding-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+          }
+          .onboarding-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(226,236,255,0.65);
+          }
+          .onboarding-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(8, 16, 36, 0.7);
+            border: 1px solid rgba(255,255,255,0.12);
+          }
+          .onboarding-at {
+            font-weight: 600;
+            color: rgba(245, 158, 11, 0.9);
+          }
+          .onboarding-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #e2ecff;
+            font-size: 15px;
+            letter-spacing: 0.02em;
+          }
+          .onboarding-status {
+            font-size: 12px;
+            color: rgba(226,236,255,0.6);
+            min-height: 16px;
+          }
+          .onboarding-status.ok { color: #34d399; }
+          .onboarding-status.bad { color: #fca5a5; }
+          .onboarding-chip-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+          }
+          .onboarding-chip {
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: 12px;
+            color: rgba(226,236,255,0.8);
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255,255,255,0.12);
+            cursor: pointer;
+          }
+          .onboarding-chip:hover {
+            border-color: rgba(255,255,255,0.3);
+          }
+          .onboarding-chip.selected {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: rgba(245, 158, 11, 0.6);
+            color: #fef3c7;
           }
           .home-onboarding-art {
             margin-top: 10px;
@@ -4915,7 +5150,7 @@ let homeTravelPhotoCacheSaveTimer = null;
       art.innerHTML = step.art || '';
       backBtn.disabled = safeIndex === 0;
       backBtn.style.opacity = safeIndex === 0 ? '0.5' : '1';
-      nextBtn.textContent = safeIndex === steps.length - 1 ? 'Finish' : 'Next';
+      nextBtn.textContent = step.nextLabel || (safeIndex === steps.length - 1 ? 'Finish' : 'Next');
 
       if (step.actionLabel && typeof step.action === 'function') {
         tryBtn.textContent = step.actionLabel;
@@ -4930,6 +5165,10 @@ let homeTravelPhotoCacheSaveTimer = null;
         dot.className = `home-onboarding-dot${idx <= safeIndex ? ' active' : ''}`;
         progress.appendChild(dot);
       });
+
+      if (step.id === 'profile-setup') {
+        wireHomeOnboardingProfileStep();
+      }
     }
 
     function closeHomeOnboarding(markSeen = true) {
@@ -4954,6 +5193,20 @@ let homeTravelPhotoCacheSaveTimer = null;
         renderHomeOnboardingStep();
       };
       nextBtn.onclick = () => {
+        const current = steps[homeOnboardingIndex];
+        if (current?.id === 'profile-setup') {
+          void saveHomeOnboardingProfile().then((ok) => {
+            if (!ok) return;
+            if (homeOnboardingIndex >= steps.length - 1) {
+              closeHomeOnboarding(true);
+              showHomeToast('Tour completed. You can start saving now.');
+              return;
+            }
+            homeOnboardingIndex += 1;
+            renderHomeOnboardingStep();
+          });
+          return;
+        }
         if (homeOnboardingIndex >= steps.length - 1) {
           closeHomeOnboarding(true);
           showHomeToast('Tour completed. You can start saving now.');
@@ -5221,6 +5474,203 @@ let homeTravelPhotoCacheSaveTimer = null;
       if (!raw || raw === '[object Object]') return '';
       if (raw.startsWith('//')) return `https:${raw}`;
       return toHttpsUrl(raw);
+    }
+
+    let homeUsernameCheckTimer = null;
+    let homeUsernameCheckToken = 0;
+
+    function setHomeOnboardingUsernameStatus(message, state = '') {
+      const status = document.getElementById('homeOnboardingUsernameStatus');
+      if (!status) return;
+      status.textContent = message;
+      status.classList.remove('ok', 'bad');
+      if (state === 'ok') status.classList.add('ok');
+      if (state === 'bad') status.classList.add('bad');
+    }
+
+    function updateHomeOnboardingNextState() {
+      const nextBtn = document.getElementById('homeOnboardingNextBtn');
+      if (!nextBtn) return;
+      if (homeOnboardingProfile.status === 'saving') {
+        nextBtn.disabled = true;
+        return;
+      }
+      if (homeOnboardingProfile.status === 'ok') {
+        nextBtn.disabled = false;
+        return;
+      }
+      if (document.getElementById('homeOnboardingUsernameInput')) {
+        nextBtn.disabled = true;
+        return;
+      }
+      nextBtn.disabled = false;
+    }
+
+    function resolveOnboardingInterestSelection() {
+      const selectedOptions = HOME_INTEREST_OPTIONS.filter((option) => {
+        return (option.kind === 'type' && homeOnboardingProfile.types.has(option.id))
+          || (option.kind === 'tag' && homeOnboardingProfile.tags.has(option.id));
+      });
+      const interestTypes = selectedOptions.filter((opt) => opt.kind === 'type').map((opt) => opt.id);
+      const interestTags = Array.from(new Set(selectedOptions.flatMap((opt) => opt.tags || [])))
+        .map((value) => String(value || '').toLowerCase().trim())
+        .filter(Boolean);
+      return { interestTypes, interestTags };
+    }
+
+    async function checkHomeOnboardingUsername(value) {
+      const token = ++homeUsernameCheckToken;
+      const normalized = normalizeProfileUsername(value);
+      if (!isValidProfileUsername(normalized)) {
+        homeOnboardingProfile.status = 'bad';
+        setHomeOnboardingUsernameStatus('Use 3-30 letters, numbers, or underscores.', 'bad');
+        updateHomeOnboardingNextState();
+        return false;
+      }
+      if (RESERVED_PROFILE_USERNAMES.has(normalized.replace(/_/g, ''))) {
+        homeOnboardingProfile.status = 'bad';
+        setHomeOnboardingUsernameStatus('That username is reserved.', 'bad');
+        updateHomeOnboardingNextState();
+        return false;
+      }
+      setHomeOnboardingUsernameStatus('Checking availability…');
+      homeOnboardingProfile.status = 'checking';
+      updateHomeOnboardingNextState();
+      try {
+        const available = await ensureHomeUsernameAvailable(normalized, homeCurrentUser?.id);
+        if (token !== homeUsernameCheckToken) return false;
+        homeOnboardingProfile.username = available;
+        homeOnboardingProfile.status = 'ok';
+        setHomeOnboardingUsernameStatus('Username available.', 'ok');
+        updateHomeOnboardingNextState();
+        return true;
+      } catch (err) {
+        if (token !== homeUsernameCheckToken) return false;
+        homeOnboardingProfile.status = 'bad';
+        setHomeOnboardingUsernameStatus(String(err?.message || 'Username unavailable.'), 'bad');
+        updateHomeOnboardingNextState();
+        return false;
+      }
+    }
+
+    function wireHomeOnboardingProfileStep() {
+      const input = document.getElementById('homeOnboardingUsernameInput');
+      const chips = Array.from(document.querySelectorAll('.onboarding-chip'));
+      if (!input) return;
+
+      if (!homeOnboardingProfile.username) {
+        const fallbackSeed = homeCurrentUser?.user_metadata?.username
+          || homeCurrentUser?.user_metadata?.full_name
+          || homeCurrentUser?.user_metadata?.name
+          || (homeCurrentUser?.email || '').split('@')[0]
+          || 'user';
+        homeOnboardingProfile.username = normalizeProfileUsername(fallbackSeed);
+      }
+
+      if (!homeOnboardingProfile.types.size && !homeOnboardingProfile.tags.size) {
+        homeInterestProfile.types?.forEach((type) => homeOnboardingProfile.types.add(type));
+        homeInterestProfile.tags?.forEach((tag) => {
+          const optionMatch = HOME_INTEREST_OPTIONS.find((opt) => opt.kind === 'tag' && opt.tags?.includes(tag));
+          if (optionMatch) homeOnboardingProfile.tags.add(optionMatch.id);
+        });
+      }
+
+      input.value = homeOnboardingProfile.username || '';
+      setHomeOnboardingUsernameStatus('Choose a username to continue.');
+      homeOnboardingProfile.status = 'idle';
+      updateHomeOnboardingNextState();
+
+      const syncChipSelection = () => {
+        chips.forEach((chip) => {
+          const id = chip.getAttribute('data-interest-id');
+          const kind = chip.getAttribute('data-interest-kind');
+          if (!id || !kind) return;
+          const selected = kind === 'type'
+            ? homeOnboardingProfile.types.has(id)
+            : homeOnboardingProfile.tags.has(id);
+          chip.classList.toggle('selected', selected);
+        });
+      };
+      syncChipSelection();
+
+      input.addEventListener('input', () => {
+        const value = input.value;
+        homeOnboardingProfile.username = value;
+        if (homeUsernameCheckTimer) clearTimeout(homeUsernameCheckTimer);
+        homeUsernameCheckTimer = setTimeout(() => {
+          void checkHomeOnboardingUsername(value);
+        }, 320);
+      });
+
+      input.addEventListener('blur', () => {
+        void checkHomeOnboardingUsername(input.value);
+      });
+
+      chips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+          const id = chip.getAttribute('data-interest-id');
+          const kind = chip.getAttribute('data-interest-kind');
+          if (!id || !kind) return;
+          if (kind === 'type') {
+            if (homeOnboardingProfile.types.has(id)) {
+              homeOnboardingProfile.types.delete(id);
+            } else {
+              homeOnboardingProfile.types.add(id);
+            }
+          } else {
+            if (homeOnboardingProfile.tags.has(id)) {
+              homeOnboardingProfile.tags.delete(id);
+            } else {
+              homeOnboardingProfile.tags.add(id);
+            }
+          }
+          syncChipSelection();
+        });
+      });
+    }
+
+    async function saveHomeOnboardingProfile() {
+      if (!homeCurrentUser?.id) return false;
+      const input = document.getElementById('homeOnboardingUsernameInput');
+      const rawUsername = input ? input.value : homeOnboardingProfile.username;
+      homeOnboardingProfile.status = 'saving';
+      updateHomeOnboardingNextState();
+      try {
+        const normalized = await ensureHomeUsernameAvailable(rawUsername, homeCurrentUser.id);
+        const client = await ensureHomeSupabase();
+        if (client) {
+          const fullName = homeCurrentUser?.user_metadata?.full_name || homeCurrentUser?.user_metadata?.name || '';
+          await client.from('user_profiles').upsert({
+            id: homeCurrentUser.id,
+            username: normalized,
+            full_name: fullName || null
+          }, { onConflict: 'id' });
+          try {
+            await client.auth.updateUser({ data: { username: normalized } });
+          } catch (_err) {}
+          const { interestTypes, interestTags } = resolveOnboardingInterestSelection();
+          homeInterestProfile = { types: interestTypes, tags: interestTags };
+          try {
+            await client.from('user_interest_profiles').upsert({
+              user_id: homeCurrentUser.id,
+              interest_types: interestTypes,
+              interest_tags: interestTags,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' });
+          } catch (_err) {}
+        }
+        homeOnboardingProfile.status = 'ok';
+        updateHomeOnboardingNextState();
+        showHomeToast('Profile updated. Feed tuned to your interests.');
+        homeTasteWeights = await loadTasteWeights();
+        void refreshHomePersonalization();
+        return true;
+      } catch (err) {
+        homeOnboardingProfile.status = 'bad';
+        setHomeOnboardingUsernameStatus(String(err?.message || 'Unable to save right now.'), 'bad');
+        updateHomeOnboardingNextState();
+        return false;
+      }
     }
 
     function pickPreferredGameCoverUrl(candidates = []) {
@@ -6247,6 +6697,33 @@ let homeTravelPhotoCacheSaveTimer = null;
         const cachedCandidates = collectTravelItems(homeTravelPhotoCache).slice(0, targetCount);
         if (cachedCandidates.length >= Math.min(targetCount, 6)) {
           writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, cachedCandidates);
+          const photoCandidates = sortedRows.slice(0, Math.max(targetCount * 3, 60));
+          if (!homeTravelHydrationPromise) {
+            homeTravelHydrationPromise = (async () => {
+              const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+              const timer = setTimeout(() => controller?.abort(), 12000);
+              try {
+                const photoMap = await fetchTravelCommonsPhotos(
+                  photoCandidates,
+                  controller?.signal,
+                  { includeLifestyle: !isHomeSlowNetwork() }
+                );
+                const hydrated = collectTravelItems(photoMap).slice(0, targetCount);
+                if (hydrated.length) {
+                  writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, hydrated);
+                  homeFeedState.travel = hydrated;
+                  renderRail('travelRail', hydrated, { mediaType: 'travel' });
+                  const scoredPool = buildScoredDiscoveryPool(homeFeedState);
+                  const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
+                  renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+                  hydrateSpotlightFromPool(scoredPool);
+                }
+              } finally {
+                clearTimeout(timer);
+                homeTravelHydrationPromise = null;
+              }
+            })();
+          }
           return cachedCandidates;
         }
 
