@@ -104,12 +104,14 @@
 (function () {
   'use strict';
 
+  const STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
   const supabase = window.supabase.createClient(
     'https://gfkhjbztayjyojsgdpgk.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s',
     {
       auth: {
         flowType: 'pkce',
+        storageKey: STORAGE_KEY,
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: false  // Important: Don't auto-detect on login page
