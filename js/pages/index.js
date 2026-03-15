@@ -7,7 +7,7 @@
     const HOME_ACTIVE_MEDIA_TYPES = ENABLE_RESTAURANTS
       ? ['restaurant', ...HOME_BASE_MEDIA_TYPES]
       : HOME_BASE_MEDIA_TYPES;
-    const HOME_LIST_MEDIA_TYPES = HOME_ACTIVE_MEDIA_TYPES.filter((type) => type !== 'sports' || window.ZO2Y_SPORTS_LISTS === true);
+    const HOME_LIST_MEDIA_TYPES = HOME_ACTIVE_MEDIA_TYPES.filter((type) => type !== 'sports' || window.ZO2Y_SPORTS_LISTS !== false);
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
     const IGDB_PROXY_BASE = '/api/igdb';
@@ -91,13 +91,33 @@
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
     const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v9';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
-    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v4';
+    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v5';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v2';
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
-    const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v1';
+    const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v2';
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_TRAVEL_FALLBACK_IMAGE = '/images/country.jpg';
+    const HOME_TRAVEL_FALLBACK_IMAGE = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
+        <defs>
+          <linearGradient id='sky' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0%' stop-color='#0b1c35'/>
+            <stop offset='45%' stop-color='#143a6a'/>
+            <stop offset='100%' stop-color='#0f274b'/>
+          </linearGradient>
+          <linearGradient id='glow' x1='0' y1='1' x2='1' y2='0'>
+            <stop offset='0%' stop-color='#1fb5ff' stop-opacity='0.2'/>
+            <stop offset='70%' stop-color='#f59e0b' stop-opacity='0.12'/>
+            <stop offset='100%' stop-color='#fef08a' stop-opacity='0.25'/>
+          </linearGradient>
+        </defs>
+        <rect width='1600' height='900' fill='url(#sky)'/>
+        <circle cx='1220' cy='180' r='180' fill='#f59e0b' opacity='0.18'/>
+        <path d='M0 620 C 260 520 520 640 800 560 C 1080 480 1320 580 1600 520 L1600 900 L0 900 Z' fill='#0a1a31'/>
+        <path d='M0 700 C 280 620 560 720 860 640 C 1120 570 1360 640 1600 600 L1600 900 L0 900 Z' fill='#101f3b'/>
+        <rect width='1600' height='900' fill='url(#glow)'/>
+      </svg>
+    `)}`;
     const HOME_TRAVEL_FALLBACKS = [
       { code: 'US', name: 'United States', capital: 'Washington, D.C.', region: 'North America', subregion: 'Northern America' },
       { code: 'GB', name: 'United Kingdom', capital: 'London', region: 'Europe', subregion: 'Northern Europe' },
@@ -439,12 +459,18 @@ let homeTravelPhotoCacheSaveTimer = null;
     }
 
     function isUsableHomeTravelScenicUrl(urlRaw) {
-      const url = toHttpsUrl(String(urlRaw || '').trim());
+      const raw = String(urlRaw || '').trim();
+      if (!raw) return false;
+      if (raw.startsWith('data:image/')) return true;
+      const url = toHttpsUrl(raw);
       if (!url) return false;
       if (isLikelyTravelFlagAsset(url)) return false;
       const lower = url.toLowerCase();
       if (lower.includes('/newlogo.webp')) return false;
-      if (lower.startsWith('data:image/')) return false;
+      if (lower.includes('/scared.webp')) return false;
+      if (lower.includes('/images/country.jpg')) return false;
+      if (lower.includes('/images/logo.png')) return false;
+      if (lower.includes('/images/placeholder.jpg')) return false;
       if (lower.includes('source.unsplash.com/')) return false;
       return true;
     }

@@ -5,6 +5,9 @@
   const MUSIC_PROXY_BASE = '/api/music';
   const TRAVEL_API_BASE = 'https://restcountries.com/v3.1';
   const GAMES_PROXY_BASE = '/api/igdb';
+  const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';
+  const SPORTSDB_DIRECT_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
+  const SPORTSDB_DIRECT_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_DIRECT_KEY}`;
   const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
   const MIN_QUERY_LEN = 2;
   const SEARCH_DEBOUNCE_MS = 60;
@@ -166,6 +169,14 @@
 
   function normalizeQuery(value) {
     return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+
+  function resolveSportsDbBase() {
+    const prefersDirect = window.ZO2Y_SPORTSDB_DIRECT === true || window.ZO2Y_SPORTSDB_DIRECT === '1';
+    const base = prefersDirect ? SPORTSDB_DIRECT_BASE : SPORTSDB_PROXY_BASE;
+    if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, '');
+    const prefix = base.startsWith('/') ? '' : '/';
+    return `${window.location.origin}${prefix}${base}`.replace(/\/+$/, '');
   }
 
   function sanitizeSuggestions(items) {
@@ -527,20 +538,62 @@
     return [];
   }
 
+  function buildTeamDetailHref(team) {
+    if (!team) return 'sports.html';
+    const params = new URLSearchParams();
+    const idRaw = String(team?.idTeam || team?.id || '').trim();
+    if (/^\d+$/.test(idRaw)) params.set('id', idRaw);
+    const name = String(team?.strTeam || team?.name || '').trim();
+    if (name) params.set('team', name);
+    const league = String(team?.strLeague || team?.league || '').trim();
+    if (league) params.set('league', league);
+    const sport = String(team?.strSport || team?.sport || '').trim();
+    if (sport) params.set('sport', sport);
+    const country = String(team?.strCountry || team?.country || '').trim();
+    if (country) params.set('country', country);
+    const query = params.toString();
+    return query ? `team.html?${query}` : 'team.html';
+  }
+
+  async function fetchSports(query, signal) {
+    const normalized = normalizeQuery(query);
+    if (!normalized || normalized.length < MIN_QUERY_LEN) return [];
+    const url = new URL(`${resolveSportsDbBase()}/searchteams.php`);
+    url.searchParams.set('t', normalized);
+    const json = await fetchJsonWithTimeout(url.toString(), { signal, timeoutMs: Math.max(REQUEST_TIMEOUT_MS, 6500) });
+    const rows = Array.isArray(json?.teams) ? json.teams : [];
+    return rows.slice(0, 6).map((row) => {
+      const title = String(row?.strTeam || '').trim() || 'Team';
+      const league = String(row?.strLeague || '').trim();
+      const sport = String(row?.strSport || '').trim();
+      const sub = [league, sport].filter(Boolean).join(' | ') || 'Team';
+      const image = toHttpsUrl(row?.strBadge || row?.strTeamBadge || row?.strLogo || row?.strTeamLogo || '');
+      return {
+        type: 'Sports Teams',
+        title,
+        sub,
+        href: buildTeamDetailHref(row),
+        image,
+        landscape: false
+      };
+    });
+  }
+
   async function fetchAllSuggestions(query, signal) {
     const normalized = normalizeQuery(query);
     const cached = readCachedSuggestions(normalized);
     if (cached) return cached;
 
-    const [moviesTv, games, books, music, travel] = await Promise.all([
+    const [moviesTv, games, books, music, travel, sports] = await Promise.all([
       fetchMoviesAndTv(normalized, signal).catch(() => []),
       fetchGames(normalized, signal).catch(() => []),
       fetchBooks(normalized, signal).catch(() => []),
       fetchMusic(normalized, signal).catch(() => []),
-      fetchTravel(normalized, signal).catch(() => [])
+      fetchTravel(normalized, signal).catch(() => []),
+      fetchSports(normalized, signal).catch(() => [])
     ]);
 
-    const merged = sanitizeSuggestions([...moviesTv, ...games, ...books, ...music, ...travel]);
+    const merged = sanitizeSuggestions([...moviesTv, ...games, ...books, ...music, ...travel, ...sports]);
     writeCachedSuggestions(normalized, merged);
     return merged;
   }

@@ -120,6 +120,27 @@
   transition: filter 0.18s ease;
 }
 
+.zo2y-logo-face .zo2y-logo-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: opacity 0.18s ease;
+}
+
+.zo2y-logo-face .zo2y-logo-img.normal {
+  position: relative;
+  opacity: 1;
+}
+
+.zo2y-logo-face .zo2y-logo-img.scared {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+}
+
 .zo2y-logo-sprite .zo2y-logo-eye-white {
   position: absolute;
   width: calc(var(--eye-white-size) * 1%);
@@ -218,6 +239,33 @@
   transform: translateY(-50%);
 }
 
+.zo2y-logo-sprite .zo2y-logo-sweat {
+  position: absolute;
+  left: calc(var(--sweat-x, 72) * 1%);
+  top: calc(var(--sweat-y, 34) * 1%);
+  width: 10px;
+  height: 16px;
+  background: radial-gradient(circle at 30% 30%, #e0f2fe 0%, #7dd3fc 45%, #38bdf8 100%);
+  border-radius: 10px 10px 12px 12px;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.8);
+  z-index: 6;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 6px rgba(14, 116, 144, 0.35));
+}
+
+.zo2y-logo-sprite .zo2y-logo-sweat.sweat-1 {
+  --sweat-x: 72;
+  --sweat-y: 30;
+  --sweat-delay: 0ms;
+}
+
+.zo2y-logo-sprite .zo2y-logo-sweat.sweat-2 {
+  --sweat-x: 82;
+  --sweat-y: 42;
+  --sweat-delay: 120ms;
+}
+
 .zo2y-logo-anim.is-tongue .zo2y-logo-tongue {
   opacity: 1;
   transform: translateY(-50%) scaleX(1);
@@ -283,14 +331,55 @@
   100% { transform: translateY(-50%) scaleX(1); }
 }
 
+@keyframes zo2y-logo-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-1px, 1px) rotate(-1.6deg); }
+  40% { transform: translate(1px, -1px) rotate(1.4deg); }
+  60% { transform: translate(-1px, 0) rotate(-1deg); }
+  80% { transform: translate(1px, 1px) rotate(1.2deg); }
+}
+
+@keyframes zo2y-logo-sweat {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  20% { opacity: 0.9; transform: translate(-50%, -45%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, 60%) scale(0.6); }
+}
+
 .zo2y-logo-anim:hover,
 .zo2y-logo-anim:focus-within {
-  transform: rotate(-3deg) scale(1.05);
+  transform: none;
 }
 
 .zo2y-logo-anim:hover img,
 .zo2y-logo-anim:focus-within img {
   filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.28)) saturate(1.08);
+}
+
+.zo2y-logo-anim:hover .zo2y-logo-sprite,
+.zo2y-logo-anim:focus-within .zo2y-logo-sprite {
+  animation: zo2y-logo-shake 420ms ease-in-out infinite;
+}
+
+.zo2y-logo-anim:hover .zo2y-logo-img.normal,
+.zo2y-logo-anim:focus-within .zo2y-logo-img.normal {
+  opacity: 0;
+}
+
+.zo2y-logo-anim:hover .zo2y-logo-img.scared,
+.zo2y-logo-anim:focus-within .zo2y-logo-img.scared {
+  opacity: 1;
+}
+
+.zo2y-logo-anim:hover .zo2y-logo-sweat,
+.zo2y-logo-anim:focus-within .zo2y-logo-sweat {
+  animation: zo2y-logo-sweat 1.2s ease-in-out infinite;
+  animation-delay: var(--sweat-delay, 0ms);
+}
+
+.zo2y-logo-anim:hover .zo2y-logo-tongue,
+.zo2y-logo-anim:focus-within .zo2y-logo-tongue {
+  opacity: 1;
+  transform: translateY(-50%) scaleX(1);
 }
 
 .zo2y-shared-brand .zo2y-logo-anim {
@@ -349,6 +438,17 @@
   .zo2y-logo-anim:hover,
   .zo2y-logo-anim:focus-within {
     transform: none;
+  }
+
+  .zo2y-logo-anim:hover .zo2y-logo-sprite,
+  .zo2y-logo-anim:focus-within .zo2y-logo-sprite {
+    animation: none;
+  }
+
+  .zo2y-logo-anim:hover .zo2y-logo-sweat,
+  .zo2y-logo-anim:focus-within .zo2y-logo-sweat {
+    animation: none;
+    opacity: 0;
   }
 }
 

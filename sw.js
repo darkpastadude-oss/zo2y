@@ -1,7 +1,7 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v93';
-const PAGE_CACHE = 'zo2y-pages-v97';
-const IMAGE_CACHE = 'zo2y-images-v22';
-const API_CACHE = 'zo2y-api-v5';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v94';
+const PAGE_CACHE = 'zo2y-pages-v98';
+const IMAGE_CACHE = 'zo2y-images-v23';
+const API_CACHE = 'zo2y-api-v6';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
 
@@ -11,16 +11,16 @@ const STATIC_ASSETS = [
   '/credits.html',
   '/manifest.webmanifest',
   '/css/pages/index.css?v=20260314m',
-  '/css/shared-header.css?v=20260313m',
+  '/css/shared-header.css?v=20260315a',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260314g',
+  '/js/pages/index.js?v=20260315a',
   '/js/home-desktop-rebrand.js?v=20260311e',
-  '/js/shared-header.js?v=20260314a',
+  '/js/shared-header.js?v=20260315a',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
-  '/js/list-utils.js?v=20260314j',
+  '/js/list-utils.js?v=20260315a',
   '/js/index-list-menu-adapter.js?v=20260314d',
-  '/js/universal-search.js?v=20260311c',
+  '/js/universal-search.js?v=20260315a',
   '/js/auth-gate.js?v=20260308a',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
@@ -31,12 +31,13 @@ const STATIC_ASSETS = [
   '/favicon.ico',
   '/favicon.ico?v=20260307a',
   '/newlogo.webp',
+  '/scared.webp',
   '/file-blank.svg',
   '/file.svg',
   '/sports.html',
   '/sports-mobile.html',
-  '/css/pages/sports.css?v=20260314f',
-  '/js/pages/sports.js?v=20260314i',
+  '/css/pages/sports.css?v=20260315a',
+  '/js/pages/sports.js?v=20260315a',
   '/team.html',
   '/css/pages/team.css?v=20260314a',
   '/js/pages/team.js?v=20260314d',

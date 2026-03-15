@@ -1,7 +1,7 @@
 (() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260311c';
+  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260315a';
   const DESKTOP_RAIL_COLLAPSE_KEY = 'zo2y_desktop_rail_collapsed';
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
@@ -17,10 +17,12 @@
     <span class="zo2y-logo-pop">
       <span class="zo2y-logo-sprite">
         <span class="zo2y-logo-face zo2y-logo-face-top">
-          <img src="/newlogo.webp" alt="Zo2y logo" />
+          <img class="zo2y-logo-img normal" src="/newlogo.webp" alt="Zo2y logo" />
+          <img class="zo2y-logo-img scared" src="/scared.webp" alt="" aria-hidden="true" />
         </span>
         <span class="zo2y-logo-face zo2y-logo-face-bottom" aria-hidden="true">
-          <img src="/newlogo.webp" alt="" />
+          <img class="zo2y-logo-img normal" src="/newlogo.webp" alt="" />
+          <img class="zo2y-logo-img scared" src="/scared.webp" alt="" />
         </span>
         <span class="zo2y-logo-eye-white eye-left" aria-hidden="true"></span>
         <span class="zo2y-logo-eye-white eye-right" aria-hidden="true"></span>
@@ -29,6 +31,8 @@
         <span class="zo2y-logo-eye eye-left" aria-hidden="true"></span>
         <span class="zo2y-logo-eye eye-right" aria-hidden="true"></span>
         <span class="zo2y-logo-tongue" aria-hidden="true"></span>
+        <span class="zo2y-logo-sweat sweat-1" aria-hidden="true"></span>
+        <span class="zo2y-logo-sweat sweat-2" aria-hidden="true"></span>
       </span>
     </span>
   </span>

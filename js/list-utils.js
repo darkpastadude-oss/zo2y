@@ -76,6 +76,8 @@
   const TIER_RANK_TABLE = 'list_tier_ranks';
   const LIST_COLLAB_TABLE = 'list_collaborators';
   const NUMERIC_MEDIA_TYPES = new Set(['movie', 'tv', 'anime', 'game']);
+  const missingListTables = new Set();
+  const missingItemTables = new Set();
   const KNOWN_TIER_CREATE_MODAL_SELECTORS = [
     '#movieListsModal',
     '#tvListsModal',
@@ -810,6 +812,20 @@
     sync();
   }
 
+  function isListTableMissingError(error, tableName) {
+    const table = String(tableName || '').toLowerCase();
+    if (!table) return false;
+    const code = String(error?.code || '').trim();
+    const message = String(error?.message || '').toLowerCase();
+    const details = String(error?.details || '').toLowerCase();
+    if (code === '42P01') return true;
+    if (message.includes('does not exist') && message.includes(table)) return true;
+    if (details.includes('does not exist') && details.includes(table)) return true;
+    if (message.includes(`could not find the '${table}'`)) return true;
+    if (message.includes('could not find the table') && message.includes(table)) return true;
+    return false;
+  }
+
   function normalizeBookAuthors(value) {
     if (Array.isArray(value)) {
       const joined = value
@@ -976,11 +992,19 @@
       enhancedRpc = rpcLists.map((row) => hydratedById.get(String(row.id || '').trim()) || row);
     }
 
+    if (missingListTables.has(cfg.listTable)) {
+      return Array.isArray(enhancedRpc) && enhancedRpc.length ? enhancedRpc : [];
+    }
+
     const { data, error } = await client
       .from(cfg.listTable)
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
+    if (error && isListTableMissingError(error, cfg.listTable)) {
+      missingListTables.add(cfg.listTable);
+      return Array.isArray(enhancedRpc) && enhancedRpc.length ? enhancedRpc : [];
+    }
     const ownLists = error ? [] : (data || []);
     const ownById = new Set(ownLists.map((row) => String(row?.id || '').trim()).filter(Boolean));
 
@@ -990,11 +1014,15 @@
       .map((row) => String(row?.list_id || '').trim())
       .filter((id) => id && !ownById.has(id)))];
 
-    if (sharedIds.length) {
+    if (sharedIds.length && !missingListTables.has(cfg.listTable)) {
       const { data: rows, error: sharedError } = await client
         .from(cfg.listTable)
         .select('*')
         .in('id', sharedIds);
+      if (sharedError && isListTableMissingError(sharedError, cfg.listTable)) {
+        missingListTables.add(cfg.listTable);
+        return Array.isArray(enhancedRpc) && enhancedRpc.length ? enhancedRpc : [];
+      }
       if (!sharedError && Array.isArray(rows)) {
         const collabById = new Map();
         collaboratorRows.forEach((row) => {
@@ -1061,12 +1089,17 @@
     const cfg = getListConfig(type);
     const normalizedItemId = normalizeQueryableItemId(type, itemId);
     if (!cfg || !client || !listIds || !listIds.length || normalizedItemId === null) return new Set();
+    if (missingItemTables.has(cfg.itemsTable)) return new Set();
     let query = client
       .from(cfg.itemsTable)
       .select('list_id')
       .eq(cfg.itemIdField, normalizedItemId)
       .in('list_id', listIds);
-    const { data } = await query;
+    const { data, error } = await query;
+    if (error && isListTableMissingError(error, cfg.itemsTable)) {
+      missingItemTables.add(cfg.itemsTable);
+      return new Set();
+    }
     const set = new Set();
     (data || []).forEach(row => set.add(row.list_id));
     return set;
@@ -1076,6 +1109,7 @@
     const cfg = getListConfig(type);
     const normalizedItemId = normalizeQueryableItemId(type, itemId);
     if (!cfg || !client || normalizedItemId === null) return;
+    if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return;
     if (userId) setTierSyncContext(client, userId);
     if (type === 'book' && itemPayload) {
       const ok = await ensureBookRecord(client, itemPayload);
@@ -1086,24 +1120,32 @@
     }
     const listIds = Array.isArray(selectedListIds) ? selectedListIds : [...(selectedListIds || [])];
     const ownerMap = new Map();
-    if (listIds.length) {
-      const { data: ownerRows } = await client
+    if (listIds.length && !missingListTables.has(cfg.listTable)) {
+      const { data: ownerRows, error: ownerError } = await client
         .from(cfg.listTable)
         .select('id,user_id')
         .in('id', listIds);
+      if (ownerError && isListTableMissingError(ownerError, cfg.listTable)) {
+        missingListTables.add(cfg.listTable);
+        return;
+      }
       (ownerRows || []).forEach((row) => {
         const key = String(row?.id || '').trim();
         if (!key) return;
         ownerMap.set(key, String(row?.user_id || '').trim());
       });
     }
-    if (listIds.length) {
+    if (listIds.length && !missingItemTables.has(cfg.itemsTable)) {
       let del = client
         .from(cfg.itemsTable)
         .delete()
         .eq(cfg.itemIdField, normalizedItemId)
         .in('list_id', listIds);
-      await del;
+      const { error: deleteError } = await del;
+      if (deleteError && isListTableMissingError(deleteError, cfg.itemsTable)) {
+        missingItemTables.add(cfg.itemsTable);
+        return;
+      }
     }
     const inserts = listIds.map(listId => {
       const row = { list_id: listId };
@@ -1114,12 +1156,18 @@
       }
       return row;
     });
-    if (inserts.length) await client.from(cfg.itemsTable).insert(inserts);
+    if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
+      const { error: insertError } = await client.from(cfg.itemsTable).insert(inserts);
+      if (insertError && isListTableMissingError(insertError, cfg.itemsTable)) {
+        missingItemTables.add(cfg.itemsTable);
+      }
+    }
   }
 
   async function createCustomList(client, userId, type, payload) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return null;
+    if (missingListTables.has(cfg.listTable)) return null;
     setTierSyncContext(client, userId);
     const normalizedType = String(type || '').toLowerCase();
     const listKind = normalizeListKindValue(payload?.listKind, 'standard');
@@ -1149,6 +1197,10 @@
       .single();
 
     ({ data, error } = await insertOnce(insertPayload));
+    if (error && isListTableMissingError(error, cfg.listTable)) {
+      missingListTables.add(cfg.listTable);
+      return null;
+    }
     const message = String(error?.message || '').toLowerCase();
     const details = String(error?.details || '').toLowerCase();
     const missingListKindColumn = !!error && (
@@ -1170,6 +1222,7 @@
   async function renameCustomList(client, userId, type, listId, title) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId || !listId) return false;
+    if (missingListTables.has(cfg.listTable)) return false;
     setTierSyncContext(client, userId);
     const payload = { title };
     if (cfg.listTable === 'lists') payload.updated_at = new Date().toISOString();
@@ -1178,6 +1231,10 @@
       .update(payload)
       .eq('id', listId)
       .eq('user_id', userId);
+    if (error && isListTableMissingError(error, cfg.listTable)) {
+      missingListTables.add(cfg.listTable);
+      return false;
+    }
     return !error;
   }
 
