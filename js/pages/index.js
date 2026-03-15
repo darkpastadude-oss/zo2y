@@ -228,15 +228,32 @@
       { id: 'music', label: 'Music', kind: 'type', tags: ['music'] },
       { id: 'travel', label: 'Travel', kind: 'type', tags: ['travel'] },
       { id: 'sports', label: 'Sports', kind: 'type', tags: ['sports'] },
-      { id: 'horror', label: 'Horror', kind: 'tag', tags: ['horror'] },
-      { id: 'sci-fi', label: 'Sci-Fi', kind: 'tag', tags: ['sci-fi', 'scifi', 'science fiction'] },
-      { id: 'fantasy', label: 'Fantasy', kind: 'tag', tags: ['fantasy'] },
-      { id: 'romance', label: 'Romance', kind: 'tag', tags: ['romance'] },
-      { id: 'comedy', label: 'Comedy', kind: 'tag', tags: ['comedy'] },
       { id: 'action', label: 'Action', kind: 'tag', tags: ['action'] },
+      { id: 'adventure', label: 'Adventure', kind: 'tag', tags: ['adventure'] },
+      { id: 'animation', label: 'Animation', kind: 'tag', tags: ['animation', 'animated'] },
+      { id: 'comedy', label: 'Comedy', kind: 'tag', tags: ['comedy', 'funny'] },
+      { id: 'crime', label: 'Crime', kind: 'tag', tags: ['crime', 'true crime'] },
+      { id: 'documentary', label: 'Documentary', kind: 'tag', tags: ['documentary', 'doc'] },
+      { id: 'drama', label: 'Drama', kind: 'tag', tags: ['drama'] },
+      { id: 'family', label: 'Family', kind: 'tag', tags: ['family'] },
+      { id: 'fantasy', label: 'Fantasy', kind: 'tag', tags: ['fantasy'] },
+      { id: 'history', label: 'History', kind: 'tag', tags: ['history', 'historical'] },
+      { id: 'horror', label: 'Horror', kind: 'tag', tags: ['horror'] },
+      { id: 'mystery', label: 'Mystery', kind: 'tag', tags: ['mystery'] },
+      { id: 'romance', label: 'Romance', kind: 'tag', tags: ['romance', 'rom-com', 'romcom'] },
+      { id: 'sci-fi', label: 'Sci-Fi', kind: 'tag', tags: ['sci-fi', 'scifi', 'science fiction'] },
       { id: 'thriller', label: 'Thriller', kind: 'tag', tags: ['thriller'] },
+      { id: 'war', label: 'War', kind: 'tag', tags: ['war', 'military'] },
+      { id: 'western', label: 'Western', kind: 'tag', tags: ['western'] },
+      { id: 'musical', label: 'Musical', kind: 'tag', tags: ['music', 'musical'] },
+      { id: 'reality', label: 'Reality TV', kind: 'tag', tags: ['reality', 'unscripted'] },
       { id: 'soccer', label: 'Soccer', kind: 'tag', tags: ['soccer', 'football'] },
-      { id: 'basketball', label: 'Basketball', kind: 'tag', tags: ['basketball'] }
+      { id: 'basketball', label: 'Basketball', kind: 'tag', tags: ['basketball'] },
+      { id: 'boxing', label: 'Boxing', kind: 'tag', tags: ['boxing'] },
+      { id: 'mma', label: 'MMA', kind: 'tag', tags: ['mma', 'ufc'] },
+      { id: 'motorsport', label: 'Motorsport', kind: 'tag', tags: ['motorsport', 'formula 1', 'f1', 'racing'] },
+      { id: 'tennis', label: 'Tennis', kind: 'tag', tags: ['tennis'] },
+      { id: 'esports', label: 'Esports', kind: 'tag', tags: ['esports', 'e-sports', 'gaming'] }
     ];
 
     async function homeIgdbFetch(path, params = {}, signal) {
@@ -284,7 +301,8 @@
       username: '',
       types: new Set(),
       tags: new Set(),
-      status: 'idle'
+      usernameStatus: 'idle',
+      interestsStatus: 'idle'
     };
     let homeTasteWeights = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, 1]));
     let homeInterestProfile = { types: [], tags: [] };
@@ -4597,8 +4615,9 @@
       return map[key] || 'Pick';
     }
 
-    function buildHomeInterestOptionsMarkup() {
-      return HOME_INTEREST_OPTIONS.map((option) => `
+    function buildHomeInterestOptionsMarkup(kind = '') {
+      const filtered = HOME_INTEREST_OPTIONS.filter((option) => !kind || option.kind === kind);
+      return filtered.map((option) => `
         <button type="button" class="onboarding-chip" data-interest-id="${escapeHtml(option.id)}" data-interest-kind="${escapeHtml(option.kind)}">
           ${escapeHtml(option.label)}
         </button>
@@ -4705,23 +4724,57 @@
       if (!tags.length) return [];
       const type = String(mediaType || '').toLowerCase();
       const mapMovie = {
-        horror: 27,
-        'sci-fi': 878,
-        'science fiction': 878,
-        fantasy: 14,
-        romance: 10749,
-        comedy: 35,
         action: 28,
-        thriller: 53
+        adventure: 12,
+        animation: 16,
+        comedy: 35,
+        crime: 80,
+        documentary: 99,
+        drama: 18,
+        family: 10751,
+        fantasy: 14,
+        history: 36,
+        horror: 27,
+        music: 10402,
+        musical: 10402,
+        mystery: 9648,
+        romance: 10749,
+        'rom-com': 10749,
+        romcom: 10749,
+        'sci-fi': 878,
+        scifi: 878,
+        'science fiction': 878,
+        thriller: 53,
+        war: 10752,
+        western: 37,
+        'true crime': 80
       };
       const mapTv = {
-        horror: 9648,
-        fantasy: 10765,
-        'sci-fi': 10765,
-        'science fiction': 10765,
-        comedy: 35,
         action: 10759,
-        thriller: 9648
+        adventure: 10759,
+        animation: 16,
+        comedy: 35,
+        crime: 80,
+        documentary: 99,
+        drama: 18,
+        family: 10751,
+        fantasy: 10765,
+        history: 10768,
+        horror: 9648,
+        mystery: 9648,
+        romance: 18,
+        'rom-com': 35,
+        romcom: 35,
+        'sci-fi': 10765,
+        scifi: 10765,
+        'science fiction': 10765,
+        thriller: 9648,
+        war: 10768,
+        western: 37,
+        musical: 18,
+        music: 18,
+        reality: 10764,
+        'true crime': 80
       };
       const map = type === 'tv' ? mapTv : mapMovie;
       const ids = tags
@@ -4751,43 +4804,78 @@
       return [
         {
           id: 'welcome',
-          title: 'Welcome',
-          body: 'Quick tour: how to add places to lists, create your own lists, and connect with friends.',
+          title: 'Welcome to Zo2y',
+          body: 'A quick tour to personalize your feed, save to lists, and keep everything in one clean profile.',
           art: `
-            <div class="onboarding-hero">
-              <div class="onboarding-hero-badge"><i class="fas fa-star"></i> Fresh account</div>
-              <div class="onboarding-hero-row">
-                <img src="/file.svg" alt="Logo" class="onboarding-hero-logo">
-                <div class="onboarding-hero-cards">
-                  <span><i class="fas fa-clapperboard"></i> Anime Picks</span>
-                  <span><i class="fas fa-film"></i> Movies</span>
-                  <span><i class="fas fa-music"></i> Music</span>
-                </div>
-              </div>
+            <div class="onboarding-photo-grid">
+              <img src="/images/bake.jpg" alt="Dessert closeup" loading="lazy">
+              <img src="/images/diner.jpg" alt="Diner interior" loading="lazy">
+              <img src="/images/country.jpg" alt="Travel landscape" loading="lazy">
+              <img src="/images/stacked.jpg" alt="Stacked burgers" loading="lazy">
             </div>
+            <div class="onboarding-photo-caption">Save what you love across food, travel, movies, music, and more.</div>
           `,
           actionLabel: null,
           action: null
         },
         {
-          id: 'profile-setup',
+          id: 'username-setup',
           title: 'Claim Your Username',
-          body: 'Pick a unique @username and choose a few interests so your feed adapts from day one.',
+          body: 'Pick a unique @username. This is your profile link everywhere on Zo2y.',
           art: `
-            <div class="onboarding-form">
-              <label class="onboarding-label" for="homeOnboardingUsernameInput">Username</label>
-              <div class="onboarding-input-wrap">
-                <span class="onboarding-at">@</span>
-                <input id="homeOnboardingUsernameInput" class="onboarding-input" type="text" autocomplete="off" placeholder="your_name" />
+            <div class="onboarding-split">
+              <div class="onboarding-photo-card">
+                <div class="onboarding-photo-frame">
+                  <img src="/images/interiorabou.jpg" alt="Profile preview" loading="lazy">
+                </div>
+                <div class="onboarding-photo-meta">
+                  <span class="photo-label">Profile preview</span>
+                  <strong>@yourname</strong>
+                  <span>Your lists and reviews live here.</span>
+                </div>
               </div>
-              <div id="homeOnboardingUsernameStatus" class="onboarding-status">Choose a username to continue.</div>
-              <div class="onboarding-label">Pick your interests</div>
-              <div class="onboarding-chip-grid">
-                ${buildHomeInterestOptionsMarkup()}
+              <div class="onboarding-form">
+                <label class="onboarding-label" for="homeOnboardingUsernameInput">Username</label>
+                <div class="onboarding-input-wrap">
+                  <span class="onboarding-at">@</span>
+                  <input id="homeOnboardingUsernameInput" class="onboarding-input" type="text" autocomplete="off" placeholder="your_name" />
+                </div>
+                <div id="homeOnboardingUsernameStatus" class="onboarding-status">Choose a username to continue.</div>
               </div>
             </div>
           `,
-          nextLabel: 'Save & Continue',
+          nextLabel: 'Save Username',
+          requiresSave: true
+        },
+        {
+          id: 'interests-setup',
+          title: 'Tune Your Feed',
+          body: 'Choose formats and genres so the “For You” feed starts on the right note.',
+          art: `
+            <div class="onboarding-interest-layout">
+              <div class="onboarding-interest-photos">
+                <div class="onboarding-photo-grid compact">
+                  <img src="/images/pita.jpg" alt="Street food" loading="lazy">
+                  <img src="/images/crumbs.jpg" alt="Pastry closeup" loading="lazy">
+                  <img src="/images/country.jpg" alt="Scenic travel" loading="lazy">
+                  <img src="/images/brgr.jpg" alt="Burger" loading="lazy">
+                </div>
+                <div class="onboarding-photo-caption">Pick what you want more of. You can edit this later.</div>
+              </div>
+              <div class="onboarding-interest-panel">
+                <div class="onboarding-label">Formats</div>
+                <div class="onboarding-chip-grid">
+                  ${buildHomeInterestOptionsMarkup('type')}
+                </div>
+                <div class="onboarding-label">Genres & Vibes</div>
+                <div class="onboarding-chip-grid">
+                  ${buildHomeInterestOptionsMarkup('tag')}
+                </div>
+                <div id="homeOnboardingInterestStatus" class="onboarding-status">Pick at least one interest to continue.</div>
+              </div>
+            </div>
+          `,
+          nextLabel: 'Save Interests',
           requiresSave: true
         },
         {
@@ -4797,6 +4885,9 @@
           art: `
             <div class="onboarding-illustration">
               <div class="mini-card">
+                <div class="mini-photo">
+                  <img src="/images/brgr.jpg" alt="List demo" loading="lazy">
+                </div>
                 <div class="mini-card-head">
                   <span><i class="fas fa-clapperboard"></i> Spotlight Pick</span>
                   <i class="fas fa-ellipsis-v"></i>
@@ -4827,6 +4918,9 @@
           art: `
             <div class="onboarding-illustration">
               <div class="mini-card">
+                <div class="mini-photo">
+                  <img src="/images/pasta222.jpg" alt="Custom list demo" loading="lazy">
+                </div>
                 <div class="mini-input"><i class="fas fa-pen"></i> Date Night Spots</div>
                 <div class="mini-icons">
                   <span><i class="fas fa-heart"></i></span>
@@ -4855,6 +4949,9 @@
           art: `
             <div class="onboarding-illustration">
               <div class="mini-card">
+                <div class="mini-photo">
+                  <img src="/images/zo2y-search-illustration.png" alt="Profile overview" loading="lazy">
+                </div>
                 <div class="friend-row"><span><i class="fas fa-user-circle"></i> Your lists</span><span class="friend-pill">Open</span></div>
                 <div class="friend-row"><span><i class="fas fa-star"></i> Reviews</span><span class="friend-pill">View</span></div>
                 <div class="friend-row"><span><i class="fas fa-heart"></i> Favorites</span><span class="friend-pill">See all</span></div>
@@ -4889,8 +4986,11 @@
           }
           .home-onboarding-overlay.active { display: flex; }
           .home-onboarding-card {
-            width: min(680px, 96vw);
-            background: linear-gradient(180deg, rgba(19,35,71,0.98), rgba(10,24,54,0.98));
+            width: min(760px, 96vw);
+            background:
+              radial-gradient(circle at top left, rgba(245,158,11,0.18), transparent 45%),
+              radial-gradient(circle at 85% 20%, rgba(59,130,246,0.22), transparent 48%),
+              linear-gradient(180deg, rgba(15,30,61,0.98), rgba(8,18,42,0.98));
             border: 1px solid rgba(255,255,255,0.12);
             border-radius: 16px;
             box-shadow: 0 30px 80px rgba(0,0,0,0.45);
@@ -4924,6 +5024,90 @@
             font-size: 16px;
             line-height: 1.55;
             min-height: 56px;
+          }
+          .onboarding-photo-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+          }
+          .onboarding-photo-grid.compact {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+          .onboarding-photo-grid img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: 0 12px 26px rgba(0,0,0,0.35);
+          }
+          .onboarding-photo-caption {
+            margin-top: 10px;
+            font-size: 13px;
+            color: rgba(226,236,255,0.7);
+          }
+          .onboarding-split {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 16px;
+            align-items: stretch;
+          }
+          .onboarding-photo-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          }
+          .onboarding-photo-frame {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.15);
+          }
+          .onboarding-photo-frame img {
+            width: 100%;
+            height: 170px;
+            object-fit: cover;
+            display: block;
+          }
+          .onboarding-photo-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 13px;
+            color: rgba(226,236,255,0.78);
+          }
+          .onboarding-photo-meta strong {
+            font-size: 18px;
+            color: #fff;
+          }
+          .onboarding-photo-meta .photo-label {
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            font-size: 10px;
+            color: rgba(245,158,11,0.85);
+          }
+          .onboarding-interest-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+            gap: 18px;
+            align-items: start;
+          }
+          .onboarding-interest-panel {
+            background: rgba(10,20,40,0.65);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          }
+          .onboarding-interest-panel .onboarding-chip-grid {
+            max-height: 170px;
+            overflow-y: auto;
+            padding-right: 4px;
           }
           .onboarding-form {
             display: flex;
@@ -4983,9 +5167,9 @@
             border-color: rgba(255,255,255,0.3);
           }
           .onboarding-chip.selected {
-            background: rgba(245, 158, 11, 0.2);
-            border-color: rgba(245, 158, 11, 0.6);
-            color: #fef3c7;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(249, 115, 22, 0.35));
+            border-color: rgba(245, 158, 11, 0.75);
+            color: #fff7ed;
           }
           .home-onboarding-art {
             margin-top: 10px;
@@ -4993,7 +5177,7 @@
             border-radius: 14px;
             padding: 14px;
             background: linear-gradient(145deg, rgba(14,28,58,0.9), rgba(8,18,42,0.9));
-            min-height: 138px;
+            min-height: 160px;
           }
           .onboarding-hero-badge {
             display: inline-flex;
@@ -5043,6 +5227,16 @@
             border: 1px solid rgba(255,255,255,0.12);
             border-radius: 12px;
             padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+          }
+          .mini-photo img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.15);
           }
           .mini-card-head {
             display: flex;
@@ -5152,6 +5346,18 @@
           .home-onboarding-btn.primary:hover {
             filter: brightness(1.05);
           }
+          @media (max-width: 720px) {
+            .onboarding-photo-grid {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .onboarding-split,
+            .onboarding-interest-layout {
+              grid-template-columns: minmax(0, 1fr);
+            }
+            .onboarding-photo-frame img {
+              height: 150px;
+            }
+          }
         `;
         document.head.appendChild(style);
       }
@@ -5213,8 +5419,8 @@
       backBtn.style.opacity = safeIndex === 0 ? '0.5' : '1';
       nextBtn.textContent = step.nextLabel || (safeIndex === steps.length - 1 ? 'Finish' : 'Next');
       if (skipBtn) {
-        const needsProfile = steps.some((s) => s.id === 'profile-setup');
-        const canSkip = !needsProfile || homeOnboardingProfile.status === 'ok';
+        const needsUsername = steps.some((s) => s.id === 'username-setup');
+        const canSkip = !needsUsername || homeOnboardingProfile.usernameStatus === 'ok';
         skipBtn.style.display = canSkip ? 'inline-flex' : 'none';
         skipBtn.disabled = !canSkip;
       }
@@ -5233,8 +5439,10 @@
         progress.appendChild(dot);
       });
 
-      if (step.id === 'profile-setup') {
-        wireHomeOnboardingProfileStep();
+      if (step.id === 'username-setup') {
+        wireHomeOnboardingUsernameStep();
+      } else if (step.id === 'interests-setup') {
+        wireHomeOnboardingInterestsStep();
       }
     }
 
@@ -5255,7 +5463,8 @@
       if (!skipBtn || !backBtn || !nextBtn || !tryBtn) return;
 
       skipBtn.onclick = () => {
-        if (homeOnboardingProfile.status !== 'ok' && document.getElementById('homeOnboardingUsernameInput')) {
+        const needsUsername = steps.some((s) => s.id === 'username-setup');
+        if (needsUsername && homeOnboardingProfile.usernameStatus !== 'ok') {
           showHomeToast('Choose a username to continue.', true);
           return;
         }
@@ -5267,8 +5476,21 @@
       };
       nextBtn.onclick = () => {
         const current = steps[homeOnboardingIndex];
-        if (current?.id === 'profile-setup') {
-          void saveHomeOnboardingProfile().then((ok) => {
+        if (current?.id === 'username-setup') {
+          void saveHomeOnboardingUsername().then((ok) => {
+            if (!ok) return;
+            if (homeOnboardingIndex >= steps.length - 1) {
+              closeHomeOnboarding(true);
+              showHomeToast('Tour completed. You can start saving now.');
+              return;
+            }
+            homeOnboardingIndex += 1;
+            renderHomeOnboardingStep();
+          });
+          return;
+        }
+        if (current?.id === 'interests-setup') {
+          void saveHomeOnboardingInterests().then((ok) => {
             if (!ok) return;
             if (homeOnboardingIndex >= steps.length - 1) {
               closeHomeOnboarding(true);
@@ -5597,19 +5819,44 @@
       if (state === 'bad') status.classList.add('bad');
     }
 
+    function setHomeOnboardingInterestStatus(message, state = '') {
+      const status = document.getElementById('homeOnboardingInterestStatus');
+      if (!status) return;
+      status.textContent = message;
+      status.classList.remove('ok', 'bad');
+      if (state === 'ok') status.classList.add('ok');
+      if (state === 'bad') status.classList.add('bad');
+    }
+
+    function getActiveHomeOnboardingStep() {
+      const steps = getHomeOnboardingSteps();
+      const safeIndex = Math.max(0, Math.min(homeOnboardingIndex, steps.length - 1));
+      return steps[safeIndex];
+    }
+
     function updateHomeOnboardingNextState() {
       const nextBtn = document.getElementById('homeOnboardingNextBtn');
       if (!nextBtn) return;
-      if (homeOnboardingProfile.status === 'saving') {
-        nextBtn.disabled = true;
-        return;
-      }
-      if (homeOnboardingProfile.status === 'ok') {
+      const current = getActiveHomeOnboardingStep();
+      if (!current) {
         nextBtn.disabled = false;
         return;
       }
-      if (document.getElementById('homeOnboardingUsernameInput')) {
-        nextBtn.disabled = true;
+      if (current.id === 'username-setup') {
+        if (homeOnboardingProfile.usernameStatus === 'saving' || homeOnboardingProfile.usernameStatus === 'checking') {
+          nextBtn.disabled = true;
+          return;
+        }
+        nextBtn.disabled = homeOnboardingProfile.usernameStatus !== 'ok';
+        return;
+      }
+      if (current.id === 'interests-setup') {
+        if (homeOnboardingProfile.interestsStatus === 'saving') {
+          nextBtn.disabled = true;
+          return;
+        }
+        const count = homeOnboardingProfile.types.size + homeOnboardingProfile.tags.size;
+        nextBtn.disabled = count < 1;
         return;
       }
       nextBtn.disabled = false;
@@ -5631,40 +5878,73 @@
       const token = ++homeUsernameCheckToken;
       const normalized = normalizeProfileUsername(value);
       if (!isValidProfileUsername(normalized)) {
-        homeOnboardingProfile.status = 'bad';
+        homeOnboardingProfile.usernameStatus = 'bad';
         setHomeOnboardingUsernameStatus('Use 3-30 letters, numbers, or underscores.', 'bad');
         updateHomeOnboardingNextState();
         return false;
       }
       if (RESERVED_PROFILE_USERNAMES.has(normalized.replace(/_/g, ''))) {
-        homeOnboardingProfile.status = 'bad';
+        homeOnboardingProfile.usernameStatus = 'bad';
         setHomeOnboardingUsernameStatus('That username is reserved.', 'bad');
         updateHomeOnboardingNextState();
         return false;
       }
       setHomeOnboardingUsernameStatus('Checking availability…');
-      homeOnboardingProfile.status = 'checking';
+      homeOnboardingProfile.usernameStatus = 'checking';
       updateHomeOnboardingNextState();
       try {
         const available = await ensureHomeUsernameAvailable(normalized, homeCurrentUser?.id);
         if (token !== homeUsernameCheckToken) return false;
         homeOnboardingProfile.username = available;
-        homeOnboardingProfile.status = 'ok';
+        homeOnboardingProfile.usernameStatus = 'ok';
         setHomeOnboardingUsernameStatus('Username available.', 'ok');
         updateHomeOnboardingNextState();
         return true;
       } catch (err) {
         if (token !== homeUsernameCheckToken) return false;
-        homeOnboardingProfile.status = 'bad';
+        homeOnboardingProfile.usernameStatus = 'bad';
         setHomeOnboardingUsernameStatus(String(err?.message || 'Username unavailable.'), 'bad');
         updateHomeOnboardingNextState();
         return false;
       }
     }
 
-    function wireHomeOnboardingProfileStep() {
+    function seedHomeOnboardingInterests() {
+      if (!homeOnboardingProfile.types.size && !homeOnboardingProfile.tags.size) {
+        homeInterestProfile.types?.forEach((type) => homeOnboardingProfile.types.add(type));
+        homeInterestProfile.tags?.forEach((tag) => {
+          const optionMatch = HOME_INTEREST_OPTIONS.find((opt) => opt.kind === 'tag' && opt.tags?.includes(tag));
+          if (optionMatch) homeOnboardingProfile.tags.add(optionMatch.id);
+        });
+      }
+    }
+
+    function syncHomeOnboardingInterestChips(chips) {
+      chips.forEach((chip) => {
+        const id = chip.getAttribute('data-interest-id');
+        const kind = chip.getAttribute('data-interest-kind');
+        if (!id || !kind) return;
+        const selected = kind === 'type'
+          ? homeOnboardingProfile.types.has(id)
+          : homeOnboardingProfile.tags.has(id);
+        chip.classList.toggle('selected', selected);
+      });
+    }
+
+    function updateHomeOnboardingInterestStatus() {
+      const count = homeOnboardingProfile.types.size + homeOnboardingProfile.tags.size;
+      if (count > 0) {
+        homeOnboardingProfile.interestsStatus = 'ok';
+        setHomeOnboardingInterestStatus(`${count} selected`, 'ok');
+      } else {
+        homeOnboardingProfile.interestsStatus = 'bad';
+        setHomeOnboardingInterestStatus('Pick at least one interest to continue.', 'bad');
+      }
+      updateHomeOnboardingNextState();
+    }
+
+    function wireHomeOnboardingUsernameStep() {
       const input = document.getElementById('homeOnboardingUsernameInput');
-      const chips = Array.from(document.querySelectorAll('.onboarding-chip'));
       if (!input) return;
 
       if (!homeOnboardingProfile.username) {
@@ -5676,32 +5956,11 @@
         homeOnboardingProfile.username = normalizeProfileUsername(fallbackSeed);
       }
 
-      if (!homeOnboardingProfile.types.size && !homeOnboardingProfile.tags.size) {
-        homeInterestProfile.types?.forEach((type) => homeOnboardingProfile.types.add(type));
-        homeInterestProfile.tags?.forEach((tag) => {
-          const optionMatch = HOME_INTEREST_OPTIONS.find((opt) => opt.kind === 'tag' && opt.tags?.includes(tag));
-          if (optionMatch) homeOnboardingProfile.tags.add(optionMatch.id);
-        });
-      }
-
       input.value = homeOnboardingProfile.username || '';
       setHomeOnboardingUsernameStatus('Choose a username to continue.');
-      homeOnboardingProfile.status = 'idle';
+      homeOnboardingProfile.usernameStatus = 'idle';
       updateHomeOnboardingNextState();
       void checkHomeOnboardingUsername(input.value);
-
-      const syncChipSelection = () => {
-        chips.forEach((chip) => {
-          const id = chip.getAttribute('data-interest-id');
-          const kind = chip.getAttribute('data-interest-kind');
-          if (!id || !kind) return;
-          const selected = kind === 'type'
-            ? homeOnboardingProfile.types.has(id)
-            : homeOnboardingProfile.tags.has(id);
-          chip.classList.toggle('selected', selected);
-        });
-      };
-      syncChipSelection();
 
       input.addEventListener('input', () => {
         const value = input.value;
@@ -5715,6 +5974,14 @@
       input.addEventListener('blur', () => {
         void checkHomeOnboardingUsername(input.value);
       });
+    }
+
+    function wireHomeOnboardingInterestsStep() {
+      const chips = Array.from(document.querySelectorAll('.onboarding-chip'));
+      if (!chips.length) return;
+      seedHomeOnboardingInterests();
+      syncHomeOnboardingInterestChips(chips);
+      updateHomeOnboardingInterestStatus();
 
       chips.forEach((chip) => {
         chip.addEventListener('click', () => {
@@ -5734,19 +6001,21 @@
               homeOnboardingProfile.tags.add(id);
             }
           }
-          syncChipSelection();
+          syncHomeOnboardingInterestChips(chips);
+          updateHomeOnboardingInterestStatus();
         });
       });
     }
 
-    async function saveHomeOnboardingProfile() {
+    async function saveHomeOnboardingUsername() {
       if (!homeCurrentUser?.id) return false;
       const input = document.getElementById('homeOnboardingUsernameInput');
       const rawUsername = input ? input.value : homeOnboardingProfile.username;
-      homeOnboardingProfile.status = 'saving';
+      homeOnboardingProfile.usernameStatus = 'saving';
       updateHomeOnboardingNextState();
       try {
         const normalized = await ensureHomeUsernameAvailable(rawUsername, homeCurrentUser.id);
+        homeOnboardingProfile.username = normalized;
         const client = await ensureHomeSupabase();
         if (client) {
           const fullName = homeCurrentUser?.user_metadata?.full_name || homeCurrentUser?.user_metadata?.name || '';
@@ -5758,26 +6027,52 @@
           try {
             await client.auth.updateUser({ data: { username: normalized } });
           } catch (_err) {}
-          const { interestTypes, interestTags } = resolveOnboardingInterestSelection();
-          homeInterestProfile = { types: interestTypes, tags: interestTags };
-          try {
-            await client.from('user_interest_profiles').upsert({
-              user_id: homeCurrentUser.id,
-              interest_types: interestTypes,
-              interest_tags: interestTags,
-              updated_at: new Date().toISOString()
-            }, { onConflict: 'user_id' });
-          } catch (_err) {}
         }
-        homeOnboardingProfile.status = 'ok';
+        homeOnboardingProfile.usernameStatus = 'ok';
+        setHomeOnboardingUsernameStatus('Username saved.', 'ok');
         updateHomeOnboardingNextState();
-        showHomeToast('Profile updated. Feed tuned to your interests.');
+        showHomeToast('Username saved.');
+        return true;
+      } catch (err) {
+        homeOnboardingProfile.usernameStatus = 'bad';
+        setHomeOnboardingUsernameStatus(String(err?.message || 'Unable to save right now.'), 'bad');
+        updateHomeOnboardingNextState();
+        return false;
+      }
+    }
+
+    async function saveHomeOnboardingInterests() {
+      if (!homeCurrentUser?.id) return false;
+      const { interestTypes, interestTags } = resolveOnboardingInterestSelection();
+      if (!interestTypes.length && !interestTags.length) {
+        homeOnboardingProfile.interestsStatus = 'bad';
+        setHomeOnboardingInterestStatus('Pick at least one interest to continue.', 'bad');
+        updateHomeOnboardingNextState();
+        return false;
+      }
+      homeOnboardingProfile.interestsStatus = 'saving';
+      updateHomeOnboardingNextState();
+      try {
+        const client = await ensureHomeSupabase();
+        if (client) {
+          homeInterestProfile = { types: interestTypes, tags: interestTags };
+          await client.from('user_interest_profiles').upsert({
+            user_id: homeCurrentUser.id,
+            interest_types: interestTypes,
+            interest_tags: interestTags,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' });
+        }
+        homeOnboardingProfile.interestsStatus = 'ok';
+        setHomeOnboardingInterestStatus('Interests saved.', 'ok');
+        updateHomeOnboardingNextState();
+        showHomeToast('Interests saved. Feed tuned to you.');
         homeTasteWeights = await loadTasteWeights();
         void refreshHomePersonalization();
         return true;
       } catch (err) {
-        homeOnboardingProfile.status = 'bad';
-        setHomeOnboardingUsernameStatus(String(err?.message || 'Unable to save right now.'), 'bad');
+        homeOnboardingProfile.interestsStatus = 'bad';
+        setHomeOnboardingInterestStatus(String(err?.message || 'Unable to save right now.'), 'bad');
         updateHomeOnboardingNextState();
         return false;
       }
