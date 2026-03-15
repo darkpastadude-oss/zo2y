@@ -121,6 +121,7 @@
   // Initialize Supabase
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: {
+      flowType: 'pkce',
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: false  // Important: Don't auto-detect on signup page

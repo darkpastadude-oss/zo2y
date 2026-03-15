@@ -154,11 +154,13 @@
           if (window.__ZO2Y_SUPABASE_CLIENT) {
             client = window.__ZO2Y_SUPABASE_CLIENT;
           } else {
+            var detectSessionInUrl = pageKey !== 'auth-callback';
             client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
               auth: {
+                flowType: 'pkce',
                 persistSession: true,
                 autoRefreshToken: true,
-                detectSessionInUrl: true
+                detectSessionInUrl: detectSessionInUrl
               }
             });
             window.__ZO2Y_SUPABASE_CLIENT = client;
