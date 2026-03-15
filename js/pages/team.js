@@ -72,6 +72,51 @@
       .trim();
   }
 
+  function scoreTeamMatch(raw, criteria = {}) {
+    if (!raw || typeof raw !== 'object') return -1;
+    let score = 0;
+    const nameNeedle = normalizeTeamName(criteria.name || '');
+    const teamName = normalizeTeamName(raw.strTeam || '');
+    if (nameNeedle) {
+      if (teamName === nameNeedle) score += 6;
+      else if (teamName.includes(nameNeedle) || nameNeedle.includes(teamName)) score += 3;
+    }
+    const leagueNeedle = normalizeTeamName(criteria.league || '');
+    const teamLeague = normalizeTeamName(raw.strLeague || '');
+    if (leagueNeedle) {
+      if (teamLeague === leagueNeedle) score += 3;
+      else if (teamLeague.includes(leagueNeedle) || leagueNeedle.includes(teamLeague)) score += 1;
+    }
+    const sportNeedle = normalizeTeamName(criteria.sport || '');
+    const teamSport = normalizeTeamName(raw.strSport || '');
+    if (sportNeedle) {
+      if (teamSport === sportNeedle) score += 2;
+      else if (teamSport.includes(sportNeedle) || sportNeedle.includes(teamSport)) score += 1;
+    }
+    const countryNeedle = normalizeTeamName(criteria.country || '');
+    const teamCountry = normalizeTeamName(raw.strCountry || '');
+    if (countryNeedle) {
+      if (teamCountry === countryNeedle) score += 2;
+      else if (teamCountry.includes(countryNeedle) || countryNeedle.includes(teamCountry)) score += 1;
+    }
+    return score;
+  }
+
+  function pickBestTeamMatch(teams, criteria) {
+    const list = Array.isArray(teams) ? teams : [];
+    if (!list.length) return null;
+    let best = list[0];
+    let bestScore = scoreTeamMatch(best, criteria);
+    list.slice(1).forEach((team) => {
+      const score = scoreTeamMatch(team, criteria);
+      if (score > bestScore) {
+        best = team;
+        bestScore = score;
+      }
+    });
+    return best;
+  }
+
   function showToast(message, type = 'info') {
     if (!ui.toast) return;
     ui.toast.textContent = message;
@@ -414,25 +459,42 @@
     const teamIdRaw = params.get('id');
     const teamId = /^\d+$/.test(String(teamIdRaw || '').trim()) ? String(teamIdRaw || '').trim() : '';
     const teamName = params.get('team');
+    const teamLeague = params.get('league');
+    const teamSport = params.get('sport');
+    const teamCountry = params.get('country');
+    const criteria = {
+      name: teamName,
+      league: teamLeague,
+      sport: teamSport,
+      country: teamCountry
+    };
     let teamRaw = null;
 
     if (teamId) {
       const payload = await fetchSportsDb('lookupteam.php', { id: teamId });
       teamRaw = Array.isArray(payload?.teams) ? payload.teams[0] : null;
+      if (teamRaw && teamName) {
+        const queryName = normalizeTeamName(teamName);
+        const resultName = normalizeTeamName(teamRaw?.strTeam || '');
+        if (queryName && resultName && queryName !== resultName) {
+          const fallback = await fetchSportsDb('searchteams.php', { t: teamName });
+          const teams = Array.isArray(fallback?.teams) ? fallback.teams : [];
+          const best = pickBestTeamMatch(teams, criteria);
+          if (best) teamRaw = best;
+        }
+      }
       if (!teamRaw && teamName) {
         const fallback = await fetchSportsDb('searchteams.php', { t: teamName });
         const teams = Array.isArray(fallback?.teams) ? fallback.teams : [];
         if (teams.length) {
-          const normalized = normalizeTeamName(teamName);
-          teamRaw = teams.find((entry) => normalizeTeamName(entry?.strTeam) === normalized) || teams[0];
+          teamRaw = pickBestTeamMatch(teams, criteria) || teams[0];
         }
       }
     } else if (teamName) {
       const payload = await fetchSportsDb('searchteams.php', { t: teamName });
       const teams = Array.isArray(payload?.teams) ? payload.teams : [];
       if (teams.length) {
-        const normalized = normalizeTeamName(teamName);
-        teamRaw = teams.find((entry) => normalizeTeamName(entry?.strTeam) === normalized) || teams[0];
+        teamRaw = pickBestTeamMatch(teams, criteria) || teams[0];
       }
     }
 

@@ -7,6 +7,7 @@
     const HOME_ACTIVE_MEDIA_TYPES = ENABLE_RESTAURANTS
       ? ['restaurant', ...HOME_BASE_MEDIA_TYPES]
       : HOME_BASE_MEDIA_TYPES;
+    const HOME_LIST_MEDIA_TYPES = HOME_ACTIVE_MEDIA_TYPES.filter((type) => type !== 'sports' || window.ZO2Y_SPORTS_LISTS === true);
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
     const IGDB_PROXY_BASE = '/api/igdb';
@@ -94,6 +95,25 @@
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v2';
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
+    const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v1';
+    const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
+    const HOME_TRAVEL_FALLBACK_IMAGE = '/images/country.jpg';
+    const HOME_TRAVEL_FALLBACKS = [
+      { code: 'US', name: 'United States', capital: 'Washington, D.C.', region: 'North America', subregion: 'Northern America' },
+      { code: 'GB', name: 'United Kingdom', capital: 'London', region: 'Europe', subregion: 'Northern Europe' },
+      { code: 'FR', name: 'France', capital: 'Paris', region: 'Europe', subregion: 'Western Europe' },
+      { code: 'IT', name: 'Italy', capital: 'Rome', region: 'Europe', subregion: 'Southern Europe' },
+      { code: 'JP', name: 'Japan', capital: 'Tokyo', region: 'Asia', subregion: 'Eastern Asia' },
+      { code: 'EG', name: 'Egypt', capital: 'Cairo', region: 'Africa', subregion: 'Northern Africa' },
+      { code: 'SA', name: 'Saudi Arabia', capital: 'Riyadh', region: 'Asia', subregion: 'Western Asia' },
+      { code: 'AE', name: 'United Arab Emirates', capital: 'Abu Dhabi', region: 'Asia', subregion: 'Western Asia' },
+      { code: 'BR', name: 'Brazil', capital: 'Brasilia', region: 'South America', subregion: 'South America' },
+      { code: 'MX', name: 'Mexico', capital: 'Mexico City', region: 'North America', subregion: 'Central America' },
+      { code: 'AU', name: 'Australia', capital: 'Canberra', region: 'Oceania', subregion: 'Australia and New Zealand' },
+      { code: 'ZA', name: 'South Africa', capital: 'Pretoria', region: 'Africa', subregion: 'Southern Africa' }
+    ];
+    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v1';
+    const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
@@ -181,6 +201,9 @@
     ];
 
     async function homeIgdbFetch(path, params = {}, signal) {
+      if (GAMES_DISABLED) {
+        return { results: [] };
+      }
       const requestParams = { ...(params || {}) };
       if (requestParams.search) delete requestParams.ordering;
       if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
@@ -204,7 +227,10 @@
     }
 
     function isHomeLandingMode() {
-      return document.documentElement?.dataset?.authShell === 'landing';
+      const authShell = document.documentElement?.dataset?.authShell || document.body?.dataset?.authShell || '';
+      if (authShell) return authShell === 'landing';
+      const authed = document.documentElement?.dataset?.authenticated === '1' || document.body?.dataset?.authenticated === '1';
+      return !!document.getElementById('homeLandingPage') && !authed;
     }
     let homeSupabaseClient = null;
     let homeCurrentUser = null;
@@ -384,6 +410,16 @@ let homeTravelPhotoCacheSaveTimer = null;
       return '';
     }
 
+    function getHomeCountryFlagByCode(codeRaw) {
+      const code = String(codeRaw || '').trim().toUpperCase();
+      if (!code) return '';
+      if (homeCountryIndex.byCode.has(code)) return homeCountryIndex.byCode.get(code);
+      if (code.length === 2) {
+        return `https://flagcdn.com/w160/${code.toLowerCase()}.png`;
+      }
+      return '';
+    }
+
     function canonicalTravelCountryCode(value) {
       const raw = String(value || '').trim().toUpperCase();
       if (raw === 'IL') return 'PS';
@@ -442,6 +478,47 @@ let homeTravelPhotoCacheSaveTimer = null;
       return normalizeHomeTravelPhotoEntry(homeTravelPhotoCache.get(code));
     }
 
+    function getHomeTravelFallbackItems(limit = getHomeChannelTargetItems()) {
+      const maxCount = Math.max(1, Number(limit || getHomeChannelTargetItems()));
+      const items = HOME_TRAVEL_FALLBACKS.map((entry) => {
+        const code = String(entry?.code || '').trim().toUpperCase();
+        const title = String(entry?.name || '').trim();
+        if (!code || !title) return null;
+        const capital = String(entry?.capital || '').trim();
+        const region = String(entry?.region || '').trim();
+        const subregion = String(entry?.subregion || '').trim();
+        const flagImage = getHomeCountryFlagByCode(code) || `https://flagcdn.com/w160/${code.toLowerCase()}.png`;
+        const background = HOME_TRAVEL_FALLBACK_IMAGE;
+        const subtitle = [
+          capital ? `Capital: ${capital}` : '',
+          region
+        ].filter(Boolean).join(' | ') || 'Country';
+        return {
+          mediaType: 'travel',
+          itemId: code,
+          title,
+          subtitle,
+          extra: subregion || region || 'Travel',
+          cities: [],
+          flagImage,
+          listImage: background,
+          image: background,
+          backgroundImage: background,
+          spotlightImage: background,
+          spotlightMediaImage: flagImage,
+          spotlightMediaFit: 'contain',
+          spotlightMediaPosition: 'center center',
+          spotlightMediaShape: 'square',
+          travelPhotos: [],
+          travelPhotoSet: { scenic: background, city: '', nature: '' },
+          travelNeedsScenicHydration: false,
+          fallbackImage: background,
+          href: `country.html?code=${encodeURIComponent(code)}`
+        };
+      }).filter(Boolean);
+      return items.slice(0, maxCount);
+    }
+
     function readHomeTravelPhotoCacheFromStorage() {
       try {
         const raw = localStorage.getItem(HOME_TRAVEL_PHOTO_CACHE_KEY);
@@ -494,6 +571,33 @@ let homeTravelPhotoCacheSaveTimer = null;
       scheduleHomeTravelPhotoCacheSave();
     }
 
+    function readHomeItemsCache(storageKey, maxAgeMs, sanitizer) {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed?.savedAt || 0);
+        const items = Array.isArray(parsed?.items) ? parsed.items : [];
+        if (!savedAt || !items.length) return [];
+        if (Number.isFinite(maxAgeMs) && maxAgeMs > 0 && (Date.now() - savedAt) > maxAgeMs) return [];
+        const cleaned = typeof sanitizer === 'function' ? items.map((item) => sanitizer(item)).filter(Boolean) : items;
+        return Array.isArray(cleaned) ? cleaned : [];
+      } catch (_err) {
+        return [];
+      }
+    }
+
+    function writeHomeItemsCache(storageKey, items) {
+      try {
+        const list = Array.isArray(items) ? items.filter(Boolean) : [];
+        if (!list.length) return;
+        localStorage.setItem(storageKey, JSON.stringify({
+          savedAt: Date.now(),
+          items: list
+        }));
+      } catch (_err) {}
+    }
+
     function getSafeTravelScenicImage(_title, codeRaw, preferredUrl = '') {
       const code = canonicalTravelCountryCode(codeRaw);
       const preferred = toHttpsUrl(String(preferredUrl || '').trim());
@@ -502,6 +606,7 @@ let homeTravelPhotoCacheSaveTimer = null;
       if (cached.scenic) return cached.scenic;
       if (cached.city) return cached.city;
       if (cached.nature) return cached.nature;
+      if (isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE)) return HOME_TRAVEL_FALLBACK_IMAGE;
       return '';
     }
 
@@ -524,6 +629,8 @@ let homeTravelPhotoCacheSaveTimer = null;
       const rawImage = toHttpsUrl(String(item.image || '').trim());
       const rawBackground = toHttpsUrl(String(item.backgroundImage || '').trim());
       const rawSpotlight = toHttpsUrl(String(item.spotlightImage || '').trim());
+      const rawFlag = toHttpsUrl(String(item.flagImage || item.flag || item.flags?.png || item.flags?.svg || '').trim());
+      const flagImage = rawFlag || getHomeCountryFlagByCode(code) || getHomeCountryFlag(title) || '';
       const scenicImage = getSafeTravelScenicImage(title, code, rawImage || rawBackground || rawSpotlight);
       const hasScenic = isUsableHomeTravelScenicUrl(scenicImage);
       if (!hasScenic) return null;
@@ -535,13 +642,13 @@ let homeTravelPhotoCacheSaveTimer = null;
         ...item,
         mediaType: 'travel',
         itemId: code || String(item.itemId || '').trim(),
-        flagImage: '',
+        flagImage,
         listImage: heroImage,
         image: heroImage,
         backgroundImage: heroImage || '',
         spotlightImage: getSafeTravelScenicImage(title, code, rawSpotlight || scenicImage) || heroImage,
-        spotlightMediaImage: heroImage,
-        spotlightMediaFit: 'cover',
+        spotlightMediaImage: flagImage || heroImage,
+        spotlightMediaFit: flagImage ? 'contain' : 'cover',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
         travelPhotos,
@@ -782,7 +889,7 @@ let homeTravelPhotoCacheSaveTimer = null;
 
     function supportsHomeLists(mediaType) {
       const type = String(mediaType || '').toLowerCase();
-      return HOME_ACTIVE_MEDIA_TYPES.includes(type);
+      return HOME_LIST_MEDIA_TYPES.includes(type);
     }
 
     function getMediaListConfig(mediaType) {
@@ -987,9 +1094,10 @@ let homeTravelPhotoCacheSaveTimer = null;
           ? String(item.spotlightImage || item.backgroundImage || '').trim()
           : String(item.spotlightImage || item.backgroundImage || item.image || '').trim());
       const spotlightBackground = getHomeSpotlightBackgroundByType(mediaTypeKey) || fallbackSpotlightBackground;
-      let spotlightMediaImage = String(item.spotlightMediaImage || item.flagImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
+      const travelFlagImage = String(item.flagImage || '').trim();
+      let spotlightMediaImage = String(item.spotlightMediaImage || travelFlagImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
       if (isTravelSpotlight) {
-        spotlightMediaImage = travelScenicImage || spotlightMediaImage;
+        spotlightMediaImage = travelFlagImage || spotlightMediaImage || travelScenicImage;
       }
       const spotlightBackgroundPosition = String(item.spotlightBackgroundPosition || item.backgroundPosition || '').trim() || 'center 28%';
       const spotlightMediaPosition = String(item.spotlightMediaPosition || item.imagePosition || '').trim();
@@ -998,6 +1106,9 @@ let homeTravelPhotoCacheSaveTimer = null;
       if (String(item.mediaType || '').toLowerCase() === 'music') {
         spotlightMediaFit = 'contain';
         spotlightMediaShape = 'poster';
+      } else if (isTravelSpotlight && travelFlagImage) {
+        spotlightMediaFit = 'contain';
+        spotlightMediaShape = 'square';
       }
       const usesSquareMedia = spotlightMediaShape === 'square';
       const usesLandscapeMedia = spotlightMediaShape === 'landscape';
@@ -3689,6 +3800,9 @@ let homeTravelPhotoCacheSaveTimer = null;
       const fallbackImage = '';
       const targetCount = getHomeChannelTargetItems();
       const instantTravelItems = getCachedHomeTravelItems(targetCount);
+      const fallbackTravelItems = instantTravelItems.length
+        ? instantTravelItems
+        : getHomeTravelFallbackItems(targetCount);
       const makeSeedItems = (mediaType, titles, href) => titles.map((title, index) => ({
         mediaType,
         itemId: `seed-${mediaType}-${index + 1}`,
@@ -3732,7 +3846,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         } : {}),
         music: makeSeedItems('music', ['Global Hits', 'Viral Tracks', 'Fresh Releases', 'Chill Vibes', 'Late Night Mix'], 'music.html'),
         book: makeSeedItems('book', ['Bestselling Books', 'Popular Fiction', 'Book Club Picks', 'Page-Turners', 'Must Read Stories'], 'books.html'),
-        travel: instantTravelItems,
+        travel: fallbackTravelItems,
         sports: makeSeedItems('sports', ['Top Teams', 'Fan Favorites', 'Legendary Clubs', 'Home Stadiums', 'Rivalry Picks'], 'sports.html')
       };
     }
@@ -5911,6 +6025,10 @@ let homeTravelPhotoCacheSaveTimer = null;
       const region = String(row?.region || '').trim();
       const subregion = String(row?.subregion || '').trim();
       const cities = pickHomeCountryCities(code, capital);
+      const flagImage = toHttpsUrl(String(row?.flags?.png || row?.flags?.svg || '').trim())
+        || getHomeCountryFlagByCode(code)
+        || getHomeCountryFlag(title)
+        || '';
       const subtitle = [
         capital ? `Capital: ${capital}` : '',
         region
@@ -5934,13 +6052,13 @@ let homeTravelPhotoCacheSaveTimer = null;
         subtitle,
         extra: extraParts.join(' | ') || 'Travel',
         cities,
-        flagImage: '',
+        flagImage,
         listImage: heroImage,
         image: heroImage,
         backgroundImage: heroImage || '',
         spotlightImage: heroImage || '',
-        spotlightMediaImage: heroImage,
-        spotlightMediaFit: 'cover',
+        spotlightMediaImage: flagImage || heroImage,
+        spotlightMediaFit: flagImage ? 'contain' : 'cover',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
         travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
@@ -5966,6 +6084,10 @@ let homeTravelPhotoCacheSaveTimer = null;
       const cities = Array.isArray(row?.cities)
         ? row.cities.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3)
         : pickHomeCountryCities(code, capital);
+      const flagImage = toHttpsUrl(String(row?.flag || row?.flagImage || '').trim())
+        || getHomeCountryFlagByCode(code)
+        || getHomeCountryFlag(title)
+        || '';
       const subtitle = [
         capital ? `Capital: ${capital}` : '',
         region
@@ -5988,13 +6110,13 @@ let homeTravelPhotoCacheSaveTimer = null;
         subtitle,
         extra: extraParts.join(' | ') || 'Travel',
         cities,
-        flagImage: '',
+        flagImage,
         listImage: heroImage,
         image: heroImage,
         backgroundImage: heroImage || '',
         spotlightImage: heroImage || '',
-        spotlightMediaImage: heroImage,
-        spotlightMediaFit: 'cover',
+        spotlightMediaImage: flagImage || heroImage,
+        spotlightMediaFit: flagImage ? 'contain' : 'cover',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
         travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
@@ -6027,6 +6149,19 @@ let homeTravelPhotoCacheSaveTimer = null;
     async function loadTravel(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
       const cachedRowItems = getCachedHomeTravelItems(targetCount);
+      const cachedHomeItems = readHomeItemsCache(
+        HOME_TRAVEL_ITEMS_CACHE_KEY,
+        HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS,
+        sanitizeHomeTravelItem
+      );
+
+      if (cachedHomeItems.length) {
+        return cachedHomeItems.slice(0, targetCount);
+      }
+
+      if (cachedRowItems.length) {
+        return cachedRowItems.slice(0, targetCount);
+      }
 
       try {
         const payload = await fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
@@ -6075,22 +6210,34 @@ let homeTravelPhotoCacheSaveTimer = null;
 
         const cachedCandidates = collectTravelItems(homeTravelPhotoCache).slice(0, targetCount);
         if (cachedCandidates.length >= Math.min(targetCount, 6)) {
+          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, cachedCandidates);
           return cachedCandidates;
         }
 
-        const photoMap = await fetchTravelCommonsPhotos(
-          sortedRows.slice(0, Math.max(targetCount * 6, 140)),
-          signal,
-          { includeLifestyle: !isHomeSlowNetwork() }
+        const photoCandidates = sortedRows.slice(0, Math.max(targetCount * 3, 60));
+        const photoMap = await withTimeout(
+          fetchTravelCommonsPhotos(
+            photoCandidates,
+            signal,
+            { includeLifestyle: !isHomeSlowNetwork() }
+          ),
+          isHomeSlowNetwork() ? 2200 : 3600,
+          homeTravelPhotoCache
         ).catch(() => homeTravelPhotoCache);
 
         const hydrated = collectTravelItems(photoMap).slice(0, targetCount);
-        if (hydrated.length) return hydrated;
-        if (cachedCandidates.length) return cachedCandidates;
+        if (hydrated.length) {
+          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, hydrated);
+          return hydrated;
+        }
+        if (cachedCandidates.length) {
+          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, cachedCandidates);
+          return cachedCandidates;
+        }
         if (cachedRowItems.length) return cachedRowItems;
       } catch (_err) {}
 
-      return cachedRowItems;
+      return cachedRowItems.length ? cachedRowItems : getHomeTravelFallbackItems(targetCount);
     }
 
     function mapSportsTeamToHomeItem(team) {
@@ -6111,17 +6258,19 @@ let homeTravelPhotoCacheSaveTimer = null;
       const stadiumImage = toHttpsUrl(team.strStadiumThumb || '');
       const jersey = toHttpsUrl(team.strEquipment || team.strTeamJersey || '');
       const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
-      const posterImage = fanart || stadiumImage || banner || fallbackImage;
-      const background = posterImage || fallbackImage;
-      const image = posterImage;
-      if (!image) return null;
+      if (!badge) return null;
+      const background = fanart || stadiumImage || banner || badge || fallbackImage;
+      const image = badge;
       const subtitle = [league, sport].filter(Boolean).join(' | ') || 'Team';
       const flagImage = getHomeCountryFlag(country);
-      const spotlightMedia = flagImage || badge || jersey || background;
-      const spotlightMediaFit = flagImage || badge || jersey ? 'contain' : 'cover';
+      const spotlightMedia = badge || flagImage || jersey || background;
+      const spotlightMediaFit = (badge || flagImage || jersey) ? 'contain' : 'cover';
       const params = new URLSearchParams();
       if (id) params.set('id', id);
       if (title) params.set('team', title);
+      if (league) params.set('league', league);
+      if (sport) params.set('sport', sport);
+      if (country) params.set('country', country);
       const query = params.toString();
       const href = query ? `team.html?${query}` : 'team.html';
       return {
@@ -6132,7 +6281,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         extra: stadium ? `Stadium: ${stadium}` : '',
         image,
         listImage: badge || flagImage || image,
-        mediaFit: 'cover',
+        mediaFit: 'contain',
         backgroundImage: background,
         spotlightImage: background,
         spotlightMediaImage: spotlightMedia,
@@ -6154,27 +6303,39 @@ let homeTravelPhotoCacheSaveTimer = null;
 
     async function loadSports(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
-      const seedTeams = shuffleArray([...HOME_SPORTS_SEEDS]);
+      const cachedItems = readHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS)
+        .filter((item) => item && item.image);
+      if (cachedItems.length) return cachedItems.slice(0, targetCount);
+
+      const seedTeams = shuffleArray([...HOME_SPORTS_SEEDS]).slice(0, Math.max(targetCount, 12));
       const items = [];
       const seen = new Set();
-      await ensureHomeCountryIndex(signal);
+      void ensureHomeCountryIndex(signal);
 
-      for (const seed of seedTeams) {
-        if (items.length >= targetCount || signal?.aborted) break;
-        const payload = await fetchSportsDb('searchteams.php', { t: seed }, { signal });
+      const requests = seedTeams.map((seed) => fetchSportsDb('searchteams.php', { t: seed }, { signal, timeoutMs: 5200 }));
+      const responses = await Promise.allSettled(requests);
+      responses.forEach((result) => {
+        if (items.length >= targetCount) return;
+        if (!result || result.status !== 'fulfilled') return;
+        const payload = result.value;
         const teams = Array.isArray(payload?.teams) ? payload.teams : [];
-        for (const team of teams) {
-          if (items.length >= targetCount) break;
+        teams.forEach((team) => {
+          if (items.length >= targetCount) return;
           const item = mapSportsTeamToHomeItem(team);
-          if (!item) continue;
+          if (!item) return;
           const key = String(item.itemId || item.title || '').toLowerCase();
-          if (!key || seen.has(key)) continue;
+          if (!key || seen.has(key)) return;
           seen.add(key);
           items.push(item);
-        }
+        });
+      });
+
+      if (items.length) {
+        writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
+        return items;
       }
 
-      return items;
+      return cachedItems.slice(0, targetCount);
     }
 
     async function initUniversalHome() {

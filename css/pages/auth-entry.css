@@ -106,6 +106,14 @@ body[data-auth-variant="signup"] .auth-entry-showcase {
   gap: 12px;
 }
 
+.auth-panel-topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 .auth-entry-home,
 .auth-entry-wordmark,
 .auth-panel-brand {
@@ -619,6 +627,14 @@ body[data-auth-variant="signup"] .auth-showcase-card {
     min-height: calc(100vh - 14px);
     margin: 7px auto;
     border-radius: 18px;
+  }
+
+  .auth-entry-showcase {
+    display: none;
+  }
+
+  .auth-panel-topbar {
+    display: flex;
   }
 
   .auth-entry-showcase {

@@ -17,10 +17,10 @@
     <span class="zo2y-logo-pop">
       <span class="zo2y-logo-sprite">
         <span class="zo2y-logo-face zo2y-logo-face-top">
-          <img src="/file.svg" alt="Logo" />
+          <img src="/newlogo.webp" alt="Zo2y logo" />
         </span>
         <span class="zo2y-logo-face zo2y-logo-face-bottom" aria-hidden="true">
-          <img src="/file.svg" alt="" />
+          <img src="/newlogo.webp" alt="" />
         </span>
         <span class="zo2y-logo-eye-white eye-left" aria-hidden="true"></span>
         <span class="zo2y-logo-eye-white eye-right" aria-hidden="true"></span>
@@ -237,6 +237,27 @@ const HEADER_HTML = `
   function isHeaderSuppressedPage(pathname) {
     const file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
     return file === 'login.html' || file === 'sign-up.html' || file === 'signup.html' || file === 'update-password.html';
+  }
+
+  function isLandingShell() {
+    const authShell = document.documentElement?.dataset?.authShell || document.body?.dataset?.authShell || '';
+    if (authShell) return authShell === 'landing';
+    const landingNode = document.getElementById('homeLandingPage');
+    const authed = document.documentElement?.dataset?.authenticated === '1' || document.body?.dataset?.authenticated === '1';
+    return !!landingNode && !authed;
+  }
+
+  function teardownSharedHeader() {
+    document.querySelectorAll('[data-shared-header="1"]').forEach((el) => el.remove());
+    const desktopRail = document.getElementById('zo2yDesktopRail');
+    if (desktopRail) desktopRail.remove();
+    const mobileDrawer = document.getElementById('zo2yMobileDrawer');
+    if (mobileDrawer) mobileDrawer.remove();
+    const mobileBackdrop = document.getElementById('zo2yMobileDrawerBackdrop');
+    if (mobileBackdrop) mobileBackdrop.remove();
+    if (document.body) {
+      document.body.classList.remove('zo2y-desktop-rail-layout', 'zo2y-mobile-header-fixed');
+    }
   }
 
   function mountSharedHeader() {
@@ -730,6 +751,10 @@ const HEADER_HTML = `
 
   function boot() {
     if (isHeaderSuppressedPage(window.location.pathname)) return;
+    if (isLandingShell()) {
+      teardownSharedHeader();
+      return;
+    }
     mountSharedHeader();
     wireLogoAnim();
     const applyMobileHeaderState = () => {

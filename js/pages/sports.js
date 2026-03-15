@@ -6,33 +6,55 @@
   const SPORTSDB_DIRECT_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_DIRECT_KEY}`;
   const FALLBACK_IMAGE = '/newlogo.webp';
   const FALLBACK_BADGE = '/file.svg';
+  const SPORTS_LISTS_ENABLED = window.ZO2Y_SPORTS_LISTS === true;
+  const SPORTS_FEATURED_CACHE_KEY = 'zo2y_sports_featured_cache_v1';
+  const SPORTS_FEATURED_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
   const FALLBACK_LEAGUES = [
     'English Premier League',
     'Spanish La Liga',
     'Italian Serie A',
     'German Bundesliga',
     'French Ligue 1',
+    'UEFA Champions League',
+    'UEFA Europa League',
+    'UEFA Europa Conference League',
+    'CAF Champions League',
+    'AFC Champions League',
     'Major League Soccer',
+    'NWSL',
     'Portuguese Primeira Liga',
     'Dutch Eredivisie',
     'Scottish Premiership',
     'Turkish Super Lig',
+    'Belgian Pro League',
+    'Greek Super League',
     'Brazilian Serie A',
     'Argentine Primera Division',
     'Liga MX',
     'Egyptian Premier League',
     'Saudi Pro League',
+    'Saudi Professional League',
+    'Roshn Saudi League',
+    'UAE Pro League',
+    'Qatar Stars League',
     'Indian Super League',
     'J1 League',
     'K League 1',
     'NBA',
+    'WNBA',
     'NFL',
     'MLB',
     'NHL',
+    'NCAA Basketball',
+    'NCAA Football',
     'Indian Premier League',
+    'Big Bash League',
+    'Pakistan Super League',
     'AFL',
     'National Rugby League',
-    'Super Rugby'
+    'Super Rugby',
+    'Formula 1',
+    'MotoGP'
   ];
   const SHORT_FALLBACK_LEAGUES = [
     'English Premier League',
@@ -43,6 +65,16 @@
     'NFL',
     'MLB',
     'Indian Premier League'
+  ];
+  const FEATURED_LEAGUES = [
+    'English Premier League',
+    'Spanish La Liga',
+    'Saudi Pro League',
+    'NBA',
+    'NFL',
+    'MLB',
+    'Indian Premier League',
+    'NHL'
   ];
   const SEED_TEAMS = [
     'Liverpool',
@@ -94,7 +126,7 @@
     basketball: ['NBA', 'WNBA', 'EuroLeague', 'NCAA Basketball', 'Basketball Africa League', 'NBL'],
     hockey: ['NHL', 'AHL', 'KHL', 'SHL'],
     baseball: ['MLB', 'NPB', 'KBO League', 'Mexican League Baseball'],
-    cricket: ['Indian Premier League', 'Big Bash League', 'Pakistan Super League'],
+    cricket: ['Indian Premier League', 'Big Bash League', 'Pakistan Super League', 'The Hundred'],
     rugby: ['Super Rugby', 'National Rugby League', 'NRL'],
     soccer: [
       'English Premier League',
@@ -109,7 +141,9 @@
       'Brazilian Serie A',
       'Argentine Primera Division',
       'Portuguese Primeira Liga',
-      'Dutch Eredivisie'
+      'Dutch Eredivisie',
+      'UAE Pro League',
+      'Qatar Stars League'
     ],
     football: [
       'English Premier League',
@@ -124,7 +158,49 @@
       'CFL'
     ],
     'american football': ['NFL', 'NCAA Football', 'CFL', 'XFL', 'USFL'],
-    motorsport: ['Formula 1', 'Formula One', 'Formula E', 'MotoGP']
+    motorsport: ['Formula 1', 'Formula One', 'Formula E', 'MotoGP', 'IndyCar']
+  };
+  const LEAGUE_ALIAS_MAP = {
+    'saudi league': ['Saudi Pro League', 'Saudi Professional League', 'Roshn Saudi League'],
+    'saudi pro league': ['Saudi Pro League', 'Saudi Professional League', 'Roshn Saudi League'],
+    'saudi professional league': ['Saudi Pro League', 'Saudi Professional League', 'Roshn Saudi League'],
+    'roshn league': ['Roshn Saudi League', 'Saudi Pro League'],
+    'premier league': ['English Premier League'],
+    'epl': ['English Premier League'],
+    'la liga': ['Spanish La Liga'],
+    'serie a': ['Italian Serie A'],
+    'bundesliga': ['German Bundesliga'],
+    'ligue 1': ['French Ligue 1'],
+    'mls': ['Major League Soccer'],
+    'liga mx': ['Liga MX'],
+    'ipl': ['Indian Premier League'],
+    'nba': ['NBA'],
+    'wnba': ['WNBA'],
+    'nfl': ['NFL'],
+    'mlb': ['MLB'],
+    'nhl': ['NHL']
+  };
+  const SEARCH_STOPWORDS = new Set([
+    'fc',
+    'cf',
+    'sc',
+    'afc',
+    'club',
+    'team',
+    'the'
+  ]);
+  const TEAM_TOKEN_ALIASES = {
+    utd: ['united'],
+    manc: ['manchester'],
+    man: ['manchester'],
+    spurs: ['tottenham'],
+    psg: ['paris', 'saint', 'germain'],
+    juve: ['juventus'],
+    inter: ['internazionale'],
+    ath: ['athletic'],
+    st: ['saint'],
+    bk: ['basketball'],
+    fk: ['football']
   };
 
   const state = {
@@ -196,10 +272,44 @@
       .trim();
   }
 
+  function stripSearchStopwords(tokens) {
+    const list = Array.isArray(tokens) ? tokens.filter(Boolean) : [];
+    if (!list.length) return [];
+    const cleaned = list.filter((token) => !SEARCH_STOPWORDS.has(token));
+    return cleaned.length ? cleaned : list;
+  }
+
+  function readSportsFeaturedCache() {
+    try {
+      const raw = localStorage.getItem(SPORTS_FEATURED_CACHE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      const savedAt = Number(parsed?.savedAt || 0);
+      const items = Array.isArray(parsed?.items) ? parsed.items : [];
+      if (!savedAt || !items.length) return [];
+      if ((Date.now() - savedAt) > SPORTS_FEATURED_CACHE_TTL_MS) return [];
+      return items;
+    } catch (_err) {
+      return [];
+    }
+  }
+
+  function writeSportsFeaturedCache(items) {
+    try {
+      const list = Array.isArray(items) ? items.filter(Boolean) : [];
+      if (!list.length) return;
+      localStorage.setItem(SPORTS_FEATURED_CACHE_KEY, JSON.stringify({
+        savedAt: Date.now(),
+        items: list
+      }));
+    } catch (_err) {}
+  }
+
   function expandQueryTokens(query) {
     const normalized = normalizeSearchText(query);
     if (!normalized) return [];
-    const tokens = normalized.split(' ').filter(Boolean);
+    const rawTokens = normalized.split(' ').filter(Boolean);
+    const tokens = stripSearchStopwords(rawTokens);
     const expanded = new Set();
     tokens.forEach((token) => {
       expanded.add(token);
@@ -207,6 +317,10 @@
       if (mapped) {
         normalizeSearchText(mapped).split(' ').filter(Boolean).forEach((entry) => expanded.add(entry));
       }
+      const aliasList = TEAM_TOKEN_ALIASES[token] || [];
+      aliasList.forEach((alias) => {
+        normalizeSearchText(alias).split(' ').filter(Boolean).forEach((entry) => expanded.add(entry));
+      });
       if (token === 'f1') {
         expanded.add('formula');
         expanded.add('1');
@@ -217,7 +331,37 @@
       if (token === 'mlb') expanded.add('baseball');
       if (token === 'nfl') expanded.add('football');
     });
+    Object.entries(LEAGUE_ALIAS_MAP).forEach(([alias, leagues]) => {
+      const aliasKey = normalizeSearchText(alias);
+      if (!aliasKey) return;
+      if (!normalized.includes(aliasKey)) return;
+      (leagues || []).forEach((league) => {
+        normalizeSearchText(league).split(' ').filter(Boolean).forEach((entry) => expanded.add(entry));
+      });
+    });
     return Array.from(expanded);
+  }
+
+  function buildSearchQueries(query) {
+    const trimmed = String(query || '').trim();
+    const normalized = normalizeSearchText(trimmed);
+    if (!normalized) return [];
+    const rawTokens = normalized.split(' ').filter(Boolean);
+    const tokens = stripSearchStopwords(rawTokens);
+    const aliasTokens = [];
+    tokens.forEach((token) => {
+      const aliasList = TEAM_TOKEN_ALIASES[token] || [];
+      aliasList.forEach((alias) => {
+        normalizeSearchText(alias).split(' ').filter(Boolean).forEach((entry) => aliasTokens.push(entry));
+      });
+    });
+    const cleanedTokens = Array.from(new Set([...tokens, ...aliasTokens])).filter(Boolean);
+    const cleanedQuery = cleanedTokens.join(' ');
+    const variants = new Set();
+    if (trimmed) variants.add(trimmed);
+    if (cleanedQuery && cleanedQuery !== normalized) variants.add(cleanedQuery);
+    if (tokens.length >= 2) variants.add(tokens.slice(0, 2).join(' '));
+    return Array.from(variants).filter(Boolean).slice(0, 3);
   }
 
   function getSportSearchConfig(query) {
@@ -336,16 +480,24 @@
   function teamMatchesQuery(team, query) {
     const q = normalizeSearchText(query);
     if (!q) return false;
-    const tokens = expandQueryTokens(query);
+    const tokens = expandQueryTokens(query).filter((token) => token.length > 1 || /^\d+$/.test(token));
     if (!tokens.length) return false;
     const haystack = getTeamSearchText(team);
     if (!haystack) return false;
     const words = haystack.split(' ').filter(Boolean);
-    return tokens.every((token) => {
-      if (!token) return true;
-      if (haystack.includes(token)) return true;
-      return words.some((word) => word.startsWith(token));
+    let matches = 0;
+    tokens.forEach((token) => {
+      if (!token) return;
+      if (haystack.includes(token)) {
+        matches += 1;
+        return;
+      }
+      if (words.some((word) => word.startsWith(token))) {
+        matches += 1;
+      }
     });
+    const minMatch = tokens.length <= 2 ? tokens.length : Math.max(2, Math.ceil(tokens.length * 0.6));
+    return matches >= Math.min(tokens.length, minMatch);
   }
 
   function getCachedTeams() {
@@ -359,12 +511,28 @@
   function pickFallbackLeagues(query) {
     const q = normalizeSearchText(query);
     if (!q) return [];
-    const tokens = q.split(' ').filter(Boolean);
+    const tokens = stripSearchStopwords(q.split(' ').filter(Boolean));
+    const aliasMatches = [];
+    Object.entries(LEAGUE_ALIAS_MAP).forEach(([key, leagues]) => {
+      if (!key || !q.includes(key)) return;
+      (Array.isArray(leagues) ? leagues : []).forEach((league) => aliasMatches.push(league));
+    });
     const matches = FALLBACK_LEAGUES.filter((league) => {
       const leagueText = normalizeSearchText(league);
       return tokens.some((token) => leagueText.includes(token));
     });
-    if (matches.length) return matches;
+    const sportConfig = getSportSearchConfig(query);
+    const sportLeagues = Array.isArray(sportConfig?.leagues) ? sportConfig.leagues : [];
+    const combined = [...aliasMatches, ...matches, ...sportLeagues].filter(Boolean);
+    if (combined.length) {
+      const seen = new Set();
+      return combined.filter((league) => {
+        const key = normalizeSearchText(league);
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
     if (q.length <= 3) return SHORT_FALLBACK_LEAGUES;
     return FALLBACK_LEAGUES;
   }
@@ -424,26 +592,34 @@
   function rankTeamsByQuery(teams, query) {
     const q = normalizeSearchText(query);
     if (!q) return Array.isArray(teams) ? teams : [];
-    const tokens = expandQueryTokens(query);
+    const tokens = expandQueryTokens(query).filter((token) => token.length > 1 || /^\d+$/.test(token));
     const scored = (Array.isArray(teams) ? teams : []).map((team) => {
       const name = normalizeSearchText(team?.name || '');
       const searchText = getTeamSearchText(team) || name;
       const words = name.split(' ').filter(Boolean);
-      const matchesAllTokens = tokens.every((token) => {
-        if (!token) return true;
-        if (searchText.includes(token)) return true;
-        return words.some((word) => word.startsWith(token));
-      });
+      const matchCount = tokens.reduce((count, token) => {
+        if (!token) return count;
+        if (searchText.includes(token)) return count + 1;
+        if (words.some((word) => word.startsWith(token))) return count + 1;
+        return count;
+      }, 0);
       let score = 50;
-      if (matchesAllTokens) {
+      if (name) {
         if (name === q) score = 0;
         else if (name.startsWith(q)) score = 1;
-        else if (words.some((word) => word.startsWith(q))) score = 2;
-        else if (tokens.every((token) => words.some((word) => word.startsWith(token)))) score = 3;
-        else score = 4;
-      } else if (tokens.some((token) => searchText.includes(token))) {
-        score = 12;
+        else if (name.includes(q)) score = 2;
+        else if (tokens.length && tokens.every((token) => words.some((word) => word.startsWith(token)))) score = 3;
+        else if (matchCount) score = 6;
+        else score = 10;
+      } else if (matchCount) {
+        score = 8;
       }
+      score += Math.max(0, tokens.length - matchCount) * 2;
+      score -= Math.min(matchCount, 4);
+      const league = normalizeSearchText(team?.league || '');
+      const country = normalizeSearchText(team?.country || '');
+      if (league && tokens.some((token) => league.includes(token))) score -= 1;
+      if (country && tokens.some((token) => country.includes(token))) score -= 0.5;
       return {
         team,
         score,
@@ -461,6 +637,15 @@
         return a.name.localeCompare(b.name);
       })
       .map((row) => row.team);
+  }
+
+  function shuffleArray(list) {
+    const arr = Array.isArray(list) ? [...list] : [];
+    for (let i = arr.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   }
 
   async function loadLeagueTeams(league) {
@@ -502,6 +687,9 @@
       : '';
     if (numericId) params.set('id', numericId);
     if (team?.name) params.set('team', team.name);
+    if (team?.league) params.set('league', team.league);
+    if (team?.sport) params.set('sport', team.sport);
+    if (team?.country) params.set('country', team.country);
     const query = params.toString();
     return query ? `team.html?${query}` : 'team.html';
   }
@@ -716,6 +904,7 @@
     const usesBannerOnly = !team.fanart && !team.stadiumThumb && !team.jersey && !!team.banner;
     const usesBadgeOnly = !team.fanart && !team.stadiumThumb && !team.jersey && !team.banner && !!team.badge;
     const metaLine = [team.league, team.sport].filter(Boolean).join(' | ') || 'Team';
+    const showMenu = SPORTS_LISTS_ENABLED && typeof window.openIndexStyleListMenu === 'function';
     card.dataset.subtitle = metaLine;
     card.dataset.image = mediaImage;
     card.dataset.listImage = logo;
@@ -731,15 +920,17 @@
         <div class="sports-card-meta">${escapeHtml(metaLine)}</div>
         ${team.stadium ? `<div class="sports-card-stadium"><i class="fas fa-location-dot"></i> ${escapeHtml(team.stadium)}</div>` : ''}
         <div class="sports-card-actions">
-          <button class="card-menu-btn" type="button" aria-label="Add to lists">
-            <i class="fas fa-ellipsis-v"></i>
-          </button>
+          ${showMenu ? `
+            <button class="card-menu-btn" type="button" aria-label="Add to lists">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+          ` : ''}
         </div>
       </div>
     `;
 
     const menuBtn = card.querySelector('.card-menu-btn');
-    if (menuBtn) {
+    if (menuBtn && showMenu) {
       menuBtn.addEventListener('click', (event) => {
         event.stopPropagation();
         if (typeof window.openIndexStyleListMenu === 'function') {
@@ -876,6 +1067,7 @@
   }
 
   function initListMenu() {
+    if (!SPORTS_LISTS_ENABLED) return;
     if (typeof window.initIndexStyleListMenu !== 'function') return;
     window.initIndexStyleListMenu({
       mediaType: 'sports',
@@ -1010,19 +1202,57 @@
   async function loadFeaturedTeams() {
     clearTeamUrl();
     setLoading(true, 'Loading featured teams...');
+    const cached = readSportsFeaturedCache().filter((team) => team && team.name);
+    if (cached.length) {
+      state.lastResults = cached;
+      state.lastQuery = '';
+      updateFilterOptions(cached);
+      const filtered = applyTeamFilters(cached);
+      renderTeams(filtered, {
+        title: 'Featured teams',
+        subtitle: 'Tap a team to see details and save it.',
+        emptyMessage: 'No teams match your filters yet.'
+      });
+      return;
+    }
+
     const picks = [];
     const seen = new Set();
-    const seeds = SEED_TEAMS.slice(0, 20);
-    const responses = await Promise.all(seeds.map((seed) => fetchSportsDb('searchteams.php', { t: seed })));
-    responses.forEach((payload) => {
+    const leagues = FEATURED_LEAGUES.slice(0, 8);
+    const responses = await Promise.allSettled(leagues.map((league) => loadLeagueTeams(league)));
+    responses.forEach((result) => {
       if (picks.length >= 20) return;
-      const teamRaw = Array.isArray(payload?.teams) ? payload.teams[0] : null;
-      const mapped = mapTeam(teamRaw);
-      if (!mapped) return;
-      if (seen.has(mapped.id)) return;
-      seen.add(mapped.id);
-      picks.push(mapped);
+      if (!result || result.status !== 'fulfilled') return;
+      const teams = Array.isArray(result.value) ? result.value : [];
+      shuffleArray(teams)
+        .filter((team) => team?.badge)
+        .slice(0, 4)
+        .forEach((team) => {
+          if (picks.length >= 20) return;
+          if (seen.has(team.id)) return;
+          seen.add(team.id);
+          picks.push(team);
+        });
     });
+
+    if (picks.length < 12) {
+      const seeds = SEED_TEAMS.slice(0, 12);
+      const seedResponses = await Promise.allSettled(
+        seeds.map((seed) => fetchSportsDb('searchteams.php', { t: seed }))
+      );
+      seedResponses.forEach((result) => {
+        if (picks.length >= 20) return;
+        if (!result || result.status !== 'fulfilled') return;
+        const teamRaw = Array.isArray(result.value?.teams) ? result.value.teams[0] : null;
+        const mapped = mapTeam(teamRaw);
+        if (!mapped || !mapped.badge) return;
+        if (seen.has(mapped.id)) return;
+        seen.add(mapped.id);
+        picks.push(mapped);
+      });
+    }
+
+    if (picks.length) writeSportsFeaturedCache(picks);
 
     state.lastResults = picks;
     state.lastQuery = '';
@@ -1061,16 +1291,30 @@
       });
     }
 
-    const [payload, fallbackTeams] = await Promise.all([
-      fetchSportsDb('searchteams.php', { t: trimmed }),
+    const searchQueries = buildSearchQueries(trimmed);
+    const searchRequests = searchQueries.length
+      ? searchQueries.map((query) => fetchSportsDb('searchteams.php', { t: query }))
+      : [fetchSportsDb('searchteams.php', { t: trimmed })];
+    const [searchResponses, fallbackTeams] = await Promise.all([
+      Promise.allSettled(searchRequests),
       getFallbackTeams(trimmed)
     ]);
 
     if (seq !== state.searchSeq) return;
 
-    const mapped = Array.isArray(payload?.teams) ? payload.teams.map(mapTeam).filter(Boolean) : [];
+    const mapped = [];
+    searchResponses.forEach((result) => {
+      if (!result || result.status !== 'fulfilled') return;
+      const payload = result.value;
+      const teams = Array.isArray(payload?.teams) ? payload.teams : [];
+      teams.map(mapTeam).filter(Boolean).forEach((team) => mapped.push(team));
+    });
     let combined = dedupeTeams([...mapped, ...fallbackTeams]);
     combined = dedupeTeams([...combined, ...getCachedTeams()]);
+    const sportConfig = getSportSearchConfig(trimmed);
+    if (Array.isArray(sportConfig?.sportTokens) && sportConfig.sportTokens.length) {
+      combined = filterTeamsBySportTokens(combined, sportConfig.sportTokens);
+    }
 
     const filtered = combined.filter((team) => teamMatchesQuery(team, trimmed));
     const ranked = rankTeamsByQuery(filtered.length ? filtered : combined, trimmed);

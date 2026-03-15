@@ -466,6 +466,9 @@
   }
 
   async function fetchIgdbJson(path, params = {}, timeoutMs = 8000) {
+    if (GAMES_DISABLED) {
+      return { results: [] };
+    }
     try {
       const requestParams = { ...(params || {}) };
       if (requestParams.search) delete requestParams.ordering;
@@ -1042,11 +1045,19 @@
     }
 
     window.renderRail('imdbTop10Rail', imdbTopMovies, { mediaType: 'movie' });
-    window.renderRail('awardGamesRail', awardWinningGamesFallback, { mediaType: 'game' });
-    void buildAwardWinningGamesRail().then((items) => {
-      if (typeof window.renderRail !== 'function') return;
-      window.renderRail('awardGamesRail', Array.isArray(items) ? items : awardWinningGamesFallback, { mediaType: 'game' });
-    }).catch(() => {});
+    if (!GAMES_DISABLED) {
+      window.renderRail('awardGamesRail', awardWinningGamesFallback, { mediaType: 'game' });
+      void buildAwardWinningGamesRail().then((items) => {
+        if (typeof window.renderRail !== 'function') return;
+        window.renderRail('awardGamesRail', Array.isArray(items) ? items : awardWinningGamesFallback, { mediaType: 'game' });
+      }).catch(() => {});
+    } else {
+      const awardRail = document.getElementById('awardGamesRail');
+      if (awardRail) {
+        const wrap = awardRail.closest('.rail-wrap') || awardRail;
+        wrap.remove();
+      }
+    }
   }
 
   document.addEventListener('DOMContentLoaded', () => {
