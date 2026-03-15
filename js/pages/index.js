@@ -658,10 +658,10 @@ let homeTravelPhotoCacheSaveTimer = null;
       const rawFlag = toHttpsUrl(String(item.flagImage || item.flag || item.flags?.png || item.flags?.svg || '').trim());
       const flagImage = rawFlag || getHomeCountryFlagByCode(code) || getHomeCountryFlag(title) || '';
       const scenicImage = getSafeTravelScenicImage(title, code, rawImage || rawBackground || rawSpotlight);
-      const hasScenic = isUsableHomeTravelScenicUrl(scenicImage);
-      if (!hasScenic) return null;
-      const heroImage = scenicImage;
-      if (code) setHomeTravelPhotoCache(code, scenicImage, 'scenic');
+      const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
+      const heroImage = isUsableHomeTravelScenicUrl(scenicImage) ? scenicImage : safeFallback;
+      if (!heroImage) return null;
+      if (code) setHomeTravelPhotoCache(code, heroImage, 'scenic');
       const cachedSet = getHomeTravelPhotoSet(code);
       const travelPhotos = [cachedSet.city, cachedSet.nature].filter(Boolean);
       return {
@@ -672,19 +672,19 @@ let homeTravelPhotoCacheSaveTimer = null;
         listImage: heroImage,
         image: heroImage,
         backgroundImage: heroImage || '',
-        spotlightImage: getSafeTravelScenicImage(title, code, rawSpotlight || scenicImage) || heroImage,
+        spotlightImage: getSafeTravelScenicImage(title, code, rawSpotlight || heroImage) || heroImage,
         spotlightMediaImage: flagImage || heroImage,
         spotlightMediaFit: flagImage ? 'contain' : 'cover',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
         travelPhotos,
         travelPhotoSet: {
-          scenic: cachedSet.scenic || scenicImage,
+          scenic: cachedSet.scenic || heroImage,
           city: cachedSet.city || '',
           nature: cachedSet.nature || ''
         },
         travelNeedsScenicHydration: false,
-        fallbackImage: ''
+        fallbackImage: safeFallback || heroImage
       };
     }
 
@@ -4119,7 +4119,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         const flagImage = '';
         const listImage = escapeHtml(itemData.listImage || itemData.image || '');
         const logo = escapeHtml(itemData.logo || '');
-        const fallbackImage = '';
+        const fallbackImage = escapeHtml(itemData.fallbackImage || '');
         const coverImage = image || logo;
         const hrefRaw = itemData.href || '#';
         const href = escapeHtml(hrefRaw);
@@ -4177,26 +4177,27 @@ let homeTravelPhotoCacheSaveTimer = null;
         if (mediaTypeRaw === 'travel') mediaClasses.push('travel-photo');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         if (restaurantComposite && !coverImage && !logo) return '';
-        if (!restaurantComposite && !image) return '';
+        const safeImage = image || (mediaTypeRaw === 'travel' ? fallbackImage : '');
+        if (!restaurantComposite && !safeImage) return '';
         let mediaHtml = restaurantComposite
           ? `
-              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
-              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0"></span>` : ''}
+              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
+              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0"></span>` : ''}
             `
-          : `${image ? `<img src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
+          : `${safeImage ? `<img src="${safeImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
 
         if (mediaTypeRaw === 'travel') {
           const travelSet = itemData.travelPhotoSet || {};
           const travelTiles = [];
           if (travelSet.city) travelTiles.push({ url: travelSet.city, label: 'City life', kind: 'city' });
           if (travelSet.nature) travelTiles.push({ url: travelSet.nature, label: 'Nature', kind: 'nature' });
-          if (!travelTiles.length && image) travelTiles.push({ url: image, label: 'Scenic', kind: 'scenic' });
+          if (!travelTiles.length && safeImage) travelTiles.push({ url: safeImage, label: 'Scenic', kind: 'scenic' });
           if (travelTiles.length) {
             mediaHtml = `
               <div class="travel-photo-grid${travelTiles.length > 1 ? '' : ' single'}">
                 ${travelTiles.map((tile) => `
                   <div class="travel-photo-tile" data-kind="${escapeHtml(tile.kind)}">
-                    <img src="${escapeHtml(tile.url)}" alt="${escapeHtml(tile.label)}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">
+                    <img src="${escapeHtml(tile.url)}" alt="${escapeHtml(tile.label)}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">
                     <span class="travel-photo-label">${escapeHtml(tile.label)}</span>
                   </div>
                 `).join('')}
@@ -4249,6 +4250,13 @@ let homeTravelPhotoCacheSaveTimer = null;
     function wireHomeRailImageFallbacks(scope) {
       scope.querySelectorAll('img[data-fallback-image]').forEach((img) => {
         img.addEventListener('error', () => {
+          const fallback = String(img.getAttribute('data-fallback-image') || '').trim();
+          const applied = String(img.getAttribute('data-fallback-applied') || '');
+          if (fallback && applied !== '1') {
+            img.setAttribute('data-fallback-applied', '1');
+            img.src = fallback;
+            return;
+          }
           const card = img.closest('.card');
           if (!card) return;
           const rail = card.parentElement;
@@ -6068,8 +6076,9 @@ let homeTravelPhotoCacheSaveTimer = null;
       if (photoFromCommons.nature) setHomeTravelPhotoCache(code, photoFromCommons.nature, 'nature');
       const photoImageRaw = getSafeTravelScenicImage(title, code, photoFromCommons.scenic || '');
       const scenicImage = isUsableHomeTravelScenicUrl(photoImageRaw) ? photoImageRaw : '';
-      if (!scenicImage) return null;
-      const heroImage = scenicImage;
+      const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
+      const heroImage = scenicImage || safeFallback;
+      if (!heroImage) return null;
       const cachedSet = getHomeTravelPhotoSet(code);
       return {
         mediaType: 'travel',
@@ -6089,12 +6098,12 @@ let homeTravelPhotoCacheSaveTimer = null;
         spotlightMediaShape: 'square',
         travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
         travelPhotoSet: {
-          scenic: cachedSet.scenic || scenicImage || '',
+          scenic: cachedSet.scenic || heroImage || '',
           city: cachedSet.city || '',
           nature: cachedSet.nature || ''
         },
         travelNeedsScenicHydration: false,
-        fallbackImage: '',
+        fallbackImage: safeFallback || heroImage,
         href: `country.html?code=${encodeURIComponent(code)}`
       };
     }
@@ -6123,9 +6132,10 @@ let homeTravelPhotoCacheSaveTimer = null;
       if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
       const scenicRaw = getSafeTravelScenicImage(title, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
       const scenicImage = isUsableHomeTravelScenicUrl(scenicRaw) ? scenicRaw : '';
-      if (!scenicImage) return null;
-      const heroImage = scenicImage;
-      if (scenicImage) setHomeTravelPhotoCache(code, scenicImage, 'scenic');
+      const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
+      const heroImage = scenicImage || safeFallback;
+      if (!heroImage) return null;
+      if (heroImage) setHomeTravelPhotoCache(code, heroImage, 'scenic');
       if (row?.photoCity) setHomeTravelPhotoCache(code, row.photoCity, 'city');
       if (row?.photoNature) setHomeTravelPhotoCache(code, row.photoNature, 'nature');
       const cachedSet = getHomeTravelPhotoSet(code);
@@ -6147,12 +6157,12 @@ let homeTravelPhotoCacheSaveTimer = null;
         spotlightMediaShape: 'square',
         travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
         travelPhotoSet: {
-          scenic: cachedSet.scenic || scenicImage || '',
+          scenic: cachedSet.scenic || heroImage || '',
           city: cachedSet.city || '',
           nature: cachedSet.nature || ''
         },
         travelNeedsScenicHydration: false,
-        fallbackImage: '',
+        fallbackImage: safeFallback || heroImage,
         href: `country.html?code=${encodeURIComponent(code)}`
       };
     }
@@ -6266,6 +6276,31 @@ let homeTravelPhotoCacheSaveTimer = null;
       return cachedRowItems.length ? cachedRowItems : getHomeTravelFallbackItems(targetCount);
     }
 
+    function getHomeSportEmoji(sportRaw = '') {
+      const sport = String(sportRaw || '').trim().toLowerCase();
+      if (!sport) return '';
+      if (sport.includes('soccer')) return '⚽';
+      if (sport.includes('american football')) return '🏈';
+      if (sport.includes('football')) return '⚽';
+      if (sport.includes('basketball')) return '🏀';
+      if (sport.includes('baseball')) return '⚾';
+      if (sport.includes('ice hockey') || sport.includes('hockey')) return '🏒';
+      if (sport.includes('cricket')) return '🏏';
+      if (sport.includes('rugby')) return '🏉';
+      if (sport.includes('golf')) return '⛳';
+      if (sport.includes('tennis')) return '🎾';
+      if (sport.includes('volleyball')) return '🏐';
+      if (sport.includes('handball')) return '🤾';
+      if (sport.includes('boxing')) return '🥊';
+      if (sport.includes('mma') || sport.includes('mixed martial')) return '🥋';
+      if (sport.includes('motorsport') || sport.includes('racing')) return '🏎️';
+      if (sport.includes('cycling')) return '🚴';
+      if (sport.includes('snooker') || sport.includes('billiard')) return '🎱';
+      if (sport.includes('darts')) return '🎯';
+      if (sport.includes('table tennis') || sport.includes('ping pong')) return '🏓';
+      return '🏟️';
+    }
+
     function mapSportsTeamToHomeItem(team) {
       if (!team || typeof team !== 'object') return null;
       const id = String(team.idTeam || '').trim();
@@ -6288,6 +6323,8 @@ let homeTravelPhotoCacheSaveTimer = null;
       const background = fanart || stadiumImage || banner || badge || fallbackImage;
       const image = badge;
       const subtitle = [league, sport].filter(Boolean).join(' | ') || 'Team';
+      const sportIcon = getHomeSportEmoji(sport);
+      const subtitleWithIcon = sportIcon ? `${sportIcon} ${subtitle}` : subtitle;
       const flagImage = getHomeCountryFlag(country);
       const spotlightMedia = badge || flagImage || jersey || background;
       const spotlightMediaFit = (badge || flagImage || jersey) ? 'contain' : 'cover';
@@ -6303,7 +6340,7 @@ let homeTravelPhotoCacheSaveTimer = null;
         mediaType: 'sports',
         itemId: id || title,
         title,
-        subtitle,
+        subtitle: subtitleWithIcon,
         extra: stadium ? `Stadium: ${stadium}` : '',
         image,
         listImage: badge || flagImage || image,

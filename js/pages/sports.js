@@ -959,6 +959,31 @@
     window.location.href = buildTeamDetailUrl(team);
   }
 
+  function getSportEmoji(sportRaw = '') {
+    const sport = String(sportRaw || '').trim().toLowerCase();
+    if (!sport) return '';
+    if (sport.includes('soccer')) return '⚽';
+    if (sport.includes('american football')) return '🏈';
+    if (sport.includes('football')) return '⚽';
+    if (sport.includes('basketball')) return '🏀';
+    if (sport.includes('baseball')) return '⚾';
+    if (sport.includes('ice hockey') || sport.includes('hockey')) return '🏒';
+    if (sport.includes('cricket')) return '🏏';
+    if (sport.includes('rugby')) return '🏉';
+    if (sport.includes('golf')) return '⛳';
+    if (sport.includes('tennis')) return '🎾';
+    if (sport.includes('volleyball')) return '🏐';
+    if (sport.includes('handball')) return '🤾';
+    if (sport.includes('boxing')) return '🥊';
+    if (sport.includes('mma') || sport.includes('mixed martial')) return '🥋';
+    if (sport.includes('motorsport') || sport.includes('racing')) return '🏎️';
+    if (sport.includes('cycling')) return '🚴';
+    if (sport.includes('snooker') || sport.includes('billiard')) return '🎱';
+    if (sport.includes('darts')) return '🎯';
+    if (sport.includes('table tennis') || sport.includes('ping pong')) return '🏓';
+    return '🏟️';
+  }
+
   function buildCard(team) {
     const card = document.createElement('article');
     card.className = 'sports-card';
@@ -972,8 +997,10 @@
     const usesBannerOnly = !team.fanart && !team.stadiumThumb && !team.jersey && !!team.banner;
     const usesBadgeOnly = !team.fanart && !team.stadiumThumb && !team.jersey && !team.banner && !!team.badge;
     const metaLine = [team.league, team.sport].filter(Boolean).join(' | ') || 'Team';
+    const sportIcon = getSportEmoji(team.sport);
+    const metaLineWithIcon = sportIcon ? `${sportIcon} ${metaLine}` : metaLine;
     const showMenu = SPORTS_LISTS_ENABLED && typeof window.openIndexStyleListMenu === 'function';
-    card.dataset.subtitle = metaLine;
+    card.dataset.subtitle = metaLineWithIcon;
     card.dataset.image = mediaImage;
     card.dataset.listImage = logo;
     card.dataset.mediaFit = (usesBannerOnly || usesBadgeOnly) ? 'contain' : 'cover';
@@ -987,7 +1014,7 @@
       </div>
       <div class="sports-card-body">
         <div class="sports-card-title">${escapeHtml(team.name)}</div>
-        <div class="sports-card-meta">${escapeHtml(metaLine)}</div>
+        <div class="sports-card-meta">${escapeHtml(metaLineWithIcon)}</div>
         ${team.stadium ? `<div class="sports-card-stadium"><i class="fas fa-location-dot"></i> ${escapeHtml(team.stadium)}</div>` : ''}
         <div class="sports-card-actions">
           ${showMenu ? `
