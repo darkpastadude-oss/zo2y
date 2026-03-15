@@ -467,6 +467,24 @@
       return '';
     }
 
+    function getHomeCountryFlagEmoji(codeRaw) {
+      const code = String(codeRaw || '').trim().toUpperCase();
+      if (!code || code.length !== 2 || /[^A-Z]/.test(code)) return '';
+      const offset = 127397;
+      return String.fromCodePoint(
+        code.charCodeAt(0) + offset,
+        code.charCodeAt(1) + offset
+      );
+    }
+
+    function formatTravelTitleWithFlag(titleRaw, codeRaw) {
+      const title = String(titleRaw || '').trim();
+      if (!title) return title;
+      const flagEmoji = getHomeCountryFlagEmoji(codeRaw);
+      if (!flagEmoji) return title;
+      return title.startsWith(flagEmoji) ? title : `${flagEmoji} ${title}`;
+    }
+
     function canonicalTravelCountryCode(value) {
       const raw = String(value || '').trim().toUpperCase();
       if (raw === 'IL') return 'PS';
@@ -535,7 +553,7 @@
       const maxCount = Math.max(1, Number(limit || getHomeChannelTargetItems()));
       const items = HOME_TRAVEL_FALLBACKS.map((entry) => {
         const code = String(entry?.code || '').trim().toUpperCase();
-        const title = String(entry?.name || '').trim();
+        const title = formatTravelTitleWithFlag(String(entry?.name || '').trim(), code);
         if (!code || !title) return null;
         const capital = String(entry?.capital || '').trim();
         const region = String(entry?.region || '').trim();
@@ -678,13 +696,14 @@
       const code = canonicalTravelCountryCode(rawCode);
       const rawTitle = String(item.title || item.name || code || 'Country').trim();
       if (/\bisrael\b/i.test(rawTitle)) return null;
-      const title = code === 'PS' ? 'Palestine' : rawTitle;
+      const baseTitle = code === 'PS' ? 'Palestine' : rawTitle;
+      const title = formatTravelTitleWithFlag(baseTitle, code);
       const rawImage = toHttpsUrl(String(item.image || '').trim());
       const rawBackground = toHttpsUrl(String(item.backgroundImage || '').trim());
       const rawSpotlight = toHttpsUrl(String(item.spotlightImage || '').trim());
       const rawFlag = toHttpsUrl(String(item.flagImage || item.flag || item.flags?.png || item.flags?.svg || '').trim());
       const flagImage = rawFlag || getHomeCountryFlagByCode(code) || getHomeCountryFlag(title) || '';
-      const scenicImage = getSafeTravelScenicImage(title, code, rawImage || rawBackground || rawSpotlight);
+      const scenicImage = getSafeTravelScenicImage(baseTitle, code, rawImage || rawBackground || rawSpotlight);
       const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
       const heroImage = isUsableHomeTravelScenicUrl(scenicImage) ? scenicImage : safeFallback;
       if (!heroImage) return null;
@@ -699,7 +718,7 @@
         listImage: heroImage,
         image: heroImage,
         backgroundImage: heroImage || '',
-        spotlightImage: getSafeTravelScenicImage(title, code, rawSpotlight || heroImage) || heroImage,
+        spotlightImage: getSafeTravelScenicImage(baseTitle, code, rawSpotlight || heroImage) || heroImage,
         spotlightMediaImage: flagImage || heroImage,
         spotlightMediaFit: flagImage ? 'contain' : 'cover',
         spotlightMediaPosition: 'center center',
@@ -4681,6 +4700,47 @@
       return Math.min(0.6, matches * 0.12);
     }
 
+    function getHomeInterestGenreIds(mediaType) {
+      const tags = homeInterestProfile?.tags || [];
+      if (!tags.length) return [];
+      const type = String(mediaType || '').toLowerCase();
+      const mapMovie = {
+        horror: 27,
+        'sci-fi': 878,
+        'science fiction': 878,
+        fantasy: 14,
+        romance: 10749,
+        comedy: 35,
+        action: 28,
+        thriller: 53
+      };
+      const mapTv = {
+        horror: 9648,
+        fantasy: 10765,
+        'sci-fi': 10765,
+        'science fiction': 10765,
+        comedy: 35,
+        action: 10759,
+        thriller: 9648
+      };
+      const map = type === 'tv' ? mapTv : mapMovie;
+      const ids = tags
+        .map((tag) => map[String(tag || '').toLowerCase()] || null)
+        .filter(Boolean);
+      return Array.from(new Set(ids));
+    }
+
+    function buildHomeTmdbInterestSources(mediaType) {
+      const type = String(mediaType || '').toLowerCase() === 'tv' ? 'tv' : 'movie';
+      const ids = getHomeInterestGenreIds(type);
+      if (!ids.length) return [];
+      const genreParam = ids.slice(0, 3).join(',');
+      return [
+        () => `${TMDB_PROXY_BASE}/discover/${type}?language=en-US&sort_by=popularity.desc&page=${randomInt(1, 4)}&with_genres=${genreParam}`,
+        () => `${TMDB_PROXY_BASE}/discover/${type}?language=en-US&sort_by=vote_count.desc&page=${randomInt(1, 3)}&with_genres=${genreParam}&vote_count.gte=120`
+      ];
+    }
+
     function getHomeRecommendationPoolByType(type) {
       const key = String(type || '').toLowerCase();
       const raw = Array.isArray(homeFeedState?.[key]) ? homeFeedState[key] : [];
@@ -5142,6 +5202,7 @@
       const backBtn = document.getElementById('homeOnboardingBackBtn');
       const nextBtn = document.getElementById('homeOnboardingNextBtn');
       const tryBtn = document.getElementById('homeOnboardingTryBtn');
+      const skipBtn = document.getElementById('homeOnboardingSkipBtn');
       if (!stepText || !title || !body || !art || !progress || !backBtn || !nextBtn || !tryBtn) return;
 
       stepText.textContent = `Step ${safeIndex + 1} of ${steps.length}`;
@@ -5151,6 +5212,12 @@
       backBtn.disabled = safeIndex === 0;
       backBtn.style.opacity = safeIndex === 0 ? '0.5' : '1';
       nextBtn.textContent = step.nextLabel || (safeIndex === steps.length - 1 ? 'Finish' : 'Next');
+      if (skipBtn) {
+        const needsProfile = steps.some((s) => s.id === 'profile-setup');
+        const canSkip = !needsProfile || homeOnboardingProfile.status === 'ok';
+        skipBtn.style.display = canSkip ? 'inline-flex' : 'none';
+        skipBtn.disabled = !canSkip;
+      }
 
       if (step.actionLabel && typeof step.action === 'function') {
         tryBtn.textContent = step.actionLabel;
@@ -5187,7 +5254,13 @@
       const tryBtn = document.getElementById('homeOnboardingTryBtn');
       if (!skipBtn || !backBtn || !nextBtn || !tryBtn) return;
 
-      skipBtn.onclick = () => closeHomeOnboarding(true);
+      skipBtn.onclick = () => {
+        if (homeOnboardingProfile.status !== 'ok' && document.getElementById('homeOnboardingUsernameInput')) {
+          showHomeToast('Choose a username to continue.', true);
+          return;
+        }
+        closeHomeOnboarding(true);
+      };
       backBtn.onclick = () => {
         homeOnboardingIndex = Math.max(0, homeOnboardingIndex - 1);
         renderHomeOnboardingStep();
@@ -5335,12 +5408,14 @@
 
     async function loadMovies(signal) {
       const targetCount = getHomeChannelTargetItems();
+      const interestBuilders = buildHomeTmdbInterestSources('movie');
       const sourceBuilders = shuffleArray([
+        ...interestBuilders,
         () => `${TMDB_PROXY_BASE}/movie/popular?language=en-US&page=${randomInt(1, 5)}`,
         () => `${TMDB_PROXY_BASE}/movie/top_rated?language=en-US&page=${randomInt(1, 5)}`,
         () => `${TMDB_PROXY_BASE}/movie/now_playing?language=en-US&page=${randomInt(1, 4)}`,
         () => `${TMDB_PROXY_BASE}/trending/movie/week?page=${randomInt(1, 3)}`
-      ]).slice(0, getHomeTmdbSourceCount());
+      ]).slice(0, getHomeTmdbSourceCount() + (interestBuilders.length ? 1 : 0));
       const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
         try {
           const url = buildUrl();
@@ -5381,12 +5456,14 @@
 
     async function loadTv(signal) {
       const targetCount = getHomeChannelTargetItems();
+      const interestBuilders = buildHomeTmdbInterestSources('tv');
       const sourceBuilders = shuffleArray([
+        ...interestBuilders,
         () => `${TMDB_PROXY_BASE}/tv/popular?language=en-US&page=${randomInt(1, 5)}`,
         () => `${TMDB_PROXY_BASE}/tv/top_rated?language=en-US&page=${randomInt(1, 5)}`,
         () => `${TMDB_PROXY_BASE}/tv/airing_today?language=en-US&page=${randomInt(1, 4)}`,
         () => `${TMDB_PROXY_BASE}/trending/tv/week?page=${randomInt(1, 3)}`
-      ]).slice(0, getHomeTmdbSourceCount());
+      ]).slice(0, getHomeTmdbSourceCount() + (interestBuilders.length ? 1 : 0));
       const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
         try {
           const url = buildUrl();
@@ -5579,6 +5656,7 @@
       setHomeOnboardingUsernameStatus('Choose a username to continue.');
       homeOnboardingProfile.status = 'idle';
       updateHomeOnboardingNextState();
+      void checkHomeOnboardingUsername(input.value);
 
       const syncChipSelection = () => {
         chips.forEach((chip) => {
@@ -6501,7 +6579,8 @@
       const code = canonicalTravelCountryCode(rawCode);
       const baseTitle = String(row?.name?.common || row?.name?.official || '').trim();
       if (/\bisrael\b/i.test(baseTitle)) return null;
-      const title = code === 'PS' ? 'Palestine' : baseTitle;
+      const resolvedBaseTitle = code === 'PS' ? 'Palestine' : baseTitle;
+      const title = formatTravelTitleWithFlag(resolvedBaseTitle, code);
       if (!code || !title) return null;
       const capital = Array.isArray(row?.capital)
         ? String(row.capital[0] || '').trim()
@@ -6524,7 +6603,7 @@
       if (photoFromCommons.scenic) setHomeTravelPhotoCache(code, photoFromCommons.scenic, 'scenic');
       if (photoFromCommons.city) setHomeTravelPhotoCache(code, photoFromCommons.city, 'city');
       if (photoFromCommons.nature) setHomeTravelPhotoCache(code, photoFromCommons.nature, 'nature');
-      const photoImageRaw = getSafeTravelScenicImage(title, code, photoFromCommons.scenic || '');
+      const photoImageRaw = getSafeTravelScenicImage(resolvedBaseTitle, code, photoFromCommons.scenic || '');
       const scenicImage = isUsableHomeTravelScenicUrl(photoImageRaw) ? photoImageRaw : '';
       const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
       const heroImage = scenicImage || safeFallback;
@@ -6562,7 +6641,8 @@
       const code = canonicalTravelCountryCode(row?.code || row?.cca2 || row?.cca3 || '');
       const baseTitle = String(row?.name || row?.title || '').trim();
       if (!code || !baseTitle || /\bisrael\b/i.test(baseTitle)) return null;
-      const title = code === 'PS' ? 'Palestine' : baseTitle;
+      const resolvedBaseTitle = code === 'PS' ? 'Palestine' : baseTitle;
+      const title = formatTravelTitleWithFlag(resolvedBaseTitle, code);
       const capital = String(row?.capital || '').trim();
       const region = String(row?.region || '').trim();
       const subregion = String(row?.subregion || '').trim();
@@ -6580,7 +6660,7 @@
       const extraParts = [];
       if (subregion && subregion !== region) extraParts.push(subregion);
       if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
-      const scenicRaw = getSafeTravelScenicImage(title, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
+      const scenicRaw = getSafeTravelScenicImage(resolvedBaseTitle, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
       const scenicImage = isUsableHomeTravelScenicUrl(scenicRaw) ? scenicRaw : '';
       const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
       const heroImage = scenicImage || safeFallback;

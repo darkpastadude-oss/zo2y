@@ -1877,7 +1877,7 @@
                         }
                     ];
                     
-                    const allLists = [...defaultLists, ...customLists.map(list => ({
+                    let allLists = [...defaultLists, ...customLists.map(list => ({
                         id: list.id,
                         title: list.title,
                         description: list.description || 'Your custom-made collection.',
@@ -1886,6 +1886,7 @@
                         restaurants: list.restaurants || [],
                         isDefault: false
                     }))];
+                    allLists = applyPinnedListSorting('restaurant', allLists);
                     
                     if (allLists.length === 0) {
                         listsGrid.innerHTML = `
@@ -2007,7 +2008,7 @@
                         }
                     ];
                     
-                    const allLists = [...defaultLists, ...customLists.map(list => ({
+                    let allLists = [...defaultLists, ...customLists.map(list => ({
                         id: list.id,
                         title: list.title,
                         description: list.description || 'Your custom-made collection.',
@@ -2016,6 +2017,7 @@
                         restaurants: list.restaurants || [],
                         isDefault: false
                     }))];
+                    allLists = applyPinnedListSorting('restaurant', allLists);
                     
                     if (allLists.length === 0) {
                         mobileListsContainer.innerHTML = `
@@ -11360,7 +11362,8 @@
                 const rawUsername = document.getElementById('editUsername')?.value;
                 const bio = String(document.getElementById('editBio')?.value || '').trim();
                 const location = String(document.getElementById('editLocation')?.value || '').trim();
-                const profileTheme = normalizeProfileTheme(document.getElementById('editProfileTheme')?.value);
+                const themeInput = document.getElementById('editProfileTheme');
+                const profileTheme = themeInput ? normalizeProfileTheme(themeInput.value) : null;
                 const customBadges = normalizeProfileBadges(document.getElementById('editCustomBadges')?.value || '');
                 const isPrivate = document.getElementById('editIsPrivate')?.checked || false;
                 
@@ -11376,11 +11379,11 @@
                         username: normalizedUsername,
                         bio: bio,
                         location: location,
-                        profile_theme: profileTheme,
                         profile_badges: customBadges,
                         is_private: isPrivate,
                         updated_at: new Date().toISOString()
                     };
+                    if (profileTheme) updatePayload.profile_theme = profileTheme;
                     let { error } = await supabase
                         .from('user_profiles')
                         .update(updatePayload)
@@ -11404,10 +11407,10 @@
                         username: normalizedUsername,
                         bio: bio,
                         location: location,
-                        profile_theme: profileTheme,
                         profile_badges: customBadges,
                         is_private: isPrivate
                     };
+                    if (profileTheme) userProfile.profile_theme = profileTheme;
                     manualProfileBadges = [...customBadges];
 
                     const authMetadataResult = await supabase.auth.updateUser({
