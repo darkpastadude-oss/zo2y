@@ -1,7 +1,7 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v96';
-const PAGE_CACHE = 'zo2y-pages-v100';
-const IMAGE_CACHE = 'zo2y-images-v24';
-const API_CACHE = 'zo2y-api-v7';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v97';
+const PAGE_CACHE = 'zo2y-pages-v101';
+const IMAGE_CACHE = 'zo2y-images-v25';
+const API_CACHE = 'zo2y-api-v8';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
 
@@ -21,11 +21,11 @@ const STATIC_ASSETS = [
   '/js/list-utils.js?v=20260315b',
   '/js/index-list-menu-adapter.js?v=20260314d',
   '/js/universal-search.js?v=20260315b',
-  '/js/auth-gate.js?v=20260308a',
+  '/js/auth-gate.js?v=20260315d',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260314a',
+  '/js/mobile-webapp.js?v=20260315d',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260308a',
   '/favicon.ico',
