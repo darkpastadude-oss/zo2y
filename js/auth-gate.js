@@ -36,6 +36,40 @@
     } catch (_err) {}
   }
 
+  function getHashParams() {
+    var rawHash = window.location.hash || '';
+    if (rawHash.charAt(0) === '#') rawHash = rawHash.slice(1);
+    return new URLSearchParams(rawHash);
+  }
+
+  function maybeRedirectOAuthCallback(pageKey) {
+    if (pageKey === 'auth-callback' || pageKey === 'update-password') return;
+    var search = new URLSearchParams(window.location.search);
+    var hashParams = getHashParams();
+    var hasOauthCode = search.has('code') && (search.has('state') || search.has('provider') || search.has('flow'));
+    var hasOauthError = search.has('error') || search.has('error_description');
+    var hasHashTokens = hashParams.has('access_token') || hashParams.has('error') || hashParams.has('error_description');
+    var oauthFlow = safeGetStorageItem('oauthFlow');
+    if (!(hasOauthCode || hasOauthError || hasHashTokens || oauthFlow)) return;
+    if (!hasOauthCode && !hasOauthError && !hasHashTokens) return;
+
+    var callbackUrl = new URL('auth-callback.html', window.location.origin);
+    if (window.location.search) {
+      callbackUrl.search = window.location.search;
+    }
+    if (window.location.hash) {
+      callbackUrl.hash = window.location.hash;
+    }
+    if (oauthFlow && !callbackUrl.searchParams.has('flow')) {
+      callbackUrl.searchParams.set('flow', oauthFlow);
+    }
+    var nextParam = search.get('next') || safeGetStorageItem('postAuthRedirect');
+    if (nextParam && !callbackUrl.searchParams.has('next')) {
+      callbackUrl.searchParams.set('next', nextParam);
+    }
+    window.location.replace(callbackUrl.toString());
+  }
+
   function hasSessionPayload(value) {
     if (!value) return false;
     if (Array.isArray(value)) {
@@ -191,6 +225,7 @@
   }
 
   var pageKey = normalizePageKey(window.location.pathname);
+  maybeRedirectOAuthCallback(pageKey);
   var authenticated = hasStoredSupabaseSession();
   applyShellState(authenticated, pageKey);
 
