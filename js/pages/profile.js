@@ -8656,12 +8656,24 @@
                         const table = contentType === 'fashion' ? 'fashion_brands' : 'food_brands';
                         const { data } = await supabase
                             .from(table)
-                            .select('id, logo_url')
+                            .select('id, name, domain, logo_url')
                             .in('id', missingIds);
                         (data || []).forEach((row) => {
                             const id = String(row.id || '').trim();
-                            const imageUrl = row.logo_url || '/newlogo.webp';
-                            writePreviewAssetCache(contentType, id, imageUrl);
+                            const name = String(row?.name || '').trim();
+                            const domain = String(row?.domain || '').trim();
+                            let imageUrl = '';
+                            if (name) {
+                                const params = new URLSearchParams();
+                                params.set('title', name);
+                                if (domain) params.set('domain', domain);
+                                imageUrl = `/api/logo?${params.toString()}`;
+                            } else if (domain) {
+                                imageUrl = `/api/logo?domain=${encodeURIComponent(domain)}&size=256`;
+                            } else if (row?.logo_url) {
+                                imageUrl = String(row.logo_url).trim();
+                            }
+                            writePreviewAssetCache(contentType, id, imageUrl || '/newlogo.webp');
                         });
                     } else if (contentType === 'travel') {
                         missingIds.forEach((id) => {
