@@ -1426,6 +1426,18 @@
       border-radius: 0;
     }
 
+    .card-media.brand-cover {
+      aspect-ratio: 1/1;
+      padding: 10px;
+      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+    }
+
+    .card-media.brand-cover img {
+      object-fit: contain;
+      border-radius: 8px;
+      background: rgba(7, 15, 32, 0.35);
+    }
+
     .card-media.landscape.game-poster img {
       object-fit: contain;
     }
@@ -1590,7 +1602,8 @@
 
     .rail.unified-rail .card-media.landscape img,
     .rail.unified-rail .card-media.game-poster img,
-    .rail.unified-rail .card-media.music-cover img {
+    .rail.unified-rail .card-media.music-cover img,
+    .rail.unified-rail .card-media.brand-cover img {
       object-fit: contain;
     }
 
@@ -1600,6 +1613,12 @@
 
     .rail.unified-rail .card-media.restaurant-composite .restaurant-cover {
       object-fit: cover;
+    }
+
+    .rail.unified-rail .card-media.brand-cover {
+      aspect-ratio: 1/1;
+      height: 180px;
+      padding: 6px;
     }
 
     .rail.unified-rail .card-media.game-poster {

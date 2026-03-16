@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -15,7 +15,7 @@
 
 <!-- Supabase JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/list-utils.js?v=20260314j" defer></script>
+<script src="js/list-utils.js?v=20260316a" defer></script>
 
 <link rel="stylesheet" href="css/pages/restaurant.css?v=20260314a" />
   <meta name="theme-color" content="#0b1633" />
@@ -26,8 +26,8 @@
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
   <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260315c">
-  <script src="js/shared-header.js?v=20260315c" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260316a">
+  <script src="js/shared-header.js?v=20260316a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -62,7 +62,7 @@
 
 <div class="top-stripe">
     <button class="back-btn" onclick="window.location.href='restraunts.html'">
-        Ã¢â€ Â Back to Restaurants
+        â† Back to Restaurants
 </button>
     <div class="top-actions">
         <button class="top-btn" onclick="window.location.href='index.html'">
@@ -77,8 +77,8 @@
 <!-- Login/Signup Modal -->
 <div class="login-modal" id="loginModal">
     <div class="login-modal-content">
-        <button class="login-modal-close" onclick="closeLoginModal()">Ãƒâ€”</button>
-        <div class="login-modal-icon">Ã°Å¸â€Â</div>
+        <button class="login-modal-close" onclick="closeLoginModal()">Ã—</button>
+        <div class="login-modal-icon">ðŸ”</div>
         <h2 class="login-modal-title">Join Zo2y</h2>
         <p class="login-modal-text">
             Create an account or sign in to save restaurants to your lists, 
@@ -86,10 +86,10 @@
         </p>
         <div class="login-modal-actions">
             <button class="login-modal-btn login" onclick="window.location.href='login.html'">
-                <span>Ã¢â€ â€™</span> Sign In
+                <span>â†’</span> Sign In
             </button>
             <button class="login-modal-btn signup" onclick="window.location.href='sign-up.html'">
-                <span>Ã°Å¸â€œÂ</span> Create Account
+                <span>ðŸ“</span> Create Account
             </button>
         </div>
     </div>
@@ -118,16 +118,16 @@
         
         <div class="btn-group">
             <a id="call-hotline" class="btn" href="#">
-                <span>Ã°Å¸â€œÅ¾</span> Call Hotline
+                <span>ðŸ“ž</span> Call Hotline
             </a>
             <a id="order-online" class="btn secondary" href="#" target="_blank" rel="noopener">
-                <span>Ã°Å¸â€ºâ€™</span> Order Online
+                <span>ðŸ›’</span> Order Online
             </a>
             <a id="instagram-link" class="btn secondary" href="#" target="_blank" rel="noopener" style="display:none;">
-                <span>Ã°Å¸â€œÂ·</span> Instagram
+                <span>ðŸ“·</span> Instagram
             </a>
             <a id="facebook-link" class="btn secondary" href="#" target="_blank" rel="noopener" style="display:none;">
-                <span>Ã°Å¸â€˜Â</span> Facebook
+                <span>ðŸ‘</span> Facebook
             </a>
         </div>
     </section>
@@ -170,13 +170,13 @@
         <div id="other-platforms" class="other-platforms" style="display: none;">
             <h3>Other Platforms</h3>
                 <div class="website-card">
-                <div class="website-icon">Ã°Å¸Å’Â</div>
+                <div class="website-icon">ðŸŒ</div>
                 <div class="website-info">
                     <h4>Website Ordering</h4>
                     <p class="website-desc">Order directly from their website</p>
                 </div>
                 <a id="website-order-link" class="website-btn" href="#" target="_blank" rel="noopener">
-                    Visit Website Ã¢â€ â€™
+                    Visit Website â†’
                 </a>
             </div>
         </div>
@@ -202,7 +202,7 @@
         <h2>Menu</h2>
         <div id="menu-container"></div>
         <a id="full-menu-link" class="btn secondary" style="margin-top: 20px; display: none;" href="#" target="_blank" rel="noopener">
-            <span>Ã°Å¸â€œâ€¹</span> View Full Menu
+            <span>ðŸ“‹</span> View Full Menu
         </a>
     </section>
 
@@ -263,27 +263,27 @@
             </form>
             
             <div id="auth-prompt" class="auth-prompt">
-                <div class="auth-icon">Ã°Å¸â€Â</div>
+                <div class="auth-icon">ðŸ”</div>
                 <p>Please <a href="login.html" class="auth-link">sign in</a> to share your experience</p>
             </div>
         </div>
     </section>
 
     <footer>
-        <p id="footer-copyright">Ã‚Â© 2025 Zo2y. All rights reserved.</p>
+        <p id="footer-copyright">Â© 2025 Zo2y. All rights reserved.</p>
         <p id="footer-tagline" style="margin-top: 10px; font-size: 0.8rem;"></p>
     </footer>
 </main>
 
 <!-- Lightbox Modal -->
 <div class="lightbox" id="lightbox">
-    <button class="lightbox-close" onclick="closeLightbox()">Ãƒâ€”</button>
+    <button class="lightbox-close" onclick="closeLightbox()">Ã—</button>
     <div class="lightbox-content">
         <img id="lightbox-image" class="lightbox-image" src="" alt="">
         <div id="lightbox-caption" class="lightbox-caption"></div>
     </div>
-    <button class="lightbox-nav prev" onclick="changeImage(-1)">Ã¢â‚¬Â¹</button>
-    <button class="lightbox-nav next" onclick="changeImage(1)">Ã¢â‚¬Âº</button>
+    <button class="lightbox-nav prev" onclick="changeImage(-1)">â€¹</button>
+    <button class="lightbox-nav next" onclick="changeImage(1)">â€º</button>
 </div>
 
 <!-- Error State -->
@@ -291,7 +291,7 @@
     <h2>Restaurant Not Found</h2>
     <p>We couldn't find the restaurant you're looking for.</p>
     <button class="btn" onclick="window.location.href='restraunts.html'">
-        <span>Ã¢â€ Â</span> Back to Restaurants
+        <span>â†</span> Back to Restaurants
     </button>
 </div>
 

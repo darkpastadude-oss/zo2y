@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -21,8 +21,8 @@
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260302a" />
   <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260315c">
-  <script src="js/shared-header.js?v=20260315c" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260316a">
+  <script src="js/shared-header.js?v=20260316a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -150,7 +150,7 @@
             <div class="social-preview-row" id="desktopSocialPreview">
                 <div class="social-preview-info">
                     <div class="social-preview-title">Community Snapshot</div>
-                    <div class="social-preview-meta" id="desktopSocialPreviewMeta">0 followers Ã‚Â· 0 following</div>
+                    <div class="social-preview-meta" id="desktopSocialPreviewMeta">0 followers Â· 0 following</div>
                 </div>
                 <div class="social-preview-avatars" id="desktopFriendsPreviewAvatars"></div>
                 <button class="social-preview-link" onclick="ProfileManager.showTab('community')">View community -></button>
@@ -181,6 +181,12 @@
                 </div>
                 <div class="nav-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')">
                     <i class="fas fa-earth-americas"></i> <span id="travelTabText">Travel</span>
+                </div>
+                <div class="nav-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')">
+                    <i class="fas fa-shirt"></i> <span id="fashionTabText">Fashion</span>
+                </div>
+                <div class="nav-tab" data-tab="food" onclick="ProfileManager.showTab('food')">
+                    <i class="fas fa-burger"></i> <span id="foodTabText">Food</span>
                 </div>
             </div>
 
@@ -723,6 +729,132 @@
                     <div id="travelItemsContainer"></div>
                 </div>
             </div>
+
+            <!-- Fashion Tab Content -->
+            <div class="tab-content" id="fashion-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="fashionTitle">My Fashion</h2>
+                            <p class="section-subtitle" id="fashionSubtitle">Organize brands you wear, love, or want to try</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createFashionListBtn" onclick="ProfileManager.createFashionList()">
+                                <i class="fas fa-plus"></i> New Collection
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='fashion.html'">
+                                <i class="fas fa-shirt"></i> Browse Fashion
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="fashionGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Fashion Lists Yet</h3>
+                            <p class="empty-description">Save brands to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='fashion.html'">
+                                <i class="fas fa-shirt"></i> Explore Fashion
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fashion Detail View -->
+            <div class="tab-content" id="fashion-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideFashionDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="fashionDetailTitle">
+                                <span id="fashionDetailIcon"></span>
+                                <span id="fashionDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="fashionDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="fashion">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('fashion', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions" id="fashionDetailActions" style="display: none;">
+                            <button class="btn btn-secondary btn-sm" id="fashionListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="fashionListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="fashionItemsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Food Tab Content -->
+            <div class="tab-content" id="food-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="foodTitle">My Food</h2>
+                            <p class="section-subtitle" id="foodSubtitle">Track fast food, restaurants, and chains you love</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createFoodListBtn" onclick="ProfileManager.createFoodList()">
+                                <i class="fas fa-plus"></i> New Collection
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='food.html'">
+                                <i class="fas fa-burger"></i> Browse Food
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="foodGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Food Lists Yet</h3>
+                            <p class="empty-description">Save brands to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='food.html'">
+                                <i class="fas fa-burger"></i> Explore Food
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Food Detail View -->
+            <div class="tab-content" id="food-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideFoodDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="foodDetailTitle">
+                                <span id="foodDetailIcon"></span>
+                                <span id="foodDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="foodDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="food">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('food', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions" id="foodDetailActions" style="display: none;">
+                            <button class="btn btn-secondary btn-sm" id="foodListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="foodListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="foodItemsContainer"></div>
+                </div>
+            </div>
         </div>
         
         <!-- Footer -->
@@ -796,7 +928,7 @@
         <div class="mobile-social-preview" id="mobileSocialPreview">
             <div class="social-preview-info">
                 <div class="social-preview-title">Friends</div>
-                <div class="social-preview-meta" id="mobileSocialPreviewMeta">0 followers Ã‚Â· 0 following</div>
+                <div class="social-preview-meta" id="mobileSocialPreviewMeta">0 followers Â· 0 following</div>
             </div>
             <div class="social-preview-avatars" id="mobileFriendsPreviewAvatars"></div>
             <button class="social-preview-link" onclick="ProfileManager.showTab('community')">View community -></button>
@@ -835,6 +967,14 @@
             <div class="mobile-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')">
                 <i class="fas fa-earth-americas"></i>
                 <span id="mobileTabTravel">Travel</span>
+            </div>
+            <div class="mobile-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')">
+                <i class="fas fa-shirt"></i>
+                <span id="mobileTabFashion">Fashion</span>
+            </div>
+            <div class="mobile-tab" data-tab="food" onclick="ProfileManager.showTab('food')">
+                <i class="fas fa-burger"></i>
+                <span id="mobileTabFood">Food</span>
             </div>
         </div>
         <div class="mobile-tabs-swipe-hint" id="mobileTabsSwipeHint">
@@ -1271,6 +1411,106 @@
                     <div id="mobileTravelItems"></div>
                 </div>
             </div>
+
+            <!-- Fashion Section -->
+            <div class="mobile-section" id="mobileFashionSection">
+                <div class="mobile-section-title">
+                    <span id="mobileFashionTitle">My Fashion</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn" id="mobileCreateFashionListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createFashionList()">
+                            <i class="fas fa-plus"></i> New
+                        </button>
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='fashion.html'">
+                            <i class="fas fa-shirt"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileFashionSubtitle">Organize your favorite fashion brands</div>
+
+                <div class="collection-grid" id="mobileFashionGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <h3 class="mobile-empty-title">No Fashion Lists Yet</h3>
+                        <p class="mobile-empty-description">Save brands to see them here.</p>
+                        <button class="mobile-action-btn" onclick="window.location.href='fashion.html'">
+                            <i class="fas fa-shirt"></i> Explore Fashion
+                        </button>
+                    </div>
+                </div>
+
+                <div id="mobileFashionDetailSection" style="display:none; margin-top: 16px;">
+                    <div class="mobile-section-title">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideFashionDetail()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <span id="mobileFashionDetailTitle">Collection</span>
+                    </div>
+                    <div class="mobile-section-subtitle" id="mobileFashionDetailDescription"></div>
+                    <div class="collection-view-toggle" data-media="fashion" style="margin-bottom: 10px;">
+                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid', true)"><i class="fas fa-th"></i></button>
+                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('fashion', 'list', true)"><i class="fas fa-list"></i></button>
+                    </div>
+                    <div id="mobileFashionDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px;">
+                        <button class="mobile-action-btn secondary" id="mobileFashionListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-pen"></i> Edit
+                        </button>
+                        <button class="mobile-action-btn secondary" id="mobileFashionListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                    <div id="mobileFashionItems"></div>
+                </div>
+            </div>
+
+            <!-- Food Section -->
+            <div class="mobile-section" id="mobileFoodSection">
+                <div class="mobile-section-title">
+                    <span id="mobileFoodTitle">My Food</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="mobile-action-btn" id="mobileCreateFoodListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createFoodList()">
+                            <i class="fas fa-plus"></i> New
+                        </button>
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='food.html'">
+                            <i class="fas fa-burger"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileFoodSubtitle">Track your favorite food brands</div>
+
+                <div class="collection-grid" id="mobileFoodGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <h3 class="mobile-empty-title">No Food Lists Yet</h3>
+                        <p class="mobile-empty-description">Save brands to see them here.</p>
+                        <button class="mobile-action-btn" onclick="window.location.href='food.html'">
+                            <i class="fas fa-burger"></i> Explore Food
+                        </button>
+                    </div>
+                </div>
+
+                <div id="mobileFoodDetailSection" style="display:none; margin-top: 16px;">
+                    <div class="mobile-section-title">
+                        <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideFoodDetail()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <span id="mobileFoodDetailTitle">Collection</span>
+                    </div>
+                    <div class="mobile-section-subtitle" id="mobileFoodDetailDescription"></div>
+                    <div class="collection-view-toggle" data-media="food" style="margin-bottom: 10px;">
+                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid', true)"><i class="fas fa-th"></i></button>
+                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('food', 'list', true)"><i class="fas fa-list"></i></button>
+                    </div>
+                    <div id="mobileFoodDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px;">
+                        <button class="mobile-action-btn secondary" id="mobileFoodListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-pen"></i> Edit
+                        </button>
+                        <button class="mobile-action-btn secondary" id="mobileFoodListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                    <div id="mobileFoodItems"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Mobile Bottom Navigation -->
@@ -1446,6 +1686,8 @@
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="gift"><i class="fas fa-gift"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="music"><i class="fas fa-music"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="travel"><i class="fas fa-earth-americas"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="fashion"><i class="fas fa-shirt"></i></button>
+                            <button type="button" class="list-icon-option menu-icon-option" data-icon="food"><i class="fas fa-burger"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="camera"><i class="fas fa-camera"></i></button>
                             <button type="button" class="list-icon-option menu-icon-option" data-icon="soccer"><i class="fas fa-futbol"></i></button>
                         </div>
@@ -1476,6 +1718,8 @@
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('books')">Books</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('music')">Music</button>
                     <button class="btn btn-secondary" onclick="ProfileManager.createListForType('travel')">Travel</button>
+                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('fashion')">Fashion</button>
+                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('food')">Food</button>
                 </div>
             </div>
         </div>
@@ -1516,6 +1760,8 @@
                             <button type="button" class="edit-list-icon-option" data-icon="gift"><i class="fas fa-gift"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="music"><i class="fas fa-music"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="travel"><i class="fas fa-earth-americas"></i></button>
+                            <button type="button" class="edit-list-icon-option" data-icon="fashion"><i class="fas fa-shirt"></i></button>
+                            <button type="button" class="edit-list-icon-option" data-icon="food"><i class="fas fa-burger"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="camera"><i class="fas fa-camera"></i></button>
                             <button type="button" class="edit-list-icon-option" data-icon="soccer"><i class="fas fa-futbol"></i></button>
                         </div>
@@ -1712,7 +1958,7 @@
         </div>
     </div>
 
-    <script src="js/list-utils.js?v=20260314j"></script>
+    <script src="js/list-utils.js?v=20260316a"></script>
     <script src="js/igdb-client.js?v=20260311c"></script>
     <script src="js/pages/profile.js?v=20260314d"></script>
         <script src="js/production-runtime.js?v=20260307a" defer></script>

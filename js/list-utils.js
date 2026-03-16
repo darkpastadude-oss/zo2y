@@ -49,6 +49,20 @@
       usesUserId: true,
       defaultIcon: 'fas fa-earth-americas'
     },
+    fashion: {
+      listTable: 'fashion_lists',
+      itemsTable: 'fashion_list_items',
+      itemIdField: 'brand_id',
+      usesUserId: true,
+      defaultIcon: 'fas fa-shirt'
+    },
+    food: {
+      listTable: 'food_lists',
+      itemsTable: 'food_list_items',
+      itemIdField: 'brand_id',
+      usesUserId: true,
+      defaultIcon: 'fas fa-burger'
+    },
     sports: {
       listTable: 'sports_lists',
       itemsTable: 'sports_list_items',
@@ -146,6 +160,8 @@
     if (raw.includes('fa-book')) return 'book';
     if (raw.includes('fa-music')) return 'music';
     if (raw.includes('fa-earth')) return 'travel';
+    if (raw.includes('fa-shirt')) return 'fashion';
+    if (raw.includes('fa-burger')) return 'food';
     if (raw.includes('fa-futbol') || raw.includes('fa-football')) return 'sports';
     if (raw.includes('fa-user')) return 'user';
     if (raw.includes('fa-tv')) return 'tv';

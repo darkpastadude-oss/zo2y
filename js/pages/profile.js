@@ -59,6 +59,8 @@
             let bookCache = new Map();
             let musicCache = new Map();
             let travelCountryCache = new Map();
+            let fashionBrandCache = new Map();
+            let foodBrandCache = new Map();
             let renderMoviesToken = 0;
             let renderTvToken = 0;
             let renderAnimeToken = 0;
@@ -66,6 +68,8 @@
             let renderBooksToken = 0;
             let renderMusicToken = 0;
             let renderTravelToken = 0;
+            let renderFashionToken = 0;
+            let renderFoodToken = 0;
             let renderSportsToken = 0;
             let renderRestaurantsToken = 0;
             let editingMediaList = null;
@@ -94,7 +98,9 @@
                 ...(GAMES_DISABLED ? {} : { game: 'game_lists' }),
                 book: 'book_lists',
                 music: 'music_lists',
-                travel: 'travel_lists'
+                travel: 'travel_lists',
+                fashion: 'fashion_lists',
+                food: 'food_lists'
             };
             const MEDIA_ITEM_TABLES = {
                 movie: 'movie_list_items',
@@ -103,7 +109,9 @@
                 ...(GAMES_DISABLED ? {} : { game: 'game_list_items' }),
                 book: 'book_list_items',
                 music: 'music_list_items',
-                travel: 'travel_list_items'
+                travel: 'travel_list_items',
+                fashion: 'fashion_list_items',
+                food: 'food_list_items'
             };
             const MEDIA_ITEM_FIELDS = {
                 movie: 'movie_id',
@@ -112,7 +120,9 @@
                 ...(GAMES_DISABLED ? {} : { game: 'game_id' }),
                 book: 'book_id',
                 music: 'track_id',
-                travel: 'country_code'
+                travel: 'country_code',
+                fashion: 'brand_id',
+                food: 'brand_id'
             };
             let manualProfileBadges = [];
             let profileStatsSnapshot = {
@@ -134,8 +144,8 @@
             const STATS_REALTIME_DEBOUNCE_MS = 220;
             const VALID_PROFILE_TABS = new Set(
                 ENABLE_RESTAURANTS
-                    ? ['restaurants', 'movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'community']
-                    : ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'community']
+                    ? ['restaurants', 'movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'community']
+                    : ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'community']
             );
             const VALID_COLLECTION_TYPES = new Set([
                 ...(ENABLE_RESTAURANTS ? ['restaurant'] : []),
@@ -145,7 +155,9 @@
                 ...(GAMES_DISABLED ? [] : ['game']),
                 'book',
                 'music',
-                'travel'
+                'travel',
+                'fashion',
+                'food'
             ]);
             const COLLECTION_TO_TAB = {
                 ...(ENABLE_RESTAURANTS ? { restaurant: 'restaurants' } : {}),
@@ -155,7 +167,9 @@
                 ...(GAMES_DISABLED ? {} : { game: 'games' }),
                 book: 'books',
                 music: 'music',
-                travel: 'travel'
+                travel: 'travel',
+                fashion: 'fashion',
+                food: 'food'
             };
             const COLLECTION_VIEW_STORAGE_KEY = 'zo2y_profile_collection_view_modes_v2';
             let collectionViewModes = loadCollectionViewModes();
@@ -418,6 +432,8 @@
                     if (!hasFreshTabRender('music')) preloadTasks.push(renderMusic());
                     if (!hasFreshTabRender('sports')) preloadTasks.push(renderSports());
                     if (!hasFreshTabRender('travel')) preloadTasks.push(renderTravel());
+                    if (!hasFreshTabRender('fashion')) preloadTasks.push(renderFashion());
+                    if (!hasFreshTabRender('food')) preloadTasks.push(renderFood());
                     if (!preloadTasks.length) return;
                     Promise.allSettled(preloadTasks).catch(() => {});
                 }, deferMs);
@@ -474,6 +490,7 @@
 
             function getPreviewOrientationClass(contentType) {
                 const type = String(contentType || '').toLowerCase();
+                if (type === 'fashion' || type === 'food') return 'is-square';
                 return (type === 'restaurant' || type === 'travel') ? 'is-landscape' : 'is-portrait';
             }
 
@@ -3232,7 +3249,9 @@
                             anime: { favorites: 'Favorites', watched: 'Watched', watchlist: 'Watchlist' },
                             game: { favorites: 'Favorites', watched: 'Played', watchlist: 'Backlog' },
                             book: { favorites: 'Favorites', read: 'Read', readlist: 'Readlist' },
-                            music: { favorites: 'Favorites', listened: 'Listened', listenlist: 'Listenlist' }
+                            music: { favorites: 'Favorites', listened: 'Listened', listenlist: 'Listenlist' },
+                            fashion: { favorites: 'Favorites', owned: 'Owned', wishlist: 'Wishlist' },
+                            food: { favorites: 'Favorites', tried: 'Tried', want_to_try: 'Want to Try' }
                         };
                         if (map[type] && map[type][key]) return map[type][key];
                         return key.replace(/_/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase());
@@ -3294,6 +3313,18 @@
                             return data ? {
                                 title: String(data.name || '').trim(),
                                 image: String(data.image_url || '').trim() || '/newlogo.webp'
+                            } : null;
+                        }
+                        if (safeType === 'fashion' || safeType === 'food') {
+                            const table = safeType === 'fashion' ? 'fashion_brands' : 'food_brands';
+                            const { data } = await supabase
+                                .from(table)
+                                .select('id, name, logo_url')
+                                .eq('id', safeId)
+                                .maybeSingle();
+                            return data ? {
+                                title: String(data.name || '').trim(),
+                                image: String(data.logo_url || '').trim() || '/newlogo.webp'
                             } : null;
                         }
                         if (safeType === 'restaurant') {
@@ -4040,7 +4071,9 @@
                 if (raw.includes('fa-dragon')) return 'anime';
                 if (raw.includes('fa-gamepad')) return 'game';
                 if (raw.includes('fa-earth-americas') || raw.includes('fa-globe')) return 'travel';
-                if (raw === 'heart' || raw === 'check' || raw === 'bookmark' || raw === 'restaurant' || raw === 'movie' || raw === 'book' || raw === 'tv' || raw === 'anime' || raw === 'game' || raw === 'list' || raw === 'user' || raw === 'star' || raw === 'fire' || raw === 'sparkles' || raw === 'rocket' || raw === 'trophy' || raw === 'gift' || raw === 'music' || raw === 'travel' || raw === 'camera' || raw === 'soccer') return raw;
+                if (raw.includes('fa-shirt')) return 'fashion';
+                if (raw.includes('fa-burger')) return 'food';
+                if (raw === 'heart' || raw === 'check' || raw === 'bookmark' || raw === 'restaurant' || raw === 'movie' || raw === 'book' || raw === 'tv' || raw === 'anime' || raw === 'game' || raw === 'list' || raw === 'user' || raw === 'star' || raw === 'fire' || raw === 'sparkles' || raw === 'rocket' || raw === 'trophy' || raw === 'gift' || raw === 'music' || raw === 'travel' || raw === 'fashion' || raw === 'food' || raw === 'camera' || raw === 'soccer') return raw;
                 return raw;
             }
 
@@ -4066,6 +4099,8 @@
                     gift: 'fas fa-gift',
                     music: 'fas fa-music',
                     travel: 'fas fa-earth-americas',
+                    fashion: 'fas fa-shirt',
+                    food: 'fas fa-burger',
                     camera: 'fas fa-camera',
                     soccer: 'fas fa-futbol'
                 };
@@ -4091,7 +4126,9 @@
                     game: 'G',
                     book: 'B',
                     music: 'M',
-                    travel: 'T'
+                    travel: 'T',
+                    fashion: 'F',
+                    food: 'F'
                 };
                 return map[key] || map[fallback] || 'U';
             }
@@ -4122,7 +4159,9 @@
                         game: 'grid',
                         book: 'grid',
                         music: 'grid',
-                        travel: 'grid'
+                        travel: 'grid',
+                        fashion: 'grid',
+                        food: 'grid'
                     };
                     Object.keys(base).forEach((key) => {
                         const mode = parsed?.[key];
@@ -4138,7 +4177,9 @@
                         game: 'grid',
                         book: 'grid',
                         music: 'grid',
-                        travel: 'grid'
+                        travel: 'grid',
+                        fashion: 'grid',
+                        food: 'grid'
                     };
                 }
             }
@@ -4198,10 +4239,13 @@
                     type === 'game' ? 'game' :
                     type === 'book' ? 'book' :
                     type === 'travel' ? 'country' :
+                    type === 'fashion' ? 'brand' :
+                    type === 'food' ? 'brand' :
                     'track'
                 );
                 if (count === 1) return `${count} ${singular}`;
                 if (type === 'travel') return `${count} countries`;
+                if (type === 'fashion' || type === 'food') return `${count} brands`;
                 if (type === 'tv') return `${count} TV shows`;
                 return `${count} ${singular}s`;
             }
@@ -4792,6 +4836,14 @@
                 }
                 if (contentType === 'travel') {
                     await renderTravel();
+                    return;
+                }
+                if (contentType === 'fashion') {
+                    await renderFashion();
+                    return;
+                }
+                if (contentType === 'food') {
+                    await renderFood();
                 }
             }
 
@@ -4972,6 +5024,10 @@
                     await showMusicDetail(listId, listType, isMobile);
                 } else if (mediaType === 'travel') {
                     await showTravelDetail(listId, listType, isMobile);
+                } else if (mediaType === 'fashion') {
+                    await showFashionDetail(listId, listType, isMobile);
+                } else if (mediaType === 'food') {
+                    await showFoodDetail(listId, listType, isMobile);
                 }
             }
 
@@ -5224,6 +5280,57 @@
                     byCode.set(code, fallback);
                 });
                 return byCode;
+            }
+
+            async function fetchBrandMapByIds(contentType, ids = []) {
+                const normalizedIds = Array.from(new Set(
+                    (Array.isArray(ids) ? ids : [])
+                        .map((id) => String(id || '').trim())
+                        .filter(Boolean)
+                ));
+                if (!normalizedIds.length) return new Map();
+
+                const cache = contentType === 'food' ? foodBrandCache : fashionBrandCache;
+                const byId = new Map();
+                const missing = [];
+                normalizedIds.forEach((id) => {
+                    if (cache.has(id)) {
+                        byId.set(id, cache.get(id));
+                    } else {
+                        missing.push(id);
+                    }
+                });
+
+                if (missing.length) {
+                    const table = contentType === 'food' ? 'food_brands' : 'fashion_brands';
+                    const { data } = await supabase
+                        .from(table)
+                        .select('id, name, logo_url, category, description, country')
+                        .in('id', missing);
+                    (data || []).forEach((row) => {
+                        const id = String(row?.id || '').trim();
+                        if (!id) return;
+                        const brand = {
+                            id,
+                            name: String(row?.name || '').trim(),
+                            logo: toHttpsUrl(row?.logo_url || ''),
+                            category: String(row?.category || '').trim(),
+                            description: String(row?.description || '').trim(),
+                            country: String(row?.country || '').trim()
+                        };
+                        cache.set(id, brand);
+                        byId.set(id, brand);
+                    });
+                }
+
+                normalizedIds.forEach((id) => {
+                    if (!byId.has(id)) {
+                        const fallback = { id, name: 'Brand', logo: '/newlogo.webp', category: '', description: '', country: '' };
+                        cache.set(id, fallback);
+                        byId.set(id, fallback);
+                    }
+                });
+                return byId;
             }
 
             function renderMovieListIcon(icon) {
@@ -5510,7 +5617,9 @@
                     game: { table: 'game_lists', fallback: 'game', label: 'Game', rerender: renderGames },
                     book: { table: 'book_lists', fallback: 'book', label: 'Book', rerender: renderBooks },
                     music: { table: 'music_lists', fallback: 'music', label: 'Music', rerender: renderMusic },
-                    travel: { table: 'travel_lists', fallback: 'travel', label: 'Travel', rerender: renderTravel }
+                    travel: { table: 'travel_lists', fallback: 'travel', label: 'Travel', rerender: renderTravel },
+                    fashion: { table: 'fashion_lists', fallback: 'fashion', label: 'Fashion', rerender: renderFashion },
+                    food: { table: 'food_lists', fallback: 'food', label: 'Food', rerender: renderFood }
                 };
                 return configMap[type] || null;
             }
@@ -5523,7 +5632,9 @@
                     game: ['favorites', 'watched', 'watchlist'],
                     book: ['favorites', 'read', 'readlist'],
                     music: ['favorites', 'listened', 'listenlist'],
-                    travel: ['favorites', 'visited', 'bucket list', 'bucketlist']
+                    travel: ['favorites', 'visited', 'bucket list', 'bucketlist'],
+                    fashion: ['favorites', 'owned', 'wishlist'],
+                    food: ['favorites', 'tried', 'want to try', 'want_to_try']
                 };
                 return new Set(map[type] || []);
             }
@@ -6941,7 +7052,9 @@
                     ['games-tab', 'game-detail-view'],
                     ['books-tab', 'book-detail-view'],
                     ['music-tab', 'music-detail-view'],
-                    ['travel-tab', 'travel-detail-view']
+                    ['travel-tab', 'travel-detail-view'],
+                    ['fashion-tab', 'fashion-detail-view'],
+                    ['food-tab', 'food-detail-view']
                 ];
                 desktopPairs.forEach(([mainId, detailId]) => {
                     const main = document.getElementById(mainId);
@@ -6961,7 +7074,9 @@
                     { main: 'mobileGamesSection', detail: 'mobileGameDetailSection', grid: 'mobileGamesGrid' },
                     { main: 'mobileBooksSection', detail: 'mobileBookDetailSection', grid: 'mobileBooksGrid' },
                     { main: 'mobileMusicSection', detail: 'mobileMusicDetailSection', grid: 'mobileMusicGrid' },
-                    { main: 'mobileTravelSection', detail: 'mobileTravelDetailSection', grid: 'mobileTravelGrid' }
+                    { main: 'mobileTravelSection', detail: 'mobileTravelDetailSection', grid: 'mobileTravelGrid' },
+                    { main: 'mobileFashionSection', detail: 'mobileFashionDetailSection', grid: 'mobileFashionGrid' },
+                    { main: 'mobileFoodSection', detail: 'mobileFoodDetailSection', grid: 'mobileFoodGrid' }
                 ];
                 mobileConfigs.forEach((cfg) => {
                     const mainSection = document.getElementById(cfg.main);
@@ -6997,6 +7112,8 @@
                     music: () => renderMusic(),
                     sports: () => renderSports(),
                     travel: () => renderTravel(),
+                    fashion: () => renderFashion(),
+                    food: () => renderFood(),
                     community: () => showCommunitySection('followers')
                 };
                 const handler = handlers[safeTab] || handlers[DEFAULT_PROFILE_TAB] || handlers.movies;
@@ -8079,6 +8196,196 @@
                 }
             }
 
+            async function renderFashion() {
+                const isMobile = window.innerWidth <= 768;
+                const grid = isMobile ? document.getElementById('mobileFashionGrid') : document.getElementById('fashionGrid');
+                if (!grid) return;
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                const renderToken = ++renderFashionToken;
+
+                try {
+                    await ensurePinnedCollectionsLoaded(userId);
+                    const defaultLists = [
+                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Brands you love', type: 'default' },
+                        { id: 'owned', title: 'Owned', icon: 'check', description: 'Brands you own', type: 'default' },
+                        { id: 'wishlist', title: 'Wishlist', icon: 'bookmark', description: 'Brands you want to try', type: 'default' }
+                    ];
+
+                    let customLists = await loadCollaborativeCustomLists('fashion', userId);
+                    const allItems = await loadMediaListItems('fashion', userId, customLists.map((list) => list.id));
+
+                    if (renderToken !== renderFashionToken) return;
+
+                    const reservedTitles = new Set(['favorites', 'owned', 'wishlist']);
+                    const seenCustomIds = new Set();
+                    const normalizedCustomLists = [];
+
+                    for (const list of customLists) {
+                        const title = String(list.title || '').trim().toLowerCase();
+                        if (reservedTitles.has(title)) continue;
+                        const safeId = String(list.id || '').trim();
+                        if (safeId && !seenCustomIds.has(safeId)) {
+                            seenCustomIds.add(safeId);
+                            normalizedCustomLists.push(list);
+                        }
+                    }
+
+                    customLists = await hydrateListMetaByOwner('fashion', normalizedCustomLists, userId);
+                    if (renderToken !== renderFashionToken) return;
+
+                    for (const list of defaultLists) {
+                        list.brandIds = Array.from(new Set(
+                            allItems
+                                .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
+                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .filter(Boolean)
+                        ));
+                    }
+                    for (const list of customLists) {
+                        list.brandIds = Array.from(new Set(
+                            allItems
+                                .filter((row) => String(row.list_id || '') === String(list.id || ''))
+                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .filter(Boolean)
+                        ));
+                    }
+
+                    const allLists = applyPinnedListSorting('fashion', [...defaultLists, ...customLists]);
+                    if (!allLists.length) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Fashion Lists Yet</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save brands to see them here.</p>
+                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='fashion.html'">
+                                    <i class="fas fa-shirt"></i> Explore Fashion
+                                </button>
+                            </div>
+                        `;
+                        markTabRendered('fashion');
+                        return;
+                    }
+
+                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
+                        list,
+                        'fashion',
+                        isMobile,
+                        String(list?.user_id || userId || '').trim() || userId
+                    )));
+                    grid.innerHTML = '';
+                    const fragment = document.createDocumentFragment();
+                    cards.forEach((card) => fragment.appendChild(card));
+                    grid.appendChild(fragment);
+                    markTabRendered('fashion');
+                } catch (error) {
+                    console.error('Error loading fashion:', error);
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Fashion</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your fashion lists</p>
+                        </div>
+                    `;
+                }
+            }
+
+            async function renderFood() {
+                const isMobile = window.innerWidth <= 768;
+                const grid = isMobile ? document.getElementById('mobileFoodGrid') : document.getElementById('foodGrid');
+                if (!grid) return;
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                const renderToken = ++renderFoodToken;
+
+                try {
+                    await ensurePinnedCollectionsLoaded(userId);
+                    const defaultLists = [
+                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Brands you love', type: 'default' },
+                        { id: 'tried', title: 'Tried', icon: 'check', description: 'Places you already tried', type: 'default' },
+                        { id: 'want_to_try', title: 'Want to Try', icon: 'bookmark', description: 'Spots you want to try', type: 'default' }
+                    ];
+
+                    let customLists = await loadCollaborativeCustomLists('food', userId);
+                    const allItems = await loadMediaListItems('food', userId, customLists.map((list) => list.id));
+
+                    if (renderToken !== renderFoodToken) return;
+
+                    const reservedTitles = new Set(['favorites', 'tried', 'want to try', 'want_to_try']);
+                    const seenCustomIds = new Set();
+                    const normalizedCustomLists = [];
+
+                    for (const list of customLists) {
+                        const title = String(list.title || '').trim().toLowerCase();
+                        if (reservedTitles.has(title)) continue;
+                        const safeId = String(list.id || '').trim();
+                        if (safeId && !seenCustomIds.has(safeId)) {
+                            seenCustomIds.add(safeId);
+                            normalizedCustomLists.push(list);
+                        }
+                    }
+
+                    customLists = await hydrateListMetaByOwner('food', normalizedCustomLists, userId);
+                    if (renderToken !== renderFoodToken) return;
+
+                    for (const list of defaultLists) {
+                        list.brandIds = Array.from(new Set(
+                            allItems
+                                .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
+                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .filter(Boolean)
+                        ));
+                    }
+                    for (const list of customLists) {
+                        list.brandIds = Array.from(new Set(
+                            allItems
+                                .filter((row) => String(row.list_id || '') === String(list.id || ''))
+                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .filter(Boolean)
+                        ));
+                    }
+
+                    const allLists = applyPinnedListSorting('food', [...defaultLists, ...customLists]);
+                    if (!allLists.length) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Food Lists Yet</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save brands to see them here.</p>
+                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='food.html'">
+                                    <i class="fas fa-burger"></i> Explore Food
+                                </button>
+                            </div>
+                        `;
+                        markTabRendered('food');
+                        return;
+                    }
+
+                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
+                        list,
+                        'food',
+                        isMobile,
+                        String(list?.user_id || userId || '').trim() || userId
+                    )));
+                    grid.innerHTML = '';
+                    const fragment = document.createDocumentFragment();
+                    cards.forEach((card) => fragment.appendChild(card));
+                    grid.appendChild(fragment);
+                    markTabRendered('food');
+                } catch (error) {
+                    console.error('Error loading food:', error);
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Food</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your food lists</p>
+                        </div>
+                    `;
+                }
+            }
+
             async function createCollectionCard(list, contentType, isMobile, ownerUserId = null) {
                 const card = document.createElement('div');
                 card.className = 'collection-card';
@@ -8095,7 +8402,11 @@
                                 ? (list.gameIds || [])
                                 : (contentType === 'book'
                                     ? (list.bookIds || [])
-                                    : (contentType === 'travel' ? (list.countryCodes || []) : (list.trackIds || [])))))));
+                                    : (contentType === 'fashion'
+                                        ? (list.brandIds || [])
+                                        : (contentType === 'food'
+                                            ? (list.brandIds || [])
+                                            : (contentType === 'travel' ? (list.countryCodes || []) : (list.trackIds || []))))))));
                 const resolvedListType = resolveCollectionListType(contentType, list);
                 const routeListId = String(list.id || '');
                 const { tierMeta, orderedIds } = await resolveTierOrderedIds(contentType, list, routeListId, itemIds, {
@@ -8150,6 +8461,10 @@
                                     ? 'game'
                                     : contentType === 'book'
                                         ? 'book'
+                                        : contentType === 'fashion'
+                                            ? 'fashion'
+                                            : contentType === 'food'
+                                                ? 'food'
                                         : contentType === 'travel'
                                             ? 'travel'
                                             : 'music';
@@ -8326,6 +8641,17 @@
                             const imageUrl = row.image_url || '/newlogo.webp';
                             writePreviewAssetCache(contentType, id, imageUrl);
                         });
+                    } else if (contentType === 'fashion' || contentType === 'food') {
+                        const table = contentType === 'fashion' ? 'fashion_brands' : 'food_brands';
+                        const { data } = await supabase
+                            .from(table)
+                            .select('id, logo_url')
+                            .in('id', missingIds);
+                        (data || []).forEach((row) => {
+                            const id = String(row.id || '').trim();
+                            const imageUrl = row.logo_url || '/newlogo.webp';
+                            writePreviewAssetCache(contentType, id, imageUrl);
+                        });
                     } else if (contentType === 'travel') {
                         missingIds.forEach((id) => {
                             const code = normalizeCountryCode(id);
@@ -8384,6 +8710,10 @@
                     await showAnimeDetail(listId, listType, isMobile);
                 } else if (contentType === 'travel') {
                     await showTravelDetail(listId, listType, isMobile);
+                } else if (contentType === 'fashion') {
+                    await showFashionDetail(listId, listType, isMobile);
+                } else if (contentType === 'food') {
+                    await showFoodDetail(listId, listType, isMobile);
                 } else if (contentType === 'music') {
                     await showMusicDetail(listId, listType, isMobile);
                 } else {
@@ -9964,6 +10294,384 @@
                 );
             }
 
+            async function showFashionDetail(listId, listType, isMobile) {
+                if (isMobile) {
+                    const mainSection = document.getElementById('mobileFashionSection');
+                    const detailSection = document.getElementById('mobileFashionDetailSection');
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileFashionGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
+                    if (detailSection) {
+                        detailSection.style.display = 'block';
+                        detailSection.classList.add('active');
+                    }
+                } else {
+                    const mainTab = document.getElementById('fashion-tab');
+                    const detailView = document.getElementById('fashion-detail-view');
+                    if (mainTab) mainTab.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'block';
+                        detailView.classList.add('active');
+                    }
+                }
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                let list = null;
+
+                if (listType === 'default') {
+                    const titles = { favorites: 'Favorites', owned: 'Owned', wishlist: 'Wishlist' };
+                    const icons = { favorites: 'heart', owned: 'check', wishlist: 'bookmark' };
+                    const descriptions = {
+                        favorites: 'Brands you love',
+                        owned: 'Brands you own',
+                        wishlist: 'Brands you want to try'
+                    };
+                    list = { id: listId, title: titles[listId] || 'Fashion', icon: icons[listId] || 'fashion', description: descriptions[listId] || '', type: 'default' };
+                } else {
+                    const { data, error } = await supabase.from('fashion_lists').select('*').eq('id', listId).single();
+                    if (error || !data) {
+                        showToast('Collection not found', 'error');
+                        return;
+                    }
+                    list = { ...data, type: 'custom' };
+                }
+
+                if (listType === 'custom' && window.ListUtils) {
+                    const [hydrated] = await ListUtils.hydrateListMetaForLists('fashion', [list], {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId: list?.user_id || userId
+                    });
+                    if (hydrated) list = hydrated;
+                }
+                if (listType === 'custom') {
+                    await ensureCollaborativeAccessForList('fashion', list);
+                }
+
+                const listOwnerUserId = String(list?.user_id || userId || '').trim() || userId;
+                const brandIds = await fetchMediaCollectionItemIds('fashion', listOwnerUserId, listId, listType);
+                const tierMeta = getTierMetaForList('fashion', list, brandIds.length);
+                const detailTitle = getCollectionTitleWithKind('fashion', list, listType);
+                const detailDescription = tierMeta.isTier
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
+                    : (list.description || '');
+                const canEditList = listType === 'custom' && canEditCustomCollection('fashion', listId, list);
+                const canDeleteList = listType === 'custom' && canDeleteCustomCollection('fashion', listId, list);
+
+                if (isMobile) {
+                    const titleEl = document.getElementById('mobileFashionDetailTitle');
+                    const descEl = document.getElementById('mobileFashionDetailDescription');
+                    const actions = document.getElementById('mobileFashionDetailActions');
+                    const editBtn = document.getElementById('mobileFashionListEditBtn');
+                    const deleteBtn = document.getElementById('mobileFashionListDeleteBtn');
+                    if (titleEl) titleEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameFashionList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteFashionList(listId);
+                } else {
+                    const iconEl = document.getElementById('fashionDetailIcon');
+                    const nameEl = document.getElementById('fashionDetailName');
+                    const descEl = document.getElementById('fashionDetailDescription');
+                    const actions = document.getElementById('fashionDetailActions');
+                    const editBtn = document.getElementById('fashionListEditBtn');
+                    const deleteBtn = document.getElementById('fashionListDeleteBtn');
+                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'fashion');
+                    if (nameEl) nameEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameFashionList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteFashionList(listId);
+                }
+
+                currentMediaDetail = { mediaType: 'fashion', listId, listType, isMobile };
+                updateCollectionViewToggleButtons('fashion');
+                await renderFashionItems(brandIds, listId, listType, isMobile, list, listOwnerUserId);
+            }
+
+            async function renderFashionItems(brandIds, listId, listType, isMobile, list = null, ownerUserId = null) {
+                const container = isMobile ? document.getElementById('mobileFashionItems') : document.getElementById('fashionItemsContainer');
+                if (!container) return;
+                applyCollectionViewToContainer(container, 'fashion');
+
+                if (!brandIds || brandIds.length === 0) {
+                    container.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('fashion')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Brands Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add brands to this collection!</p>
+                        </div>
+                    `;
+                    wireTierDragAndDrop(container, null, null, 'default');
+                    return;
+                }
+
+                const { tierMeta, orderedIds } = await resolveTierOrderedIds('fashion', list, listId, brandIds, {
+                    listType,
+                    ownerUserId
+                });
+                const canReorderList = canReorderCollectionItems('fashion', listId, listType, list);
+                const canEditItems = canEditCollectionItems('fashion', listId, listType, list);
+                const brandMap = await fetchBrandMapByIds('fashion', orderedIds);
+                container.innerHTML = '';
+
+                for (let i = 0; i < orderedIds.length; i++) {
+                    const id = String(orderedIds[i] || '').trim();
+                    if (!id) continue;
+                    const brand = brandMap.get(id) || { id, name: 'Brand', logo: '/newlogo.webp', category: '' };
+                    const title = String(brand.name || 'Brand').trim();
+                    const category = String(brand.category || '').trim();
+                    const country = String(brand.country || '').trim();
+                    const meta = [category, country].filter(Boolean).join(' | ');
+                    const image = String(brand.logo || '').trim() || '/newlogo.webp';
+                    const rankMarkup = tierMeta.isTier
+                        ? buildTierRankControlMarkup(
+                            i + 1,
+                            orderedIds.length,
+                            canReorderList
+                        )
+                        : '';
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'collection-item-card';
+                    itemCard.onclick = () => {
+                        window.location.href = `brand.html?type=fashion&id=${encodeURIComponent(id)}`;
+                    };
+
+                    itemCard.innerHTML = `
+                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <div class="collection-item-body">
+                            <h3 class="collection-item-title">${escapeHtml(title)}</h3>
+                            ${canEditItems ? `
+                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'fashion', '${listType}')">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            ` : ''}
+                            <div class="collection-item-meta">
+                                <span><i class="fas fa-tag"></i> ${escapeHtml(meta || 'Brand details unavailable')}</span>
+                            </div>
+                            ${rankMarkup}
+                        </div>
+                        ${canEditItems ? `
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'fashion', '${listType}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    `;
+                    if (canReorderList) {
+                        itemCard.dataset.tierItemId = id;
+                    }
+                    container.appendChild(itemCard);
+                }
+
+                wireTierDragAndDrop(
+                    container,
+                    canReorderList ? 'fashion' : null,
+                    canReorderList ? listId : null,
+                    canReorderList ? listType : 'default'
+                );
+            }
+
+            async function showFoodDetail(listId, listType, isMobile) {
+                if (isMobile) {
+                    const mainSection = document.getElementById('mobileFoodSection');
+                    const detailSection = document.getElementById('mobileFoodDetailSection');
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileFoodGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
+                    if (detailSection) {
+                        detailSection.style.display = 'block';
+                        detailSection.classList.add('active');
+                    }
+                } else {
+                    const mainTab = document.getElementById('food-tab');
+                    const detailView = document.getElementById('food-detail-view');
+                    if (mainTab) mainTab.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'block';
+                        detailView.classList.add('active');
+                    }
+                }
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                let list = null;
+
+                if (listType === 'default') {
+                    const titles = { favorites: 'Favorites', tried: 'Tried', want_to_try: 'Want to Try' };
+                    const icons = { favorites: 'heart', tried: 'check', want_to_try: 'bookmark' };
+                    const descriptions = {
+                        favorites: 'Brands you love',
+                        tried: 'Places you tried',
+                        want_to_try: 'Places you want to try'
+                    };
+                    list = { id: listId, title: titles[listId] || 'Food', icon: icons[listId] || 'food', description: descriptions[listId] || '', type: 'default' };
+                } else {
+                    const { data, error } = await supabase.from('food_lists').select('*').eq('id', listId).single();
+                    if (error || !data) {
+                        showToast('Collection not found', 'error');
+                        return;
+                    }
+                    list = { ...data, type: 'custom' };
+                }
+
+                if (listType === 'custom' && window.ListUtils) {
+                    const [hydrated] = await ListUtils.hydrateListMetaForLists('food', [list], {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId: list?.user_id || userId
+                    });
+                    if (hydrated) list = hydrated;
+                }
+                if (listType === 'custom') {
+                    await ensureCollaborativeAccessForList('food', list);
+                }
+
+                const listOwnerUserId = String(list?.user_id || userId || '').trim() || userId;
+                const brandIds = await fetchMediaCollectionItemIds('food', listOwnerUserId, listId, listType);
+                const tierMeta = getTierMetaForList('food', list, brandIds.length);
+                const detailTitle = getCollectionTitleWithKind('food', list, listType);
+                const detailDescription = tierMeta.isTier
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
+                    : (list.description || '');
+                const canEditList = listType === 'custom' && canEditCustomCollection('food', listId, list);
+                const canDeleteList = listType === 'custom' && canDeleteCustomCollection('food', listId, list);
+
+                if (isMobile) {
+                    const titleEl = document.getElementById('mobileFoodDetailTitle');
+                    const descEl = document.getElementById('mobileFoodDetailDescription');
+                    const actions = document.getElementById('mobileFoodDetailActions');
+                    const editBtn = document.getElementById('mobileFoodListEditBtn');
+                    const deleteBtn = document.getElementById('mobileFoodListDeleteBtn');
+                    if (titleEl) titleEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameFoodList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteFoodList(listId);
+                } else {
+                    const iconEl = document.getElementById('foodDetailIcon');
+                    const nameEl = document.getElementById('foodDetailName');
+                    const descEl = document.getElementById('foodDetailDescription');
+                    const actions = document.getElementById('foodDetailActions');
+                    const editBtn = document.getElementById('foodListEditBtn');
+                    const deleteBtn = document.getElementById('foodListDeleteBtn');
+                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'food');
+                    if (nameEl) nameEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameFoodList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteFoodList(listId);
+                }
+
+                currentMediaDetail = { mediaType: 'food', listId, listType, isMobile };
+                updateCollectionViewToggleButtons('food');
+                await renderFoodItems(brandIds, listId, listType, isMobile, list, listOwnerUserId);
+            }
+
+            async function renderFoodItems(brandIds, listId, listType, isMobile, list = null, ownerUserId = null) {
+                const container = isMobile ? document.getElementById('mobileFoodItems') : document.getElementById('foodItemsContainer');
+                if (!container) return;
+                applyCollectionViewToContainer(container, 'food');
+
+                if (!brandIds || brandIds.length === 0) {
+                    container.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('food')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Brands Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add brands to this collection!</p>
+                        </div>
+                    `;
+                    wireTierDragAndDrop(container, null, null, 'default');
+                    return;
+                }
+
+                const { tierMeta, orderedIds } = await resolveTierOrderedIds('food', list, listId, brandIds, {
+                    listType,
+                    ownerUserId
+                });
+                const canReorderList = canReorderCollectionItems('food', listId, listType, list);
+                const canEditItems = canEditCollectionItems('food', listId, listType, list);
+                const brandMap = await fetchBrandMapByIds('food', orderedIds);
+                container.innerHTML = '';
+
+                for (let i = 0; i < orderedIds.length; i++) {
+                    const id = String(orderedIds[i] || '').trim();
+                    if (!id) continue;
+                    const brand = brandMap.get(id) || { id, name: 'Brand', logo: '/newlogo.webp', category: '' };
+                    const title = String(brand.name || 'Brand').trim();
+                    const category = String(brand.category || '').trim();
+                    const country = String(brand.country || '').trim();
+                    const meta = [category, country].filter(Boolean).join(' | ');
+                    const image = String(brand.logo || '').trim() || '/newlogo.webp';
+                    const rankMarkup = tierMeta.isTier
+                        ? buildTierRankControlMarkup(
+                            i + 1,
+                            orderedIds.length,
+                            canReorderList
+                        )
+                        : '';
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'collection-item-card';
+                    itemCard.onclick = () => {
+                        window.location.href = `brand.html?type=food&id=${encodeURIComponent(id)}`;
+                    };
+
+                    itemCard.innerHTML = `
+                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <div class="collection-item-body">
+                            <h3 class="collection-item-title">${escapeHtml(title)}</h3>
+                            ${canEditItems ? `
+                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'food', '${listType}')">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            ` : ''}
+                            <div class="collection-item-meta">
+                                <span><i class="fas fa-tag"></i> ${escapeHtml(meta || 'Brand details unavailable')}</span>
+                            </div>
+                            ${rankMarkup}
+                        </div>
+                        ${canEditItems ? `
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'food', '${listType}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    `;
+                    if (canReorderList) {
+                        itemCard.dataset.tierItemId = id;
+                    }
+                    container.appendChild(itemCard);
+                }
+
+                wireTierDragAndDrop(
+                    container,
+                    canReorderList ? 'food' : null,
+                    canReorderList ? listId : null,
+                    canReorderList ? listType : 'default'
+                );
+            }
+
             function escapeHtml(text) {
                 if (!text) return '';
                 return String(text)
@@ -10129,6 +10837,86 @@
                 }
             }
 
+            async function createFashionList() {
+                await openMediaListCreator('fashion');
+            }
+
+            async function renameFashionList(listId) {
+                await openMediaListEditor('fashion', listId);
+            }
+
+            async function deleteFashionList(listId) {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const accessRecord = await fetchCustomListAccessRecord('fashion', listId);
+                if (!accessRecord || !canDeleteCustomCollection('fashion', listId, accessRecord)) {
+                    showToast('Only the list owner can delete this list', 'warning');
+                    return;
+                }
+                if (!confirm('Delete this fashion list? This cannot be undone.')) return;
+
+                try {
+                    const userId = currentUser.id;
+                    await supabase
+                        .from('fashion_list_items')
+                        .delete()
+                        .eq('user_id', userId)
+                        .eq('list_id', listId);
+                    const { error } = await supabase
+                        .from('fashion_lists')
+                        .delete()
+                        .eq('id', listId)
+                        .eq('user_id', userId);
+                    if (error) throw error;
+
+                    hideFashionDetail();
+                    await renderFashion();
+                    showToast('List deleted', 'success');
+                } catch (error) {
+                    console.error('Error deleting fashion list:', error);
+                    showToast('Could not delete list', 'error');
+                }
+            }
+
+            async function createFoodList() {
+                await openMediaListCreator('food');
+            }
+
+            async function renameFoodList(listId) {
+                await openMediaListEditor('food', listId);
+            }
+
+            async function deleteFoodList(listId) {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const accessRecord = await fetchCustomListAccessRecord('food', listId);
+                if (!accessRecord || !canDeleteCustomCollection('food', listId, accessRecord)) {
+                    showToast('Only the list owner can delete this list', 'warning');
+                    return;
+                }
+                if (!confirm('Delete this food list? This cannot be undone.')) return;
+
+                try {
+                    const userId = currentUser.id;
+                    await supabase
+                        .from('food_list_items')
+                        .delete()
+                        .eq('user_id', userId)
+                        .eq('list_id', listId);
+                    const { error } = await supabase
+                        .from('food_lists')
+                        .delete()
+                        .eq('id', listId)
+                        .eq('user_id', userId);
+                    if (error) throw error;
+
+                    hideFoodDetail();
+                    await renderFood();
+                    showToast('List deleted', 'success');
+                } catch (error) {
+                    console.error('Error deleting food list:', error);
+                    showToast('Could not delete list', 'error');
+                }
+            }
+
             function hideRestaurantDetail() {
                 if (leaveCollectionRoute('restaurants')) return;
                 currentMediaDetail = null;
@@ -10231,6 +11019,64 @@
                 } else {
                     const detailView = document.getElementById('travel-detail-view');
                     const mainTab = document.getElementById('travel-tab');
+                    if (detailView) detailView.style.display = 'none';
+                    if (mainTab) {
+                        mainTab.style.display = 'block';
+                        mainTab.classList.add('active');
+                    }
+                }
+            }
+
+            function hideFashionDetail() {
+                if (leaveCollectionRoute('fashion')) return;
+                currentMediaDetail = null;
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    const detailSection = document.getElementById('mobileFashionDetailSection');
+                    const mainSection = document.getElementById('mobileFashionSection');
+                    if (detailSection) detailSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileFashionGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
+                    }
+                } else {
+                    const detailView = document.getElementById('fashion-detail-view');
+                    const mainTab = document.getElementById('fashion-tab');
+                    if (detailView) detailView.style.display = 'none';
+                    if (mainTab) {
+                        mainTab.style.display = 'block';
+                        mainTab.classList.add('active');
+                    }
+                }
+            }
+
+            function hideFoodDetail() {
+                if (leaveCollectionRoute('food')) return;
+                currentMediaDetail = null;
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    const detailSection = document.getElementById('mobileFoodDetailSection');
+                    const mainSection = document.getElementById('mobileFoodSection');
+                    if (detailSection) detailSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileFoodGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
+                    }
+                } else {
+                    const detailView = document.getElementById('food-detail-view');
+                    const mainTab = document.getElementById('food-tab');
                     if (detailView) detailView.style.display = 'none';
                     if (mainTab) {
                         mainTab.style.display = 'block';
@@ -10369,6 +11215,12 @@
                     } else if (type === 'travel') {
                         void showTravelDetail(collectionId, listType, window.innerWidth <= 768);
                         void renderTravel();
+                    } else if (type === 'fashion') {
+                        void showFashionDetail(collectionId, listType, window.innerWidth <= 768);
+                        void renderFashion();
+                    } else if (type === 'food') {
+                        void showFoodDetail(collectionId, listType, window.innerWidth <= 768);
+                        void renderFood();
                     } else {
                         void showBookDetail(collectionId, listType, window.innerWidth <= 768);
                         void renderBooks();
@@ -10515,6 +11367,38 @@
                                 .eq('list_id', collectionId);
                         }
                         showToast('Removed from collection', 'success');
+                    } else if (type === 'fashion') {
+                        if (listType === 'default') {
+                            await supabase
+                                .from('fashion_list_items')
+                                .delete()
+                                .eq('user_id', userId)
+                                .eq('brand_id', itemId)
+                                .eq('list_type', collectionId);
+                        } else {
+                            await supabase
+                                .from('fashion_list_items')
+                                .delete()
+                                .eq('brand_id', itemId)
+                                .eq('list_id', collectionId);
+                        }
+                        showToast('Removed from collection', 'success');
+                    } else if (type === 'food') {
+                        if (listType === 'default') {
+                            await supabase
+                                .from('food_list_items')
+                                .delete()
+                                .eq('user_id', userId)
+                                .eq('brand_id', itemId)
+                                .eq('list_type', collectionId);
+                        } else {
+                            await supabase
+                                .from('food_list_items')
+                                .delete()
+                                .eq('brand_id', itemId)
+                                .eq('list_id', collectionId);
+                        }
+                        showToast('Removed from collection', 'success');
                     } else {
                         if (listType === 'default') {
                             await supabase
@@ -10642,6 +11526,28 @@
                                 }
                                 await supabase.from('travel_list_items').delete().eq('list_id', id);
                                 await supabase.from('travel_lists').delete().eq('id', id);
+                            } else if (type === 'fashion') {
+                                const collabCleanup = await supabase
+                                    .from(LIST_COLLAB_TABLE)
+                                    .delete()
+                                    .eq('media_type', 'fashion')
+                                    .eq('list_id', String(id));
+                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
+                                    console.warn('Could not remove collaborators for fashion list:', collabCleanup.error);
+                                }
+                                await supabase.from('fashion_list_items').delete().eq('list_id', id);
+                                await supabase.from('fashion_lists').delete().eq('id', id);
+                            } else if (type === 'food') {
+                                const collabCleanup = await supabase
+                                    .from(LIST_COLLAB_TABLE)
+                                    .delete()
+                                    .eq('media_type', 'food')
+                                    .eq('list_id', String(id));
+                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
+                                    console.warn('Could not remove collaborators for food list:', collabCleanup.error);
+                                }
+                                await supabase.from('food_list_items').delete().eq('list_id', id);
+                                await supabase.from('food_lists').delete().eq('id', id);
                             } else {
                                 const collabCleanup = await supabase
                                     .from(LIST_COLLAB_TABLE)
@@ -10678,6 +11584,12 @@
                             } else if (type === 'travel') {
                                 hideTravelDetail();
                                 await renderTravel();
+                            } else if (type === 'fashion') {
+                                hideFashionDetail();
+                                await renderFashion();
+                            } else if (type === 'food') {
+                                hideFoodDetail();
+                                await renderFood();
                             } else {
                                 hideBookDetail();
                                 await renderBooks();
@@ -10973,6 +11885,16 @@
                 if (normalized === 'travel') {
                     showTab('travel');
                     createTravelList();
+                    return;
+                }
+                if (normalized === 'fashion') {
+                    showTab('fashion');
+                    createFashionList();
+                    return;
+                }
+                if (normalized === 'food') {
+                    showTab('food');
+                    createFoodList();
                 }
             }
 
@@ -11503,6 +12425,10 @@
                 hideMobileMusicDetail: hideMusicDetail,
                 hideTravelDetail,
                 hideMobileTravelDetail: hideTravelDetail,
+                hideFashionDetail,
+                hideMobileFashionDetail: hideFashionDetail,
+                hideFoodDetail,
+                hideMobileFoodDetail: hideFoodDetail,
                 toggleCollectionMenu,
                 createMovieList,
                 createTvList,
@@ -11511,6 +12437,8 @@
                 createBookList,
                 createMusicList,
                 createTravelList,
+                createFashionList,
+                createFoodList,
                 addMediaListCollaborator,
                 removeMediaListCollaborator,
                 renameMovieList,
@@ -11527,6 +12455,10 @@
                 deleteMusicList,
                 renameTravelList,
                 deleteTravelList,
+                renameFashionList,
+                deleteFashionList,
+                renameFoodList,
+                deleteFoodList,
                 removeFromCollection,
                 editCollection,
                 deleteCollection,

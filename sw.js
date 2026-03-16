@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v98';
-const PAGE_CACHE = 'zo2y-pages-v102';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v99';
+const PAGE_CACHE = 'zo2y-pages-v103';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -11,15 +11,15 @@ const STATIC_ASSETS = [
   '/credits.html',
   '/manifest.webmanifest',
   '/css/pages/index.css?v=20260314m',
-  '/css/shared-header.css?v=20260315c',
+  '/css/shared-header.css?v=20260316a',
   '/css/global-lowercase.css?v=20260308a',
   '/js/pages/index.js?v=20260315e',
   '/js/home-desktop-rebrand.js?v=20260311e',
-  '/js/shared-header.js?v=20260315c',
+  '/js/shared-header.js?v=20260316a',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
-  '/js/list-utils.js?v=20260315b',
-  '/js/index-list-menu-adapter.js?v=20260314d',
+  '/js/list-utils.js?v=20260316a',
+  '/js/index-list-menu-adapter.js?v=20260316a',
   '/js/universal-search.js?v=20260315b',
   '/js/auth-gate.js?v=20260315d',
   '/js/production-runtime.js?v=20260307a',
@@ -38,6 +38,13 @@ const STATIC_ASSETS = [
   '/sports-mobile.html',
   '/css/pages/sports.css?v=20260315b',
   '/js/pages/sports.js?v=20260315b',
+  '/fashion.html',
+  '/food.html',
+  '/brand.html',
+  '/css/pages/brands.css?v=20260316a',
+  '/css/pages/brand.css?v=20260316a',
+  '/js/pages/brands.js?v=20260316a',
+  '/js/pages/brand.js?v=20260316a',
   '/team.html',
   '/css/pages/team.css?v=20260314a',
   '/js/pages/team.js?v=20260314d',

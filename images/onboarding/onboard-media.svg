@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" role="img" aria-label="Media mix illustration">
+  <defs>
+    <linearGradient id="bgMedia" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1c3a"/>
+      <stop offset="60%" stop-color="#132c5a"/>
+      <stop offset="100%" stop-color="#0a1730"/>
+    </linearGradient>
+    <linearGradient id="accentMedia" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="520" rx="36" fill="url(#bgMedia)"/>
+  <circle cx="660" cy="96" r="110" fill="#1d3d7a" opacity="0.45"/>
+  <circle cx="120" cy="420" r="140" fill="#122750" opacity="0.35"/>
+
+  <g transform="translate(120 120)">
+    <rect x="0" y="0" width="220" height="140" rx="18" fill="#132347" stroke="#2b4b83" stroke-width="2"/>
+    <rect x="16" y="18" width="188" height="104" rx="12" fill="#0c1b38"/>
+    <rect x="32" y="38" width="64" height="64" rx="10" fill="url(#accentMedia)"/>
+    <circle cx="64" cy="70" r="14" fill="#0b1633"/>
+    <circle cx="152" cy="56" r="8" fill="#233c73"/>
+    <circle cx="176" cy="56" r="8" fill="#233c73"/>
+    <circle cx="152" cy="84" r="8" fill="#233c73"/>
+    <circle cx="176" cy="84" r="8" fill="#233c73"/>
+  </g>
+
+  <g transform="translate(420 130)">
+    <rect x="0" y="0" width="230" height="150" rx="20" fill="#172b58" stroke="#355a96" stroke-width="2"/>
+    <rect x="16" y="20" width="198" height="86" rx="12" fill="#0c1f42"/>
+    <rect x="62" y="116" width="106" height="16" rx="8" fill="#223c74"/>
+    <rect x="84" y="136" width="60" height="10" rx="5" fill="#223c74"/>
+    <rect x="34" y="42" width="56" height="42" rx="8" fill="#22d3ee"/>
+    <rect x="104" y="42" width="84" height="10" rx="5" fill="#3b82f6"/>
+    <rect x="104" y="62" width="84" height="10" rx="5" fill="#3b82f6"/>
+    <rect x="104" y="82" width="64" height="10" rx="5" fill="#3b82f6"/>
+  </g>
+
+  <g transform="translate(170 320)">
+    <rect x="0" y="0" width="180" height="130" rx="18" fill="#0f1f3d" stroke="#2a4a80" stroke-width="2"/>
+    <rect x="18" y="18" width="56" height="96" rx="10" fill="#f59e0b"/>
+    <rect x="86" y="28" width="76" height="12" rx="6" fill="#2d4f88"/>
+    <rect x="86" y="52" width="60" height="12" rx="6" fill="#2d4f88"/>
+    <rect x="86" y="76" width="68" height="12" rx="6" fill="#2d4f88"/>
+  </g>
+
+  <g transform="translate(440 320)">
+    <rect x="0" y="0" width="200" height="130" rx="18" fill="#111f3f" stroke="#2b4c86" stroke-width="2"/>
+    <circle cx="60" cy="70" r="28" fill="#38bdf8"/>
+    <rect x="88" y="38" width="16" height="58" rx="8" fill="#38bdf8"/>
+    <rect x="108" y="28" width="16" height="74" rx="8" fill="#38bdf8"/>
+    <rect x="128" y="46" width="16" height="50" rx="8" fill="#38bdf8"/>
+  </g>
+</svg>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
+  <script src="/js/auth-gate.js?v=20260315d"></script>
+  <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
+  <title>Brand Details · Zo2y</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/pages/brand.css?v=20260316a" />
+  <link rel="stylesheet" href="css/shared-header.css?v=20260316a" />
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+  <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
+  <meta name="theme-color" content="#0b1633" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zo2y" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/newlogo.webp" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
+  <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/list-utils.js?v=20260316a" defer></script>
+  <script src="js/index-list-menu-adapter.js?v=20260316a" defer></script>
+  <script src="js/shared-header.js?v=20260316a" defer></script>
+  <script src="js/pages/brand.js?v=20260316a" defer></script>
+</head>
+<body data-nav-page="">
+  <main class="container">
+    <section class="hero" id="brandHero">
+      <div class="hero-logo">
+        <img id="brandLogo" src="/newlogo.webp" alt="Brand logo" />
+      </div>
+      <div>
+        <h1 class="hero-title" id="brandName">Loading...</h1>
+        <div class="hero-meta" id="brandMeta"></div>
+        <div class="hero-desc" id="brandDescription"></div>
+        <div class="hero-actions">
+          <button class="action-btn primary" id="brandSaveBtn"><i class="fa-solid fa-heart"></i> Save to list</button>
+          <a class="action-btn" id="brandWebsite" target="_blank" rel="noopener"><i class="fa-solid fa-link"></i> Official site</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="brandAbout">
+      <h2>About</h2>
+      <div id="brandAboutBody">Loading brand details...</div>
+    </section>
+
+    <section class="section" id="brandReviews">
+      <h2>Reviews</h2>
+      <div id="reviewFormWrap"></div>
+      <div class="review-list" id="reviewList"></div>
+    </section>
+  </main>
+
+  <div id="brandActionCard" class="card" style="display:none;" data-item-id="">
+    <div class="card-title"></div>
+    <div class="card-meta"></div>
+    <img src="" alt="" />
+  </div>
+
+  <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content">
+      <div class="menu-modal-header">
+        <h3 id="menuModalTitle">Add to List</h3>
+        <button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="menu-modal-body" id="menuModalBody">
+        <div class="menu-quick-lists" id="menuQuickLists"></div>
+        <div class="menu-custom-section">
+          <div class="menu-custom-header">
+            <span>Your Custom Lists</span>
+            <button class="menu-create-list-btn" id="menuCreateListBtn">
+              <i class="fas fa-plus"></i> New
+            </button>
+          </div>
+          <div class="menu-custom-lists" id="menuCustomLists"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content" style="max-width: 320px;">
+      <div class="menu-modal-header">
+        <h3>Create New List</h3>
+        <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="menu-modal-body">
+        <input type="text" id="newListNameInput" class="menu-input" placeholder="List name..." maxlength="50">
+        <div class="menu-icon-grid">
+          <button class="menu-icon-option selected" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-shirt"><i class="fas fa-shirt"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-burger"><i class="fas fa-burger"></i></button>
+        </div>
+        <div class="menu-modal-actions">
+          <button class="menu-btn menu-btn-secondary" id="cancelCreateBtn">Cancel</button>
+          <button class="menu-btn menu-btn-primary" id="saveNewListBtn">Create List</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -62,14 +62,30 @@ const HEADER_HTML = `
     </div>
     <nav class="zo2y-shared-nav" aria-label="Primary navigation">
       <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
-      <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
-      <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
-      <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
-      <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
-      <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
-      <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
-      <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
-      <a class="zo2y-shared-pill" data-nav-page="sports" href="sports.html">Sports</a>
+      <div class="zo2y-nav-group" data-nav-group="media">
+        <button class="zo2y-shared-pill zo2y-nav-toggle" type="button" aria-expanded="false">
+          Media <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="zo2y-nav-menu" role="menu">
+          <a class="zo2y-nav-link" data-nav-page="movies" href="movies.html">Movies</a>
+          <a class="zo2y-nav-link" data-nav-page="tvshows" href="tvshows.html">TV Shows</a>
+          <a class="zo2y-nav-link" data-nav-page="animes" href="animes.html">Anime</a>
+          <a class="zo2y-nav-link" data-nav-page="games" href="games.html">Games</a>
+          <a class="zo2y-nav-link" data-nav-page="books" href="books.html">Books</a>
+          <a class="zo2y-nav-link" data-nav-page="music" href="music.html">Music</a>
+        </div>
+      </div>
+      <div class="zo2y-nav-group" data-nav-group="lifestyle">
+        <button class="zo2y-shared-pill zo2y-nav-toggle" type="button" aria-expanded="false">
+          Lifestyle <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="zo2y-nav-menu" role="menu">
+          <a class="zo2y-nav-link" data-nav-page="travel" href="travel.html">Travel</a>
+          <a class="zo2y-nav-link" data-nav-page="sports" href="sports.html">Sports</a>
+          <a class="zo2y-nav-link" data-nav-page="fashion" href="fashion.html">Fashion</a>
+          <a class="zo2y-nav-link" data-nav-page="food" href="food.html">Food</a>
+        </div>
+      </div>
       <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
     </nav>
     <div class="zo2y-shared-auth">
@@ -101,14 +117,22 @@ const HEADER_HTML = `
 
   <nav class="zo2y-desktop-rail-nav" aria-label="Desktop sections">
     <a class="zo2y-desktop-rail-link" data-nav-page="index" href="index.html"><i class="fa-solid fa-house"></i><span>home</span></a>
-    <a class="zo2y-desktop-rail-link" data-nav-page="movies" href="movies.html"><i class="fa-solid fa-film"></i><span>movies</span></a>
-    <a class="zo2y-desktop-rail-link" data-nav-page="tvshows" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>tv shows</span></a>
-    <a class="zo2y-desktop-rail-link" data-nav-page="animes" href="animes.html"><i class="fa-solid fa-dragon"></i><span>anime</span></a>
-    <a class="zo2y-desktop-rail-link" data-nav-page="games" href="games.html"><i class="fa-solid fa-gamepad"></i><span>games</span></a>
-    <a class="zo2y-desktop-rail-link" data-nav-page="books" href="books.html"><i class="fa-solid fa-book"></i><span>books</span></a>
-    <a class="zo2y-desktop-rail-link" data-nav-page="music" href="music.html"><i class="fa-solid fa-music"></i><span>music</span></a>
-    <a class="zo2y-desktop-rail-link" data-nav-page="travel" href="travel.html"><i class="fa-solid fa-earth-americas"></i><span>travel</span></a>
-    <a class="zo2y-desktop-rail-link" data-nav-page="sports" href="sports.html"><i class="fa-solid fa-futbol"></i><span>sports</span></a>
+    <div class="zo2y-rail-section">
+      <div class="zo2y-rail-section-title">media</div>
+      <a class="zo2y-desktop-rail-link" data-nav-page="movies" href="movies.html"><i class="fa-solid fa-film"></i><span>movies</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="tvshows" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>tv shows</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="animes" href="animes.html"><i class="fa-solid fa-dragon"></i><span>anime</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="games" href="games.html"><i class="fa-solid fa-gamepad"></i><span>games</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="books" href="books.html"><i class="fa-solid fa-book"></i><span>books</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="music" href="music.html"><i class="fa-solid fa-music"></i><span>music</span></a>
+    </div>
+    <div class="zo2y-rail-section">
+      <div class="zo2y-rail-section-title">lifestyle</div>
+      <a class="zo2y-desktop-rail-link" data-nav-page="travel" href="travel.html"><i class="fa-solid fa-earth-americas"></i><span>travel</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="sports" href="sports.html"><i class="fa-solid fa-futbol"></i><span>sports</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="fashion" href="fashion.html"><i class="fa-solid fa-shirt"></i><span>fashion</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="food" href="food.html"><i class="fa-solid fa-burger"></i><span>food</span></a>
+    </div>
     <a class="zo2y-desktop-rail-link accent" data-nav-page="reviews" href="reviews.html"><i class="fa-solid fa-star"></i><span>reviews</span></a>
   </nav>
 </aside>
@@ -140,14 +164,32 @@ const HEADER_HTML = `
 
   <nav class="zo2y-mobile-drawer-nav" aria-label="Mobile sections">
     <a class="zo2y-mobile-drawer-link" data-nav-page="index" href="index.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
-    <a class="zo2y-mobile-drawer-link" data-nav-page="movies" href="movies.html"><i class="fa-solid fa-film"></i><span>Movies</span></a>
-    <a class="zo2y-mobile-drawer-link" data-nav-page="tvshows" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>TV Shows</span></a>
-    <a class="zo2y-mobile-drawer-link" data-nav-page="animes" href="animes.html"><i class="fa-solid fa-dragon"></i><span>Anime</span></a>
-    <a class="zo2y-mobile-drawer-link" data-nav-page="games" href="games.html"><i class="fa-solid fa-gamepad"></i><span>Games</span></a>
-    <a class="zo2y-mobile-drawer-link" data-nav-page="books" href="books.html"><i class="fa-solid fa-book"></i><span>Books</span></a>
-    <a class="zo2y-mobile-drawer-link" data-nav-page="music" href="music.html"><i class="fa-solid fa-music"></i><span>Music</span></a>
-    <a class="zo2y-mobile-drawer-link" data-nav-page="travel" href="travel.html"><i class="fa-solid fa-earth-americas"></i><span>Travel</span></a>
-    <a class="zo2y-mobile-drawer-link" data-nav-page="sports" href="sports.html"><i class="fa-solid fa-futbol"></i><span>Sports</span></a>
+    <div class="zo2y-mobile-accordion" data-accordion="media">
+      <button class="zo2y-mobile-accordion-toggle" type="button" aria-expanded="false">
+        <span><i class="fa-solid fa-layer-group"></i> Media</span>
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+      <div class="zo2y-mobile-accordion-panel">
+        <a class="zo2y-mobile-drawer-link" data-nav-page="movies" href="movies.html"><i class="fa-solid fa-film"></i><span>Movies</span></a>
+        <a class="zo2y-mobile-drawer-link" data-nav-page="tvshows" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>TV Shows</span></a>
+        <a class="zo2y-mobile-drawer-link" data-nav-page="animes" href="animes.html"><i class="fa-solid fa-dragon"></i><span>Anime</span></a>
+        <a class="zo2y-mobile-drawer-link" data-nav-page="games" href="games.html"><i class="fa-solid fa-gamepad"></i><span>Games</span></a>
+        <a class="zo2y-mobile-drawer-link" data-nav-page="books" href="books.html"><i class="fa-solid fa-book"></i><span>Books</span></a>
+        <a class="zo2y-mobile-drawer-link" data-nav-page="music" href="music.html"><i class="fa-solid fa-music"></i><span>Music</span></a>
+      </div>
+    </div>
+    <div class="zo2y-mobile-accordion" data-accordion="lifestyle">
+      <button class="zo2y-mobile-accordion-toggle" type="button" aria-expanded="false">
+        <span><i class="fa-solid fa-sparkles"></i> Lifestyle</span>
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+      <div class="zo2y-mobile-accordion-panel">
+        <a class="zo2y-mobile-drawer-link" data-nav-page="travel" href="travel.html"><i class="fa-solid fa-earth-americas"></i><span>Travel</span></a>
+        <a class="zo2y-mobile-drawer-link" data-nav-page="sports" href="sports.html"><i class="fa-solid fa-futbol"></i><span>Sports</span></a>
+        <a class="zo2y-mobile-drawer-link" data-nav-page="fashion" href="fashion.html"><i class="fa-solid fa-shirt"></i><span>Fashion</span></a>
+        <a class="zo2y-mobile-drawer-link" data-nav-page="food" href="food.html"><i class="fa-solid fa-burger"></i><span>Food</span></a>
+      </div>
+    </div>
     <a class="zo2y-mobile-drawer-link accent" data-nav-page="reviews" href="reviews.html"><i class="fa-solid fa-star"></i><span>Reviews</span></a>
   </nav>
 
@@ -221,6 +263,8 @@ const HEADER_HTML = `
   }
 
   function normalizePageName(pathname) {
+    const override = document?.body?.dataset?.navPage;
+    if (override) return String(override).toLowerCase();
     const file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
     if (file === '' || file === 'index.html') return 'index';
     if (file.startsWith('movie')) return 'movies';
@@ -231,6 +275,8 @@ const HEADER_HTML = `
     if (file.startsWith('song') || file.startsWith('music')) return 'music';
     if (file.startsWith('travel') || file.startsWith('country')) return 'travel';
     if (file.startsWith('sport')) return 'sports';
+    if (file.startsWith('fashion')) return 'fashion';
+    if (file.startsWith('food')) return 'food';
     if (file.startsWith('review')) return 'reviews';
     if (file.startsWith('profile')) return 'profile';
     return 'index';
@@ -338,6 +384,22 @@ const HEADER_HTML = `
       link.classList.toggle('active', active);
       if (active) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
+    });
+
+    document.querySelectorAll('[data-nav-group]').forEach((group) => {
+      const hasActive = !!group.querySelector('[data-nav-page].active');
+      group.classList.toggle('active', hasActive);
+      const toggle = group.querySelector('.zo2y-nav-toggle');
+      if (toggle) toggle.classList.toggle('active', hasActive);
+    });
+
+    document.querySelectorAll('.zo2y-mobile-accordion').forEach((accordion) => {
+      const panel = accordion.querySelector('.zo2y-mobile-accordion-panel');
+      const toggle = accordion.querySelector('.zo2y-mobile-accordion-toggle');
+      const hasActive = !!accordion.querySelector('[data-nav-page].active');
+      accordion.classList.toggle('open', hasActive);
+      if (toggle) toggle.setAttribute('aria-expanded', hasActive ? 'true' : 'false');
+      if (panel) panel.style.maxHeight = hasActive ? `${panel.scrollHeight}px` : '';
     });
   }
 
@@ -566,6 +628,23 @@ const HEADER_HTML = `
     });
   }
 
+  function wireMobileAccordions() {
+    const accordions = Array.from(document.querySelectorAll('.zo2y-mobile-accordion'));
+    if (!accordions.length) return;
+    accordions.forEach((accordion) => {
+      const toggle = accordion.querySelector('.zo2y-mobile-accordion-toggle');
+      const panel = accordion.querySelector('.zo2y-mobile-accordion-panel');
+      if (!toggle || !panel) return;
+      if (toggle.dataset.wired === '1') return;
+      toggle.dataset.wired = '1';
+      toggle.addEventListener('click', () => {
+        const isOpen = accordion.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        panel.style.maxHeight = isOpen ? `${panel.scrollHeight}px` : '';
+      });
+    });
+  }
+
   function wireDesktopRailCollapse() {
     const buttons = Array.from(document.querySelectorAll('#sidebarToggleBtn, #zo2yDesktopRailCollapseBtn'));
     if (!buttons.length) return;
@@ -772,6 +851,7 @@ const HEADER_HTML = `
     window.addEventListener('resize', applyMobileHeaderState);
     wireSearchButton();
     wireMobileDrawer();
+    wireMobileAccordions();
     wireDesktopRailCollapse();
     wireAuthStateSync();
     void syncAuthHeaderState();

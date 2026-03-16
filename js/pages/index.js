@@ -1,12 +1,17 @@
     const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
     const ENABLE_GAMES = !GAMES_DISABLED;
     const ENABLE_RESTAURANTS = false;
+    const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
+    const ENABLE_FOOD = window.ZO2Y_DISABLE_FOOD !== true;
     const HOME_BASE_MEDIA_TYPES = ENABLE_GAMES
       ? ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'sports']
       : ['movie', 'tv', 'anime', 'book', 'music', 'travel', 'sports'];
-    const HOME_ACTIVE_MEDIA_TYPES = ENABLE_RESTAURANTS
-      ? ['restaurant', ...HOME_BASE_MEDIA_TYPES]
-      : HOME_BASE_MEDIA_TYPES;
+    const HOME_LIFESTYLE_MEDIA_TYPES = [
+      ...(ENABLE_FASHION ? ['fashion'] : []),
+      ...(ENABLE_FOOD ? ['food'] : []),
+      ...(ENABLE_RESTAURANTS ? ['restaurant'] : [])
+    ];
+    const HOME_ACTIVE_MEDIA_TYPES = [...HOME_BASE_MEDIA_TYPES, ...HOME_LIFESTYLE_MEDIA_TYPES];
     const HOME_LIST_MEDIA_TYPES = HOME_ACTIVE_MEDIA_TYPES.filter((type) => type !== 'sports' || window.ZO2Y_SPORTS_LISTS !== false);
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
@@ -25,6 +30,30 @@
       { id: 'fallback-r3', name: 'Local Favorites', category: 'Local', rating: '4.9' },
       { id: 'fallback-r4', name: 'Date Night', category: 'Curated', rating: '4.7' },
       { id: 'fallback-r5', name: 'Quick Bites', category: 'Casual', rating: '4.6' }
+    ];
+    const HOME_FASHION_FALLBACKS = [
+      { id: 'fashion-nike', name: 'Nike', category: 'Sportswear', domain: 'nike.com', logo_url: 'https://logo.clearbit.com/nike.com' },
+      { id: 'fashion-adidas', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com', logo_url: 'https://logo.clearbit.com/adidas.com' },
+      { id: 'fashion-zara', name: 'Zara', category: 'Fast Fashion', domain: 'zara.com', logo_url: 'https://logo.clearbit.com/zara.com' },
+      { id: 'fashion-uniqlo', name: 'Uniqlo', category: 'Basics', domain: 'uniqlo.com', logo_url: 'https://logo.clearbit.com/uniqlo.com' },
+      { id: 'fashion-hm', name: 'H&M', category: 'Fast Fashion', domain: 'hm.com', logo_url: 'https://logo.clearbit.com/hm.com' },
+      { id: 'fashion-gucci', name: 'Gucci', category: 'Luxury', domain: 'gucci.com', logo_url: 'https://logo.clearbit.com/gucci.com' },
+      { id: 'fashion-prada', name: 'Prada', category: 'Luxury', domain: 'prada.com', logo_url: 'https://logo.clearbit.com/prada.com' },
+      { id: 'fashion-lv', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com', logo_url: 'https://logo.clearbit.com/louisvuitton.com' },
+      { id: 'fashion-offwhite', name: 'Off-White', category: 'Streetwear', domain: 'off---white.com', logo_url: 'https://logo.clearbit.com/off---white.com' },
+      { id: 'fashion-supreme', name: 'Supreme', category: 'Streetwear', domain: 'supremenewyork.com', logo_url: 'https://logo.clearbit.com/supremenewyork.com' }
+    ];
+    const HOME_FOOD_FALLBACKS = [
+      { id: 'food-mcd', name: "McDonald's", category: 'Fast Food', domain: 'mcdonalds.com', logo_url: 'https://logo.clearbit.com/mcdonalds.com' },
+      { id: 'food-kfc', name: 'KFC', category: 'Fast Food', domain: 'kfc.com', logo_url: 'https://logo.clearbit.com/kfc.com' },
+      { id: 'food-bk', name: 'Burger King', category: 'Fast Food', domain: 'burgerking.com', logo_url: 'https://logo.clearbit.com/burgerking.com' },
+      { id: 'food-subway', name: 'Subway', category: 'Fast Food', domain: 'subway.com', logo_url: 'https://logo.clearbit.com/subway.com' },
+      { id: 'food-taco', name: 'Taco Bell', category: 'Fast Food', domain: 'tacobell.com', logo_url: 'https://logo.clearbit.com/tacobell.com' },
+      { id: 'food-starbucks', name: 'Starbucks', category: 'Coffee', domain: 'starbucks.com', logo_url: 'https://logo.clearbit.com/starbucks.com' },
+      { id: 'food-dominos', name: "Domino's", category: 'Pizza', domain: 'dominos.com', logo_url: 'https://logo.clearbit.com/dominos.com' },
+      { id: 'food-pizzahut', name: 'Pizza Hut', category: 'Pizza', domain: 'pizzahut.com', logo_url: 'https://logo.clearbit.com/pizzahut.com' },
+      { id: 'food-chipotle', name: 'Chipotle', category: 'Fast Casual', domain: 'chipotle.com', logo_url: 'https://logo.clearbit.com/chipotle.com' },
+      { id: 'food-shakeshack', name: 'Shake Shack', category: 'Fast Casual', domain: 'shakeshack.com', logo_url: 'https://logo.clearbit.com/shakeshack.com' }
     ];
     const POPULAR_MUSIC_QUERIES = [
       'top 50 usa',
@@ -64,6 +93,8 @@
     ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-clapperboard', accent: '#f59e0b' },
+      fashion: { label: 'Fashion', icon: 'fa-shirt', accent: '#38bdf8' },
+      food: { label: 'Food', icon: 'fa-burger', accent: '#f59e0b' },
       movie: { label: 'Movie', icon: 'fa-film', accent: '#ef4444' },
       tv: { label: 'TV', icon: 'fa-tv', accent: '#22c55e' },
       anime: { label: 'Anime', icon: 'fa-dragon', accent: '#f97316' },
@@ -85,11 +116,13 @@
       ...(ENABLE_GAMES ? { game: { table: 'game_list_items', itemField: 'game_id' } } : {}),
       book: { table: 'book_list_items', itemField: 'book_id' },
       music: { table: 'music_list_items', itemField: 'track_id' },
-      travel: { table: 'travel_list_items', itemField: 'country_code' }
+      travel: { table: 'travel_list_items', itemField: 'country_code' },
+      ...(ENABLE_FASHION ? { fashion: { table: 'fashion_list_items', itemField: 'brand_id' } } : {}),
+      ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {})
     };
-    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v10';
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v11';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v9';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v10';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v5';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
@@ -193,6 +226,36 @@
         </g>
       </svg>
     `)}`;
+    const HOME_FASHION_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
+        <defs>
+          <linearGradient id='fashionGrad' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0%' stop-color='#0b1633' />
+            <stop offset='55%' stop-color='#1b2f5a' />
+            <stop offset='100%' stop-color='#0a1a36' />
+          </linearGradient>
+        </defs>
+        <rect width='1600' height='900' fill='url(#fashionGrad)' />
+        <circle cx='1280' cy='180' r='220' fill='rgba(56,189,248,0.22)' />
+        <circle cx='300' cy='760' r='260' fill='rgba(245,158,11,0.18)' />
+        <path d='M420 640 L520 560 L640 620 L760 540 L900 600 L980 520 L1120 560' stroke='rgba(255,255,255,0.16)' stroke-width='18' fill='none' />
+      </svg>
+    `)}`;
+    const HOME_FOOD_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
+        <defs>
+          <linearGradient id='foodGrad' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0%' stop-color='#0b1b34' />
+            <stop offset='55%' stop-color='#14325a' />
+            <stop offset='100%' stop-color='#0a172e' />
+          </linearGradient>
+        </defs>
+        <rect width='1600' height='900' fill='url(#foodGrad)' />
+        <circle cx='1220' cy='210' r='230' fill='rgba(249,115,22,0.22)' />
+        <circle cx='320' cy='720' r='250' fill='rgba(34,197,94,0.16)' />
+        <rect x='520' y='620' width='560' height='60' rx='30' fill='rgba(245,158,11,0.18)' />
+      </svg>
+    `)}`;
     const HOME_SUGGESTIVE_TEXT_PATTERNS = [
       /\bhentai\b/i,
       /\becchi\b/i,
@@ -228,6 +291,8 @@
       { id: 'music', label: 'Music', kind: 'type', tags: ['music'] },
       { id: 'travel', label: 'Travel', kind: 'type', tags: ['travel'] },
       { id: 'sports', label: 'Sports', kind: 'type', tags: ['sports'] },
+      ...(ENABLE_FASHION ? [{ id: 'fashion', label: 'Fashion', kind: 'type', tags: ['fashion', 'style', 'clothing'] }] : []),
+      ...(ENABLE_FOOD ? [{ id: 'food', label: 'Food', kind: 'type', tags: ['food', 'restaurants', 'fast food', 'dining'] }] : []),
       { id: 'action', label: 'Action', kind: 'tag', tags: ['action'] },
       { id: 'adventure', label: 'Adventure', kind: 'tag', tags: ['adventure'] },
       { id: 'animation', label: 'Animation', kind: 'tag', tags: ['animation', 'animated'] },
@@ -253,7 +318,14 @@
       { id: 'mma', label: 'MMA', kind: 'tag', tags: ['mma', 'ufc'] },
       { id: 'motorsport', label: 'Motorsport', kind: 'tag', tags: ['motorsport', 'formula 1', 'f1', 'racing'] },
       { id: 'tennis', label: 'Tennis', kind: 'tag', tags: ['tennis'] },
-      { id: 'esports', label: 'Esports', kind: 'tag', tags: ['esports', 'e-sports', 'gaming'] }
+      { id: 'esports', label: 'Esports', kind: 'tag', tags: ['esports', 'e-sports', 'gaming'] },
+      { id: 'streetwear', label: 'Streetwear', kind: 'tag', tags: ['streetwear', 'sneakers'] },
+      { id: 'luxury', label: 'Luxury', kind: 'tag', tags: ['luxury', 'couture', 'designer'] },
+      { id: 'fastfood', label: 'Fast Food', kind: 'tag', tags: ['fast food', 'fastfood'] },
+      { id: 'coffee', label: 'Coffee', kind: 'tag', tags: ['coffee', 'cafe'] },
+      { id: 'dessert', label: 'Dessert', kind: 'tag', tags: ['dessert', 'sweet'] },
+      { id: 'pizza', label: 'Pizza', kind: 'tag', tags: ['pizza'] },
+      { id: 'burgers', label: 'Burgers', kind: 'tag', tags: ['burger', 'burgers'] }
     ];
 
     async function homeIgdbFetch(path, params = {}, signal) {
@@ -892,6 +964,47 @@
       return toHttpsUrl(`images/${normalized}`);
     }
 
+    function resolveBrandLogo(row) {
+      const direct = String(row?.logo_url || '').trim();
+      if (direct) return direct;
+      const domain = String(row?.domain || '').trim();
+      if (!domain) return '';
+      return `https://logo.clearbit.com/${domain}`;
+    }
+
+    function mapHomeBrandItem(row, type, fallbackIndex = 0) {
+      const safeType = String(type || '').toLowerCase();
+      const title = String(row?.name || row?.title || '').trim() || 'Brand';
+      const category = String(row?.category || '').trim() || (safeType === 'fashion' ? 'Fashion' : 'Food');
+      const country = String(row?.country || '').trim();
+      const founded = row?.founded ? String(row.founded) : '';
+      const logo = resolveBrandLogo(row);
+      const subtitle = `${category}${country ? ` · ${country}` : ''}`;
+      const extra = founded ? `Since ${founded}` : (row?.description ? String(row.description).trim() : '');
+      const background = getHomeSpotlightBackgroundByType(safeType);
+      const itemId = String(row?.id || row?.slug || `${safeType}-${fallbackIndex}` || '').trim();
+      return {
+        mediaType: safeType,
+        itemId,
+        title,
+        subtitle,
+        extra,
+        description: row?.description || '',
+        category,
+        country,
+        tags: [category, country, row?.tags].filter(Boolean).join(' '),
+        image: logo || '',
+        listImage: logo || '',
+        backgroundImage: background || '',
+        spotlightImage: background || '',
+        spotlightMediaImage: logo || '',
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'square',
+        mediaFit: 'contain',
+        href: itemId ? `brand.html?type=${encodeURIComponent(safeType)}&id=${encodeURIComponent(itemId)}` : `${safeType}.html`
+      };
+    }
+
     function showHomeToast(message, isError = false) {
       const toast = document.createElement('div');
       toast.style.position = 'fixed';
@@ -918,6 +1031,8 @@
       const type = String(mediaType || '').toLowerCase();
       if (type === 'book') return HOME_BOOK_SPOTLIGHT_BG;
       if (type === 'music') return HOME_MUSIC_SPOTLIGHT_BG;
+      if (type === 'fashion') return HOME_FASHION_SPOTLIGHT_BG;
+      if (type === 'food') return HOME_FOOD_SPOTLIGHT_BG;
       return '';
     }
 
@@ -974,6 +1089,8 @@
       if (type === 'travel') return 'Travel';
       if (type === 'sports') return 'Sports';
       if (type === 'restaurant') return 'Restaurants';
+      if (type === 'fashion') return 'Fashion';
+      if (type === 'food') return 'Food';
       return 'Discover';
     }
 
@@ -1054,18 +1171,38 @@
           ]
         };
       }
-      if (type === 'sports') {
-        return {
-          customHref: 'sports.html',
-          rows: [
-            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' }
-          ]
-        };
-      }
-      if (ENABLE_RESTAURANTS && type === 'restaurant') {
-        return {
-          customHref: 'restraunts.html',
-          rows: [
+        if (type === 'sports') {
+          return {
+            customHref: 'sports.html',
+            rows: [
+              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' }
+            ]
+          };
+        }
+        if (type === 'fashion') {
+          return {
+            customHref: 'fashion.html',
+            rows: [
+              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+              { key: 'owned', label: 'Owned', icon: 'fas fa-check' },
+              { key: 'wishlist', label: 'Wishlist', icon: 'fas fa-bookmark' }
+            ]
+          };
+        }
+        if (type === 'food') {
+          return {
+            customHref: 'food.html',
+            rows: [
+              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+              { key: 'tried', label: 'Tried', icon: 'fas fa-check' },
+              { key: 'want_to_try', label: 'Want to Try', icon: 'fas fa-bookmark' }
+            ]
+          };
+        }
+        if (ENABLE_RESTAURANTS && type === 'restaurant') {
+          return {
+            customHref: 'restraunts.html',
+            rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
             { key: 'visited', label: 'Visited', icon: 'fas fa-eye' },
             { key: 'wantToGo', label: 'Want to Go', icon: 'fas fa-bookmark' }
@@ -3968,6 +4105,8 @@
         ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 5600 }] : []),
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 8500 },
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 },
+        ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 6200 }] : []),
+        ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 6200 }] : []),
         { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 6800 },
         { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: false }, timeoutMs: 6800 }
       ];
@@ -4257,6 +4396,7 @@
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
         if (mediaTypeRaw === 'music') mediaClasses.push('music-cover');
         if (mediaTypeRaw === 'travel') mediaClasses.push('travel-photo');
+        if (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food') mediaClasses.push('brand-cover');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         if (restaurantComposite && !coverImage && !logo) return '';
         const safeImage = image || (mediaTypeRaw === 'travel' ? fallbackImage : '');
@@ -4697,6 +4837,7 @@
         item.description,
         item.genreText,
         item.tags,
+        item.category,
         item.maturityRating,
         item.sport,
         item.league,
@@ -4806,15 +4947,15 @@
           id: 'welcome',
           title: 'Welcome to Zo2y',
           body: 'A quick tour to personalize your feed, save to lists, and keep everything in one clean profile.',
-          art: `
-            <div class="onboarding-photo-grid">
-              <img src="/images/bake.jpg" alt="Dessert closeup" loading="lazy">
-              <img src="/images/diner.jpg" alt="Diner interior" loading="lazy">
-              <img src="/images/country.jpg" alt="Travel landscape" loading="lazy">
-              <img src="/images/stacked.jpg" alt="Stacked burgers" loading="lazy">
-            </div>
-            <div class="onboarding-photo-caption">Save what you love across food, travel, movies, music, and more.</div>
-          `,
+            art: `
+              <div class="onboarding-photo-grid">
+                <img src="/images/onboarding/onboard-media.svg" alt="Media mix" loading="lazy">
+                <img src="/images/onboarding/onboard-food.svg" alt="Food finds" loading="lazy">
+                <img src="/images/onboarding/onboard-travel.svg" alt="Travel spots" loading="lazy">
+                <img src="/images/onboarding/onboard-fashion.svg" alt="Fashion brands" loading="lazy">
+              </div>
+              <div class="onboarding-photo-caption">Save what you love across fashion, food, travel, movies, music, and more.</div>
+            `,
           actionLabel: null,
           action: null
         },
@@ -4824,11 +4965,11 @@
           body: 'Pick a unique @username. This is your profile link everywhere on Zo2y.',
           art: `
             <div class="onboarding-split">
-              <div class="onboarding-photo-card">
-                <div class="onboarding-photo-frame">
-                  <img src="/images/interiorabou.jpg" alt="Profile preview" loading="lazy">
-                </div>
-                <div class="onboarding-photo-meta">
+                <div class="onboarding-photo-card">
+                  <div class="onboarding-photo-frame">
+                    <img src="/images/onboarding/onboard-profile.svg" alt="Profile preview" loading="lazy">
+                  </div>
+                  <div class="onboarding-photo-meta">
                   <span class="photo-label">Profile preview</span>
                   <strong>@yourname</strong>
                   <span>Your lists and reviews live here.</span>
@@ -4852,16 +4993,16 @@
           title: 'Tune Your Feed',
           body: 'Choose formats and genres so the “For You” feed starts on the right note.',
           art: `
-            <div class="onboarding-interest-layout">
-              <div class="onboarding-interest-photos">
-                <div class="onboarding-photo-grid compact">
-                  <img src="/images/pita.jpg" alt="Street food" loading="lazy">
-                  <img src="/images/crumbs.jpg" alt="Pastry closeup" loading="lazy">
-                  <img src="/images/country.jpg" alt="Scenic travel" loading="lazy">
-                  <img src="/images/brgr.jpg" alt="Burger" loading="lazy">
+              <div class="onboarding-interest-layout">
+                <div class="onboarding-interest-photos">
+                  <div class="onboarding-photo-grid compact">
+                    <img src="/images/onboarding/onboard-interests.svg" alt="Interest picks" loading="lazy">
+                    <img src="/images/onboarding/onboard-media.svg" alt="Media formats" loading="lazy">
+                    <img src="/images/onboarding/onboard-fashion.svg" alt="Fashion vibes" loading="lazy">
+                    <img src="/images/onboarding/onboard-food.svg" alt="Food finds" loading="lazy">
+                  </div>
+                  <div class="onboarding-photo-caption">Pick what you want more of. You can edit this later.</div>
                 </div>
-                <div class="onboarding-photo-caption">Pick what you want more of. You can edit this later.</div>
-              </div>
               <div class="onboarding-interest-panel">
                 <div class="onboarding-label">Formats</div>
                 <div class="onboarding-chip-grid">
@@ -4883,11 +5024,11 @@
           title: 'Add Places To Lists',
           body: 'On any card, tap the three-dot menu. Use quick list buttons, or choose Custom Lists to organize it your way.',
           art: `
-            <div class="onboarding-illustration">
-              <div class="mini-card">
-                <div class="mini-photo">
-                  <img src="/images/brgr.jpg" alt="List demo" loading="lazy">
-                </div>
+              <div class="onboarding-illustration">
+                <div class="mini-card">
+                  <div class="mini-photo">
+                    <img src="/images/onboarding/onboard-food.svg" alt="List demo" loading="lazy">
+                  </div>
                 <div class="mini-card-head">
                   <span><i class="fas fa-clapperboard"></i> Spotlight Pick</span>
                   <i class="fas fa-ellipsis-v"></i>
@@ -4916,11 +5057,11 @@
           title: 'Create Your Own Lists',
           body: 'In the Custom Lists modal, enter a list name, pick an icon, then press Create.',
           art: `
-            <div class="onboarding-illustration">
-              <div class="mini-card">
-                <div class="mini-photo">
-                  <img src="/images/pasta222.jpg" alt="Custom list demo" loading="lazy">
-                </div>
+              <div class="onboarding-illustration">
+                <div class="mini-card">
+                  <div class="mini-photo">
+                    <img src="/images/onboarding/onboard-fashion.svg" alt="Custom list demo" loading="lazy">
+                  </div>
                 <div class="mini-input"><i class="fas fa-pen"></i> Date Night Spots</div>
                 <div class="mini-icons">
                   <span><i class="fas fa-heart"></i></span>
@@ -4947,11 +5088,11 @@
           title: 'View Your Profile',
           body: 'Head to your profile to see every list, rating, and save in one place.',
           art: `
-            <div class="onboarding-illustration">
-              <div class="mini-card">
-                <div class="mini-photo">
-                  <img src="/images/zo2y-search-illustration.png" alt="Profile overview" loading="lazy">
-                </div>
+              <div class="onboarding-illustration">
+                <div class="mini-card">
+                  <div class="mini-photo">
+                    <img src="/images/onboarding/onboard-profile.svg" alt="Profile overview" loading="lazy">
+                  </div>
                 <div class="friend-row"><span><i class="fas fa-user-circle"></i> Your lists</span><span class="friend-pill">Open</span></div>
                 <div class="friend-row"><span><i class="fas fa-star"></i> Reviews</span><span class="friend-pill">View</span></div>
                 <div class="friend-row"><span><i class="fas fa-heart"></i> Favorites</span><span class="friend-pill">See all</span></div>
@@ -4985,18 +5126,24 @@
             backdrop-filter: blur(6px);
           }
           .home-onboarding-overlay.active { display: flex; }
-          .home-onboarding-card {
-            width: min(760px, 96vw);
-            background:
-              radial-gradient(circle at top left, rgba(245,158,11,0.18), transparent 45%),
-              radial-gradient(circle at 85% 20%, rgba(59,130,246,0.22), transparent 48%),
-              linear-gradient(180deg, rgba(15,30,61,0.98), rgba(8,18,42,0.98));
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 16px;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.45);
-            padding: 24px;
-            color: #fff;
-          }
+            .home-onboarding-card {
+              width: min(760px, 96vw);
+              background:
+                radial-gradient(circle at top left, rgba(245,158,11,0.18), transparent 45%),
+                radial-gradient(circle at 85% 20%, rgba(59,130,246,0.22), transparent 48%),
+                linear-gradient(180deg, rgba(15,30,61,0.98), rgba(8,18,42,0.98));
+              border: 1px solid rgba(255,255,255,0.12);
+              border-radius: 16px;
+              box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+              padding: 24px;
+              color: #fff;
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+              max-height: min(92vh, 860px);
+              overflow: auto;
+              overscroll-behavior: contain;
+            }
           .home-onboarding-top {
             display: flex;
             justify-content: space-between;
@@ -5033,14 +5180,15 @@
           .onboarding-photo-grid.compact {
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
-          .onboarding-photo-grid img {
-            width: 100%;
-            height: 110px;
-            object-fit: cover;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.18);
-            box-shadow: 0 12px 26px rgba(0,0,0,0.35);
-          }
+            .onboarding-photo-grid img {
+              width: 100%;
+              height: 110px;
+              object-fit: contain;
+              background: rgba(10, 22, 50, 0.72);
+              border-radius: 12px;
+              border: 1px solid rgba(255,255,255,0.18);
+              box-shadow: 0 12px 26px rgba(0,0,0,0.35);
+            }
           .onboarding-photo-caption {
             margin-top: 10px;
             font-size: 13px;
@@ -5066,12 +5214,13 @@
             overflow: hidden;
             border: 1px solid rgba(255,255,255,0.15);
           }
-          .onboarding-photo-frame img {
-            width: 100%;
-            height: 170px;
-            object-fit: cover;
-            display: block;
-          }
+            .onboarding-photo-frame img {
+              width: 100%;
+              height: 170px;
+              object-fit: contain;
+              background: rgba(10, 22, 50, 0.72);
+              display: block;
+            }
           .onboarding-photo-meta {
             display: flex;
             flex-direction: column;
@@ -5171,14 +5320,14 @@
             border-color: rgba(245, 158, 11, 0.75);
             color: #fff7ed;
           }
-          .home-onboarding-art {
-            margin-top: 10px;
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 14px;
-            padding: 14px;
-            background: linear-gradient(145deg, rgba(14,28,58,0.9), rgba(8,18,42,0.9));
-            min-height: 160px;
-          }
+            .home-onboarding-art {
+              margin-top: 4px;
+              border: 1px solid rgba(255,255,255,0.12);
+              border-radius: 14px;
+              padding: 14px;
+              background: linear-gradient(145deg, rgba(14,28,58,0.9), rgba(8,18,42,0.9));
+              min-height: 160px;
+            }
           .onboarding-hero-badge {
             display: inline-flex;
             align-items: center;
@@ -5234,7 +5383,8 @@
           .mini-photo img {
             width: 100%;
             height: 110px;
-            object-fit: cover;
+            object-fit: contain;
+            background: rgba(10, 22, 50, 0.72);
             border-radius: 10px;
             border: 1px solid rgba(255,255,255,0.15);
           }
@@ -5347,6 +5497,43 @@
             filter: brightness(1.05);
           }
           @media (max-width: 720px) {
+            .home-onboarding-overlay {
+              align-items: flex-end;
+              padding: 12px;
+            }
+            .home-onboarding-card {
+              width: 100%;
+              max-width: 520px;
+              padding: 18px;
+              border-radius: 22px;
+              max-height: 92vh;
+              gap: 10px;
+              box-shadow: 0 18px 46px rgba(0,0,0,0.4);
+            }
+            .home-onboarding-title {
+              font-size: 22px;
+            }
+            .home-onboarding-body {
+              font-size: 14px;
+              min-height: 0;
+            }
+            .home-onboarding-art {
+              padding: 12px;
+            }
+            .home-onboarding-actions {
+              position: sticky;
+              bottom: 0;
+              padding-top: 10px;
+              background: linear-gradient(180deg, rgba(8,18,42,0) 0%, rgba(8,18,42,0.88) 35%, rgba(8,18,42,0.98) 100%);
+              margin-top: auto;
+            }
+            .home-onboarding-left,
+            .home-onboarding-right {
+              flex: 1;
+            }
+            .home-onboarding-right {
+              justify-content: flex-end;
+            }
             .onboarding-photo-grid {
               grid-template-columns: repeat(2, minmax(0, 1fr));
             }
@@ -5356,6 +5543,12 @@
             }
             .onboarding-photo-frame img {
               height: 150px;
+            }
+            .onboarding-photo-grid img {
+              height: 96px;
+            }
+            .mini-photo img {
+              height: 96px;
             }
           }
         `;
@@ -5569,11 +5762,11 @@
       document.body.style.overflow = 'hidden';
     }
 
-    async function loadRestaurants() {
-      const client = await ensureHomeSupabase();
-      if (!client) {
-        return FALLBACK_RESTAURANTS.map((r) => ({
-          mediaType: 'restaurant',
+      async function loadRestaurants() {
+        const client = await ensureHomeSupabase();
+        if (!client) {
+          return FALLBACK_RESTAURANTS.map((r) => ({
+            mediaType: 'restaurant',
           itemId: String(r.id),
           title: r.name,
           subtitle: `${r.category} | ${r.rating}/5`,
@@ -5639,12 +5832,12 @@
         }
       }
 
-      return selectedRows.map((r) => {
-        const coverImage = galleryBySlug[r.slug]?.cover || resolveRestaurantImage(r.image);
-        const logoImage = galleryBySlug[r.slug]?.logo || resolveRestaurantImage(r.logo_url);
-        const hasLogo = String(logoImage || '').trim().length > 0;
-        return {
-          mediaType: 'restaurant',
+        return selectedRows.map((r) => {
+          const coverImage = galleryBySlug[r.slug]?.cover || resolveRestaurantImage(r.image);
+          const logoImage = galleryBySlug[r.slug]?.logo || resolveRestaurantImage(r.logo_url);
+          const hasLogo = String(logoImage || '').trim().length > 0;
+          return {
+            mediaType: 'restaurant',
           itemId: String(r.id || ''),
           title: r.name || 'Restaurant',
           subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
@@ -5655,14 +5848,46 @@
           spotlightMediaImage: hasLogo ? logoImage : (coverImage || ''),
           spotlightMediaFit: hasLogo ? 'contain' : 'cover',
           spotlightMediaShape: hasLogo ? 'square' : 'poster',
-          href: r.id ? `restaurant.html?id=${encodeURIComponent(r.id)}` : 'restraunts.html'
-        };
-      });
-    }
+            href: r.id ? `restaurant.html?id=${encodeURIComponent(r.id)}` : 'restraunts.html'
+          };
+        });
+      }
 
-    async function loadMovies(signal) {
-      const targetCount = getHomeChannelTargetItems();
-      const interestBuilders = buildHomeTmdbInterestSources('movie');
+      async function loadFashionBrands() {
+        const client = await ensureHomeSupabase();
+        const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
+        const fallbackItems = HOME_FASHION_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'fashion', index));
+        if (!client) return fallbackItems.slice(0, target);
+
+        const fetchLimit = Math.max(target * 2, target);
+        const { data, error } = await client
+          .from('fashion_brands')
+          .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
+          .order('name', { ascending: true })
+          .limit(fetchLimit);
+        if (error || !data || !data.length) return fallbackItems.slice(0, target);
+        return (data || []).map((row, index) => mapHomeBrandItem(row, 'fashion', index)).slice(0, target);
+      }
+
+      async function loadFoodBrands() {
+        const client = await ensureHomeSupabase();
+        const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
+        const fallbackItems = HOME_FOOD_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'food', index));
+        if (!client) return fallbackItems.slice(0, target);
+
+        const fetchLimit = Math.max(target * 2, target);
+        const { data, error } = await client
+          .from('food_brands')
+          .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
+          .order('name', { ascending: true })
+          .limit(fetchLimit);
+        if (error || !data || !data.length) return fallbackItems.slice(0, target);
+        return (data || []).map((row, index) => mapHomeBrandItem(row, 'food', index)).slice(0, target);
+      }
+
+      async function loadMovies(signal) {
+        const targetCount = getHomeChannelTargetItems();
+        const interestBuilders = buildHomeTmdbInterestSources('movie');
       const sourceBuilders = shuffleArray([
         ...interestBuilders,
         () => `${TMDB_PROXY_BASE}/movie/popular?language=en-US&page=${randomInt(1, 5)}`,
