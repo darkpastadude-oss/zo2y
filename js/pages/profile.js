@@ -5664,7 +5664,7 @@
                     music: { table: 'music_lists', fallback: 'music', label: 'Music', rerender: renderMusic },
                     travel: { table: 'travel_lists', fallback: 'travel', label: 'Travel', rerender: renderTravel },
                     fashion: { table: 'fashion_lists', fallback: 'fashion', label: 'Fashion', rerender: renderFashion },
-                    food: { table: 'food_lists', fallback: 'food', label: 'Food', rerender: renderFood }
+                    food: { table: 'food_lists', fallback: 'food', label: 'Food', rerender: renderFood },
                     car: { table: 'car_lists', fallback: 'car', label: 'Cars', rerender: renderCars }
                 };
                 return configMap[type] || null;
@@ -5680,7 +5680,7 @@
                     music: ['favorites', 'listened', 'listenlist'],
                     travel: ['favorites', 'visited', 'bucket list', 'bucketlist'],
                     fashion: ['favorites', 'owned', 'wishlist'],
-                    food: ['favorites', 'tried', 'want to try', 'want_to_try']
+                    food: ['favorites', 'tried', 'want to try', 'want_to_try'],
                     car: ['favorites', 'owned', 'wishlist']
                 };
                 return new Set(map[type] || []);
