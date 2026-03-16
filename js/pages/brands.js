@@ -3,35 +3,47 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
 
   const BRAND_TYPE = String(document.body?.dataset?.brandType || 'fashion').toLowerCase();
-  const BRAND_LABEL = BRAND_TYPE === 'food' ? 'Food' : 'Fashion';
-  const BRAND_ICON = BRAND_TYPE === 'food' ? 'fa-burger' : 'fa-shirt';
-  const BRAND_TABLE = BRAND_TYPE === 'food' ? 'food_brands' : 'fashion_brands';
+  const BRAND_LABEL = BRAND_TYPE === 'food' ? 'Food' : (BRAND_TYPE === 'car' ? 'Cars' : 'Fashion');
+  const BRAND_ICON = BRAND_TYPE === 'food' ? 'fa-burger' : (BRAND_TYPE === 'car' ? 'fa-car' : 'fa-shirt');
+  const BRAND_TABLE = BRAND_TYPE === 'food' ? 'food_brands' : (BRAND_TYPE === 'car' ? 'car_brands' : 'fashion_brands');
   const HOME_DEFAULT_LIST_TABLES = {
     fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
-    food: { table: 'food_list_items', itemField: 'brand_id' }
+    food: { table: 'food_list_items', itemField: 'brand_id' },
+    car: { table: 'car_list_items', itemField: 'brand_id' }
   };
 
   const FALLBACKS = BRAND_TYPE === 'food'
     ? [
-        { id: 'food-mcd', name: "McDonald's", category: 'Fast Food', domain: 'mcdonalds.com', logo_url: 'https://logo.clearbit.com/mcdonalds.com', description: 'American fast-food chain.' },
-        { id: 'food-kfc', name: 'KFC', category: 'Fast Food', domain: 'kfc.com', logo_url: 'https://logo.clearbit.com/kfc.com', description: 'Fried chicken specialists.' },
-        { id: 'food-bk', name: 'Burger King', category: 'Fast Food', domain: 'burgerking.com', logo_url: 'https://logo.clearbit.com/burgerking.com', description: 'Home of the Whopper.' },
-        { id: 'food-subway', name: 'Subway', category: 'Fast Food', domain: 'subway.com', logo_url: 'https://logo.clearbit.com/subway.com', description: 'Sandwich chain.' },
-        { id: 'food-taco', name: 'Taco Bell', category: 'Fast Food', domain: 'tacobell.com', logo_url: 'https://logo.clearbit.com/tacobell.com', description: 'Mexican-inspired fast food.' },
-        { id: 'food-starbucks', name: 'Starbucks', category: 'Coffee', domain: 'starbucks.com', logo_url: 'https://logo.clearbit.com/starbucks.com', description: 'Coffeehouse chain.' },
-        { id: 'food-dominos', name: "Domino's", category: 'Pizza', domain: 'dominos.com', logo_url: 'https://logo.clearbit.com/dominos.com', description: 'Pizza delivery chain.' },
-        { id: 'food-pizzahut', name: 'Pizza Hut', category: 'Pizza', domain: 'pizzahut.com', logo_url: 'https://logo.clearbit.com/pizzahut.com', description: 'Pizza restaurant chain.' }
+        { id: 'food-mcd', name: "McDonald's", category: 'Fast Food', domain: 'mcdonalds.com', description: 'American fast-food chain.' },
+        { id: 'food-kfc', name: 'KFC', category: 'Fast Food', domain: 'kfc.com', description: 'Fried chicken specialists.' },
+        { id: 'food-bk', name: 'Burger King', category: 'Fast Food', domain: 'burgerking.com', description: 'Home of the Whopper.' },
+        { id: 'food-subway', name: 'Subway', category: 'Fast Food', domain: 'subway.com', description: 'Sandwich chain.' },
+        { id: 'food-taco', name: 'Taco Bell', category: 'Fast Food', domain: 'tacobell.com', description: 'Mexican-inspired fast food.' },
+        { id: 'food-starbucks', name: 'Starbucks', category: 'Coffee', domain: 'starbucks.com', description: 'Coffeehouse chain.' },
+        { id: 'food-dominos', name: "Domino's", category: 'Pizza', domain: 'dominos.com', description: 'Pizza delivery chain.' },
+        { id: 'food-pizzahut', name: 'Pizza Hut', category: 'Pizza', domain: 'pizzahut.com', description: 'Pizza restaurant chain.' }
       ]
-    : [
-        { id: 'fashion-nike', name: 'Nike', category: 'Sportswear', domain: 'nike.com', logo_url: 'https://logo.clearbit.com/nike.com', description: 'Global sportswear brand.' },
-        { id: 'fashion-adidas', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com', logo_url: 'https://logo.clearbit.com/adidas.com', description: 'Athletic apparel and footwear.' },
-        { id: 'fashion-zara', name: 'Zara', category: 'Fast Fashion', domain: 'zara.com', logo_url: 'https://logo.clearbit.com/zara.com', description: 'Spanish fashion retailer.' },
-        { id: 'fashion-uniqlo', name: 'Uniqlo', category: 'Basics', domain: 'uniqlo.com', logo_url: 'https://logo.clearbit.com/uniqlo.com', description: 'Japanese casualwear brand.' },
-        { id: 'fashion-hm', name: 'H&M', category: 'Fast Fashion', domain: 'hm.com', logo_url: 'https://logo.clearbit.com/hm.com', description: 'Global fashion retailer.' },
-        { id: 'fashion-gucci', name: 'Gucci', category: 'Luxury', domain: 'gucci.com', logo_url: 'https://logo.clearbit.com/gucci.com', description: 'Italian luxury fashion.' },
-        { id: 'fashion-prada', name: 'Prada', category: 'Luxury', domain: 'prada.com', logo_url: 'https://logo.clearbit.com/prada.com', description: 'Luxury fashion house.' },
-        { id: 'fashion-lv', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com', logo_url: 'https://logo.clearbit.com/louisvuitton.com', description: 'French luxury fashion.' }
-      ];
+    : (BRAND_TYPE === 'car'
+      ? [
+          { id: 'car-toyota', name: 'Toyota', category: 'Automaker', domain: 'toyota.com', description: 'Global automaker.' },
+          { id: 'car-honda', name: 'Honda', category: 'Automaker', domain: 'honda.com', description: 'Japanese automaker.' },
+          { id: 'car-bmw', name: 'BMW', category: 'Luxury', domain: 'bmw.com', description: 'German luxury automaker.' },
+          { id: 'car-mercedes', name: 'Mercedes-Benz', category: 'Luxury', domain: 'mercedes-benz.com', description: 'German luxury automaker.' },
+          { id: 'car-audi', name: 'Audi', category: 'Luxury', domain: 'audi.com', description: 'German luxury automaker.' },
+          { id: 'car-ford', name: 'Ford', category: 'Automaker', domain: 'ford.com', description: 'American automaker.' },
+          { id: 'car-chevrolet', name: 'Chevrolet', category: 'Automaker', domain: 'chevrolet.com', description: 'American automaker.' },
+          { id: 'car-tesla', name: 'Tesla', category: 'EV', domain: 'tesla.com', description: 'Electric vehicle maker.' }
+        ]
+      : [
+          { id: 'fashion-nike', name: 'Nike', category: 'Sportswear', domain: 'nike.com', description: 'Global sportswear brand.' },
+          { id: 'fashion-adidas', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com', description: 'Athletic apparel and footwear.' },
+          { id: 'fashion-zara', name: 'Zara', category: 'Fast Fashion', domain: 'zara.com', description: 'Spanish fashion retailer.' },
+          { id: 'fashion-uniqlo', name: 'Uniqlo', category: 'Basics', domain: 'uniqlo.com', description: 'Japanese casualwear brand.' },
+          { id: 'fashion-hm', name: 'H&M', category: 'Fast Fashion', domain: 'hm.com', description: 'Global fashion retailer.' },
+          { id: 'fashion-gucci', name: 'Gucci', category: 'Luxury', domain: 'gucci.com', description: 'Italian luxury fashion.' },
+          { id: 'fashion-prada', name: 'Prada', category: 'Luxury', domain: 'prada.com', description: 'Luxury fashion house.' },
+          { id: 'fashion-lv', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com', description: 'French luxury fashion.' }
+        ]);
 
   const grid = document.getElementById('brandGrid');
   const searchInput = document.getElementById('brandSearch');
@@ -67,18 +79,18 @@
       params.set('title', title);
       const domainRaw = String(domain || '').trim();
       if (domainRaw) params.set('domain', domainRaw);
+      params.set('mode', 'logo');
       return '/api/logo?' + params.toString();
     }
-    const raw = String(value || '').trim();
     const domainRaw = String(domain || '').trim();
-    const candidate = domainRaw || raw;
+    const candidate = domainRaw;
     if (!candidate) return '';
     if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
-      return '/api/logo?domain=' + encodeURIComponent(candidate) + '&size=128';
+      return '/api/logo?domain=' + encodeURIComponent(candidate) + '&size=128&mode=logo';
     }
     if (/^https?:\/\//i.test(candidate)) {
       const match = candidate.match(/\/\/([^\/\?]+)/i);
-      if (match && match[1]) return '/api/logo?domain=' + encodeURIComponent(match[1]) + '&size=128';
+      if (match && match[1]) return '/api/logo?domain=' + encodeURIComponent(match[1]) + '&size=128&mode=logo';
       return candidate;
     }
     return '';

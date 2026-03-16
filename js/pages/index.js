@@ -3,12 +3,14 @@
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
     const ENABLE_FOOD = window.ZO2Y_DISABLE_FOOD !== true;
+    const ENABLE_CARS = window.ZO2Y_DISABLE_CARS !== true;
     const HOME_BASE_MEDIA_TYPES = ENABLE_GAMES
       ? ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'sports']
       : ['movie', 'tv', 'anime', 'book', 'music', 'travel', 'sports'];
     const HOME_LIFESTYLE_MEDIA_TYPES = [
       ...(ENABLE_FASHION ? ['fashion'] : []),
       ...(ENABLE_FOOD ? ['food'] : []),
+      ...(ENABLE_CARS ? ['car'] : []),
       ...(ENABLE_RESTAURANTS ? ['restaurant'] : [])
     ];
     const HOME_ACTIVE_MEDIA_TYPES = [...HOME_BASE_MEDIA_TYPES, ...HOME_LIFESTYLE_MEDIA_TYPES];
@@ -32,28 +34,38 @@
       { id: 'fallback-r5', name: 'Quick Bites', category: 'Casual', rating: '4.6' }
     ];
     const HOME_FASHION_FALLBACKS = [
-      { id: 'fashion-nike', name: 'Nike', category: 'Sportswear', domain: 'nike.com', logo_url: 'https://logo.clearbit.com/nike.com' },
-      { id: 'fashion-adidas', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com', logo_url: 'https://logo.clearbit.com/adidas.com' },
-      { id: 'fashion-zara', name: 'Zara', category: 'Fast Fashion', domain: 'zara.com', logo_url: 'https://logo.clearbit.com/zara.com' },
-      { id: 'fashion-uniqlo', name: 'Uniqlo', category: 'Basics', domain: 'uniqlo.com', logo_url: 'https://logo.clearbit.com/uniqlo.com' },
-      { id: 'fashion-hm', name: 'H&M', category: 'Fast Fashion', domain: 'hm.com', logo_url: 'https://logo.clearbit.com/hm.com' },
-      { id: 'fashion-gucci', name: 'Gucci', category: 'Luxury', domain: 'gucci.com', logo_url: 'https://logo.clearbit.com/gucci.com' },
-      { id: 'fashion-prada', name: 'Prada', category: 'Luxury', domain: 'prada.com', logo_url: 'https://logo.clearbit.com/prada.com' },
-      { id: 'fashion-lv', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com', logo_url: 'https://logo.clearbit.com/louisvuitton.com' },
-      { id: 'fashion-offwhite', name: 'Off-White', category: 'Streetwear', domain: 'offwhite.com', logo_url: 'https://logo.clearbit.com/offwhite.com' },
-      { id: 'fashion-supreme', name: 'Supreme', category: 'Streetwear', domain: 'supremenewyork.com', logo_url: 'https://logo.clearbit.com/supremenewyork.com' }
+      { id: 'fashion-nike', name: 'Nike', category: 'Sportswear', domain: 'nike.com' },
+      { id: 'fashion-adidas', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com' },
+      { id: 'fashion-zara', name: 'Zara', category: 'Fast Fashion', domain: 'zara.com' },
+      { id: 'fashion-uniqlo', name: 'Uniqlo', category: 'Basics', domain: 'uniqlo.com' },
+      { id: 'fashion-hm', name: 'H&M', category: 'Fast Fashion', domain: 'hm.com' },
+      { id: 'fashion-gucci', name: 'Gucci', category: 'Luxury', domain: 'gucci.com' },
+      { id: 'fashion-prada', name: 'Prada', category: 'Luxury', domain: 'prada.com' },
+      { id: 'fashion-lv', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com' },
+      { id: 'fashion-offwhite', name: 'Off-White', category: 'Streetwear', domain: 'offwhite.com' },
+      { id: 'fashion-supreme', name: 'Supreme', category: 'Streetwear', domain: 'supremenewyork.com' }
     ];
     const HOME_FOOD_FALLBACKS = [
-      { id: 'food-mcd', name: "McDonald's", category: 'Fast Food', domain: 'mcdonalds.com', logo_url: 'https://logo.clearbit.com/mcdonalds.com' },
-      { id: 'food-kfc', name: 'KFC', category: 'Fast Food', domain: 'kfc.com', logo_url: 'https://logo.clearbit.com/kfc.com' },
-      { id: 'food-bk', name: 'Burger King', category: 'Fast Food', domain: 'burgerking.com', logo_url: 'https://logo.clearbit.com/burgerking.com' },
-      { id: 'food-subway', name: 'Subway', category: 'Fast Food', domain: 'subway.com', logo_url: 'https://logo.clearbit.com/subway.com' },
-      { id: 'food-taco', name: 'Taco Bell', category: 'Fast Food', domain: 'tacobell.com', logo_url: 'https://logo.clearbit.com/tacobell.com' },
-      { id: 'food-starbucks', name: 'Starbucks', category: 'Coffee', domain: 'starbucks.com', logo_url: 'https://logo.clearbit.com/starbucks.com' },
-      { id: 'food-dominos', name: "Domino's", category: 'Pizza', domain: 'dominos.com', logo_url: 'https://logo.clearbit.com/dominos.com' },
-      { id: 'food-pizzahut', name: 'Pizza Hut', category: 'Pizza', domain: 'pizzahut.com', logo_url: 'https://logo.clearbit.com/pizzahut.com' },
-      { id: 'food-chipotle', name: 'Chipotle', category: 'Fast Casual', domain: 'chipotle.com', logo_url: 'https://logo.clearbit.com/chipotle.com' },
-      { id: 'food-shakeshack', name: 'Shake Shack', category: 'Fast Casual', domain: 'shakeshack.com', logo_url: 'https://logo.clearbit.com/shakeshack.com' }
+      { id: 'food-mcd', name: "McDonald's", category: 'Fast Food', domain: 'mcdonalds.com' },
+      { id: 'food-kfc', name: 'KFC', category: 'Fast Food', domain: 'kfc.com' },
+      { id: 'food-bk', name: 'Burger King', category: 'Fast Food', domain: 'burgerking.com' },
+      { id: 'food-subway', name: 'Subway', category: 'Fast Food', domain: 'subway.com' },
+      { id: 'food-taco', name: 'Taco Bell', category: 'Fast Food', domain: 'tacobell.com' },
+      { id: 'food-starbucks', name: 'Starbucks', category: 'Coffee', domain: 'starbucks.com' },
+      { id: 'food-dominos', name: "Domino's", category: 'Pizza', domain: 'dominos.com' },
+      { id: 'food-pizzahut', name: 'Pizza Hut', category: 'Pizza', domain: 'pizzahut.com' },
+      { id: 'food-chipotle', name: 'Chipotle', category: 'Fast Casual', domain: 'chipotle.com' },
+      { id: 'food-shakeshack', name: 'Shake Shack', category: 'Fast Casual', domain: 'shakeshack.com' }
+    ];
+    const HOME_CAR_FALLBACKS = [
+      { id: 'car-toyota', name: 'Toyota', category: 'Automaker', domain: 'toyota.com' },
+      { id: 'car-honda', name: 'Honda', category: 'Automaker', domain: 'honda.com' },
+      { id: 'car-bmw', name: 'BMW', category: 'Luxury', domain: 'bmw.com' },
+      { id: 'car-mercedes', name: 'Mercedes-Benz', category: 'Luxury', domain: 'mercedes-benz.com' },
+      { id: 'car-audi', name: 'Audi', category: 'Luxury', domain: 'audi.com' },
+      { id: 'car-ford', name: 'Ford', category: 'Automaker', domain: 'ford.com' },
+      { id: 'car-chevrolet', name: 'Chevrolet', category: 'Automaker', domain: 'chevrolet.com' },
+      { id: 'car-tesla', name: 'Tesla', category: 'EV', domain: 'tesla.com' }
     ];
     const POPULAR_MUSIC_QUERIES = [
       'top 50 usa',
@@ -95,6 +107,7 @@
       restaurant: { label: 'Restaurant', icon: 'fa-clapperboard', accent: '#f59e0b' },
       fashion: { label: 'Fashion', icon: 'fa-shirt', accent: '#38bdf8' },
       food: { label: 'Food', icon: 'fa-burger', accent: '#f59e0b' },
+      car: { label: 'Cars', icon: 'fa-car', accent: '#ef4444' },
       movie: { label: 'Movie', icon: 'fa-film', accent: '#ef4444' },
       tv: { label: 'TV', icon: 'fa-tv', accent: '#22c55e' },
       anime: { label: 'Anime', icon: 'fa-dragon', accent: '#f97316' },
@@ -118,7 +131,8 @@
       music: { table: 'music_list_items', itemField: 'track_id' },
       travel: { table: 'travel_list_items', itemField: 'country_code' },
       ...(ENABLE_FASHION ? { fashion: { table: 'fashion_list_items', itemField: 'brand_id' } } : {}),
-      ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {})
+      ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {}),
+      ...(ENABLE_CARS ? { car: { table: 'car_list_items', itemField: 'brand_id' } } : {})
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v12';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
@@ -256,6 +270,7 @@
         <rect x='520' y='620' width='560' height='60' rx='30' fill='rgba(245,158,11,0.18)' />
       </svg>
     `)}`;
+    const HOME_CAR_SPOTLIGHT_BG = 'https://upload.wikimedia.org/wikipedia/commons/4/40/Ferrari.jpg';
     const HOME_SUGGESTIVE_TEXT_PATTERNS = [
       /\bhentai\b/i,
       /\becchi\b/i,
@@ -964,24 +979,25 @@
       return toHttpsUrl(`images/${normalized}`);
     }
 
-    function resolveBrandLogo(row) {
+    function resolveBrandLogo(row, mediaType) {
       const title = String(row?.name || row?.title || '').trim();
-      const directRaw = String(row?.logo_url || row?.logo || '').trim();
       const domainRaw = String(row?.domain || '').trim();
+      const logoOnly = ['fashion', 'food', 'car'].includes(String(mediaType || '').toLowerCase());
       if (title) {
         const params = new URLSearchParams();
         params.set('title', title);
         if (domainRaw) params.set('domain', domainRaw);
+        if (logoOnly) params.set('mode', 'logo');
         return `/api/logo?${params.toString()}`;
       }
-      const candidate = domainRaw || directRaw;
+      const candidate = domainRaw;
       if (!candidate) return '';
       if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
-        return `/api/logo?domain=${encodeURIComponent(candidate)}&size=128`;
+        return `/api/logo?domain=${encodeURIComponent(candidate)}&size=128${logoOnly ? '&mode=logo' : ''}`;
       }
       if (/^https?:\/\//i.test(candidate)) {
         const match = candidate.match(/\/\/([^\/\?]+)/i);
-        if (match && match[1]) return `/api/logo?domain=${encodeURIComponent(match[1])}&size=128`;
+        if (match && match[1]) return `/api/logo?domain=${encodeURIComponent(match[1])}&size=128${logoOnly ? '&mode=logo' : ''}`;
         return candidate;
       }
       return '';
@@ -990,10 +1006,16 @@
     function mapHomeBrandItem(row, type, fallbackIndex = 0) {
       const safeType = String(type || '').toLowerCase();
       const title = String(row?.name || row?.title || '').trim() || 'Brand';
-      const category = String(row?.category || '').trim() || (safeType === 'fashion' ? 'Fashion' : 'Food');
+      const category = String(row?.category || '').trim() || (
+        safeType === 'fashion'
+          ? 'Fashion'
+          : (safeType === 'food'
+            ? 'Food'
+            : (safeType === 'car' ? 'Cars' : 'Brand'))
+      );
       const country = String(row?.country || '').trim();
       const founded = row?.founded ? String(row.founded) : '';
-      const logo = resolveBrandLogo(row);
+      const logo = resolveBrandLogo(row, safeType);
       const subtitle = `${category}${country ? ` Â· ${country}` : ''}`;
       const extra = founded ? `Since ${founded}` : (row?.description ? String(row.description).trim() : '');
       const background = getHomeSpotlightBackgroundByType(safeType);
@@ -1048,6 +1070,7 @@
       if (type === 'music') return HOME_MUSIC_SPOTLIGHT_BG;
       if (type === 'fashion') return HOME_FASHION_SPOTLIGHT_BG;
       if (type === 'food') return HOME_FOOD_SPOTLIGHT_BG;
+      if (type === 'car') return HOME_CAR_SPOTLIGHT_BG;
       return '';
     }
 
@@ -4122,6 +4145,7 @@
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 },
         ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 6200 }] : []),
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 6200 }] : []),
+        ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 6200 }] : []),
         { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 6800 },
         { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: false }, timeoutMs: 6800 }
       ];
@@ -5898,6 +5922,22 @@
           .limit(fetchLimit);
         if (error || !data || !data.length) return fallbackItems.slice(0, target);
         return (data || []).map((row, index) => mapHomeBrandItem(row, 'food', index)).slice(0, target);
+      }
+
+      async function loadCarBrands() {
+        const client = await ensureHomeSupabase();
+        const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
+        const fallbackItems = HOME_CAR_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'car', index));
+        if (!client) return fallbackItems.slice(0, target);
+
+        const fetchLimit = Math.max(target * 2, target);
+        const { data, error } = await client
+          .from('car_brands')
+          .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
+          .order('name', { ascending: true })
+          .limit(fetchLimit);
+        if (error || !data || !data.length) return fallbackItems.slice(0, target);
+        return (data || []).map((row, index) => mapHomeBrandItem(row, 'car', index)).slice(0, target);
       }
 
       async function loadMovies(signal) {

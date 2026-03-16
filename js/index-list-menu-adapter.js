@@ -69,6 +69,11 @@
       { key: 'tried', label: 'Tried', icon: 'fas fa-check' },
       { key: 'want_to_try', label: 'Want to Try', icon: 'fas fa-bookmark' }
     ],
+    car: [
+      { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+      { key: 'owned', label: 'Owned', icon: 'fas fa-check' },
+      { key: 'wishlist', label: 'Wishlist', icon: 'fas fa-bookmark' }
+    ],
     sports: [
       { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' }
     ]
@@ -83,7 +88,8 @@
     music: { table: 'music_list_items', itemField: 'track_id' },
     travel: { table: 'travel_list_items', itemField: 'country_code' },
     fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
-    food: { table: 'food_list_items', itemField: 'brand_id' }
+    food: { table: 'food_list_items', itemField: 'brand_id' },
+    car: { table: 'car_list_items', itemField: 'brand_id' }
   };
 
   function escapeHtml(value) {

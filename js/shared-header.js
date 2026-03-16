@@ -84,6 +84,7 @@ const HEADER_HTML = `
           <a class="zo2y-nav-link" data-nav-page="sports" href="sports.html">Sports</a>
           <a class="zo2y-nav-link" data-nav-page="fashion" href="fashion.html">Fashion</a>
           <a class="zo2y-nav-link" data-nav-page="food" href="food.html">Food</a>
+          <a class="zo2y-nav-link" data-nav-page="cars" href="cars.html">Cars</a>
         </div>
       </div>
       <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
@@ -132,6 +133,7 @@ const HEADER_HTML = `
       <a class="zo2y-desktop-rail-link" data-nav-page="sports" href="sports.html"><i class="fa-solid fa-futbol"></i><span>sports</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="fashion" href="fashion.html"><i class="fa-solid fa-shirt"></i><span>fashion</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="food" href="food.html"><i class="fa-solid fa-burger"></i><span>food</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="cars" href="cars.html"><i class="fa-solid fa-car"></i><span>cars</span></a>
     </div>
     <a class="zo2y-desktop-rail-link accent" data-nav-page="reviews" href="reviews.html"><i class="fa-solid fa-star"></i><span>reviews</span></a>
   </nav>
@@ -188,6 +190,7 @@ const HEADER_HTML = `
         <a class="zo2y-mobile-drawer-link" data-nav-page="sports" href="sports.html"><i class="fa-solid fa-futbol"></i><span>Sports</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="fashion" href="fashion.html"><i class="fa-solid fa-shirt"></i><span>Fashion</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="food" href="food.html"><i class="fa-solid fa-burger"></i><span>Food</span></a>
+        <a class="zo2y-mobile-drawer-link" data-nav-page="cars" href="cars.html"><i class="fa-solid fa-car"></i><span>Cars</span></a>
       </div>
     </div>
     <a class="zo2y-mobile-drawer-link accent" data-nav-page="reviews" href="reviews.html"><i class="fa-solid fa-star"></i><span>Reviews</span></a>
@@ -277,6 +280,7 @@ const HEADER_HTML = `
     if (file.startsWith('sport')) return 'sports';
     if (file.startsWith('fashion')) return 'fashion';
     if (file.startsWith('food')) return 'food';
+    if (file.startsWith('cars') || file.startsWith('car')) return 'cars';
     if (file.startsWith('review')) return 'reviews';
     if (file.startsWith('profile')) return 'profile';
     return 'index';

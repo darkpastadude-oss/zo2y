@@ -63,6 +63,13 @@
       usesUserId: true,
       defaultIcon: 'fas fa-burger'
     },
+    car: {
+      listTable: 'car_lists',
+      itemsTable: 'car_list_items',
+      itemIdField: 'brand_id',
+      usesUserId: true,
+      defaultIcon: 'fas fa-car'
+    },
     sports: {
       listTable: 'sports_lists',
       itemsTable: 'sports_list_items',
@@ -162,6 +169,7 @@
     if (raw.includes('fa-earth')) return 'travel';
     if (raw.includes('fa-shirt')) return 'fashion';
     if (raw.includes('fa-burger')) return 'food';
+    if (raw.includes('fa-car')) return 'car';
     if (raw.includes('fa-futbol') || raw.includes('fa-football')) return 'sports';
     if (raw.includes('fa-user')) return 'user';
     if (raw.includes('fa-tv')) return 'tv';

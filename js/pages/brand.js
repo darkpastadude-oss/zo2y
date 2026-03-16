@@ -5,11 +5,12 @@
   const params = new URLSearchParams(window.location.search);
   const brandType = String(params.get('type') || 'fashion').toLowerCase();
   const brandIdParam = String(params.get('id') || '').trim();
-  const brandTable = brandType === 'food' ? 'food_brands' : 'fashion_brands';
-  const reviewTable = brandType === 'food' ? 'food_reviews' : 'fashion_reviews';
+  const brandTable = brandType === 'food' ? 'food_brands' : (brandType === 'car' ? 'car_brands' : 'fashion_brands');
+  const reviewTable = brandType === 'food' ? 'food_reviews' : (brandType === 'car' ? 'car_reviews' : 'fashion_reviews');
   const HOME_DEFAULT_LIST_TABLES = {
     fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
-    food: { table: 'food_list_items', itemField: 'brand_id' }
+    food: { table: 'food_list_items', itemField: 'brand_id' },
+    car: { table: 'car_list_items', itemField: 'brand_id' }
   };
 
   const dom = {
@@ -74,18 +75,18 @@
       params.set('title', title);
       const domainRaw = String(domain || '').trim();
       if (domainRaw) params.set('domain', domainRaw);
+      params.set('mode', 'logo');
       return '/api/logo?' + params.toString();
     }
-    const raw = String(value || '').trim();
     const domainRaw = String(domain || '').trim();
-    const candidate = domainRaw || raw;
+    const candidate = domainRaw;
     if (!candidate) return '';
     if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
-      return '/api/logo?domain=' + encodeURIComponent(candidate) + '&size=256';
+      return '/api/logo?domain=' + encodeURIComponent(candidate) + '&size=256&mode=logo';
     }
     if (/^https?:\/\//i.test(candidate)) {
       const match = candidate.match(/\/\/([^\/\?]+)/i);
-      if (match && match[1]) return '/api/logo?domain=' + encodeURIComponent(match[1]) + '&size=256';
+      if (match && match[1]) return '/api/logo?domain=' + encodeURIComponent(match[1]) + '&size=256&mode=logo';
       return candidate;
     }
     return '';

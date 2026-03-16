@@ -151,7 +151,15 @@ const fashionBrands = [
   { name: 'Fendi', domain: 'fendi.com', category: 'Luxury', country: 'Italy', founded: '1925', description: 'Italian luxury fashion.', tags: ['luxury'] },
   { name: 'Dolce & Gabbana', domain: 'dolcegabbana.com', category: 'Luxury', country: 'Italy', founded: '1985', description: 'Italian luxury fashion.', tags: ['luxury'] },
   { name: 'Bottega Veneta', domain: 'bottegaveneta.com', category: 'Luxury', country: 'Italy', founded: '1966', description: 'Italian luxury fashion.', tags: ['luxury'] },
-  { name: 'Balmain', domain: 'balmain.com', category: 'Luxury', country: 'France', founded: '1945', description: 'French luxury fashion.', tags: ['luxury'] }
+  { name: 'Balmain', domain: 'balmain.com', category: 'Luxury', country: 'France', founded: '1945', description: 'French luxury fashion.', tags: ['luxury'] },
+  { name: 'Hugo Boss', domain: 'hugoboss.com', category: 'Designer', country: 'Germany', founded: '1924', description: 'German designer label.', tags: ['designer'] },
+  { name: 'Tommy Hilfiger', domain: 'tommy.com', category: 'Designer', country: 'USA', founded: '1985', description: 'American lifestyle brand.', tags: ['designer'] },
+  { name: 'Valentino', domain: 'valentino.com', category: 'Luxury', country: 'Italy', founded: '1960', description: 'Italian luxury fashion.', tags: ['luxury'] },
+  { name: 'Celine', domain: 'celine.com', category: 'Luxury', country: 'France', founded: '1945', description: 'French luxury fashion.', tags: ['luxury'] },
+  { name: 'Kenzo', domain: 'kenzo.com', category: 'Luxury', country: 'France', founded: '1970', description: 'French luxury fashion.', tags: ['luxury'] },
+  { name: 'HUGO', domain: 'hugoboss.com', category: 'Designer', country: 'Germany', founded: '1993', description: 'Contemporary designer label.', tags: ['designer'] },
+  { name: 'UGG', domain: 'ugg.com', category: 'Footwear', country: 'USA', founded: '1978', description: 'Sheepskin footwear brand.', tags: ['footwear'] },
+  { name: 'Bulgari', domain: 'bulgari.com', category: 'Luxury', country: 'Italy', founded: '1884', description: 'Italian luxury house.', tags: ['luxury'] }
 ];
 
 const foodBrands = [
@@ -206,7 +214,49 @@ const foodBrands = [
   { name: 'Dairy Queen', domain: 'dairyqueen.com', category: 'Dessert', country: 'USA', founded: '1940', description: 'Ice cream and fast food.', tags: ['dessert'] },
   { name: 'Bojangles', domain: 'bojangles.com', category: 'Fast Food', country: 'USA', founded: '1977', description: 'Southern chicken chain.', tags: ['chicken', 'fast food'] },
   { name: 'Jollibee', domain: 'jollibee.com', category: 'Fast Food', country: 'Philippines', founded: '1978', description: 'Global fast food chain.', tags: ['fast food'] },
-  { name: 'Greggs', domain: 'greggs.co.uk', category: 'Bakery', country: 'UK', founded: '1939', description: 'Bakery chain.', tags: ['bakery'] }
+  { name: 'Greggs', domain: 'greggs.co.uk', category: 'Bakery', country: 'UK', founded: '1939', description: 'Bakery chain.', tags: ['bakery'] },
+  { name: 'Chili\'s', domain: 'chilis.com', category: 'Restaurants', country: 'USA', founded: '1975', description: 'Casual dining chain.', tags: ['restaurants'] },
+  { name: 'Buffalo Wild Wings', domain: 'buffalowildwings.com', category: 'Restaurants', country: 'USA', founded: '1982', description: 'Sports bar and wings.', tags: ['restaurants'] },
+  { name: 'Outback Steakhouse', domain: 'outback.com', category: 'Restaurants', country: 'USA', founded: '1988', description: 'Steakhouse chain.', tags: ['restaurants'] },
+  { name: 'P.F. Chang\'s', domain: 'pfchangs.com', category: 'Restaurants', country: 'USA', founded: '1993', description: 'Asian bistro chain.', tags: ['restaurants'] },
+  { name: 'Red Lobster', domain: 'redlobster.com', category: 'Restaurants', country: 'USA', founded: '1968', description: 'Seafood restaurant chain.', tags: ['restaurants'] },
+  { name: 'CAVA', domain: 'cava.com', category: 'Fast Casual', country: 'USA', founded: '2006', description: 'Mediterranean fast casual.', tags: ['fast casual'] },
+  { name: 'Sweetgreen', domain: 'sweetgreen.com', category: 'Fast Casual', country: 'USA', founded: '2007', description: 'Salads and bowls.', tags: ['fast casual'] },
+  { name: 'Noodles & Company', domain: 'noodles.com', category: 'Fast Casual', country: 'USA', founded: '1995', description: 'Noodle-focused chain.', tags: ['fast casual'] }
+];
+
+const carBrands = [
+  { name: 'Toyota', domain: 'toyota.com', category: 'Automaker', country: 'Japan', founded: '1937', description: 'Global automaker.', tags: ['automaker'] },
+  { name: 'Honda', domain: 'honda.com', category: 'Automaker', country: 'Japan', founded: '1948', description: 'Japanese automaker.', tags: ['automaker'] },
+  { name: 'Volkswagen', domain: 'volkswagen.com', category: 'Automaker', country: 'Germany', founded: '1937', description: 'German automaker.', tags: ['automaker'] },
+  { name: 'Ford', domain: 'ford.com', category: 'Automaker', country: 'USA', founded: '1903', description: 'American automaker.', tags: ['automaker'] },
+  { name: 'Chevrolet', domain: 'chevrolet.com', category: 'Automaker', country: 'USA', founded: '1911', description: 'American automaker.', tags: ['automaker'] },
+  { name: 'Nissan', domain: 'nissan-global.com', category: 'Automaker', country: 'Japan', founded: '1933', description: 'Japanese automaker.', tags: ['automaker'] },
+  { name: 'Hyundai', domain: 'hyundai.com', category: 'Automaker', country: 'South Korea', founded: '1967', description: 'Korean automaker.', tags: ['automaker'] },
+  { name: 'Kia', domain: 'kia.com', category: 'Automaker', country: 'South Korea', founded: '1944', description: 'Korean automaker.', tags: ['automaker'] },
+  { name: 'BMW', domain: 'bmw.com', category: 'Luxury', country: 'Germany', founded: '1916', description: 'German luxury automaker.', tags: ['luxury'] },
+  { name: 'Mercedes-Benz', domain: 'mercedes-benz.com', category: 'Luxury', country: 'Germany', founded: '1926', description: 'German luxury automaker.', tags: ['luxury'] },
+  { name: 'Audi', domain: 'audi.com', category: 'Luxury', country: 'Germany', founded: '1909', description: 'German luxury automaker.', tags: ['luxury'] },
+  { name: 'Lexus', domain: 'lexus.com', category: 'Luxury', country: 'Japan', founded: '1989', description: 'Luxury vehicle brand.', tags: ['luxury'] },
+  { name: 'Tesla', domain: 'tesla.com', category: 'EV', country: 'USA', founded: '2003', description: 'Electric vehicle maker.', tags: ['ev'] },
+  { name: 'Porsche', domain: 'porsche.com', category: 'Luxury', country: 'Germany', founded: '1931', description: 'Sports car manufacturer.', tags: ['luxury'] },
+  { name: 'Ferrari', domain: 'ferrari.com', category: 'Luxury', country: 'Italy', founded: '1939', description: 'Italian sports car manufacturer.', tags: ['luxury'] },
+  { name: 'Lamborghini', domain: 'lamborghini.com', category: 'Luxury', country: 'Italy', founded: '1963', description: 'Italian sports car manufacturer.', tags: ['luxury'] },
+  { name: 'Land Rover', domain: 'landrover.com', category: 'Luxury', country: 'UK', founded: '1948', description: 'SUV and off-road vehicles.', tags: ['luxury', 'suv'] },
+  { name: 'Jaguar', domain: 'jaguar.com', category: 'Luxury', country: 'UK', founded: '1922', description: 'Luxury vehicle brand.', tags: ['luxury'] },
+  { name: 'Volvo', domain: 'volvocars.com', category: 'Automaker', country: 'Sweden', founded: '1927', description: 'Swedish automaker.', tags: ['automaker'] },
+  { name: 'Subaru', domain: 'subaru.com', category: 'Automaker', country: 'Japan', founded: '1953', description: 'Japanese automaker.', tags: ['automaker'] },
+  { name: 'Mazda', domain: 'mazda.com', category: 'Automaker', country: 'Japan', founded: '1920', description: 'Japanese automaker.', tags: ['automaker'] },
+  { name: 'Mitsubishi', domain: 'mitsubishi-motors.com', category: 'Automaker', country: 'Japan', founded: '1970', description: 'Japanese automaker.', tags: ['automaker'] },
+  { name: 'Suzuki', domain: 'globalsuzuki.com', category: 'Automaker', country: 'Japan', founded: '1909', description: 'Japanese automaker.', tags: ['automaker'] },
+  { name: 'Peugeot', domain: 'peugeot.com', category: 'Automaker', country: 'France', founded: '1810', description: 'French automaker.', tags: ['automaker'] },
+  { name: 'Renault', domain: 'renault.com', category: 'Automaker', country: 'France', founded: '1899', description: 'French automaker.', tags: ['automaker'] },
+  { name: 'Fiat', domain: 'fiat.com', category: 'Automaker', country: 'Italy', founded: '1899', description: 'Italian automaker.', tags: ['automaker'] },
+  { name: 'Alfa Romeo', domain: 'alfaromeo.com', category: 'Luxury', country: 'Italy', founded: '1910', description: 'Italian automaker.', tags: ['luxury'] },
+  { name: 'Skoda', domain: 'skoda-auto.com', category: 'Automaker', country: 'Czech Republic', founded: '1895', description: 'Czech automaker.', tags: ['automaker'] },
+  { name: 'SEAT', domain: 'seat.com', category: 'Automaker', country: 'Spain', founded: '1950', description: 'Spanish automaker.', tags: ['automaker'] },
+  { name: 'Bentley', domain: 'bentleymotors.com', category: 'Luxury', country: 'UK', founded: '1919', description: 'Luxury vehicle brand.', tags: ['luxury'] },
+  { name: 'Rolls-Royce', domain: 'rolls-roycemotorcars.com', category: 'Luxury', country: 'UK', founded: '1904', description: 'Ultra-luxury vehicles.', tags: ['luxury'] }
 ];
 
 function toSupabaseRow(brand) {
@@ -239,6 +289,10 @@ async function run() {
   console.log('Seeding food brands...');
   const foodResult = await upsertBrands('food_brands', dedupeBrands(foodBrands));
   console.log(`Food upserts: ${foodResult.length}`);
+
+  console.log('Seeding car brands...');
+  const carResult = await upsertBrands('car_brands', dedupeBrands(carBrands));
+  console.log(`Car upserts: ${carResult.length}`);
 
   console.log('Done.');
 }

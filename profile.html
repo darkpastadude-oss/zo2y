@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260302a" />
   <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260316a">
-  <script src="js/shared-header.js?v=20260316a" defer></script>
+  <script src="js/shared-header.js?v=20260316b" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -187,6 +187,9 @@
                 </div>
                 <div class="nav-tab" data-tab="food" onclick="ProfileManager.showTab('food')">
                     <i class="fas fa-burger"></i> <span id="foodTabText">Food</span>
+                </div>
+                <div class="nav-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')">
+                    <i class="fas fa-car"></i> <span id="carsTabText">Cars</span>
                 </div>
             </div>
 
@@ -793,6 +796,69 @@
                 </div>
             </div>
 
+            <!-- Cars Tab Content -->
+            <div class="tab-content" id="cars-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="carsTitle">My Cars</h2>
+                            <p class="section-subtitle" id="carsSubtitle">Organize car brands you love or want to try</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createCarsListBtn" onclick="ProfileManager.createCarList()">
+                                <i class="fas fa-plus"></i> New Collection
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='cars.html'">
+                                <i class="fas fa-car"></i> Browse Cars
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="carsGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Car Lists Yet</h3>
+                            <p class="empty-description">Save brands to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='cars.html'">
+                                <i class="fas fa-car"></i> Explore Cars
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cars Detail View -->
+            <div class="tab-content" id="cars-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideCarDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="carsDetailTitle">
+                                <span id="carsDetailIcon"></span>
+                                <span id="carsDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="carsDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="car">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions" id="carsDetailActions" style="display: none;">
+                            <button class="btn btn-secondary btn-sm" id="carsListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="carsListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="carsItemsContainer"></div>
+                </div>
+            </div>
+
             <!-- Food Tab Content -->
             <div class="tab-content" id="food-tab">
                 <div class="section">
@@ -975,6 +1041,10 @@
             <div class="mobile-tab" data-tab="food" onclick="ProfileManager.showTab('food')">
                 <i class="fas fa-burger"></i>
                 <span id="mobileTabFood">Food</span>
+            </div>
+            <div class="mobile-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')">
+                <i class="fas fa-car"></i>
+                <span id="mobileTabCars">Cars</span>
             </div>
         </div>
         <div class="mobile-tabs-swipe-hint" id="mobileTabsSwipeHint">
@@ -1458,12 +1528,62 @@
                             <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
-                    <div id="mobileFashionItems"></div>
+                <div id="mobileFashionItems"></div>
+            </div>
+        </div>
+
+        <!-- Cars Section -->
+        <div class="mobile-section" id="mobileCarsSection">
+            <div class="mobile-section-title">
+                <span id="mobileCarsTitle">My Cars</span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="mobile-action-btn" id="mobileCreateCarsListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createCarList()">
+                        <i class="fas fa-plus"></i> New
+                    </button>
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='cars.html'">
+                        <i class="fas fa-car"></i> Browse
+                    </button>
+                </div>
+            </div>
+            <div class="mobile-section-subtitle" id="mobileCarsSubtitle">Track your favorite car brands</div>
+
+            <div class="collection-grid" id="mobileCarsGrid">
+                <div class="mobile-empty-state">
+                    <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                    <h3 class="mobile-empty-title">No Car Lists Yet</h3>
+                    <p class="mobile-empty-description">Save brands to see them here.</p>
+                    <button class="mobile-action-btn" onclick="window.location.href='cars.html'">
+                        <i class="fas fa-car"></i> Explore Cars
+                    </button>
                 </div>
             </div>
 
-            <!-- Food Section -->
-            <div class="mobile-section" id="mobileFoodSection">
+            <div id="mobileCarsDetailSection" style="display:none; margin-top: 16px;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.hideCarDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileCarsDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileCarsDetailDescription"></div>
+                <div class="collection-view-toggle" data-media="car" style="margin-bottom: 10px;">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileCarsDetailActions" style="display:none; gap: 8px; margin: 8px 0 4px;">
+                    <button class="mobile-action-btn secondary" id="mobileCarsListEditBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary" id="mobileCarsListDeleteBtn" style="padding: 8px 12px; font-size: 14px; width: auto;">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileCarsItems"></div>
+            </div>
+        </div>
+
+        <!-- Food Section -->
+        <div class="mobile-section" id="mobileFoodSection">
                 <div class="mobile-section-title">
                     <span id="mobileFoodTitle">My Food</span>
                     <div style="display: flex; gap: 8px;">
@@ -1958,13 +2078,16 @@
         </div>
     </div>
 
-    <script src="js/list-utils.js?v=20260316a"></script>
+    <script src="js/list-utils.js?v=20260316b"></script>
     <script src="js/igdb-client.js?v=20260311c"></script>
-    <script src="js/pages/profile.js?v=20260316i"></script>
+    <script src="js/pages/profile.js?v=20260316k"></script>
         <script src="js/production-runtime.js?v=20260307a" defer></script>
 
 </body>
 </html>
+
+
+
 
 
 

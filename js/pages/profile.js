@@ -1,4 +1,4 @@
-﻿// ===== GLOBAL PROFILE MANAGER =====
+// ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
             // Supabase configuration
             const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
@@ -70,6 +70,7 @@
             let renderTravelToken = 0;
             let renderFashionToken = 0;
             let renderFoodToken = 0;
+            let renderCarsToken = 0;
             let renderSportsToken = 0;
             let renderRestaurantsToken = 0;
             let editingMediaList = null;
@@ -100,7 +101,8 @@
                 music: 'music_lists',
                 travel: 'travel_lists',
                 fashion: 'fashion_lists',
-                food: 'food_lists'
+                food: 'food_lists',
+                car: 'car_lists'
             };
             const MEDIA_ITEM_TABLES = {
                 movie: 'movie_list_items',
@@ -111,7 +113,8 @@
                 music: 'music_list_items',
                 travel: 'travel_list_items',
                 fashion: 'fashion_list_items',
-                food: 'food_list_items'
+                food: 'food_list_items',
+                car: 'car_list_items'
             };
             const MEDIA_ITEM_FIELDS = {
                 movie: 'movie_id',
@@ -122,7 +125,8 @@
                 music: 'track_id',
                 travel: 'country_code',
                 fashion: 'brand_id',
-                food: 'brand_id'
+                food: 'brand_id',
+                car: 'brand_id'
             };
             let manualProfileBadges = [];
             let profileStatsSnapshot = {
@@ -144,8 +148,8 @@
             const STATS_REALTIME_DEBOUNCE_MS = 220;
             const VALID_PROFILE_TABS = new Set(
                 ENABLE_RESTAURANTS
-                    ? ['restaurants', 'movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'community']
-                    : ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'community']
+                    ? ['restaurants', 'movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
+                    : ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
             );
             const VALID_COLLECTION_TYPES = new Set([
                 ...(ENABLE_RESTAURANTS ? ['restaurant'] : []),
@@ -157,7 +161,8 @@
                 'music',
                 'travel',
                 'fashion',
-                'food'
+                'food',
+                'car'
             ]);
             const COLLECTION_TO_TAB = {
                 ...(ENABLE_RESTAURANTS ? { restaurant: 'restaurants' } : {}),
@@ -169,7 +174,8 @@
                 music: 'music',
                 travel: 'travel',
                 fashion: 'fashion',
-                food: 'food'
+                food: 'food',
+                car: 'cars'
             };
             const COLLECTION_VIEW_STORAGE_KEY = 'zo2y_profile_collection_view_modes_v2';
             let collectionViewModes = loadCollectionViewModes();
@@ -348,7 +354,7 @@
                     .trim()
                     .replace(/^@+/, '')
                     .toLowerCase()
-                    .replace(/['â€™]/g, '')
+                    .replace(/['’]/g, '')
                     .replace(/[^a-z0-9_]+/g, '_')
                     .replace(/_+/g, '_')
                     .replace(/^_+|_+$/g, '')
@@ -434,6 +440,7 @@
                     if (!hasFreshTabRender('travel')) preloadTasks.push(renderTravel());
                     if (!hasFreshTabRender('fashion')) preloadTasks.push(renderFashion());
                     if (!hasFreshTabRender('food')) preloadTasks.push(renderFood());
+                    if (!hasFreshTabRender('cars')) preloadTasks.push(renderCars());
                     if (!preloadTasks.length) return;
                     Promise.allSettled(preloadTasks).catch(() => {});
                 }, deferMs);
@@ -490,7 +497,7 @@
 
             function getPreviewOrientationClass(contentType) {
                 const type = String(contentType || '').toLowerCase();
-                if (type === 'fashion' || type === 'food') return 'is-square';
+                if (type === 'fashion' || type === 'food' || type === 'car') return 'is-square';
                 return (type === 'restaurant' || type === 'travel') ? 'is-landscape' : 'is-portrait';
             }
 
@@ -975,6 +982,7 @@
                 const booksTabText = document.getElementById('booksTabText');
                 const musicTabText = document.getElementById('musicTabText');
                 const sportsTabText = document.getElementById('sportsTabText');
+                const carsTabText = document.getElementById('carsTabText');
                 const journalTitle = document.getElementById('journalTitle');
                 const restaurantsTitle = document.getElementById('restaurantsTitle');
                 const tvTitle = document.getElementById('tvTitle');
@@ -983,6 +991,7 @@
                 const booksTitle = document.getElementById('booksTitle');
                 const musicTitle = document.getElementById('musicTitle');
                 const sportsTitle = document.getElementById('sportsTitle');
+                const carsTitle = document.getElementById('carsTitle');
                 const communityTitle = document.getElementById('communityTitle');
                 const journalSubtitle = document.getElementById('journalSubtitle');
                 const restaurantsSubtitle = document.getElementById('restaurantsSubtitle');
@@ -992,6 +1001,7 @@
                 const booksSubtitle = document.getElementById('booksSubtitle');
                 const musicSubtitle = document.getElementById('musicSubtitle');
                 const sportsSubtitle = document.getElementById('sportsSubtitle');
+                const carsSubtitle = document.getElementById('carsSubtitle');
                 const communitySubtitle = document.getElementById('communitySubtitle');
                 const followersSectionTitle = document.getElementById('followersSectionTitle');
                 const followingSectionTitle = document.getElementById('followingSectionTitle');
@@ -1565,7 +1575,7 @@
 
                 const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
                 const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
-                const summaryText = `${followersCount} followers Â· ${followingCount} following`;
+                const summaryText = `${followersCount} followers · ${followingCount} following`;
                 if (desktopMeta) desktopMeta.textContent = summaryText;
                 if (mobileMeta) mobileMeta.textContent = summaryText;
                 renderProfileBadges();
@@ -1643,7 +1653,7 @@
                 } finally {
                     const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
                     const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
-                    const summaryText = `${followersCount} followers Â· ${followingCount} following`;
+                    const summaryText = `${followersCount} followers · ${followingCount} following`;
                     if (desktopMeta) desktopMeta.textContent = summaryText;
                     if (mobileMeta) mobileMeta.textContent = summaryText;
                 }
@@ -3251,7 +3261,8 @@
                             book: { favorites: 'Favorites', read: 'Read', readlist: 'Readlist' },
                             music: { favorites: 'Favorites', listened: 'Listened', listenlist: 'Listenlist' },
                             fashion: { favorites: 'Favorites', owned: 'Owned', wishlist: 'Wishlist' },
-                            food: { favorites: 'Favorites', tried: 'Tried', want_to_try: 'Want to Try' }
+                            food: { favorites: 'Favorites', tried: 'Tried', want_to_try: 'Want to Try' },
+                            car: { favorites: 'Favorites', owned: 'Owned', wishlist: 'Wishlist' }
                         };
                         if (map[type] && map[type][key]) return map[type][key];
                         return key.replace(/_/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase());
@@ -4101,6 +4112,7 @@
                     travel: 'fas fa-earth-americas',
                     fashion: 'fas fa-shirt',
                     food: 'fas fa-burger',
+                    car: 'fas fa-car',
                     camera: 'fas fa-camera',
                     soccer: 'fas fa-futbol'
                 };
@@ -4128,7 +4140,8 @@
                     music: 'M',
                     travel: 'T',
                     fashion: 'F',
-                    food: 'F'
+                    food: 'F',
+                    car: 'C'
                 };
                 return map[key] || map[fallback] || 'U';
             }
@@ -4161,7 +4174,8 @@
                         music: 'grid',
                         travel: 'grid',
                         fashion: 'grid',
-                        food: 'grid'
+                        food: 'grid',
+                        car: 'grid'
                     };
                     Object.keys(base).forEach((key) => {
                         const mode = parsed?.[key];
@@ -4241,11 +4255,12 @@
                     type === 'travel' ? 'country' :
                     type === 'fashion' ? 'brand' :
                     type === 'food' ? 'brand' :
+                    type === 'car' ? 'brand' :
                     'track'
                 );
                 if (count === 1) return `${count} ${singular}`;
                 if (type === 'travel') return `${count} countries`;
-                if (type === 'fashion' || type === 'food') return `${count} brands`;
+                if (type === 'fashion' || type === 'food' || type === 'car') return `${count} brands`;
                 if (type === 'tv') return `${count} TV shows`;
                 return `${count} ${singular}s`;
             }
@@ -4844,6 +4859,10 @@
                 }
                 if (contentType === 'food') {
                     await renderFood();
+                    return;
+                }
+                if (contentType === 'car') {
+                    await renderCars();
                 }
             }
 
@@ -5028,6 +5047,8 @@
                     await showFashionDetail(listId, listType, isMobile);
                 } else if (mediaType === 'food') {
                     await showFoodDetail(listId, listType, isMobile);
+                } else if (mediaType === 'car') {
+                    await showCarDetail(listId, listType, isMobile);
                 }
             }
 
@@ -5302,7 +5323,9 @@
                 });
 
                 if (missing.length) {
-                    const table = contentType === 'food' ? 'food_brands' : 'fashion_brands';
+                    const table = contentType === 'food'
+                        ? 'food_brands'
+                        : (contentType === 'car' ? 'car_brands' : 'fashion_brands');
                     const { data } = await supabase
                         .from(table)
                         .select('id, name, domain, logo_url, category, description, country')
@@ -5317,6 +5340,7 @@
                             params.set('title', name);
                             const domainRaw = String(row?.domain || '').trim();
                             if (domainRaw) params.set('domain', domainRaw);
+                            params.set('mode', 'logo');
                             return `/api/logo?${params.toString()}`;
                         })();
                         const brand = {
@@ -5629,6 +5653,7 @@
                     travel: { table: 'travel_lists', fallback: 'travel', label: 'Travel', rerender: renderTravel },
                     fashion: { table: 'fashion_lists', fallback: 'fashion', label: 'Fashion', rerender: renderFashion },
                     food: { table: 'food_lists', fallback: 'food', label: 'Food', rerender: renderFood }
+                    car: { table: 'car_lists', fallback: 'car', label: 'Cars', rerender: renderCars }
                 };
                 return configMap[type] || null;
             }
@@ -5644,6 +5669,7 @@
                     travel: ['favorites', 'visited', 'bucket list', 'bucketlist'],
                     fashion: ['favorites', 'owned', 'wishlist'],
                     food: ['favorites', 'tried', 'want to try', 'want_to_try']
+                    car: ['favorites', 'owned', 'wishlist']
                 };
                 return new Set(map[type] || []);
             }
@@ -5786,7 +5812,7 @@
                 if (listType !== 'custom') return baseTitle;
                 const tierMeta = getTierMetaForList(type, list, 0);
                 if (!tierMeta.isTier) return baseTitle;
-                return `${baseTitle} â€¢ Tier List`;
+                return `${baseTitle} • Tier List`;
             }
 
             function canReorderCollectionItems(contentType, listId, listType = 'custom', list = null) {
@@ -7063,7 +7089,8 @@
                     ['music-tab', 'music-detail-view'],
                     ['travel-tab', 'travel-detail-view'],
                     ['fashion-tab', 'fashion-detail-view'],
-                    ['food-tab', 'food-detail-view']
+                    ['food-tab', 'food-detail-view'],
+                    ['cars-tab', 'cars-detail-view']
                 ];
                 desktopPairs.forEach(([mainId, detailId]) => {
                     const main = document.getElementById(mainId);
@@ -7085,7 +7112,8 @@
                     { main: 'mobileMusicSection', detail: 'mobileMusicDetailSection', grid: 'mobileMusicGrid' },
                     { main: 'mobileTravelSection', detail: 'mobileTravelDetailSection', grid: 'mobileTravelGrid' },
                     { main: 'mobileFashionSection', detail: 'mobileFashionDetailSection', grid: 'mobileFashionGrid' },
-                    { main: 'mobileFoodSection', detail: 'mobileFoodDetailSection', grid: 'mobileFoodGrid' }
+                    { main: 'mobileFoodSection', detail: 'mobileFoodDetailSection', grid: 'mobileFoodGrid' },
+                    { main: 'mobileCarsSection', detail: 'mobileCarsDetailSection', grid: 'mobileCarsGrid' }
                 ];
                 mobileConfigs.forEach((cfg) => {
                     const mainSection = document.getElementById(cfg.main);
@@ -7123,6 +7151,7 @@
                     travel: () => renderTravel(),
                     fashion: () => renderFashion(),
                     food: () => renderFood(),
+                    cars: () => renderCars(),
                     community: () => showCommunitySection('followers')
                 };
                 const handler = handlers[safeTab] || handlers[DEFAULT_PROFILE_TAB] || handlers.movies;
@@ -8002,7 +8031,7 @@
                 const sport = String(team?.sport || team?.strSport || '').trim();
                 const stadium = String(team?.stadium || team?.strStadium || '').trim();
                 const logo = normalizeSportsImageUrl(team?.logo_url || team?.strTeamBadge || team?.strTeamLogo || '');
-                const subtitle = [league, sport].filter(Boolean).join(' â€¢ ') || 'Team';
+                const subtitle = [league, sport].filter(Boolean).join(' • ') || 'Team';
                 const logoImage = logo || FALLBACK_BOOK_IMAGE;
                 const canRemove = !!options?.canRemove && !!id;
 
@@ -8300,6 +8329,101 @@
                 }
             }
 
+            async function renderCars() {
+                const isMobile = window.innerWidth <= 768;
+                const grid = isMobile ? document.getElementById('mobileCarsGrid') : document.getElementById('carsGrid');
+                if (!grid) return;
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                const renderToken = ++renderCarsToken;
+
+                try {
+                    await ensurePinnedCollectionsLoaded(userId);
+                    const defaultLists = [
+                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Brands you love', type: 'default' },
+                        { id: 'owned', title: 'Owned', icon: 'check', description: 'Brands you own', type: 'default' },
+                        { id: 'wishlist', title: 'Wishlist', icon: 'bookmark', description: 'Brands you want to try', type: 'default' }
+                    ];
+
+                    let customLists = await loadCollaborativeCustomLists('car', userId);
+                    const allItems = await loadMediaListItems('car', userId, customLists.map((list) => list.id));
+
+                    if (renderToken !== renderCarsToken) return;
+
+                    const reservedTitles = new Set(['favorites', 'owned', 'wishlist']);
+                    const seenCustomIds = new Set();
+                    const normalizedCustomLists = [];
+
+                    for (const list of customLists) {
+                        const title = String(list.title || '').trim().toLowerCase();
+                        if (reservedTitles.has(title)) continue;
+                        const safeId = String(list.id || '').trim();
+                        if (safeId && !seenCustomIds.has(safeId)) {
+                            seenCustomIds.add(safeId);
+                            normalizedCustomLists.push(list);
+                        }
+                    }
+
+                    customLists = await hydrateListMetaByOwner('car', normalizedCustomLists, userId);
+                    if (renderToken !== renderCarsToken) return;
+
+                    for (const list of defaultLists) {
+                        list.brandIds = Array.from(new Set(
+                            allItems
+                                .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
+                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .filter(Boolean)
+                        ));
+                    }
+                    for (const list of customLists) {
+                        list.brandIds = Array.from(new Set(
+                            allItems
+                                .filter((row) => String(row.list_id || '') === String(list.id || ''))
+                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .filter(Boolean)
+                        ));
+                    }
+
+                    const allLists = applyPinnedListSorting('car', [...defaultLists, ...customLists]);
+                    if (!allLists.length) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Car Lists Yet</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save brands to see them here.</p>
+                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='cars.html'">
+                                    <i class="fas fa-car"></i> Explore Cars
+                                </button>
+                            </div>
+                        `;
+                        markTabRendered('cars');
+                        return;
+                    }
+
+                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
+                        list,
+                        'car',
+                        isMobile,
+                        String(list?.user_id || userId || '').trim() || userId
+                    )));
+                    grid.innerHTML = '';
+                    const fragment = document.createDocumentFragment();
+                    cards.forEach((card) => fragment.appendChild(card));
+                    grid.appendChild(fragment);
+                    markTabRendered('cars');
+                } catch (error) {
+                    console.error('Error loading cars:', error);
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Cars</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your car lists</p>
+                        </div>
+                    `;
+                }
+            }
+
             async function renderFood() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileFoodGrid') : document.getElementById('foodGrid');
@@ -8412,7 +8536,7 @@
                     itemIds = list.gameIds || [];
                 } else if (contentType === 'book') {
                     itemIds = list.bookIds || [];
-                } else if (contentType === 'fashion' || contentType === 'food') {
+                } else if (contentType === 'fashion' || contentType === 'food' || contentType === 'car') {
                     itemIds = list.brandIds || [];
                 } else if (contentType === 'travel') {
                     itemIds = list.countryCodes || [];
@@ -8547,7 +8671,7 @@
                     ${kebabHtml}
                     <div class="collection-card-header">
                         <div class="collection-card-title-group">
-                            <div class="collection-card-icon">${iconGlyph(list.icon, contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'anime' ? 'anime' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : (contentType === 'travel' ? 'travel' : 'music')))))))}</div>
+                            <div class="collection-card-icon">${iconGlyph(list.icon, contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'anime' ? 'anime' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : (contentType === 'travel' ? 'travel' : (contentType === 'car' ? 'car' : 'music'))))))))}</div>
                             <div class="collection-card-info">
                                 <div class="collection-card-title">${list.title}</div>
                                 <div class="collection-card-count">${countLabel}</div>
@@ -8652,8 +8776,10 @@
                             const imageUrl = row.image_url || '/newlogo.webp';
                             writePreviewAssetCache(contentType, id, imageUrl);
                         });
-                    } else if (contentType === 'fashion' || contentType === 'food') {
-                        const table = contentType === 'fashion' ? 'fashion_brands' : 'food_brands';
+                    } else if (contentType === 'fashion' || contentType === 'food' || contentType === 'car') {
+                        const table = contentType === 'fashion'
+                            ? 'fashion_brands'
+                            : (contentType === 'food' ? 'food_brands' : 'car_brands');
                         const { data } = await supabase
                             .from(table)
                             .select('id, name, domain, logo_url')
@@ -8667,6 +8793,7 @@
                                 const params = new URLSearchParams();
                                 params.set('title', name);
                                 if (domain) params.set('domain', domain);
+                                params.set('mode', 'logo');
                                 imageUrl = `/api/logo?${params.toString()}`;
                             } else if (domain) {
                                 imageUrl = `/api/logo?domain=${encodeURIComponent(domain)}&size=256`;
@@ -8737,6 +8864,8 @@
                     await showFashionDetail(listId, listType, isMobile);
                 } else if (contentType === 'food') {
                     await showFoodDetail(listId, listType, isMobile);
+                } else if (contentType === 'car') {
+                    await showCarDetail(listId, listType, isMobile);
                 } else if (contentType === 'music') {
                     await showMusicDetail(listId, listType, isMobile);
                 } else {
@@ -10506,6 +10635,182 @@
                 );
             }
 
+            async function showCarDetail(listId, listType, isMobile) {
+                if (isMobile) {
+                    const mainSection = document.getElementById('mobileCarsSection');
+                    const detailSection = document.getElementById('mobileCarsDetailSection');
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileCarsGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
+                    if (detailSection) {
+                        detailSection.style.display = 'block';
+                        detailSection.classList.add('active');
+                    }
+                } else {
+                    const mainTab = document.getElementById('cars-tab');
+                    const detailView = document.getElementById('cars-detail-view');
+                    if (mainTab) mainTab.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'block';
+                        detailView.classList.add('active');
+                    }
+                }
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                if (!supabase) supabase = ensureSupabaseClient();
+                if (!supabase) return;
+
+                const list = await fetchCustomListById('car', listId);
+                if (!list) return;
+
+                if (listType === 'custom' && window.ListUtils) {
+                    const [hydrated] = await ListUtils.hydrateListMetaForLists('car', [list], {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId: list?.user_id || userId
+                    });
+                    if (hydrated) list = hydrated;
+                }
+                if (listType === 'custom') {
+                    await ensureCollaborativeAccessForList('car', list);
+                }
+
+                const listOwnerUserId = String(list?.user_id || userId || '').trim() || userId;
+                const brandIds = await fetchMediaCollectionItemIds('car', listOwnerUserId, listId, listType);
+                const tierMeta = getTierMetaForList('car', list, brandIds.length);
+                const detailTitle = getCollectionTitleWithKind('car', list, listType);
+                const detailDescription = tierMeta.isTier
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
+                    : (list.description || '');
+                const canEditList = listType === 'custom' && canEditCustomCollection('car', listId, list);
+                const canDeleteList = listType === 'custom' && canDeleteCustomCollection('car', listId, list);
+
+                if (isMobile) {
+                    const titleEl = document.getElementById('mobileCarsDetailTitle');
+                    const descEl = document.getElementById('mobileCarsDetailDescription');
+                    const actions = document.getElementById('mobileCarsDetailActions');
+                    const editBtn = document.getElementById('mobileCarsListEditBtn');
+                    const deleteBtn = document.getElementById('mobileCarsListDeleteBtn');
+                    if (titleEl) titleEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameCarList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteCarList(listId);
+                } else {
+                    const iconEl = document.getElementById('carsDetailIcon');
+                    const nameEl = document.getElementById('carsDetailName');
+                    const descEl = document.getElementById('carsDetailDescription');
+                    const actions = document.getElementById('carsDetailActions');
+                    const editBtn = document.getElementById('carsListEditBtn');
+                    const deleteBtn = document.getElementById('carsListDeleteBtn');
+                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'car');
+                    if (nameEl) nameEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameCarList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteCarList(listId);
+                }
+
+                currentMediaDetail = { mediaType: 'car', listId, listType, isMobile };
+                updateCollectionViewToggleButtons('car');
+                await renderCarItems(brandIds, listId, listType, isMobile, list, listOwnerUserId);
+            }
+
+            async function renderCarItems(brandIds, listId, listType, isMobile, list = null, ownerUserId = null) {
+                const container = isMobile ? document.getElementById('mobileCarsItems') : document.getElementById('carsItemsContainer');
+                if (!container) return;
+                applyCollectionViewToContainer(container, 'car');
+
+                if (!brandIds || brandIds.length === 0) {
+                    container.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('car')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Brands Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add brands to this collection!</p>
+                        </div>
+                    `;
+                    wireTierDragAndDrop(container, null, null, 'default');
+                    return;
+                }
+
+                const { tierMeta, orderedIds } = await resolveTierOrderedIds('car', list, listId, brandIds, {
+                    listType,
+                    ownerUserId
+                });
+                const canReorderList = canReorderCollectionItems('car', listId, listType, list);
+                const canEditItems = canEditCollectionItems('car', listId, listType, list);
+                const brandMap = await fetchBrandMapByIds('car', orderedIds);
+                container.innerHTML = '';
+
+                for (let i = 0; i < orderedIds.length; i++) {
+                    const id = String(orderedIds[i] || '').trim();
+                    if (!id) continue;
+                    const brand = brandMap.get(id) || { id, name: 'Brand', logo: '/newlogo.webp', category: '' };
+                    const title = String(brand.name || 'Brand').trim();
+                    const category = String(brand.category || '').trim();
+                    const country = String(brand.country || '').trim();
+                    const meta = [category, country].filter(Boolean).join(' | ');
+                    const image = String(brand.logo || '').trim() || '/newlogo.webp';
+                    const rankMarkup = tierMeta.isTier
+                        ? buildTierRankControlMarkup(
+                            i + 1,
+                            orderedIds.length,
+                            canReorderList
+                        )
+                        : '';
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'collection-item-card';
+                    itemCard.onclick = () => {
+                        window.location.href = `brand.html?type=car&id=${encodeURIComponent(id)}`;
+                    };
+
+                    itemCard.innerHTML = `
+                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <div class="collection-item-body">
+                            <h3 class="collection-item-title">${escapeHtml(title)}</h3>
+                            ${canEditItems ? `
+                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'car', '${listType}')">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            ` : ''}
+                            <div class="collection-item-meta">
+                                <span><i class="fas fa-tag"></i> ${escapeHtml(meta || 'Brand details unavailable')}</span>
+                            </div>
+                            ${rankMarkup}
+                        </div>
+                        ${canEditItems ? `
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'car', '${listType}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    `;
+                    if (canReorderList) {
+                        itemCard.dataset.tierItemId = id;
+                    }
+                    container.appendChild(itemCard);
+                }
+
+                wireTierDragAndDrop(
+                    container,
+                    canReorderList ? 'car' : null,
+                    canReorderList ? listId : null,
+                    canReorderList ? listType : 'default'
+                );
+            }
+
             async function showFoodDetail(listId, listType, isMobile) {
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileFoodSection');
@@ -10904,8 +11209,16 @@
                 await openMediaListCreator('food');
             }
 
+            async function createCarList() {
+                await openMediaListCreator('car');
+            }
+
             async function renameFoodList(listId) {
                 await openMediaListEditor('food', listId);
+            }
+
+            async function renameCarList(listId) {
+                await openMediaListEditor('car', listId);
             }
 
             async function deleteFoodList(listId) {
@@ -10936,6 +11249,38 @@
                     showToast('List deleted', 'success');
                 } catch (error) {
                     console.error('Error deleting food list:', error);
+                    showToast('Could not delete list', 'error');
+                }
+            }
+
+            async function deleteCarList(listId) {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const accessRecord = await fetchCustomListAccessRecord('car', listId);
+                if (!accessRecord || !canDeleteCustomCollection('car', listId, accessRecord)) {
+                    showToast('Only the list owner can delete this list', 'warning');
+                    return;
+                }
+                if (!confirm('Delete this car list? This cannot be undone.')) return;
+
+                try {
+                    const userId = currentUser.id;
+                    await supabase
+                        .from('car_list_items')
+                        .delete()
+                        .eq('user_id', userId)
+                        .eq('list_id', listId);
+                    const { error } = await supabase
+                        .from('car_lists')
+                        .delete()
+                        .eq('id', listId)
+                        .eq('user_id', userId);
+                    if (error) throw error;
+
+                    hideCarDetail();
+                    await renderCars();
+                    showToast('List deleted', 'success');
+                } catch (error) {
+                    console.error('Error deleting car list:', error);
                     showToast('Could not delete list', 'error');
                 }
             }
@@ -11071,6 +11416,35 @@
                 } else {
                     const detailView = document.getElementById('fashion-detail-view');
                     const mainTab = document.getElementById('fashion-tab');
+                    if (detailView) detailView.style.display = 'none';
+                    if (mainTab) {
+                        mainTab.style.display = 'block';
+                        mainTab.classList.add('active');
+                    }
+                }
+            }
+
+            function hideCarDetail() {
+                if (leaveCollectionRoute('car')) return;
+                currentMediaDetail = null;
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    const detailSection = document.getElementById('mobileCarsDetailSection');
+                    const mainSection = document.getElementById('mobileCarsSection');
+                    if (detailSection) detailSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileCarsGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
+                    }
+                } else {
+                    const detailView = document.getElementById('cars-detail-view');
+                    const mainTab = document.getElementById('cars-tab');
                     if (detailView) detailView.style.display = 'none';
                     if (mainTab) {
                         mainTab.style.display = 'block';
@@ -11244,6 +11618,9 @@
                     } else if (type === 'food') {
                         void showFoodDetail(collectionId, listType, window.innerWidth <= 768);
                         void renderFood();
+                    } else if (type === 'car') {
+                        void showCarDetail(collectionId, listType, window.innerWidth <= 768);
+                        void renderCars();
                     } else {
                         void showBookDetail(collectionId, listType, window.innerWidth <= 768);
                         void renderBooks();
@@ -11613,6 +11990,9 @@
                             } else if (type === 'food') {
                                 hideFoodDetail();
                                 await renderFood();
+                            } else if (type === 'car') {
+                                hideCarDetail();
+                                await renderCars();
                             } else {
                                 hideBookDetail();
                                 await renderBooks();
@@ -11918,6 +12298,11 @@
                 if (normalized === 'food') {
                     showTab('food');
                     createFoodList();
+                    return;
+                }
+                if (normalized === 'cars') {
+                    showTab('cars');
+                    createCarList();
                 }
             }
 
@@ -12452,6 +12837,8 @@
                 hideMobileFashionDetail: hideFashionDetail,
                 hideFoodDetail,
                 hideMobileFoodDetail: hideFoodDetail,
+                hideCarDetail,
+                hideMobileCarDetail: hideCarDetail,
                 toggleCollectionMenu,
                 createMovieList,
                 createTvList,
@@ -12462,6 +12849,7 @@
                 createTravelList,
                 createFashionList,
                 createFoodList,
+                createCarList,
                 addMediaListCollaborator,
                 removeMediaListCollaborator,
                 renameMovieList,
@@ -12482,6 +12870,8 @@
                 deleteFashionList,
                 renameFoodList,
                 deleteFoodList,
+                renameCarList,
+                deleteCarList,
                 removeFromCollection,
                 editCollection,
                 deleteCollection,
@@ -12503,6 +12893,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
+
+
+
 
 
 

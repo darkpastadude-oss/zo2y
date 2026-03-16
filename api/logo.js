@@ -54,6 +54,7 @@ export default async function handler(req, res) {
     const domainRaw = sanitizeDomain(query.domain || '');
     const sizeRaw = Number(query.size || 256);
     const size = Number.isFinite(sizeRaw) ? Math.max(64, Math.min(512, sizeRaw)) : 256;
+    const logoOnly = String(query.mode || '').toLowerCase() === 'logo';
 
     if (titleRaw && typeof fetch === 'function') {
       try {
@@ -70,7 +71,7 @@ export default async function handler(req, res) {
       }
     }
 
-    if (domainRaw && typeof fetch === 'function') {
+    if (!logoOnly && domainRaw && typeof fetch === 'function') {
       try {
         const googleUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domainRaw)}&sz=${size}`;
         const googleRes = await fetch(googleUrl);

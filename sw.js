@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v106';
-const PAGE_CACHE = 'zo2y-pages-v110';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v108';
+const PAGE_CACHE = 'zo2y-pages-v112';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -13,13 +13,13 @@ const STATIC_ASSETS = [
   '/css/pages/index.css?v=20260314m',
   '/css/shared-header.css?v=20260316a',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260316g',
+  '/js/pages/index.js?v=20260316i',
   '/js/home-desktop-rebrand.js?v=20260311e',
-  '/js/shared-header.js?v=20260316a',
+  '/js/shared-header.js?v=20260316b',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
-  '/js/list-utils.js?v=20260316a',
-  '/js/index-list-menu-adapter.js?v=20260316a',
+  '/js/list-utils.js?v=20260316b',
+  '/js/index-list-menu-adapter.js?v=20260316b',
   '/js/universal-search.js?v=20260315b',
   '/js/auth-gate.js?v=20260315d',
   '/js/production-runtime.js?v=20260307a',
@@ -40,11 +40,12 @@ const STATIC_ASSETS = [
   '/js/pages/sports.js?v=20260315b',
   '/fashion.html',
   '/food.html',
+  '/cars.html',
   '/brand.html',
-  '/css/pages/brands.css?v=20260316b',
+  '/css/pages/brands.css?v=20260316c',
   '/css/pages/brand.css?v=20260316b',
-  '/js/pages/brands.js?v=20260316i',
-  '/js/pages/brand.js?v=20260316j',
+  '/js/pages/brands.js?v=20260316j',
+  '/js/pages/brand.js?v=20260316k',
   '/team.html',
   '/css/pages/team.css?v=20260314a',
   '/js/pages/team.js?v=20260314d',
@@ -241,6 +242,11 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
+
+
+
+
+
 
 
 
