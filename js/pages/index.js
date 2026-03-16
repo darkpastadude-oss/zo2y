@@ -967,15 +967,15 @@
     function resolveBrandLogo(row) {
       const directRaw = String(row?.logo_url || row?.logo || '').trim();
       const domainRaw = String(row?.domain || '').trim();
-      const candidate = directRaw || domainRaw;
+      const candidate = domainRaw || directRaw;
       if (!candidate) return '';
-      if (/^https?:\/\//i.test(candidate)) return candidate;
-      if (candidate.startsWith('//')) return `https:${candidate}`;
-      if (candidate.includes('logo.clearbit.com/')) {
-        return `https://${candidate.replace(/^\/+/, '')}`;
-      }
       if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
-        return `https://logo.clearbit.com/${candidate}`;
+        return `https://img.logo.dev/${candidate}`;
+      }
+      if (/^https?:\/\//i.test(candidate)) {
+        const match = candidate.match(/\/\/([^\/\?]+)/i);
+        if (match && match[1]) return `https://img.logo.dev/${match[1]}`;
+        return candidate;
       }
       return '';
     }
