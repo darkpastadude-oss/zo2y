@@ -970,11 +970,11 @@
       const candidate = domainRaw || directRaw;
       if (!candidate) return '';
       if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
-        return `https://img.logo.dev/${candidate}`;
+        return `/api/logo?domain=${encodeURIComponent(candidate)}&size=128`;
       }
       if (/^https?:\/\//i.test(candidate)) {
         const match = candidate.match(/\/\/([^\/\?]+)/i);
-        if (match && match[1]) return `https://img.logo.dev/${match[1]}`;
+        if (match && match[1]) return `/api/logo?domain=${encodeURIComponent(match[1])}&size=128`;
         return candidate;
       }
       return '';

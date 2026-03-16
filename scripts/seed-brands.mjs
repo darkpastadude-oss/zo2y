@@ -55,6 +55,28 @@ function slugify(value) {
     .replace(/(^-|-$)/g, '');
 }
 
+function normalizeDomain(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) return '';
+  return raw
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .replace(/\/.*$/, '');
+}
+
+function dedupeBrands(items = []) {
+  const seen = new Map();
+  items.forEach((item) => {
+    const domain = normalizeDomain(item.domain);
+    const key = domain || slugify(item.slug || item.name);
+    if (!key) return;
+    if (!seen.has(key)) {
+      seen.set(key, { ...item, domain: domain || item.domain });
+    }
+  });
+  return Array.from(seen.values());
+}
+
 hydrateEnv();
 
 const SUPABASE_URL = normalizeSupabaseUrl(process.env.SUPABASE_URL);
@@ -79,7 +101,7 @@ const fashionBrands = [
   { name: 'Prada', domain: 'prada.com', category: 'Luxury', country: 'Italy', founded: '1913', description: 'Luxury fashion house.', tags: ['luxury'] },
   { name: 'Louis Vuitton', domain: 'louisvuitton.com', category: 'Luxury', country: 'France', founded: '1854', description: 'French luxury fashion.', tags: ['luxury'] },
   { name: 'Supreme', domain: 'supremenewyork.com', category: 'Streetwear', country: 'USA', founded: '1994', description: 'Streetwear brand.', tags: ['streetwear'] },
-  { name: 'Off-White', domain: 'off---white.com', category: 'Streetwear', country: 'Italy', founded: '2012', description: 'Luxury streetwear label.', tags: ['streetwear', 'luxury'] },
+  { name: 'Off-White', domain: 'offwhite.com', category: 'Streetwear', country: 'Italy', founded: '2012', description: 'Luxury streetwear label.', tags: ['streetwear', 'luxury'] },
   { name: 'Balenciaga', domain: 'balenciaga.com', category: 'Luxury', country: 'France', founded: '1917', description: 'Luxury fashion house.', tags: ['luxury'] },
   { name: 'Stone Island', domain: 'stoneisland.com', category: 'Streetwear', country: 'Italy', founded: '1982', description: 'Technical outerwear.', tags: ['outerwear'] },
   { name: 'The North Face', domain: 'thenorthface.com', category: 'Outdoor', country: 'USA', founded: '1966', description: 'Outdoor apparel and gear.', tags: ['outdoor'] },
@@ -98,7 +120,38 @@ const fashionBrands = [
   { name: 'Under Armour', domain: 'underarmour.com', category: 'Sportswear', country: 'USA', founded: '1996', description: 'Performance apparel brand.', tags: ['sportswear'] },
   { name: 'Allbirds', domain: 'allbirds.com', category: 'Footwear', country: 'USA', founded: '2015', description: 'Comfort footwear brand.', tags: ['footwear'] },
   { name: 'Canada Goose', domain: 'canadagoose.com', category: 'Outerwear', country: 'Canada', founded: '1957', description: 'Luxury outerwear brand.', tags: ['outerwear'] },
-  { name: 'Moncler', domain: 'moncler.com', category: 'Luxury Outerwear', country: 'Italy', founded: '1952', description: 'Luxury outerwear brand.', tags: ['outerwear', 'luxury'] }
+  { name: 'Moncler', domain: 'moncler.com', category: 'Luxury Outerwear', country: 'Italy', founded: '1952', description: 'Luxury outerwear brand.', tags: ['outerwear', 'luxury'] },
+  { name: 'Gap', domain: 'gap.com', category: 'Casual', country: 'USA', founded: '1969', description: 'American casualwear retailer.', tags: ['casual'] },
+  { name: 'Old Navy', domain: 'oldnavy.gap.com', category: 'Casual', country: 'USA', founded: '1994', description: 'Affordable casualwear brand.', tags: ['casual'] },
+  { name: 'Banana Republic', domain: 'bananarepublic.gap.com', category: 'Designer', country: 'USA', founded: '1978', description: 'Premium casual apparel.', tags: ['designer'] },
+  { name: 'Abercrombie & Fitch', domain: 'abercrombie.com', category: 'Casual', country: 'USA', founded: '1892', description: 'Casual apparel brand.', tags: ['casual'] },
+  { name: 'Hollister', domain: 'hollisterco.com', category: 'Casual', country: 'USA', founded: '2000', description: 'Casual teen apparel.', tags: ['casual'] },
+  { name: 'American Eagle', domain: 'ae.com', category: 'Casual', country: 'USA', founded: '1977', description: 'Casual apparel and denim.', tags: ['casual', 'denim'] },
+  { name: 'Urban Outfitters', domain: 'urbanoutfitters.com', category: 'Streetwear', country: 'USA', founded: '1970', description: 'Lifestyle and streetwear.', tags: ['streetwear'] },
+  { name: 'Forever 21', domain: 'forever21.com', category: 'Fast Fashion', country: 'USA', founded: '1984', description: 'Fast fashion retailer.', tags: ['fast fashion'] },
+  { name: 'Mango', domain: 'mango.com', category: 'Fast Fashion', country: 'Spain', founded: '1984', description: 'Spanish fashion retailer.', tags: ['fast fashion'] },
+  { name: 'SHEIN', domain: 'shein.com', category: 'Fast Fashion', country: 'China', founded: '2008', description: 'Online fast fashion.', tags: ['fast fashion'] },
+  { name: 'Reebok', domain: 'reebok.com', category: 'Sportswear', country: 'UK', founded: '1958', description: 'Sportswear brand.', tags: ['sportswear'] },
+  { name: 'ASICS', domain: 'asics.com', category: 'Sportswear', country: 'Japan', founded: '1949', description: 'Performance footwear and apparel.', tags: ['sportswear'] },
+  { name: 'Skechers', domain: 'skechers.com', category: 'Footwear', country: 'USA', founded: '1992', description: 'Comfort footwear brand.', tags: ['footwear'] },
+  { name: 'Fila', domain: 'fila.com', category: 'Sportswear', country: 'Italy', founded: '1911', description: 'Sportswear brand.', tags: ['sportswear'] },
+  { name: 'Columbia', domain: 'columbia.com', category: 'Outdoor', country: 'USA', founded: '1938', description: 'Outdoor apparel brand.', tags: ['outdoor'] },
+  { name: 'Arc\'teryx', domain: 'arcteryx.com', category: 'Outdoor', country: 'Canada', founded: '1989', description: 'Technical outdoor gear.', tags: ['outdoor'] },
+  { name: 'Salomon', domain: 'salomon.com', category: 'Outdoor', country: 'France', founded: '1947', description: 'Outdoor and ski brand.', tags: ['outdoor'] },
+  { name: 'Timberland', domain: 'timberland.com', category: 'Footwear', country: 'USA', founded: '1952', description: 'Boots and outdoor apparel.', tags: ['footwear', 'outdoor'] },
+  { name: 'Dr. Martens', domain: 'drmartens.com', category: 'Footwear', country: 'UK', founded: '1947', description: 'Iconic boots and shoes.', tags: ['footwear'] },
+  { name: 'Birkenstock', domain: 'birkenstock.com', category: 'Footwear', country: 'Germany', founded: '1774', description: 'Comfort footwear brand.', tags: ['footwear'] },
+  { name: 'Chanel', domain: 'chanel.com', category: 'Luxury', country: 'France', founded: '1910', description: 'Luxury fashion house.', tags: ['luxury'] },
+  { name: 'Dior', domain: 'dior.com', category: 'Luxury', country: 'France', founded: '1946', description: 'Luxury fashion house.', tags: ['luxury'] },
+  { name: 'Hermes', domain: 'hermes.com', category: 'Luxury', country: 'France', founded: '1837', description: 'Luxury fashion house.', tags: ['luxury'] },
+  { name: 'Burberry', domain: 'burberry.com', category: 'Luxury', country: 'UK', founded: '1856', description: 'British luxury fashion.', tags: ['luxury'] },
+  { name: 'Saint Laurent', domain: 'ysl.com', category: 'Luxury', country: 'France', founded: '1961', description: 'Luxury fashion house.', tags: ['luxury'] },
+  { name: 'Versace', domain: 'versace.com', category: 'Luxury', country: 'Italy', founded: '1978', description: 'Italian luxury fashion.', tags: ['luxury'] },
+  { name: 'Givenchy', domain: 'givenchy.com', category: 'Luxury', country: 'France', founded: '1952', description: 'French luxury fashion.', tags: ['luxury'] },
+  { name: 'Fendi', domain: 'fendi.com', category: 'Luxury', country: 'Italy', founded: '1925', description: 'Italian luxury fashion.', tags: ['luxury'] },
+  { name: 'Dolce & Gabbana', domain: 'dolcegabbana.com', category: 'Luxury', country: 'Italy', founded: '1985', description: 'Italian luxury fashion.', tags: ['luxury'] },
+  { name: 'Bottega Veneta', domain: 'bottegaveneta.com', category: 'Luxury', country: 'Italy', founded: '1966', description: 'Italian luxury fashion.', tags: ['luxury'] },
+  { name: 'Balmain', domain: 'balmain.com', category: 'Luxury', country: 'France', founded: '1945', description: 'French luxury fashion.', tags: ['luxury'] }
 ];
 
 const foodBrands = [
@@ -122,7 +175,6 @@ const foodBrands = [
   { name: 'Panera Bread', domain: 'panerabread.com', category: 'Fast Casual', country: 'USA', founded: '1987', description: 'Bakery-cafe chain.', tags: ['bakery', 'fast casual'] },
   { name: 'Pret A Manger', domain: 'pret.com', category: 'Fast Casual', country: 'UK', founded: '1986', description: 'Fresh sandwiches and salads.', tags: ['sandwiches', 'fast casual'] },
   { name: 'Nando\'s', domain: 'nandos.com', category: 'Fast Casual', country: 'South Africa', founded: '1987', description: 'Flame-grilled peri-peri chicken.', tags: ['chicken', 'fast casual'] },
-  { name: 'Domino\'s Pizza', domain: 'dominos.com', category: 'Pizza', country: 'USA', founded: '1960', description: 'Pizza delivery chain.', tags: ['pizza'] },
   { name: 'Little Caesars', domain: 'littlecaesars.com', category: 'Pizza', country: 'USA', founded: '1959', description: 'Pizza chain.', tags: ['pizza'] },
   { name: 'Papa Johns', domain: 'papajohns.com', category: 'Pizza', country: 'USA', founded: '1984', description: 'Pizza delivery chain.', tags: ['pizza'] },
   { name: 'Krispy Kreme', domain: 'krispykreme.com', category: 'Dessert', country: 'USA', founded: '1937', description: 'Donuts and coffee.', tags: ['dessert', 'donuts'] },
@@ -135,15 +187,35 @@ const foodBrands = [
   { name: 'Denny\'s', domain: 'dennys.com', category: 'Restaurants', country: 'USA', founded: '1953', description: 'Diner chain.', tags: ['restaurants'] },
   { name: 'Applebee\'s', domain: 'applebees.com', category: 'Restaurants', country: 'USA', founded: '1980', description: 'Casual dining chain.', tags: ['restaurants'] },
   { name: 'Olive Garden', domain: 'olivegarden.com', category: 'Restaurants', country: 'USA', founded: '1982', description: 'Italian-American casual dining.', tags: ['restaurants'] },
-  { name: 'Texas Roadhouse', domain: 'texasroadhouse.com', category: 'Restaurants', country: 'USA', founded: '1993', description: 'Steakhouse chain.', tags: ['restaurants'] }
+  { name: 'Texas Roadhouse', domain: 'texasroadhouse.com', category: 'Restaurants', country: 'USA', founded: '1993', description: 'Steakhouse chain.', tags: ['restaurants'] },
+  { name: 'Arby\'s', domain: 'arbys.com', category: 'Fast Food', country: 'USA', founded: '1964', description: 'Roast beef sandwiches.', tags: ['fast food'] },
+  { name: 'Sonic', domain: 'sonicdrivein.com', category: 'Fast Food', country: 'USA', founded: '1953', description: 'Drive-in fast food.', tags: ['fast food'] },
+  { name: 'Jack in the Box', domain: 'jackinthebox.com', category: 'Fast Food', country: 'USA', founded: '1951', description: 'Fast food chain.', tags: ['fast food'] },
+  { name: 'Whataburger', domain: 'whataburger.com', category: 'Fast Food', country: 'USA', founded: '1950', description: 'Burger chain.', tags: ['fast food'] },
+  { name: 'Culver\'s', domain: 'culvers.com', category: 'Fast Food', country: 'USA', founded: '1984', description: 'Butter burgers and custard.', tags: ['fast food'] },
+  { name: 'Raising Cane\'s', domain: 'raisingcanes.com', category: 'Fast Food', country: 'USA', founded: '1996', description: 'Chicken finger chain.', tags: ['chicken', 'fast food'] },
+  { name: 'Jersey Mike\'s', domain: 'jerseymikes.com', category: 'Fast Casual', country: 'USA', founded: '1956', description: 'Sub sandwiches.', tags: ['sandwiches'] },
+  { name: 'Jimmy John\'s', domain: 'jimmyjohns.com', category: 'Fast Casual', country: 'USA', founded: '1983', description: 'Sub sandwiches.', tags: ['sandwiches'] },
+  { name: 'Firehouse Subs', domain: 'firehousesubs.com', category: 'Fast Casual', country: 'USA', founded: '1994', description: 'Hot subs.', tags: ['sandwiches'] },
+  { name: 'QDOBA', domain: 'qdoba.com', category: 'Fast Casual', country: 'USA', founded: '1995', description: 'Mexican fast casual.', tags: ['mexican', 'fast casual'] },
+  { name: 'El Pollo Loco', domain: 'elpolloloco.com', category: 'Fast Food', country: 'USA', founded: '1975', description: 'Grilled chicken chain.', tags: ['chicken', 'fast food'] },
+  { name: 'Zaxby\'s', domain: 'zaxbys.com', category: 'Fast Food', country: 'USA', founded: '1990', description: 'Chicken fingers and wings.', tags: ['chicken', 'fast food'] },
+  { name: 'Wingstop', domain: 'wingstop.com', category: 'Fast Food', country: 'USA', founded: '1994', description: 'Wing chain.', tags: ['chicken', 'fast food'] },
+  { name: 'Panda Express', domain: 'pandaexpress.com', category: 'Fast Food', country: 'USA', founded: '1983', description: 'Chinese fast food.', tags: ['fast food'] },
+  { name: 'Peet\'s Coffee', domain: 'peets.com', category: 'Coffee', country: 'USA', founded: '1966', description: 'Coffee roaster and cafe.', tags: ['coffee'] },
+  { name: 'Dairy Queen', domain: 'dairyqueen.com', category: 'Dessert', country: 'USA', founded: '1940', description: 'Ice cream and fast food.', tags: ['dessert'] },
+  { name: 'Bojangles', domain: 'bojangles.com', category: 'Fast Food', country: 'USA', founded: '1977', description: 'Southern chicken chain.', tags: ['chicken', 'fast food'] },
+  { name: 'Jollibee', domain: 'jollibee.com', category: 'Fast Food', country: 'Philippines', founded: '1978', description: 'Global fast food chain.', tags: ['fast food'] },
+  { name: 'Greggs', domain: 'greggs.co.uk', category: 'Bakery', country: 'UK', founded: '1939', description: 'Bakery chain.', tags: ['bakery'] }
 ];
 
 function toSupabaseRow(brand) {
+  const domain = normalizeDomain(brand.domain);
   return {
     name: brand.name,
-    slug: slugify(brand.slug || brand.name),
-    domain: brand.domain,
-    logo_url: brand.domain ? `https://logo.clearbit.com/${brand.domain}` : null,
+    slug: slugify(brand.slug || domain || brand.name),
+    domain,
+    logo_url: null,
     description: brand.description,
     category: brand.category,
     country: brand.country,
@@ -161,11 +233,11 @@ async function upsertBrands(table, rows) {
 
 async function run() {
   console.log('Seeding fashion brands...');
-  const fashionResult = await upsertBrands('fashion_brands', fashionBrands);
+  const fashionResult = await upsertBrands('fashion_brands', dedupeBrands(fashionBrands));
   console.log(`Fashion upserts: ${fashionResult.length}`);
 
   console.log('Seeding food brands...');
-  const foodResult = await upsertBrands('food_brands', foodBrands);
+  const foodResult = await upsertBrands('food_brands', dedupeBrands(foodBrands));
   console.log(`Food upserts: ${foodResult.length}`);
 
   console.log('Done.');
