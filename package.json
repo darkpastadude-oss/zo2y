@@ -10,6 +10,8 @@
     "import:books": "node scripts/import-books.mjs",
     "import:games:popular": "node scripts/import-popular-games.mjs",
     "seed:brands": "node scripts/seed-brands.mjs",
+    "import:brands:wikidata": "node scripts/import-brands-wikidata.mjs",
+    "dedupe:brands": "node scripts/dedupe-brands.mjs",
     "smoke": "node scripts/smoke-runner.mjs",
     "smoke:launch": "node scripts/smoke-runner.mjs"
   },
