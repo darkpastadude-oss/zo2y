@@ -8,6 +8,7 @@ dotenv.config({ path: "backend/.env" });
 const app = express();
 applyApiGuardrails(app, { keyPrefix: "api-logo", max: 400 });
 
+const GOOGLE_FAVICON_BASE = "https://www.google.com/s2/favicons";
 const LOGO_DEV_BASE = "https://img.logo.dev";
 const CLEARBIT_BASE = "https://logo.clearbit.com";
 
@@ -50,6 +51,13 @@ function buildClearbitUrl(domain, size) {
   return url.toString();
 }
 
+function buildGoogleFaviconUrl(domain, size) {
+  const url = new URL(GOOGLE_FAVICON_BASE);
+  url.searchParams.set("domain", domain);
+  url.searchParams.set("sz", String(size || 128));
+  return url.toString();
+}
+
 app.get("/api/logo", async (req, res) => {
   try {
     const domain = normalizeDomain(req.query?.domain);
@@ -60,6 +68,7 @@ app.get("/api/logo", async (req, res) => {
       return;
     }
 
+    const googleUrl = buildGoogleFaviconUrl(domain, size);
     const primaryUrl = buildLogoDevUrl(domain, size);
     const fallbackUrl = buildClearbitUrl(domain, size);
 
@@ -67,7 +76,10 @@ app.get("/api/logo", async (req, res) => {
     const timeoutId = setTimeout(() => controller.abort(), 4500);
     let response = null;
     try {
-      response = await fetch(primaryUrl, { signal: controller.signal });
+      response = await fetch(googleUrl, { signal: controller.signal });
+      if (!response.ok) {
+        response = await fetch(primaryUrl, { signal: controller.signal });
+      }
       if (!response.ok) {
         response = await fetch(fallbackUrl, { signal: controller.signal });
       }

@@ -162,6 +162,7 @@
 
     if (dom.actionCard) {
       dom.actionCard.setAttribute('data-item-id', brand.id);
+      if (brand.logo) dom.actionCard.setAttribute('data-list-image', brand.logo);
       dom.actionCard.querySelector('.card-title')?.replaceChildren(document.createTextNode(brand.name));
       dom.actionCard.querySelector('.card-meta')?.replaceChildren(document.createTextNode(brand.category || label));
       const img = dom.actionCard.querySelector('img');
@@ -541,6 +542,7 @@
     boot();
   }
 })();
+
 
 
 

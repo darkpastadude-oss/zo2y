@@ -8390,24 +8390,26 @@
                 const card = document.createElement('div');
                 card.className = 'collection-card';
 
-                const itemIds = contentType === 'restaurant'
-                    ? (list.restaurantIds || [])
-                    : (contentType === 'movie'
-                        ? (list.movieIds || [])
-                        : (contentType === 'tv'
-                            ? (list.tvIds || [])
-                            : (contentType === 'anime'
-                                ? (list.animeIds || [])
-                            : (contentType === 'game'
-                                ? (list.gameIds || [])
-                                : (contentType === 'book'
-                                    ? (list.bookIds || [])
-                                    : (contentType === 'fashion'
-                                        ? (list.brandIds || [])
-                                        : (contentType === 'food'
-                                            ? (list.brandIds || [])
-                                            : (contentType === 'travel' ? (list.countryCodes || []) : (list.trackIds || []))))))));
-                const resolvedListType = resolveCollectionListType(contentType, list);
+                                let itemIds = [];
+                if (contentType === 'restaurant') {
+                    itemIds = list.restaurantIds || [];
+                } else if (contentType === 'movie') {
+                    itemIds = list.movieIds || [];
+                } else if (contentType === 'tv') {
+                    itemIds = list.tvIds || [];
+                } else if (contentType === 'anime') {
+                    itemIds = list.animeIds || [];
+                } else if (contentType === 'game') {
+                    itemIds = list.gameIds || [];
+                } else if (contentType === 'book') {
+                    itemIds = list.bookIds || [];
+                } else if (contentType === 'fashion' || contentType === 'food') {
+                    itemIds = list.brandIds || [];
+                } else if (contentType === 'travel') {
+                    itemIds = list.countryCodes || [];
+                } else {
+                    itemIds = list.trackIds || [];
+                }                const resolvedListType = resolveCollectionListType(contentType, list);
                 const routeListId = String(list.id || '');
                 const { tierMeta, orderedIds } = await resolveTierOrderedIds(contentType, list, routeListId, itemIds, {
                     listType: resolvedListType,
@@ -12480,3 +12482,4 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
+

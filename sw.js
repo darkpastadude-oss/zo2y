@@ -44,7 +44,7 @@ const STATIC_ASSETS = [
   '/css/pages/brands.css?v=20260316b',
   '/css/pages/brand.css?v=20260316b',
   '/js/pages/brands.js?v=20260316e',
-  '/js/pages/brand.js?v=20260316e',
+  '/js/pages/brand.js?v=20260316f',
   '/team.html',
   '/css/pages/team.css?v=20260314a',
   '/js/pages/team.js?v=20260314d',
@@ -241,6 +241,7 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
+
 
 
 
