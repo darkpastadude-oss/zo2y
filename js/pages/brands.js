@@ -62,7 +62,7 @@
 
   function resolveLogo(value, domain, name) {
     const title = String(name || '').trim();
-    if (title) return '/api/wiki-logo?title=' + encodeURIComponent(title);
+    if (title) return '/api/logo?title=' + encodeURIComponent(title);
     const raw = String(value || '').trim();
     const domainRaw = String(domain || '').trim();
     const candidate = domainRaw || raw;
@@ -439,6 +439,7 @@
     boot();
   }
 })();
+
 
 
 

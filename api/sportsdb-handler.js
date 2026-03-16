@@ -1,6 +1,6 @@
-import express from "express";
+﻿import express from "express";
 import dotenv from "dotenv";
-import { applyApiGuardrails } from "./_guardrails.js";
+import { applyApiGuardrails } from "../backend/lib/api-guardrails.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
@@ -103,3 +103,4 @@ export default function handler(req, res) {
   req.url = `/api/sportsdb${suffix}${search ? `?${search}` : ""}`;
   return app(req, res);
 }
+

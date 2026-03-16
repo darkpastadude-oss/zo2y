@@ -5311,7 +5311,7 @@
                         const id = String(row?.id || '').trim();
                         if (!id) return;
                         const name = String(row?.name || '').trim();
-                        const wikiLogo = name ? `/api/wiki-logo?title=${encodeURIComponent(name)}` : '';
+                        const wikiLogo = name ? `/api/logo?title=${encodeURIComponent(name)}` : '';
                         const brand = {
                             id,
                             name,
@@ -12484,5 +12484,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
+
 
 

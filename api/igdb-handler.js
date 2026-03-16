@@ -1,11 +1,11 @@
-import express from "express";
+﻿import express from "express";
 import { createClient } from "@supabase/supabase-js";
-import { applyApiGuardrails } from "./_guardrails.js";
+import { applyApiGuardrails } from "../backend/lib/api-guardrails.js";
 import {
   WIKIPEDIA_GAME_GENRES,
   fetchWikipediaGameDetailsById,
   fetchWikipediaGamesList
-} from "./_wiki-games-provider.js";
+} from "../backend/lib/wiki-games-provider.js";
 
 const app = express();
 applyApiGuardrails(app, { keyPrefix: "api-igdb", max: 240 });
@@ -3299,3 +3299,4 @@ export default function handler(req, res) {
     });
   }
 }
+

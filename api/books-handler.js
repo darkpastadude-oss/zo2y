@@ -1,6 +1,6 @@
-import express from "express";
+﻿import express from "express";
 import dotenv from "dotenv";
-import { applyApiGuardrails } from "./_guardrails.js";
+import { applyApiGuardrails } from "../backend/lib/api-guardrails.js";
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
 
 dotenv.config();
@@ -613,3 +613,4 @@ export default function handler(req, res) {
   req.url = `/api/books${suffix}${search ? `?${search}` : ""}`;
   return app(req, res);
 }
+

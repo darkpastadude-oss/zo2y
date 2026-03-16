@@ -966,7 +966,7 @@
 
     function resolveBrandLogo(row) {
       const title = String(row?.name || row?.title || '').trim();
-      if (title) return `/api/wiki-logo?title=${encodeURIComponent(title)}`;
+      if (title) return `/api/logo?title=${encodeURIComponent(title)}`;
       const directRaw = String(row?.logo_url || row?.logo || '').trim();
       const domainRaw = String(row?.domain || '').trim();
       const candidate = domainRaw || directRaw;
@@ -7922,5 +7922,6 @@
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
+
 
 
