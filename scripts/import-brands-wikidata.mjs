@@ -185,7 +185,7 @@ function mapWikidataRow(row) {
   };
 }
 
-async function importBrands(kind, table, limit, batchSize = 150, resumeState = {}) {
+async function importBrands(kind, table, limit, batchSize = 125, resumeState = {}) {
   console.log(`Fetching ${kind} brands from Wikidata...`);
   const batches = Math.ceil(limit / batchSize);
   let totalInserted = 0;
@@ -219,9 +219,9 @@ async function importBrands(kind, table, limit, batchSize = 150, resumeState = {
 
 async function run() {
   const resumeState = loadState();
-  const fashionCount = await importBrands('fashion', 'fashion_brands', 500, 150, resumeState);
+  const fashionCount = await importBrands('fashion', 'fashion_brands', 500, 125, resumeState);
   await sleep(1200);
-  const foodCount = await importBrands('food', 'food_brands', 500, 150, resumeState);
+  const foodCount = await importBrands('food', 'food_brands', 500, 125, resumeState);
   console.log(`Imported fashion: ${fashionCount}`);
   console.log(`Imported food: ${foodCount}`);
 }
