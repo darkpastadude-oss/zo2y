@@ -966,9 +966,14 @@
 
     function resolveBrandLogo(row) {
       const title = String(row?.name || row?.title || '').trim();
-      if (title) return `/api/logo?title=${encodeURIComponent(title)}`;
       const directRaw = String(row?.logo_url || row?.logo || '').trim();
       const domainRaw = String(row?.domain || '').trim();
+      if (title) {
+        const params = new URLSearchParams();
+        params.set('title', title);
+        if (domainRaw) params.set('domain', domainRaw);
+        return `/api/logo?${params.toString()}`;
+      }
       const candidate = domainRaw || directRaw;
       if (!candidate) return '';
       if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {

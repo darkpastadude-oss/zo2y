@@ -62,7 +62,13 @@
 
   function resolveLogo(value, domain, name) {
     const title = String(name || '').trim();
-    if (title) return '/api/logo?title=' + encodeURIComponent(title);
+    if (title) {
+      const params = new URLSearchParams();
+      params.set('title', title);
+      const domainRaw = String(domain || '').trim();
+      if (domainRaw) params.set('domain', domainRaw);
+      return '/api/logo?' + params.toString();
+    }
     const raw = String(value || '').trim();
     const domainRaw = String(domain || '').trim();
     const candidate = domainRaw || raw;

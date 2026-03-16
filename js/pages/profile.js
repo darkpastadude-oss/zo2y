@@ -5305,13 +5305,20 @@
                     const table = contentType === 'food' ? 'food_brands' : 'fashion_brands';
                     const { data } = await supabase
                         .from(table)
-                        .select('id, name, logo_url, category, description, country')
+                        .select('id, name, domain, logo_url, category, description, country')
                         .in('id', missing);
                     (data || []).forEach((row) => {
                         const id = String(row?.id || '').trim();
                         if (!id) return;
                         const name = String(row?.name || '').trim();
-                        const wikiLogo = name ? `/api/logo?title=${encodeURIComponent(name)}` : '';
+                        const wikiLogo = (() => {
+                            if (!name) return '';
+                            const params = new URLSearchParams();
+                            params.set('title', name);
+                            const domainRaw = String(row?.domain || '').trim();
+                            if (domainRaw) params.set('domain', domainRaw);
+                            return `/api/logo?${params.toString()}`;
+                        })();
                         const brand = {
                             id,
                             name,
