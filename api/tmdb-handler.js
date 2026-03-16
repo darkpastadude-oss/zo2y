@@ -1,12 +1,8 @@
-﻿import express from "express";
 import dotenv from "dotenv";
-import { applyApiGuardrails } from "../backend/lib/api-guardrails.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
 
-const app = express();
-applyApiGuardrails(app, { keyPrefix: "api-tmdb", max: 260 });
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
 function setResponseCache(res, { maxAge = 300, staleWhileRevalidate = 900 } = {}) {
@@ -76,10 +72,37 @@ function buildTmdbFallbackPayload(relativePath, query = {}) {
   };
 }
 
-app.get("/api/tmdb/*", async (req, res) => {
-  const relativePath = req.path.replace(/^\/api\/tmdb\//, "");
-  const fallbackPayload = buildTmdbFallbackPayload(relativePath, req.query || {});
+function readQuery(req) {
+  if (req.query && typeof req.query === "object") return req.query;
+  try {
+    const url = new URL(req.url || "", "http://localhost");
+    return Object.fromEntries(url.searchParams.entries());
+  } catch (_error) {
+    return {};
+  }
+}
+
+function readPathParts(query) {
+  const rawPath = query?.path;
+  if (Array.isArray(rawPath)) return rawPath.filter(Boolean);
+  return String(rawPath || "")
+    .split("/")
+    .filter(Boolean);
+}
+
+export default async function handler(req, res) {
+  const query = readQuery(req);
+  const pathParts = readPathParts(query);
+  const relativePath = pathParts.join("/");
+
+  if (!relativePath) {
+    setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
+    return res.json({ ok: true, service: "tmdb-proxy", configured: Boolean(getTmdbToken()) });
+  }
+
+  const fallbackPayload = buildTmdbFallbackPayload(relativePath, query);
   setResponseCache(res, getTmdbCacheProfile(relativePath));
+
   try {
     const token = getTmdbToken();
     if (!token) {
@@ -91,10 +114,13 @@ app.get("/api/tmdb/*", async (req, res) => {
     }
 
     const url = new URL(`${TMDB_BASE}/${relativePath}`);
-    Object.entries(req.query || {}).forEach(([key, value]) => pushQueryParam(url.searchParams, key, value));
+    Object.entries(query || {}).forEach(([key, value]) => {
+      if (key === "path") return;
+      pushQueryParam(url.searchParams, key, value);
+    });
 
     const tmdbRes = await fetch(url.toString(), {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` }
     });
 
     if (!tmdbRes.ok) {
@@ -113,34 +139,7 @@ app.get("/api/tmdb/*", async (req, res) => {
     return res.status(200).json({
       ...fallbackPayload,
       source: "tmdb-fallback",
-      message: error.message || "TMDB proxy error"
+      message: error?.message || "TMDB proxy error"
     });
   }
-});
-
-app.get("/api/tmdb", (req, res) => {
-  setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-  res.json({ ok: true, service: "tmdb-proxy", configured: Boolean(getTmdbToken()) });
-});
-
-export default function handler(req, res) {
-  const query = req.query || {};
-  const rawPath = query.path;
-  const pathParts = Array.isArray(rawPath)
-    ? rawPath
-    : String(rawPath || "")
-      .split("/")
-      .filter(Boolean);
-
-  const nextParams = new URLSearchParams();
-  Object.entries(query).forEach(([key, value]) => {
-    if (key === "path") return;
-    pushQueryParam(nextParams, key, value);
-  });
-
-  const suffix = pathParts.length ? `/${pathParts.join("/")}` : "";
-  const search = nextParams.toString();
-  req.url = `/api/tmdb${suffix}${search ? `?${search}` : ""}`;
-  return app(req, res);
 }
-
