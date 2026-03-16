@@ -63,13 +63,22 @@ app.get("/api/logo", async (req, res) => {
     const primaryUrl = buildLogoDevUrl(domain, size);
     const fallbackUrl = buildClearbitUrl(domain, size);
 
-    let response = await fetch(primaryUrl);
-    if (!response.ok) {
-      response = await fetch(fallbackUrl);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4500);
+    let response = null;
+    try {
+      response = await fetch(primaryUrl, { signal: controller.signal });
+      if (!response.ok) {
+        response = await fetch(fallbackUrl, { signal: controller.signal });
+      }
+    } catch (_err) {
+      response = null;
+    } finally {
+      clearTimeout(timeoutId);
     }
 
-    if (!response.ok) {
-      res.status(502).json({ error: "Logo fetch failed" });
+    if (!response || !response.ok) {
+      res.status(302).setHeader("Location", "/newlogo.webp").end();
       return;
     }
 
@@ -78,7 +87,7 @@ app.get("/api/logo", async (req, res) => {
     const buffer = Buffer.from(await response.arrayBuffer());
     res.status(200).send(buffer);
   } catch (err) {
-    res.status(500).json({ error: "Logo proxy error" });
+    res.status(302).setHeader("Location", "/newlogo.webp").end();
   }
 });
 
