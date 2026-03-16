@@ -61,13 +61,13 @@
     const domainRaw = String(domain || '').trim();
     const candidate = raw || domainRaw;
     if (!candidate) return '';
-    if (/^https?:\\/\\//i.test(candidate)) return candidate;
-    if (candidate.startsWith('//')) return "https:{candidate}";
+    if (/^https?:\/\//i.test(candidate)) return candidate;
+    if (candidate.startsWith('//')) return 'https:' + candidate;
     if (candidate.includes('logo.clearbit.com/')) {
-      return "https://{candidate.replace(/^\\/+/, '')}";
+      return 'https://' + candidate.replace(/^\/+/, '');
     }
-    if (/^[a-z0-9.-]+\\.[a-z]{2,}$/i.test(candidate)) {
-      return "https://logo.clearbit.com/{candidate}";
+    if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
+      return 'https://logo.clearbit.com/' + candidate;
     }
     return '';
   }
@@ -262,4 +262,5 @@
     boot();
   }
 })();
+
 
