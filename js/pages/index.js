@@ -1129,6 +1129,7 @@
       if (type === 'restaurant') return 'Restaurants';
       if (type === 'fashion') return 'Fashion';
       if (type === 'food') return 'Food';
+      if (type === 'car') return 'Cars';
       return 'Discover';
     }
 
@@ -1234,6 +1235,16 @@
               { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
               { key: 'tried', label: 'Tried', icon: 'fas fa-check' },
               { key: 'want_to_try', label: 'Want to Try', icon: 'fas fa-bookmark' }
+            ]
+          };
+        }
+        if (type === 'car') {
+          return {
+            customHref: 'cars.html',
+            rows: [
+              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+              { key: 'owned', label: 'Owned', icon: 'fas fa-check' },
+              { key: 'wishlist', label: 'Wishlist', icon: 'fas fa-bookmark' }
             ]
           };
         }

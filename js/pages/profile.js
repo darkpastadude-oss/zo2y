@@ -61,6 +61,7 @@
             let travelCountryCache = new Map();
             let fashionBrandCache = new Map();
             let foodBrandCache = new Map();
+            let carBrandCache = new Map();
             let renderMoviesToken = 0;
             let renderTvToken = 0;
             let renderAnimeToken = 0;
@@ -1044,6 +1045,9 @@
                 const mobileTabBooks = document.getElementById('mobileTabBooks');
                 const mobileTabMusic = document.getElementById('mobileTabMusic');
                 const mobileTabSports = document.getElementById('mobileTabSports');
+                const mobileTabFashion = document.getElementById('mobileTabFashion');
+                const mobileTabFood = document.getElementById('mobileTabFood');
+                const mobileTabCars = document.getElementById('mobileTabCars');
                 const mobileJournalTitle = document.getElementById('mobileJournalTitle');
                 const mobileRestaurantsTitle = document.getElementById('mobileRestaurantsTitle');
                 const mobileAnimeTitle = document.getElementById('mobileAnimeTitle');
@@ -1051,6 +1055,9 @@
                 const mobileBooksTitle = document.getElementById('mobileBooksTitle');
                 const mobileMusicTitle = document.getElementById('mobileMusicTitle');
                 const mobileSportsTitle = document.getElementById('mobileSportsTitle');
+                const mobileFashionTitle = document.getElementById('mobileFashionTitle');
+                const mobileFoodTitle = document.getElementById('mobileFoodTitle');
+                const mobileCarsTitle = document.getElementById('mobileCarsTitle');
                 const mobileCommunityTitle = document.getElementById('mobileCommunityTitle');
                 const mobileJournalSubtitle = document.getElementById('mobileJournalSubtitle');
                 const mobileRestaurantsSubtitle = document.getElementById('mobileRestaurantsSubtitle');
@@ -1059,6 +1066,9 @@
                 const mobileBooksSubtitle = document.getElementById('mobileBooksSubtitle');
                 const mobileMusicSubtitle = document.getElementById('mobileMusicSubtitle');
                 const mobileSportsSubtitle = document.getElementById('mobileSportsSubtitle');
+                const mobileFashionSubtitle = document.getElementById('mobileFashionSubtitle');
+                const mobileFoodSubtitle = document.getElementById('mobileFoodSubtitle');
+                const mobileCarsSubtitle = document.getElementById('mobileCarsSubtitle');
                 const mobileCommunitySubtitle = document.getElementById('mobileCommunitySubtitle');
                 
                 if (mobileJournalTabText) mobileJournalTabText.textContent = `${userName}'s Journal`;
@@ -5311,7 +5321,9 @@
                 ));
                 if (!normalizedIds.length) return new Map();
 
-                const cache = contentType === 'food' ? foodBrandCache : fashionBrandCache;
+                const cache = contentType === 'food'
+                    ? foodBrandCache
+                    : (contentType === 'car' ? carBrandCache : fashionBrandCache);
                 const byId = new Map();
                 const missing = [];
                 normalizedIds.forEach((id) => {
@@ -12893,6 +12905,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
+
 
 
 

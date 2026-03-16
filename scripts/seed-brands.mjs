@@ -257,6 +257,33 @@ const carBrands = [
   { name: 'SEAT', domain: 'seat.com', category: 'Automaker', country: 'Spain', founded: '1950', description: 'Spanish automaker.', tags: ['automaker'] },
   { name: 'Bentley', domain: 'bentleymotors.com', category: 'Luxury', country: 'UK', founded: '1919', description: 'Luxury vehicle brand.', tags: ['luxury'] },
   { name: 'Rolls-Royce', domain: 'rolls-roycemotorcars.com', category: 'Luxury', country: 'UK', founded: '1904', description: 'Ultra-luxury vehicles.', tags: ['luxury'] }
+  ,
+  { name: 'Mini', domain: 'mini.com', category: 'Automaker', country: 'UK', founded: '1959', description: 'Compact car brand.', tags: ['automaker'] },
+  { name: 'Smart', domain: 'smart.com', category: 'Automaker', country: 'Germany', founded: '1994', description: 'Compact city cars.', tags: ['automaker'] },
+  { name: 'Jeep', domain: 'jeep.com', category: 'SUV', country: 'USA', founded: '1941', description: 'SUV and off-road brand.', tags: ['suv'] },
+  { name: 'Ram', domain: 'ramtrucks.com', category: 'Trucks', country: 'USA', founded: '2010', description: 'Truck brand.', tags: ['trucks'] },
+  { name: 'GMC', domain: 'gmc.com', category: 'Automaker', country: 'USA', founded: '1911', description: 'American automaker.', tags: ['automaker'] },
+  { name: 'Cadillac', domain: 'cadillac.com', category: 'Luxury', country: 'USA', founded: '1902', description: 'Luxury vehicle brand.', tags: ['luxury'] },
+  { name: 'Buick', domain: 'buick.com', category: 'Automaker', country: 'USA', founded: '1903', description: 'American automaker.', tags: ['automaker'] },
+  { name: 'Dodge', domain: 'dodge.com', category: 'Automaker', country: 'USA', founded: '1900', description: 'American automaker.', tags: ['automaker'] },
+  { name: 'Chrysler', domain: 'chrysler.com', category: 'Automaker', country: 'USA', founded: '1925', description: 'American automaker.', tags: ['automaker'] },
+  { name: 'Acura', domain: 'acura.com', category: 'Luxury', country: 'Japan', founded: '1986', description: 'Luxury vehicle brand.', tags: ['luxury'] },
+  { name: 'Infiniti', domain: 'infinitiusa.com', category: 'Luxury', country: 'Japan', founded: '1989', description: 'Luxury vehicle brand.', tags: ['luxury'] },
+  { name: 'Genesis', domain: 'genesis.com', category: 'Luxury', country: 'South Korea', founded: '2015', description: 'Luxury vehicle brand.', tags: ['luxury'] },
+  { name: 'Polestar', domain: 'polestar.com', category: 'EV', country: 'Sweden', founded: '2017', description: 'Electric performance brand.', tags: ['ev'] },
+  { name: 'Rivian', domain: 'rivian.com', category: 'EV', country: 'USA', founded: '2009', description: 'Electric adventure vehicles.', tags: ['ev'] },
+  { name: 'Lucid', domain: 'lucidmotors.com', category: 'EV', country: 'USA', founded: '2007', description: 'Luxury EV maker.', tags: ['ev'] },
+  { name: 'BYD', domain: 'byd.com', category: 'EV', country: 'China', founded: '1995', description: 'Chinese automaker and EV leader.', tags: ['ev'] },
+  { name: 'Geely', domain: 'geely.com', category: 'Automaker', country: 'China', founded: '1986', description: 'Chinese automaker.', tags: ['automaker'] },
+  { name: 'Great Wall Motors', domain: 'gwm-global.com', category: 'Automaker', country: 'China', founded: '1984', description: 'Chinese automaker.', tags: ['automaker'] },
+  { name: 'Chery', domain: 'cheryinternational.com', category: 'Automaker', country: 'China', founded: '1997', description: 'Chinese automaker.', tags: ['automaker'] },
+  { name: 'FAW', domain: 'faw.com.cn', category: 'Automaker', country: 'China', founded: '1953', description: 'Chinese automaker.', tags: ['automaker'] },
+  { name: 'SAIC', domain: 'saicmotor.com', category: 'Automaker', country: 'China', founded: '1997', description: 'Chinese automaker.', tags: ['automaker'] },
+  { name: 'MG', domain: 'mgmotor.com', category: 'Automaker', country: 'UK', founded: '1924', description: 'Automaker brand.', tags: ['automaker'] },
+  { name: 'Maserati', domain: 'maserati.com', category: 'Luxury', country: 'Italy', founded: '1914', description: 'Italian luxury automaker.', tags: ['luxury'] },
+  { name: 'Bugatti', domain: 'bugatti.com', category: 'Luxury', country: 'France', founded: '1909', description: 'Hypercar manufacturer.', tags: ['luxury'] },
+  { name: 'McLaren', domain: 'mclaren.com', category: 'Luxury', country: 'UK', founded: '1985', description: 'British supercar maker.', tags: ['luxury'] },
+  { name: 'Aston Martin', domain: 'astonmartin.com', category: 'Luxury', country: 'UK', founded: '1913', description: 'British luxury automaker.', tags: ['luxury'] }
 ];
 
 function toSupabaseRow(brand) {

@@ -116,7 +116,7 @@
 
   function supportsHomeLists(mediaType) {
     const type = String(mediaType || '').toLowerCase();
-    return type === 'fashion' || type === 'food';
+    return type === 'fashion' || type === 'food' || type === 'car';
   }
 
   function getHomeDefaultListTable(mediaType) {
