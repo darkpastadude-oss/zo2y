@@ -120,9 +120,9 @@
       ...(ENABLE_FASHION ? { fashion: { table: 'fashion_list_items', itemField: 'brand_id' } } : {}),
       ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {})
     };
-    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v11';
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v12';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v10';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v11';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v5';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
@@ -965,11 +965,19 @@
     }
 
     function resolveBrandLogo(row) {
-      const direct = String(row?.logo_url || '').trim();
-      if (direct) return direct;
-      const domain = String(row?.domain || '').trim();
-      if (!domain) return '';
-      return `https://logo.clearbit.com/${domain}`;
+      const directRaw = String(row?.logo_url || row?.logo || '').trim();
+      const domainRaw = String(row?.domain || '').trim();
+      const candidate = directRaw || domainRaw;
+      if (!candidate) return '';
+      if (/^https?:\/\//i.test(candidate)) return candidate;
+      if (candidate.startsWith('//')) return `https:${candidate}`;
+      if (candidate.includes('logo.clearbit.com/')) {
+        return `https://${candidate.replace(/^\/+/, '')}`;
+      }
+      if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
+        return `https://logo.clearbit.com/${candidate}`;
+      }
+      return '';
     }
 
     function mapHomeBrandItem(row, type, fallbackIndex = 0) {

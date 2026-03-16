@@ -14,16 +14,27 @@
     meta: document.getElementById('brandMeta'),
     desc: document.getElementById('brandDescription'),
     about: document.getElementById('brandAboutBody'),
-    saveBtn: document.getElementById('brandSaveBtn'),
+    menuBtn: document.getElementById('brandMenuBtn'),
     website: document.getElementById('brandWebsite'),
-    reviewFormWrap: document.getElementById('reviewFormWrap'),
-    reviewList: document.getElementById('reviewList'),
+    reviewsList: document.getElementById('reviewsList'),
+    reviewsStats: document.getElementById('reviewsStats'),
+    reviewForm: document.getElementById('review-form'),
+    authPrompt: document.getElementById('auth-prompt'),
+    sortSelect: document.getElementById('sortSelect'),
+    ratingText: document.getElementById('ratingText'),
+    commentInput: document.getElementById('review-comment'),
+    charCount: document.getElementById('charCount'),
+    cancelEditBtn: document.querySelector('.cancel-edit-btn'),
     actionCard: document.getElementById('brandActionCard')
   };
 
   let supabaseClient = null;
   let currentUser = null;
   let brandData = null;
+  let currentRating = 0;
+  let editingReviewId = null;
+  let reviews = [];
+  let currentSort = 'latest';
 
   function ensureSupabase() {
     if (supabaseClient) return supabaseClient;
@@ -52,11 +63,20 @@
       .replace(/'/g, '&#039;');
   }
 
-  function toHttps(url) {
-    const safe = String(url || '').trim();
-    if (!safe) return '';
-    if (safe.startsWith('//')) return `https:${safe}`;
-    return safe.replace(/^http:\/\//i, 'https://');
+  function resolveLogo(value, domain) {
+    const raw = String(value || '').trim();
+    const domainRaw = String(domain || '').trim();
+    const candidate = raw || domainRaw;
+    if (!candidate) return '';
+    if (/^https?:\/\//i.test(candidate)) return candidate;
+    if (candidate.startsWith('//')) return `https:${candidate}`;
+    if (candidate.includes('logo.clearbit.com/')) {
+      return `https://${candidate.replace(/^\/+/, '')}`;
+    }
+    if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
+      return `https://logo.clearbit.com/${candidate}`;
+    }
+    return '';
   }
 
   function normalizeBrand(row = {}) {
@@ -65,7 +85,7 @@
       name: String(row.name || row.brand_name || '').trim() || 'Brand',
       category: String(row.category || row.type || '').trim(),
       domain: String(row.domain || '').trim(),
-      logo: toHttps(row.logo_url || row.logo || ''),
+      logo: resolveLogo(row.logo_url || row.logo, row.domain),
       description: String(row.description || row.extract || '').trim(),
       country: String(row.country || '').trim(),
       founded: String(row.founded || '').trim(),
@@ -90,12 +110,36 @@
     }
   }
 
+  function showNotification(message, level = 'info') {
+    const toast = document.createElement('div');
+    toast.style.position = 'fixed';
+    toast.style.top = '16px';
+    toast.style.right = '16px';
+    toast.style.zIndex = '99999';
+    toast.style.background = level === 'error' ? '#ef4444' : '#10b981';
+    if (level === 'info') toast.style.background = '#3b82f6';
+    toast.style.color = '#fff';
+    toast.style.padding = '10px 14px';
+    toast.style.borderRadius = '10px';
+    toast.style.fontSize = '13px';
+    toast.style.boxShadow = '0 10px 24px rgba(0,0,0,0.35)';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2200);
+  }
+
   function updateHero(brand) {
     document.body.dataset.navPage = brandType;
     const label = brandType === 'food' ? 'Food' : 'Fashion';
     document.title = `${brand.name} · ${label} · Zo2y`;
 
-    if (dom.logo) dom.logo.src = brand.logo || '/newlogo.webp';
+    if (dom.logo) {
+      dom.logo.src = brand.logo || '/newlogo.webp';
+      dom.logo.onerror = () => {
+        dom.logo.onerror = null;
+        dom.logo.src = '/newlogo.webp';
+      };
+    }
     if (dom.name) dom.name.textContent = brand.name;
     if (dom.meta) {
       dom.meta.innerHTML = [
@@ -141,97 +185,301 @@
     return normalizeBrand(data[0]);
   }
 
+  function renderStarRating(rating, options = {}) {
+    const raw = Number(rating || 0);
+    const safe = Number.isFinite(raw) ? Math.max(0, Math.min(5, raw)) : 0;
+    const filled = Math.round(safe);
+    const wrapper = options.wrapper !== false;
+    let html = wrapper ? `<span class="rating-stars" aria-label="${safe.toFixed(1)}/5">` : '';
+    for (let i = 0; i < 5; i += 1) {
+      html += `<span class="rating-star${i < filled ? ' is-filled' : ''}" aria-hidden="true"></span>`;
+    }
+    if (wrapper) html += '</span>';
+    return html;
+  }
+
+  function updateStarDisplay() {
+    const stars = document.querySelectorAll('.star');
+    const ratingText = dom.ratingText;
+    stars.forEach((star) => {
+      const starRating = parseInt(star.dataset.rating, 10);
+      star.classList.toggle('active', starRating <= currentRating);
+    });
+    const ratingTexts = ['Select your rating', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+    if (ratingText) ratingText.textContent = ratingTexts[currentRating] || ratingTexts[0];
+  }
+
   function renderReviewForm() {
-    if (!dom.reviewFormWrap) return;
+    if (!dom.reviewForm || !dom.authPrompt) return;
     if (!currentUser) {
-      dom.reviewFormWrap.innerHTML = `
-        <div class="review-form">
-          <p style="color: var(--brand-muted);">Sign in to write a review.</p>
-          <button class="action-btn primary" onclick="window.location.href='login.html'">
-            <i class="fa-solid fa-user"></i> Login to review
-          </button>
-        </div>
-      `;
+      dom.reviewForm.style.display = 'none';
+      dom.authPrompt.style.display = 'block';
       return;
     }
-    dom.reviewFormWrap.innerHTML = `
-      <form class="review-form" id="brandReviewForm">
-        <select id="brandReviewRating" required>
-          <option value="">Rate this brand</option>
-          <option value="5">5 - Loved it</option>
-          <option value="4">4 - Great</option>
-          <option value="3">3 - Solid</option>
-          <option value="2">2 - Meh</option>
-          <option value="1">1 - Skip</option>
-        </select>
-        <textarea id="brandReviewText" rows="4" placeholder="Share your thoughts..."></textarea>
-        <button class="action-btn primary" type="submit"><i class="fa-solid fa-paper-plane"></i> Post review</button>
-      </form>
+    dom.reviewForm.style.display = 'block';
+    dom.authPrompt.style.display = 'none';
+  }
+
+  async function loadReviews() {
+    if (!dom.reviewsList || !dom.reviewsStats || !brandData) return;
+    const client = ensureSupabase();
+    if (!client) return;
+    dom.reviewsList.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
+    const { data, error } = await client
+      .from(reviewTable)
+      .select('*')
+      .eq('brand_id', brandData.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      dom.reviewsList.innerHTML = '<div class="reviews-empty">Error loading reviews.</div>';
+      dom.reviewsStats.innerHTML = '<div class="reviews-empty">Error loading stats.</div>';
+      return;
+    }
+
+    reviews = data || [];
+    if (!reviews.length) {
+      dom.reviewsList.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your thoughts!</div>';
+      dom.reviewsStats.innerHTML = '<div class="reviews-empty">No reviews yet</div>';
+      return;
+    }
+
+    const totalReviews = reviews.length;
+    const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
+    const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    reviews.forEach((review) => {
+      if (ratingDistribution[review.rating] !== undefined) ratingDistribution[review.rating] += 1;
+    });
+
+    dom.reviewsStats.innerHTML = `
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value">${averageRating.toFixed(1)}</div>
+          <div class="stat-label">Average Rating</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">${totalReviews}</div>
+          <div class="stat-label">Total Reviews</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">${Math.round((ratingDistribution[5] / totalReviews) * 100)}%</div>
+          <div class="stat-label">5-Star Reviews</div>
+        </div>
+      </div>
+      <div class="rating-breakdown">
+        ${[5, 4, 3, 2, 1].map((stars) => `
+          <div class="rating-row">
+            <div class="rating-stars">${renderStarRating(stars, { wrapper: false })}</div>
+            <div class="rating-bar">
+              <div class="rating-fill" style="width: ${(ratingDistribution[stars] / totalReviews) * 100}%"></div>
+            </div>
+            <div class="rating-count">${ratingDistribution[stars]}</div>
+          </div>
+        `).join('')}
+      </div>
     `;
-    const form = document.getElementById('brandReviewForm');
-    if (form) {
-      form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const rating = Number(document.getElementById('brandReviewRating')?.value || 0);
-        const text = String(document.getElementById('brandReviewText')?.value || '').trim();
-        if (!rating || rating < 1 || rating > 5) return;
-        await submitReview(rating, text);
+
+    const sortControls = document.getElementById('reviewsSortControls');
+    if (sortControls) sortControls.style.display = 'flex';
+    sortAndRenderReviews();
+  }
+
+  function sortAndRenderReviews() {
+    if (!reviews || !reviews.length) return;
+    let sorted = [...reviews];
+    if (currentSort === 'highest') sorted.sort((a, b) => b.rating - a.rating);
+    if (currentSort === 'lowest') sorted.sort((a, b) => a.rating - b.rating);
+    displayReviews(sorted);
+  }
+
+  async function displayReviews(reviewsToDisplay) {
+    if (!dom.reviewsList) return;
+    if (!reviewsToDisplay || !reviewsToDisplay.length) {
+      dom.reviewsList.innerHTML = '<div class="reviews-empty">No reviews yet.</div>';
+      return;
+    }
+
+    const userIds = [...new Set(reviewsToDisplay.map((r) => r.user_id))];
+    let userMap = {};
+    if (userIds.length && supabaseClient) {
+      const { data } = await supabaseClient
+        .from('user_profiles')
+        .select('id, username, full_name')
+        .in('id', userIds);
+      (data || []).forEach((user) => {
+        userMap[user.id] = user;
+      });
+    }
+
+    dom.reviewsList.innerHTML = reviewsToDisplay.map((review) => {
+      const user = userMap[review.user_id];
+      const reviewUsernameRaw = String(review?.username || review?.user_name || '').trim();
+      const isAutoUsername = /^user-[a-f0-9]{6,}$/i.test(reviewUsernameRaw);
+      const reviewUsername = isAutoUsername ? '' : reviewUsernameRaw;
+      const username = String(user?.username || reviewUsername).trim();
+      const fallbackName = String(user?.full_name || '').trim();
+      const displayName = username ? `@${username}` : (fallbackName || 'User');
+      const initialsBase = username || fallbackName || 'User';
+      const initials = initialsBase.split(/\s+/).map((n) => n[0]).slice(0, 2).join('').toUpperCase();
+      const profileHref = `profile.html?id=${encodeURIComponent(review.user_id)}`;
+      const canEditDelete = currentUser && currentUser.id === review.user_id;
+      const comment = review.comment || review.review_text || '';
+      return `
+        <div class="review-card" id="review-${review.id}" data-review-id="${review.id}">
+          <div class="review-header">
+            <div class="reviewer-info">
+              <a class="reviewer-avatar reviewer-link" href="${profileHref}" aria-label="View ${escapeHtml(displayName)} profile">${escapeHtml(initials)}</a>
+              <div>
+                <div class="reviewer-name"><a class="reviewer-link" href="${profileHref}">${escapeHtml(displayName)}</a></div>
+                <div class="review-date">${new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+              </div>
+            </div>
+            <div class="review-rating">${renderStarRating(review.rating)}</div>
+          </div>
+          <p class="review-comment">${escapeHtml(comment)}</p>
+          ${canEditDelete ? `
+            <div class="review-actions">
+              <button class="review-edit" onclick="editReview('${review.id}')">Edit</button>
+              <button class="review-delete" onclick="deleteReview('${review.id}')">Delete</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+
+    if (window.ZO2Y_REVIEW_INTERACTIONS && supabaseClient) {
+      await window.ZO2Y_REVIEW_INTERACTIONS.mount({
+        container: dom.reviewsList,
+        reviews: reviewsToDisplay,
+        reviewSource: reviewTable,
+        mediaType: brandType,
+        currentUser,
+        supabaseClient,
+        notify: (message, level) => showNotification(message, level || 'info'),
+        cardSelector: '.review-card',
+        reviewIdAttribute: 'data-review-id'
       });
     }
   }
 
-  async function submitReview(rating, text) {
-    const client = ensureSupabase();
-    if (!client || !currentUser || !brandData) return;
+  async function submitReview(e) {
+    e.preventDefault();
+    if (!currentUser) {
+      showNotification('Please sign in to submit a review', 'info');
+      return;
+    }
+    const comment = dom.commentInput ? dom.commentInput.value.trim() : '';
+    if (!currentRating) {
+      showNotification('Please select a rating', 'info');
+      return;
+    }
     const payload = {
       brand_id: brandData.id,
       user_id: currentUser.id,
-      rating,
-      review_text: text
+      rating: currentRating,
+      review_text: comment
     };
-    const { error } = await client.from(reviewTable).insert(payload);
+    let error = null;
+    if (editingReviewId) {
+      const { error: updateError } = await supabaseClient
+        .from(reviewTable)
+        .update(payload)
+        .eq('id', editingReviewId);
+      error = updateError;
+    } else {
+      const { error: insertError } = await supabaseClient
+        .from(reviewTable)
+        .insert(payload);
+      error = insertError;
+    }
     if (error) {
-      console.error('Review error', error);
+      showNotification('Error submitting review', 'error');
+      return;
+    }
+    const wasEditing = !!editingReviewId;
+    resetReviewForm();
+    await loadReviews();
+    if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
+      window.ZO2Y_ANALYTICS.track('review_saved', { media_type: brandType, is_edit: wasEditing }, { essential: true });
+    }
+    if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
+      window.ZO2Y_ANALYTICS.markFirstAction('first_review_saved', {}, { essential: true });
+    }
+    showNotification('Review saved', 'success');
+  }
+
+  window.editReview = async function (reviewId) {
+    if (!supabaseClient) return;
+    const { data: review } = await supabaseClient
+      .from(reviewTable)
+      .select('*')
+      .eq('id', reviewId)
+      .single();
+    if (!review) return;
+    editingReviewId = reviewId;
+    currentRating = review.rating;
+    if (dom.commentInput) dom.commentInput.value = review.comment || review.review_text || '';
+    updateStarDisplay();
+    const submitText = document.querySelector('.submit-review-btn .btn-text');
+    if (submitText) submitText.textContent = 'Update Review';
+    if (dom.cancelEditBtn) dom.cancelEditBtn.style.display = 'inline-flex';
+  };
+
+  window.deleteReview = async function (reviewId) {
+    if (!currentUser) {
+      showNotification('Please sign in to delete reviews', 'info');
+      return;
+    }
+    if (!confirm('Delete this review?')) return;
+    const { error } = await supabaseClient
+      .from(reviewTable)
+      .delete()
+      .eq('id', reviewId);
+    if (error) {
+      showNotification('Error deleting review', 'error');
       return;
     }
     await loadReviews();
+    showNotification('Review deleted', 'success');
+  };
+
+  function resetReviewForm() {
+    editingReviewId = null;
+    currentRating = 0;
+    if (dom.reviewForm) dom.reviewForm.reset();
+    updateStarDisplay();
+    const submitText = document.querySelector('.submit-review-btn .btn-text');
+    if (submitText) submitText.textContent = 'Submit Review';
+    if (dom.cancelEditBtn) dom.cancelEditBtn.style.display = 'none';
   }
 
-  function formatDate(raw) {
-    const date = new Date(raw || '');
-    if (!Number.isFinite(date.getTime())) return '';
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  }
-
-  async function loadReviews() {
-    if (!dom.reviewList || !brandData) return;
-    const client = ensureSupabase();
-    if (!client) return;
-    const { data, error } = await client
-      .from(reviewTable)
-      .select('id, user_id, rating, review_text, created_at, user_profiles(username, full_name)')
-      .eq('brand_id', brandData.id)
-      .order('created_at', { ascending: false })
-      .limit(40);
-
-    if (error || !Array.isArray(data) || !data.length) {
-      dom.reviewList.innerHTML = '<div style="color: var(--brand-muted);">No reviews yet.</div>';
-      return;
+  async function initReviewSystem() {
+    if (!supabaseClient || !brandData) return;
+    if (dom.sortSelect) {
+      dom.sortSelect.addEventListener('change', (e) => {
+        currentSort = e.target.value;
+        sortAndRenderReviews();
+      });
     }
-
-    dom.reviewList.innerHTML = data.map((row) => {
-      const profile = row.user_profiles || {};
-      const label = profile.username ? `@${profile.username}` : (profile.full_name || 'User');
-      return `
-        <div class="review-card">
-          <div class="review-card-header">
-            <strong>${escapeHtml(label)}</strong>
-            <span>${escapeHtml(formatDate(row.created_at))} · ${escapeHtml(String(row.rating || ''))}/5</span>
-          </div>
-          <div class="review-card-body">${escapeHtml(row.review_text || '')}</div>
-        </div>
-      `;
-    }).join('');
+    if (dom.reviewForm) {
+      dom.reviewForm.addEventListener('submit', submitReview);
+    }
+    if (dom.cancelEditBtn) {
+      dom.cancelEditBtn.addEventListener('click', () => resetReviewForm());
+    }
+    if (dom.commentInput) {
+      dom.commentInput.addEventListener('input', () => {
+        const count = dom.commentInput.value.length;
+        if (dom.charCount) dom.charCount.textContent = String(count);
+      });
+    }
+    document.querySelectorAll('.star').forEach((star) => {
+      star.addEventListener('click', () => {
+        currentRating = parseInt(star.dataset.rating, 10);
+        updateStarDisplay();
+      });
+    });
+    await loadReviews();
   }
 
   function initMenuBridge() {
@@ -251,8 +499,9 @@
   }
 
   function wireActions() {
-    if (dom.saveBtn) {
-      dom.saveBtn.addEventListener('click', () => {
+    if (dom.menuBtn) {
+      dom.menuBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
         if (dom.actionCard && window.openIndexStyleListMenu) {
           window.openIndexStyleListMenu(dom.actionCard);
         }
@@ -276,7 +525,14 @@
     brandData = brand;
     updateHero(brand);
     renderReviewForm();
-    await loadReviews();
+    await initReviewSystem();
+
+    if (supabaseClient?.auth?.onAuthStateChange) {
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
+        currentUser = session?.user || null;
+        renderReviewForm();
+      });
+    }
   }
 
   if (document.readyState === 'loading') {

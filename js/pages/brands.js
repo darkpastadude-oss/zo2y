@@ -56,11 +56,20 @@
     return supabaseClient;
   }
 
-  function toHttps(url) {
-    const safe = String(url || '').trim();
-    if (!safe) return '';
-    if (safe.startsWith('//')) return `https:${safe}`;
-    return safe.replace(/^http:\/\//i, 'https://');
+  function resolveLogo(value, domain) {
+    const raw = String(value || '').trim();
+    const domainRaw = String(domain || '').trim();
+    const candidate = raw || domainRaw;
+    if (!candidate) return '';
+    if (/^https?:\\/\\//i.test(candidate)) return candidate;
+    if (candidate.startsWith('//')) return "https:{candidate}";
+    if (candidate.includes('logo.clearbit.com/')) {
+      return "https://{candidate.replace(/^\\/+/, '')}";
+    }
+    if (/^[a-z0-9.-]+\\.[a-z]{2,}$/i.test(candidate)) {
+      return "https://logo.clearbit.com/{candidate}";
+    }
+    return '';
   }
 
   function escapeHtml(value) {
@@ -78,7 +87,7 @@
       name: String(row.name || row.brand_name || '').trim() || 'Brand',
       category: String(row.category || row.type || '').trim(),
       domain: String(row.domain || '').trim(),
-      logo: toHttps(row.logo_url || row.logo || ''),
+      logo: resolveLogo(row.logo_url || row.logo, row.domain),
       description: String(row.description || row.extract || '').trim(),
       country: String(row.country || '').trim(),
       founded: String(row.founded || '').trim(),
@@ -253,3 +262,4 @@
     boot();
   }
 })();
+

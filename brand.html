@@ -8,7 +8,7 @@
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Brand Details · Zo2y</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/pages/brand.css?v=20260316a" />
+  <link rel="stylesheet" href="css/pages/brand.css?v=20260316b" />
   <link rel="stylesheet" href="css/shared-header.css?v=20260316a" />
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
   <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
@@ -23,8 +23,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/list-utils.js?v=20260316a" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260316a" defer></script>
-  <script src="js/shared-header.js?v=20260316a" defer></script>
-  <script src="js/pages/brand.js?v=20260316a" defer></script>
+  <script src="js/review-interactions.js?v=20260308a" defer></script>
+<script src="js/shared-header.js?v=20260316a" defer></script>
+  <script src="js/pages/brand.js?v=20260316b" defer></script>
 </head>
 <body data-nav-page="">
   <main class="container">
@@ -37,7 +38,9 @@
         <div class="hero-meta" id="brandMeta"></div>
         <div class="hero-desc" id="brandDescription"></div>
         <div class="hero-actions">
-          <button class="action-btn primary" id="brandSaveBtn"><i class="fa-solid fa-heart"></i> Save to list</button>
+          <button class="action-btn brand-menu-btn" id="brandMenuBtn" aria-label="Add to list">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
           <a class="action-btn" id="brandWebsite" target="_blank" rel="noopener"><i class="fa-solid fa-link"></i> Official site</a>
         </div>
       </div>
@@ -48,10 +51,52 @@
       <div id="brandAboutBody">Loading brand details...</div>
     </section>
 
-    <section class="section" id="brandReviews">
-      <h2>Reviews</h2>
-      <div id="reviewFormWrap"></div>
-      <div class="review-list" id="reviewList"></div>
+    <section id="reviews-section" class="section reviews">
+      <h2>Brand Reviews</h2>
+      <div class="reviews-sort-controls" id="reviewsSortControls" style="display: none;">
+        <span class="sort-label">Sort by:</span>
+        <select class="sort-select" id="sortSelect">
+          <option value="latest">Latest</option>
+          <option value="highest">Highest Rated</option>
+          <option value="lowest">Lowest Rated</option>
+        </select>
+      </div>
+      <div class="reviews-stats" id="reviewsStats">
+        <div class="reviews-loading">Loading reviews...</div>
+      </div>
+      <div class="reviews-container" id="reviewsList"></div>
+      <div class="review-form-section">
+        <h3>Share Your Thoughts</h3>
+        <form id="review-form" style="display: none;">
+          <div class="rating-input">
+            <label>Your Rating:</label>
+            <div class="stars-rating">
+              <span class="star" data-rating="1"></span>
+              <span class="star" data-rating="2"></span>
+              <span class="star" data-rating="3"></span>
+              <span class="star" data-rating="4"></span>
+              <span class="star" data-rating="5"></span>
+            </div>
+            <span class="rating-text" id="ratingText">Select your rating</span>
+          </div>
+          <div class="comment-input">
+            <textarea id="review-comment" placeholder="What did you think of this brand?" rows="4" maxlength="500"></textarea>
+            <div class="char-count">
+              <span id="charCount">0</span>/500 characters
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn submit-review-btn">
+              <span class="btn-text">Submit Review</span>
+            </button>
+            <button type="button" class="btn secondary cancel-edit-btn" style="display: none;">Cancel Edit</button>
+          </div>
+        </form>
+        <div id="auth-prompt" class="auth-prompt">
+          <div class="auth-icon"><i class="fas fa-lock"></i></div>
+          <p>Please <a href="login.html" class="auth-link">sign in</a> to review brands</p>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -107,3 +152,7 @@
   </div>
 </body>
 </html>
+
+
+
+
