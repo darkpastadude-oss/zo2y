@@ -58,6 +58,18 @@ function buildGoogleFaviconUrl(domain, size) {
   return url.toString();
 }
 
+function pushQueryParam(params, key, value) {
+  if (value === undefined || value === null) return;
+  if (Array.isArray(value)) {
+    value.forEach((entry) => {
+      if (entry === undefined || entry === null) return;
+      params.append(key, String(entry));
+    });
+    return;
+  }
+  params.append(key, String(value));
+}
+
 app.get("/api/logo", async (req, res) => {
   try {
     const domain = normalizeDomain(req.query?.domain);
@@ -103,4 +115,19 @@ app.get("/api/logo", async (req, res) => {
   }
 });
 
-export default app;
+export default function handler(req, res) {
+  try {
+    const query = req.query || {};
+    const nextParams = new URLSearchParams();
+    Object.entries(query).forEach(([key, value]) => {
+      if (key === "path") return;
+      pushQueryParam(nextParams, key, value);
+    });
+
+    const search = nextParams.toString();
+    req.url = `/api/logo${search ? `?${search}` : ""}`;
+    return app(req, res);
+  } catch (_err) {
+    res.status(302).setHeader("Location", "/newlogo.webp").end();
+  }
+}

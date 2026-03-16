@@ -1,4 +1,4 @@
-// ===== GLOBAL PROFILE MANAGER =====
+﻿// ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
             // Supabase configuration
             const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
@@ -348,7 +348,7 @@
                     .trim()
                     .replace(/^@+/, '')
                     .toLowerCase()
-                    .replace(/['’]/g, '')
+                    .replace(/['â€™]/g, '')
                     .replace(/[^a-z0-9_]+/g, '_')
                     .replace(/_+/g, '_')
                     .replace(/^_+|_+$/g, '')
@@ -1565,7 +1565,7 @@
 
                 const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
                 const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
-                const summaryText = `${followersCount} followers · ${followingCount} following`;
+                const summaryText = `${followersCount} followers Â· ${followingCount} following`;
                 if (desktopMeta) desktopMeta.textContent = summaryText;
                 if (mobileMeta) mobileMeta.textContent = summaryText;
                 renderProfileBadges();
@@ -1643,7 +1643,7 @@
                 } finally {
                     const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
                     const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
-                    const summaryText = `${followersCount} followers · ${followingCount} following`;
+                    const summaryText = `${followersCount} followers Â· ${followingCount} following`;
                     if (desktopMeta) desktopMeta.textContent = summaryText;
                     if (mobileMeta) mobileMeta.textContent = summaryText;
                 }
@@ -5310,10 +5310,12 @@
                     (data || []).forEach((row) => {
                         const id = String(row?.id || '').trim();
                         if (!id) return;
+                        const name = String(row?.name || '').trim();
+                        const wikiLogo = name ? `/api/wiki-logo?title=${encodeURIComponent(name)}` : '';
                         const brand = {
                             id,
-                            name: String(row?.name || '').trim(),
-                            logo: toHttpsUrl(row?.logo_url || ''),
+                            name,
+                            logo: wikiLogo || toHttpsUrl(row?.logo_url || ''),
                             category: String(row?.category || '').trim(),
                             description: String(row?.description || '').trim(),
                             country: String(row?.country || '').trim()
@@ -5777,7 +5779,7 @@
                 if (listType !== 'custom') return baseTitle;
                 const tierMeta = getTierMetaForList(type, list, 0);
                 if (!tierMeta.isTier) return baseTitle;
-                return `${baseTitle} • Tier List`;
+                return `${baseTitle} â€¢ Tier List`;
             }
 
             function canReorderCollectionItems(contentType, listId, listType = 'custom', list = null) {
@@ -7993,7 +7995,7 @@
                 const sport = String(team?.sport || team?.strSport || '').trim();
                 const stadium = String(team?.stadium || team?.strStadium || '').trim();
                 const logo = normalizeSportsImageUrl(team?.logo_url || team?.strTeamBadge || team?.strTeamLogo || '');
-                const subtitle = [league, sport].filter(Boolean).join(' • ') || 'Team';
+                const subtitle = [league, sport].filter(Boolean).join(' â€¢ ') || 'Team';
                 const logoImage = logo || FALLBACK_BOOK_IMAGE;
                 const canRemove = !!options?.canRemove && !!id;
 
@@ -12482,4 +12484,5 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
+
 

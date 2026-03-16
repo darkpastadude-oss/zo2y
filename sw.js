@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v101';
-const PAGE_CACHE = 'zo2y-pages-v105';
+﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v103';
+const PAGE_CACHE = 'zo2y-pages-v107';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -13,7 +13,7 @@ const STATIC_ASSETS = [
   '/css/pages/index.css?v=20260314m',
   '/css/shared-header.css?v=20260316a',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260316d',
+  '/js/pages/index.js?v=20260316e',
   '/js/home-desktop-rebrand.js?v=20260311e',
   '/js/shared-header.js?v=20260316a',
   '/js/review-interactions.js?v=20260308a',
@@ -43,8 +43,8 @@ const STATIC_ASSETS = [
   '/brand.html',
   '/css/pages/brands.css?v=20260316b',
   '/css/pages/brand.css?v=20260316b',
-  '/js/pages/brands.js?v=20260316e',
-  '/js/pages/brand.js?v=20260316f',
+  '/js/pages/brands.js?v=20260316g',
+  '/js/pages/brand.js?v=20260316h',
   '/team.html',
   '/css/pages/team.css?v=20260314a',
   '/js/pages/team.js?v=20260314d',
@@ -241,6 +241,11 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
+
+
+
+
+
 
 
 

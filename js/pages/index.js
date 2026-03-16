@@ -1,4 +1,4 @@
-    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
+﻿    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
     const ENABLE_GAMES = !GAMES_DISABLED;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
@@ -40,7 +40,7 @@
       { id: 'fashion-gucci', name: 'Gucci', category: 'Luxury', domain: 'gucci.com', logo_url: 'https://logo.clearbit.com/gucci.com' },
       { id: 'fashion-prada', name: 'Prada', category: 'Luxury', domain: 'prada.com', logo_url: 'https://logo.clearbit.com/prada.com' },
       { id: 'fashion-lv', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com', logo_url: 'https://logo.clearbit.com/louisvuitton.com' },
-      { id: 'fashion-offwhite', name: 'Off-White', category: 'Streetwear', domain: 'off---white.com', logo_url: 'https://logo.clearbit.com/off---white.com' },
+      { id: 'fashion-offwhite', name: 'Off-White', category: 'Streetwear', domain: 'offwhite.com', logo_url: 'https://logo.clearbit.com/offwhite.com' },
       { id: 'fashion-supreme', name: 'Supreme', category: 'Streetwear', domain: 'supremenewyork.com', logo_url: 'https://logo.clearbit.com/supremenewyork.com' }
     ];
     const HOME_FOOD_FALLBACKS = [
@@ -458,7 +458,7 @@
         .normalize('NFD')
         .replace(/[\u0300-\u036f]+/g, '')
         .replace(/&/g, ' and ')
-        .replace(/['’]/g, '')
+        .replace(/['â€™]/g, '')
         .replace(/[^a-z0-9]+/g, ' ')
         .replace(/^the\s+/g, '')
         .trim();
@@ -965,6 +965,8 @@
     }
 
     function resolveBrandLogo(row) {
+      const title = String(row?.name || row?.title || '').trim();
+      if (title) return `/api/wiki-logo?title=${encodeURIComponent(title)}`;
       const directRaw = String(row?.logo_url || row?.logo || '').trim();
       const domainRaw = String(row?.domain || '').trim();
       const candidate = domainRaw || directRaw;
@@ -987,7 +989,7 @@
       const country = String(row?.country || '').trim();
       const founded = row?.founded ? String(row.founded) : '';
       const logo = resolveBrandLogo(row);
-      const subtitle = `${category}${country ? ` · ${country}` : ''}`;
+      const subtitle = `${category}${country ? ` Â· ${country}` : ''}`;
       const extra = founded ? `Since ${founded}` : (row?.description ? String(row.description).trim() : '');
       const background = getHomeSpotlightBackgroundByType(safeType);
       const itemId = String(row?.id || row?.slug || `${safeType}-${fallbackIndex}` || '').trim();
@@ -4786,7 +4788,7 @@
         .trim()
         .replace(/^@+/, '')
         .toLowerCase()
-        .replace(/['â€™]/g, '')
+        .replace(/['Ã¢â‚¬â„¢]/g, '')
         .replace(/[^a-z0-9_]+/g, '_')
         .replace(/_+/g, '_')
         .replace(/^_+|_+$/g, '')
@@ -4999,7 +5001,7 @@
         {
           id: 'interests-setup',
           title: 'Tune Your Feed',
-          body: 'Choose formats and genres so the “For You” feed starts on the right note.',
+          body: 'Choose formats and genres so the â€œFor Youâ€ feed starts on the right note.',
           art: `
               <div class="onboarding-interest-layout">
                 <div class="onboarding-interest-photos">
@@ -6122,7 +6124,7 @@
         updateHomeOnboardingNextState();
         return false;
       }
-      setHomeOnboardingUsernameStatus('Checking availability…');
+      setHomeOnboardingUsernameStatus('Checking availabilityâ€¦');
       homeOnboardingProfile.usernameStatus = 'checking';
       updateHomeOnboardingNextState();
       try {
@@ -7396,26 +7398,26 @@
     function getHomeSportEmoji(sportRaw = '') {
       const sport = String(sportRaw || '').trim().toLowerCase();
       if (!sport) return '';
-      if (sport.includes('soccer')) return '⚽';
-      if (sport.includes('american football')) return '🏈';
-      if (sport.includes('football')) return '⚽';
-      if (sport.includes('basketball')) return '🏀';
-      if (sport.includes('baseball')) return '⚾';
-      if (sport.includes('ice hockey') || sport.includes('hockey')) return '🏒';
-      if (sport.includes('cricket')) return '🏏';
-      if (sport.includes('rugby')) return '🏉';
-      if (sport.includes('golf')) return '⛳';
-      if (sport.includes('tennis')) return '🎾';
-      if (sport.includes('volleyball')) return '🏐';
-      if (sport.includes('handball')) return '🤾';
-      if (sport.includes('boxing')) return '🥊';
-      if (sport.includes('mma') || sport.includes('mixed martial')) return '🥋';
-      if (sport.includes('motorsport') || sport.includes('racing')) return '🏎️';
-      if (sport.includes('cycling')) return '🚴';
-      if (sport.includes('snooker') || sport.includes('billiard')) return '🎱';
-      if (sport.includes('darts')) return '🎯';
-      if (sport.includes('table tennis') || sport.includes('ping pong')) return '🏓';
-      return '🏟️';
+      if (sport.includes('soccer')) return 'âš½';
+      if (sport.includes('american football')) return 'ðŸˆ';
+      if (sport.includes('football')) return 'âš½';
+      if (sport.includes('basketball')) return 'ðŸ€';
+      if (sport.includes('baseball')) return 'âš¾';
+      if (sport.includes('ice hockey') || sport.includes('hockey')) return 'ðŸ’';
+      if (sport.includes('cricket')) return 'ðŸ';
+      if (sport.includes('rugby')) return 'ðŸ‰';
+      if (sport.includes('golf')) return 'â›³';
+      if (sport.includes('tennis')) return 'ðŸŽ¾';
+      if (sport.includes('volleyball')) return 'ðŸ';
+      if (sport.includes('handball')) return 'ðŸ¤¾';
+      if (sport.includes('boxing')) return 'ðŸ¥Š';
+      if (sport.includes('mma') || sport.includes('mixed martial')) return 'ðŸ¥‹';
+      if (sport.includes('motorsport') || sport.includes('racing')) return 'ðŸŽï¸';
+      if (sport.includes('cycling')) return 'ðŸš´';
+      if (sport.includes('snooker') || sport.includes('billiard')) return 'ðŸŽ±';
+      if (sport.includes('darts')) return 'ðŸŽ¯';
+      if (sport.includes('table tennis') || sport.includes('ping pong')) return 'ðŸ“';
+      return 'ðŸŸï¸';
     }
 
     function mapSportsTeamToHomeItem(team) {
@@ -7486,7 +7488,7 @@
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]+/g, '')
-        .replace(/['â€™]/g, '')
+        .replace(/['Ã¢â‚¬â„¢]/g, '')
         .replace(/\b(fc|cf|sc|afc|club|the)\b/g, '')
         .replace(/[^a-z0-9]+/g, ' ')
         .trim();
@@ -7920,4 +7922,5 @@
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
+
 

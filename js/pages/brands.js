@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
 
@@ -6,6 +6,10 @@
   const BRAND_LABEL = BRAND_TYPE === 'food' ? 'Food' : 'Fashion';
   const BRAND_ICON = BRAND_TYPE === 'food' ? 'fa-burger' : 'fa-shirt';
   const BRAND_TABLE = BRAND_TYPE === 'food' ? 'food_brands' : 'fashion_brands';
+  const HOME_DEFAULT_LIST_TABLES = {
+    fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
+    food: { table: 'food_list_items', itemField: 'brand_id' }
+  };
 
   const FALLBACKS = BRAND_TYPE === 'food'
     ? [
@@ -56,7 +60,9 @@
     return supabaseClient;
   }
 
-  function resolveLogo(value, domain) {
+  function resolveLogo(value, domain, name) {
+    const title = String(name || '').trim();
+    if (title) return '/api/wiki-logo?title=' + encodeURIComponent(title);
     const raw = String(value || '').trim();
     const domainRaw = String(domain || '').trim();
     const candidate = domainRaw || raw;
@@ -81,19 +87,189 @@
       .replace(/'/g, '&#039;');
   }
 
+  function showBrandsToast(message, isError = false) {
+    if (typeof window.showToast === 'function') {
+      window.showToast(message, isError ? 'error' : 'success');
+      return;
+    }
+    if (isError) console.error(message);
+    else console.log(message);
+  }
+
+  function supportsHomeLists(mediaType) {
+    const type = String(mediaType || '').toLowerCase();
+    return type === 'fashion' || type === 'food';
+  }
+
+  function getHomeDefaultListTable(mediaType) {
+    const type = String(mediaType || '').toLowerCase();
+    return HOME_DEFAULT_LIST_TABLES[type] || null;
+  }
+
+  function normalizeHomeDefaultItemId(mediaType, itemId) {
+    const type = String(mediaType || '').toLowerCase();
+    if (type === 'travel') {
+      const code = String(itemId || '').trim().toUpperCase();
+      return code || null;
+    }
+    const text = String(itemId || '').trim();
+    return text || null;
+  }
+
   function normalizeBrand(row = {}) {
     return {
       id: String(row.id || row.slug || row.domain || row.name || '').trim(),
       name: String(row.name || row.brand_name || '').trim() || 'Brand',
       category: String(row.category || row.type || '').trim(),
       domain: String(row.domain || '').trim(),
-      logo: resolveLogo(row.logo_url || row.logo, row.domain),
+      logo: resolveLogo(row.logo_url || row.logo, row.domain, row.name || row.brand_name),
       description: String(row.description || row.extract || '').trim(),
       country: String(row.country || '').trim(),
       founded: String(row.founded || '').trim(),
       slug: String(row.slug || '').trim(),
       tags: Array.isArray(row.tags) ? row.tags : []
     };
+  }
+
+  function dedupeBrands(items = []) {
+    const map = new Map();
+    (Array.isArray(items) ? items : []).forEach((brand) => {
+      const domainKey = String(brand.domain || '').trim().toLowerCase();
+      const slugKey = String(brand.slug || '').trim().toLowerCase();
+      const nameKey = String(brand.name || '').trim().toLowerCase();
+      const key = domainKey || slugKey || nameKey;
+      if (!key) return;
+      const score = (brand.logo ? 2 : 0)
+        + (brand.description ? 1 : 0)
+        + (brand.country ? 1 : 0);
+      if (!map.has(key)) {
+        map.set(key, { brand, score });
+        return;
+      }
+      const existing = map.get(key);
+      if (score > existing.score) {
+        map.set(key, { brand, score });
+      }
+    });
+    return Array.from(map.values()).map((entry) => entry.brand);
+  }
+
+  async function saveToListFromHome(payload) {
+    const result = { ok: false, saved: null };
+    const client = await ensureSupabase();
+    if (!client) {
+      showBrandsToast('List service unavailable', true);
+      return result;
+    }
+    if (!currentUser?.id) {
+      window.location.href = 'login.html';
+      return result;
+    }
+
+    const mediaType = String(payload.mediaType || '').toLowerCase();
+    const listType = payload.listType;
+    const nextSaved = typeof payload.nextSaved === 'boolean' ? payload.nextSaved : null;
+    if (!payload.itemId || !listType) return result;
+    if (!supportsHomeLists(mediaType)) {
+      showBrandsToast('Lists are not available for this media yet.');
+      return result;
+    }
+
+    const ensureLinkedMediaRecord = async (_itemId) => true;
+
+    try {
+      const defaultListTable = getHomeDefaultListTable(mediaType);
+      const itemId = normalizeHomeDefaultItemId(mediaType, payload.itemId);
+
+      if (defaultListTable) {
+        if (itemId === null) {
+          showBrandsToast('Could not update list', true);
+          return result;
+        }
+        const { table, itemField } = defaultListTable;
+
+        if (nextSaved === false) {
+          const { error: deleteError } = await client
+            .from(table)
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq(itemField, itemId)
+            .eq('list_type', listType);
+          if (deleteError) {
+            showBrandsToast('Could not update list', true);
+            return result;
+          }
+          showBrandsToast('Removed from list');
+          result.ok = true;
+          result.saved = false;
+          return result;
+        }
+
+        if (nextSaved === true) {
+          const ensured = await ensureLinkedMediaRecord(itemId);
+          if (!ensured) {
+            showBrandsToast('Book info is unavailable right now.', true);
+            return result;
+          }
+          const insertRow = { user_id: currentUser.id, list_type: listType };
+          insertRow[itemField] = itemId;
+          const { error: insertError } = await client.from(table).insert(insertRow);
+          if (insertError && String(insertError.code || '') !== '23505') {
+            showBrandsToast('Could not add to list', true);
+            return result;
+          }
+          showBrandsToast('Added to list');
+          result.ok = true;
+          result.saved = true;
+          return result;
+        }
+
+        const { data: existing } = await client
+          .from(table)
+          .select('id')
+          .eq('user_id', currentUser.id)
+          .eq(itemField, itemId)
+          .eq('list_type', listType)
+          .limit(1)
+          .maybeSingle();
+        if (existing?.id) {
+          const { error: deleteError } = await client.from(table).delete().eq('id', existing.id);
+          if (deleteError) {
+            showBrandsToast('Could not update list', true);
+            return result;
+          }
+          showBrandsToast('Removed from list');
+          result.ok = true;
+          result.saved = false;
+          return result;
+        }
+
+        await ensureLinkedMediaRecord(itemId);
+        const insertRow = { user_id: currentUser.id, list_type: listType };
+        insertRow[itemField] = itemId;
+        const { error: insertError } = await client.from(table).insert(insertRow);
+        if (insertError && String(insertError.code || '') !== '23505') {
+          showBrandsToast('Could not add to list', true);
+          return result;
+        }
+        showBrandsToast('Added to list');
+        result.ok = true;
+        result.saved = true;
+        return result;
+      }
+    } catch (_err) {
+      showBrandsToast('Could not add to list', true);
+    }
+    return result;
+  }
+
+  async function toggleDefaultList({ itemId, listType, nextSaved }) {
+    return await saveToListFromHome({
+      mediaType: BRAND_TYPE,
+      itemId,
+      listType,
+      nextSaved
+    });
   }
 
   function renderCategories(items = []) {
@@ -202,12 +378,12 @@
       .from(BRAND_TABLE)
       .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
       .order('name', { ascending: true })
-      .limit(200);
+      .limit(500);
 
     if (error || !Array.isArray(data) || !data.length) {
-      allBrands = FALLBACKS.map(normalizeBrand);
+      allBrands = dedupeBrands(FALLBACKS.map(normalizeBrand));
     } else {
-      allBrands = data.map(normalizeBrand);
+      allBrands = dedupeBrands(data.map(normalizeBrand));
     }
 
     renderCategories(allBrands);
@@ -220,6 +396,7 @@
       mediaType: BRAND_TYPE,
       getCurrentUser: () => currentUser,
       ensureClient: ensureSupabase,
+      toggleDefaultList,
       notify: (message, isError) => {
         if (typeof window.showToast === 'function') window.showToast(message, isError ? 'error' : 'success');
         else if (isError) console.error(message);
@@ -240,7 +417,7 @@
   }
 
   function initPageMeta() {
-    const title = `${BRAND_LABEL} Brands � Zo2y`;
+    const title = `${BRAND_LABEL} Brands · Zo2y`;
     document.title = title;
     const titleEl = document.getElementById('pageTitle');
     const subtitleEl = document.getElementById('pageSubtitle');
@@ -262,6 +439,7 @@
     boot();
   }
 })();
+
 
 
 
