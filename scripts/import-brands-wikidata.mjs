@@ -217,11 +217,33 @@ async function importBrands(kind, table, limit, batchSize = 125, resumeState = {
   return totalInserted;
 }
 
+function parseArg(flag, fallback) {
+  const idx = process.argv.indexOf(flag);
+  if (idx === -1) return fallback;
+  const value = process.argv[idx + 1];
+  return value ?? fallback;
+}
+
 async function run() {
   const resumeState = loadState();
-  const fashionCount = await importBrands('fashion', 'fashion_brands', 500, 125, resumeState);
+  const kind = String(parseArg('--kind', '') || '').toLowerCase();
+  const limit = Number(parseArg('--limit', 500));
+  const batch = Number(parseArg('--batch', 125));
+
+  if (kind === 'fashion') {
+    const fashionCount = await importBrands('fashion', 'fashion_brands', limit, batch, resumeState);
+    console.log(`Imported fashion: ${fashionCount}`);
+    return;
+  }
+  if (kind === 'food') {
+    const foodCount = await importBrands('food', 'food_brands', limit, batch, resumeState);
+    console.log(`Imported food: ${foodCount}`);
+    return;
+  }
+
+  const fashionCount = await importBrands('fashion', 'fashion_brands', limit, batch, resumeState);
   await sleep(1200);
-  const foodCount = await importBrands('food', 'food_brands', 500, 125, resumeState);
+  const foodCount = await importBrands('food', 'food_brands', limit, batch, resumeState);
   console.log(`Imported fashion: ${fashionCount}`);
   console.log(`Imported food: ${foodCount}`);
 }
