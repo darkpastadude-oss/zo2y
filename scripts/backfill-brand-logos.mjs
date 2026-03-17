@@ -128,6 +128,19 @@ function sanitizeDomain(value) {
     .replace(/[^a-z0-9.-]/g, '');
 }
 
+function extractEntityWebsite(entity) {
+  const siteClaim = entity?.claims?.P856?.[0];
+  const siteUrl = siteClaim?.mainsnak?.datavalue?.value;
+  return siteUrl || '';
+}
+
+function extractEntityLogo(entity, size) {
+  const logoClaim = entity?.claims?.P154?.[0];
+  const logoFile = logoClaim?.mainsnak?.datavalue?.value;
+  if (!logoFile) return '';
+  return normalizeCommonsLogo(logoFile, size);
+}
+
 async function fetchLogoByDomain(domain, size) {
   const cleanDomain = sanitizeDomain(domain);
   if (!cleanDomain) return '';
@@ -151,6 +164,48 @@ async function fetchLogoByDomain(domain, size) {
   const value = json?.results?.bindings?.[0]?.logo?.value;
   if (!value) return '';
   return normalizeCommonsLogo(value, size);
+}
+
+async function fetchLogoByLabel(title, size, domain = '') {
+  const cleanTitle = String(title || '').trim();
+  if (!cleanTitle) return '';
+  const searchUrl = new URL('https://www.wikidata.org/w/api.php');
+  searchUrl.searchParams.set('action', 'wbsearchentities');
+  searchUrl.searchParams.set('search', cleanTitle);
+  searchUrl.searchParams.set('language', 'en');
+  searchUrl.searchParams.set('format', 'json');
+  searchUrl.searchParams.set('limit', '5');
+  const searchRes = await fetch(searchUrl.toString(), {
+    headers: { 'User-Agent': 'Zo2yWikiLogo/1.0' }
+  });
+  if (!searchRes.ok) return '';
+  const searchPayload = await searchRes.json();
+  const results = Array.isArray(searchPayload?.search) ? searchPayload.search : [];
+  if (!results.length) return '';
+
+  const domainNeedle = sanitizeDomain(domain);
+  for (const result of results) {
+    const qid = result?.id;
+    if (!qid) continue;
+    const entityUrl = `https://www.wikidata.org/wiki/Special:EntityData/${encodeURIComponent(qid)}.json`;
+    const entityRes = await fetch(entityUrl, {
+      headers: { 'User-Agent': 'Zo2yWikiLogo/1.0' }
+    });
+    if (!entityRes.ok) continue;
+    const entityPayload = await entityRes.json();
+    const entity = entityPayload?.entities?.[qid];
+    if (!entity) continue;
+    if (domainNeedle) {
+      const siteUrl = extractEntityWebsite(entity);
+      const siteDomain = sanitizeDomain(siteUrl);
+      if (!siteDomain || siteDomain !== domainNeedle) {
+        continue;
+      }
+    }
+    const logoUrl = extractEntityLogo(entity, size);
+    if (logoUrl) return logoUrl;
+  }
+  return '';
 }
 
 const MANUAL_LOGO_OVERRIDES = {
@@ -269,6 +324,10 @@ async function backfillTable(table, options = {}, state = {}) {
 
       if (!logoUrl && title) {
         logoUrl = await fetchWikiLogo(title, size);
+      }
+
+      if (!logoUrl && title) {
+        logoUrl = await fetchLogoByLabel(title, size, domain);
       }
 
       if (!logoUrl && title) {
