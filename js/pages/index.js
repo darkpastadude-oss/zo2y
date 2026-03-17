@@ -4392,11 +4392,15 @@
         const uniformMedia = !!opts?.uniformMedia;
         const landscape = !uniformMedia && (!!opts?.landscape || mediaTypeRaw === 'restaurant');
         const restaurantComposite = !!opts?.restaurantComposite && mediaTypeRaw === 'restaurant';
-        const title = escapeHtml(itemData.title || 'Untitled');
+        const rawTitle = String(itemData.title || 'Untitled');
+        const cleanedTitle = mediaTypeRaw === 'travel'
+          ? rawTitle.replace(/^\uD83C[\uDDE6-\uDDFF]\uD83C[\uDDE6-\uDDFF]\s*/u, '')
+          : rawTitle;
+        const title = escapeHtml(cleanedTitle);
         const subtitle = escapeHtml(itemData.subtitle || media.label);
         const extra = escapeHtml(itemData.extra || '');
         const image = escapeHtml(itemData.image || '');
-        const flagImage = '';
+        const flagImage = escapeHtml(itemData.flagImage || '');
         const listImage = escapeHtml(itemData.listImage || itemData.image || '');
         const logo = escapeHtml(itemData.logo || '');
         const fallbackImage = escapeHtml(itemData.fallbackImage || '');
@@ -4487,7 +4491,14 @@
           }
         }
         const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
-        const titleMarkup = title;
+        const titleMarkup = (mediaTypeRaw === 'travel' && flagImage)
+          ? `
+            <span class="country-title-wrap">
+              <img class="country-inline-flag" src="${flagImage}" alt="" aria-hidden="true" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer">
+              <span class="country-title-text">${title}</span>
+            </span>
+          `
+          : title;
         const trailingControl = supportsLists
           ? `
             <div class="card-menu-wrap">
