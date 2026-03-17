@@ -65,6 +65,13 @@ const TITLE_OVERRIDES = new Map([
   ['arc\'teryx', 'Arc\'teryx'],
   ['aritzia', 'Aritzia'],
   ['allbirds', 'Allbirds'],
+  ['& other stories', '& Other Stories'],
+  ['and other stories', '& Other Stories'],
+  ['aerie', 'Aerie (brand)'],
+  ['aeropostale', 'Aeropostale'],
+  ['alexander mcqueen', 'Alexander McQueen'],
+  ['abercrombie & fitch', 'Abercrombie & Fitch'],
+  ['abercrombie and fitch', 'Abercrombie & Fitch'],
   ['asos', 'ASOS'],
   ['asics', 'ASICS'],
   ['stone island', 'Stone Island'],
@@ -162,6 +169,11 @@ const DOMAIN_TITLE_OVERRIDES = new Map([
   ['americaneagle.com', 'American Eagle Outfitters'],
   ['aritzia.com', 'Aritzia'],
   ['arcteryx.com', 'Arc\'teryx'],
+  ['abercrombie.com', 'Abercrombie & Fitch'],
+  ['aeropostale.com', 'Aeropostale'],
+  ['aerie.com', 'Aerie (brand)'],
+  ['stories.com', '& Other Stories'],
+  ['alexandermcqueen.com', 'Alexander McQueen'],
   ['arket.com', 'Arket'],
   ['erewhon.com', 'Erewhon'],
   ['hm.com', 'H&M'],
@@ -196,6 +208,12 @@ const DOMAIN_TITLE_OVERRIDES = new Map([
   ['fiveguys.com', 'Five Guys'],
   ['shakeshack.com', 'Shake Shack'],
   ['dunkin.com', "Dunkin'"],
+  ['auntieannes.com', "Auntie Anne's"],
+  ['baskinrobbins.com', 'Baskin-Robbins'],
+  ['applebees.com', "Applebee's"],
+  ['bojangles.com', "Bojangles'"],
+  ['arbys.com', "Arby's"],
+  ['pizzahut.com', 'Pizza Hut'],
   ['wendys.com', "Wendy's"],
   ['in-n-out.com', 'In-N-Out Burger'],
   ['toyota.com', 'Toyota'],
@@ -296,6 +314,30 @@ async function fetchWikiLogo(title, size) {
   return normalizeCommonsLogo(logoFile, size);
 }
 
+async function fetchWikiSite(title) {
+  if (!title) return '';
+  const normalizedTitle = TITLE_OVERRIDES.get(String(title || '').trim().toLowerCase()) || title;
+  const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(normalizedTitle)}?redirect=true`;
+  const summaryRes = await fetch(summaryUrl, {
+    headers: { 'User-Agent': 'Zo2yWikiLogo/1.0' }
+  });
+  if (!summaryRes.ok) return '';
+  const payload = await summaryRes.json();
+  const wikibaseId = payload?.wikibase_item;
+  if (!wikibaseId) return '';
+
+  const entityUrl = `https://www.wikidata.org/wiki/Special:EntityData/${encodeURIComponent(wikibaseId)}.json`;
+  const entityRes = await fetch(entityUrl, {
+    headers: { 'User-Agent': 'Zo2yWikiLogo/1.0' }
+  });
+  if (!entityRes.ok) return '';
+  const entityPayload = await entityRes.json();
+  const entity = entityPayload?.entities?.[wikibaseId];
+  const siteClaim = entity?.claims?.P856?.[0];
+  const siteUrl = siteClaim?.mainsnak?.datavalue?.value;
+  return siteUrl || '';
+}
+
 async function fetchWikiLogoByDomain(domain, size) {
   const cleanDomain = String(domain || '').trim().toLowerCase();
   if (!cleanDomain) return '';
@@ -336,9 +378,8 @@ export default async function handler(req, res) {
     const logoOnly = String(query.mode || '').toLowerCase() === 'logo';
     const domainOverride = DOMAIN_TITLE_OVERRIDES.get(domainRaw) || '';
     const normalizedTitle = domainOverride || titleRaw;
-    const skipDomainLookup = !!domainOverride;
 
-    if (domainRaw && logoOnly && !skipDomainLookup && typeof fetch === 'function') {
+    if (domainRaw && logoOnly && typeof fetch === 'function') {
       try {
         const logoUrl = await fetchWikiLogoByDomain(domainRaw, size);
         if (logoUrl) {
@@ -363,14 +404,33 @@ export default async function handler(req, res) {
           res.end();
           return;
         }
+        if (logoOnly) {
+          const siteUrl = await fetchWikiSite(normalizedTitle);
+          const siteDomain = sanitizeDomain(siteUrl);
+          if (siteDomain) {
+            const googleUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(siteDomain)}&sz=${size}`;
+            res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+            res.status(302);
+            res.setHeader('Location', googleUrl);
+            res.end();
+            return;
+          }
+        }
       } catch (_err) {
         // fall through to domain-based lookup
       }
     }
 
-    if (!logoOnly && domainRaw && typeof fetch === 'function') {
+    if (domainRaw && typeof fetch === 'function') {
       try {
         const googleUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domainRaw)}&sz=${size}`;
+        if (logoOnly) {
+          res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+          res.status(302);
+          res.setHeader('Location', googleUrl);
+          res.end();
+          return;
+        }
         const googleRes = await fetch(googleUrl);
         if (googleRes.ok) {
           res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
@@ -386,11 +446,13 @@ export default async function handler(req, res) {
 
       try {
         const ddgUrl = `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domainRaw)}.ico`;
-        res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
-        res.status(302);
-        res.setHeader('Location', ddgUrl);
-        res.end();
-        return;
+        if (!logoOnly) {
+          res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+          res.status(302);
+          res.setHeader('Location', ddgUrl);
+          res.end();
+          return;
+        }
       } catch (_err) {
         // final fallback below
       }

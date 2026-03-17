@@ -108,12 +108,12 @@ main.container {
   width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 14px;
-  background: rgba(8, 14, 30, 0.6);
+  background: var(--brand-card);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--brand-border);
 }
 
 .brand-card-logo img {

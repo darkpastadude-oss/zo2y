@@ -983,6 +983,12 @@
     }
 
     function resolveBrandLogo(row, mediaType) {
+      const logoValue = String(row?.logo_url || row?.logo || '').trim();
+      if (logoValue) {
+        if (/^https?:\/\//i.test(logoValue) || logoValue.startsWith('/') || logoValue.startsWith('data:')) {
+          return logoValue;
+        }
+      }
       const title = String(row?.name || row?.title || '').trim();
       const domainRaw = String(row?.domain || '').trim();
       const logoOnly = ['fashion', 'food', 'car'].includes(String(mediaType || '').toLowerCase());

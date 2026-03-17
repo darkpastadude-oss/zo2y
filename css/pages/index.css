@@ -1429,13 +1429,13 @@
     .card-media.brand-cover {
       aspect-ratio: 1/1;
       padding: 10px;
-      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+      background: var(--card-2);
     }
 
     .card-media.brand-cover img {
       object-fit: contain;
       border-radius: 8px;
-      background: rgba(7, 15, 32, 0.35);
+      background: transparent;
     }
 
     .card-media.landscape.game-poster img {
@@ -1619,6 +1619,11 @@
       aspect-ratio: 1/1;
       height: 180px;
       padding: 6px;
+      background: var(--card-2);
+    }
+
+    .rail.unified-rail .card-media.brand-cover img {
+      background: transparent;
     }
 
     .rail.unified-rail .card-media.game-poster {
