@@ -119,21 +119,6 @@ export default async function handler(req, res) {
     const domainOverride = DOMAIN_TITLE_OVERRIDES.get(domainRaw) || '';
     const normalizedTitle = domainOverride || titleRaw;
 
-    if (normalizedTitle && typeof fetch === 'function') {
-      try {
-        const logoUrl = await fetchWikiLogo(normalizedTitle, size);
-        if (logoUrl) {
-          res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
-          res.status(302);
-          res.setHeader('Location', logoUrl);
-          res.end();
-          return;
-        }
-      } catch (_err) {
-        // fall through to domain-based lookup
-      }
-    }
-
     if (domainRaw && logoOnly && typeof fetch === 'function') {
       try {
         const logoUrl = await fetchWikiLogoByDomain(domainRaw, size);
@@ -146,6 +131,21 @@ export default async function handler(req, res) {
         }
       } catch (_err) {
         // continue to fallback
+      }
+    }
+
+    if (normalizedTitle && typeof fetch === 'function') {
+      try {
+        const logoUrl = await fetchWikiLogo(normalizedTitle, size);
+        if (logoUrl) {
+          res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+          res.status(302);
+          res.setHeader('Location', logoUrl);
+          res.end();
+          return;
+        }
+      } catch (_err) {
+        // fall through to domain-based lookup
       }
     }
 

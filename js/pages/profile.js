@@ -497,8 +497,9 @@
             }
 
             function closeProfileTabGroups() {
-                document.querySelectorAll('.profile-tab-group-row.open').forEach((row) => {
+                document.querySelectorAll('.profile-tab-group-row').forEach((row) => {
                     row.classList.remove('open');
+                    row.style.display = 'none';
                 });
                 document.querySelectorAll('.profile-tab-group-toggle[aria-expanded="true"]').forEach((toggle) => {
                     toggle.setAttribute('aria-expanded', 'false');
@@ -517,10 +518,11 @@
                         const group = toggle.getAttribute('data-group');
                         if (!group) return;
                         const row = document.querySelector(`.profile-tab-group-row[data-group="${group}"]`);
-                        const isOpen = row && row.classList.contains('open');
+                        const isOpen = row && (row.classList.contains('open') || row.style.display === 'flex');
                         closeProfileTabGroups();
                         if (row && !isOpen) {
                             row.classList.add('open');
+                            row.style.display = 'flex';
                             toggle.setAttribute('aria-expanded', 'true');
                         }
                     });
@@ -544,6 +546,7 @@
                 const toggle = document.querySelector(`.profile-tab-group-toggle[data-group="${group}"]`);
                 if (row && !row.classList.contains('open')) {
                     row.classList.add('open');
+                    row.style.display = 'flex';
                 }
                 if (toggle) toggle.setAttribute('aria-expanded', 'true');
             }
