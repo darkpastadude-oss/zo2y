@@ -180,6 +180,18 @@ const fashionBrands = [
   { name: 'Stussy', domain: 'stussy.com', category: 'Streetwear', country: 'USA', founded: '1980', description: 'Iconic streetwear label.', tags: ['streetwear'] },
   { name: 'BAPE', domain: 'bape.com', category: 'Streetwear', country: 'Japan', founded: '1993', description: 'Japanese streetwear brand.', tags: ['streetwear'] },
   { name: 'Palace', domain: 'palaceskateboards.com', category: 'Streetwear', country: 'UK', founded: '2009', description: 'Skatewear and streetwear.', tags: ['streetwear'] }
+  ,
+  { name: 'Alo Yoga', domain: 'aloyoga.com', category: 'Athleisure', country: 'USA', founded: '2007', description: 'Yoga and athleisure brand.', tags: ['athleisure'] },
+  { name: 'Fear of God', domain: 'fearofgod.com', category: 'Streetwear', country: 'USA', founded: '2013', description: 'Luxury streetwear brand.', tags: ['streetwear', 'luxury'] },
+  { name: 'Essentials', domain: 'fearofgod.com', category: 'Streetwear', country: 'USA', founded: '2018', description: 'Fear of God Essentials line.', tags: ['streetwear'] },
+  { name: 'Maison Margiela', domain: 'maisonmargiela.com', category: 'Luxury', country: 'France', founded: '1988', description: 'Avant-garde fashion house.', tags: ['luxury'] },
+  { name: 'Miu Miu', domain: 'miumiu.com', category: 'Luxury', country: 'Italy', founded: '1993', description: 'Luxury fashion brand.', tags: ['luxury'] },
+  { name: 'Tory Burch', domain: 'toryburch.com', category: 'Designer', country: 'USA', founded: '2004', description: 'American designer brand.', tags: ['designer'] },
+  { name: 'Michael Kors', domain: 'michaelkors.com', category: 'Designer', country: 'USA', founded: '1981', description: 'American luxury brand.', tags: ['designer'] },
+  { name: 'Kate Spade', domain: 'katespade.com', category: 'Designer', country: 'USA', founded: '1993', description: 'Accessories and fashion brand.', tags: ['designer'] },
+  { name: 'Burton', domain: 'burton.com', category: 'Outdoor', country: 'USA', founded: '1977', description: 'Snowboard and outdoor apparel.', tags: ['outdoor'] },
+  { name: 'Oakley', domain: 'oakley.com', category: 'Sportswear', country: 'USA', founded: '1975', description: 'Sports eyewear and apparel.', tags: ['sportswear'] },
+  { name: 'Loro Piana', domain: 'loropiana.com', category: 'Luxury', country: 'Italy', founded: '1924', description: 'Italian luxury textiles.', tags: ['luxury'] }
 ];
 
 const foodBrands = [
@@ -259,6 +271,14 @@ const foodBrands = [
   { name: 'Jersey Mike\'s', domain: 'jerseymikes.com', category: 'Fast Food', country: 'USA', founded: '1956', description: 'Subs and sandwiches.', tags: ['sandwiches'] },
   { name: 'El Pollo Loco', domain: 'elpolloloco.com', category: 'Fast Food', country: 'USA', founded: '1975', description: 'Mexican-style chicken.', tags: ['chicken'] },
   { name: 'Qdoba', domain: 'qdoba.com', category: 'Fast Casual', country: 'USA', founded: '1995', description: 'Mexican fast casual.', tags: ['fast casual'] }
+  ,
+  { name: 'Chili\'s', domain: 'chilis.com', category: 'Restaurants', country: 'USA', founded: '1975', description: 'Casual dining chain.', tags: ['restaurants'] },
+  { name: 'Outback Steakhouse', domain: 'outback.com', category: 'Restaurants', country: 'USA', founded: '1988', description: 'Steakhouse chain.', tags: ['restaurants'] },
+  { name: 'Red Lobster', domain: 'redlobster.com', category: 'Restaurants', country: 'USA', founded: '1968', description: 'Seafood restaurant chain.', tags: ['restaurants'] },
+  { name: 'LongHorn Steakhouse', domain: 'longhornsteakhouse.com', category: 'Restaurants', country: 'USA', founded: '1981', description: 'Steakhouse chain.', tags: ['restaurants'] },
+  { name: 'TGI Fridays', domain: 'tgifridays.com', category: 'Restaurants', country: 'USA', founded: '1965', description: 'Casual dining chain.', tags: ['restaurants'] },
+  { name: 'P.F. Chang\'s', domain: 'pfchangs.com', category: 'Restaurants', country: 'USA', founded: '1993', description: 'Asian-inspired restaurant chain.', tags: ['restaurants'] },
+  { name: 'Cheesecake Factory', domain: 'thecheesecakefactory.com', category: 'Restaurants', country: 'USA', founded: '1978', description: 'Restaurant and bakery chain.', tags: ['restaurants'] }
 ];
 
 const carBrands = [
@@ -334,6 +354,14 @@ const carBrands = [
   { name: 'Koenigsegg', domain: 'koenigsegg.com', category: 'Luxury', country: 'Sweden', founded: '1994', description: 'Swedish hypercar maker.', tags: ['luxury'] },
   { name: 'Pagani', domain: 'pagani.com', category: 'Luxury', country: 'Italy', founded: '1992', description: 'Italian hypercar maker.', tags: ['luxury'] },
   { name: 'Lotus', domain: 'lotuscars.com', category: 'Luxury', country: 'UK', founded: '1952', description: 'British sports cars.', tags: ['luxury'] }
+  ,
+  { name: 'Dacia', domain: 'dacia.com', category: 'Automaker', country: 'Romania', founded: '1966', description: 'Value-focused automaker.', tags: ['automaker'] },
+  { name: 'Cupra', domain: 'cupraofficial.com', category: 'Automaker', country: 'Spain', founded: '2018', description: 'Performance car brand.', tags: ['automaker'] },
+  { name: 'Changan', domain: 'changan.com', category: 'Automaker', country: 'China', founded: '1862', description: 'Chinese automaker.', tags: ['automaker'] },
+  { name: 'Dongfeng', domain: 'dongfengmotor.com', category: 'Automaker', country: 'China', founded: '1969', description: 'Chinese automaker.', tags: ['automaker'] },
+  { name: 'Haval', domain: 'gwm-global.com', category: 'Automaker', country: 'China', founded: '2013', description: 'SUV brand by Great Wall.', tags: ['automaker'] },
+  { name: 'Saab', domain: 'saab.com', category: 'Automaker', country: 'Sweden', founded: '1945', description: 'Swedish automaker.', tags: ['automaker'] },
+  { name: 'Lancia', domain: 'lancia.com', category: 'Automaker', country: 'Italy', founded: '1906', description: 'Italian automaker.', tags: ['automaker'] }
 ];
 
 function toSupabaseRow(brand) {

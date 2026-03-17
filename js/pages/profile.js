@@ -506,6 +506,16 @@
                 });
             }
 
+            function resolveProfileGroupRow(group, toggle) {
+                if (!group) return null;
+                const isMobile = window.innerWidth <= 768;
+                const inMobileTabs = !!toggle?.closest?.('.mobile-tabs');
+                if (isMobile || inMobileTabs) {
+                    return document.querySelector(`.profile-tab-group-row.mobile[data-group="${group}"]`);
+                }
+                return document.querySelector(`.profile-tab-group-row[data-group="${group}"]:not(.mobile)`);
+            }
+
             function wireProfileTabGroups() {
                 const toggles = Array.from(document.querySelectorAll('.profile-tab-group-toggle'));
                 if (!toggles.length) return;
@@ -517,7 +527,7 @@
                         event.stopPropagation();
                         const group = toggle.getAttribute('data-group');
                         if (!group) return;
-                        const row = document.querySelector(`.profile-tab-group-row[data-group="${group}"]`);
+                        const row = resolveProfileGroupRow(group, toggle);
                         const isOpen = row && (row.classList.contains('open') || row.style.display === 'flex');
                         closeProfileTabGroups();
                         if (row && !isOpen) {
@@ -542,7 +552,7 @@
                 if (mediaTabs.has(tabName)) group = 'media';
                 if (lifestyleTabs.has(tabName)) group = 'lifestyle';
                 if (!group) return;
-                const row = document.querySelector(`.profile-tab-group-row[data-group="${group}"]`);
+                const row = resolveProfileGroupRow(group, window.innerWidth <= 768 ? document.querySelector('.mobile-tabs') : null);
                 const toggle = document.querySelector(`.profile-tab-group-toggle[data-group="${group}"]`);
                 if (row && !row.classList.contains('open')) {
                     row.classList.add('open');

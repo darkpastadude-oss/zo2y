@@ -54,6 +54,10 @@ function normalizeCommonsLogo(value, size) {
   return toCommonsFilePath(raw, size);
 }
 
+function escapeRegex(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 async function fetchWikiLogo(title, size) {
   if (!title) return '';
   const normalizedTitle = TITLE_OVERRIDES.get(String(title || '').trim().toLowerCase()) || title;
@@ -82,10 +86,11 @@ async function fetchWikiLogo(title, size) {
 async function fetchWikiLogoByDomain(domain, size) {
   const cleanDomain = String(domain || '').trim().toLowerCase();
   if (!cleanDomain) return '';
+  const domainPattern = escapeRegex(cleanDomain);
   const sparql = `
     SELECT ?logo WHERE {
       ?item wdt:P856 ?site .
-      FILTER(CONTAINS(LCASE(STR(?site)), "${cleanDomain}"))
+      FILTER(REGEX(LCASE(STR(?site)), "^https?://(www\\.)?${domainPattern}(/|$)"))
       ?item wdt:P154 ?logo .
     } LIMIT 1
   `;
