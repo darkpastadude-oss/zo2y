@@ -3906,6 +3906,14 @@ header, .top-stripe, .section-nav {
 
 .profile-tab-group-toggle {
   gap: 8px;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .profile-tab-group-toggle i.fa-chevron-down {
@@ -3918,6 +3926,9 @@ header, .top-stripe, .section-nav {
   padding: 10px 6px 6px;
   margin-bottom: 14px;
   overflow-x: auto;
+  background: transparent;
+  border-radius: 0;
+  border: 0;
 }
 
 .profile-tab-group-row.open {
@@ -3931,6 +3942,12 @@ header, .top-stripe, .section-nav {
 .profile-tab-group-row.mobile {
   padding: 8px 6px 6px;
   margin-bottom: 10px;
+}
+
+.profile-tab-group-toggle:hover,
+.profile-tab-group-toggle:focus {
+  background: var(--bg-hover);
+  color: var(--text);
 }
 
 .nav-tab {

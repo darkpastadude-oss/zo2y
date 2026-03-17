@@ -689,10 +689,10 @@ body.zo2y-mobile-menu-open .zo2y-mobile-drawer {
 }
 
 .zo2y-mobile-accordion {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
 }
 
 .zo2y-mobile-accordion-toggle {
@@ -704,9 +704,9 @@ body.zo2y-mobile-menu-open .zo2y-mobile-drawer {
   font-weight: 700;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 12px 6px 8px;
   cursor: pointer;
 }
 
@@ -719,7 +719,7 @@ body.zo2y-mobile-menu-open .zo2y-mobile-drawer {
 .zo2y-mobile-accordion-panel {
   display: grid;
   gap: 6px;
-  padding: 0 10px 10px;
+  padding: 0 6px 10px;
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.25s ease;

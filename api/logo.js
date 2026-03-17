@@ -18,6 +18,27 @@ function toCommonsFilePath(filename, size) {
   return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(safeName)}?width=${width}`;
 }
 
+const TITLE_OVERRIDES = new Map([
+  ['american eagle', 'American Eagle Outfitters'],
+  ['american eagle outfitters', 'American Eagle Outfitters'],
+  ['ae', 'American Eagle Outfitters'],
+  ['arbys', "Arby's"],
+  ['arby\'s', "Arby's"],
+  ['chipotle', 'Chipotle Mexican Grill'],
+  ['cava', 'Cava Group'],
+  ['nike', 'Nike, Inc.'],
+  ['adidas', 'Adidas']
+]);
+
+const DOMAIN_TITLE_OVERRIDES = new Map([
+  ['ae.com', 'American Eagle Outfitters'],
+  ['americaneagle.com', 'American Eagle Outfitters'],
+  ['aritzia.com', 'Aritzia'],
+  ['arcteryx.com', 'Arc\'teryx'],
+  ['arket.com', 'Arket'],
+  ['erewhon.com', 'Erewhon']
+]);
+
 function normalizeCommonsLogo(value, size) {
   const raw = String(value || '').trim();
   if (!raw) return '';
@@ -35,7 +56,8 @@ function normalizeCommonsLogo(value, size) {
 
 async function fetchWikiLogo(title, size) {
   if (!title) return '';
-  const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}?redirect=true`;
+  const normalizedTitle = TITLE_OVERRIDES.get(String(title || '').trim().toLowerCase()) || title;
+  const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(normalizedTitle)}?redirect=true`;
   const summaryRes = await fetch(summaryUrl, {
     headers: { 'User-Agent': 'Zo2yWikiLogo/1.0' }
   });
@@ -94,10 +116,12 @@ export default async function handler(req, res) {
     const sizeRaw = Number(query.size || 256);
     const size = Number.isFinite(sizeRaw) ? Math.max(64, Math.min(512, sizeRaw)) : 256;
     const logoOnly = String(query.mode || '').toLowerCase() === 'logo';
+    const domainOverride = DOMAIN_TITLE_OVERRIDES.get(domainRaw) || '';
+    const normalizedTitle = domainOverride || titleRaw;
 
-    if (titleRaw && typeof fetch === 'function') {
+    if (normalizedTitle && typeof fetch === 'function') {
       try {
-        const logoUrl = await fetchWikiLogo(titleRaw, size);
+        const logoUrl = await fetchWikiLogo(normalizedTitle, size);
         if (logoUrl) {
           res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
           res.status(302);

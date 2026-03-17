@@ -125,6 +125,7 @@
     if (AUTH_PAGE_KEYS.has(pageKey)) return false;
     if (hasOAuthParams()) return false;
     if (isStandaloneMode()) return false;
+    if (!deferredInstallPrompt) return false;
     if (localStorage.getItem(INSTALL_DONE_KEY) === '1') return false;
     const dismissedAt = Number(localStorage.getItem(INSTALL_DISMISS_KEY) || 0);
     if (dismissedAt && (Date.now() - dismissedAt) < INSTALL_REPROMPT_MS) return false;
@@ -430,8 +431,7 @@
     const force = options.force === true;
     if (installCardVisible && !force) return;
     const canPromptInstall = !!deferredInstallPrompt;
-    const useIosHint = isIosDevice() && isSafariLike() && !canPromptInstall;
-    const useGenericHint = !canPromptInstall && !useIosHint;
+    if (!canPromptInstall) return;
 
     ensureInstallPromptStyle();
     let overlay = document.getElementById('zo2yInstallPrompt');
@@ -481,42 +481,6 @@
         } catch (_err) {
           dismissInstallPrompt();
         }
-      });
-      overlay.querySelector('#zo2yInstallLaterBtn')?.addEventListener('click', () => {
-        dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 60 * 4 });
-      });
-    } else if (useIosHint) {
-      overlay.innerHTML = `
-        <div class="zo2y-install-prompt" role="dialog" aria-modal="true" aria-label="Install app">
-          <button type="button" class="zo2y-install-close" id="zo2yInstallCloseBtn" aria-label="Close">&times;</button>
-          <p class="zo2y-install-title">Install App</p>
-          <p class="zo2y-install-copy">On iPhone Safari: tap <strong>Share</strong>, then choose <strong>Add to Home Screen</strong>.</p>
-          <div class="zo2y-install-actions">
-            <button type="button" class="zo2y-install-btn primary" id="zo2yInstallGotItBtn">Got it</button>
-            <button type="button" class="zo2y-install-btn" id="zo2yInstallLaterBtn">Later</button>
-          </div>
-        </div>
-      `;
-      overlay.querySelector('#zo2yInstallGotItBtn')?.addEventListener('click', () => {
-        dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 60 * 4 });
-      });
-      overlay.querySelector('#zo2yInstallLaterBtn')?.addEventListener('click', () => {
-        dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 60 * 4 });
-      });
-    } else if (useGenericHint) {
-      overlay.innerHTML = `
-        <div class="zo2y-install-prompt" role="dialog" aria-modal="true" aria-label="Install app">
-          <button type="button" class="zo2y-install-close" id="zo2yInstallCloseBtn" aria-label="Close">&times;</button>
-          <p class="zo2y-install-title">Install App</p>
-          <p class="zo2y-install-copy">Open your browser menu and tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.</p>
-          <div class="zo2y-install-actions">
-            <button type="button" class="zo2y-install-btn primary" id="zo2yInstallGenericOkBtn">Got it</button>
-            <button type="button" class="zo2y-install-btn" id="zo2yInstallLaterBtn">Later</button>
-          </div>
-        </div>
-      `;
-      overlay.querySelector('#zo2yInstallGenericOkBtn')?.addEventListener('click', () => {
-        dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 60 * 4 });
       });
       overlay.querySelector('#zo2yInstallLaterBtn')?.addEventListener('click', () => {
         dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 60 * 4 });
@@ -890,7 +854,7 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js?v=20260315e').catch(() => {
+      navigator.serviceWorker.register('/sw.js?v=20260317c').catch(() => {
         // silent fail to avoid runtime noise
       });
     });
