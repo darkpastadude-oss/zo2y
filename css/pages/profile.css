@@ -3901,6 +3901,75 @@ header, .top-stripe, .section-nav {
   padding: 6px;
   background: rgba(19, 35, 71, 0.92);
   backdrop-filter: blur(7px);
+  overflow: visible;
+}
+
+.profile-tab-group {
+  position: relative;
+}
+
+.profile-tab-toggle {
+  gap: 8px;
+}
+
+.profile-tab-toggle i.fa-chevron-down {
+  margin-left: 6px;
+  font-size: 0.85em;
+}
+
+.profile-tab-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 220px;
+  padding: 10px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(12, 22, 48, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  z-index: 30;
+}
+
+.profile-tab-group.open .profile-tab-menu {
+  display: flex;
+}
+
+.profile-tab-link {
+  border: none;
+  background: rgba(20, 32, 64, 0.6);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.profile-tab-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.profile-tab-link.active {
+  background: rgba(245, 158, 11, 0.16);
+  color: #f8c366;
+}
+
+.profile-tab-group.mobile {
+  flex: 0 0 auto;
+}
+
+.profile-tab-group.mobile .profile-tab-menu {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: calc(100% + 6px);
+  min-width: unset;
 }
 
 .nav-tab {

@@ -100,11 +100,11 @@ export default async function handler(req, res) {
     }
 
     res.status(302);
-    res.setHeader('Location', '/newlogo.webp');
+    res.setHeader('Location', logoOnly ? '/logo-placeholder.svg' : '/newlogo.webp');
     res.end();
   } catch (_err) {
     res.status(302);
-    res.setHeader('Location', '/newlogo.webp');
+    res.setHeader('Location', '/logo-placeholder.svg');
     res.end();
   }
 }

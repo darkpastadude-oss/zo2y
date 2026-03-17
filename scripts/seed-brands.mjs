@@ -159,7 +159,27 @@ const fashionBrands = [
   { name: 'Kenzo', domain: 'kenzo.com', category: 'Luxury', country: 'France', founded: '1970', description: 'French luxury fashion.', tags: ['luxury'] },
   { name: 'HUGO', domain: 'hugoboss.com', category: 'Designer', country: 'Germany', founded: '1993', description: 'Contemporary designer label.', tags: ['designer'] },
   { name: 'UGG', domain: 'ugg.com', category: 'Footwear', country: 'USA', founded: '1978', description: 'Sheepskin footwear brand.', tags: ['footwear'] },
-  { name: 'Bulgari', domain: 'bulgari.com', category: 'Luxury', country: 'Italy', founded: '1884', description: 'Italian luxury house.', tags: ['luxury'] }
+  { name: 'Bulgari', domain: 'bulgari.com', category: 'Luxury', country: 'Italy', founded: '1884', description: 'Italian luxury house.', tags: ['luxury'] },
+  { name: 'Massimo Dutti', domain: 'massimodutti.com', category: 'Fashion', country: 'Spain', founded: '1985', description: 'Premium fashion label.', tags: ['fashion'] },
+  { name: 'Bershka', domain: 'bershka.com', category: 'Fast Fashion', country: 'Spain', founded: '1998', description: 'Youth fashion retailer.', tags: ['fast fashion'] },
+  { name: 'Pull&Bear', domain: 'pullandbear.com', category: 'Fast Fashion', country: 'Spain', founded: '1991', description: 'Casual fashion retailer.', tags: ['fast fashion'] },
+  { name: 'Stradivarius', domain: 'stradivarius.com', category: 'Fast Fashion', country: 'Spain', founded: '1994', description: 'Womenswear fashion.', tags: ['fast fashion'] },
+  { name: 'COS', domain: 'cos.com', category: 'Fashion', country: 'UK', founded: '2007', description: 'Modern, minimalist fashion.', tags: ['fashion'] },
+  { name: '& Other Stories', domain: 'stories.com', category: 'Fashion', country: 'Sweden', founded: '2013', description: 'Contemporary fashion label.', tags: ['fashion'] },
+  { name: 'Arket', domain: 'arket.com', category: 'Fashion', country: 'Sweden', founded: '2017', description: 'Modern essentials and lifestyle.', tags: ['fashion'] },
+  { name: 'Weekday', domain: 'weekday.com', category: 'Streetwear', country: 'Sweden', founded: '2002', description: 'Streetwear and denim.', tags: ['streetwear', 'denim'] },
+  { name: 'J.Crew', domain: 'jcrew.com', category: 'Casual', country: 'USA', founded: '1947', description: 'Classic American style.', tags: ['casual'] },
+  { name: 'Banana Republic', domain: 'bananarepublic.com', category: 'Designer', country: 'USA', founded: '1978', description: 'Premium casual apparel.', tags: ['designer'] },
+  { name: 'Champion', domain: 'champion.com', category: 'Sportswear', country: 'USA', founded: '1919', description: 'Athletic apparel brand.', tags: ['sportswear'] },
+  { name: 'Lacoste', domain: 'lacoste.com', category: 'Designer', country: 'France', founded: '1933', description: 'French apparel brand.', tags: ['designer'] },
+  { name: 'Gant', domain: 'gant.com', category: 'Designer', country: 'USA', founded: '1949', description: 'American sportswear brand.', tags: ['designer'] },
+  { name: 'Diesel', domain: 'diesel.com', category: 'Denim', country: 'Italy', founded: '1978', description: 'Italian denim brand.', tags: ['denim'] },
+  { name: 'Guess', domain: 'guess.com', category: 'Designer', country: 'USA', founded: '1981', description: 'American fashion brand.', tags: ['designer'] },
+  { name: 'Carhartt', domain: 'carhartt.com', category: 'Workwear', country: 'USA', founded: '1889', description: 'Workwear and streetwear.', tags: ['workwear'] },
+  { name: 'Dickies', domain: 'dickies.com', category: 'Workwear', country: 'USA', founded: '1922', description: 'Workwear brand.', tags: ['workwear'] },
+  { name: 'Stussy', domain: 'stussy.com', category: 'Streetwear', country: 'USA', founded: '1980', description: 'Iconic streetwear label.', tags: ['streetwear'] },
+  { name: 'BAPE', domain: 'bape.com', category: 'Streetwear', country: 'Japan', founded: '1993', description: 'Japanese streetwear brand.', tags: ['streetwear'] },
+  { name: 'Palace', domain: 'palaceskateboards.com', category: 'Streetwear', country: 'UK', founded: '2009', description: 'Skatewear and streetwear.', tags: ['streetwear'] }
 ];
 
 const foodBrands = [
@@ -222,7 +242,23 @@ const foodBrands = [
   { name: 'Red Lobster', domain: 'redlobster.com', category: 'Restaurants', country: 'USA', founded: '1968', description: 'Seafood restaurant chain.', tags: ['restaurants'] },
   { name: 'CAVA', domain: 'cava.com', category: 'Fast Casual', country: 'USA', founded: '2006', description: 'Mediterranean fast casual.', tags: ['fast casual'] },
   { name: 'Sweetgreen', domain: 'sweetgreen.com', category: 'Fast Casual', country: 'USA', founded: '2007', description: 'Salads and bowls.', tags: ['fast casual'] },
-  { name: 'Noodles & Company', domain: 'noodles.com', category: 'Fast Casual', country: 'USA', founded: '1995', description: 'Noodle-focused chain.', tags: ['fast casual'] }
+  { name: 'Noodles & Company', domain: 'noodles.com', category: 'Fast Casual', country: 'USA', founded: '1995', description: 'Noodle-focused chain.', tags: ['fast casual'] },
+  { name: 'Panda Express', domain: 'pandaexpress.com', category: 'Fast Casual', country: 'USA', founded: '1983', description: 'Chinese-American fast casual.', tags: ['fast casual'] },
+  { name: 'Jollibee', domain: 'jollibee.com', category: 'Fast Food', country: 'Philippines', founded: '1978', description: 'Filipino fast food chain.', tags: ['fast food'] },
+  { name: 'Dairy Queen', domain: 'dairyqueen.com', category: 'Dessert', country: 'USA', founded: '1940', description: 'Ice cream and fast food.', tags: ['dessert'] },
+  { name: 'Carl\'s Jr.', domain: 'carlsjr.com', category: 'Fast Food', country: 'USA', founded: '1941', description: 'Burger chain.', tags: ['fast food'] },
+  { name: 'Hardee\'s', domain: 'hardees.com', category: 'Fast Food', country: 'USA', founded: '1960', description: 'Burger chain.', tags: ['fast food'] },
+  { name: 'Whataburger', domain: 'whataburger.com', category: 'Fast Food', country: 'USA', founded: '1950', description: 'Burger chain.', tags: ['fast food'] },
+  { name: 'Culver\'s', domain: 'culvers.com', category: 'Fast Food', country: 'USA', founded: '1984', description: 'Butter burgers and custard.', tags: ['fast food'] },
+  { name: 'Raising Cane\'s', domain: 'raisingcanes.com', category: 'Fast Food', country: 'USA', founded: '1996', description: 'Chicken finger chain.', tags: ['chicken', 'fast food'] },
+  { name: 'Zaxby\'s', domain: 'zaxbys.com', category: 'Fast Food', country: 'USA', founded: '1990', description: 'Chicken chain.', tags: ['chicken', 'fast food'] },
+  { name: 'Wingstop', domain: 'wingstop.com', category: 'Fast Food', country: 'USA', founded: '1994', description: 'Wing chain.', tags: ['chicken', 'fast food'] },
+  { name: 'Papa Murphy\'s', domain: 'papamurphys.com', category: 'Pizza', country: 'USA', founded: '1995', description: 'Take-and-bake pizza chain.', tags: ['pizza'] },
+  { name: 'Jimmy John\'s', domain: 'jimmyjohns.com', category: 'Fast Food', country: 'USA', founded: '1983', description: 'Sandwich chain.', tags: ['sandwiches'] },
+  { name: 'Firehouse Subs', domain: 'firehousesubs.com', category: 'Fast Food', country: 'USA', founded: '1994', description: 'Sandwich chain.', tags: ['sandwiches'] },
+  { name: 'Jersey Mike\'s', domain: 'jerseymikes.com', category: 'Fast Food', country: 'USA', founded: '1956', description: 'Subs and sandwiches.', tags: ['sandwiches'] },
+  { name: 'El Pollo Loco', domain: 'elpolloloco.com', category: 'Fast Food', country: 'USA', founded: '1975', description: 'Mexican-style chicken.', tags: ['chicken'] },
+  { name: 'Qdoba', domain: 'qdoba.com', category: 'Fast Casual', country: 'USA', founded: '1995', description: 'Mexican fast casual.', tags: ['fast casual'] }
 ];
 
 const carBrands = [

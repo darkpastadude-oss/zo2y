@@ -496,6 +496,40 @@
                 }, duration);
             }
 
+            function closeProfileTabMenus() {
+                document.querySelectorAll('.profile-tab-group.open').forEach((group) => {
+                    group.classList.remove('open');
+                    const toggle = group.querySelector('.profile-tab-toggle');
+                    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+                });
+            }
+
+            function wireProfileTabMenus() {
+                const groups = Array.from(document.querySelectorAll('.profile-tab-group'));
+                if (!groups.length) return;
+
+                groups.forEach((group) => {
+                    const toggle = group.querySelector('.profile-tab-toggle');
+                    if (!toggle || toggle.dataset.wired === '1') return;
+                    toggle.dataset.wired = '1';
+                    toggle.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        const isOpen = group.classList.contains('open');
+                        closeProfileTabMenus();
+                        if (!isOpen) {
+                            group.classList.add('open');
+                            toggle.setAttribute('aria-expanded', 'true');
+                        }
+                    });
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (!(event.target instanceof Element)) return;
+                    if (event.target.closest('.profile-tab-group')) return;
+                    closeProfileTabMenus();
+                });
+            }
+
             function getPreviewOrientationClass(contentType) {
                 const type = String(contentType || '').toLowerCase();
                 if (type === 'fashion' || type === 'food' || type === 'car') return 'is-square';
@@ -7182,7 +7216,9 @@
                 const isMobile = window.innerWidth <= 768;
                 const alreadyActive = isMobile
                     ? !!document.querySelector(`.mobile-tab[data-tab="${safeTab}"]`)?.classList.contains('active')
-                    : !!document.querySelector(`.nav-tab[data-tab="${safeTab}"]`)?.classList.contains('active');
+                      || !!document.querySelector(`.profile-tab-link[data-tab="${safeTab}"]`)?.classList.contains('active')
+                    : !!document.querySelector(`.nav-tab[data-tab="${safeTab}"]`)?.classList.contains('active')
+                      || !!document.querySelector(`.profile-tab-link[data-tab="${safeTab}"]`)?.classList.contains('active');
                 if (safeTab === currentTab && alreadyActive) return;
 
                 resetDetailPanels();
@@ -7202,6 +7238,10 @@
                     document.querySelectorAll('.mobile-tab').forEach(tab => {
                         tab.classList.remove('active');
                     });
+                    document.querySelectorAll('.profile-tab-link').forEach((link) => {
+                        link.classList.toggle('active', link.dataset.tab === safeTab);
+                    });
+                    closeProfileTabMenus();
                     
                     const activeSection =
                         document.getElementById(`mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Section`) ||
@@ -7243,6 +7283,10 @@
                     document.querySelectorAll('.nav-tab').forEach(btn => {
                         btn.classList.remove('active');
                     });
+                    document.querySelectorAll('.profile-tab-link').forEach((link) => {
+                        link.classList.toggle('active', link.dataset.tab === safeTab);
+                    });
+                    closeProfileTabMenus();
                     
                     const activeButton = document.querySelector(`.nav-tab[data-tab="${safeTab}"]`);
                     if (activeButton) {
@@ -12544,6 +12588,7 @@
             function setupEventListeners() {
                 console.log('Setting up event listeners...');
                 setupCommunitySnapshotNavigation();
+                wireProfileTabMenus();
                 bindProfileModalViewportListeners();
                 
                 // Remove existing listener before adding new one
