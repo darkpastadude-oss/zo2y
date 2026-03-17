@@ -601,8 +601,54 @@ a { color: inherit; text-decoration: none; }
     padding-bottom: 80px;
   }
 
+  .sports-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 12px 0 0;
+  }
+
   .sports-card {
-    min-height: 260px;
+    min-height: 0;
+  }
+
+  .sports-card-media {
+    aspect-ratio: 1 / 1.04;
+  }
+
+  .sports-card[data-media-fit="contain"] .sports-card-media img {
+    padding: 12px;
+  }
+
+  .sports-card-logo {
+    width: 52px;
+    height: 52px;
+    left: 10px;
+    bottom: 10px;
+    padding: 7px;
+    border-radius: 14px;
+  }
+
+  .sports-card-body {
+    padding: 26px 12px 12px;
+    gap: 5px;
+  }
+
+  .sports-card-title {
+    font-size: 14px;
+  }
+
+  .sports-card-meta,
+  .sports-card-stadium {
+    font-size: 11px;
+  }
+
+  .sports-card-actions {
+    margin-top: 6px;
+  }
+
+  .card-menu-btn {
+    width: 32px;
+    height: 32px;
   }
 
   .sports-toast {

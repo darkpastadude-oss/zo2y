@@ -438,7 +438,9 @@
       totalPages: 1,
       hasMore: false,
       listStatus: new Map(),
-      pending: new Set()
+      pending: new Set(),
+      scenicHydrationStarted: false,
+      lifestyleHydrationStarted: false
     };
     const countryPhotoCache = new Map();
     const countryPhotoPending = new Set();
@@ -1119,6 +1121,56 @@
       });
     }
 
+    function startCountryPhotoBackfill() {
+      if (!Array.isArray(state.rows) || !state.rows.length) return;
+
+      if (!state.scenicHydrationStarted) {
+        state.scenicHydrationStarted = true;
+        const runScenicBackfill = async () => {
+          const scenicBatchSize = isSlowTravelNetwork() ? 24 : 48;
+          for (let index = 0; index < state.rows.length; index += scenicBatchSize) {
+            const batch = state.rows.slice(index, index + scenicBatchSize);
+            await hydrateScenicCountryPhotos(batch);
+            writeCountryRowsCache(state.rows);
+            if (document.visibilityState !== 'hidden') render();
+            await new Promise((resolve) => window.setTimeout(resolve, isSlowTravelNetwork() ? 260 : 120));
+          }
+        };
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(() => {
+            void runScenicBackfill().catch(() => {});
+          }, { timeout: 1600 });
+        } else {
+          window.setTimeout(() => {
+            void runScenicBackfill().catch(() => {});
+          }, 700);
+        }
+      }
+
+      if (!state.lifestyleHydrationStarted && getTravelLifestyleHydrationLimit() > 0) {
+        state.lifestyleHydrationStarted = true;
+        const runLifestyleBackfill = async () => {
+          const lifestyleBatchSize = 18;
+          for (let index = 0; index < state.rows.length; index += lifestyleBatchSize) {
+            const batch = state.rows.slice(index, index + lifestyleBatchSize);
+            await hydrateLifestyleCountryPhotos(batch);
+            writeCountryRowsCache(state.rows);
+            if (document.visibilityState !== 'hidden') render();
+            await new Promise((resolve) => window.setTimeout(resolve, 180));
+          }
+        };
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(() => {
+            void runLifestyleBackfill().catch(() => {});
+          }, { timeout: 2600 });
+        } else {
+          window.setTimeout(() => {
+            void runLifestyleBackfill().catch(() => {});
+          }, 1400);
+        }
+      }
+    }
+
     function showToast(message, type = 'inf') {
       const node = document.createElement('div');
       node.className = `toast ${type}`;
@@ -1210,6 +1262,7 @@
               render();
             })
             .catch(() => {});
+          startCountryPhotoBackfill();
           return true;
         }
       }
@@ -1245,6 +1298,7 @@
           .sort((a, b) => a.name.localeCompare(b.name));
         hydrateRegionOptions();
         writeCountryRowsCache(state.rows);
+        startCountryPhotoBackfill();
         return true;
       } catch (_error) {
         return false;
