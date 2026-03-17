@@ -38,9 +38,6 @@
             const ENABLE_RESTAURANTS = false;
             const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
             const DEFAULT_PROFILE_TAB = ENABLE_RESTAURANTS ? 'restaurants' : 'movies';
-            const VALID_PRIMARY_TABS = new Set(['overview', 'reviews', 'lists', 'activity', 'about']);
-            let currentPrimaryTab = 'overview';
-            let lastMediaTab = DEFAULT_PROFILE_TAB;
             let restaurants = [];
             let customLists = [];
             let currentTab = DEFAULT_PROFILE_TAB;
@@ -237,7 +234,6 @@
                     
                     // 2. FIX: Update setupEventListeners to prevent multiple bindings
                     setupEventListeners();
-                    showPrimaryTab('overview', { force: true, skipTabSync: true });
                     bindRouteListeners();
                     
                     if (window.innerWidth <= 768) {
@@ -528,16 +524,7 @@
                     if (toggle.dataset.wired === '1') return;
                     toggle.dataset.wired = '1';
                     toggle.addEventListener('click', (event) => {
-                        event.preventDefault();
                         event.stopPropagation();
-                        event.stopImmediatePropagation();
-                        if (currentPrimaryTab !== 'lists') {
-                            showPrimaryTab('lists', { force: true, skipTabSync: true });
-                            const fallbackTab = lastMediaTab && lastMediaTab !== 'community'
-                                ? lastMediaTab
-                                : DEFAULT_PROFILE_TAB;
-                            showTab(fallbackTab, { skipUrlSync: true, skipPrimarySync: true, skipRender: true });
-                        }
                         const group = toggle.getAttribute('data-group');
                         if (!group) return;
                         const row = resolveProfileGroupRow(group, toggle);
@@ -572,51 +559,6 @@
                     row.style.display = 'flex';
                 }
                 if (toggle) toggle.setAttribute('aria-expanded', 'true');
-            }
-
-            function normalizePrimaryTab(tabName) {
-                const safe = String(tabName || '').trim().toLowerCase();
-                return VALID_PRIMARY_TABS.has(safe) ? safe : 'overview';
-            }
-
-            function syncPrimaryTabUi(activeTab) {
-                document.body.dataset.profilePrimary = activeTab;
-                document.querySelectorAll('[data-primary-tab]').forEach((btn) => {
-                    const key = btn.getAttribute('data-primary-tab');
-                    btn.classList.toggle('active', key === activeTab);
-                });
-            }
-
-            function showPrimaryTab(tabName, options = {}) {
-                const safeTab = normalizePrimaryTab(tabName);
-                if (safeTab === currentPrimaryTab && options.force !== true) return;
-                currentPrimaryTab = safeTab;
-                syncPrimaryTabUi(safeTab);
-
-                const isMobile = window.innerWidth <= 768;
-                if (isMobile && safeTab !== 'lists' && safeTab !== 'activity') {
-                    document.querySelectorAll('.mobile-section').forEach((section) => {
-                        const panel = section.getAttribute('data-profile-panel') || '';
-                        if (panel === safeTab) {
-                            section.style.display = 'block';
-                            section.classList.add('active');
-                        } else if (panel) {
-                            section.style.display = 'none';
-                            section.classList.remove('active');
-                        }
-                    });
-                }
-
-                if (!options.skipTabSync) {
-                    if (safeTab === 'lists') {
-                        const targetTab = lastMediaTab && lastMediaTab !== 'community'
-                            ? lastMediaTab
-                            : DEFAULT_PROFILE_TAB;
-                        showTab(targetTab, { skipUrlSync: true, skipPrimarySync: true });
-                    } else if (safeTab === 'activity') {
-                        showTab('community', { skipUrlSync: true, skipPrimarySync: true });
-                    }
-                }
             }
 
             function getPreviewOrientationClass(contentType) {
@@ -1087,12 +1029,6 @@
                     document.getElementById('mobileProfileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
                     document.getElementById('mobileProfileBio').textContent = profile?.bio || "No bio yet. Tap edit to add one!";
                     document.getElementById('mobileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
-                    const mobileAboutBio = document.getElementById('mobileAboutBio');
-                    const mobileAboutLocation = document.getElementById('mobileAboutLocation');
-                    const mobileAboutMember = document.getElementById('mobileAboutMemberSince');
-                    if (mobileAboutBio) mobileAboutBio.textContent = profile?.bio || "No bio yet.";
-                    if (mobileAboutLocation) mobileAboutLocation.textContent = profile?.location || "Location not set";
-                    if (mobileAboutMember) mobileAboutMember.textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
                 } else {
                     document.getElementById('profileName').textContent = profile?.full_name || profile?.username || currentUser.email.split('@')[0];
                     document.getElementById('profileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
@@ -1100,12 +1036,6 @@
                     document.getElementById('profileLocation').textContent = profile?.location || "Location not set";
                     document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
                     document.getElementById('profileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
-                    const aboutBio = document.getElementById('aboutBio');
-                    const aboutLocation = document.getElementById('aboutLocation');
-                    const aboutMember = document.getElementById('aboutMemberSince');
-                    if (aboutBio) aboutBio.textContent = profile?.bio || "No bio yet.";
-                    if (aboutLocation) aboutLocation.textContent = profile?.location || "Location not set";
-                    if (aboutMember) aboutMember.textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
                 }
             }
 
@@ -1167,7 +1097,7 @@
                 if (booksSubtitle) booksSubtitle.textContent = `${userName}'s favorite books`;
                 if (musicSubtitle) musicSubtitle.textContent = `${userName}'s favorite tracks`;
                 if (sportsSubtitle) sportsSubtitle.textContent = `${userName}'s favorite teams`;
-                if (communitySubtitle) communitySubtitle.textContent = `${userName}'s community connections`;
+                if (communitySubtitle) communitySubtitle.textContent = `${userName}'s food community connections`;
                 if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
                 if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
                 
@@ -1230,7 +1160,7 @@
                 if (mobileBooksSubtitle) mobileBooksSubtitle.textContent = `${userName}'s favorite books`;
                 if (mobileMusicSubtitle) mobileMusicSubtitle.textContent = `${userName}'s favorite tracks`;
                 if (mobileSportsSubtitle) mobileSportsSubtitle.textContent = `${userName}'s favorite teams`;
-                if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s community connections`;
+                if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s food community connections`;
             }
 
             // ===== FOLLOW SYSTEM =====
@@ -3297,7 +3227,7 @@
 
                             if (!follows || follows.length === 0) {
                                 const emptyText = isViewingOwnProfile ? 
-                                    'Discover and follow people you like!' :
+                                    'Discover and follow other food lovers!' :
                                     'This user isn\'t following anyone yet.';
                                 
                                 if (isMobile) {
@@ -7322,18 +7252,6 @@
 
                 resetDetailPanels();
                 currentMediaDetail = null;
-
-                if (!options.skipPrimarySync) {
-                    if (safeTab === 'community') {
-                        showPrimaryTab('activity', { skipTabSync: true });
-                    } else {
-                        showPrimaryTab('lists', { skipTabSync: true });
-                    }
-                }
-
-                if (safeTab !== 'community') {
-                    lastMediaTab = safeTab;
-                }
 
                 if (!options.skipUrlSync) {
                     const nextUrl = buildProfileUrl({ tab: safeTab });
@@ -12711,10 +12629,8 @@
                 
                 // Rest of your event listeners...
                 document.querySelectorAll('.nav-tab').forEach(btn => {
-                    if (btn.classList.contains('profile-tab-group-toggle')) return;
                     btn.addEventListener('click', function() {
                         const tabName = this.getAttribute('data-tab');
-                        if (!tabName) return;
                         showTab(tabName);
                     });
                 });
@@ -12971,7 +12887,6 @@
             return {
                 initialize,
                 showTab,
-                showPrimaryTab,
                 goToMyProfile,
                 showCommunitySection,
                 viewUserProfile,
