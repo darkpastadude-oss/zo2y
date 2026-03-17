@@ -11,6 +11,7 @@
     "import:games:popular": "node scripts/import-popular-games.mjs",
     "seed:brands": "node scripts/seed-brands.mjs",
     "import:brands:wikidata": "node scripts/import-brands-wikidata.mjs",
+    "backfill:logos": "node scripts/backfill-brand-logos.mjs",
     "dedupe:brands": "node scripts/dedupe-brands.mjs",
     "smoke": "node scripts/smoke-runner.mjs",
     "smoke:launch": "node scripts/smoke-runner.mjs"
