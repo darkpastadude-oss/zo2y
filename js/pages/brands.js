@@ -73,6 +73,12 @@
   }
 
   function resolveLogo(value, domain, name) {
+    const direct = String(value || '').trim();
+    if (direct) {
+      if (/^https?:\/\//i.test(direct) || direct.startsWith('/') || direct.startsWith('data:')) {
+        return direct;
+      }
+    }
     const title = String(name || '').trim();
     if (title) {
       const params = new URLSearchParams();

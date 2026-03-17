@@ -9,8 +9,8 @@
   if (window.ZO2Y_DISABLE_GAMES !== false) {
     window.ZO2Y_DISABLE_GAMES = true;
   }
-  if (window.ZO2Y_SPORTS_LISTS !== true) {
-    window.ZO2Y_SPORTS_LISTS = false;
+  if (window.ZO2Y_SPORTS_LISTS == null) {
+    window.ZO2Y_SPORTS_LISTS = true;
   }
   const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
 

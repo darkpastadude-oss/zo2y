@@ -524,6 +524,17 @@
     return String(bridge?.mediaType || '').toLowerCase();
   }
 
+  function customListsEnabled() {
+    const mediaType = getMediaType();
+    if (!mediaType) return false;
+    if (!window.ListUtils || typeof ListUtils.getListConfig !== 'function') return true;
+    const cfg = ListUtils.getListConfig(mediaType);
+    if (!cfg) return false;
+    if (cfg.disableCustomLists) return false;
+    if (!cfg.listTable || !cfg.itemsTable) return false;
+    return true;
+  }
+
   function getQuickRowsForMenu() {
     return QUICK_ROWS_BY_TYPE[getMediaType()] || [];
   }
@@ -793,8 +804,8 @@
         });
       }
 
-      if (!window.ListUtils) return;
-      let customLists = readCachedCustomLists();
+        if (!window.ListUtils || !customListsEnabled()) return;
+        let customLists = readCachedCustomLists();
       if (!customLists.length) {
         customLists = await ListUtils.loadCustomLists(client, user.id, mediaType);
         writeCachedCustomLists(customLists);
@@ -966,7 +977,14 @@
 
   function renderItemMenuCustomLists() {
     const customContainer = document.getElementById('menuCustomLists');
+    const customSection = customContainer?.closest('.menu-custom-section');
     if (!customContainer) return;
+    if (!customListsEnabled()) {
+      if (customSection) customSection.style.display = 'none';
+      customContainer.innerHTML = '';
+      return;
+    }
+    if (customSection) customSection.style.display = '';
     if (!getCurrentUser()?.id) {
       customContainer.innerHTML = '<div class="menu-empty">Sign in to use custom lists.</div>';
       return;
@@ -1026,6 +1044,13 @@
 
     const user = getCurrentUser();
     const mediaType = getMediaType();
+    if (!customListsEnabled()) {
+      STATE.customLists = [];
+      STATE.selectedCustomLists = new Set();
+      renderItemMenuQuickLists();
+      renderItemMenuCustomLists();
+      return;
+    }
     if (!user?.id || !window.ListUtils) {
       STATE.customLists = [];
       STATE.selectedCustomLists = new Set();
@@ -1045,7 +1070,7 @@
 
     const [quickStatus, loadedLists] = await Promise.all([
       getDefaultListStatusMap(item.itemId, listKeys),
-      ListUtils.loadCustomLists(client, user.id, mediaType)
+      customListsEnabled() ? ListUtils.loadCustomLists(client, user.id, mediaType) : []
     ]);
 
     STATE.quickStatus = quickStatus;
@@ -1053,13 +1078,17 @@
     STATE.customLists = Array.isArray(loadedLists) ? loadedLists : [];
     writeCachedCustomLists(STATE.customLists);
     const listIds = STATE.customLists.map((l) => l.id).filter(Boolean);
-    STATE.selectedCustomLists = await ListUtils.loadCustomListMembership(
-      client,
-      user.id,
-      mediaType,
-      item.itemId,
-      listIds
-    );
+    if (customListsEnabled()) {
+      STATE.selectedCustomLists = await ListUtils.loadCustomListMembership(
+        client,
+        user.id,
+        mediaType,
+        item.itemId,
+        listIds
+      );
+    } else {
+      STATE.selectedCustomLists = new Set();
+    }
     writeCachedMembership(item.itemId, STATE.selectedCustomLists);
     renderItemMenuQuickLists();
     renderItemMenuCustomLists();

@@ -71,11 +71,12 @@
       defaultIcon: 'fas fa-car'
     },
     sports: {
-      listTable: 'sports_lists',
-      itemsTable: 'sports_list_items',
+      listTable: null,
+      itemsTable: null,
       itemIdField: 'team_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-futbol'
+      defaultIcon: 'fas fa-futbol',
+      disableCustomLists: true
     },
     restaurant: {
       listTable: 'lists',
@@ -119,6 +120,10 @@
 
   function getListConfig(type) {
     return LIST_CONFIG[String(type || '').toLowerCase()] || null;
+  }
+
+  function customListsDisabled(cfg) {
+    return !cfg || cfg.disableCustomLists || !cfg.listTable || !cfg.itemsTable;
   }
 
   function coerceItemId(type, itemId) {
@@ -994,6 +999,7 @@
   async function loadCustomLists(client, userId, type) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return [];
+    if (customListsDisabled(cfg)) return [];
     setTierSyncContext(client, userId);
     const rpcLists = await loadAccessibleCustomListsViaRpc(client, userId, type);
     let enhancedRpc = null;
@@ -1113,6 +1119,7 @@
     const cfg = getListConfig(type);
     const normalizedItemId = normalizeQueryableItemId(type, itemId);
     if (!cfg || !client || !listIds || !listIds.length || normalizedItemId === null) return new Set();
+    if (customListsDisabled(cfg)) return new Set();
     if (missingItemTables.has(cfg.itemsTable)) return new Set();
     let query = client
       .from(cfg.itemsTable)
@@ -1133,6 +1140,7 @@
     const cfg = getListConfig(type);
     const normalizedItemId = normalizeQueryableItemId(type, itemId);
     if (!cfg || !client || normalizedItemId === null) return;
+    if (customListsDisabled(cfg)) return;
     if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return;
     if (userId) setTierSyncContext(client, userId);
     if (type === 'book' && itemPayload) {
@@ -1191,6 +1199,7 @@
   async function createCustomList(client, userId, type, payload) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return null;
+    if (customListsDisabled(cfg)) return null;
     if (missingListTables.has(cfg.listTable)) return null;
     setTierSyncContext(client, userId);
     const normalizedType = String(type || '').toLowerCase();
@@ -1246,6 +1255,7 @@
   async function renameCustomList(client, userId, type, listId, title) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId || !listId) return false;
+    if (customListsDisabled(cfg)) return false;
     if (missingListTables.has(cfg.listTable)) return false;
     setTierSyncContext(client, userId);
     const payload = { title };

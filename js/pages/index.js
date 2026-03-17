@@ -15,7 +15,7 @@
     ];
     const HOME_ACTIVE_MEDIA_TYPES = [...HOME_BASE_MEDIA_TYPES, ...HOME_LIFESTYLE_MEDIA_TYPES];
     if (window.ZO2Y_SPORTS_LISTS == null) {
-      window.ZO2Y_SPORTS_LISTS = false;
+      window.ZO2Y_SPORTS_LISTS = true;
     }
     const HOME_LIST_MEDIA_TYPES = HOME_ACTIVE_MEDIA_TYPES.filter((type) => type !== 'sports' || window.ZO2Y_SPORTS_LISTS !== false);
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
