@@ -1,14 +1,14 @@
 {
   "fashion_brands": {
     "offset": 500,
-    "updated_at": "2026-03-17T18:23:08.304Z"
+    "updated_at": "2026-03-17T19:01:30.659Z"
   },
   "food_brands": {
     "offset": 500,
-    "updated_at": "2026-03-17T18:26:04.767Z"
+    "updated_at": "2026-03-17T19:03:41.236Z"
   },
   "car_brands": {
     "offset": 500,
-    "updated_at": "2026-03-17T18:29:44.453Z"
+    "updated_at": "2026-03-17T19:05:03.204Z"
   }
 }

@@ -290,16 +290,23 @@ async function backfillTable(table, options = {}, state = {}) {
   const pageSize = Number(options.pageSize || 500);
   const limit = Number(options.limit || 0);
   const force = !!options.force;
+  const onlyMissing = !!options.onlyMissing;
 
   let offset = Number(state?.offset || 0);
   let updated = 0;
   let checked = 0;
 
   while (true) {
-    const { data, error } = await supabase
+    let query = supabase
       .from(table)
       .select('id, name, domain, logo_url')
+      .order('name', { ascending: true })
       .range(offset, offset + pageSize - 1);
+    if (onlyMissing) {
+      query = query.is('logo_url', null);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     if (!data || data.length === 0) break;
@@ -372,6 +379,21 @@ async function backfillTable(table, options = {}, state = {}) {
   return { updated, checked };
 }
 
+async function writeMissingReport(table, targetPath) {
+  const { data, error } = await supabase
+    .from(table)
+    .select('name, domain')
+    .is('logo_url', null)
+    .order('name', { ascending: true });
+  if (error) throw error;
+  const payload = data || [];
+  const existing = fs.existsSync(targetPath)
+    ? JSON.parse(fs.readFileSync(targetPath, 'utf8'))
+    : {};
+  existing[table] = payload;
+  fs.writeFileSync(targetPath, JSON.stringify(existing, null, 2));
+}
+
 async function run() {
   const kind = normalizeKind(parseArg('--kind', 'all'));
   const limit = Number(parseArg('--limit', 0));
@@ -379,7 +401,10 @@ async function run() {
   const size = Number(parseArg('--size', 256));
   const pageSize = Number(parseArg('--page', 500));
   const force = String(parseArg('--force', '') || '').toLowerCase() === 'true';
+  const onlyMissing = String(parseArg('--only-missing', '') || '').toLowerCase() === 'true';
+  const report = String(parseArg('--report', '') || '').toLowerCase() === 'true';
   const state = loadState();
+  const reportPath = path.join(ROOT, 'scripts', 'missing-logos.json');
 
   const targets = kind === 'all'
     ? TABLES
@@ -393,10 +418,13 @@ async function run() {
   for (const target of targets) {
     console.log(`Backfilling ${target.table}...`);
     const tableState = state[target.table] || { offset: 0 };
-    const result = await backfillTable(target.table, { limit, delayMs, size, pageSize, force }, tableState);
+    const result = await backfillTable(target.table, { limit, delayMs, size, pageSize, force, onlyMissing }, tableState);
     state[target.table] = tableState;
     saveState(state);
     console.log(`${target.table}: scanned ${result.checked}, updated ${result.updated}`);
+    if (report) {
+      await writeMissingReport(target.table, reportPath);
+    }
     await sleep(800);
   }
   console.log('Backfill complete.');

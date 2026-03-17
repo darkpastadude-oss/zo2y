@@ -12,6 +12,7 @@
     "seed:brands": "node scripts/seed-brands.mjs",
     "import:brands:wikidata": "node scripts/import-brands-wikidata.mjs",
     "backfill:logos": "node scripts/backfill-brand-logos.mjs",
+    "upload:logos": "node scripts/upload-brand-logos.mjs",
     "dedupe:brands": "node scripts/dedupe-brands.mjs",
     "smoke": "node scripts/smoke-runner.mjs",
     "smoke:launch": "node scripts/smoke-runner.mjs"
