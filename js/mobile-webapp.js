@@ -81,7 +81,7 @@
   const INSTALL_DISMISS_KEY = 'zo2y_mobile_install_dismissed_at_v2';
   const INSTALL_DONE_KEY = 'zo2y_mobile_install_done_v2';
   const INSTALL_REPROMPT_MS = 1000 * 60 * 60 * 12;
-  const ENABLE_MOBILE_INSTALL_PROMPT = false;
+  const ENABLE_MOBILE_INSTALL_PROMPT = true;
   let popupObserver = null;
   let pendingMutationRefreshMenus = false;
   let pendingMutationRefreshModals = false;

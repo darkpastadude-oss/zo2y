@@ -18,6 +18,21 @@ function toCommonsFilePath(filename, size) {
   return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(safeName)}?width=${width}`;
 }
 
+function normalizeCommonsLogo(value, size) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (raw.includes('Special:FilePath/')) {
+    const url = raw.split('?')[0];
+    return `${url}?width=${Number.isFinite(size) ? size : 256}`;
+  }
+  if (raw.startsWith('http')) {
+    const parts = raw.split('/');
+    const filename = parts[parts.length - 1];
+    return toCommonsFilePath(filename, size);
+  }
+  return toCommonsFilePath(raw, size);
+}
+
 async function fetchWikiLogo(title, size) {
   if (!title) return '';
   const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}?redirect=true`;
@@ -39,7 +54,31 @@ async function fetchWikiLogo(title, size) {
   const logoClaim = entity?.claims?.P154?.[0];
   const logoFile = logoClaim?.mainsnak?.datavalue?.value;
   if (!logoFile) return '';
-  return toCommonsFilePath(logoFile, size);
+  return normalizeCommonsLogo(logoFile, size);
+}
+
+async function fetchWikiLogoByDomain(domain, size) {
+  const cleanDomain = String(domain || '').trim().toLowerCase();
+  if (!cleanDomain) return '';
+  const sparql = `
+    SELECT ?logo WHERE {
+      ?item wdt:P856 ?site .
+      FILTER(CONTAINS(LCASE(STR(?site)), "${cleanDomain}"))
+      ?item wdt:P154 ?logo .
+    } LIMIT 1
+  `;
+  const url = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(sparql)}`;
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'Zo2yWikiLogo/1.0',
+      'Accept': 'application/sparql-results+json'
+    }
+  });
+  if (!response.ok) return '';
+  const json = await response.json();
+  const value = json?.results?.bindings?.[0]?.logo?.value;
+  if (!value) return '';
+  return normalizeCommonsLogo(value, size);
 }
 
 export default async function handler(req, res) {
@@ -68,6 +107,21 @@ export default async function handler(req, res) {
         }
       } catch (_err) {
         // fall through to domain-based lookup
+      }
+    }
+
+    if (domainRaw && logoOnly && typeof fetch === 'function') {
+      try {
+        const logoUrl = await fetchWikiLogoByDomain(domainRaw, size);
+        if (logoUrl) {
+          res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+          res.status(302);
+          res.setHeader('Location', logoUrl);
+          res.end();
+          return;
+        }
+      } catch (_err) {
+        // continue to fallback
       }
     }
 

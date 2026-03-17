@@ -1316,3 +1316,18 @@ body[data-games-disabled="1"] #mobileGameDetailSection,
 body[data-games-disabled="1"] #mobileTabGames {
   display: none !important;
 }
+
+.zo2y-nav-chevron {
+  margin-right: 6px;
+  transition: transform 0.2s ease;
+}
+
+.zo2y-nav-group:hover .zo2y-nav-chevron,
+.zo2y-nav-group:focus-within .zo2y-nav-chevron,
+.zo2y-nav-group.active .zo2y-nav-chevron {
+  transform: rotate(180deg);
+}
+
+.zo2y-mobile-accordion.open .zo2y-nav-chevron {
+  transform: rotate(180deg);
+}

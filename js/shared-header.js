@@ -64,7 +64,7 @@ const HEADER_HTML = `
       <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
       <div class="zo2y-nav-group" data-nav-group="media">
         <button class="zo2y-shared-pill zo2y-nav-toggle" type="button" aria-expanded="false">
-          Media <i class="fa-solid fa-chevron-down"></i>
+          <i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> <span>Media</span>
         </button>
         <div class="zo2y-nav-menu" role="menu">
           <a class="zo2y-nav-link" data-nav-page="movies" href="movies.html">Movies</a>
@@ -77,7 +77,7 @@ const HEADER_HTML = `
       </div>
       <div class="zo2y-nav-group" data-nav-group="lifestyle">
         <button class="zo2y-shared-pill zo2y-nav-toggle" type="button" aria-expanded="false">
-          Lifestyle <i class="fa-solid fa-chevron-down"></i>
+          <i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> <span>Lifestyle</span>
         </button>
         <div class="zo2y-nav-menu" role="menu">
           <a class="zo2y-nav-link" data-nav-page="travel" href="travel.html">Travel</a>
@@ -168,8 +168,7 @@ const HEADER_HTML = `
     <a class="zo2y-mobile-drawer-link" data-nav-page="index" href="index.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
     <div class="zo2y-mobile-accordion" data-accordion="media">
       <button class="zo2y-mobile-accordion-toggle" type="button" aria-expanded="false">
-        <span><i class="fa-solid fa-layer-group"></i> Media</span>
-        <i class="fa-solid fa-chevron-down"></i>
+        <span><i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> Media</span>
       </button>
       <div class="zo2y-mobile-accordion-panel">
         <a class="zo2y-mobile-drawer-link" data-nav-page="movies" href="movies.html"><i class="fa-solid fa-film"></i><span>Movies</span></a>
@@ -182,8 +181,7 @@ const HEADER_HTML = `
     </div>
     <div class="zo2y-mobile-accordion" data-accordion="lifestyle">
       <button class="zo2y-mobile-accordion-toggle" type="button" aria-expanded="false">
-        <span><i class="fa-solid fa-sparkles"></i> Lifestyle</span>
-        <i class="fa-solid fa-chevron-down"></i>
+        <span><i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> Lifestyle</span>
       </button>
       <div class="zo2y-mobile-accordion-panel">
         <a class="zo2y-mobile-drawer-link" data-nav-page="travel" href="travel.html"><i class="fa-solid fa-earth-americas"></i><span>Travel</span></a>

@@ -319,7 +319,21 @@ const carBrands = [
   { name: 'Maserati', domain: 'maserati.com', category: 'Luxury', country: 'Italy', founded: '1914', description: 'Italian luxury automaker.', tags: ['luxury'] },
   { name: 'Bugatti', domain: 'bugatti.com', category: 'Luxury', country: 'France', founded: '1909', description: 'Hypercar manufacturer.', tags: ['luxury'] },
   { name: 'McLaren', domain: 'mclaren.com', category: 'Luxury', country: 'UK', founded: '1985', description: 'British supercar maker.', tags: ['luxury'] },
-  { name: 'Aston Martin', domain: 'astonmartin.com', category: 'Luxury', country: 'UK', founded: '1913', description: 'British luxury automaker.', tags: ['luxury'] }
+  { name: 'Aston Martin', domain: 'astonmartin.com', category: 'Luxury', country: 'UK', founded: '1913', description: 'British luxury automaker.', tags: ['luxury'] },
+  { name: 'Citroen', domain: 'citroen.com', category: 'Automaker', country: 'France', founded: '1919', description: 'French automaker.', tags: ['automaker'] },
+  { name: 'Opel', domain: 'opel.com', category: 'Automaker', country: 'Germany', founded: '1862', description: 'German automaker.', tags: ['automaker'] },
+  { name: 'Vauxhall', domain: 'vauxhall.co.uk', category: 'Automaker', country: 'UK', founded: '1903', description: 'British automaker.', tags: ['automaker'] },
+  { name: 'Lincoln', domain: 'lincoln.com', category: 'Luxury', country: 'USA', founded: '1917', description: 'American luxury automaker.', tags: ['luxury'] },
+  { name: 'Isuzu', domain: 'isuzu.com', category: 'Automaker', country: 'Japan', founded: '1916', description: 'Japanese automaker.', tags: ['automaker'] },
+  { name: 'Daihatsu', domain: 'daihatsu.com', category: 'Automaker', country: 'Japan', founded: '1907', description: 'Japanese automaker.', tags: ['automaker'] },
+  { name: 'Mahindra', domain: 'mahindra.com', category: 'Automaker', country: 'India', founded: '1945', description: 'Indian automaker.', tags: ['automaker'] },
+  { name: 'Tata Motors', domain: 'tatamotors.com', category: 'Automaker', country: 'India', founded: '1945', description: 'Indian automaker.', tags: ['automaker'] },
+  { name: 'Proton', domain: 'proton.com', category: 'Automaker', country: 'Malaysia', founded: '1983', description: 'Malaysian automaker.', tags: ['automaker'] },
+  { name: 'Perodua', domain: 'perodua.com.my', category: 'Automaker', country: 'Malaysia', founded: '1993', description: 'Malaysian automaker.', tags: ['automaker'] },
+  { name: 'Holden', domain: 'holden.com.au', category: 'Automaker', country: 'Australia', founded: '1856', description: 'Australian automaker.', tags: ['automaker'] },
+  { name: 'Koenigsegg', domain: 'koenigsegg.com', category: 'Luxury', country: 'Sweden', founded: '1994', description: 'Swedish hypercar maker.', tags: ['luxury'] },
+  { name: 'Pagani', domain: 'pagani.com', category: 'Luxury', country: 'Italy', founded: '1992', description: 'Italian hypercar maker.', tags: ['luxury'] },
+  { name: 'Lotus', domain: 'lotuscars.com', category: 'Luxury', country: 'UK', founded: '1952', description: 'British sports cars.', tags: ['luxury'] }
 ];
 
 function toSupabaseRow(brand) {

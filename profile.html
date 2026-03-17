@@ -10,7 +10,7 @@
     <title>Zo2y - Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260317a" />
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260317c" />
     <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -20,9 +20,9 @@
   <link rel="manifest" href="/manifest.webmanifest?v=20260220" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260302a" />
-  <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260316a">
-  <script src="js/shared-header.js?v=20260316b" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260317b" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260317b">
+  <script src="js/shared-header.js?v=20260317b" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -161,50 +161,26 @@
                 <div class="nav-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
                     <i class="fas fa-clapperboard"></i> <span id="restaurantsTabText">Collections</span>
                 </div>
-                <div class="profile-tab-group" data-tab-group="media">
-                    <button class="nav-tab profile-tab-toggle" type="button" aria-expanded="false">
-                        <i class="fas fa-layer-group"></i> Media <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="profile-tab-menu" role="menu">
-                        <button class="profile-tab-link" data-tab="movies" type="button" onclick="ProfileManager.showTab('movies')">
-                            <i class="fas fa-film"></i> Movies
-                        </button>
-                        <button class="profile-tab-link" data-tab="tv" type="button" onclick="ProfileManager.showTab('tv')">
-                            <i class="fas fa-tv"></i> <span id="tvTabText">TV Shows</span>
-                        </button>
-                        <button class="profile-tab-link" data-tab="anime" type="button" onclick="ProfileManager.showTab('anime')">
-                            <i class="fas fa-dragon"></i> <span id="animeTabText">Anime</span>
-                        </button>
-                        <button class="profile-tab-link" data-tab="books" type="button" onclick="ProfileManager.showTab('books')">
-                            <i class="fas fa-book"></i> <span id="booksTabText">Books</span>
-                        </button>
-                        <button class="profile-tab-link" data-tab="music" type="button" onclick="ProfileManager.showTab('music')">
-                            <i class="fas fa-music"></i> <span id="musicTabText">Music</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="profile-tab-group" data-tab-group="lifestyle">
-                    <button class="nav-tab profile-tab-toggle" type="button" aria-expanded="false">
-                        <i class="fas fa-sparkles"></i> Lifestyle <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="profile-tab-menu" role="menu">
-                        <button class="profile-tab-link" data-tab="sports" type="button" onclick="ProfileManager.showTab('sports')">
-                            <i class="fas fa-futbol"></i> <span id="sportsTabText">Sports</span>
-                        </button>
-                        <button class="profile-tab-link" data-tab="travel" type="button" onclick="ProfileManager.showTab('travel')">
-                            <i class="fas fa-earth-americas"></i> <span id="travelTabText">Travel</span>
-                        </button>
-                        <button class="profile-tab-link" data-tab="fashion" type="button" onclick="ProfileManager.showTab('fashion')">
-                            <i class="fas fa-shirt"></i> <span id="fashionTabText">Fashion</span>
-                        </button>
-                        <button class="profile-tab-link" data-tab="food" type="button" onclick="ProfileManager.showTab('food')">
-                            <i class="fas fa-burger"></i> <span id="foodTabText">Food</span>
-                        </button>
-                        <button class="profile-tab-link" data-tab="cars" type="button" onclick="ProfileManager.showTab('cars')">
-                            <i class="fas fa-car"></i> <span id="carsTabText">Cars</span>
-                        </button>
-                    </div>
-                </div>
+                <button class="nav-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
+                    <i class="fas fa-chevron-down"></i> <span>Media</span>
+                </button>
+                <button class="nav-tab profile-tab-group-toggle" type="button" data-group="lifestyle" aria-expanded="false">
+                    <i class="fas fa-chevron-down"></i> <span>Lifestyle</span>
+                </button>
+            </div>
+            <div class="profile-tab-group-row" data-group="media">
+                <div class="nav-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')"><i class="fas fa-film"></i> Movies</div>
+                <div class="nav-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')"><i class="fas fa-tv"></i> <span id="tvTabText">TV Shows</span></div>
+                <div class="nav-tab" data-tab="anime" onclick="ProfileManager.showTab('anime')"><i class="fas fa-dragon"></i> <span id="animeTabText">Anime</span></div>
+                <div class="nav-tab" data-tab="books" onclick="ProfileManager.showTab('books')"><i class="fas fa-book"></i> <span id="booksTabText">Books</span></div>
+                <div class="nav-tab" data-tab="music" onclick="ProfileManager.showTab('music')"><i class="fas fa-music"></i> <span id="musicTabText">Music</span></div>
+            </div>
+            <div class="profile-tab-group-row" data-group="lifestyle">
+                <div class="nav-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')"><i class="fas fa-futbol"></i> <span id="sportsTabText">Sports</span></div>
+                <div class="nav-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')"><i class="fas fa-earth-americas"></i> <span id="travelTabText">Travel</span></div>
+                <div class="nav-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')"><i class="fas fa-shirt"></i> <span id="fashionTabText">Fashion</span></div>
+                <div class="nav-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="foodTabText">Food</span></div>
+                <div class="nav-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="carsTabText">Cars</span></div>
             </div>
 
             <!-- Restaurants Tab Content -->
@@ -1020,54 +996,28 @@
                 <i class="fas fa-clapperboard"></i>
                 <span id="mobileTabRestaurants">Collections</span>
             </div>
-            <div class="profile-tab-group mobile" data-tab-group="media">
-                <button class="mobile-tab profile-tab-toggle" type="button" aria-expanded="false">
-                    <i class="fas fa-layer-group"></i>
-                    <span>Media</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="profile-tab-menu" role="menu">
-                    <button class="profile-tab-link" data-tab="movies" type="button" onclick="ProfileManager.showTab('movies')">
-                        <i class="fas fa-film"></i> Movies
-                    </button>
-                    <button class="profile-tab-link" data-tab="tv" type="button" onclick="ProfileManager.showTab('tv')">
-                        <i class="fas fa-tv"></i> <span id="mobileTabTv">TV Shows</span>
-                    </button>
-                    <button class="profile-tab-link" data-tab="anime" type="button" onclick="ProfileManager.showTab('anime')">
-                        <i class="fas fa-dragon"></i> <span id="mobileTabAnime">Anime</span>
-                    </button>
-                    <button class="profile-tab-link" data-tab="books" type="button" onclick="ProfileManager.showTab('books')">
-                        <i class="fas fa-book"></i> <span id="mobileTabBooks">Books</span>
-                    </button>
-                    <button class="profile-tab-link" data-tab="music" type="button" onclick="ProfileManager.showTab('music')">
-                        <i class="fas fa-music"></i> <span id="mobileTabMusic">Music</span>
-                    </button>
-                </div>
-            </div>
-            <div class="profile-tab-group mobile" data-tab-group="lifestyle">
-                <button class="mobile-tab profile-tab-toggle" type="button" aria-expanded="false">
-                    <i class="fas fa-sparkles"></i>
-                    <span>Lifestyle</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="profile-tab-menu" role="menu">
-                    <button class="profile-tab-link" data-tab="sports" type="button" onclick="ProfileManager.showTab('sports')">
-                        <i class="fas fa-futbol"></i> <span id="mobileTabSports">Sports</span>
-                    </button>
-                    <button class="profile-tab-link" data-tab="travel" type="button" onclick="ProfileManager.showTab('travel')">
-                        <i class="fas fa-earth-americas"></i> <span id="mobileTabTravel">Travel</span>
-                    </button>
-                    <button class="profile-tab-link" data-tab="fashion" type="button" onclick="ProfileManager.showTab('fashion')">
-                        <i class="fas fa-shirt"></i> <span id="mobileTabFashion">Fashion</span>
-                    </button>
-                    <button class="profile-tab-link" data-tab="food" type="button" onclick="ProfileManager.showTab('food')">
-                        <i class="fas fa-burger"></i> <span id="mobileTabFood">Food</span>
-                    </button>
-                    <button class="profile-tab-link" data-tab="cars" type="button" onclick="ProfileManager.showTab('cars')">
-                        <i class="fas fa-car"></i> <span id="mobileTabCars">Cars</span>
-                    </button>
-                </div>
-            </div>
+            <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
+                <i class="fas fa-chevron-down"></i>
+                <span>Media</span>
+            </button>
+            <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="lifestyle" aria-expanded="false">
+                <i class="fas fa-chevron-down"></i>
+                <span>Lifestyle</span>
+            </button>
+        </div>
+        <div class="profile-tab-group-row mobile" data-group="media">
+            <div class="mobile-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')"><i class="fas fa-film"></i> <span>Movies</span></div>
+            <div class="mobile-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')"><i class="fas fa-tv"></i> <span id="mobileTabTv">TV Shows</span></div>
+            <div class="mobile-tab" data-tab="anime" onclick="ProfileManager.showTab('anime')"><i class="fas fa-dragon"></i> <span id="mobileTabAnime">Anime</span></div>
+            <div class="mobile-tab" data-tab="books" onclick="ProfileManager.showTab('books')"><i class="fas fa-book"></i> <span id="mobileTabBooks">Books</span></div>
+            <div class="mobile-tab" data-tab="music" onclick="ProfileManager.showTab('music')"><i class="fas fa-music"></i> <span id="mobileTabMusic">Music</span></div>
+        </div>
+        <div class="profile-tab-group-row mobile" data-group="lifestyle">
+            <div class="mobile-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')"><i class="fas fa-futbol"></i> <span id="mobileTabSports">Sports</span></div>
+            <div class="mobile-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')"><i class="fas fa-earth-americas"></i> <span id="mobileTabTravel">Travel</span></div>
+            <div class="mobile-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')"><i class="fas fa-shirt"></i> <span id="mobileTabFashion">Fashion</span></div>
+            <div class="mobile-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="mobileTabFood">Food</span></div>
+            <div class="mobile-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="mobileTabCars">Cars</span></div>
         </div>
         <div class="mobile-tabs-swipe-hint" id="mobileTabsSwipeHint">
             <div class="mobile-tabs-swipe-pill"></div>
@@ -2102,11 +2052,13 @@
 
     <script src="js/list-utils.js?v=20260316b"></script>
     <script src="js/igdb-client.js?v=20260311c"></script>
-    <script src="js/pages/profile.js?v=20260317b"></script>
+    <script src="js/pages/profile.js?v=20260317d"></script>
         <script src="js/production-runtime.js?v=20260307a" defer></script>
 
 </body>
 </html>
+
+
 
 
 
