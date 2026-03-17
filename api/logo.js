@@ -404,33 +404,14 @@ export default async function handler(req, res) {
           res.end();
           return;
         }
-        if (logoOnly) {
-          const siteUrl = await fetchWikiSite(normalizedTitle);
-          const siteDomain = sanitizeDomain(siteUrl);
-          if (siteDomain) {
-            const googleUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(siteDomain)}&sz=${size}`;
-            res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
-            res.status(302);
-            res.setHeader('Location', googleUrl);
-            res.end();
-            return;
-          }
-        }
       } catch (_err) {
         // fall through to domain-based lookup
       }
     }
 
-    if (domainRaw && typeof fetch === 'function') {
+    if (domainRaw && !logoOnly && typeof fetch === 'function') {
       try {
         const googleUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domainRaw)}&sz=${size}`;
-        if (logoOnly) {
-          res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
-          res.status(302);
-          res.setHeader('Location', googleUrl);
-          res.end();
-          return;
-        }
         const googleRes = await fetch(googleUrl);
         if (googleRes.ok) {
           res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
@@ -446,13 +427,11 @@ export default async function handler(req, res) {
 
       try {
         const ddgUrl = `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domainRaw)}.ico`;
-        if (!logoOnly) {
-          res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
-          res.status(302);
-          res.setHeader('Location', ddgUrl);
-          res.end();
-          return;
-        }
+        res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+        res.status(302);
+        res.setHeader('Location', ddgUrl);
+        res.end();
+        return;
       } catch (_err) {
         // final fallback below
       }

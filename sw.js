@@ -10,7 +10,7 @@ const STATIC_ASSETS = [
   '/index.html',
   '/credits.html',
   '/manifest.webmanifest',
-  '/css/pages/index.css?v=20260317a',
+  '/css/pages/index.css?v=20260317b',
   '/css/shared-header.css?v=20260316a',
   '/css/global-lowercase.css?v=20260308a',
   '/js/pages/index.js?v=20260317e',

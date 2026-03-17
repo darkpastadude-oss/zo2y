@@ -87,6 +87,18 @@ async function fetchWikiLogo(title, size) {
   return normalizeCommonsLogo(logoFile, size);
 }
 
+function extractLogoFromSummary(payload, size) {
+  if (!payload) return '';
+  const candidate = payload.originalimage?.source || payload.thumbnail?.source || '';
+  if (!candidate) return '';
+  const filename = candidate.split('/').pop() || '';
+  const lowered = filename.toLowerCase();
+  if (lowered.includes('logo') || lowered.includes('wordmark') || lowered.includes('logotype')) {
+    return normalizeCommonsLogo(candidate, size);
+  }
+  return '';
+}
+
 async function fetchWikiSite(title) {
   if (!title) return '';
   const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}?redirect=true`;
@@ -141,6 +153,10 @@ async function fetchLogoByDomain(domain, size) {
   return normalizeCommonsLogo(value, size);
 }
 
+const MANUAL_LOGO_OVERRIDES = {
+  'supreme': 'https://commons.wikimedia.org/wiki/Special:FilePath/Supreme_Logo.svg?width=512'
+};
+
 function parseArg(flag, fallback) {
   const idx = process.argv.indexOf(flag);
   if (idx === -1) return fallback;
@@ -162,7 +178,20 @@ function hasLogo(value, options = {}) {
   if (options.force) return false;
   if (raw.includes('logo.clearbit.com')) return false;
   if (raw.includes('img.logo.dev')) return false;
+  if (raw.includes('google.com/s2/favicons')) return false;
+  if (raw.includes('icons.duckduckgo.com')) return false;
   return true;
+}
+
+function isLowQualityLogo(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) return false;
+  return (
+    raw.includes('logo.clearbit.com') ||
+    raw.includes('img.logo.dev') ||
+    raw.includes('google.com/s2/favicons') ||
+    raw.includes('icons.duckduckgo.com')
+  );
 }
 
 hydrateEnv();
@@ -229,7 +258,12 @@ async function backfillTable(table, options = {}, state = {}) {
       const domain = String(row?.domain || '').trim();
       let logoUrl = '';
 
-      if (domain) {
+      const overrideKey = title.toLowerCase();
+      if (MANUAL_LOGO_OVERRIDES[overrideKey]) {
+        logoUrl = MANUAL_LOGO_OVERRIDES[overrideKey];
+      }
+
+      if (!logoUrl && domain) {
         logoUrl = await fetchLogoByDomain(domain, size);
       }
 
@@ -238,17 +272,15 @@ async function backfillTable(table, options = {}, state = {}) {
       }
 
       if (!logoUrl && title) {
-        const siteUrl = await fetchWikiSite(title);
-        const siteDomain = sanitizeDomain(siteUrl);
-        if (siteDomain) {
-          logoUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(siteDomain)}&sz=${size}`;
-        }
-      }
-
-      if (!logoUrl && domain) {
-        const cleanDomain = sanitizeDomain(domain);
-        if (cleanDomain) {
-          logoUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(cleanDomain)}&sz=${size}`;
+        try {
+          const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}?redirect=true`;
+          const summaryRes = await fetch(summaryUrl, { headers: { 'User-Agent': 'Zo2yWikiLogo/1.0' } });
+          if (summaryRes.ok) {
+            const payload = await summaryRes.json();
+            logoUrl = extractLogoFromSummary(payload, size);
+          }
+        } catch {
+          // ignore
         }
       }
 
@@ -259,6 +291,12 @@ async function backfillTable(table, options = {}, state = {}) {
           .eq('id', row.id);
         if (updateError) throw updateError;
         updated += 1;
+      } else if (force && isLowQualityLogo(row.logo_url)) {
+        const { error: clearError } = await supabase
+          .from(table)
+          .update({ logo_url: null })
+          .eq('id', row.id);
+        if (clearError) throw clearError;
       }
 
       await sleep(delayMs);
