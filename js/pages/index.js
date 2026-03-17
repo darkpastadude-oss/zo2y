@@ -4522,9 +4522,36 @@
       wireHomeRailImageFallbacks(rail);
     }
 
+    const BRAND_RAIL_MEDIA_TYPES = new Set(['fashion', 'food', 'car']);
+    const LOGO_PLACEHOLDER_TOKENS = ['logo-placeholder.svg', 'newlogo.webp'];
+
+    function isLogoPlaceholder(url) {
+      const src = String(url || '').toLowerCase();
+      return LOGO_PLACEHOLDER_TOKENS.some((token) => src.includes(token));
+    }
+
+    function markLogoMissing(card, img) {
+      if (!card || card.dataset.logoMissing === '1') return;
+      card.dataset.logoMissing = '1';
+      if (img) {
+        img.style.visibility = 'hidden';
+        img.style.opacity = '0';
+      }
+      const rail = card.parentElement;
+      if (rail) rail.appendChild(card);
+    }
+
     function wireHomeRailImageFallbacks(scope) {
       scope.querySelectorAll('img[data-fallback-image]').forEach((img) => {
-        img.addEventListener('error', () => {
+        const card = img.closest('.card');
+        const mediaType = String(card?.getAttribute('data-media-type') || '').toLowerCase();
+        const isBrandRail = BRAND_RAIL_MEDIA_TYPES.has(mediaType);
+
+        const handleMissing = () => {
+          if (isBrandRail) {
+            markLogoMissing(card, img);
+            return;
+          }
           const fallback = String(img.getAttribute('data-fallback-image') || '').trim();
           const applied = String(img.getAttribute('data-fallback-applied') || '');
           if (fallback && applied !== '1') {
@@ -4532,14 +4559,28 @@
             img.src = fallback;
             return;
           }
-          const card = img.closest('.card');
           if (!card) return;
           const rail = card.parentElement;
           card.remove();
           if (rail && !rail.querySelector('.card')) {
             rail.innerHTML = '<div class="empty">No items right now.</div>';
           }
-        });
+        };
+
+        if (isBrandRail) {
+          const checkPlaceholder = () => {
+            if (isLogoPlaceholder(img.currentSrc || img.src)) {
+              handleMissing();
+            }
+          };
+          if (img.complete) {
+            checkPlaceholder();
+          } else {
+            img.addEventListener('load', checkPlaceholder, { once: true });
+          }
+        }
+
+        img.addEventListener('error', handleMissing, { once: true });
       });
     }
 
