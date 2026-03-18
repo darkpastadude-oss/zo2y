@@ -200,10 +200,10 @@
     const HOME_NEW_RELEASES_TARGET_ITEMS = 16;
     const HOME_NEW_RELEASES_TIMEOUT_MS = 5600;
     const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 12;
-    const HOME_EAGER_IMAGE_COUNT = 8;
-    const HOME_HIGH_PRIORITY_IMAGE_COUNT = 4;
-    const HOME_PRELOAD_PER_CHANNEL = 2;
-    const HOME_PRELOAD_SPOTLIGHT_COUNT = 3;
+    const HOME_EAGER_IMAGE_COUNT = 3;
+    const HOME_HIGH_PRIORITY_IMAGE_COUNT = 2;
+    const HOME_PRELOAD_PER_CHANNEL = 1;
+    const HOME_PRELOAD_SPOTLIGHT_COUNT = 2;
     const HOME_UNIFIED_TARGET_ITEMS = 24;
     const HOME_BECAUSE_SIGNAL_CACHE_MS = 1000 * 60 * 3;
     const HOME_BECAUSE_MAX_FOLLOWED_USERS = 24;
@@ -4059,14 +4059,35 @@
       img.src = src;
     }
 
+    function getOptimizedHomeTravelImage(url, width = 720) {
+      const src = toHttpsUrl(String(url || '').trim());
+      if (!src) return '';
+      const marker = `/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/`;
+      const idx = src.indexOf(marker);
+      if (idx === -1) return src;
+      const path = src.slice(idx + marker.length);
+      if (!path) return src;
+      const encodedPath = path
+        .split('/')
+        .map((segment) => encodeURIComponent(segment))
+        .join('/');
+      const clampedWidth = Math.max(240, Math.min(1280, Number(width) || 720));
+      return `${SUPABASE_URL}/storage/v1/render/image/public/${HOME_TRAVEL_BUCKET_NAME}/${encodedPath}?width=${clampedWidth}&quality=72&resize=cover`;
+    }
+
     function warmHomeFeedImages(feedMap) {
+      if (isHomeSlowNetwork()) return;
       const perChannelBudget = getHomePreloadPerChannelBudget();
-      const groups = Object.values(feedMap || {});
+      if (perChannelBudget <= 0) return;
+      const groups = Object.values(feedMap || {}).slice(0, 4);
       groups.forEach((items) => {
         if (!Array.isArray(items)) return;
         items.slice(0, perChannelBudget).forEach((item) => {
-          preloadImage(item.image);
-          preloadImage(item.backgroundImage || item.spotlightImage);
+          const mediaType = String(item?.mediaType || '').toLowerCase();
+          const primaryImage = mediaType === 'travel'
+            ? getOptimizedHomeTravelImage(item.listImage || item.image || '', 720)
+            : (item.listImage || item.image || '');
+          preloadImage(primaryImage);
         });
       });
     }
@@ -4559,12 +4580,15 @@
         if (restaurantComposite && !coverImage && !logo) return '';
         const safeImage = image || (mediaTypeRaw === 'travel' ? fallbackImage : '');
         if (!restaurantComposite && !safeImage) return '';
+        const optimizedTravelImage = mediaTypeRaw === 'travel'
+          ? getOptimizedHomeTravelImage(safeImage, landscape ? 960 : 720)
+          : '';
         let mediaHtml = restaurantComposite
           ? `
               ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
               ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0"></span>` : ''}
             `
-          : `${safeImage ? `<img src="${safeImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
+          : `${safeImage ? `<img src="${mediaTypeRaw === 'travel' ? optimizedTravelImage : safeImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
 
         if (mediaTypeRaw === 'travel') {
           const travelSet = itemData.travelPhotoSet || {};
@@ -4577,7 +4601,7 @@
               <div class="travel-photo-grid${travelTiles.length > 1 ? '' : ' single'}">
                 ${travelTiles.map((tile) => `
                   <div class="travel-photo-tile" data-kind="${escapeHtml(tile.kind)}">
-                    <img src="${escapeHtml(tile.url)}" alt="${escapeHtml(tile.label)}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">
+                    <img src="${escapeHtml(getOptimizedHomeTravelImage(tile.url, 640))}" alt="${escapeHtml(tile.label)}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">
                     <span class="travel-photo-label">${escapeHtml(tile.label)}</span>
                   </div>
                 `).join('')}

@@ -219,6 +219,49 @@ const fashionBrands = [
   { name: 'Victoria\'s Secret', domain: 'victoriassecret.com', category: 'Lingerie', country: 'USA', founded: '1977', description: 'Lingerie and apparel brand.', tags: ['lingerie'] }
 ];
 
+const extraFashionBrands = [
+  { name: 'Topshop', domain: 'topshop.com', category: 'Fashion', country: 'UK', founded: '1964', description: 'British fashion retailer.', tags: ['fashion'] },
+  { name: 'Monki', domain: 'monki.com', category: 'Fashion', country: 'Sweden', founded: '2006', description: 'Scandinavian fashion label.', tags: ['fashion'] },
+  { name: 'Everlane', domain: 'everlane.com', category: 'Basics', country: 'USA', founded: '2010', description: 'Modern essentials brand.', tags: ['basics'] },
+  { name: 'Madewell', domain: 'madewell.com', category: 'Denim', country: 'USA', founded: '1937', description: 'Denim and casualwear brand.', tags: ['denim', 'casual'] },
+  { name: 'Reformation', domain: 'thereformation.com', category: 'Fashion', country: 'USA', founded: '2009', description: 'Sustainable womenswear label.', tags: ['fashion', 'sustainability'] },
+  { name: 'Free People', domain: 'freepeople.com', category: 'Fashion', country: 'USA', founded: '1984', description: 'Bohemian lifestyle brand.', tags: ['fashion'] },
+  { name: 'Anthropologie', domain: 'anthropologie.com', category: 'Retail', country: 'USA', founded: '1992', description: 'Lifestyle fashion retailer.', tags: ['retail', 'fashion'] },
+  { name: 'Sezane', domain: 'sezane.com', category: 'Fashion', country: 'France', founded: '2013', description: 'Parisian ready-to-wear label.', tags: ['fashion'] },
+  { name: 'AllSaints', domain: 'allsaints.com', category: 'Fashion', country: 'UK', founded: '1994', description: 'British contemporary label.', tags: ['fashion'] },
+  { name: 'Theory', domain: 'theory.com', category: 'Designer', country: 'USA', founded: '1997', description: 'Modern tailored essentials.', tags: ['designer'] },
+  { name: 'Helmut Lang', domain: 'helmutlang.com', category: 'Designer', country: 'USA', founded: '1986', description: 'Minimalist fashion label.', tags: ['designer'] },
+  { name: 'Rag & Bone', domain: 'rag-bone.com', category: 'Designer', country: 'USA', founded: '2002', description: 'Modern New York label.', tags: ['designer'] },
+  { name: 'FRAME', domain: 'frame-store.com', category: 'Denim', country: 'USA', founded: '2012', description: 'Premium denim and ready-to-wear.', tags: ['denim', 'fashion'] },
+  { name: 'SKIMS', domain: 'skims.com', category: 'Lingerie', country: 'USA', founded: '2019', description: 'Shapewear and essentials brand.', tags: ['lingerie'] },
+  { name: 'Spanx', domain: 'spanx.com', category: 'Lingerie', country: 'USA', founded: '2000', description: 'Shapewear and apparel brand.', tags: ['lingerie'] },
+  { name: 'Savage X Fenty', domain: 'savagex.com', category: 'Lingerie', country: 'USA', founded: '2018', description: 'Inclusive lingerie brand.', tags: ['lingerie'] },
+  { name: 'Vuori', domain: 'vuoriclothing.com', category: 'Athleisure', country: 'USA', founded: '2015', description: 'Performance lifestyle apparel.', tags: ['athleisure'] },
+  { name: 'Outdoor Voices', domain: 'outdoorvoices.com', category: 'Athleisure', country: 'USA', founded: '2013', description: 'Recreational activewear brand.', tags: ['athleisure'] },
+  { name: 'Fjallraven', domain: 'fjallraven.com', category: 'Outdoor', country: 'Sweden', founded: '1960', description: 'Outdoor gear and apparel.', tags: ['outdoor'] },
+  { name: 'Helly Hansen', domain: 'hellyhansen.com', category: 'Outdoor', country: 'Norway', founded: '1877', description: 'Sailing and outdoor apparel.', tags: ['outdoor'] },
+  { name: 'Mammut', domain: 'mammut.com', category: 'Outdoor', country: 'Switzerland', founded: '1862', description: 'Alpine outdoor brand.', tags: ['outdoor'] },
+  { name: 'Barbour', domain: 'barbour.com', category: 'Outerwear', country: 'UK', founded: '1894', description: 'British outerwear label.', tags: ['outerwear'] },
+  { name: 'Ted Baker', domain: 'tedbaker.com', category: 'Designer', country: 'UK', founded: '1988', description: 'British designer label.', tags: ['designer'] },
+  { name: 'Superdry', domain: 'superdry.com', category: 'Casual', country: 'UK', founded: '2003', description: 'British casualwear brand.', tags: ['casual'] },
+  { name: 'Brunello Cucinelli', domain: 'brunellocucinelli.com', category: 'Luxury', country: 'Italy', founded: '1978', description: 'Italian luxury house.', tags: ['luxury'] },
+  { name: 'Zegna', domain: 'zegna.com', category: 'Luxury', country: 'Italy', founded: '1910', description: 'Italian luxury menswear house.', tags: ['luxury'] },
+  { name: 'Canali', domain: 'canali.com', category: 'Luxury', country: 'Italy', founded: '1934', description: 'Italian tailoring brand.', tags: ['luxury'] },
+  { name: 'Mackage', domain: 'mackage.com', category: 'Outerwear', country: 'Canada', founded: '1999', description: 'Luxury outerwear label.', tags: ['outerwear', 'luxury'] },
+  { name: 'Moose Knuckles', domain: 'mooseknucklescanada.com', category: 'Outerwear', country: 'Canada', founded: '2009', description: 'Canadian luxury outerwear.', tags: ['outerwear', 'luxury'] },
+  { name: 'A.P.C.', domain: 'apc-us.com', category: 'Designer', country: 'France', founded: '1987', description: 'Minimal French fashion label.', tags: ['designer'] },
+  { name: 'AMI Paris', domain: 'amiparis.com', category: 'Designer', country: 'France', founded: '2011', description: 'Parisian contemporary fashion.', tags: ['designer'] },
+  { name: 'Jacquemus', domain: 'jacquemus.com', category: 'Luxury', country: 'France', founded: '2009', description: 'French luxury fashion label.', tags: ['luxury'] },
+  { name: 'Kith', domain: 'kith.com', category: 'Streetwear', country: 'USA', founded: '2011', description: 'Streetwear and lifestyle label.', tags: ['streetwear'] },
+  { name: 'Represent', domain: 'representclo.com', category: 'Streetwear', country: 'UK', founded: '2011', description: 'British streetwear brand.', tags: ['streetwear'] },
+  { name: 'Sandro', domain: 'sandro-paris.com', category: 'Designer', country: 'France', founded: '1984', description: 'Parisian contemporary label.', tags: ['designer'] },
+  { name: 'Maje', domain: 'maje.com', category: 'Designer', country: 'France', founded: '1998', description: 'Paris fashion brand.', tags: ['designer'] },
+  { name: 'Marine Serre', domain: 'marineserre.com', category: 'Luxury', country: 'France', founded: '2017', description: 'Paris luxury label.', tags: ['luxury'] },
+  { name: 'Noah', domain: 'noahny.com', category: 'Streetwear', country: 'USA', founded: '2015', description: 'New York streetwear brand.', tags: ['streetwear'] },
+  { name: 'Pleasures', domain: 'pleasuresnow.com', category: 'Streetwear', country: 'USA', founded: '2015', description: 'Streetwear and graphic apparel.', tags: ['streetwear'] },
+  { name: 'Rhone', domain: 'rhone.com', category: 'Athleisure', country: 'USA', founded: '2014', description: 'Performance lifestyle apparel.', tags: ['athleisure'] }
+];
+
 const foodBrands = [
   { name: 'McDonald\'s', domain: 'mcdonalds.com', category: 'Fast Food', country: 'USA', founded: '1940', description: 'American fast-food chain.', tags: ['burgers', 'fast food'] },
   { name: 'KFC', domain: 'kfc.com', category: 'Fast Food', country: 'USA', founded: '1952', description: 'Fried chicken specialists.', tags: ['chicken', 'fast food'] },
@@ -323,6 +366,49 @@ const foodBrands = [
   { name: 'Caribou Coffee', domain: 'cariboucoffee.com', category: 'Coffee', country: 'USA', founded: '1992', description: 'Coffeehouse chain.', tags: ['coffee'] }
 ];
 
+const extraFoodBrands = [
+  { name: 'A&W Restaurants', domain: 'awrestaurants.com', category: 'Fast Food', country: 'USA', founded: '1919', description: 'Root beer and burger chain.', tags: ['fast food'] },
+  { name: 'Portillo\'s', domain: 'portillos.com', category: 'Fast Casual', country: 'USA', founded: '1963', description: 'Chicago-style fast casual chain.', tags: ['fast casual'] },
+  { name: 'White Castle', domain: 'whitecastle.com', category: 'Fast Food', country: 'USA', founded: '1921', description: 'Slider-focused fast food chain.', tags: ['fast food'] },
+  { name: 'Checkers & Rally\'s', domain: 'checkers.com', category: 'Fast Food', country: 'USA', founded: '1986', description: 'Drive-thru burger chain.', tags: ['fast food'] },
+  { name: 'Moe\'s Southwest Grill', domain: 'moes.com', category: 'Fast Casual', country: 'USA', founded: '2000', description: 'Tex-Mex fast casual chain.', tags: ['fast casual', 'mexican'] },
+  { name: 'Torchy\'s Tacos', domain: 'torchystacos.com', category: 'Fast Casual', country: 'USA', founded: '2006', description: 'Taco-focused fast casual chain.', tags: ['fast casual', 'mexican'] },
+  { name: 'The Habit Burger Grill', domain: 'habitburger.com', category: 'Fast Casual', country: 'USA', founded: '1969', description: 'Chargrilled burger chain.', tags: ['fast casual'] },
+  { name: 'Freddy\'s Frozen Custard & Steakburgers', domain: 'freddys.com', category: 'Fast Casual', country: 'USA', founded: '2002', description: 'Burger and custard chain.', tags: ['fast casual'] },
+  { name: 'Auntie Anne\'s', domain: 'auntieannes.com', category: 'Dessert', country: 'USA', founded: '1988', description: 'Pretzel and snack chain.', tags: ['dessert'] },
+  { name: 'Crumbl', domain: 'crumblcookies.com', category: 'Dessert', country: 'USA', founded: '2017', description: 'Cookie bakery chain.', tags: ['dessert'] },
+  { name: 'Insomnia Cookies', domain: 'insomniacookies.com', category: 'Dessert', country: 'USA', founded: '2003', description: 'Late-night cookie chain.', tags: ['dessert'] },
+  { name: 'Jamba', domain: 'jamba.com', category: 'Drinks', country: 'USA', founded: '1990', description: 'Smoothie and juice chain.', tags: ['drinks'] },
+  { name: 'Smoothie King', domain: 'smoothieking.com', category: 'Drinks', country: 'USA', founded: '1973', description: 'Smoothie chain.', tags: ['drinks'] },
+  { name: 'Dutch Bros', domain: 'dutchbros.com', category: 'Coffee', country: 'USA', founded: '1992', description: 'Drive-thru coffee chain.', tags: ['coffee'] },
+  { name: 'Blue Bottle Coffee', domain: 'bluebottlecoffee.com', category: 'Coffee', country: 'USA', founded: '2002', description: 'Specialty coffee chain.', tags: ['coffee'] },
+  { name: 'Philz Coffee', domain: 'philzcoffee.com', category: 'Coffee', country: 'USA', founded: '2003', description: 'Pour-over coffee chain.', tags: ['coffee'] },
+  { name: 'Joe & The Juice', domain: 'joejuice.com', category: 'Drinks', country: 'Denmark', founded: '2002', description: 'Juice and sandwich chain.', tags: ['drinks'] },
+  { name: 'Wagamama', domain: 'wagamama.com', category: 'Restaurants', country: 'UK', founded: '1992', description: 'Asian-inspired restaurant chain.', tags: ['restaurants'] },
+  { name: 'YO! Sushi', domain: 'yosushi.com', category: 'Restaurants', country: 'UK', founded: '1997', description: 'Sushi restaurant chain.', tags: ['restaurants'] },
+  { name: 'Din Tai Fung', domain: 'din-tai-fung.com', category: 'Restaurants', country: 'Taiwan', founded: '1958', description: 'Global dumpling restaurant chain.', tags: ['restaurants'] },
+  { name: 'Nobu', domain: 'noburestaurants.com', category: 'Restaurants', country: 'USA', founded: '1994', description: 'Luxury restaurant chain.', tags: ['restaurants'] },
+  { name: 'LongHorn Steakhouse', domain: 'longhornsteakhouse.com', category: 'Restaurants', country: 'USA', founded: '1981', description: 'Steakhouse chain.', tags: ['restaurants'] },
+  { name: 'Bonefish Grill', domain: 'bonefishgrill.com', category: 'Restaurants', country: 'USA', founded: '2000', description: 'Seafood restaurant chain.', tags: ['restaurants'] },
+  { name: 'Carrabba\'s Italian Grill', domain: 'carrabbas.com', category: 'Restaurants', country: 'USA', founded: '1986', description: 'Italian restaurant chain.', tags: ['restaurants'] },
+  { name: 'BJ\'s Restaurant & Brewhouse', domain: 'bjsrestaurants.com', category: 'Restaurants', country: 'USA', founded: '1978', description: 'Brewpub and restaurant chain.', tags: ['restaurants'] },
+  { name: 'Captain D\'s', domain: 'captainds.com', category: 'Fast Food', country: 'USA', founded: '1969', description: 'Seafood fast-food chain.', tags: ['fast food'] },
+  { name: 'Long John Silver\'s', domain: 'ljsilvers.com', category: 'Fast Food', country: 'USA', founded: '1969', description: 'Seafood fast-food chain.', tags: ['fast food'] },
+  { name: 'Del Taco', domain: 'deltaco.com', category: 'Fast Food', country: 'USA', founded: '1964', description: 'Mexican-American fast-food chain.', tags: ['fast food', 'mexican'] },
+  { name: 'Texas Chicken', domain: 'txchicken.com', category: 'Fast Food', country: 'USA', founded: '1952', description: 'International fried chicken chain.', tags: ['fast food', 'chicken'] },
+  { name: 'Hungry Jack\'s', domain: 'hungryjacks.com.au', category: 'Fast Food', country: 'Australia', founded: '1971', description: 'Australian burger chain.', tags: ['fast food'] },
+  { name: 'MOS Burger', domain: 'mos.jp', category: 'Fast Food', country: 'Japan', founded: '1972', description: 'Japanese burger chain.', tags: ['fast food'] },
+  { name: 'Paris Baguette', domain: 'parisbaguette.com', category: 'Bakery', country: 'South Korea', founded: '1988', description: 'Bakery cafe chain.', tags: ['bakery'] },
+  { name: 'Tous les Jours', domain: 'tljus.com', category: 'Bakery', country: 'South Korea', founded: '1997', description: 'Bakery cafe chain.', tags: ['bakery'] },
+  { name: 'Caffe Nero', domain: 'caffenero.com', category: 'Coffee', country: 'UK', founded: '1997', description: 'Coffeehouse chain.', tags: ['coffee'] },
+  { name: 'Pretzelmaker', domain: 'pretzelmaker.com', category: 'Dessert', country: 'USA', founded: '1991', description: 'Pretzel chain.', tags: ['dessert'] },
+  { name: 'Sbarro', domain: 'sbarro.com', category: 'Pizza', country: 'USA', founded: '1956', description: 'Pizza-by-the-slice chain.', tags: ['pizza'] },
+  { name: 'Dave\'s Hot Chicken', domain: 'daveshotchicken.com', category: 'Fast Casual', country: 'USA', founded: '2017', description: 'Hot chicken fast casual chain.', tags: ['fast casual', 'chicken'] },
+  { name: 'Zippy\'s', domain: 'zippys.com', category: 'Restaurants', country: 'USA', founded: '1966', description: 'Hawaiian restaurant chain.', tags: ['restaurants'] },
+  { name: 'Gregorys Coffee', domain: 'gregoryscoffee.com', category: 'Coffee', country: 'USA', founded: '2006', description: 'Coffeehouse chain.', tags: ['coffee'] },
+  { name: 'Braum\'s', domain: 'braums.com', category: 'Dessert', country: 'USA', founded: '1968', description: 'Ice cream and dairy-based quick service chain.', tags: ['dessert'] }
+];
+
 const carBrands = [
   { name: 'Toyota', domain: 'toyota.com', category: 'Automaker', country: 'Japan', founded: '1937', description: 'Global automaker.', tags: ['automaker'] },
   { name: 'Honda', domain: 'honda.com', category: 'Automaker', country: 'Japan', founded: '1948', description: 'Japanese automaker.', tags: ['automaker'] },
@@ -417,7 +503,6 @@ function toSupabaseRow(brand) {
     name: brand.name,
     slug: slugify(brand.slug || domain || brand.name),
     domain,
-    logo_url: null,
     description: brand.description,
     category: brand.category,
     country: brand.country,
@@ -435,11 +520,11 @@ async function upsertBrands(table, rows) {
 
 async function run() {
   console.log('Seeding fashion brands...');
-  const fashionResult = await upsertBrands('fashion_brands', dedupeBrands(fashionBrands));
+  const fashionResult = await upsertBrands('fashion_brands', dedupeBrands([...fashionBrands, ...extraFashionBrands]));
   console.log(`Fashion upserts: ${fashionResult.length}`);
 
   console.log('Seeding food brands...');
-  const foodResult = await upsertBrands('food_brands', dedupeBrands(foodBrands));
+  const foodResult = await upsertBrands('food_brands', dedupeBrands([...foodBrands, ...extraFoodBrands]));
   console.log(`Food upserts: ${foodResult.length}`);
 
   console.log('Seeding car brands...');

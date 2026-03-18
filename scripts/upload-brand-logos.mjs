@@ -6,6 +6,23 @@ const ROOT = process.cwd();
 const USER_AGENT = 'Zo2yLogoFetcher/1.0 (+https://zo2y.com; support@zo2y.com)';
 
 const MANUAL_LOGO_OVERRIDES = {
+  'adidas': 'https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg',
+  'cos': 'https://upload.wikimedia.org/wikipedia/commons/6/6e/COS_Logo.png',
+  'helmut lang': 'file:assets/manual-logos/helmut-lang.svg',
+  'j crew': 'https://upload.wikimedia.org/wikipedia/commons/a/a0/JCrew_logo.svg',
+  'j.crew': 'https://upload.wikimedia.org/wikipedia/commons/a/a0/JCrew_logo.svg',
+  'kith': 'https://upload.wikimedia.org/wikipedia/commons/0/09/Kith_brand_logo.svg',
+  'madewell': 'https://brandslogos.com/wp-content/uploads/images/large/madewell-logo-vector.svg',
+  'marine serre': 'https://www.marineserre.com/icons/safari-pinned-tab.svg',
+  'on': 'https://commons.wikimedia.org/wiki/Special:FilePath/On-cloud-logo-white-background.svg?width=512',
+  'sezane': 'https://upload.wikimedia.org/wikipedia/fr/8/8c/Logo-sezane.png',
+  'joe and the juice': 'https://ywhggqmvujdotgqkawqf.supabase.co/storage/v1/object/public/public_images/brands/307/page-logo/d7dac7ec-564f-43e9-9d63-e7dc0b94e9f4.png',
+  'joe & the juice': 'https://ywhggqmvujdotgqkawqf.supabase.co/storage/v1/object/public/public_images/brands/307/page-logo/d7dac7ec-564f-43e9-9d63-e7dc0b94e9f4.png',
+  'red lobster': 'https://www.redlobster.com/ecomm/images/togo-logo.png',
+  "torchy's tacos": 'https://ywhggqmvujdotgqkawqf.supabase.co/storage/v1/object/public/public_images/brands/8678/page-logo/41539b66-fbe0-43c4-9151-ffdc42dd1f18.png',
+  'bmw': 'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg',
+  'mg': 'https://commons.wikimedia.org/wiki/Special:FilePath/MG%20Motor%202021%20logo.svg?width=512',
+  'cava': 'https://upload.wikimedia.org/wikipedia/en/7/74/CavaGroup2022.png',
   'puma': 'https://commons.wikimedia.org/wiki/Special:FilePath/Puma-logo-(text).svg?width=512',
   'ugg': 'https://commons.wikimedia.org/wiki/Special:FilePath/UGG_logo.svg?width=512',
   'fear of god': 'https://images.seeklogo.com/logo-png/41/1/fear-of-god-logo-png_seeklogo-411342.png',
@@ -95,13 +112,32 @@ async function downloadImage(sourceUrl, attempts = 5) {
       const contentType = response.headers.get('content-type') || '';
       if (!contentType.startsWith('image/')) return null;
       const buffer = Buffer.from(await response.arrayBuffer());
-      if (!buffer || buffer.length < 1024) return null;
+      if (!buffer || buffer.length < 128) return null;
       return { buffer, contentType };
     } catch {
       await sleep(800 + i * 1200);
     }
   }
   return null;
+}
+
+function readLocalImage(sourcePath) {
+  const localPath = sourcePath.replace(/^file:/i, '');
+  const absolutePath = path.isAbsolute(localPath) ? localPath : path.join(ROOT, localPath);
+  if (!fs.existsSync(absolutePath)) return null;
+  const buffer = fs.readFileSync(absolutePath);
+  if (!buffer || buffer.length < 32) return null;
+  const ext = path.extname(absolutePath).toLowerCase();
+  const contentType = ext === '.svg'
+    ? 'image/svg+xml'
+    : ext === '.png'
+      ? 'image/png'
+      : ext === '.jpg' || ext === '.jpeg'
+        ? 'image/jpeg'
+        : ext === '.webp'
+          ? 'image/webp'
+          : 'application/octet-stream';
+  return { buffer, contentType, ext: ext.replace(/^\./, '') || 'svg' };
 }
 
 function toCommonsFilePath(filename, size) {
@@ -498,12 +534,23 @@ async function ensureBucket() {
 }
 
 async function uploadLogoObject(table, row, sourceUrl) {
-  const url = new URL(sourceUrl);
-  const extMatch = url.pathname.split('.').pop() || 'svg';
-  const ext = extMatch.split('?')[0].toLowerCase();
+  const isLocalSource = /^file:/i.test(sourceUrl);
+  let ext = 'svg';
+  let downloaded = null;
+  if (isLocalSource) {
+    downloaded = readLocalImage(sourceUrl);
+    if (!downloaded) throw new Error(`Local file read failed: ${sourceUrl}`);
+    ext = downloaded.ext || 'svg';
+  } else {
+    const url = new URL(sourceUrl);
+    const extMatch = url.pathname.split('.').pop() || 'svg';
+    ext = extMatch.split('?')[0].toLowerCase();
+  }
   const key = slugify(row.domain || row.name || row.id || 'brand');
   const filePath = `${table}/${key}.${ext}`;
-  const downloaded = await downloadImage(sourceUrl);
+  if (!downloaded) {
+    downloaded = await downloadImage(sourceUrl);
+  }
   if (!downloaded) throw new Error(`Download failed: ${sourceUrl}`);
   const buffer = downloaded.buffer;
   const contentType = downloaded.contentType || (ext === 'svg' ? 'image/svg+xml' : 'image/png');

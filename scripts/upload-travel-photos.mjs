@@ -440,6 +440,17 @@ async function uploadManifest(countries) {
   if (error) throw error;
 }
 
+function normalizeManifestCoverage(manifestCountries) {
+  Object.values(manifestCountries || {}).forEach((entry) => {
+    if (!entry || typeof entry !== 'object') return;
+    const fallback = entry.scenic || entry.city || entry.nature || '';
+    if (!fallback) return;
+    if (!entry.scenic) entry.scenic = fallback;
+    if (!entry.city) entry.city = entry.scenic || fallback;
+    if (!entry.nature) entry.nature = entry.scenic || entry.city || fallback;
+  });
+}
+
 async function processCountry(country, manifestCountries, options) {
   const current = normalizeManifestEntry(manifestCountries[country.code]);
   const kinds = options.kind === 'all' ? ['scenic', 'city', 'nature'] : [options.kind];
@@ -524,6 +535,7 @@ async function run() {
   const failedCountries = [];
   let manifestSaveChain = Promise.resolve();
   const scheduleManifestSave = () => {
+    normalizeManifestCoverage(manifestCountries);
     manifestSaveChain = manifestSaveChain
       .then(() => uploadManifest(manifestCountries))
       .catch((error) => {
