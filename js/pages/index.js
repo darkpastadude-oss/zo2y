@@ -200,16 +200,22 @@
     const HOME_NEW_RELEASES_TARGET_ITEMS = 16;
     const HOME_NEW_RELEASES_TIMEOUT_MS = 5600;
     const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 12;
-    const HOME_EAGER_IMAGE_COUNT = 3;
-    const HOME_HIGH_PRIORITY_IMAGE_COUNT = 2;
-    const HOME_PRELOAD_PER_CHANNEL = 1;
-    const HOME_PRELOAD_SPOTLIGHT_COUNT = 2;
+    const HOME_EAGER_IMAGE_COUNT = 2;
+    const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
+    const HOME_PRELOAD_PER_CHANNEL = 0;
+    const HOME_PRELOAD_SPOTLIGHT_COUNT = 1;
     const HOME_UNIFIED_TARGET_ITEMS = 24;
     const HOME_BECAUSE_SIGNAL_CACHE_MS = 1000 * 60 * 3;
     const HOME_BECAUSE_MAX_FOLLOWED_USERS = 24;
     const HOME_BECAUSE_SIGNAL_RECENCY_HOURS = 24 * 21;
     const HOME_MENU_PRIME_IDLE_DELAY_MS = 2500;
     const HOME_ONBOARDING_VERSION = 'v1';
+    const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '320px 0px';
+    const HOME_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
+        <rect width='24' height='24' fill='#10224a'/>
+      </svg>
+    `)}`;
     const HOME_BOOK_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
         <defs>
@@ -413,6 +419,7 @@
       selectedLists: new Set()
     };
     const homePreloadedImageSet = new Set();
+    let homeDeferredImageObserver = null;
     let homeEagerImageBudgetUsed = 0;
     let homeHighPriorityImageBudgetUsed = 0;
     let homeNewReleasesState = [];
@@ -4009,10 +4016,10 @@
     function consumeHomeImageRequestBudget() {
       const onSlowNetwork = isHomeSlowNetwork();
       const eagerBudget = onSlowNetwork
-        ? Math.max(2, HOME_EAGER_IMAGE_COUNT - 3)
+        ? Math.max(1, HOME_EAGER_IMAGE_COUNT - 1)
         : HOME_EAGER_IMAGE_COUNT;
       const priorityBudget = onSlowNetwork
-        ? Math.max(1, HOME_HIGH_PRIORITY_IMAGE_COUNT - 2)
+        ? 1
         : HOME_HIGH_PRIORITY_IMAGE_COUNT;
       const useEager = homeEagerImageBudgetUsed < eagerBudget;
       const useHighPriority = homeHighPriorityImageBudgetUsed < priorityBudget;
@@ -4057,6 +4064,87 @@
       img.loading = 'lazy';
       img.fetchPriority = 'low';
       img.src = src;
+    }
+
+    function shouldDeferHomeImageLoad(loading) {
+      return String(loading || '').toLowerCase() !== 'eager';
+    }
+
+    function getHomeImageWrapper(img) {
+      return img?.closest?.('.card-media, .game-card-media, .travel-photo-tile') || null;
+    }
+
+    function markHomeImageReady(img) {
+      if (!img) return;
+      img.setAttribute('data-image-ready', '1');
+      img.setAttribute('data-home-image-state', 'ready');
+      const wrapper = getHomeImageWrapper(img);
+      if (wrapper) wrapper.classList.remove('is-loading-media');
+    }
+
+    function loadHomeDeferredImage(img) {
+      if (!img || !img.hasAttribute('data-home-src')) return;
+      const nextSrc = String(img.getAttribute('data-home-src') || '').trim();
+      if (!nextSrc) {
+        img.removeAttribute('data-home-src');
+        markHomeImageReady(img);
+        return;
+      }
+      img.setAttribute('data-home-image-state', 'loading');
+      img.removeAttribute('data-home-src');
+      img.src = nextSrc;
+    }
+
+    function getHomeDeferredImageObserver() {
+      if (homeDeferredImageObserver || typeof window.IntersectionObserver !== 'function') {
+        return homeDeferredImageObserver;
+      }
+      homeDeferredImageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const img = entry.target;
+          observer.unobserve(img);
+          loadHomeDeferredImage(img);
+        });
+      }, {
+        rootMargin: HOME_DEFERRED_IMAGE_ROOT_MARGIN,
+        threshold: 0.01
+      });
+      return homeDeferredImageObserver;
+    }
+
+    function primeHomeDeferredImages(scope) {
+      if (!scope) return;
+      const deferredImages = Array.from(scope.querySelectorAll('img[data-home-src]'));
+      if (!deferredImages.length) return;
+      const observer = getHomeDeferredImageObserver();
+      if (!observer) {
+        deferredImages.forEach((img) => loadHomeDeferredImage(img));
+        return;
+      }
+      deferredImages.forEach((img) => observer.observe(img));
+    }
+
+    function buildHomeImageAttrs(src, loading, priority, fallbackImage = '', extra = {}) {
+      const actualSrc = String(src || '');
+      const fallbackSrc = String(fallbackImage || '');
+      const shouldDefer = shouldDeferHomeImageLoad(loading);
+      const attrs = [
+        `src="${shouldDefer ? HOME_IMAGE_PLACEHOLDER : actualSrc}"`,
+        shouldDefer ? `data-home-src="${actualSrc}"` : '',
+        `loading="${shouldDefer ? 'lazy' : loading}"`,
+        `fetchpriority="${shouldDefer ? 'low' : priority}"`,
+        'decoding="async"',
+        'referrerpolicy="no-referrer"',
+        'data-home-image="1"',
+        `data-home-image-state="${shouldDefer ? 'deferred' : 'loading'}"`,
+        'data-image-ready="0"',
+        `data-fallback-image="${fallbackSrc}"`,
+        'data-fallback-applied="0"',
+        extra.ariaHidden ? 'aria-hidden="true"' : '',
+        extra.altEmpty ? 'alt=""' : ''
+      ];
+      return attrs.filter(Boolean).join(' ');
     }
 
     function getOptimizedHomeTravelImage(url, width = 720) {
@@ -4520,6 +4608,7 @@
         const listImage = escapeHtml(itemData.listImage || itemData.image || '');
         const logo = escapeHtml(itemData.logo || '');
         const fallbackImage = escapeHtml(itemData.fallbackImage || '');
+        const safeImage = image || (mediaTypeRaw === 'travel' ? fallbackImage : '');
         const coverImage = image || logo;
         const hrefRaw = itemData.href || '#';
         const href = escapeHtml(hrefRaw);
@@ -4533,7 +4622,7 @@
         const previewControl = previewUrlRaw
           ? `<button class="card-preview-btn" data-preview="${escapeHtml(previewUrlRaw)}" aria-label="Play preview"><i class="fas fa-play"></i></button>`
           : '';
-        const hasVisualImage = restaurantComposite ? !!coverImage || !!logo : !!image;
+        const hasVisualImage = restaurantComposite ? !!coverImage || !!logo : !!safeImage;
         const imagePolicy = hasVisualImage
           ? consumeHomeImageRequestBudget()
           : { loading: 'lazy', priority: 'low' };
@@ -4550,8 +4639,8 @@
             : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
           return `
             <article class="card game-card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${image}">
-              <div class="game-card-media"${bgStyle}>
-                <img class="game-card-img" src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">
+              <div class="game-card-media is-loading-media"${bgStyle}>
+                <img class="game-card-img" ${buildHomeImageAttrs(image, imageLoading, imagePriority)} alt="${title}">
               </div>
               <div class="card-body">
                 <h3 class="card-title">${title}</h3>
@@ -4577,18 +4666,18 @@
         if (mediaTypeRaw === 'travel') mediaClasses.push('travel-photo');
         if (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food') mediaClasses.push('brand-cover');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
+        if (hasVisualImage) mediaClasses.push('is-loading-media');
         if (restaurantComposite && !coverImage && !logo) return '';
-        const safeImage = image || (mediaTypeRaw === 'travel' ? fallbackImage : '');
         if (!restaurantComposite && !safeImage) return '';
         const optimizedTravelImage = mediaTypeRaw === 'travel'
           ? getOptimizedHomeTravelImage(safeImage, landscape ? 960 : 720)
           : '';
         let mediaHtml = restaurantComposite
           ? `
-              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
-              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0"></span>` : ''}
+              ${coverImage ? `<img class="restaurant-cover" ${buildHomeImageAttrs(coverImage, imageLoading, imagePriority, fallbackImage)} alt="${title}">` : '<i class="fa-solid fa-image"></i>'}
+              ${logo ? `<span class="restaurant-logo-badge"><img ${buildHomeImageAttrs(logo, 'lazy', 'low', fallbackImage)} alt="${title} logo"></span>` : ''}
             `
-          : `${safeImage ? `<img src="${mediaTypeRaw === 'travel' ? optimizedTravelImage : safeImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
+          : `${safeImage ? `<img ${buildHomeImageAttrs(mediaTypeRaw === 'travel' ? optimizedTravelImage : safeImage, imageLoading, imagePriority, fallbackImage)} alt="${title}">` : '<i class="fa-solid fa-image"></i>'}`;
 
         if (mediaTypeRaw === 'travel') {
           const travelSet = itemData.travelPhotoSet || {};
@@ -4600,8 +4689,8 @@
             mediaHtml = `
               <div class="travel-photo-grid${travelTiles.length > 1 ? '' : ' single'}">
                 ${travelTiles.map((tile) => `
-                  <div class="travel-photo-tile" data-kind="${escapeHtml(tile.kind)}">
-                    <img src="${escapeHtml(getOptimizedHomeTravelImage(tile.url, 640))}" alt="${escapeHtml(tile.label)}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">
+                  <div class="travel-photo-tile is-loading-media" data-kind="${escapeHtml(tile.kind)}">
+                    <img ${buildHomeImageAttrs(getOptimizedHomeTravelImage(tile.url, 640), imageLoading, imagePriority, fallbackImage)} alt="${escapeHtml(tile.label)}">
                     <span class="travel-photo-label">${escapeHtml(tile.label)}</span>
                   </div>
                 `).join('')}
@@ -4613,7 +4702,7 @@
         const titleMarkup = (mediaTypeRaw === 'travel' && flagImage)
           ? `
             <span class="country-title-wrap">
-              <img class="country-inline-flag" src="${flagImage}" alt="" aria-hidden="true" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer">
+              <img class="country-inline-flag" ${buildHomeImageAttrs(flagImage, 'lazy', 'low', '', { ariaHidden: true, altEmpty: true })}>
               <span class="country-title-text">${title}</span>
             </span>
           `
@@ -4655,6 +4744,7 @@
       if (!html) return;
 
       wireHomeCardMenus(rail);
+      primeHomeDeferredImages(rail);
       wireHomeRailImageFallbacks(rail);
     }
 
@@ -4692,6 +4782,10 @@
           const applied = String(img.getAttribute('data-fallback-applied') || '');
           if (fallback && applied !== '1') {
             img.setAttribute('data-fallback-applied', '1');
+            img.setAttribute('data-image-ready', '0');
+            img.setAttribute('data-home-image-state', 'loading');
+            const wrapper = getHomeImageWrapper(img);
+            if (wrapper) wrapper.classList.add('is-loading-media');
             img.src = fallback;
             return;
           }
@@ -4703,20 +4797,20 @@
           }
         };
 
-        if (isBrandRail) {
-          const checkPlaceholder = () => {
-            if (isLogoPlaceholder(img.currentSrc || img.src)) {
-              handleMissing();
-            }
-          };
-          if (img.complete) {
-            checkPlaceholder();
-          } else {
-            img.addEventListener('load', checkPlaceholder, { once: true });
+        const handleLoaded = () => {
+          if (img.hasAttribute('data-home-src')) return;
+          markHomeImageReady(img);
+          if (isBrandRail && isLogoPlaceholder(img.currentSrc || img.src)) {
+            handleMissing();
           }
-        }
+        };
 
-        img.addEventListener('error', handleMissing, { once: true });
+        img.addEventListener('load', handleLoaded);
+        img.addEventListener('error', handleMissing);
+
+        if (img.complete && !img.hasAttribute('data-home-src')) {
+          handleLoaded();
+        }
       });
     }
 
