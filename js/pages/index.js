@@ -141,12 +141,16 @@
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
     const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v11';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
-    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v6';
+    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
-    const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v3';
+    const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v4';
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
-    const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v3';
+    const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v4';
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
+    const HOME_TRAVEL_BUCKET_NAME = 'travel-photos';
+    const HOME_TRAVEL_BUCKET_MANIFEST_CACHE_KEY = 'zo2y_travel_bucket_manifest_v1';
+    const HOME_TRAVEL_BUCKET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+    const HOME_TRAVEL_BUCKET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/manifest/travel-photo-manifest.json`;
     const HOME_TRAVEL_FALLBACK_IMAGE = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
         <defs>
@@ -427,6 +431,7 @@
     };
     const homeTravelPhotoCache = new Map();
     let homeTravelPhotoCacheSaveTimer = null;
+    let homeTravelBucketManifestPromise = null;
     let homeTravelHydrationPromise = null;
     const homeMusicPreviewState = {
       audio: null,
@@ -662,6 +667,90 @@
       return normalizeHomeTravelPhotoEntry(homeTravelPhotoCache.get(code));
     }
 
+    function normalizeHomeTravelBucketManifestEntries(payload) {
+      if (!payload || typeof payload !== 'object') return null;
+      const entries = payload.countries && typeof payload.countries === 'object'
+        ? payload.countries
+        : (payload.entries && typeof payload.entries === 'object' ? payload.entries : null);
+      return entries && typeof entries === 'object' ? entries : null;
+    }
+
+    function mergeHomeTravelBucketManifestEntries(entries) {
+      if (!entries || typeof entries !== 'object') return false;
+      let changed = false;
+      Object.entries(entries).forEach(([codeRaw, entry]) => {
+        const code = canonicalTravelCountryCode(codeRaw);
+        if (!code) return;
+        const normalized = normalizeHomeTravelPhotoEntry(entry);
+        if (!normalized.scenic && !normalized.city && !normalized.nature) return;
+        const current = normalizeHomeTravelPhotoEntry(homeTravelPhotoCache.get(code));
+        const merged = {
+          scenic: normalized.scenic || current.scenic || '',
+          city: normalized.city || current.city || '',
+          nature: normalized.nature || current.nature || ''
+        };
+        if (merged.scenic === current.scenic && merged.city === current.city && merged.nature === current.nature) return;
+        homeTravelPhotoCache.set(code, merged);
+        changed = true;
+      });
+      if (changed) scheduleHomeTravelPhotoCacheSave();
+      return changed;
+    }
+
+    function readHomeTravelBucketManifestCache() {
+      try {
+        const raw = localStorage.getItem(HOME_TRAVEL_BUCKET_MANIFEST_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed?.savedAt || 0);
+        const entries = normalizeHomeTravelBucketManifestEntries(parsed);
+        if (!savedAt || !entries) return null;
+        if ((Date.now() - savedAt) > HOME_TRAVEL_BUCKET_MANIFEST_TTL_MS) return null;
+        return { savedAt, entries };
+      } catch (_err) {
+        return null;
+      }
+    }
+
+    function writeHomeTravelBucketManifestCache(entries) {
+      if (!entries || typeof entries !== 'object') return;
+      try {
+        localStorage.setItem(HOME_TRAVEL_BUCKET_MANIFEST_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          countries: entries
+        }));
+      } catch (_err) {}
+    }
+
+    function loadHomeTravelBucketManifestFromStorage() {
+      const cached = readHomeTravelBucketManifestCache();
+      if (!cached || !cached.entries) return false;
+      return mergeHomeTravelBucketManifestEntries(cached.entries);
+    }
+
+    async function hydrateHomeTravelBucketManifest(signal) {
+      if (homeTravelBucketManifestPromise) return homeTravelBucketManifestPromise;
+      homeTravelBucketManifestPromise = (async () => {
+        try {
+          const response = await fetch(HOME_TRAVEL_BUCKET_MANIFEST_URL, {
+            signal,
+            headers: { Accept: 'application/json' }
+          });
+          if (!response.ok) return false;
+          const payload = await response.json();
+          const entries = normalizeHomeTravelBucketManifestEntries(payload);
+          if (!entries) return false;
+          writeHomeTravelBucketManifestCache(entries);
+          return mergeHomeTravelBucketManifestEntries(entries);
+        } catch (_err) {
+          return false;
+        } finally {
+          homeTravelBucketManifestPromise = null;
+        }
+      })();
+      return homeTravelBucketManifestPromise;
+    }
+
     function getHomeTravelFallbackItems(limit = getHomeChannelTargetItems()) {
       const maxCount = Math.max(1, Number(limit || getHomeChannelTargetItems()));
       const items = HOME_TRAVEL_FALLBACKS.map((entry) => {
@@ -863,6 +952,7 @@
     }
 
     readHomeTravelPhotoCacheFromStorage();
+    loadHomeTravelBucketManifestFromStorage();
 
     function withTimeout(promise, timeoutMs, fallbackValue = null) {
       let timer = null;
@@ -7423,6 +7513,7 @@
 
     async function loadTravel(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
+      await withTimeout(hydrateHomeTravelBucketManifest(signal), 1400, false).catch(() => false);
       const cachedRowItems = getCachedHomeTravelItems(targetCount);
       const cachedHomeItems = readHomeItemsCache(
         HOME_TRAVEL_ITEMS_CACHE_KEY,

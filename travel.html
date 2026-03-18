@@ -395,10 +395,14 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
     const COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
     const PAGE_SIZE = 24;
-    const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v6';
+    const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
     const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-    const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v3';
+    const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v4';
     const TRAVEL_COUNTRY_ROWS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
+    const TRAVEL_BUCKET_NAME = 'travel-photos';
+    const TRAVEL_BUCKET_MANIFEST_CACHE_KEY = 'zo2y_travel_bucket_manifest_v1';
+    const TRAVEL_BUCKET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+    const TRAVEL_BUCKET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${TRAVEL_BUCKET_NAME}/manifest/travel-photo-manifest.json`;
     const TRAVEL_POPULARITY_CACHE_KEY = 'zo2y_travel_popularity_v1';
     const TRAVEL_POPULARITY_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
     const TRAVEL_POPULARITY_WINDOW_DAYS = 7;
@@ -445,6 +449,7 @@
     const countryPhotoCache = new Map();
     const countryPhotoPending = new Set();
     const countryLifestylePending = new Set();
+    let travelBucketManifestPromise = null;
     let countryPhotoSaveTimer = null;
     const countryCityHints = {
       US: ['New York', 'Los Angeles', 'Chicago'],
@@ -571,6 +576,104 @@
       const safeCountryCode = canonicalCountryCode(code);
       if (!safeCountryCode) return { scenic: '', city: '', nature: '' };
       return normalizePhotoEntry(countryPhotoCache.get(safeCountryCode));
+    }
+
+    function applyCachedTravelPhotosToRows(rows = state.rows) {
+      const list = Array.isArray(rows) ? rows : [];
+      list.forEach((item) => {
+        const code = canonicalCountryCode(item && item.code);
+        if (!code) return;
+        const cached = getCountryPhotoSet(code);
+        item.photo = cached.scenic || cached.city || cached.nature || item.photo || '';
+        item.photoCity = cached.city || item.photoCity || '';
+        item.photoNature = cached.nature || item.photoNature || '';
+      });
+    }
+
+    function normalizeTravelBucketManifestEntries(payload) {
+      if (!payload || typeof payload !== 'object') return null;
+      const entries = payload.countries && typeof payload.countries === 'object'
+        ? payload.countries
+        : (payload.entries && typeof payload.entries === 'object' ? payload.entries : null);
+      return entries && typeof entries === 'object' ? entries : null;
+    }
+
+    function mergeTravelBucketManifestEntries(entries) {
+      if (!entries || typeof entries !== 'object') return false;
+      let changed = false;
+      Object.entries(entries).forEach(([code, entry]) => {
+        const safeCountryCode = canonicalCountryCode(code);
+        if (!safeCountryCode) return;
+        const normalized = normalizePhotoEntry(entry);
+        if (!normalized.scenic && !normalized.city && !normalized.nature) return;
+        const current = normalizePhotoEntry(countryPhotoCache.get(safeCountryCode));
+        const merged = {
+          scenic: normalized.scenic || current.scenic || '',
+          city: normalized.city || current.city || '',
+          nature: normalized.nature || current.nature || ''
+        };
+        if (merged.scenic === current.scenic && merged.city === current.city && merged.nature === current.nature) return;
+        countryPhotoCache.set(safeCountryCode, merged);
+        changed = true;
+      });
+      if (changed) {
+        applyCachedTravelPhotosToRows();
+        scheduleCountryPhotoCacheSave();
+      }
+      return changed;
+    }
+
+    function readTravelBucketManifestCache() {
+      try {
+        const raw = localStorage.getItem(TRAVEL_BUCKET_MANIFEST_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed && parsed.savedAt || 0);
+        const entries = normalizeTravelBucketManifestEntries(parsed);
+        if (!savedAt || !entries) return null;
+        if ((Date.now() - savedAt) > TRAVEL_BUCKET_MANIFEST_TTL_MS) return null;
+        return { savedAt, entries };
+      } catch (_error) {
+        return null;
+      }
+    }
+
+    function writeTravelBucketManifestCache(entries) {
+      if (!entries || typeof entries !== 'object') return;
+      try {
+        localStorage.setItem(TRAVEL_BUCKET_MANIFEST_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          countries: entries
+        }));
+      } catch (_error) {}
+    }
+
+    function loadTravelBucketManifestFromStorage() {
+      const cached = readTravelBucketManifestCache();
+      if (!cached || !cached.entries) return false;
+      return mergeTravelBucketManifestEntries(cached.entries);
+    }
+
+    async function hydrateTravelBucketManifest() {
+      if (travelBucketManifestPromise) return travelBucketManifestPromise;
+      travelBucketManifestPromise = (async () => {
+        try {
+          const response = await fetch(TRAVEL_BUCKET_MANIFEST_URL, {
+            headers: { Accept: 'application/json' }
+          });
+          if (!response.ok) return false;
+          const payload = await response.json();
+          const entries = normalizeTravelBucketManifestEntries(payload);
+          if (!entries) return false;
+          writeTravelBucketManifestCache(entries);
+          return mergeTravelBucketManifestEntries(entries);
+        } catch (_error) {
+          return false;
+        } finally {
+          travelBucketManifestPromise = null;
+        }
+      })();
+      return travelBucketManifestPromise;
     }
 
     function normalizeTravelSearchQuery(value) {
@@ -1704,6 +1807,7 @@
 
     async function init() {
       loadCountryPhotoCacheFromStorage();
+      loadTravelBucketManifestFromStorage();
       wireEvents();
       const params = new URLSearchParams(window.location.search);
       const initialSearch = String(params.get('search') || '').trim();
@@ -1720,6 +1824,12 @@
         empty.textContent = 'Could not load countries right now.';
       }
       render();
+      void hydrateTravelBucketManifest().then((changed) => {
+        if (!changed) return;
+        applyCachedTravelPhotosToRows();
+        writeCountryRowsCache(state.rows);
+        render();
+      }).catch(() => {});
       wireListMenuBridge();
       window.setTimeout(() => {
         void syncAuth();
