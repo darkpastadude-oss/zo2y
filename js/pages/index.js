@@ -4171,17 +4171,22 @@
     function getOptimizedHomeTravelImage(url, width = 720) {
       const src = toHttpsUrl(String(url || '').trim());
       if (!src) return '';
-      const marker = `/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/`;
-      const idx = src.indexOf(marker);
-      if (idx === -1) return src;
-      const path = src.slice(idx + marker.length);
+      const publicMarker = `/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/`;
+      const renderMarker = `/storage/v1/render/image/public/${HOME_TRAVEL_BUCKET_NAME}/`;
+      let path = '';
+      if (src.includes(publicMarker)) {
+        path = src.slice(src.indexOf(publicMarker) + publicMarker.length);
+      } else if (src.includes(renderMarker)) {
+        path = src.slice(src.indexOf(renderMarker) + renderMarker.length).split('?')[0];
+      } else {
+        return src;
+      }
       if (!path) return src;
       const encodedPath = path
         .split('/')
         .map((segment) => encodeURIComponent(segment))
         .join('/');
-      const clampedWidth = Math.max(240, Math.min(1280, Number(width) || 720));
-      return `${SUPABASE_URL}/storage/v1/render/image/public/${HOME_TRAVEL_BUCKET_NAME}/${encodedPath}?width=${clampedWidth}&quality=72&resize=cover`;
+      return `${SUPABASE_URL}/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/${encodedPath}`;
     }
 
     function getHomeTravelVariants(itemData, landscape = false) {
