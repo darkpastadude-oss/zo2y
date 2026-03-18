@@ -211,6 +211,7 @@
     const HOME_MENU_PRIME_IDLE_DELAY_MS = 2500;
     const HOME_ONBOARDING_VERSION = 'v1';
     const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '320px 0px';
+    const HOME_TRAVEL_ROTATE_MS = 10000;
     const HOME_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
         <rect width='24' height='24' fill='#10224a'/>
@@ -444,6 +445,7 @@
     let homeTravelPhotoCacheSaveTimer = null;
     let homeTravelBucketManifestPromise = null;
     let homeTravelHydrationPromise = null;
+    let homeTravelRotateTimer = null;
     const homePendingRailRenderState = new Map();
     const homeDeferredChannelState = new Map();
     const homeMusicPreviewState = {
@@ -4182,6 +4184,73 @@
       return `${SUPABASE_URL}/storage/v1/render/image/public/${HOME_TRAVEL_BUCKET_NAME}/${encodedPath}?width=${clampedWidth}&quality=72&resize=cover`;
     }
 
+    function getHomeTravelVariants(itemData, landscape = false) {
+      const travelSet = itemData?.travelPhotoSet || {};
+      const candidates = [
+        { raw: travelSet.scenic || itemData?.image || '', label: 'Scenic', kind: 'scenic' },
+        { raw: travelSet.city || '', label: 'City life', kind: 'city' },
+        { raw: travelSet.nature || '', label: 'Nature', kind: 'nature' }
+      ];
+      const seen = new Set();
+      return candidates
+        .map((entry) => {
+          const src = getOptimizedHomeTravelImage(entry.raw, landscape ? 960 : 720);
+          return src ? { ...entry, src } : null;
+        })
+        .filter(Boolean)
+        .filter((entry) => {
+          if (seen.has(entry.src)) return false;
+          seen.add(entry.src);
+          return true;
+        });
+    }
+
+    function isHomeTravelCardVisible(node) {
+      if (!node || typeof node.getBoundingClientRect !== 'function') return false;
+      const rect = node.getBoundingClientRect();
+      const viewportHeight = Math.max(window.innerHeight || 0, document.documentElement?.clientHeight || 0, 720);
+      const viewportWidth = Math.max(window.innerWidth || 0, document.documentElement?.clientWidth || 0, 1280);
+      return rect.bottom >= -40 && rect.top <= viewportHeight + 40 && rect.right >= -40 && rect.left <= viewportWidth + 40;
+    }
+
+    function advanceHomeTravelCardImage(img) {
+      if (!img || img.hasAttribute('data-home-src')) return;
+      const raw = String(img.getAttribute('data-home-travel-variants') || '').trim();
+      if (!raw) return;
+      let variants = [];
+      try {
+        variants = JSON.parse(raw);
+      } catch (_err) {
+        variants = [];
+      }
+      if (!Array.isArray(variants) || variants.length < 2) return;
+      const wrapper = img.closest('.card-media') || img.closest('.travel-photo-stage');
+      if (!isHomeTravelCardVisible(wrapper || img)) return;
+      const nextIndex = (Number(img.getAttribute('data-travel-variant-index') || 0) + 1) % variants.length;
+      const next = variants[nextIndex];
+      if (!next?.src) return;
+      img.setAttribute('data-travel-variant-index', String(nextIndex));
+      img.setAttribute('data-image-ready', '0');
+      img.setAttribute('data-home-image-state', 'loading');
+      if (wrapper) wrapper.classList.add('is-loading-media');
+      const label = wrapper?.querySelector?.('.travel-photo-label');
+      if (label) {
+        label.textContent = next.label || '';
+        label.setAttribute('data-kind', next.kind || 'scenic');
+      }
+      img.src = next.src;
+    }
+
+    function ensureHomeTravelRotation() {
+      if (homeTravelRotateTimer || typeof window === 'undefined') return;
+      homeTravelRotateTimer = window.setInterval(() => {
+        if (document.hidden) return;
+        document.querySelectorAll('img[data-home-travel-variants]').forEach((img) => {
+          advanceHomeTravelCardImage(img);
+        });
+      }, HOME_TRAVEL_ROTATE_MS);
+    }
+
     function warmHomeFeedImages(feedMap) {
       if (isHomeSlowNetwork()) return;
       const perChannelBudget = getHomePreloadPerChannelBudget();
@@ -4931,19 +5000,15 @@
           : `${safeImage ? `<img ${buildHomeImageAttrs(mediaTypeRaw === 'travel' ? optimizedTravelImage : safeImage, imageLoading, imagePriority, fallbackImage)} alt="${title}">` : '<i class="fa-solid fa-image"></i>'}`;
 
         if (mediaTypeRaw === 'travel') {
-          const travelSet = itemData.travelPhotoSet || {};
-          const travelBadges = [];
-          if (travelSet.city) travelBadges.push({ label: 'City life', kind: 'city' });
-          if (travelSet.nature) travelBadges.push({ label: 'Nature', kind: 'nature' });
-          if (!travelBadges.length && safeImage) travelBadges.push({ label: 'Scenic', kind: 'scenic' });
-          if (safeImage) {
+          const travelVariants = getHomeTravelVariants(itemData, landscape);
+          const initialTravelVariant = travelVariants[0] || null;
+          if (initialTravelVariant?.src) {
+            const travelVariantsAttr = escapeHtml(JSON.stringify(travelVariants));
             mediaHtml = `
               <div class="travel-photo-stage is-loading-media">
-                <img ${buildHomeImageAttrs(getOptimizedHomeTravelImage(safeImage, landscape ? 960 : 720), imageLoading, imagePriority, fallbackImage)} alt="${title}">
+                <img ${buildHomeImageAttrs(initialTravelVariant.src, imageLoading, imagePriority, fallbackImage)} data-home-travel-variants="${travelVariantsAttr}" data-travel-variant-index="0" alt="${title}">
                 <div class="travel-photo-badges" aria-hidden="true">
-                  ${travelBadges.slice(0, 2).map((badge) => `
-                    <span class="travel-photo-label" data-kind="${escapeHtml(badge.kind)}">${escapeHtml(badge.label)}</span>
-                  `).join('')}
+                  <span class="travel-photo-label" data-kind="${escapeHtml(initialTravelVariant.kind || 'scenic')}">${escapeHtml(initialTravelVariant.label || 'Scenic')}</span>
                 </div>
               </div>
             `;
@@ -4997,6 +5062,7 @@
       wireHomeCardMenus(rail);
       wireHomeRailImageFallbacks(rail);
       primeHomeDeferredImages(rail);
+      ensureHomeTravelRotation();
     }
 
     const BRAND_RAIL_MEDIA_TYPES = new Set(['fashion', 'food', 'car']);

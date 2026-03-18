@@ -276,17 +276,36 @@ const MANUAL_LOGO_OVERRIDES = new Map([
   ['domain:skoda-auto.com', 'Skoda-Auto-Logo-2011-present.svg'],
   ['title:changan', 'Changan_icon.svg'],
   ['title:changan automobile', 'Changan_icon.svg'],
-  ['domain:changan.com', 'Changan_icon.svg']
+  ['domain:changan.com', 'Changan_icon.svg'],
+  ['title:bentley', 'https://www.bentleymotors.com/content/dam/bm/websites/bmcom/bentleymotors-com/logos/Simplified%20Positive_BMdotCom_1000x500_2x1.png/_jcr_content/renditions/original./Simplified%20Positive_BMdotCom_1000x500_2x1.png'],
+  ['domain:bentleymotors.com', 'https://www.bentleymotors.com/content/dam/bm/websites/bmcom/bentleymotors-com/logos/Simplified%20Positive_BMdotCom_1000x500_2x1.png/_jcr_content/renditions/original./Simplified%20Positive_BMdotCom_1000x500_2x1.png'],
+  ['title:aston martin', '/assets/manual-logos/aston-martin.svg'],
+  ['domain:astonmartin.com', '/assets/manual-logos/aston-martin.svg'],
+  ['title:lee', '/assets/manual-logos/lee.svg'],
+  ['domain:lee.com', '/assets/manual-logos/lee.svg'],
+  ['title:first watch', 'https://upload.wikimedia.org/wikipedia/en/9/9a/First-watch-logo.png'],
+  ['domain:firstwatch.com', 'https://upload.wikimedia.org/wikipedia/en/9/9a/First-watch-logo.png'],
+  ['title:church\'s chicken', 'https://upload.wikimedia.org/wikipedia/commons/3/34/Churchs-logo.svg'],
+  ['title:churchs chicken', 'https://upload.wikimedia.org/wikipedia/commons/3/34/Churchs-logo.svg'],
+  ['domain:churchs.com', 'https://upload.wikimedia.org/wikipedia/commons/3/34/Churchs-logo.svg'],
+  ['domain:churchschicken.com', 'https://upload.wikimedia.org/wikipedia/commons/3/34/Churchs-logo.svg'],
+  ['title:culichi town', 'https://d2gqo3h0psesgi.cloudfront.net/auto/culichi-town-restaurant-z7mnsplj-logo.png'],
+  ['domain:culichitown.com', 'https://d2gqo3h0psesgi.cloudfront.net/auto/culichi-town-restaurant-z7mnsplj-logo.png'],
+  ['title:zoe\'s kitchen', 'https://upload.wikimedia.org/wikipedia/commons/5/57/Zoeslogo.jpg'],
+  ['title:zoes kitchen', 'https://upload.wikimedia.org/wikipedia/commons/5/57/Zoeslogo.jpg'],
+  ['domain:zoeskitchen.com', 'https://upload.wikimedia.org/wikipedia/commons/5/57/Zoeslogo.jpg']
 ]);
 
 function normalizeCommonsLogo(value, size) {
   const raw = String(value || '').trim();
   if (!raw) return '';
+  if (raw.startsWith('/')) return raw;
   if (raw.includes('Special:FilePath/')) {
     const url = raw.split('?')[0];
     return `${url}?width=${Number.isFinite(size) ? size : 256}`;
   }
   if (raw.startsWith('http')) {
+    if (!/wikimedia|wikipedia/i.test(raw)) return raw;
     const parts = raw.split('/');
     const filename = parts[parts.length - 1];
     return toCommonsFilePath(filename, size);
