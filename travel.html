@@ -97,7 +97,43 @@
       border-radius: 14px;
       background: linear-gradient(160deg, rgba(23,43,88,0.9), rgba(19,35,71,0.95));
     }
-    .hero { padding: 14px; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 18px;
+      min-height: 260px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(240px, 360px);
+      gap: 16px;
+      isolation: isolate;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(104deg, rgba(6, 13, 28, 0.88) 0%, rgba(8, 16, 35, 0.62) 44%, rgba(13, 25, 52, 0.18) 100%),
+        radial-gradient(circle at 88% 18%, rgba(34,211,238,0.18), transparent 28%),
+        radial-gradient(circle at 74% 78%, rgba(34,197,94,0.16), transparent 24%);
+      z-index: -1;
+    }
+    .hero-backdrop {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, rgba(9, 20, 44, 0.36), rgba(9, 20, 44, 0.72)),
+        var(--hero-bg-image, linear-gradient(160deg, rgba(23,43,88,0.9), rgba(19,35,71,0.95)));
+      background-size: cover;
+      background-position: center center;
+      transform: scale(1.03);
+      z-index: -2;
+    }
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+      align-self: end;
+      max-width: 620px;
+    }
     .hero h1 { margin: 0 0 6px; font-size: 28px; }
     .hero p { margin: 0; color: var(--muted); font-size: 14px; }
     .hero-note {
@@ -108,6 +144,66 @@
     }
     .hero-note a {
       color: var(--accent);
+    }
+    .hero-spotlight {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 10px;
+      align-self: stretch;
+      align-content: end;
+    }
+    .hero-spotlight-card {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(8, 16, 35, 0.52);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 40px rgba(4, 10, 24, 0.18);
+    }
+    .hero-spotlight-card:first-child {
+      background: rgba(8, 16, 35, 0.62);
+      border-color: rgba(245, 158, 11, 0.34);
+    }
+    .hero-spotlight-thumb {
+      width: 58px;
+      aspect-ratio: 1 / 1;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(16, 34, 74, 0.86);
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+    .hero-spotlight-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .hero-spotlight-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #cbd5e1;
+    }
+    .hero-spotlight-title {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #fff;
+    }
+    .hero-spotlight-meta {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.3;
     }
     .controls {
       display: grid;
@@ -189,22 +285,13 @@
       object-position: center center;
       display: block;
     }
-    .card-photo-grid {
+    .card-photo-stage {
       position: absolute;
       inset: 0;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0;
+      overflow: hidden;
       z-index: 2;
     }
-    .card-photo-grid.single {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .card-photo-tile {
-      position: relative;
-      overflow: hidden;
-    }
-    .card-photo-tile.is-loading::before {
+    .card-photo-stage.is-loading::before {
       content: "";
       position: absolute;
       inset: 0;
@@ -217,7 +304,7 @@
       z-index: 0;
       pointer-events: none;
     }
-    .card-photo-tile img {
+    .card-photo-stage img {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -228,14 +315,22 @@
       filter: blur(10px);
       transition: opacity 220ms ease, filter 220ms ease;
     }
-    .card-photo-tile img[data-ready="1"] {
+    .card-photo-stage img[data-ready="1"] {
       opacity: 1;
       filter: blur(0);
     }
-    .card-photo-label {
+    .card-photo-badges {
       position: absolute;
-      left: 8px;
-      bottom: 8px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      z-index: 3;
+    }
+    .card-photo-label {
       padding: 4px 8px;
       border-radius: 999px;
       font-size: 11px;
@@ -246,8 +341,11 @@
       border: 1px solid rgba(255,255,255,0.2);
       backdrop-filter: blur(6px);
     }
-    .card-photo-wrap.no-photo .card-photo-grid {
-      display: none;
+    .card-photo-label[data-kind="city"] {
+      background: rgba(59, 130, 246, 0.72);
+    }
+    .card-photo-label[data-kind="nature"] {
+      background: rgba(34, 197, 94, 0.72);
     }
     .card-photo-wrap.no-photo .card-photo-fallback {
       z-index: 1;
@@ -343,6 +441,13 @@
       .top-brand span {
         display: none;
       }
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+      .hero-spotlight {
+        grid-template-columns: 1fr;
+      }
       .controls { grid-template-columns: 1fr; }
       .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .ttl { font-size: 14px; }
@@ -387,10 +492,14 @@
   </div>
 </header>
 
-  <section class="hero">
-    <h1><i class="fa-solid fa-earth-americas"></i> popular destinations right now</h1>
-    <p>Browse live travel picks ranked by recent global attention, then save them to your lists.</p>
-    <div class="hero-note">sources: Wikimedia Pageviews, Wikimedia Commons, and REST Countries. <a href="credits.html">all credits</a></div>
+  <section class="hero" id="travelHero">
+    <div class="hero-backdrop" id="travelHeroBackdrop" aria-hidden="true"></div>
+    <div class="hero-copy">
+      <h1><i class="fa-solid fa-earth-americas"></i> popular destinations right now</h1>
+      <p>Browse live travel picks ranked by recent global attention, then save them to your lists.</p>
+      <div class="hero-note">sources: Wikimedia Pageviews, Wikimedia Commons, and REST Countries. <a href="credits.html">all credits</a></div>
+    </div>
+    <div class="hero-spotlight" id="travelHeroSpotlight" aria-label="featured destinations"></div>
   </section>
 
   <section class="controls">
@@ -553,8 +662,8 @@
 
     function wireTravelImages(scope) {
       const root = scope || document;
-      root.querySelectorAll('.card-photo-tile img[data-travel-img]').forEach((img) => {
-        const tile = img.closest('.card-photo-tile');
+      root.querySelectorAll('.card-photo-stage img[data-travel-img]').forEach((img) => {
+        const tile = img.closest('.card-photo-stage');
         const wrap = img.closest('.card-photo-wrap');
         const handleLoad = () => {
           img.setAttribute('data-ready', '1');
@@ -562,7 +671,7 @@
         };
         const handleError = () => {
           if (tile) tile.remove();
-          if (wrap && !wrap.querySelector('.card-photo-tile')) wrap.classList.add('no-photo');
+          if (wrap && !wrap.querySelector('.card-photo-stage')) wrap.classList.add('no-photo');
         };
         img.addEventListener('load', handleLoad);
         img.addEventListener('error', handleError);
@@ -588,6 +697,22 @@
       if (text.startsWith('//')) return `https:${text}`;
       if (text.startsWith('http://')) return text.replace(/^http:\/\//i, 'https://');
       return text;
+    }
+
+    function getOptimizedTravelBucketImage(url, width = 960) {
+      const src = safeHttps(url);
+      if (!src) return '';
+      const marker = `/storage/v1/object/public/${TRAVEL_BUCKET_NAME}/`;
+      const idx = src.indexOf(marker);
+      if (idx === -1) return src;
+      const path = src.slice(idx + marker.length);
+      if (!path) return src;
+      const encodedPath = path
+        .split('/')
+        .map((segment) => encodeURIComponent(segment))
+        .join('/');
+      const clampedWidth = Math.max(240, Math.min(1600, Number(width) || 960));
+      return `${SUPABASE_URL}/storage/v1/render/image/public/${TRAVEL_BUCKET_NAME}/${encodedPath}?width=${clampedWidth}&quality=72&resize=cover`;
     }
 
     function stripLeadingFlagEmoji(value) {
@@ -1571,6 +1696,51 @@
       state.filtered = output;
     }
 
+    function updateHero() {
+      const hero = document.getElementById('travelHero');
+      const spotlight = document.getElementById('travelHeroSpotlight');
+      if (!hero || !spotlight) return;
+      const featured = state.filtered.slice(0, 3);
+      const primary = featured[0] || state.rows[0] || null;
+      const primaryPhoto = primary
+        ? getOptimizedTravelBucketImage(primary.photo || primary.photoCity || primary.photoNature || '', 1600)
+        : '';
+      hero.style.setProperty(
+        '--hero-bg-image',
+        primaryPhoto
+          ? `url("${primaryPhoto}")`
+          : 'linear-gradient(160deg, rgba(23,43,88,0.9), rgba(19,35,71,0.95))'
+      );
+      if (!featured.length) {
+        spotlight.innerHTML = '';
+        return;
+      }
+      spotlight.innerHTML = featured.map((item, index) => {
+        const thumb = getOptimizedTravelBucketImage(item.photoCity || item.photoNature || item.photo || '', 320);
+        const rankLabel = index === 0 ? 'Trending now' : `Top pick ${index + 1}`;
+        const subtitleBits = [
+          item.capital ? `Capital: ${item.capital}` : '',
+          item.region || '',
+          item.subregion || ''
+        ].filter(Boolean);
+        return `
+          <article class="hero-spotlight-card">
+            <div class="hero-spotlight-thumb">
+              ${thumb ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(stripLeadingFlagEmoji(item.name))}" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async" referrerpolicy="no-referrer">` : ''}
+            </div>
+            <div>
+              <div class="hero-spotlight-kicker">
+                <span>${escapeHtml(rankLabel)}</span>
+                <span>${escapeHtml(item.code || '')}</span>
+              </div>
+              <div class="hero-spotlight-title">${escapeHtml(stripLeadingFlagEmoji(item.name))}</div>
+              <div class="hero-spotlight-meta">${escapeHtml(subtitleBits.join(' | ') || 'Popular destination')}</div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
     function syncCardStatus(card) {
       const code = safeCode(card && card.getAttribute('data-country-code'));
       if (!code) return;
@@ -1597,6 +1767,7 @@
       const grid = document.getElementById('grid');
       const empty = document.getElementById('empty');
       applyFilter();
+      updateHero();
       const count = state.filtered.length;
       state.totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
       state.page = Math.min(Math.max(1, state.page), state.totalPages);
@@ -1617,23 +1788,23 @@
         const scenic = String(item && item.photo || '').trim();
         const city = String(item && item.photoCity || '').trim();
         const nature = String(item && item.photoNature || '').trim();
-        const tiles = [];
-        if (city) tiles.push({ url: city, label: 'City life', kind: 'city' });
-        if (nature) tiles.push({ url: nature, label: 'Nature', kind: 'nature' });
-        if (!tiles.length && scenic) tiles.push({ url: scenic, label: 'Scenic', kind: 'scenic' });
-        const hasPhoto = tiles.length > 0;
-        const mosaicClass = tiles.length > 1 ? ' has-mosaic' : '';
+        const hero = scenic || city || nature;
+        const badges = [];
+        if (city) badges.push({ label: 'City life', kind: 'city' });
+        if (nature) badges.push({ label: 'Nature', kind: 'nature' });
+        if (!badges.length && hero) badges.push({ label: 'Scenic', kind: 'scenic' });
+        const hasPhoto = !!hero;
         return `
-          <div class="card-photo-wrap${hasPhoto ? '' : ' no-photo'}${mosaicClass}">
+          <div class="card-photo-wrap${hasPhoto ? '' : ' no-photo'}">
             <div class="card-photo-fallback"></div>
             ${hasPhoto ? `
-              <div class="card-photo-grid${tiles.length > 1 ? '' : ' single'}">
-                ${tiles.map((tile) => `
-                  <div class="card-photo-tile is-loading" data-kind="${escapeHtml(tile.kind)}">
-                    <img src="${TRAVEL_IMAGE_PLACEHOLDER}" data-travel-src="${escapeHtml(tile.url)}" data-travel-img="1" data-ready="0" alt="${escapeHtml(`${item.name || 'Country'} ${tile.label}`)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
-                    <span class="card-photo-label">${escapeHtml(tile.label)}</span>
-                  </div>
-                `).join('')}
+              <div class="card-photo-stage is-loading" data-kind="scenic">
+                <img src="${TRAVEL_IMAGE_PLACEHOLDER}" data-travel-src="${escapeHtml(getOptimizedTravelBucketImage(hero, 720))}" data-travel-img="1" data-ready="0" alt="${escapeHtml(`${item.name || 'Country'} scenic view`)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+                <div class="card-photo-badges" aria-hidden="true">
+                  ${badges.slice(0, 2).map((badge) => `
+                    <span class="card-photo-label" data-kind="${escapeHtml(badge.kind)}">${escapeHtml(badge.label)}</span>
+                  `).join('')}
+                </div>
               </div>
             ` : ''}
           </div>

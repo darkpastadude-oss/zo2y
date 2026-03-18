@@ -904,6 +904,45 @@
         radial-gradient(circle at 18% 82%, rgba(255, 216, 141, 0.16), transparent 28%);
     }
 
+    .spotlight.theme-travel .spotlight-bg::before {
+      opacity: 0.92;
+      inset: auto -2% -6% 46%;
+      height: 56%;
+      border-radius: 28px;
+      background-image:
+        linear-gradient(180deg, rgba(8, 14, 31, 0.08), rgba(8, 14, 31, 0.68)),
+        var(--spotlight-travel-accent-a, none);
+      background-size: cover;
+      background-position: center center;
+      filter: blur(0.4px) saturate(1.05);
+      box-shadow: 0 18px 60px rgba(4, 10, 24, 0.38);
+      transition: opacity 0.24s ease;
+    }
+
+    .spotlight.theme-travel .spotlight-bg::after {
+      opacity: 0.86;
+      inset: 10% 12% auto auto;
+      width: min(26vw, 260px);
+      aspect-ratio: 1 / 1;
+      border-radius: 24px;
+      background-image:
+        linear-gradient(180deg, rgba(8, 14, 31, 0.12), rgba(8, 14, 31, 0.56)),
+        var(--spotlight-travel-accent-b, none);
+      background-size: cover;
+      background-position: center center;
+      filter: saturate(1.08);
+      box-shadow: 0 18px 44px rgba(4, 10, 24, 0.34);
+      mix-blend-mode: screen;
+      transition: opacity 0.24s ease;
+    }
+
+    .spotlight.theme-travel::before {
+      background:
+        linear-gradient(102deg, rgba(5, 11, 24, 0.82) 0%, rgba(7, 14, 32, 0.52) 38%, rgba(10, 22, 48, 0.16) 100%),
+        radial-gradient(circle at 82% 18%, rgba(34, 211, 238, 0.26), transparent 36%),
+        radial-gradient(circle at 72% 74%, rgba(34, 197, 94, 0.18), transparent 26%);
+    }
+
     .spotlight-inner {
       display: flex;
       flex-direction: column;
@@ -1306,6 +1345,75 @@
     .rail::-webkit-scrollbar-thumb { background: rgba(140,163,199,0.55); border-radius: 999px; }
     .rail.games-rail { grid-auto-columns: 156px; }
 
+    .rail[data-home-deferred-render="1"] {
+      display: block;
+      overflow: hidden;
+    }
+
+    .rail-placeholder {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 156px;
+      gap: 11px;
+      overflow: hidden;
+      padding-bottom: 6px;
+    }
+
+    .rail-placeholder-card {
+      min-height: 232px;
+      border-radius: 14px;
+      border: 1px solid rgba(86, 116, 168, 0.35);
+      background: linear-gradient(180deg, rgba(26, 44, 85, 0.92), rgba(18, 32, 66, 0.92));
+      padding: 0 12px 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .rail-placeholder-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.12) 48%, rgba(255,255,255,0.02) 100%),
+        linear-gradient(180deg, rgba(30, 47, 89, 0.8), rgba(16, 27, 55, 0.8));
+      background-size: 220px 100%, 100% 100%;
+      background-repeat: no-repeat;
+      animation: homeImageShimmer 1.15s linear infinite;
+      opacity: 0.95;
+    }
+
+    .rail-placeholder-media,
+    .rail-placeholder-line {
+      display: block;
+      position: relative;
+      z-index: 1;
+      border-radius: 12px;
+      background: rgba(138, 164, 206, 0.18);
+    }
+
+    .rail-placeholder-media {
+      aspect-ratio: 2 / 3;
+      width: 100%;
+      margin-top: 0;
+      border-radius: 0 0 12px 12px;
+    }
+
+    .rail-placeholder-line {
+      height: 12px;
+      margin-top: 12px;
+      width: 84%;
+    }
+
+    .rail-placeholder-line-lg {
+      height: 16px;
+      width: 74%;
+      margin-top: 16px;
+    }
+
+    .rail-placeholder-line-sm {
+      width: 58%;
+    }
+
     .card {
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -1410,10 +1518,31 @@
       overflow: hidden;
     }
 
-    .card-media.travel-photo .travel-photo-label {
+    .card-media.travel-photo .travel-photo-stage {
       position: absolute;
-      left: 8px;
-      bottom: 8px;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .card-media.travel-photo .travel-photo-stage img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+    }
+
+    .card-media.travel-photo .travel-photo-badges {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .card-media.travel-photo .travel-photo-label {
       padding: 4px 8px;
       border-radius: 999px;
       font-size: 11px;

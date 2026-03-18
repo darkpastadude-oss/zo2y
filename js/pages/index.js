@@ -420,15 +420,19 @@
     };
     const homePreloadedImageSet = new Set();
     let homeDeferredImageObserver = null;
+    let homeRailViewportObserver = null;
     let homeEagerImageBudgetUsed = 0;
     let homeHighPriorityImageBudgetUsed = 0;
     let homeNewReleasesState = [];
     let homeNewReleasesLastFetchAt = 0;
     let homeNewReleasesRequestSeq = 0;
     let homeNewReleasesInFlight = null;
+    let homeNewReleasesRefreshScheduled = false;
+    let homePendingNewReleasesRefresh = false;
     let homeFeedInitSeq = 0;
     let homeWeakFeedRetryTimer = null;
     let homeWeakFeedRetryCount = 0;
+    let homeMixedRefreshScheduled = false;
     let homeMenuPrimeScheduled = false;
     let homeBecauseRefreshSeq = 0;
     let homeBecauseSignalCache = {
@@ -440,6 +444,8 @@
     let homeTravelPhotoCacheSaveTimer = null;
     let homeTravelBucketManifestPromise = null;
     let homeTravelHydrationPromise = null;
+    const homePendingRailRenderState = new Map();
+    const homeDeferredChannelState = new Map();
     const homeMusicPreviewState = {
       audio: null,
       btn: null
@@ -1475,12 +1481,21 @@
       const travelScenicImage = isTravelSpotlight
         ? getSafeTravelScenicImage(item.title, item.itemId, item.spotlightImage || item.backgroundImage || item.image)
         : '';
+      const travelSpotlightBackground = isTravelSpotlight
+        ? getOptimizedHomeTravelImage(travelScenicImage, 1600)
+        : '';
       const fallbackSpotlightBackground = isTravelSpotlight
-        ? travelScenicImage
+        ? (travelSpotlightBackground || travelScenicImage)
         : (isGameSpotlight
           ? String(item.spotlightImage || item.backgroundImage || '').trim()
           : String(item.spotlightImage || item.backgroundImage || item.image || '').trim());
       const spotlightBackground = getHomeSpotlightBackgroundByType(mediaTypeKey) || fallbackSpotlightBackground;
+      const travelAccentA = isTravelSpotlight
+        ? getOptimizedHomeTravelImage(item?.travelPhotoSet?.city || '', 960)
+        : '';
+      const travelAccentB = isTravelSpotlight
+        ? getOptimizedHomeTravelImage(item?.travelPhotoSet?.nature || '', 960)
+        : '';
       const travelFlagImage = String(item.flagImage || '').trim();
       let spotlightMediaImage = String(item.spotlightMediaImage || travelFlagImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
       if (isTravelSpotlight) {
@@ -1501,12 +1516,14 @@
       const usesLandscapeMedia = spotlightMediaShape === 'landscape';
       const mediaToken = ++homeSpotlightImageToken;
 
-      spotlightSection.classList.remove('has-square-media', 'has-landscape-media', 'theme-music', 'theme-book');
+      spotlightSection.classList.remove('has-square-media', 'has-landscape-media', 'theme-music', 'theme-book', 'theme-travel');
       mediaWrap.classList.remove('square', 'landscape');
       if (mediaTypeKey === 'music') {
         spotlightSection.classList.add('theme-music');
       } else if (mediaTypeKey === 'book') {
         spotlightSection.classList.add('theme-book');
+      } else if (isTravelSpotlight) {
+        spotlightSection.classList.add('theme-travel');
       }
       if (usesLandscapeMedia) {
         spotlightSection.classList.add('has-landscape-media');
@@ -1522,6 +1539,8 @@
         bg.style.backgroundImage = 'linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%)';
       }
       bg.style.backgroundPosition = spotlightBackgroundPosition;
+      bg.style.setProperty('--spotlight-travel-accent-a', travelAccentA ? `url("${travelAccentA}")` : 'none');
+      bg.style.setProperty('--spotlight-travel-accent-b', travelAccentB ? `url("${travelAccentB}")` : 'none');
 
       if (spotlightMediaImage) {
         mediaImage.loading = 'eager';
@@ -2058,9 +2077,9 @@
       const fallbackItems = filterHomeSafeItems(buildNewReleasesFallback(feedMap));
 
       if (homeNewReleasesState.length) {
-        renderRail('newReleasesRail', filterHomeSafeItems(homeNewReleasesState), railOptions);
+        renderOrDeferHomeRail('newReleasesRail', filterHomeSafeItems(homeNewReleasesState), railOptions);
       } else if (fallbackItems.length) {
-        renderRail('newReleasesRail', fallbackItems, railOptions);
+        renderOrDeferHomeRail('newReleasesRail', fallbackItems, railOptions);
       }
 
       const force = options.force === true;
@@ -2082,9 +2101,9 @@
         if (safeLiveItems.length) {
           homeNewReleasesState = safeLiveItems;
           homeNewReleasesLastFetchAt = Date.now();
-          renderRail('newReleasesRail', homeNewReleasesState, railOptions);
+          renderOrDeferHomeRail('newReleasesRail', homeNewReleasesState, railOptions);
         } else if (!homeNewReleasesState.length && fallbackItems.length) {
-          renderRail('newReleasesRail', fallbackItems, railOptions);
+          renderOrDeferHomeRail('newReleasesRail', fallbackItems, railOptions);
         }
       })();
       homeNewReleasesInFlight = requestTask;
@@ -2259,7 +2278,7 @@
       const fallbackItems = buildUnifiedFeed(localPool, getHomeUnifiedTargetItems());
 
       if (!homeCurrentUser?.id) {
-        renderRail('unifiedRail', fallbackItems, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+        renderOrDeferHomeRail('unifiedRail', fallbackItems, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
         return;
       }
 
@@ -2267,7 +2286,7 @@
       if (seq !== homeBecauseRefreshSeq) return;
       const boostedPool = applyActivitySignalsToPool(localPool, signalPayload);
       const unified = buildUnifiedFeed(boostedPool, getHomeUnifiedTargetItems());
-      renderRail('unifiedRail', unified.length ? unified : fallbackItems, {
+      renderOrDeferHomeRail('unifiedRail', unified.length ? unified : fallbackItems, {
         mediaType: 'mixed',
         uniformMedia: true,
         restaurantComposite: true
@@ -3969,9 +3988,9 @@
     }
 
     function getHomeChannelTargetItems() {
-      return isHomeSlowNetwork()
-        ? Math.max(8, HOME_CHANNEL_TARGET_ITEMS - 8)
-        : HOME_CHANNEL_TARGET_ITEMS;
+      if (isHomeSlowNetwork()) return Math.max(8, HOME_CHANNEL_TARGET_ITEMS - 8);
+      if (isHomeCompactViewport()) return Math.max(10, HOME_CHANNEL_TARGET_ITEMS - 4);
+      return HOME_CHANNEL_TARGET_ITEMS;
     }
 
     function getHomeUnifiedTargetItems() {
@@ -4386,9 +4405,225 @@
 
     function getHomeInitialChannels(channels) {
       const list = Array.isArray(channels) ? channels : [];
-      if (isHomeSlowNetwork()) return list.slice(0, 4);
-      if (isHomeCompactViewport()) return list.slice(0, 5);
-      return list.slice(0, 8);
+      if (isHomeSlowNetwork()) return list.slice(0, 3);
+      if (isHomeCompactViewport()) return list.slice(0, 4);
+      return list.slice(0, 6);
+    }
+
+    function getHomeRailViewportMarginPx() {
+      if (isHomeSlowNetwork()) return isHomeCompactViewport() ? 240 : 320;
+      return isHomeCompactViewport() ? 420 : 680;
+    }
+
+    function getHomeRailViewportRootMargin() {
+      return `${getHomeRailViewportMarginPx()}px 0px`;
+    }
+
+    function getHomeRailWrap(railId) {
+      const rail = document.getElementById(String(railId || '').trim());
+      if (!rail) return null;
+      return rail.closest('.rail-wrap') || rail.parentElement || rail;
+    }
+
+    function isHomeRailNearViewport(railId) {
+      if (!railId || railId === 'unifiedRail') return true;
+      const wrap = getHomeRailWrap(railId);
+      if (!wrap || typeof wrap.getBoundingClientRect !== 'function') return true;
+      const rect = wrap.getBoundingClientRect();
+      const viewportHeight = Math.max(window.innerHeight || 0, document.documentElement?.clientHeight || 0, 720);
+      const margin = getHomeRailViewportMarginPx();
+      return rect.top <= (viewportHeight + margin);
+    }
+
+    function buildHomeRailDeferredMarkup(count = 4) {
+      const safeCount = Math.max(3, Math.min(6, Number(count) || 4));
+      return `
+        <div class="rail-placeholder" aria-hidden="true">
+          ${Array.from({ length: safeCount }).map(() => `
+            <div class="rail-placeholder-card">
+              <span class="rail-placeholder-media"></span>
+              <span class="rail-placeholder-line rail-placeholder-line-lg"></span>
+              <span class="rail-placeholder-line"></span>
+              <span class="rail-placeholder-line rail-placeholder-line-sm"></span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function setHomeRailDeferredPlaceholder(railId) {
+      const rail = document.getElementById(String(railId || '').trim());
+      if (!rail) return;
+      if (rail.getAttribute('data-home-deferred-render') === '1') return;
+      rail.setAttribute('data-home-deferred-render', '1');
+      rail.innerHTML = buildHomeRailDeferredMarkup(isHomeCompactViewport() ? 3 : 4);
+    }
+
+    function clearHomeRailDeferredPlaceholder(railId) {
+      const rail = document.getElementById(String(railId || '').trim());
+      if (!rail) return;
+      rail.removeAttribute('data-home-deferred-render');
+    }
+
+    function flushPendingHomeRailRender(railId) {
+      const pending = homePendingRailRenderState.get(railId);
+      if (!pending) return false;
+      homePendingRailRenderState.delete(railId);
+      clearHomeRailDeferredPlaceholder(railId);
+      renderRail(railId, pending.items, pending.opts);
+      return true;
+    }
+
+    async function startHomeDeferredChannelLoad(railId) {
+      const key = String(railId || '').trim();
+      if (!key) return;
+      const state = homeDeferredChannelState.get(key);
+      if (!state) return;
+      if (state.status === 'loading' || state.status === 'loaded') return state.promise || Promise.resolve();
+      if (state.initSeq !== homeFeedInitSeq) {
+        homeDeferredChannelState.delete(key);
+        return;
+      }
+      state.status = 'loading';
+      state.promise = Promise.resolve()
+        .then(() => state.loadChannel(state.channel))
+        .catch(() => [])
+        .finally(() => {
+          const latest = homeDeferredChannelState.get(key);
+          if (latest === state) {
+            latest.status = 'loaded';
+          }
+        });
+      return state.promise;
+    }
+
+    function handleHomeRailViewportEntry(railId) {
+      const key = String(railId || '').trim();
+      if (!key) return;
+      flushPendingHomeRailRender(key);
+      void startHomeDeferredChannelLoad(key);
+      if (key === 'newReleasesRail' && homePendingNewReleasesRefresh) {
+        homePendingNewReleasesRefresh = false;
+        homeNewReleasesRefreshScheduled = false;
+        scheduleHomeNewReleasesRefresh(homeFeedState);
+      }
+    }
+
+    function getHomeRailViewportObserver() {
+      if (homeRailViewportObserver || typeof window.IntersectionObserver !== 'function') return homeRailViewportObserver;
+      homeRailViewportObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const railId = String(entry.target?.getAttribute('data-home-rail-id') || '').trim();
+          observer.unobserve(entry.target);
+          handleHomeRailViewportEntry(railId);
+        });
+      }, {
+        rootMargin: getHomeRailViewportRootMargin(),
+        threshold: 0.01
+      });
+      return homeRailViewportObserver;
+    }
+
+    function observeHomeRailViewport(railId) {
+      const key = String(railId || '').trim();
+      if (!key || key === 'unifiedRail') return;
+      const wrap = getHomeRailWrap(key);
+      if (!wrap) {
+        handleHomeRailViewportEntry(key);
+        return;
+      }
+      wrap.setAttribute('data-home-rail-id', key);
+      const observer = getHomeRailViewportObserver();
+      if (!observer) {
+        handleHomeRailViewportEntry(key);
+        return;
+      }
+      observer.observe(wrap);
+    }
+
+    function renderOrDeferHomeRail(railId, items, opts) {
+      const key = String(railId || '').trim();
+      if (!key) return;
+      const payload = {
+        items: Array.isArray(items) ? items : [],
+        opts: opts || {}
+      };
+      homePendingRailRenderState.set(key, payload);
+      if (isHomeRailNearViewport(key)) {
+        flushPendingHomeRailRender(key);
+        return;
+      }
+      setHomeRailDeferredPlaceholder(key);
+      observeHomeRailViewport(key);
+    }
+
+    function resetHomeViewportDeferrals() {
+      homePendingRailRenderState.clear();
+      homeDeferredChannelState.clear();
+      homePendingNewReleasesRefresh = false;
+      homeNewReleasesRefreshScheduled = false;
+      if (homeRailViewportObserver) {
+        homeRailViewportObserver.disconnect();
+        homeRailViewportObserver = null;
+      }
+    }
+
+    function queueHomeDeferredChannel(channel, loadChannel, initSeq) {
+      if (!channel || !channel.railId || typeof loadChannel !== 'function') return;
+      const key = String(channel.railId).trim();
+      homeDeferredChannelState.set(key, {
+        channel,
+        loadChannel,
+        initSeq,
+        status: 'idle',
+        promise: null
+      });
+      if (isHomeRailNearViewport(key)) {
+        void startHomeDeferredChannelLoad(key);
+        return;
+      }
+      setHomeRailDeferredPlaceholder(key);
+      observeHomeRailViewport(key);
+    }
+
+    function scheduleHomeMixedRefresh(feedMap, scoredPool) {
+      if (homeMixedRefreshScheduled) return;
+      homeMixedRefreshScheduled = true;
+      const run = () => {
+        homeMixedRefreshScheduled = false;
+        void refreshMixedForYouFromActivity(feedMap, scoredPool);
+      };
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(() => run(), { timeout: isHomeCompactViewport() ? 1800 : 1200 });
+      } else {
+        window.setTimeout(run, isHomeCompactViewport() ? 1100 : 700);
+      }
+    }
+
+    function scheduleHomeNewReleasesRefresh(feedMap = homeFeedState, options = {}) {
+      const railOptions = { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true };
+      const fallbackItems = filterHomeSafeItems(
+        homeNewReleasesState.length ? homeNewReleasesState : buildNewReleasesFallback(feedMap)
+      );
+      renderOrDeferHomeRail('newReleasesRail', fallbackItems, railOptions);
+      if (!isHomeRailNearViewport('newReleasesRail')) {
+        homePendingNewReleasesRefresh = true;
+        observeHomeRailViewport('newReleasesRail');
+        return;
+      }
+      homePendingNewReleasesRefresh = false;
+      if (homeNewReleasesRefreshScheduled) return;
+      homeNewReleasesRefreshScheduled = true;
+      const run = () => {
+        homeNewReleasesRefreshScheduled = false;
+        void refreshHomeNewReleases(feedMap, options);
+      };
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(() => run(), { timeout: isHomeCompactViewport() ? 1800 : 1200 });
+      } else {
+        window.setTimeout(run, isHomeCompactViewport() ? 900 : 500);
+      }
     }
 
     function normalizeHomeFeedMap(feedMap) {
@@ -4544,16 +4779,16 @@
       channels.forEach((channel) => {
         const items = Array.isArray(normalizedFeed?.[channel.key]) ? normalizedFeed[channel.key] : [];
         homeFeedState[channel.key] = items;
-        renderRail(channel.railId, items, channel.opts);
+        renderOrDeferHomeRail(channel.railId, items, channel.opts);
         if (items.length) activeChannels += 1;
       });
 
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
-      renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+      renderOrDeferHomeRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
       if (options.refreshSecondary !== false) {
-        void refreshHomeNewReleases(homeFeedState);
-        void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
+        scheduleHomeNewReleasesRefresh(homeFeedState);
+        scheduleHomeMixedRefresh(homeFeedState, scoredPool);
       }
       hydrateSpotlightFromPool(scoredPool);
 
@@ -4566,9 +4801,9 @@
       homeTasteWeights = await loadTasteWeights();
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
-      renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
-      void refreshHomeNewReleases(homeFeedState);
-      void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
+      renderOrDeferHomeRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+      scheduleHomeNewReleasesRefresh(homeFeedState);
+      scheduleHomeMixedRefresh(homeFeedState, scoredPool);
       hydrateSpotlightFromPool(scoredPool);
       scheduleHomeMenuCachePrime();
     }
@@ -4697,19 +4932,19 @@
 
         if (mediaTypeRaw === 'travel') {
           const travelSet = itemData.travelPhotoSet || {};
-          const travelTiles = [];
-          if (travelSet.city) travelTiles.push({ url: travelSet.city, label: 'City life', kind: 'city' });
-          if (travelSet.nature) travelTiles.push({ url: travelSet.nature, label: 'Nature', kind: 'nature' });
-          if (!travelTiles.length && safeImage) travelTiles.push({ url: safeImage, label: 'Scenic', kind: 'scenic' });
-          if (travelTiles.length) {
+          const travelBadges = [];
+          if (travelSet.city) travelBadges.push({ label: 'City life', kind: 'city' });
+          if (travelSet.nature) travelBadges.push({ label: 'Nature', kind: 'nature' });
+          if (!travelBadges.length && safeImage) travelBadges.push({ label: 'Scenic', kind: 'scenic' });
+          if (safeImage) {
             mediaHtml = `
-              <div class="travel-photo-grid${travelTiles.length > 1 ? '' : ' single'}">
-                ${travelTiles.map((tile) => `
-                  <div class="travel-photo-tile is-loading-media" data-kind="${escapeHtml(tile.kind)}">
-                    <img ${buildHomeImageAttrs(getOptimizedHomeTravelImage(tile.url, 640), imageLoading, imagePriority, fallbackImage)} alt="${escapeHtml(tile.label)}">
-                    <span class="travel-photo-label">${escapeHtml(tile.label)}</span>
-                  </div>
-                `).join('')}
+              <div class="travel-photo-stage is-loading-media">
+                <img ${buildHomeImageAttrs(getOptimizedHomeTravelImage(safeImage, landscape ? 960 : 720), imageLoading, imagePriority, fallbackImage)} alt="${title}">
+                <div class="travel-photo-badges" aria-hidden="true">
+                  ${travelBadges.slice(0, 2).map((badge) => `
+                    <span class="travel-photo-label" data-kind="${escapeHtml(badge.kind)}">${escapeHtml(badge.label)}</span>
+                  `).join('')}
+                </div>
               </div>
             `;
           }
@@ -7726,10 +7961,10 @@
                 if (hydrated.length) {
                   writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, hydrated);
                   homeFeedState.travel = hydrated;
-                  renderRail('travelRail', hydrated, { mediaType: 'travel' });
+                  renderOrDeferHomeRail('travelRail', hydrated, { mediaType: 'travel' });
                   const scoredPool = buildScoredDiscoveryPool(homeFeedState);
                   const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
-                  renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+                  renderOrDeferHomeRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
                   hydrateSpotlightFromPool(scoredPool);
                 }
               } finally {
@@ -7919,6 +8154,7 @@
 
     async function initUniversalHome() {
       const initSeq = ++homeFeedInitSeq;
+      resetHomeViewportDeferrals();
       if (homeWeakFeedRetryTimer) {
         clearTimeout(homeWeakFeedRetryTimer);
         homeWeakFeedRetryTimer = null;
@@ -8005,23 +8241,9 @@
       await loadedPromise;
       if (initSeq !== homeFeedInitSeq) return;
 
-      if (deferredChannels.length) {
-        const deferredTask = async () => {
-          for (const channel of deferredChannels) {
-            if (initSeq !== homeFeedInitSeq) return;
-            await loadChannel(channel);
-          }
-        };
-        if (typeof window.requestIdleCallback === 'function') {
-          window.requestIdleCallback(() => {
-            void deferredTask();
-          }, { timeout: isHomeCompactViewport() ? 1800 : 1200 });
-        } else {
-          window.setTimeout(() => {
-            void deferredTask();
-          }, isHomeCompactViewport() ? 800 : 450);
-        }
-      }
+      deferredChannels.forEach((channel) => {
+        queueHomeDeferredChannel(channel, loadChannel, initSeq);
+      });
 
       const mergedFeed = normalizeHomeFeedMap(workingFeed) || blankFeed;
 
