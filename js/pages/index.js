@@ -4479,14 +4479,20 @@
 
     function getHomeInitialChannels(channels) {
       const list = Array.isArray(channels) ? channels : [];
-      if (isHomeSlowNetwork()) return list.slice(0, 3);
-      if (isHomeCompactViewport()) return list.slice(0, 4);
-      return list.slice(0, 6);
+      if (isHomeSlowNetwork()) return list.slice(0, 2);
+      if (isHomeCompactViewport()) return list.slice(0, 3);
+      return list.slice(0, 4);
+    }
+
+    function getHomeInitialChannelConcurrency() {
+      if (isHomeSlowNetwork()) return 1;
+      if (isHomeCompactViewport()) return 2;
+      return 3;
     }
 
     function getHomeRailViewportMarginPx() {
-      if (isHomeSlowNetwork()) return isHomeCompactViewport() ? 240 : 320;
-      return isHomeCompactViewport() ? 420 : 680;
+      if (isHomeSlowNetwork()) return isHomeCompactViewport() ? 180 : 240;
+      return isHomeCompactViewport() ? 260 : 420;
     }
 
     function getHomeRailViewportRootMargin() {
@@ -4673,6 +4679,22 @@
       } else {
         window.setTimeout(run, isHomeCompactViewport() ? 1100 : 700);
       }
+    }
+
+    async function loadHomeChannelGroup(channels, loadChannel) {
+      const queue = Array.isArray(channels) ? channels.slice() : [];
+      if (!queue.length || typeof loadChannel !== 'function') return [];
+      const concurrency = Math.max(1, Math.min(getHomeInitialChannelConcurrency(), queue.length));
+      const results = [];
+      const workers = Array.from({ length: concurrency }, async () => {
+        while (queue.length) {
+          const channel = queue.shift();
+          if (!channel) return;
+          results.push(await loadChannel(channel));
+        }
+      });
+      await Promise.all(workers);
+      return results;
     }
 
     function scheduleHomeNewReleasesRefresh(feedMap = homeFeedState, options = {}) {
@@ -8283,7 +8305,7 @@
         return { ...channel, items };
       };
 
-      const loadedPromise = Promise.all(initialChannels.map((channel) => loadChannel(channel)));
+      const loadedPromise = loadHomeChannelGroup(initialChannels, loadChannel);
       const precomputedFeed = await withTimeout(precomputedFeedPromise, 220, null);
       if (initSeq !== homeFeedInitSeq) return;
       if (precomputedFeed) {

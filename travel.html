@@ -529,7 +529,7 @@
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
     const COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
-    const PAGE_SIZE = 24;
+    const TRAVEL_RENDER_DEBOUNCE_MS = 180;
     const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
     const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
     const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v4';
@@ -1253,24 +1253,39 @@
       return effectiveType === 'slow-2g' || effectiveType === '2g' || effectiveType === '3g';
     }
 
+    function isCompactTravelViewport() {
+      const width = Math.max(
+        window.innerWidth || 0,
+        document.documentElement?.clientWidth || 0,
+        0
+      );
+      return width > 0 && width <= 900;
+    }
+
+    function getTravelPageSize() {
+      if (isSlowTravelNetwork()) return isCompactTravelViewport() ? 8 : 12;
+      return isCompactTravelViewport() ? 12 : 18;
+    }
+
     function getTravelInitialHydrationLimit() {
-      return isSlowTravelNetwork() ? 36 : 90;
+      return isSlowTravelNetwork() ? 8 : (isCompactTravelViewport() ? 12 : 18);
     }
 
     function getTravelHydrationQueueLimit() {
-      return isSlowTravelNetwork() ? 48 : 120;
+      return isSlowTravelNetwork() ? 12 : (isCompactTravelViewport() ? 18 : 30);
     }
 
     function getTravelHydrationWorkerCount(queueLength) {
-      return Math.min(isSlowTravelNetwork() ? 2 : 5, queueLength);
+      return Math.min(isSlowTravelNetwork() ? 1 : (isCompactTravelViewport() ? 2 : 3), queueLength);
     }
 
     function getTravelLifestyleHydrationLimit() {
-      return isSlowTravelNetwork() ? 0 : 24;
+      if (isSlowTravelNetwork()) return 0;
+      return isCompactTravelViewport() ? 6 : 12;
     }
 
     function getTravelLifestyleWorkerCount(queueLength) {
-      return Math.min(3, queueLength);
+      return Math.min(isCompactTravelViewport() ? 1 : 2, queueLength);
     }
 
     function getCountryCachedScenicPhoto(code, preferred = '') {
@@ -1286,6 +1301,37 @@
       const safeCountryCode = canonicalCountryCode(code);
       if (!safeCountryCode) return { scenic: '', city: '', nature: '' };
       return getCountryPhotoSet(safeCountryCode);
+    }
+
+    let travelRenderTimer = null;
+
+    function scheduleTravelRender(delay = TRAVEL_RENDER_DEBOUNCE_MS) {
+      if (travelRenderTimer) {
+        window.clearTimeout(travelRenderTimer);
+      }
+      travelRenderTimer = window.setTimeout(() => {
+        travelRenderTimer = null;
+        if (document.visibilityState !== 'hidden') render();
+      }, Math.max(0, Number(delay) || 0));
+    }
+
+    function needsTravelScenicHydration(rows = []) {
+      return rows.some((item) => {
+        const code = safeCode(item && item.code);
+        if (!code) return false;
+        const cached = getCountryPhotoSet(code);
+        return !cached.scenic && !cached.city && !cached.nature;
+      });
+    }
+
+    function needsTravelLifestyleHydration(rows = []) {
+      if (getTravelLifestyleHydrationLimit() <= 0) return false;
+      return rows.some((item) => {
+        const code = safeCode(item && item.code);
+        if (!code) return false;
+        const cached = getCountryPhotoSet(code);
+        return !cached.city || !cached.nature;
+      });
     }
 
     function normalizeCountryName(value) {
@@ -1554,50 +1600,55 @@
 
     function startCountryPhotoBackfill() {
       if (!Array.isArray(state.rows) || !state.rows.length) return;
+      const scenicNeeded = needsTravelScenicHydration(state.rows);
+      const lifestyleNeeded = needsTravelLifestyleHydration(state.rows);
+      if (!scenicNeeded && !lifestyleNeeded) return;
 
-      if (!state.scenicHydrationStarted) {
+      if (!state.scenicHydrationStarted && scenicNeeded) {
         state.scenicHydrationStarted = true;
         const runScenicBackfill = async () => {
-          const scenicBatchSize = isSlowTravelNetwork() ? 24 : 48;
+          const scenicBatchSize = getTravelHydrationQueueLimit();
           for (let index = 0; index < state.rows.length; index += scenicBatchSize) {
             const batch = state.rows.slice(index, index + scenicBatchSize);
+            if (!needsTravelScenicHydration(batch)) continue;
             await hydrateScenicCountryPhotos(batch);
             writeCountryRowsCache(state.rows);
-            if (document.visibilityState !== 'hidden') render();
-            await new Promise((resolve) => window.setTimeout(resolve, isSlowTravelNetwork() ? 260 : 120));
+            scheduleTravelRender();
+            await new Promise((resolve) => window.setTimeout(resolve, isSlowTravelNetwork() ? 360 : 220));
           }
         };
         if (typeof window.requestIdleCallback === 'function') {
           window.requestIdleCallback(() => {
             void runScenicBackfill().catch(() => {});
-          }, { timeout: 1600 });
+          }, { timeout: 2400 });
         } else {
           window.setTimeout(() => {
             void runScenicBackfill().catch(() => {});
-          }, 700);
+          }, 1200);
         }
       }
 
-      if (!state.lifestyleHydrationStarted && getTravelLifestyleHydrationLimit() > 0) {
+      if (!state.lifestyleHydrationStarted && lifestyleNeeded) {
         state.lifestyleHydrationStarted = true;
         const runLifestyleBackfill = async () => {
-          const lifestyleBatchSize = 18;
+          const lifestyleBatchSize = Math.max(6, getTravelLifestyleHydrationLimit());
           for (let index = 0; index < state.rows.length; index += lifestyleBatchSize) {
             const batch = state.rows.slice(index, index + lifestyleBatchSize);
+            if (!needsTravelLifestyleHydration(batch)) continue;
             await hydrateLifestyleCountryPhotos(batch);
             writeCountryRowsCache(state.rows);
-            if (document.visibilityState !== 'hidden') render();
-            await new Promise((resolve) => window.setTimeout(resolve, 180));
+            scheduleTravelRender();
+            await new Promise((resolve) => window.setTimeout(resolve, isCompactTravelViewport() ? 320 : 240));
           }
         };
         if (typeof window.requestIdleCallback === 'function') {
           window.requestIdleCallback(() => {
             void runLifestyleBackfill().catch(() => {});
-          }, { timeout: 2600 });
+          }, { timeout: 4200 });
         } else {
           window.setTimeout(() => {
             void runLifestyleBackfill().catch(() => {});
-          }, 1400);
+          }, 2200);
         }
       }
     }
@@ -1685,14 +1736,17 @@
           }
           hydrateRegionOptions();
           void hydrateTravelPopularity(false)
-            .then(() => render())
+            .then(() => scheduleTravelRender(0))
             .catch(() => {});
-          void hydrateScenicCountryPhotos(state.rows.slice(0, getTravelInitialHydrationLimit()))
-            .then(() => {
-              writeCountryRowsCache(state.rows);
-              render();
-            })
-            .catch(() => {});
+          const initialRows = state.rows.slice(0, getTravelInitialHydrationLimit());
+          if (needsTravelScenicHydration(initialRows)) {
+            void hydrateScenicCountryPhotos(initialRows)
+              .then(() => {
+                writeCountryRowsCache(state.rows);
+                scheduleTravelRender();
+              })
+              .catch(() => {});
+          }
           startCountryPhotoBackfill();
           return true;
         }
@@ -1716,15 +1770,18 @@
         }
         void hydrateTravelPopularity(force, controller.signal)
           .then(() => {
-            render();
+            scheduleTravelRender(0);
           })
           .catch(() => {});
-        void hydrateScenicCountryPhotos(state.rows.slice(0, getTravelInitialHydrationLimit()), controller.signal)
-          .then(() => {
-            writeCountryRowsCache(state.rows);
-            render();
-          })
-          .catch(() => {});
+        const initialRows = state.rows.slice(0, getTravelInitialHydrationLimit());
+        if (needsTravelScenicHydration(initialRows)) {
+          void hydrateScenicCountryPhotos(initialRows, controller.signal)
+            .then(() => {
+              writeCountryRowsCache(state.rows);
+              scheduleTravelRender();
+            })
+            .catch(() => {});
+        }
         state.rows = state.rows
           .sort((a, b) => a.name.localeCompare(b.name));
         hydrateRegionOptions();
@@ -1841,10 +1898,11 @@
       applyFilter();
       updateHero();
       const count = state.filtered.length;
-      state.totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
+      const pageSize = getTravelPageSize();
+      state.totalPages = Math.max(1, Math.ceil(count / pageSize));
       state.page = Math.min(Math.max(1, state.page), state.totalPages);
-      const start = (state.page - 1) * PAGE_SIZE;
-      const end = start + PAGE_SIZE;
+      const start = (state.page - 1) * pageSize;
+      const end = start + pageSize;
       const pageRows = state.filtered.slice(start, end);
       grid.innerHTML = '';
 
