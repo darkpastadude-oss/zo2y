@@ -270,6 +270,15 @@ const DOMAIN_TITLE_OVERRIDES = new Map([
   ['lincoln.com', 'Lincoln Motor Company']
 ]);
 
+const MANUAL_LOGO_OVERRIDES = new Map([
+  ['title:skoda', 'Skoda-Auto-Logo-2011-present.svg'],
+  ['title:skoda auto', 'Skoda-Auto-Logo-2011-present.svg'],
+  ['domain:skoda-auto.com', 'Skoda-Auto-Logo-2011-present.svg'],
+  ['title:changan', 'Changan_icon.svg'],
+  ['title:changan automobile', 'Changan_icon.svg'],
+  ['domain:changan.com', 'Changan_icon.svg']
+]);
+
 function normalizeCommonsLogo(value, size) {
   const raw = String(value || '').trim();
   if (!raw) return '';
@@ -283,6 +292,13 @@ function normalizeCommonsLogo(value, size) {
     return toCommonsFilePath(filename, size);
   }
   return toCommonsFilePath(raw, size);
+}
+
+function getManualLogoOverride(title, domain, size) {
+  const titleKey = `title:${String(title || '').trim().toLowerCase()}`;
+  const domainKey = `domain:${String(domain || '').trim().toLowerCase()}`;
+  const match = MANUAL_LOGO_OVERRIDES.get(domainKey) || MANUAL_LOGO_OVERRIDES.get(titleKey) || '';
+  return match ? normalizeCommonsLogo(match, size) : '';
 }
 
 function escapeRegex(value) {
@@ -378,6 +394,15 @@ export default async function handler(req, res) {
     const logoOnly = String(query.mode || '').toLowerCase() === 'logo';
     const domainOverride = DOMAIN_TITLE_OVERRIDES.get(domainRaw) || '';
     const normalizedTitle = domainOverride || titleRaw;
+    const manualLogo = getManualLogoOverride(normalizedTitle, domainRaw, size);
+
+    if (manualLogo) {
+      res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+      res.status(302);
+      res.setHeader('Location', manualLogo);
+      res.end();
+      return;
+    }
 
     if (domainRaw && logoOnly && typeof fetch === 'function') {
       try {

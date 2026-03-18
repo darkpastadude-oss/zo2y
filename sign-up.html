@@ -284,7 +284,12 @@
           data: { 
             full_name: fullName
           },
-          emailRedirectTo: window.location.origin + '/auth-callback.html'
+          emailRedirectTo: (() => {
+            const callbackUrl = new URL('/auth-callback.html', window.location.origin);
+            callbackUrl.searchParams.set('flow', 'signup');
+            callbackUrl.searchParams.set('next', getPostAuthRedirect());
+            return callbackUrl.toString();
+          })()
         }
       });
       

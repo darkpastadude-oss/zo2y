@@ -377,6 +377,42 @@
         }
       }
 
+      async function triggerWelcomeEmail(session, flow, logFn) {
+        const accessToken = String(session?.access_token || '').trim();
+        if (!accessToken) {
+          logFn('Skipping welcome email trigger: missing session access token.', true);
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/emails/welcome/trigger', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({
+              appUrl: window.location.origin,
+              flow: flow || null
+            })
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            logFn(`Welcome email trigger failed: ${payload?.message || response.status}`, true);
+            return;
+          }
+
+          if (payload?.status === 'sent') {
+            logFn('Welcome email sent.');
+          } else {
+            logFn('Welcome email already sent earlier.');
+          }
+        } catch (error) {
+          logFn(`Welcome email trigger error: ${error.message}`, true);
+        }
+      }
+
       try {
         log('Initializing auth callback...');
         if (!window.supabase || !window.supabase.createClient) {
@@ -452,6 +488,9 @@
         if (profileResult?.created) {
           localStorage.setItem(getOnboardingPendingKey(user.id), '1');
         }
+
+        statusText.textContent = 'Finishing setup...';
+        await triggerWelcomeEmail(storedSession, oauthFlow, log);
 
         sendAnalyticsEvent('oauth_callback_success', {
           flow: oauthFlow || 'unknown',

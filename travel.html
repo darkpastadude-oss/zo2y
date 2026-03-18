@@ -395,9 +395,9 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
     const COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
     const PAGE_SIZE = 24;
-    const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v5';
+    const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v6';
     const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-    const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v2';
+    const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v3';
     const TRAVEL_COUNTRY_ROWS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
     const TRAVEL_POPULARITY_CACHE_KEY = 'zo2y_travel_popularity_v1';
     const TRAVEL_POPULARITY_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
@@ -496,6 +496,10 @@
       return text;
     }
 
+    function stripLeadingFlagEmoji(value) {
+      return String(value || '').replace(/^\uD83C[\uDDE6-\uDDFF]\uD83C[\uDDE6-\uDDFF]\s*/u, '').trim();
+    }
+
     function isBadTravelPhotoUrl(url) {
       const raw = String(url || '').trim().toLowerCase();
       if (!raw) return true;
@@ -520,9 +524,24 @@
         'etching',
         'engraving',
         'lithograph',
-        'oil_on_canvas'
+        'oil_on_canvas',
+        'cartoon',
+        'sketch',
+        'render',
+        'vector',
+        'banknote',
+        'stamp',
+        'crest'
       ];
       return blocked.some((token) => raw.includes(token));
+    }
+
+    function getCommonsCategoryText(page) {
+      const categories = Array.isArray(page?.categories) ? page.categories : [];
+      return categories
+        .map((entry) => String(entry?.title || '').replace(/^Category:/i, '').trim().toLowerCase())
+        .filter(Boolean)
+        .join(' | ');
     }
 
     function normalizePhotoEntry(entry) {
@@ -903,8 +922,8 @@
       return out.slice(0, 3);
     }
 
-    function isBadScenicTitle(title, countryName, capital, cityHints = []) {
-      const raw = String(title || '').toLowerCase();
+    function isBadScenicTitle(title, countryName, capital, cityHints = [], categoryText = '') {
+      const raw = `${String(title || '')} ${String(categoryText || '')}`.toLowerCase();
       if (!raw) return true;
       const blocked = [
         'flag',
@@ -926,6 +945,14 @@
         'illustration',
         'drawing',
         'poster',
+        'cartoon',
+        'sketch',
+        'render',
+        'vector',
+        'banknote',
+        'stamp',
+        'mural',
+        'logo',
         'watercolor',
         'etching',
         'engraving',
@@ -946,15 +973,38 @@
       return !(hasCountry || hasCapital || hasCity);
     }
 
+    function scoreTravelPhotoCandidate(page, kind, countryName, capital, cityHints = []) {
+      const title = String(page?.title || '');
+      const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
+      if (!isPhotoMime(mime)) return -1;
+      const categoryText = getCommonsCategoryText(page);
+      if (isBadScenicTitle(title, countryName, capital, cityHints, categoryText)) return -1;
+      const raw = `${title} ${categoryText}`.toLowerCase();
+      let score = 0;
+      if (raw.includes('photographs')) score += 5;
+      if (kind === 'city') {
+        if (raw.includes('skyline') || raw.includes('cityscape')) score += 6;
+        if (raw.includes('downtown') || raw.includes('street') || raw.includes('urban') || raw.includes('capital')) score += 4;
+      } else if (kind === 'nature') {
+        if (raw.includes('landscape') || raw.includes('mountain') || raw.includes('coast') || raw.includes('beach') || raw.includes('forest') || raw.includes('lake') || raw.includes('national park')) score += 6;
+      } else {
+        if (raw.includes('landscape') || raw.includes('panorama') || raw.includes('view') || raw.includes('scenery')) score += 5;
+        if (raw.includes('skyline') || raw.includes('cityscape')) score += 2;
+      }
+      if (raw.includes('night')) score += kind === 'city' ? 2 : 1;
+      return score;
+    }
+
     function buildTravelPhotoQueries(kind, name, capital, cities = []) {
       const primaryCity = String(capital || cities[0] || '').trim();
       if (kind === 'city') {
         return [
           primaryCity ? `${primaryCity} skyline` : '',
           primaryCity ? `${primaryCity} downtown` : '',
+          primaryCity ? `${primaryCity} cityscape` : '',
           `${name} city skyline`,
           `${name} city center`,
-          `${name} street`
+          `${name} street scene`
         ].map((value) => String(value || '').trim()).filter(Boolean);
       }
       if (kind === 'nature') {
@@ -963,13 +1013,15 @@
           `${name} nature`,
           `${name} national park`,
           `${name} mountains`,
-          `${name} coast`
+          `${name} coast`,
+          `${name} lake`
         ].map((value) => String(value || '').trim()).filter(Boolean);
       }
       return [
         `${name} landscape`,
         `${name} travel photography`,
         `${name} scenic`,
+        `${name} panorama`,
         `${name} nature`,
         `${primaryCity ? `${primaryCity} skyline` : ''}`
       ].map((value) => String(value || '').trim()).filter(Boolean);
@@ -981,27 +1033,17 @@
       const queries = buildTravelPhotoQueries(kind, name, capital, cities);
       for (const query of queries) {
         if (signal && signal.aborted) break;
-        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=8&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=1200`;
+        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=20&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo|categories&iiprop=url|mime&iiurlwidth=1400&cllimit=max`;
         try {
           const response = await fetch(endpoint, { signal, headers: { Accept: 'application/json' } });
           if (!response.ok) continue;
           const payload = await response.json();
           const pages = Array.isArray(payload && payload.query && payload.query.pages) ? payload.query.pages : [];
-          const preferred = pages.find((page) => {
-            const title = String(page && page.title || '');
-            const mime = String(page && page.imageinfo && page.imageinfo[0] && page.imageinfo[0].mime || '').toLowerCase();
-            const isPhotoLike = mime === 'image/jpeg' || mime === 'image/jpg' || mime === 'image/webp';
-            if (!isPhotoLike) return false;
-            if (isBadScenicTitle(title, name, capital, cities)) return false;
-            return true;
-          }) || pages.find((page) => {
-            const title = String(page && page.title || '');
-            const mime = String(page && page.imageinfo && page.imageinfo[0] && page.imageinfo[0].mime || '').toLowerCase();
-            const isPhotoLike = mime === 'image/jpeg' || mime === 'image/jpg' || mime === 'image/webp';
-            if (!isPhotoLike) return false;
-            const blocked = ['flag', 'coat of arms', 'emblem', 'seal', 'map of', 'locator map', 'location map', 'orthographic', 'equirectangular', 'blank map'];
-            return !blocked.some((token) => title.toLowerCase().includes(token));
-          });
+          const ranked = pages
+            .map((page) => ({ page, score: scoreTravelPhotoCandidate(page, kind, name, capital, cities) }))
+            .filter((entry) => entry.score >= 0)
+            .sort((left, right) => right.score - left.score);
+          const preferred = ranked[0]?.page || null;
           const image = safeHttps(preferred && preferred.imageinfo && preferred.imageinfo[0] && (preferred.imageinfo[0].thumburl || preferred.imageinfo[0].url));
           if (image && !isBadTravelPhotoUrl(image)) return image;
         } catch (_error) {
@@ -1430,7 +1472,7 @@
               <div>
                 <h2 class="ttl">
                   <span class="ttl-flag"><img src="${escapeHtml(item.flag)}" alt="" aria-hidden="true" loading="lazy" onerror="this.onerror=null;this.remove(); this.parentElement.classList.add('is-empty');"></span>
-                  <span class="ttl-text">${escapeHtml(item.name)}</span>
+                  <span class="ttl-text">${escapeHtml(stripLeadingFlagEmoji(item.name))}</span>
                 </h2>
                 <div class="code">${escapeHtml(item.code)}</div>
               </div>

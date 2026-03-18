@@ -141,11 +141,11 @@
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
     const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v11';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
-    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v5';
+    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v6';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
-    const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v2';
+    const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v3';
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
-    const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v2';
+    const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v3';
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_TRAVEL_FALLBACK_IMAGE = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
@@ -587,10 +587,7 @@
 
     function formatTravelTitleWithFlag(titleRaw, codeRaw) {
       const title = String(titleRaw || '').trim();
-      if (!title) return title;
-      const flagEmoji = getHomeCountryFlagEmoji(codeRaw);
-      if (!flagEmoji) return title;
-      return title.startsWith(flagEmoji) ? title : `${flagEmoji} ${title}`;
+      return title;
     }
 
     function canonicalTravelCountryCode(value) {
@@ -606,7 +603,7 @@
       if (raw.includes('/flags/')) return true;
       if (raw.includes('restcountries.com/data/')) return true;
       if (raw.includes('commons.wikimedia.org') && (raw.includes('flag_of_') || raw.includes('flag-of-'))) return true;
-      const blocked = ['coat_of_arms', 'coat-of-arms', 'emblem', 'seal', 'map_of_', 'map-of-', 'painting', 'illustration', 'drawing', 'watercolor', 'etching', 'engraving', 'lithograph', 'oil_on_canvas'];
+      const blocked = ['coat_of_arms', 'coat-of-arms', 'emblem', 'seal', 'map_of_', 'map-of-', 'painting', 'illustration', 'drawing', 'watercolor', 'etching', 'engraving', 'lithograph', 'oil_on_canvas', 'cartoon', 'sketch', 'render', 'vector', 'banknote', 'stamp', 'crest', 'poster'];
       if (blocked.some((token) => raw.includes(token))) return true;
       return false;
     }
@@ -626,6 +623,14 @@
       if (lower.includes('/images/placeholder.jpg')) return false;
       if (lower.includes('source.unsplash.com/')) return false;
       return true;
+    }
+
+    function getTravelCommonsCategoryText(page) {
+      const categories = Array.isArray(page?.categories) ? page.categories : [];
+      return categories
+        .map((entry) => String(entry?.title || '').replace(/^Category:/i, '').trim().toLowerCase())
+        .filter(Boolean)
+        .join(' | ');
     }
 
     function normalizeHomeTravelPhotoEntry(entry) {
@@ -7067,8 +7072,8 @@
       return out.slice(0, 3);
     }
 
-    function isBlockedTravelCommonsTitle(title, countryName, capital, cityHints = []) {
-      const raw = String(title || '').toLowerCase();
+    function isBlockedTravelCommonsTitle(title, countryName, capital, cityHints = [], categoryText = '') {
+      const raw = `${String(title || '')} ${String(categoryText || '')}`.toLowerCase();
       if (!raw) return true;
       const blocked = [
         'flag',
@@ -7090,6 +7095,14 @@
         'illustration',
         'drawing',
         'poster',
+        'cartoon',
+        'sketch',
+        'render',
+        'vector',
+        'banknote',
+        'stamp',
+        'mural',
+        'logo',
         'watercolor',
         'etching',
         'engraving',
@@ -7110,6 +7123,28 @@
       return !(hasCountry || hasCapital || hasCity);
     }
 
+    function scoreTravelCommonsPhotoCandidate(page, kind, countryName, capital, cityHints = []) {
+      const title = String(page?.title || '');
+      const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
+      if (!isTravelCommonsPhotoMime(mime)) return -1;
+      const categoryText = getTravelCommonsCategoryText(page);
+      if (isBlockedTravelCommonsTitle(title, countryName, capital, cityHints, categoryText)) return -1;
+      const raw = `${title} ${categoryText}`.toLowerCase();
+      let score = 0;
+      if (raw.includes('photographs')) score += 5;
+      if (kind === 'city') {
+        if (raw.includes('skyline') || raw.includes('cityscape')) score += 6;
+        if (raw.includes('downtown') || raw.includes('street') || raw.includes('urban') || raw.includes('capital')) score += 4;
+      } else if (kind === 'nature') {
+        if (raw.includes('landscape') || raw.includes('mountain') || raw.includes('coast') || raw.includes('beach') || raw.includes('forest') || raw.includes('lake') || raw.includes('national park')) score += 6;
+      } else {
+        if (raw.includes('landscape') || raw.includes('panorama') || raw.includes('view') || raw.includes('scenery')) score += 5;
+        if (raw.includes('skyline') || raw.includes('cityscape')) score += 2;
+      }
+      if (raw.includes('night')) score += kind === 'city' ? 2 : 1;
+      return score;
+    }
+
     function isTravelCommonsPhotoMime(mime) {
       const value = String(mime || '').toLowerCase().trim();
       return value === 'image/jpeg' || value === 'image/jpg' || value === 'image/webp';
@@ -7121,9 +7156,10 @@
         return [
           primaryCity ? `${primaryCity} skyline` : '',
           primaryCity ? `${primaryCity} downtown` : '',
+          primaryCity ? `${primaryCity} cityscape` : '',
           `${name} city skyline`,
           `${name} city center`,
-          `${name} street`
+          `${name} street scene`
         ].map((value) => String(value || '').trim()).filter(Boolean);
       }
       if (kind === 'nature') {
@@ -7132,13 +7168,15 @@
           `${name} nature`,
           `${name} national park`,
           `${name} mountains`,
-          `${name} coast`
+          `${name} coast`,
+          `${name} lake`
         ].map((value) => String(value || '').trim()).filter(Boolean);
       }
       return [
         `${name} landscape`,
         `${name} travel photography`,
         `${name} scenic`,
+        `${name} panorama`,
         `${name} nature`,
         `${primaryCity ? `${primaryCity} skyline` : ''}`
       ].map((value) => String(value || '').trim()).filter(Boolean);
@@ -7150,7 +7188,7 @@
       const queries = buildHomeTravelPhotoQueries(kind, name, capital, cities);
       for (const query of queries) {
         if (signal?.aborted) break;
-        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=8&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=1200`;
+        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=20&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo|categories&iiprop=url|mime&iiurlwidth=1400&cllimit=max`;
         try {
           const payload = await fetchJsonWithPerfCache(endpoint, {
             signal,
@@ -7160,19 +7198,11 @@
             retries: 1
           });
           const pages = Array.isArray(payload?.query?.pages) ? payload.query.pages : [];
-          const preferred = pages.find((page) => {
-            const title = String(page?.title || '');
-            const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
-            if (!isTravelCommonsPhotoMime(mime)) return false;
-            if (isBlockedTravelCommonsTitle(title, name, capital, cities)) return false;
-            return true;
-          }) || pages.find((page) => {
-            const title = String(page?.title || '').toLowerCase();
-            const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
-            if (!isTravelCommonsPhotoMime(mime)) return false;
-            const blocked = ['flag', 'coat of arms', 'emblem', 'seal', 'map of', 'locator map', 'location map', 'orthographic', 'equirectangular', 'blank map', 'administrative map', 'province map', 'political map', 'banner'];
-            return !blocked.some((token) => title.includes(token));
-          });
+          const ranked = pages
+            .map((page) => ({ page, score: scoreTravelCommonsPhotoCandidate(page, kind, name, capital, cities) }))
+            .filter((entry) => entry.score >= 0)
+            .sort((left, right) => right.score - left.score);
+          const preferred = ranked[0]?.page || null;
           const image = toHttpsUrl(preferred?.imageinfo?.[0]?.thumburl || preferred?.imageinfo?.[0]?.url || '');
           if (isUsableHomeTravelScenicUrl(image)) return image;
         } catch (_error) {
