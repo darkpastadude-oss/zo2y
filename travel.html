@@ -204,11 +204,33 @@
       position: relative;
       overflow: hidden;
     }
+    .card-photo-tile.is-loading::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.12) 48%, rgba(255,255,255,0.02) 100%),
+        linear-gradient(160deg, rgba(23,43,88,0.96), rgba(11,22,51,0.98));
+      background-size: 220px 100%, 100% 100%;
+      background-repeat: no-repeat;
+      animation: travelImageShimmer 1.15s linear infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
     .card-photo-tile img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
+      position: relative;
+      z-index: 1;
+      opacity: 0;
+      filter: blur(10px);
+      transition: opacity 220ms ease, filter 220ms ease;
+    }
+    .card-photo-tile img[data-ready="1"] {
+      opacity: 1;
+      filter: blur(0);
     }
     .card-photo-label {
       position: absolute;
@@ -326,6 +348,10 @@
       .ttl { font-size: 14px; }
       .ttl-flag { width: 18px; height: 12px; }
     }
+    @keyframes travelImageShimmer {
+      from { background-position: -220px 0, 0 0; }
+      to { background-position: calc(100% + 220px) 0, 0 0; }
+    }
   </style>
   <link rel="stylesheet" href="css/shared-header.css?v=20260317d">
   <script src="js/shared-header.js?v=20260317e" defer></script>
@@ -400,6 +426,12 @@
     const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v4';
     const TRAVEL_COUNTRY_ROWS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
     const TRAVEL_BUCKET_NAME = 'travel-photos';
+    const TRAVEL_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
+        <rect width='24' height='24' fill='#10224a'/>
+      </svg>
+    `)}`;
+    let travelImageObserver = null;
     const TRAVEL_BUCKET_MANIFEST_CACHE_KEY = 'zo2y_travel_bucket_manifest_v1';
     const TRAVEL_BUCKET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
     const TRAVEL_BUCKET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${TRAVEL_BUCKET_NAME}/manifest/travel-photo-manifest.json`;
@@ -481,6 +513,63 @@
 
     function escapeHtml(value) {
       return String(value || '').replace(/[&<>"']/g, (ch) => ESCAPE_MAP[ch] || ch);
+    }
+
+    function getTravelImageObserver() {
+      if (travelImageObserver || typeof window.IntersectionObserver !== 'function') return travelImageObserver;
+      travelImageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const img = entry.target;
+          observer.unobserve(img);
+          const nextSrc = String(img.getAttribute('data-travel-src') || '').trim();
+          if (!nextSrc) return;
+          img.removeAttribute('data-travel-src');
+          img.src = nextSrc;
+        });
+      }, {
+        rootMargin: '260px 0px',
+        threshold: 0.01
+      });
+      return travelImageObserver;
+    }
+
+    function primeTravelImages(scope) {
+      const root = scope || document;
+      const images = Array.from(root.querySelectorAll('img[data-travel-src]'));
+      if (!images.length) return;
+      const observer = getTravelImageObserver();
+      if (!observer) {
+        images.forEach((img) => {
+          const nextSrc = String(img.getAttribute('data-travel-src') || '').trim();
+          if (!nextSrc) return;
+          img.removeAttribute('data-travel-src');
+          img.src = nextSrc;
+        });
+        return;
+      }
+      images.forEach((img) => observer.observe(img));
+    }
+
+    function wireTravelImages(scope) {
+      const root = scope || document;
+      root.querySelectorAll('.card-photo-tile img[data-travel-img]').forEach((img) => {
+        const tile = img.closest('.card-photo-tile');
+        const wrap = img.closest('.card-photo-wrap');
+        const handleLoad = () => {
+          img.setAttribute('data-ready', '1');
+          if (tile) tile.classList.remove('is-loading');
+        };
+        const handleError = () => {
+          if (tile) tile.remove();
+          if (wrap && !wrap.querySelector('.card-photo-tile')) wrap.classList.add('no-photo');
+        };
+        img.addEventListener('load', handleLoad);
+        img.addEventListener('error', handleError);
+        if (img.complete && !img.hasAttribute('data-travel-src')) {
+          handleLoad();
+        }
+      });
     }
 
     function safeCode(value) {
@@ -1540,9 +1629,8 @@
             ${hasPhoto ? `
               <div class="card-photo-grid${tiles.length > 1 ? '' : ' single'}">
                 ${tiles.map((tile) => `
-                  <div class="card-photo-tile" data-kind="${escapeHtml(tile.kind)}">
-                    <img src="${escapeHtml(tile.url)}" alt="${escapeHtml(`${item.name || 'Country'} ${tile.label}`)}" loading="lazy" decoding="async" referrerpolicy="no-referrer"
-                      onerror="this.onerror=null; const wrap=this.closest('.card-photo-wrap'); this.parentElement?.remove(); if (wrap && !wrap.querySelector('img')) wrap.classList.add('no-photo');">
+                  <div class="card-photo-tile is-loading" data-kind="${escapeHtml(tile.kind)}">
+                    <img src="${TRAVEL_IMAGE_PLACEHOLDER}" data-travel-src="${escapeHtml(tile.url)}" data-travel-img="1" data-ready="0" alt="${escapeHtml(`${item.name || 'Country'} ${tile.label}`)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
                     <span class="card-photo-label">${escapeHtml(tile.label)}</span>
                   </div>
                 `).join('')}
@@ -1559,6 +1647,8 @@
         const hero = item.photo || item.photoCity || item.photoNature || '';
         card.setAttribute('data-image', hero);
         wrap.outerHTML = buildPhotoShellMarkup(item);
+        wireTravelImages(card);
+        primeTravelImages(card);
       };
 
       pageRows.forEach((item) => {
@@ -1605,6 +1695,9 @@
         }
         grid.appendChild(node);
       });
+
+      wireTravelImages(grid);
+      primeTravelImages(grid);
 
       state.hasMore = end < count;
       syncPager();

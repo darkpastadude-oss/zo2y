@@ -49,10 +49,16 @@
   const searchInput = document.getElementById('brandSearch');
   const categorySelect = document.getElementById('brandCategory');
   const countText = document.getElementById('brandCount');
+  const BRAND_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
+      <rect width='24' height='24' fill='#10224a'/>
+    </svg>
+  `)}`;
 
   let supabaseClient = null;
   let currentUser = null;
   let allBrands = [];
+  let brandImageObserver = null;
 
   function ensureSupabase() {
     if (supabaseClient) return supabaseClient;
@@ -109,6 +115,67 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  function getBrandImageObserver() {
+    if (brandImageObserver || typeof window.IntersectionObserver !== 'function') return brandImageObserver;
+    brandImageObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const img = entry.target;
+        observer.unobserve(img);
+        const nextSrc = String(img.getAttribute('data-defer-src') || '').trim();
+        if (!nextSrc) return;
+        img.removeAttribute('data-defer-src');
+        img.src = nextSrc;
+      });
+    }, {
+      rootMargin: '260px 0px',
+      threshold: 0.01
+    });
+    return brandImageObserver;
+  }
+
+  function primeBrandImages(scope) {
+    const root = scope || document;
+    const images = Array.from(root.querySelectorAll('img[data-defer-src]'));
+    if (!images.length) return;
+    const observer = getBrandImageObserver();
+    if (!observer) {
+      images.forEach((img) => {
+        const nextSrc = String(img.getAttribute('data-defer-src') || '').trim();
+        if (!nextSrc) return;
+        img.removeAttribute('data-defer-src');
+        img.src = nextSrc;
+      });
+      return;
+    }
+    images.forEach((img) => observer.observe(img));
+  }
+
+  function wireBrandImageState(scope) {
+    const root = scope || document;
+    root.querySelectorAll('.brand-card-logo img').forEach((img) => {
+      const wrap = img.closest('.brand-card-logo');
+      const markReady = () => {
+        img.setAttribute('data-ready', '1');
+        if (wrap) wrap.classList.remove('is-loading');
+      };
+      const handleError = () => {
+        const fallback = '/newlogo.webp';
+        if (img.src.endsWith(fallback)) {
+          markReady();
+          return;
+        }
+        img.removeAttribute('data-defer-src');
+        img.src = fallback;
+      };
+      img.addEventListener('load', markReady);
+      img.addEventListener('error', handleError);
+      if (img.complete && !img.hasAttribute('data-defer-src')) {
+        markReady();
+      }
+    });
   }
 
   function showBrandsToast(message, isError = false) {
@@ -334,8 +401,8 @@
       <button class="card-menu-btn" aria-label="Add to list">
         <i class="fas fa-ellipsis-v"></i>
       </button>
-      <div class="brand-card-logo">
-        <img src="${escapeHtml(brand.logo || '/newlogo.webp')}" alt="${escapeHtml(brand.name)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+      <div class="brand-card-logo is-loading">
+        <img src="${BRAND_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(brand.logo || '/newlogo.webp')}" data-ready="0" alt="${escapeHtml(brand.name)} logo" loading="lazy" decoding="async" referrerpolicy="no-referrer">
       </div>
       <div class="brand-card-name">${escapeHtml(brand.name)}</div>
       <div class="brand-card-meta">
@@ -373,6 +440,8 @@
     const fragment = document.createDocumentFragment();
     filtered.forEach((brand) => fragment.appendChild(createCard(brand)));
     grid.appendChild(fragment);
+    wireBrandImageState(grid);
+    primeBrandImages(grid);
   }
 
   async function loadSession() {

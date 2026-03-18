@@ -7,6 +7,11 @@
   const FALLBACK_IMAGE = '/newlogo.webp';
   const FALLBACK_BADGE = '/file.svg';
   const SPORTS_LISTS_ENABLED = window.ZO2Y_SPORTS_LISTS !== false;
+  const SPORTS_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
+      <rect width='24' height='24' fill='#10224a'/>
+    </svg>
+  `)}`;
   const SPORTS_FEATURED_CACHE_KEY = 'zo2y_sports_featured_cache_v1';
   const SPORTS_FEATURED_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
   const FALLBACK_LEAGUES = [
@@ -285,6 +290,7 @@
     lastResults: [],
     lastQuery: ''
   };
+  let sportsImageObserver = null;
 
   const ui = {
     hero: document.getElementById('sportsHero'),
@@ -984,6 +990,68 @@
     return '🏟️';
   }
 
+  function getSportsImageObserver() {
+    if (sportsImageObserver || typeof window.IntersectionObserver !== 'function') return sportsImageObserver;
+    sportsImageObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const img = entry.target;
+        observer.unobserve(img);
+        const nextSrc = String(img.getAttribute('data-defer-src') || '').trim();
+        if (!nextSrc) return;
+        img.removeAttribute('data-defer-src');
+        img.src = nextSrc;
+      });
+    }, {
+      rootMargin: '260px 0px',
+      threshold: 0.01
+    });
+    return sportsImageObserver;
+  }
+
+  function primeSportsImages(scope) {
+    const root = scope || document;
+    const images = Array.from(root.querySelectorAll('img[data-defer-src]'));
+    if (!images.length) return;
+    const observer = getSportsImageObserver();
+    if (!observer) {
+      images.forEach((img) => {
+        const nextSrc = String(img.getAttribute('data-defer-src') || '').trim();
+        if (!nextSrc) return;
+        img.removeAttribute('data-defer-src');
+        img.src = nextSrc;
+      });
+      return;
+    }
+    images.forEach((img) => observer.observe(img));
+  }
+
+  function wireSportsImages(scope) {
+    const root = scope || document;
+    root.querySelectorAll('img[data-sports-image]').forEach((img) => {
+      const wrap = img.closest('.sports-card-media, .sports-card-logo');
+      const fallback = String(img.getAttribute('data-fallback-src') || '').trim();
+      const markReady = () => {
+        img.setAttribute('data-ready', '1');
+        if (wrap) wrap.classList.remove('is-loading');
+      };
+      const handleError = () => {
+        if (fallback && img.src !== fallback) {
+          img.removeAttribute('data-defer-src');
+          img.setAttribute('data-ready', '0');
+          img.src = fallback;
+          return;
+        }
+        markReady();
+      };
+      img.addEventListener('load', markReady);
+      img.addEventListener('error', handleError);
+      if (img.complete && !img.hasAttribute('data-defer-src')) {
+        markReady();
+      }
+    });
+  }
+
   function buildCard(team) {
     const card = document.createElement('article');
     card.className = 'sports-card';
@@ -1006,10 +1074,10 @@
     card.dataset.mediaFit = (usesBannerOnly || usesBadgeOnly) ? 'contain' : 'cover';
 
     card.innerHTML = `
-      <div class="sports-card-media">
-        <img src="${escapeHtml(mediaImage)}" alt="${escapeHtml(team.name)} banner" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}';" />
-        <div class="sports-card-logo">
-          <img src="${escapeHtml(logo)}" alt="${escapeHtml(team.name)} logo" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${FALLBACK_BADGE}';" />
+      <div class="sports-card-media is-loading">
+        <img src="${SPORTS_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(mediaImage)}" data-fallback-src="${escapeHtml(FALLBACK_IMAGE)}" data-sports-image="1" data-ready="0" alt="${escapeHtml(team.name)} banner" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+        <div class="sports-card-logo is-loading">
+          <img src="${SPORTS_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(logo)}" data-fallback-src="${escapeHtml(FALLBACK_BADGE)}" data-sports-image="1" data-ready="0" alt="${escapeHtml(team.name)} logo" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
         </div>
       </div>
       <div class="sports-card-body">
@@ -1076,6 +1144,8 @@
       fragment.appendChild(buildCard(team));
     });
     ui.grid.appendChild(fragment);
+    wireSportsImages(ui.grid);
+    primeSportsImages(ui.grid);
 
     if (!options.keepHero && list.length) {
       setHeroTeam(list[0]);

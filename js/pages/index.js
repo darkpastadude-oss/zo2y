@@ -4375,6 +4375,22 @@
       ];
     }
 
+    function isHomeCompactViewport() {
+      const width = Math.max(
+        window.innerWidth || 0,
+        document.documentElement?.clientWidth || 0,
+        0
+      );
+      return width > 0 && width <= 900;
+    }
+
+    function getHomeInitialChannels(channels) {
+      const list = Array.isArray(channels) ? channels : [];
+      if (isHomeSlowNetwork()) return list.slice(0, 4);
+      if (isHomeCompactViewport()) return list.slice(0, 5);
+      return list.slice(0, 8);
+    }
+
     function normalizeHomeFeedMap(feedMap) {
       if (!feedMap || typeof feedMap !== 'object') return null;
       const channels = getHomeChannels();
@@ -4744,8 +4760,8 @@
       if (!html) return;
 
       wireHomeCardMenus(rail);
-      primeHomeDeferredImages(rail);
       wireHomeRailImageFallbacks(rail);
+      primeHomeDeferredImages(rail);
     }
 
     const BRAND_RAIL_MEDIA_TYPES = new Set(['fashion', 'food', 'car']);
@@ -7910,7 +7926,8 @@
       setStatus('Loading spotlight and live feed...', false);
       resetSpotlightTimer(false);
       const channels = getHomeChannels();
-      const initialChannels = channels;
+      const initialChannels = getHomeInitialChannels(channels);
+      const deferredChannels = channels.filter((channel) => !initialChannels.includes(channel));
       const cachedFeed = readHomeFeedCache();
       const baselineFeed = cachedFeed || null;
       let quickFallbackFeed = null;
@@ -7943,7 +7960,7 @@
           }
         }).catch(() => {});
       }
-      const loadedPromise = Promise.all(initialChannels.map(async (channel) => {
+      const loadChannel = async (channel) => {
         const items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
         if (initSeq === homeFeedInitSeq && Array.isArray(items) && items.length) {
           freshLoadedKeys.add(channel.key);
@@ -7952,12 +7969,14 @@
             [channel.key]: items
           };
           const progressive = applyHomeFeedMap(workingFeed, { refreshSecondary: false });
-          if (progressive.scoredPool.length) {
-            setStatus(`Loading live feed... ${freshLoadedKeys.size}/${initialChannels.length} channels ready.`, false);
+          if (progressive.scoredPool.length && freshLoadedKeys.size < channels.length) {
+            setStatus(`Loading live feed... ${freshLoadedKeys.size}/${channels.length} channels ready.`, false);
           }
         }
         return { ...channel, items };
-      }));
+      };
+
+      const loadedPromise = Promise.all(initialChannels.map((channel) => loadChannel(channel)));
       const precomputedFeed = await withTimeout(precomputedFeedPromise, 220, null);
       if (initSeq !== homeFeedInitSeq) return;
       if (precomputedFeed) {
@@ -7985,6 +8004,24 @@
 
       await loadedPromise;
       if (initSeq !== homeFeedInitSeq) return;
+
+      if (deferredChannels.length) {
+        const deferredTask = async () => {
+          for (const channel of deferredChannels) {
+            if (initSeq !== homeFeedInitSeq) return;
+            await loadChannel(channel);
+          }
+        };
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(() => {
+            void deferredTask();
+          }, { timeout: isHomeCompactViewport() ? 1800 : 1200 });
+        } else {
+          window.setTimeout(() => {
+            void deferredTask();
+          }, isHomeCompactViewport() ? 800 : 450);
+        }
+      }
 
       const mergedFeed = normalizeHomeFeedMap(workingFeed) || blankFeed;
 
