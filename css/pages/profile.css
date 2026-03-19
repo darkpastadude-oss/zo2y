@@ -898,12 +898,20 @@
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 4px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .profile-username {
             font-size: 16px;
             color: var(--muted);
             margin-bottom: 12px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .profile-bio {
@@ -930,6 +938,11 @@
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .profile-info {
+            min-width: 0;
         }
 
         .profile-badges {
@@ -2920,12 +2933,20 @@
                 font-size: 24px;
                 font-weight: 700;
                 margin-bottom: 4px;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
             .mobile-profile-username {
                 font-size: 16px;
                 color: var(--accent);
                 margin-bottom: 12px;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
             .mobile-profile-bio {
@@ -2939,6 +2960,25 @@
                 justify-content: center;
                 margin-top: 2px;
                 margin-bottom: 2px;
+            }
+
+            .mobile-profile-actions-row {
+                display: flex;
+                gap: 10px;
+                width: 100%;
+                margin-top: 12px;
+            }
+
+            .mobile-action-btn.compact {
+                flex: 1 1 0;
+                width: auto;
+                margin-bottom: 0;
+                padding: 12px 14px;
+                font-size: 14px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
             }
 
             /* Mobile Stats */

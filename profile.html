@@ -10,7 +10,7 @@
     <title>Zo2y - Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260317f" />
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260319a" />
     <link rel="icon" href="/newlogo.webp" type="image/webp" />
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -108,10 +108,16 @@
                         <button class="btn btn-outline" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
                             <i class="fas fa-edit"></i> Edit Profile
                         </button>
+                        <button class="btn btn-secondary" type="button" id="shareProfileBtn" onclick="ProfileManager.shareProfile()">
+                            <i class="fas fa-share-nodes"></i> Share Profile
+                        </button>
+                        <button class="btn btn-secondary" type="button" id="inviteFriendsBtn" onclick="ProfileManager.inviteFriends()">
+                            <i class="fas fa-user-plus"></i> Invite Friends
+                        </button>
                         <button class="btn btn-secondary" id="settingsBtn" onclick="ProfileManager.showModal('accountSettingsModal')">
                             <i class="fas fa-cog"></i> Settings
                         </button>
-                        <button class="btn btn-secondary" onclick="ProfileManager.logout()" style="margin-left: auto;">
+                        <button class="btn btn-secondary" onclick="ProfileManager.logout()" style="margin-left: auto;" id="logoutActionBtn">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </button>
                         <button class="btn btn-secondary d-none" id="followButton">
@@ -959,6 +965,14 @@
                 No bio yet. Tap edit to add one!
             </div>
             <div class="profile-badges mobile-profile-badges" id="mobileProfileBadges"></div>
+            <div class="mobile-profile-actions-row">
+                <button class="mobile-action-btn secondary compact" type="button" id="mobileShareProfileBtn" onclick="ProfileManager.shareProfile()">
+                    <i class="fas fa-share-nodes"></i> Share
+                </button>
+                <button class="mobile-action-btn compact" type="button" id="mobileInviteFriendsBtn" onclick="ProfileManager.inviteFriends()">
+                    <i class="fas fa-user-plus"></i> Invite
+                </button>
+            </div>
         </div>
 
         <!-- Mobile Stats -->
@@ -2028,6 +2042,16 @@
                         <i class="fas fa-search"></i>
                         <span>Search Users</span>
                     </div>
+
+                    <div class="mobile-menu-item" onclick="ProfileManager.shareProfile(); ProfileManager.closeModal('mobileMenuModal')">
+                        <i class="fas fa-share-nodes"></i>
+                        <span>Share Profile</span>
+                    </div>
+
+                    <div class="mobile-menu-item" id="mobileMenuInviteFriendsItem" onclick="ProfileManager.inviteFriends(); ProfileManager.closeModal('mobileMenuModal')">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Invite Friends</span>
+                    </div>
                     
                     <div class="mobile-menu-item" onclick="ProfileManager.showModal('avatarModal'); ProfileManager.closeModal('mobileMenuModal')">
                         <i class="fas fa-user-circle"></i>
@@ -2051,13 +2075,13 @@
     </div>
 
     <script src="js/list-utils.js?v=20260317b"></script>
+    <script src="js/referral-utils.js?v=20260319a"></script>
     <script src="js/igdb-client.js?v=20260311c"></script>
-    <script src="js/pages/profile.js?v=20260317g"></script>
+    <script src="js/pages/profile.js?v=20260319a"></script>
         <script src="js/production-runtime.js?v=20260307a" defer></script>
 
 </body>
 </html>
-
 
 
 

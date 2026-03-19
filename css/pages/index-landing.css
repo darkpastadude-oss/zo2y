@@ -1029,3 +1029,20 @@
       color: #0b1633;
       border: 0;
     }
+.landing-referral-banner {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 184, 77, 0.2);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(255, 184, 77, 0.08));
+  color: #fff5df;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.landing-referral-banner i {
+  color: #ffb84d;
+}

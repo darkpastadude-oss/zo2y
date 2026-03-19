@@ -10,6 +10,7 @@
   <title>Processing Authentication - Zo2y</title>
 <link rel="icon" href="/newlogo.webp" type="image/webp" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/referral-utils.js?v=20260319a"></script>
   <style>
     body {
       background: #0b1633;
@@ -127,6 +128,8 @@
       const storedNext = localStorage.getItem('postAuthRedirect');
       const next = sanitizeNextPath(params.get('next') || storedNext || 'index.html');
       const flowParam = String(params.get('flow') || '').trim().toLowerCase();
+      const referralUtils = window.ZO2Y_REFERRALS || null;
+      const activeReferral = referralUtils ? referralUtils.captureReferralFromLocation(window.location.search) : '';
       const debugEnabled = window.location.search.includes('debug=true');
       if (debugEnabled) debugConsole.classList.add('show');
 
@@ -413,6 +416,36 @@
         }
       }
 
+      async function persistReferralMetadata(client, user, flow, logFn) {
+        const referral = activeReferral || (referralUtils ? referralUtils.getStoredReferral() : '');
+        const safeReferral = String(referral || '').trim().toLowerCase();
+        if (!safeReferral || !user?.id) return;
+        if (String(user?.user_metadata?.referred_by_username || '').trim().toLowerCase() === safeReferral) {
+          if (referralUtils) referralUtils.markReferralConsumed(user.id, safeReferral);
+          return;
+        }
+        if (referralUtils && referralUtils.getConsumedReferral(user.id) === safeReferral) return;
+        try {
+          const { error } = await client.auth.updateUser({
+            data: {
+              referred_by_username: safeReferral
+            }
+          });
+          if (error) {
+            logFn(`Referral metadata sync skipped: ${error.message}`, true);
+            return;
+          }
+          if (referralUtils) referralUtils.markReferralConsumed(user.id, safeReferral);
+          sendAnalyticsEvent('referral_captured', {
+            flow: flow || 'unknown',
+            referral_username: safeReferral
+          }, true);
+          logFn(`Referral saved from @${safeReferral}.`);
+        } catch (error) {
+          logFn(`Referral metadata sync failed: ${error.message}`, true);
+        }
+      }
+
       try {
         log('Initializing auth callback...');
         if (!window.supabase || !window.supabase.createClient) {
@@ -490,6 +523,7 @@
         }
 
         statusText.textContent = 'Finishing setup...';
+        await persistReferralMetadata(client, user, oauthFlow, log);
         await triggerWelcomeEmail(storedSession, oauthFlow, log);
 
         sendAnalyticsEvent('oauth_callback_success', {
@@ -535,9 +569,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
 
 
 

@@ -9,6 +9,7 @@
             const OPEN_LIBRARY_BASE = "https://openlibrary.org";
             const OPEN_LIBRARY_PROXY_BASE = "/api/openlibrary";
             const FALLBACK_BOOK_IMAGE = "/newlogo.webp";
+            const referralUtils = window.ZO2Y_REFERRALS || null;
 
             async function igdbFetch(path, params = {}, signal = null) {
                 if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === "function") {
@@ -401,6 +402,156 @@
                 }
 
                 return normalizedUsername;
+            }
+
+            function trackGrowthEvent(eventName, properties = {}, essential = false) {
+                try {
+                    if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
+                        window.ZO2Y_ANALYTICS.track(eventName, properties, essential ? { essential: true } : {});
+                    }
+                } catch (_err) {}
+            }
+
+            function getActiveProfileRecord() {
+                return isViewingOwnProfile ? (userProfile || {}) : (targetUser || userProfile || {});
+            }
+
+            function getActiveProfileName(profile = getActiveProfileRecord()) {
+                return String(
+                    profile?.full_name ||
+                    profile?.username ||
+                    currentUser?.user_metadata?.full_name ||
+                    currentUser?.email?.split('@')[0] ||
+                    'Zo2y user'
+                ).trim();
+            }
+
+            function getActiveProfileUsername(profile = getActiveProfileRecord()) {
+                return normalizeProfileUsername(
+                    profile?.username ||
+                    currentUser?.user_metadata?.username ||
+                    currentUser?.email?.split('@')[0] ||
+                    ''
+                );
+            }
+
+            function buildAbsoluteProfileUrl(profile = getActiveProfileRecord()) {
+                const url = new URL('profile.html', window.location.origin);
+                const profileId = String((isViewingOwnProfile ? currentUser?.id : targetUserId) || profile?.id || '').trim();
+                if (profileId) url.searchParams.set('id', profileId);
+                return url.toString();
+            }
+
+            async function copyTextToClipboard(value) {
+                const text = String(value || '').trim();
+                if (!text) return false;
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                }
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.setAttribute('readonly', 'readonly');
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                textarea.setSelectionRange(0, textarea.value.length);
+                const copied = document.execCommand('copy');
+                textarea.remove();
+                if (!copied) throw new Error('copy_failed');
+                return true;
+            }
+
+            function updateShareInviteControls(profile = getActiveProfileRecord()) {
+                const inviteVisible = isViewingOwnProfile;
+                const shareLabel = isViewingOwnProfile ? 'Share My Profile' : 'Share Profile';
+                const shareButtonIds = ['shareProfileBtn', 'mobileShareProfileBtn'];
+                const inviteButtonIds = ['inviteFriendsBtn', 'mobileInviteFriendsBtn', 'mobileMenuInviteFriendsItem'];
+
+                shareButtonIds.forEach((id) => {
+                    const button = document.getElementById(id);
+                    if (!button) return;
+                    button.style.display = '';
+                    button.setAttribute('aria-label', shareLabel);
+                    button.title = shareLabel;
+                });
+
+                inviteButtonIds.forEach((id) => {
+                    const button = document.getElementById(id);
+                    if (!button) return;
+                    button.style.display = inviteVisible ? '' : 'none';
+                });
+            }
+
+            async function shareProfile() {
+                const profile = getActiveProfileRecord();
+                const url = buildAbsoluteProfileUrl(profile);
+                const profileName = getActiveProfileName(profile);
+                const text = isViewingOwnProfile
+                    ? `See what I am saving, rating, and listing on Zo2y: ${url}`
+                    : `Check out ${profileName}'s Zo2y profile: ${url}`;
+                try {
+                    if (navigator.share) {
+                        await navigator.share({
+                            title: `${profileName} on Zo2y`,
+                            text,
+                            url
+                        });
+                        showToast('Profile ready to share.', 'success');
+                    } else {
+                        await copyTextToClipboard(url);
+                        showToast('Profile link copied.', 'success');
+                    }
+                    trackGrowthEvent('profile_shared', {
+                        source: 'profile_page',
+                        own_profile: isViewingOwnProfile,
+                        username: getActiveProfileUsername(profile)
+                    }, true);
+                } catch (error) {
+                    if (error && error.name === 'AbortError') return;
+                    console.error('Error sharing profile:', error);
+                    showToast('Could not share profile right now.', 'error');
+                }
+            }
+
+            async function inviteFriends() {
+                if (!isViewingOwnProfile) {
+                    await shareProfile();
+                    return;
+                }
+                const username = getActiveProfileUsername(userProfile);
+                if (!isValidProfileUsername(username)) {
+                    showToast('Set a valid username before inviting friends.', 'warning');
+                    showModal('editProfileModal');
+                    return;
+                }
+                const inviteUrl = referralUtils && typeof referralUtils.buildInviteUrl === 'function'
+                    ? referralUtils.buildInviteUrl(username, 'index.html')
+                    : new URL(`sign-up.html?ref=${encodeURIComponent(username)}&next=index.html`, window.location.origin).toString();
+                const text = `Join me on Zo2y and start building your own taste map: ${inviteUrl}`;
+                try {
+                    if (navigator.share) {
+                        await navigator.share({
+                            title: 'Join me on Zo2y',
+                            text,
+                            url: inviteUrl
+                        });
+                        showToast('Invite link ready to share.', 'success');
+                    } else {
+                        await copyTextToClipboard(inviteUrl);
+                        showToast('Invite link copied.', 'success');
+                    }
+                    trackGrowthEvent('invite_link_shared', {
+                        source: 'profile_page',
+                        username
+                    }, true);
+                } catch (error) {
+                    if (error && error.name === 'AbortError') return;
+                    console.error('Error sharing invite link:', error);
+                    showToast('Could not share invite link right now.', 'error');
+                }
             }
 
             function setupMobileTabsHint() {
@@ -1037,6 +1188,7 @@
                     document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
                     document.getElementById('profileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
                 }
+                updateShareInviteControls(profile);
             }
 
             function updateTabTitlesForOtherUser(userName) {
@@ -12966,6 +13118,8 @@
                 showCreateListTypeModal,
                 createListForType,
                 logout,
+                shareProfile,
+                inviteFriends,
                 removeFromList,
                 escapeHtml
             };
@@ -12975,10 +13129,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
-
-
-
-
 
 
 

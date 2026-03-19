@@ -58,9 +58,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="css/pages/index.css?v=20260319c" />
-<link rel="preload" href="css/pages/index-landing.css?v=20260319d" as="style">
-<link rel="stylesheet" href="css/pages/index-landing.css?v=20260319d" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/pages/index-landing.css?v=20260319d"></noscript>
+<link rel="preload" href="css/pages/index-landing.css?v=20260319e" as="style">
+<link rel="stylesheet" href="css/pages/index-landing.css?v=20260319e" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/pages/index-landing.css?v=20260319e"></noscript>
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -71,6 +71,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
   <script src="/js/mobile-webapp.js?v=20260317d" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
+  <script src="js/referral-utils.js?v=20260319a"></script>
   <script src="js/shared-header.js?v=20260319b" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
@@ -93,6 +94,7 @@
           <div class="landing-auth-notice" id="landingAuthNotice" hidden>
             Sign in to keep browsing. This app is members-only once you leave the landing page.
           </div>
+          <div class="landing-referral-banner" id="landingReferralBanner" hidden></div>
           <div class="landing-hero-actions">
             <a class="landing-cta landing-cta-primary" data-auth-entry="signup" href="sign-up.html">
               <i class="fa-solid fa-user-plus"></i> Create your account
@@ -501,13 +503,32 @@
   </div>
 
   <script src="js/igdb-client.js?v=20260311c"></script>
+  <script>
+    (function () {
+      const referralUtils = window.ZO2Y_REFERRALS || null;
+      if (!referralUtils) return;
+      const referral = referralUtils.captureReferralFromLocation(window.location.search);
+      const banner = document.getElementById('landingReferralBanner');
+      if (banner) {
+        if (referral) {
+          banner.hidden = false;
+          banner.innerHTML = `<i class="fa-solid fa-user-group"></i><span>You are viewing @${referral}'s invite link. Create an account to start building your own Zo2y profile.</span>`;
+        } else {
+          banner.hidden = true;
+        }
+      }
+      document.querySelectorAll('[data-auth-entry]').forEach((link) => {
+        const href = link.getAttribute('href');
+        if (!href) return;
+        link.setAttribute('href', referralUtils.appendReferralToHref(href, { referral, next: 'index.html' }));
+      });
+    })();
+  </script>
     <script src="js/pages/index.js?v=20260319f" defer></script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
   <script src="js/home-desktop-rebrand.js?v=20260311e" defer></script>
 </body>
 </html>
-
-
 
 
 
