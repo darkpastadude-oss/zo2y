@@ -729,7 +729,17 @@ async function main() {
   console.log(`Target limit: ${options.limit}`);
   console.log(`Details enrichment: ${options.withDetails ? "on" : "off"}`);
 
-  let { candidates, pagesFetched, exhausted } = await collectPopularCandidates(options.baseUrl, options);
+  let candidates = [];
+  let pagesFetched = 0;
+  let exhausted = false;
+  try {
+    const sourceResult = await collectPopularCandidates(options.baseUrl, options);
+    candidates = sourceResult.candidates;
+    pagesFetched = sourceResult.pagesFetched;
+    exhausted = sourceResult.exhausted;
+  } catch (error) {
+    console.warn(`Primary source fetch failed, falling back to RAWG-only import: ${error.message || error}`);
+  }
   if (!candidates.length) {
     console.log("No source API candidates found from /api/igdb/games.");
   }

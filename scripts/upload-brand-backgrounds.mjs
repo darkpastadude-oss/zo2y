@@ -17,6 +17,19 @@ const concurrencyArg = Number.parseInt((process.argv.find((arg) => arg.startsWit
 const CONCURRENCY = Number.isFinite(concurrencyArg) && concurrencyArg > 0 ? concurrencyArg : 6;
 const FETCH_TIMEOUT_MS = 7000;
 const FORCE_REFRESH = process.argv.includes('--refresh');
+const MANUAL_BACKGROUND_OVERRIDES = new Map([
+  ['vacheron constantin', 'https://www.vacheron-constantin.com/dam/vac/vac-assets/luminova/pages/home/Home-Hero-Desktop.jpg.transform.vacsocialsharing.jpeg'],
+  ['jaeger-lecoultre', 'https://img.jaeger-lecoultre.com/video-poster-1/o-dpr-2/4c0f927d29677ab69cbd85417884228b17cf175a.jpg'],
+  ['panerai', 'https://www.panerai.com/content/dam/pan-assets/new-ux/home/slider/Banner_Horizontal.jpg.transform.global_image_1600.jpg'],
+  ['a. lange & sohne', 'https://img.alange-soehne.com/card-xl-1/o-dpr-2/362f4605835f4a15af85a13ffe379cdc356bd948.jpg'],
+  ['a. lange and sohne', 'https://img.alange-soehne.com/card-xl-1/o-dpr-2/362f4605835f4a15af85a13ffe379cdc356bd948.jpg'],
+  ['blancpain', 'https://prestigedam.swatchgroup.biz/m/2c594f0a4bd27a5d/webimage-Logo_Blancpain_Blanc.png'],
+  ['casio', 'https://upload.wikimedia.org/wikipedia/commons/5/58/Casio_HQ2.jpg'],
+  ['h. moser & cie.', 'https://h-moser.com/wp-content/uploads/2025/05/HMoser__6700-1200__Navigation-1-1-768x478.jpg'],
+  ['h. moser and cie.', 'https://h-moser.com/wp-content/uploads/2025/05/HMoser__6700-1200__Navigation-1-1-768x478.jpg'],
+  ['roger dubuis', 'https://img.rogerdubuis.com/product-highlight-2/o-dpr-2/17d0487b9f046670979e45793133ac5c9e6e81a8.jpg'],
+  ['tissot', 'https://upload.wikimedia.org/wikipedia/commons/e/ee/Le_Locle%2C_usine_Tissot.JPG']
+]);
 const TITLE_OVERRIDES = new Map([
   ['mcdonalds', "McDonald's"], ['mcdonald\'s', "McDonald's"], ['burger king', 'Burger King'], ['kfc', 'KFC'],
   ['chipotle', 'Chipotle Mexican Grill'], ['subway', 'Subway (restaurant)'], ['taco bell', 'Taco Bell'], ['domino\'s', "Domino's"],
@@ -25,7 +38,12 @@ const TITLE_OVERRIDES = new Map([
   ['supreme', 'Supreme (skateboard shop)'], ['zara', 'Zara (retailer)'], ['uniqlo', 'Uniqlo'], ['a.p.c.', 'A.P.C.'],
   ['aerie', 'Aerie (brand)'], ['& other stories', '& Other Stories'], ['alfa romeo', 'Alfa Romeo'], ['aston martin', 'Aston Martin'],
   ['bentley', 'Bentley'], ['mercedes-benz', 'Mercedes-Benz'], ['bmw', 'BMW'], ['audi', 'Audi'], ['ford', 'Ford Motor Company'],
-  ['chevrolet', 'Chevrolet'], ['toyota', 'Toyota'], ['honda', 'Honda']
+  ['chevrolet', 'Chevrolet'], ['toyota', 'Toyota'], ['honda', 'Honda'],
+  ['a. lange & sohne', 'A. Lange & Söhne'], ['a. lange and sohne', 'A. Lange & Söhne'],
+  ['blancpain', 'Blancpain'], ['breguet', 'Breguet (brand)'], ['cartier', 'Cartier (jeweler)'],
+  ['casio', 'Casio'], ['h. moser & cie.', 'H. Moser & Cie.'], ['h. moser and cie.', 'H. Moser & Cie.'],
+  ['jaeger-lecoultre', 'Jaeger-LeCoultre'], ['panerai', 'Panerai'], ['roger dubuis', 'Roger Dubuis'],
+  ['tissot', 'Tissot'], ['vacheron constantin', 'Vacheron Constantin']
 ]);
 
 function loadEnvFile(filePath) {
@@ -201,7 +219,8 @@ async function main() {
       try {
         const domain = normalizeDomain(row.domain);
         const title = getWikiTitle(row.name);
-        const imageUrl = (domain ? await resolveDomainImage(domain) : '') || await resolveWikipediaThumbnail(title);
+        const manualImage = MANUAL_BACKGROUND_OVERRIDES.get(String(row.name || '').trim().toLowerCase()) || '';
+        const imageUrl = manualImage || (domain ? await resolveDomainImage(domain) : '') || await resolveWikipediaThumbnail(title);
         if (!imageUrl) return null;
         const publicUrl = await uploadBackground(table, row, imageUrl);
         manifest[table][slug] = publicUrl;

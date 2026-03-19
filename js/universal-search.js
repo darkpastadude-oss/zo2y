@@ -8,7 +8,7 @@
   const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';
   const SPORTSDB_DIRECT_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
   const SPORTSDB_DIRECT_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_DIRECT_KEY}`;
-  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
+const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
   const MIN_QUERY_LEN = 2;
   const SEARCH_DEBOUNCE_MS = 60;
   const REQUEST_TIMEOUT_MS = 5000;

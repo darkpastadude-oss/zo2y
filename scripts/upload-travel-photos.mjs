@@ -8,6 +8,16 @@ const ENV_FILES = ['.env', '.env.local', '.env.vercel', '.env.vercel.prod'].map(
 const BUCKET_NAME = 'travel-photos';
 const MANIFEST_PATH = 'manifest/travel-photo-manifest.json';
 const COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion';
+const MANUAL_TRAVEL_OVERRIDES = {
+  CM: {
+    scenic: 'https://commons.wikimedia.org/wiki/Special:FilePath/Mount%20Cameroon.jpg?width=1600',
+    city: 'https://commons.wikimedia.org/wiki/Special:FilePath/Douala%20Cameroon.jpg?width=1600'
+  },
+  GY: {
+    scenic: 'https://commons.wikimedia.org/wiki/Special:FilePath/Kaieteur%20Falls%20Guyana%20%282009%29.jpg?width=1600',
+    city: 'https://commons.wikimedia.org/wiki/Special:FilePath/Guyana%20-%20Georgetown.png?width=1600'
+  }
+};
 
 function loadEnvFile(filePath) {
   if (!fs.existsSync(filePath)) return {};
@@ -134,7 +144,32 @@ function isBadScenicTitle(title, countryName, capital, cityHints = [], categoryT
     'etching',
     'engraving',
     'lithograph',
-    'oil on canvas'
+    'oil on canvas',
+    'bus',
+    'coach',
+    'truck',
+    'taxi',
+    'motorcycle',
+    'street vendor',
+    'vendor',
+    'market stall',
+    'marketplace',
+    'souvenir',
+    'craft',
+    'artifact',
+    'museum object',
+    'exhibit',
+    'portrait',
+    'selfie',
+    'person',
+    'people',
+    'festival costume',
+    'interior',
+    'close up',
+    'close-up',
+    'shopfront',
+    'storefront',
+    'traffic'
   ];
   if (blocked.some((token) => raw.includes(token))) return true;
   const countryNeedle = normalizeCountryName(countryName);
@@ -161,7 +196,8 @@ function scoreTravelPhotoCandidate(page, kind, countryName, capital, cityHints =
   if (raw.includes('photographs')) score += 5;
   if (kind === 'city') {
     if (raw.includes('skyline') || raw.includes('cityscape')) score += 6;
-    if (raw.includes('downtown') || raw.includes('street') || raw.includes('urban') || raw.includes('capital')) score += 4;
+    if (raw.includes('downtown') || raw.includes('urban') || raw.includes('capital') || raw.includes('city centre') || raw.includes('city center') || raw.includes('aerial')) score += 4;
+    if (raw.includes('street')) score -= 2;
   } else if (kind === 'nature') {
     if (raw.includes('landscape') || raw.includes('mountain') || raw.includes('coast') || raw.includes('beach') || raw.includes('forest') || raw.includes('lake') || raw.includes('national park')) score += 6;
   } else {
@@ -179,10 +215,10 @@ function buildTravelPhotoQueries(kind, name, capital, cities = []) {
       primaryCity ? `${primaryCity} skyline` : '',
       primaryCity ? `${primaryCity} downtown` : '',
       primaryCity ? `${primaryCity} cityscape` : '',
-      primaryCity ? `${primaryCity} urban photography` : '',
+      primaryCity ? `${primaryCity} aerial view` : '',
       `${name} city skyline`,
       `${name} city center`,
-      `${name} street scene`
+      `${name} skyline panorama`
     ].map((value) => String(value || '').trim()).filter(Boolean);
   }
   if (kind === 'nature') {
@@ -199,12 +235,15 @@ function buildTravelPhotoQueries(kind, name, capital, cities = []) {
   }
   return [
     `${name} landscape`,
-    `${name} travel photography`,
-    `${name} scenic`,
     `${name} panorama`,
+    `${name} scenic view`,
+    `${name} aerial view`,
     `${name} scenery`,
+    `${name} landmark panorama`,
+    `${name} travel photography`,
+    `${name} panorama`,
     `${name} view`,
-    `${primaryCity ? `${primaryCity} skyline` : ''}`
+    `${primaryCity ? `${primaryCity} skyline panorama` : ''}`
   ].map((value) => String(value || '').trim()).filter(Boolean);
 }
 
@@ -460,7 +499,8 @@ async function processCountry(country, manifestCountries, options) {
 
   for (const kind of kinds) {
     if (out[kind] && !options.force) continue;
-    const source = await fetchCommonsPhotoByKind(kind, country.name, country.code, country.capital, cities);
+    const manualSource = MANUAL_TRAVEL_OVERRIDES[country.code]?.[kind] || '';
+    const source = manualSource || await fetchCommonsPhotoByKind(kind, country.name, country.code, country.capital, cities);
     if (!source) continue;
     try {
       const publicUrl = await uploadTravelPhoto(country.code, kind, source);

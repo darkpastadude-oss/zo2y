@@ -324,6 +324,39 @@ const bonusFashionBrands = [
   { name: 'Harrods', domain: 'harrods.com', category: 'Retail', country: 'UK', founded: '1849', description: 'Luxury department store retailer.', tags: ['retail'] }
 ];
 
+const watchFashionBrands = [
+  { name: 'Rolex', domain: 'rolex.com', category: 'Watches', country: 'Switzerland', founded: '1905', description: 'Swiss luxury watchmaker.', tags: ['watches', 'luxury'] },
+  { name: 'Patek Philippe', domain: 'patek.com', category: 'Watches', country: 'Switzerland', founded: '1839', description: 'Swiss haute horlogerie maison.', tags: ['watches', 'luxury'] },
+  { name: 'Richard Mille', domain: 'richardmille.com', category: 'Watches', country: 'Switzerland', founded: '2001', description: 'Ultra-luxury Swiss watchmaker.', tags: ['watches', 'luxury'] },
+  { name: 'Audemars Piguet', domain: 'audemarspiguet.com', category: 'Watches', country: 'Switzerland', founded: '1875', description: 'Swiss luxury watch manufacturer.', tags: ['watches', 'luxury'] },
+  { name: 'Omega', domain: 'omegawatches.com', category: 'Watches', country: 'Switzerland', founded: '1848', description: 'Swiss watchmaker known for Speedmaster and Seamaster.', tags: ['watches', 'luxury'] },
+  { name: 'Cartier', domain: 'cartier.com', category: 'Watches', country: 'France', founded: '1847', description: 'Luxury jewelry and watch maison.', tags: ['watches', 'luxury', 'jewelry'] },
+  { name: 'TAG Heuer', domain: 'tagheuer.com', category: 'Watches', country: 'Switzerland', founded: '1860', description: 'Swiss luxury sports watch brand.', tags: ['watches', 'luxury'] },
+  { name: 'Hublot', domain: 'hublot.com', category: 'Watches', country: 'Switzerland', founded: '1980', description: 'Swiss luxury watchmaker.', tags: ['watches', 'luxury'] },
+  { name: 'IWC Schaffhausen', domain: 'iwc.com', category: 'Watches', country: 'Switzerland', founded: '1868', description: 'Swiss luxury watch manufacturer.', tags: ['watches', 'luxury'] },
+  { name: 'Jaeger-LeCoultre', domain: 'jaeger-lecoultre.com', category: 'Watches', country: 'Switzerland', founded: '1833', description: 'Swiss high-end watchmaker.', tags: ['watches', 'luxury'] },
+  { name: 'Tudor', domain: 'tudorwatch.com', category: 'Watches', country: 'Switzerland', founded: '1926', description: 'Swiss luxury watch brand.', tags: ['watches', 'luxury'] },
+  { name: 'Breitling', domain: 'breitling.com', category: 'Watches', country: 'Switzerland', founded: '1884', description: 'Swiss luxury chronograph specialist.', tags: ['watches', 'luxury'] },
+  { name: 'Vacheron Constantin', domain: 'vacheron-constantin.com', category: 'Watches', country: 'Switzerland', founded: '1755', description: 'Historic Swiss luxury watchmaker.', tags: ['watches', 'luxury'] },
+  { name: 'Panerai', domain: 'panerai.com', category: 'Watches', country: 'Italy', founded: '1860', description: 'Italian-born luxury watch brand.', tags: ['watches', 'luxury'] },
+  { name: 'Zenith', domain: 'zenith-watches.com', category: 'Watches', country: 'Switzerland', founded: '1865', description: 'Swiss luxury watchmaker.', tags: ['watches', 'luxury'] },
+  { name: 'Blancpain', domain: 'blancpain.com', category: 'Watches', country: 'Switzerland', founded: '1735', description: 'Swiss haute horlogerie watchmaker.', tags: ['watches', 'luxury'] },
+  { name: 'Longines', domain: 'longines.com', category: 'Watches', country: 'Switzerland', founded: '1832', description: 'Swiss watchmaker with classic sports heritage.', tags: ['watches', 'luxury'] },
+  { name: 'Tissot', domain: 'tissotwatches.com', category: 'Watches', country: 'Switzerland', founded: '1853', description: 'Swiss watchmaker with broad global reach.', tags: ['watches'] },
+  { name: 'Breguet', domain: 'breguet.com', category: 'Watches', country: 'Switzerland', founded: '1775', description: 'Historic luxury watchmaker.', tags: ['watches', 'luxury'] },
+  { name: 'Chopard', domain: 'chopard.com', category: 'Watches', country: 'Switzerland', founded: '1860', description: 'Swiss luxury watch and jewelry maison.', tags: ['watches', 'luxury', 'jewelry'] },
+  { name: 'A. Lange & Sohne', domain: 'alange-soehne.com', category: 'Watches', country: 'Germany', founded: '1845', description: 'German high horology watchmaker.', tags: ['watches', 'luxury'] },
+  { name: 'Grand Seiko', domain: 'grand-seiko.com', category: 'Watches', country: 'Japan', founded: '1960', description: 'Japanese luxury watchmaker.', tags: ['watches', 'luxury'] },
+  { name: 'Seiko', domain: 'seikowatches.com', category: 'Watches', country: 'Japan', founded: '1881', description: 'Japanese watch manufacturer.', tags: ['watches'] },
+  { name: 'Casio', domain: 'casio.com', category: 'Watches', country: 'Japan', founded: '1946', description: 'Japanese electronics and watch brand.', tags: ['watches'] },
+  { name: 'G-Shock', domain: 'gshock.com', category: 'Watches', country: 'Japan', founded: '1983', description: 'Shock-resistant watch line from Casio.', tags: ['watches'] },
+  { name: 'H. Moser & Cie.', domain: 'h-moser.com', category: 'Watches', country: 'Switzerland', founded: '1828', description: 'Independent Swiss luxury watchmaker.', tags: ['watches', 'luxury'] },
+  { name: 'Roger Dubuis', domain: 'rogerdubuis.com', category: 'Watches', country: 'Switzerland', founded: '1995', description: 'Swiss luxury watchmaker.', tags: ['watches', 'luxury'] },
+  { name: 'Piaget', domain: 'piaget.com', category: 'Watches', country: 'Switzerland', founded: '1874', description: 'Luxury watch and jewelry maison.', tags: ['watches', 'luxury', 'jewelry'] },
+  { name: 'Franck Muller', domain: 'franckmuller.com', category: 'Watches', country: 'Switzerland', founded: '1991', description: 'Swiss luxury watchmaker known for tonneau cases.', tags: ['watches', 'luxury'] },
+  { name: 'Bell & Ross', domain: 'bellross.com', category: 'Watches', country: 'France', founded: '1992', description: 'Aviation-inspired luxury watch brand.', tags: ['watches', 'luxury'] }
+];
+
 const foodBrands = [
   { name: 'McDonald\'s', domain: 'mcdonalds.com', category: 'Fast Food', country: 'USA', founded: '1940', description: 'American fast-food chain.', tags: ['burgers', 'fast food'] },
   { name: 'KFC', domain: 'kfc.com', category: 'Fast Food', country: 'USA', founded: '1952', description: 'Fried chicken specialists.', tags: ['chicken', 'fast food'] },
@@ -676,7 +709,7 @@ async function upsertBrands(table, rows) {
 
 async function run() {
   console.log('Seeding fashion brands...');
-  const fashionResult = await upsertBrands('fashion_brands', dedupeBrands([...fashionBrands, ...extraFashionBrands, ...bonusFashionBrands]));
+  const fashionResult = await upsertBrands('fashion_brands', dedupeBrands([...fashionBrands, ...extraFashionBrands, ...bonusFashionBrands, ...watchFashionBrands]));
   console.log(`Fashion upserts: ${fashionResult.length}`);
 
   console.log('Seeding food brands...');

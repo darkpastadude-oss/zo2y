@@ -4,7 +4,7 @@
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
   const FALLBACK_IMAGE = '/newlogo.webp';
   const REVIEW_LIMIT = 70;
-  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
+const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
 
   const SOURCES = [
     { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id', label: 'Movie', icon: 'fa-film' },

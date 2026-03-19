@@ -4,10 +4,10 @@
   const base = path === '/' ? 'index.html' : path.split('/').pop();
   const pageKey = String(base || 'index.html').replace(/\.html?$/i, '').toLowerCase();
   const AUTH_PAGE_KEYS = new Set(['login', 'sign-up', 'signup', 'auth-callback', 'update-password']);
-  if (window.ZO2Y_DISABLE_GAMES !== false) {
-    window.ZO2Y_DISABLE_GAMES = true;
+  if (typeof window.ZO2Y_DISABLE_GAMES === 'undefined') {
+    window.ZO2Y_DISABLE_GAMES = false;
   }
-  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
+  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
   const GAME_PAGE_KEYS = new Set(['games', 'games-mobile', 'game']);
   const GAME_ENTRY_SELECTOR = [
     'a[href="games.html"]',

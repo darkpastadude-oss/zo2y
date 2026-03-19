@@ -1,4 +1,4 @@
-    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
+    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
     const ENABLE_GAMES = !GAMES_DISABLED;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
@@ -7201,6 +7201,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       };
 
       try {
+        const client = await ensureHomeSupabase();
+        if (client) {
+          try {
+            const { data, error } = await client
+              .from('games')
+              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug')
+              .order('rating_count', { ascending: false, nullsFirst: false })
+              .order('rating', { ascending: false, nullsFirst: false })
+              .limit(Math.max(targetCount * 3, 48));
+            if (!error) {
+              const localItems = (Array.isArray(data) ? data : [])
+                .map((row) => mapToItem(row))
+                .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
+                .slice(0, targetCount);
+              if (localItems.length) return localItems;
+            }
+          } catch (_localGamesError) {
+            // Fall through to legacy providers if the local catalog lookup hiccups.
+          }
+        }
         const providerList = ['wikipedia', 'igdb'];
         for (const provider of providerList) {
           const baseParams = {

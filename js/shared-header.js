@@ -6,13 +6,13 @@
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
   let authStateListenerBound = false;
-  if (window.ZO2Y_DISABLE_GAMES !== false) {
-    window.ZO2Y_DISABLE_GAMES = true;
+  if (typeof window.ZO2Y_DISABLE_GAMES === 'undefined') {
+    window.ZO2Y_DISABLE_GAMES = false;
   }
   if (window.ZO2Y_SPORTS_LISTS == null) {
     window.ZO2Y_SPORTS_LISTS = true;
   }
-  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
+  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
 
   const LOGO_HTML = `
 <span class="zo2y-logo-anim" data-zo2y-logo="1">

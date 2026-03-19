@@ -37,7 +37,7 @@
             let targetUserId = null;
             let isViewingOwnProfile = true;
             const ENABLE_RESTAURANTS = false;
-            const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
+            const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
             const DEFAULT_PROFILE_TAB = ENABLE_RESTAURANTS ? 'restaurants' : 'movies';
             let restaurants = [];
             let customLists = [];
@@ -13143,4 +13143,3 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
-
