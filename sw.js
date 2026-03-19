@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v133';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v134';
 const PAGE_CACHE = 'zo2y-pages-v126';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
@@ -41,7 +41,7 @@ const STATIC_ASSETS = [
   '/sports.html',
   '/sports-mobile.html',
   '/css/pages/sports.css?v=20260315b',
-  '/js/pages/sports.js?v=20260319d',
+  '/js/pages/sports.js?v=20260319e',
   '/fashion.html',
   '/food.html',
   '/cars.html',
@@ -246,7 +246,6 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
-
 
 
 

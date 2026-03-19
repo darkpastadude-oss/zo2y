@@ -75,6 +75,26 @@ const FEATURED_LEAGUES = [
   'MotoGP',
   'UEFA Champions League'
 ];
+const FEATURED_COUNTRY_SWEEPS = [
+  { sport: 'Soccer', country: 'Saudi Arabia' },
+  { sport: 'Soccer', country: 'Spain' },
+  { sport: 'Soccer', country: 'England' },
+  { sport: 'Soccer', country: 'Germany' },
+  { sport: 'Soccer', country: 'Italy' },
+  { sport: 'Soccer', country: 'France' },
+  { sport: 'Soccer', country: 'Portugal' },
+  { sport: 'Soccer', country: 'Netherlands' },
+  { sport: 'Soccer', country: 'Egypt' },
+  { sport: 'Soccer', country: 'Brazil' },
+  { sport: 'Soccer', country: 'Argentina' },
+  { sport: 'Basketball', country: 'United States' },
+  { sport: 'American Football', country: 'United States' },
+  { sport: 'Baseball', country: 'United States' },
+  { sport: 'Ice Hockey', country: 'Canada' },
+  { sport: 'Cricket', country: 'India' },
+  { sport: 'Cricket', country: 'Australia' },
+  { sport: 'Rugby', country: 'New Zealand' }
+];
 const SEED_TEAMS = [
   'Liverpool',
   'Real Madrid',
@@ -92,6 +112,14 @@ const SEED_TEAMS = [
   'Al Hilal',
   'Raja Casablanca',
   'Kaizer Chiefs',
+  'Al-Hilal',
+  'Al-Nassr',
+  'Al-Ahli',
+  'Al-Ittihad',
+  'Al-Ettifaq',
+  'Al-Shabab',
+  'Al-Taawoun',
+  'Al-Fateh',
   'Boca Juniors',
   'Flamengo',
   'LA Galaxy',
@@ -434,6 +462,20 @@ function buildLeaguePool(catalog = []) {
   return queue;
 }
 
+function buildCountrySweepPool() {
+  const seen = new Set();
+  const queue = [];
+  FEATURED_COUNTRY_SWEEPS.forEach((entry) => {
+    const sport = String(entry?.sport || '').trim();
+    const country = String(entry?.country || '').trim();
+    const key = `${normalizeNameKey(sport)}::${normalizeNameKey(country)}`;
+    if (!sport || !country || seen.has(key)) return;
+    seen.add(key);
+    queue.push({ sport, country });
+  });
+  return queue;
+}
+
 async function collectTeams(existingRows = []) {
   const collected = Array.isArray(existingRows) ? existingRows.map((row) => ({
     id: row.id || row.sportsDbId || row.name,
@@ -463,6 +505,25 @@ async function collectTeams(existingRows = []) {
     }
     if (uniqueCount >= MAX_TEAMS) break;
     await sleep(LEAGUE_DELAY_MS);
+  }
+  if (uniqueCount < MAX_TEAMS) {
+    const countrySweeps = buildCountrySweepPool();
+    for (const sweep of countrySweeps) {
+      try {
+        const payload = await fetchSportsDb('search_all_teams.php', {
+          s: sweep.sport,
+          c: sweep.country
+        });
+        const teams = Array.isArray(payload?.teams) ? payload.teams.map(mapTeam).filter(Boolean) : [];
+        collected.push(...teams);
+        console.log(`[sports-seed] country ${sweep.country} / ${sweep.sport}: ${teams.length}`);
+        uniqueCount = dedupeTeams(collected).length;
+      } catch (error) {
+        console.warn(`[sports-seed] country ${sweep.country} / ${sweep.sport} skipped: ${error.message}`);
+      }
+      if (uniqueCount >= MAX_TEAMS) break;
+      await sleep(LEAGUE_DELAY_MS);
+    }
   }
   if (uniqueCount < MAX_TEAMS) {
     const seedResults = await mapWithConcurrency(SEED_TEAMS, async (teamName) => {

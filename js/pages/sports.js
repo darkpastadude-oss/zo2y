@@ -238,7 +238,10 @@
     'saudi league': ['Saudi Pro League', 'Saudi Professional League', 'Roshn Saudi League'],
     'saudi pro league': ['Saudi Pro League', 'Saudi Professional League', 'Roshn Saudi League'],
     'saudi professional league': ['Saudi Pro League', 'Saudi Professional League', 'Roshn Saudi League'],
+    'saudi premier league': ['Saudi Pro League', 'Saudi Professional League', 'Roshn Saudi League', 'Saudi-Arabian Pro League'],
+    'saudi arabian pro league': ['Saudi-Arabian Pro League', 'Saudi Pro League', 'Roshn Saudi League'],
     'roshn league': ['Roshn Saudi League', 'Saudi Pro League'],
+    'spanish league': ['Spanish La Liga', 'Spanish La Liga 2', 'Copa del Rey'],
     'premier league': ['English Premier League'],
     'epl': ['English Premier League'],
     'fpl': ['English Premier League'],
@@ -615,6 +618,75 @@
     return Array.from(variants).filter(Boolean).slice(0, 3);
   }
 
+  function getQueryFacetContext(query, teams = []) {
+    const normalized = normalizeSearchText(query);
+    if (!normalized) {
+      return {
+        normalized,
+        sportConfig: null,
+        matchedCountries: new Set(),
+        matchedLeagues: new Set(),
+        isFacetQuery: false
+      };
+    }
+    const sportConfig = getSportSearchConfig(query);
+    const matchedCountries = new Set();
+    const matchedLeagues = new Set();
+    const tokens = normalized.split(' ').filter(Boolean);
+    tokens.forEach((token) => {
+      const mappedCountry = DEMONYM_MAP[token];
+      if (mappedCountry) matchedCountries.add(normalizeSearchText(mappedCountry));
+    });
+    (Array.isArray(teams) ? teams : []).forEach((team) => {
+      const country = normalizeSearchText(team?.country || '');
+      const league = normalizeSearchText(team?.league || '');
+      if (country && (normalized.includes(country) || tokens.includes(country))) {
+        matchedCountries.add(country);
+      }
+      if (league && (normalized.includes(league) || league.includes(normalized))) {
+        matchedLeagues.add(league);
+      }
+    });
+    Object.entries(LEAGUE_ALIAS_MAP).forEach(([alias, leagues]) => {
+      const aliasKey = normalizeSearchText(alias);
+      if (!aliasKey || !normalized.includes(aliasKey)) return;
+      (Array.isArray(leagues) ? leagues : []).forEach((league) => {
+        const normalizedLeague = normalizeSearchText(league);
+        if (normalizedLeague) matchedLeagues.add(normalizedLeague);
+      });
+    });
+    const hasFacetTerms = /\b(league|cup|conference|division|serie|liga|premier|teams|team|clubs|club|country|sport|basketball|football|soccer|baseball|hockey|cricket|rugby|motogp|f1|formula|motorsport|nba|nfl|mlb|nhl)\b/.test(normalized);
+    return {
+      normalized,
+      sportConfig,
+      matchedCountries,
+      matchedLeagues,
+      isFacetQuery: hasFacetTerms || !!sportConfig || matchedCountries.size > 0 || matchedLeagues.size > 0
+    };
+  }
+
+  function getSemanticMatches(teams, query) {
+    const list = Array.isArray(teams) ? teams : [];
+    const context = getQueryFacetContext(query, list);
+    if (!context.isFacetQuery) return { teams: [], context };
+    const matches = list.filter((team) => {
+      const sportText = normalizeSearchText(team?.sport || '');
+      const countryText = normalizeSearchText(team?.country || '');
+      const leagueText = normalizeSearchText(team?.league || '');
+      if (context.sportConfig?.sportTokens?.length && context.sportConfig.sportTokens.some((token) => sportText.includes(token) || leagueText.includes(token))) {
+        return true;
+      }
+      if (context.matchedCountries.size && countryText && context.matchedCountries.has(countryText)) {
+        return true;
+      }
+      if (context.matchedLeagues.size && leagueText && context.matchedLeagues.has(leagueText)) {
+        return true;
+      }
+      return false;
+    });
+    return { teams: dedupeTeams(matches), context };
+  }
+
   function getSportSearchConfig(query) {
     const normalized = normalizeSearchText(query);
     if (!normalized) return null;
@@ -811,7 +883,15 @@
     }
     const list = Array.isArray(items) && items.length
       ? items
-      : rankTeamsByQuery(getCachedTeams().filter((team) => teamMatchesQuery(team, q)), q);
+      : (() => {
+        const cachedTeams = getCachedTeams();
+        const semanticMatches = getSemanticMatches(cachedTeams, q).teams;
+        const fuzzyMatches = cachedTeams.filter((team) => teamMatchesQuery(team, q));
+        const candidatePool = semanticMatches.length
+          ? dedupeTeams([...semanticMatches, ...fuzzyMatches])
+          : fuzzyMatches;
+        return rankTeamsByQuery(candidatePool, q);
+      })();
     const suggestions = applyTeamFilters(list).slice(0, 6);
     if (!suggestions.length) {
       clearSearchSuggestions();
@@ -928,17 +1008,21 @@
   async function getFallbackTeams(query) {
     const q = normalizeSearchText(query);
     if (!q) return [];
-    const localMatches = sportsAssetManifestRows.filter((team) => teamMatchesQuery(team, query));
-    if (localMatches.length >= 12) return rankTeamsByQuery(dedupeTeams(localMatches), query);
-    const leagues = pickFallbackLeagues(query).slice(0, 8);
+    const semanticLocal = getSemanticMatches(sportsAssetManifestRows, query).teams;
+    const fuzzyLocal = sportsAssetManifestRows.filter((team) => teamMatchesQuery(team, query));
+    const localMatches = dedupeTeams([...semanticLocal, ...fuzzyLocal]);
+    if (localMatches.length >= 12) return rankTeamsByQuery(localMatches, query);
+    const leagues = pickFallbackLeagues(query).slice(0, 12);
     const responses = await Promise.all(leagues.map((league) => loadLeagueTeams(league)));
     const matches = [...localMatches];
     responses.forEach((teams) => {
+      const semanticLeagueMatches = getSemanticMatches(teams || [], query).teams;
+      matches.push(...semanticLeagueMatches);
       (teams || []).forEach((team) => {
         if (teamMatchesQuery(team, query)) matches.push(team);
       });
     });
-    return matches;
+    return dedupeTeams(matches);
   }
 
   function buildTeamDetailUrl(team) {
@@ -1193,7 +1277,7 @@
         img.src = nextSrc;
       });
     }, {
-      rootMargin: '260px 0px',
+      rootMargin: '120px 0px',
       threshold: 0.01
     });
     return sportsImageObserver;
@@ -1667,6 +1751,26 @@
       });
     }
 
+    const cachedTeams = getCachedTeams();
+    const semanticCached = getSemanticMatches(cachedTeams, trimmed);
+    if (semanticCached.teams.length && !options.forceNetwork) {
+      const rankedSemanticCached = rankTeamsByQuery(semanticCached.teams, trimmed);
+      state.searchCache.set(cacheKey, rankedSemanticCached);
+      state.lastResults = rankedSemanticCached;
+      state.lastQuery = trimmed;
+      updateFilterOptions(rankedSemanticCached);
+      const filteredSemanticCached = applyTeamFilters(rankedSemanticCached);
+      renderTeams(filteredSemanticCached, {
+        title: `Results for "${trimmed}"`,
+        subtitle: filteredSemanticCached.length ? `${filteredSemanticCached.length} teams found` : 'No matching teams yet',
+        emptyMessage: 'No teams found. Try another search or adjust filters.'
+      });
+      renderSearchSuggestions(trimmed, filteredSemanticCached);
+      if (semanticCached.context.isFacetQuery && rankedSemanticCached.length >= 24) {
+        return;
+      }
+    }
+
     const searchQueries = buildSearchQueries(trimmed);
     const searchRequests = searchQueries.length
       ? searchQueries.map((query) => fetchSportsDb('searchteams.php', { t: query }))
@@ -1686,15 +1790,20 @@
       teams.map(mapTeam).filter(Boolean).forEach((team) => mapped.push(team));
     });
     let combined = dedupeTeams([...mapped, ...fallbackTeams]);
-    combined = dedupeTeams([...combined, ...getCachedTeams()]);
+    combined = dedupeTeams([...combined, ...cachedTeams]);
     const sportConfig = getSportSearchConfig(trimmed);
     if (Array.isArray(sportConfig?.sportTokens) && sportConfig.sportTokens.length) {
       combined = filterTeamsBySportTokens(combined, sportConfig.sportTokens);
     }
-
-    const filtered = combined.filter((team) => teamMatchesQuery(team, trimmed));
-    const ranked = rankTeamsByQuery(filtered.length ? filtered : combined, trimmed);
-    const teams = ranked.filter((team) => teamMatchesQuery(team, trimmed));
+    const semanticCombined = getSemanticMatches(combined, trimmed);
+    const fuzzyMatches = combined.filter((team) => teamMatchesQuery(team, trimmed));
+    const candidatePool = semanticCombined.teams.length
+      ? dedupeTeams([...semanticCombined.teams, ...fuzzyMatches])
+      : (fuzzyMatches.length ? fuzzyMatches : combined);
+    const ranked = rankTeamsByQuery(candidatePool, trimmed);
+    const teams = semanticCombined.teams.length
+      ? ranked
+      : ranked.filter((team) => teamMatchesQuery(team, trimmed));
     state.searchCache.set(cacheKey, teams);
 
     state.lastResults = teams;
