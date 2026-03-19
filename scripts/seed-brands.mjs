@@ -77,6 +77,14 @@ function dedupeBrands(items = []) {
   return Array.from(seen.values());
 }
 
+function normalizeNameKey(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
 hydrateEnv();
 
 const SUPABASE_URL = normalizeSupabaseUrl(process.env.SUPABASE_URL);
@@ -293,6 +301,29 @@ const extraFashionBrands = [
   { name: 'Quince', domain: 'quince.com', category: 'Basics', country: 'USA', founded: '2018', description: 'Direct-to-consumer essentials brand.', tags: ['basics'] }
 ];
 
+const bonusFashionBrands = [
+  { name: 'Aldo', domain: 'aldoshoes.com', category: 'Footwear', country: 'Canada', founded: '1972', description: 'Footwear and accessories retailer.', tags: ['footwear'] },
+  { name: 'Mango Man', domain: 'shop.mango.com', category: 'Fashion', country: 'Spain', founded: '2008', description: 'Menswear line from Mango.', tags: ['fashion'] },
+  { name: 'Bershka Man', domain: 'bershka.com', category: 'Fashion', country: 'Spain', founded: '1998', description: 'Youth-focused menswear and streetwear.', tags: ['fashion'] },
+  { name: 'COS Atelier', domain: 'cos.com', category: 'Designer', country: 'UK', founded: '2023', description: 'Elevated capsule collections from COS.', tags: ['designer'] },
+  { name: 'MCM', domain: 'mcmworldwide.com', category: 'Luxury', country: 'Germany', founded: '1976', description: 'Luxury accessories and ready-to-wear label.', tags: ['luxury'] },
+  { name: 'Longchamp', domain: 'longchamp.com', category: 'Accessories', country: 'France', founded: '1948', description: 'French leather goods and fashion house.', tags: ['accessories'] },
+  { name: 'Monki Studio', domain: 'monki.com', category: 'Fashion', country: 'Sweden', founded: '2006', description: 'Trend-led Scandinavian womenswear.', tags: ['fashion'] },
+  { name: 'NA-KD', domain: 'na-kd.com', category: 'Fashion', country: 'Sweden', founded: '2015', description: 'Digital-first trend fashion label.', tags: ['fashion'] },
+  { name: 'Mango Teen', domain: 'mango.com', category: 'Fashion', country: 'Spain', founded: '2021', description: 'Teen-focused fashion line.', tags: ['fashion'] },
+  { name: 'Desigual', domain: 'desigual.com', category: 'Fashion', country: 'Spain', founded: '1984', description: 'Colorful Spanish fashion label.', tags: ['fashion'] },
+  { name: 'Massimo Alba', domain: 'massimoalba.com', category: 'Designer', country: 'Italy', founded: '2006', description: 'Italian designer brand with soft tailoring.', tags: ['designer'] },
+  { name: 'Paul Smith', domain: 'paulsmith.com', category: 'Designer', country: 'UK', founded: '1970', description: 'British designer fashion label.', tags: ['designer'] },
+  { name: 'Reiss', domain: 'reiss.com', category: 'Designer', country: 'UK', founded: '1971', description: 'Premium contemporary fashion brand.', tags: ['designer'] },
+  { name: 'COS Kids', domain: 'cos.com', category: 'Fashion', country: 'UK', founded: '2007', description: 'Minimal essentials for kids.', tags: ['fashion'] },
+  { name: 'Axel Arigato', domain: 'axelarigato.com', category: 'Footwear', country: 'Sweden', founded: '2014', description: 'Scandinavian sneaker and lifestyle label.', tags: ['footwear'] },
+  { name: 'Golden Goose', domain: 'goldengoose.com', category: 'Luxury', country: 'Italy', founded: '2000', description: 'Italian luxury sneaker label.', tags: ['luxury', 'footwear'] },
+  { name: 'Mejuri', domain: 'mejuri.com', category: 'Accessories', country: 'Canada', founded: '2015', description: 'Direct-to-consumer jewelry brand.', tags: ['accessories'] },
+  { name: 'Saks Fifth Avenue', domain: 'saksfifthavenue.com', category: 'Retail', country: 'USA', founded: '1924', description: 'Luxury department store retailer.', tags: ['retail'] },
+  { name: 'Neiman Marcus', domain: 'neimanmarcus.com', category: 'Retail', country: 'USA', founded: '1907', description: 'Luxury department store retailer.', tags: ['retail'] },
+  { name: 'Harrods', domain: 'harrods.com', category: 'Retail', country: 'UK', founded: '1849', description: 'Luxury department store retailer.', tags: ['retail'] }
+];
+
 const foodBrands = [
   { name: 'McDonald\'s', domain: 'mcdonalds.com', category: 'Fast Food', country: 'USA', founded: '1940', description: 'American fast-food chain.', tags: ['burgers', 'fast food'] },
   { name: 'KFC', domain: 'kfc.com', category: 'Fast Food', country: 'USA', founded: '1952', description: 'Fried chicken specialists.', tags: ['chicken', 'fast food'] },
@@ -472,6 +503,29 @@ const extraFoodBrands = [
   { name: 'Carl\'s Jr.', domain: 'carlsjr.com', category: 'Fast Food', country: 'USA', founded: '1941', description: 'Burger-focused fast-food chain.', tags: ['fast food'] }
 ];
 
+const bonusFoodBrands = [
+  { name: 'Culver\'s Frozen Custard', domain: 'culvers.com', category: 'Dessert', country: 'USA', founded: '1984', description: 'Frozen custard and desserts.', tags: ['dessert'] },
+  { name: 'Hungry Howie\'s', domain: 'hungryhowies.com', category: 'Pizza', country: 'USA', founded: '1973', description: 'Flavored crust pizza chain.', tags: ['pizza'] },
+  { name: 'Marco\'s Pizza', domain: 'marcospizza.com', category: 'Pizza', country: 'USA', founded: '1978', description: 'Pizza delivery chain.', tags: ['pizza'] },
+  { name: 'Round Table Pizza', domain: 'roundtablepizza.com', category: 'Pizza', country: 'USA', founded: '1959', description: 'West Coast pizza chain.', tags: ['pizza'] },
+  { name: 'MOD Pizza', domain: 'modpizza.com', category: 'Fast Casual', country: 'USA', founded: '2008', description: 'Build-your-own pizza chain.', tags: ['fast casual', 'pizza'] },
+  { name: 'Blaze Pizza', domain: 'blazepizza.com', category: 'Fast Casual', country: 'USA', founded: '2011', description: 'Fast-fired pizza chain.', tags: ['fast casual', 'pizza'] },
+  { name: 'Buca di Beppo', domain: 'bucadibeppo.com', category: 'Restaurants', country: 'USA', founded: '1993', description: 'Italian family-style restaurant chain.', tags: ['restaurants'] },
+  { name: 'Bonefish Grill', domain: 'bonefishgrill.com', category: 'Restaurants', country: 'USA', founded: '2000', description: 'Seafood grill restaurant chain.', tags: ['restaurants'] },
+  { name: 'Carrabba\'s', domain: 'carrabbas.com', category: 'Restaurants', country: 'USA', founded: '1986', description: 'Italian grill restaurant chain.', tags: ['restaurants'] },
+  { name: 'LongHorn Steakhouse', domain: 'longhornsteakhouse.com', category: 'Restaurants', country: 'USA', founded: '1981', description: 'Steakhouse restaurant chain.', tags: ['restaurants'] },
+  { name: 'BJ\'s Restaurant & Brewhouse', domain: 'bjsrestaurants.com', category: 'Restaurants', country: 'USA', founded: '1978', description: 'Casual dining and brewhouse chain.', tags: ['restaurants'] },
+  { name: 'Bonefish', domain: 'bonefishgrill.com', category: 'Restaurants', country: 'USA', founded: '2000', description: 'Seafood grill restaurant chain.', tags: ['restaurants'] },
+  { name: 'The Capital Grille', domain: 'thecapitalgrille.com', category: 'Restaurants', country: 'USA', founded: '1990', description: 'Upscale steakhouse chain.', tags: ['restaurants'] },
+  { name: 'Joe & The Juice', domain: 'joejuice.com', category: 'Drinks', country: 'Denmark', founded: '2002', description: 'Juice bars and coffee chain.', tags: ['drinks', 'coffee'] },
+  { name: 'Blank Street Coffee', domain: 'blankstreet.com', category: 'Coffee', country: 'USA', founded: '2020', description: 'Modern coffee chain.', tags: ['coffee'] },
+  { name: 'Caffè Nero', domain: 'caffenero.com', category: 'Coffee', country: 'UK', founded: '1997', description: 'European coffeehouse chain.', tags: ['coffee'] },
+  { name: 'Blue Bottle Coffee', domain: 'bluebottlecoffee.com', category: 'Coffee', country: 'USA', founded: '2002', description: 'Specialty coffee company.', tags: ['coffee'] },
+  { name: 'Philz Coffee', domain: 'philzcoffee.com', category: 'Coffee', country: 'USA', founded: '2003', description: 'Customized coffee blends chain.', tags: ['coffee'] },
+  { name: 'First Watch', domain: 'firstwatch.com', category: 'Restaurants', country: 'USA', founded: '1983', description: 'Breakfast and brunch chain.', tags: ['restaurants'] },
+  { name: 'Black Bear Diner', domain: 'blackbeardiner.com', category: 'Restaurants', country: 'USA', founded: '1995', description: 'Homestyle diner chain.', tags: ['restaurants'] }
+];
+
 const carBrands = [
   { name: 'Toyota', domain: 'toyota.com', category: 'Automaker', country: 'Japan', founded: '1937', description: 'Global automaker.', tags: ['automaker'] },
   { name: 'Honda', domain: 'honda.com', category: 'Automaker', country: 'Japan', founded: '1948', description: 'Japanese automaker.', tags: ['automaker'] },
@@ -560,6 +614,29 @@ const carBrands = [
   { name: 'Changan', domain: 'changan.com', category: 'Automaker', country: 'China', founded: '1862', description: 'Chinese automaker.', tags: ['automaker'] }
 ];
 
+const extraCarBrands = [
+  { name: 'Dongfeng', domain: 'dongfengmotor.com.cn', category: 'Automaker', country: 'China', founded: '1969', description: 'Chinese state-owned automaker.', tags: ['automaker'] },
+  { name: 'NIO', domain: 'nio.com', category: 'EV', country: 'China', founded: '2014', description: 'Chinese premium EV brand.', tags: ['ev'] },
+  { name: 'XPeng', domain: 'xiaopeng.com', category: 'EV', country: 'China', founded: '2014', description: 'Chinese smart EV brand.', tags: ['ev'] },
+  { name: 'Li Auto', domain: 'lixiang.com', category: 'EV', country: 'China', founded: '2015', description: 'Chinese extended-range EV brand.', tags: ['ev'] },
+  { name: 'Zeekr', domain: 'zeekrlife.com', category: 'EV', country: 'China', founded: '2021', description: 'Premium EV brand from Geely.', tags: ['ev'] },
+  { name: 'VinFast', domain: 'vinfastauto.com', category: 'EV', country: 'Vietnam', founded: '2017', description: 'Vietnamese EV automaker.', tags: ['ev'] },
+  { name: 'Renault Samsung', domain: 'renault.co.kr', category: 'Automaker', country: 'South Korea', founded: '1994', description: 'South Korean automaker brand.', tags: ['automaker'] },
+  { name: 'SsangYong', domain: 'kg-mobility.com', category: 'Automaker', country: 'South Korea', founded: '1954', description: 'South Korean SUV-focused automaker.', tags: ['automaker'] },
+  { name: 'Ram Trucks', domain: 'ramtrucks.com', category: 'Trucks', country: 'USA', founded: '2010', description: 'Pickup and commercial truck brand.', tags: ['trucks'] },
+  { name: 'Freightliner', domain: 'freightliner.com', category: 'Trucks', country: 'USA', founded: '1942', description: 'Commercial truck manufacturer.', tags: ['trucks'] },
+  { name: 'Mack Trucks', domain: 'macktrucks.com', category: 'Trucks', country: 'USA', founded: '1900', description: 'Heavy-duty truck manufacturer.', tags: ['trucks'] },
+  { name: 'Western Star', domain: 'westernstartrucks.com', category: 'Trucks', country: 'USA', founded: '1967', description: 'Truck manufacturer for vocational hauling.', tags: ['trucks'] },
+  { name: 'Pagani Automobili', domain: 'pagani.com', category: 'Luxury', country: 'Italy', founded: '1992', description: 'Italian hypercar manufacturer.', tags: ['luxury'] },
+  { name: 'Rimac', domain: 'rimac-automobili.com', category: 'EV', country: 'Croatia', founded: '2009', description: 'Electric hypercar manufacturer.', tags: ['ev', 'luxury'] },
+  { name: 'Abarth', domain: 'abarth.com', category: 'Automaker', country: 'Italy', founded: '1949', description: 'Italian performance car brand.', tags: ['automaker'] },
+  { name: 'Rover', domain: 'landrover.com', category: 'Automaker', country: 'UK', founded: '1878', description: 'Historic British car marque.', tags: ['automaker'] },
+  { name: 'DS Automobiles', domain: 'dsautomobiles.com', category: 'Luxury', country: 'France', founded: '2014', description: 'French premium automotive brand.', tags: ['luxury'] },
+  { name: 'SEAT Cupra', domain: 'cupraofficial.com', category: 'Automaker', country: 'Spain', founded: '2018', description: 'Performance division turned standalone marque.', tags: ['automaker'] },
+  { name: 'Smart EQ', domain: 'smart.com', category: 'EV', country: 'Germany', founded: '1994', description: 'Electric urban mobility brand.', tags: ['ev'] },
+  { name: 'Aion', domain: 'gac.com', category: 'EV', country: 'China', founded: '2018', description: 'Electric vehicle brand from GAC.', tags: ['ev'] }
+];
+
 function toSupabaseRow(brand) {
   const domain = normalizeDomain(brand.domain);
   return {
@@ -575,7 +652,23 @@ function toSupabaseRow(brand) {
 }
 
 async function upsertBrands(table, rows) {
-  const payload = rows.map(toSupabaseRow);
+  const { data: existingRows, error: existingError } = await supabase
+    .from(table)
+    .select('id,slug,name,domain')
+    .limit(5000);
+  if (existingError) throw existingError;
+  const existingByDomain = new Map();
+  const existingByName = new Map();
+  (existingRows || []).forEach((row) => {
+    const domainKey = normalizeDomain(row.domain);
+    const nameKey = normalizeNameKey(row.name);
+    if (domainKey && !existingByDomain.has(domainKey)) existingByDomain.set(domainKey, row);
+    if (nameKey && !existingByName.has(nameKey)) existingByName.set(nameKey, row);
+  });
+  const payload = rows.map(toSupabaseRow).map((row) => {
+    const match = existingByDomain.get(normalizeDomain(row.domain)) || existingByName.get(normalizeNameKey(row.name));
+    return match ? { ...row, slug: match.slug } : row;
+  });
   const { data, error } = await supabase.from(table).upsert(payload, { onConflict: 'slug' }).select('id, slug');
   if (error) throw error;
   return data || [];
@@ -583,15 +676,15 @@ async function upsertBrands(table, rows) {
 
 async function run() {
   console.log('Seeding fashion brands...');
-  const fashionResult = await upsertBrands('fashion_brands', dedupeBrands([...fashionBrands, ...extraFashionBrands]));
+  const fashionResult = await upsertBrands('fashion_brands', dedupeBrands([...fashionBrands, ...extraFashionBrands, ...bonusFashionBrands]));
   console.log(`Fashion upserts: ${fashionResult.length}`);
 
   console.log('Seeding food brands...');
-  const foodResult = await upsertBrands('food_brands', dedupeBrands([...foodBrands, ...extraFoodBrands]));
+  const foodResult = await upsertBrands('food_brands', dedupeBrands([...foodBrands, ...extraFoodBrands, ...bonusFoodBrands]));
   console.log(`Food upserts: ${foodResult.length}`);
 
   console.log('Seeding car brands...');
-  const carResult = await upsertBrands('car_brands', dedupeBrands(carBrands));
+  const carResult = await upsertBrands('car_brands', dedupeBrands([...carBrands, ...extraCarBrands]));
   console.log(`Car upserts: ${carResult.length}`);
 
   console.log('Done.');

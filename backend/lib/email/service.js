@@ -27,7 +27,7 @@ function baseTemplate({ title, subtitle, bodyHtml, ctaLabel, ctaUrl, footerText,
   const safePreheader = escapeHtml(preheader || subtitle || title || "Zo2y update");
   const baseUrl = String(process.env.APP_BASE_URL || "https://zo2y.com").replace(/\/+$/, "");
   const safeLogoUrl = escapeHtml(`${baseUrl}/newlogo.webp`);
-  const safeSupportAddress = escapeHtml(process.env.EMAIL_REPLY_TO || "zo2yhq@gmail.com");
+  const safeSupportAddress = escapeHtml(process.env.EMAIL_REPLY_TO || "darkpastadude@gmail.com");
 
   return `
   <html>

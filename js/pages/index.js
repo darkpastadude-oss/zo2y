@@ -87,8 +87,14 @@
       'Real Madrid',
       'FC Barcelona',
       'Manchester City',
+      'Arsenal',
+      'Chelsea',
+      'Manchester United',
       'Bayern Munich',
       'Juventus',
+      'Inter Milan',
+      'AC Milan',
+      'Paris Saint-Germain',
       'Al Ahly',
       'Al Hilal',
       'Raja Casablanca',
@@ -96,15 +102,24 @@
       'Boca Juniors',
       'Flamengo',
       'LA Galaxy',
+      'Inter Miami',
+      'Seattle Sounders',
       'New Zealand All Blacks',
       'Mumbai Indians',
       'Chennai Super Kings',
+      'Kolkata Knight Riders',
+      'Royal Challengers Bengaluru',
       'Los Angeles Lakers',
       'Golden State Warriors',
+      'Boston Celtics',
+      'Chicago Bulls',
       'New York Yankees',
       'Dallas Cowboys',
+      'Kansas City Chiefs',
       'Toronto Maple Leafs',
-      'New Zealand Warriors'
+      'New Zealand Warriors',
+      'Ferrari',
+      'Mercedes AMG Petronas'
     ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-clapperboard', accent: '#f59e0b' },
@@ -7708,5 +7723,4 @@
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
-
 

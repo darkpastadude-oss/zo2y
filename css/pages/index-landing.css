@@ -464,16 +464,22 @@
     }
 
     .landing-feature-grid,
-    .landing-why-grid {
+    .landing-why-grid,
+    .landing-trust-grid {
       margin-top: 24px;
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 18px;
     }
 
+    .landing-trust-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .landing-feature-card,
     .landing-why-card,
-    .landing-mobile-flow-item {
+    .landing-mobile-flow-item,
+    .landing-trust-card {
       border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.05);
@@ -494,6 +500,13 @@
       font-family: 'Outfit', 'Sora', sans-serif;
     }
 
+    .landing-trust-card h3 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      line-height: 1.15;
+      font-family: 'Outfit', 'Sora', sans-serif;
+    }
+
     .landing-feature-card p,
     .landing-why-card p,
     .landing-close-copy p {
@@ -501,6 +514,34 @@
       color: rgba(230, 239, 255, 0.78);
       line-height: 1.72;
       font-size: 15px;
+    }
+
+    .landing-trust-card p {
+      margin: 0;
+      color: rgba(230, 239, 255, 0.82);
+      line-height: 1.72;
+      font-size: 15px;
+    }
+
+    .landing-trust-links {
+      margin-top: 18px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .landing-trust-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.05);
+      color: #f8fbff;
+      font-size: 14px;
+      font-weight: 700;
     }
 
     .landing-demo-layout {
@@ -712,6 +753,7 @@
       .landing-proof-strip,
       .landing-feature-grid,
       .landing-why-grid,
+      .landing-trust-grid,
       .landing-demo-layout,
       .landing-close-band,
       .landing-demo-columns {
@@ -787,6 +829,7 @@
       .landing-proof-chip,
       .landing-feature-card,
       .landing-why-card,
+      .landing-trust-card,
       .landing-mobile-flow-item,
       .landing-demo-step,
       .landing-mobile-card {
@@ -827,6 +870,14 @@
         flex-direction: column;
         gap: 8px;
         font-size: 12px;
+      }
+
+      .landing-trust-links {
+        flex-direction: column;
+      }
+
+      .landing-trust-link {
+        width: 100%;
       }
     }
 
@@ -978,4 +1029,3 @@
       color: #0b1633;
       border: 0;
     }
-

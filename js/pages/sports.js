@@ -102,15 +102,23 @@
     'NFL',
     'MLB',
     'Indian Premier League',
-    'NHL'
+    'NHL',
+    'Major League Soccer',
+    'UEFA Champions League'
   ];
   const SEED_TEAMS = [
     'Liverpool',
     'Real Madrid',
     'FC Barcelona',
     'Manchester City',
+    'Arsenal',
+    'Manchester United',
+    'Chelsea',
     'Bayern Munich',
     'Juventus',
+    'Inter Milan',
+    'AC Milan',
+    'Paris Saint-Germain',
     'Al Ahly',
     'Al Hilal',
     'Raja Casablanca',
@@ -118,15 +126,24 @@
     'Boca Juniors',
     'Flamengo',
     'LA Galaxy',
+    'Inter Miami',
+    'Seattle Sounders',
     'New Zealand All Blacks',
     'Mumbai Indians',
     'Chennai Super Kings',
+    'Kolkata Knight Riders',
+    'Royal Challengers Bengaluru',
     'Los Angeles Lakers',
     'Golden State Warriors',
+    'Boston Celtics',
+    'Chicago Bulls',
     'New York Yankees',
     'Dallas Cowboys',
     'Toronto Maple Leafs',
-    'New Zealand Warriors'
+    'Kansas City Chiefs',
+    'New Zealand Warriors',
+    'Ferrari',
+    'Mercedes AMG Petronas'
   ];
   const DEMONYM_MAP = {
     egyptian: 'egypt',

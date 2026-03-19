@@ -5,10 +5,18 @@ import { createClient } from '@supabase/supabase-js';
 const ROOT = process.cwd();
 const BUCKET_NAME = 'brand-backgrounds';
 const ENV_FILES = ['.env', '.env.local', '.env.vercel', '.env.vercel.prod'].map((file) => path.join(ROOT, file));
-const TABLES = ['fashion_brands', 'food_brands', 'car_brands'];
-const TABLE_LIMIT = 180;
-const CONCURRENCY = 6;
+const DEFAULT_TABLES = ['fashion_brands', 'food_brands', 'car_brands'];
+const TABLE_LIMIT = 5000;
+const argvTables = process.argv
+  .filter((arg) => arg.startsWith('--table='))
+  .flatMap((arg) => arg.split('=')[1].split(','))
+  .map((value) => value.trim())
+  .filter(Boolean);
+const TABLES = argvTables.length ? argvTables : DEFAULT_TABLES;
+const concurrencyArg = Number.parseInt((process.argv.find((arg) => arg.startsWith('--concurrency=')) || '').split('=')[1] || '', 10);
+const CONCURRENCY = Number.isFinite(concurrencyArg) && concurrencyArg > 0 ? concurrencyArg : 6;
 const FETCH_TIMEOUT_MS = 7000;
+const FORCE_REFRESH = process.argv.includes('--refresh');
 const TITLE_OVERRIDES = new Map([
   ['mcdonalds', "McDonald's"], ['mcdonald\'s', "McDonald's"], ['burger king', 'Burger King'], ['kfc', 'KFC'],
   ['chipotle', 'Chipotle Mexican Grill'], ['subway', 'Subway (restaurant)'], ['taco bell', 'Taco Bell'], ['domino\'s', "Domino's"],
@@ -177,14 +185,19 @@ async function uploadBackground(table, row, imageUrl) {
 
 async function main() {
   await ensureBucket();
-  const manifest = {};
+  const manifestUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/manifest/brand-backgrounds.json`;
+  const existingManifest = await fetch(manifestUrl)
+    .then((res) => (res.ok ? res.json() : {}))
+    .catch(() => ({}));
+  const manifest = { ...existingManifest };
   for (const table of TABLES) {
-    manifest[table] = {};
+    manifest[table] = { ...(existingManifest?.[table] || {}) };
     const { data, error } = await supabase.from(table).select('id,name,slug,domain').limit(TABLE_LIMIT);
     if (error) throw error;
     const rows = Array.isArray(data) ? data : [];
     await mapWithConcurrency(rows, async (row) => {
       const slug = sanitizeFileBase(row.slug || row.name || row.id);
+      if (!FORCE_REFRESH && manifest[table]?.[slug]) return manifest[table][slug];
       try {
         const domain = normalizeDomain(row.domain);
         const title = getWikiTitle(row.name);
