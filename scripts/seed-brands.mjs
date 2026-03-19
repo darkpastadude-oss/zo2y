@@ -283,7 +283,14 @@ const extraFashionBrands = [
   { name: 'Everlane', domain: 'everlane.com', category: 'Basics', country: 'USA', founded: '2010', description: 'Modern essentials and basics brand.', tags: ['basics'] },
   { name: 'Dr. Martens', domain: 'drmartens.com', category: 'Footwear', country: 'UK', founded: '1960', description: 'Boot and footwear brand.', tags: ['footwear'] },
   { name: 'Lacoste', domain: 'lacoste.com', category: 'Designer', country: 'France', founded: '1933', description: 'French sportswear and lifestyle brand.', tags: ['designer', 'sportswear'] },
-  { name: 'Desigual', domain: 'desigual.com', category: 'Casual', country: 'Spain', founded: '1984', description: 'Colorful Spanish fashion brand.', tags: ['casual'] }
+  { name: 'Desigual', domain: 'desigual.com', category: 'Casual', country: 'Spain', founded: '1984', description: 'Colorful Spanish fashion brand.', tags: ['casual'] },
+  { name: 'Primark', domain: 'primark.com', category: 'Fast Fashion', country: 'Ireland', founded: '1969', description: 'International value fashion retailer.', tags: ['fast fashion'] },
+  { name: 'Reiss', domain: 'reiss.com', category: 'Designer', country: 'UK', founded: '1971', description: 'Modern British designer fashion.', tags: ['designer'] },
+  { name: 'Club Monaco', domain: 'clubmonaco.com', category: 'Designer', country: 'Canada', founded: '1985', description: 'Modern lifestyle fashion brand.', tags: ['designer'] },
+  { name: 'Golden Goose', domain: 'goldengoose.com', category: 'Luxury', country: 'Italy', founded: '2000', description: 'Italian luxury sneakers and apparel.', tags: ['luxury', 'footwear'] },
+  { name: 'Aime Leon Dore', domain: 'aimeleondore.com', category: 'Streetwear', country: 'USA', founded: '2014', description: 'Queens-based lifestyle and streetwear label.', tags: ['streetwear'] },
+  { name: 'Joe Fresh', domain: 'joefresh.com', category: 'Casual', country: 'Canada', founded: '2006', description: 'Affordable casual fashion brand.', tags: ['casual'] },
+  { name: 'Quince', domain: 'quince.com', category: 'Basics', country: 'USA', founded: '2018', description: 'Direct-to-consumer essentials brand.', tags: ['basics'] }
 ];
 
 const foodBrands = [
@@ -454,7 +461,15 @@ const extraFoodBrands = [
   { name: 'Mellow Mushroom', domain: 'mellowmushroom.com', category: 'Pizza', country: 'USA', founded: '1974', description: 'Stone-baked pizza restaurant chain.', tags: ['pizza'] },
   { name: 'Pollo Campero', domain: 'campero.com', category: 'Fast Food', country: 'Guatemala', founded: '1971', description: 'Latin American chicken chain.', tags: ['fast food', 'chicken'] },
   { name: 'Zoe\'s Kitchen', domain: 'zoeskitchen.com', category: 'Fast Casual', country: 'USA', founded: '1995', description: 'Mediterranean fast casual chain.', tags: ['fast casual'] },
-  { name: 'Mendocino Farms', domain: 'mendocinofarms.com', category: 'Fast Casual', country: 'USA', founded: '2005', description: 'Sandwich and salad fast casual chain.', tags: ['fast casual', 'sandwiches'] }
+  { name: 'Mendocino Farms', domain: 'mendocinofarms.com', category: 'Fast Casual', country: 'USA', founded: '2005', description: 'Sandwich and salad fast casual chain.', tags: ['fast casual', 'sandwiches'] },
+  { name: 'Jollibee', domain: 'jollibee.com', category: 'Fast Food', country: 'Philippines', founded: '1978', description: 'Global Filipino fast-food chain.', tags: ['fast food', 'chicken'] },
+  { name: 'Raising Cane\'s', domain: 'raisingcanes.com', category: 'Fast Food', country: 'USA', founded: '1996', description: 'Chicken finger fast-food chain.', tags: ['fast food', 'chicken'] },
+  { name: 'Wingstop', domain: 'wingstop.com', category: 'Fast Casual', country: 'USA', founded: '1994', description: 'Chicken wing restaurant chain.', tags: ['fast casual', 'chicken'] },
+  { name: 'Jersey Mike\'s', domain: 'jerseymikes.com', category: 'Fast Casual', country: 'USA', founded: '1956', description: 'Sub sandwich chain.', tags: ['fast casual', 'sandwiches'] },
+  { name: 'Firehouse Subs', domain: 'firehousesubs.com', category: 'Fast Casual', country: 'USA', founded: '1994', description: 'Hot sub sandwich chain.', tags: ['fast casual', 'sandwiches'] },
+  { name: 'Papa Murphy\'s', domain: 'papamurphys.com', category: 'Pizza', country: 'USA', founded: '1981', description: 'Take-and-bake pizza chain.', tags: ['pizza'] },
+  { name: 'Hardee\'s', domain: 'hardees.com', category: 'Fast Food', country: 'USA', founded: '1960', description: 'Burger-focused fast-food chain.', tags: ['fast food'] },
+  { name: 'Carl\'s Jr.', domain: 'carlsjr.com', category: 'Fast Food', country: 'USA', founded: '1941', description: 'Burger-focused fast-food chain.', tags: ['fast food'] }
 ];
 
 const carBrands = [

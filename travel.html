@@ -535,14 +535,13 @@
     const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v4';
     const TRAVEL_COUNTRY_ROWS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
     const TRAVEL_BUCKET_NAME = 'travel-photos';
-    const TRAVEL_CARD_ROTATE_MS = 10000;
+    const TRAVEL_VARIANT_SESSION_SEED = Math.floor(Math.random() * 2147483647);
     const TRAVEL_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
         <rect width='24' height='24' fill='#10224a'/>
       </svg>
     `)}`;
     let travelImageObserver = null;
-    let travelCardRotateTimer = null;
     const TRAVEL_BUCKET_MANIFEST_CACHE_KEY = 'zo2y_travel_bucket_manifest_v1';
     const TRAVEL_BUCKET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
     const TRAVEL_BUCKET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${TRAVEL_BUCKET_NAME}/manifest/travel-photo-manifest.json`;
@@ -742,49 +741,25 @@
         });
     }
 
-    function isTravelCardVisible(node) {
-      if (!node || typeof node.getBoundingClientRect !== 'function') return false;
-      const rect = node.getBoundingClientRect();
-      const viewportHeight = Math.max(window.innerHeight || 0, document.documentElement?.clientHeight || 0, 720);
-      const viewportWidth = Math.max(window.innerWidth || 0, document.documentElement?.clientWidth || 0, 1280);
-      return rect.bottom >= -40 && rect.top <= viewportHeight + 40 && rect.right >= -40 && rect.left <= viewportWidth + 40;
+    function hashTravelVariantSeed(value) {
+      const input = String(value || '');
+      let hash = 2166136261;
+      for (let index = 0; index < input.length; index += 1) {
+        hash ^= input.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash >>> 0;
     }
 
-    function advanceTravelCardImage(img) {
-      if (!img || img.hasAttribute('data-travel-src')) return;
-      const raw = String(img.getAttribute('data-travel-variants') || '').trim();
-      if (!raw) return;
-      let variants = [];
-      try {
-        variants = JSON.parse(raw);
-      } catch (_err) {
-        variants = [];
-      }
-      if (!Array.isArray(variants) || variants.length < 2) return;
-      const stage = img.closest('.card-photo-stage');
-      if (!isTravelCardVisible(stage || img)) return;
-      const nextIndex = (Number(img.getAttribute('data-travel-variant-index') || 0) + 1) % variants.length;
-      const next = variants[nextIndex];
-      if (!next?.src) return;
-      img.setAttribute('data-travel-variant-index', String(nextIndex));
-      img.setAttribute('data-ready', '0');
-      if (stage) stage.classList.add('is-loading');
-      const label = stage?.querySelector?.('.card-photo-label');
-      if (label) {
-        label.textContent = next.label || '';
-        label.setAttribute('data-kind', next.kind || 'scenic');
-      }
-      img.src = next.src;
-    }
-
-    function ensureTravelCardRotation() {
-      if (travelCardRotateTimer || typeof window === 'undefined') return;
-      travelCardRotateTimer = window.setInterval(() => {
-        if (document.hidden) return;
-        document.querySelectorAll('.card-photo-stage img[data-travel-variants]').forEach((img) => {
-          advanceTravelCardImage(img);
-        });
-      }, TRAVEL_CARD_ROTATE_MS);
+    function getStableTravelCardVariant(item) {
+      const variants = getTravelCardVariants(item);
+      if (!variants.length) return null;
+      const itemKey = [
+        String(item?.code || '').trim().toUpperCase(),
+        stripLeadingFlagEmoji(item?.name || '')
+      ].filter(Boolean).join('|');
+      const index = hashTravelVariantSeed(`${TRAVEL_VARIANT_SESSION_SEED}:${itemKey}`) % variants.length;
+      return variants[index] || variants[0] || null;
     }
 
     function stripLeadingFlagEmoji(value) {
@@ -1832,7 +1807,7 @@
       const featured = state.filtered.slice(0, 3);
       const primary = featured[0] || state.rows[0] || null;
       const primaryPhoto = primary
-        ? getOptimizedTravelBucketImage(primary.photo || primary.photoCity || primary.photoNature || '', 1600)
+        ? (getStableTravelCardVariant(primary)?.src || getOptimizedTravelBucketImage(primary.photo || primary.photoCity || primary.photoNature || '', 1600))
         : '';
       hero.style.setProperty(
         '--hero-bg-image',
@@ -1845,7 +1820,7 @@
         return;
       }
       spotlight.innerHTML = featured.map((item, index) => {
-        const thumb = getOptimizedTravelBucketImage(item.photoCity || item.photoNature || item.photo || '', 320);
+        const thumb = getStableTravelCardVariant(item)?.src || getOptimizedTravelBucketImage(item.photo || item.photoCity || item.photoNature || '', 320);
         const rankLabel = index === 0 ? 'Trending now' : `Top pick ${index + 1}`;
         const subtitleBits = [
           item.capital ? `Capital: ${item.capital}` : '',
@@ -1915,16 +1890,14 @@
       empty.style.display = 'none';
 
       const buildPhotoShellMarkup = (item) => {
-        const variants = getTravelCardVariants(item);
-        const initialVariant = variants[0] || null;
+        const initialVariant = getStableTravelCardVariant(item);
         const hasPhoto = !!initialVariant?.src;
-        const variantsAttr = hasPhoto ? escapeHtml(JSON.stringify(variants)) : '';
         return `
           <div class="card-photo-wrap${hasPhoto ? '' : ' no-photo'}">
             <div class="card-photo-fallback"></div>
             ${hasPhoto ? `
-              <div class="card-photo-stage is-loading" data-kind="scenic">
-                <img src="${TRAVEL_IMAGE_PLACEHOLDER}" data-travel-src="${escapeHtml(initialVariant.src)}" data-travel-img="1" data-travel-variants="${variantsAttr}" data-travel-variant-index="0" data-ready="0" alt="${escapeHtml(`${item.name || 'Country'} scenic view`)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+              <div class="card-photo-stage is-loading" data-kind="${escapeHtml(initialVariant.kind || 'scenic')}">
+                <img src="${TRAVEL_IMAGE_PLACEHOLDER}" data-travel-src="${escapeHtml(initialVariant.src)}" data-travel-img="1" data-ready="0" alt="${escapeHtml(`${item.name || 'Country'} ${String(initialVariant.label || 'Scenic').toLowerCase()} view`)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
                 <div class="card-photo-badges" aria-hidden="true">
                   <span class="card-photo-label" data-kind="${escapeHtml(initialVariant.kind || 'scenic')}">${escapeHtml(initialVariant.label || 'Scenic')}</span>
                 </div>
@@ -1992,7 +1965,6 @@
 
       wireTravelImages(grid);
       primeTravelImages(grid);
-      ensureTravelCardRotation();
 
       state.hasMore = end < count;
       syncPager();

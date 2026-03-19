@@ -1,0 +1,1266 @@
+(() => {
+  if (window.__zo2yHomeHeavyLoaders) return;
+
+async function loadBooks(signal) {
+      const targetCount = getHomeChannelTargetItems();
+      const lightweightMode = shouldUseLightweightHomeBooksLoad();
+      const buildOpenLibraryCoverUrl = (doc, size = 'L') => {
+        const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
+          ? String(size || 'L').toUpperCase()
+          : 'L';
+        const coverId = Number(doc?.cover_i || 0) || 0;
+        if (coverId > 0) {
+          return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-${safeSize}.jpg`;
+        }
+        const isbnRaw = Array.isArray(doc?.isbn) ? String(doc.isbn[0] || '').trim() : String(doc?.isbn || '').trim();
+        const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
+        if (isbn) {
+          return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-${safeSize}.jpg`;
+        }
+        return '';
+      };
+
+      const normalizeBookDoc = (row, idx = 0) => {
+        if (!row) return null;
+        if (row.volumeInfo) {
+          const info = row.volumeInfo || {};
+          const title = String(info?.title || '').trim();
+          if (!title) return null;
+          const author = Array.isArray(info?.authors) && info.authors.length ? String(info.authors[0] || '').trim() : 'Unknown author';
+          const identifiers = Array.isArray(info?.industryIdentifiers) ? info.industryIdentifiers : [];
+          const isbn = identifiers
+            .map((entry) => String(entry?.identifier || '').replace(/[^0-9Xx]/g, ''))
+            .filter(Boolean);
+          const published = String(info?.publishedDate || '').trim();
+          const yearMatch = published.match(/\d{4}/);
+          return {
+            key: '',
+            title,
+            author_name: [author],
+            first_publish_year: yearMatch ? Number(yearMatch[0]) : null,
+            isbn,
+            cover_i: null,
+            coverImage: toHttpsUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || ''),
+            _googleThumbnail: toHttpsUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || ''),
+            _googleVolumeId: String(row?.id || '').trim(),
+            maturityRating: String(info?.maturityRating || '').trim(),
+            _source: 'google-books'
+          };
+        }
+        const title = String(row?.title || '').trim();
+        if (!title) return null;
+        const author = Array.isArray(row?.author_name) && row.author_name.length
+          ? String(row.author_name[0] || '').trim()
+          : 'Unknown author';
+        const isbn = Array.isArray(row?.isbn)
+          ? row.isbn.map((entry) => String(entry || '').replace(/[^0-9Xx]/g, '')).filter(Boolean)
+          : (String(row?.isbn || '').trim() ? [String(row.isbn).trim().replace(/[^0-9Xx]/g, '')] : []);
+        return {
+          key: String(row?.key || '').trim(),
+          title,
+          author_name: [author],
+          first_publish_year: Number(row?.first_publish_year || 0) || null,
+          isbn,
+          cover_i: Number(row?.cover_i || 0) || null,
+          coverImage: toHttpsUrl(row?.coverImage || ''),
+          _googleThumbnail: toHttpsUrl(row?._googleThumbnail || ''),
+          _googleVolumeId: String(row?._googleVolumeId || '').trim(),
+          maturityRating: String(row?.maturityRating || '').trim(),
+          _source: String(row?._source || '').trim() || 'book'
+        };
+      };
+
+      const mapDocsToRailItems = (docs, options = {}) => {
+        const minYear = Number(options.minYear || 0);
+        const allowMissingYear = !!options.allowMissingYear;
+        const seen = new Set();
+        return (Array.isArray(docs) ? docs : []).map((doc, idx) => {
+          const normalized = normalizeBookDoc(doc, idx);
+          if (!normalized) return null;
+          const title = String(normalized.title || '').trim();
+          const author = String((Array.isArray(normalized.author_name) ? normalized.author_name[0] : '') || '').trim() || 'Unknown author';
+          const year = Number(normalized?.first_publish_year || 0) || 0;
+
+          if (!allowMissingYear && !year) return null;
+          if (minYear && year && year < minYear) return null;
+
+          const coverCandidates = [
+            toHttpsUrl(normalized?._googleThumbnail || ''),
+            toHttpsUrl(normalized?.coverImage || ''),
+            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'L')),
+            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'M'))
+          ].filter(Boolean);
+          const cover = coverCandidates[0] || '';
+          if (!cover) return null;
+
+          const dedupeKey = `${title.toLowerCase()}::${author.toLowerCase()}`;
+          if (seen.has(dedupeKey)) return null;
+          seen.add(dedupeKey);
+
+          const subtitle = year ? `${author} | ${year}` : author;
+          const googleVolumeId = String(normalized?._googleVolumeId || '').trim();
+          const workKey = String(normalized?.key || '').trim();
+          let itemId = '';
+          if (googleVolumeId) itemId = googleVolumeId;
+          if (!itemId && workKey.startsWith('/works/')) itemId = workKey.replace('/works/', '').trim();
+          if (!itemId) {
+            itemId = `search-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `book-${idx}`}`;
+          }
+          const isbnRaw = Array.isArray(normalized?.isbn) ? String(normalized.isbn[0] || '').trim() : '';
+          const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
+          const titleParam = encodeURIComponent(title);
+          const authorParam = encodeURIComponent(author);
+          const href = `book.html?id=${encodeURIComponent(itemId)}&title=${titleParam}&author=${authorParam}`;
+
+          return {
+            mediaType: 'book',
+            itemId,
+            title,
+            subtitle,
+            image: cover,
+            backgroundImage: cover,
+            spotlightImage: cover,
+            spotlightMediaImage: cover,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            fallbackImage: '',
+            maturityRating: String(normalized?.maturityRating || '').trim(),
+            isbn,
+            href
+          };
+        }).filter(Boolean);
+      };
+
+      const mergeUniqueItems = (...batches) => {
+        const seen = new Set();
+        const out = [];
+        batches.forEach((batch) => {
+          (Array.isArray(batch) ? batch : []).forEach((item) => {
+            const key = `${String(item?.title || '').trim().toLowerCase()}::${String(item?.subtitle || '').trim().toLowerCase()}`;
+            if (!key || seen.has(key)) return;
+            seen.add(key);
+            out.push(item);
+          });
+        });
+        return out;
+      };
+
+      try {
+        const limit = lightweightMode ? Math.max(targetCount, 16) : Math.max(targetCount, 24);
+        const booksRequestOptions = { signal, timeoutMs: 4200, retries: 1 };
+        const queryUrls = [
+          `/api/books/popular?q=${encodeURIComponent('subject:fiction bestseller 2023 2024 2025')}&limit=${limit}&page=1&orderBy=relevance`,
+          `/api/books/popular?q=${encodeURIComponent('subject:fantasy bestseller')}&limit=${limit}&page=1&orderBy=relevance`,
+          `/api/books/popular?q=${encodeURIComponent('subject:romance bestseller')}&limit=${limit}&page=1&orderBy=relevance`,
+          `/api/books/popular?q=${encodeURIComponent('bestseller popular books')}&limit=${limit}&page=1&orderBy=relevance`,
+          `/api/books/trending?period=weekly&limit=${limit}`
+        ].slice(0, lightweightMode ? 3 : 5);
+        const results = await Promise.allSettled(queryUrls.map((url) => (
+          fetchJsonWithPerfCache(url, { ...booksRequestOptions, cacheKey: `books:${url}` })
+        )));
+
+        const allDocsRaw = [];
+        results.forEach((result) => {
+          if (result.status !== 'fulfilled') return;
+          const payload = result.value;
+          const docs = Array.isArray(payload?.docs)
+            ? payload.docs
+            : (Array.isArray(payload?.items) ? payload.items : []);
+          if (docs.length) allDocsRaw.push(...docs);
+        });
+
+        const strictModern = mapDocsToRailItems(allDocsRaw, { minYear: 2005, allowMissingYear: false });
+        const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: 2005, allowMissingYear: true });
+        const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 1995, allowMissingYear: true });
+        const merged = mergeUniqueItems(strictModern, modernWithUnknownYear, relaxedFallback);
+        const safeMerged = filterHomeSafeItems(merged);
+        if (safeMerged.length) {
+          const shuffled = shuffleArray(safeMerged);
+          return shuffled.slice(0, targetCount);
+        }
+      } catch (_e) {}
+
+      return [];
+    }
+
+    async function loadMusic(signal) {
+      const targetCount = getHomeChannelTargetItems();
+      const lightweightMode = shouldUseLightweightHomeMusicLoad();
+      const market = 'US';
+      const HOME_MUSIC_MIN_ITEMS = lightweightMode
+        ? Math.max(5, Math.min(targetCount, 8))
+        : Math.max(8, Math.min(targetCount, 12));
+      const getTrackContainerLabel = (track = {}) => {
+        const title = String(track?.name || '').trim().toLowerCase();
+        const albumName = String(track?.album?.name || track?.album_name || '').trim();
+        const albumType = String(track?.album?.album_type || track?.album_type || '').trim().toLowerCase();
+        const totalTracks = Number(track?.album?.total_tracks || track?.total_tracks || 0);
+        const sameName = !!title && !!albumName && title === albumName.toLowerCase();
+        if (albumType === 'single' && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
+        if (/\bsingle\b/i.test(albumName) && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
+        return 'Album';
+      };
+      const mapTracksToHomeItems = (tracks = []) => tracks.map((track) => {
+        if (String(track?.kind || '').trim().toLowerCase() === 'album') return null;
+        const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
+        const title = String(track?.name || 'Track').trim() || 'Track';
+        const albumName = String(track?.album?.name || track?.album_name || '').trim() || 'Unknown Album';
+        const containerLabel = getTrackContainerLabel(track);
+        const popularity = Number(track?.popularity || 0);
+        const image = String(track?.image || '').trim();
+        return {
+          mediaType: 'music',
+          itemId: String(track?.id || ''),
+          title,
+          subtitle: artists || 'Artist',
+          extra: `Song | ${containerLabel}: ${albumName}${popularity ? ` | Popularity ${popularity}/100` : ''}`,
+          image,
+          backgroundImage: image,
+          spotlightImage: image,
+          spotlightMediaImage: image,
+          previewUrl: String(track?.preview_url || '').trim(),
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          explicit: track?.explicit === true,
+          href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
+        };
+      }).filter((item) => item && String(item?.itemId || '').trim());
+
+      const mapAlbumsToHomeItems = (albums = []) => albums.map((album, idx) => {
+        const albumIdRaw = String(album?.id || '').trim();
+        const albumId = albumIdRaw.startsWith('album:') ? albumIdRaw.slice(6) : albumIdRaw;
+        const albumType = String(album?.album_type || 'album').trim().toLowerCase();
+        if (albumType && albumType !== 'album') return null;
+        if (!albumId) return null;
+        const source = String(album?.source || '').trim().toLowerCase() || (/^[0-9]+$/.test(albumId) ? 'itunes' : 'spotify');
+        const artists = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : 'Artist';
+        const image = String(album?.image || '').trim();
+        const releaseDate = String(album?.release_date || '').trim();
+        const totalTracks = Number(album?.total_tracks || 0);
+        const detail = [
+          releaseDate ? `Released ${releaseDate}` : '',
+          totalTracks > 0 ? `${totalTracks} tracks` : '',
+          albumType || ''
+        ].filter(Boolean).join(' | ');
+        const href = `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(source)}`;
+        return {
+          mediaType: 'music',
+          itemId: `album:${albumId}`,
+          title: String(album?.name || 'Album').trim() || 'Album',
+          subtitle: artists || 'Artist',
+          extra: `Album${detail ? ` | ${detail}` : ''}`,
+          image,
+          backgroundImage: image,
+          spotlightImage: image,
+          spotlightMediaImage: image,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          href,
+          isMusicAlbum: true
+        };
+      }).filter((item) => !!item && String(item?.itemId || '').trim());
+
+      const dedupeMusicTrackRows = (rows = []) => {
+        const seenIds = new Set();
+        const seenTrackKeys = new Set();
+        const deduped = [];
+        rows.forEach((row) => {
+          const id = String(row?.id || '').trim();
+          const trackName = String(row?.name || '').trim().toLowerCase();
+          const firstArtist = Array.isArray(row?.artists) && row.artists.length
+            ? String(row.artists[0] || '').trim().toLowerCase()
+            : '';
+          const trackKey = `${trackName}::${firstArtist}`;
+          if (!trackName || !firstArtist) return;
+          if (id && seenIds.has(id)) return;
+          if (seenTrackKeys.has(trackKey)) return;
+          if (id) seenIds.add(id);
+          seenTrackKeys.add(trackKey);
+          deduped.push(row);
+        });
+        return deduped;
+      };
+
+      const dedupeMusicAlbumRows = (rows = []) => {
+        const seenIds = new Set();
+        const seenAlbumKeys = new Set();
+        const deduped = [];
+        rows.forEach((row) => {
+          const id = String(row?.id || '').trim();
+          const albumName = String(row?.name || '').trim().toLowerCase();
+          const firstArtist = Array.isArray(row?.artists) && row.artists.length
+            ? String(row.artists[0] || '').trim().toLowerCase()
+            : '';
+          const albumKey = `${albumName}::${firstArtist}`;
+          if (!albumName || !firstArtist) return;
+          if (id && seenIds.has(id)) return;
+          if (seenAlbumKeys.has(albumKey)) return;
+          if (id) seenIds.add(id);
+          seenAlbumKeys.add(albumKey);
+          deduped.push(row);
+        });
+        return deduped;
+      };
+
+      const mixMusicItems = (trackItems = [], albumItems = [], takeCount = targetCount) => {
+        const trackQueue = [...(Array.isArray(trackItems) ? trackItems : [])];
+        const albumQueue = [...(Array.isArray(albumItems) ? albumItems : [])];
+        const mixed = [];
+        while (mixed.length < takeCount && (trackQueue.length || albumQueue.length)) {
+          if (albumQueue.length) mixed.push(albumQueue.shift());
+          if (trackQueue.length && mixed.length < takeCount) mixed.push(trackQueue.shift());
+          if (albumQueue.length && mixed.length < takeCount) mixed.push(albumQueue.shift());
+        }
+        while (mixed.length < takeCount && trackQueue.length) mixed.push(trackQueue.shift());
+        while (mixed.length < takeCount && albumQueue.length) mixed.push(albumQueue.shift());
+        return mixed.slice(0, takeCount);
+      };
+
+      const buildMixedMusicItems = (trackRows = [], albumRows = [], takeCount = targetCount) => {
+        const dedupedTracks = dedupeMusicTrackRows(trackRows);
+        const dedupedAlbums = dedupeMusicAlbumRows(albumRows);
+        const tracksWithArtwork = dedupedTracks.filter((track) => String(track?.image || '').trim());
+        const albumsWithArtwork = dedupedAlbums.filter((album) => String(album?.image || '').trim());
+        const trackPool = tracksWithArtwork.length ? tracksWithArtwork : dedupedTracks;
+        const albumPool = albumsWithArtwork.length ? albumsWithArtwork : dedupedAlbums;
+        const selectedTracks = shuffleArray(trackPool).slice(0, Math.max(takeCount, 16));
+        const selectedAlbums = shuffleArray(albumPool).slice(0, Math.max(takeCount * 2, 24));
+        const mappedTracks = mapTracksToHomeItems(selectedTracks);
+        const mappedAlbums = mapAlbumsToHomeItems(selectedAlbums);
+        const mixed = mixMusicItems(mappedTracks, mappedAlbums, takeCount);
+        return dedupeHomeItemsByMediaAndId(mixed).slice(0, takeCount);
+      };
+      const hasAlbumItems = (items = []) => (Array.isArray(items) ? items : [])
+        .some((item) => item?.isMusicAlbum === true || String(item?.itemId || '').startsWith('album:'));
+      const hasTrackItems = (items = []) => (Array.isArray(items) ? items : [])
+        .some((item) => item && !item?.isMusicAlbum && !String(item?.itemId || '').startsWith('album:'));
+      const isHealthyMusicBatch = (items = []) => {
+        const list = Array.isArray(items) ? items : [];
+        return list.length >= HOME_MUSIC_MIN_ITEMS && hasAlbumItems(list) && hasTrackItems(list);
+      };
+      const collectedTrackRows = [];
+      const collectedAlbumRows = [];
+      const collectMusicRows = ({ tracks = [], albums = [] } = {}) => {
+        if (Array.isArray(tracks) && tracks.length) collectedTrackRows.push(...tracks);
+        if (Array.isArray(albums) && albums.length) collectedAlbumRows.push(...albums);
+      };
+      const getCollectedTrackRows = () => dedupeMusicTrackRows(collectedTrackRows);
+      const getCollectedAlbumRows = () => dedupeMusicAlbumRows(collectedAlbumRows);
+
+      const top50Limit = lightweightMode ? Math.max(targetCount * 3, 28) : Math.max(targetCount * 4, 64);
+      const newReleaseLimit = lightweightMode ? Math.max(targetCount * 2, 18) : Math.max(targetCount * 3, 36);
+      const musicFetchOptions = { signal, timeoutMs: 3600, retries: 1 };
+      const [top50Res, topAlbumsRes, topReleaseAlbumsRes] = await Promise.allSettled([
+        fetchJsonWithPerfCache(
+          `/api/music/top-50?limit=${top50Limit}&market=${market}`,
+          { ...musicFetchOptions, cacheKey: `music:top-50:${top50Limit}:${market}` }
+        ),
+        fetchJsonWithPerfCache(
+          `/api/music/popular-albums?limit=${newReleaseLimit}&market=${market}&album_types=album`,
+          { ...musicFetchOptions, cacheKey: `music:popular-albums:${newReleaseLimit}:${market}:album` }
+        ),
+        fetchJsonWithPerfCache(
+          `/api/music/new-releases?limit=${newReleaseLimit}&market=${market}&album_types=album`,
+          { ...musicFetchOptions, cacheKey: `music:new-releases:${newReleaseLimit}:${market}:album` }
+        )
+      ]);
+      const top50Rows = top50Res.status === 'fulfilled' && Array.isArray(top50Res.value?.results) ? top50Res.value.results : [];
+      const topAlbumRows = [
+        ...(topAlbumsRes.status === 'fulfilled' && Array.isArray(topAlbumsRes.value?.results) ? topAlbumsRes.value.results : []),
+        ...(topReleaseAlbumsRes.status === 'fulfilled' && Array.isArray(topReleaseAlbumsRes.value?.results) ? topReleaseAlbumsRes.value.results : [])
+      ];
+      collectMusicRows({ tracks: top50Rows, albums: topAlbumRows });
+      const topBatch = filterHomeSafeItems(buildMixedMusicItems(top50Rows, topAlbumRows, targetCount));
+      if (isHealthyMusicBatch(topBatch)) return topBatch;
+      if (lightweightMode && topBatch.length >= Math.min(6, HOME_MUSIC_MIN_ITEMS)) return topBatch;
+
+      const [popularRes, popularAlbumsRes, popularReleaseAlbumsRes] = await Promise.allSettled([
+        fetchJsonWithPerfCache(
+          `/api/music/popular?limit=50&market=${market}`,
+          { ...musicFetchOptions, cacheKey: `music:popular:50:${market}` }
+        ),
+        fetchJsonWithPerfCache(
+          `/api/music/popular-albums?limit=36&market=${market}&album_types=album`,
+          { ...musicFetchOptions, cacheKey: `music:popular-albums:36:${market}:album` }
+        ),
+        fetchJsonWithPerfCache(
+          `/api/music/new-releases?limit=24&market=${market}&album_types=album`,
+          { ...musicFetchOptions, cacheKey: `music:new-releases:24:${market}:album` }
+        )
+      ]);
+      const popularRows = popularRes.status === 'fulfilled' && Array.isArray(popularRes.value?.results) ? popularRes.value.results : [];
+      const popularAlbumRows = [
+        ...(popularAlbumsRes.status === 'fulfilled' && Array.isArray(popularAlbumsRes.value?.results)
+          ? popularAlbumsRes.value.results
+          : []),
+        ...(popularReleaseAlbumsRes.status === 'fulfilled' && Array.isArray(popularReleaseAlbumsRes.value?.results)
+          ? popularReleaseAlbumsRes.value.results
+          : [])
+      ];
+      collectMusicRows({ tracks: popularRows, albums: popularAlbumRows });
+      const popularBatch = filterHomeSafeItems(buildMixedMusicItems(popularRows, popularAlbumRows, targetCount));
+      if (isHealthyMusicBatch(popularBatch)) return popularBatch;
+      if (lightweightMode && popularBatch.length >= Math.min(6, HOME_MUSIC_MIN_ITEMS)) return popularBatch;
+
+      if (lightweightMode) {
+        const bestEffortLightBatch = filterHomeSafeItems(
+          buildMixedMusicItems(
+            getCollectedTrackRows(),
+            getCollectedAlbumRows(),
+            Math.max(targetCount, HOME_MUSIC_MIN_ITEMS)
+          )
+        );
+        return bestEffortLightBatch.slice(0, targetCount);
+      }
+
+      const searchFallbackTerms = ['top albums and songs', 'new music albums and songs'];
+      for (const term of searchFallbackTerms) {
+        try {
+          const fallbackSearch = await fetchJsonWithPerfCache(
+            `/api/music/search?q=${encodeURIComponent(term)}&limit=40&market=${market}&type=track,album&album_types=album`,
+            { ...musicFetchOptions, cacheKey: `music:search-fallback:${market}:${term}` }
+          );
+          const fallbackTracks = Array.isArray(fallbackSearch?.tracks) ? fallbackSearch.tracks : [];
+          const fallbackAlbums = Array.isArray(fallbackSearch?.albums) ? fallbackSearch.albums : [];
+          collectMusicRows({ tracks: fallbackTracks, albums: fallbackAlbums });
+          const searchBatch = filterHomeSafeItems(buildMixedMusicItems(fallbackTracks, fallbackAlbums, targetCount));
+          if (isHealthyMusicBatch(searchBatch)) return searchBatch;
+        } catch (_err) {}
+      }
+
+      const minimumTrackRows = Math.max(4, Math.ceil(HOME_MUSIC_MIN_ITEMS / 2));
+      const minimumAlbumRows = Math.max(4, Math.ceil(HOME_MUSIC_MIN_ITEMS / 2));
+      if (getCollectedAlbumRows().length < minimumAlbumRows) {
+        try {
+          const albumSearch = await fetchJsonWithPerfCache(
+            `/api/music/search?q=${encodeURIComponent('top albums')}&limit=48&market=${market}&type=album&album_types=album`,
+            { ...musicFetchOptions, cacheKey: `music:album-search-backfill:${market}` }
+          );
+          collectMusicRows({ albums: Array.isArray(albumSearch?.albums) ? albumSearch.albums : [] });
+        } catch (_err) {}
+      }
+      if (getCollectedTrackRows().length < minimumTrackRows) {
+        try {
+          const trackSearch = await fetchJsonWithPerfCache(
+            `/api/music/search?q=${encodeURIComponent('top songs')}&limit=48&market=${market}&type=track`,
+            { ...musicFetchOptions, cacheKey: `music:track-search-backfill:${market}` }
+          );
+          collectMusicRows({ tracks: Array.isArray(trackSearch?.tracks) ? trackSearch.tracks : [] });
+        } catch (_err) {}
+      }
+
+      const bestEffortBatch = filterHomeSafeItems(
+        buildMixedMusicItems(
+          getCollectedTrackRows(),
+          getCollectedAlbumRows(),
+          Math.max(targetCount, HOME_MUSIC_MIN_ITEMS)
+        )
+      );
+      if (bestEffortBatch.length) {
+        const mixedEnough = hasAlbumItems(bestEffortBatch) && hasTrackItems(bestEffortBatch);
+        if (isHealthyMusicBatch(bestEffortBatch) || (mixedEnough && bestEffortBatch.length >= Math.min(6, HOME_MUSIC_MIN_ITEMS))) {
+          return bestEffortBatch;
+        }
+      }
+
+      return [];
+    }
+
+    function normalizeTravelSearchText(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+\(country\)\s*$/i, '')
+        .replace(/[^a-z0-9 ]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function pickHomeCountryCities(code, capital) {
+      const safeCode = String(code || '').trim().toUpperCase();
+      const seeded = Array.isArray(homeCountryCityHints[safeCode]) ? homeCountryCityHints[safeCode] : [];
+      const out = [];
+      const firstCapital = Array.isArray(capital)
+        ? String(capital[0] || '').trim()
+        : String(capital || '').trim();
+      if (firstCapital) out.push(firstCapital);
+      seeded.forEach((city) => {
+        const clean = String(city || '').trim();
+        if (!clean) return;
+        if (out.some((entry) => entry.toLowerCase() === clean.toLowerCase())) return;
+        out.push(clean);
+      });
+      return out.slice(0, 3);
+    }
+
+    function isBlockedTravelCommonsTitle(title, countryName, capital, cityHints = [], categoryText = '') {
+      const raw = `${String(title || '')} ${String(categoryText || '')}`.toLowerCase();
+      if (!raw) return true;
+      const blocked = [
+        'flag',
+        'coat of arms',
+        'emblem',
+        'seal',
+        'map of',
+        'locator map',
+        'location map',
+        'orthographic',
+        'equirectangular',
+        'blank map',
+        'administrative map',
+        'province map',
+        'political map',
+        'banner',
+        'painting',
+        'artwork',
+        'illustration',
+        'drawing',
+        'poster',
+        'cartoon',
+        'sketch',
+        'render',
+        'vector',
+        'banknote',
+        'stamp',
+        'mural',
+        'logo',
+        'watercolor',
+        'etching',
+        'engraving',
+        'lithograph',
+        'oil on canvas'
+      ];
+      if (blocked.some((token) => raw.includes(token))) return true;
+      const countryNeedle = normalizeTravelSearchText(countryName);
+      const capitalNeedle = normalizeTravelSearchText(capital);
+      const cityNeedles = (Array.isArray(cityHints) ? cityHints : [])
+        .map((value) => normalizeTravelSearchText(value))
+        .filter(Boolean);
+      if (!countryNeedle && !capitalNeedle && !cityNeedles.length) return false;
+      const normalizedTitle = normalizeTravelSearchText(title);
+      const hasCountry = countryNeedle && normalizedTitle.includes(countryNeedle);
+      const hasCapital = capitalNeedle && normalizedTitle.includes(capitalNeedle);
+      const hasCity = cityNeedles.some((needle) => normalizedTitle.includes(needle));
+      return !(hasCountry || hasCapital || hasCity);
+    }
+
+    function scoreTravelCommonsPhotoCandidate(page, kind, countryName, capital, cityHints = []) {
+      const title = String(page?.title || '');
+      const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
+      if (!isTravelCommonsPhotoMime(mime)) return -1;
+      const categoryText = getTravelCommonsCategoryText(page);
+      if (isBlockedTravelCommonsTitle(title, countryName, capital, cityHints, categoryText)) return -1;
+      const raw = `${title} ${categoryText}`.toLowerCase();
+      let score = 0;
+      if (raw.includes('photographs')) score += 5;
+      if (kind === 'city') {
+        if (raw.includes('skyline') || raw.includes('cityscape')) score += 6;
+        if (raw.includes('downtown') || raw.includes('street') || raw.includes('urban') || raw.includes('capital')) score += 4;
+      } else if (kind === 'nature') {
+        if (raw.includes('landscape') || raw.includes('mountain') || raw.includes('coast') || raw.includes('beach') || raw.includes('forest') || raw.includes('lake') || raw.includes('national park')) score += 6;
+      } else {
+        if (raw.includes('landscape') || raw.includes('panorama') || raw.includes('view') || raw.includes('scenery')) score += 5;
+        if (raw.includes('skyline') || raw.includes('cityscape')) score += 2;
+      }
+      if (raw.includes('night')) score += kind === 'city' ? 2 : 1;
+      return score;
+    }
+
+    function isTravelCommonsPhotoMime(mime) {
+      const value = String(mime || '').toLowerCase().trim();
+      return value === 'image/jpeg' || value === 'image/jpg' || value === 'image/webp';
+    }
+
+    function buildHomeTravelPhotoQueries(kind, name, capital, cities = []) {
+      const primaryCity = String(capital || cities[0] || '').trim();
+      if (kind === 'city') {
+        return [
+          primaryCity ? `${primaryCity} skyline` : '',
+          primaryCity ? `${primaryCity} downtown` : '',
+          primaryCity ? `${primaryCity} cityscape` : '',
+          `${name} city skyline`,
+          `${name} city center`,
+          `${name} street scene`
+        ].map((value) => String(value || '').trim()).filter(Boolean);
+      }
+      if (kind === 'nature') {
+        return [
+          `${name} landscape`,
+          `${name} nature`,
+          `${name} national park`,
+          `${name} mountains`,
+          `${name} coast`,
+          `${name} lake`
+        ].map((value) => String(value || '').trim()).filter(Boolean);
+      }
+      return [
+        `${name} landscape`,
+        `${name} travel photography`,
+        `${name} scenic`,
+        `${name} panorama`,
+        `${name} nature`,
+        `${primaryCity ? `${primaryCity} skyline` : ''}`
+      ].map((value) => String(value || '').trim()).filter(Boolean);
+    }
+
+    async function fetchTravelCommonsPhotoByKind(kind, name, code, capital, cities, signal) {
+      const safeCode = String(code || '').trim().toUpperCase();
+      if (!safeCode) return '';
+      const queries = buildHomeTravelPhotoQueries(kind, name, capital, cities);
+      for (const query of queries) {
+        if (signal?.aborted) break;
+        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=20&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo|categories&iiprop=url|mime&iiurlwidth=1400&cllimit=max`;
+        try {
+          const payload = await fetchJsonWithPerfCache(endpoint, {
+            signal,
+            cacheKey: `commons:travel:home:${safeCode}:${kind}:${query.toLowerCase()}`,
+            ttlMs: 1000 * 60 * 60 * 24 * 7,
+            timeoutMs: 7600,
+            retries: 1
+          });
+          const pages = Array.isArray(payload?.query?.pages) ? payload.query.pages : [];
+          const ranked = pages
+            .map((page) => ({ page, score: scoreTravelCommonsPhotoCandidate(page, kind, name, capital, cities) }))
+            .filter((entry) => entry.score >= 0)
+            .sort((left, right) => right.score - left.score);
+          const preferred = ranked[0]?.page || null;
+          const image = toHttpsUrl(preferred?.imageinfo?.[0]?.thumburl || preferred?.imageinfo?.[0]?.url || '');
+          if (isUsableHomeTravelScenicUrl(image)) return image;
+        } catch (_error) {
+          // continue with next query
+        }
+      }
+      return '';
+    }
+
+    async function fetchTravelCommonsPhoto(name, code, capital, cities, signal) {
+      const safeCode = String(code || '').trim().toUpperCase();
+      if (!safeCode) return '';
+      const cached = getHomeTravelPhotoSet(safeCode);
+      if (cached.scenic) return cached.scenic;
+      const scenic = await fetchTravelCommonsPhotoByKind('scenic', name, safeCode, capital, cities, signal);
+      if (scenic) setHomeTravelPhotoCache(safeCode, scenic, 'scenic');
+      return scenic;
+    }
+
+    async function fetchTravelCommonsPhotos(rows = [], signal, opts = {}) {
+      const list = Array.isArray(rows) ? rows : [];
+      const includeLifestyle = !!opts.includeLifestyle && !isHomeSlowNetwork();
+      const unresolved = list.filter((row) => {
+        const rawCode = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+        if (rawCode === 'IL') return false;
+        const code = canonicalTravelCountryCode(rawCode);
+        const name = String(row?.name?.common || row?.name?.official || '').trim();
+        if (/\bisrael\b/i.test(name)) return false;
+        const cached = getHomeTravelPhotoSet(code);
+        if (!code || !name) return false;
+        if (!cached.scenic) return true;
+        if (includeLifestyle && (!cached.city || !cached.nature)) return true;
+        return false;
+      });
+      if (!unresolved.length) return homeTravelPhotoCache;
+
+      const queue = unresolved.slice(0, 100);
+      const workerCount = Math.min(includeLifestyle ? 4 : 6, queue.length);
+      let cursor = 0;
+      const workers = Array.from({ length: workerCount }, async () => {
+        while (cursor < queue.length) {
+          const index = cursor;
+          cursor += 1;
+          const row = queue[index];
+          if (!row || signal?.aborted) return;
+          const rawCode = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+          if (rawCode === 'IL') continue;
+          const code = canonicalTravelCountryCode(rawCode);
+          const name = String(row?.name?.common || row?.name?.official || '').trim();
+          if (/\bisrael\b/i.test(name)) continue;
+          const capital = Array.isArray(row?.capital)
+            ? String(row.capital[0] || '').trim()
+            : String(row?.capital || '').trim();
+          if (!code || !name) continue;
+          const cities = pickHomeCountryCities(code, capital);
+          const cached = getHomeTravelPhotoSet(code);
+          if (!cached.scenic) {
+            const scenic = await fetchTravelCommonsPhoto(name, code, capital, cities, signal);
+            if (scenic) setHomeTravelPhotoCache(code, scenic, 'scenic');
+          }
+          if (includeLifestyle) {
+            const nextCached = getHomeTravelPhotoSet(code);
+            if (!nextCached.city) {
+              const cityPhoto = await fetchTravelCommonsPhotoByKind('city', name, code, capital, cities, signal);
+              if (cityPhoto) setHomeTravelPhotoCache(code, cityPhoto, 'city');
+            }
+            const afterCity = getHomeTravelPhotoSet(code);
+            if (!afterCity.nature) {
+              const naturePhoto = await fetchTravelCommonsPhotoByKind('nature', name, code, capital, cities, signal);
+              if (naturePhoto) setHomeTravelPhotoCache(code, naturePhoto, 'nature');
+            }
+          }
+        }
+      });
+      await Promise.all(workers);
+
+      return homeTravelPhotoCache;
+    }
+
+    function mapTravelCountryToHomeItem(row, photoMap = null) {
+      const rawCode = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+      if (!rawCode || rawCode === 'IL') return null;
+      const code = canonicalTravelCountryCode(rawCode);
+      const baseTitle = String(row?.name?.common || row?.name?.official || '').trim();
+      if (/\bisrael\b/i.test(baseTitle)) return null;
+      const resolvedBaseTitle = code === 'PS' ? 'Palestine' : baseTitle;
+      const title = formatTravelTitleWithFlag(resolvedBaseTitle, code);
+      if (!code || !title) return null;
+      const capital = Array.isArray(row?.capital)
+        ? String(row.capital[0] || '').trim()
+        : String(row?.capital || '').trim();
+      const region = String(row?.region || '').trim();
+      const subregion = String(row?.subregion || '').trim();
+      const cities = pickHomeCountryCities(code, capital);
+      const flagImage = toHttpsUrl(String(row?.flags?.png || row?.flags?.svg || '').trim())
+        || getHomeCountryFlagByCode(code)
+        || getHomeCountryFlag(title)
+        || '';
+      const subtitle = [
+        capital ? `Capital: ${capital}` : '',
+        region
+      ].filter(Boolean).join(' | ') || 'Country';
+      const extraParts = [];
+      if (subregion && subregion !== region) extraParts.push(subregion);
+      if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
+      const photoFromCommons = photoMap instanceof Map ? normalizeHomeTravelPhotoEntry(photoMap.get(code)) : { scenic: '', city: '', nature: '' };
+      if (photoFromCommons.scenic) setHomeTravelPhotoCache(code, photoFromCommons.scenic, 'scenic');
+      if (photoFromCommons.city) setHomeTravelPhotoCache(code, photoFromCommons.city, 'city');
+      if (photoFromCommons.nature) setHomeTravelPhotoCache(code, photoFromCommons.nature, 'nature');
+      const photoImageRaw = getSafeTravelScenicImage(resolvedBaseTitle, code, photoFromCommons.scenic || '');
+      const scenicImage = isUsableHomeTravelScenicUrl(photoImageRaw) ? photoImageRaw : '';
+      const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
+      const heroImage = scenicImage || safeFallback;
+      if (!heroImage) return null;
+      const cachedSet = getHomeTravelPhotoSet(code);
+      return {
+        mediaType: 'travel',
+        itemId: code,
+        title,
+        subtitle,
+        extra: extraParts.join(' | ') || 'Travel',
+        cities,
+        flagImage,
+        listImage: heroImage,
+        image: heroImage,
+        backgroundImage: heroImage || '',
+        spotlightImage: heroImage || '',
+        spotlightMediaImage: flagImage || heroImage,
+        spotlightMediaFit: flagImage ? 'contain' : 'cover',
+        spotlightMediaPosition: 'center center',
+        spotlightMediaShape: 'square',
+        travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
+        travelPhotoSet: {
+          scenic: cachedSet.scenic || heroImage || '',
+          city: cachedSet.city || '',
+          nature: cachedSet.nature || ''
+        },
+        travelNeedsScenicHydration: false,
+        fallbackImage: safeFallback || heroImage,
+        href: `country.html?code=${encodeURIComponent(code)}`
+      };
+    }
+
+    function mapCachedTravelCountryRowToHomeItem(row) {
+      const code = canonicalTravelCountryCode(row?.code || row?.cca2 || row?.cca3 || '');
+      const baseTitle = String(row?.name || row?.title || '').trim();
+      if (!code || !baseTitle || /\bisrael\b/i.test(baseTitle)) return null;
+      const resolvedBaseTitle = code === 'PS' ? 'Palestine' : baseTitle;
+      const title = formatTravelTitleWithFlag(resolvedBaseTitle, code);
+      const capital = String(row?.capital || '').trim();
+      const region = String(row?.region || '').trim();
+      const subregion = String(row?.subregion || '').trim();
+      const cities = Array.isArray(row?.cities)
+        ? row.cities.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3)
+        : pickHomeCountryCities(code, capital);
+      const flagImage = toHttpsUrl(String(row?.flag || row?.flagImage || '').trim())
+        || getHomeCountryFlagByCode(code)
+        || getHomeCountryFlag(title)
+        || '';
+      const subtitle = [
+        capital ? `Capital: ${capital}` : '',
+        region
+      ].filter(Boolean).join(' | ') || 'Country';
+      const extraParts = [];
+      if (subregion && subregion !== region) extraParts.push(subregion);
+      if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
+      const scenicRaw = getSafeTravelScenicImage(resolvedBaseTitle, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
+      const scenicImage = isUsableHomeTravelScenicUrl(scenicRaw) ? scenicRaw : '';
+      const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
+      const heroImage = scenicImage || safeFallback;
+      if (!heroImage) return null;
+      if (heroImage) setHomeTravelPhotoCache(code, heroImage, 'scenic');
+      if (row?.photoCity) setHomeTravelPhotoCache(code, row.photoCity, 'city');
+      if (row?.photoNature) setHomeTravelPhotoCache(code, row.photoNature, 'nature');
+      const cachedSet = getHomeTravelPhotoSet(code);
+      return {
+        mediaType: 'travel',
+        itemId: code,
+        title,
+        subtitle,
+        extra: extraParts.join(' | ') || 'Travel',
+        cities,
+        flagImage,
+        listImage: heroImage,
+        image: heroImage,
+        backgroundImage: heroImage || '',
+        spotlightImage: heroImage || '',
+        spotlightMediaImage: flagImage || heroImage,
+        spotlightMediaFit: flagImage ? 'contain' : 'cover',
+        spotlightMediaPosition: 'center center',
+        spotlightMediaShape: 'square',
+        travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
+        travelPhotoSet: {
+          scenic: cachedSet.scenic || heroImage || '',
+          city: cachedSet.city || '',
+          nature: cachedSet.nature || ''
+        },
+        travelNeedsScenicHydration: false,
+        fallbackImage: safeFallback || heroImage,
+        href: `country.html?code=${encodeURIComponent(code)}`
+      };
+    }
+
+    function getCachedHomeTravelItems(limit = getHomeChannelTargetItems()) {
+      const rows = readHomeTravelCountryRowsCache();
+      if (!rows.length) return [];
+      const seenCodes = new Set();
+      const items = [];
+      rows.forEach((row) => {
+        const item = mapCachedTravelCountryRowToHomeItem(row);
+        const code = String(item?.itemId || '').trim().toUpperCase();
+        if (!item || !code || seenCodes.has(code)) return;
+        seenCodes.add(code);
+        items.push(item);
+      });
+      return shuffleArray(items).slice(0, Math.max(1, Number(limit || getHomeChannelTargetItems())));
+    }
+
+    async function loadTravel(signal) {
+      const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
+      await withTimeout(hydrateHomeTravelBucketManifest(signal), 1400, false).catch(() => false);
+      const cachedRowItems = getCachedHomeTravelItems(targetCount);
+      const cachedHomeItems = readHomeItemsCache(
+        HOME_TRAVEL_ITEMS_CACHE_KEY,
+        HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS,
+        sanitizeHomeTravelItem
+      );
+
+      if (cachedHomeItems.length) {
+        return cachedHomeItems.slice(0, targetCount);
+      }
+
+      if (cachedRowItems.length) {
+        return cachedRowItems.slice(0, targetCount);
+      }
+
+      try {
+        const payload = await fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
+          signal,
+          cacheKey: 'restcountries:all:v3.1:home',
+          ttlMs: 1000 * 60 * 60 * 12,
+          timeoutMs: 9500,
+          retries: 1
+        });
+        if (signal?.aborted) return [];
+        const rows = Array.isArray(payload) ? payload : [];
+        if (!rows.length) return getHomeTravelFallbackItems(targetCount);
+        primeHomeCountryIndex(rows);
+
+        const sortedRows = rows
+          .filter((row) => {
+            if (!row || !(row.cca2 || row.cca3) || !(row?.name?.common || row?.name?.official)) return false;
+            const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+            const name = String(row?.name?.common || row?.name?.official || '').trim();
+            if (code === 'IL') return false;
+            if (/\bisrael\b/i.test(name)) return false;
+            return true;
+          })
+          .sort((a, b) => {
+            const left = String(a?.name?.common || a?.name?.official || '').trim();
+            const right = String(b?.name?.common || b?.name?.official || '').trim();
+            return left.localeCompare(right);
+          });
+
+        const shortlist = shuffleArray(sortedRows.slice(0, Math.max(targetCount * 5, 120)));
+        const collectTravelItems = (photoMap) => {
+          const seenCodes = new Set();
+          const out = [];
+          const pushRow = (row) => {
+            const item = mapTravelCountryToHomeItem(row, photoMap);
+            if (!item) return;
+            const code = String(item.itemId || '').trim().toUpperCase();
+            if (!code || seenCodes.has(code)) return;
+            seenCodes.add(code);
+            out.push(item);
+          };
+          shortlist.forEach(pushRow);
+          if (out.length < targetCount) sortedRows.forEach(pushRow);
+          return out;
+        };
+
+        const cachedCandidates = collectTravelItems(homeTravelPhotoCache).slice(0, targetCount);
+        if (cachedCandidates.length >= Math.min(targetCount, 6)) {
+          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, cachedCandidates);
+          const photoCandidates = sortedRows.slice(0, Math.max(targetCount * 3, 60));
+          if (!homeTravelHydrationPromise) {
+            homeTravelHydrationPromise = (async () => {
+              const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+              const timer = setTimeout(() => controller?.abort(), 12000);
+              try {
+                const photoMap = await fetchTravelCommonsPhotos(
+                  photoCandidates,
+                  controller?.signal,
+                  { includeLifestyle: !isHomeSlowNetwork() }
+                );
+                const hydrated = collectTravelItems(photoMap).slice(0, targetCount);
+                if (hydrated.length) {
+                  writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, hydrated);
+                  homeFeedState.travel = hydrated;
+                  renderOrDeferHomeRail('travelRail', hydrated, { mediaType: 'travel' });
+                  const scoredPool = buildScoredDiscoveryPool(homeFeedState);
+                  const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
+                  renderOrDeferHomeRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+                  hydrateSpotlightFromPool(scoredPool);
+                }
+              } finally {
+                clearTimeout(timer);
+                homeTravelHydrationPromise = null;
+              }
+            })();
+          }
+          return cachedCandidates;
+        }
+
+        const photoCandidates = sortedRows.slice(0, Math.max(targetCount * 3, 60));
+        const photoMap = await withTimeout(
+          fetchTravelCommonsPhotos(
+            photoCandidates,
+            signal,
+            { includeLifestyle: !isHomeSlowNetwork() }
+          ),
+          isHomeSlowNetwork() ? 2200 : 3600,
+          homeTravelPhotoCache
+        ).catch(() => homeTravelPhotoCache);
+
+        const hydrated = collectTravelItems(photoMap).slice(0, targetCount);
+        if (hydrated.length) {
+          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, hydrated);
+          return hydrated;
+        }
+        if (cachedCandidates.length) {
+          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, cachedCandidates);
+          return cachedCandidates;
+        }
+        if (cachedRowItems.length) return cachedRowItems;
+      } catch (_err) {}
+
+      return cachedRowItems.length ? cachedRowItems : getHomeTravelFallbackItems(targetCount);
+    }
+
+    async function loadMovies(signal) {
+      const targetCount = getHomeChannelTargetItems();
+      const interestBuilders = buildHomeTmdbInterestSources('movie');
+      const sourceBuilders = shuffleArray([
+        ...interestBuilders,
+        () => `${TMDB_PROXY_BASE}/movie/popular?language=en-US&page=${randomInt(1, 5)}`,
+        () => `${TMDB_PROXY_BASE}/movie/top_rated?language=en-US&page=${randomInt(1, 5)}`,
+        () => `${TMDB_PROXY_BASE}/movie/now_playing?language=en-US&page=${randomInt(1, 4)}`,
+        () => `${TMDB_PROXY_BASE}/trending/movie/week?page=${randomInt(1, 3)}`
+      ]).slice(0, getHomeTmdbSourceCount() + (interestBuilders.length ? 1 : 0));
+      const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
+        try {
+          const url = buildUrl();
+          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `tmdb:${url}` });
+          if (!json) return [];
+          return Array.isArray(json.results) ? json.results : [];
+        } catch (_err) {
+          return [];
+        }
+      }));
+      const collected = shuffleArray(batches.flat());
+      const seen = new Set();
+      const results = [];
+      for (const item of collected) {
+        const key = String(item?.id || '').trim();
+        if (!key || seen.has(key)) continue;
+        if (isLikelyAnimeMovieEntry(item)) continue;
+        if (!item?.poster_path && !item?.backdrop_path) continue;
+        seen.add(key);
+        results.push(item);
+        if (results.length >= targetCount) break;
+      }
+      return results.map((m) => ({
+        mediaType: 'movie',
+        itemId: String(m.id || ''),
+        title: m.title || 'Movie',
+        subtitle: m.release_date ? m.release_date.slice(0, 4) : 'Movie',
+        image: m.poster_path ? `${TMDB_POSTER}${m.poster_path}` : '',
+        backgroundImage: m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : '',
+        spotlightImage: m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : '',
+        spotlightMediaImage: m.poster_path ? `${TMDB_SPOT_POSTER}${m.poster_path}` : (m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : ''),
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
+        isAdult: m?.adult === true,
+        href: m.id ? `movie.html?id=${encodeURIComponent(m.id)}` : 'movies.html'
+      })).filter((item) => isHomeSafeContentItem(item));
+    }
+
+    async function loadTv(signal) {
+      const targetCount = getHomeChannelTargetItems();
+      const interestBuilders = buildHomeTmdbInterestSources('tv');
+      const sourceBuilders = shuffleArray([
+        ...interestBuilders,
+        () => `${TMDB_PROXY_BASE}/tv/popular?language=en-US&page=${randomInt(1, 5)}`,
+        () => `${TMDB_PROXY_BASE}/tv/top_rated?language=en-US&page=${randomInt(1, 5)}`,
+        () => `${TMDB_PROXY_BASE}/tv/airing_today?language=en-US&page=${randomInt(1, 4)}`,
+        () => `${TMDB_PROXY_BASE}/trending/tv/week?page=${randomInt(1, 3)}`
+      ]).slice(0, getHomeTmdbSourceCount() + (interestBuilders.length ? 1 : 0));
+      const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
+        try {
+          const url = buildUrl();
+          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `tmdb:${url}` });
+          if (!json) return [];
+          return Array.isArray(json.results) ? json.results : [];
+        } catch (_err) {
+          return [];
+        }
+      }));
+      const collected = shuffleArray(batches.flat());
+      const seen = new Set();
+      const results = [];
+      for (const item of collected) {
+        const key = String(item?.id || '').trim();
+        if (!key || seen.has(key)) continue;
+        if (isLikelyAnimeTvEntry(item)) continue;
+        if (!item?.poster_path && !item?.backdrop_path) continue;
+        seen.add(key);
+        results.push(item);
+        if (results.length >= targetCount) break;
+      }
+      return results.map((t) => ({
+        mediaType: 'tv',
+        itemId: String(t.id || ''),
+        title: t.name || 'TV Show',
+        subtitle: t.first_air_date ? t.first_air_date.slice(0, 4) : 'TV Show',
+        image: t.poster_path ? `${TMDB_POSTER}${t.poster_path}` : '',
+        backgroundImage: t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : '',
+        spotlightImage: t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : '',
+        spotlightMediaImage: t.poster_path ? `${TMDB_SPOT_POSTER}${t.poster_path}` : (t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : ''),
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
+        isAdult: t?.adult === true,
+        href: t.id ? `tvshow.html?id=${encodeURIComponent(t.id)}` : 'tvshows.html'
+      })).filter((item) => isHomeSafeContentItem(item));
+    }
+
+    async function loadAnime(signal) {
+      const targetCount = getHomeChannelTargetItems();
+      const sourceBuilders = shuffleArray([
+        () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=popularity.desc&page=${randomInt(1, 5)}&with_genres=16&with_original_language=ja`,
+        () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=vote_count.desc&page=${randomInt(1, 5)}&with_genres=16&with_original_language=ja`,
+        () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=vote_average.desc&page=${randomInt(1, 4)}&with_genres=16&with_original_language=ja&vote_count.gte=120`
+      ]).slice(0, getHomeTmdbSourceCount());
+      const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
+        try {
+          const url = buildUrl();
+          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `tmdb:${url}` });
+          if (!json) return [];
+          return Array.isArray(json.results) ? json.results : [];
+        } catch (_err) {
+          return [];
+        }
+      }));
+      const collected = shuffleArray(batches.flat());
+      const seen = new Set();
+      const results = [];
+      for (const item of collected) {
+        const key = String(item?.id || '').trim();
+        if (!key || seen.has(key)) continue;
+        if (!item?.poster_path && !item?.backdrop_path) continue;
+        seen.add(key);
+        results.push(item);
+        if (results.length >= targetCount) break;
+      }
+      return results.map((show) => ({
+        mediaType: 'anime',
+        itemId: String(show.id || ''),
+        title: show.name || 'Anime',
+        subtitle: show.first_air_date ? show.first_air_date.slice(0, 4) : 'Anime',
+        image: show.poster_path ? `${TMDB_POSTER}${show.poster_path}` : '',
+        backgroundImage: show.backdrop_path ? `${TMDB_BACKDROP}${show.backdrop_path}` : '',
+        spotlightImage: show.backdrop_path ? `${TMDB_BACKDROP}${show.backdrop_path}` : '',
+        spotlightMediaImage: show.poster_path ? `${TMDB_SPOT_POSTER}${show.poster_path}` : (show.backdrop_path ? `${TMDB_BACKDROP}${show.backdrop_path}` : ''),
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
+        isAdult: show?.adult === true,
+        href: show.id ? `anime.html?id=${encodeURIComponent(show.id)}` : 'animes.html'
+      })).filter((item) => isHomeSafeContentItem(item));
+    }
+
+    function getHomeSportEmoji(sportRaw = '') {
+      const sport = String(sportRaw || '').trim().toLowerCase();
+      if (!sport) return '';
+      if (sport.includes('soccer')) return 'âš½';
+      if (sport.includes('american football')) return 'ðŸˆ';
+      if (sport.includes('football')) return 'âš½';
+      if (sport.includes('basketball')) return 'ðŸ€';
+      if (sport.includes('baseball')) return 'âš¾';
+      if (sport.includes('ice hockey') || sport.includes('hockey')) return 'ðŸ’';
+      if (sport.includes('cricket')) return 'ðŸ';
+      if (sport.includes('rugby')) return 'ðŸ‰';
+      if (sport.includes('golf')) return 'â›³';
+      if (sport.includes('tennis')) return 'ðŸŽ¾';
+      if (sport.includes('volleyball')) return 'ðŸ';
+      if (sport.includes('handball')) return 'ðŸ¤¾';
+      if (sport.includes('boxing')) return 'ðŸ¥Š';
+      if (sport.includes('mma') || sport.includes('mixed martial')) return 'ðŸ¥‹';
+      if (sport.includes('motorsport') || sport.includes('racing')) return 'ðŸŽï¸';
+      if (sport.includes('cycling')) return 'ðŸš´';
+      if (sport.includes('snooker') || sport.includes('billiard')) return 'ðŸŽ±';
+      if (sport.includes('darts')) return 'ðŸŽ¯';
+      if (sport.includes('table tennis') || sport.includes('ping pong')) return 'ðŸ“';
+      return 'ðŸŸï¸';
+    }
+
+    function mapSportsTeamToHomeItem(team) {
+      if (!team || typeof team !== 'object') return null;
+      const id = String(team.idTeam || '').trim();
+      const title = String(team.strTeam || '').trim();
+      if (!title) return null;
+      const sport = String(team.strSport || '').trim();
+      const league = String(team.strLeague || '').trim();
+      const stadium = String(team.strStadium || '').trim();
+      const country = String(team.strCountry || '').trim();
+      const badge = toHttpsUrl(team.strBadge || team.strTeamBadge || team.strTeamLogo || team.strLogo || '');
+      const banner = toHttpsUrl(team.strBanner || team.strTeamBanner || '');
+      const fanart = toHttpsUrl(
+        team.strFanart1 || team.strFanart2 || team.strFanart3 || team.strFanart4 ||
+        team.strTeamFanart1 || team.strTeamFanart2 || team.strTeamFanart3 || ''
+      );
+      const stadiumImage = toHttpsUrl(team.strStadiumThumb || '');
+      const jersey = toHttpsUrl(team.strEquipment || team.strTeamJersey || '');
+      const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
+      if (!badge) return null;
+      const background = fanart || stadiumImage || banner || badge || fallbackImage;
+      const image = badge;
+      const subtitle = [league, sport].filter(Boolean).join(' | ') || 'Team';
+      const sportIcon = getHomeSportEmoji(sport);
+      const subtitleWithIcon = sportIcon ? `${sportIcon} ${subtitle}` : subtitle;
+      const flagImage = getHomeCountryFlag(country);
+      const spotlightMedia = badge || flagImage || jersey || background;
+      const spotlightMediaFit = (badge || flagImage || jersey) ? 'contain' : 'cover';
+      const params = new URLSearchParams();
+      if (id) params.set('id', id);
+      if (title) params.set('team', title);
+      if (league) params.set('league', league);
+      if (sport) params.set('sport', sport);
+      if (country) params.set('country', country);
+      const query = params.toString();
+      const href = query ? `team.html?${query}` : 'team.html';
+      return {
+        mediaType: 'sports',
+        itemId: id || title,
+        title,
+        subtitle: subtitleWithIcon,
+        extra: stadium ? `Stadium: ${stadium}` : '',
+        image,
+        listImage: badge || flagImage || image,
+        mediaFit: 'contain',
+        backgroundImage: background,
+        spotlightImage: background,
+        spotlightMediaImage: spotlightMedia,
+        spotlightMediaFit,
+        spotlightMediaShape: 'square',
+        sport,
+        league,
+        country,
+        flagImage,
+        stadium,
+        badge,
+        banner,
+        fanart,
+        jersey,
+        stadiumImage,
+        href
+      };
+    }
+
+    function normalizeHomeSportsName(value) {
+      return String(value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]+/g, '')
+        .replace(/['Ã¢â‚¬â„¢]/g, '')
+        .replace(/\b(fc|cf|sc|afc|club|the)\b/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+    }
+
+    async function loadSports(signal) {
+      const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
+      const cachedItemsRaw = readHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS)
+        .filter((item) => item && item.image);
+      if (cachedItemsRaw.length) {
+        const dedupedCached = [];
+        const seenCached = new Set();
+        cachedItemsRaw.forEach((item) => {
+          const key = String(item?.itemId || item?.title || '').toLowerCase().trim();
+          const nameKey = normalizeHomeSportsName(item?.title || '');
+          const dedupeKey = [key, nameKey].filter(Boolean).join('|');
+          if (!dedupeKey || seenCached.has(dedupeKey)) return;
+          seenCached.add(dedupeKey);
+          dedupedCached.push(item);
+        });
+        if (dedupedCached.length) return dedupedCached.slice(0, targetCount);
+      }
+
+      const seedTeams = shuffleArray([...HOME_SPORTS_SEEDS]).slice(0, Math.max(targetCount, 12));
+      const items = [];
+      const seen = new Set();
+      void ensureHomeCountryIndex(signal);
+
+      const requests = seedTeams.map((seed) => fetchSportsDb('searchteams.php', { t: seed }, { signal, timeoutMs: 5200 }));
+      const responses = await Promise.allSettled(requests);
+      responses.forEach((result) => {
+        if (items.length >= targetCount) return;
+        if (!result || result.status !== 'fulfilled') return;
+        const payload = result.value;
+        const teams = Array.isArray(payload?.teams) ? payload.teams : [];
+        teams.forEach((team) => {
+          if (items.length >= targetCount) return;
+          const item = mapSportsTeamToHomeItem(team);
+          if (!item) return;
+          const key = String(item.itemId || item.title || '').toLowerCase().trim();
+          const nameKey = normalizeHomeSportsName(item.title || '');
+          const dedupeKey = [key, nameKey].filter(Boolean).join('|');
+          if (!dedupeKey || seen.has(dedupeKey)) return;
+          seen.add(dedupeKey);
+          items.push(item);
+        });
+      });
+
+      if (items.length) {
+        writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
+        return items;
+      }
+
+      return [];
+    }
+
+  window.__zo2yHomeHeavyLoaders = {
+    loadMovies,
+    loadTv,
+    loadAnime,
+    loadBooks,
+    loadMusic,
+    loadTravel,
+    loadSports
+  };
+})();
