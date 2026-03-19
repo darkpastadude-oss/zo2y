@@ -949,6 +949,81 @@
       }
     }
 
+    function mapCachedTravelCountryRowToHomeItem(row) {
+      const code = canonicalTravelCountryCode(row?.code || row?.cca2 || row?.cca3 || '');
+      const baseTitle = String(row?.name || row?.title || '').trim();
+      if (!code || !baseTitle || /\bisrael\b/i.test(baseTitle)) return null;
+      const resolvedBaseTitle = code === 'PS' ? 'Palestine' : baseTitle;
+      const title = formatTravelTitleWithFlag(resolvedBaseTitle, code);
+      const capital = String(row?.capital || '').trim();
+      const region = String(row?.region || '').trim();
+      const subregion = String(row?.subregion || '').trim();
+      const cities = Array.isArray(row?.cities)
+        ? row.cities.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3)
+        : pickHomeCountryCities(code, capital);
+      const flagImage = toHttpsUrl(String(row?.flag || row?.flagImage || '').trim())
+        || getHomeCountryFlagByCode(code)
+        || getHomeCountryFlag(title)
+        || '';
+      const subtitle = [
+        capital ? `Capital: ${capital}` : '',
+        region
+      ].filter(Boolean).join(' | ') || 'Country';
+      const extraParts = [];
+      if (subregion && subregion !== region) extraParts.push(subregion);
+      if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
+      const scenicRaw = getSafeTravelScenicImage(resolvedBaseTitle, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
+      const scenicImage = isUsableHomeTravelScenicUrl(scenicRaw) ? scenicRaw : '';
+      const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
+      const heroImage = scenicImage || safeFallback;
+      if (!heroImage) return null;
+      if (heroImage) setHomeTravelPhotoCache(code, heroImage, 'scenic');
+      if (row?.photoCity) setHomeTravelPhotoCache(code, row.photoCity, 'city');
+      if (row?.photoNature) setHomeTravelPhotoCache(code, row.photoNature, 'nature');
+      const cachedSet = getHomeTravelPhotoSet(code);
+      return {
+        mediaType: 'travel',
+        itemId: code,
+        title,
+        subtitle,
+        extra: extraParts.join(' | ') || 'Travel',
+        cities,
+        flagImage,
+        listImage: heroImage,
+        image: heroImage,
+        backgroundImage: heroImage || '',
+        spotlightImage: heroImage || '',
+        spotlightMediaImage: flagImage || heroImage,
+        spotlightMediaFit: flagImage ? 'contain' : 'cover',
+        spotlightMediaPosition: 'center center',
+        spotlightMediaShape: 'square',
+        travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
+        travelPhotoSet: {
+          scenic: cachedSet.scenic || heroImage || '',
+          city: cachedSet.city || '',
+          nature: cachedSet.nature || ''
+        },
+        travelNeedsScenicHydration: false,
+        fallbackImage: safeFallback || heroImage,
+        href: `country.html?code=${encodeURIComponent(code)}`
+      };
+    }
+
+    function getCachedHomeTravelItems(limit = getHomeChannelTargetItems()) {
+      const rows = readHomeTravelCountryRowsCache();
+      if (!rows.length) return [];
+      const seenCodes = new Set();
+      const items = [];
+      rows.forEach((row) => {
+        const item = mapCachedTravelCountryRowToHomeItem(row);
+        const code = String(item?.itemId || '').trim().toUpperCase();
+        if (!item || !code || seenCodes.has(code)) return;
+        seenCodes.add(code);
+        items.push(item);
+      });
+      return shuffleArray(items).slice(0, Math.max(1, Number(limit || getHomeChannelTargetItems())));
+    }
+
     readHomeTravelPhotoCacheFromStorage();
     loadHomeTravelBucketManifestFromStorage();
 
@@ -7035,7 +7110,7 @@
           return;
         }
         const script = document.createElement('script');
-        script.src = 'js/pages/index-home-heavy-loaders.js?v=20260319b';
+        script.src = 'js/pages/index-home-heavy-loaders.js?v=20260319c';
         script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
