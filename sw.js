@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v126';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v127';
 const PAGE_CACHE = 'zo2y-pages-v124';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
@@ -10,14 +10,14 @@ const STATIC_ASSETS = [
   '/index.html',
   '/credits.html',
   '/manifest.webmanifest',
-  '/css/pages/index.css?v=20260319b',
-  '/css/pages/index-landing.css?v=20260319b',
-  '/css/shared-header.css?v=20260316a',
+  '/css/pages/index.css?v=20260319c',
+  '/css/pages/index-landing.css?v=20260319c',
+  '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260319d',
-  '/js/pages/index-home-heavy-loaders.js?v=20260319d',
+  '/js/pages/index.js?v=20260319e',
+  '/js/pages/index-home-heavy-loaders.js?v=20260319e',
   '/js/home-desktop-rebrand.js?v=20260311e',
-  '/js/shared-header.js?v=20260317e',
+  '/js/shared-header.js?v=20260319b',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
   '/js/list-utils.js?v=20260317b',
@@ -245,6 +245,8 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
+
+
 
 
 

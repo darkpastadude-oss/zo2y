@@ -355,7 +355,7 @@
                     .trim()
                     .replace(/^@+/, '')
                     .toLowerCase()
-                    .replace(/['’]/g, '')
+                    .replace(/[\u0027\u2019]/g, '')
                     .replace(/[^a-z0-9_]+/g, '_')
                     .replace(/_+/g, '_')
                     .replace(/^_+|_+$/g, '')

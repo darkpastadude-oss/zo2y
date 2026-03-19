@@ -533,12 +533,15 @@ const HEADER_HTML = `
 
         if (profileBtn) {
           profileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
+          profileBtn.title = label;
         }
         if (mobileProfileBtn) {
           mobileProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
+          mobileProfileBtn.title = label;
         }
         if (desktopRailProfileBtn) {
           desktopRailProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
+          desktopRailProfileBtn.title = label;
         }
       }
     } catch (_err) {}

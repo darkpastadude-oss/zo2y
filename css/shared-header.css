@@ -983,6 +983,15 @@ body.zo2y-mobile-menu-open {
   gap: 8px;
   text-decoration: none;
   cursor: pointer;
+  max-width: min(100%, 260px);
+}
+
+.zo2y-shared-btn span {
+  min-width: 0;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .zo2y-shared-btn:hover {
@@ -1112,6 +1121,14 @@ body.zo2y-mobile-menu-open {
     font-size: 16px;
     font-weight: 700;
     text-transform: lowercase;
+    min-width: 0;
+  }
+
+  .zo2y-desktop-rail-profile span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .zo2y-desktop-rail-nav {

@@ -844,7 +844,7 @@
     .card-media.brand-cover {
       aspect-ratio: 1/1;
       padding: 10px;
-      background: var(--card-2);
+      background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
     }
 
     .card-media.brand-cover img {
@@ -855,6 +855,7 @@
       background: transparent;
       padding: 10px;
       box-sizing: border-box;
+      filter: drop-shadow(0 8px 20px rgba(15, 23, 42, 0.08));
     }
 
     .card-media.landscape.game-poster img {
@@ -1040,7 +1041,7 @@
       aspect-ratio: 1/1;
       height: 180px;
       padding: 6px;
-      background: var(--card-2);
+      background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
     }
 
     .rail.unified-rail .card-media.brand-cover img {
@@ -2075,6 +2076,14 @@
         text-decoration: none;
         font-size: 16px;
         font-weight: 700;
+        min-width: 0;
+      }
+
+      .sidebar-profile-btn span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .sidebar-toggle:hover {

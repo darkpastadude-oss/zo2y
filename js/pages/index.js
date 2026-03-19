@@ -1,4 +1,4 @@
-﻿    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
+    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
     const ENABLE_GAMES = !GAMES_DISABLED;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
@@ -149,9 +149,11 @@
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_TRAVEL_BUCKET_NAME = 'travel-photos';
     const HOME_SPOTLIGHT_BUCKET_NAME = 'home-spotlights';
+    const HOME_BRAND_BACKGROUND_BUCKET_NAME = 'brand-backgrounds';
     const HOME_TRAVEL_BUCKET_MANIFEST_CACHE_KEY = 'zo2y_travel_bucket_manifest_v1';
     const HOME_TRAVEL_BUCKET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
     const HOME_TRAVEL_BUCKET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/manifest/travel-photo-manifest.json`;
+    const HOME_BRAND_BACKGROUND_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_BRAND_BACKGROUND_BUCKET_NAME}/manifest/brand-backgrounds.json`;
     const HOME_TRAVEL_FALLBACK_IMAGE = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
         <defs>
@@ -211,6 +213,7 @@
     const HOME_BECAUSE_SIGNAL_RECENCY_HOURS = 24 * 21;
     const HOME_MENU_PRIME_IDLE_DELAY_MS = 2500;
     const HOME_ONBOARDING_VERSION = 'v1';
+    const PROFILE_USERNAME_MAX_LENGTH = 30;
     const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '240px 0px';
     const HOME_TRAVEL_VARIANT_SESSION_SEED = Math.floor(Math.random() * 2147483647);
     const HOME_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
@@ -428,6 +431,8 @@
     const homeTravelPhotoCache = new Map();
     let homeTravelPhotoCacheSaveTimer = null;
     let homeTravelBucketManifestPromise = null;
+    let homeBrandBackgroundManifest = null;
+    let homeBrandBackgroundManifestPromise = null;
     let homeTravelHydrationPromise = null;
     const homePendingRailRenderState = new Map();
     const homeDeferredChannelState = new Map();
@@ -747,6 +752,68 @@
         }
       })();
       return homeTravelBucketManifestPromise;
+    }
+
+    function normalizeHomeBrandBackgroundManifest(payload) {
+      if (!payload || typeof payload !== 'object') return null;
+      const tables = ['fashion_brands', 'food_brands', 'car_brands'];
+      const normalized = {};
+      let hasEntries = false;
+      tables.forEach((table) => {
+        const source = payload?.[table];
+        if (!source || typeof source !== 'object') return;
+        const mapped = {};
+        Object.entries(source).forEach(([slugRaw, urlRaw]) => {
+          const slug = String(slugRaw || '').trim();
+          const url = toHttpsUrl(String(urlRaw || '').trim());
+          if (!slug || !url) return;
+          mapped[slug] = url;
+          hasEntries = true;
+        });
+        normalized[table] = mapped;
+      });
+      return hasEntries ? normalized : null;
+    }
+
+    async function ensureHomeBrandBackgroundManifest(signal) {
+      if (homeBrandBackgroundManifest) return homeBrandBackgroundManifest;
+      if (homeBrandBackgroundManifestPromise) return homeBrandBackgroundManifestPromise;
+      homeBrandBackgroundManifestPromise = (async () => {
+        try {
+          const response = await fetch(HOME_BRAND_BACKGROUND_MANIFEST_URL, {
+            signal,
+            headers: { Accept: 'application/json' }
+          });
+          if (!response.ok) return null;
+          const payload = await response.json();
+          homeBrandBackgroundManifest = normalizeHomeBrandBackgroundManifest(payload);
+          return homeBrandBackgroundManifest;
+        } catch (_err) {
+          return null;
+        } finally {
+          homeBrandBackgroundManifestPromise = null;
+        }
+      })();
+      return homeBrandBackgroundManifestPromise;
+    }
+
+    function getHomeBrandTableName(mediaType) {
+      const type = String(mediaType || '').trim().toLowerCase();
+      if (type === 'fashion') return 'fashion_brands';
+      if (type === 'food') return 'food_brands';
+      if (type === 'car') return 'car_brands';
+      return '';
+    }
+
+    function getHomeBrandBackgroundUrl(row, mediaType) {
+      const table = getHomeBrandTableName(mediaType);
+      if (!table) return '';
+      const slug = String(row?.slug || '').trim().toLowerCase();
+      const tableManifest = homeBrandBackgroundManifest?.[table];
+      if (slug && tableManifest && tableManifest[slug]) {
+        return String(tableManifest[slug] || '').trim();
+      }
+      return '';
     }
 
     function getHomeTravelFallbackItems(limit = getHomeChannelTargetItems()) {
@@ -1195,7 +1262,7 @@
       const logo = resolveBrandLogo(row, safeType);
       const subtitle = `${category}${country ? ` \u00B7 ${country}` : ''}`;
       const extra = founded ? `Since ${founded}` : (row?.description ? String(row.description).trim() : '');
-      const background = getHomeSpotlightBackgroundByType(safeType);
+      const background = getHomeBrandBackgroundUrl(row, safeType);
       const itemId = String(row?.id || row?.slug || `${safeType}-${fallbackIndex}` || '').trim();
       return {
         mediaType: safeType,
@@ -1217,6 +1284,48 @@
         mediaFit: 'contain',
         href: itemId ? `brand.html?type=${encodeURIComponent(safeType)}&id=${encodeURIComponent(itemId)}` : `${safeType}.html`
       };
+    }
+
+    function dedupeHomeBrandRows(rows = []) {
+      const seen = new Set();
+      const out = [];
+      (Array.isArray(rows) ? rows : []).forEach((row) => {
+        const name = String(row?.name || row?.title || '').trim().toLowerCase();
+        const domain = String(row?.domain || '').trim().toLowerCase();
+        const slug = String(row?.slug || '').trim().toLowerCase();
+        const key = name || domain || slug;
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        out.push(row);
+      });
+      return out;
+    }
+
+    function getHomeSessionShuffleSeed(salt = '') {
+      const userSeed = String(homeCurrentUser?.id || '').trim();
+      const raw = `${HOME_TRAVEL_VARIANT_SESSION_SEED}:${userSeed}:${salt}`;
+      let hash = 2166136261;
+      for (let index = 0; index < raw.length; index += 1) {
+        hash ^= raw.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash >>> 0;
+    }
+
+    function stableShuffleHomeItems(items = [], salt = '') {
+      const seedBase = getHomeSessionShuffleSeed(salt);
+      return [...(Array.isArray(items) ? items : [])]
+        .map((item, index) => {
+          const key = `${String(item?.itemId || '').trim()}:${String(item?.title || '').trim().toLowerCase()}:${index}`;
+          let hash = seedBase || 1;
+          for (let cursor = 0; cursor < key.length; cursor += 1) {
+            hash ^= key.charCodeAt(cursor);
+            hash = Math.imul(hash, 16777619);
+          }
+          return { item, order: hash >>> 0 };
+        })
+        .sort((a, b) => a.order - b.order)
+        .map((entry) => entry.item);
     }
 
     function showHomeToast(message, isError = false) {
@@ -1245,9 +1354,6 @@
       const type = String(mediaType || '').toLowerCase();
       if (type === 'book') return HOME_BOOK_SPOTLIGHT_BG;
       if (type === 'music') return HOME_MUSIC_SPOTLIGHT_BG;
-      if (type === 'fashion') return HOME_FASHION_SPOTLIGHT_BG;
-      if (type === 'food') return HOME_FOOD_SPOTLIGHT_BG;
-      if (type === 'car') return HOME_CAR_SPOTLIGHT_BG;
       return '';
     }
 
@@ -1538,6 +1644,7 @@
       const meta = getHomeMediaMeta(mediaTypeKey);
       const isTravelSpotlight = mediaTypeKey === 'travel';
       const isGameSpotlight = mediaTypeKey === 'game';
+      const isBrandSpotlight = mediaTypeKey === 'fashion' || mediaTypeKey === 'food' || mediaTypeKey === 'car';
       const travelScenicImage = isTravelSpotlight
         ? getSafeTravelScenicImage(item.title, item.itemId, item.spotlightImage || item.backgroundImage || item.image)
         : '';
@@ -1548,7 +1655,9 @@
         ? (travelSpotlightBackground || travelScenicImage)
         : (isGameSpotlight
           ? String(item.spotlightImage || item.backgroundImage || '').trim()
-          : String(item.spotlightImage || item.backgroundImage || item.image || '').trim());
+          : (isBrandSpotlight
+            ? String(item.spotlightImage || item.backgroundImage || '').trim()
+            : String(item.spotlightImage || item.backgroundImage || item.image || '').trim()));
       const spotlightBackground = getHomeSpotlightBackgroundByType(mediaTypeKey) || fallbackSpotlightBackground;
       const travelAccentA = isTravelSpotlight
         ? getOptimizedHomeTravelImage(item?.travelPhotoSet?.city || '', 960)
@@ -2366,11 +2475,22 @@
       return `${type}:${id || title || image || index}`;
     }
 
+    function canUseHomeSpotlightItem(item) {
+      if (!item || item.isPlaceholder) return false;
+      return !!String(
+        item?.spotlightImage
+        || item?.backgroundImage
+        || item?.spotlightMediaImage
+        || item?.image
+        || ''
+      ).trim();
+    }
+
     function buildBalancedSpotlightShortlist(pool, limit = HOME_SPOTLIGHT_POOL_SIZE) {
       const maxItems = Math.max(1, Number(limit || HOME_SPOTLIGHT_POOL_SIZE));
       const candidates = [];
       const usedCandidateKeys = new Set();
-      filterHomeSafeItems(Array.isArray(pool) ? pool : []).forEach((item, index) => {
+      filterHomeSafeItems(Array.isArray(pool) ? pool : []).filter((item) => canUseHomeSpotlightItem(item)).forEach((item, index) => {
         const key = getHomeSpotlightPoolKey(item, index);
         if (!key || usedCandidateKeys.has(key)) return;
         usedCandidateKeys.add(key);
@@ -2473,7 +2593,7 @@
     }
 
     function hydrateSpotlightFromPool(pool) {
-      const safePool = filterHomeSafeItems(Array.isArray(pool) ? pool : []);
+      const safePool = filterHomeSafeItems(Array.isArray(pool) ? pool : []).filter((item) => canUseHomeSpotlightItem(item));
       if (!safePool.length) {
         homeSpotlightItems = [];
         resetSpotlightTimer(false);
@@ -5104,7 +5224,7 @@
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
         if (mediaTypeRaw === 'music') mediaClasses.push('music-cover');
         if (mediaTypeRaw === 'travel') mediaClasses.push('travel-photo');
-        if (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food') mediaClasses.push('brand-cover');
+        if (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food' || mediaTypeRaw === 'car') mediaClasses.push('brand-cover');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         if (hasVisualImage) mediaClasses.push('is-loading-media');
         if (restaurantComposite && !coverImage && !logo) return '';
@@ -5440,14 +5560,17 @@
           } catch (_profileErr) {}
           if (profileBtn) {
             profileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+            profileBtn.title = label;
             profileBtn.style.display = 'inline-flex';
           }
           if (mobileProfileBtn) {
             mobileProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+            mobileProfileBtn.title = label;
             mobileProfileBtn.style.display = 'inline-flex';
           }
           if (sidebarProfileBtn) {
             sidebarProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+            sidebarProfileBtn.title = label;
             sidebarProfileBtn.style.display = 'inline-flex';
           }
         } else {
@@ -5737,7 +5860,7 @@
                 <label class="onboarding-label" for="homeOnboardingUsernameInput">Username</label>
                 <div class="onboarding-input-wrap">
                   <span class="onboarding-at">@</span>
-                  <input id="homeOnboardingUsernameInput" class="onboarding-input" type="text" autocomplete="off" placeholder="your_name" />
+                  <input id="homeOnboardingUsernameInput" class="onboarding-input" type="text" autocomplete="off" placeholder="your_name" maxlength="${PROFILE_USERNAME_MAX_LENGTH}" />
                 </div>
                 <div id="homeOnboardingUsernameStatus" class="onboarding-status">Choose a username to continue.</div>
               </div>
@@ -5749,7 +5872,7 @@
         {
           id: 'interests-setup',
           title: 'Tune Your Feed',
-          body: 'Choose formats and genres so the “For You” feed starts on the right note.',
+          body: 'Choose formats and genres so the �For You� feed starts on the right note.',
           art: `
               <div class="onboarding-interest-layout">
                 <div class="onboarding-interest-photos">
@@ -5860,7 +5983,7 @@
           actionLabel: 'Go To My Profile',
           action: () => {
             closeHomeOnboarding(true);
-            window.location.href = 'profile.html';
+            window.location.href = 'index.html';
           }
         }
       ];
@@ -6614,49 +6737,64 @@
       async function loadFashionBrands() {
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
-        const fallbackItems = HOME_FASHION_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'fashion', index));
+        const backgroundManifestPromise = ensureHomeBrandBackgroundManifest();
+        const fallbackItems = stableShuffleHomeItems(
+          HOME_FASHION_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'fashion', index)),
+          'fashion:fallback'
+        ).slice(0, target);
         if (!client) return fallbackItems.slice(0, target);
 
-        const fetchLimit = Math.max(target * 2, target);
+        const fetchLimit = Math.max(target * 4, target);
         const { data, error } = await client
           .from('fashion_brands')
           .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
-          .order('name', { ascending: true })
           .limit(fetchLimit);
         if (error || !data || !data.length) return fallbackItems.slice(0, target);
-        return (data || []).map((row, index) => mapHomeBrandItem(row, 'fashion', index)).slice(0, target);
+        await backgroundManifestPromise;
+        const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'fashion', index));
+        return stableShuffleHomeItems(items, 'fashion:home').slice(0, target);
       }
 
       async function loadFoodBrands() {
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
-        const fallbackItems = HOME_FOOD_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'food', index));
+        const backgroundManifestPromise = ensureHomeBrandBackgroundManifest();
+        const fallbackItems = stableShuffleHomeItems(
+          HOME_FOOD_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'food', index)),
+          'food:fallback'
+        ).slice(0, target);
         if (!client) return fallbackItems.slice(0, target);
 
-        const fetchLimit = Math.max(target * 2, target);
+        const fetchLimit = Math.max(target * 4, target);
         const { data, error } = await client
           .from('food_brands')
           .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
-          .order('name', { ascending: true })
           .limit(fetchLimit);
         if (error || !data || !data.length) return fallbackItems.slice(0, target);
-        return (data || []).map((row, index) => mapHomeBrandItem(row, 'food', index)).slice(0, target);
+        await backgroundManifestPromise;
+        const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'food', index));
+        return stableShuffleHomeItems(items, 'food:home').slice(0, target);
       }
 
       async function loadCarBrands() {
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
-        const fallbackItems = HOME_CAR_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'car', index));
+        const backgroundManifestPromise = ensureHomeBrandBackgroundManifest();
+        const fallbackItems = stableShuffleHomeItems(
+          HOME_CAR_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'car', index)),
+          'car:fallback'
+        ).slice(0, target);
         if (!client) return fallbackItems.slice(0, target);
 
-        const fetchLimit = Math.max(target * 2, target);
+        const fetchLimit = Math.max(target * 4, target);
         const { data, error } = await client
           .from('car_brands')
           .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
-          .order('name', { ascending: true })
           .limit(fetchLimit);
         if (error || !data || !data.length) return fallbackItems.slice(0, target);
-        return (data || []).map((row, index) => mapHomeBrandItem(row, 'car', index)).slice(0, target);
+        await backgroundManifestPromise;
+        const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'car', index));
+        return stableShuffleHomeItems(items, 'car:home').slice(0, target);
       }
 
     async function loadMovies(signal) {
@@ -6753,7 +6891,7 @@
       const normalized = normalizeProfileUsername(value);
       if (!isValidProfileUsername(normalized)) {
         homeOnboardingProfile.usernameStatus = 'bad';
-        setHomeOnboardingUsernameStatus('Use 3-30 letters, numbers, or underscores.', 'bad');
+        setHomeOnboardingUsernameStatus(`Use 3-${PROFILE_USERNAME_MAX_LENGTH} letters, numbers, or underscores.`, 'bad');
         updateHomeOnboardingNextState();
         return false;
       }
@@ -7110,7 +7248,7 @@
           return;
         }
         const script = document.createElement('script');
-        script.src = 'js/pages/index-home-heavy-loaders.js?v=20260319d';
+        script.src = 'js/pages/index-home-heavy-loaders.js?v=20260319e';
         script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
@@ -7298,18 +7436,17 @@
       const authRequired = params.get('auth') === 'required';
 
       if (authRequired && authNotice) {
-        const readableNext = next && next !== 'index.html'
-          ? next.replace(/\.html?$/i, '').replace(/[?#].*$/, '').replace(/[-_/]+/g, ' ').trim()
-          : 'the app';
         authNotice.hidden = false;
-        authNotice.textContent = `Sign in to continue to ${readableNext || 'the app'}.`;
+        authNotice.textContent = 'Sign in to continue into Zo2y.';
       }
 
       document.querySelectorAll('[data-auth-entry]').forEach((link) => {
         link.addEventListener('click', () => {
-          localStorage.setItem('postAuthRedirect', next || 'index.html');
+          localStorage.setItem('postAuthRedirect', 'index.html');
         });
       });
+
+      initLandingMascot();
 
       if (!revealNodes.length || typeof window.IntersectionObserver !== 'function') {
         revealNodes.forEach((node) => node.classList.add('is-visible'));
@@ -7331,6 +7468,59 @@
         }
         observer.observe(node);
       });
+    }
+
+    function initLandingMascot() {
+      const hero = document.querySelector('.landing-hero');
+      const mascot = document.getElementById('landingMascot');
+      const shell = mascot?.querySelector?.('.landing-mascot-shell');
+      if (!hero || !mascot || !shell || mascot.dataset.wired === '1') return;
+      mascot.dataset.wired = '1';
+
+      let moveFrame = 0;
+      const applyPointer = (clientX, clientY) => {
+        const rect = hero.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const px = ((clientX - rect.left) / rect.width) - 0.5;
+        const py = ((clientY - rect.top) / rect.height) - 0.5;
+        const offsetX = Math.max(-14, Math.min(14, px * 28));
+        const offsetY = Math.max(-10, Math.min(10, py * 20));
+        const tilt = Math.max(-6, Math.min(6, px * 12));
+        shell.style.setProperty('--landing-mascot-x', `${offsetX.toFixed(1)}px`);
+        shell.style.setProperty('--landing-mascot-y', `${offsetY.toFixed(1)}px`);
+        shell.style.setProperty('--landing-mascot-tilt', `${tilt.toFixed(1)}deg`);
+      };
+      const resetPointer = () => {
+        shell.style.setProperty('--landing-mascot-x', '0px');
+        shell.style.setProperty('--landing-mascot-y', '0px');
+        shell.style.setProperty('--landing-mascot-tilt', '0deg');
+      };
+      const queuePointerUpdate = (clientX, clientY) => {
+        if (moveFrame) cancelAnimationFrame(moveFrame);
+        moveFrame = requestAnimationFrame(() => {
+          moveFrame = 0;
+          applyPointer(clientX, clientY);
+        });
+      };
+
+      hero.addEventListener('pointermove', (event) => {
+        queuePointerUpdate(event.clientX, event.clientY);
+      });
+      hero.addEventListener('pointerleave', resetPointer);
+      hero.addEventListener('touchmove', (event) => {
+        const touch = event.touches && event.touches[0];
+        if (!touch) return;
+        queuePointerUpdate(touch.clientX, touch.clientY);
+      }, { passive: true });
+      hero.addEventListener('touchend', resetPointer, { passive: true });
+
+      const blink = () => {
+        mascot.classList.add('is-blinking');
+        window.setTimeout(() => mascot.classList.remove('is-blinking'), 120);
+        window.setTimeout(blink, 2300 + Math.round(Math.random() * 1900));
+      };
+      window.setTimeout(blink, 1200);
+      resetPointer();
     }
 
     let homeAppBootPromise = null;
@@ -7518,6 +7708,5 @@
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
-
 
 

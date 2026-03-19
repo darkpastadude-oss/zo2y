@@ -145,6 +145,38 @@
       align-items: center;
     }
 
+    .landing-mascot {
+      position: absolute;
+      top: 22px;
+      right: 24px;
+      width: clamp(96px, 10vw, 132px);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .landing-mascot-shell {
+      transform:
+        translate3d(var(--landing-mascot-x, 0px), var(--landing-mascot-y, 0px), 0)
+        rotate(var(--landing-mascot-tilt, 0deg));
+      transform-origin: center;
+      transition: transform 180ms ease-out;
+      animation: landingMascotFloat 7.2s ease-in-out infinite;
+      filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.26));
+    }
+
+    .landing-mascot img {
+      display: block;
+      width: 100%;
+      height: auto;
+      user-select: none;
+      transform-origin: center;
+      transition: transform 110ms ease;
+    }
+
+    .landing-mascot.is-blinking img {
+      transform: scaleY(0.08);
+    }
+
     .landing-hero::before,
     .landing-section::before {
       content: "";
@@ -154,6 +186,11 @@
         radial-gradient(circle at 82% 18%, rgba(255, 188, 66, 0.16), transparent 26%),
         radial-gradient(circle at 8% 88%, rgba(78, 152, 255, 0.12), transparent 26%);
       pointer-events: none;
+    }
+
+    @keyframes landingMascotFloat {
+      0%, 100% { transform: translate3d(var(--landing-mascot-x, 0px), calc(var(--landing-mascot-y, 0px) - 2px), 0) rotate(var(--landing-mascot-tilt, 0deg)); }
+      50% { transform: translate3d(var(--landing-mascot-x, 0px), calc(var(--landing-mascot-y, 0px) + 6px), 0) rotate(calc(var(--landing-mascot-tilt, 0deg) + 1.25deg)); }
     }
 
     .landing-hero-copy,
@@ -652,6 +689,12 @@
         gap: 22px;
       }
 
+      .landing-mascot {
+        top: 18px;
+        right: 18px;
+        width: 92px;
+      }
+
       .landing-title,
       .landing-section-head h2,
       .landing-close-copy h2 {
@@ -713,6 +756,14 @@
       .landing-hero {
         padding: 22px 18px;
         border-radius: 18px;
+      }
+
+      .landing-mascot {
+        position: relative;
+        top: auto;
+        right: auto;
+        width: 86px;
+        margin: 0 0 2px auto;
       }
 
       .landing-title {

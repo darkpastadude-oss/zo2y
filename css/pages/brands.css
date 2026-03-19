@@ -108,7 +108,7 @@ main.container {
   width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 14px;
-  background: var(--brand-card);
+  background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -127,7 +127,7 @@ main.container {
   inset: 0;
   background:
     linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.12) 48%, rgba(255,255,255,0.02) 100%),
-    var(--brand-card);
+    linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
   background-size: 220px 100%, 100% 100%;
   background-repeat: no-repeat;
   animation: brandImageShimmer 1.15s linear infinite;
@@ -143,13 +143,13 @@ main.container {
   position: relative;
   z-index: 1;
   opacity: 0;
-  filter: blur(10px);
+  filter: blur(10px) drop-shadow(0 8px 18px rgba(15, 23, 42, 0.08));
   transition: opacity 220ms ease, filter 220ms ease;
 }
 
 .brand-card-logo img[data-ready="1"] {
   opacity: 1;
-  filter: blur(0);
+  filter: blur(0) drop-shadow(0 8px 18px rgba(15, 23, 42, 0.08));
 }
 
 @keyframes brandImageShimmer {
