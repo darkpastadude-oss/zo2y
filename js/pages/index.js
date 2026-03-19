@@ -1603,6 +1603,28 @@
       return (hashString(`${value}|${dateKey}`) % 100) / 100;
     }
 
+    function getHomeTravelSpotlightVisual(item) {
+      const safeItem = item && typeof item === 'object' ? item : {};
+      const code = canonicalTravelCountryCode(safeItem.itemId || safeItem.code || '');
+      const title = String(safeItem.title || safeItem.name || '').trim();
+      const cachedSet = normalizeHomeTravelPhotoEntry(safeItem.travelPhotoSet || getHomeTravelPhotoSet(code));
+      const fallback = getSafeTravelScenicImage(
+        title,
+        code,
+        safeItem.spotlightImage || safeItem.backgroundImage || safeItem.image || cachedSet.scenic || cachedSet.city || ''
+      );
+      const choices = [
+        { kind: 'scenic', src: cachedSet.scenic || fallback },
+        { kind: 'city', src: cachedSet.city || '' }
+      ].filter((entry) => isUsableHomeTravelScenicUrl(entry.src));
+      if (!choices.length) {
+        return fallback ? { kind: 'scenic', src: fallback } : null;
+      }
+      const seedKey = `${HOME_TRAVEL_VARIANT_SESSION_SEED}:${code || title || 'travel'}`;
+      const index = hashString(seedKey) % choices.length;
+      return choices[index] || choices[0] || null;
+    }
+
     function getTrendLabel(item) {
       const buzz = Math.max(52, Math.min(99, Math.round((Number(item.discoveryScore) || 0.62) * 100)));
       return `<i class="fa-solid fa-fire"></i> Global buzz ${buzz}%`;
@@ -1660,8 +1682,11 @@
       const isTravelSpotlight = mediaTypeKey === 'travel';
       const isGameSpotlight = mediaTypeKey === 'game';
       const isBrandSpotlight = mediaTypeKey === 'fashion' || mediaTypeKey === 'food' || mediaTypeKey === 'car';
+      const travelSpotlightVisual = isTravelSpotlight
+        ? getHomeTravelSpotlightVisual(item)
+        : null;
       const travelScenicImage = isTravelSpotlight
-        ? getSafeTravelScenicImage(item.title, item.itemId, item.spotlightImage || item.backgroundImage || item.image)
+        ? String(travelSpotlightVisual?.src || getSafeTravelScenicImage(item.title, item.itemId, item.spotlightImage || item.backgroundImage || item.image)).trim()
         : '';
       const travelSpotlightBackground = isTravelSpotlight
         ? getOptimizedHomeTravelImage(travelScenicImage, 1600)
@@ -1674,12 +1699,8 @@
             ? String(item.spotlightImage || item.backgroundImage || '').trim()
             : String(item.spotlightImage || item.backgroundImage || item.image || '').trim()));
       const spotlightBackground = getHomeSpotlightBackgroundByType(mediaTypeKey) || fallbackSpotlightBackground;
-      const travelAccentA = isTravelSpotlight
-        ? getOptimizedHomeTravelImage(item?.travelPhotoSet?.city || '', 960)
-        : '';
-      const travelAccentB = isTravelSpotlight
-        ? getOptimizedHomeTravelImage(item?.travelPhotoSet?.nature || '', 960)
-        : '';
+      const travelAccentA = '';
+      const travelAccentB = '';
       const travelFlagImage = String(item.flagImage || '').trim();
       let spotlightMediaImage = String(item.spotlightMediaImage || travelFlagImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
       if (isTravelSpotlight) {
@@ -1700,7 +1721,7 @@
       const usesLandscapeMedia = spotlightMediaShape === 'landscape';
       const mediaToken = ++homeSpotlightImageToken;
 
-      spotlightSection.classList.remove('has-square-media', 'has-landscape-media', 'theme-music', 'theme-book', 'theme-travel');
+      spotlightSection.classList.remove('has-square-media', 'has-landscape-media', 'theme-music', 'theme-book', 'theme-travel', 'travel-single-visual');
       mediaWrap.classList.remove('square', 'landscape');
       if (mediaTypeKey === 'music') {
         spotlightSection.classList.add('theme-music');
@@ -1708,6 +1729,7 @@
         spotlightSection.classList.add('theme-book');
       } else if (isTravelSpotlight) {
         spotlightSection.classList.add('theme-travel');
+        spotlightSection.classList.add('travel-single-visual');
       }
       if (usesLandscapeMedia) {
         spotlightSection.classList.add('has-landscape-media');
@@ -7723,4 +7745,3 @@
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
-

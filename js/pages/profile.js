@@ -5461,6 +5461,35 @@
                 return text;
             }
 
+            function resolveProfileBrandLogo(row, contentType = '') {
+                const logoValue = String(row?.logo_url || row?.logo || '').trim();
+                if (logoValue) {
+                    const normalized = toHttpsUrl(logoValue);
+                    if (/^https?:\/\//i.test(normalized) || normalized.startsWith('/') || normalized.startsWith('data:')) {
+                        return normalized;
+                    }
+                }
+
+                const name = String(row?.name || row?.title || '').trim();
+                const domain = String(row?.domain || '').trim();
+                const safeType = String(contentType || '').trim().toLowerCase();
+                if (name) {
+                    const params = new URLSearchParams();
+                    params.set('title', name);
+                    if (domain) params.set('domain', domain);
+                    if (safeType === 'fashion' || safeType === 'food' || safeType === 'car') {
+                        params.set('mode', 'logo');
+                    }
+                    return `/api/logo?${params.toString()}`;
+                }
+
+                if (domain) {
+                    return `/api/logo?domain=${encodeURIComponent(domain)}&size=256${safeType === 'fashion' || safeType === 'food' || safeType === 'car' ? '&mode=logo' : ''}`;
+                }
+
+                return '';
+            }
+
             async function fetchTravelCountriesByCodes(codes = []) {
                 const normalizedCodes = Array.from(new Set(
                     (Array.isArray(codes) ? codes : [])
@@ -5563,19 +5592,10 @@
                         const id = String(row?.id || '').trim();
                         if (!id) return;
                         const name = String(row?.name || '').trim();
-                        const wikiLogo = (() => {
-                            if (!name) return '';
-                            const params = new URLSearchParams();
-                            params.set('title', name);
-                            const domainRaw = String(row?.domain || '').trim();
-                            if (domainRaw) params.set('domain', domainRaw);
-                            params.set('mode', 'logo');
-                            return `/api/logo?${params.toString()}`;
-                        })();
                         const brand = {
                             id,
                             name,
-                            logo: wikiLogo || toHttpsUrl(row?.logo_url || ''),
+                            logo: resolveProfileBrandLogo(row, contentType) || '/newlogo.webp',
                             category: String(row?.category || '').trim(),
                             description: String(row?.description || '').trim(),
                             country: String(row?.country || '').trim()
@@ -8836,22 +8856,25 @@
                                         : contentType === 'travel'
                                             ? 'travel'
                                             : 'music';
+                const isBrandPreview = contentType === 'fashion' || contentType === 'food' || contentType === 'car';
                 const buildPreviewHtml = (previewItems = []) => {
                     let html = '';
                     for (let i = 0; i < previewLimit; i++) {
                         const overflowHtml = (i === previewLimit - 1 && count > previewLimit)
                             ? `<div class="collection-preview-overflow">+${count - previewLimit}</div>`
                             : '';
+                        const previewClasses = ['collection-preview-item', previewOrientationClass];
+                        if (isBrandPreview) previewClasses.push('brand-logo-preview');
                         if (previewItems[i]) {
                             html += `
-                                <div class="collection-preview-item ${previewOrientationClass}">
-                                    <img src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                                <div class="${previewClasses.join(' ')}">
+                                    <img class="${isBrandPreview ? 'brand-logo-preview-image' : ''}" src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                                     ${overflowHtml}
                                 </div>
                             `;
                         } else {
                             html += `
-                                <div class="collection-preview-item ${previewOrientationClass}">
+                                <div class="${previewClasses.join(' ')}">
                                     <div class="collection-preview-item-empty">${iconGlyph(fallbackPreviewIcon)}</div>
                                     ${overflowHtml}
                                 </div>
@@ -8867,6 +8890,8 @@
                         writePreviewAssetCache(contentType, code || id, flagUrl);
                         return flagUrl;
                     })
+                    : isBrandPreview
+                        ? await getPreviewItems(previewIds, contentType)
                     : previewIds.map((id) => readPreviewAssetCache(contentType, id));
                 const previewHtml = buildPreviewHtml(cachedPreviewItems);
 
@@ -8933,7 +8958,7 @@
                 card.onclick = () => openCollectionPage(routeListId, contentType, routeListType);
 
                 // Hydrate preview images in the background to keep first paint instant.
-                if (previewIds.length) {
+                if (previewIds.length && !isBrandPreview) {
                     void getPreviewItems(previewIds, contentType)
                         .then((resolvedPreviewItems) => {
                             if (!card.isConnected) return;
@@ -9021,18 +9046,7 @@
                             const id = String(row.id || '').trim();
                             const name = String(row?.name || '').trim();
                             const domain = String(row?.domain || '').trim();
-                            let imageUrl = '';
-                            if (name) {
-                                const params = new URLSearchParams();
-                                params.set('title', name);
-                                if (domain) params.set('domain', domain);
-                                params.set('mode', 'logo');
-                                imageUrl = `/api/logo?${params.toString()}`;
-                            } else if (domain) {
-                                imageUrl = `/api/logo?domain=${encodeURIComponent(domain)}&size=256`;
-                            } else if (row?.logo_url) {
-                                imageUrl = String(row.logo_url).trim();
-                            }
+                            const imageUrl = resolveProfileBrandLogo(row, contentType);
                             writePreviewAssetCache(contentType, id, imageUrl || '/newlogo.webp');
                         });
                     } else if (contentType === 'travel') {
@@ -10835,7 +10849,7 @@
                     };
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <img class="collection-item-image brand-logo-stage" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${escapeHtml(title)}</h3>
                             ${canEditItems ? `
@@ -11011,7 +11025,7 @@
                     };
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <img class="collection-item-image brand-logo-stage" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${escapeHtml(title)}</h3>
                             ${canEditItems ? `
@@ -11200,7 +11214,7 @@
                     };
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <img class="collection-item-image brand-logo-stage" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${escapeHtml(title)}</h3>
                             ${canEditItems ? `
@@ -13129,6 +13143,4 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
-
-
 

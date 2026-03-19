@@ -186,6 +186,11 @@
       transition: opacity 0.24s ease;
     }
 
+    .spotlight.theme-travel.travel-single-visual .spotlight-bg::before,
+    .spotlight.theme-travel.travel-single-visual .spotlight-bg::after {
+      opacity: 0;
+    }
+
     .spotlight.theme-travel::before {
       background:
         linear-gradient(102deg, rgba(5, 11, 24, 0.82) 0%, rgba(7, 14, 32, 0.52) 38%, rgba(10, 22, 48, 0.16) 100%),

@@ -750,6 +750,10 @@
         });
     }
 
+    function getTravelSpotlightVariants(item) {
+      return getTravelCardVariants(item).filter((entry) => entry.kind === 'scenic' || entry.kind === 'city');
+    }
+
     function hashTravelVariantSeed(value) {
       const input = String(value || '');
       let hash = 2166136261;
@@ -769,6 +773,19 @@
       ].filter(Boolean).join('|');
       const index = hashTravelVariantSeed(`${TRAVEL_VARIANT_SESSION_SEED}:${itemKey}`) % variants.length;
       return variants[index] || variants[0] || null;
+    }
+
+    function getStableTravelSpotlightVariant(item) {
+      const variants = getTravelSpotlightVariants(item);
+      if (variants.length) {
+        const itemKey = [
+          String(item?.code || '').trim().toUpperCase(),
+          stripLeadingFlagEmoji(item?.name || '')
+        ].filter(Boolean).join('|');
+        const index = hashTravelVariantSeed(`${TRAVEL_VARIANT_SESSION_SEED}:spotlight:${itemKey}`) % variants.length;
+        return variants[index] || variants[0] || null;
+      }
+      return getStableTravelCardVariant(item);
     }
 
     function stripLeadingFlagEmoji(value) {
@@ -1816,7 +1833,7 @@
       const featured = state.filtered.slice(0, 3);
       const primary = featured[0] || state.rows[0] || null;
       const primaryPhoto = primary
-        ? (getStableTravelCardVariant(primary)?.src || getOptimizedTravelBucketImage(primary.photo || primary.photoCity || primary.photoNature || '', 1600))
+        ? (getStableTravelSpotlightVariant(primary)?.src || getOptimizedTravelBucketImage(primary.photo || primary.photoCity || primary.photoNature || '', 1600))
         : '';
       hero.style.setProperty(
         '--hero-bg-image',
@@ -1829,7 +1846,7 @@
         return;
       }
       spotlight.innerHTML = featured.map((item, index) => {
-        const thumb = getStableTravelCardVariant(item)?.src || getOptimizedTravelBucketImage(item.photo || item.photoCity || item.photoNature || '', 320);
+        const thumb = getStableTravelSpotlightVariant(item)?.src || getOptimizedTravelBucketImage(item.photo || item.photoCity || item.photoNature || '', 320);
         const rankLabel = index === 0 ? 'Trending now' : `Top pick ${index + 1}`;
         const subtitleBits = [
           item.capital ? `Capital: ${item.capital}` : '',
@@ -2211,7 +2228,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
 
 
 
