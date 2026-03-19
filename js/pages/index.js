@@ -479,7 +479,7 @@
         .normalize('NFD')
         .replace(/[\u0300-\u036f]+/g, '')
         .replace(/&/g, ' and ')
-        .replace(/['â€™]/g, '')
+        .replace(/[\u0027\u2019]/g, '')
         .replace(/[^a-z0-9]+/g, ' ')
         .replace(/^the\s+/g, '')
         .trim();
@@ -1193,7 +1193,7 @@
       const country = String(row?.country || '').trim();
       const founded = row?.founded ? String(row.founded) : '';
       const logo = resolveBrandLogo(row, safeType);
-      const subtitle = `${category}${country ? ` Â· ${country}` : ''}`;
+      const subtitle = `${category}${country ? ` \u00B7 ${country}` : ''}`;
       const extra = founded ? `Since ${founded}` : (row?.description ? String(row.description).trim() : '');
       const background = getHomeSpotlightBackgroundByType(safeType);
       const itemId = String(row?.id || row?.slug || `${safeType}-${fallbackIndex}` || '').trim();
@@ -5536,7 +5536,7 @@
         .trim()
         .replace(/^@+/, '')
         .toLowerCase()
-        .replace(/['Ã¢â‚¬â„¢]/g, '')
+        .replace(/[\u0027\u2019]/g, '')
         .replace(/[^a-z0-9_]+/g, '_')
         .replace(/_+/g, '_')
         .replace(/^_+|_+$/g, '')
@@ -5749,7 +5749,7 @@
         {
           id: 'interests-setup',
           title: 'Tune Your Feed',
-          body: 'Choose formats and genres so the â€œFor Youâ€ feed starts on the right note.',
+          body: 'Choose formats and genres so the “For You” feed starts on the right note.',
           art: `
               <div class="onboarding-interest-layout">
                 <div class="onboarding-interest-photos">
@@ -6763,7 +6763,7 @@
         updateHomeOnboardingNextState();
         return false;
       }
-      setHomeOnboardingUsernameStatus('Checking availabilityâ€¦');
+      setHomeOnboardingUsernameStatus('Checking availability\u2026');
       homeOnboardingProfile.usernameStatus = 'checking';
       updateHomeOnboardingNextState();
       try {
@@ -7110,7 +7110,7 @@
           return;
         }
         const script = document.createElement('script');
-        script.src = 'js/pages/index-home-heavy-loaders.js?v=20260319c';
+        script.src = 'js/pages/index-home-heavy-loaders.js?v=20260319d';
         script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});

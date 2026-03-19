@@ -1107,26 +1107,26 @@ async function loadBooks(signal) {
     function getHomeSportEmoji(sportRaw = '') {
       const sport = String(sportRaw || '').trim().toLowerCase();
       if (!sport) return '';
-      if (sport.includes('soccer')) return 'âš½';
-      if (sport.includes('american football')) return 'ðŸˆ';
-      if (sport.includes('football')) return 'âš½';
-      if (sport.includes('basketball')) return 'ðŸ€';
-      if (sport.includes('baseball')) return 'âš¾';
-      if (sport.includes('ice hockey') || sport.includes('hockey')) return 'ðŸ’';
-      if (sport.includes('cricket')) return 'ðŸ';
-      if (sport.includes('rugby')) return 'ðŸ‰';
-      if (sport.includes('golf')) return 'â›³';
-      if (sport.includes('tennis')) return 'ðŸŽ¾';
-      if (sport.includes('volleyball')) return 'ðŸ';
-      if (sport.includes('handball')) return 'ðŸ¤¾';
-      if (sport.includes('boxing')) return 'ðŸ¥Š';
-      if (sport.includes('mma') || sport.includes('mixed martial')) return 'ðŸ¥‹';
-      if (sport.includes('motorsport') || sport.includes('racing')) return 'ðŸŽï¸';
-      if (sport.includes('cycling')) return 'ðŸš´';
-      if (sport.includes('snooker') || sport.includes('billiard')) return 'ðŸŽ±';
-      if (sport.includes('darts')) return 'ðŸŽ¯';
-      if (sport.includes('table tennis') || sport.includes('ping pong')) return 'ðŸ“';
-      return 'ðŸŸï¸';
+      if (sport.includes('soccer')) return '\u26BD';
+      if (sport.includes('american football')) return '\u{1F3C8}';
+      if (sport.includes('football')) return '\u26BD';
+      if (sport.includes('basketball')) return '\u{1F3C0}';
+      if (sport.includes('baseball')) return '\u26BE';
+      if (sport.includes('ice hockey') || sport.includes('hockey')) return '\u{1F3D2}';
+      if (sport.includes('cricket')) return '\u{1F3CF}';
+      if (sport.includes('rugby')) return '\u{1F3C9}';
+      if (sport.includes('golf')) return '\u26F3';
+      if (sport.includes('tennis')) return '\u{1F3BE}';
+      if (sport.includes('volleyball')) return '\u{1F3D0}';
+      if (sport.includes('handball')) return '\u{1F93E}';
+      if (sport.includes('boxing')) return '\u{1F94A}';
+      if (sport.includes('mma') || sport.includes('mixed martial')) return '\u{1F94B}';
+      if (sport.includes('motorsport') || sport.includes('racing')) return '\u{1F3CE}\uFE0F';
+      if (sport.includes('cycling')) return '\u{1F6B4}';
+      if (sport.includes('snooker') || sport.includes('billiard')) return '\u{1F3B1}';
+      if (sport.includes('darts')) return '\u{1F3AF}';
+      if (sport.includes('table tennis') || sport.includes('ping pong')) return '\u{1F3D3}';
+      return '\u{1F3DF}\uFE0F';
     }
 
     function mapSportsTeamToHomeItem(team) {
@@ -1197,7 +1197,7 @@ async function loadBooks(signal) {
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]+/g, '')
-        .replace(/['Ã¢â‚¬â„¢]/g, '')
+        .replace(/[\u0027\u2019]/g, '')
         .replace(/\b(fc|cf|sc|afc|club|the)\b/g, '')
         .replace(/[^a-z0-9]+/g, ' ')
         .trim();

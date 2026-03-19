@@ -796,6 +796,7 @@
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
       const BOOKS_PER_PAGE = 20;
+      const BOOKS_CACHE_TTL_MS = 1000 * 60 * 45;
       const CATEGORY_OPTIONS = [
         'Fiction',
         'Mystery',
@@ -825,8 +826,11 @@
         pendingDefaultOps: new Set(),
         bookIndex: new Map(),
         requestSeq: 0,
-        bookSyncWarned: false
+        bookSyncWarned: false,
+        backgroundRefreshes: new Set()
       };
+
+      const booksRuntimeCache = new Map();
 
       let supabaseClient = null;
 
@@ -965,7 +969,17 @@
           }
           url.searchParams.set(key, String(value));
         });
-        const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 6500);
+        let res;
+        try {
+          res = await fetch(url.toString(), {
+            headers: { Accept: 'application/json' },
+            signal: controller.signal
+          });
+        } finally {
+          window.clearTimeout(timeoutId);
+        }
         if (!res.ok) throw new Error(`Books API error ${res.status}`);
         const json = await res.json();
         const docsRaw = Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.items) ? json.items : []);
@@ -1072,7 +1086,7 @@
       function truncateText(text, maxLen) {
         if (!text) return '';
         if (text.length <= maxLen) return text;
-        return `${text.slice(0, maxLen - 1)}â€¦`;
+        return `${text.slice(0, maxLen - 1)}\u2026`;
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -1091,6 +1105,66 @@
           if (timeoutId) clearTimeout(timeoutId);
           timeoutId = setTimeout(() => fn(...args), wait);
         };
+      }
+
+
+      function getBooksCacheKey() {
+        return `books_search_v3_${state.query}_${state.author}_${state.activeCategory}_${state.year}_${state.page}`;
+      }
+
+      function readBooksCache(cacheKey) {
+        const runtimeEntry = booksRuntimeCache.get(cacheKey);
+        if (runtimeEntry && runtimeEntry.cachedAt && (Date.now() - runtimeEntry.cachedAt) < BOOKS_CACHE_TTL_MS) {
+          return runtimeEntry;
+        }
+        const cachedRaw = localStorage.getItem(cacheKey);
+        if (!cachedRaw) return null;
+        try {
+          const parsed = JSON.parse(cachedRaw);
+          if (Array.isArray(parsed?.docs)) {
+            const normalized = {
+              docs: parsed.docs,
+              numFound: Number(parsed.numFound || parsed.docs.length) || parsed.docs.length,
+              cachedAt: Number(parsed.cachedAt || 0) || 0
+            };
+            booksRuntimeCache.set(cacheKey, normalized);
+            return normalized;
+          }
+        } catch (error) {
+          console.warn('Cache read error', error);
+        }
+        return null;
+      }
+
+      function writeBooksCache(cacheKey, data) {
+        if (!cacheKey || !Array.isArray(data?.docs)) return;
+        const payload = {
+          docs: data.docs,
+          numFound: Number(data.numFound || data.docs.length) || data.docs.length,
+          cachedAt: Date.now()
+        };
+        booksRuntimeCache.set(cacheKey, payload);
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(payload));
+        } catch (_error) {
+          // Ignore storage quota errors.
+        }
+      }
+
+      function scheduleBooksBackgroundRefresh(taskKey, callback) {
+        if (!taskKey || typeof callback !== 'function' || state.backgroundRefreshes.has(taskKey)) return;
+        state.backgroundRefreshes.add(taskKey);
+        const run = () => {
+          Promise.resolve()
+            .then(callback)
+            .catch((error) => console.warn('Books background refresh failed', error))
+            .finally(() => state.backgroundRefreshes.delete(taskKey));
+        };
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(run, { timeout: 1800 });
+        } else {
+          window.setTimeout(run, 350);
+        }
       }
 
       function scoreBookMatch(item) {
@@ -1293,17 +1367,21 @@
         const grid = document.getElementById('booksGrid');
         if (!grid) return;
         const requestSeq = ++state.requestSeq;
+        const cacheKey = getBooksCacheKey();
+        const cached = readBooksCache(cacheKey);
+        const hasActiveFilters = !!(state.query || state.author || state.activeCategory || state.year);
+        const isFirstPopularPage = !hasActiveFilters && Number(state.page || 1) === 1;
+        const cachedIsFresh = !!(cached?.cachedAt && (Date.now() - cached.cachedAt) < BOOKS_CACHE_TTL_MS);
 
-        // Show cached results instantly
-        const cacheKey = `books_search_v2_${state.query}_${state.author}_${state.activeCategory}_${state.year}_${state.page}`;
-        const cached = localStorage.getItem(cacheKey);
-        if (cached && state.page !== 1) {
-          try {
-            const cachedData = JSON.parse(cached);
-            displayBookResults(cachedData.docs, cachedData.numFound);
+        if (cached?.docs?.length) {
+          displayBookResults(cached.docs, cached.numFound || cached.docs.length);
+          if (cachedIsFresh) {
+            if (isFirstPopularPage) {
+              scheduleBooksBackgroundRefresh('books-trending-warmup', async () => {
+                await fetchTrendingBooks(Math.min(8, BOOKS_PER_PAGE));
+              });
+            }
             return;
-          } catch (e) {
-            console.warn('Cache read error', e);
           }
         }
 
@@ -1319,10 +1397,11 @@
           if (state.activeCategory) params.subject = state.activeCategory;
           if (state.year) params.first_publish_year = state.year;
           if (!params.q && !params.author && !params.subject && !params.first_publish_year) {
+            data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
             if (Number(state.page || 1) === 1) {
-              data = await loadCuratedPopularBooks();
-            } else {
-              data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
+              scheduleBooksBackgroundRefresh('books-trending-warmup', async () => {
+                await fetchTrendingBooks(Math.min(8, BOOKS_PER_PAGE));
+              });
             }
           } else {
             data = await booksFetch('/search.json', params);
@@ -1330,20 +1409,12 @@
           if (!Array.isArray(data?.docs) || !data.docs.length) {
             data = { docs: [], numFound: 0 };
           }
-          // Cache successful results
-          localStorage.setItem(cacheKey, JSON.stringify({ docs: data.docs || [], numFound: data.numFound || 0 }));
+          writeBooksCache(cacheKey, data);
         } catch (e) {
           console.error('Books fetch error', e);
-          if (cached) {
-            try {
-              const cachedData = JSON.parse(cached);
-              data = cachedData;
-            } catch {
-              data = { docs: [], numFound: 0 };
-            }
-          } else {
-            data = { docs: [], numFound: 0 };
-          }
+          data = cached && Array.isArray(cached.docs)
+            ? { docs: cached.docs, numFound: cached.numFound || cached.docs.length }
+            : { docs: [], numFound: 0 };
         }
 
         if (requestSeq !== state.requestSeq) return;

@@ -1052,7 +1052,7 @@
       function truncateText(text, maxLen) {
         if (!text) return '';
         if (text.length <= maxLen) return text;
-        return `${text.slice(0, maxLen - 1)}â€¦`;
+        return `${text.slice(0, maxLen - 1)}\u2026`;
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -1358,7 +1358,7 @@
               <h3 class="card-title">${item.title || 'Untitled'}</h3>
               <div class="card-desc">${desc}</div>
               <div class="card-meta-row">
-                <div class="card-meta">${authors}${year ? ` â€¢ ${year}` : ''}</div>
+                <div class="card-meta">${authors}${year ? ` \u2022 ${year}` : ''}</div>
                 <div class="card-menu-wrap">
                   <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
                 </div>

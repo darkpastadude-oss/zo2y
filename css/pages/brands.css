@@ -89,7 +89,7 @@ main.container {
   background: var(--brand-card-soft);
   border: 1px solid var(--brand-border);
   border-radius: 18px;
-  padding: 14px;
+  padding: 14px 14px 56px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -194,8 +194,8 @@ main.container {
 
 .card-menu-btn {
   position: absolute;
-  top: 12px;
   right: 12px;
+  bottom: 12px;
   width: 34px;
   height: 34px;
   border-radius: 10px;
