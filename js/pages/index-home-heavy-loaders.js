@@ -1129,23 +1129,148 @@ async function loadBooks(signal) {
       return '\u{1F3DF}\uFE0F';
     }
 
+    const HOME_SPORTS_ASSET_BUCKET_NAME = 'sports-assets';
+    const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;
+    const HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_home_sports_asset_manifest_v1';
+    const HOME_SPORTS_ASSET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+    let homeSportsAssetManifestPromise = null;
+    const homeSportsAssetManifestRows = [];
+    const homeSportsAssetManifestById = new Map();
+    const homeSportsAssetManifestByName = new Map();
+
+    function normalizeHomeSportsAssetManifestRows(payload) {
+      const rows = Array.isArray(payload?.teams) ? payload.teams : (Array.isArray(payload) ? payload : []);
+      return rows.map((row) => {
+        if (!row || typeof row !== 'object') return null;
+        const id = String(row.id || row.sportsDbId || '').trim();
+        const name = String(row.name || row.title || '').trim();
+        if (!id && !name) return null;
+        return {
+          id: id || name,
+          sportsDbId: id || '',
+          name,
+          league: String(row.league || '').trim(),
+          sport: String(row.sport || '').trim(),
+          country: String(row.country || '').trim(),
+          stadium: String(row.stadium || '').trim(),
+          badge: toHttpsUrl(row.badge || row.logo_url || ''),
+          banner: toHttpsUrl(row.banner || row.banner_url || ''),
+          fanart: toHttpsUrl(row.fanart || row.fanart_url || ''),
+          stadiumImage: toHttpsUrl(row.stadiumImage || row.stadium_url || ''),
+          jersey: toHttpsUrl(row.jersey || row.jersey_url || '')
+        };
+      }).filter(Boolean);
+    }
+
+    function mergeHomeSportsAssetManifestRows(rows = []) {
+      (Array.isArray(rows) ? rows : []).forEach((row) => {
+        const id = String(row?.sportsDbId || row?.id || '').trim();
+        const nameKey = normalizeHomeSportsName(row?.name || '');
+        const existing = (id && homeSportsAssetManifestById.get(id)) || (nameKey && homeSportsAssetManifestByName.get(nameKey)) || null;
+        const merged = existing ? {
+          ...existing,
+          ...row,
+          badge: row.badge || existing.badge || '',
+          banner: row.banner || existing.banner || '',
+          fanart: row.fanart || existing.fanart || '',
+          stadiumImage: row.stadiumImage || existing.stadiumImage || '',
+          jersey: row.jersey || existing.jersey || ''
+        } : row;
+        if (!existing) {
+          homeSportsAssetManifestRows.push(merged);
+        } else {
+          const index = homeSportsAssetManifestRows.indexOf(existing);
+          if (index >= 0) homeSportsAssetManifestRows[index] = merged;
+        }
+        if (id) homeSportsAssetManifestById.set(id, merged);
+        if (nameKey) homeSportsAssetManifestByName.set(nameKey, merged);
+      });
+    }
+
+    function readHomeSportsAssetManifestCache() {
+      try {
+        const raw = localStorage.getItem(HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed?.savedAt || 0);
+        if (!savedAt || (Date.now() - savedAt) > HOME_SPORTS_ASSET_MANIFEST_TTL_MS) return null;
+        const rows = normalizeHomeSportsAssetManifestRows(parsed);
+        return rows.length ? rows : null;
+      } catch (_err) {
+        return null;
+      }
+    }
+
+    function writeHomeSportsAssetManifestCache(rows = []) {
+      try {
+        localStorage.setItem(HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          teams: rows
+        }));
+      } catch (_err) {}
+    }
+
+    function loadHomeSportsAssetManifestFromStorage() {
+      const rows = readHomeSportsAssetManifestCache();
+      if (!rows) return [];
+      mergeHomeSportsAssetManifestRows(rows);
+      return homeSportsAssetManifestRows.slice();
+    }
+
+    async function ensureHomeSportsAssetManifest(signal) {
+      if (homeSportsAssetManifestRows.length) return homeSportsAssetManifestRows.slice();
+      loadHomeSportsAssetManifestFromStorage();
+      if (homeSportsAssetManifestRows.length) return homeSportsAssetManifestRows.slice();
+      if (homeSportsAssetManifestPromise) return homeSportsAssetManifestPromise;
+      homeSportsAssetManifestPromise = (async () => {
+        try {
+          const response = await fetch(HOME_SPORTS_ASSET_MANIFEST_URL, {
+            signal,
+            cache: 'force-cache',
+            credentials: 'omit'
+          });
+          if (!response.ok) throw new Error(`Manifest fetch failed (${response.status})`);
+          const payload = await response.json();
+          const rows = normalizeHomeSportsAssetManifestRows(payload);
+          if (rows.length) {
+            mergeHomeSportsAssetManifestRows(rows);
+            writeHomeSportsAssetManifestCache(rows);
+          }
+          return homeSportsAssetManifestRows.slice();
+        } catch (_err) {
+          return homeSportsAssetManifestRows.slice();
+        } finally {
+          homeSportsAssetManifestPromise = null;
+        }
+      })();
+      return homeSportsAssetManifestPromise;
+    }
+
+    function getHomeSportsAssetOverride(team) {
+      const id = String(team?.idTeam || team?.sportsDbId || team?.id || '').trim();
+      const nameKey = normalizeHomeSportsName(team?.strTeam || team?.name || '');
+      return (id && homeSportsAssetManifestById.get(id)) || (nameKey && homeSportsAssetManifestByName.get(nameKey)) || null;
+    }
+
     function mapSportsTeamToHomeItem(team) {
       if (!team || typeof team !== 'object') return null;
-      const id = String(team.idTeam || '').trim();
-      const title = String(team.strTeam || '').trim();
+      const override = getHomeSportsAssetOverride(team);
+      const id = String(team.idTeam || override?.sportsDbId || override?.id || '').trim();
+      const title = String(override?.name || team.strTeam || '').trim();
       if (!title) return null;
-      const sport = String(team.strSport || '').trim();
-      const league = String(team.strLeague || '').trim();
-      const stadium = String(team.strStadium || '').trim();
-      const country = String(team.strCountry || '').trim();
-      const badge = toHttpsUrl(team.strBadge || team.strTeamBadge || team.strTeamLogo || team.strLogo || '');
-      const banner = toHttpsUrl(team.strBanner || team.strTeamBanner || '');
+      const sport = String(override?.sport || team.strSport || '').trim();
+      const league = String(override?.league || team.strLeague || '').trim();
+      const stadium = String(override?.stadium || team.strStadium || '').trim();
+      const country = String(override?.country || team.strCountry || '').trim();
+      const badge = toHttpsUrl(override?.badge || team.strBadge || team.strTeamBadge || team.strTeamLogo || team.strLogo || '');
+      const banner = toHttpsUrl(override?.banner || team.strBanner || team.strTeamBanner || '');
       const fanart = toHttpsUrl(
+        override?.fanart ||
         team.strFanart1 || team.strFanart2 || team.strFanart3 || team.strFanart4 ||
         team.strTeamFanart1 || team.strTeamFanart2 || team.strTeamFanart3 || ''
       );
-      const stadiumImage = toHttpsUrl(team.strStadiumThumb || '');
-      const jersey = toHttpsUrl(team.strEquipment || team.strTeamJersey || '');
+      const stadiumImage = toHttpsUrl(override?.stadiumImage || team.strStadiumThumb || '');
+      const jersey = toHttpsUrl(override?.jersey || team.strEquipment || team.strTeamJersey || '');
       const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
       if (!badge) return null;
       const background = fanart || stadiumImage || banner || badge || fallbackImage;
@@ -1205,6 +1330,28 @@ async function loadBooks(signal) {
 
     async function loadSports(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
+      loadHomeSportsAssetManifestFromStorage();
+      const localManifestRows = await ensureHomeSportsAssetManifest(signal).catch(() => []);
+      if (Array.isArray(localManifestRows) && localManifestRows.length) {
+        const localItems = stableShuffleHomeItems(
+          localManifestRows
+            .map((row) => mapSportsTeamToHomeItem({
+              idTeam: row.sportsDbId || row.id,
+              strTeam: row.name,
+              strSport: row.sport,
+              strLeague: row.league,
+              strStadium: row.stadium,
+              strCountry: row.country
+            }))
+            .filter((item) => item && item.image),
+          'sports:home-local'
+        ).slice(0, targetCount);
+        if (localItems.length >= Math.min(targetCount, 8)) {
+          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, localItems);
+          return localItems;
+        }
+      }
+
       const cachedItemsRaw = readHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS)
         .filter((item) => item && item.image);
       if (cachedItemsRaw.length) {

@@ -218,8 +218,8 @@
     const HOME_NEW_RELEASES_TARGET_ITEMS = 16;
     const HOME_NEW_RELEASES_TIMEOUT_MS = 5600;
     const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 12;
-    const HOME_EAGER_IMAGE_COUNT = 2;
-    const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
+const HOME_EAGER_IMAGE_COUNT = 1;
+const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
     const HOME_PRELOAD_PER_CHANNEL = 0;
     const HOME_PRELOAD_SPOTLIGHT_COUNT = 1;
     const HOME_UNIFIED_TARGET_ITEMS = 24;
@@ -229,7 +229,7 @@
     const HOME_MENU_PRIME_IDLE_DELAY_MS = 2500;
     const HOME_ONBOARDING_VERSION = 'v1';
     const PROFILE_USERNAME_MAX_LENGTH = 30;
-    const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '240px 0px';
+const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     const HOME_TRAVEL_VARIANT_SESSION_SEED = Math.floor(Math.random() * 2147483647);
     const HOME_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
@@ -4289,6 +4289,10 @@
     function preloadImage(url) {
       const src = String(url || '').trim();
       if (!src) return;
+      const localBucketPrefix = `${SUPABASE_URL}/storage/v1/object/public/`;
+      const sameOrigin = typeof window !== 'undefined' && src.startsWith(window.location.origin);
+      const isLocalBucket = src.startsWith(localBucketPrefix);
+      if (!sameOrigin && !isLocalBucket && !src.startsWith('/')) return;
       if (homePreloadedImageSet.has(src)) return;
       homePreloadedImageSet.add(src);
       if (homePreloadedImageSet.size > 1200) {
@@ -4451,7 +4455,7 @@
       if (isHomeSlowNetwork()) return;
       const perChannelBudget = getHomePreloadPerChannelBudget();
       if (perChannelBudget <= 0) return;
-      const groups = Object.values(feedMap || {}).slice(0, 4);
+      const groups = Object.values(feedMap || {}).slice(0, 3);
       groups.forEach((items) => {
         if (!Array.isArray(items)) return;
         items.slice(0, perChannelBudget).forEach((item) => {
@@ -4469,7 +4473,6 @@
       const spotlightBudget = getHomeSpotlightPreloadBudget();
       items.slice(0, spotlightBudget).forEach((item) => {
         preloadImage(item.spotlightImage || item.backgroundImage || item.image);
-        preloadImage(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage);
       });
     }
 
@@ -7285,7 +7288,7 @@
           return;
         }
         const script = document.createElement('script');
-        script.src = 'js/pages/index-home-heavy-loaders.js?v=20260319e';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260319h';
         script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});

@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v131';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v133';
 const PAGE_CACHE = 'zo2y-pages-v126';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
@@ -14,7 +14,7 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260319e',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260319g',
+  '/js/pages/index.js?v=20260319h',
   '/js/pages/index-home-heavy-loaders.js?v=20260319e',
   '/js/home-desktop-rebrand.js?v=20260311e',
   '/js/referral-utils.js?v=20260319a',
@@ -41,7 +41,7 @@ const STATIC_ASSETS = [
   '/sports.html',
   '/sports-mobile.html',
   '/css/pages/sports.css?v=20260315b',
-  '/js/pages/sports.js?v=20260319b',
+  '/js/pages/sports.js?v=20260319d',
   '/fashion.html',
   '/food.html',
   '/cars.html',
@@ -246,8 +246,6 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
-
-
 
 
 

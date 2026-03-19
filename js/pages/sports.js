@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
   const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';
@@ -14,6 +14,10 @@
   `)}`;
   const SPORTS_FEATURED_CACHE_KEY = 'zo2y_sports_featured_cache_v1';
   const SPORTS_FEATURED_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
+  const SPORTS_ASSET_BUCKET_NAME = 'sports-assets';
+  const SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;
+  const SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_sports_asset_manifest_v1';
+  const SPORTS_ASSET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
   const FALLBACK_LEAGUES = [
     'English Premier League',
     'English Championship',
@@ -261,6 +265,11 @@
     'nfl': ['NFL'],
     'mlb': ['MLB'],
     'nhl': ['NHL'],
+    'f1': ['Formula 1'],
+    'formula 1': ['Formula 1'],
+    'formula one': ['Formula 1'],
+    'motogp': ['MotoGP'],
+    'indycar': ['IndyCar'],
     'champions league': ['UEFA Champions League'],
     'europa league': ['UEFA Europa League'],
     'conference league': ['UEFA Europa Conference League'],
@@ -284,6 +293,13 @@
     manc: ['manchester'],
     man: ['manchester'],
     spurs: ['tottenham'],
+    f1: ['formula', 'formula 1', 'formula one', 'motorsport'],
+    motogp: ['motorcycling', 'motorsport'],
+    nba: ['basketball'],
+    nfl: ['football', 'american football'],
+    mlb: ['baseball'],
+    nhl: ['hockey', 'ice hockey'],
+    ipl: ['cricket'],
     psg: ['paris', 'saint', 'germain'],
     juve: ['juventus'],
     inter: ['internazionale'],
@@ -307,6 +323,10 @@
     lastResults: [],
     lastQuery: ''
   };
+  let sportsAssetManifestPromise = null;
+  const sportsAssetManifestRows = [];
+  const sportsAssetManifestById = new Map();
+  const sportsAssetManifestByName = new Map();
   let sportsImageObserver = null;
 
   const ui = {
@@ -328,6 +348,7 @@
     searchSuggest: document.getElementById('sportsSearchSuggest'),
     filterSport: document.getElementById('sportsFilterSport'),
     filterCountry: document.getElementById('sportsFilterCountry'),
+    filterLeague: document.getElementById('sportsFilterLeague'),
     resultsTitle: document.getElementById('sportsResultsTitle'),
     resultsSubtitle: document.getElementById('sportsResultsSubtitle'),
     grid: document.getElementById('sportsGrid'),
@@ -358,7 +379,7 @@
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]+/g, '')
-      .replace(/['’]/g, '')
+      .replace(/['â€™]/g, '')
       .replace(/[^a-z0-9]+/g, ' ')
       .trim();
   }
@@ -394,6 +415,145 @@
         items: list
       }));
     } catch (_err) {}
+  }
+
+  function normalizeSportsAssetManifestRows(payload) {
+    const rows = Array.isArray(payload?.teams) ? payload.teams : (Array.isArray(payload) ? payload : []);
+    return rows.map((row) => {
+      if (!row || typeof row !== 'object') return null;
+      const sportsDbId = String(row.sportsDbId || row.id || '').trim();
+      const name = String(row.name || row.title || '').trim();
+      if (!sportsDbId && !name) return null;
+      const team = {
+        id: sportsDbId || name,
+        sportsDbId,
+        name,
+        sport: String(row.sport || '').trim(),
+        league: String(row.league || '').trim(),
+        country: String(row.country || '').trim(),
+        stadium: String(row.stadium || '').trim(),
+        badge: toHttps(row.badge || row.logo_url || ''),
+        banner: toHttps(row.banner || row.banner_url || ''),
+        fanart: toHttps(row.fanart || row.fanart_url || ''),
+        stadiumThumb: toHttps(row.stadiumImage || row.stadium_thumb || row.stadium_url || ''),
+        jersey: toHttps(row.jersey || row.jersey_url || '')
+      };
+      team.searchText = buildTeamSearchText(team);
+      return team;
+    }).filter(Boolean);
+  }
+
+  function mergeSportsAssetManifestRows(rows = []) {
+    (Array.isArray(rows) ? rows : []).forEach((row) => {
+      const id = String(row?.sportsDbId || row?.id || '').trim();
+      const nameKey = normalizeSearchText(row?.name || '');
+      const existing = (id && sportsAssetManifestById.get(id)) || (nameKey && sportsAssetManifestByName.get(nameKey)) || null;
+      const merged = existing ? {
+        ...existing,
+        ...row,
+        badge: row.badge || existing.badge || '',
+        banner: row.banner || existing.banner || '',
+        fanart: row.fanart || existing.fanart || '',
+        stadiumThumb: row.stadiumThumb || existing.stadiumThumb || '',
+        jersey: row.jersey || existing.jersey || ''
+      } : row;
+      if (!existing) {
+        sportsAssetManifestRows.push(merged);
+      } else {
+        const index = sportsAssetManifestRows.indexOf(existing);
+        if (index >= 0) sportsAssetManifestRows[index] = merged;
+      }
+      if (id) sportsAssetManifestById.set(id, merged);
+      if (nameKey) sportsAssetManifestByName.set(nameKey, merged);
+    });
+  }
+
+  function readSportsAssetManifestCache() {
+    try {
+      const raw = localStorage.getItem(SPORTS_ASSET_MANIFEST_CACHE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      const savedAt = Number(parsed?.savedAt || 0);
+      if (!savedAt || (Date.now() - savedAt) > SPORTS_ASSET_MANIFEST_TTL_MS) return [];
+      return normalizeSportsAssetManifestRows(parsed);
+    } catch (_err) {
+      return [];
+    }
+  }
+
+  function writeSportsAssetManifestCache(rows) {
+    try {
+      const teams = Array.isArray(rows) ? rows.filter(Boolean) : [];
+      if (!teams.length) return;
+      localStorage.setItem(SPORTS_ASSET_MANIFEST_CACHE_KEY, JSON.stringify({
+        savedAt: Date.now(),
+        teams
+      }));
+    } catch (_err) {}
+  }
+
+  function loadSportsAssetManifestFromStorage() {
+    const rows = readSportsAssetManifestCache();
+    if (!rows.length) return [];
+    mergeSportsAssetManifestRows(rows);
+    return sportsAssetManifestRows.slice();
+  }
+
+  async function ensureSportsAssetManifest() {
+    if (sportsAssetManifestRows.length) return sportsAssetManifestRows.slice();
+    loadSportsAssetManifestFromStorage();
+    if (sportsAssetManifestRows.length) return sportsAssetManifestRows.slice();
+    if (sportsAssetManifestPromise) return sportsAssetManifestPromise;
+    sportsAssetManifestPromise = (async () => {
+      try {
+        const response = await fetch(SPORTS_ASSET_MANIFEST_URL, {
+          cache: 'force-cache',
+          credentials: 'omit'
+        });
+        if (!response.ok) throw new Error(`Manifest fetch failed (${response.status})`);
+        const payload = await response.json();
+        const rows = normalizeSportsAssetManifestRows(payload);
+        if (rows.length) {
+          mergeSportsAssetManifestRows(rows);
+          writeSportsAssetManifestCache(rows);
+        }
+        return sportsAssetManifestRows.slice();
+      } catch (_err) {
+        return sportsAssetManifestRows.slice();
+      } finally {
+        sportsAssetManifestPromise = null;
+      }
+    })();
+    return sportsAssetManifestPromise;
+  }
+
+  function getSportsAssetOverride(teamLike) {
+    const id = String(teamLike?.sportsDbId || teamLike?.idTeam || teamLike?.id || '').trim();
+    const nameKey = normalizeSearchText(teamLike?.name || teamLike?.strTeam || '');
+    return (id && sportsAssetManifestById.get(id)) || (nameKey && sportsAssetManifestByName.get(nameKey)) || null;
+  }
+
+  function applySportsAssetOverride(team) {
+    if (!team || typeof team !== 'object') return null;
+    const override = getSportsAssetOverride(team);
+    if (!override) return team;
+    const merged = {
+      ...team,
+      id: team.id || override.id || override.sportsDbId || override.name,
+      sportsDbId: team.sportsDbId || override.sportsDbId || override.id || '',
+      name: override.name || team.name,
+      sport: override.sport || team.sport || '',
+      league: override.league || team.league || '',
+      country: override.country || team.country || '',
+      stadium: override.stadium || team.stadium || '',
+      badge: override.badge || team.badge || '',
+      banner: override.banner || team.banner || '',
+      fanart: override.fanart || team.fanart || '',
+      stadiumThumb: override.stadiumThumb || team.stadiumThumb || '',
+      jersey: override.jersey || team.jersey || ''
+    };
+    merged.searchText = buildTeamSearchText(merged);
+    return merged;
   }
 
   function expandQueryTokens(query) {
@@ -510,17 +670,20 @@
   function getActiveFilters() {
     const sport = normalizeFilterValue(ui.filterSport?.value || '');
     const country = normalizeFilterValue(ui.filterCountry?.value || '');
-    return { sport, country };
+    const league = normalizeFilterValue(ui.filterLeague?.value || '');
+    return { sport, country, league };
   }
 
   function applyTeamFilters(teams) {
-    const { sport, country } = getActiveFilters();
-    if (!sport && !country) return Array.isArray(teams) ? teams : [];
+    const { sport, country, league } = getActiveFilters();
+    if (!sport && !country && !league) return Array.isArray(teams) ? teams : [];
     return (Array.isArray(teams) ? teams : []).filter((team) => {
       const teamSport = normalizeSearchText(team?.sport || '');
       const teamCountry = normalizeSearchText(team?.country || '');
+      const teamLeague = normalizeSearchText(team?.league || '');
       if (sport && !teamSport.includes(sport)) return false;
       if (country && !teamCountry.includes(country)) return false;
+      if (league && !teamLeague.includes(league)) return false;
       return true;
     });
   }
@@ -540,16 +703,21 @@
   function updateFilterOptions(teams) {
     const sports = new Set();
     const countries = new Set();
+    const leagues = new Set();
     (Array.isArray(teams) ? teams : []).forEach((team) => {
       const sport = String(team?.sport || '').trim();
       const country = String(team?.country || '').trim();
+      const league = String(team?.league || '').trim();
       if (sport) sports.add(sport);
       if (country) countries.add(country);
+      if (league) leagues.add(league);
     });
     const sportList = Array.from(sports).sort((a, b) => a.localeCompare(b));
     const countryList = Array.from(countries).sort((a, b) => a.localeCompare(b));
+    const leagueList = Array.from(leagues).sort((a, b) => a.localeCompare(b));
     setSelectOptions(ui.filterSport, sportList, 'All sports', ui.filterSport?.value);
     setSelectOptions(ui.filterCountry, countryList, 'All countries', ui.filterCountry?.value);
+    setSelectOptions(ui.filterLeague, leagueList, 'All leagues', ui.filterLeague?.value);
   }
 
   function buildTeamSearchText(team) {
@@ -592,7 +760,7 @@
   }
 
   function getCachedTeams() {
-    const bucket = [];
+    const bucket = sportsAssetManifestRows.slice();
     state.leagueTeamsCache.forEach((teams) => {
       if (Array.isArray(teams)) bucket.push(...teams);
     });
@@ -650,7 +818,7 @@
       return;
     }
     ui.searchSuggest.innerHTML = suggestions.map((team) => {
-      const meta = [team.league, team.country].filter(Boolean).join(' · ');
+      const meta = [team.league, team.country, team.sport].filter(Boolean).join(' | ');
       return `
         <button type="button" class="sports-suggest-item" data-team="${escapeHtml(team.name)}">
           <span class="suggest-name">${escapeHtml(team.name)}</span>
@@ -747,7 +915,7 @@
 
     const pending = (async () => {
       const payload = await fetchSportsDb('search_all_teams.php', { l: league }, 9000);
-      const teams = Array.isArray(payload?.teams) ? payload.teams.map(mapTeam).filter(Boolean) : [];
+      const teams = Array.isArray(payload?.teams) ? payload.teams.map(mapTeam).filter(Boolean).map(applySportsAssetOverride) : [];
       state.leagueTeamsCache.set(key, teams);
       state.leagueTeamsPending.delete(key);
       return teams;
@@ -760,9 +928,11 @@
   async function getFallbackTeams(query) {
     const q = normalizeSearchText(query);
     if (!q) return [];
+    const localMatches = sportsAssetManifestRows.filter((team) => teamMatchesQuery(team, query));
+    if (localMatches.length >= 12) return rankTeamsByQuery(dedupeTeams(localMatches), query);
     const leagues = pickFallbackLeagues(query).slice(0, 8);
     const responses = await Promise.all(leagues.map((league) => loadLeagueTeams(league)));
-    const matches = [];
+    const matches = [...localMatches];
     responses.forEach((teams) => {
       (teams || []).forEach((team) => {
         if (teamMatchesQuery(team, query)) matches.push(team);
@@ -846,26 +1016,29 @@
 
   function mapTeam(raw) {
     if (!raw || typeof raw !== 'object') return null;
+    const override = getSportsAssetOverride(raw);
     const name = String(raw.strTeam || '').trim();
     const rawId = String(raw.idTeam || '').trim();
-    const sportsDbId = /^\d+$/.test(rawId) ? rawId : '';
-    if (!name) return null;
+    const sportsDbId = /^\d+$/.test(rawId) ? rawId : String(override?.sportsDbId || override?.id || '').trim();
+    const resolvedName = String(override?.name || name).trim();
+    if (!resolvedName) return null;
     const team = {
-      id: sportsDbId || name,
+      id: sportsDbId || resolvedName,
       sportsDbId,
-      name,
-      sport: String(raw.strSport || '').trim(),
-      league: String(raw.strLeague || '').trim(),
-      country: String(raw.strCountry || '').trim(),
-      stadium: String(raw.strStadium || '').trim(),
-      badge: toHttps(raw.strBadge || raw.strTeamBadge || raw.strLogo || raw.strTeamLogo || ''),
-      banner: toHttps(raw.strBanner || raw.strTeamBanner || ''),
+      name: resolvedName,
+      sport: String(override?.sport || raw.strSport || '').trim(),
+      league: String(override?.league || raw.strLeague || '').trim(),
+      country: String(override?.country || raw.strCountry || '').trim(),
+      stadium: String(override?.stadium || raw.strStadium || '').trim(),
+      badge: toHttps(override?.badge || raw.strBadge || raw.strTeamBadge || raw.strLogo || raw.strTeamLogo || ''),
+      banner: toHttps(override?.banner || raw.strBanner || raw.strTeamBanner || ''),
       fanart: toHttps(
+        override?.fanart ||
         raw.strFanart1 || raw.strFanart2 || raw.strFanart3 || raw.strFanart4 ||
         raw.strTeamFanart1 || raw.strTeamFanart2 || raw.strTeamFanart3 || ''
       ),
-      stadiumThumb: toHttps(raw.strStadiumThumb || ''),
-      jersey: toHttps(raw.strEquipment || raw.strTeamJersey || '')
+      stadiumThumb: toHttps(override?.stadiumThumb || raw.strStadiumThumb || ''),
+      jersey: toHttps(override?.jersey || raw.strEquipment || raw.strTeamJersey || '')
     };
     team.searchText = buildTeamSearchText(team);
     return team;
@@ -985,26 +1158,26 @@
   function getSportEmoji(sportRaw = '') {
     const sport = String(sportRaw || '').trim().toLowerCase();
     if (!sport) return '';
-    if (sport.includes('soccer')) return '⚽';
-    if (sport.includes('american football')) return '🏈';
-    if (sport.includes('football')) return '⚽';
-    if (sport.includes('basketball')) return '🏀';
-    if (sport.includes('baseball')) return '⚾';
-    if (sport.includes('ice hockey') || sport.includes('hockey')) return '🏒';
-    if (sport.includes('cricket')) return '🏏';
-    if (sport.includes('rugby')) return '🏉';
-    if (sport.includes('golf')) return '⛳';
-    if (sport.includes('tennis')) return '🎾';
-    if (sport.includes('volleyball')) return '🏐';
-    if (sport.includes('handball')) return '🤾';
-    if (sport.includes('boxing')) return '🥊';
-    if (sport.includes('mma') || sport.includes('mixed martial')) return '🥋';
-    if (sport.includes('motorsport') || sport.includes('racing')) return '🏎️';
-    if (sport.includes('cycling')) return '🚴';
-    if (sport.includes('snooker') || sport.includes('billiard')) return '🎱';
-    if (sport.includes('darts')) return '🎯';
-    if (sport.includes('table tennis') || sport.includes('ping pong')) return '🏓';
-    return '🏟️';
+    if (sport.includes('soccer')) return 'âš½';
+    if (sport.includes('american football')) return 'ðŸˆ';
+    if (sport.includes('football')) return 'âš½';
+    if (sport.includes('basketball')) return 'ðŸ€';
+    if (sport.includes('baseball')) return 'âš¾';
+    if (sport.includes('ice hockey') || sport.includes('hockey')) return 'ðŸ’';
+    if (sport.includes('cricket')) return 'ðŸ';
+    if (sport.includes('rugby')) return 'ðŸ‰';
+    if (sport.includes('golf')) return 'â›³';
+    if (sport.includes('tennis')) return 'ðŸŽ¾';
+    if (sport.includes('volleyball')) return 'ðŸ';
+    if (sport.includes('handball')) return 'ðŸ¤¾';
+    if (sport.includes('boxing')) return 'ðŸ¥Š';
+    if (sport.includes('mma') || sport.includes('mixed martial')) return 'ðŸ¥‹';
+    if (sport.includes('motorsport') || sport.includes('racing')) return 'ðŸŽï¸';
+    if (sport.includes('cycling')) return 'ðŸš´';
+    if (sport.includes('snooker') || sport.includes('billiard')) return 'ðŸŽ±';
+    if (sport.includes('darts')) return 'ðŸŽ¯';
+    if (sport.includes('table tennis') || sport.includes('ping pong')) return 'ðŸ“';
+    return 'ðŸŸï¸';
   }
 
   function getSportsImageObserver() {
@@ -1386,7 +1559,8 @@
   async function loadFeaturedTeams() {
     clearTeamUrl();
     setLoading(true, 'Loading featured teams...');
-    const cached = readSportsFeaturedCache().filter((team) => team && team.name);
+    loadSportsAssetManifestFromStorage();
+    const cached = readSportsFeaturedCache().filter((team) => team && team.name).map(applySportsAssetOverride);
     if (cached.length) {
       state.lastResults = cached;
       state.lastQuery = '';
@@ -1398,6 +1572,24 @@
         emptyMessage: 'No teams match your filters yet.'
       });
       return;
+    }
+
+    const localManifestRows = await ensureSportsAssetManifest().catch(() => []);
+    if (Array.isArray(localManifestRows) && localManifestRows.length) {
+      const localTeams = shuffleArray(localManifestRows.map(applySportsAssetOverride).filter((team) => team && team.badge)).slice(0, 24);
+      if (localTeams.length >= 12) {
+        writeSportsFeaturedCache(localTeams);
+        state.lastResults = localTeams;
+        state.lastQuery = '';
+        updateFilterOptions(localTeams);
+        const filteredLocal = applyTeamFilters(localTeams);
+        renderTeams(filteredLocal, {
+          title: 'Featured teams',
+          subtitle: 'Tap a team to see details and save it.',
+          emptyMessage: 'No teams match your filters yet.'
+        });
+        return;
+      }
     }
 
     const picks = [];
@@ -1521,6 +1713,21 @@
   async function loadTeamById(teamId) {
     if (!teamId) return false;
     setLoading(true, 'Loading team details...');
+    loadSportsAssetManifestFromStorage();
+    const localTeam = sportsAssetManifestById.get(String(teamId).trim()) || null;
+    if (localTeam) {
+      setHeroTeam(localTeam);
+      setActiveCard(localTeam.id);
+      state.lastResults = [localTeam];
+      state.lastQuery = '';
+      updateFilterOptions([localTeam]);
+      renderTeams([localTeam], {
+        title: 'Team spotlight',
+        subtitle: 'Save this team to your profile.',
+        keepHero: true
+      });
+      return true;
+    }
     const payload = await fetchSportsDb('lookupteam.php', { id: teamId });
     const teamRaw = Array.isArray(payload?.teams) ? payload.teams[0] : null;
     const team = mapTeam(teamRaw);
@@ -1621,6 +1828,9 @@
     if (ui.filterCountry) {
       ui.filterCountry.addEventListener('change', handleFilterChange);
     }
+    if (ui.filterLeague) {
+      ui.filterLeague.addEventListener('change', handleFilterChange);
+    }
 
     document.addEventListener('click', (event) => {
       if (event.target.closest('.sports-search-bar')) return;
@@ -1629,6 +1839,8 @@
   }
 
   async function init() {
+    loadSportsAssetManifestFromStorage();
+    void ensureSportsAssetManifest();
     await ensureSupabase();
     await initAuth();
     initListMenu();
@@ -1659,3 +1871,4 @@
     setHeroTeam(null);
   });
 })();
+
