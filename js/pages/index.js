@@ -5235,14 +5235,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           if (!image) return '';
           const desc = extra || 'Video game';
           const plainGameStage = String(itemData.gameCardMode || '').trim() === 'plain';
-          const gameBg = plainGameStage ? '' : escapeHtml(itemData.backgroundImage || itemData.spotlightImage || '');
-          const bgStyle = gameBg ? ` style="background-image:url('${gameBg}')" ` : '';
           const trailingControl = supportsLists
             ? `<button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>`
             : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
           return `
             <article class="card game-card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${image}">
-              <div class="game-card-media is-loading-media${plainGameStage ? ' plain-logo' : ''}"${bgStyle}>
+              <div class="game-card-media is-loading-media${plainGameStage ? ' plain-logo' : ' poster-cover'}">
                 <img class="game-card-img" ${buildHomeImageAttrs(image, imageLoading, imagePriority)} alt="${title}">
               </div>
               <div class="card-body">
@@ -7138,6 +7136,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return cleaned.find((url) => /wikimedia|wikipedia/.test(url)) || cleaned[0] || '';
     }
 
+    function getHomeGameImportedFrom(row) {
+      return String(row?.extra?.imported_from || row?.source || '').trim().toLowerCase();
+    }
+
+    function normalizeHomeGameTitleKey(title) {
+      return String(title || '')
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}]+/gu, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
     function pickBackdropGameUrl(candidates = [], fallback = '') {
       const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
       const fallbackUrl = normalizeGameCoverUrl(fallback);
@@ -7173,6 +7183,91 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       if (value.endsWith('.svg') || value.includes('.svg?')) return true;
       if (value.endsWith('.png') || value.includes('.png?')) return true;
       return ['logo', 'wordmark', 'transparent', 'icon'].some((token) => value.includes(token));
+    }
+
+    function scoreHomeGameCoverRow(row, hasPreferredAlternatives = false) {
+      const cover = resolveHomeGameCover(row);
+      const hero = resolveHomeGameHero(row, '');
+      const importedFrom = getHomeGameImportedFrom(row);
+      if (!cover) return Number.NEGATIVE_INFINITY;
+      let score = 0;
+      if (/wikimedia|wikipedia/.test(cover)) score += 420;
+      if (importedFrom.includes('igdb') || importedFrom.includes('wikipedia')) score += 220;
+      if (/game-assets\/covers\//.test(cover)) score += 80;
+      if (hero && hero !== cover) score += 70;
+      if (hero && hero === cover) score -= 60;
+      if (isLikelyLogoOnlyGameArt(cover)) score += 55;
+      if (hasPreferredAlternatives && importedFrom.includes('rawg')) score -= 180;
+      return score;
+    }
+
+    function scoreHomeGameHeroRow(row) {
+      const cover = resolveHomeGameCover(row);
+      const hero = resolveHomeGameHero(row, '');
+      const importedFrom = getHomeGameImportedFrom(row);
+      if (!hero) return Number.NEGATIVE_INFINITY;
+      let score = 0;
+      if (/game-assets\/heroes\//.test(hero)) score += 260;
+      if (hero && hero !== cover) score += 160;
+      if (importedFrom.includes('rawg')) score += 90;
+      if (/background|hero|fanart|screenshot/.test(hero)) score += 40;
+      if (/wikimedia|wikipedia/.test(hero) && hero === cover) score -= 120;
+      return score;
+    }
+
+    function mergeHomeGameRows(rows) {
+      const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+      if (!list.length) return null;
+      if (list.length === 1) return list[0];
+      const sortedByPopularity = list.slice().sort((a, b) => {
+        const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
+        if (countDiff !== 0) return countDiff;
+        const ratingDiff = Number(b?.rating || 0) - Number(a?.rating || 0);
+        if (ratingDiff !== 0) return ratingDiff;
+        return String(a?.title || a?.name || '').localeCompare(String(b?.title || b?.name || ''));
+      });
+      const baseRow = sortedByPopularity[0];
+      const hasPreferredAlternatives = list.some((row) => {
+        const importedFrom = getHomeGameImportedFrom(row);
+        return importedFrom.includes('igdb') || importedFrom.includes('wikipedia');
+      });
+      const bestCoverRow = list.slice().sort((a, b) => scoreHomeGameCoverRow(b, hasPreferredAlternatives) - scoreHomeGameCoverRow(a, hasPreferredAlternatives))[0] || baseRow;
+      const bestHeroRow = list.slice().sort((a, b) => scoreHomeGameHeroRow(b) - scoreHomeGameHeroRow(a))[0] || baseRow;
+      const merged = { ...baseRow };
+      const mergedCover = resolveHomeGameCover(bestCoverRow) || resolveHomeGameCover(baseRow);
+      const mergedHero = resolveHomeGameHero(bestHeroRow, mergedCover || resolveHomeGameCover(baseRow));
+      if (mergedCover) merged.cover_url = mergedCover;
+      if (mergedHero) merged.hero_url = mergedHero;
+      const mergedGenres = list.find((row) => Array.isArray(row?.extra?.genres) && row.extra.genres.length)?.extra?.genres;
+      if (mergedGenres?.length) {
+        merged.extra = {
+          ...(baseRow?.extra && typeof baseRow.extra === 'object' ? baseRow.extra : {}),
+          genres: mergedGenres
+        };
+      }
+      return merged;
+    }
+
+    function dedupeHomeGameRows(rows, targetCount = 0) {
+      const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+      if (!list.length) return [];
+      const groups = new Map();
+      list.forEach((row) => {
+        const titleKey = normalizeHomeGameTitleKey(row?.title || row?.name || '');
+        const key = titleKey || String(row?.id || row?.igdb_id || row?.rawg_id || Math.random());
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(row);
+      });
+      const merged = Array.from(groups.values()).map((group) => mergeHomeGameRows(group)).filter(Boolean);
+      merged.sort((a, b) => {
+        const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
+        if (countDiff !== 0) return countDiff;
+        const ratingDiff = Number(b?.rating || 0) - Number(a?.rating || 0);
+        if (ratingDiff !== 0) return ratingDiff;
+        return String(a?.title || a?.name || '').localeCompare(String(b?.title || b?.name || ''));
+      });
+      const limit = Number(targetCount || 0);
+      return limit > 0 ? merged.slice(0, limit) : merged;
     }
 
     function getHomeGamePresentation(cover, hero) {
@@ -7229,9 +7324,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug')
             .order('rating_count', { ascending: false, nullsFirst: false })
             .order('rating', { ascending: false, nullsFirst: false })
-            .limit(Math.max(targetCount * 5, 96));
+            .limit(Math.max(targetCount * 12, 192));
           if (error) return [];
-          return (Array.isArray(data) ? data : [])
+          const primaryRows = Array.isArray(data) ? data : [];
+          const titlePool = Array.from(new Set(primaryRows.map((row) => String(row?.title || '').trim()).filter(Boolean))).slice(0, Math.max(targetCount * 3, 48));
+          let combinedRows = primaryRows.slice();
+          if (titlePool.length) {
+            const { data: altRows, error: altError } = await client
+              .from('games')
+              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug')
+              .in('title', titlePool);
+            if (!altError && Array.isArray(altRows) && altRows.length) {
+              combinedRows = primaryRows.concat(altRows);
+            }
+          }
+          return dedupeHomeGameRows(combinedRows, targetCount * 3)
             .map((row) => mapToItem(row))
             .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
             .slice(0, targetCount);
