@@ -5235,16 +5235,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           if (!image) return '';
           const desc = extra || 'Video game';
           const plainGameStage = String(itemData.gameCardMode || '').trim() === 'plain';
-          const gameHero = String(itemData.backgroundImage || itemData.spotlightImage || '').trim();
-          const heroStyle = !plainGameStage && gameHero
-            ? ` style="background-image:url('${escapeHtml(gameHero)}')"`
-            : '';
           const trailingControl = supportsLists
             ? `<button class="menu-btn card-menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>`
             : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
           return `
             <article class="card game-card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${image}">
-              <div class="card-media game-media is-loading-media${plainGameStage ? ' plain-logo' : ''}"${heroStyle}>
+              <div class="card-media game-media is-loading-media${plainGameStage ? ' plain-logo' : ''}">
                 <img class="game-card-img" ${buildHomeImageAttrs(image, imageLoading, imagePriority)} alt="${title}">
               </div>
               <div class="card-body">
