@@ -392,12 +392,16 @@ function mapRawgRowToCandidate(row) {
     ? row.short_screenshots.map((entry) => entry?.image)
     : [];
   const screenshots = normalizeScreenshots({ short_screenshots: shortScreenshots });
-  const coverUrl = toHttpsUrl(
+  // Do not treat RAWG artwork as canonical cover art.
+  // RAWG remains useful for hero/background art until an official cover is synced.
+  const coverUrl = "";
+  const heroUrl = toHttpsUrl(
+    row?.background_image_additional ||
+    row?.background_image ||
     row?.cover ||
     row?.cover_url ||
     ""
   );
-  const heroUrl = coverUrl;
   const releaseDate = toIsoDateOrNull(row?.released || row?.release_date);
   const rating = toNumberOrNull(row?.rating);
   const ratingCount = toPositiveIntOrNull(row?.ratings_count || row?.rating_count) || 0;

@@ -145,7 +145,8 @@ async function fetchRawgMedia(row) {
     ? payload.short_screenshots.map((entry) => entry?.image).filter(Boolean)
     : [];
   return {
-    cover: toHttpsUrl(payload?.background_image || ''),
+    // RAWG background images are useful as hero art, not as official cover art.
+    cover: '',
     hero: toHttpsUrl(payload?.background_image_additional || payload?.background_image || ''),
     screenshots: screenshots.map((value) => toHttpsUrl(value)).filter(Boolean).slice(0, MAX_SCREENSHOTS)
   };

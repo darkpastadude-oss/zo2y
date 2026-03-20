@@ -1,4 +1,4 @@
-    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
+﻿    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
     const ENABLE_GAMES = !GAMES_DISABLED;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
@@ -2033,7 +2033,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             mediaType: 'game',
             itemId: rowId,
             title: rowTitle,
-            subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
+            subtitle: releaseDate ? releaseDate.slice(0, 10) : '',
             extra: [genreText, Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : ''].filter(Boolean).join(' | '),
             image: cover,
             backgroundImage: hero || cover,
@@ -5233,7 +5233,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
         if (mediaTypeRaw === 'game' && String(opts?.mediaType || '').toLowerCase() === 'game') {
           if (!image) return '';
-          const desc = extra || 'Video game';
+          const desc = extra || 'Popular game';
           const plainGameStage = String(itemData.gameCardMode || '').trim() === 'plain';
           const trailingControl = supportsLists
             ? `<button class="menu-btn card-menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>`
@@ -5244,6 +5244,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
                 <img class="game-card-img" ${buildHomeImageAttrs(image, imageLoading, imagePriority)} alt="${title}">
               </div>
               <div class="card-body">
+                <div class="card-desc">${desc}</div>
                 <h3 class="card-title">${title}</h3>
                 <div class="card-meta-row">
                   <div class="card-meta">${subtitle}</div>
@@ -5252,7 +5253,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
                     ${trailingControl}
                   </div>
                 </div>
-                <div class="card-desc">${desc}</div>
               </div>
             </article>
           `;
@@ -5913,7 +5913,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         {
           id: 'interests-setup',
           title: 'Tune Your Feed',
-          body: 'Choose formats and genres so the �For You� feed starts on the right note.',
+          body: 'Choose formats and genres so the ï¿½For Youï¿½ feed starts on the right note.',
           art: `
               <div class="onboarding-interest-layout">
                 <div class="onboarding-interest-photos">
@@ -7317,7 +7317,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           mediaType: 'game',
           itemId: id,
           title,
-          subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
+          subtitle: releaseDate ? releaseDate.slice(0, 10) : '',
           extra: [genreText, ratingText].filter(Boolean).join(' | '),
           image: cover,
           backgroundImage: hero || cover,
@@ -7879,3 +7879,4 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
+
