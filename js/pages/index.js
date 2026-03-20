@@ -5181,7 +5181,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     function renderRail(railId, items, opts) {
       const rail = document.getElementById(railId);
       if (!rail) return;
-      rail.classList.remove('games-rail');
+      rail.classList.toggle('games-rail', String(opts?.mediaType || '').toLowerCase() === 'game');
 
       if (!items || !items.length) {
         rail.innerHTML = '<div class="empty">No items right now.</div>';
@@ -5230,6 +5230,33 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           : { loading: 'lazy', priority: 'low' };
         const imageLoading = imagePolicy.loading;
         const imagePriority = imagePolicy.priority;
+
+        if (mediaTypeRaw === 'game' && String(opts?.mediaType || '').toLowerCase() === 'game') {
+          if (!image) return '';
+          const desc = extra || 'Video game';
+          const plainGameStage = String(itemData.gameCardMode || '').trim() === 'plain';
+          const trailingControl = supportsLists
+            ? `<button class="menu-btn card-menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>`
+            : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
+          return `
+            <article class="card game-card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${image}">
+              <div class="card-media game-media is-loading-media${plainGameStage ? ' plain-logo' : ''}">
+                <img class="game-card-img" ${buildHomeImageAttrs(image, imageLoading, imagePriority)} alt="${title}">
+              </div>
+              <div class="card-body">
+                <h3 class="card-title">${title}</h3>
+                <div class="card-meta-row">
+                  <div class="card-meta">${subtitle}</div>
+                  <div class="card-menu-wrap">
+                    ${previewControl}
+                    ${trailingControl}
+                  </div>
+                </div>
+                <div class="card-desc">${desc}</div>
+              </div>
+            </article>
+          `;
+        }
 
         const mediaClasses = ['card-media'];
         const mediaFit = String(itemData.mediaFit || '').trim().toLowerCase();
@@ -7104,9 +7131,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       }
     }
 
+    function isLikelyBackdropGameUrl(url) {
+      const value = String(url || '').trim().toLowerCase();
+      if (!value) return false;
+      return ['/heroes/', '/hero/', 'background', 'fanart', 'screenshot', 'screenshots', 'backdrop'].some((token) => value.includes(token));
+    }
+
     function pickPreferredGameCoverUrl(candidates = []) {
       const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
-      return cleaned.find((url) => /wikimedia|wikipedia/.test(url)) || cleaned[0] || '';
+      const likelyCovers = cleaned.filter((url) => !isLikelyBackdropGameUrl(url));
+      const pool = likelyCovers.length ? likelyCovers : cleaned;
+      return pool.find((url) => /wikimedia|wikipedia/.test(url)) || pool[0] || '';
     }
 
     function getHomeGameImportedFrom(row) {
@@ -7269,7 +7304,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         const hero = resolveHomeGameHero(row, '');
         const presentation = getHomeGamePresentation(cover, hero);
         // Drop games that don't have a real cover image.
-        if (!cover || cover.includes('/newlogo.webp')) return null;
+        if (!cover || cover.includes('/newlogo.webp') || isLikelyBackdropGameUrl(cover)) return null;
         const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
         const title = String(row?.title || row?.name || 'Game').trim() || 'Game';
         const releaseDate = String(row?.release_date || row?.released || '').trim();
@@ -7302,21 +7337,31 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         try {
           const { data, error } = await client
             .from('games')
-            .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug')
+            .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
             .order('rating_count', { ascending: false, nullsFirst: false })
             .order('rating', { ascending: false, nullsFirst: false })
             .limit(Math.max(targetCount * 12, 192));
           if (error) return [];
           const primaryRows = Array.isArray(data) ? data : [];
           const titlePool = Array.from(new Set(primaryRows.map((row) => String(row?.title || '').trim()).filter(Boolean))).slice(0, Math.max(targetCount * 3, 48));
+          const slugPool = Array.from(new Set(primaryRows.map((row) => String(row?.slug || '').trim()).filter(Boolean))).slice(0, Math.max(targetCount * 3, 48));
           let combinedRows = primaryRows.slice();
           if (titlePool.length) {
             const { data: altRows, error: altError } = await client
               .from('games')
-              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug')
+              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
               .in('title', titlePool);
             if (!altError && Array.isArray(altRows) && altRows.length) {
               combinedRows = primaryRows.concat(altRows);
+            }
+          }
+          if (slugPool.length) {
+            const { data: altSlugRows, error: altSlugError } = await client
+              .from('games')
+              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
+              .in('slug', slugPool);
+            if (!altSlugError && Array.isArray(altSlugRows) && altSlugRows.length) {
+              combinedRows = combinedRows.concat(altSlugRows);
             }
           }
           const dedupedRows = dedupeHomeGameRows(combinedRows, targetCount * 4);
