@@ -1332,6 +1332,45 @@
         return false;
       }
 
+      async function fetchLocalGamesPage(pageSize) {
+        if (!supabaseClient) return null;
+        const hasGenreFilter = !!String(state.activeGenre || '').trim();
+        if (hasGenreFilter) {
+          const ready = await ensureGamesCatalogLoaded();
+          if (!ready) return null;
+          const filtered = filterCatalogGames(state.catalog);
+          const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
+          return {
+            rows: filtered.slice(start, start + pageSize),
+            count: filtered.length,
+            source: 'supabase'
+          };
+        }
+
+        let query = supabaseClient
+          .from('games')
+          .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra', { count: 'exact' });
+
+        const q = String(state.query || '').trim();
+        const year = String(state.year || '').trim();
+        if (q) query = query.ilike('title', `%${q}%`);
+        if (year) query = query.gte('release_date', `${year}-01-01`).lte('release_date', `${year}-12-31`);
+
+        query = query
+          .order('rating_count', { ascending: false, nullsFirst: false })
+          .order('rating', { ascending: false, nullsFirst: false })
+          .order('release_date', { ascending: false, nullsFirst: false })
+          .range((Math.max(1, Number(state.page || 1)) - 1) * pageSize, Math.max(1, Number(state.page || 1)) * pageSize - 1);
+
+        const { data, error, count } = await query;
+        if (error) return null;
+        return {
+          rows: Array.isArray(data) ? data : [],
+          count: Number(count || 0),
+          source: 'supabase'
+        };
+      }
+
       function filterCatalogGames(catalogOverride) {
         const catalog = Array.isArray(catalogOverride) ? catalogOverride : state.catalog;
         const query = String(state.query || '').trim();
@@ -1543,6 +1582,27 @@
         const shouldWarmCache = state.page === 1 && !state.query && !state.activeGenre && !state.year;
         const cacheFlag = shouldWarmCache ? 1 : undefined;
         const cachePages = shouldWarmCache ? 2 : undefined;
+
+        const localPayload = await fetchLocalGamesPage(pageSize);
+        if (requestId !== state.requestId) return;
+        if (localPayload?.rows?.length) {
+          state.catalogSource = localPayload.source || 'supabase';
+          const results = Array.isArray(localPayload.rows) ? localPayload.rows.slice(0, pageSize) : [];
+          grid.innerHTML = '';
+          const fragment = document.createDocumentFragment();
+          results.forEach((item, idx) => {
+            const card = createGameCard(item, idx);
+            if (card) fragment.appendChild(card);
+          });
+          grid.appendChild(fragment);
+          if (empty) empty.style.display = results.length ? 'none' : 'block';
+          const totalMatches = Number(localPayload.count || results.length) || results.length;
+          state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
+          state.hasMore = state.page < state.totalPages;
+          updatePagination();
+          return;
+        }
+
         const igdbPayload = await fetchIgdbPage({
           page: state.page,
           pageSize: fetchPageSize,

@@ -4,6 +4,46 @@
 async function loadBooks(signal) {
       const targetCount = getHomeChannelTargetItems();
       const lightweightMode = shouldUseLightweightHomeBooksLoad();
+      const currentYear = new Date().getUTCFullYear();
+      const recentFloor = Math.max(2018, currentYear - 2);
+      const getBookRecordId = (doc) => {
+        const volumeId = String(doc?._googleVolumeId || doc?.id || '').trim();
+        if (volumeId) return volumeId;
+        const key = String(doc?.key || '').trim();
+        if (key.startsWith('/works/')) return key.replace('/works/', '').trim();
+        if (key) return key;
+        return '';
+      };
+      const ensureHomeBooksSupabase = () => {
+        if (window.__ZO2Y_SUPABASE_CLIENT) return window.__ZO2Y_SUPABASE_CLIENT;
+        if (!window.supabase || !window.supabase.createClient || !SUPABASE_URL || !SUPABASE_KEY) return null;
+        window.__ZO2Y_SUPABASE_CLIENT = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+        });
+        return window.__ZO2Y_SUPABASE_CLIENT;
+      };
+      const fetchLocalBookOverrides = async (docs = []) => {
+        const ids = Array.from(new Set((Array.isArray(docs) ? docs : []).map((doc) => getBookRecordId(doc)).filter(Boolean)));
+        if (!ids.length) return new Map();
+        const client = ensureHomeBooksSupabase();
+        if (!client) return new Map();
+        const map = new Map();
+        const chunkSize = 100;
+        for (let index = 0; index < ids.length; index += chunkSize) {
+          const chunk = ids.slice(index, index + chunkSize);
+          const { data, error } = await client
+            .from('books')
+            .select('id,title,authors,thumbnail,published_date,categories')
+            .in('id', chunk);
+          if (error || !Array.isArray(data)) continue;
+          data.forEach((row) => {
+            const key = String(row?.id || '').trim();
+            if (!key) return;
+            map.set(key, row);
+          });
+        }
+        return map;
+      };
       const buildOpenLibraryCoverUrl = (doc, size = 'L') => {
         const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
           ? String(size || 'L').toUpperCase()
@@ -73,18 +113,23 @@ async function loadBooks(signal) {
       const mapDocsToRailItems = (docs, options = {}) => {
         const minYear = Number(options.minYear || 0);
         const allowMissingYear = !!options.allowMissingYear;
+        const localOverrides = options.localOverrides instanceof Map ? options.localOverrides : new Map();
         const seen = new Set();
         return (Array.isArray(docs) ? docs : []).map((doc, idx) => {
           const normalized = normalizeBookDoc(doc, idx);
           if (!normalized) return null;
+          const recordId = getBookRecordId(normalized);
+          const localOverride = recordId ? localOverrides.get(recordId) : null;
           const title = String(normalized.title || '').trim();
           const author = String((Array.isArray(normalized.author_name) ? normalized.author_name[0] : '') || '').trim() || 'Unknown author';
-          const year = Number(normalized?.first_publish_year || 0) || 0;
+          const overrideYear = String(localOverride?.published_date || '').slice(0, 4);
+          const year = Number(overrideYear || normalized?.first_publish_year || 0) || 0;
 
           if (!allowMissingYear && !year) return null;
           if (minYear && year && year < minYear) return null;
 
           const coverCandidates = [
+            toHttpsUrl(localOverride?.thumbnail || ''),
             toHttpsUrl(normalized?._googleThumbnail || ''),
             toHttpsUrl(normalized?.coverImage || ''),
             toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'L')),
@@ -101,7 +146,8 @@ async function loadBooks(signal) {
           const googleVolumeId = String(normalized?._googleVolumeId || '').trim();
           const workKey = String(normalized?.key || '').trim();
           let itemId = '';
-          if (googleVolumeId) itemId = googleVolumeId;
+          if (recordId) itemId = recordId;
+          if (!itemId && googleVolumeId) itemId = googleVolumeId;
           if (!itemId && workKey.startsWith('/works/')) itemId = workKey.replace('/works/', '').trim();
           if (!itemId) {
             itemId = `search-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `book-${idx}`}`;
@@ -169,9 +215,11 @@ async function loadBooks(signal) {
           if (docs.length) allDocsRaw.push(...docs);
         });
 
-        const strictModern = mapDocsToRailItems(allDocsRaw, { minYear: 2005, allowMissingYear: false });
-        const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: 2005, allowMissingYear: true });
-        const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 1995, allowMissingYear: true });
+        const localOverrides = await fetchLocalBookOverrides(allDocsRaw);
+
+        const strictModern = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: false, localOverrides });
+        const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: true, localOverrides });
+        const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 2008, allowMissingYear: true, localOverrides });
         const merged = mergeUniqueItems(strictModern, modernWithUnknownYear, relaxedFallback);
         const safeMerged = filterHomeSafeItems(merged);
         if (safeMerged.length) {

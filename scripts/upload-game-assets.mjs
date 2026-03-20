@@ -197,18 +197,36 @@ async function main() {
   const concurrency = Math.max(1, Number(parseArg('--concurrency', 4)));
   const offset = Math.max(0, Number(parseArg('--offset', 0)));
   const missingOnly = ['1', 'true', 'yes', 'on'].includes(String(parseArg('--missing-only', '')).trim().toLowerCase());
+  const verbose = ['1', 'true', 'yes', 'on'].includes(String(parseArg('--verbose', '')).trim().toLowerCase());
   const manifest = { generatedAt: new Date().toISOString(), games: {} };
   let query = supabase
     .from('games')
     .select('id,title,slug,cover_url,hero_url,extra,rawg_id,source,rating_count,rating')
     .order('rating_count', { ascending: false, nullsFirst: false })
     .order('rating', { ascending: false, nullsFirst: false });
-  if (missingOnly) query = query.or('cover_url.is.null,hero_url.is.null,cover_url.eq.,hero_url.eq.');
+  if (missingOnly) {
+    query = query.or([
+      'cover_url.is.null',
+      'hero_url.is.null',
+      'cover_url.eq.',
+      'hero_url.eq.',
+      `cover_url.not.like.%/${BUCKET_NAME}/%`,
+      `hero_url.not.like.%/${BUCKET_NAME}/%`
+    ].join(','));
+  }
   query = query.range(offset, offset + limit - 1);
   const { data, error } = await query;
   if (error) throw error;
   const rows = Array.isArray(data) ? data : [];
   let cursor = 0;
+  let processed = 0;
+  let uploaded = 0;
+  let skipped = 0;
+
+  function logProgress(force = false) {
+    if (!force && processed % 50 !== 0) return;
+    console.log(`[game-assets] processed ${processed}/${rows.length} uploaded=${uploaded} skipped=${skipped}`);
+  }
 
   async function worker() {
     while (cursor < rows.length) {
@@ -262,10 +280,14 @@ async function main() {
           if (updateError) throw updateError;
         }
         manifest.games[String(row.id)] = entry;
-        console.log(`[game-assets] ${slug}`);
+        uploaded += 1;
+        if (verbose) console.log(`[game-assets] ${slug}`);
       } catch (error) {
+        skipped += 1;
         console.warn(`[game-assets] skip ${slug}: ${error.message}`);
       }
+      processed += 1;
+      logProgress();
       await sleep(120);
     }
   }
@@ -313,6 +335,7 @@ async function main() {
     cacheControl: '300'
   });
   if (manifestError) throw manifestError;
+  logProgress(true);
   console.log(`manifest uploaded (${Object.keys(manifest.games).length} games)`);
 }
 
