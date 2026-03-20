@@ -7186,8 +7186,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     async function loadGames(signal, options = {}) {
       const targetCount = Math.max(getHomeChannelTargetItems(), isHomeSlowNetwork() ? 18 : 28);
-      const cacheBust = options?.cacheBust ? Date.now() : 0;
-      const cacheParams = cacheBust ? { cache_bust: cacheBust } : {};
       const mapToItem = (row) => {
         const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
         const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
@@ -7224,67 +7222,22 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
       try {
         const client = await ensureHomeSupabase();
-        if (client) {
-          try {
-            const { data, error } = await client
-              .from('games')
-              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug')
-              .order('rating_count', { ascending: false, nullsFirst: false })
-              .order('rating', { ascending: false, nullsFirst: false })
-              .limit(Math.max(targetCount * 3, 48));
-            if (!error) {
-              const localItems = (Array.isArray(data) ? data : [])
-                .map((row) => mapToItem(row))
-                .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
-                .slice(0, targetCount);
-              if (localItems.length) return localItems;
-            }
-          } catch (_localGamesError) {
-            // Fall through to legacy providers if the local catalog lookup hiccups.
-          }
-        }
-        const providerList = ['wikipedia', 'igdb'];
-        for (const provider of providerList) {
-          const baseParams = {
-            page_size: Math.min(Math.max(targetCount * 6, 140), 220),
-            provider,
-            spotlight: 1,
-            cache: 1,
-            cache_pages: 1
-          };
-          const requests = [
-            { ...baseParams, page: 1, ordering: '-released' },
-            { ...baseParams, page: 2, ordering: '-released' },
-            { ...baseParams, page: 1, ordering: '-rating' },
-            { ...baseParams, page: 1, ordering: '-rating_count' },
-            { ...baseParams, page: 1, ordering: '-name' },
-            { ...baseParams, page: 1, popularity_type: 1 },
-            { ...baseParams, page: 2, popularity_type: 1 }
-          ];
-          const merged = [];
-          const seen = new Set();
-          for (const params of requests) {
-            if (signal?.aborted) break;
-            const payload = await homeIgdbFetch('/games', { ...params, ...cacheParams }, signal);
-            const rows = Array.isArray(payload?.results) ? payload.results : [];
-            rows.forEach((row) => {
-              const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
-              const title = String(row?.title || row?.name || '').trim().toLowerCase();
-              const key = id || title;
-              if (!key || seen.has(key)) return;
-              seen.add(key);
-              merged.push(row);
-            });
-            if (merged.length >= targetCount * 4) break;
-          }
-          if (!merged.length || signal?.aborted) continue;
-          const items = merged
+        if (!client) return [];
+        try {
+          const { data, error } = await client
+            .from('games')
+            .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug')
+            .order('rating_count', { ascending: false, nullsFirst: false })
+            .order('rating', { ascending: false, nullsFirst: false })
+            .limit(Math.max(targetCount * 5, 96));
+          if (error) return [];
+          return (Array.isArray(data) ? data : [])
             .map((row) => mapToItem(row))
             .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
             .slice(0, targetCount);
-          if (items.length) return items;
+        } catch (_localGamesError) {
+          return [];
         }
-        return [];
       } catch (_error) {
         return [];
       }
