@@ -7283,6 +7283,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       };
     }
 
+    function isPreferredHomeGameRow(row) {
+      const cover = resolveHomeGameCover(row);
+      const importedFrom = getHomeGameImportedFrom(row);
+      if (!cover) return false;
+      if (/wikimedia|wikipedia/.test(cover)) return true;
+      return importedFrom && !importedFrom.includes('rawg');
+    }
+
     async function loadGames(signal, options = {}) {
       const targetCount = Math.max(getHomeChannelTargetItems(), isHomeSlowNetwork() ? 18 : 28);
       const mapToItem = (row) => {
@@ -7342,7 +7350,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
               combinedRows = primaryRows.concat(altRows);
             }
           }
-          const mappedItems = dedupeHomeGameRows(combinedRows, targetCount * 3)
+          const dedupedRows = dedupeHomeGameRows(combinedRows, targetCount * 4);
+          const preferredRows = dedupedRows.filter((row) => isPreferredHomeGameRow(row));
+          const selectedRows = (preferredRows.length >= targetCount ? preferredRows : dedupedRows).slice(0, targetCount * 3);
+          const mappedItems = selectedRows
             .map((row) => mapToItem(row))
             .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim());
           return stableShuffleHomeItems(mappedItems, 'game:home').slice(0, targetCount);
