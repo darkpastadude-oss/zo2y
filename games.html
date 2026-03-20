@@ -322,6 +322,21 @@
       background-position: center;
     }
 
+    .card .card-media.game-media.plain-logo {
+      background: transparent !important;
+      background-image: none !important;
+    }
+
+    .card .card-media.game-media.plain-logo::before,
+    .card .card-media.game-media.plain-logo::after {
+      display: none;
+    }
+
+    .card .card-media.game-media.plain-logo img {
+      padding: 0;
+      filter: none;
+    }
+
     .card .card-media.game-media::before {
       content: '';
       position: absolute;
@@ -880,6 +895,18 @@
           ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
         ], fallback);
         return hero || fallback || IGDB_FALLBACK_IMAGE;
+      }
+
+      function isLikelyLogoOnlyGameArt(url) {
+        const value = String(url || '').trim().toLowerCase();
+        if (!value) return false;
+        if (value.endsWith('.svg') || value.includes('.svg?')) return true;
+        if (value.endsWith('.png') || value.includes('.png?')) return true;
+        return ['logo', 'wordmark', 'transparent', 'icon'].some((token) => value.includes(token));
+      }
+
+      function shouldUsePlainGameStage(item, cover, hero) {
+        return isLikelyLogoOnlyGameArt(cover) || !hero || hero === cover;
       }
 
       function buildIgdbCacheKey(path, params = {}) {
@@ -1586,11 +1613,12 @@
         const gameDescription = [genreText, ratingText].filter(Boolean).join(' | ') || String(item.description || '').trim() || 'Popular game';
         const gameCover = resolveGameImageSource(item);
         const gameHero = resolveGameHeroSource(item, gameCover);
+        const plainGameStage = shouldUsePlainGameStage(item, gameCover, gameHero);
         // Skip entries that don't have a real cover image.
         if (!gameCover || gameCover === IGDB_FALLBACK_IMAGE || gameCover.includes('/newlogo.webp')) {
           return null;
         }
-        const heroStyle = gameHero ? ` style="background-image:url('${encodeURI(gameHero)}')"` : '';
+        const heroStyle = !plainGameStage && gameHero ? ` style="background-image:url('${encodeURI(gameHero)}')"` : '';
 
         const gameId = Number(item.id);
         if (!Number.isFinite(gameId)) return null;
@@ -1599,7 +1627,7 @@
         card.setAttribute('data-game-id', gameId);
         const isPriority = Number.isFinite(index) && index < 4;
         card.innerHTML = `
-          <div class="card-media game-media"${heroStyle}>
+          <div class="card-media game-media${plainGameStage ? ' plain-logo' : ''}"${heroStyle}>
             <img src="${gameCover}" alt="${gameTitle}" loading="${isPriority ? 'eager' : 'lazy'}" fetchpriority="${isPriority ? 'high' : 'low'}" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;const c=this.closest('.card');if(c)c.remove();">
           </div>
           <div class="card-body">

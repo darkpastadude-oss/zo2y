@@ -2022,6 +2022,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           const cover = resolveHomeGameCover(row);
           if (!cover) return null;
           const hero = resolveHomeGameHero(row, '');
+          const presentation = getHomeGamePresentation(cover, hero);
           const rowId = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
           const rowTitle = String(row?.name || row?.title || 'Game').trim() || 'Game';
           const genreText = Array.isArray(extra?.genres)
@@ -2038,8 +2039,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             backgroundImage: hero || cover,
             spotlightImage: hero || cover,
             spotlightMediaImage: cover,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
+            spotlightMediaFit: presentation.spotlightFit,
+            spotlightMediaShape: presentation.spotlightShape,
+            gameCardMode: presentation.plain ? 'plain' : 'hero',
             fallbackImage: '',
             href: rowId ? `game.html?id=${encodeURIComponent(rowId)}` : 'games.html'
           };
@@ -5232,14 +5234,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         if (mediaTypeRaw === 'game' && String(opts?.mediaType || '').toLowerCase() === 'game') {
           if (!image) return '';
           const desc = extra || 'Video game';
-          const gameBg = escapeHtml(itemData.backgroundImage || itemData.spotlightImage || '');
+          const plainGameStage = String(itemData.gameCardMode || '').trim() === 'plain';
+          const gameBg = plainGameStage ? '' : escapeHtml(itemData.backgroundImage || itemData.spotlightImage || '');
           const bgStyle = gameBg ? ` style="background-image:url('${gameBg}')" ` : '';
           const trailingControl = supportsLists
             ? `<button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>`
             : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
           return `
             <article class="card game-card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${image}">
-              <div class="game-card-media is-loading-media"${bgStyle}>
+              <div class="game-card-media is-loading-media${plainGameStage ? ' plain-logo' : ''}"${bgStyle}>
                 <img class="game-card-img" ${buildHomeImageAttrs(image, imageLoading, imagePriority)} alt="${title}">
               </div>
               <div class="card-body">
@@ -7164,6 +7167,23 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return hero || fallback || '';
     }
 
+    function isLikelyLogoOnlyGameArt(url) {
+      const value = String(url || '').trim().toLowerCase();
+      if (!value) return false;
+      if (value.endsWith('.svg') || value.includes('.svg?')) return true;
+      if (value.endsWith('.png') || value.includes('.png?')) return true;
+      return ['logo', 'wordmark', 'transparent', 'icon'].some((token) => value.includes(token));
+    }
+
+    function getHomeGamePresentation(cover, hero) {
+      const plain = isLikelyLogoOnlyGameArt(cover) || !hero || hero === cover;
+      return {
+        plain,
+        spotlightShape: plain ? 'landscape' : 'poster',
+        spotlightFit: 'contain'
+      };
+    }
+
     async function loadGames(signal, options = {}) {
       const targetCount = Math.max(getHomeChannelTargetItems(), isHomeSlowNetwork() ? 18 : 28);
       const cacheBust = options?.cacheBust ? Date.now() : 0;
@@ -7173,6 +7193,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
         const cover = resolveHomeGameCover(row);
         const hero = resolveHomeGameHero(row, '');
+        const presentation = getHomeGamePresentation(cover, hero);
         // Drop games that don't have a real cover image.
         if (!cover || cover.includes('/newlogo.webp')) return null;
         const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
@@ -7193,8 +7214,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           backgroundImage: hero || cover,
           spotlightImage: hero || cover,
           spotlightMediaImage: cover,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
+          spotlightMediaFit: presentation.spotlightFit,
+          spotlightMediaShape: presentation.spotlightShape,
+          gameCardMode: presentation.plain ? 'plain' : 'hero',
           fallbackImage: '',
           href: id ? `game.html?id=${encodeURIComponent(String(id))}` : 'games.html'
         };
