@@ -5181,7 +5181,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     function renderRail(railId, items, opts) {
       const rail = document.getElementById(railId);
       if (!rail) return;
-      rail.classList.toggle('games-rail', String(opts?.mediaType || '').toLowerCase() === 'game');
+      rail.classList.remove('games-rail');
 
       if (!items || !items.length) {
         rail.innerHTML = '<div class="empty">No items right now.</div>';
@@ -5230,33 +5230,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           : { loading: 'lazy', priority: 'low' };
         const imageLoading = imagePolicy.loading;
         const imagePriority = imagePolicy.priority;
-
-        if (mediaTypeRaw === 'game' && String(opts?.mediaType || '').toLowerCase() === 'game') {
-          if (!image) return '';
-          const desc = extra || 'Video game';
-          const plainGameStage = String(itemData.gameCardMode || '').trim() === 'plain';
-          const trailingControl = supportsLists
-            ? `<button class="menu-btn card-menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>`
-            : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
-          return `
-            <article class="card game-card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${image}">
-              <div class="card-media game-media is-loading-media${plainGameStage ? ' plain-logo' : ''}">
-                <img class="game-card-img" ${buildHomeImageAttrs(image, imageLoading, imagePriority)} alt="${title}">
-              </div>
-              <div class="card-body">
-                <h3 class="card-title">${title}</h3>
-                <div class="card-meta-row">
-                  <div class="card-meta">${subtitle}</div>
-                  <div class="card-menu-wrap">
-                    ${previewControl}
-                    ${trailingControl}
-                  </div>
-                </div>
-                <div class="card-desc">${desc}</div>
-              </div>
-            </article>
-          `;
-        }
 
         const mediaClasses = ['card-media'];
         const mediaFit = String(itemData.mediaFit || '').trim().toLowerCase();
