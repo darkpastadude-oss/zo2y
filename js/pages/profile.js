@@ -3553,8 +3553,10 @@
                                 image: String(data.image_url || '').trim() || '/newlogo.webp'
                             } : null;
                         }
-                        if (safeType === 'fashion' || safeType === 'food') {
-                            const table = safeType === 'fashion' ? 'fashion_brands' : 'food_brands';
+                        if (safeType === 'fashion' || safeType === 'food' || safeType === 'car') {
+                            const table = safeType === 'fashion'
+                                ? 'fashion_brands'
+                                : (safeType === 'food' ? 'food_brands' : 'car_brands');
                             const { data } = await supabase
                                 .from(table)
                                 .select('id, name, logo_url')

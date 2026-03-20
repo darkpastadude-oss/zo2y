@@ -557,6 +557,16 @@
         }
 
         @media (max-width: 768px) {
+            .collection-preview-item.brand-logo-preview,
+            .list-preview-item.brand-logo-preview,
+            .mobile-preview-item.brand-logo-preview,
+            .collection-preview-item img.brand-logo-preview-image,
+            .list-preview-item img.brand-logo-preview-image,
+            .mobile-preview-item img.brand-logo-preview-image,
+            .collection-item-image.brand-logo-stage {
+                background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
+            }
+
             .collection-item-image {
                 min-height: 120px;
             }

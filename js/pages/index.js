@@ -5235,12 +5235,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           if (!image) return '';
           const desc = extra || 'Video game';
           const plainGameStage = String(itemData.gameCardMode || '').trim() === 'plain';
+          const gameHero = String(itemData.backgroundImage || itemData.spotlightImage || '').trim();
+          const heroStyle = !plainGameStage && gameHero
+            ? ` style="background-image:url('${escapeHtml(gameHero)}')"`
+            : '';
           const trailingControl = supportsLists
-            ? `<button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>`
+            ? `<button class="menu-btn card-menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>`
             : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
           return `
             <article class="card game-card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${image}">
-              <div class="game-card-media is-loading-media${plainGameStage ? ' plain-logo' : ' poster-cover'}">
+              <div class="card-media game-media is-loading-media${plainGameStage ? ' plain-logo' : ''}"${heroStyle}>
                 <img class="game-card-img" ${buildHomeImageAttrs(image, imageLoading, imagePriority)} alt="${title}">
               </div>
               <div class="card-body">
@@ -7338,10 +7342,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
               combinedRows = primaryRows.concat(altRows);
             }
           }
-          return dedupeHomeGameRows(combinedRows, targetCount * 3)
+          const mappedItems = dedupeHomeGameRows(combinedRows, targetCount * 3)
             .map((row) => mapToItem(row))
-            .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
-            .slice(0, targetCount);
+            .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim());
+          return stableShuffleHomeItems(mappedItems, 'game:home').slice(0, targetCount);
         } catch (_localGamesError) {
           return [];
         }
