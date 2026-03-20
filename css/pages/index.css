@@ -2985,6 +2985,20 @@
         object-position: center center !important;
       }
 
+      .rail .card-media.brand-cover {
+        aspect-ratio: 1 / 1 !important;
+        height: 180px !important;
+        padding: 6px !important;
+        background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
+      }
+
+      .rail .card-media.brand-cover img {
+        object-fit: contain !important;
+        padding: 8px !important;
+        box-sizing: border-box !important;
+        background: transparent !important;
+      }
+
       .rail .card-media.cover img {
         object-fit: cover !important;
       }
