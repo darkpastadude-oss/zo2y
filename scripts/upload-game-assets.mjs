@@ -272,6 +272,40 @@ async function main() {
 
   await Promise.all(Array.from({ length: concurrency }, () => worker()));
 
+  const fullRows = [];
+  let fullOffset = 0;
+  const pageSize = 1000;
+  while (true) {
+    const { data: pageRows, error: fullRowsError } = await supabase
+      .from('games')
+      .select('id,slug,cover_url,hero_url,extra')
+      .or('cover_url.not.is.null,hero_url.not.is.null')
+      .range(fullOffset, fullOffset + pageSize - 1);
+    if (fullRowsError) throw fullRowsError;
+    if (!Array.isArray(pageRows) || !pageRows.length) break;
+    fullRows.push(...pageRows);
+    if (pageRows.length < pageSize) break;
+    fullOffset += pageRows.length;
+  }
+  manifest.generatedAt = new Date().toISOString();
+  manifest.games = {};
+  (Array.isArray(fullRows) ? fullRows : []).forEach((row) => {
+    const cover = toHttpsUrl(row?.cover_url);
+    const hero = toHttpsUrl(row?.hero_url);
+    const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
+    const screenshots = Array.isArray(extra.local_screenshots)
+      ? extra.local_screenshots.map((value) => toHttpsUrl(value)).filter(Boolean)
+      : [];
+    if (!cover && !hero && !screenshots.length) return;
+    manifest.games[String(row.id)] = {
+      id: row.id,
+      slug: sanitizeFileBase(row.slug || row.id),
+      cover,
+      hero: hero || cover,
+      screenshots
+    };
+  });
+
   const manifestBuffer = Buffer.from(JSON.stringify(manifest, null, 2), 'utf8');
   const { error: manifestError } = await supabase.storage.from(BUCKET_NAME).upload(MANIFEST_PATH, manifestBuffer, {
     contentType: 'application/json',
