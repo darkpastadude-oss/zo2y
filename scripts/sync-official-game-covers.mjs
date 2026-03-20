@@ -149,6 +149,8 @@ async function fetchAllGames(supabase) {
     const { data, error } = await supabase
       .from('games')
       .select('id,title,slug,source,cover_url,hero_url,extra')
+      .order('rating_count', { ascending: false, nullsFirst: false })
+      .order('rating', { ascending: false, nullsFirst: false })
       .range(from, from + pageSize - 1);
     if (error) throw error;
     const batch = Array.isArray(data) ? data : [];
