@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -253,10 +253,10 @@
       margin: 24px auto 60px;
       padding: 0 20px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
       gap: 16px;
-      justify-content: start;
-      justify-items: start;
+      justify-content: stretch;
+      justify-items: stretch;
     }
 
     .card {
@@ -270,8 +270,8 @@
       transition: all 0.2s ease;
       position: relative;
       width: 100%;
-      max-width: 240px;
-      justify-self: start;
+      max-width: none;
+      justify-self: stretch;
     }
 
     .card:hover {
@@ -1032,7 +1032,8 @@
         activeGameId: null,
         modalSelectedLists: new Set(),
         selectedIcon: 'fas fa-gamepad',
-        pendingDefaultOps: new Set()
+        pendingDefaultOps: new Set(),
+        searchSupplementCache: new Map()
       };
 
       let supabaseClient = null;
@@ -1277,12 +1278,11 @@
       }
 
       const SEARCH_ALIASES = {
-        mario: 'super mario',
+        mario: 'super mario mario kart mario party paper mario mario tennis mario golf mario vs donkey kong',
         mariokart: 'mario kart',
         marioparty: 'mario party',
-        pokemon: 'pokémon',
-        pokémon: 'pokemon',
-        spiderman: 'spider man',
+        pokemon: 'pokemon',
+        ['pok' + '\u00e9' + 'mon']: 'pokemon',
         spiderman: 'spider man',
         gta: 'grand theft auto',
         gtav: 'grand theft auto v',
@@ -1310,6 +1310,56 @@
         if (normalized && normalized !== raw) variants.add(normalized);
         if (compact && compact !== normalized && compact !== raw) variants.add(compact);
         return [...variants].filter(Boolean);
+      }
+
+      function getSearchSupplementKey(query, activeGenre, year) {
+        return [String(query || '').trim().toLowerCase(), String(activeGenre || '').trim().toLowerCase(), String(year || '').trim()].join('::');
+      }
+
+      async function fetchSearchSupplementGames(query, activeGenre = '', year = '') {
+        if (!supabaseClient) return [];
+        const rawQuery = String(query || '').trim();
+        if (!rawQuery) return [];
+        const cacheKey = getSearchSupplementKey(rawQuery, activeGenre, year);
+        if (state.searchSupplementCache.has(cacheKey)) {
+          return state.searchSupplementCache.get(cacheKey) || [];
+        }
+        const variants = [rawQuery, ...getSearchFallbackQueries(rawQuery)]
+          .map((value) => String(value || '').trim())
+          .filter(Boolean);
+        const seenVariants = new Set();
+        const uniqueVariants = variants.filter((value) => {
+          const key = normalizeTitleKey(value);
+          if (!key || seenVariants.has(key)) return false;
+          seenVariants.add(key);
+          return true;
+        });
+        const allRows = [];
+        for (const variant of uniqueVariants.slice(0, 6)) {
+          const terms = [variant, normalizeTitleKey(variant), normalizeFranchiseTitleKey(variant)]
+            .map((value) => String(value || '').trim())
+            .filter((value, index, array) => value && array.indexOf(value) === index);
+          for (const term of terms.slice(0, 3)) {
+            const escaped = term.replace(/[%_,]/g, ' ').trim();
+            if (!escaped) continue;
+            let queryBuilder = supabaseClient
+              .from('games')
+              .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug')
+              .like('cover_url', '%/covers-official/%')
+              .or(`title.ilike.%${escaped}%,slug.ilike.%${escaped}%`)
+              .limit(160);
+            if (year) {
+              queryBuilder = queryBuilder.gte('release_date', `${year}-01-01`).lte('release_date', `${year}-12-31`);
+            }
+            const { data, error } = await queryBuilder;
+            if (!error && Array.isArray(data) && data.length) {
+              allRows.push(...data);
+            }
+          }
+        }
+        const filtered = dedupeRowsByCanonicalTitle(filterCatalogGames(dedupeRowsById(allRows)));
+        state.searchSupplementCache.set(cacheKey, filtered);
+        return filtered;
       }
       function mapIgdbRowToCatalog(row) {
         if (!row) return null;
@@ -1517,11 +1567,20 @@
         if (!supabaseClient) return null;
         const ready = await ensureGamesCatalogLoaded();
         if (!ready) return null;
-        const filtered = dedupeRowsByCanonicalTitle(filterCatalogGames(state.catalog));
+        const query = String(state.query || '').trim();
+        let workingSet = Array.isArray(state.catalog) ? state.catalog.slice() : [];
+        if (query) {
+          const supplement = await fetchSearchSupplementGames(query, state.activeGenre, state.year);
+          if (supplement.length) {
+            workingSet = dedupeRowsById([...supplement, ...workingSet]);
+          }
+        }
+        const filtered = dedupeRowsByCanonicalTitle(filterCatalogGames(workingSet));
+        const ranked = query ? sortSearchResults(filtered, query) : filtered;
         const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
         return {
-          rows: filtered.slice(start, start + pageSize),
-          count: filtered.length,
+          rows: ranked.slice(start, start + pageSize),
+          count: ranked.length,
           source: 'supabase'
         };
       }
@@ -2133,6 +2192,7 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
 
 
 
