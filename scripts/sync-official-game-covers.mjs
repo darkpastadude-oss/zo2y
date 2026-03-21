@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
+import { fetchWikipediaGamesList } from '../backend/lib/wiki-games-provider.js';
 
 const ROOT = process.cwd();
 const BUCKET_NAME = 'game-assets';
@@ -60,6 +61,65 @@ function normalizeTitleKey(value) {
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function titleTokens(value) {
+  return normalizeTitleKey(value).split(/\s+/).filter(Boolean);
+}
+
+function scoreSearchMatch(group, candidate) {
+  const candidateTitle = String(candidate?.title || candidate?.name || '').trim();
+  const candidateKey = normalizeTitleKey(candidateTitle);
+  if (!candidateKey) return Number.NEGATIVE_INFINITY;
+  const coverUrl = normalizeCoverUrl(candidate?.cover_url || candidate?.cover || candidate?.image || '');
+  if (!coverUrl || isLikelyBackdropUrl(coverUrl)) return Number.NEGATIVE_INFINITY;
+
+  let best = Number.NEGATIVE_INFINITY;
+  for (const row of group) {
+    const rowTitle = String(row?.title || '').trim();
+    const rowKey = normalizeTitleKey(rowTitle);
+    if (!rowKey) continue;
+
+    let score = 0;
+    if (candidateKey === rowKey) score += 1000;
+    if (candidateKey.startsWith(rowKey) || rowKey.startsWith(candidateKey)) score += 400;
+
+    const rowTerms = titleTokens(rowTitle);
+    const candidateTerms = titleTokens(candidateTitle);
+    const overlap = rowTerms.filter((term) => candidateTerms.includes(term)).length;
+    score += overlap * 30;
+
+    const rowYear = String(row?.release_date || '').slice(0, 4);
+    const candidateYear = String(candidate?.release_date || candidate?.released || '').slice(0, 4);
+    if (rowYear && candidateYear && rowYear === candidateYear) score += 60;
+
+    if (score > best) best = score;
+  }
+
+  return best;
+}
+
+async function resolveWikipediaCover(group) {
+  const title = String(group?.[0]?.title || '').trim();
+  if (!title) return '';
+  try {
+    const payload = await fetchWikipediaGamesList({
+      page: 1,
+      pageSize: 8,
+      search: title,
+      titleOnly: true,
+      spotlight: false
+    });
+    const rows = Array.isArray(payload?.results) ? payload.results : [];
+    const ranked = rows
+      .map((row) => ({ row, score: scoreSearchMatch(group, row) }))
+      .filter((entry) => Number.isFinite(entry.score) && entry.score >= 120)
+      .sort((a, b) => b.score - a.score);
+    const best = ranked[0]?.row;
+    return normalizeCoverUrl(best?.cover_url || best?.cover || best?.image || '');
+  } catch (_error) {
+    return '';
+  }
 }
 
 function toHttpsUrl(value) {
@@ -191,19 +251,20 @@ async function main() {
   const concurrency = Math.max(1, Number(parseArg('--concurrency', 4)));
 
   const rows = await fetchAllGames(supabase);
-  const groups = Array.from(buildGroups(rows).values())
-    .map((group) => {
-      const officialRows = group
-        .filter((row) => scoreOfficialCover(row) > Number.NEGATIVE_INFINITY)
-        .sort((a, b) => scoreOfficialCover(b) - scoreOfficialCover(a));
-      if (!officialRows.length) return null;
-      const official = officialRows[0];
-      const officialCoverSource = normalizeCoverUrl(official?.cover_url || official?.cover?.url || official?.cover);
-      if (!officialCoverSource) return null;
-      return { group, official, officialCoverSource };
-    })
-    .filter(Boolean)
-    .slice(offset, offset + limit);
+  const groupedRows = Array.from(buildGroups(rows).values()).slice(offset, offset + limit);
+  const groups = [];
+  for (const group of groupedRows) {
+    const officialRows = group
+      .filter((row) => scoreOfficialCover(row) > Number.NEGATIVE_INFINITY)
+      .sort((a, b) => scoreOfficialCover(b) - scoreOfficialCover(a));
+    const official = officialRows[0] || group[0];
+    let officialCoverSource = normalizeCoverUrl(official?.cover_url || official?.cover?.url || official?.cover);
+    if (!officialCoverSource || isLikelyBackdropUrl(officialCoverSource)) {
+      officialCoverSource = await resolveWikipediaCover(group);
+    }
+    if (!officialCoverSource) continue;
+    groups.push({ group, official, officialCoverSource });
+  }
 
   let cursor = 0;
   let processed = 0;

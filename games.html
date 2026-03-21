@@ -863,7 +863,11 @@
 
       function pickPreferredCoverUrl(candidates = []) {
         const cleaned = candidates.map(normalizeGameImageUrl).filter(Boolean);
-        return cleaned.find((url) => /wikimedia|wikipedia/.test(url)) || cleaned[0] || '';
+        return cleaned.find((url) => /\/game-assets\/covers-official\//.test(url))
+          || cleaned.find((url) => /wikimedia|wikipedia/.test(url))
+          || cleaned.find((url) => /\/game-assets\//.test(url))
+          || cleaned[0]
+          || '';
       }
 
       function pickBackdropUrl(candidates = [], fallback = '') {
@@ -1429,6 +1433,7 @@
           const { data, error } = await supabaseClient
             .from('games')
             .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra')
+            .like('cover_url', '%/covers-official/%')
             .order('rating', { ascending: false, nullsFirst: false })
             .order('rating_count', { ascending: false, nullsFirst: false })
             .order('release_date', { ascending: false, nullsFirst: false })
@@ -1494,6 +1499,7 @@
         const year = String(state.year || '').trim();
         if (q) query = query.ilike('title', `%${q}%`);
         if (year) query = query.gte('release_date', `${year}-01-01`).lte('release_date', `${year}-12-31`);
+        query = query.like('cover_url', '%/covers-official/%');
 
         query = query
           .order('rating_count', { ascending: false, nullsFirst: false })

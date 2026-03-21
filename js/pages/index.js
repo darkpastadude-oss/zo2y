@@ -7141,7 +7141,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
       const likelyCovers = cleaned.filter((url) => !isLikelyBackdropGameUrl(url));
       const pool = likelyCovers.length ? likelyCovers : cleaned;
-      return pool.find((url) => /wikimedia|wikipedia/.test(url)) || pool[0] || '';
+      return pool.find((url) => /\/game-assets\/covers-official\//.test(url))
+        || pool.find((url) => /wikimedia|wikipedia/.test(url))
+        || pool.find((url) => /\/game-assets\//.test(url))
+        || pool[0]
+        || '';
     }
 
     function getHomeGameImportedFrom(row) {
@@ -7199,6 +7203,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const importedFrom = getHomeGameImportedFrom(row);
       if (!cover) return Number.NEGATIVE_INFINITY;
       let score = 0;
+      if (/\/game-assets\/covers-official\//.test(cover)) score += 700;
       if (/wikimedia|wikipedia/.test(cover)) score += 420;
       if (importedFrom.includes('igdb') || importedFrom.includes('wikipedia')) score += 220;
       if (/game-assets\/covers\//.test(cover)) score += 80;
@@ -7338,6 +7343,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           const { data, error } = await client
             .from('games')
             .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
+            .like('cover_url', '%/covers-official/%')
             .order('rating_count', { ascending: false, nullsFirst: false })
             .order('rating', { ascending: false, nullsFirst: false })
             .limit(Math.max(targetCount * 12, 192));
@@ -7350,6 +7356,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             const { data: altRows, error: altError } = await client
               .from('games')
               .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
+              .like('cover_url', '%/covers-official/%')
               .in('title', titlePool);
             if (!altError && Array.isArray(altRows) && altRows.length) {
               combinedRows = primaryRows.concat(altRows);
@@ -7359,6 +7366,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             const { data: altSlugRows, error: altSlugError } = await client
               .from('games')
               .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
+              .like('cover_url', '%/covers-official/%')
               .in('slug', slugPool);
             if (!altSlugError && Array.isArray(altSlugRows) && altSlugRows.length) {
               combinedRows = combinedRows.concat(altSlugRows);

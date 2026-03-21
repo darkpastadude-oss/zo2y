@@ -983,6 +983,77 @@
         return null;
       }
 
+      function normalizeLocalBookDoc(row) {
+        if (!row) return null;
+        const authors = String(row.authors || '').trim();
+        const rawCategories = Array.isArray(row.categories) ? row.categories : [];
+        const categories = deriveCanonicalBookGenres(rawCategories);
+        const publishedYear = String(row.published_date || '').slice(0, 4);
+        return {
+          key: row.id ? `/books/${row.id}` : '',
+          title: String(row.title || '').trim(),
+          author_name: authors ? authors.split(',').map((entry) => String(entry || '').trim()).filter(Boolean) : [],
+          first_publish_year: publishedYear ? Number(publishedYear) : null,
+          subject: categories.length ? categories : rawCategories,
+          publisher: row.publisher ? [String(row.publisher).trim()] : [],
+          cover_i: null,
+          coverImage: toHttpsUrl(row.thumbnail || ''),
+          _googleThumbnail: '',
+          _googleVolumeId: '',
+          description: String(row.description || '').trim(),
+          pageCount: Number(row.page_count || 0) || null,
+          _source: 'supabase-books'
+        };
+      }
+
+      async function fetchLocalBooksPage() {
+        if (!supabaseClient) return null;
+        const page = Math.max(1, Number(state.page || 1));
+        const category = String(state.activeCategory || '').trim();
+        const q = String(state.query || '').trim();
+        const author = String(state.author || '').trim();
+        const year = String(state.year || '').trim();
+        const needsClientSideCategory = !!category;
+        let query = supabaseClient
+          .from('books')
+          .select('id,title,authors,thumbnail,published_date,categories,description,page_count,publisher,updated_at', { count: 'exact' });
+
+        if (q) query = query.ilike('title', `%${q}%`);
+        if (author) query = query.ilike('authors', `%${author}%`);
+        if (year) {
+          query = query.gte('published_date', `${year}-01-01`).lte('published_date', `${year}-12-31`);
+        }
+
+        query = query
+          .order('published_date', { ascending: false, nullsFirst: false })
+          .order('title', { ascending: true });
+
+        if (needsClientSideCategory) {
+          query = query.range(0, 799);
+        } else {
+          query = query.range((page - 1) * BOOKS_PER_PAGE, page * BOOKS_PER_PAGE - 1);
+        }
+
+        const { data, error, count } = await query;
+        if (error) return null;
+        let docs = (Array.isArray(data) ? data : []).map((row) => normalizeLocalBookDoc(row)).filter((row) => row && row.title);
+        if (needsClientSideCategory) {
+          docs = docs.filter((row) => bookMatchesCategory(row.subject || [], category));
+          const total = docs.length;
+          docs = docs.slice((page - 1) * BOOKS_PER_PAGE, page * BOOKS_PER_PAGE);
+          return {
+            docs,
+            numFound: total,
+            source: 'supabase-books'
+          };
+        }
+        return {
+          docs,
+          numFound: Number(count || docs.length) || docs.length,
+          source: 'supabase-books'
+        };
+      }
+
       function slugifyBookPart(value) {
         return String(value || '')
           .trim()
@@ -1285,24 +1356,27 @@
 
         let data;
         try {
-          const params = {
-            page: state.page,
-            limit: BOOKS_PER_PAGE,
-            language: 'en'
-          };
-          if (state.query) params.q = state.query;
-          if (state.author) params.author = state.author;
-          if (state.activeCategory) params.subject = state.activeCategory;
-          if (state.year) params.first_publish_year = state.year;
+          data = await fetchLocalBooksPage();
+          if (!Array.isArray(data?.docs) || !data.docs.length) {
+            const params = {
+              page: state.page,
+              limit: BOOKS_PER_PAGE,
+              language: 'en'
+            };
+            if (state.query) params.q = state.query;
+            if (state.author) params.author = state.author;
+            if (state.activeCategory) params.subject = state.activeCategory;
+            if (state.year) params.first_publish_year = state.year;
 
-          if (!params.q && !params.author && !params.subject && !params.first_publish_year) {
-            if (Number(state.page || 1) === 1) {
-              data = await loadCuratedPopularBooks();
+            if (!params.q && !params.author && !params.subject && !params.first_publish_year) {
+              if (Number(state.page || 1) === 1) {
+                data = await loadCuratedPopularBooks();
+              } else {
+                data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
+              }
             } else {
-              data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
+              data = await booksFetch('/search.json', params);
             }
-          } else {
-            data = await booksFetch('/search.json', params);
           }
           if (!Array.isArray(data?.docs) || !data.docs.length) {
             data = { docs: [], numFound: 0 };

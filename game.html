@@ -845,7 +845,10 @@
 
       function pickPreferredCoverUrl(candidates = []) {
         const cleaned = candidates.map(normalizeGameImageUrl).filter(Boolean);
-        return cleaned.find((url) => /wikimedia|wikipedia/.test(url)) || '';
+        return cleaned.find((url) => /\/game-assets\/covers-official\//.test(url))
+          || cleaned.find((url) => /wikimedia|wikipedia/.test(url))
+          || cleaned.find((url) => /\/game-assets\//.test(url))
+          || '';
       }
 
       function pickBackdropUrl(candidates = [], fallback = '') {
