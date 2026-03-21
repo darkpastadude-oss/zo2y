@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v153';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v154';
 const PAGE_CACHE = 'zo2y-pages-v126';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';

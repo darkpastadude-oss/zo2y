@@ -4,7 +4,8 @@
   const BOOKS_PROXY_BASE = '/api/books';
   const MUSIC_PROXY_BASE = '/api/music';
   const TRAVEL_API_BASE = 'https://restcountries.com/v3.1';
-  const GAMES_PROXY_BASE = '/api/igdb';
+  const GAMES_SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+  const GAMES_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
   const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';
   const SPORTSDB_DIRECT_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
   const SPORTSDB_DIRECT_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_DIRECT_KEY}`;
@@ -474,54 +475,31 @@ const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
     if (GAMES_DISABLED) return [];
     const normalized = normalizeQuery(query);
     if (!normalized || normalized.length < MIN_QUERY_LEN) return [];
-
-    const requestGames = async (provider) => {
-      const requestParams = {
-        search: normalized,
-        page: 1,
-        page_size: 8,
-        provider,
-        title_only: 1,
-        cache: 1
-      };
-      let json = null;
-      if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
-        try {
-          json = await window.ZO2Y_IGDB.request('/games', requestParams, signal ? { signal } : undefined);
-        } catch (_err) {
-          json = null;
+    try {
+      const url = new URL(`${GAMES_SUPABASE_URL}/rest/v1/games`);
+      url.searchParams.set('select', 'id,title,release_date,cover_url,extra,rating_count,rating');
+      url.searchParams.set('cover_url', 'like.%/covers-official/%');
+      url.searchParams.set('title', `ilike.%${normalized}%`);
+      url.searchParams.set('order', 'rating_count.desc,rating.desc,release_date.desc');
+      url.searchParams.set('limit', '8');
+      const res = await fetch(url.toString(), {
+        signal,
+        headers: {
+          apikey: GAMES_SUPABASE_KEY,
+          Authorization: `Bearer ${GAMES_SUPABASE_KEY}`
         }
-      }
-      if (!json) {
-        const url = `${GAMES_PROXY_BASE}/games?search=${encodeURIComponent(normalized)}&page=1&page_size=8&provider=${encodeURIComponent(provider)}&title_only=1&cache=1`;
-        json = await fetchJsonWithTimeout(url, { signal, timeoutMs: Math.max(REQUEST_TIMEOUT_MS, 6500) });
-      }
-      if (!json) {
-        const fallbackUrl = `/api/igdb-handler?path=games&search=${encodeURIComponent(normalized)}&page=1&page_size=8&provider=${encodeURIComponent(provider)}&title_only=1&cache=1`;
-        json = await fetchJsonWithTimeout(fallbackUrl, { signal, timeoutMs: Math.max(REQUEST_TIMEOUT_MS, 6500) });
-      }
-      return Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
-    };
-
-    const providers = ['wikipedia', 'igdb'];
-    for (const provider of providers) {
-      const rows = await requestGames(provider);
-      const mapped = rows
-        .slice(0, 8)
+      });
+      if (!res.ok) return [];
+      const rows = await res.json().catch(() => []);
+      return (Array.isArray(rows) ? rows : [])
+        .filter((row) => Boolean(row?.extra?.official_cover_is_poster))
         .map((row) => {
           const id = Number(row?.id || 0);
-          const name = String(row?.name || row?.title || 'Game').trim() || 'Game';
-          const released = String(row?.released || row?.release_date || '').trim();
+          const name = String(row?.title || 'Game').trim() || 'Game';
+          const released = String(row?.release_date || '').trim();
           const year = released ? released.slice(0, 4) : '';
-          const cover = toHttpsUrl(
-            row?.cover ||
-            row?.cover_url ||
-            row?.image ||
-            row?.background_image ||
-            row?.hero_url ||
-            ''
-          );
-          if (!id || !name) return null;
+          const cover = toHttpsUrl(row?.cover_url || '');
+          if (!id || !name || !cover) return null;
           return {
             type: 'Games',
             title: name,
@@ -531,11 +509,10 @@ const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
             landscape: false
           };
         })
-        .filter((item) => item && item.image);
-      if (mapped.length) return mapped;
+        .filter(Boolean);
+    } catch (_err) {
+      return [];
     }
-
-    return [];
   }
 
   function buildTeamDetailHref(team) {

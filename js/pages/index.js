@@ -7380,7 +7380,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           const mappedItems = selectedRows
             .map((row) => mapToItem(row))
             .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim());
-          return stableShuffleHomeItems(mappedItems, 'game:home').slice(0, targetCount);
+          return mappedItems.slice(0, targetCount);
         } catch (_localGamesError) {
           return [];
         }

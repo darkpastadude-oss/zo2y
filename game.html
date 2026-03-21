@@ -1014,8 +1014,18 @@
       }
 
       async function fetchCatalogGameById() {
-        if (!Number.isFinite(gameId)) return null;
-        return await fetchIgdbGameById();
+        if (!Number.isFinite(gameId) || !supabaseClient) return null;
+        try {
+          const { data, error } = await supabaseClient
+            .from('games')
+            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,source,igdb_id,rawg_id,slug,extra')
+            .eq('id', gameId)
+            .maybeSingle();
+          if (error || !data) return null;
+          return mapIgdbDetailToCatalog(data);
+        } catch (_err) {
+          return null;
+        }
       }
 
       function renderListIcon(icon) {
