@@ -7401,8 +7401,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             }
           }
           const dedupedRows = dedupeHomeGameRows(combinedRows, targetCount * 4);
-          const preferredRows = dedupedRows.filter((row) => isPreferredHomeGameRow(row));
-          const selectedRows = (preferredRows.length >= targetCount ? preferredRows : dedupedRows).slice(0, targetCount * 3);
+          const posterRows = dedupedRows.filter((row) => hasPosterOfficialGameCover(row));
+          const preferredRows = posterRows.filter((row) => isPreferredHomeGameRow(row));
+          const selectedRows = (preferredRows.length ? preferredRows : posterRows).slice(0, targetCount * 3);
           const mappedItems = selectedRows
             .map((row) => mapToItem(row))
             .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim());
@@ -7915,5 +7916,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
+
 
 

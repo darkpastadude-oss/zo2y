@@ -1467,7 +1467,7 @@
             .order('rating_count', { ascending: false, nullsFirst: false })
             .order('release_date', { ascending: false, nullsFirst: false })
             .limit(5000);
-          if (!error && Array.isArray(data)) rows = data;
+          if (!error && Array.isArray(data)) rows = sortGamesPosterFirst(data);
         }
 
         if (rows.length) {
@@ -1539,10 +1539,32 @@
         const { data, error, count } = await query;
         if (error) return null;
         return {
-          rows: Array.isArray(data) ? data : [],
+          rows: sortGamesPosterFirst(Array.isArray(data) ? data : []),
           count: Number(count || 0),
           source: 'supabase'
         };
+      }
+
+      function isPosterOfficialGameRow(row) {
+        const cover = normalizeGameImageUrl(row?.cover_url || row?.cover?.url || row?.cover);
+        if (!cover || !/\/covers-official\//.test(cover)) return false;
+        return Boolean(row?.extra?.official_cover_is_poster);
+      }
+
+      function sortGamesPosterFirst(rows) {
+        const list = Array.isArray(rows) ? rows.slice() : [];
+        return list.sort((a, b) => {
+          const aPoster = isPosterOfficialGameRow(a) ? 1 : 0;
+          const bPoster = isPosterOfficialGameRow(b) ? 1 : 0;
+          if (bPoster !== aPoster) return bPoster - aPoster;
+          const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
+          if (countDiff !== 0) return countDiff;
+          const ratingDiff = Number(b?.rating || 0) - Number(a?.rating || 0);
+          if (ratingDiff !== 0) return ratingDiff;
+          const dateDiff = String(b?.release_date || '').localeCompare(String(a?.release_date || ''));
+          if (dateDiff !== 0) return dateDiff;
+          return String(a?.title || '').localeCompare(String(b?.title || ''));
+        });
       }
 
       function filterCatalogGames(catalogOverride) {
@@ -1550,7 +1572,7 @@
         const query = String(state.query || '').trim();
         const activeGenre = String(state.activeGenre || '').trim().toLowerCase();
         const year = String(state.year || '').trim();
-        return catalog.filter((item) => {
+        const filtered = catalog.filter((item) => {
           const title = String(item?.title || '').trim();
           if (!title) return false;
 
@@ -1569,6 +1591,7 @@
           }
           return true;
         });
+        return sortGamesPosterFirst(filtered);
       }
 
 
@@ -2251,6 +2274,7 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
 
 
 
