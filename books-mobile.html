@@ -788,6 +788,18 @@
         'Self-Help',
         'Children'
       ];
+      const BOOK_GENRE_RULES = {
+        Fiction: ['fiction', 'literary', 'novel', 'novella', 'short stories', 'classic'],
+        Mystery: ['mystery', 'thriller', 'crime', 'detective', 'suspense'],
+        Fantasy: ['fantasy', 'magic', 'epic fantasy', 'urban fantasy', 'paranormal', 'science fiction', 'sci-fi', 'dystopian'],
+        Romance: ['romance', 'love stories', 'romantic'],
+        History: ['history', 'historical', 'world war', 'civilization', 'historical fiction'],
+        Biography: ['biography', 'autobiography', 'memoir', 'biographical'],
+        Science: ['science', 'physics', 'chemistry', 'biology', 'technology', 'engineering', 'mathematics'],
+        Business: ['business', 'economics', 'finance', 'management', 'leadership', 'marketing'],
+        'Self-Help': ['self-help', 'psychology', 'personal development', 'motivational', 'habits', 'productivity'],
+        Children: ['children', 'young adult', 'juvenile fiction', 'juvenile literature', 'middle grade', 'picture books']
+      };
       const state = {
         categories: CATEGORY_OPTIONS,
         activeCategory: '',
@@ -809,6 +821,33 @@
       };
 
       let supabaseClient = null;
+
+      function normalizeBookText(value) {
+        return String(value || '')
+          .normalize('NFKD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .trim();
+      }
+
+      function deriveCanonicalBookGenres(subjects = []) {
+        const values = Array.isArray(subjects) ? subjects : [];
+        const joined = values.map((entry) => normalizeBookText(entry)).filter(Boolean).join(' | ');
+        const matched = Object.entries(BOOK_GENRE_RULES)
+          .filter(([, tokens]) => tokens.some((token) => joined.includes(token)))
+          .map(([label]) => label);
+        return matched.length ? matched : [];
+      }
+
+      function bookMatchesCategory(subjects = [], activeCategory = '') {
+        const category = String(activeCategory || '').trim();
+        if (!category) return true;
+        const canonical = deriveCanonicalBookGenres(subjects);
+        if (canonical.includes(category)) return true;
+        const raw = (Array.isArray(subjects) ? subjects : []).map((entry) => normalizeBookText(entry));
+        const target = normalizeBookText(category);
+        return raw.some((entry) => entry === target || entry.includes(target));
+      }
 
       function toHttpsUrl(value) {
         return String(value || '').replace(/^http:\/\//i, 'https://').trim();

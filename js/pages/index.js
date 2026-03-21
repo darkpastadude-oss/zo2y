@@ -5181,7 +5181,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     function renderRail(railId, items, opts) {
       const rail = document.getElementById(railId);
       if (!rail) return;
-      rail.classList.toggle('games-rail', String(opts?.mediaType || '').toLowerCase() === 'game');
+      rail.classList.remove('games-rail');
 
       if (!items || !items.length) {
         rail.innerHTML = '<div class="empty">No items right now.</div>';
@@ -5239,10 +5239,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             ? `<button class="menu-btn card-menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>`
             : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
           return `
-            <article class="card game-card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${image}">
-              <div class="card-media game-media is-loading-media${plainGameStage ? ' plain-logo' : ''}">
-                <img class="game-card-img" ${buildHomeImageAttrs(image, imageLoading, imagePriority)} alt="${title}">
-              </div>
+              <article class="card game-card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${image}">
+                <div class="card-media game-poster is-loading-media${plainGameStage ? ' plain-logo' : ''}">
+                  <img class="game-card-img" ${buildHomeImageAttrs(image, imageLoading, imagePriority)} alt="${title}">
+                </div>
               <div class="card-body">
                 <div class="card-desc">${desc}</div>
                 <h3 class="card-title">${title}</h3>
