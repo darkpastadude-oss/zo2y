@@ -724,10 +724,9 @@
 
       function pickPreferredCoverUrl(candidates = []) {
         const cleaned = candidates.map(normalizeGameImageUrl).filter(Boolean);
-        return cleaned.find((url) => /\/game-assets\/covers-official\//.test(url))
-          || cleaned.find((url) => /wikimedia|wikipedia/.test(url))
-          || cleaned.find((url) => /\/game-assets\//.test(url))
-          || cleaned[0]
+        const pool = cleaned.filter((url) => !isLikelyBackdropGameUrl(url));
+        return pool.find((url) => /\/game-assets\/covers-official\//.test(url))
+          || pool.find((url) => /wikimedia|wikipedia/.test(url))
           || '';
       }
 
@@ -741,14 +740,44 @@
         return cleaned[0] || '';
       }
 
+      function getGameImportedFrom(row) {
+        return String(row?.extra?.imported_from || row?.source || '').trim().toLowerCase();
+      }
+
+      function hasPosterOfficialGameCover(row) {
+        const cover = normalizeGameImageUrl(row?.cover_url || row?.cover?.url || row?.cover);
+        if (!cover || !/\/game-assets\/covers-official\//.test(cover)) return false;
+        return Boolean(row?.extra?.official_cover_is_poster);
+      }
+
+      function isOfficialGameProviderRow(row) {
+        const importedFrom = getGameImportedFrom(row);
+        return importedFrom.includes('wikipedia') || importedFrom.includes('igdb');
+      }
+
+      function isLikelyBackdropGameUrl(url) {
+        const value = String(url || '').trim().toLowerCase();
+        if (!value) return false;
+        return ['/heroes/', '/hero/', 'background', 'fanart', 'screenshot', 'screenshots', 'backdrop'].some((token) => value.includes(token));
+      }
+
       function resolveGameImageSource(row) {
-        const candidates = [
-          row?.cover,
-          row?.cover?.url,
-          row?.cover_url
-        ];
-        const cover = pickPreferredCoverUrl(candidates);
-        return cover || '';
+        if (!row) return '';
+        if (hasPosterOfficialGameCover(row)) {
+          return pickPreferredCoverUrl([row?.cover_url, row?.cover?.url, row?.cover]);
+        }
+        if (isOfficialGameProviderRow(row)) {
+          return pickPreferredCoverUrl([
+            row?.hero_url,
+            row?.hero,
+            row?.cover,
+            row?.cover?.url,
+            row?.cover_url,
+            ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+            ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
+          ]);
+        }
+        return '';
       }
 
       function resolveGameHeroSource(row, fallback) {
@@ -1293,7 +1322,7 @@
         if (supabaseClient) {
           const { data, error } = await supabaseClient
             .from('games')
-            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra')
+            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source')
             .like('cover_url', '%/covers-official/%')
             .order('rating', { ascending: false, nullsFirst: false })
             .order('rating_count', { ascending: false, nullsFirst: false })
@@ -1354,7 +1383,7 @@
 
         let query = supabaseClient
           .from('games')
-          .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra', { count: 'exact' });
+          .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source', { count: 'exact' });
 
         const q = String(state.query || '').trim();
         const year = String(state.year || '').trim();
@@ -2077,6 +2106,7 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
 
 
 

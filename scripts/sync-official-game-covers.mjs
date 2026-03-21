@@ -146,13 +146,35 @@ function isOfficialSource(row) {
   return source === 'wikipedia' || importedFrom.includes('wikipedia') || importedFrom.includes('igdb');
 }
 
+function pickRowOfficialPosterSource(row) {
+  const candidates = [
+    row?.cover_url,
+    row?.cover?.url,
+    row?.cover,
+    row?.hero_url,
+    row?.hero,
+    ...(Array.isArray(row?.screenshots) ? row.screenshots : [])
+  ].map((entry) => normalizeCoverUrl(entry)).filter(Boolean);
+  if (!candidates.length) return '';
+
+  const localOfficial = candidates.find((url) => /\/storage\/v1\/object\/public\/game-assets\/covers-official\//.test(url));
+  if (localOfficial && Boolean(row?.extra?.official_cover_is_poster)) return localOfficial;
+
+  if (isOfficialSource(row)) {
+    const wikiDirect = candidates.find((url) => /wikimedia|wikipedia/.test(url) && !isLikelyBackdropUrl(url));
+    if (wikiDirect) return wikiDirect;
+  }
+
+  return '';
+}
+
 function scoreOfficialCover(row) {
-  const cover = normalizeCoverUrl(row?.cover_url || row?.cover?.url || row?.cover);
-  if (!cover || isLikelyBackdropUrl(cover)) return Number.NEGATIVE_INFINITY;
+  const cover = pickRowOfficialPosterSource(row);
+  if (!cover) return Number.NEGATIVE_INFINITY;
   let score = 0;
   if (/wikimedia|wikipedia/.test(cover)) score += 500;
   if (isOfficialSource(row)) score += 300;
-  if (/game-assets\/covers\//.test(cover)) score += 120;
+  if (/game-assets\/covers-official\//.test(cover)) score += 200;
   if (cover.endsWith('.png') || cover.includes('.png?')) score += 40;
   return score;
 }
@@ -189,6 +211,50 @@ async function download(url) {
   return { buffer, contentType, finalUrl: response.url || url };
 }
 
+function getImageDimensions(buffer, contentType = '') {
+  const type = String(contentType || '').toLowerCase();
+  if (type.includes('png') && buffer.length >= 24) {
+    return {
+      width: buffer.readUInt32BE(16),
+      height: buffer.readUInt32BE(20)
+    };
+  }
+  if ((type.includes('jpeg') || type.includes('jpg')) && buffer.length >= 4) {
+    let offset = 2;
+    while (offset + 9 < buffer.length) {
+      if (buffer[offset] !== 0xff) {
+        offset += 1;
+        continue;
+      }
+      const marker = buffer[offset + 1];
+      if ([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf].includes(marker)) {
+        return {
+          height: buffer.readUInt16BE(offset + 5),
+          width: buffer.readUInt16BE(offset + 7)
+        };
+      }
+      const length = buffer.readUInt16BE(offset + 2);
+      if (!length) break;
+      offset += 2 + length;
+    }
+  }
+  if (type.includes('webp') && buffer.length >= 30 && buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') {
+    const chunk = buffer.toString('ascii', 12, 16);
+    if (chunk === 'VP8X') {
+      const width = 1 + buffer.readUIntLE(24, 3);
+      const height = 1 + buffer.readUIntLE(27, 3);
+      return { width, height };
+    }
+  }
+  return { width: 0, height: 0 };
+}
+
+function isPosterLikeDimensions(width = 0, height = 0) {
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return false;
+  const ratio = width / height;
+  return ratio > 0.45 && ratio < 0.9;
+}
+
 async function uploadAsset(supabase, remotePath, sourceUrl) {
   const { buffer, contentType, finalUrl } = await download(sourceUrl);
   const ext = getExt(contentType, finalUrl || sourceUrl);
@@ -199,7 +265,12 @@ async function uploadAsset(supabase, remotePath, sourceUrl) {
     cacheControl: '31536000'
   });
   if (error) throw error;
-  return supabase.storage.from(BUCKET_NAME).getPublicUrl(storagePath).data.publicUrl;
+  const dimensions = getImageDimensions(buffer, contentType);
+  return {
+    publicUrl: supabase.storage.from(BUCKET_NAME).getPublicUrl(storagePath).data.publicUrl,
+    ...dimensions,
+    isPoster: isPosterLikeDimensions(dimensions.width, dimensions.height)
+  };
 }
 
 async function fetchAllGames(supabase) {
@@ -258,8 +329,12 @@ async function main() {
       .filter((row) => scoreOfficialCover(row) > Number.NEGATIVE_INFINITY)
       .sort((a, b) => scoreOfficialCover(b) - scoreOfficialCover(a));
     const official = officialRows[0] || group[0];
-    let officialCoverSource = normalizeCoverUrl(official?.cover_url || official?.cover?.url || official?.cover);
-    if (!officialCoverSource || isLikelyBackdropUrl(officialCoverSource)) {
+    let officialCoverSource = pickRowOfficialPosterSource(official);
+    if (!officialCoverSource) {
+      const existingOfficialRow = group.find((row) => pickRowOfficialPosterSource(row));
+      officialCoverSource = existingOfficialRow ? pickRowOfficialPosterSource(existingOfficialRow) : '';
+    }
+    if (!officialCoverSource) {
       officialCoverSource = await resolveWikipediaCover(group);
     }
     if (!officialCoverSource) continue;
@@ -278,18 +353,29 @@ async function main() {
       const official = current.official;
       const title = String(official?.title || group[0]?.title || 'game').trim();
       const slug = sanitizeFileBase(official?.slug || group[0]?.slug || title);
-      const existingLocalOfficial = group
-        .map((row) => normalizeCoverUrl(row?.cover_url))
-        .find((url) => /\/storage\/v1\/object\/public\/game-assets\/covers-official\//.test(url));
+      const existingPosterOfficial = group.find((row) => {
+        const url = normalizeCoverUrl(row?.cover_url);
+        return /\/storage\/v1\/object\/public\/game-assets\/covers-official\//.test(url) && Boolean(row?.extra?.official_cover_is_poster);
+      });
+      const existingLocalOfficial = existingPosterOfficial ? normalizeCoverUrl(existingPosterOfficial?.cover_url) : '';
 
       try {
-        const localCover = existingLocalOfficial || await uploadAsset(supabase, `covers-official/${slug}`, current.officialCoverSource);
+        const uploaded = existingLocalOfficial
+          ? { publicUrl: existingLocalOfficial, width: Number(existingPosterOfficial?.extra?.official_cover_width || 0), height: Number(existingPosterOfficial?.extra?.official_cover_height || 0), isPoster: true }
+          : await uploadAsset(supabase, `covers-official/${slug}`, current.officialCoverSource);
+        if (!existingLocalOfficial && !uploaded.isPoster) {
+          throw new Error('not-poster');
+        }
+        const localCover = uploaded.publicUrl;
         const patchPromises = group.map(async (row) => {
           const currentExtra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
           const nextExtra = {
             ...currentExtra,
             official_cover_source: current.officialCoverSource,
-            official_cover_synced_at: new Date().toISOString()
+            official_cover_synced_at: new Date().toISOString(),
+            official_cover_width: Number(uploaded.width || currentExtra.official_cover_width || 0) || 0,
+            official_cover_height: Number(uploaded.height || currentExtra.official_cover_height || 0) || 0,
+            official_cover_is_poster: uploaded.isPoster || Boolean(currentExtra.official_cover_is_poster)
           };
           const { error } = await supabase
             .from('games')
@@ -325,3 +411,4 @@ main().catch((error) => {
   console.error(error.message || error);
   process.exit(1);
 });
+

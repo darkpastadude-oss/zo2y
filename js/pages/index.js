@@ -1,4 +1,4 @@
-﻿    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
+    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
     const ENABLE_GAMES = !GAMES_DISABLED;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
@@ -5913,7 +5913,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         {
           id: 'interests-setup',
           title: 'Tune Your Feed',
-          body: 'Choose formats and genres so the ï¿½For Youï¿½ feed starts on the right note.',
+          body: 'Choose formats and genres so the �For You� feed starts on the right note.',
           art: `
               <div class="onboarding-interest-layout">
                 <div class="onboarding-interest-photos">
@@ -7152,6 +7152,25 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return String(row?.extra?.imported_from || row?.source || '').trim().toLowerCase();
     }
 
+    function hasPosterOfficialGameCover(row) {
+      const cover = normalizeGameCoverUrl(row?.cover_url || row?.cover?.url || row?.cover);
+      if (!cover || !/\/game-assets\/covers-official\//.test(cover)) return false;
+      return Boolean(row?.extra?.official_cover_is_poster);
+    }
+
+    function isOfficialGameProviderRow(row) {
+      const importedFrom = getHomeGameImportedFrom(row);
+      return importedFrom.includes('wikipedia') || importedFrom.includes('igdb');
+    }
+
+    function pickOfficialPosterGameUrl(candidates = []) {
+      const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
+      const pool = cleaned.filter((url) => !isLikelyBackdropGameUrl(url));
+      return pool.find((url) => /\/game-assets\/covers-official\//.test(url))
+        || pool.find((url) => /wikimedia|wikipedia/.test(url))
+        || '';
+    }
+
     function normalizeHomeGameTitleKey(title) {
       return String(title || '')
         .toLowerCase()
@@ -7171,11 +7190,22 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     function resolveHomeGameCover(row) {
-      return pickPreferredGameCoverUrl([
-        row?.cover,
-        row?.cover?.url,
-        row?.cover_url
-      ]);
+      if (!row) return '';
+      if (hasPosterOfficialGameCover(row)) {
+        return pickOfficialPosterGameUrl([row?.cover_url, row?.cover?.url, row?.cover]);
+      }
+      if (isOfficialGameProviderRow(row)) {
+        return pickOfficialPosterGameUrl([
+          row?.hero_url,
+          row?.hero,
+          row?.cover,
+          row?.cover?.url,
+          row?.cover_url,
+          ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+          ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
+        ]);
+      }
+      return '';
     }
 
     function resolveHomeGameHero(row, fallback) {
@@ -7294,10 +7324,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     function isPreferredHomeGameRow(row) {
       const cover = resolveHomeGameCover(row);
-      const importedFrom = getHomeGameImportedFrom(row);
       if (!cover) return false;
-      if (/wikimedia|wikipedia/.test(cover)) return true;
-      return importedFrom && !importedFrom.includes('rawg');
+      return hasPosterOfficialGameCover(row) || isOfficialGameProviderRow(row);
     }
 
     async function loadGames(signal, options = {}) {
@@ -7887,4 +7915,5 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
+
 
