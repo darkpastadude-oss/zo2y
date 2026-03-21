@@ -234,28 +234,22 @@ async function main() {
       const row = rows[cursor++];
       if (!row) continue;
       const slug = sanitizeFileBase(row.slug || row.title || row.id);
-      let coverSrc = toHttpsUrl(row.cover_url);
+      let coverSrc = '';
       let heroSrc = toHttpsUrl(row.hero_url) || coverSrc;
       let screenshotSrcs = extractScreenshotCandidates(row);
       const entry = { id: row.id, slug, cover: '', hero: '', screenshots: [] };
       const patch = {};
       try {
-        if ((!coverSrc || !heroSrc || !screenshotSrcs.length) && (Number(row.rawg_id) > 0 || Number(row?.extra?.source_item_id) > 0)) {
+        if ((!heroSrc || !screenshotSrcs.length) && (Number(row.rawg_id) > 0 || Number(row?.extra?.source_item_id) > 0)) {
           try {
             const rawgMedia = await fetchRawgMedia(row);
             if (rawgMedia) {
-              coverSrc = coverSrc || rawgMedia.cover;
               heroSrc = heroSrc || rawgMedia.hero || rawgMedia.cover;
               if (!screenshotSrcs.length) screenshotSrcs = rawgMedia.screenshots;
             }
           } catch {
             // Keep going with whatever media the row already has.
           }
-        }
-        if (coverSrc) {
-          const localCover = await uploadAsset(`covers/${slug}`, coverSrc);
-          patch.cover_url = localCover;
-          entry.cover = localCover;
         }
         if (heroSrc) {
           const localHero = await uploadAsset(`heroes/${slug}`, heroSrc);
