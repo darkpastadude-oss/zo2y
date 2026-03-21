@@ -1298,17 +1298,8 @@
             populateGenreSelect();
             return true;
           }
-          const json = await fetchIgdbJson('/genres');
-          if (!json) return false;
-          const rows = Array.isArray(json?.results) ? json.results : [];
-          state.genres = rows
-            .map((row) => ({
-              name: String(row?.name || '').trim(),
-              slug: String(row?.slug || row?.name || '').trim().toLowerCase().replace(/\s+/g, '-')
-            }))
-            .filter((row) => row.name && row.slug)
-            .sort((a, b) => a.name.localeCompare(b.name));
-          populateGenreSelect();
+          const ready = await ensureGamesCatalogLoaded();
+          if (!ready) return false;
           writeCachedGenres(state.genres);
           return state.genres.length > 0;
         } catch (_err) {
@@ -1334,29 +1325,6 @@
         if (rows.length) {
           state.catalog = rows;
           state.catalogSource = 'supabase';
-          buildGenreCatalog();
-          populateGenreSelect();
-          return true;
-        }
-
-        let igdbRows = await fetchIgdbCatalog({
-          popularity_type: 1,
-          ordering: '-follows',
-          pageSize: IGDB_PAGE_SIZE,
-          page: 1,
-          min_rating_count: 50
-        });
-        if (!igdbRows.length) {
-          igdbRows = await fetchIgdbCatalog({
-            ordering: '-follows',
-            pageSize: IGDB_PAGE_SIZE,
-            page: 1,
-            min_rating_count: 50
-          });
-        }
-        if (igdbRows.length) {
-          state.catalog = igdbRows;
-          state.catalogSource = 'igdb';
           buildGenreCatalog();
           populateGenreSelect();
           return true;
@@ -1660,131 +1628,9 @@
           return;
         }
 
-        const igdbPayload = await fetchIgdbPage({
-          page: state.page,
-          pageSize: fetchPageSize,
-          ordering,
-          search: state.query,
-          dates,
-          genres: state.activeGenre,
-          min_rating_count: minRatingCount,
-          popularity_type: popularityType || undefined,
-          title_only: state.query ? 1 : undefined,
-          cache: cacheFlag,
-          cache_pages: cachePages
-        }, { signal, cacheBust: options?.cacheBust });
-        if (requestId !== state.requestId) return;
-
-        if (!igdbPayload && !options?._retry && !signal.aborted) {
-          await loadGames({ ...options, _retry: true, cacheBust: true });
-          return;
-        }
-
-        if (igdbPayload) {
-          state.catalogSource = 'igdb';
-
-          const sortedResults = sortSearchResults(igdbPayload.rows || [], state.query);
-          let filteredResults = filterTitleMatches(sortedResults, state.query);
-          const totalMatches = Number(igdbPayload.count || 0);
-          const totalPages = Math.max(1, Math.ceil(Math.max(totalMatches, filteredResults.length) / pageSize));
-          if (filteredResults.length < pageSize && state.page < totalPages && !isSlowNetwork()) {
-            const nextPayload = await fetchIgdbPage({
-              page: state.page + 1,
-              pageSize: fetchPageSize,
-              ordering,
-              search: state.query,
-              dates,
-              genres: state.activeGenre,
-              min_rating_count: minRatingCount,
-              popularity_type: popularityType || undefined,
-              title_only: state.query ? 1 : undefined,
-              cache: cacheFlag,
-              cache_pages: cachePages
-            }, { cacheBust: options?.cacheBust });
-            if (requestId !== state.requestId) return;
-            if (nextPayload) {
-              const nextSorted = sortSearchResults(nextPayload.rows || [], state.query);
-              const nextFiltered = filterTitleMatches(nextSorted, state.query);
-              filteredResults = dedupeRowsById([...filteredResults, ...nextFiltered]);
-            }
-          }
-          if (!filteredResults.length && state.query) {
-            const fallbackQueries = getSearchFallbackQueries(state.query);
-            for (const altQuery of fallbackQueries) {
-              if (!altQuery) continue;
-              const altPayload = await fetchIgdbPage({
-                page: state.page,
-                pageSize: fetchPageSize,
-                ordering,
-                search: altQuery,
-                dates,
-                genres: state.activeGenre,
-                min_rating_count: minRatingCount,
-                popularity_type: popularityType || undefined,
-                title_only: 1,
-                cache: cacheFlag,
-                cache_pages: cachePages
-              }, { cacheBust: options?.cacheBust });
-              if (requestId !== state.requestId) return;
-              if (!altPayload) continue;
-              const altSorted = sortSearchResults(altPayload.rows || [], state.query);
-              const altFiltered = filterTitleMatches(altSorted, state.query);
-              if (altFiltered.length) {
-                filteredResults = altFiltered;
-                break;
-              }
-            }
-          }
-          const results = filteredResults.slice(0, pageSize);
-          state.totalPages = totalPages;
-          if (!results.length) {
-            if (empty) empty.style.display = 'block';
-            grid.innerHTML = '';
-            state.hasMore = false;
-            updatePagination();
-            return;
-          }
-
-          const fragment = document.createDocumentFragment();
-          let appended = 0;
-          results.forEach((item, idx) => {
-            const card = createGameCard(item, idx);
-            if (card) {
-              fragment.appendChild(card);
-              appended += 1;
-            }
-          });
-          grid.innerHTML = '';
-          if (appended) {
-            grid.appendChild(fragment);
-            if (empty) empty.style.display = 'none';
-          } else if (empty) {
-            empty.style.display = 'block';
-            empty.textContent = 'No official posters found for this search.';
-          }
-
-          state.hasMore = state.page < state.totalPages;
-          updatePagination();
-          if (state.page < state.totalPages) {
-            schedulePrefetch(state.page + 1, {
-              pageSize: fetchPageSize,
-              ordering,
-              search: state.query,
-              dates,
-              genres: state.activeGenre,
-              min_rating_count: minRatingCount,
-              popularity_type: popularityType || undefined,
-              title_only: state.query ? 1 : undefined,
-              cache: cacheFlag,
-              cache_pages: cachePages
-            });
-          }
-          return;
-        }
-
         if (empty) {
           empty.style.display = 'block';
-          empty.textContent = 'IGDB is unavailable right now. Check your credentials and try again.';
+          empty.textContent = 'No local games found for this search yet.';
         }
         grid.innerHTML = '';
         state.hasMore = false;

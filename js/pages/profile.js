@@ -5328,20 +5328,12 @@
                 return data;
             }
 
-                        function normalizeGameImageSource(game) {
+            function normalizeGameImageSource(game) {
                 if (!game || typeof game !== 'object') return '/newlogo.webp';
                 const candidates = [
                     game.cover,
-                    game.cover_url,
-                    game.hero,
-                    game.hero_url,
-                    game.background_image
+                    game.cover_url
                 ];
-                const screenshots = Array.isArray(game.screenshots) ? game.screenshots : [];
-                const shortScreens = Array.isArray(game.short_screenshots)
-                    ? game.short_screenshots.map((entry) => entry?.image)
-                    : [];
-                candidates.push(screenshots[0], shortScreens[0]);
                 for (const entry of candidates) {
                     const url = String(entry || '').trim();
                     if (url) return url;
@@ -5405,24 +5397,7 @@
                     } catch (_err) {}
                 }
 
-                try {
-                    const response = await igdbFetch(`/games/${encodeURIComponent(cacheKey)}`);
-                    const raw = Array.isArray(response?.results)
-                        ? response.results[0]
-                        : (Array.isArray(response) ? response[0] : response);
-                    if (!raw || typeof raw !== 'object') return null;
-
-                    const requestedId = Number(cacheKey);
-                    const receivedId = Number(raw.id);
-                    if (Number.isFinite(requestedId) && Number.isFinite(receivedId) && requestedId !== receivedId) {
-                        return null;
-                    }
-
-                    const normalized = normalizeSupabaseGameRecord(raw, cacheKey) || { ...raw, id: raw.id ?? cacheKey };
-                    return cacheGameRecord(normalized);
-                } catch (_err) {
-                    return null;
-                }
+                return null;
             }
 
             async function fetchMusicDetails(trackId) {
