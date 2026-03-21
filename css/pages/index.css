@@ -825,8 +825,8 @@
 
     .card-media.game-poster {
       aspect-ratio: 2/3;
-      padding: 8px;
-      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+      padding: 0;
+      background: #0f1f40;
     }
 
     .card-media.music-cover {
@@ -842,8 +842,11 @@
     }
 
     .card-media.game-poster img {
-      object-fit: contain;
+      object-fit: cover;
+      object-position: center center;
       border-radius: 0;
+      padding: 0;
+      background: transparent;
     }
 
     .card-media.brand-cover {
@@ -1057,11 +1060,13 @@
       aspect-ratio: 2/3;
       height: 216px;
       padding: 0;
-      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+      background: #0f1f40;
     }
 
     .rail.unified-rail .card-media.game-poster img {
       border-radius: 0;
+      padding: 0;
+      object-fit: cover;
     }
 
     .rail.unified-rail .card-media.music-cover img {
