@@ -1121,6 +1121,17 @@
           .trim();
       }
 
+      function normalizeFranchiseTitleKey(value) {
+        return normalizeTitleKey(value)
+          .replace(/\bvideo game\b/g, ' ')
+          .replace(/\bthe\b/g, ' ')
+          .replace(/\bmarvels\b/g, 'marvel ')
+          .replace(/\bspider man\b/g, 'spiderman')
+          .replace(/\bpokemon\b/g, 'pokemon')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
       function splitTitleTokens(value) {
         const normalized = normalizeTitleKey(value);
         if (!normalized) return [];
@@ -1182,12 +1193,18 @@
       function titleMatchesQuery(title, query) {
         const titleKey = normalizeTitleKey(title);
         const queryKey = normalizeTitleKey(query);
+        const franchiseTitleKey = normalizeFranchiseTitleKey(title);
+        const franchiseQueryKey = normalizeFranchiseTitleKey(query);
         if (!queryKey) return true;
         if (titleKey.includes(queryKey)) return true;
+        if (franchiseQueryKey && franchiseTitleKey.includes(franchiseQueryKey)) return true;
         const compactTitle = titleKey.replace(/\s+/g, '');
         const compactQuery = queryKey.replace(/\s+/g, '');
+        const compactFranchiseTitle = franchiseTitleKey.replace(/\s+/g, '');
+        const compactFranchiseQuery = franchiseQueryKey.replace(/\s+/g, '');
         if (!compactQuery) return false;
         if (compactTitle.includes(compactQuery)) return true;
+        if (compactFranchiseQuery && compactFranchiseTitle.includes(compactFranchiseQuery)) return true;
         const titleTokens = splitTitleTokens(titleKey);
         const queryTokens = splitTitleTokens(queryKey);
         if (!queryTokens.length) return true;
@@ -1220,6 +1237,17 @@
         return out;
       }
 
+      function dedupeRowsByCanonicalTitle(rows = []) {
+        const grouped = new Map();
+        (Array.isArray(rows) ? rows : []).forEach((row) => {
+          const key = normalizeFranchiseTitleKey(row?.title || row?.name || row?.slug || '');
+          if (!key) return;
+          if (!grouped.has(key)) grouped.set(key, []);
+          grouped.get(key).push(row);
+        });
+        return Array.from(grouped.values()).map((group) => sortGamesPosterFirst(group)[0]).filter(Boolean);
+      }
+
       function scoreSearchMatch(title, query) {
         const cleanTitle = normalizeTitleKey(title);
         const cleanQuery = normalizeTitleKey(query);
@@ -1249,6 +1277,13 @@
       }
 
       const SEARCH_ALIASES = {
+        mario: 'super mario',
+        mariokart: 'mario kart',
+        marioparty: 'mario party',
+        pokemon: 'pokémon',
+        pokémon: 'pokemon',
+        spiderman: 'spider man',
+        spiderman: 'spider man',
         gta: 'grand theft auto',
         gtav: 'grand theft auto v',
         gtas: 'grand theft auto san andreas',
@@ -1480,40 +1515,13 @@
 
       async function fetchLocalGamesPage(pageSize) {
         if (!supabaseClient) return null;
-        const hasGenreFilter = !!String(state.activeGenre || '').trim();
-        if (hasGenreFilter) {
-          const ready = await ensureGamesCatalogLoaded();
-          if (!ready) return null;
-          const filtered = filterCatalogGames(state.catalog);
-          const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
-          return {
-            rows: filtered.slice(start, start + pageSize),
-            count: filtered.length,
-            source: 'supabase'
-          };
-        }
-
-        let query = supabaseClient
-          .from('games')
-          .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source', { count: 'exact' });
-
-        const q = String(state.query || '').trim();
-        const year = String(state.year || '').trim();
-        if (q) query = query.ilike('title', `%${q}%`);
-        if (year) query = query.gte('release_date', `${year}-01-01`).lte('release_date', `${year}-12-31`);
-        query = query.like('cover_url', '%/covers-official/%');
-
-        query = query
-          .order('rating_count', { ascending: false, nullsFirst: false })
-          .order('rating', { ascending: false, nullsFirst: false })
-          .order('release_date', { ascending: false, nullsFirst: false })
-          .range((Math.max(1, Number(state.page || 1)) - 1) * pageSize, Math.max(1, Number(state.page || 1)) * pageSize - 1);
-
-        const { data, error, count } = await query;
-        if (error) return null;
+        const ready = await ensureGamesCatalogLoaded();
+        if (!ready) return null;
+        const filtered = dedupeRowsByCanonicalTitle(filterCatalogGames(state.catalog));
+        const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
         return {
-          rows: sortGamesPosterFirst(Array.isArray(data) ? data : []),
-          count: Number(count || 0),
+          rows: filtered.slice(start, start + pageSize),
+          count: filtered.length,
           source: 'supabase'
         };
       }
