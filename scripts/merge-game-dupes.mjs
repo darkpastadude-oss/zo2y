@@ -48,6 +48,52 @@ function parseArg(flag, fallback = '') {
   return process.argv[idx + 1] ?? fallback;
 }
 
+const PLATFORM_VARIANT_TOKENS = [
+  'nintendo ds',
+  'game boy advance',
+  'gamecube',
+  'wii',
+  'wii u',
+  'nintendo switch',
+  'playstation',
+  'xbox',
+  'psp',
+  'ps vita',
+  'dreamcast',
+  'saturn',
+  'mega drive',
+  'sega cd',
+  'mobile phone',
+  'java',
+  'arcade'
+];
+
+function normalizeMergeTitle(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\b(remastered|remaster|definitive edition|complete edition|ultimate edition|game of the year edition|goty|director'?s cut)\b/g, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isPlatformVariantTitle(value) {
+  const normalized = String(value || '').toLowerCase();
+  return PLATFORM_VARIANT_TOKENS.some((token) => normalized.includes(token));
+}
+
+function isSafeMergeGroup(group) {
+  const rows = Array.isArray(group?.rows) ? group.rows : [];
+  if (!rows.length) return false;
+  if (rows.some((row) => isPlatformVariantTitle(row?.title))) return false;
+  const canonicalTitles = Array.from(new Set(rows.map((row) => normalizeMergeTitle(row?.title)).filter(Boolean)));
+  if (canonicalTitles.length > 1) return false;
+  const years = Array.from(new Set(rows.map((row) => String(row?.release_date || '').slice(0, 4)).filter(Boolean)));
+  if (years.length > 1) return false;
+  return true;
+}
+
 hydrateEnv();
 
 const SUPABASE_URL = normalizeSupabaseUrl(process.env.SUPABASE_URL);
@@ -75,7 +121,8 @@ async function main() {
   const dryRun = ['1', 'true', 'yes', 'on'].includes(String(parseArg('--dry-run', 'true')).trim().toLowerCase());
   const limit = Math.max(1, Number(parseArg('--limit', 100)));
   const report = JSON.parse(fs.readFileSync(REPORT_PATH, 'utf8'));
-  const groups = Array.isArray(report?.groups) ? report.groups.slice(0, limit) : [];
+  const safeGroups = Array.isArray(report?.groups) ? report.groups.filter((group) => isSafeMergeGroup(group)) : [];
+  const groups = safeGroups.slice(0, limit);
 
   let mergedRows = 0;
   for (const group of groups) {
