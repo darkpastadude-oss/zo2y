@@ -86,7 +86,8 @@
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: false,
+        storageKey: 'zo2y-auth-v1'
       }
     });
     window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;

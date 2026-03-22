@@ -2750,7 +2750,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           persistSession: true,
           autoRefreshToken: true,
           // OAuth callback is handled on auth-callback.html, keep homepage parser off.
-          detectSessionInUrl: false
+          detectSessionInUrl: false,
+          storageKey: 'zo2y-auth-v1'
         }
       });
       window.__ZO2Y_SUPABASE_CLIENT = homeSupabaseClient;

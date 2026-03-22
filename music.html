@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260315d"></script>
+<script src="/js/auth-gate.js?v=20260322a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Music</title>
 <link rel="icon" href="/newlogo.webp" type="image/webp" />
@@ -378,7 +378,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
   <script src="/js/mobile-webapp.js?v=20260322r" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260322g" defer></script>
+  <script src="js/shared-header.js?v=20260322h" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -710,7 +710,7 @@
       section.hidden = false;
       if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${image}")`;
       if (titleEl) titleEl.textContent = String(item?.name || 'Music Spotlight');
-      if (metaEl) metaEl.textContent = [String(item?.subtitle || '').trim(), String(item?.release_date || '').trim()].filter(Boolean).join(' Ãƒâ€šÃ‚Â· ');
+      if (metaEl) metaEl.textContent = [String(item?.subtitle || '').trim(), String(item?.release_date || '').trim()].filter(Boolean).join(' ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· ');
       if (summaryEl) summaryEl.textContent = getMusicCardExtra(item);
       if (imgEl) {
         imgEl.src = image || 'images/placeholder.jpg';
