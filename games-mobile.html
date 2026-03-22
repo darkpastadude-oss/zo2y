@@ -322,8 +322,7 @@
       margin: 16px auto 40px;
       padding: 0 12px;
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));`r`n      gap: 10px;
       justify-content: stretch;
       justify-items: stretch;
     }
@@ -337,10 +336,7 @@
       flex-direction: column;
       transition: all 0.2s ease;
       position: relative;
-      width: 100%;
-      max-width: none;
-      min-width: 0;
-      justify-self: stretch;
+      width: 100%;`r`n      max-width: 160px;`r`n      min-width: 0;`r`n      justify-self: center;
     }
 
     .card:hover {
@@ -348,11 +344,7 @@
       transform: translateY(-2px);
     }
 
-    @media (max-width: 420px) {
-      .grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
+    @media (max-width: 420px) {`r`n      .grid {`r`n        grid-template-columns: repeat(2, minmax(0, 1fr));`r`n      }`r`n      .card {`r`n        max-width: none;`r`n      }`r`n    }
 
     .card.menu-open,
     .card.menu-open:hover {
@@ -2229,6 +2221,7 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
 
 
 
