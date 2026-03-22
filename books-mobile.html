@@ -151,6 +151,78 @@
       font-size: 12px;
     }
 
+    .media-spotlight {
+      margin: 16px auto 0;
+      padding: 0 16px;
+    }
+
+    .media-spotlight[hidden] { display: none; }
+
+    .media-spotlight-shell {
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
+    }
+
+    .media-spotlight-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(8,14,31,0.78), rgba(10,19,39,0.42));
+      background-size: cover;
+      background-position: center center;
+    }
+
+    .media-spotlight-copy,
+    .media-spotlight-poster { position: relative; z-index: 1; }
+
+    .media-spotlight-copy {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .media-spotlight-kicker {
+      display: inline-flex;
+      width: fit-content;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(19,35,71,0.48);
+      color: #dbe7ff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .media-spotlight-copy h2 { margin: 0; font-size: 28px; line-height: 1.04; }
+    .media-spotlight-meta,
+    .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.45; }
+
+    .media-spotlight-poster {
+      padding: 0 18px 18px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .media-spotlight-poster img {
+      width: min(100%, 220px);
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 16px;
+      box-shadow: 0 18px 30px rgba(0,0,0,0.28);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .media-spotlight-actions { margin-top: 6px; display: flex; gap: 10px; }
+
     .controls {
       max-width: 1200px;
       margin: 12px auto 0;
@@ -722,6 +794,24 @@
     <h1>popular books right now</h1>
     <p>Weekly trending books blended with live popular book results.</p>
     <div style="margin-top:8px;font-size:12px;color:var(--muted);opacity:.86;">sources: Google Books + Open Library. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
+  </section>
+
+  <section class="media-spotlight" id="booksSpotlight" hidden>
+    <div class="media-spotlight-shell">
+      <div class="media-spotlight-bg" id="booksSpotlightBg"></div>
+      <div class="media-spotlight-copy">
+        <span class="media-spotlight-kicker">Book Spotlight</span>
+        <h2 id="booksSpotlightTitle">Loading…</h2>
+        <p class="media-spotlight-meta" id="booksSpotlightMeta"></p>
+        <p class="media-spotlight-summary" id="booksSpotlightSummary"></p>
+        <div class="media-spotlight-actions">
+          <a class="btn" id="booksSpotlightOpen" href="#">Open book</a>
+        </div>
+      </div>
+      <div class="media-spotlight-poster">
+        <img id="booksSpotlightImage" src="/newlogo.webp" alt="Book spotlight cover" loading="eager" decoding="async" referrerpolicy="no-referrer">
+      </div>
+    </div>
   </section>
 
   <div class="controls">
@@ -1331,6 +1421,70 @@
         });
       }
 
+      let pageSpotlightTimer = null;
+      let pageSpotlightItems = [];
+      let pageSpotlightIndex = 0;
+
+      function getBookSpotlightCover(book) {
+        return getPreferredBookImage(book) || FALLBACK_BOOK_IMAGE;
+      }
+
+      function pickBookSpotlightPool(items = []) {
+        const seen = new Set();
+        return (Array.isArray(items) ? items : []).filter((book) => {
+          const key = String(book?.id || book?.key || book?.title || '').trim().toLowerCase();
+          const cover = getBookSpotlightCover(book);
+          if (!key || !cover || seen.has(key)) return false;
+          seen.add(key);
+          return cover && cover !== FALLBACK_BOOK_IMAGE;
+        }).slice(0, 12);
+      }
+
+      function renderBookPageSpotlight(book) {
+        const section = document.getElementById('booksSpotlight');
+        if (!section || !book) return;
+        const bg = document.getElementById('booksSpotlightBg');
+        const titleEl = document.getElementById('booksSpotlightTitle');
+        const metaEl = document.getElementById('booksSpotlightMeta');
+        const summaryEl = document.getElementById('booksSpotlightSummary');
+        const imgEl = document.getElementById('booksSpotlightImage');
+        const openEl = document.getElementById('booksSpotlightOpen');
+        const cover = getBookSpotlightCover(book);
+        section.hidden = false;
+        if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${cover}")`;
+        if (titleEl) titleEl.textContent = book.title || 'Book Spotlight';
+        if (metaEl) metaEl.textContent = [Array.isArray(book.author_name) ? book.author_name.slice(0, 2).join(', ') : '', book.first_publish_year || ''].filter(Boolean).join(' · ');
+        if (summaryEl) summaryEl.textContent = String(book.description || '').trim() || (Array.isArray(book.subject) ? book.subject.slice(0, 4).join(' · ') : 'A standout book from the local catalog.');
+        if (imgEl) {
+          imgEl.src = cover;
+          imgEl.alt = `${book.title || 'Book'} cover`;
+        }
+        if (openEl) openEl.href = `book.html?id=${encodeURIComponent(String(getBookEntryId(book) || ''))}`;
+      }
+
+      function resetBookPageSpotlightTimer() {
+        if (pageSpotlightTimer) clearInterval(pageSpotlightTimer);
+        if (pageSpotlightItems.length < 2) return;
+        pageSpotlightTimer = window.setInterval(() => {
+          pageSpotlightIndex = (pageSpotlightIndex + 1) % pageSpotlightItems.length;
+          renderBookPageSpotlight(pageSpotlightItems[pageSpotlightIndex]);
+        }, 6500);
+      }
+
+      function updateBookPageSpotlight(items = []) {
+        pageSpotlightItems = pickBookSpotlightPool(items);
+        pageSpotlightIndex = 0;
+        const section = document.getElementById('booksSpotlight');
+        if (!section) return;
+        if (!pageSpotlightItems.length) {
+          section.hidden = true;
+          if (pageSpotlightTimer) clearInterval(pageSpotlightTimer);
+          return;
+        }
+        renderBookPageSpotlight(pageSpotlightItems[0]);
+        resetBookPageSpotlightTimer();
+      }
+
       function populateCategories() {
         const select = document.getElementById('categorySelect');
         if (!select) return;
@@ -1396,6 +1550,7 @@
         let data;
         try {
           data = await fetchLocalBooksPage();
+          updateBookPageSpotlight(data?.docs || []);
           if (!Array.isArray(data?.docs) || !data.docs.length) {
             const params = {
               page: state.page,
@@ -1416,6 +1571,7 @@
             } else {
               data = await booksFetch('/search.json', params);
             }
+            updateBookPageSpotlight(data?.docs || []);
           }
           if (!Array.isArray(data?.docs) || !data.docs.length) {
             data = { docs: [], numFound: 0 };

@@ -49,6 +49,16 @@
   const searchInput = document.getElementById('brandSearch');
   const categorySelect = document.getElementById('brandCategory');
   const countText = document.getElementById('brandCount');
+  const spotlight = {
+    section: document.getElementById('brandSpotlight'),
+    bg: document.getElementById('brandSpotlightBg'),
+    kicker: document.getElementById('brandSpotlightKicker'),
+    title: document.getElementById('brandSpotlightTitle'),
+    meta: document.getElementById('brandSpotlightMeta'),
+    summary: document.getElementById('brandSpotlightSummary'),
+    logo: document.getElementById('brandSpotlightLogo'),
+    open: document.getElementById('brandSpotlightOpen')
+  };
   const BRAND_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
       <rect width='24' height='24' fill='#10224a'/>
@@ -59,6 +69,11 @@
   let currentUser = null;
   let allBrands = [];
   let brandImageObserver = null;
+  let brandSpotlightTimer = null;
+  let brandSpotlightItems = [];
+  let brandSpotlightIndex = 0;
+  let brandBackgroundManifest = null;
+  let brandBackgroundManifestPromise = null;
 
   function ensureSupabase() {
     if (supabaseClient) return supabaseClient;
@@ -243,6 +258,101 @@
       }
     });
     return Array.from(map.values()).map((entry) => entry.brand);
+  }
+
+  async function ensureBrandBackgroundManifest() {
+    if (brandBackgroundManifest) return brandBackgroundManifest;
+    if (brandBackgroundManifestPromise) return brandBackgroundManifestPromise;
+    const manifestUrl = `${SUPABASE_URL}/storage/v1/object/public/brand-backgrounds/manifest/brand-backgrounds.json`;
+    brandBackgroundManifestPromise = fetch(manifestUrl, { headers: { Accept: 'application/json' } })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => {
+        if (!payload || typeof payload !== 'object') return null;
+        brandBackgroundManifest = payload;
+        return brandBackgroundManifest;
+      })
+      .catch(() => null)
+      .finally(() => { brandBackgroundManifestPromise = null; });
+    return brandBackgroundManifestPromise;
+  }
+
+  function getBrandSpotlightBackground(brand) {
+    const slug = String(brand?.slug || '').trim().toLowerCase();
+    const direct = slug && brandBackgroundManifest?.[BRAND_TABLE]
+      ? String(brandBackgroundManifest[BRAND_TABLE][slug] || '').trim()
+      : '';
+    if (direct) return direct;
+    const fallbackName = BRAND_TYPE === 'food' ? 'food.jpg' : (BRAND_TYPE === 'car' ? 'cars.jpg' : 'fashion.jpg');
+    return `${SUPABASE_URL}/storage/v1/object/public/home-spotlights/${fallbackName}`;
+  }
+
+  function normalizeBrandSearch(value) {
+    return String(value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+  }
+
+  function buildBrandSpotlightPool(items = []) {
+    const seen = new Set();
+    return (Array.isArray(items) ? items : []).filter((brand) => {
+      const logo = String(brand?.logo || '').trim();
+      const key = normalizeBrandSearch(brand?.name) || String(brand?.id || '').trim().toLowerCase();
+      if (!key || seen.has(key) || !logo) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 18);
+  }
+
+  function renderBrandSpotlightItem(brand) {
+    if (!spotlight.section || !brand) return;
+    const background = getBrandSpotlightBackground(brand);
+    spotlight.section.hidden = false;
+    if (spotlight.bg) {
+      spotlight.bg.style.backgroundImage = `linear-gradient(120deg, rgba(8, 14, 31, 0.72), rgba(11, 23, 49, 0.4)), url("${background}")`;
+    }
+    if (spotlight.kicker) spotlight.kicker.textContent = `${BRAND_LABEL} Spotlight`;
+    if (spotlight.title) spotlight.title.textContent = brand.name || BRAND_LABEL;
+    if (spotlight.meta) {
+      spotlight.meta.textContent = [brand.category, brand.country, brand.founded ? `since ${brand.founded}` : '']
+        .filter(Boolean)
+        .join(' · ');
+    }
+    if (spotlight.summary) {
+      spotlight.summary.textContent = brand.description || `A standout ${BRAND_LABEL.toLowerCase()} pick from the local catalog.`;
+    }
+    if (spotlight.logo) {
+      spotlight.logo.src = brand.logo || '/newlogo.webp';
+      spotlight.logo.alt = `${brand.name || BRAND_LABEL} logo`;
+    }
+    if (spotlight.open) {
+      const id = encodeURIComponent(brand.id || brand.slug || brand.domain || brand.name);
+      spotlight.open.href = `brand.html?type=${encodeURIComponent(BRAND_TYPE)}&id=${id}`;
+    }
+  }
+
+  function resetBrandSpotlightTimer() {
+    if (brandSpotlightTimer) clearInterval(brandSpotlightTimer);
+    if (brandSpotlightItems.length < 2) return;
+    brandSpotlightTimer = window.setInterval(() => {
+      brandSpotlightIndex = (brandSpotlightIndex + 1) % brandSpotlightItems.length;
+      renderBrandSpotlightItem(brandSpotlightItems[brandSpotlightIndex]);
+    }, 6000);
+  }
+
+  function updateBrandSpotlight(items = []) {
+    if (!spotlight.section) return;
+    brandSpotlightItems = buildBrandSpotlightPool(items.length ? items : allBrands);
+    brandSpotlightIndex = 0;
+    if (!brandSpotlightItems.length) {
+      spotlight.section.hidden = true;
+      if (brandSpotlightTimer) clearInterval(brandSpotlightTimer);
+      return;
+    }
+    renderBrandSpotlightItem(brandSpotlightItems[0]);
+    resetBrandSpotlightTimer();
   }
 
   async function saveToListFromHome(payload) {
@@ -442,6 +552,7 @@
     grid.appendChild(fragment);
     wireBrandImageState(grid);
     primeBrandImages(grid);
+    updateBrandSpotlight(filtered);
   }
 
   async function loadSession() {
@@ -481,6 +592,7 @@
 
     renderCategories(allBrands);
     renderGrid();
+    void ensureBrandBackgroundManifest().then(() => updateBrandSpotlight(getFilteredBrands()));
   }
 
   function initMenuBridge() {
@@ -532,6 +644,7 @@
     boot();
   }
 })();
+
 
 
 

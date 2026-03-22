@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v156';
-const PAGE_CACHE = 'zo2y-pages-v126';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v157';
+const PAGE_CACHE = 'zo2y-pages-v127';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -14,7 +14,7 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260319e',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260321b',
+  '/js/pages/index.js?v=20260322b',
   '/js/pages/index-home-heavy-loaders.js?v=20260319e',
   '/js/home-desktop-rebrand.js?v=20260311e',
   '/js/referral-utils.js?v=20260319a',
@@ -46,10 +46,10 @@ const STATIC_ASSETS = [
   '/food.html',
   '/cars.html',
   '/brand.html',
-  '/css/pages/brands.css?v=20260316c',
+  '/css/pages/brands.css?v=20260322a',
   '/css/pages/brand.css?v=20260316b',
-  '/js/pages/brands.js?v=20260316k',
-  '/js/pages/brand.js?v=20260316l',
+  '/js/pages/brands.js?v=20260322a',
+  '/js/pages/brand.js?v=20260322a',
   '/team.html',
   '/css/pages/team.css?v=20260314a',
   '/js/pages/team.js?v=20260314d',

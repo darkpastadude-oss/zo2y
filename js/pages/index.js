@@ -1,4 +1,4 @@
-    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
+﻿    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
     const ENABLE_GAMES = !GAMES_DISABLED;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
@@ -154,7 +154,7 @@
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v12';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v11';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v12';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
@@ -214,7 +214,7 @@
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 16;
-    const HOME_SPOTLIGHT_POOL_SIZE = 16;
+    const HOME_SPOTLIGHT_POOL_SIZE = 20;
     const HOME_NEW_RELEASES_TARGET_ITEMS = 16;
     const HOME_NEW_RELEASES_TIMEOUT_MS = 5600;
     const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 12;
@@ -2654,25 +2654,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         const seed = getSpotlightSeedOffset();
         const offset = seed % shortlist.length;
         homeSpotlightItems = [...shortlist.slice(offset), ...shortlist.slice(0, offset)];
-      }
-
-      if (ENABLE_GAMES) {
-        const spotlightGames = safePool.filter((item) => {
-          const type = String(item?.mediaType || '').toLowerCase();
-          const cover = String(item?.spotlightMediaImage || '').trim();
-          const hero = String(item?.spotlightImage || '').trim();
-          return type === 'game' && cover && hero && cover !== hero;
-        });
-        const desiredGameCount = Math.min(3, spotlightGames.length);
-        const currentGameCount = homeSpotlightItems.filter((item) => String(item?.mediaType || '').toLowerCase() === 'game').length;
-        if (desiredGameCount > currentGameCount) {
-          const existingKeys = new Set(homeSpotlightItems.map((item, index) => getHomeSpotlightPoolKey(item, index)));
-          const needed = desiredGameCount - currentGameCount;
-          const additions = spotlightGames.filter((item, index) => !existingKeys.has(getHomeSpotlightPoolKey(item, index))).slice(0, needed);
-          if (additions.length) {
-            homeSpotlightItems = [...additions, ...homeSpotlightItems].slice(0, spotlightPoolSize);
-          }
-        }
       }
 
       warmSpotlightImages(homeSpotlightItems);
@@ -5886,7 +5867,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         {
           id: 'interests-setup',
           title: 'Tune Your Feed',
-          body: 'Choose formats and genres so the �For You� feed starts on the right note.',
+          body: 'Choose formats and genres so the ï¿½For Youï¿½ feed starts on the right note.',
           art: `
               <div class="onboarding-interest-layout">
                 <div class="onboarding-interest-photos">
@@ -7513,7 +7494,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       };
 
       const loadedPromise = loadHomeChannelGroup(initialChannels, loadChannel);
-      const precomputedFeed = await withTimeout(precomputedFeedPromise, 220, null);
+      const precomputedFeed = await withTimeout(precomputedFeedPromise, 450, null);
       if (initSeq !== homeFeedInitSeq) return;
       if (precomputedFeed) {
         const precomputedActiveChannels = countActiveHomeChannels(precomputedFeed);
@@ -7523,7 +7504,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             ...workingFeed
           };
           const normalizedPrecomputedFeed = normalizeHomeFeedMap(precomputedFeed) || blankFeed;
-          initialChannels.forEach((channel) => {
+          channels.forEach((channel) => {
             if (freshLoadedKeys.has(channel.key)) return;
             const items = Array.isArray(normalizedPrecomputedFeed[channel.key]) ? normalizedPrecomputedFeed[channel.key] : [];
             if (items.length) {
@@ -7889,6 +7870,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
+
 
 
 

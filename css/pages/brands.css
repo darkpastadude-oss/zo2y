@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --brand-bg: #0b1633;
   --brand-card: #132347;
   --brand-card-soft: rgba(19, 35, 71, 0.72);
@@ -44,6 +44,105 @@ main.container {
 .page-header p {
   margin: 0;
   color: var(--brand-muted);
+}
+
+.brand-spotlight {
+  position: relative;
+  margin-top: 18px;
+  min-height: 300px;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: linear-gradient(135deg, rgba(17, 34, 70, 0.96), rgba(9, 19, 41, 0.92));
+  box-shadow: 0 24px 44px rgba(0,0,0,0.28);
+  display: grid;
+  grid-template-columns: 1.3fr 0.9fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.brand-spotlight-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(8, 14, 31, 0.72), rgba(11, 23, 49, 0.4));
+  background-size: cover;
+  background-position: center center;
+  transform: scale(1.02);
+}
+
+.brand-spotlight-copy,
+.brand-spotlight-logo {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-spotlight-copy {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+.brand-spotlight-kicker {
+  display: inline-flex;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(19,35,71,0.48);
+  color: #dbe7ff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.brand-spotlight h2 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 0.98;
+}
+
+.brand-spotlight-meta,
+.brand-spotlight-summary {
+  margin: 0;
+  color: rgba(233, 241, 255, 0.82);
+  line-height: 1.5;
+}
+
+.brand-spotlight-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+}
+
+.brand-spotlight-logo img {
+  width: min(100%, 280px);
+  max-height: 220px;
+  object-fit: contain;
+  padding: 22px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(245,247,252,0.98), rgba(226,232,244,0.96));
+  box-shadow: 0 18px 30px rgba(2, 8, 22, 0.24);
+}
+
+.brand-spotlight-actions {
+  margin-top: 6px;
+}
+
+.brand-spotlight-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 158, 11, 0.72);
+  color: #fff;
+  background: rgba(245, 158, 11, 0.16);
+  text-decoration: none;
+  font-weight: 700;
 }
 
 .controls {
@@ -225,6 +324,17 @@ main.container {
   }
 }
 
+@media (max-width: 900px) {
+  .brand-spotlight {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .brand-spotlight-logo {
+    padding-top: 0;
+  }
+}
+
 @media (max-width: 760px) {
   main.container {
     margin: 80px auto 50px;
@@ -243,3 +353,4 @@ main.container {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }
+
