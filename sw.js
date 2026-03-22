@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v157';
-const PAGE_CACHE = 'zo2y-pages-v127';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v158';
+const PAGE_CACHE = 'zo2y-pages-v128';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
@@ -124,7 +124,7 @@ async function cacheFirst(request, cacheName) {
 
 async function networkFirst(request, cacheName, fallbackPath = '') {
   try {
-    const networkResponse = await fetch(request);
+    const networkResponse = await fetch(request, { cache: 'no-store' });
     queueCachePut(cacheName, request, networkResponse);
     return networkResponse;
   } catch (_error) {
@@ -145,7 +145,7 @@ async function networkFirstWithTimeout(request, cacheName, fallbackPath = '', ti
   let timer = null;
   try {
     const networkResponse = await Promise.race([
-      fetch(request),
+      fetch(request, { cache: 'no-store' }),
       new Promise((_, reject) => {
         timer = setTimeout(() => reject(new Error('network_timeout')), timeoutMs);
       })
@@ -195,13 +195,14 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
+    caches.keys().then(async (keys) => {
+      await Promise.all(
         keys
           .filter((key) => !ACTIVE_CACHES.includes(key))
           .map((key) => caches.delete(key))
-      )
-    )
+      );
+      await caches.delete(PAGE_CACHE);
+    })
   );
   self.clients.claim();
 });
