@@ -1,43 +1,12 @@
-import express from "express";
 import dotenv from "dotenv";
-import { applyApiGuardrails } from "./_guardrails.js";
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
 dotenv.config({ path: "backend/authRoutes/.env" });
 
-const app = express();
-applyApiGuardrails(app, { keyPrefix: "api-books", max: 220 });
 const GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1";
 const OPEN_LIBRARY_BASE = "https://openlibrary.org";
-
-app.post("/api/books/sync", async (req, res) => {
-  try {
-    const client = getSupabaseAdminClient();
-    if (!client) {
-      return res.status(503).json({ ok: false, message: "Supabase admin not configured" });
-    }
-    const payload = sanitizeBookPayload(req.body || {});
-    if (!payload) {
-      return res.status(400).json({ ok: false, message: "Missing book id" });
-    }
-
-    const { data, error } = await client
-      .from("books")
-      .upsert(payload, { onConflict: "id" })
-      .select("id")
-      .maybeSingle();
-
-    if (error) {
-      return res.status(500).json({ ok: false, message: error.message || "Book sync failed" });
-    }
-
-    return res.json({ ok: true, id: data?.id || payload.id });
-  } catch (error) {
-    return res.status(500).json({ ok: false, message: error?.message || "Book sync error" });
-  }
-});
 
 function getBooksKey() {
   return String(process.env.GOOGLE_BOOKS_KEY || "").trim();
@@ -407,209 +376,260 @@ async function enrichMissingCoversWithGoogle(docs = [], maxLookups = 8) {
   return nextDocs;
 }
 
-app.get("/api/books/search", async (req, res) => {
+function readQuery(req) {
+  if (req.query && typeof req.query === "object") return req.query;
   try {
-    const limit = clampInt(req.query.limit, 1, 40, 20);
-    const page = clampInt(req.query.page, 1, 1000, 1);
-    const params = {
-      q: req.query.q,
-      title: req.query.title,
-      author: req.query.author,
-      subject: req.query.subject,
-      first_publish_year: req.query.first_publish_year,
-      year: req.query.year,
-      language: req.query.language,
-      limit,
-      page,
-      orderBy: "relevance"
-    };
-
-    const google = await fetchGoogleDocs(params);
-    let source = google.source;
-    let docs = Array.isArray(google.docs) ? google.docs : [];
-    let numFound = Number(google.numFound || 0);
-
-    if (docs.length < limit) {
-      const open = await fetchOpenLibraryDocs(params);
-      if (Array.isArray(open.docs) && open.docs.length) {
-        docs = dedupeDocs([...docs, ...open.docs], limit);
-        numFound = Math.max(numFound, Number(open.numFound || docs.length), docs.length);
-        source = docs.length > (google.docs?.length || 0) ? "google-books+openlibrary" : source;
-      }
-    }
-
-    return res.json({
-      ok: true,
-      source,
-      page,
-      limit,
-      numFound: Math.max(numFound, docs.length),
-      docs,
-      items: docs
-    });
-  } catch (error) {
-    return res.status(502).json({ message: error?.message || "Book search failed" });
+    const url = new URL(req.url || "", "http://localhost");
+    return Object.fromEntries(url.searchParams.entries());
+  } catch (_error) {
+    return {};
   }
-});
+}
 
-app.get("/api/books/popular", async (req, res) => {
-  try {
-    const limit = clampInt(req.query.limit, 1, 40, 20);
-    const page = clampInt(req.query.page, 1, 1000, 1);
-    const subject = String(req.query.subject || "fiction").trim() || "fiction";
-    const q = String(req.query.q || "").trim() || `subject:${subject}`;
-    const google = await fetchGoogleDocs({
-      q,
-      limit,
-      page,
-      language: String(req.query.language || "en").trim() || "en",
-      orderBy: String(req.query.orderBy || "relevance").trim() || "relevance"
-    });
+function readPathParts(query) {
+  const rawPath = query?.path;
+  if (Array.isArray(rawPath)) return rawPath.filter(Boolean);
+  return String(rawPath || "")
+    .split("/")
+    .filter(Boolean);
+}
 
-    let docs = Array.isArray(google.docs) ? google.docs : [];
-    let source = google.source;
-    let numFound = Number(google.numFound || 0);
-
-    if (docs.length < limit) {
-      const open = await fetchOpenLibraryDocs({
-        q: String(req.query.fallback_q || req.query.q || subject || "fiction"),
-        subject,
-        limit,
-        page: 1,
-        language: "eng"
-      });
-      if (Array.isArray(open.docs) && open.docs.length) {
-        docs = dedupeDocs([...docs, ...open.docs], limit);
-        numFound = Math.max(numFound, Number(open.numFound || docs.length), docs.length);
-        source = "google-books+openlibrary";
-      }
-    }
-
-    res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
-    return res.json({
-      ok: true,
-      source,
-      query: q,
-      page,
-      limit,
-      numFound: Math.max(numFound, docs.length),
-      docs,
-      items: docs
-    });
-  } catch (error) {
-    return res.status(502).json({ message: error?.message || "Popular books request failed" });
+async function readJsonBody(req) {
+  if (req.body && typeof req.body === "object") return req.body;
+  const chunks = [];
+  for await (const chunk of req) {
+    chunks.push(chunk);
   }
-});
-
-app.get("/api/books/trending", async (req, res) => {
+  if (!chunks.length) return null;
+  const text = Buffer.concat(chunks).toString("utf8");
   try {
-    const periodRaw = String(req.query.period || "weekly").trim().toLowerCase();
-    const period = ["daily", "weekly", "monthly"].includes(periodRaw) ? periodRaw : "weekly";
-    const limit = clampInt(req.query.limit, 1, 40, 20);
+    return JSON.parse(text);
+  } catch (_error) {
+    return null;
+  }
+}
 
-    const url = new URL(`${OPEN_LIBRARY_BASE}/trending/${period}.json`);
-    const upstream = await fetchWithRetry(url.toString(), { headers: { Accept: "application/json" } }, 3);
-    const json = upstream.ok ? await upstream.json() : {};
-    const works = Array.isArray(json?.works) ? json.works : [];
-    let docs = dedupeDocs(
-      works.map((work, idx) => normalizeOpenLibraryDoc(work, idx)).filter(Boolean),
-      limit
-    );
+export default async function handler(req, res) {
+  const query = readQuery(req);
+  const pathParts = readPathParts(query);
+  const section = String(pathParts[0] || "").trim().toLowerCase();
 
-    if (!docs.length) {
-      const popular = await fetchGoogleDocs({
-        q: "subject:fiction",
-        orderBy: "relevance",
+  if (!section) {
+    return res.json({ ok: true, service: "books-proxy", configured: !!getBooksKey() });
+  }
+
+  if (section === "sync" && String(req.method || "").toUpperCase() === "POST") {
+    try {
+      const client = getSupabaseAdminClient();
+      if (!client) {
+        return res.status(503).json({ ok: false, message: "Supabase admin not configured" });
+      }
+      const body = await readJsonBody(req);
+      const payload = sanitizeBookPayload(body || {});
+      if (!payload) {
+        return res.status(400).json({ ok: false, message: "Missing book id" });
+      }
+
+      const { data, error } = await client
+        .from("books")
+        .upsert(payload, { onConflict: "id" })
+        .select("id")
+        .maybeSingle();
+
+      if (error) {
+        return res.status(500).json({ ok: false, message: error.message || "Book sync failed" });
+      }
+
+      return res.json({ ok: true, id: data?.id || payload.id });
+    } catch (error) {
+      return res.status(500).json({ ok: false, message: error?.message || "Book sync error" });
+    }
+  }
+
+  if (section === "search") {
+    try {
+      const limit = clampInt(query.limit, 1, 40, 20);
+      const page = clampInt(query.page, 1, 1000, 1);
+      const params = {
+        q: query.q,
+        title: query.title,
+        author: query.author,
+        subject: query.subject,
+        first_publish_year: query.first_publish_year,
+        year: query.year,
+        language: query.language,
         limit,
-        page: 1,
-        language: "en"
+        page,
+        orderBy: "relevance"
+      };
+
+      const google = await fetchGoogleDocs(params);
+      let source = google.source;
+      let docs = Array.isArray(google.docs) ? google.docs : [];
+      let numFound = Number(google.numFound || 0);
+
+      if (docs.length < limit) {
+        const open = await fetchOpenLibraryDocs(params);
+        if (Array.isArray(open.docs) && open.docs.length) {
+          docs = dedupeDocs([...docs, ...open.docs], limit);
+          numFound = Math.max(numFound, Number(open.numFound || docs.length), docs.length);
+          source = docs.length > (google.docs?.length || 0) ? "google-books+openlibrary" : source;
+        }
+      }
+
+      const enriched = await enrichMissingCoversWithGoogle(docs, 8);
+      return res.json({
+        ok: true,
+        source,
+        page,
+        limit,
+        numFound: Math.max(numFound, enriched.length),
+        docs: enriched,
+        items: enriched
       });
-      docs = Array.isArray(popular.docs) ? popular.docs : [];
+    } catch (error) {
+      return res.status(502).json({ message: error?.message || "Book search failed" });
+    }
+  }
+
+  if (section === "popular") {
+    try {
+      const limit = clampInt(query.limit, 1, 40, 20);
+      const page = clampInt(query.page, 1, 1000, 1);
+      const subject = String(query.subject || "fiction").trim() || "fiction";
+      const q = String(query.q || "").trim() || `subject:${subject}`;
+      const google = await fetchGoogleDocs({
+        q,
+        limit,
+        page,
+        language: String(query.language || "en").trim() || "en",
+        orderBy: String(query.orderBy || "relevance").trim() || "relevance"
+      });
+
+      let docs = Array.isArray(google.docs) ? google.docs : [];
+      let source = google.source;
+      let numFound = Number(google.numFound || 0);
+
+      if (docs.length < limit) {
+        const open = await fetchOpenLibraryDocs({
+          q: String(query.fallback_q || query.q || subject || "fiction"),
+          subject,
+          limit,
+          page: 1,
+          language: "eng"
+        });
+        if (Array.isArray(open.docs) && open.docs.length) {
+          docs = dedupeDocs([...docs, ...open.docs], limit);
+          numFound = Math.max(numFound, Number(open.numFound || docs.length), docs.length);
+          source = "google-books+openlibrary";
+        }
+      }
+
       res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
       return res.json({
         ok: true,
-        source: "google-books-fallback",
+        source,
+        query: q,
+        page,
+        limit,
+        numFound: Math.max(numFound, docs.length),
+        docs,
+        items: docs
+      });
+    } catch (error) {
+      return res.status(502).json({ message: error?.message || "Popular books request failed" });
+    }
+  }
+
+  if (section === "trending") {
+    try {
+      const periodRaw = String(query.period || "weekly").trim().toLowerCase();
+      const period = ["daily", "weekly", "monthly"].includes(periodRaw) ? periodRaw : "weekly";
+      const limit = clampInt(query.limit, 1, 40, 20);
+
+      const url = new URL(`${OPEN_LIBRARY_BASE}/trending/${period}.json`);
+      const upstream = await fetchWithRetry(url.toString(), { headers: { Accept: "application/json" } }, 3);
+      const json = upstream.ok ? await upstream.json() : {};
+      const works = Array.isArray(json?.works) ? json.works : [];
+      let docs = dedupeDocs(
+        works.map((work, idx) => normalizeOpenLibraryDoc(work, idx)).filter(Boolean),
+        limit
+      );
+
+      if (!docs.length) {
+        const popular = await fetchGoogleDocs({
+          q: "subject:fiction",
+          orderBy: "relevance",
+          limit,
+          page: 1,
+          language: "en"
+        });
+        docs = Array.isArray(popular.docs) ? popular.docs : [];
+        res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
+        return res.json({
+          ok: true,
+          source: "google-books-fallback",
+          period,
+          limit,
+          numFound: docs.length,
+          docs,
+          items: docs
+        });
+      }
+
+      res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
+      return res.json({
+        ok: true,
+        source: "openlibrary-trending",
         period,
         limit,
         numFound: docs.length,
         docs,
         items: docs
       });
+    } catch (error) {
+      return res.status(502).json({ message: error?.message || "Trending books request failed" });
     }
-
-    res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
-    return res.json({
-      ok: true,
-      source: "openlibrary-trending",
-      period,
-      limit,
-      numFound: docs.length,
-      docs,
-      items: docs
-    });
-  } catch (error) {
-    return res.status(502).json({ message: error?.message || "Trending books request failed" });
   }
-});
 
-app.get("/api/books/*", async (req, res) => {
-  try {
-    const key = getBooksKey();
-    const relativePath = req.path.replace(/^\/api\/books\//, "");
-    const url = new URL(`${GOOGLE_BOOKS_BASE}/${relativePath}`);
-    Object.entries(req.query || {}).forEach(([paramKey, value]) => pushQueryParam(url.searchParams, paramKey, value));
-    if (key && !url.searchParams.get("key")) {
-      url.searchParams.set("key", key);
-    }
+  if (section) {
+    try {
+      const key = getBooksKey();
+      const relativePath = pathParts.join("/");
+      const url = new URL(`${GOOGLE_BOOKS_BASE}/${relativePath}`);
+      Object.entries(query || {}).forEach(([paramKey, value]) => {
+        if (paramKey === "path") return;
+        pushQueryParam(url.searchParams, paramKey, value);
+      });
+      if (key && !url.searchParams.get("key")) {
+        url.searchParams.set("key", key);
+      }
 
-    let lastError = null;
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      try {
-        const booksRes = await fetch(url.toString());
-        const text = await booksRes.text();
-        const retryable = booksRes.status === 429 || booksRes.status >= 500;
-        if (!retryable || attempt === 2) {
-          res.status(booksRes.status);
-          res.setHeader("content-type", booksRes.headers.get("content-type") || "application/json; charset=utf-8");
-          return res.send(text);
+      let lastError = null;
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const booksRes = await fetch(url.toString());
+          const text = await booksRes.text();
+          const retryable = booksRes.status === 429 || booksRes.status >= 500;
+          if (!retryable || attempt === 2) {
+            res.status(booksRes.status);
+            res.setHeader("content-type", booksRes.headers.get("content-type") || "application/json; charset=utf-8");
+            return res.send(text);
+          }
+          lastError = new Error(`Google Books error ${booksRes.status}: ${text}`);
+        } catch (error) {
+          lastError = error;
         }
-        lastError = new Error(`Google Books error ${booksRes.status}: ${text}`);
-      } catch (error) {
-        lastError = error;
+        if (attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+        }
       }
-      if (attempt < 2) {
-        await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
-      }
+
+      return res.status(502).json({ message: lastError?.message || "Books proxy upstream failure" });
+    } catch (error) {
+      return res.status(500).json({ message: error.message || "Books proxy error" });
     }
-
-    return res.status(502).json({ message: lastError?.message || "Books proxy upstream failure" });
-  } catch (error) {
-    return res.status(500).json({ message: error.message || "Books proxy error" });
   }
-});
 
-app.get("/api/books", (req, res) => {
-  const key = getBooksKey();
-  res.json({ ok: true, service: "books-proxy", configured: !!key });
-});
-
-export default function handler(req, res) {
-  const query = req.query || {};
-  const rawPath = query.path;
-  const pathParts = Array.isArray(rawPath)
-    ? rawPath
-    : String(rawPath || "")
-      .split("/")
-      .filter(Boolean);
-
-  const nextParams = new URLSearchParams();
-  Object.entries(query).forEach(([key, value]) => {
-    if (key === "path") return;
-    pushQueryParam(nextParams, key, value);
-  });
-
-  const suffix = pathParts.length ? `/${pathParts.join("/")}` : "";
-    const search = nextParams.toString();
-  req.url = `/api/books${suffix}${search ? `?${search}` : ""}`;
-  return app(req, res);
+  return res.status(404).json({ message: "Not found" });
 }

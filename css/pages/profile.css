@@ -391,10 +391,26 @@
             aspect-ratio: 1 / 1;
         }
 
+        .collection-preview-item.brand-logo-preview,
+        .list-preview-item.brand-logo-preview,
+        .mobile-preview-item.brand-logo-preview {
+            background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
+            box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.16);
+        }
+
         .collection-preview-item img {
             width: 100%;
             height: 100%;
             object-fit: contain;
+        }
+
+        .collection-preview-item img.brand-logo-preview-image,
+        .list-preview-item img.brand-logo-preview-image,
+        .mobile-preview-item img.brand-logo-preview-image {
+            padding: 12px;
+            box-sizing: border-box;
+            object-fit: contain;
+            background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
         }
 
         .collection-preview-item.is-landscape img {
@@ -534,7 +550,33 @@
             background: transparent;
         }
 
+        .collection-item-image.brand-logo-stage {
+            background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
+            box-sizing: border-box;
+            padding: 14px;
+        }
+
         @media (max-width: 768px) {
+            .collection-preview-item.brand-logo-preview,
+            .list-preview-item.brand-logo-preview,
+            .mobile-preview-item.brand-logo-preview,
+            .collection-preview-item img.brand-logo-preview-image,
+            .list-preview-item img.brand-logo-preview-image,
+            .mobile-preview-item img.brand-logo-preview-image,
+            .collection-item-image.brand-logo-stage,
+            .collection-items-grid .collection-item-image.brand-logo-stage,
+            .collection-items-list .collection-item-image.brand-logo-stage {
+                background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
+            }
+
+            .collection-item-image.brand-logo-stage,
+            .collection-items-grid .collection-item-image.brand-logo-stage,
+            .collection-items-list .collection-item-image.brand-logo-stage {
+                object-fit: contain !important;
+                padding: 12px !important;
+                box-sizing: border-box !important;
+            }
+
             .collection-item-image {
                 min-height: 120px;
             }
@@ -898,12 +940,20 @@
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 4px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .profile-username {
             font-size: 16px;
             color: var(--muted);
             margin-bottom: 12px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .profile-bio {
@@ -930,6 +980,11 @@
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .profile-info {
+            min-width: 0;
         }
 
         .profile-badges {
@@ -2920,12 +2975,20 @@
                 font-size: 24px;
                 font-weight: 700;
                 margin-bottom: 4px;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
             .mobile-profile-username {
                 font-size: 16px;
                 color: var(--accent);
                 margin-bottom: 12px;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
             .mobile-profile-bio {
@@ -2939,6 +3002,25 @@
                 justify-content: center;
                 margin-top: 2px;
                 margin-bottom: 2px;
+            }
+
+            .mobile-profile-actions-row {
+                display: flex;
+                gap: 10px;
+                width: 100%;
+                margin-top: 12px;
+            }
+
+            .mobile-action-btn.compact {
+                flex: 1 1 0;
+                width: auto;
+                margin-bottom: 0;
+                padding: 12px 14px;
+                font-size: 14px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
             }
 
             /* Mobile Stats */
@@ -3901,6 +3983,53 @@ header, .top-stripe, .section-nav {
   padding: 6px;
   background: rgba(19, 35, 71, 0.92);
   backdrop-filter: blur(7px);
+  overflow: visible;
+}
+
+.profile-tab-group-toggle {
+  gap: 8px;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.profile-tab-group-toggle i.fa-chevron-down {
+  font-size: 0.85em;
+}
+
+.profile-tab-group-row {
+  display: none;
+  gap: 8px;
+  padding: 10px 6px 6px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  background: transparent;
+  border-radius: 0;
+  border: 0;
+}
+
+.profile-tab-group-row.open {
+  display: flex;
+}
+
+.profile-tab-group-row .nav-tab {
+  white-space: nowrap;
+}
+
+.profile-tab-group-row.mobile {
+  padding: 8px 6px 6px;
+  margin-bottom: 10px;
+}
+
+.profile-tab-group-toggle:hover,
+.profile-tab-group-toggle:focus {
+  background: var(--bg-hover);
+  color: var(--text);
 }
 
 .nav-tab {

@@ -2,7 +2,8 @@
   'use strict';
 
   var PROJECT_REF = 'gfkhjbztayjyojsgdpgk';
-  var STORAGE_KEY = 'sb-' + PROJECT_REF + '-auth-token';
+  var STORAGE_KEY = 'zo2y-auth-v1';
+  var LEGACY_STORAGE_KEY = 'sb-' + PROJECT_REF + '-auth-token';
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
     'login',
@@ -34,6 +35,14 @@
     try {
       if (window.localStorage) window.localStorage.setItem(key, value);
     } catch (_err) {}
+  }
+
+  function migrateLegacySessionStorage() {
+    var current = safeGetStorageItem(STORAGE_KEY);
+    if (current) return;
+    var legacy = safeGetStorageItem(LEGACY_STORAGE_KEY);
+    if (!legacy) return;
+    safeSetStorageItem(STORAGE_KEY, legacy);
   }
 
   function getHashParams() {
@@ -87,13 +96,17 @@
   }
 
   function hasStoredSupabaseSession() {
-    var raw = safeGetStorageItem(STORAGE_KEY);
-    if (!raw) return false;
-    try {
-      return hasSessionPayload(JSON.parse(raw));
-    } catch (_err) {
-      return /access_token|refresh_token|currentSession|expires_at/i.test(String(raw));
+    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY];
+    for (var i = 0; i < keys.length; i += 1) {
+      var raw = safeGetStorageItem(keys[i]);
+      if (!raw) continue;
+      try {
+        if (hasSessionPayload(JSON.parse(raw))) return true;
+      } catch (_err) {
+        if (/access_token|refresh_token|currentSession|expires_at/i.test(String(raw))) return true;
+      }
     }
+    return false;
   }
 
   function sanitizeNextPath(raw) {
@@ -139,6 +152,7 @@
 
   function scheduleSessionVerification(pageKey) {
     if (typeof window === 'undefined') return;
+    migrateLegacySessionStorage();
     var attempts = 0;
     var client = null;
     var protectedPage = !PUBLIC_PAGE_KEYS.has(pageKey);

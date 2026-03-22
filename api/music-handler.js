@@ -1,12 +1,7 @@
-import express from "express";
 import dotenv from "dotenv";
-import { applyApiGuardrails } from "./_guardrails.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
-
-const app = express();
-applyApiGuardrails(app, { keyPrefix: "api-music", max: 220 });
 
 const ITUNES_SEARCH_URL = "https://itunes.apple.com/search";
 const ITUNES_LOOKUP_URL = "https://itunes.apple.com/lookup";
@@ -19,18 +14,6 @@ function setResponseCache(res, { maxAge = 300, staleWhileRevalidate = 900 } = {}
   const age = Math.max(0, Math.floor(Number(maxAge) || 0));
   const swr = Math.max(0, Math.floor(Number(staleWhileRevalidate) || 0));
   res.setHeader("Cache-Control", `public, s-maxage=${age}, stale-while-revalidate=${swr}`);
-}
-
-function pushQueryParam(params, key, value) {
-  if (value === undefined || value === null) return;
-  if (Array.isArray(value)) {
-    value.forEach((entry) => {
-      if (entry === undefined || entry === null) return;
-      params.append(key, String(entry));
-    });
-    return;
-  }
-  params.append(key, String(value));
 }
 
 function clampInt(value, min, max, fallback) {
@@ -382,292 +365,231 @@ async function fetchItunesTrackDetails(id, market = "US") {
   return track ? normalizeItunesTrackRow(track) : null;
 }
 
-app.get("/api/music", (_req, res) => {
-  setResponseCache(res, { maxAge: 900, staleWhileRevalidate: 3600 });
-  return res.json({
-    ok: true,
-    service: "music-fallback",
-    configured: false,
-    source: "itunes-fallback",
-    routes: ["/search", "/top-50", "/popular", "/popular-albums", "/featured-playlists", "/new-releases", "/albums/:id", "/tracks/:id"]
-  });
-});
-
-app.get("/api/music/health", (_req, res) => {
-  setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-  return res.json({
-    ok: true,
-    service: "music-fallback",
-    source: "itunes-fallback"
-  });
-});
-
-app.get("/api/music/top-50", async (req, res) => {
-  setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
-  const limit = clampInt(req.query.limit, 1, 100, 50);
-  const market = normalizeMarket(req.query.market || "US");
+function readQuery(req) {
+  if (req.query && typeof req.query === "object") return req.query;
   try {
-    const chartRows = await fetchAppleMostPlayedSongs({ market, limit: Math.max(50, limit) }).catch(() => []);
-    const searchRows = await searchItunesTracks({ q: `top songs ${market}`, limit: Math.max(limit, 24), market }).catch(() => []);
-    const results = dedupeTracks([...chartRows, ...searchRows]).slice(0, limit);
-    return res.json({
-      count: results.length,
-      limit,
-      offset: 0,
-      source: "itunes-fallback",
-      results
-    });
+    const url = new URL(req.url || "", "http://localhost");
+    return Object.fromEntries(url.searchParams.entries());
   } catch (_error) {
-    return res.json({
-      count: 0,
-      limit,
-      offset: 0,
-      source: "unavailable",
-      results: []
-    });
+    return {};
   }
-});
+}
 
-app.get("/api/music/popular", async (req, res) => {
-  setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
-  const limit = clampInt(req.query.limit, 1, 100, 24);
-  const market = normalizeMarket(req.query.market || "US");
-  try {
-    const chartRows = await fetchAppleMostPlayedSongs({ market, limit: Math.max(50, limit) }).catch(() => []);
-    const popularRows = await searchItunesTracks({ q: `popular songs ${market}`, limit: Math.max(limit, 24), market }).catch(() => []);
-    const globalRows = await searchItunesTracks({ q: "top songs", limit: Math.max(limit, 24), market: "US" }).catch(() => []);
-    const results = dedupeTracks([...chartRows, ...popularRows, ...globalRows]).slice(0, limit);
+function readPathParts(query) {
+  const rawPath = query?.path;
+  if (Array.isArray(rawPath)) return rawPath.filter(Boolean);
+  return String(rawPath || "")
+    .split("/")
+    .filter(Boolean);
+}
+
+export default async function handler(req, res) {
+  const query = readQuery(req);
+  const pathParts = readPathParts(query);
+  const section = String(pathParts[0] || "").trim().toLowerCase();
+  const id = String(pathParts[1] || "").trim();
+
+  if (!section) {
+    setResponseCache(res, { maxAge: 900, staleWhileRevalidate: 3600 });
     return res.json({
-      count: results.length,
-      limit,
-      offset: 0,
+      ok: true,
+      service: "music-fallback",
+      configured: false,
       source: "itunes-fallback",
-      results
-    });
-  } catch (_error) {
-    return res.json({
-      count: 0,
-      limit,
-      offset: 0,
-      source: "unavailable",
-      results: []
+      routes: ["/search", "/top-50", "/popular", "/popular-albums", "/featured-playlists", "/new-releases", "/albums/:id", "/tracks/:id"]
     });
   }
-});
 
-app.get("/api/music/popular-albums", async (req, res) => {
-  setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
-  const limit = clampInt(req.query.limit, 1, 60, 24);
-  const market = normalizeMarket(req.query.market || "US");
-  const albumTypes = normalizeAlbumTypes(req.query.album_types || "album");
-  const albumTypesKey = albumTypes.join(",") || "album";
-  try {
-    const rows = await searchItunesAlbums({ q: `top albums ${market}`, limit: Math.max(limit * 2, 40), market });
-    const results = filterAlbumsByType(rows, albumTypes).slice(0, limit);
+  if (section === "health") {
+    setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
     return res.json({
-      count: results.length,
-      limit,
-      album_types: albumTypesKey,
-      source: "itunes-fallback",
-      results
-    });
-  } catch (_error) {
-    return res.json({
-      count: 0,
-      limit,
-      album_types: albumTypesKey,
-      source: "unavailable",
-      results: []
-    });
-  }
-});
-
-app.get("/api/music/new-releases", async (req, res) => {
-  setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
-  const limit = clampInt(req.query.limit, 1, 60, 20);
-  const market = normalizeMarket(req.query.market || "US");
-  const albumTypes = normalizeAlbumTypes(req.query.album_types || "album");
-  const albumTypesKey = albumTypes.join(",") || "album";
-  try {
-    const newRows = await searchItunesAlbums({ q: `new albums ${market}`, limit: Math.max(limit * 2, 40), market }).catch(() => []);
-    const trendingRows = await searchItunesAlbums({ q: `top albums ${market}`, limit: Math.max(limit * 2, 40), market }).catch(() => []);
-    const merged = dedupeAlbums([...newRows, ...trendingRows]);
-    const results = filterAlbumsByType(merged, albumTypes).slice(0, limit);
-    return res.json({
-      count: results.length,
-      limit,
-      album_types: albumTypesKey,
-      source: "itunes-fallback",
-      results
-    });
-  } catch (_error) {
-    return res.json({
-      count: 0,
-      limit,
-      album_types: albumTypesKey,
-      source: "unavailable",
-      results: []
-    });
-  }
-});
-
-app.get("/api/music/featured-playlists", (req, res) => {
-  setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-  const limit = clampInt(req.query.limit, 1, 20, 8);
-  return res.json({
-    count: 0,
-    limit,
-    source: "unavailable",
-    results: []
-  });
-});
-
-app.get("/api/music/search", async (req, res) => {
-  setResponseCache(res, { maxAge: 120, staleWhileRevalidate: 600 });
-  const q = String(req.query.q || "").trim().slice(0, 120);
-  if (!q) {
-    return res.status(400).json({ message: "Missing q query parameter." });
-  }
-
-  const limit = clampInt(req.query.limit, 1, 50, 20);
-  const market = normalizeMarket(req.query.market || "US");
-  const types = normalizeMusicTypes(req.query.type || "track");
-  const includeTracks = types.includes("track");
-  const includeAlbums = types.includes("album");
-  const albumTypes = normalizeAlbumTypes(req.query.album_types || "album");
-  const albumTypesKey = albumTypes.join(",") || "album";
-
-  try {
-    const [tracksRaw, albumsRaw] = await Promise.all([
-      includeTracks ? searchItunesTracks({ q, limit: Math.max(limit * 2, 30), market }) : Promise.resolve([]),
-      includeAlbums ? searchItunesAlbums({ q, limit: Math.max(limit * 2, 30), market }) : Promise.resolve([])
-    ]);
-
-    const tracks = includeTracks ? dedupeTracks(tracksRaw) : [];
-    const albums = includeAlbums ? filterAlbumsByType(dedupeAlbums(albumsRaw), albumTypes) : [];
-    const primaryResults = includeTracks && includeAlbums
-      ? mergeMixedResults(tracks, albums, limit)
-      : (includeTracks ? tracks.slice(0, limit) : albums.slice(0, limit));
-
-    return res.json({
-      count: includeTracks && includeAlbums ? (tracks.length + albums.length) : (includeTracks ? tracks.length : albums.length),
-      track_count: tracks.length,
-      album_count: albums.length,
-      limit,
-      offset: 0,
-      source: "itunes-fallback",
-      type: types.join(","),
-      album_types: albumTypesKey,
-      results: primaryResults,
-      tracks,
-      albums
-    });
-  } catch (_error) {
-    return res.json({
-      count: 0,
-      track_count: 0,
-      album_count: 0,
-      limit,
-      offset: 0,
-      source: "unavailable",
-      type: types.join(","),
-      album_types: albumTypesKey,
-      results: [],
-      tracks: [],
-      albums: []
-    });
-  }
-});
-
-app.get("/api/music/albums/:id", async (req, res) => {
-  setResponseCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
-  const id = String(req.params.id || "").trim();
-  if (!id) return res.status(400).json({ message: "Invalid album id." });
-
-  const market = normalizeMarket(req.query.market || "US");
-  const includeTracks = String(req.query.include_tracks || "true").trim().toLowerCase() !== "false";
-  const trackLimit = clampInt(req.query.limit, 1, 200, 120);
-
-  try {
-    const details = await fetchItunesAlbumDetails(id, { market, limit: trackLimit });
-    if (!details?.album) return res.status(404).json({ message: "Album not found." });
-    const tracks = includeTracks ? details.tracks : [];
-    return res.json({
-      album: details.album,
-      tracks,
-      count: tracks.length,
+      ok: true,
+      service: "music-fallback",
       source: "itunes-fallback"
     });
-  } catch (_error) {
-    return res.status(404).json({ message: "Album not found." });
   }
-});
 
-app.get("/api/music/tracks/:id", async (req, res) => {
-  setResponseCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
-  const id = String(req.params.id || "").trim();
-  if (!id) return res.status(400).json({ message: "Invalid track id." });
-
-  const market = normalizeMarket(req.query.market || "US");
-  try {
-    const track = await fetchItunesTrackDetails(id, market);
-    if (!track) return res.status(404).json({ message: "Track not found." });
-    return res.json(track);
-  } catch (_error) {
-    return res.status(404).json({ message: "Track not found." });
+  if (section === "top-50") {
+    setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
+    const limit = clampInt(query.limit, 1, 100, 50);
+    const market = normalizeMarket(query.market || "US");
+    try {
+      const chartRows = await fetchAppleMostPlayedSongs({ market, limit: Math.max(50, limit) }).catch(() => []);
+      const searchRows = await searchItunesTracks({ q: `top songs ${market}`, limit: Math.max(limit, 24), market }).catch(() => []);
+      const results = dedupeTracks([...chartRows, ...searchRows]).slice(0, limit);
+      return res.json({
+        count: results.length,
+        limit,
+        offset: 0,
+        source: "itunes-fallback",
+        results
+      });
+    } catch (_error) {
+      return res.json({ count: 0, limit, offset: 0, source: "unavailable", results: [] });
+    }
   }
-});
 
-app.get("/api/music/artists/:id", (_req, res) => {
-  setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-  return res.status(404).json({ message: "Artist details are unavailable right now." });
-});
+  if (section === "popular") {
+    setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
+    const limit = clampInt(query.limit, 1, 100, 24);
+    const market = normalizeMarket(query.market || "US");
+    try {
+      const chartRows = await fetchAppleMostPlayedSongs({ market, limit: Math.max(50, limit) }).catch(() => []);
+      const popularRows = await searchItunesTracks({ q: `popular songs ${market}`, limit: Math.max(limit, 24), market }).catch(() => []);
+      const globalRows = await searchItunesTracks({ q: "top songs", limit: Math.max(limit, 24), market: "US" }).catch(() => []);
+      const results = dedupeTracks([...chartRows, ...popularRows, ...globalRows]).slice(0, limit);
+      return res.json({
+        count: results.length,
+        limit,
+        offset: 0,
+        source: "itunes-fallback",
+        results
+      });
+    } catch (_error) {
+      return res.json({ count: 0, limit, offset: 0, source: "unavailable", results: [] });
+    }
+  }
 
-app.use("/api/music/*", (_req, res) => {
+  if (section === "popular-albums") {
+    setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
+    const limit = clampInt(query.limit, 1, 60, 24);
+    const market = normalizeMarket(query.market || "US");
+    const albumTypes = normalizeAlbumTypes(query.album_types || "album");
+    const albumTypesKey = albumTypes.join(",") || "album";
+    try {
+      const rows = await searchItunesAlbums({ q: `top albums ${market}`, limit: Math.max(limit * 2, 40), market });
+      const results = filterAlbumsByType(rows, albumTypes).slice(0, limit);
+      return res.json({
+        count: results.length,
+        limit,
+        album_types: albumTypesKey,
+        source: "itunes-fallback",
+        results
+      });
+    } catch (_error) {
+      return res.json({ count: 0, limit, album_types: albumTypesKey, source: "unavailable", results: [] });
+    }
+  }
+
+  if (section === "new-releases") {
+    setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
+    const limit = clampInt(query.limit, 1, 60, 20);
+    const market = normalizeMarket(query.market || "US");
+    const albumTypes = normalizeAlbumTypes(query.album_types || "album");
+    const albumTypesKey = albumTypes.join(",") || "album";
+    try {
+      const newRows = await searchItunesAlbums({ q: `new albums ${market}`, limit: Math.max(limit * 2, 40), market }).catch(() => []);
+      const trendingRows = await searchItunesAlbums({ q: `top albums ${market}`, limit: Math.max(limit * 2, 40), market }).catch(() => []);
+      const merged = dedupeAlbums([...newRows, ...trendingRows]);
+      const results = filterAlbumsByType(merged, albumTypes).slice(0, limit);
+      return res.json({
+        count: results.length,
+        limit,
+        album_types: albumTypesKey,
+        source: "itunes-fallback",
+        results
+      });
+    } catch (_error) {
+      return res.json({ count: 0, limit, album_types: albumTypesKey, source: "unavailable", results: [] });
+    }
+  }
+
+  if (section === "featured-playlists") {
+    setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
+    const limit = clampInt(query.limit, 1, 20, 8);
+    return res.json({ count: 0, limit, source: "unavailable", results: [] });
+  }
+
+  if (section === "search") {
+    setResponseCache(res, { maxAge: 120, staleWhileRevalidate: 600 });
+    const q = String(query.q || "").trim().slice(0, 120);
+    if (!q) {
+      return res.status(400).json({ message: "Missing q query parameter." });
+    }
+
+    const limit = clampInt(query.limit, 1, 50, 20);
+    const market = normalizeMarket(query.market || "US");
+    const types = normalizeMusicTypes(query.type || "track");
+    const includeTracks = types.includes("track");
+    const includeAlbums = types.includes("album");
+    const albumTypes = normalizeAlbumTypes(query.album_types || "album");
+    const albumTypesKey = albumTypes.join(",") || "album";
+
+    try {
+      const [tracksRaw, albumsRaw] = await Promise.all([
+        includeTracks ? searchItunesTracks({ q, limit: Math.max(limit * 2, 30), market }) : Promise.resolve([]),
+        includeAlbums ? searchItunesAlbums({ q, limit: Math.max(limit * 2, 30), market }) : Promise.resolve([])
+      ]);
+
+      const tracks = includeTracks ? dedupeTracks(tracksRaw) : [];
+      const albums = includeAlbums ? filterAlbumsByType(dedupeAlbums(albumsRaw), albumTypes) : [];
+      const primaryResults = includeTracks && includeAlbums
+        ? mergeMixedResults(tracks, albums, limit)
+        : (includeTracks ? tracks.slice(0, limit) : albums.slice(0, limit));
+
+      return res.json({
+        count: includeTracks && includeAlbums ? (tracks.length + albums.length) : (includeTracks ? tracks.length : albums.length),
+        track_count: tracks.length,
+        album_count: albums.length,
+        limit,
+        offset: 0,
+        source: "itunes-fallback",
+        type: types.join(","),
+        album_types: albumTypesKey,
+        results: primaryResults,
+        tracks,
+        albums
+      });
+    } catch (_error) {
+      return res.json({
+        count: 0,
+        track_count: 0,
+        album_count: 0,
+        limit,
+        offset: 0,
+        source: "unavailable",
+        type: types.join(","),
+        album_types: albumTypesKey,
+        results: [],
+        tracks: [],
+        albums: []
+      });
+    }
+  }
+
+  if (section === "albums") {
+    setResponseCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
+    if (!id) return res.status(400).json({ message: "Invalid album id." });
+    const market = normalizeMarket(query.market || "US");
+    const includeTracks = String(query.include_tracks || "true").trim().toLowerCase() !== "false";
+    const trackLimit = clampInt(query.limit, 1, 200, 120);
+    try {
+      const details = await fetchItunesAlbumDetails(id, { market, limit: trackLimit });
+      if (!details?.album) return res.status(404).json({ message: "Album not found." });
+      const tracks = includeTracks ? details.tracks : [];
+      return res.json({ album: details.album, tracks, count: tracks.length, source: "itunes-fallback" });
+    } catch (_error) {
+      return res.status(404).json({ message: "Album not found." });
+    }
+  }
+
+  if (section === "tracks") {
+    setResponseCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
+    if (!id) return res.status(400).json({ message: "Invalid track id." });
+    const market = normalizeMarket(query.market || "US");
+    try {
+      const track = await fetchItunesTrackDetails(id, market);
+      if (!track) return res.status(404).json({ message: "Track not found." });
+      return res.json(track);
+    } catch (_error) {
+      return res.status(404).json({ message: "Track not found." });
+    }
+  }
+
+  if (section === "artists") {
+    setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
+    return res.status(404).json({ message: "Artist details are unavailable right now." });
+  }
+
   return res.status(404).json({ message: "Not found" });
-});
-
-app.use((error, req, res, _next) => {
-  console.error("[music-handler] unexpected error", {
-    method: req.method,
-    path: req.originalUrl || req.url,
-    message: String(error?.message || error)
-  });
-  if (res.headersSent) return;
-  return res.json({
-    count: 0,
-    source: "unavailable",
-    results: []
-  });
-});
-
-export default function handler(req, res) {
-  try {
-    const query = req.query || {};
-    const rawPath = query.path;
-    const pathParts = Array.isArray(rawPath)
-      ? rawPath
-      : String(rawPath || "")
-        .split("/")
-        .filter(Boolean);
-
-    const nextParams = new URLSearchParams();
-    Object.entries(query).forEach(([key, value]) => {
-      if (key === "path") return;
-      pushQueryParam(nextParams, key, value);
-    });
-
-    const suffix = pathParts.length ? `/${pathParts.join("/")}` : "";
-    const search = nextParams.toString();
-    req.url = `/api/music${suffix}${search ? `?${search}` : ""}`;
-    return app(req, res);
-  } catch (error) {
-    console.error("[music-handler] invocation fallback:", String(error?.message || error));
-    if (res.headersSent) return;
-    return res.json({
-      count: 0,
-      source: "unavailable",
-      results: []
-    });
-  }
 }

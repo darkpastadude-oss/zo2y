@@ -4,6 +4,7 @@ This backend now supports transactional emails for:
 - welcome emails
 - reminder emails
 - bulk reminder sends
+- authenticated post-signup welcome triggers
 
 ## 1) Environment Variables
 
@@ -16,12 +17,18 @@ Set these in `backend/.env`:
 - `EMAIL_API_KEY` (recommended to protect endpoints)
 - `AUTO_SEND_WELCOME_EMAIL=true` (optional, for backend `/api/auth/signup` flow)
 
+Important:
+- The live `sign-up.html` flow uses Supabase Auth, so signup confirmation emails are sent by Supabase.
+- Zo2y's own welcome email is triggered after the confirmed user lands on `/auth-callback.html`.
+- `POST /api/emails/welcome/trigger` uses the authenticated user's bearer token instead of `x-email-api-key`.
+
 ## 2) Endpoints
 
 Base path: `/api/emails`
 
 - `GET /health`
 - `POST /welcome`
+- `POST /welcome/trigger`
 - `POST /reminder`
 - `POST /reminders/bulk`
 
@@ -55,6 +62,17 @@ curl -X POST http://localhost:5000/api/emails/reminder \
     "reminderText": "You still have 8 saved places to review.",
     "actionUrl": "https://zo2y.com/profile.html",
     "actionLabel": "Review my lists"
+  }'
+```
+
+### Authenticated welcome trigger
+
+```bash
+curl -X POST http://localhost:5000/api/emails/welcome/trigger \
+  -H "Content-Type: application/json" \
+  -H "authorization: Bearer USER_ACCESS_TOKEN" \
+  -d '{
+    "appUrl": "https://zo2y.com"
   }'
 ```
 

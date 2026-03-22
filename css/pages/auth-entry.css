@@ -352,6 +352,24 @@ body[data-auth-variant="signup"] .auth-showcase-card {
   max-width: 44ch;
 }
 
+.auth-invite-banner {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 178, 63, 0.26);
+  background: linear-gradient(180deg, rgba(255, 178, 63, 0.12), rgba(255, 178, 63, 0.06));
+  color: #fff4dc;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.auth-invite-banner i {
+  color: var(--auth-accent);
+}
+
 .auth-inline-points {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

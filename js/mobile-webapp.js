@@ -1,44 +1,14 @@
-﻿(() => {
+(() => {
   const isMobileLike = window.matchMedia('(max-width: 900px)').matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   const path = window.location.pathname || '/';
   const base = path === '/' ? 'index.html' : path.split('/').pop();
   const pageKey = String(base || 'index.html').replace(/\.html?$/i, '').toLowerCase();
   const AUTH_PAGE_KEYS = new Set(['login', 'sign-up', 'signup', 'auth-callback', 'update-password']);
-  if (window.ZO2Y_DISABLE_GAMES !== false) {
-    window.ZO2Y_DISABLE_GAMES = true;
-  }
-  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
-  const GAME_PAGE_KEYS = new Set(['games', 'games-mobile', 'game']);
-  const GAME_ENTRY_SELECTOR = [
-    'a[href="games.html"]',
-    'a[href="/games.html"]',
-    'a[href*="games.html?"]',
-    'a[href*="game.html?id="]',
-    'button[onclick*="games.html"]',
-    'button[onclick*="game.html"]',
-    '[data-media="game"]',
-    '[data-media-type="game"]',
-    '[data-tab="games"]',
-    '#gamesRail',
-    '#awardGamesRail',
-    '#gamesTab',
-    '#mobileTabGames',
-    '#gamesTabText',
-    '.menu-icon-option[data-icon="fas fa-gamepad"]',
-    '.icon-option[data-icon="fas fa-gamepad"]'
-  ].join(', ');
 
-  if (GAMES_DISABLED && GAME_PAGE_KEYS.has(pageKey)) {
-    const target = new URL('index.html', window.location.origin);
-    target.searchParams.set('games_disabled', '1');
-    window.location.replace(target.toString());
-    return;
-  }
 
   document.body?.classList.add('app-booting');
   if (document.body) {
     document.body.dataset.zo2yPage = pageKey;
-    document.body.dataset.gamesDisabled = GAMES_DISABLED ? '1' : '0';
   }
   if (isMobileLike) {
     document.documentElement.classList.add('mobile-webapp');
@@ -81,7 +51,7 @@
   const INSTALL_DISMISS_KEY = 'zo2y_mobile_install_dismissed_at_v2';
   const INSTALL_DONE_KEY = 'zo2y_mobile_install_done_v2';
   const INSTALL_REPROMPT_MS = 1000 * 60 * 60 * 12;
-  const ENABLE_MOBILE_INSTALL_PROMPT = false;
+  const ENABLE_MOBILE_INSTALL_PROMPT = true;
   let popupObserver = null;
   let pendingMutationRefreshMenus = false;
   let pendingMutationRefreshModals = false;
@@ -125,6 +95,7 @@
     if (AUTH_PAGE_KEYS.has(pageKey)) return false;
     if (hasOAuthParams()) return false;
     if (isStandaloneMode()) return false;
+    if (!deferredInstallPrompt) return false;
     if (localStorage.getItem(INSTALL_DONE_KEY) === '1') return false;
     const dismissedAt = Number(localStorage.getItem(INSTALL_DISMISS_KEY) || 0);
     if (dismissedAt && (Date.now() - dismissedAt) < INSTALL_REPROMPT_MS) return false;
@@ -263,48 +234,10 @@
     document.head.appendChild(style);
   };
 
-  const hideGameEntryPoints = (scope = document) => {
-    if (!GAMES_DISABLED || !scope) return;
-    const canQuery = typeof scope.querySelectorAll === 'function';
-    const collect = [];
-    if (canQuery) {
-      collect.push(...scope.querySelectorAll(GAME_ENTRY_SELECTOR));
-    }
-    if (scope instanceof Element && scope.matches(GAME_ENTRY_SELECTOR)) {
-      collect.push(scope);
-    }
 
-    const hideNode = (node) => {
-      if (!(node instanceof Element)) return;
-      if (node.matches('.card[data-media-type="game"]')) {
-        node.remove();
-        return;
-      }
-      if (node.matches('#gamesRail, #awardGamesRail')) {
-        const wrap = node.closest('.rail-wrap');
-        if (wrap) {
-          wrap.style.display = 'none';
-          wrap.setAttribute('aria-hidden', 'true');
-        } else {
-          node.style.display = 'none';
-          node.setAttribute('aria-hidden', 'true');
-        }
-        return;
-      }
-      const target = node.closest(
-        '.rail-wrap, .sidebar-link, .sidebar-ghost-link, .nav-pill, .mobile-nav-item, .chip, .btn, .mobile-action-btn, button, a, [role="tab"], .tab-btn, .list-tab'
-      ) || node;
-      target.style.display = 'none';
-      target.setAttribute('aria-hidden', 'true');
-      target.dataset.gamesHidden = '1';
-    };
-
-    collect.forEach(hideNode);
-  };
 
   ensureResourceHints();
   ensureMobileUiPolishStyle();
-  hideGameEntryPoints();
 
   const dismissInstallPrompt = (options = {}) => {
     const persist = options.persist !== false;
@@ -430,8 +363,7 @@
     const force = options.force === true;
     if (installCardVisible && !force) return;
     const canPromptInstall = !!deferredInstallPrompt;
-    const useIosHint = isIosDevice() && isSafariLike() && !canPromptInstall;
-    const useGenericHint = !canPromptInstall && !useIosHint;
+    if (!canPromptInstall) return;
 
     ensureInstallPromptStyle();
     let overlay = document.getElementById('zo2yInstallPrompt');
@@ -481,42 +413,6 @@
         } catch (_err) {
           dismissInstallPrompt();
         }
-      });
-      overlay.querySelector('#zo2yInstallLaterBtn')?.addEventListener('click', () => {
-        dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 60 * 4 });
-      });
-    } else if (useIosHint) {
-      overlay.innerHTML = `
-        <div class="zo2y-install-prompt" role="dialog" aria-modal="true" aria-label="Install app">
-          <button type="button" class="zo2y-install-close" id="zo2yInstallCloseBtn" aria-label="Close">&times;</button>
-          <p class="zo2y-install-title">Install App</p>
-          <p class="zo2y-install-copy">On iPhone Safari: tap <strong>Share</strong>, then choose <strong>Add to Home Screen</strong>.</p>
-          <div class="zo2y-install-actions">
-            <button type="button" class="zo2y-install-btn primary" id="zo2yInstallGotItBtn">Got it</button>
-            <button type="button" class="zo2y-install-btn" id="zo2yInstallLaterBtn">Later</button>
-          </div>
-        </div>
-      `;
-      overlay.querySelector('#zo2yInstallGotItBtn')?.addEventListener('click', () => {
-        dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 60 * 4 });
-      });
-      overlay.querySelector('#zo2yInstallLaterBtn')?.addEventListener('click', () => {
-        dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 60 * 4 });
-      });
-    } else if (useGenericHint) {
-      overlay.innerHTML = `
-        <div class="zo2y-install-prompt" role="dialog" aria-modal="true" aria-label="Install app">
-          <button type="button" class="zo2y-install-close" id="zo2yInstallCloseBtn" aria-label="Close">&times;</button>
-          <p class="zo2y-install-title">Install App</p>
-          <p class="zo2y-install-copy">Open your browser menu and tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.</p>
-          <div class="zo2y-install-actions">
-            <button type="button" class="zo2y-install-btn primary" id="zo2yInstallGenericOkBtn">Got it</button>
-            <button type="button" class="zo2y-install-btn" id="zo2yInstallLaterBtn">Later</button>
-          </div>
-        </div>
-      `;
-      overlay.querySelector('#zo2yInstallGenericOkBtn')?.addEventListener('click', () => {
-        dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 60 * 4 });
       });
       overlay.querySelector('#zo2yInstallLaterBtn')?.addEventListener('click', () => {
         dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 60 * 4 });
@@ -753,7 +649,6 @@
 
       if (refreshMenus) ensureMenuCloseButtons();
       if (refreshModals) ensureModalCloseButtons();
-      if (GAMES_DISABLED) hideGameEntryPoints();
       if (shouldSync || refreshMenus || refreshModals) syncPopupState();
     };
 
@@ -792,7 +687,6 @@
           if (node.matches('.list-menu-backdrop, .rail-menu-backdrop') || node.querySelector('.list-menu-backdrop, .rail-menu-backdrop')) {
             pendingMutationSync = true;
           }
-          if (GAMES_DISABLED) hideGameEntryPoints(node);
         });
       });
 
@@ -814,7 +708,6 @@
     document.body.classList.add('app-ready');
     initListPopupShell();
     releaseStalePopupLock();
-    hideGameEntryPoints();
     window.setTimeout(() => document.body.classList.remove('app-loading'), 180);
     if (ENABLE_MOBILE_INSTALL_PROMPT) {
       window.setTimeout(() => showInstallPromptCard(), 1200);
@@ -890,9 +783,10 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js?v=20260315e').catch(() => {
+    navigator.serviceWorker.register('/sw.js?v=20260322r').catch(() => {
         // silent fail to avoid runtime noise
       });
     });
   }
 })();
+
