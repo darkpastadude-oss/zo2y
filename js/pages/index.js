@@ -7704,10 +7704,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      const switchHomeToAppShell = () => {
+        document.documentElement.dataset.authenticated = '1';
+        document.documentElement.dataset.authShell = 'app';
+        if (document.body) {
+          document.body.dataset.authenticated = '1';
+          document.body.dataset.authShell = 'app';
+          document.body.classList.remove('landing-mode');
+        }
+        const landingPage = document.getElementById('homeLandingPage');
+        if (landingPage) landingPage.setAttribute('hidden', 'hidden');
+        document.querySelectorAll('.authenticated-only').forEach((node) => {
+          node.removeAttribute('hidden');
+          if (node instanceof HTMLElement) node.style.removeProperty('display');
+        });
+      };
       const authGateState = getHomeAuthGateState();
       if (isHomeLandingMode() && !authGateState?.authenticated) {
         initLandingExperience();
       } else {
+        switchHomeToAppShell();
         void bootAuthenticatedHome().catch((error) => {
           console.error('Home boot failed:', error);
           setStatus('Could not load your home feed right now. Please refresh.', true);
@@ -7717,7 +7733,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       window.addEventListener('zo2y-auth-gate-verified', (event) => {
         const authenticated = !!event?.detail?.authenticated;
         if (!authenticated) return;
-        document.body?.classList.remove('landing-mode');
+        switchHomeToAppShell();
         void bootAuthenticatedHome().catch((error) => {
           console.error('Home boot failed after auth verification:', error);
           setStatus('Could not load your home feed right now. Please refresh.', true);

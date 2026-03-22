@@ -138,12 +138,17 @@
       protectedPage: !PUBLIC_PAGE_KEYS.has(pageKey),
       authShell: shell
     };
-    document.addEventListener('DOMContentLoaded', function () {
-      if (document.body) {
-        document.body.dataset.authenticated = authenticated ? '1' : '0';
-        document.body.dataset.authShell = shell;
-      }
-    }, { once: true });
+    if (document.body) {
+      document.body.dataset.authenticated = authenticated ? '1' : '0';
+      document.body.dataset.authShell = shell;
+    } else {
+      document.addEventListener('DOMContentLoaded', function () {
+        if (document.body) {
+          document.body.dataset.authenticated = authenticated ? '1' : '0';
+          document.body.dataset.authShell = shell;
+        }
+      }, { once: true });
+    }
   }
 
   function redirectToLanding() {
@@ -163,28 +168,33 @@
         var sessionResult = await client.auth.getSession();
         var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
         var authenticated = !!(session && session.user);
-        applyShellState(authenticated, pageKey);
+        var finalAuthenticated = authenticated;
+        applyShellState(finalAuthenticated, pageKey);
 
-        if (!authenticated && protectedPage) {
+        if (!finalAuthenticated && protectedPage) {
           // Retry once before redirect to avoid false negatives during token hydration.
           var retryResult = await client.auth.getSession();
           var retrySession = retryResult && retryResult.data ? retryResult.data.session : null;
           var retryAuthenticated = !!(retrySession && retrySession.user);
-          applyShellState(retryAuthenticated, pageKey);
-          if (!retryAuthenticated && !hasStoredSupabaseSession()) {
+          finalAuthenticated = retryAuthenticated;
+          applyShellState(finalAuthenticated, pageKey);
+          if (!finalAuthenticated && !hasStoredSupabaseSession()) {
             redirectToLanding();
             return false;
           }
         }
 
         window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
-          detail: { authenticated: authenticated, pageKey: pageKey }
+          detail: { authenticated: finalAuthenticated, pageKey: pageKey }
         }));
         return true;
       } catch (_err) {
         var fallbackAuthenticated = hasStoredSupabaseSession();
         applyShellState(fallbackAuthenticated, pageKey);
-        return false;
+        window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
+          detail: { authenticated: fallbackAuthenticated, pageKey: pageKey }
+        }));
+        return fallbackAuthenticated;
       }
     }
 
