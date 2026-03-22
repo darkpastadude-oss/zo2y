@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -238,8 +238,8 @@
       margin: 24px auto 60px;
       padding: 0 20px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 18px;`r`n      justify-content: stretch;`r`n      justify-items: stretch;
     }
 
     .card {
@@ -1574,7 +1574,7 @@
             <div class="card-body">
               <h3 class="card-title">${item.title || 'Untitled'}</h3>
               <div class="card-meta-row">
-                <div class="card-meta">${authors}${year ? ` ï¿½ ${year}` : ''}</div>
+                <div class="card-meta">${authors}${year ? ` Ã¯Â¿Â½ ${year}` : ''}</div>
                 <div class="card-menu-wrap">
                   <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
                 </div>
@@ -1959,6 +1959,7 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
 
 
 
