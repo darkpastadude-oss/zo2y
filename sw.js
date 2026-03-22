@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v169';
-const PAGE_CACHE = 'zo2y-pages-v139';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v168';
+const PAGE_CACHE = 'zo2y-pages-v138';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
 const MOVIES_PAGE_VERSION = '20260322m';
