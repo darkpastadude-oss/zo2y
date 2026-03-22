@@ -298,9 +298,8 @@
   function buildBrandSpotlightPool(items = []) {
     const seen = new Set();
     return (Array.isArray(items) ? items : []).filter((brand) => {
-      const logo = String(brand?.logo || '').trim();
       const key = normalizeBrandSearch(brand?.name) || String(brand?.id || '').trim().toLowerCase();
-      if (!key || seen.has(key) || !logo) return false;
+      if (!key || seen.has(key)) return false;
       seen.add(key);
       return true;
     }).slice(0, 18);

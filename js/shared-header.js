@@ -845,6 +845,19 @@ const HEADER_HTML = `
     if (isHeaderSuppressedPage(window.location.pathname)) return;
     if (isLandingShell()) {
       teardownSharedHeader();
+      window.addEventListener('zo2y-auth-gate-verified', (event) => {
+        if (!event?.detail?.authenticated) return;
+        mountSharedHeader();
+        wireLogoAnim();
+        const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+        document.body.classList.toggle('zo2y-mobile-header-fixed', !!isMobile);
+        wireSearchButton();
+        wireMobileDrawer();
+        wireMobileAccordions();
+        wireDesktopRailCollapse();
+        wireAuthStateSync();
+        void syncAuthHeaderState();
+      }, { once: true });
       return;
     }
     mountSharedHeader();

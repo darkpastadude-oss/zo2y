@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v165';
-const PAGE_CACHE = 'zo2y-pages-v135';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v166';
+const PAGE_CACHE = 'zo2y-pages-v136';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
 const MOVIES_PAGE_VERSION = '20260322m';
@@ -19,7 +19,7 @@ const STATIC_ASSETS = [
   '/js/pages/index-home-heavy-loaders.js?v=20260319e',
   '/js/home-desktop-rebrand.js?v=20260311e',
   '/js/referral-utils.js?v=20260319a',
-  '/js/shared-header.js?v=20260322f',
+  '/js/shared-header.js?v=20260322g',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
   '/js/list-utils.js?v=20260317b',
@@ -47,9 +47,9 @@ const STATIC_ASSETS = [
   '/food.html',
   '/cars.html',
   '/brand.html',
-  '/css/pages/brands.css?v=20260322b',
+  '/css/pages/brands.css?v=20260322c',
   '/css/pages/brand.css?v=20260316b',
-  '/js/pages/brands.js?v=20260322c',
+  '/js/pages/brands.js?v=20260322d',
   '/js/pages/brand.js?v=20260322a',
   '/team.html',
   '/css/pages/team.css?v=20260314a',

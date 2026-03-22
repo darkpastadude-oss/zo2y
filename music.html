@@ -378,7 +378,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
   <script src="/js/mobile-webapp.js?v=20260322r" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260322f" defer></script>
+  <script src="js/shared-header.js?v=20260322g" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -710,7 +710,7 @@
       section.hidden = false;
       if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${image}")`;
       if (titleEl) titleEl.textContent = String(item?.name || 'Music Spotlight');
-      if (metaEl) metaEl.textContent = [String(item?.subtitle || '').trim(), String(item?.release_date || '').trim()].filter(Boolean).join(' Ã‚Â· ');
+      if (metaEl) metaEl.textContent = [String(item?.subtitle || '').trim(), String(item?.release_date || '').trim()].filter(Boolean).join(' Ãƒâ€šÃ‚Â· ');
       if (summaryEl) summaryEl.textContent = getMusicCardExtra(item);
       if (imgEl) {
         imgEl.src = image || 'images/placeholder.jpg';

@@ -326,12 +326,28 @@ main.container {
 
 @media (max-width: 900px) {
   .brand-spotlight {
-    grid-template-columns: 1fr;
-    min-height: 0;
+    grid-template-columns: minmax(0, 1.2fr) minmax(110px, 0.62fr);
+    min-height: 190px;
+    gap: 10px;
+  }
+
+  .brand-spotlight-copy {
+    padding: 18px;
+    gap: 8px;
   }
 
   .brand-spotlight-logo {
-    padding-top: 0;
+    padding: 12px 14px 12px 4px;
+  }
+
+  .brand-spotlight h2 {
+    font-size: clamp(22px, 5vw, 30px);
+  }
+
+  .brand-spotlight-logo img {
+    width: min(100%, 132px);
+    max-height: 104px;
+    padding: 10px;
   }
 }
 
@@ -351,6 +367,34 @@ main.container {
 
   .brand-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+
+  .brand-spotlight {
+    min-height: 170px;
+    border-radius: 18px;
+    grid-template-columns: minmax(0, 1.15fr) minmax(96px, 0.55fr);
+  }
+
+  .brand-spotlight-copy {
+    padding: 16px;
+  }
+
+  .brand-spotlight-kicker {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  .brand-spotlight-meta,
+  .brand-spotlight-summary {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .brand-spotlight-logo img {
+    width: min(100%, 112px);
+    max-height: 88px;
+    padding: 8px;
+    border-radius: 14px;
   }
 }
 
