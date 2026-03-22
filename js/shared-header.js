@@ -7,14 +7,9 @@
   const DESKTOP_RAIL_COLLAPSE_KEY = 'zo2y_desktop_rail_collapsed';
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
-  let authStateListenerBound = false;
-  if (typeof window.ZO2Y_DISABLE_GAMES === 'undefined') {
-    window.ZO2Y_DISABLE_GAMES = false;
-  }
-  if (window.ZO2Y_SPORTS_LISTS == null) {
+  let authStateListenerBound = false;if (window.ZO2Y_SPORTS_LISTS == null) {
     window.ZO2Y_SPORTS_LISTS = true;
   }
-  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
 
   const LOGO_HTML = `
 <span class="zo2y-logo-anim" data-zo2y-logo="1">
@@ -377,13 +372,7 @@ const HEADER_HTML = `
     const mobilePage = isMobileContentPage(window.location.pathname);
     document.body.setAttribute('data-zo2y-compact-header', mobilePage ? '1' : '0');
 
-    if (mobilePage || GAMES_DISABLED) {
-      document.querySelectorAll('[data-nav-page="games"]').forEach((gamesNavItem) => gamesNavItem.remove());
-    }
 
-    if (document.body) {
-      document.body.dataset.gamesDisabled = GAMES_DISABLED ? '1' : '0';
-    }
 
     const activePage = normalizePageName(window.location.pathname);
 
@@ -425,15 +414,19 @@ const HEADER_HTML = `
         auth: {
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: true
+          detectSessionInUrl: false,
+          storageKey: 'zo2y-auth-v1'
         }
       });
       window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+      window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSupabaseClient;
       return supabaseClient;
     } catch (_err) {
       return null;
     }
   }
+
+  window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSupabaseClient;
 
   function readDesktopRailCollapsedPreference() {
     try {
@@ -876,3 +869,4 @@ const HEADER_HTML = `
     boot();
   }
 })();
+

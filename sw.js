@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v159';
-const PAGE_CACHE = 'zo2y-pages-v129';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v165';
+const PAGE_CACHE = 'zo2y-pages-v135';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
 const MOVIES_PAGE_VERSION = '20260322m';
@@ -19,7 +19,7 @@ const STATIC_ASSETS = [
   '/js/pages/index-home-heavy-loaders.js?v=20260319e',
   '/js/home-desktop-rebrand.js?v=20260311e',
   '/js/referral-utils.js?v=20260319a',
-  '/js/shared-header.js?v=20260322b',
+  '/js/shared-header.js?v=20260322f',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
   '/js/list-utils.js?v=20260317b',
@@ -29,7 +29,7 @@ const STATIC_ASSETS = [
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260322m',
+  '/js/mobile-webapp.js?v=20260322r',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260308a',
   '/favicon.ico',
@@ -47,9 +47,9 @@ const STATIC_ASSETS = [
   '/food.html',
   '/cars.html',
   '/brand.html',
-  '/css/pages/brands.css?v=20260322a',
+  '/css/pages/brands.css?v=20260322b',
   '/css/pages/brand.css?v=20260316b',
-  '/js/pages/brands.js?v=20260322a',
+  '/js/pages/brands.js?v=20260322c',
   '/js/pages/brand.js?v=20260322a',
   '/team.html',
   '/css/pages/team.css?v=20260314a',
@@ -263,6 +263,8 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
+
+
 
 
 

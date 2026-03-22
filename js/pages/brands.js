@@ -592,6 +592,7 @@
 
     renderCategories(allBrands);
     renderGrid();
+    updateBrandSpotlight(getFilteredBrands());
     void ensureBrandBackgroundManifest().then(() => updateBrandSpotlight(getFilteredBrands()));
   }
 

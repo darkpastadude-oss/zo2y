@@ -77,7 +77,7 @@
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-      gap: 12px;
+      gap: 10px;
     }
 
     .logo {
@@ -165,8 +165,9 @@
       border: 1px solid var(--border);
       min-height: 0;
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1.35fr) minmax(100px, 0.65fr);
       gap: 0;
+      min-height: 190px;
       background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
     }
 
@@ -181,8 +182,8 @@
     .media-spotlight-copy,
     .media-spotlight-poster { position: relative; z-index: 1; }
 
-    .media-spotlight-copy {
-      padding: 18px;
+     .media-spotlight-copy {
+      padding: 14px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -202,20 +203,22 @@
       text-transform: uppercase;
     }
 
-    .media-spotlight-copy h2 { margin: 0; font-size: 28px; line-height: 1.04; }
+     .media-spotlight-copy h2 { margin: 0; font-size: 22px; line-height: 1.04; }
     .media-spotlight-meta,
     .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.45; }
 
-    .media-spotlight-poster {
-      padding: 0 18px 18px;
+     .media-spotlight-poster {
+      padding: 14px 14px 14px 0;
       display: flex;
+      align-items: center;
       justify-content: center;
     }
 
     .media-spotlight-poster img {
-      width: min(100%, 220px);
-      max-height: 300px;
-      object-fit: contain;
+      width: 100%;
+      max-width: 124px;
+      max-height: 158px;
+      object-fit: cover;
       border-radius: 16px;
       box-shadow: 0 18px 30px rgba(0,0,0,0.28);
       background: rgba(255,255,255,0.04);
@@ -295,11 +298,13 @@
     .chip.active { border-color: var(--accent); color: var(--accent); }
 
     .grid {
-      max-width: 1200px;
+      max-width: 382px;
       margin: 16px auto 40px;
       padding: 0 12px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));`r`n      gap: 10px;
+      grid-template-columns: repeat(3, minmax(0, 114px));
+      gap: 10px;
+      justify-content: center;
     }
 
     .card {
@@ -493,7 +498,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .page-btn {
@@ -624,6 +629,9 @@
       cursor: pointer;
     }
     .icon-option.selected { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 380px) {
+      .grid { grid-template-columns: minmax(0, 1fr); }
+    }
 
     .menu-modal {
       display: none;
@@ -755,9 +763,9 @@
   <link rel="manifest" href="/manifest.webmanifest?v=2" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260322m" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260322r" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260322b" defer></script>
+  <script src="js/shared-header.js?v=20260322f" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -800,7 +808,7 @@
       <div class="media-spotlight-bg" id="booksSpotlightBg"></div>
       <div class="media-spotlight-copy">
         <span class="media-spotlight-kicker">Book Spotlight</span>
-        <h2 id="booksSpotlightTitle">Loading…</h2>
+        <h2 id="booksSpotlightTitle">Loading?</h2>
         <p class="media-spotlight-meta" id="booksSpotlightMeta"></p>
         <p class="media-spotlight-summary" id="booksSpotlightSummary"></p>
         <div class="media-spotlight-actions">
@@ -865,6 +873,7 @@
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
       const BOOKS_PER_PAGE = 20;
+      const BOOKS_CACHE_TTL_MS = 1000 * 60 * 45;
       const CATEGORY_OPTIONS = [
         'Fiction',
         'Mystery',
@@ -910,6 +919,41 @@
       };
 
       let supabaseClient = null;
+      const booksRuntimeCache = new Map();
+
+      function getBooksCacheKey() {
+        return `books_mobile_search_v1_${state.query}_${state.author}_${state.activeCategory}_${state.year}_${state.page}`;
+      }
+
+      function readBooksCache(cacheKey) {
+        const runtimeEntry = booksRuntimeCache.get(cacheKey);
+        if (runtimeEntry && runtimeEntry.cachedAt && (Date.now() - runtimeEntry.cachedAt) < BOOKS_CACHE_TTL_MS) {
+          return runtimeEntry;
+        }
+        try {
+          const raw = localStorage.getItem(cacheKey);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed?.docs)) return null;
+          booksRuntimeCache.set(cacheKey, parsed);
+          return parsed;
+        } catch (_err) {
+          return null;
+        }
+      }
+
+      function writeBooksCache(cacheKey, data) {
+        if (!cacheKey || !Array.isArray(data?.docs)) return;
+        const payload = {
+          docs: data.docs,
+          numFound: Number(data.numFound || data.docs.length || 0),
+          cachedAt: Date.now()
+        };
+        booksRuntimeCache.set(cacheKey, payload);
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(payload));
+        } catch (_err) {}
+      }
 
       function normalizeBookText(value) {
         return String(value || '')
@@ -1336,7 +1380,19 @@
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         if (typeof supabase === 'undefined') return null;
-        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+          supabaseClient = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        }
+        if (!supabaseClient) {
+          supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: {
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: false,
+              storageKey: 'zo2y-auth-v1'
+            }
+          });
+        }
         return supabaseClient;
       }
 
@@ -1435,7 +1491,7 @@
           const cover = getBookSpotlightCover(book);
           if (!key || !cover || seen.has(key)) return false;
           seen.add(key);
-          return cover && cover !== FALLBACK_BOOK_IMAGE;
+          return true;
         }).slice(0, 12);
       }
 
@@ -1449,11 +1505,16 @@
         const imgEl = document.getElementById('booksSpotlightImage');
         const openEl = document.getElementById('booksSpotlightOpen');
         const cover = getBookSpotlightCover(book);
+        const hasRealCover = cover && cover !== FALLBACK_BOOK_IMAGE;
         section.hidden = false;
-        if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${cover}")`;
+        if (bg) {
+          bg.style.backgroundImage = hasRealCover
+            ? `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${cover}")`
+            : 'linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%)';
+        }
         if (titleEl) titleEl.textContent = book.title || 'Book Spotlight';
-        if (metaEl) metaEl.textContent = [Array.isArray(book.author_name) ? book.author_name.slice(0, 2).join(', ') : '', book.first_publish_year || ''].filter(Boolean).join(' · ');
-        if (summaryEl) summaryEl.textContent = String(book.description || '').trim() || (Array.isArray(book.subject) ? book.subject.slice(0, 4).join(' · ') : 'A standout book from the local catalog.');
+        if (metaEl) metaEl.textContent = [Array.isArray(book.author_name) ? book.author_name.slice(0, 2).join(', ') : '', book.first_publish_year || ''].filter(Boolean).join(' ? ');
+        if (summaryEl) summaryEl.textContent = String(book.description || '').trim() || (Array.isArray(book.subject) ? book.subject.slice(0, 4).join(' ? ') : 'A standout book from the local catalog.');
         if (imgEl) {
           imgEl.src = cover;
           imgEl.alt = `${book.title || 'Book'} cover`;
@@ -1545,6 +1606,13 @@
         const empty = document.getElementById('emptyState');
         if (!grid) return;
         const requestSeq = ++state.requestSeq;
+        const cacheKey = getBooksCacheKey();
+        const cached = readBooksCache(cacheKey);
+
+        if (cached?.docs?.length) {
+          updateBookPageSpotlight(cached.docs);
+          displayBookResults(cached.docs, cached.numFound || cached.docs.length);
+        }
 
         let data;
         try {
@@ -1573,15 +1641,20 @@
             updateBookPageSpotlight(data?.docs || []);
           }
           if (!Array.isArray(data?.docs) || !data.docs.length) {
-            data = { docs: [], numFound: 0 };
+            data = cached && Array.isArray(cached.docs)
+              ? { docs: cached.docs, numFound: cached.numFound || cached.docs.length }
+              : { docs: [], numFound: 0 };
           }
         } catch (e) {
           console.error('Books fetch error', e);
           showNotification('Could not load books right now. Please try again.', 'error', 4000);
-          data = { docs: [], numFound: 0 };
+          data = cached && Array.isArray(cached.docs)
+            ? { docs: cached.docs, numFound: cached.numFound || cached.docs.length }
+            : { docs: [], numFound: 0 };
         }
 
         if (requestSeq !== state.requestSeq) return;
+        writeBooksCache(cacheKey, data);
         displayBookResults(data.docs || [], data.numFound || 0);
       }
 
@@ -2000,6 +2073,11 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
+
+
+
+
 
 
 

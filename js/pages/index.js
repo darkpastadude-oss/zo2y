@@ -1,5 +1,4 @@
-﻿    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES === true;
-    const ENABLE_GAMES = !GAMES_DISABLED;
+    const ENABLE_GAMES = true;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
     const ENABLE_FOOD = window.ZO2Y_DISABLE_FOOD !== true;
@@ -356,9 +355,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     ];
 
     async function homeIgdbFetch(path, params = {}, signal) {
-      if (GAMES_DISABLED) {
-        return { results: [] };
-      }
       const requestParams = { ...(params || {}) };
       if (requestParams.search) delete requestParams.ordering;
       if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
@@ -5867,7 +5863,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         {
           id: 'interests-setup',
           title: 'Tune Your Feed',
-          body: 'Choose formats and genres so the ï¿½For Youï¿½ feed starts on the right note.',
+          body: 'Choose formats and genres so the �For You� feed starts on the right note.',
           art: `
               <div class="onboarding-interest-layout">
                 <div class="onboarding-interest-photos">
@@ -7390,10 +7386,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const rail = document.getElementById('gamesRail');
       if (!rail) return;
       const wrap = rail.closest('.rail-wrap') || rail;
-      if (GAMES_DISABLED) {
-        wrap.style.display = 'none';
-        return;
-      }
       wrap.style.display = '';
     }
 
@@ -7711,10 +7703,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      if (GAMES_DISABLED) {
-        document.querySelectorAll('.popular-games-wrap, #gamesRail').forEach((el) => el.remove());
-        document.querySelectorAll('[data-nav-page="games"], a[href="games.html"], a[href="/games.html"], a[href^="game.html"]').forEach((el) => el.remove());
-      }
       const authGateState = getHomeAuthGateState();
       if (isHomeLandingMode() && !authGateState?.authenticated) {
         initLandingExperience();
@@ -7870,6 +7858,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
+
 
 
 

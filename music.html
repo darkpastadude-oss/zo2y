@@ -88,7 +88,7 @@
     }
     .btn-primary { background: var(--gradient); color: #0b1633; border: 0; }
 
-    .page-shell { margin-top: 18px; display: grid; gap: 18px; padding-bottom: 22px; }
+    .page-shell { margin-top: 18px; display: grid; gap: 16px; padding-bottom: 22px; }
 
     .hero {
       border: 1px solid var(--border);
@@ -102,6 +102,80 @@
     .hero h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.04; }
     .hero p { color: #d3e5ff; margin-top: 10px; max-width: 650px; line-height: 1.45; }
     .hero-actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .media-spotlight {
+      width: 100%;
+    }
+
+    .media-spotlight[hidden] { display: none; }
+
+    .media-spotlight-shell {
+      position: relative;
+      overflow: hidden;
+      border-radius: 22px;
+      border: 1px solid var(--border);
+      min-height: 300px;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 16px;
+      align-items: center;
+      background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
+      box-shadow: 0 14px 36px rgba(0,0,0,0.26);
+    }
+
+    .media-spotlight-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38));
+      background-size: cover;
+      background-position: center center;
+    }
+
+    .media-spotlight-copy,
+    .media-spotlight-poster { position: relative; z-index: 1; }
+
+    .media-spotlight-copy {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .media-spotlight-kicker {
+      display: inline-flex;
+      width: fit-content;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(19,35,71,0.48);
+      color: #dbe7ff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .media-spotlight-copy h2 { margin: 0; font-size: clamp(28px, 4vw, 42px); line-height: 1.02; }
+    .media-spotlight-meta,
+    .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.5; }
+
+    .media-spotlight-poster {
+      padding: 28px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .media-spotlight-poster img {
+      width: min(100%, 260px);
+      max-height: 360px;
+      object-fit: contain;
+      border-radius: 18px;
+      box-shadow: 0 20px 36px rgba(0,0,0,0.28);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .media-spotlight-actions { margin-top: 6px; display: flex; gap: 10px; }
 
     .section {
       background: rgba(19, 35, 71, 0.9);
@@ -140,8 +214,9 @@
     .grid {
       padding: 14px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      align-items: stretch;
     }
 
     .card {
@@ -282,7 +357,16 @@
     @media (max-width: 760px) {
       .container { width: calc(100% - 16px); }
       .search-wrap { order: 3; max-width: none; margin-left: 0; width: 100%; }
-      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid { grid-template-columns: repeat(3, minmax(0, 202px)); justify-content: center; }
+      .media-spotlight-shell {
+        grid-template-columns: 1fr;
+      }
+      .media-spotlight-copy {
+        padding: 18px;
+      }
+      .media-spotlight-poster {
+        padding: 0 18px 18px;
+      }
     }
   </style>
   <meta name="theme-color" content="#0b1633" />
@@ -292,9 +376,9 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260322m" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260322r" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260322b" defer></script>
+  <script src="js/shared-header.js?v=20260322f" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -336,7 +420,6 @@
         <button class="btn btn-primary" id="refreshMusicBtn"><i class="fa-solid fa-rotate"></i> Refresh Picks</button>
       </div>
     </section>
-
     <section class="section">
       <div class="section-head">
         <h2>popular music right now</h2>
@@ -587,15 +670,86 @@
       return `Song | ${containerLabel}: ${albumName} | Popularity ${Number(item?.popularity || 0)}/100`;
     }
 
+    let musicSpotlightTimer = null;
+    let musicSpotlightItems = [];
+    let musicSpotlightIndex = 0;
+
+    function getMusicSpotlightHref(item) {
+      const kind = String(item?.kind || 'track').toLowerCase();
+      const source = String(item?.source || '').trim().toLowerCase() || 'spotify';
+      const id = String(item?.id || '').trim();
+      if (!id) return '#';
+      if (kind === 'album') {
+        const albumId = id.startsWith('album:') ? id.slice(6) : id;
+        return albumId ? `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(source)}` : '#';
+      }
+      return `song.html?id=${encodeURIComponent(id)}`;
+    }
+
+    function pickMusicSpotlightPool(items = []) {
+      const seen = new Set();
+      return (Array.isArray(items) ? items : []).filter((item) => {
+        const id = String(item?.id || '').trim().toLowerCase();
+        const image = String(item?.image || '').trim();
+        if (!id || !image || seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      }).slice(0, 12);
+    }
+
+    function renderMusicPageSpotlight(item) {
+      const section = document.getElementById('musicSpotlight');
+      if (!section || !item) return;
+      const bg = document.getElementById('musicSpotlightBg');
+      const titleEl = document.getElementById('musicSpotlightTitle');
+      const metaEl = document.getElementById('musicSpotlightMeta');
+      const summaryEl = document.getElementById('musicSpotlightSummary');
+      const imgEl = document.getElementById('musicSpotlightImage');
+      const openEl = document.getElementById('musicSpotlightOpen');
+      const image = String(item?.image || '').trim();
+      section.hidden = false;
+      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${image}")`;
+      if (titleEl) titleEl.textContent = String(item?.name || 'Music Spotlight');
+      if (metaEl) metaEl.textContent = [String(item?.subtitle || '').trim(), String(item?.release_date || '').trim()].filter(Boolean).join(' Ã‚Â· ');
+      if (summaryEl) summaryEl.textContent = getMusicCardExtra(item);
+      if (imgEl) {
+        imgEl.src = image || 'images/placeholder.jpg';
+        imgEl.alt = `${String(item?.name || 'Music')} artwork`;
+      }
+      if (openEl) openEl.href = getMusicSpotlightHref(item);
+    }
+
+    function resetMusicPageSpotlightTimer() {
+      if (musicSpotlightTimer) clearInterval(musicSpotlightTimer);
+      if (musicSpotlightItems.length < 2) return;
+      musicSpotlightTimer = window.setInterval(() => {
+        musicSpotlightIndex = (musicSpotlightIndex + 1) % musicSpotlightItems.length;
+        renderMusicPageSpotlight(musicSpotlightItems[musicSpotlightIndex]);
+      }, 6500);
+    }
+
+    function updateMusicPageSpotlight(items = []) {
+      const section = document.getElementById('musicSpotlight');
+      if (musicSpotlightTimer) clearInterval(musicSpotlightTimer);
+      musicSpotlightItems = [];
+      musicSpotlightIndex = 0;
+      if (section) section.hidden = true;
+    }
+
     async function ensureSupabase() {
       if (supabaseClient) return supabaseClient;
+      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+        supabaseClient = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        if (supabaseClient) return supabaseClient;
+      }
       if (!window.supabase || !window.supabase.createClient) return null;
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
           flowType: 'pkce',
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: false
+          detectSessionInUrl: false,
+          storageKey: 'zo2y-auth-v1'
         }
       });
       return supabaseClient;
@@ -728,10 +882,12 @@
       const grid = document.getElementById('musicGrid');
       if (!grid) return;
       if (!state.tracks.length) {
+        updateMusicPageSpotlight([]);
         grid.innerHTML = '<div class="empty">No music right now.</div>';
         updatePagination();
         return;
       }
+      updateMusicPageSpotlight(state.tracks);
       const start = (state.page - 1) * MUSIC_PAGE_SIZE;
       const visibleItems = state.tracks.slice(start, start + MUSIC_PAGE_SIZE);
       grid.innerHTML = visibleItems.map((item) => {
@@ -991,6 +1147,9 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
+
+
 
 
 

@@ -77,7 +77,7 @@
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-      gap: 12px;
+      gap: 10px;
     }
 
     .logo {
@@ -165,8 +165,9 @@
       border: 1px solid var(--border);
       min-height: 0;
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1.35fr) minmax(100px, 0.65fr);
       gap: 0;
+      min-height: 190px;
       background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
     }
 
@@ -181,8 +182,8 @@
     .media-spotlight-copy,
     .media-spotlight-poster { position: relative; z-index: 1; }
 
-    .media-spotlight-copy {
-      padding: 18px;
+     .media-spotlight-copy {
+      padding: 14px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -202,20 +203,22 @@
       text-transform: uppercase;
     }
 
-    .media-spotlight-copy h2 { margin: 0; font-size: 28px; line-height: 1.04; }
+     .media-spotlight-copy h2 { margin: 0; font-size: 22px; line-height: 1.04; }
     .media-spotlight-meta,
     .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.45; }
 
-    .media-spotlight-poster {
-      padding: 0 18px 18px;
+     .media-spotlight-poster {
+      padding: 14px 14px 14px 0;
       display: flex;
+      align-items: center;
       justify-content: center;
     }
 
     .media-spotlight-poster img {
-      width: min(100%, 220px);
-      max-height: 300px;
-      object-fit: contain;
+      width: 100%;
+      max-width: 124px;
+      max-height: 158px;
+      object-fit: cover;
       border-radius: 16px;
       box-shadow: 0 18px 30px rgba(0,0,0,0.28);
       background: rgba(255,255,255,0.04);
@@ -290,11 +293,13 @@
     .chip.active { border-color: var(--accent); color: var(--accent); }
 
     .grid {
-      max-width: 1200px;
+      max-width: 382px;
       margin: 16px auto 40px;
       padding: 0 12px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));`r`n      gap: 10px;
+      grid-template-columns: repeat(3, minmax(0, 114px));
+      gap: 10px;
+      justify-content: center;
     }
 
     .card {
@@ -457,7 +462,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .page-btn {
@@ -588,6 +593,9 @@
       cursor: pointer;
     }
     .icon-option.selected { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 380px) {
+      .grid { grid-template-columns: minmax(0, 1fr); }
+    }
 
     .menu-modal {
       display: none;
@@ -718,9 +726,9 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260322m" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260322r" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260322b" defer></script>
+  <script src="js/shared-header.js?v=20260322f" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -763,7 +771,7 @@
       <div class="media-spotlight-bg" id="moviesSpotlightBg"></div>
       <div class="media-spotlight-copy">
         <span class="media-spotlight-kicker">Movie Spotlight</span>
-        <h2 id="moviesSpotlightTitle">Loading…</h2>
+        <h2 id="moviesSpotlightTitle">Loading?</h2>
         <p class="media-spotlight-meta" id="moviesSpotlightMeta"></p>
         <p class="media-spotlight-summary" id="moviesSpotlightSummary"></p>
         <div class="media-spotlight-actions">
@@ -828,6 +836,7 @@
       const TMDB_PROXY_BASE = '/api/tmdb';
       const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
       const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
+      const MOVIE_SPOTLIGHT_CACHE_KEY = 'zo2y_movies_mobile_spotlight_v1';
       const state = {
         genres: [],
         activeGenre: '',
@@ -1007,7 +1016,19 @@
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         if (typeof supabase === 'undefined') return null;
-        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+          supabaseClient = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        }
+        if (!supabaseClient) {
+          supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: {
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: false,
+              storageKey: 'zo2y-auth-v1'
+            }
+          });
+        }
         return supabaseClient;
       }
 
@@ -1113,6 +1134,24 @@
         }).slice(0, 12);
       }
 
+      function readMovieSpotlightCache() {
+        try {
+          const raw = sessionStorage.getItem(MOVIE_SPOTLIGHT_CACHE_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          return parsed && parsed.poster_path ? parsed : null;
+        } catch (_err) {
+          return null;
+        }
+      }
+
+      function writeMovieSpotlightCache(item) {
+        try {
+          if (!item?.poster_path) return;
+          sessionStorage.setItem(MOVIE_SPOTLIGHT_CACHE_KEY, JSON.stringify(item));
+        } catch (_err) {}
+      }
+
       function renderMoviePageSpotlight(item) {
         const section = document.getElementById('moviesSpotlight');
         if (!section || !item) return;
@@ -1123,14 +1162,14 @@
         const imgEl = document.getElementById('moviesSpotlightImage');
         const openEl = document.getElementById('moviesSpotlightOpen');
         const poster = getMoviePosterUrl(item);
-        const backdrop = getMovieBackdropUrl(item);
+        const backdrop = getMovieBackdropUrl(item) || poster;
         section.hidden = false;
         if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${backdrop}")`;
         if (titleEl) titleEl.textContent = item.title || 'Movie Spotlight';
         if (metaEl) {
           const date = String(item.release_date || '').trim();
           const rating = Number(item.vote_average || 0) > 0 ? `TMDB ${Number(item.vote_average).toFixed(1)}` : '';
-          metaEl.textContent = [date, rating].filter(Boolean).join(' · ');
+          metaEl.textContent = [date, rating].filter(Boolean).join(' ? ');
         }
         if (summaryEl) {
           summaryEl.textContent = String(item.overview || '').trim() || 'A standout movie from the live chart.';
@@ -1163,6 +1202,7 @@
           if (pageSpotlightTimer) clearInterval(pageSpotlightTimer);
           return;
         }
+        writeMovieSpotlightCache(pageSpotlightItems[0]);
         renderMoviePageSpotlight(pageSpotlightItems[0]);
         resetMoviePageSpotlightTimer();
       }
@@ -1208,6 +1248,10 @@
         const grid = document.getElementById('moviesGrid');
         const empty = document.getElementById('emptyState');
         if (!grid) return;
+        if (!state.query && !state.activeGenre && !state.year && !state.actor) {
+          const cachedSpotlight = readMovieSpotlightCache();
+          if (cachedSpotlight) renderMoviePageSpotlight(cachedSpotlight);
+        }
 
         let data;
         let actorCreditIds = null;
@@ -1663,6 +1707,11 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
+
+
+
+
 
 
 
