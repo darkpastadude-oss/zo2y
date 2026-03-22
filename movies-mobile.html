@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -719,9 +719,9 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260319a" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260322m" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260319c" defer></script>
+  <script src="js/shared-header.js?v=20260322b" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -764,7 +764,7 @@
       <div class="media-spotlight-bg" id="moviesSpotlightBg"></div>
       <div class="media-spotlight-copy">
         <span class="media-spotlight-kicker">Movie Spotlight</span>
-        <h2 id="moviesSpotlightTitle">Loadingâ€¦</h2>
+        <h2 id="moviesSpotlightTitle">Loading…</h2>
         <p class="media-spotlight-meta" id="moviesSpotlightMeta"></p>
         <p class="media-spotlight-summary" id="moviesSpotlightSummary"></p>
         <div class="media-spotlight-actions">
@@ -828,6 +828,7 @@
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const TMDB_PROXY_BASE = '/api/tmdb';
       const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
+      const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
       const state = {
         genres: [],
         activeGenre: '',
@@ -1130,7 +1131,7 @@
         if (metaEl) {
           const date = String(item.release_date || '').trim();
           const rating = Number(item.vote_average || 0) > 0 ? `TMDB ${Number(item.vote_average).toFixed(1)}` : '';
-          metaEl.textContent = [date, rating].filter(Boolean).join(' Â· ');
+          metaEl.textContent = [date, rating].filter(Boolean).join(' · ');
         }
         if (summaryEl) {
           summaryEl.textContent = String(item.overview || '').trim() || 'A standout movie from the live chart.';
@@ -1663,6 +1664,7 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
 
 
 

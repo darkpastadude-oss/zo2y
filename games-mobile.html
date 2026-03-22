@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -716,9 +716,9 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260227f" />
-<script src="/js/mobile-webapp.js?v=20260319a" defer></script>
+<script src="/js/mobile-webapp.js?v=20260322m" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-<script src="js/shared-header.js?v=20260319c" defer></script>
+<script src="js/shared-header.js?v=20260322b" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -760,7 +760,7 @@
       <div class="media-spotlight-bg" id="gamesSpotlightBg"></div>
       <div class="media-spotlight-copy">
         <span class="media-spotlight-kicker">Game Spotlight</span>
-        <h2 id="gamesSpotlightTitle">Loadingâ€¦</h2>
+        <h2 id="gamesSpotlightTitle">Loading…</h2>
         <p class="media-spotlight-meta" id="gamesSpotlightMeta"></p>
         <p class="media-spotlight-summary" id="gamesSpotlightSummary"></p>
         <div class="media-spotlight-actions">
@@ -1750,7 +1750,7 @@
         if (metaEl) {
           const genres = normalizeGameGenres(item.extra).map((genre) => genre.name).slice(0, 3).join(' | ');
           const date = item.release_date ? String(item.release_date).slice(0, 10) : '';
-          metaEl.textContent = [genres, date].filter(Boolean).join(' Â· ');
+          metaEl.textContent = [genres, date].filter(Boolean).join(' · ');
         }
         if (summaryEl) {
           summaryEl.textContent = String(item.description || '').trim() || 'A standout game from the local catalog.';

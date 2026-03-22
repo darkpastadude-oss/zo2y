@@ -1,7 +1,8 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v158';
-const PAGE_CACHE = 'zo2y-pages-v128';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v159';
+const PAGE_CACHE = 'zo2y-pages-v129';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
+const MOVIES_PAGE_VERSION = '20260322m';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
 
@@ -18,7 +19,7 @@ const STATIC_ASSETS = [
   '/js/pages/index-home-heavy-loaders.js?v=20260319e',
   '/js/home-desktop-rebrand.js?v=20260311e',
   '/js/referral-utils.js?v=20260319a',
-  '/js/shared-header.js?v=20260319c',
+  '/js/shared-header.js?v=20260322b',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
   '/js/list-utils.js?v=20260317b',
@@ -28,7 +29,7 @@ const STATIC_ASSETS = [
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260319a',
+  '/js/mobile-webapp.js?v=20260322m',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260308a',
   '/favicon.ico',
@@ -212,6 +213,13 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
+  const isMoviesHtml = url.origin === self.location.origin && url.pathname === '/movies.html';
+  const isMoviesMobileHtml = url.origin === self.location.origin && url.pathname === '/movies-mobile.html';
+  if (request.mode === 'navigate' && (isMoviesHtml || isMoviesMobileHtml) && !url.searchParams.has('v')) {
+    url.searchParams.set('v', MOVIES_PAGE_VERSION);
+    event.respondWith(fetch(url.toString(), { cache: 'no-store' }));
+    return;
+  }
   const isLatestGamesPage =
     url.origin === self.location.origin &&
     (url.pathname === '/games.html' || url.pathname === '/games-mobile.html' || url.pathname === '/game.html');

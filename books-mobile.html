@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -756,9 +756,9 @@
   <link rel="manifest" href="/manifest.webmanifest?v=2" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260319a" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260322m" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260319c" defer></script>
+  <script src="js/shared-header.js?v=20260322b" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -801,7 +801,7 @@
       <div class="media-spotlight-bg" id="booksSpotlightBg"></div>
       <div class="media-spotlight-copy">
         <span class="media-spotlight-kicker">Book Spotlight</span>
-        <h2 id="booksSpotlightTitle">Loadingâ€¦</h2>
+        <h2 id="booksSpotlightTitle">Loading…</h2>
         <p class="media-spotlight-meta" id="booksSpotlightMeta"></p>
         <p class="media-spotlight-summary" id="booksSpotlightSummary"></p>
         <div class="media-spotlight-actions">
@@ -1453,8 +1453,8 @@
         section.hidden = false;
         if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${cover}")`;
         if (titleEl) titleEl.textContent = book.title || 'Book Spotlight';
-        if (metaEl) metaEl.textContent = [Array.isArray(book.author_name) ? book.author_name.slice(0, 2).join(', ') : '', book.first_publish_year || ''].filter(Boolean).join(' Â· ');
-        if (summaryEl) summaryEl.textContent = String(book.description || '').trim() || (Array.isArray(book.subject) ? book.subject.slice(0, 4).join(' Â· ') : 'A standout book from the local catalog.');
+        if (metaEl) metaEl.textContent = [Array.isArray(book.author_name) ? book.author_name.slice(0, 2).join(', ') : '', book.first_publish_year || ''].filter(Boolean).join(' · ');
+        if (summaryEl) summaryEl.textContent = String(book.description || '').trim() || (Array.isArray(book.subject) ? book.subject.slice(0, 4).join(' · ') : 'A standout book from the local catalog.');
         if (imgEl) {
           imgEl.src = cover;
           imgEl.alt = `${book.title || 'Book'} cover`;

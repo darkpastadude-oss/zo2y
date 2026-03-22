@@ -1,7 +1,9 @@
 (() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260322a';
+  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260322a';
+  const MOVIES_ROUTE = 'movies.html?v=20260322m';
+  const MOVIES_MOBILE_ROUTE = 'movies-mobile.html?v=20260322m';
   const DESKTOP_RAIL_COLLAPSE_KEY = 'zo2y_desktop_rail_collapsed';
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
@@ -70,7 +72,7 @@ const HEADER_HTML = `
           <i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> <span>Media</span>
         </button>
         <div class="zo2y-nav-menu" role="menu">
-          <a class="zo2y-nav-link" data-nav-page="movies" href="movies.html">Movies</a>
+          <a class="zo2y-nav-link" data-nav-page="movies" href="${MOVIES_ROUTE}">Movies</a>
           <a class="zo2y-nav-link" data-nav-page="tvshows" href="tvshows.html">TV Shows</a>
           <a class="zo2y-nav-link" data-nav-page="animes" href="animes.html">Anime</a>
           <a class="zo2y-nav-link" data-nav-page="games" href="games.html">Games</a>
@@ -123,7 +125,7 @@ const HEADER_HTML = `
     <a class="zo2y-desktop-rail-link" data-nav-page="index" href="index.html"><i class="fa-solid fa-house"></i><span>home</span></a>
     <div class="zo2y-rail-section">
       <div class="zo2y-rail-section-title">media</div>
-      <a class="zo2y-desktop-rail-link" data-nav-page="movies" href="movies.html"><i class="fa-solid fa-film"></i><span>movies</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="movies" href="${MOVIES_ROUTE}"><i class="fa-solid fa-film"></i><span>movies</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="tvshows" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>tv shows</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="animes" href="animes.html"><i class="fa-solid fa-dragon"></i><span>anime</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="games" href="games.html"><i class="fa-solid fa-gamepad"></i><span>games</span></a>
@@ -174,7 +176,7 @@ const HEADER_HTML = `
         <span><i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> Media</span>
       </button>
       <div class="zo2y-mobile-accordion-panel">
-        <a class="zo2y-mobile-drawer-link" data-nav-page="movies" href="movies.html"><i class="fa-solid fa-film"></i><span>Movies</span></a>
+        <a class="zo2y-mobile-drawer-link" data-nav-page="movies" href="${MOVIES_ROUTE}"><i class="fa-solid fa-film"></i><span>Movies</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="tvshows" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>TV Shows</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="animes" href="animes.html"><i class="fa-solid fa-dragon"></i><span>Anime</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="games" href="games.html"><i class="fa-solid fa-gamepad"></i><span>Games</span></a>
@@ -215,6 +217,9 @@ const HEADER_HTML = `
       : [];
     queued.forEach((options) => {
       try {
+        if (options && options.fallbackRoute === 'movies.html') {
+          options = { ...options, fallbackRoute: MOVIES_ROUTE };
+        }
         window.initUniversalSearch(options || {});
       } catch (_err) {}
     });
@@ -800,7 +805,7 @@ const HEADER_HTML = `
       const init = () => {
         if (typeof window.initUniversalSearch !== 'function') return;
         try {
-          window.initUniversalSearch({ input, fallbackRoute: 'movies.html' });
+      window.initUniversalSearch({ input, fallbackRoute: MOVIES_ROUTE });
           input.dataset.zo2yUniversalWired = '1';
         } catch (_err) {}
       };
