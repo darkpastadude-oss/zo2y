@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v155';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v156';
 const PAGE_CACHE = 'zo2y-pages-v126';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
@@ -211,6 +211,9 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
+  const isLatestGamesPage =
+    url.origin === self.location.origin &&
+    (url.pathname === '/games.html' || url.pathname === '/games-mobile.html' || url.pathname === '/game.html');
   if (url.origin === self.location.origin && url.pathname === '/sw.js') return;
   if (url.origin === self.location.origin && url.pathname.startsWith('/_vercel/insights/')) return;
   // OAuth callbacks must always load the real callback page. A timeout fallback to `/index.html`
@@ -238,6 +241,11 @@ self.addEventListener('fetch', (event) => {
 
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
+
+  if (request.mode === 'navigate' && isLatestGamesPage) {
+    event.respondWith(fetch(request, { cache: 'no-store' }));
+    return;
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith(networkFirstWithTimeout(request, PAGE_CACHE, '/index.html'));
