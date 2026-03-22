@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260315d"></script>
+<script src="/js/auth-gate.js?v=20260322a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex">
   <title>Zo2y - Travel</title>
   <meta name="description" content="Browse countries, save travel lists, and open country pages with reviews.">
-  <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
+  <link rel="icon" href="/newlogo.webp" type="image/webp" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260316a" defer></script>
-  <script src="js/index-list-menu-adapter.js?v=20260314d" defer></script>
+  <script src="js/list-utils.js?v=20260317b" defer></script>
+  <script src="js/index-list-menu-adapter.js?v=20260317b" defer></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -97,7 +97,43 @@
       border-radius: 14px;
       background: linear-gradient(160deg, rgba(23,43,88,0.9), rgba(19,35,71,0.95));
     }
-    .hero { padding: 14px; }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 18px;
+      min-height: 260px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(240px, 360px);
+      gap: 16px;
+      isolation: isolate;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(104deg, rgba(6, 13, 28, 0.88) 0%, rgba(8, 16, 35, 0.62) 44%, rgba(13, 25, 52, 0.18) 100%),
+        radial-gradient(circle at 88% 18%, rgba(34,211,238,0.18), transparent 28%),
+        radial-gradient(circle at 74% 78%, rgba(34,197,94,0.16), transparent 24%);
+      z-index: -1;
+    }
+    .hero-backdrop {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, rgba(9, 20, 44, 0.36), rgba(9, 20, 44, 0.72)),
+        var(--hero-bg-image, linear-gradient(160deg, rgba(23,43,88,0.9), rgba(19,35,71,0.95)));
+      background-size: cover;
+      background-position: center center;
+      transform: scale(1.03);
+      z-index: -2;
+    }
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+      align-self: end;
+      max-width: 620px;
+    }
     .hero h1 { margin: 0 0 6px; font-size: 28px; }
     .hero p { margin: 0; color: var(--muted); font-size: 14px; }
     .hero-note {
@@ -108,6 +144,66 @@
     }
     .hero-note a {
       color: var(--accent);
+    }
+    .hero-spotlight {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 10px;
+      align-self: stretch;
+      align-content: end;
+    }
+    .hero-spotlight-card {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(8, 16, 35, 0.52);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 40px rgba(4, 10, 24, 0.18);
+    }
+    .hero-spotlight-card:first-child {
+      background: rgba(8, 16, 35, 0.62);
+      border-color: rgba(245, 158, 11, 0.34);
+    }
+    .hero-spotlight-thumb {
+      width: 58px;
+      aspect-ratio: 1 / 1;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(16, 34, 74, 0.86);
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+    .hero-spotlight-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .hero-spotlight-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #cbd5e1;
+    }
+    .hero-spotlight-title {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #fff;
+    }
+    .hero-spotlight-meta {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.3;
     }
     .controls {
       display: grid;
@@ -121,6 +217,9 @@
       background: #10224a;
       color: #fff;
       padding: 0 10px;
+      font-size: 16px;
+      -webkit-appearance: none;
+      appearance: none;
     }
     .controls button, .pager button {
       height: 40px;
@@ -189,31 +288,52 @@
       object-position: center center;
       display: block;
     }
-    .card-photo-grid {
+    .card-photo-stage {
       position: absolute;
       inset: 0;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0;
+      overflow: hidden;
       z-index: 2;
     }
-    .card-photo-grid.single {
-      grid-template-columns: minmax(0, 1fr);
+    .card-photo-stage.is-loading::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.12) 48%, rgba(255,255,255,0.02) 100%),
+        linear-gradient(160deg, rgba(23,43,88,0.96), rgba(11,22,51,0.98));
+      background-size: 220px 100%, 100% 100%;
+      background-repeat: no-repeat;
+      animation: travelImageShimmer 1.15s linear infinite;
+      z-index: 0;
+      pointer-events: none;
     }
-    .card-photo-tile {
-      position: relative;
-      overflow: hidden;
-    }
-    .card-photo-tile img {
+    .card-photo-stage img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
+      position: relative;
+      z-index: 1;
+      opacity: 0;
+      filter: blur(10px);
+      transition: opacity 220ms ease, filter 220ms ease;
+    }
+    .card-photo-stage img[data-ready="1"] {
+      opacity: 1;
+      filter: blur(0);
+    }
+    .card-photo-badges {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      z-index: 3;
     }
     .card-photo-label {
-      position: absolute;
-      left: 8px;
-      bottom: 8px;
       padding: 4px 8px;
       border-radius: 999px;
       font-size: 11px;
@@ -224,8 +344,11 @@
       border: 1px solid rgba(255,255,255,0.2);
       backdrop-filter: blur(6px);
     }
-    .card-photo-wrap.no-photo .card-photo-grid {
-      display: none;
+    .card-photo-label[data-kind="city"] {
+      background: rgba(59, 130, 246, 0.72);
+    }
+    .card-photo-label[data-kind="nature"] {
+      background: rgba(34, 197, 94, 0.72);
     }
     .card-photo-wrap.no-photo .card-photo-fallback {
       z-index: 1;
@@ -321,14 +444,31 @@
       .top-brand span {
         display: none;
       }
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+      .hero-spotlight {
+        grid-template-columns: 1fr;
+      }
       .controls { grid-template-columns: 1fr; }
+      .controls input,
+      .controls select,
+      .controls button {
+        height: 44px;
+        font-size: 16px;
+      }
       .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .ttl { font-size: 14px; }
       .ttl-flag { width: 18px; height: 12px; }
     }
+    @keyframes travelImageShimmer {
+      from { background-position: -220px 0, 0 0; }
+      to { background-position: calc(100% + 220px) 0, 0 0; }
+    }
   </style>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260316a">
-  <script src="js/shared-header.js?v=20260316a" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
+  <script src="js/shared-header.js?v=20260322h" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -361,10 +501,14 @@
   </div>
 </header>
 
-  <section class="hero">
-    <h1><i class="fa-solid fa-earth-americas"></i> popular destinations right now</h1>
-    <p>Browse live travel picks ranked by recent global attention, then save them to your lists.</p>
-    <div class="hero-note">sources: Wikimedia Pageviews, Wikimedia Commons, and REST Countries. <a href="credits.html">all credits</a></div>
+  <section class="hero" id="travelHero">
+    <div class="hero-backdrop" id="travelHeroBackdrop" aria-hidden="true"></div>
+    <div class="hero-copy">
+      <h1><i class="fa-solid fa-earth-americas"></i> popular destinations right now</h1>
+      <p>Browse live travel picks ranked by recent global attention, then save them to your lists.</p>
+      <div class="hero-note">sources: Wikimedia Pageviews, Wikimedia Commons, and REST Countries. <a href="credits.html">all credits</a></div>
+    </div>
+    <div class="hero-spotlight" id="travelHeroSpotlight" aria-label="featured destinations"></div>
   </section>
 
   <section class="controls">
@@ -394,11 +538,22 @@
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
     const COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
-    const PAGE_SIZE = 24;
-    const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v4';
+    const TRAVEL_RENDER_DEBOUNCE_MS = 180;
+    const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
     const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-    const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v2';
+    const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v4';
     const TRAVEL_COUNTRY_ROWS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
+    const TRAVEL_BUCKET_NAME = 'travel-photos';
+    const TRAVEL_VARIANT_SESSION_SEED = Math.floor(Math.random() * 2147483647);
+    const TRAVEL_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
+        <rect width='24' height='24' fill='#10224a'/>
+      </svg>
+    `)}`;
+    let travelImageObserver = null;
+    const TRAVEL_BUCKET_MANIFEST_CACHE_KEY = 'zo2y_travel_bucket_manifest_v1';
+    const TRAVEL_BUCKET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+    const TRAVEL_BUCKET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${TRAVEL_BUCKET_NAME}/manifest/travel-photo-manifest.json`;
     const TRAVEL_POPULARITY_CACHE_KEY = 'zo2y_travel_popularity_v1';
     const TRAVEL_POPULARITY_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
     const TRAVEL_POPULARITY_WINDOW_DAYS = 7;
@@ -438,11 +593,14 @@
       totalPages: 1,
       hasMore: false,
       listStatus: new Map(),
-      pending: new Set()
+      pending: new Set(),
+      scenicHydrationStarted: false,
+      lifestyleHydrationStarted: false
     };
     const countryPhotoCache = new Map();
     const countryPhotoPending = new Set();
     const countryLifestylePending = new Set();
+    let travelBucketManifestPromise = null;
     let countryPhotoSaveTimer = null;
     const countryCityHints = {
       US: ['New York', 'Los Angeles', 'Chicago'],
@@ -476,6 +634,63 @@
       return String(value || '').replace(/[&<>"']/g, (ch) => ESCAPE_MAP[ch] || ch);
     }
 
+    function getTravelImageObserver() {
+      if (travelImageObserver || typeof window.IntersectionObserver !== 'function') return travelImageObserver;
+      travelImageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const img = entry.target;
+          observer.unobserve(img);
+          const nextSrc = String(img.getAttribute('data-travel-src') || '').trim();
+          if (!nextSrc) return;
+          img.removeAttribute('data-travel-src');
+          img.src = nextSrc;
+        });
+      }, {
+        rootMargin: '260px 0px',
+        threshold: 0.01
+      });
+      return travelImageObserver;
+    }
+
+    function primeTravelImages(scope) {
+      const root = scope || document;
+      const images = Array.from(root.querySelectorAll('img[data-travel-src]'));
+      if (!images.length) return;
+      const observer = getTravelImageObserver();
+      if (!observer) {
+        images.forEach((img) => {
+          const nextSrc = String(img.getAttribute('data-travel-src') || '').trim();
+          if (!nextSrc) return;
+          img.removeAttribute('data-travel-src');
+          img.src = nextSrc;
+        });
+        return;
+      }
+      images.forEach((img) => observer.observe(img));
+    }
+
+    function wireTravelImages(scope) {
+      const root = scope || document;
+      root.querySelectorAll('.card-photo-stage img[data-travel-img]').forEach((img) => {
+        const tile = img.closest('.card-photo-stage');
+        const wrap = img.closest('.card-photo-wrap');
+        const handleLoad = () => {
+          img.setAttribute('data-ready', '1');
+          if (tile) tile.classList.remove('is-loading');
+        };
+        const handleError = () => {
+          if (tile) tile.remove();
+          if (wrap && !wrap.querySelector('.card-photo-stage')) wrap.classList.add('no-photo');
+        };
+        img.addEventListener('load', handleLoad);
+        img.addEventListener('error', handleError);
+        if (img.complete && !img.hasAttribute('data-travel-src')) {
+          handleLoad();
+        }
+      });
+    }
+
     function safeCode(value) {
       return String(value || '').trim().toUpperCase();
     }
@@ -492,6 +707,89 @@
       if (text.startsWith('//')) return `https:${text}`;
       if (text.startsWith('http://')) return text.replace(/^http:\/\//i, 'https://');
       return text;
+    }
+
+    function getOptimizedTravelBucketImage(url, width = 960) {
+      const src = safeHttps(url);
+      if (!src) return '';
+      const publicMarker = `/storage/v1/object/public/${TRAVEL_BUCKET_NAME}/`;
+      const renderMarker = `/storage/v1/render/image/public/${TRAVEL_BUCKET_NAME}/`;
+      let path = '';
+      if (src.includes(publicMarker)) {
+        path = src.slice(src.indexOf(publicMarker) + publicMarker.length);
+      } else if (src.includes(renderMarker)) {
+        path = src.slice(src.indexOf(renderMarker) + renderMarker.length).split('?')[0];
+      } else {
+        return src;
+      }
+      if (!path) return src;
+      const encodedPath = path
+        .split('/')
+        .map((segment) => encodeURIComponent(segment))
+        .join('/');
+      return `${SUPABASE_URL}/storage/v1/object/public/${TRAVEL_BUCKET_NAME}/${encodedPath}`;
+    }
+
+    function getTravelCardVariants(item) {
+      const candidates = [
+        { raw: item?.photo || '', label: 'Scenic', kind: 'scenic' },
+        { raw: item?.photoCity || '', label: 'City life', kind: 'city' },
+        { raw: item?.photoNature || '', label: 'Nature', kind: 'nature' }
+      ];
+      const seen = new Set();
+      return candidates
+        .map((entry) => {
+          const src = getOptimizedTravelBucketImage(entry.raw, 720);
+          return src ? { ...entry, src } : null;
+        })
+        .filter(Boolean)
+        .filter((entry) => {
+          if (seen.has(entry.src)) return false;
+          seen.add(entry.src);
+          return true;
+        });
+    }
+
+    function getTravelSpotlightVariants(item) {
+      return getTravelCardVariants(item).filter((entry) => entry.kind === 'scenic' || entry.kind === 'city');
+    }
+
+    function hashTravelVariantSeed(value) {
+      const input = String(value || '');
+      let hash = 2166136261;
+      for (let index = 0; index < input.length; index += 1) {
+        hash ^= input.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash >>> 0;
+    }
+
+    function getStableTravelCardVariant(item) {
+      const variants = getTravelCardVariants(item);
+      if (!variants.length) return null;
+      const itemKey = [
+        String(item?.code || '').trim().toUpperCase(),
+        stripLeadingFlagEmoji(item?.name || '')
+      ].filter(Boolean).join('|');
+      const index = hashTravelVariantSeed(`${TRAVEL_VARIANT_SESSION_SEED}:${itemKey}`) % variants.length;
+      return variants[index] || variants[0] || null;
+    }
+
+    function getStableTravelSpotlightVariant(item) {
+      const variants = getTravelSpotlightVariants(item);
+      if (variants.length) {
+        const itemKey = [
+          String(item?.code || '').trim().toUpperCase(),
+          stripLeadingFlagEmoji(item?.name || '')
+        ].filter(Boolean).join('|');
+        const index = hashTravelVariantSeed(`${TRAVEL_VARIANT_SESSION_SEED}:spotlight:${itemKey}`) % variants.length;
+        return variants[index] || variants[0] || null;
+      }
+      return getStableTravelCardVariant(item);
+    }
+
+    function stripLeadingFlagEmoji(value) {
+      return String(value || '').replace(/^\uD83C[\uDDE6-\uDDFF]\uD83C[\uDDE6-\uDDFF]\s*/u, '').trim();
     }
 
     function isBadTravelPhotoUrl(url) {
@@ -518,9 +816,24 @@
         'etching',
         'engraving',
         'lithograph',
-        'oil_on_canvas'
+        'oil_on_canvas',
+        'cartoon',
+        'sketch',
+        'render',
+        'vector',
+        'banknote',
+        'stamp',
+        'crest'
       ];
       return blocked.some((token) => raw.includes(token));
+    }
+
+    function getCommonsCategoryText(page) {
+      const categories = Array.isArray(page?.categories) ? page.categories : [];
+      return categories
+        .map((entry) => String(entry?.title || '').replace(/^Category:/i, '').trim().toLowerCase())
+        .filter(Boolean)
+        .join(' | ');
     }
 
     function normalizePhotoEntry(entry) {
@@ -550,6 +863,104 @@
       const safeCountryCode = canonicalCountryCode(code);
       if (!safeCountryCode) return { scenic: '', city: '', nature: '' };
       return normalizePhotoEntry(countryPhotoCache.get(safeCountryCode));
+    }
+
+    function applyCachedTravelPhotosToRows(rows = state.rows) {
+      const list = Array.isArray(rows) ? rows : [];
+      list.forEach((item) => {
+        const code = canonicalCountryCode(item && item.code);
+        if (!code) return;
+        const cached = getCountryPhotoSet(code);
+        item.photo = cached.scenic || cached.city || cached.nature || item.photo || '';
+        item.photoCity = cached.city || item.photoCity || '';
+        item.photoNature = cached.nature || item.photoNature || '';
+      });
+    }
+
+    function normalizeTravelBucketManifestEntries(payload) {
+      if (!payload || typeof payload !== 'object') return null;
+      const entries = payload.countries && typeof payload.countries === 'object'
+        ? payload.countries
+        : (payload.entries && typeof payload.entries === 'object' ? payload.entries : null);
+      return entries && typeof entries === 'object' ? entries : null;
+    }
+
+    function mergeTravelBucketManifestEntries(entries) {
+      if (!entries || typeof entries !== 'object') return false;
+      let changed = false;
+      Object.entries(entries).forEach(([code, entry]) => {
+        const safeCountryCode = canonicalCountryCode(code);
+        if (!safeCountryCode) return;
+        const normalized = normalizePhotoEntry(entry);
+        if (!normalized.scenic && !normalized.city && !normalized.nature) return;
+        const current = normalizePhotoEntry(countryPhotoCache.get(safeCountryCode));
+        const merged = {
+          scenic: normalized.scenic || current.scenic || '',
+          city: normalized.city || current.city || '',
+          nature: normalized.nature || current.nature || ''
+        };
+        if (merged.scenic === current.scenic && merged.city === current.city && merged.nature === current.nature) return;
+        countryPhotoCache.set(safeCountryCode, merged);
+        changed = true;
+      });
+      if (changed) {
+        applyCachedTravelPhotosToRows();
+        scheduleCountryPhotoCacheSave();
+      }
+      return changed;
+    }
+
+    function readTravelBucketManifestCache() {
+      try {
+        const raw = localStorage.getItem(TRAVEL_BUCKET_MANIFEST_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed && parsed.savedAt || 0);
+        const entries = normalizeTravelBucketManifestEntries(parsed);
+        if (!savedAt || !entries) return null;
+        if ((Date.now() - savedAt) > TRAVEL_BUCKET_MANIFEST_TTL_MS) return null;
+        return { savedAt, entries };
+      } catch (_error) {
+        return null;
+      }
+    }
+
+    function writeTravelBucketManifestCache(entries) {
+      if (!entries || typeof entries !== 'object') return;
+      try {
+        localStorage.setItem(TRAVEL_BUCKET_MANIFEST_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          countries: entries
+        }));
+      } catch (_error) {}
+    }
+
+    function loadTravelBucketManifestFromStorage() {
+      const cached = readTravelBucketManifestCache();
+      if (!cached || !cached.entries) return false;
+      return mergeTravelBucketManifestEntries(cached.entries);
+    }
+
+    async function hydrateTravelBucketManifest() {
+      if (travelBucketManifestPromise) return travelBucketManifestPromise;
+      travelBucketManifestPromise = (async () => {
+        try {
+          const response = await fetch(TRAVEL_BUCKET_MANIFEST_URL, {
+            headers: { Accept: 'application/json' }
+          });
+          if (!response.ok) return false;
+          const payload = await response.json();
+          const entries = normalizeTravelBucketManifestEntries(payload);
+          if (!entries) return false;
+          writeTravelBucketManifestCache(entries);
+          return mergeTravelBucketManifestEntries(entries);
+        } catch (_error) {
+          return false;
+        } finally {
+          travelBucketManifestPromise = null;
+        }
+      })();
+      return travelBucketManifestPromise;
     }
 
     function normalizeTravelSearchQuery(value) {
@@ -843,24 +1254,39 @@
       return effectiveType === 'slow-2g' || effectiveType === '2g' || effectiveType === '3g';
     }
 
+    function isCompactTravelViewport() {
+      const width = Math.max(
+        window.innerWidth || 0,
+        document.documentElement?.clientWidth || 0,
+        0
+      );
+      return width > 0 && width <= 900;
+    }
+
+    function getTravelPageSize() {
+      if (isSlowTravelNetwork()) return isCompactTravelViewport() ? 8 : 12;
+      return isCompactTravelViewport() ? 12 : 18;
+    }
+
     function getTravelInitialHydrationLimit() {
-      return isSlowTravelNetwork() ? 36 : 90;
+      return isSlowTravelNetwork() ? 8 : (isCompactTravelViewport() ? 12 : 18);
     }
 
     function getTravelHydrationQueueLimit() {
-      return isSlowTravelNetwork() ? 48 : 120;
+      return isSlowTravelNetwork() ? 12 : (isCompactTravelViewport() ? 18 : 30);
     }
 
     function getTravelHydrationWorkerCount(queueLength) {
-      return Math.min(isSlowTravelNetwork() ? 2 : 5, queueLength);
+      return Math.min(isSlowTravelNetwork() ? 1 : (isCompactTravelViewport() ? 2 : 3), queueLength);
     }
 
     function getTravelLifestyleHydrationLimit() {
-      return isSlowTravelNetwork() ? 0 : 24;
+      if (isSlowTravelNetwork()) return 0;
+      return isCompactTravelViewport() ? 6 : 12;
     }
 
     function getTravelLifestyleWorkerCount(queueLength) {
-      return Math.min(3, queueLength);
+      return Math.min(isCompactTravelViewport() ? 1 : 2, queueLength);
     }
 
     function getCountryCachedScenicPhoto(code, preferred = '') {
@@ -876,6 +1302,37 @@
       const safeCountryCode = canonicalCountryCode(code);
       if (!safeCountryCode) return { scenic: '', city: '', nature: '' };
       return getCountryPhotoSet(safeCountryCode);
+    }
+
+    let travelRenderTimer = null;
+
+    function scheduleTravelRender(delay = TRAVEL_RENDER_DEBOUNCE_MS) {
+      if (travelRenderTimer) {
+        window.clearTimeout(travelRenderTimer);
+      }
+      travelRenderTimer = window.setTimeout(() => {
+        travelRenderTimer = null;
+        if (document.visibilityState !== 'hidden') render();
+      }, Math.max(0, Number(delay) || 0));
+    }
+
+    function needsTravelScenicHydration(rows = []) {
+      return rows.some((item) => {
+        const code = safeCode(item && item.code);
+        if (!code) return false;
+        const cached = getCountryPhotoSet(code);
+        return !cached.scenic && !cached.city && !cached.nature;
+      });
+    }
+
+    function needsTravelLifestyleHydration(rows = []) {
+      if (getTravelLifestyleHydrationLimit() <= 0) return false;
+      return rows.some((item) => {
+        const code = safeCode(item && item.code);
+        if (!code) return false;
+        const cached = getCountryPhotoSet(code);
+        return !cached.city || !cached.nature;
+      });
     }
 
     function normalizeCountryName(value) {
@@ -901,8 +1358,8 @@
       return out.slice(0, 3);
     }
 
-    function isBadScenicTitle(title, countryName, capital, cityHints = []) {
-      const raw = String(title || '').toLowerCase();
+    function isBadScenicTitle(title, countryName, capital, cityHints = [], categoryText = '') {
+      const raw = `${String(title || '')} ${String(categoryText || '')}`.toLowerCase();
       if (!raw) return true;
       const blocked = [
         'flag',
@@ -924,6 +1381,14 @@
         'illustration',
         'drawing',
         'poster',
+        'cartoon',
+        'sketch',
+        'render',
+        'vector',
+        'banknote',
+        'stamp',
+        'mural',
+        'logo',
         'watercolor',
         'etching',
         'engraving',
@@ -944,15 +1409,38 @@
       return !(hasCountry || hasCapital || hasCity);
     }
 
+    function scoreTravelPhotoCandidate(page, kind, countryName, capital, cityHints = []) {
+      const title = String(page?.title || '');
+      const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
+      if (!isPhotoMime(mime)) return -1;
+      const categoryText = getCommonsCategoryText(page);
+      if (isBadScenicTitle(title, countryName, capital, cityHints, categoryText)) return -1;
+      const raw = `${title} ${categoryText}`.toLowerCase();
+      let score = 0;
+      if (raw.includes('photographs')) score += 5;
+      if (kind === 'city') {
+        if (raw.includes('skyline') || raw.includes('cityscape')) score += 6;
+        if (raw.includes('downtown') || raw.includes('street') || raw.includes('urban') || raw.includes('capital')) score += 4;
+      } else if (kind === 'nature') {
+        if (raw.includes('landscape') || raw.includes('mountain') || raw.includes('coast') || raw.includes('beach') || raw.includes('forest') || raw.includes('lake') || raw.includes('national park')) score += 6;
+      } else {
+        if (raw.includes('landscape') || raw.includes('panorama') || raw.includes('view') || raw.includes('scenery')) score += 5;
+        if (raw.includes('skyline') || raw.includes('cityscape')) score += 2;
+      }
+      if (raw.includes('night')) score += kind === 'city' ? 2 : 1;
+      return score;
+    }
+
     function buildTravelPhotoQueries(kind, name, capital, cities = []) {
       const primaryCity = String(capital || cities[0] || '').trim();
       if (kind === 'city') {
         return [
           primaryCity ? `${primaryCity} skyline` : '',
           primaryCity ? `${primaryCity} downtown` : '',
+          primaryCity ? `${primaryCity} cityscape` : '',
           `${name} city skyline`,
           `${name} city center`,
-          `${name} street`
+          `${name} street scene`
         ].map((value) => String(value || '').trim()).filter(Boolean);
       }
       if (kind === 'nature') {
@@ -961,13 +1449,15 @@
           `${name} nature`,
           `${name} national park`,
           `${name} mountains`,
-          `${name} coast`
+          `${name} coast`,
+          `${name} lake`
         ].map((value) => String(value || '').trim()).filter(Boolean);
       }
       return [
         `${name} landscape`,
         `${name} travel photography`,
         `${name} scenic`,
+        `${name} panorama`,
         `${name} nature`,
         `${primaryCity ? `${primaryCity} skyline` : ''}`
       ].map((value) => String(value || '').trim()).filter(Boolean);
@@ -979,27 +1469,17 @@
       const queries = buildTravelPhotoQueries(kind, name, capital, cities);
       for (const query of queries) {
         if (signal && signal.aborted) break;
-        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=8&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=1200`;
+        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=20&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo|categories&iiprop=url|mime&iiurlwidth=1400&cllimit=max`;
         try {
           const response = await fetch(endpoint, { signal, headers: { Accept: 'application/json' } });
           if (!response.ok) continue;
           const payload = await response.json();
           const pages = Array.isArray(payload && payload.query && payload.query.pages) ? payload.query.pages : [];
-          const preferred = pages.find((page) => {
-            const title = String(page && page.title || '');
-            const mime = String(page && page.imageinfo && page.imageinfo[0] && page.imageinfo[0].mime || '').toLowerCase();
-            const isPhotoLike = mime === 'image/jpeg' || mime === 'image/jpg' || mime === 'image/webp';
-            if (!isPhotoLike) return false;
-            if (isBadScenicTitle(title, name, capital, cities)) return false;
-            return true;
-          }) || pages.find((page) => {
-            const title = String(page && page.title || '');
-            const mime = String(page && page.imageinfo && page.imageinfo[0] && page.imageinfo[0].mime || '').toLowerCase();
-            const isPhotoLike = mime === 'image/jpeg' || mime === 'image/jpg' || mime === 'image/webp';
-            if (!isPhotoLike) return false;
-            const blocked = ['flag', 'coat of arms', 'emblem', 'seal', 'map of', 'locator map', 'location map', 'orthographic', 'equirectangular', 'blank map'];
-            return !blocked.some((token) => title.toLowerCase().includes(token));
-          });
+          const ranked = pages
+            .map((page) => ({ page, score: scoreTravelPhotoCandidate(page, kind, name, capital, cities) }))
+            .filter((entry) => entry.score >= 0)
+            .sort((left, right) => right.score - left.score);
+          const preferred = ranked[0]?.page || null;
           const image = safeHttps(preferred && preferred.imageinfo && preferred.imageinfo[0] && (preferred.imageinfo[0].thumburl || preferred.imageinfo[0].url));
           if (image && !isBadTravelPhotoUrl(image)) return image;
         } catch (_error) {
@@ -1119,6 +1599,61 @@
       });
     }
 
+    function startCountryPhotoBackfill() {
+      if (!Array.isArray(state.rows) || !state.rows.length) return;
+      const scenicNeeded = needsTravelScenicHydration(state.rows);
+      const lifestyleNeeded = needsTravelLifestyleHydration(state.rows);
+      if (!scenicNeeded && !lifestyleNeeded) return;
+
+      if (!state.scenicHydrationStarted && scenicNeeded) {
+        state.scenicHydrationStarted = true;
+        const runScenicBackfill = async () => {
+          const scenicBatchSize = getTravelHydrationQueueLimit();
+          for (let index = 0; index < state.rows.length; index += scenicBatchSize) {
+            const batch = state.rows.slice(index, index + scenicBatchSize);
+            if (!needsTravelScenicHydration(batch)) continue;
+            await hydrateScenicCountryPhotos(batch);
+            writeCountryRowsCache(state.rows);
+            scheduleTravelRender();
+            await new Promise((resolve) => window.setTimeout(resolve, isSlowTravelNetwork() ? 360 : 220));
+          }
+        };
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(() => {
+            void runScenicBackfill().catch(() => {});
+          }, { timeout: 2400 });
+        } else {
+          window.setTimeout(() => {
+            void runScenicBackfill().catch(() => {});
+          }, 1200);
+        }
+      }
+
+      if (!state.lifestyleHydrationStarted && lifestyleNeeded) {
+        state.lifestyleHydrationStarted = true;
+        const runLifestyleBackfill = async () => {
+          const lifestyleBatchSize = Math.max(6, getTravelLifestyleHydrationLimit());
+          for (let index = 0; index < state.rows.length; index += lifestyleBatchSize) {
+            const batch = state.rows.slice(index, index + lifestyleBatchSize);
+            if (!needsTravelLifestyleHydration(batch)) continue;
+            await hydrateLifestyleCountryPhotos(batch);
+            writeCountryRowsCache(state.rows);
+            scheduleTravelRender();
+            await new Promise((resolve) => window.setTimeout(resolve, isCompactTravelViewport() ? 320 : 240));
+          }
+        };
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(() => {
+            void runLifestyleBackfill().catch(() => {});
+          }, { timeout: 4200 });
+        } else {
+          window.setTimeout(() => {
+            void runLifestyleBackfill().catch(() => {});
+          }, 2200);
+        }
+      }
+    }
+
     function showToast(message, type = 'inf') {
       const node = document.createElement('div');
       node.className = `toast ${type}`;
@@ -1130,9 +1665,13 @@
     async function ensureClient() {
       if (client) return client;
       for (let i = 0; i < 20; i += 1) {
+        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+          client = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+          if (client) return client;
+        }
         if (window.supabase && typeof window.supabase.createClient === 'function') {
           client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'zo2y-auth-v1' }
           });
           return client;
         }
@@ -1202,14 +1741,18 @@
           }
           hydrateRegionOptions();
           void hydrateTravelPopularity(false)
-            .then(() => render())
+            .then(() => scheduleTravelRender(0))
             .catch(() => {});
-          void hydrateScenicCountryPhotos(state.rows.slice(0, getTravelInitialHydrationLimit()))
-            .then(() => {
-              writeCountryRowsCache(state.rows);
-              render();
-            })
-            .catch(() => {});
+          const initialRows = state.rows.slice(0, getTravelInitialHydrationLimit());
+          if (needsTravelScenicHydration(initialRows)) {
+            void hydrateScenicCountryPhotos(initialRows)
+              .then(() => {
+                writeCountryRowsCache(state.rows);
+                scheduleTravelRender();
+              })
+              .catch(() => {});
+          }
+          startCountryPhotoBackfill();
           return true;
         }
       }
@@ -1232,19 +1775,23 @@
         }
         void hydrateTravelPopularity(force, controller.signal)
           .then(() => {
-            render();
+            scheduleTravelRender(0);
           })
           .catch(() => {});
-        void hydrateScenicCountryPhotos(state.rows.slice(0, getTravelInitialHydrationLimit()), controller.signal)
-          .then(() => {
-            writeCountryRowsCache(state.rows);
-            render();
-          })
-          .catch(() => {});
+        const initialRows = state.rows.slice(0, getTravelInitialHydrationLimit());
+        if (needsTravelScenicHydration(initialRows)) {
+          void hydrateScenicCountryPhotos(initialRows, controller.signal)
+            .then(() => {
+              writeCountryRowsCache(state.rows);
+              scheduleTravelRender();
+            })
+            .catch(() => {});
+        }
         state.rows = state.rows
           .sort((a, b) => a.name.localeCompare(b.name));
         hydrateRegionOptions();
         writeCountryRowsCache(state.rows);
+        startCountryPhotoBackfill();
         return true;
       } catch (_error) {
         return false;
@@ -1283,6 +1830,51 @@
       state.filtered = output;
     }
 
+    function updateHero() {
+      const hero = document.getElementById('travelHero');
+      const spotlight = document.getElementById('travelHeroSpotlight');
+      if (!hero || !spotlight) return;
+      const featured = state.filtered.slice(0, 3);
+      const primary = featured[0] || state.rows[0] || null;
+      const primaryPhoto = primary
+        ? (getStableTravelSpotlightVariant(primary)?.src || getOptimizedTravelBucketImage(primary.photo || primary.photoCity || primary.photoNature || '', 1600))
+        : '';
+      hero.style.setProperty(
+        '--hero-bg-image',
+        primaryPhoto
+          ? `url("${primaryPhoto}")`
+          : 'linear-gradient(160deg, rgba(23,43,88,0.9), rgba(19,35,71,0.95))'
+      );
+      if (!featured.length) {
+        spotlight.innerHTML = '';
+        return;
+      }
+      spotlight.innerHTML = featured.map((item, index) => {
+        const thumb = getStableTravelSpotlightVariant(item)?.src || getOptimizedTravelBucketImage(item.photo || item.photoCity || item.photoNature || '', 320);
+        const rankLabel = index === 0 ? 'Trending now' : `Top pick ${index + 1}`;
+        const subtitleBits = [
+          item.capital ? `Capital: ${item.capital}` : '',
+          item.region || '',
+          item.subregion || ''
+        ].filter(Boolean);
+        return `
+          <article class="hero-spotlight-card">
+            <div class="hero-spotlight-thumb">
+              ${thumb ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(stripLeadingFlagEmoji(item.name))}" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async" referrerpolicy="no-referrer">` : ''}
+            </div>
+            <div>
+              <div class="hero-spotlight-kicker">
+                <span>${escapeHtml(rankLabel)}</span>
+                <span>${escapeHtml(item.code || '')}</span>
+              </div>
+              <div class="hero-spotlight-title">${escapeHtml(stripLeadingFlagEmoji(item.name))}</div>
+              <div class="hero-spotlight-meta">${escapeHtml(subtitleBits.join(' | ') || 'Popular destination')}</div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
     function syncCardStatus(card) {
       const code = safeCode(card && card.getAttribute('data-country-code'));
       if (!code) return;
@@ -1309,11 +1901,13 @@
       const grid = document.getElementById('grid');
       const empty = document.getElementById('empty');
       applyFilter();
+      updateHero();
       const count = state.filtered.length;
-      state.totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
+      const pageSize = getTravelPageSize();
+      state.totalPages = Math.max(1, Math.ceil(count / pageSize));
       state.page = Math.min(Math.max(1, state.page), state.totalPages);
-      const start = (state.page - 1) * PAGE_SIZE;
-      const end = start + PAGE_SIZE;
+      const start = (state.page - 1) * pageSize;
+      const end = start + pageSize;
       const pageRows = state.filtered.slice(start, end);
       grid.innerHTML = '';
 
@@ -1326,27 +1920,17 @@
       empty.style.display = 'none';
 
       const buildPhotoShellMarkup = (item) => {
-        const scenic = String(item && item.photo || '').trim();
-        const city = String(item && item.photoCity || '').trim();
-        const nature = String(item && item.photoNature || '').trim();
-        const tiles = [];
-        if (city) tiles.push({ url: city, label: 'City life', kind: 'city' });
-        if (nature) tiles.push({ url: nature, label: 'Nature', kind: 'nature' });
-        if (!tiles.length && scenic) tiles.push({ url: scenic, label: 'Scenic', kind: 'scenic' });
-        const hasPhoto = tiles.length > 0;
-        const mosaicClass = tiles.length > 1 ? ' has-mosaic' : '';
+        const initialVariant = getStableTravelCardVariant(item);
+        const hasPhoto = !!initialVariant?.src;
         return `
-          <div class="card-photo-wrap${hasPhoto ? '' : ' no-photo'}${mosaicClass}">
+          <div class="card-photo-wrap${hasPhoto ? '' : ' no-photo'}">
             <div class="card-photo-fallback"></div>
             ${hasPhoto ? `
-              <div class="card-photo-grid${tiles.length > 1 ? '' : ' single'}">
-                ${tiles.map((tile) => `
-                  <div class="card-photo-tile" data-kind="${escapeHtml(tile.kind)}">
-                    <img src="${escapeHtml(tile.url)}" alt="${escapeHtml(`${item.name || 'Country'} ${tile.label}`)}" loading="lazy" decoding="async" referrerpolicy="no-referrer"
-                      onerror="this.onerror=null; const wrap=this.closest('.card-photo-wrap'); this.parentElement?.remove(); if (wrap && !wrap.querySelector('img')) wrap.classList.add('no-photo');">
-                    <span class="card-photo-label">${escapeHtml(tile.label)}</span>
-                  </div>
-                `).join('')}
+              <div class="card-photo-stage is-loading" data-kind="${escapeHtml(initialVariant.kind || 'scenic')}">
+                <img src="${TRAVEL_IMAGE_PLACEHOLDER}" data-travel-src="${escapeHtml(initialVariant.src)}" data-travel-img="1" data-ready="0" alt="${escapeHtml(`${item.name || 'Country'} ${String(initialVariant.label || 'Scenic').toLowerCase()} view`)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+                <div class="card-photo-badges" aria-hidden="true">
+                  <span class="card-photo-label" data-kind="${escapeHtml(initialVariant.kind || 'scenic')}">${escapeHtml(initialVariant.label || 'Scenic')}</span>
+                </div>
               </div>
             ` : ''}
           </div>
@@ -1360,6 +1944,8 @@
         const hero = item.photo || item.photoCity || item.photoNature || '';
         card.setAttribute('data-image', hero);
         wrap.outerHTML = buildPhotoShellMarkup(item);
+        wireTravelImages(card);
+        primeTravelImages(card);
       };
 
       pageRows.forEach((item) => {
@@ -1376,7 +1962,7 @@
               <div>
                 <h2 class="ttl">
                   <span class="ttl-flag"><img src="${escapeHtml(item.flag)}" alt="" aria-hidden="true" loading="lazy" onerror="this.onerror=null;this.remove(); this.parentElement.classList.add('is-empty');"></span>
-                  <span class="ttl-text">${escapeHtml(item.name)}</span>
+                  <span class="ttl-text">${escapeHtml(stripLeadingFlagEmoji(item.name))}</span>
                 </h2>
                 <div class="code">${escapeHtml(item.code)}</div>
               </div>
@@ -1406,6 +1992,9 @@
         }
         grid.appendChild(node);
       });
+
+      wireTravelImages(grid);
+      primeTravelImages(grid);
 
       state.hasMore = end < count;
       syncPager();
@@ -1608,6 +2197,7 @@
 
     async function init() {
       loadCountryPhotoCacheFromStorage();
+      loadTravelBucketManifestFromStorage();
       wireEvents();
       const params = new URLSearchParams(window.location.search);
       const initialSearch = String(params.get('search') || '').trim();
@@ -1624,6 +2214,12 @@
         empty.textContent = 'Could not load countries right now.';
       }
       render();
+      void hydrateTravelBucketManifest().then((changed) => {
+        if (!changed) return;
+        applyCachedTravelPhotosToRows();
+        writeCountryRowsCache(state.rows);
+        render();
+      }).catch(() => {});
       wireListMenuBridge();
       window.setTimeout(() => {
         void syncAuth();
@@ -1636,6 +2232,13 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 

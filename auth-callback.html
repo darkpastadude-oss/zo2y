@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260315d"></script>
+<script src="/js/auth-gate.js?v=20260322a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Processing Authentication - Zo2y</title>
-<link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
+<link rel="icon" href="/newlogo.webp" type="image/webp" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/referral-utils.js?v=20260319a"></script>
   <style>
     body {
       background: #0b1633;
@@ -73,9 +74,9 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260316a">
-  <script src="js/shared-header.js?v=20260316a" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260322r" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
+  <script src="js/shared-header.js?v=20260322h" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -118,7 +119,7 @@
     (async function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-      const STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
+      const STORAGE_KEY = 'zo2y-auth-v1';
       const statusText = document.getElementById('statusText');
       const errorText = document.getElementById('errorText');
       const debugConsole = document.getElementById('debugConsole');
@@ -127,6 +128,8 @@
       const storedNext = localStorage.getItem('postAuthRedirect');
       const next = sanitizeNextPath(params.get('next') || storedNext || 'index.html');
       const flowParam = String(params.get('flow') || '').trim().toLowerCase();
+      const referralUtils = window.ZO2Y_REFERRALS || null;
+      const activeReferral = referralUtils ? referralUtils.captureReferralFromLocation(window.location.search) : '';
       const debugEnabled = window.location.search.includes('debug=true');
       if (debugEnabled) debugConsole.classList.add('show');
 
@@ -195,7 +198,7 @@
           .trim()
           .replace(/^@+/, '')
           .toLowerCase()
-          .replace(/['â€™]/g, '')
+          .replace(/[\u0027\u2019]/g, '')
           .replace(/\s+/g, '_')
           .replace(/[^a-z0-9_]/g, '_')
           .replace(/_+/g, '_')
@@ -377,6 +380,72 @@
         }
       }
 
+      async function triggerWelcomeEmail(session, flow, logFn) {
+        const accessToken = String(session?.access_token || '').trim();
+        if (!accessToken) {
+          logFn('Skipping welcome email trigger: missing session access token.', true);
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/emails/welcome/trigger', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({
+              appUrl: window.location.origin,
+              flow: flow || null
+            })
+          });
+
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            logFn(`Welcome email trigger failed: ${payload?.message || response.status}`, true);
+            return;
+          }
+
+          if (payload?.status === 'sent') {
+            logFn('Welcome email sent.');
+          } else {
+            logFn('Welcome email already sent earlier.');
+          }
+        } catch (error) {
+          logFn(`Welcome email trigger error: ${error.message}`, true);
+        }
+      }
+
+      async function persistReferralMetadata(client, user, flow, logFn) {
+        const referral = activeReferral || (referralUtils ? referralUtils.getStoredReferral() : '');
+        const safeReferral = String(referral || '').trim().toLowerCase();
+        if (!safeReferral || !user?.id) return;
+        if (String(user?.user_metadata?.referred_by_username || '').trim().toLowerCase() === safeReferral) {
+          if (referralUtils) referralUtils.markReferralConsumed(user.id, safeReferral);
+          return;
+        }
+        if (referralUtils && referralUtils.getConsumedReferral(user.id) === safeReferral) return;
+        try {
+          const { error } = await client.auth.updateUser({
+            data: {
+              referred_by_username: safeReferral
+            }
+          });
+          if (error) {
+            logFn(`Referral metadata sync skipped: ${error.message}`, true);
+            return;
+          }
+          if (referralUtils) referralUtils.markReferralConsumed(user.id, safeReferral);
+          sendAnalyticsEvent('referral_captured', {
+            flow: flow || 'unknown',
+            referral_username: safeReferral
+          }, true);
+          logFn(`Referral saved from @${safeReferral}.`);
+        } catch (error) {
+          logFn(`Referral metadata sync failed: ${error.message}`, true);
+        }
+      }
+
       try {
         log('Initializing auth callback...');
         if (!window.supabase || !window.supabase.createClient) {
@@ -453,6 +522,10 @@
           localStorage.setItem(getOnboardingPendingKey(user.id), '1');
         }
 
+        statusText.textContent = 'Finishing setup...';
+        await persistReferralMetadata(client, user, oauthFlow, log);
+        await triggerWelcomeEmail(storedSession, oauthFlow, log);
+
         sendAnalyticsEvent('oauth_callback_success', {
           flow: oauthFlow || 'unknown',
           created_profile: !!profileResult?.created,
@@ -496,6 +569,12 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
+
+
+
+
+
 
 
 

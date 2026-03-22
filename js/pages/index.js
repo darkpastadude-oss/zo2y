@@ -1,17 +1,21 @@
-    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
-    const ENABLE_GAMES = !GAMES_DISABLED;
+    const ENABLE_GAMES = true;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
     const ENABLE_FOOD = window.ZO2Y_DISABLE_FOOD !== true;
+    const ENABLE_CARS = window.ZO2Y_DISABLE_CARS !== true;
     const HOME_BASE_MEDIA_TYPES = ENABLE_GAMES
       ? ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'sports']
       : ['movie', 'tv', 'anime', 'book', 'music', 'travel', 'sports'];
     const HOME_LIFESTYLE_MEDIA_TYPES = [
       ...(ENABLE_FASHION ? ['fashion'] : []),
       ...(ENABLE_FOOD ? ['food'] : []),
+      ...(ENABLE_CARS ? ['car'] : []),
       ...(ENABLE_RESTAURANTS ? ['restaurant'] : [])
     ];
     const HOME_ACTIVE_MEDIA_TYPES = [...HOME_BASE_MEDIA_TYPES, ...HOME_LIFESTYLE_MEDIA_TYPES];
+    if (window.ZO2Y_SPORTS_LISTS == null) {
+      window.ZO2Y_SPORTS_LISTS = true;
+    }
     const HOME_LIST_MEDIA_TYPES = HOME_ACTIVE_MEDIA_TYPES.filter((type) => type !== 'sports' || window.ZO2Y_SPORTS_LISTS !== false);
     const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
@@ -32,28 +36,38 @@
       { id: 'fallback-r5', name: 'Quick Bites', category: 'Casual', rating: '4.6' }
     ];
     const HOME_FASHION_FALLBACKS = [
-      { id: 'fashion-nike', name: 'Nike', category: 'Sportswear', domain: 'nike.com', logo_url: 'https://logo.clearbit.com/nike.com' },
-      { id: 'fashion-adidas', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com', logo_url: 'https://logo.clearbit.com/adidas.com' },
-      { id: 'fashion-zara', name: 'Zara', category: 'Fast Fashion', domain: 'zara.com', logo_url: 'https://logo.clearbit.com/zara.com' },
-      { id: 'fashion-uniqlo', name: 'Uniqlo', category: 'Basics', domain: 'uniqlo.com', logo_url: 'https://logo.clearbit.com/uniqlo.com' },
-      { id: 'fashion-hm', name: 'H&M', category: 'Fast Fashion', domain: 'hm.com', logo_url: 'https://logo.clearbit.com/hm.com' },
-      { id: 'fashion-gucci', name: 'Gucci', category: 'Luxury', domain: 'gucci.com', logo_url: 'https://logo.clearbit.com/gucci.com' },
-      { id: 'fashion-prada', name: 'Prada', category: 'Luxury', domain: 'prada.com', logo_url: 'https://logo.clearbit.com/prada.com' },
-      { id: 'fashion-lv', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com', logo_url: 'https://logo.clearbit.com/louisvuitton.com' },
-      { id: 'fashion-offwhite', name: 'Off-White', category: 'Streetwear', domain: 'off---white.com', logo_url: 'https://logo.clearbit.com/off---white.com' },
-      { id: 'fashion-supreme', name: 'Supreme', category: 'Streetwear', domain: 'supremenewyork.com', logo_url: 'https://logo.clearbit.com/supremenewyork.com' }
+      { id: 'fashion-nike', name: 'Nike', category: 'Sportswear', domain: 'nike.com' },
+      { id: 'fashion-adidas', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com' },
+      { id: 'fashion-zara', name: 'Zara', category: 'Fast Fashion', domain: 'zara.com' },
+      { id: 'fashion-uniqlo', name: 'Uniqlo', category: 'Basics', domain: 'uniqlo.com' },
+      { id: 'fashion-hm', name: 'H&M', category: 'Fast Fashion', domain: 'hm.com' },
+      { id: 'fashion-gucci', name: 'Gucci', category: 'Luxury', domain: 'gucci.com' },
+      { id: 'fashion-prada', name: 'Prada', category: 'Luxury', domain: 'prada.com' },
+      { id: 'fashion-lv', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com' },
+      { id: 'fashion-offwhite', name: 'Off-White', category: 'Streetwear', domain: 'offwhite.com' },
+      { id: 'fashion-supreme', name: 'Supreme', category: 'Streetwear', domain: 'supremenewyork.com' }
     ];
     const HOME_FOOD_FALLBACKS = [
-      { id: 'food-mcd', name: "McDonald's", category: 'Fast Food', domain: 'mcdonalds.com', logo_url: 'https://logo.clearbit.com/mcdonalds.com' },
-      { id: 'food-kfc', name: 'KFC', category: 'Fast Food', domain: 'kfc.com', logo_url: 'https://logo.clearbit.com/kfc.com' },
-      { id: 'food-bk', name: 'Burger King', category: 'Fast Food', domain: 'burgerking.com', logo_url: 'https://logo.clearbit.com/burgerking.com' },
-      { id: 'food-subway', name: 'Subway', category: 'Fast Food', domain: 'subway.com', logo_url: 'https://logo.clearbit.com/subway.com' },
-      { id: 'food-taco', name: 'Taco Bell', category: 'Fast Food', domain: 'tacobell.com', logo_url: 'https://logo.clearbit.com/tacobell.com' },
-      { id: 'food-starbucks', name: 'Starbucks', category: 'Coffee', domain: 'starbucks.com', logo_url: 'https://logo.clearbit.com/starbucks.com' },
-      { id: 'food-dominos', name: "Domino's", category: 'Pizza', domain: 'dominos.com', logo_url: 'https://logo.clearbit.com/dominos.com' },
-      { id: 'food-pizzahut', name: 'Pizza Hut', category: 'Pizza', domain: 'pizzahut.com', logo_url: 'https://logo.clearbit.com/pizzahut.com' },
-      { id: 'food-chipotle', name: 'Chipotle', category: 'Fast Casual', domain: 'chipotle.com', logo_url: 'https://logo.clearbit.com/chipotle.com' },
-      { id: 'food-shakeshack', name: 'Shake Shack', category: 'Fast Casual', domain: 'shakeshack.com', logo_url: 'https://logo.clearbit.com/shakeshack.com' }
+      { id: 'food-mcd', name: "McDonald's", category: 'Fast Food', domain: 'mcdonalds.com' },
+      { id: 'food-kfc', name: 'KFC', category: 'Fast Food', domain: 'kfc.com' },
+      { id: 'food-bk', name: 'Burger King', category: 'Fast Food', domain: 'burgerking.com' },
+      { id: 'food-subway', name: 'Subway', category: 'Fast Food', domain: 'subway.com' },
+      { id: 'food-taco', name: 'Taco Bell', category: 'Fast Food', domain: 'tacobell.com' },
+      { id: 'food-starbucks', name: 'Starbucks', category: 'Coffee', domain: 'starbucks.com' },
+      { id: 'food-dominos', name: "Domino's", category: 'Pizza', domain: 'dominos.com' },
+      { id: 'food-pizzahut', name: 'Pizza Hut', category: 'Pizza', domain: 'pizzahut.com' },
+      { id: 'food-chipotle', name: 'Chipotle', category: 'Fast Casual', domain: 'chipotle.com' },
+      { id: 'food-shakeshack', name: 'Shake Shack', category: 'Fast Casual', domain: 'shakeshack.com' }
+    ];
+    const HOME_CAR_FALLBACKS = [
+      { id: 'car-toyota', name: 'Toyota', category: 'Automaker', domain: 'toyota.com' },
+      { id: 'car-honda', name: 'Honda', category: 'Automaker', domain: 'honda.com' },
+      { id: 'car-bmw', name: 'BMW', category: 'Luxury', domain: 'bmw.com' },
+      { id: 'car-mercedes', name: 'Mercedes-Benz', category: 'Luxury', domain: 'mercedes-benz.com' },
+      { id: 'car-audi', name: 'Audi', category: 'Luxury', domain: 'audi.com' },
+      { id: 'car-ford', name: 'Ford', category: 'Automaker', domain: 'ford.com' },
+      { id: 'car-chevrolet', name: 'Chevrolet', category: 'Automaker', domain: 'chevrolet.com' },
+      { id: 'car-tesla', name: 'Tesla', category: 'EV', domain: 'tesla.com' }
     ];
     const POPULAR_MUSIC_QUERIES = [
       'top 50 usa',
@@ -72,8 +86,14 @@
       'Real Madrid',
       'FC Barcelona',
       'Manchester City',
+      'Arsenal',
+      'Chelsea',
+      'Manchester United',
       'Bayern Munich',
       'Juventus',
+      'Inter Milan',
+      'AC Milan',
+      'Paris Saint-Germain',
       'Al Ahly',
       'Al Hilal',
       'Raja Casablanca',
@@ -81,20 +101,30 @@
       'Boca Juniors',
       'Flamengo',
       'LA Galaxy',
+      'Inter Miami',
+      'Seattle Sounders',
       'New Zealand All Blacks',
       'Mumbai Indians',
       'Chennai Super Kings',
+      'Kolkata Knight Riders',
+      'Royal Challengers Bengaluru',
       'Los Angeles Lakers',
       'Golden State Warriors',
+      'Boston Celtics',
+      'Chicago Bulls',
       'New York Yankees',
       'Dallas Cowboys',
+      'Kansas City Chiefs',
       'Toronto Maple Leafs',
-      'New Zealand Warriors'
+      'New Zealand Warriors',
+      'Ferrari',
+      'Mercedes AMG Petronas'
     ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-clapperboard', accent: '#f59e0b' },
       fashion: { label: 'Fashion', icon: 'fa-shirt', accent: '#38bdf8' },
       food: { label: 'Food', icon: 'fa-burger', accent: '#f59e0b' },
+      car: { label: 'Cars', icon: 'fa-car', accent: '#ef4444' },
       movie: { label: 'Movie', icon: 'fa-film', accent: '#ef4444' },
       tv: { label: 'TV', icon: 'fa-tv', accent: '#22c55e' },
       anime: { label: 'Anime', icon: 'fa-dragon', accent: '#f97316' },
@@ -118,18 +148,26 @@
       music: { table: 'music_list_items', itemField: 'track_id' },
       travel: { table: 'travel_list_items', itemField: 'country_code' },
       ...(ENABLE_FASHION ? { fashion: { table: 'fashion_list_items', itemField: 'brand_id' } } : {}),
-      ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {})
+      ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {}),
+      ...(ENABLE_CARS ? { car: { table: 'car_list_items', itemField: 'brand_id' } } : {})
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v12';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v11';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v12';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
-    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v5';
+    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
-    const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v2';
+    const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v4';
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
-    const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v2';
+    const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v4';
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
+    const HOME_TRAVEL_BUCKET_NAME = 'travel-photos';
+    const HOME_SPOTLIGHT_BUCKET_NAME = 'home-spotlights';
+    const HOME_BRAND_BACKGROUND_BUCKET_NAME = 'brand-backgrounds';
+    const HOME_TRAVEL_BUCKET_MANIFEST_CACHE_KEY = 'zo2y_travel_bucket_manifest_v1';
+    const HOME_TRAVEL_BUCKET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+    const HOME_TRAVEL_BUCKET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/manifest/travel-photo-manifest.json`;
+    const HOME_BRAND_BACKGROUND_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_BRAND_BACKGROUND_BUCKET_NAME}/manifest/brand-backgrounds.json`;
     const HOME_TRAVEL_FALLBACK_IMAGE = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
         <defs>
@@ -175,20 +213,35 @@
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 16;
-    const HOME_SPOTLIGHT_POOL_SIZE = 16;
+    const HOME_SPOTLIGHT_POOL_SIZE = 20;
     const HOME_NEW_RELEASES_TARGET_ITEMS = 16;
     const HOME_NEW_RELEASES_TIMEOUT_MS = 5600;
     const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 12;
-    const HOME_EAGER_IMAGE_COUNT = 8;
-    const HOME_HIGH_PRIORITY_IMAGE_COUNT = 4;
-    const HOME_PRELOAD_PER_CHANNEL = 2;
-    const HOME_PRELOAD_SPOTLIGHT_COUNT = 3;
+const HOME_EAGER_IMAGE_COUNT = 1;
+const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
+    const HOME_PRELOAD_PER_CHANNEL = 0;
+    const HOME_PRELOAD_SPOTLIGHT_COUNT = 1;
     const HOME_UNIFIED_TARGET_ITEMS = 24;
     const HOME_BECAUSE_SIGNAL_CACHE_MS = 1000 * 60 * 3;
     const HOME_BECAUSE_MAX_FOLLOWED_USERS = 24;
     const HOME_BECAUSE_SIGNAL_RECENCY_HOURS = 24 * 21;
     const HOME_MENU_PRIME_IDLE_DELAY_MS = 2500;
     const HOME_ONBOARDING_VERSION = 'v1';
+    const PROFILE_USERNAME_MAX_LENGTH = 30;
+const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
+    const HOME_TRAVEL_VARIANT_SESSION_SEED = Math.floor(Math.random() * 2147483647);
+    const HOME_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
+        <rect width='24' height='24' fill='#10224a'/>
+      </svg>
+    `)}`;
+    function getHomePublicBucketUrl(bucketName, filePath) {
+      const bucket = String(bucketName || '').trim();
+      const targetPath = String(filePath || '').trim().replace(/^\/+/, '');
+      if (!bucket || !targetPath) return '';
+      const encodedPath = targetPath.split('/').map((segment) => encodeURIComponent(segment)).join('/');
+      return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodedPath}`;
+    }
     const HOME_BOOK_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
         <defs>
@@ -226,36 +279,9 @@
         </g>
       </svg>
     `)}`;
-    const HOME_FASHION_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
-        <defs>
-          <linearGradient id='fashionGrad' x1='0' y1='0' x2='1' y2='1'>
-            <stop offset='0%' stop-color='#0b1633' />
-            <stop offset='55%' stop-color='#1b2f5a' />
-            <stop offset='100%' stop-color='#0a1a36' />
-          </linearGradient>
-        </defs>
-        <rect width='1600' height='900' fill='url(#fashionGrad)' />
-        <circle cx='1280' cy='180' r='220' fill='rgba(56,189,248,0.22)' />
-        <circle cx='300' cy='760' r='260' fill='rgba(245,158,11,0.18)' />
-        <path d='M420 640 L520 560 L640 620 L760 540 L900 600 L980 520 L1120 560' stroke='rgba(255,255,255,0.16)' stroke-width='18' fill='none' />
-      </svg>
-    `)}`;
-    const HOME_FOOD_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
-        <defs>
-          <linearGradient id='foodGrad' x1='0' y1='0' x2='1' y2='1'>
-            <stop offset='0%' stop-color='#0b1b34' />
-            <stop offset='55%' stop-color='#14325a' />
-            <stop offset='100%' stop-color='#0a172e' />
-          </linearGradient>
-        </defs>
-        <rect width='1600' height='900' fill='url(#foodGrad)' />
-        <circle cx='1220' cy='210' r='230' fill='rgba(249,115,22,0.22)' />
-        <circle cx='320' cy='720' r='250' fill='rgba(34,197,94,0.16)' />
-        <rect x='520' y='620' width='560' height='60' rx='30' fill='rgba(245,158,11,0.18)' />
-      </svg>
-    `)}`;
+    const HOME_FASHION_SPOTLIGHT_BG = getHomePublicBucketUrl(HOME_SPOTLIGHT_BUCKET_NAME, 'fashion.jpg');
+    const HOME_FOOD_SPOTLIGHT_BG = getHomePublicBucketUrl(HOME_SPOTLIGHT_BUCKET_NAME, 'food.jpg');
+    const HOME_CAR_SPOTLIGHT_BG = getHomePublicBucketUrl(HOME_SPOTLIGHT_BUCKET_NAME, 'cars.jpg');
     const HOME_SUGGESTIVE_TEXT_PATTERNS = [
       /\bhentai\b/i,
       /\becchi\b/i,
@@ -329,9 +355,6 @@
     ];
 
     async function homeIgdbFetch(path, params = {}, signal) {
-      if (GAMES_DISABLED) {
-        return { results: [] };
-      }
       const requestParams = { ...(params || {}) };
       if (requestParams.search) delete requestParams.ordering;
       if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
@@ -391,16 +414,25 @@
       selectedLists: new Set()
     };
     const homePreloadedImageSet = new Set();
+    let homeDeferredImageObserver = null;
+    let homeRailViewportObserver = null;
     let homeEagerImageBudgetUsed = 0;
     let homeHighPriorityImageBudgetUsed = 0;
     let homeNewReleasesState = [];
     let homeNewReleasesLastFetchAt = 0;
     let homeNewReleasesRequestSeq = 0;
     let homeNewReleasesInFlight = null;
+    let homeNewReleasesRefreshScheduled = false;
+    let homePendingNewReleasesRefresh = false;
     let homeFeedInitSeq = 0;
     let homeWeakFeedRetryTimer = null;
     let homeWeakFeedRetryCount = 0;
+    let homeMixedRefreshScheduled = false;
+    let homePendingMixedRefresh = false;
+    let homePendingMixedRefreshArgs = null;
     let homeMenuPrimeScheduled = false;
+    let homeUserInteracted = false;
+    let homeInteractionWatchBound = false;
     let homeBecauseRefreshSeq = 0;
     let homeBecauseSignalCache = {
       userId: '',
@@ -409,7 +441,12 @@
     };
     const homeTravelPhotoCache = new Map();
     let homeTravelPhotoCacheSaveTimer = null;
+    let homeTravelBucketManifestPromise = null;
+    let homeBrandBackgroundManifest = null;
+    let homeBrandBackgroundManifestPromise = null;
     let homeTravelHydrationPromise = null;
+    const homePendingRailRenderState = new Map();
+    const homeDeferredChannelState = new Map();
     const homeMusicPreviewState = {
       audio: null,
       btn: null
@@ -458,7 +495,7 @@
         .normalize('NFD')
         .replace(/[\u0300-\u036f]+/g, '')
         .replace(/&/g, ' and ')
-        .replace(/['’]/g, '')
+        .replace(/[\u0027\u2019]/g, '')
         .replace(/[^a-z0-9]+/g, ' ')
         .replace(/^the\s+/g, '')
         .trim();
@@ -569,10 +606,7 @@
 
     function formatTravelTitleWithFlag(titleRaw, codeRaw) {
       const title = String(titleRaw || '').trim();
-      if (!title) return title;
-      const flagEmoji = getHomeCountryFlagEmoji(codeRaw);
-      if (!flagEmoji) return title;
-      return title.startsWith(flagEmoji) ? title : `${flagEmoji} ${title}`;
+      return title;
     }
 
     function canonicalTravelCountryCode(value) {
@@ -588,7 +622,7 @@
       if (raw.includes('/flags/')) return true;
       if (raw.includes('restcountries.com/data/')) return true;
       if (raw.includes('commons.wikimedia.org') && (raw.includes('flag_of_') || raw.includes('flag-of-'))) return true;
-      const blocked = ['coat_of_arms', 'coat-of-arms', 'emblem', 'seal', 'map_of_', 'map-of-', 'painting', 'illustration', 'drawing', 'watercolor', 'etching', 'engraving', 'lithograph', 'oil_on_canvas'];
+      const blocked = ['coat_of_arms', 'coat-of-arms', 'emblem', 'seal', 'map_of_', 'map-of-', 'painting', 'illustration', 'drawing', 'watercolor', 'etching', 'engraving', 'lithograph', 'oil_on_canvas', 'cartoon', 'sketch', 'render', 'vector', 'banknote', 'stamp', 'crest', 'poster'];
       if (blocked.some((token) => raw.includes(token))) return true;
       return false;
     }
@@ -608,6 +642,14 @@
       if (lower.includes('/images/placeholder.jpg')) return false;
       if (lower.includes('source.unsplash.com/')) return false;
       return true;
+    }
+
+    function getTravelCommonsCategoryText(page) {
+      const categories = Array.isArray(page?.categories) ? page.categories : [];
+      return categories
+        .map((entry) => String(entry?.title || '').replace(/^Category:/i, '').trim().toLowerCase())
+        .filter(Boolean)
+        .join(' | ');
     }
 
     function normalizeHomeTravelPhotoEntry(entry) {
@@ -637,6 +679,152 @@
       const code = canonicalTravelCountryCode(codeRaw);
       if (!code) return { scenic: '', city: '', nature: '' };
       return normalizeHomeTravelPhotoEntry(homeTravelPhotoCache.get(code));
+    }
+
+    function normalizeHomeTravelBucketManifestEntries(payload) {
+      if (!payload || typeof payload !== 'object') return null;
+      const entries = payload.countries && typeof payload.countries === 'object'
+        ? payload.countries
+        : (payload.entries && typeof payload.entries === 'object' ? payload.entries : null);
+      return entries && typeof entries === 'object' ? entries : null;
+    }
+
+    function mergeHomeTravelBucketManifestEntries(entries) {
+      if (!entries || typeof entries !== 'object') return false;
+      let changed = false;
+      Object.entries(entries).forEach(([codeRaw, entry]) => {
+        const code = canonicalTravelCountryCode(codeRaw);
+        if (!code) return;
+        const normalized = normalizeHomeTravelPhotoEntry(entry);
+        if (!normalized.scenic && !normalized.city && !normalized.nature) return;
+        const current = normalizeHomeTravelPhotoEntry(homeTravelPhotoCache.get(code));
+        const merged = {
+          scenic: normalized.scenic || current.scenic || '',
+          city: normalized.city || current.city || '',
+          nature: normalized.nature || current.nature || ''
+        };
+        if (merged.scenic === current.scenic && merged.city === current.city && merged.nature === current.nature) return;
+        homeTravelPhotoCache.set(code, merged);
+        changed = true;
+      });
+      if (changed) scheduleHomeTravelPhotoCacheSave();
+      return changed;
+    }
+
+    function readHomeTravelBucketManifestCache() {
+      try {
+        const raw = localStorage.getItem(HOME_TRAVEL_BUCKET_MANIFEST_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed?.savedAt || 0);
+        const entries = normalizeHomeTravelBucketManifestEntries(parsed);
+        if (!savedAt || !entries) return null;
+        if ((Date.now() - savedAt) > HOME_TRAVEL_BUCKET_MANIFEST_TTL_MS) return null;
+        return { savedAt, entries };
+      } catch (_err) {
+        return null;
+      }
+    }
+
+    function writeHomeTravelBucketManifestCache(entries) {
+      if (!entries || typeof entries !== 'object') return;
+      try {
+        localStorage.setItem(HOME_TRAVEL_BUCKET_MANIFEST_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          countries: entries
+        }));
+      } catch (_err) {}
+    }
+
+    function loadHomeTravelBucketManifestFromStorage() {
+      const cached = readHomeTravelBucketManifestCache();
+      if (!cached || !cached.entries) return false;
+      return mergeHomeTravelBucketManifestEntries(cached.entries);
+    }
+
+    async function hydrateHomeTravelBucketManifest(signal) {
+      if (homeTravelBucketManifestPromise) return homeTravelBucketManifestPromise;
+      homeTravelBucketManifestPromise = (async () => {
+        try {
+          const response = await fetch(HOME_TRAVEL_BUCKET_MANIFEST_URL, {
+            signal,
+            headers: { Accept: 'application/json' }
+          });
+          if (!response.ok) return false;
+          const payload = await response.json();
+          const entries = normalizeHomeTravelBucketManifestEntries(payload);
+          if (!entries) return false;
+          writeHomeTravelBucketManifestCache(entries);
+          return mergeHomeTravelBucketManifestEntries(entries);
+        } catch (_err) {
+          return false;
+        } finally {
+          homeTravelBucketManifestPromise = null;
+        }
+      })();
+      return homeTravelBucketManifestPromise;
+    }
+
+    function normalizeHomeBrandBackgroundManifest(payload) {
+      if (!payload || typeof payload !== 'object') return null;
+      const tables = ['fashion_brands', 'food_brands', 'car_brands'];
+      const normalized = {};
+      let hasEntries = false;
+      tables.forEach((table) => {
+        const source = payload?.[table];
+        if (!source || typeof source !== 'object') return;
+        const mapped = {};
+        Object.entries(source).forEach(([slugRaw, urlRaw]) => {
+          const slug = String(slugRaw || '').trim();
+          const url = toHttpsUrl(String(urlRaw || '').trim());
+          if (!slug || !url) return;
+          mapped[slug] = url;
+          hasEntries = true;
+        });
+        normalized[table] = mapped;
+      });
+      return hasEntries ? normalized : null;
+    }
+
+    async function ensureHomeBrandBackgroundManifest(signal) {
+      if (homeBrandBackgroundManifest) return homeBrandBackgroundManifest;
+      if (homeBrandBackgroundManifestPromise) return homeBrandBackgroundManifestPromise;
+      homeBrandBackgroundManifestPromise = (async () => {
+        try {
+          const response = await fetch(HOME_BRAND_BACKGROUND_MANIFEST_URL, {
+            signal,
+            headers: { Accept: 'application/json' }
+          });
+          if (!response.ok) return null;
+          const payload = await response.json();
+          homeBrandBackgroundManifest = normalizeHomeBrandBackgroundManifest(payload);
+          return homeBrandBackgroundManifest;
+        } catch (_err) {
+          return null;
+        } finally {
+          homeBrandBackgroundManifestPromise = null;
+        }
+      })();
+      return homeBrandBackgroundManifestPromise;
+    }
+
+    function getHomeBrandTableName(mediaType) {
+      const type = String(mediaType || '').trim().toLowerCase();
+      if (type === 'fashion') return 'fashion_brands';
+      if (type === 'food') return 'food_brands';
+      if (type === 'car') return 'car_brands';
+      return '';
+    }
+
+    function getHomeBrandBackgroundUrl(row, mediaType) {
+      const table = getHomeBrandTableName(mediaType);
+      if (!table) return '';
+      const slug = String(row?.slug || '').trim().toLowerCase();
+      const tableManifest = homeBrandBackgroundManifest?.[table];
+      if (slug && tableManifest && tableManifest[slug]) {
+        return String(tableManifest[slug] || '').trim();
+      }
+      return '';
     }
 
     function getHomeTravelFallbackItems(limit = getHomeChannelTargetItems()) {
@@ -839,7 +1027,83 @@
       }
     }
 
+    function mapCachedTravelCountryRowToHomeItem(row) {
+      const code = canonicalTravelCountryCode(row?.code || row?.cca2 || row?.cca3 || '');
+      const baseTitle = String(row?.name || row?.title || '').trim();
+      if (!code || !baseTitle || /\bisrael\b/i.test(baseTitle)) return null;
+      const resolvedBaseTitle = code === 'PS' ? 'Palestine' : baseTitle;
+      const title = formatTravelTitleWithFlag(resolvedBaseTitle, code);
+      const capital = String(row?.capital || '').trim();
+      const region = String(row?.region || '').trim();
+      const subregion = String(row?.subregion || '').trim();
+      const cities = Array.isArray(row?.cities)
+        ? row.cities.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3)
+        : pickHomeCountryCities(code, capital);
+      const flagImage = toHttpsUrl(String(row?.flag || row?.flagImage || '').trim())
+        || getHomeCountryFlagByCode(code)
+        || getHomeCountryFlag(title)
+        || '';
+      const subtitle = [
+        capital ? `Capital: ${capital}` : '',
+        region
+      ].filter(Boolean).join(' | ') || 'Country';
+      const extraParts = [];
+      if (subregion && subregion !== region) extraParts.push(subregion);
+      if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
+      const scenicRaw = getSafeTravelScenicImage(resolvedBaseTitle, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
+      const scenicImage = isUsableHomeTravelScenicUrl(scenicRaw) ? scenicRaw : '';
+      const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
+      const heroImage = scenicImage || safeFallback;
+      if (!heroImage) return null;
+      if (heroImage) setHomeTravelPhotoCache(code, heroImage, 'scenic');
+      if (row?.photoCity) setHomeTravelPhotoCache(code, row.photoCity, 'city');
+      if (row?.photoNature) setHomeTravelPhotoCache(code, row.photoNature, 'nature');
+      const cachedSet = getHomeTravelPhotoSet(code);
+      return {
+        mediaType: 'travel',
+        itemId: code,
+        title,
+        subtitle,
+        extra: extraParts.join(' | ') || 'Travel',
+        cities,
+        flagImage,
+        listImage: heroImage,
+        image: heroImage,
+        backgroundImage: heroImage || '',
+        spotlightImage: heroImage || '',
+        spotlightMediaImage: flagImage || heroImage,
+        spotlightMediaFit: flagImage ? 'contain' : 'cover',
+        spotlightMediaPosition: 'center center',
+        spotlightMediaShape: 'square',
+        travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
+        travelPhotoSet: {
+          scenic: cachedSet.scenic || heroImage || '',
+          city: cachedSet.city || '',
+          nature: cachedSet.nature || ''
+        },
+        travelNeedsScenicHydration: false,
+        fallbackImage: safeFallback || heroImage,
+        href: `country.html?code=${encodeURIComponent(code)}`
+      };
+    }
+
+    function getCachedHomeTravelItems(limit = getHomeChannelTargetItems()) {
+      const rows = readHomeTravelCountryRowsCache();
+      if (!rows.length) return [];
+      const seenCodes = new Set();
+      const items = [];
+      rows.forEach((row) => {
+        const item = mapCachedTravelCountryRowToHomeItem(row);
+        const code = String(item?.itemId || '').trim().toUpperCase();
+        if (!item || !code || seenCodes.has(code)) return;
+        seenCodes.add(code);
+        items.push(item);
+      });
+      return shuffleArray(items).slice(0, Math.max(1, Number(limit || getHomeChannelTargetItems())));
+    }
+
     readHomeTravelPhotoCacheFromStorage();
+    loadHomeTravelBucketManifestFromStorage();
 
     function withTimeout(promise, timeoutMs, fallbackValue = null) {
       let timer = null;
@@ -964,17 +1228,31 @@
       return toHttpsUrl(`images/${normalized}`);
     }
 
-    function resolveBrandLogo(row) {
-      const directRaw = String(row?.logo_url || row?.logo || '').trim();
+    function resolveBrandLogo(row, mediaType) {
+      const logoValue = String(row?.logo_url || row?.logo || '').trim();
+      if (logoValue) {
+        if (/^https?:\/\//i.test(logoValue) || logoValue.startsWith('/') || logoValue.startsWith('data:')) {
+          return logoValue;
+        }
+      }
+      const title = String(row?.name || row?.title || '').trim();
       const domainRaw = String(row?.domain || '').trim();
-      const candidate = domainRaw || directRaw;
+      const logoOnly = ['fashion', 'food', 'car'].includes(String(mediaType || '').toLowerCase());
+      if (title) {
+        const params = new URLSearchParams();
+        params.set('title', title);
+        if (domainRaw) params.set('domain', domainRaw);
+        if (logoOnly) params.set('mode', 'logo');
+        return `/api/logo?${params.toString()}`;
+      }
+      const candidate = domainRaw;
       if (!candidate) return '';
       if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
-        return `/api/logo?domain=${encodeURIComponent(candidate)}&size=128`;
+        return `/api/logo?domain=${encodeURIComponent(candidate)}&size=128${logoOnly ? '&mode=logo' : ''}`;
       }
       if (/^https?:\/\//i.test(candidate)) {
         const match = candidate.match(/\/\/([^\/\?]+)/i);
-        if (match && match[1]) return `/api/logo?domain=${encodeURIComponent(match[1])}&size=128`;
+        if (match && match[1]) return `/api/logo?domain=${encodeURIComponent(match[1])}&size=128${logoOnly ? '&mode=logo' : ''}`;
         return candidate;
       }
       return '';
@@ -983,13 +1261,19 @@
     function mapHomeBrandItem(row, type, fallbackIndex = 0) {
       const safeType = String(type || '').toLowerCase();
       const title = String(row?.name || row?.title || '').trim() || 'Brand';
-      const category = String(row?.category || '').trim() || (safeType === 'fashion' ? 'Fashion' : 'Food');
+      const category = String(row?.category || '').trim() || (
+        safeType === 'fashion'
+          ? 'Fashion'
+          : (safeType === 'food'
+            ? 'Food'
+            : (safeType === 'car' ? 'Cars' : 'Brand'))
+      );
       const country = String(row?.country || '').trim();
       const founded = row?.founded ? String(row.founded) : '';
-      const logo = resolveBrandLogo(row);
-      const subtitle = `${category}${country ? ` · ${country}` : ''}`;
+      const logo = resolveBrandLogo(row, safeType);
+      const subtitle = `${category}${country ? ` \u00B7 ${country}` : ''}`;
       const extra = founded ? `Since ${founded}` : (row?.description ? String(row.description).trim() : '');
-      const background = getHomeSpotlightBackgroundByType(safeType);
+      const background = getHomeBrandBackgroundUrl(row, safeType);
       const itemId = String(row?.id || row?.slug || `${safeType}-${fallbackIndex}` || '').trim();
       return {
         mediaType: safeType,
@@ -1011,6 +1295,48 @@
         mediaFit: 'contain',
         href: itemId ? `brand.html?type=${encodeURIComponent(safeType)}&id=${encodeURIComponent(itemId)}` : `${safeType}.html`
       };
+    }
+
+    function dedupeHomeBrandRows(rows = []) {
+      const seen = new Set();
+      const out = [];
+      (Array.isArray(rows) ? rows : []).forEach((row) => {
+        const name = String(row?.name || row?.title || '').trim().toLowerCase();
+        const domain = String(row?.domain || '').trim().toLowerCase();
+        const slug = String(row?.slug || '').trim().toLowerCase();
+        const key = name || domain || slug;
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        out.push(row);
+      });
+      return out;
+    }
+
+    function getHomeSessionShuffleSeed(salt = '') {
+      const userSeed = String(homeCurrentUser?.id || '').trim();
+      const raw = `${HOME_TRAVEL_VARIANT_SESSION_SEED}:${userSeed}:${salt}`;
+      let hash = 2166136261;
+      for (let index = 0; index < raw.length; index += 1) {
+        hash ^= raw.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash >>> 0;
+    }
+
+    function stableShuffleHomeItems(items = [], salt = '') {
+      const seedBase = getHomeSessionShuffleSeed(salt);
+      return [...(Array.isArray(items) ? items : [])]
+        .map((item, index) => {
+          const key = `${String(item?.itemId || '').trim()}:${String(item?.title || '').trim().toLowerCase()}:${index}`;
+          let hash = seedBase || 1;
+          for (let cursor = 0; cursor < key.length; cursor += 1) {
+            hash ^= key.charCodeAt(cursor);
+            hash = Math.imul(hash, 16777619);
+          }
+          return { item, order: hash >>> 0 };
+        })
+        .sort((a, b) => a.order - b.order)
+        .map((entry) => entry.item);
     }
 
     function showHomeToast(message, isError = false) {
@@ -1039,8 +1365,6 @@
       const type = String(mediaType || '').toLowerCase();
       if (type === 'book') return HOME_BOOK_SPOTLIGHT_BG;
       if (type === 'music') return HOME_MUSIC_SPOTLIGHT_BG;
-      if (type === 'fashion') return HOME_FASHION_SPOTLIGHT_BG;
-      if (type === 'food') return HOME_FOOD_SPOTLIGHT_BG;
       return '';
     }
 
@@ -1099,6 +1423,7 @@
       if (type === 'restaurant') return 'Restaurants';
       if (type === 'fashion') return 'Fashion';
       if (type === 'food') return 'Food';
+      if (type === 'car') return 'Cars';
       return 'Discover';
     }
 
@@ -1207,6 +1532,16 @@
             ]
           };
         }
+        if (type === 'car') {
+          return {
+            customHref: 'cars.html',
+            rows: [
+              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+              { key: 'owned', label: 'Owned', icon: 'fas fa-check' },
+              { key: 'wishlist', label: 'Wishlist', icon: 'fas fa-bookmark' }
+            ]
+          };
+        }
         if (ENABLE_RESTAURANTS && type === 'restaurant') {
           return {
             customHref: 'restraunts.html',
@@ -1262,6 +1597,28 @@
     function getDailySignal(value) {
       const dateKey = new Date().toISOString().slice(0, 10);
       return (hashString(`${value}|${dateKey}`) % 100) / 100;
+    }
+
+    function getHomeTravelSpotlightVisual(item) {
+      const safeItem = item && typeof item === 'object' ? item : {};
+      const code = canonicalTravelCountryCode(safeItem.itemId || safeItem.code || '');
+      const title = String(safeItem.title || safeItem.name || '').trim();
+      const cachedSet = normalizeHomeTravelPhotoEntry(safeItem.travelPhotoSet || getHomeTravelPhotoSet(code));
+      const fallback = getSafeTravelScenicImage(
+        title,
+        code,
+        safeItem.spotlightImage || safeItem.backgroundImage || safeItem.image || cachedSet.scenic || cachedSet.city || ''
+      );
+      const choices = [
+        { kind: 'scenic', src: cachedSet.scenic || fallback },
+        { kind: 'city', src: cachedSet.city || '' }
+      ].filter((entry) => isUsableHomeTravelScenicUrl(entry.src));
+      if (!choices.length) {
+        return fallback ? { kind: 'scenic', src: fallback } : null;
+      }
+      const seedKey = `${HOME_TRAVEL_VARIANT_SESSION_SEED}:${code || title || 'travel'}`;
+      const index = hashString(seedKey) % choices.length;
+      return choices[index] || choices[0] || null;
     }
 
     function getTrendLabel(item) {
@@ -1320,15 +1677,26 @@
       const meta = getHomeMediaMeta(mediaTypeKey);
       const isTravelSpotlight = mediaTypeKey === 'travel';
       const isGameSpotlight = mediaTypeKey === 'game';
+      const isBrandSpotlight = mediaTypeKey === 'fashion' || mediaTypeKey === 'food' || mediaTypeKey === 'car';
+      const travelSpotlightVisual = isTravelSpotlight
+        ? getHomeTravelSpotlightVisual(item)
+        : null;
       const travelScenicImage = isTravelSpotlight
-        ? getSafeTravelScenicImage(item.title, item.itemId, item.spotlightImage || item.backgroundImage || item.image)
+        ? String(travelSpotlightVisual?.src || getSafeTravelScenicImage(item.title, item.itemId, item.spotlightImage || item.backgroundImage || item.image)).trim()
+        : '';
+      const travelSpotlightBackground = isTravelSpotlight
+        ? getOptimizedHomeTravelImage(travelScenicImage, 1600)
         : '';
       const fallbackSpotlightBackground = isTravelSpotlight
-        ? travelScenicImage
+        ? (travelSpotlightBackground || travelScenicImage)
         : (isGameSpotlight
           ? String(item.spotlightImage || item.backgroundImage || '').trim()
-          : String(item.spotlightImage || item.backgroundImage || item.image || '').trim());
+          : (isBrandSpotlight
+            ? String(item.spotlightImage || item.backgroundImage || '').trim()
+            : String(item.spotlightImage || item.backgroundImage || item.image || '').trim()));
       const spotlightBackground = getHomeSpotlightBackgroundByType(mediaTypeKey) || fallbackSpotlightBackground;
+      const travelAccentA = '';
+      const travelAccentB = '';
       const travelFlagImage = String(item.flagImage || '').trim();
       let spotlightMediaImage = String(item.spotlightMediaImage || travelFlagImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
       if (isTravelSpotlight) {
@@ -1349,12 +1717,15 @@
       const usesLandscapeMedia = spotlightMediaShape === 'landscape';
       const mediaToken = ++homeSpotlightImageToken;
 
-      spotlightSection.classList.remove('has-square-media', 'has-landscape-media', 'theme-music', 'theme-book');
+      spotlightSection.classList.remove('has-square-media', 'has-landscape-media', 'theme-music', 'theme-book', 'theme-travel', 'travel-single-visual');
       mediaWrap.classList.remove('square', 'landscape');
       if (mediaTypeKey === 'music') {
         spotlightSection.classList.add('theme-music');
       } else if (mediaTypeKey === 'book') {
         spotlightSection.classList.add('theme-book');
+      } else if (isTravelSpotlight) {
+        spotlightSection.classList.add('theme-travel');
+        spotlightSection.classList.add('travel-single-visual');
       }
       if (usesLandscapeMedia) {
         spotlightSection.classList.add('has-landscape-media');
@@ -1370,6 +1741,8 @@
         bg.style.backgroundImage = 'linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%)';
       }
       bg.style.backgroundPosition = spotlightBackgroundPosition;
+      bg.style.setProperty('--spotlight-travel-accent-a', travelAccentA ? `url("${travelAccentA}")` : 'none');
+      bg.style.setProperty('--spotlight-travel-accent-b', travelAccentB ? `url("${travelAccentB}")` : 'none');
 
       if (spotlightMediaImage) {
         mediaImage.loading = 'eager';
@@ -1645,6 +2018,7 @@
           const cover = resolveHomeGameCover(row);
           if (!cover) return null;
           const hero = resolveHomeGameHero(row, '');
+          const presentation = getHomeGamePresentation(cover, hero);
           const rowId = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
           const rowTitle = String(row?.name || row?.title || 'Game').trim() || 'Game';
           const genreText = Array.isArray(extra?.genres)
@@ -1655,14 +2029,15 @@
             mediaType: 'game',
             itemId: rowId,
             title: rowTitle,
-            subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
+            subtitle: releaseDate ? releaseDate.slice(0, 10) : '',
             extra: [genreText, Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : ''].filter(Boolean).join(' | '),
             image: cover,
-            backgroundImage: hero || '',
-            spotlightImage: hero || '',
+            backgroundImage: hero || cover,
+            spotlightImage: hero || cover,
             spotlightMediaImage: cover,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
+            spotlightMediaFit: presentation.spotlightFit,
+            spotlightMediaShape: presentation.spotlightShape,
+            gameCardMode: presentation.plain ? 'plain' : 'hero',
             fallbackImage: '',
             href: rowId ? `game.html?id=${encodeURIComponent(rowId)}` : 'games.html'
           };
@@ -1906,9 +2281,9 @@
       const fallbackItems = filterHomeSafeItems(buildNewReleasesFallback(feedMap));
 
       if (homeNewReleasesState.length) {
-        renderRail('newReleasesRail', filterHomeSafeItems(homeNewReleasesState), railOptions);
+        renderOrDeferHomeRail('newReleasesRail', filterHomeSafeItems(homeNewReleasesState), railOptions);
       } else if (fallbackItems.length) {
-        renderRail('newReleasesRail', fallbackItems, railOptions);
+        renderOrDeferHomeRail('newReleasesRail', fallbackItems, railOptions);
       }
 
       const force = options.force === true;
@@ -1930,9 +2305,9 @@
         if (safeLiveItems.length) {
           homeNewReleasesState = safeLiveItems;
           homeNewReleasesLastFetchAt = Date.now();
-          renderRail('newReleasesRail', homeNewReleasesState, railOptions);
+          renderOrDeferHomeRail('newReleasesRail', homeNewReleasesState, railOptions);
         } else if (!homeNewReleasesState.length && fallbackItems.length) {
-          renderRail('newReleasesRail', fallbackItems, railOptions);
+          renderOrDeferHomeRail('newReleasesRail', fallbackItems, railOptions);
         }
       })();
       homeNewReleasesInFlight = requestTask;
@@ -2107,7 +2482,7 @@
       const fallbackItems = buildUnifiedFeed(localPool, getHomeUnifiedTargetItems());
 
       if (!homeCurrentUser?.id) {
-        renderRail('unifiedRail', fallbackItems, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+        renderOrDeferHomeRail('unifiedRail', fallbackItems, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
         return;
       }
 
@@ -2115,7 +2490,7 @@
       if (seq !== homeBecauseRefreshSeq) return;
       const boostedPool = applyActivitySignalsToPool(localPool, signalPayload);
       const unified = buildUnifiedFeed(boostedPool, getHomeUnifiedTargetItems());
-      renderRail('unifiedRail', unified.length ? unified : fallbackItems, {
+      renderOrDeferHomeRail('unifiedRail', unified.length ? unified : fallbackItems, {
         mediaType: 'mixed',
         uniformMedia: true,
         restaurantComposite: true
@@ -2135,11 +2510,22 @@
       return `${type}:${id || title || image || index}`;
     }
 
+    function canUseHomeSpotlightItem(item) {
+      if (!item || item.isPlaceholder) return false;
+      return !!String(
+        item?.spotlightImage
+        || item?.backgroundImage
+        || item?.spotlightMediaImage
+        || item?.image
+        || ''
+      ).trim();
+    }
+
     function buildBalancedSpotlightShortlist(pool, limit = HOME_SPOTLIGHT_POOL_SIZE) {
       const maxItems = Math.max(1, Number(limit || HOME_SPOTLIGHT_POOL_SIZE));
       const candidates = [];
       const usedCandidateKeys = new Set();
-      filterHomeSafeItems(Array.isArray(pool) ? pool : []).forEach((item, index) => {
+      filterHomeSafeItems(Array.isArray(pool) ? pool : []).filter((item) => canUseHomeSpotlightItem(item)).forEach((item, index) => {
         const key = getHomeSpotlightPoolKey(item, index);
         if (!key || usedCandidateKeys.has(key)) return;
         usedCandidateKeys.add(key);
@@ -2242,7 +2628,7 @@
     }
 
     function hydrateSpotlightFromPool(pool) {
-      const safePool = filterHomeSafeItems(Array.isArray(pool) ? pool : []);
+      const safePool = filterHomeSafeItems(Array.isArray(pool) ? pool : []).filter((item) => canUseHomeSpotlightItem(item));
       if (!safePool.length) {
         homeSpotlightItems = [];
         resetSpotlightTimer(false);
@@ -2264,25 +2650,6 @@
         const seed = getSpotlightSeedOffset();
         const offset = seed % shortlist.length;
         homeSpotlightItems = [...shortlist.slice(offset), ...shortlist.slice(0, offset)];
-      }
-
-      if (ENABLE_GAMES) {
-        const spotlightGames = safePool.filter((item) => {
-          const type = String(item?.mediaType || '').toLowerCase();
-          const cover = String(item?.spotlightMediaImage || '').trim();
-          const hero = String(item?.spotlightImage || '').trim();
-          return type === 'game' && cover && hero && cover !== hero;
-        });
-        const desiredGameCount = Math.min(3, spotlightGames.length);
-        const currentGameCount = homeSpotlightItems.filter((item) => String(item?.mediaType || '').toLowerCase() === 'game').length;
-        if (desiredGameCount > currentGameCount) {
-          const existingKeys = new Set(homeSpotlightItems.map((item, index) => getHomeSpotlightPoolKey(item, index)));
-          const needed = desiredGameCount - currentGameCount;
-          const additions = spotlightGames.filter((item, index) => !existingKeys.has(getHomeSpotlightPoolKey(item, index))).slice(0, needed);
-          if (additions.length) {
-            homeSpotlightItems = [...additions, ...homeSpotlightItems].slice(0, spotlightPoolSize);
-          }
-        }
       }
 
       warmSpotlightImages(homeSpotlightItems);
@@ -2383,7 +2750,8 @@
           persistSession: true,
           autoRefreshToken: true,
           // OAuth callback is handled on auth-callback.html, keep homepage parser off.
-          detectSessionInUrl: false
+          detectSessionInUrl: false,
+          storageKey: 'zo2y-auth-v1'
         }
       });
       window.__ZO2Y_SUPABASE_CLIENT = homeSupabaseClient;
@@ -3817,9 +4185,9 @@
     }
 
     function getHomeChannelTargetItems() {
-      return isHomeSlowNetwork()
-        ? Math.max(8, HOME_CHANNEL_TARGET_ITEMS - 8)
-        : HOME_CHANNEL_TARGET_ITEMS;
+      if (isHomeSlowNetwork()) return Math.max(8, HOME_CHANNEL_TARGET_ITEMS - 8);
+      if (isHomeCompactViewport()) return Math.max(10, HOME_CHANNEL_TARGET_ITEMS - 4);
+      return HOME_CHANNEL_TARGET_ITEMS;
     }
 
     function getHomeUnifiedTargetItems() {
@@ -3864,10 +4232,10 @@
     function consumeHomeImageRequestBudget() {
       const onSlowNetwork = isHomeSlowNetwork();
       const eagerBudget = onSlowNetwork
-        ? Math.max(2, HOME_EAGER_IMAGE_COUNT - 3)
+        ? Math.max(1, HOME_EAGER_IMAGE_COUNT - 1)
         : HOME_EAGER_IMAGE_COUNT;
       const priorityBudget = onSlowNetwork
-        ? Math.max(1, HOME_HIGH_PRIORITY_IMAGE_COUNT - 2)
+        ? 1
         : HOME_HIGH_PRIORITY_IMAGE_COUNT;
       const useEager = homeEagerImageBudgetUsed < eagerBudget;
       const useHighPriority = homeHighPriorityImageBudgetUsed < priorityBudget;
@@ -3901,6 +4269,10 @@
     function preloadImage(url) {
       const src = String(url || '').trim();
       if (!src) return;
+      const localBucketPrefix = `${SUPABASE_URL}/storage/v1/object/public/`;
+      const sameOrigin = typeof window !== 'undefined' && src.startsWith(window.location.origin);
+      const isLocalBucket = src.startsWith(localBucketPrefix);
+      if (!sameOrigin && !isLocalBucket && !src.startsWith('/')) return;
       if (homePreloadedImageSet.has(src)) return;
       homePreloadedImageSet.add(src);
       if (homePreloadedImageSet.size > 1200) {
@@ -3914,14 +4286,164 @@
       img.src = src;
     }
 
+    function shouldDeferHomeImageLoad(loading) {
+      return String(loading || '').toLowerCase() !== 'eager';
+    }
+
+    function getHomeImageWrapper(img) {
+      return img?.closest?.('.card-media, .game-card-media, .travel-photo-tile') || null;
+    }
+
+    function markHomeImageReady(img) {
+      if (!img) return;
+      img.setAttribute('data-image-ready', '1');
+      img.setAttribute('data-home-image-state', 'ready');
+      const wrapper = getHomeImageWrapper(img);
+      if (wrapper) wrapper.classList.remove('is-loading-media');
+    }
+
+    function loadHomeDeferredImage(img) {
+      if (!img || !img.hasAttribute('data-home-src')) return;
+      const nextSrc = String(img.getAttribute('data-home-src') || '').trim();
+      if (!nextSrc) {
+        img.removeAttribute('data-home-src');
+        markHomeImageReady(img);
+        return;
+      }
+      img.setAttribute('data-home-image-state', 'loading');
+      img.removeAttribute('data-home-src');
+      img.src = nextSrc;
+    }
+
+    function getHomeDeferredImageObserver() {
+      if (homeDeferredImageObserver || typeof window.IntersectionObserver !== 'function') {
+        return homeDeferredImageObserver;
+      }
+      homeDeferredImageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const img = entry.target;
+          observer.unobserve(img);
+          loadHomeDeferredImage(img);
+        });
+      }, {
+        rootMargin: HOME_DEFERRED_IMAGE_ROOT_MARGIN,
+        threshold: 0.01
+      });
+      return homeDeferredImageObserver;
+    }
+
+    function primeHomeDeferredImages(scope) {
+      if (!scope) return;
+      const deferredImages = Array.from(scope.querySelectorAll('img[data-home-src]'));
+      if (!deferredImages.length) return;
+      const observer = getHomeDeferredImageObserver();
+      if (!observer) {
+        deferredImages.forEach((img) => loadHomeDeferredImage(img));
+        return;
+      }
+      deferredImages.forEach((img) => observer.observe(img));
+    }
+
+    function buildHomeImageAttrs(src, loading, priority, fallbackImage = '', extra = {}) {
+      const actualSrc = String(src || '');
+      const fallbackSrc = String(fallbackImage || '');
+      const shouldDefer = shouldDeferHomeImageLoad(loading);
+      const attrs = [
+        `src="${shouldDefer ? HOME_IMAGE_PLACEHOLDER : actualSrc}"`,
+        shouldDefer ? `data-home-src="${actualSrc}"` : '',
+        `loading="${shouldDefer ? 'lazy' : loading}"`,
+        `fetchpriority="${shouldDefer ? 'low' : priority}"`,
+        'decoding="async"',
+        'referrerpolicy="no-referrer"',
+        'data-home-image="1"',
+        `data-home-image-state="${shouldDefer ? 'deferred' : 'loading'}"`,
+        'data-image-ready="0"',
+        `data-fallback-image="${fallbackSrc}"`,
+        'data-fallback-applied="0"',
+        extra.ariaHidden ? 'aria-hidden="true"' : '',
+        extra.altEmpty ? 'alt=""' : ''
+      ];
+      return attrs.filter(Boolean).join(' ');
+    }
+
+    function getOptimizedHomeTravelImage(url, width = 720) {
+      const src = toHttpsUrl(String(url || '').trim());
+      if (!src) return '';
+      const publicMarker = `/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/`;
+      const renderMarker = `/storage/v1/render/image/public/${HOME_TRAVEL_BUCKET_NAME}/`;
+      let path = '';
+      if (src.includes(publicMarker)) {
+        path = src.slice(src.indexOf(publicMarker) + publicMarker.length);
+      } else if (src.includes(renderMarker)) {
+        path = src.slice(src.indexOf(renderMarker) + renderMarker.length).split('?')[0];
+      } else {
+        return src;
+      }
+      if (!path) return src;
+      const encodedPath = path
+        .split('/')
+        .map((segment) => encodeURIComponent(segment))
+        .join('/');
+      return `${SUPABASE_URL}/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/${encodedPath}`;
+    }
+
+    function getHomeTravelVariants(itemData, landscape = false) {
+      const travelSet = itemData?.travelPhotoSet || {};
+      const candidates = [
+        { raw: travelSet.scenic || itemData?.image || '', label: 'Scenic', kind: 'scenic' },
+        { raw: travelSet.city || '', label: 'City life', kind: 'city' },
+        { raw: travelSet.nature || '', label: 'Nature', kind: 'nature' }
+      ];
+      const seen = new Set();
+      return candidates
+        .map((entry) => {
+          const src = getOptimizedHomeTravelImage(entry.raw, landscape ? 960 : 720);
+          return src ? { ...entry, src } : null;
+        })
+        .filter(Boolean)
+        .filter((entry) => {
+          if (seen.has(entry.src)) return false;
+          seen.add(entry.src);
+          return true;
+        });
+    }
+
+    function hashHomeTravelVariantSeed(value) {
+      const input = String(value || '');
+      let hash = 2166136261;
+      for (let index = 0; index < input.length; index += 1) {
+        hash ^= input.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash >>> 0;
+    }
+
+    function getStableHomeTravelVariant(itemData, landscape = false) {
+      const variants = getHomeTravelVariants(itemData, landscape);
+      if (!variants.length) return null;
+      const itemKey = [
+        String(itemData?.itemId || '').trim(),
+        String(itemData?.title || '').trim(),
+        String(itemData?.subtitle || '').trim()
+      ].filter(Boolean).join('|');
+      const index = hashHomeTravelVariantSeed(`${HOME_TRAVEL_VARIANT_SESSION_SEED}:${itemKey}:${landscape ? 'landscape' : 'poster'}`) % variants.length;
+      return variants[index] || variants[0] || null;
+    }
+
     function warmHomeFeedImages(feedMap) {
+      if (isHomeSlowNetwork()) return;
       const perChannelBudget = getHomePreloadPerChannelBudget();
-      const groups = Object.values(feedMap || {});
+      if (perChannelBudget <= 0) return;
+      const groups = Object.values(feedMap || {}).slice(0, 3);
       groups.forEach((items) => {
         if (!Array.isArray(items)) return;
         items.slice(0, perChannelBudget).forEach((item) => {
-          preloadImage(item.image);
-          preloadImage(item.backgroundImage || item.spotlightImage);
+          const mediaType = String(item?.mediaType || '').toLowerCase();
+          const primaryImage = mediaType === 'travel'
+            ? getOptimizedHomeTravelImage(item.listImage || item.image || '', 720)
+            : (item.listImage || item.image || '');
+          preloadImage(primaryImage);
         });
       });
     }
@@ -3931,7 +4453,6 @@
       const spotlightBudget = getHomeSpotlightPreloadBudget();
       items.slice(0, spotlightBudget).forEach((item) => {
         preloadImage(item.spotlightImage || item.backgroundImage || item.image);
-        preloadImage(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage);
       });
     }
 
@@ -4115,9 +4636,309 @@
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 },
         ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 6200 }] : []),
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 6200 }] : []),
+        ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 6200 }] : []),
         { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 6800 },
         { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: false }, timeoutMs: 6800 }
       ];
+    }
+
+    function isHomeCompactViewport() {
+      const width = Math.max(
+        window.innerWidth || 0,
+        document.documentElement?.clientWidth || 0,
+        0
+      );
+      return width > 0 && width <= 900;
+    }
+
+    function getHomeInitialChannels(channels) {
+      const list = Array.isArray(channels) ? channels : [];
+      if (isHomeSlowNetwork()) return list.slice(0, 2);
+      if (isHomeCompactViewport()) return list.slice(0, 3);
+      return list.slice(0, 4);
+    }
+
+    function getHomeInitialChannelConcurrency() {
+      if (isHomeSlowNetwork()) return 1;
+      if (isHomeCompactViewport()) return 2;
+      return 3;
+    }
+
+    function getHomeRailViewportMarginPx() {
+      if (isHomeSlowNetwork()) return isHomeCompactViewport() ? 180 : 240;
+      return isHomeCompactViewport() ? 260 : 420;
+    }
+
+    function getHomeRailViewportRootMargin() {
+      return `${getHomeRailViewportMarginPx()}px 0px`;
+    }
+
+    function getHomeRailWrap(railId) {
+      const rail = document.getElementById(String(railId || '').trim());
+      if (!rail) return null;
+      return rail.closest('.rail-wrap') || rail.parentElement || rail;
+    }
+
+    function isHomeRailNearViewport(railId) {
+      if (!railId) return true;
+      const wrap = getHomeRailWrap(railId);
+      if (!wrap || typeof wrap.getBoundingClientRect !== 'function') return true;
+      const rect = wrap.getBoundingClientRect();
+      const viewportHeight = Math.max(window.innerHeight || 0, document.documentElement?.clientHeight || 0, 720);
+      const margin = getHomeRailViewportMarginPx();
+      return rect.top <= (viewportHeight + margin);
+    }
+
+    function flushHomeSecondaryQueues() {
+      if (homePendingNewReleasesRefresh) {
+        homePendingNewReleasesRefresh = false;
+        homeNewReleasesRefreshScheduled = false;
+        scheduleHomeNewReleasesRefresh(homeFeedState);
+      }
+      if (homePendingMixedRefresh) {
+        homePendingMixedRefresh = false;
+        homeMixedRefreshScheduled = false;
+        const args = homePendingMixedRefreshArgs || {};
+        homePendingMixedRefreshArgs = null;
+        scheduleHomeMixedRefresh(args.feedMap || homeFeedState, args.scoredPool);
+      }
+    }
+
+    function markHomeInteraction() {
+      if (homeUserInteracted) return;
+      homeUserInteracted = true;
+      flushHomeSecondaryQueues();
+    }
+
+    function ensureHomeInteractionWatch() {
+      if (homeInteractionWatchBound || typeof window === 'undefined') return;
+      homeInteractionWatchBound = true;
+      const opts = { once: true, passive: true };
+      ['pointerdown', 'keydown', 'touchstart', 'wheel'].forEach((eventName) => {
+        window.addEventListener(eventName, markHomeInteraction, opts);
+      });
+    }
+
+    function buildHomeRailDeferredMarkup(count = 4) {
+      const safeCount = Math.max(3, Math.min(6, Number(count) || 4));
+      return `
+        <div class="rail-placeholder" aria-hidden="true">
+          ${Array.from({ length: safeCount }).map(() => `
+            <div class="rail-placeholder-card">
+              <span class="rail-placeholder-media"></span>
+              <span class="rail-placeholder-line rail-placeholder-line-lg"></span>
+              <span class="rail-placeholder-line"></span>
+              <span class="rail-placeholder-line rail-placeholder-line-sm"></span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function setHomeRailDeferredPlaceholder(railId) {
+      const rail = document.getElementById(String(railId || '').trim());
+      if (!rail) return;
+      if (rail.getAttribute('data-home-deferred-render') === '1') return;
+      rail.setAttribute('data-home-deferred-render', '1');
+      rail.innerHTML = buildHomeRailDeferredMarkup(isHomeCompactViewport() ? 3 : 4);
+    }
+
+    function clearHomeRailDeferredPlaceholder(railId) {
+      const rail = document.getElementById(String(railId || '').trim());
+      if (!rail) return;
+      rail.removeAttribute('data-home-deferred-render');
+    }
+
+    function flushPendingHomeRailRender(railId) {
+      const pending = homePendingRailRenderState.get(railId);
+      if (!pending) return false;
+      homePendingRailRenderState.delete(railId);
+      clearHomeRailDeferredPlaceholder(railId);
+      renderRail(railId, pending.items, pending.opts);
+      return true;
+    }
+
+    async function startHomeDeferredChannelLoad(railId) {
+      const key = String(railId || '').trim();
+      if (!key) return;
+      const state = homeDeferredChannelState.get(key);
+      if (!state) return;
+      if (state.status === 'loading' || state.status === 'loaded') return state.promise || Promise.resolve();
+      if (state.initSeq !== homeFeedInitSeq) {
+        homeDeferredChannelState.delete(key);
+        return;
+      }
+      state.status = 'loading';
+      state.promise = Promise.resolve()
+        .then(() => state.loadChannel(state.channel))
+        .catch(() => [])
+        .finally(() => {
+          const latest = homeDeferredChannelState.get(key);
+          if (latest === state) {
+            latest.status = 'loaded';
+          }
+        });
+      return state.promise;
+    }
+
+    function handleHomeRailViewportEntry(railId) {
+      const key = String(railId || '').trim();
+      if (!key) return;
+      flushPendingHomeRailRender(key);
+      void startHomeDeferredChannelLoad(key);
+      if (key === 'newReleasesRail' && homePendingNewReleasesRefresh) {
+        homePendingNewReleasesRefresh = false;
+        homeNewReleasesRefreshScheduled = false;
+        scheduleHomeNewReleasesRefresh(homeFeedState);
+      }
+      if (key === 'unifiedRail' && homePendingMixedRefresh) {
+        homePendingMixedRefresh = false;
+        homeMixedRefreshScheduled = false;
+        const args = homePendingMixedRefreshArgs || {};
+        homePendingMixedRefreshArgs = null;
+        scheduleHomeMixedRefresh(args.feedMap || homeFeedState, args.scoredPool);
+      }
+    }
+
+    function getHomeRailViewportObserver() {
+      if (homeRailViewportObserver || typeof window.IntersectionObserver !== 'function') return homeRailViewportObserver;
+      homeRailViewportObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const railId = String(entry.target?.getAttribute('data-home-rail-id') || '').trim();
+          observer.unobserve(entry.target);
+          handleHomeRailViewportEntry(railId);
+        });
+      }, {
+        rootMargin: getHomeRailViewportRootMargin(),
+        threshold: 0.01
+      });
+      return homeRailViewportObserver;
+    }
+
+    function observeHomeRailViewport(railId) {
+      const key = String(railId || '').trim();
+      if (!key) return;
+      const wrap = getHomeRailWrap(key);
+      if (!wrap) {
+        handleHomeRailViewportEntry(key);
+        return;
+      }
+      wrap.setAttribute('data-home-rail-id', key);
+      const observer = getHomeRailViewportObserver();
+      if (!observer) {
+        handleHomeRailViewportEntry(key);
+        return;
+      }
+      observer.observe(wrap);
+    }
+
+    function renderOrDeferHomeRail(railId, items, opts) {
+      const key = String(railId || '').trim();
+      if (!key) return;
+      const payload = {
+        items: Array.isArray(items) ? items : [],
+        opts: opts || {}
+      };
+      homePendingRailRenderState.set(key, payload);
+      if (isHomeRailNearViewport(key)) {
+        flushPendingHomeRailRender(key);
+        return;
+      }
+      setHomeRailDeferredPlaceholder(key);
+      observeHomeRailViewport(key);
+    }
+
+    function resetHomeViewportDeferrals() {
+      homePendingRailRenderState.clear();
+      homeDeferredChannelState.clear();
+      homePendingNewReleasesRefresh = false;
+      homeNewReleasesRefreshScheduled = false;
+      if (homeRailViewportObserver) {
+        homeRailViewportObserver.disconnect();
+        homeRailViewportObserver = null;
+      }
+    }
+
+    function queueHomeDeferredChannel(channel, loadChannel, initSeq) {
+      if (!channel || !channel.railId || typeof loadChannel !== 'function') return;
+      const key = String(channel.railId).trim();
+      homeDeferredChannelState.set(key, {
+        channel,
+        loadChannel,
+        initSeq,
+        status: 'idle',
+        promise: null
+      });
+      if (isHomeRailNearViewport(key)) {
+        void startHomeDeferredChannelLoad(key);
+        return;
+      }
+      setHomeRailDeferredPlaceholder(key);
+      observeHomeRailViewport(key);
+    }
+
+    function scheduleHomeMixedRefresh(feedMap, scoredPool) {
+      if (!homeUserInteracted && !isHomeRailNearViewport('unifiedRail')) {
+        homePendingMixedRefresh = true;
+        homePendingMixedRefreshArgs = { feedMap, scoredPool };
+        ensureHomeInteractionWatch();
+        observeHomeRailViewport('unifiedRail');
+        return;
+      }
+      if (homeMixedRefreshScheduled) return;
+      homeMixedRefreshScheduled = true;
+      const run = () => {
+        homeMixedRefreshScheduled = false;
+        void refreshMixedForYouFromActivity(feedMap, scoredPool);
+      };
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(() => run(), { timeout: isHomeCompactViewport() ? 1800 : 1200 });
+      } else {
+        window.setTimeout(run, isHomeCompactViewport() ? 1100 : 700);
+      }
+    }
+
+    async function loadHomeChannelGroup(channels, loadChannel) {
+      const queue = Array.isArray(channels) ? channels.slice() : [];
+      if (!queue.length || typeof loadChannel !== 'function') return [];
+      const concurrency = Math.max(1, Math.min(getHomeInitialChannelConcurrency(), queue.length));
+      const results = [];
+      const workers = Array.from({ length: concurrency }, async () => {
+        while (queue.length) {
+          const channel = queue.shift();
+          if (!channel) return;
+          results.push(await loadChannel(channel));
+        }
+      });
+      await Promise.all(workers);
+      return results;
+    }
+
+    function scheduleHomeNewReleasesRefresh(feedMap = homeFeedState, options = {}) {
+      const railOptions = { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true };
+      const fallbackItems = filterHomeSafeItems(
+        homeNewReleasesState.length ? homeNewReleasesState : buildNewReleasesFallback(feedMap)
+      );
+      renderOrDeferHomeRail('newReleasesRail', fallbackItems, railOptions);
+      if (!homeUserInteracted && !isHomeRailNearViewport('newReleasesRail')) {
+        homePendingNewReleasesRefresh = true;
+        ensureHomeInteractionWatch();
+        observeHomeRailViewport('newReleasesRail');
+        return;
+      }
+      homePendingNewReleasesRefresh = false;
+      if (homeNewReleasesRefreshScheduled) return;
+      homeNewReleasesRefreshScheduled = true;
+      const run = () => {
+        homeNewReleasesRefreshScheduled = false;
+        void refreshHomeNewReleases(feedMap, options);
+      };
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(() => run(), { timeout: isHomeCompactViewport() ? 1800 : 1200 });
+      } else {
+        window.setTimeout(run, isHomeCompactViewport() ? 900 : 500);
+      }
     }
 
     function normalizeHomeFeedMap(feedMap) {
@@ -4273,16 +5094,16 @@
       channels.forEach((channel) => {
         const items = Array.isArray(normalizedFeed?.[channel.key]) ? normalizedFeed[channel.key] : [];
         homeFeedState[channel.key] = items;
-        renderRail(channel.railId, items, channel.opts);
+        renderOrDeferHomeRail(channel.railId, items, channel.opts);
         if (items.length) activeChannels += 1;
       });
 
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
-      renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+      renderOrDeferHomeRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
       if (options.refreshSecondary !== false) {
-        void refreshHomeNewReleases(homeFeedState);
-        void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
+        scheduleHomeNewReleasesRefresh(homeFeedState);
+        scheduleHomeMixedRefresh(homeFeedState, scoredPool);
       }
       hydrateSpotlightFromPool(scoredPool);
 
@@ -4295,9 +5116,9 @@
       homeTasteWeights = await loadTasteWeights();
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
-      renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
-      void refreshHomeNewReleases(homeFeedState);
-      void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
+      renderOrDeferHomeRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+      scheduleHomeNewReleasesRefresh(homeFeedState);
+      scheduleHomeMixedRefresh(homeFeedState, scoredPool);
       hydrateSpotlightFromPool(scoredPool);
       scheduleHomeMenuCachePrime();
     }
@@ -4308,23 +5129,37 @@
         void refreshHomePersonalization();
         scheduleHomeMenuCachePrime();
       };
-      if (isHomeSlowNetwork()) {
-        if (typeof window.requestIdleCallback === 'function') {
-          window.requestIdleCallback(() => {
-            setTimeout(run, 1800);
-          }, { timeout: 2600 });
-        } else {
-          setTimeout(run, 1800);
+      const scheduleRun = () => {
+        if (isHomeSlowNetwork()) {
+          scheduleHomeNonCritical(() => setTimeout(run, 1800), 2600);
+          return;
         }
+        scheduleHomeNonCritical(run, 1400);
+      };
+      if (homeUserInteracted) {
+        scheduleRun();
         return;
       }
-      run();
+      ensureHomeInteractionWatch();
+      let released = false;
+      const release = () => {
+        if (released) return;
+        released = true;
+        window.removeEventListener('pointerdown', release);
+        window.removeEventListener('keydown', release);
+        window.removeEventListener('scroll', release, true);
+        scheduleRun();
+      };
+      window.addEventListener('pointerdown', release, { once: true, passive: true });
+      window.addEventListener('keydown', release, { once: true });
+      window.addEventListener('scroll', release, { once: true, passive: true, capture: true });
+      window.setTimeout(release, isHomeSlowNetwork() ? 5200 : 3200);
     }
 
     function renderRail(railId, items, opts) {
       const rail = document.getElementById(railId);
       if (!rail) return;
-      rail.classList.toggle('games-rail', String(opts?.mediaType || '').toLowerCase() === 'game');
+      rail.classList.remove('games-rail');
 
       if (!items || !items.length) {
         rail.innerHTML = '<div class="empty">No items right now.</div>';
@@ -4341,14 +5176,19 @@
         const uniformMedia = !!opts?.uniformMedia;
         const landscape = !uniformMedia && (!!opts?.landscape || mediaTypeRaw === 'restaurant');
         const restaurantComposite = !!opts?.restaurantComposite && mediaTypeRaw === 'restaurant';
-        const title = escapeHtml(itemData.title || 'Untitled');
+        const rawTitle = String(itemData.title || 'Untitled');
+        const cleanedTitle = mediaTypeRaw === 'travel'
+          ? rawTitle.replace(/^\uD83C[\uDDE6-\uDDFF]\uD83C[\uDDE6-\uDDFF]\s*/u, '')
+          : rawTitle;
+        const title = escapeHtml(cleanedTitle);
         const subtitle = escapeHtml(itemData.subtitle || media.label);
         const extra = escapeHtml(itemData.extra || '');
         const image = escapeHtml(itemData.image || '');
-        const flagImage = '';
+        const flagImage = escapeHtml(itemData.flagImage || '');
         const listImage = escapeHtml(itemData.listImage || itemData.image || '');
         const logo = escapeHtml(itemData.logo || '');
         const fallbackImage = escapeHtml(itemData.fallbackImage || '');
+        const safeImage = image || (mediaTypeRaw === 'travel' ? fallbackImage : '');
         const coverImage = image || logo;
         const hrefRaw = itemData.href || '#';
         const href = escapeHtml(hrefRaw);
@@ -4362,40 +5202,12 @@
         const previewControl = previewUrlRaw
           ? `<button class="card-preview-btn" data-preview="${escapeHtml(previewUrlRaw)}" aria-label="Play preview"><i class="fas fa-play"></i></button>`
           : '';
-        const hasVisualImage = restaurantComposite ? !!coverImage || !!logo : !!image;
+        const hasVisualImage = restaurantComposite ? !!coverImage || !!logo : !!safeImage;
         const imagePolicy = hasVisualImage
           ? consumeHomeImageRequestBudget()
           : { loading: 'lazy', priority: 'low' };
         const imageLoading = imagePolicy.loading;
         const imagePriority = imagePolicy.priority;
-
-        if (mediaTypeRaw === 'game' && String(opts?.mediaType || '').toLowerCase() === 'game') {
-          if (!image) return '';
-          const desc = extra || 'Video game';
-          const gameBg = escapeHtml(itemData.backgroundImage || itemData.spotlightImage || '');
-          const bgStyle = gameBg ? ` style="background-image:url('${gameBg}')" ` : '';
-          const trailingControl = supportsLists
-            ? `<button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>`
-            : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
-          return `
-            <article class="card game-card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${image}">
-              <div class="game-card-media"${bgStyle}>
-                <img class="game-card-img" src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">
-              </div>
-              <div class="card-body">
-                <h3 class="card-title">${title}</h3>
-                <div class="card-meta-row">
-                  <div class="card-meta">${subtitle}</div>
-                  <div class="card-menu-wrap">
-                    ${previewControl}
-                    ${trailingControl}
-                  </div>
-                </div>
-                <div class="card-desc">${desc}</div>
-              </div>
-            </article>
-          `;
-        }
 
         const mediaClasses = ['card-media'];
         const mediaFit = String(itemData.mediaFit || '').trim().toLowerCase();
@@ -4404,39 +5216,43 @@
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
         if (mediaTypeRaw === 'music') mediaClasses.push('music-cover');
         if (mediaTypeRaw === 'travel') mediaClasses.push('travel-photo');
-        if (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food') mediaClasses.push('brand-cover');
+        if (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food' || mediaTypeRaw === 'car') mediaClasses.push('brand-cover');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
+        if (hasVisualImage) mediaClasses.push('is-loading-media');
         if (restaurantComposite && !coverImage && !logo) return '';
-        const safeImage = image || (mediaTypeRaw === 'travel' ? fallbackImage : '');
         if (!restaurantComposite && !safeImage) return '';
+        const optimizedTravelImage = mediaTypeRaw === 'travel'
+          ? getOptimizedHomeTravelImage(safeImage, landscape ? 960 : 720)
+          : '';
         let mediaHtml = restaurantComposite
           ? `
-              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
-              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0"></span>` : ''}
+              ${coverImage ? `<img class="restaurant-cover" ${buildHomeImageAttrs(coverImage, imageLoading, imagePriority, fallbackImage)} alt="${title}">` : '<i class="fa-solid fa-image"></i>'}
+              ${logo ? `<span class="restaurant-logo-badge"><img ${buildHomeImageAttrs(logo, 'lazy', 'low', fallbackImage)} alt="${title} logo"></span>` : ''}
             `
-          : `${safeImage ? `<img src="${safeImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
+          : `${safeImage ? `<img ${buildHomeImageAttrs(mediaTypeRaw === 'travel' ? optimizedTravelImage : safeImage, imageLoading, imagePriority, fallbackImage)} alt="${title}">` : '<i class="fa-solid fa-image"></i>'}`;
 
         if (mediaTypeRaw === 'travel') {
-          const travelSet = itemData.travelPhotoSet || {};
-          const travelTiles = [];
-          if (travelSet.city) travelTiles.push({ url: travelSet.city, label: 'City life', kind: 'city' });
-          if (travelSet.nature) travelTiles.push({ url: travelSet.nature, label: 'Nature', kind: 'nature' });
-          if (!travelTiles.length && safeImage) travelTiles.push({ url: safeImage, label: 'Scenic', kind: 'scenic' });
-          if (travelTiles.length) {
+          const initialTravelVariant = getStableHomeTravelVariant(itemData, landscape);
+          if (initialTravelVariant?.src) {
             mediaHtml = `
-              <div class="travel-photo-grid${travelTiles.length > 1 ? '' : ' single'}">
-                ${travelTiles.map((tile) => `
-                  <div class="travel-photo-tile" data-kind="${escapeHtml(tile.kind)}">
-                    <img src="${escapeHtml(tile.url)}" alt="${escapeHtml(tile.label)}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">
-                    <span class="travel-photo-label">${escapeHtml(tile.label)}</span>
-                  </div>
-                `).join('')}
+              <div class="travel-photo-stage is-loading-media">
+                <img ${buildHomeImageAttrs(initialTravelVariant.src, imageLoading, imagePriority, fallbackImage)} alt="${title}">
+                <div class="travel-photo-badges" aria-hidden="true">
+                  <span class="travel-photo-label" data-kind="${escapeHtml(initialTravelVariant.kind || 'scenic')}">${escapeHtml(initialTravelVariant.label || 'Scenic')}</span>
+                </div>
               </div>
             `;
           }
         }
         const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
-        const titleMarkup = title;
+        const titleMarkup = (mediaTypeRaw === 'travel' && flagImage)
+          ? `
+            <span class="country-title-wrap">
+              <img class="country-inline-flag" ${buildHomeImageAttrs(flagImage, 'lazy', 'low', '', { ariaHidden: true, altEmpty: true })}>
+              <span class="country-title-text">${title}</span>
+            </span>
+          `
+          : title;
         const trailingControl = supportsLists
           ? `
             <div class="card-menu-wrap">
@@ -4475,26 +5291,72 @@
 
       wireHomeCardMenus(rail);
       wireHomeRailImageFallbacks(rail);
+      primeHomeDeferredImages(rail);
+    }
+
+    const BRAND_RAIL_MEDIA_TYPES = new Set(['fashion', 'food', 'car']);
+    const LOGO_PLACEHOLDER_TOKENS = ['logo-placeholder.svg', 'newlogo.webp'];
+
+    function isLogoPlaceholder(url) {
+      const src = String(url || '').toLowerCase();
+      return LOGO_PLACEHOLDER_TOKENS.some((token) => src.includes(token));
+    }
+
+    function markLogoMissing(card, img) {
+      if (!card || card.dataset.logoMissing === '1') return;
+      card.dataset.logoMissing = '1';
+      if (img) {
+        img.style.visibility = 'hidden';
+        img.style.opacity = '0';
+      }
+      const rail = card.parentElement;
+      if (rail) rail.appendChild(card);
     }
 
     function wireHomeRailImageFallbacks(scope) {
       scope.querySelectorAll('img[data-fallback-image]').forEach((img) => {
-        img.addEventListener('error', () => {
+        const card = img.closest('.card');
+        const mediaType = String(card?.getAttribute('data-media-type') || '').toLowerCase();
+        const isBrandRail = BRAND_RAIL_MEDIA_TYPES.has(mediaType);
+
+        const handleMissing = () => {
+          if (isBrandRail) {
+            markLogoMissing(card, img);
+            return;
+          }
           const fallback = String(img.getAttribute('data-fallback-image') || '').trim();
           const applied = String(img.getAttribute('data-fallback-applied') || '');
           if (fallback && applied !== '1') {
             img.setAttribute('data-fallback-applied', '1');
+            img.setAttribute('data-image-ready', '0');
+            img.setAttribute('data-home-image-state', 'loading');
+            const wrapper = getHomeImageWrapper(img);
+            if (wrapper) wrapper.classList.add('is-loading-media');
             img.src = fallback;
             return;
           }
-          const card = img.closest('.card');
           if (!card) return;
           const rail = card.parentElement;
           card.remove();
           if (rail && !rail.querySelector('.card')) {
             rail.innerHTML = '<div class="empty">No items right now.</div>';
           }
-        });
+        };
+
+        const handleLoaded = () => {
+          if (img.hasAttribute('data-home-src')) return;
+          markHomeImageReady(img);
+          if (isBrandRail && isLogoPlaceholder(img.currentSrc || img.src)) {
+            handleMissing();
+          }
+        };
+
+        img.addEventListener('load', handleLoaded);
+        img.addEventListener('error', handleMissing);
+
+        if (img.complete && !img.hasAttribute('data-home-src')) {
+          handleLoaded();
+        }
       });
     }
 
@@ -4690,14 +5552,17 @@
           } catch (_profileErr) {}
           if (profileBtn) {
             profileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+            profileBtn.title = label;
             profileBtn.style.display = 'inline-flex';
           }
           if (mobileProfileBtn) {
             mobileProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+            mobileProfileBtn.title = label;
             mobileProfileBtn.style.display = 'inline-flex';
           }
           if (sidebarProfileBtn) {
             sidebarProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+            sidebarProfileBtn.title = label;
             sidebarProfileBtn.style.display = 'inline-flex';
           }
         } else {
@@ -4786,7 +5651,7 @@
         .trim()
         .replace(/^@+/, '')
         .toLowerCase()
-        .replace(/['â€™]/g, '')
+        .replace(/[\u0027\u2019]/g, '')
         .replace(/[^a-z0-9_]+/g, '_')
         .replace(/_+/g, '_')
         .replace(/^_+|_+$/g, '')
@@ -4987,7 +5852,7 @@
                 <label class="onboarding-label" for="homeOnboardingUsernameInput">Username</label>
                 <div class="onboarding-input-wrap">
                   <span class="onboarding-at">@</span>
-                  <input id="homeOnboardingUsernameInput" class="onboarding-input" type="text" autocomplete="off" placeholder="your_name" />
+                  <input id="homeOnboardingUsernameInput" class="onboarding-input" type="text" autocomplete="off" placeholder="your_name" maxlength="${PROFILE_USERNAME_MAX_LENGTH}" />
                 </div>
                 <div id="homeOnboardingUsernameStatus" class="onboarding-status">Choose a username to continue.</div>
               </div>
@@ -4999,7 +5864,7 @@
         {
           id: 'interests-setup',
           title: 'Tune Your Feed',
-          body: 'Choose formats and genres so the “For You” feed starts on the right note.',
+          body: 'Choose formats and genres so the �For You� feed starts on the right note.',
           art: `
               <div class="onboarding-interest-layout">
                 <div class="onboarding-interest-photos">
@@ -5110,7 +5975,7 @@
           actionLabel: 'Go To My Profile',
           action: () => {
             closeHomeOnboarding(true);
-            window.location.href = 'profile.html';
+            window.location.href = 'index.html';
           }
         }
       ];
@@ -5864,173 +6729,79 @@
       async function loadFashionBrands() {
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
-        const fallbackItems = HOME_FASHION_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'fashion', index));
+        const backgroundManifestPromise = ensureHomeBrandBackgroundManifest();
+        const fallbackItems = stableShuffleHomeItems(
+          HOME_FASHION_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'fashion', index)),
+          'fashion:fallback'
+        ).slice(0, target);
         if (!client) return fallbackItems.slice(0, target);
 
-        const fetchLimit = Math.max(target * 2, target);
+        const fetchLimit = Math.max(target * 4, target);
         const { data, error } = await client
           .from('fashion_brands')
           .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
-          .order('name', { ascending: true })
           .limit(fetchLimit);
         if (error || !data || !data.length) return fallbackItems.slice(0, target);
-        return (data || []).map((row, index) => mapHomeBrandItem(row, 'fashion', index)).slice(0, target);
+        await backgroundManifestPromise;
+        const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'fashion', index));
+        return stableShuffleHomeItems(items, 'fashion:home').slice(0, target);
       }
 
       async function loadFoodBrands() {
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
-        const fallbackItems = HOME_FOOD_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'food', index));
+        const backgroundManifestPromise = ensureHomeBrandBackgroundManifest();
+        const fallbackItems = stableShuffleHomeItems(
+          HOME_FOOD_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'food', index)),
+          'food:fallback'
+        ).slice(0, target);
         if (!client) return fallbackItems.slice(0, target);
 
-        const fetchLimit = Math.max(target * 2, target);
+        const fetchLimit = Math.max(target * 4, target);
         const { data, error } = await client
           .from('food_brands')
           .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
-          .order('name', { ascending: true })
           .limit(fetchLimit);
         if (error || !data || !data.length) return fallbackItems.slice(0, target);
-        return (data || []).map((row, index) => mapHomeBrandItem(row, 'food', index)).slice(0, target);
+        await backgroundManifestPromise;
+        const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'food', index));
+        return stableShuffleHomeItems(items, 'food:home').slice(0, target);
       }
 
-      async function loadMovies(signal) {
-        const targetCount = getHomeChannelTargetItems();
-        const interestBuilders = buildHomeTmdbInterestSources('movie');
-      const sourceBuilders = shuffleArray([
-        ...interestBuilders,
-        () => `${TMDB_PROXY_BASE}/movie/popular?language=en-US&page=${randomInt(1, 5)}`,
-        () => `${TMDB_PROXY_BASE}/movie/top_rated?language=en-US&page=${randomInt(1, 5)}`,
-        () => `${TMDB_PROXY_BASE}/movie/now_playing?language=en-US&page=${randomInt(1, 4)}`,
-        () => `${TMDB_PROXY_BASE}/trending/movie/week?page=${randomInt(1, 3)}`
-      ]).slice(0, getHomeTmdbSourceCount() + (interestBuilders.length ? 1 : 0));
-      const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
-        try {
-          const url = buildUrl();
-          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `tmdb:${url}` });
-          if (!json) return [];
-          return Array.isArray(json.results) ? json.results : [];
-        } catch (_err) {
-          return [];
-        }
-      }));
-      const collected = shuffleArray(batches.flat());
-      const seen = new Set();
-      const results = [];
-      for (const item of collected) {
-        const key = String(item?.id || '').trim();
-        if (!key || seen.has(key)) continue;
-        if (isLikelyAnimeMovieEntry(item)) continue;
-        if (!item?.poster_path && !item?.backdrop_path) continue;
-        seen.add(key);
-        results.push(item);
-        if (results.length >= targetCount) break;
+      async function loadCarBrands() {
+        const client = await ensureHomeSupabase();
+        const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
+        const backgroundManifestPromise = ensureHomeBrandBackgroundManifest();
+        const fallbackItems = stableShuffleHomeItems(
+          HOME_CAR_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'car', index)),
+          'car:fallback'
+        ).slice(0, target);
+        if (!client) return fallbackItems.slice(0, target);
+
+        const fetchLimit = Math.max(target * 4, target);
+        const { data, error } = await client
+          .from('car_brands')
+          .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
+          .limit(fetchLimit);
+        if (error || !data || !data.length) return fallbackItems.slice(0, target);
+        await backgroundManifestPromise;
+        const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'car', index));
+        return stableShuffleHomeItems(items, 'car:home').slice(0, target);
       }
-      return results.map(m => ({
-        mediaType: 'movie',
-        itemId: String(m.id || ''),
-        title: m.title || 'Movie',
-        subtitle: m.release_date ? m.release_date.slice(0, 4) : 'Movie',
-        image: m.poster_path ? `${TMDB_POSTER}${m.poster_path}` : '',
-        backgroundImage: m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : '',
-        spotlightImage: m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : '',
-        spotlightMediaImage: m.poster_path ? `${TMDB_SPOT_POSTER}${m.poster_path}` : (m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : ''),
-        spotlightMediaFit: 'contain',
-        spotlightMediaShape: 'poster',
-        isAdult: m?.adult === true,
-        href: m.id ? `movie.html?id=${encodeURIComponent(m.id)}` : 'movies.html'
-      })).filter((item) => isHomeSafeContentItem(item));
+
+    async function loadMovies(signal) {
+      const loaders = await ensureHomeHeavyLoaders();
+      return typeof loaders.loadMovies === 'function' ? loaders.loadMovies(signal) : [];
     }
 
     async function loadTv(signal) {
-      const targetCount = getHomeChannelTargetItems();
-      const interestBuilders = buildHomeTmdbInterestSources('tv');
-      const sourceBuilders = shuffleArray([
-        ...interestBuilders,
-        () => `${TMDB_PROXY_BASE}/tv/popular?language=en-US&page=${randomInt(1, 5)}`,
-        () => `${TMDB_PROXY_BASE}/tv/top_rated?language=en-US&page=${randomInt(1, 5)}`,
-        () => `${TMDB_PROXY_BASE}/tv/airing_today?language=en-US&page=${randomInt(1, 4)}`,
-        () => `${TMDB_PROXY_BASE}/trending/tv/week?page=${randomInt(1, 3)}`
-      ]).slice(0, getHomeTmdbSourceCount() + (interestBuilders.length ? 1 : 0));
-      const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
-        try {
-          const url = buildUrl();
-          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `tmdb:${url}` });
-          if (!json) return [];
-          return Array.isArray(json.results) ? json.results : [];
-        } catch (_err) {
-          return [];
-        }
-      }));
-      const collected = shuffleArray(batches.flat());
-      const seen = new Set();
-      const results = [];
-      for (const item of collected) {
-        const key = String(item?.id || '').trim();
-        if (!key || seen.has(key)) continue;
-        if (isLikelyAnimeTvEntry(item)) continue;
-        if (!item?.poster_path && !item?.backdrop_path) continue;
-        seen.add(key);
-        results.push(item);
-        if (results.length >= targetCount) break;
-      }
-      return results.map(t => ({
-        mediaType: 'tv',
-        itemId: String(t.id || ''),
-        title: t.name || 'TV Show',
-        subtitle: t.first_air_date ? t.first_air_date.slice(0, 4) : 'TV Show',
-        image: t.poster_path ? `${TMDB_POSTER}${t.poster_path}` : '',
-        backgroundImage: t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : '',
-        spotlightImage: t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : '',
-        spotlightMediaImage: t.poster_path ? `${TMDB_SPOT_POSTER}${t.poster_path}` : (t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : ''),
-        spotlightMediaFit: 'contain',
-        spotlightMediaShape: 'poster',
-        isAdult: t?.adult === true,
-        href: t.id ? `tvshow.html?id=${encodeURIComponent(t.id)}` : 'tvshows.html'
-      })).filter((item) => isHomeSafeContentItem(item));
+      const loaders = await ensureHomeHeavyLoaders();
+      return typeof loaders.loadTv === 'function' ? loaders.loadTv(signal) : [];
     }
 
     async function loadAnime(signal) {
-      const targetCount = getHomeChannelTargetItems();
-      const sourceBuilders = shuffleArray([
-        () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=popularity.desc&page=${randomInt(1, 5)}&with_genres=16&with_original_language=ja`,
-        () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=vote_count.desc&page=${randomInt(1, 5)}&with_genres=16&with_original_language=ja`,
-        () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=vote_average.desc&page=${randomInt(1, 4)}&with_genres=16&with_original_language=ja&vote_count.gte=120`
-      ]).slice(0, getHomeTmdbSourceCount());
-      const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
-        try {
-          const url = buildUrl();
-          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `tmdb:${url}` });
-          if (!json) return [];
-          return Array.isArray(json.results) ? json.results : [];
-        } catch (_err) {
-          return [];
-        }
-      }));
-      const collected = shuffleArray(batches.flat());
-      const seen = new Set();
-      const results = [];
-      for (const item of collected) {
-        const key = String(item?.id || '').trim();
-        if (!key || seen.has(key)) continue;
-        if (!item?.poster_path && !item?.backdrop_path) continue;
-        seen.add(key);
-        results.push(item);
-        if (results.length >= targetCount) break;
-      }
-      return results.map((show) => ({
-        mediaType: 'anime',
-        itemId: String(show.id || ''),
-        title: show.name || 'Anime',
-        subtitle: show.first_air_date ? show.first_air_date.slice(0, 4) : 'Anime',
-        image: show.poster_path ? `${TMDB_POSTER}${show.poster_path}` : '',
-        backgroundImage: show.backdrop_path ? `${TMDB_BACKDROP}${show.backdrop_path}` : '',
-        spotlightImage: show.backdrop_path ? `${TMDB_BACKDROP}${show.backdrop_path}` : '',
-        spotlightMediaImage: show.poster_path ? `${TMDB_SPOT_POSTER}${show.poster_path}` : (show.backdrop_path ? `${TMDB_BACKDROP}${show.backdrop_path}` : ''),
-        spotlightMediaFit: 'contain',
-        spotlightMediaShape: 'poster',
-        isAdult: show?.adult === true,
-        href: show.id ? `anime.html?id=${encodeURIComponent(show.id)}` : 'animes.html'
-      })).filter((item) => isHomeSafeContentItem(item));
+      const loaders = await ensureHomeHeavyLoaders();
+      return typeof loaders.loadAnime === 'function' ? loaders.loadAnime(signal) : [];
     }
 
     function normalizeGameCoverUrl(value) {
@@ -6112,7 +6883,7 @@
       const normalized = normalizeProfileUsername(value);
       if (!isValidProfileUsername(normalized)) {
         homeOnboardingProfile.usernameStatus = 'bad';
-        setHomeOnboardingUsernameStatus('Use 3-30 letters, numbers, or underscores.', 'bad');
+        setHomeOnboardingUsernameStatus(`Use 3-${PROFILE_USERNAME_MAX_LENGTH} letters, numbers, or underscores.`, 'bad');
         updateHomeOnboardingNextState();
         return false;
       }
@@ -6122,7 +6893,7 @@
         updateHomeOnboardingNextState();
         return false;
       }
-      setHomeOnboardingUsernameStatus('Checking availability…');
+      setHomeOnboardingUsernameStatus('Checking availability\u2026');
       homeOnboardingProfile.usernameStatus = 'checking';
       updateHomeOnboardingNextState();
       try {
@@ -6311,9 +7082,52 @@
       }
     }
 
+    function isLikelyBackdropGameUrl(url) {
+      const value = String(url || '').trim().toLowerCase();
+      if (!value) return false;
+      return ['/heroes/', '/hero/', 'background', 'fanart', 'screenshot', 'screenshots', 'backdrop'].some((token) => value.includes(token));
+    }
+
     function pickPreferredGameCoverUrl(candidates = []) {
       const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
-      return cleaned.find((url) => /wikimedia|wikipedia/.test(url)) || cleaned[0] || '';
+      const likelyCovers = cleaned.filter((url) => !isLikelyBackdropGameUrl(url));
+      const pool = likelyCovers.length ? likelyCovers : cleaned;
+      return pool.find((url) => /\/game-assets\/covers-official\//.test(url))
+        || pool.find((url) => /wikimedia|wikipedia/.test(url))
+        || pool.find((url) => /\/game-assets\//.test(url))
+        || pool[0]
+        || '';
+    }
+
+    function getHomeGameImportedFrom(row) {
+      return String(row?.extra?.imported_from || row?.source || '').trim().toLowerCase();
+    }
+
+    function hasPosterOfficialGameCover(row) {
+      const cover = normalizeGameCoverUrl(row?.cover_url || row?.cover?.url || row?.cover);
+      if (!cover || !/\/game-assets\/covers-official\//.test(cover)) return false;
+      return Boolean(row?.extra?.official_cover_is_poster);
+    }
+
+    function isOfficialGameProviderRow(row) {
+      const importedFrom = getHomeGameImportedFrom(row);
+      return importedFrom.includes('wikipedia') || importedFrom.includes('igdb');
+    }
+
+    function pickOfficialPosterGameUrl(candidates = []) {
+      const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
+      const pool = cleaned.filter((url) => !isLikelyBackdropGameUrl(url));
+      return pool.find((url) => /\/game-assets\/covers-official\//.test(url))
+        || pool.find((url) => /wikimedia|wikipedia/.test(url))
+        || '';
+    }
+
+    function normalizeHomeGameTitleKey(title) {
+      return String(title || '')
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}]+/gu, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
     }
 
     function pickBackdropGameUrl(candidates = [], fallback = '') {
@@ -6327,11 +7141,22 @@
     }
 
     function resolveHomeGameCover(row) {
-      return pickPreferredGameCoverUrl([
-        row?.cover,
-        row?.cover?.url,
-        row?.cover_url
-      ]);
+      if (!row) return '';
+      if (hasPosterOfficialGameCover(row)) {
+        return pickOfficialPosterGameUrl([row?.cover_url, row?.cover?.url, row?.cover]);
+      }
+      if (isOfficialGameProviderRow(row)) {
+        return pickOfficialPosterGameUrl([
+          row?.hero_url,
+          row?.hero,
+          row?.cover,
+          row?.cover?.url,
+          row?.cover_url,
+          ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+          ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
+        ]);
+      }
+      return '';
     }
 
     function resolveHomeGameHero(row, fallback) {
@@ -6345,17 +7170,125 @@
       return hero || fallback || '';
     }
 
+    function isLikelyLogoOnlyGameArt(url) {
+      const value = String(url || '').trim().toLowerCase();
+      if (!value) return false;
+      if (value.endsWith('.svg') || value.includes('.svg?')) return true;
+      if (value.endsWith('.png') || value.includes('.png?')) return true;
+      return ['logo', 'wordmark', 'transparent', 'icon'].some((token) => value.includes(token));
+    }
+
+    function scoreHomeGameCoverRow(row, hasPreferredAlternatives = false) {
+      const cover = resolveHomeGameCover(row);
+      const hero = resolveHomeGameHero(row, '');
+      const importedFrom = getHomeGameImportedFrom(row);
+      if (!cover) return Number.NEGATIVE_INFINITY;
+      let score = 0;
+      if (/\/game-assets\/covers-official\//.test(cover)) score += 700;
+      if (/wikimedia|wikipedia/.test(cover)) score += 420;
+      if (importedFrom.includes('igdb') || importedFrom.includes('wikipedia')) score += 220;
+      if (/game-assets\/covers\//.test(cover)) score += 80;
+      if (hero && hero !== cover) score += 70;
+      if (hero && hero === cover) score -= 60;
+      if (isLikelyLogoOnlyGameArt(cover)) score += 55;
+      if (hasPreferredAlternatives && importedFrom.includes('rawg')) score -= 180;
+      return score;
+    }
+
+    function scoreHomeGameHeroRow(row) {
+      const cover = resolveHomeGameCover(row);
+      const hero = resolveHomeGameHero(row, '');
+      const importedFrom = getHomeGameImportedFrom(row);
+      if (!hero) return Number.NEGATIVE_INFINITY;
+      let score = 0;
+      if (/game-assets\/heroes\//.test(hero)) score += 260;
+      if (hero && hero !== cover) score += 160;
+      if (importedFrom.includes('rawg')) score += 90;
+      if (/background|hero|fanart|screenshot/.test(hero)) score += 40;
+      if (/wikimedia|wikipedia/.test(hero) && hero === cover) score -= 120;
+      return score;
+    }
+
+    function mergeHomeGameRows(rows) {
+      const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+      if (!list.length) return null;
+      if (list.length === 1) return list[0];
+      const sortedByPopularity = list.slice().sort((a, b) => {
+        const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
+        if (countDiff !== 0) return countDiff;
+        const ratingDiff = Number(b?.rating || 0) - Number(a?.rating || 0);
+        if (ratingDiff !== 0) return ratingDiff;
+        return String(a?.title || a?.name || '').localeCompare(String(b?.title || b?.name || ''));
+      });
+      const baseRow = sortedByPopularity[0];
+      const hasPreferredAlternatives = list.some((row) => {
+        const importedFrom = getHomeGameImportedFrom(row);
+        return importedFrom.includes('igdb') || importedFrom.includes('wikipedia');
+      });
+      const bestCoverRow = list.slice().sort((a, b) => scoreHomeGameCoverRow(b, hasPreferredAlternatives) - scoreHomeGameCoverRow(a, hasPreferredAlternatives))[0] || baseRow;
+      const bestHeroRow = list.slice().sort((a, b) => scoreHomeGameHeroRow(b) - scoreHomeGameHeroRow(a))[0] || baseRow;
+      const merged = { ...baseRow };
+      const mergedCover = resolveHomeGameCover(bestCoverRow) || resolveHomeGameCover(baseRow);
+      const mergedHero = resolveHomeGameHero(bestHeroRow, mergedCover || resolveHomeGameCover(baseRow));
+      if (mergedCover) merged.cover_url = mergedCover;
+      if (mergedHero) merged.hero_url = mergedHero;
+      const mergedGenres = list.find((row) => Array.isArray(row?.extra?.genres) && row.extra.genres.length)?.extra?.genres;
+      if (mergedGenres?.length) {
+        merged.extra = {
+          ...(baseRow?.extra && typeof baseRow.extra === 'object' ? baseRow.extra : {}),
+          genres: mergedGenres
+        };
+      }
+      return merged;
+    }
+
+    function dedupeHomeGameRows(rows, targetCount = 0) {
+      const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+      if (!list.length) return [];
+      const groups = new Map();
+      list.forEach((row) => {
+        const titleKey = normalizeHomeGameTitleKey(row?.title || row?.name || '');
+        const key = titleKey || String(row?.id || row?.igdb_id || row?.rawg_id || Math.random());
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(row);
+      });
+      const merged = Array.from(groups.values()).map((group) => mergeHomeGameRows(group)).filter(Boolean);
+      merged.sort((a, b) => {
+        const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
+        if (countDiff !== 0) return countDiff;
+        const ratingDiff = Number(b?.rating || 0) - Number(a?.rating || 0);
+        if (ratingDiff !== 0) return ratingDiff;
+        return String(a?.title || a?.name || '').localeCompare(String(b?.title || b?.name || ''));
+      });
+      const limit = Number(targetCount || 0);
+      return limit > 0 ? merged.slice(0, limit) : merged;
+    }
+
+    function getHomeGamePresentation(cover, hero) {
+      const plain = isLikelyLogoOnlyGameArt(cover) || !hero || hero === cover;
+      return {
+        plain,
+        spotlightShape: plain ? 'landscape' : 'poster',
+        spotlightFit: 'contain'
+      };
+    }
+
+    function isPreferredHomeGameRow(row) {
+      const cover = resolveHomeGameCover(row);
+      if (!cover) return false;
+      return hasPosterOfficialGameCover(row) || isOfficialGameProviderRow(row);
+    }
+
     async function loadGames(signal, options = {}) {
       const targetCount = Math.max(getHomeChannelTargetItems(), isHomeSlowNetwork() ? 18 : 28);
-      const cacheBust = options?.cacheBust ? Date.now() : 0;
-      const cacheParams = cacheBust ? { cache_bust: cacheBust } : {};
       const mapToItem = (row) => {
         const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
         const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
         const cover = resolveHomeGameCover(row);
         const hero = resolveHomeGameHero(row, '');
+        const presentation = getHomeGamePresentation(cover, hero);
         // Drop games that don't have a real cover image.
-        if (!cover || cover.includes('/newlogo.webp')) return null;
+        if (!cover || cover.includes('/newlogo.webp') || isLikelyBackdropGameUrl(cover)) return null;
         const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
         const title = String(row?.title || row?.name || 'Game').trim() || 'Game';
         const releaseDate = String(row?.release_date || row?.released || '').trim();
@@ -6368,62 +7301,67 @@
           mediaType: 'game',
           itemId: id,
           title,
-          subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
+          subtitle: releaseDate ? releaseDate.slice(0, 10) : '',
           extra: [genreText, ratingText].filter(Boolean).join(' | '),
           image: cover,
-          backgroundImage: hero || '',
-          spotlightImage: hero || '',
+          backgroundImage: hero || cover,
+          spotlightImage: hero || cover,
           spotlightMediaImage: cover,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
+          spotlightMediaFit: presentation.spotlightFit,
+          spotlightMediaShape: presentation.spotlightShape,
+          gameCardMode: presentation.plain ? 'plain' : 'hero',
           fallbackImage: '',
           href: id ? `game.html?id=${encodeURIComponent(String(id))}` : 'games.html'
         };
       };
 
       try {
-        const providerList = ['wikipedia', 'igdb'];
-        for (const provider of providerList) {
-          const baseParams = {
-            page_size: Math.min(Math.max(targetCount * 6, 140), 220),
-            provider,
-            spotlight: 1,
-            cache: 1,
-            cache_pages: 1
-          };
-          const requests = [
-            { ...baseParams, page: 1, ordering: '-released' },
-            { ...baseParams, page: 2, ordering: '-released' },
-            { ...baseParams, page: 1, ordering: '-rating' },
-            { ...baseParams, page: 1, ordering: '-rating_count' },
-            { ...baseParams, page: 1, ordering: '-name' },
-            { ...baseParams, page: 1, popularity_type: 1 },
-            { ...baseParams, page: 2, popularity_type: 1 }
-          ];
-          const merged = [];
-          const seen = new Set();
-          for (const params of requests) {
-            if (signal?.aborted) break;
-            const payload = await homeIgdbFetch('/games', { ...params, ...cacheParams }, signal);
-            const rows = Array.isArray(payload?.results) ? payload.results : [];
-            rows.forEach((row) => {
-              const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
-              const title = String(row?.title || row?.name || '').trim().toLowerCase();
-              const key = id || title;
-              if (!key || seen.has(key)) return;
-              seen.add(key);
-              merged.push(row);
-            });
-            if (merged.length >= targetCount * 4) break;
+        const client = await ensureHomeSupabase();
+        if (!client) return [];
+        try {
+          const { data, error } = await client
+            .from('games')
+            .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
+            .like('cover_url', '%/covers-official/%')
+            .order('rating_count', { ascending: false, nullsFirst: false })
+            .order('rating', { ascending: false, nullsFirst: false })
+            .limit(Math.max(targetCount * 12, 192));
+          if (error) return [];
+          const primaryRows = Array.isArray(data) ? data : [];
+          const titlePool = Array.from(new Set(primaryRows.map((row) => String(row?.title || '').trim()).filter(Boolean))).slice(0, Math.max(targetCount * 3, 48));
+          const slugPool = Array.from(new Set(primaryRows.map((row) => String(row?.slug || '').trim()).filter(Boolean))).slice(0, Math.max(targetCount * 3, 48));
+          let combinedRows = primaryRows.slice();
+          if (titlePool.length) {
+            const { data: altRows, error: altError } = await client
+              .from('games')
+              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
+              .like('cover_url', '%/covers-official/%')
+              .in('title', titlePool);
+            if (!altError && Array.isArray(altRows) && altRows.length) {
+              combinedRows = primaryRows.concat(altRows);
+            }
           }
-          if (!merged.length || signal?.aborted) continue;
-          const items = merged
+          if (slugPool.length) {
+            const { data: altSlugRows, error: altSlugError } = await client
+              .from('games')
+              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
+              .like('cover_url', '%/covers-official/%')
+              .in('slug', slugPool);
+            if (!altSlugError && Array.isArray(altSlugRows) && altSlugRows.length) {
+              combinedRows = combinedRows.concat(altSlugRows);
+            }
+          }
+          const dedupedRows = dedupeHomeGameRows(combinedRows, targetCount * 4);
+          const posterRows = dedupedRows.filter((row) => hasPosterOfficialGameCover(row));
+          const preferredRows = posterRows.filter((row) => isPreferredHomeGameRow(row));
+          const selectedRows = (preferredRows.length ? preferredRows : posterRows).slice(0, targetCount * 3);
+          const mappedItems = selectedRows
             .map((row) => mapToItem(row))
-            .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
-            .slice(0, targetCount);
-          if (items.length) return items;
+            .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim());
+          return mappedItems.slice(0, targetCount);
+        } catch (_localGamesError) {
+          return [];
         }
-        return [];
       } catch (_error) {
         return [];
       }
@@ -6449,1102 +7387,56 @@
       const rail = document.getElementById('gamesRail');
       if (!rail) return;
       const wrap = rail.closest('.rail-wrap') || rail;
-      if (GAMES_DISABLED) {
-        wrap.style.display = 'none';
-        return;
-      }
       wrap.style.display = '';
     }
 
+    let homeHeavyLoaderScriptPromise = null;
+
+    function ensureHomeHeavyLoaders() {
+      if (window.__zo2yHomeHeavyLoaders) return Promise.resolve(window.__zo2yHomeHeavyLoaders);
+      if (homeHeavyLoaderScriptPromise) return homeHeavyLoaderScriptPromise;
+      homeHeavyLoaderScriptPromise = new Promise((resolve, reject) => {
+        const existing = document.querySelector('script[data-home-heavy-loaders="1"]');
+        if (existing) {
+          existing.addEventListener('load', () => resolve(window.__zo2yHomeHeavyLoaders || {}), { once: true });
+          existing.addEventListener('error', () => reject(new Error('Failed to load homepage loaders.')), { once: true });
+          return;
+        }
+        const script = document.createElement('script');
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260320k';
+        script.defer = true;
+        script.setAttribute('data-home-heavy-loaders', '1');
+        script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
+        script.onerror = () => reject(new Error('Failed to load homepage loaders.'));
+        document.head.appendChild(script);
+      });
+      return homeHeavyLoaderScriptPromise;
+    }
+
     async function loadBooks(signal) {
-      const targetCount = getHomeChannelTargetItems();
-      const lightweightMode = shouldUseLightweightHomeBooksLoad();
-      const buildOpenLibraryCoverUrl = (doc, size = 'L') => {
-        const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
-          ? String(size || 'L').toUpperCase()
-          : 'L';
-        const coverId = Number(doc?.cover_i || 0) || 0;
-        if (coverId > 0) {
-          return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-${safeSize}.jpg`;
-        }
-        const isbnRaw = Array.isArray(doc?.isbn) ? String(doc.isbn[0] || '').trim() : String(doc?.isbn || '').trim();
-        const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
-        if (isbn) {
-          return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-${safeSize}.jpg`;
-        }
-        return '';
-      };
-
-      const normalizeBookDoc = (row, idx = 0) => {
-        if (!row) return null;
-        if (row.volumeInfo) {
-          const info = row.volumeInfo || {};
-          const title = String(info?.title || '').trim();
-          if (!title) return null;
-          const author = Array.isArray(info?.authors) && info.authors.length ? String(info.authors[0] || '').trim() : 'Unknown author';
-          const identifiers = Array.isArray(info?.industryIdentifiers) ? info.industryIdentifiers : [];
-          const isbn = identifiers
-            .map((entry) => String(entry?.identifier || '').replace(/[^0-9Xx]/g, ''))
-            .filter(Boolean);
-          const published = String(info?.publishedDate || '').trim();
-          const yearMatch = published.match(/\d{4}/);
-          return {
-            key: '',
-            title,
-            author_name: [author],
-            first_publish_year: yearMatch ? Number(yearMatch[0]) : null,
-            isbn,
-            cover_i: null,
-            coverImage: toHttpsUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || ''),
-            _googleThumbnail: toHttpsUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || ''),
-            _googleVolumeId: String(row?.id || '').trim(),
-            maturityRating: String(info?.maturityRating || '').trim(),
-            _source: 'google-books'
-          };
-        }
-        const title = String(row?.title || '').trim();
-        if (!title) return null;
-        const author = Array.isArray(row?.author_name) && row.author_name.length
-          ? String(row.author_name[0] || '').trim()
-          : 'Unknown author';
-        const isbn = Array.isArray(row?.isbn)
-          ? row.isbn.map((entry) => String(entry || '').replace(/[^0-9Xx]/g, '')).filter(Boolean)
-          : (String(row?.isbn || '').trim() ? [String(row.isbn).trim().replace(/[^0-9Xx]/g, '')] : []);
-        return {
-          key: String(row?.key || '').trim(),
-          title,
-          author_name: [author],
-          first_publish_year: Number(row?.first_publish_year || 0) || null,
-          isbn,
-          cover_i: Number(row?.cover_i || 0) || null,
-          coverImage: toHttpsUrl(row?.coverImage || ''),
-          _googleThumbnail: toHttpsUrl(row?._googleThumbnail || ''),
-          _googleVolumeId: String(row?._googleVolumeId || '').trim(),
-          maturityRating: String(row?.maturityRating || '').trim(),
-          _source: String(row?._source || '').trim() || 'book'
-        };
-      };
-
-      const mapDocsToRailItems = (docs, options = {}) => {
-        const minYear = Number(options.minYear || 0);
-        const allowMissingYear = !!options.allowMissingYear;
-        const seen = new Set();
-        return (Array.isArray(docs) ? docs : []).map((doc, idx) => {
-          const normalized = normalizeBookDoc(doc, idx);
-          if (!normalized) return null;
-          const title = String(normalized.title || '').trim();
-          const author = String((Array.isArray(normalized.author_name) ? normalized.author_name[0] : '') || '').trim() || 'Unknown author';
-          const year = Number(normalized?.first_publish_year || 0) || 0;
-
-          if (!allowMissingYear && !year) return null;
-          if (minYear && year && year < minYear) return null;
-
-          const coverCandidates = [
-            toHttpsUrl(normalized?._googleThumbnail || ''),
-            toHttpsUrl(normalized?.coverImage || ''),
-            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'L')),
-            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'M'))
-          ].filter(Boolean);
-          const cover = coverCandidates[0] || '';
-          if (!cover) return null;
-
-          const dedupeKey = `${title.toLowerCase()}::${author.toLowerCase()}`;
-          if (seen.has(dedupeKey)) return null;
-          seen.add(dedupeKey);
-
-          const subtitle = year ? `${author} | ${year}` : author;
-          const googleVolumeId = String(normalized?._googleVolumeId || '').trim();
-          const workKey = String(normalized?.key || '').trim();
-          let itemId = '';
-          if (googleVolumeId) itemId = googleVolumeId;
-          if (!itemId && workKey.startsWith('/works/')) itemId = workKey.replace('/works/', '').trim();
-          if (!itemId) {
-            itemId = `search-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `book-${idx}`}`;
-          }
-          const isbnRaw = Array.isArray(normalized?.isbn) ? String(normalized.isbn[0] || '').trim() : '';
-          const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
-          const titleParam = encodeURIComponent(title);
-          const authorParam = encodeURIComponent(author);
-          const href = `book.html?id=${encodeURIComponent(itemId)}&title=${titleParam}&author=${authorParam}`;
-
-          return {
-            mediaType: 'book',
-            itemId,
-            title,
-            subtitle,
-            image: cover,
-            backgroundImage: cover,
-            spotlightImage: cover,
-            spotlightMediaImage: cover,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            fallbackImage: '',
-            maturityRating: String(normalized?.maturityRating || '').trim(),
-            isbn,
-            href
-          };
-        }).filter(Boolean);
-      };
-
-      const mergeUniqueItems = (...batches) => {
-        const seen = new Set();
-        const out = [];
-        batches.forEach((batch) => {
-          (Array.isArray(batch) ? batch : []).forEach((item) => {
-            const key = `${String(item?.title || '').trim().toLowerCase()}::${String(item?.subtitle || '').trim().toLowerCase()}`;
-            if (!key || seen.has(key)) return;
-            seen.add(key);
-            out.push(item);
-          });
-        });
-        return out;
-      };
-
-      try {
-        const limit = lightweightMode ? Math.max(targetCount, 16) : Math.max(targetCount, 24);
-        const booksRequestOptions = { signal, timeoutMs: 4200, retries: 1 };
-        const queryUrls = [
-          `/api/books/popular?q=${encodeURIComponent('subject:fiction bestseller 2023 2024 2025')}&limit=${limit}&page=1&orderBy=relevance`,
-          `/api/books/popular?q=${encodeURIComponent('subject:fantasy bestseller')}&limit=${limit}&page=1&orderBy=relevance`,
-          `/api/books/popular?q=${encodeURIComponent('subject:romance bestseller')}&limit=${limit}&page=1&orderBy=relevance`,
-          `/api/books/popular?q=${encodeURIComponent('bestseller popular books')}&limit=${limit}&page=1&orderBy=relevance`,
-          `/api/books/trending?period=weekly&limit=${limit}`
-        ].slice(0, lightweightMode ? 3 : 5);
-        const results = await Promise.allSettled(queryUrls.map((url) => (
-          fetchJsonWithPerfCache(url, { ...booksRequestOptions, cacheKey: `books:${url}` })
-        )));
-
-        const allDocsRaw = [];
-        results.forEach((result) => {
-          if (result.status !== 'fulfilled') return;
-          const payload = result.value;
-          const docs = Array.isArray(payload?.docs)
-            ? payload.docs
-            : (Array.isArray(payload?.items) ? payload.items : []);
-          if (docs.length) allDocsRaw.push(...docs);
-        });
-
-        const strictModern = mapDocsToRailItems(allDocsRaw, { minYear: 2005, allowMissingYear: false });
-        const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: 2005, allowMissingYear: true });
-        const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 1995, allowMissingYear: true });
-        const merged = mergeUniqueItems(strictModern, modernWithUnknownYear, relaxedFallback);
-        const safeMerged = filterHomeSafeItems(merged);
-        if (safeMerged.length) {
-          const shuffled = shuffleArray(safeMerged);
-          return shuffled.slice(0, targetCount);
-        }
-      } catch (_e) {}
-
-      return [];
+      const loaders = await ensureHomeHeavyLoaders();
+      return typeof loaders.loadBooks === 'function' ? loaders.loadBooks(signal) : [];
     }
 
     async function loadMusic(signal) {
-      const targetCount = getHomeChannelTargetItems();
-      const lightweightMode = shouldUseLightweightHomeMusicLoad();
-      const market = 'US';
-      const HOME_MUSIC_MIN_ITEMS = lightweightMode
-        ? Math.max(5, Math.min(targetCount, 8))
-        : Math.max(8, Math.min(targetCount, 12));
-      const getTrackContainerLabel = (track = {}) => {
-        const title = String(track?.name || '').trim().toLowerCase();
-        const albumName = String(track?.album?.name || track?.album_name || '').trim();
-        const albumType = String(track?.album?.album_type || track?.album_type || '').trim().toLowerCase();
-        const totalTracks = Number(track?.album?.total_tracks || track?.total_tracks || 0);
-        const sameName = !!title && !!albumName && title === albumName.toLowerCase();
-        if (albumType === 'single' && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
-        if (/\bsingle\b/i.test(albumName) && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
-        return 'Album';
-      };
-      const mapTracksToHomeItems = (tracks = []) => tracks.map((track) => {
-        if (String(track?.kind || '').trim().toLowerCase() === 'album') return null;
-        const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
-        const title = String(track?.name || 'Track').trim() || 'Track';
-        const albumName = String(track?.album?.name || track?.album_name || '').trim() || 'Unknown Album';
-        const containerLabel = getTrackContainerLabel(track);
-        const popularity = Number(track?.popularity || 0);
-        const image = String(track?.image || '').trim();
-        return {
-          mediaType: 'music',
-          itemId: String(track?.id || ''),
-          title,
-          subtitle: artists || 'Artist',
-          extra: `Song | ${containerLabel}: ${albumName}${popularity ? ` | Popularity ${popularity}/100` : ''}`,
-          image,
-          backgroundImage: image,
-          spotlightImage: image,
-          spotlightMediaImage: image,
-          previewUrl: String(track?.preview_url || '').trim(),
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          explicit: track?.explicit === true,
-          href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
-        };
-      }).filter((item) => item && String(item?.itemId || '').trim());
-
-      const mapAlbumsToHomeItems = (albums = []) => albums.map((album, idx) => {
-        const albumIdRaw = String(album?.id || '').trim();
-        const albumId = albumIdRaw.startsWith('album:') ? albumIdRaw.slice(6) : albumIdRaw;
-        const albumType = String(album?.album_type || 'album').trim().toLowerCase();
-        if (albumType && albumType !== 'album') return null;
-        if (!albumId) return null;
-        const source = String(album?.source || '').trim().toLowerCase() || (/^[0-9]+$/.test(albumId) ? 'itunes' : 'spotify');
-        const artists = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : 'Artist';
-        const image = String(album?.image || '').trim();
-        const releaseDate = String(album?.release_date || '').trim();
-        const totalTracks = Number(album?.total_tracks || 0);
-        const detail = [
-          releaseDate ? `Released ${releaseDate}` : '',
-          totalTracks > 0 ? `${totalTracks} tracks` : '',
-          albumType || ''
-        ].filter(Boolean).join(' | ');
-        const href = `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(source)}`;
-        return {
-          mediaType: 'music',
-          itemId: `album:${albumId}`,
-          title: String(album?.name || 'Album').trim() || 'Album',
-          subtitle: artists || 'Artist',
-          extra: `Album${detail ? ` | ${detail}` : ''}`,
-          image,
-          backgroundImage: image,
-          spotlightImage: image,
-          spotlightMediaImage: image,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          href,
-          isMusicAlbum: true
-        };
-      }).filter((item) => !!item && String(item?.itemId || '').trim());
-
-      const dedupeMusicTrackRows = (rows = []) => {
-        const seenIds = new Set();
-        const seenTrackKeys = new Set();
-        const deduped = [];
-        rows.forEach((row) => {
-          const id = String(row?.id || '').trim();
-          const trackName = String(row?.name || '').trim().toLowerCase();
-          const firstArtist = Array.isArray(row?.artists) && row.artists.length
-            ? String(row.artists[0] || '').trim().toLowerCase()
-            : '';
-          const trackKey = `${trackName}::${firstArtist}`;
-          if (!trackName || !firstArtist) return;
-          if (id && seenIds.has(id)) return;
-          if (seenTrackKeys.has(trackKey)) return;
-          if (id) seenIds.add(id);
-          seenTrackKeys.add(trackKey);
-          deduped.push(row);
-        });
-        return deduped;
-      };
-
-      const dedupeMusicAlbumRows = (rows = []) => {
-        const seenIds = new Set();
-        const seenAlbumKeys = new Set();
-        const deduped = [];
-        rows.forEach((row) => {
-          const id = String(row?.id || '').trim();
-          const albumName = String(row?.name || '').trim().toLowerCase();
-          const firstArtist = Array.isArray(row?.artists) && row.artists.length
-            ? String(row.artists[0] || '').trim().toLowerCase()
-            : '';
-          const albumKey = `${albumName}::${firstArtist}`;
-          if (!albumName || !firstArtist) return;
-          if (id && seenIds.has(id)) return;
-          if (seenAlbumKeys.has(albumKey)) return;
-          if (id) seenIds.add(id);
-          seenAlbumKeys.add(albumKey);
-          deduped.push(row);
-        });
-        return deduped;
-      };
-
-      const mixMusicItems = (trackItems = [], albumItems = [], takeCount = targetCount) => {
-        const trackQueue = [...(Array.isArray(trackItems) ? trackItems : [])];
-        const albumQueue = [...(Array.isArray(albumItems) ? albumItems : [])];
-        const mixed = [];
-        while (mixed.length < takeCount && (trackQueue.length || albumQueue.length)) {
-          if (albumQueue.length) mixed.push(albumQueue.shift());
-          if (trackQueue.length && mixed.length < takeCount) mixed.push(trackQueue.shift());
-          if (albumQueue.length && mixed.length < takeCount) mixed.push(albumQueue.shift());
-        }
-        while (mixed.length < takeCount && trackQueue.length) mixed.push(trackQueue.shift());
-        while (mixed.length < takeCount && albumQueue.length) mixed.push(albumQueue.shift());
-        return mixed.slice(0, takeCount);
-      };
-
-      const buildMixedMusicItems = (trackRows = [], albumRows = [], takeCount = targetCount) => {
-        const dedupedTracks = dedupeMusicTrackRows(trackRows);
-        const dedupedAlbums = dedupeMusicAlbumRows(albumRows);
-        const tracksWithArtwork = dedupedTracks.filter((track) => String(track?.image || '').trim());
-        const albumsWithArtwork = dedupedAlbums.filter((album) => String(album?.image || '').trim());
-        const trackPool = tracksWithArtwork.length ? tracksWithArtwork : dedupedTracks;
-        const albumPool = albumsWithArtwork.length ? albumsWithArtwork : dedupedAlbums;
-        const selectedTracks = shuffleArray(trackPool).slice(0, Math.max(takeCount, 16));
-        const selectedAlbums = shuffleArray(albumPool).slice(0, Math.max(takeCount * 2, 24));
-        const mappedTracks = mapTracksToHomeItems(selectedTracks);
-        const mappedAlbums = mapAlbumsToHomeItems(selectedAlbums);
-        const mixed = mixMusicItems(mappedTracks, mappedAlbums, takeCount);
-        return dedupeHomeItemsByMediaAndId(mixed).slice(0, takeCount);
-      };
-      const hasAlbumItems = (items = []) => (Array.isArray(items) ? items : [])
-        .some((item) => item?.isMusicAlbum === true || String(item?.itemId || '').startsWith('album:'));
-      const hasTrackItems = (items = []) => (Array.isArray(items) ? items : [])
-        .some((item) => item && !item?.isMusicAlbum && !String(item?.itemId || '').startsWith('album:'));
-      const isHealthyMusicBatch = (items = []) => {
-        const list = Array.isArray(items) ? items : [];
-        return list.length >= HOME_MUSIC_MIN_ITEMS && hasAlbumItems(list) && hasTrackItems(list);
-      };
-      const collectedTrackRows = [];
-      const collectedAlbumRows = [];
-      const collectMusicRows = ({ tracks = [], albums = [] } = {}) => {
-        if (Array.isArray(tracks) && tracks.length) collectedTrackRows.push(...tracks);
-        if (Array.isArray(albums) && albums.length) collectedAlbumRows.push(...albums);
-      };
-      const getCollectedTrackRows = () => dedupeMusicTrackRows(collectedTrackRows);
-      const getCollectedAlbumRows = () => dedupeMusicAlbumRows(collectedAlbumRows);
-
-      const top50Limit = lightweightMode ? Math.max(targetCount * 3, 28) : Math.max(targetCount * 4, 64);
-      const newReleaseLimit = lightweightMode ? Math.max(targetCount * 2, 18) : Math.max(targetCount * 3, 36);
-      const musicFetchOptions = { signal, timeoutMs: 3600, retries: 1 };
-      const [top50Res, topAlbumsRes, topReleaseAlbumsRes] = await Promise.allSettled([
-        fetchJsonWithPerfCache(
-          `/api/music/top-50?limit=${top50Limit}&market=${market}`,
-          { ...musicFetchOptions, cacheKey: `music:top-50:${top50Limit}:${market}` }
-        ),
-        fetchJsonWithPerfCache(
-          `/api/music/popular-albums?limit=${newReleaseLimit}&market=${market}&album_types=album`,
-          { ...musicFetchOptions, cacheKey: `music:popular-albums:${newReleaseLimit}:${market}:album` }
-        ),
-        fetchJsonWithPerfCache(
-          `/api/music/new-releases?limit=${newReleaseLimit}&market=${market}&album_types=album`,
-          { ...musicFetchOptions, cacheKey: `music:new-releases:${newReleaseLimit}:${market}:album` }
-        )
-      ]);
-      const top50Rows = top50Res.status === 'fulfilled' && Array.isArray(top50Res.value?.results) ? top50Res.value.results : [];
-      const topAlbumRows = [
-        ...(topAlbumsRes.status === 'fulfilled' && Array.isArray(topAlbumsRes.value?.results) ? topAlbumsRes.value.results : []),
-        ...(topReleaseAlbumsRes.status === 'fulfilled' && Array.isArray(topReleaseAlbumsRes.value?.results) ? topReleaseAlbumsRes.value.results : [])
-      ];
-      collectMusicRows({ tracks: top50Rows, albums: topAlbumRows });
-      const topBatch = filterHomeSafeItems(buildMixedMusicItems(top50Rows, topAlbumRows, targetCount));
-      if (isHealthyMusicBatch(topBatch)) return topBatch;
-      if (lightweightMode && topBatch.length >= Math.min(6, HOME_MUSIC_MIN_ITEMS)) return topBatch;
-
-      const [popularRes, popularAlbumsRes, popularReleaseAlbumsRes] = await Promise.allSettled([
-        fetchJsonWithPerfCache(
-          `/api/music/popular?limit=50&market=${market}`,
-          { ...musicFetchOptions, cacheKey: `music:popular:50:${market}` }
-        ),
-        fetchJsonWithPerfCache(
-          `/api/music/popular-albums?limit=36&market=${market}&album_types=album`,
-          { ...musicFetchOptions, cacheKey: `music:popular-albums:36:${market}:album` }
-        ),
-        fetchJsonWithPerfCache(
-          `/api/music/new-releases?limit=24&market=${market}&album_types=album`,
-          { ...musicFetchOptions, cacheKey: `music:new-releases:24:${market}:album` }
-        )
-      ]);
-      const popularRows = popularRes.status === 'fulfilled' && Array.isArray(popularRes.value?.results) ? popularRes.value.results : [];
-      const popularAlbumRows = [
-        ...(popularAlbumsRes.status === 'fulfilled' && Array.isArray(popularAlbumsRes.value?.results)
-          ? popularAlbumsRes.value.results
-          : []),
-        ...(popularReleaseAlbumsRes.status === 'fulfilled' && Array.isArray(popularReleaseAlbumsRes.value?.results)
-          ? popularReleaseAlbumsRes.value.results
-          : [])
-      ];
-      collectMusicRows({ tracks: popularRows, albums: popularAlbumRows });
-      const popularBatch = filterHomeSafeItems(buildMixedMusicItems(popularRows, popularAlbumRows, targetCount));
-      if (isHealthyMusicBatch(popularBatch)) return popularBatch;
-      if (lightweightMode && popularBatch.length >= Math.min(6, HOME_MUSIC_MIN_ITEMS)) return popularBatch;
-
-      if (lightweightMode) {
-        const bestEffortLightBatch = filterHomeSafeItems(
-          buildMixedMusicItems(
-            getCollectedTrackRows(),
-            getCollectedAlbumRows(),
-            Math.max(targetCount, HOME_MUSIC_MIN_ITEMS)
-          )
-        );
-        return bestEffortLightBatch.slice(0, targetCount);
-      }
-
-      const searchFallbackTerms = ['top albums and songs', 'new music albums and songs'];
-      for (const term of searchFallbackTerms) {
-        try {
-          const fallbackSearch = await fetchJsonWithPerfCache(
-            `/api/music/search?q=${encodeURIComponent(term)}&limit=40&market=${market}&type=track,album&album_types=album`,
-            { ...musicFetchOptions, cacheKey: `music:search-fallback:${market}:${term}` }
-          );
-          const fallbackTracks = Array.isArray(fallbackSearch?.tracks) ? fallbackSearch.tracks : [];
-          const fallbackAlbums = Array.isArray(fallbackSearch?.albums) ? fallbackSearch.albums : [];
-          collectMusicRows({ tracks: fallbackTracks, albums: fallbackAlbums });
-          const searchBatch = filterHomeSafeItems(buildMixedMusicItems(fallbackTracks, fallbackAlbums, targetCount));
-          if (isHealthyMusicBatch(searchBatch)) return searchBatch;
-        } catch (_err) {}
-      }
-
-      const minimumTrackRows = Math.max(4, Math.ceil(HOME_MUSIC_MIN_ITEMS / 2));
-      const minimumAlbumRows = Math.max(4, Math.ceil(HOME_MUSIC_MIN_ITEMS / 2));
-      if (getCollectedAlbumRows().length < minimumAlbumRows) {
-        try {
-          const albumSearch = await fetchJsonWithPerfCache(
-            `/api/music/search?q=${encodeURIComponent('top albums')}&limit=48&market=${market}&type=album&album_types=album`,
-            { ...musicFetchOptions, cacheKey: `music:album-search-backfill:${market}` }
-          );
-          collectMusicRows({ albums: Array.isArray(albumSearch?.albums) ? albumSearch.albums : [] });
-        } catch (_err) {}
-      }
-      if (getCollectedTrackRows().length < minimumTrackRows) {
-        try {
-          const trackSearch = await fetchJsonWithPerfCache(
-            `/api/music/search?q=${encodeURIComponent('top songs')}&limit=48&market=${market}&type=track`,
-            { ...musicFetchOptions, cacheKey: `music:track-search-backfill:${market}` }
-          );
-          collectMusicRows({ tracks: Array.isArray(trackSearch?.tracks) ? trackSearch.tracks : [] });
-        } catch (_err) {}
-      }
-
-      const bestEffortBatch = filterHomeSafeItems(
-        buildMixedMusicItems(
-          getCollectedTrackRows(),
-          getCollectedAlbumRows(),
-          Math.max(targetCount, HOME_MUSIC_MIN_ITEMS)
-        )
-      );
-      if (bestEffortBatch.length) {
-        const mixedEnough = hasAlbumItems(bestEffortBatch) && hasTrackItems(bestEffortBatch);
-        if (isHealthyMusicBatch(bestEffortBatch) || (mixedEnough && bestEffortBatch.length >= Math.min(6, HOME_MUSIC_MIN_ITEMS))) {
-          return bestEffortBatch;
-        }
-      }
-
-      return [];
-    }
-
-    function normalizeTravelSearchText(value) {
-      return String(value || '')
-        .trim()
-        .toLowerCase()
-        .replace(/\s+\(country\)\s*$/i, '')
-        .replace(/[^a-z0-9 ]+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-    }
-
-    function pickHomeCountryCities(code, capital) {
-      const safeCode = String(code || '').trim().toUpperCase();
-      const seeded = Array.isArray(homeCountryCityHints[safeCode]) ? homeCountryCityHints[safeCode] : [];
-      const out = [];
-      const firstCapital = Array.isArray(capital)
-        ? String(capital[0] || '').trim()
-        : String(capital || '').trim();
-      if (firstCapital) out.push(firstCapital);
-      seeded.forEach((city) => {
-        const clean = String(city || '').trim();
-        if (!clean) return;
-        if (out.some((entry) => entry.toLowerCase() === clean.toLowerCase())) return;
-        out.push(clean);
-      });
-      return out.slice(0, 3);
-    }
-
-    function isBlockedTravelCommonsTitle(title, countryName, capital, cityHints = []) {
-      const raw = String(title || '').toLowerCase();
-      if (!raw) return true;
-      const blocked = [
-        'flag',
-        'coat of arms',
-        'emblem',
-        'seal',
-        'map of',
-        'locator map',
-        'location map',
-        'orthographic',
-        'equirectangular',
-        'blank map',
-        'administrative map',
-        'province map',
-        'political map',
-        'banner',
-        'painting',
-        'artwork',
-        'illustration',
-        'drawing',
-        'poster',
-        'watercolor',
-        'etching',
-        'engraving',
-        'lithograph',
-        'oil on canvas'
-      ];
-      if (blocked.some((token) => raw.includes(token))) return true;
-      const countryNeedle = normalizeTravelSearchText(countryName);
-      const capitalNeedle = normalizeTravelSearchText(capital);
-      const cityNeedles = (Array.isArray(cityHints) ? cityHints : [])
-        .map((value) => normalizeTravelSearchText(value))
-        .filter(Boolean);
-      if (!countryNeedle && !capitalNeedle && !cityNeedles.length) return false;
-      const normalizedTitle = normalizeTravelSearchText(title);
-      const hasCountry = countryNeedle && normalizedTitle.includes(countryNeedle);
-      const hasCapital = capitalNeedle && normalizedTitle.includes(capitalNeedle);
-      const hasCity = cityNeedles.some((needle) => normalizedTitle.includes(needle));
-      return !(hasCountry || hasCapital || hasCity);
-    }
-
-    function isTravelCommonsPhotoMime(mime) {
-      const value = String(mime || '').toLowerCase().trim();
-      return value === 'image/jpeg' || value === 'image/jpg' || value === 'image/webp';
-    }
-
-    function buildHomeTravelPhotoQueries(kind, name, capital, cities = []) {
-      const primaryCity = String(capital || cities[0] || '').trim();
-      if (kind === 'city') {
-        return [
-          primaryCity ? `${primaryCity} skyline` : '',
-          primaryCity ? `${primaryCity} downtown` : '',
-          `${name} city skyline`,
-          `${name} city center`,
-          `${name} street`
-        ].map((value) => String(value || '').trim()).filter(Boolean);
-      }
-      if (kind === 'nature') {
-        return [
-          `${name} landscape`,
-          `${name} nature`,
-          `${name} national park`,
-          `${name} mountains`,
-          `${name} coast`
-        ].map((value) => String(value || '').trim()).filter(Boolean);
-      }
-      return [
-        `${name} landscape`,
-        `${name} travel photography`,
-        `${name} scenic`,
-        `${name} nature`,
-        `${primaryCity ? `${primaryCity} skyline` : ''}`
-      ].map((value) => String(value || '').trim()).filter(Boolean);
-    }
-
-    async function fetchTravelCommonsPhotoByKind(kind, name, code, capital, cities, signal) {
-      const safeCode = String(code || '').trim().toUpperCase();
-      if (!safeCode) return '';
-      const queries = buildHomeTravelPhotoQueries(kind, name, capital, cities);
-      for (const query of queries) {
-        if (signal?.aborted) break;
-        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=8&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=1200`;
-        try {
-          const payload = await fetchJsonWithPerfCache(endpoint, {
-            signal,
-            cacheKey: `commons:travel:home:${safeCode}:${kind}:${query.toLowerCase()}`,
-            ttlMs: 1000 * 60 * 60 * 24 * 7,
-            timeoutMs: 7600,
-            retries: 1
-          });
-          const pages = Array.isArray(payload?.query?.pages) ? payload.query.pages : [];
-          const preferred = pages.find((page) => {
-            const title = String(page?.title || '');
-            const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
-            if (!isTravelCommonsPhotoMime(mime)) return false;
-            if (isBlockedTravelCommonsTitle(title, name, capital, cities)) return false;
-            return true;
-          }) || pages.find((page) => {
-            const title = String(page?.title || '').toLowerCase();
-            const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
-            if (!isTravelCommonsPhotoMime(mime)) return false;
-            const blocked = ['flag', 'coat of arms', 'emblem', 'seal', 'map of', 'locator map', 'location map', 'orthographic', 'equirectangular', 'blank map', 'administrative map', 'province map', 'political map', 'banner'];
-            return !blocked.some((token) => title.includes(token));
-          });
-          const image = toHttpsUrl(preferred?.imageinfo?.[0]?.thumburl || preferred?.imageinfo?.[0]?.url || '');
-          if (isUsableHomeTravelScenicUrl(image)) return image;
-        } catch (_error) {
-          // continue with next query
-        }
-      }
-      return '';
-    }
-
-    async function fetchTravelCommonsPhoto(name, code, capital, cities, signal) {
-      const safeCode = String(code || '').trim().toUpperCase();
-      if (!safeCode) return '';
-      const cached = getHomeTravelPhotoSet(safeCode);
-      if (cached.scenic) return cached.scenic;
-      const scenic = await fetchTravelCommonsPhotoByKind('scenic', name, safeCode, capital, cities, signal);
-      if (scenic) setHomeTravelPhotoCache(safeCode, scenic, 'scenic');
-      return scenic;
-    }
-
-    async function fetchTravelCommonsPhotos(rows = [], signal, opts = {}) {
-      const list = Array.isArray(rows) ? rows : [];
-      const includeLifestyle = !!opts.includeLifestyle && !isHomeSlowNetwork();
-      const unresolved = list.filter((row) => {
-        const rawCode = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
-        if (rawCode === 'IL') return false;
-        const code = canonicalTravelCountryCode(rawCode);
-        const name = String(row?.name?.common || row?.name?.official || '').trim();
-        if (/\bisrael\b/i.test(name)) return false;
-        const cached = getHomeTravelPhotoSet(code);
-        if (!code || !name) return false;
-        if (!cached.scenic) return true;
-        if (includeLifestyle && (!cached.city || !cached.nature)) return true;
-        return false;
-      });
-      if (!unresolved.length) return homeTravelPhotoCache;
-
-      const queue = unresolved.slice(0, 100);
-      const workerCount = Math.min(includeLifestyle ? 4 : 6, queue.length);
-      let cursor = 0;
-      const workers = Array.from({ length: workerCount }, async () => {
-        while (cursor < queue.length) {
-          const index = cursor;
-          cursor += 1;
-          const row = queue[index];
-          if (!row || signal?.aborted) return;
-          const rawCode = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
-          if (rawCode === 'IL') continue;
-          const code = canonicalTravelCountryCode(rawCode);
-          const name = String(row?.name?.common || row?.name?.official || '').trim();
-          if (/\bisrael\b/i.test(name)) continue;
-          const capital = Array.isArray(row?.capital)
-            ? String(row.capital[0] || '').trim()
-            : String(row?.capital || '').trim();
-          if (!code || !name) continue;
-          const cities = pickHomeCountryCities(code, capital);
-          const cached = getHomeTravelPhotoSet(code);
-          if (!cached.scenic) {
-            const scenic = await fetchTravelCommonsPhoto(name, code, capital, cities, signal);
-            if (scenic) setHomeTravelPhotoCache(code, scenic, 'scenic');
-          }
-          if (includeLifestyle) {
-            const nextCached = getHomeTravelPhotoSet(code);
-            if (!nextCached.city) {
-              const cityPhoto = await fetchTravelCommonsPhotoByKind('city', name, code, capital, cities, signal);
-              if (cityPhoto) setHomeTravelPhotoCache(code, cityPhoto, 'city');
-            }
-            const afterCity = getHomeTravelPhotoSet(code);
-            if (!afterCity.nature) {
-              const naturePhoto = await fetchTravelCommonsPhotoByKind('nature', name, code, capital, cities, signal);
-              if (naturePhoto) setHomeTravelPhotoCache(code, naturePhoto, 'nature');
-            }
-          }
-        }
-      });
-      await Promise.all(workers);
-
-      return homeTravelPhotoCache;
-    }
-
-    function mapTravelCountryToHomeItem(row, photoMap = null) {
-      const rawCode = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
-      if (!rawCode || rawCode === 'IL') return null;
-      const code = canonicalTravelCountryCode(rawCode);
-      const baseTitle = String(row?.name?.common || row?.name?.official || '').trim();
-      if (/\bisrael\b/i.test(baseTitle)) return null;
-      const resolvedBaseTitle = code === 'PS' ? 'Palestine' : baseTitle;
-      const title = formatTravelTitleWithFlag(resolvedBaseTitle, code);
-      if (!code || !title) return null;
-      const capital = Array.isArray(row?.capital)
-        ? String(row.capital[0] || '').trim()
-        : String(row?.capital || '').trim();
-      const region = String(row?.region || '').trim();
-      const subregion = String(row?.subregion || '').trim();
-      const cities = pickHomeCountryCities(code, capital);
-      const flagImage = toHttpsUrl(String(row?.flags?.png || row?.flags?.svg || '').trim())
-        || getHomeCountryFlagByCode(code)
-        || getHomeCountryFlag(title)
-        || '';
-      const subtitle = [
-        capital ? `Capital: ${capital}` : '',
-        region
-      ].filter(Boolean).join(' | ') || 'Country';
-      const extraParts = [];
-      if (subregion && subregion !== region) extraParts.push(subregion);
-      if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
-      const photoFromCommons = photoMap instanceof Map ? normalizeHomeTravelPhotoEntry(photoMap.get(code)) : { scenic: '', city: '', nature: '' };
-      if (photoFromCommons.scenic) setHomeTravelPhotoCache(code, photoFromCommons.scenic, 'scenic');
-      if (photoFromCommons.city) setHomeTravelPhotoCache(code, photoFromCommons.city, 'city');
-      if (photoFromCommons.nature) setHomeTravelPhotoCache(code, photoFromCommons.nature, 'nature');
-      const photoImageRaw = getSafeTravelScenicImage(resolvedBaseTitle, code, photoFromCommons.scenic || '');
-      const scenicImage = isUsableHomeTravelScenicUrl(photoImageRaw) ? photoImageRaw : '';
-      const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
-      const heroImage = scenicImage || safeFallback;
-      if (!heroImage) return null;
-      const cachedSet = getHomeTravelPhotoSet(code);
-      return {
-        mediaType: 'travel',
-        itemId: code,
-        title,
-        subtitle,
-        extra: extraParts.join(' | ') || 'Travel',
-        cities,
-        flagImage,
-        listImage: heroImage,
-        image: heroImage,
-        backgroundImage: heroImage || '',
-        spotlightImage: heroImage || '',
-        spotlightMediaImage: flagImage || heroImage,
-        spotlightMediaFit: flagImage ? 'contain' : 'cover',
-        spotlightMediaPosition: 'center center',
-        spotlightMediaShape: 'square',
-        travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
-        travelPhotoSet: {
-          scenic: cachedSet.scenic || heroImage || '',
-          city: cachedSet.city || '',
-          nature: cachedSet.nature || ''
-        },
-        travelNeedsScenicHydration: false,
-        fallbackImage: safeFallback || heroImage,
-        href: `country.html?code=${encodeURIComponent(code)}`
-      };
-    }
-
-    function mapCachedTravelCountryRowToHomeItem(row) {
-      const code = canonicalTravelCountryCode(row?.code || row?.cca2 || row?.cca3 || '');
-      const baseTitle = String(row?.name || row?.title || '').trim();
-      if (!code || !baseTitle || /\bisrael\b/i.test(baseTitle)) return null;
-      const resolvedBaseTitle = code === 'PS' ? 'Palestine' : baseTitle;
-      const title = formatTravelTitleWithFlag(resolvedBaseTitle, code);
-      const capital = String(row?.capital || '').trim();
-      const region = String(row?.region || '').trim();
-      const subregion = String(row?.subregion || '').trim();
-      const cities = Array.isArray(row?.cities)
-        ? row.cities.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3)
-        : pickHomeCountryCities(code, capital);
-      const flagImage = toHttpsUrl(String(row?.flag || row?.flagImage || '').trim())
-        || getHomeCountryFlagByCode(code)
-        || getHomeCountryFlag(title)
-        || '';
-      const subtitle = [
-        capital ? `Capital: ${capital}` : '',
-        region
-      ].filter(Boolean).join(' | ') || 'Country';
-      const extraParts = [];
-      if (subregion && subregion !== region) extraParts.push(subregion);
-      if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
-      const scenicRaw = getSafeTravelScenicImage(resolvedBaseTitle, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
-      const scenicImage = isUsableHomeTravelScenicUrl(scenicRaw) ? scenicRaw : '';
-      const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
-      const heroImage = scenicImage || safeFallback;
-      if (!heroImage) return null;
-      if (heroImage) setHomeTravelPhotoCache(code, heroImage, 'scenic');
-      if (row?.photoCity) setHomeTravelPhotoCache(code, row.photoCity, 'city');
-      if (row?.photoNature) setHomeTravelPhotoCache(code, row.photoNature, 'nature');
-      const cachedSet = getHomeTravelPhotoSet(code);
-      return {
-        mediaType: 'travel',
-        itemId: code,
-        title,
-        subtitle,
-        extra: extraParts.join(' | ') || 'Travel',
-        cities,
-        flagImage,
-        listImage: heroImage,
-        image: heroImage,
-        backgroundImage: heroImage || '',
-        spotlightImage: heroImage || '',
-        spotlightMediaImage: flagImage || heroImage,
-        spotlightMediaFit: flagImage ? 'contain' : 'cover',
-        spotlightMediaPosition: 'center center',
-        spotlightMediaShape: 'square',
-        travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
-        travelPhotoSet: {
-          scenic: cachedSet.scenic || heroImage || '',
-          city: cachedSet.city || '',
-          nature: cachedSet.nature || ''
-        },
-        travelNeedsScenicHydration: false,
-        fallbackImage: safeFallback || heroImage,
-        href: `country.html?code=${encodeURIComponent(code)}`
-      };
-    }
-
-    function getCachedHomeTravelItems(limit = getHomeChannelTargetItems()) {
-      const rows = readHomeTravelCountryRowsCache();
-      if (!rows.length) return [];
-      const seenCodes = new Set();
-      const items = [];
-      rows.forEach((row) => {
-        const item = mapCachedTravelCountryRowToHomeItem(row);
-        const code = String(item?.itemId || '').trim().toUpperCase();
-        if (!item || !code || seenCodes.has(code)) return;
-        seenCodes.add(code);
-        items.push(item);
-      });
-      return shuffleArray(items).slice(0, Math.max(1, Number(limit || getHomeChannelTargetItems())));
+      const loaders = await ensureHomeHeavyLoaders();
+      return typeof loaders.loadMusic === 'function' ? loaders.loadMusic(signal) : [];
     }
 
     async function loadTravel(signal) {
-      const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
-      const cachedRowItems = getCachedHomeTravelItems(targetCount);
-      const cachedHomeItems = readHomeItemsCache(
-        HOME_TRAVEL_ITEMS_CACHE_KEY,
-        HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS,
-        sanitizeHomeTravelItem
-      );
-
-      if (cachedHomeItems.length) {
-        return cachedHomeItems.slice(0, targetCount);
-      }
-
-      if (cachedRowItems.length) {
-        return cachedRowItems.slice(0, targetCount);
-      }
-
-      try {
-        const payload = await fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
-          signal,
-          cacheKey: 'restcountries:all:v3.1:home',
-          ttlMs: 1000 * 60 * 60 * 12,
-          timeoutMs: 9500,
-          retries: 1
-        });
-        if (signal?.aborted) return [];
-        const rows = Array.isArray(payload) ? payload : [];
-        if (!rows.length) return getHomeTravelFallbackItems(targetCount);
-        primeHomeCountryIndex(rows);
-
-        const sortedRows = rows
-          .filter((row) => {
-            if (!row || !(row.cca2 || row.cca3) || !(row?.name?.common || row?.name?.official)) return false;
-            const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
-            const name = String(row?.name?.common || row?.name?.official || '').trim();
-            if (code === 'IL') return false;
-            if (/\bisrael\b/i.test(name)) return false;
-            return true;
-          })
-          .sort((a, b) => {
-            const left = String(a?.name?.common || a?.name?.official || '').trim();
-            const right = String(b?.name?.common || b?.name?.official || '').trim();
-            return left.localeCompare(right);
-          });
-
-        const shortlist = shuffleArray(sortedRows.slice(0, Math.max(targetCount * 5, 120)));
-        const collectTravelItems = (photoMap) => {
-          const seenCodes = new Set();
-          const out = [];
-          const pushRow = (row) => {
-            const item = mapTravelCountryToHomeItem(row, photoMap);
-            if (!item) return;
-            const code = String(item.itemId || '').trim().toUpperCase();
-            if (!code || seenCodes.has(code)) return;
-            seenCodes.add(code);
-            out.push(item);
-          };
-          shortlist.forEach(pushRow);
-          if (out.length < targetCount) sortedRows.forEach(pushRow);
-          return out;
-        };
-
-        const cachedCandidates = collectTravelItems(homeTravelPhotoCache).slice(0, targetCount);
-        if (cachedCandidates.length >= Math.min(targetCount, 6)) {
-          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, cachedCandidates);
-          const photoCandidates = sortedRows.slice(0, Math.max(targetCount * 3, 60));
-          if (!homeTravelHydrationPromise) {
-            homeTravelHydrationPromise = (async () => {
-              const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-              const timer = setTimeout(() => controller?.abort(), 12000);
-              try {
-                const photoMap = await fetchTravelCommonsPhotos(
-                  photoCandidates,
-                  controller?.signal,
-                  { includeLifestyle: !isHomeSlowNetwork() }
-                );
-                const hydrated = collectTravelItems(photoMap).slice(0, targetCount);
-                if (hydrated.length) {
-                  writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, hydrated);
-                  homeFeedState.travel = hydrated;
-                  renderRail('travelRail', hydrated, { mediaType: 'travel' });
-                  const scoredPool = buildScoredDiscoveryPool(homeFeedState);
-                  const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
-                  renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
-                  hydrateSpotlightFromPool(scoredPool);
-                }
-              } finally {
-                clearTimeout(timer);
-                homeTravelHydrationPromise = null;
-              }
-            })();
-          }
-          return cachedCandidates;
-        }
-
-        const photoCandidates = sortedRows.slice(0, Math.max(targetCount * 3, 60));
-        const photoMap = await withTimeout(
-          fetchTravelCommonsPhotos(
-            photoCandidates,
-            signal,
-            { includeLifestyle: !isHomeSlowNetwork() }
-          ),
-          isHomeSlowNetwork() ? 2200 : 3600,
-          homeTravelPhotoCache
-        ).catch(() => homeTravelPhotoCache);
-
-        const hydrated = collectTravelItems(photoMap).slice(0, targetCount);
-        if (hydrated.length) {
-          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, hydrated);
-          return hydrated;
-        }
-        if (cachedCandidates.length) {
-          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, cachedCandidates);
-          return cachedCandidates;
-        }
-        if (cachedRowItems.length) return cachedRowItems;
-      } catch (_err) {}
-
-      return cachedRowItems.length ? cachedRowItems : getHomeTravelFallbackItems(targetCount);
-    }
-
-    function getHomeSportEmoji(sportRaw = '') {
-      const sport = String(sportRaw || '').trim().toLowerCase();
-      if (!sport) return '';
-      if (sport.includes('soccer')) return '⚽';
-      if (sport.includes('american football')) return '🏈';
-      if (sport.includes('football')) return '⚽';
-      if (sport.includes('basketball')) return '🏀';
-      if (sport.includes('baseball')) return '⚾';
-      if (sport.includes('ice hockey') || sport.includes('hockey')) return '🏒';
-      if (sport.includes('cricket')) return '🏏';
-      if (sport.includes('rugby')) return '🏉';
-      if (sport.includes('golf')) return '⛳';
-      if (sport.includes('tennis')) return '🎾';
-      if (sport.includes('volleyball')) return '🏐';
-      if (sport.includes('handball')) return '🤾';
-      if (sport.includes('boxing')) return '🥊';
-      if (sport.includes('mma') || sport.includes('mixed martial')) return '🥋';
-      if (sport.includes('motorsport') || sport.includes('racing')) return '🏎️';
-      if (sport.includes('cycling')) return '🚴';
-      if (sport.includes('snooker') || sport.includes('billiard')) return '🎱';
-      if (sport.includes('darts')) return '🎯';
-      if (sport.includes('table tennis') || sport.includes('ping pong')) return '🏓';
-      return '🏟️';
-    }
-
-    function mapSportsTeamToHomeItem(team) {
-      if (!team || typeof team !== 'object') return null;
-      const id = String(team.idTeam || '').trim();
-      const title = String(team.strTeam || '').trim();
-      if (!title) return null;
-      const sport = String(team.strSport || '').trim();
-      const league = String(team.strLeague || '').trim();
-      const stadium = String(team.strStadium || '').trim();
-      const country = String(team.strCountry || '').trim();
-      const badge = toHttpsUrl(team.strBadge || team.strTeamBadge || team.strTeamLogo || team.strLogo || '');
-      const banner = toHttpsUrl(team.strBanner || team.strTeamBanner || '');
-      const fanart = toHttpsUrl(
-        team.strFanart1 || team.strFanart2 || team.strFanart3 || team.strFanart4 ||
-        team.strTeamFanart1 || team.strTeamFanart2 || team.strTeamFanart3 || ''
-      );
-      const stadiumImage = toHttpsUrl(team.strStadiumThumb || '');
-      const jersey = toHttpsUrl(team.strEquipment || team.strTeamJersey || '');
-      const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
-      if (!badge) return null;
-      const background = fanart || stadiumImage || banner || badge || fallbackImage;
-      const image = badge;
-      const subtitle = [league, sport].filter(Boolean).join(' | ') || 'Team';
-      const sportIcon = getHomeSportEmoji(sport);
-      const subtitleWithIcon = sportIcon ? `${sportIcon} ${subtitle}` : subtitle;
-      const flagImage = getHomeCountryFlag(country);
-      const spotlightMedia = badge || flagImage || jersey || background;
-      const spotlightMediaFit = (badge || flagImage || jersey) ? 'contain' : 'cover';
-      const params = new URLSearchParams();
-      if (id) params.set('id', id);
-      if (title) params.set('team', title);
-      if (league) params.set('league', league);
-      if (sport) params.set('sport', sport);
-      if (country) params.set('country', country);
-      const query = params.toString();
-      const href = query ? `team.html?${query}` : 'team.html';
-      return {
-        mediaType: 'sports',
-        itemId: id || title,
-        title,
-        subtitle: subtitleWithIcon,
-        extra: stadium ? `Stadium: ${stadium}` : '',
-        image,
-        listImage: badge || flagImage || image,
-        mediaFit: 'contain',
-        backgroundImage: background,
-        spotlightImage: background,
-        spotlightMediaImage: spotlightMedia,
-        spotlightMediaFit,
-        spotlightMediaShape: 'square',
-        sport,
-        league,
-        country,
-        flagImage,
-        stadium,
-        badge,
-        banner,
-        fanart,
-        jersey,
-        stadiumImage,
-        href
-      };
-    }
-
-    function normalizeHomeSportsName(value) {
-      return String(value || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]+/g, '')
-        .replace(/['â€™]/g, '')
-        .replace(/\b(fc|cf|sc|afc|club|the)\b/g, '')
-        .replace(/[^a-z0-9]+/g, ' ')
-        .trim();
+      const loaders = await ensureHomeHeavyLoaders();
+      return typeof loaders.loadTravel === 'function' ? loaders.loadTravel(signal) : [];
     }
 
     async function loadSports(signal) {
-      const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
-      const cachedItemsRaw = readHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS)
-        .filter((item) => item && item.image);
-      if (cachedItemsRaw.length) {
-        const dedupedCached = [];
-        const seenCached = new Set();
-        cachedItemsRaw.forEach((item) => {
-          const key = String(item?.itemId || item?.title || '').toLowerCase().trim();
-          const nameKey = normalizeHomeSportsName(item?.title || '');
-          const dedupeKey = [key, nameKey].filter(Boolean).join('|');
-          if (!dedupeKey || seenCached.has(dedupeKey)) return;
-          seenCached.add(dedupeKey);
-          dedupedCached.push(item);
-        });
-        if (dedupedCached.length) return dedupedCached.slice(0, targetCount);
-      }
-
-      const seedTeams = shuffleArray([...HOME_SPORTS_SEEDS]).slice(0, Math.max(targetCount, 12));
-      const items = [];
-      const seen = new Set();
-      void ensureHomeCountryIndex(signal);
-
-      const requests = seedTeams.map((seed) => fetchSportsDb('searchteams.php', { t: seed }, { signal, timeoutMs: 5200 }));
-      const responses = await Promise.allSettled(requests);
-      responses.forEach((result) => {
-        if (items.length >= targetCount) return;
-        if (!result || result.status !== 'fulfilled') return;
-        const payload = result.value;
-        const teams = Array.isArray(payload?.teams) ? payload.teams : [];
-        teams.forEach((team) => {
-          if (items.length >= targetCount) return;
-          const item = mapSportsTeamToHomeItem(team);
-          if (!item) return;
-          const key = String(item.itemId || item.title || '').toLowerCase().trim();
-          const nameKey = normalizeHomeSportsName(item.title || '');
-          const dedupeKey = [key, nameKey].filter(Boolean).join('|');
-          if (!dedupeKey || seen.has(dedupeKey)) return;
-          seen.add(dedupeKey);
-          items.push(item);
-        });
-      });
-
-      if (items.length) {
-        writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
-        return items;
-      }
-
-      return cachedItems.slice(0, targetCount);
+      const loaders = await ensureHomeHeavyLoaders();
+      return typeof loaders.loadSports === 'function' ? loaders.loadSports(signal) : [];
     }
 
     async function initUniversalHome() {
       const initSeq = ++homeFeedInitSeq;
+      ensureHomeInteractionWatch();
+      resetHomeViewportDeferrals();
       if (homeWeakFeedRetryTimer) {
         clearTimeout(homeWeakFeedRetryTimer);
         homeWeakFeedRetryTimer = null;
@@ -7552,7 +7444,8 @@
       setStatus('Loading spotlight and live feed...', false);
       resetSpotlightTimer(false);
       const channels = getHomeChannels();
-      const initialChannels = channels;
+      const initialChannels = getHomeInitialChannels(channels);
+      const deferredChannels = channels.filter((channel) => !initialChannels.includes(channel));
       const cachedFeed = readHomeFeedCache();
       const baselineFeed = cachedFeed || null;
       let quickFallbackFeed = null;
@@ -7577,15 +7470,7 @@
         }
       }
 
-      if (!isHomeSlowNetwork()) {
-        const tastePromise = loadTasteWeights().catch(() => homeTasteWeights);
-        void tastePromise.then((weights) => {
-          if (weights && typeof weights === 'object') {
-            homeTasteWeights = weights;
-          }
-        }).catch(() => {});
-      }
-      const loadedPromise = Promise.all(initialChannels.map(async (channel) => {
+      const loadChannel = async (channel) => {
         const items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
         if (initSeq === homeFeedInitSeq && Array.isArray(items) && items.length) {
           freshLoadedKeys.add(channel.key);
@@ -7594,13 +7479,15 @@
             [channel.key]: items
           };
           const progressive = applyHomeFeedMap(workingFeed, { refreshSecondary: false });
-          if (progressive.scoredPool.length) {
-            setStatus(`Loading live feed... ${freshLoadedKeys.size}/${initialChannels.length} channels ready.`, false);
+          if (progressive.scoredPool.length && freshLoadedKeys.size < channels.length) {
+            setStatus(`Loading live feed... ${freshLoadedKeys.size}/${channels.length} channels ready.`, false);
           }
         }
         return { ...channel, items };
-      }));
-      const precomputedFeed = await withTimeout(precomputedFeedPromise, 220, null);
+      };
+
+      const loadedPromise = loadHomeChannelGroup(initialChannels, loadChannel);
+      const precomputedFeed = await withTimeout(precomputedFeedPromise, 450, null);
       if (initSeq !== homeFeedInitSeq) return;
       if (precomputedFeed) {
         const precomputedActiveChannels = countActiveHomeChannels(precomputedFeed);
@@ -7610,7 +7497,7 @@
             ...workingFeed
           };
           const normalizedPrecomputedFeed = normalizeHomeFeedMap(precomputedFeed) || blankFeed;
-          initialChannels.forEach((channel) => {
+          channels.forEach((channel) => {
             if (freshLoadedKeys.has(channel.key)) return;
             const items = Array.isArray(normalizedPrecomputedFeed[channel.key]) ? normalizedPrecomputedFeed[channel.key] : [];
             if (items.length) {
@@ -7627,6 +7514,10 @@
 
       await loadedPromise;
       if (initSeq !== homeFeedInitSeq) return;
+
+      deferredChannels.forEach((channel) => {
+        queueHomeDeferredChannel(channel, loadChannel, initSeq);
+      });
 
       const mergedFeed = normalizeHomeFeedMap(workingFeed) || blankFeed;
 
@@ -7700,18 +7591,17 @@
       const authRequired = params.get('auth') === 'required';
 
       if (authRequired && authNotice) {
-        const readableNext = next && next !== 'index.html'
-          ? next.replace(/\.html?$/i, '').replace(/[?#].*$/, '').replace(/[-_/]+/g, ' ').trim()
-          : 'the app';
         authNotice.hidden = false;
-        authNotice.textContent = `Sign in to continue to ${readableNext || 'the app'}.`;
+        authNotice.textContent = 'Sign in to continue into Zo2y.';
       }
 
       document.querySelectorAll('[data-auth-entry]').forEach((link) => {
         link.addEventListener('click', () => {
-          localStorage.setItem('postAuthRedirect', next || 'index.html');
+          localStorage.setItem('postAuthRedirect', 'index.html');
         });
       });
+
+      initLandingMascot();
 
       if (!revealNodes.length || typeof window.IntersectionObserver !== 'function') {
         revealNodes.forEach((node) => node.classList.add('is-visible'));
@@ -7733,6 +7623,59 @@
         }
         observer.observe(node);
       });
+    }
+
+    function initLandingMascot() {
+      const hero = document.querySelector('.landing-hero');
+      const mascot = document.getElementById('landingMascot');
+      const shell = mascot?.querySelector?.('.landing-mascot-shell');
+      if (!hero || !mascot || !shell || mascot.dataset.wired === '1') return;
+      mascot.dataset.wired = '1';
+
+      let moveFrame = 0;
+      const applyPointer = (clientX, clientY) => {
+        const rect = hero.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const px = ((clientX - rect.left) / rect.width) - 0.5;
+        const py = ((clientY - rect.top) / rect.height) - 0.5;
+        const offsetX = Math.max(-14, Math.min(14, px * 28));
+        const offsetY = Math.max(-10, Math.min(10, py * 20));
+        const tilt = Math.max(-6, Math.min(6, px * 12));
+        shell.style.setProperty('--landing-mascot-x', `${offsetX.toFixed(1)}px`);
+        shell.style.setProperty('--landing-mascot-y', `${offsetY.toFixed(1)}px`);
+        shell.style.setProperty('--landing-mascot-tilt', `${tilt.toFixed(1)}deg`);
+      };
+      const resetPointer = () => {
+        shell.style.setProperty('--landing-mascot-x', '0px');
+        shell.style.setProperty('--landing-mascot-y', '0px');
+        shell.style.setProperty('--landing-mascot-tilt', '0deg');
+      };
+      const queuePointerUpdate = (clientX, clientY) => {
+        if (moveFrame) cancelAnimationFrame(moveFrame);
+        moveFrame = requestAnimationFrame(() => {
+          moveFrame = 0;
+          applyPointer(clientX, clientY);
+        });
+      };
+
+      hero.addEventListener('pointermove', (event) => {
+        queuePointerUpdate(event.clientX, event.clientY);
+      });
+      hero.addEventListener('pointerleave', resetPointer);
+      hero.addEventListener('touchmove', (event) => {
+        const touch = event.touches && event.touches[0];
+        if (!touch) return;
+        queuePointerUpdate(touch.clientX, touch.clientY);
+      }, { passive: true });
+      hero.addEventListener('touchend', resetPointer, { passive: true });
+
+      const blink = () => {
+        mascot.classList.add('is-blinking');
+        window.setTimeout(() => mascot.classList.remove('is-blinking'), 120);
+        window.setTimeout(blink, 2300 + Math.round(Math.random() * 1900));
+      };
+      window.setTimeout(blink, 1200);
+      resetPointer();
     }
 
     let homeAppBootPromise = null;
@@ -7761,10 +7704,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      if (GAMES_DISABLED) {
-        document.querySelectorAll('.popular-games-wrap, #gamesRail').forEach((el) => el.remove());
-        document.querySelectorAll('[data-nav-page="games"], a[href="games.html"], a[href="/games.html"], a[href^="game.html"]').forEach((el) => el.remove());
-      }
       const authGateState = getHomeAuthGateState();
       if (isHomeLandingMode() && !authGateState?.authenticated) {
         initLandingExperience();
@@ -7920,4 +7859,8 @@
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
+
+
+
+
 

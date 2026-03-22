@@ -2,21 +2,21 @@
   "name": "Zo2y",
   "short_name": "Zo2y",
   "description": "Track favorites, build custom lists, and follow friends.",
-  "start_url": "/index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0b1633",
   "theme_color": "#0b1633",
   "icons": [
     {
-      "src": "/images/icon-192.png",
+      "src": "/newlogo.webp",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "any"
     },
     {
-      "src": "/images/icon-512.png",
+      "src": "/newlogo.webp",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "any"
     }
   ]

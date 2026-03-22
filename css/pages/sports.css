@@ -435,11 +435,43 @@ a { color: inherit; text-decoration: none; }
   border-radius: 18px 18px 14px 14px;
 }
 
+.sports-card-media.is-loading,
+.sports-card-logo.is-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.sports-card-media.is-loading::before,
+.sports-card-logo.is-loading::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.12) 48%, rgba(255,255,255,0.02) 100%),
+    linear-gradient(160deg, rgba(23,43,88,0.96), rgba(11,22,51,0.98));
+  background-size: 220px 100%, 100% 100%;
+  background-repeat: no-repeat;
+  animation: sportsImageShimmer 1.15s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
 .sports-card-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  filter: blur(10px);
+  transition: opacity 220ms ease, filter 220ms ease;
+}
+
+.sports-card-media img[data-ready="1"],
+.sports-card-logo img[data-ready="1"] {
+  opacity: 1;
+  filter: blur(0);
 }
 
 .sports-card[data-media-fit="contain"] .sports-card-media img {
@@ -475,6 +507,13 @@ a { color: inherit; text-decoration: none; }
   width: 100%;
   height: 100%;
   object-fit: contain;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes sportsImageShimmer {
+  from { background-position: -220px 0, 0 0; }
+  to { background-position: calc(100% + 220px) 0, 0 0; }
 }
 
 .sports-card-body {
@@ -601,8 +640,54 @@ a { color: inherit; text-decoration: none; }
     padding-bottom: 80px;
   }
 
+  .sports-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 12px 0 0;
+  }
+
   .sports-card {
-    min-height: 260px;
+    min-height: 0;
+  }
+
+  .sports-card-media {
+    aspect-ratio: 1 / 1.04;
+  }
+
+  .sports-card[data-media-fit="contain"] .sports-card-media img {
+    padding: 12px;
+  }
+
+  .sports-card-logo {
+    width: 52px;
+    height: 52px;
+    left: 10px;
+    bottom: 10px;
+    padding: 7px;
+    border-radius: 14px;
+  }
+
+  .sports-card-body {
+    padding: 26px 12px 12px;
+    gap: 5px;
+  }
+
+  .sports-card-title {
+    font-size: 14px;
+  }
+
+  .sports-card-meta,
+  .sports-card-stadium {
+    font-size: 11px;
+  }
+
+  .sports-card-actions {
+    margin-top: 6px;
+  }
+
+  .card-menu-btn {
+    width: 32px;
+    height: 32px;
   }
 
   .sports-toast {
