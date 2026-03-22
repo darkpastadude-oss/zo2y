@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260322a"></script>
+<script src="/js/auth-gate.js?v=20260315d"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Anime</title>
-  <link rel="icon" href="/newlogo.webp" type="image/webp" />
+  <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <style>
@@ -151,81 +151,6 @@
       font-size: 12px;
     }
 
-    .media-spotlight {
-      margin: 16px auto 0;
-      padding: 0 12px;
-    }
-
-    .media-spotlight[hidden] { display: none; }
-
-    .media-spotlight-shell {
-      position: relative;
-      overflow: hidden;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      min-height: 0;
-      display: grid;
-      grid-template-columns: minmax(0, 1.35fr) minmax(100px, 0.65fr);
-      gap: 0;
-      min-height: 190px;
-      background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
-    }
-
-    .media-spotlight-bg {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, rgba(8,14,31,0.78), rgba(10,19,39,0.42));
-      background-size: cover;
-      background-position: center center;
-    }
-
-    .media-spotlight-copy,
-    .media-spotlight-poster { position: relative; z-index: 1; }
-
-     .media-spotlight-copy {
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .media-spotlight-kicker {
-      display: inline-flex;
-      width: fit-content;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(19,35,71,0.48);
-      color: #dbe7ff;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-     .media-spotlight-copy h2 { margin: 0; font-size: 22px; line-height: 1.04; }
-    .media-spotlight-meta,
-    .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.45; }
-
-     .media-spotlight-poster {
-      padding: 14px 14px 14px 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .media-spotlight-poster img {
-      width: 100%;
-      max-width: 124px;
-      max-height: 158px;
-      object-fit: cover;
-      border-radius: 16px;
-      box-shadow: 0 18px 30px rgba(0,0,0,0.28);
-      background: rgba(255,255,255,0.04);
-    }
-
-    .media-spotlight-actions { margin-top: 6px; display: flex; gap: 10px; }
-
     .controls {
       max-width: 1200px;
       margin: 12px auto 0;
@@ -293,14 +218,12 @@
     .chip.active { border-color: var(--accent); color: var(--accent); }
 
     .grid {
-      max-width: 382px;
+      max-width: 1200px;
       margin: 16px auto 40px;
       padding: 0 12px;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 114px));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
-      justify-content: center;
-      align-items: stretch;
     }
 
     .card {
@@ -733,9 +656,9 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260322r" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260322h" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260316a">
+  <script src="js/shared-header.js?v=20260316a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -771,24 +694,6 @@
     <h1>popular anime right now</h1>
     <p>Live TMDB anime picks from the current popular TV feed.</p>
     <div style="margin-top:8px;font-size:12px;color:var(--muted);opacity:.86;">source: TMDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
-  </section>
-
-  <section class="media-spotlight" id="animeSpotlight" hidden>
-    <div class="media-spotlight-shell">
-      <div class="media-spotlight-bg" id="animeSpotlightBg"></div>
-      <div class="media-spotlight-copy">
-        <span class="media-spotlight-kicker">Anime Spotlight</span>
-        <h2 id="animeSpotlightTitle">Anime Spotlight</h2>
-        <p class="media-spotlight-meta" id="animeSpotlightMeta"></p>
-        <p class="media-spotlight-summary" id="animeSpotlightSummary"></p>
-        <div class="media-spotlight-actions">
-          <a class="btn" id="animeSpotlightOpen" href="#">open</a>
-        </div>
-      </div>
-      <div class="media-spotlight-poster">
-        <img id="animeSpotlightImage" src="images/placeholder.jpg" alt="Anime spotlight poster" loading="eager" decoding="async">
-      </div>
-    </div>
   </section>
 
   <div class="controls">
@@ -833,15 +738,14 @@
     </div>
   </div>
 
-  <script src="js/list-utils.js?v=20260317b"></script>
-  <script src="js/index-list-menu-adapter.js?v=20260317b"></script>
+  <script src="js/list-utils.js?v=20260316a"></script>
+  <script src="js/index-list-menu-adapter.js?v=20260314d"></script>
   <script>
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const TMDB_PROXY_BASE = '/api/tmdb';
       const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
-      const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
       const state = {
         genres: [],
         activeGenre: '',
@@ -892,19 +796,7 @@
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         if (typeof supabase === 'undefined') return null;
-        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-          supabaseClient = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-        }
-        if (!supabaseClient) {
-          supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: {
-              persistSession: true,
-              autoRefreshToken: true,
-              detectSessionInUrl: false,
-              storageKey: 'zo2y-auth-v1'
-            }
-          });
-        }
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         return supabaseClient;
       }
 
@@ -983,82 +875,6 @@
           };
           row.appendChild(chip);
         });
-      }
-
-      let pageSpotlightTimer = null;
-      let pageSpotlightItems = [];
-      let pageSpotlightIndex = 0;
-
-      function getAnimePosterUrl(item) {
-        return item?.poster_path ? POSTER_BASE + item.poster_path : 'images/placeholder.jpg';
-      }
-
-      function getAnimeBackdropUrl(item) {
-        return item?.backdrop_path ? BACKDROP_BASE + item.backdrop_path : getAnimePosterUrl(item);
-      }
-
-      function pickAnimeSpotlightPool(items = []) {
-        const seen = new Set();
-        return (Array.isArray(items) ? items : []).filter((item) => {
-          const id = Number(item?.id || 0);
-          if (!id || seen.has(id) || !item?.poster_path) return false;
-          seen.add(id);
-          return true;
-        }).slice(0, 12);
-      }
-
-      function renderAnimePageSpotlight(item) {
-        const section = document.getElementById('animeSpotlight');
-        if (!section || !item) return;
-        const bg = document.getElementById('animeSpotlightBg');
-        const titleEl = document.getElementById('animeSpotlightTitle');
-        const metaEl = document.getElementById('animeSpotlightMeta');
-        const summaryEl = document.getElementById('animeSpotlightSummary');
-        const imgEl = document.getElementById('animeSpotlightImage');
-        const openEl = document.getElementById('animeSpotlightOpen');
-        const poster = getAnimePosterUrl(item);
-        const backdrop = getAnimeBackdropUrl(item) || poster;
-        section.hidden = false;
-        if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${backdrop}")`;
-        if (titleEl) titleEl.textContent = item.name || item.original_name || item.title || 'Anime Spotlight';
-        if (metaEl) {
-          const date = String(item.first_air_date || item.release_date || '').trim();
-          const rating = Number(item.vote_average || 0) > 0 ? `TMDB ${Number(item.vote_average).toFixed(1)}` : '';
-          metaEl.textContent = [date, rating].filter(Boolean).join(' Ãƒâ€šÃ‚Â· ');
-        }
-        if (summaryEl) {
-          summaryEl.textContent = String(item.overview || '').trim() || 'A standout anime from the live feed.';
-        }
-        if (imgEl) {
-          imgEl.src = poster;
-          imgEl.alt = `${item.name || item.original_name || item.title || 'Anime'} poster`;
-        }
-        if (openEl) {
-          openEl.href = `anime.html?id=${encodeURIComponent(String(item.id || ''))}`;
-        }
-      }
-
-      function resetAnimePageSpotlightTimer() {
-        if (pageSpotlightTimer) clearInterval(pageSpotlightTimer);
-        if (pageSpotlightItems.length < 2) return;
-        pageSpotlightTimer = window.setInterval(() => {
-          pageSpotlightIndex = (pageSpotlightIndex + 1) % pageSpotlightItems.length;
-          renderAnimePageSpotlight(pageSpotlightItems[pageSpotlightIndex]);
-        }, 6500);
-      }
-
-      function updateAnimePageSpotlight(items = []) {
-        pageSpotlightItems = pickAnimeSpotlightPool(items);
-        pageSpotlightIndex = 0;
-        const section = document.getElementById('animeSpotlight');
-        if (!section) return;
-        if (!pageSpotlightItems.length) {
-          section.hidden = true;
-          if (pageSpotlightTimer) clearInterval(pageSpotlightTimer);
-          return;
-        }
-        renderAnimePageSpotlight(pageSpotlightItems[0]);
-        resetAnimePageSpotlightTimer();
       }
 
       async function loadGenres() {
@@ -1140,12 +956,9 @@
 
         if (!results.length) {
           if (empty) empty.style.display = 'block';
-          updateAnimePageSpotlight([]);
           grid.innerHTML = '';
           return;
         }
-
-        updateAnimePageSpotlight(results);
 
         const fragment = document.createDocumentFragment();
         results.forEach(item => {
@@ -1504,21 +1317,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

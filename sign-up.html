@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260322a"></script>
+<script src="/js/auth-gate.js?v=20260315d"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Sign Up</title>
-<link rel="icon" href="/newlogo.webp" type="image/webp" />
+<link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="css/pages/auth-entry.css?v=20260319a">
+<link rel="stylesheet" href="css/pages/auth-entry.css?v=20260307a">
   <meta name="theme-color" content="#0b1633" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -19,7 +19,7 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260322r" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body data-auth-variant="signup">
@@ -65,7 +65,6 @@
 
       <div id="errorMessage" class="message error"></div>
       <div id="successMessage" class="message success"></div>
-      <div class="auth-invite-banner" id="authInviteBanner" hidden></div>
 
       <button class="google-btn" id="googleSignup">
         <svg width="20" height="20" viewBox="0 0 24 24">
@@ -98,20 +97,19 @@
       </form>
 
       <div class="alt-link">
-        Already have an account? <a href="login.html" id="altLoginLink">Log in</a>
+        Already have an account? <a href="login.html">Log in</a>
       </div>
 
       <div class="legal-strip">
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
-        <a href="mailto:darkpastadude@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
+        <a href="mailto:zo2yhq@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
       </div>
     </div>
   </section>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/referral-utils.js?v=20260319a"></script>
 <script>
 (function() {
   'use strict';
@@ -120,7 +118,7 @@
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
   
-  const STORAGE_KEY = 'zo2y-auth-v1';
+  const STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
 
   // Initialize Supabase
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -141,8 +139,6 @@
   const submitBtn = document.getElementById('submitBtn');
   const errorMessage = document.getElementById('errorMessage');
   const successMessage = document.getElementById('successMessage');
-  const referralUtils = window.ZO2Y_REFERRALS || null;
-  const activeReferral = referralUtils ? referralUtils.captureReferralFromLocation(window.location.search) : '';
   const initialNextPath = sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || localStorage.getItem('postAuthRedirect') || 'index.html');
 
   function analyticsTrack(eventName, properties = {}, essential = false) {
@@ -174,37 +170,6 @@
   function getPostAuthRedirect() {
     return sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || localStorage.getItem('postAuthRedirect') || initialNextPath || 'index.html');
   }
-
-  function decorateReferralLinks() {
-    const inviteBanner = document.getElementById('authInviteBanner');
-    const safeReferral = referralUtils ? referralUtils.getStoredReferral() : activeReferral;
-    if (inviteBanner) {
-      if (safeReferral) {
-        inviteBanner.hidden = false;
-        inviteBanner.innerHTML = `<i class="fas fa-user-group"></i><span>You are joining Zo2y through @${safeReferral}'s invite link.</span>`;
-      } else {
-        inviteBanner.hidden = true;
-      }
-    }
-
-    const loginLink = document.getElementById('altLoginLink');
-    if (loginLink && referralUtils) {
-      loginLink.href = referralUtils.appendReferralToHref('login.html', {
-        referral: safeReferral,
-        next: getPostAuthRedirect()
-      });
-    }
-
-    document.querySelectorAll('.auth-entry-home').forEach((link) => {
-      if (!referralUtils) return;
-      link.href = referralUtils.appendReferralToHref('index.html', {
-        referral: safeReferral,
-        next: 'index.html'
-      });
-    });
-  }
-
-  decorateReferralLinks();
 
   async function waitForStableSession(timeoutMs = 5000) {
     const startedAt = Date.now();
@@ -319,12 +284,7 @@
           data: { 
             full_name: fullName
           },
-          emailRedirectTo: (() => {
-            const callbackUrl = new URL('/auth-callback.html', window.location.origin);
-            callbackUrl.searchParams.set('flow', 'signup');
-            callbackUrl.searchParams.set('next', getPostAuthRedirect());
-            return callbackUrl.toString();
-          })()
+          emailRedirectTo: window.location.origin + '/auth-callback.html'
         }
       });
       
@@ -423,13 +383,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
 
 
 

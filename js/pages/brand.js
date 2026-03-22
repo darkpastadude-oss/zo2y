@@ -1,17 +1,12 @@
-ï»¿(() => {
+(() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
 
   const params = new URLSearchParams(window.location.search);
   const brandType = String(params.get('type') || 'fashion').toLowerCase();
   const brandIdParam = String(params.get('id') || '').trim();
-  const brandTable = brandType === 'food' ? 'food_brands' : (brandType === 'car' ? 'car_brands' : 'fashion_brands');
-  const reviewTable = brandType === 'food' ? 'food_reviews' : (brandType === 'car' ? 'car_reviews' : 'fashion_reviews');
-  const HOME_DEFAULT_LIST_TABLES = {
-    fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
-    food: { table: 'food_list_items', itemField: 'brand_id' },
-    car: { table: 'car_list_items', itemField: 'brand_id' }
-  };
+  const brandTable = brandType === 'food' ? 'food_brands' : 'fashion_brands';
+  const reviewTable = brandType === 'food' ? 'food_reviews' : 'fashion_reviews';
 
   const dom = {
     logo: document.getElementById('brandLogo'),
@@ -68,31 +63,17 @@
       .replace(/'/g, '&#039;');
   }
 
-  function resolveLogo(value, domain, name) {
-    const direct = String(value || '').trim();
-    if (direct) {
-      if (/^https?:\/\//i.test(direct) || direct.startsWith('/') || direct.startsWith('data:')) {
-        return direct;
-      }
-    }
-    const title = String(name || '').trim();
-    if (title) {
-      const params = new URLSearchParams();
-      params.set('title', title);
-      const domainRaw = String(domain || '').trim();
-      if (domainRaw) params.set('domain', domainRaw);
-      params.set('mode', 'logo');
-      return '/api/logo?' + params.toString();
-    }
+  function resolveLogo(value, domain) {
+    const raw = String(value || '').trim();
     const domainRaw = String(domain || '').trim();
-    const candidate = domainRaw;
+    const candidate = domainRaw || raw;
     if (!candidate) return '';
     if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
-      return '/api/logo?domain=' + encodeURIComponent(candidate) + '&size=256&mode=logo';
+      return '/api/logo?domain=' + encodeURIComponent(candidate) + '&size=256';
     }
     if (/^https?:\/\//i.test(candidate)) {
       const match = candidate.match(/\/\/([^\/\?]+)/i);
-      if (match && match[1]) return '/api/logo?domain=' + encodeURIComponent(match[1]) + '&size=256&mode=logo';
+      if (match && match[1]) return '/api/logo?domain=' + encodeURIComponent(match[1]) + '&size=256';
       return candidate;
     }
     return '';
@@ -104,7 +85,7 @@
       name: String(row.name || row.brand_name || '').trim() || 'Brand',
       category: String(row.category || row.type || '').trim(),
       domain: String(row.domain || '').trim(),
-      logo: resolveLogo(row.logo_url || row.logo, row.domain, row.name || row.brand_name),
+      logo: resolveLogo(row.logo_url || row.logo, row.domain),
       description: String(row.description || row.extract || '').trim(),
       country: String(row.country || '').trim(),
       founded: String(row.founded || '').trim(),
@@ -115,153 +96,6 @@
 
   function isUuid(value) {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-  }
-
-  function showBrandToast(message, isError = false) {
-    if (typeof window.showToast === 'function') {
-      window.showToast(message, isError ? 'error' : 'success');
-      return;
-    }
-    if (isError) console.error(message);
-    else console.log(message);
-  }
-
-  function supportsHomeLists(mediaType) {
-    const type = String(mediaType || '').toLowerCase();
-    return type === 'fashion' || type === 'food' || type === 'car';
-  }
-
-  function getHomeDefaultListTable(mediaType) {
-    const type = String(mediaType || '').toLowerCase();
-    return HOME_DEFAULT_LIST_TABLES[type] || null;
-  }
-
-  function normalizeHomeDefaultItemId(mediaType, itemId) {
-    const type = String(mediaType || '').toLowerCase();
-    if (type === 'travel') {
-      const code = String(itemId || '').trim().toUpperCase();
-      return code || null;
-    }
-    const text = String(itemId || '').trim();
-    return text || null;
-  }
-
-  async function saveToListFromHome(payload) {
-    const result = { ok: false, saved: null };
-    const client = await ensureSupabase();
-    if (!client) {
-      showBrandToast('List service unavailable', true);
-      return result;
-    }
-    if (!currentUser?.id) {
-      window.location.href = 'login.html';
-      return result;
-    }
-
-    const mediaType = String(payload.mediaType || '').toLowerCase();
-    const listType = payload.listType;
-    const nextSaved = typeof payload.nextSaved === 'boolean' ? payload.nextSaved : null;
-    if (!payload.itemId || !listType) return result;
-    if (!supportsHomeLists(mediaType)) {
-      showBrandToast('Lists are not available for this media yet.');
-      return result;
-    }
-
-    const ensureLinkedMediaRecord = async (_itemId) => true;
-
-    try {
-      const defaultListTable = getHomeDefaultListTable(mediaType);
-      const itemId = normalizeHomeDefaultItemId(mediaType, payload.itemId);
-
-      if (defaultListTable) {
-        if (itemId === null) {
-          showBrandToast('Could not update list', true);
-          return result;
-        }
-        const { table, itemField } = defaultListTable;
-
-        if (nextSaved === false) {
-          const { error: deleteError } = await client
-            .from(table)
-            .delete()
-            .eq('user_id', currentUser.id)
-            .eq(itemField, itemId)
-            .eq('list_type', listType);
-          if (deleteError) {
-            showBrandToast('Could not update list', true);
-            return result;
-          }
-          showBrandToast('Removed from list');
-          result.ok = true;
-          result.saved = false;
-          return result;
-        }
-
-        if (nextSaved === true) {
-          const ensured = await ensureLinkedMediaRecord(itemId);
-          if (!ensured) {
-            showBrandToast('Book info is unavailable right now.', true);
-            return result;
-          }
-          const insertRow = { user_id: currentUser.id, list_type: listType };
-          insertRow[itemField] = itemId;
-          const { error: insertError } = await client.from(table).insert(insertRow);
-          if (insertError && String(insertError.code || '') !== '23505') {
-            showBrandToast('Could not add to list', true);
-            return result;
-          }
-          showBrandToast('Added to list');
-          result.ok = true;
-          result.saved = true;
-          return result;
-        }
-
-        const { data: existing } = await client
-          .from(table)
-          .select('id')
-          .eq('user_id', currentUser.id)
-          .eq(itemField, itemId)
-          .eq('list_type', listType)
-          .limit(1)
-          .maybeSingle();
-        if (existing?.id) {
-          const { error: deleteError } = await client.from(table).delete().eq('id', existing.id);
-          if (deleteError) {
-            showBrandToast('Could not update list', true);
-            return result;
-          }
-          showBrandToast('Removed from list');
-          result.ok = true;
-          result.saved = false;
-          return result;
-        }
-
-        await ensureLinkedMediaRecord(itemId);
-        const insertRow = { user_id: currentUser.id, list_type: listType };
-        insertRow[itemField] = itemId;
-        const { error: insertError } = await client.from(table).insert(insertRow);
-        if (insertError && String(insertError.code || '') !== '23505') {
-          showBrandToast('Could not add to list', true);
-          return result;
-        }
-        showBrandToast('Added to list');
-        result.ok = true;
-        result.saved = true;
-        return result;
-      }
-    } catch (_err) {
-      showBrandToast('Could not add to list', true);
-    }
-    return result;
-  }
-
-  async function toggleDefaultList({ itemId, listType, nextSaved }) {
-    return await saveToListFromHome({
-      mediaType: brandType,
-      itemId,
-      listType,
-      nextSaved
-    });
   }
 
   async function loadSession() {
@@ -297,7 +131,7 @@
   function updateHero(brand) {
     document.body.dataset.navPage = brandType;
     const label = brandType === 'food' ? 'Food' : 'Fashion';
-    document.title = `${brand.name} Â· ${label} Â· Zo2y`;
+    document.title = `${brand.name} · ${label} · Zo2y`;
 
     if (dom.logo) {
       dom.logo.src = brand.logo || '/newlogo.webp';
@@ -328,7 +162,6 @@
 
     if (dom.actionCard) {
       dom.actionCard.setAttribute('data-item-id', brand.id);
-      if (brand.logo) dom.actionCard.setAttribute('data-list-image', brand.logo);
       dom.actionCard.querySelector('.card-title')?.replaceChildren(document.createTextNode(brand.name));
       dom.actionCard.querySelector('.card-meta')?.replaceChildren(document.createTextNode(brand.category || label));
       const img = dom.actionCard.querySelector('img');
@@ -655,7 +488,6 @@
       mediaType: brandType,
       getCurrentUser: () => currentUser,
       ensureClient: ensureSupabase,
-      toggleDefaultList,
       notify: (message, isError) => {
         if (typeof window.showToast === 'function') window.showToast(message, isError ? 'error' : 'success');
         else if (isError) console.error(message);
@@ -709,10 +541,6 @@
     boot();
   }
 })();
-
-
-
-
 
 
 

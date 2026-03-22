@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260322a"></script>
+<script src="/js/auth-gate.js?v=20260315d"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - TV Shows</title>
-  <link rel="icon" href="/newlogo.webp" type="image/webp" />
+  <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260317b"></script>
-  <script src="js/index-list-menu-adapter.js?v=20260317b"></script>
+  <script src="js/list-utils.js?v=20260316a"></script>
+  <script src="js/index-list-menu-adapter.js?v=20260314d"></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -172,81 +172,6 @@
       color: var(--muted);
     }
 
-    .media-spotlight {
-      max-width: 1200px;
-      margin: 18px auto 0;
-      padding: 0 20px;
-    }
-
-    .media-spotlight[hidden] { display: none; }
-
-    .media-spotlight-shell {
-      position: relative;
-      overflow: hidden;
-      border-radius: 22px;
-      border: 1px solid var(--border);
-      min-height: 300px;
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 16px;
-      align-items: center;
-      background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
-    }
-
-    .media-spotlight-bg {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, rgba(8,14,31,0.74), rgba(10,19,39,0.40));
-      background-size: cover;
-      background-position: center center;
-    }
-
-    .media-spotlight-copy,
-    .media-spotlight-poster { position: relative; z-index: 1; }
-
-    .media-spotlight-copy {
-      padding: 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      justify-content: center;
-    }
-
-    .media-spotlight-kicker {
-      display: inline-flex;
-      width: fit-content;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(19,35,71,0.48);
-      color: #dbe7ff;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .media-spotlight-copy h2 { margin: 0; font-size: clamp(28px, 4vw, 42px); line-height: 1.02; }
-    .media-spotlight-meta,
-    .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.5; }
-
-    .media-spotlight-poster {
-      padding: 28px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .media-spotlight-poster img {
-      width: min(100%, 260px);
-      max-height: 360px;
-      object-fit: contain;
-      border-radius: 18px;
-      box-shadow: 0 20px 36px rgba(0,0,0,0.28);
-      background: rgba(255,255,255,0.04);
-    }
-
-    .media-spotlight-actions { margin-top: 6px; display: flex; gap: 10px; }
-
     .controls {
       max-width: 1200px;
       margin: 16px auto 0;
@@ -309,14 +234,12 @@
     }
 
     .grid {
-      max-width: 1110px;
+      max-width: 1200px;
       margin: 24px auto 60px;
       padding: 0 20px;
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 202px));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px;
-      align-items: stretch;
-      justify-content: center;
     }
 
     .card {
@@ -326,7 +249,7 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      min-height: 300px;
+      min-height: 320px;
       transition: all 0.2s ease;
       position: relative;
     }
@@ -628,14 +551,6 @@
       font-size: 13px;
     }
 
-    @media (max-width: 1100px) {
-      .grid { grid-template-columns: repeat(4, minmax(0, 202px)); justify-content: center; }
-    }
-
-    @media (max-width: 780px) {
-      .grid { grid-template-columns: repeat(3, minmax(0, 202px)); justify-content: center; }
-    }
-
     @media (max-width: 600px) {
       .hero h1 { font-size: 22px; }
       .grid { gap: 12px; }
@@ -771,9 +686,9 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260322r" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260322h" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260316a">
+  <script src="js/shared-header.js?v=20260316a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -810,24 +725,6 @@
     <h1>popular tv shows right now</h1>
     <p>Live TMDB popularity picks, updated from the current TV chart.</p>
     <div style="margin-top:8px;font-size:12px;color:var(--muted);opacity:.86;">source: TMDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
-  </section>
-
-  <section class="media-spotlight" id="tvSpotlight" hidden>
-    <div class="media-spotlight-shell">
-      <div class="media-spotlight-bg" id="tvSpotlightBg"></div>
-      <div class="media-spotlight-copy">
-        <span class="media-spotlight-kicker">TV Spotlight</span>
-        <h2 id="tvSpotlightTitle">TV Spotlight</h2>
-        <p class="media-spotlight-meta" id="tvSpotlightMeta"></p>
-        <p class="media-spotlight-summary" id="tvSpotlightSummary"></p>
-        <div class="media-spotlight-actions">
-          <a class="btn" id="tvSpotlightOpen" href="#">open</a>
-        </div>
-      </div>
-      <div class="media-spotlight-poster">
-        <img id="tvSpotlightImage" src="images/placeholder.jpg" alt="TV spotlight poster" loading="eager" decoding="async">
-      </div>
-    </div>
   </section>
 
   <div class="controls">
@@ -883,7 +780,6 @@
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const TMDB_PROXY_BASE = '/api/tmdb';
       const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
-      const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
       const state = {
         genres: [],
         activeGenre: '',
@@ -1067,19 +963,7 @@
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         if (typeof supabase === 'undefined') return null;
-        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-          supabaseClient = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-        }
-        if (!supabaseClient) {
-          supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: {
-              persistSession: true,
-              autoRefreshToken: true,
-              detectSessionInUrl: false,
-              storageKey: 'zo2y-auth-v1'
-            }
-          });
-        }
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         return supabaseClient;
       }
 
@@ -1161,82 +1045,6 @@
           };
           row.appendChild(chip);
         });
-      }
-
-      let pageSpotlightTimer = null;
-      let pageSpotlightItems = [];
-      let pageSpotlightIndex = 0;
-
-      function getTvPosterUrl(item) {
-        return item?.poster_path ? POSTER_BASE + item.poster_path : 'images/placeholder.jpg';
-      }
-
-      function getTvBackdropUrl(item) {
-        return item?.backdrop_path ? BACKDROP_BASE + item.backdrop_path : getTvPosterUrl(item);
-      }
-
-      function pickTvSpotlightPool(items = []) {
-        const seen = new Set();
-        return (Array.isArray(items) ? items : []).filter((item) => {
-          const id = Number(item?.id || 0);
-          if (!id || seen.has(id) || !item?.poster_path) return false;
-          seen.add(id);
-          return true;
-        }).slice(0, 12);
-      }
-
-      function renderTvPageSpotlight(item) {
-        const section = document.getElementById('tvSpotlight');
-        if (!section || !item) return;
-        const bg = document.getElementById('tvSpotlightBg');
-        const titleEl = document.getElementById('tvSpotlightTitle');
-        const metaEl = document.getElementById('tvSpotlightMeta');
-        const summaryEl = document.getElementById('tvSpotlightSummary');
-        const imgEl = document.getElementById('tvSpotlightImage');
-        const openEl = document.getElementById('tvSpotlightOpen');
-        const poster = getTvPosterUrl(item);
-        const backdrop = getTvBackdropUrl(item) || poster;
-        section.hidden = false;
-        if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${backdrop}")`;
-        if (titleEl) titleEl.textContent = item.name || item.original_name || item.title || 'TV Spotlight';
-        if (metaEl) {
-          const date = String(item.first_air_date || item.release_date || '').trim();
-          const rating = Number(item.vote_average || 0) > 0 ? `TMDB ${Number(item.vote_average).toFixed(1)}` : '';
-          metaEl.textContent = [date, rating].filter(Boolean).join(' Ãƒâ€šÃ‚Â· ');
-        }
-        if (summaryEl) {
-          summaryEl.textContent = String(item.overview || '').trim() || 'A standout show from the live TV chart.';
-        }
-        if (imgEl) {
-          imgEl.src = poster;
-          imgEl.alt = `${item.name || item.original_name || item.title || 'TV'} poster`;
-        }
-        if (openEl) {
-          openEl.href = `tvshow.html?id=${encodeURIComponent(String(item.id || ''))}`;
-        }
-      }
-
-      function resetTvPageSpotlightTimer() {
-        if (pageSpotlightTimer) clearInterval(pageSpotlightTimer);
-        if (pageSpotlightItems.length < 2) return;
-        pageSpotlightTimer = window.setInterval(() => {
-          pageSpotlightIndex = (pageSpotlightIndex + 1) % pageSpotlightItems.length;
-          renderTvPageSpotlight(pageSpotlightItems[pageSpotlightIndex]);
-        }, 6500);
-      }
-
-      function updateTvPageSpotlight(items = []) {
-        pageSpotlightItems = pickTvSpotlightPool(items);
-        pageSpotlightIndex = 0;
-        const section = document.getElementById('tvSpotlight');
-        if (!section) return;
-        if (!pageSpotlightItems.length) {
-          section.hidden = true;
-          if (pageSpotlightTimer) clearInterval(pageSpotlightTimer);
-          return;
-        }
-        renderTvPageSpotlight(pageSpotlightItems[0]);
-        resetTvPageSpotlightTimer();
       }
 
       async function loadGenres() {
@@ -1339,12 +1147,9 @@
 
         if (!results.length) {
           if (empty) empty.style.display = 'block';
-          updateTvPageSpotlight([]);
           grid.innerHTML = '';
           return;
         }
-
-        updateTvPageSpotlight(results);
 
         const fragment = document.createDocumentFragment();
         results.forEach(item => {
@@ -1739,22 +1544,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -1,7 +1,12 @@
+import express from "express";
 import dotenv from "dotenv";
+import { applyApiGuardrails } from "./_guardrails.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
+
+const app = express();
+applyApiGuardrails(app, { keyPrefix: "api-sportsdb", max: 240 });
 
 const SPORTSDB_BASE = "https://www.thesportsdb.com/api/v1/json";
 
@@ -49,34 +54,9 @@ async function fetchWithRetry(url, init = {}, attempts = 4) {
   throw lastError || new Error("SportsDB request failed");
 }
 
-function readQuery(req) {
-  if (req.query && typeof req.query === "object") return req.query;
+app.get("/api/sportsdb/*", async (req, res) => {
   try {
-    const url = new URL(req.url || "", "http://localhost");
-    return Object.fromEntries(url.searchParams.entries());
-  } catch (_error) {
-    return {};
-  }
-}
-
-function readPathParts(query) {
-  const rawPath = query?.path;
-  if (Array.isArray(rawPath)) return rawPath.filter(Boolean);
-  return String(rawPath || "")
-    .split("/")
-    .filter(Boolean);
-}
-
-export default async function handler(req, res) {
-  const query = readQuery(req);
-  const pathParts = readPathParts(query);
-  const relativePath = pathParts.join("/");
-
-  if (!relativePath) {
-    return res.json({ ok: true, service: "sportsdb-proxy", configured: Boolean(getSportsDbKey()) });
-  }
-
-  try {
+    const relativePath = req.path.replace(/^\/api\/sportsdb\//, "");
     const sanitizedPath = String(relativePath || "").replace(/^\/+/, "");
     if (!sanitizedPath) {
       return res.status(400).json({ message: "SportsDB path is required." });
@@ -84,10 +64,7 @@ export default async function handler(req, res) {
 
     const key = getSportsDbKey();
     const target = new URL(`${SPORTSDB_BASE}/${encodeURIComponent(key)}/${sanitizedPath}`);
-    Object.entries(query || {}).forEach(([paramKey, value]) => {
-      if (paramKey === "path") return;
-      pushQueryParam(target.searchParams, paramKey, value);
-    });
+    Object.entries(req.query || {}).forEach(([paramKey, value]) => pushQueryParam(target.searchParams, paramKey, value));
 
     const upstream = await fetchWithRetry(target.toString(), {
       headers: { Accept: "application/json" }
@@ -100,4 +77,29 @@ export default async function handler(req, res) {
   } catch (error) {
     return res.status(502).json({ message: error?.message || "SportsDB proxy failed" });
   }
+});
+
+app.get("/api/sportsdb", (_req, res) => {
+  res.json({ ok: true, service: "sportsdb-proxy", configured: Boolean(getSportsDbKey()) });
+});
+
+export default function handler(req, res) {
+  const query = req.query || {};
+  const rawPath = query.path;
+  const pathParts = Array.isArray(rawPath)
+    ? rawPath
+    : String(rawPath || "")
+      .split("/")
+      .filter(Boolean);
+
+  const nextParams = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (key === "path") return;
+    pushQueryParam(nextParams, key, value);
+  });
+
+  const suffix = pathParts.length ? `/${pathParts.join("/")}` : "";
+  const search = nextParams.toString();
+  req.url = `/api/sportsdb${suffix}${search ? `?${search}` : ""}`;
+  return app(req, res);
 }

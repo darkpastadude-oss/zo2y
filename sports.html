@@ -5,24 +5,24 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260322a"></script>
+<script src="/js/auth-gate.js?v=20260315d"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Sports</title>
   <meta name="description" content="Track your favorite teams, browse leagues, and save sports to your Zo2y profile." />
-  <link rel="icon" href="/newlogo.webp" type="image/webp" />
+  <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://www.thesportsdb.com" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <script src="js/list-utils.js?v=20260317b" defer></script>
-  <script src="js/index-list-menu-adapter.js?v=20260317b" defer></script>
-  <link rel="stylesheet" href="css/pages/sports.css?v=20260318b" />
+  <script src="js/list-utils.js?v=20260316a" defer></script>
+  <script src="js/index-list-menu-adapter.js?v=20260314d" defer></script>
+  <link rel="stylesheet" href="css/pages/sports.css?v=20260315b" />
   <meta name="theme-color" content="#0b1633" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260322r" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260322h" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260316a">
+  <script src="js/shared-header.js?v=20260316a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -90,7 +90,7 @@
 
     <section class="sports-search">
       <div class="sports-search-bar">
-        <input id="sportsSearchInput" type="search" placeholder="Search teams, leagues, countries, or sports" aria-label="Search teams, leagues, countries, or sports" />
+        <input id="sportsSearchInput" type="search" placeholder="Search a team" aria-label="Search teams" />
         <button id="sportsSearchBtn" type="button"><i class="fas fa-search"></i> Search</button>
         <div class="sports-search-suggest" id="sportsSearchSuggest"></div>
       </div>
@@ -107,23 +107,14 @@
             <option value="all">All countries</option>
           </select>
         </label>
-        <label>
-          <span>League</span>
-          <select id="sportsFilterLeague">
-            <option value="all">All leagues</option>
-          </select>
-        </label>
       </div>
       <div class="sports-search-tags" id="sportsSearchTags">
         <button class="sports-search-tag" type="button" data-team="Liverpool">Liverpool</button>
-        <button class="sports-search-tag" type="button" data-team="F1">F1</button>
-        <button class="sports-search-tag" type="button" data-team="NBA">NBA</button>
-        <button class="sports-search-tag" type="button" data-team="NFL">NFL</button>
         <button class="sports-search-tag" type="button" data-team="Real Madrid">Real Madrid</button>
         <button class="sports-search-tag" type="button" data-team="Los Angeles Lakers">LA Lakers</button>
-        <button class="sports-search-tag" type="button" data-team="Egypt">Egypt</button>
-        <button class="sports-search-tag" type="button" data-team="Saudi Pro League">Saudi Pro League</button>
         <button class="sports-search-tag" type="button" data-team="New York Yankees">NY Yankees</button>
+        <button class="sports-search-tag" type="button" data-team="Golden State Warriors">Warriors</button>
+        <button class="sports-search-tag" type="button" data-team="Dallas Cowboys">Cowboys</button>
       </div>
     </section>
 
@@ -140,14 +131,10 @@
 
   <div class="sports-toast" id="sportsToast" role="status" aria-live="polite"></div>
 
-    <script src="js/pages/sports.js?v=20260319e" defer></script>
+  <script src="js/pages/sports.js?v=20260315b" defer></script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
-
 
 
 

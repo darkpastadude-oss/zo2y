@@ -18,16 +18,14 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-function baseTemplate({ title, subtitle, bodyHtml, ctaLabel, ctaUrl, footerText, preheader }) {
+function baseTemplate({ title, subtitle, bodyHtml, ctaLabel, ctaUrl, footerText }) {
   const safeTitle = escapeHtml(title);
   const safeSubtitle = escapeHtml(subtitle);
   const safeFooter = escapeHtml(footerText || "You are receiving this email because you have a Zo2y account.");
   const safeCtaLabel = escapeHtml(ctaLabel || "Open Zo2y");
   const safeCtaUrl = escapeHtml(ctaUrl || process.env.APP_BASE_URL || "https://zo2y.com");
-  const safePreheader = escapeHtml(preheader || subtitle || title || "Zo2y update");
   const baseUrl = String(process.env.APP_BASE_URL || "https://zo2y.com").replace(/\/+$/, "");
   const safeLogoUrl = escapeHtml(`${baseUrl}/newlogo.webp`);
-  const safeSupportAddress = escapeHtml(process.env.EMAIL_REPLY_TO || "darkpastadude@gmail.com");
 
   return `
   <html>
@@ -104,23 +102,12 @@ function baseTemplate({ title, subtitle, bodyHtml, ctaLabel, ctaUrl, footerText,
       </style>
     </head>
     <body>
-      <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${safePreheader}</div>
       <div class="outer">
         <table role="presentation" class="container" cellpadding="0" cellspacing="0">
           <tr>
             <td class="hero">
               <div class="brand-row">
-                <table role="presentation" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td style="vertical-align:middle;">
-                      <img src="${safeLogoUrl}" alt="Zo2y" class="brand-logo" />
-                    </td>
-                    <td style="vertical-align:middle;padding-left:12px;">
-                      <div style="font-size:26px;font-weight:800;letter-spacing:-0.02em;color:#ffffff;">Zo2y</div>
-                      <div style="font-size:13px;color:#cbd5e1;">Official account email</div>
-                    </td>
-                  </tr>
-                </table>
+                <img src="${safeLogoUrl}" alt="Zo2y" class="brand-logo" />
               </div>
               <span class="pill">Zo2y Updates</span>
               <h1 class="hero-title">${safeTitle}</h1>
@@ -154,7 +141,7 @@ function baseTemplate({ title, subtitle, bodyHtml, ctaLabel, ctaUrl, footerText,
             </td>
           </tr>
           <tr>
-            <td class="footer">${safeFooter}<br /><br />Need help? Reply to this email or contact ${safeSupportAddress}.</td>
+            <td class="footer">${safeFooter}</td>
           </tr>
         </table>
       </div>
@@ -171,7 +158,6 @@ function buildWelcomeEmail({ name, appUrl }) {
     html: baseTemplate({
       title: "Welcome to Zo2y",
       subtitle: "Track favorites, build custom lists, and follow friends.",
-      preheader: "Your Zo2y account is ready. Start building lists across every category.",
       bodyHtml: `
         <p style="margin:0 0 10px 0;">Hi ${safeName},</p>
         <p style="margin:0 0 10px 0;">Your account is ready. You can start saving places, movies, books, games, and music into custom lists.</p>
@@ -193,7 +179,6 @@ function buildReminderEmail({ name, reminderText, actionUrl, actionLabel }) {
     html: baseTemplate({
       title: "Friendly Reminder",
       subtitle: "Your lists are waiting for you.",
-      preheader: safeReminderText,
       bodyHtml: `
         <p style="margin:0 0 10px 0;">Hi ${safeName},</p>
         <p style="margin:0;">${safeReminderText}</p>

@@ -1,10 +1,10 @@
-﻿import express from "express";
+import express from "express";
 import {
   attachRequestContext,
   applySecurityHeaders,
   createRateLimiter,
   requestLogger
-} from "./guardrails.js";
+} from "../backend/lib/guardrails.js";
 
 export function applyApiGuardrails(app, options = {}) {
   const keyPrefix = String(options.keyPrefix || "vercel-api");
@@ -23,5 +23,4 @@ export function applyApiGuardrails(app, options = {}) {
     skip: (req) => req.method === "OPTIONS"
   }));
 }
-
 

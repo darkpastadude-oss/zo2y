@@ -1,5 +1,5 @@
-﻿import express from "express";
-import { applyApiGuardrails } from "../backend/lib/api-guardrails.js";
+import express from "express";
+import { applyApiGuardrails } from "./_guardrails.js";
 
 const app = express();
 applyApiGuardrails(app, { keyPrefix: "api-openlibrary", max: 240 });
@@ -85,5 +85,4 @@ export default function handler(req, res) {
   req.url = `/api/openlibrary${suffix}${search ? `?${search}` : ""}`;
   return app(req, res);
 }
-
 

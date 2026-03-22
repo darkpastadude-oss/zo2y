@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260322a"></script>
+<script src="/js/auth-gate.js?v=20260315d"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Books</title>
-  <link rel="icon" href="/newlogo.webp" type="image/webp" />
+  <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -151,81 +151,6 @@
       font-size: 12px;
     }
 
-    .media-spotlight {
-      margin: 16px auto 0;
-      padding: 0 16px;
-    }
-
-    .media-spotlight[hidden] { display: none; }
-
-    .media-spotlight-shell {
-      position: relative;
-      overflow: hidden;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      min-height: 0;
-      display: grid;
-      grid-template-columns: minmax(0, 1.35fr) minmax(100px, 0.65fr);
-      gap: 0;
-      min-height: 190px;
-      background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
-    }
-
-    .media-spotlight-bg {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, rgba(8,14,31,0.78), rgba(10,19,39,0.42));
-      background-size: cover;
-      background-position: center center;
-    }
-
-    .media-spotlight-copy,
-    .media-spotlight-poster { position: relative; z-index: 1; }
-
-     .media-spotlight-copy {
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .media-spotlight-kicker {
-      display: inline-flex;
-      width: fit-content;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(19,35,71,0.48);
-      color: #dbe7ff;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-     .media-spotlight-copy h2 { margin: 0; font-size: 22px; line-height: 1.04; }
-    .media-spotlight-meta,
-    .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.45; }
-
-     .media-spotlight-poster {
-      padding: 14px 14px 14px 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .media-spotlight-poster img {
-      width: 100%;
-      max-width: 124px;
-      max-height: 158px;
-      object-fit: cover;
-      border-radius: 16px;
-      box-shadow: 0 18px 30px rgba(0,0,0,0.28);
-      background: rgba(255,255,255,0.04);
-    }
-
-    .media-spotlight-actions { margin-top: 6px; display: flex; gap: 10px; }
-
     .controls {
       max-width: 1200px;
       margin: 12px auto 0;
@@ -298,13 +223,12 @@
     .chip.active { border-color: var(--accent); color: var(--accent); }
 
     .grid {
-      max-width: 382px;
+      max-width: 1200px;
       margin: 16px auto 40px;
       padding: 0 12px;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 114px));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
-      justify-content: center;
     }
 
     .card {
@@ -629,9 +553,6 @@
       cursor: pointer;
     }
     .icon-option.selected { border-color: var(--accent); color: var(--accent); }
-    @media (max-width: 380px) {
-      .grid { grid-template-columns: minmax(0, 1fr); }
-    }
 
     .menu-modal {
       display: none;
@@ -763,9 +684,9 @@
   <link rel="manifest" href="/manifest.webmanifest?v=2" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260322r" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260322h" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260316a">
+  <script src="js/shared-header.js?v=20260316a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -801,24 +722,6 @@
     <h1>popular books right now</h1>
     <p>Weekly trending books blended with live popular book results.</p>
     <div style="margin-top:8px;font-size:12px;color:var(--muted);opacity:.86;">sources: Google Books + Open Library. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
-  </section>
-
-  <section class="media-spotlight" id="booksSpotlight" hidden>
-    <div class="media-spotlight-shell">
-      <div class="media-spotlight-bg" id="booksSpotlightBg"></div>
-      <div class="media-spotlight-copy">
-        <span class="media-spotlight-kicker">Book Spotlight</span>
-        <h2 id="booksSpotlightTitle">Loading?</h2>
-        <p class="media-spotlight-meta" id="booksSpotlightMeta"></p>
-        <p class="media-spotlight-summary" id="booksSpotlightSummary"></p>
-        <div class="media-spotlight-actions">
-          <a class="btn" id="booksSpotlightOpen" href="#">Open book</a>
-        </div>
-      </div>
-      <div class="media-spotlight-poster">
-        <img id="booksSpotlightImage" src="/newlogo.webp" alt="Book spotlight cover" loading="eager" decoding="async" referrerpolicy="no-referrer">
-      </div>
-    </div>
   </section>
 
   <div class="controls">
@@ -864,8 +767,8 @@
     </div>
   </div>
 
-    <script src="js/list-utils.js?v=20260317b"></script>
-  <script src="js/index-list-menu-adapter.js?v=20260317b"></script>
+    <script src="js/list-utils.js?v=20260316a"></script>
+  <script src="js/index-list-menu-adapter.js?v=20260314d"></script>
     <script>
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
@@ -873,7 +776,6 @@
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
       const BOOKS_PER_PAGE = 20;
-      const BOOKS_CACHE_TTL_MS = 1000 * 60 * 45;
       const CATEGORY_OPTIONS = [
         'Fiction',
         'Mystery',
@@ -886,18 +788,6 @@
         'Self-Help',
         'Children'
       ];
-      const BOOK_GENRE_RULES = {
-        Fiction: ['fiction', 'literary', 'novel', 'novella', 'short stories', 'classic'],
-        Mystery: ['mystery', 'thriller', 'crime', 'detective', 'suspense'],
-        Fantasy: ['fantasy', 'magic', 'epic fantasy', 'urban fantasy', 'paranormal', 'science fiction', 'sci-fi', 'dystopian'],
-        Romance: ['romance', 'love stories', 'romantic'],
-        History: ['history', 'historical', 'world war', 'civilization', 'historical fiction'],
-        Biography: ['biography', 'autobiography', 'memoir', 'biographical'],
-        Science: ['science', 'physics', 'chemistry', 'biology', 'technology', 'engineering', 'mathematics'],
-        Business: ['business', 'economics', 'finance', 'management', 'leadership', 'marketing'],
-        'Self-Help': ['self-help', 'psychology', 'personal development', 'motivational', 'habits', 'productivity'],
-        Children: ['children', 'young adult', 'juvenile fiction', 'juvenile literature', 'middle grade', 'picture books']
-      };
       const state = {
         categories: CATEGORY_OPTIONS,
         activeCategory: '',
@@ -919,68 +809,6 @@
       };
 
       let supabaseClient = null;
-      const booksRuntimeCache = new Map();
-
-      function getBooksCacheKey() {
-        return `books_mobile_search_v1_${state.query}_${state.author}_${state.activeCategory}_${state.year}_${state.page}`;
-      }
-
-      function readBooksCache(cacheKey) {
-        const runtimeEntry = booksRuntimeCache.get(cacheKey);
-        if (runtimeEntry && runtimeEntry.cachedAt && (Date.now() - runtimeEntry.cachedAt) < BOOKS_CACHE_TTL_MS) {
-          return runtimeEntry;
-        }
-        try {
-          const raw = localStorage.getItem(cacheKey);
-          if (!raw) return null;
-          const parsed = JSON.parse(raw);
-          if (!Array.isArray(parsed?.docs)) return null;
-          booksRuntimeCache.set(cacheKey, parsed);
-          return parsed;
-        } catch (_err) {
-          return null;
-        }
-      }
-
-      function writeBooksCache(cacheKey, data) {
-        if (!cacheKey || !Array.isArray(data?.docs)) return;
-        const payload = {
-          docs: data.docs,
-          numFound: Number(data.numFound || data.docs.length || 0),
-          cachedAt: Date.now()
-        };
-        booksRuntimeCache.set(cacheKey, payload);
-        try {
-          localStorage.setItem(cacheKey, JSON.stringify(payload));
-        } catch (_err) {}
-      }
-
-      function normalizeBookText(value) {
-        return String(value || '')
-          .normalize('NFKD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .toLowerCase()
-          .trim();
-      }
-
-      function deriveCanonicalBookGenres(subjects = []) {
-        const values = Array.isArray(subjects) ? subjects : [];
-        const joined = values.map((entry) => normalizeBookText(entry)).filter(Boolean).join(' | ');
-        const matched = Object.entries(BOOK_GENRE_RULES)
-          .filter(([, tokens]) => tokens.some((token) => joined.includes(token)))
-          .map(([label]) => label);
-        return matched.length ? matched : [];
-      }
-
-      function bookMatchesCategory(subjects = [], activeCategory = '') {
-        const category = String(activeCategory || '').trim();
-        if (!category) return true;
-        const canonical = deriveCanonicalBookGenres(subjects);
-        if (canonical.includes(category)) return true;
-        const raw = (Array.isArray(subjects) ? subjects : []).map((entry) => normalizeBookText(entry));
-        const target = normalizeBookText(category);
-        return raw.some((entry) => entry === target || entry.includes(target));
-      }
 
       function toHttpsUrl(value) {
         return String(value || '').replace(/^http:\/\//i, 'https://').trim();
@@ -1155,77 +983,6 @@
         return null;
       }
 
-      function normalizeLocalBookDoc(row) {
-        if (!row) return null;
-        const authors = String(row.authors || '').trim();
-        const rawCategories = Array.isArray(row.categories) ? row.categories : [];
-        const categories = deriveCanonicalBookGenres(rawCategories);
-        const publishedYear = String(row.published_date || '').slice(0, 4);
-        return {
-          key: row.id ? `/books/${row.id}` : '',
-          title: String(row.title || '').trim(),
-          author_name: authors ? authors.split(',').map((entry) => String(entry || '').trim()).filter(Boolean) : [],
-          first_publish_year: publishedYear ? Number(publishedYear) : null,
-          subject: categories.length ? categories : rawCategories,
-          publisher: row.publisher ? [String(row.publisher).trim()] : [],
-          cover_i: null,
-          coverImage: toHttpsUrl(row.thumbnail || ''),
-          _googleThumbnail: '',
-          _googleVolumeId: '',
-          description: String(row.description || '').trim(),
-          pageCount: Number(row.page_count || 0) || null,
-          _source: 'supabase-books'
-        };
-      }
-
-      async function fetchLocalBooksPage() {
-        if (!supabaseClient) return null;
-        const page = Math.max(1, Number(state.page || 1));
-        const category = String(state.activeCategory || '').trim();
-        const q = String(state.query || '').trim();
-        const author = String(state.author || '').trim();
-        const year = String(state.year || '').trim();
-        const needsClientSideCategory = !!category;
-        let query = supabaseClient
-          .from('books')
-          .select('id,title,authors,thumbnail,published_date,categories,description,page_count,publisher,updated_at', { count: 'exact' });
-
-        if (q) query = query.ilike('title', `%${q}%`);
-        if (author) query = query.ilike('authors', `%${author}%`);
-        if (year) {
-          query = query.gte('published_date', `${year}-01-01`).lte('published_date', `${year}-12-31`);
-        }
-
-        query = query
-          .order('published_date', { ascending: false, nullsFirst: false })
-          .order('title', { ascending: true });
-
-        if (needsClientSideCategory) {
-          query = query.range(0, 799);
-        } else {
-          query = query.range((page - 1) * BOOKS_PER_PAGE, page * BOOKS_PER_PAGE - 1);
-        }
-
-        const { data, error, count } = await query;
-        if (error) return null;
-        let docs = (Array.isArray(data) ? data : []).map((row) => normalizeLocalBookDoc(row)).filter((row) => row && row.title);
-        if (needsClientSideCategory) {
-          docs = docs.filter((row) => bookMatchesCategory(row.subject || [], category));
-          const total = docs.length;
-          docs = docs.slice((page - 1) * BOOKS_PER_PAGE, page * BOOKS_PER_PAGE);
-          return {
-            docs,
-            numFound: total,
-            source: 'supabase-books'
-          };
-        }
-        return {
-          docs,
-          numFound: Number(count || docs.length) || docs.length,
-          source: 'supabase-books'
-        };
-      }
-
       function slugifyBookPart(value) {
         return String(value || '')
           .trim()
@@ -1295,7 +1052,7 @@
       function truncateText(text, maxLen) {
         if (!text) return '';
         if (text.length <= maxLen) return text;
-        return `${text.slice(0, maxLen - 1)}\u2026`;
+        return `${text.slice(0, maxLen - 1)}â€¦`;
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -1380,19 +1137,7 @@
           await new Promise(resolve => setTimeout(resolve, 500));
         }
         if (typeof supabase === 'undefined') return null;
-        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-          supabaseClient = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-        }
-        if (!supabaseClient) {
-          supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: {
-              persistSession: true,
-              autoRefreshToken: true,
-              detectSessionInUrl: false,
-              storageKey: 'zo2y-auth-v1'
-            }
-          });
-        }
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         return supabaseClient;
       }
 
@@ -1476,75 +1221,6 @@
         });
       }
 
-      let pageSpotlightTimer = null;
-      let pageSpotlightItems = [];
-      let pageSpotlightIndex = 0;
-
-      function getBookSpotlightCover(book) {
-        return getPreferredBookImage(book) || FALLBACK_BOOK_IMAGE;
-      }
-
-      function pickBookSpotlightPool(items = []) {
-        const seen = new Set();
-        return (Array.isArray(items) ? items : []).filter((book) => {
-          const key = String(book?.id || book?.key || book?.title || '').trim().toLowerCase();
-          const cover = getBookSpotlightCover(book);
-          if (!key || !cover || seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        }).slice(0, 12);
-      }
-
-      function renderBookPageSpotlight(book) {
-        const section = document.getElementById('booksSpotlight');
-        if (!section || !book) return;
-        const bg = document.getElementById('booksSpotlightBg');
-        const titleEl = document.getElementById('booksSpotlightTitle');
-        const metaEl = document.getElementById('booksSpotlightMeta');
-        const summaryEl = document.getElementById('booksSpotlightSummary');
-        const imgEl = document.getElementById('booksSpotlightImage');
-        const openEl = document.getElementById('booksSpotlightOpen');
-        const cover = getBookSpotlightCover(book);
-        const hasRealCover = cover && cover !== FALLBACK_BOOK_IMAGE;
-        section.hidden = false;
-        if (bg) {
-          bg.style.backgroundImage = hasRealCover
-            ? `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${cover}")`
-            : 'linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%)';
-        }
-        if (titleEl) titleEl.textContent = book.title || 'Book Spotlight';
-        if (metaEl) metaEl.textContent = [Array.isArray(book.author_name) ? book.author_name.slice(0, 2).join(', ') : '', book.first_publish_year || ''].filter(Boolean).join(' ? ');
-        if (summaryEl) summaryEl.textContent = String(book.description || '').trim() || (Array.isArray(book.subject) ? book.subject.slice(0, 4).join(' ? ') : 'A standout book from the local catalog.');
-        if (imgEl) {
-          imgEl.src = cover;
-          imgEl.alt = `${book.title || 'Book'} cover`;
-        }
-        if (openEl) openEl.href = `book.html?id=${encodeURIComponent(String(getBookEntryId(book) || ''))}`;
-      }
-
-      function resetBookPageSpotlightTimer() {
-        if (pageSpotlightTimer) clearInterval(pageSpotlightTimer);
-        if (pageSpotlightItems.length < 2) return;
-        pageSpotlightTimer = window.setInterval(() => {
-          pageSpotlightIndex = (pageSpotlightIndex + 1) % pageSpotlightItems.length;
-          renderBookPageSpotlight(pageSpotlightItems[pageSpotlightIndex]);
-        }, 6500);
-      }
-
-      function updateBookPageSpotlight(items = []) {
-        pageSpotlightItems = pickBookSpotlightPool(items);
-        pageSpotlightIndex = 0;
-        const section = document.getElementById('booksSpotlight');
-        if (!section) return;
-        if (!pageSpotlightItems.length) {
-          section.hidden = true;
-          if (pageSpotlightTimer) clearInterval(pageSpotlightTimer);
-          return;
-        }
-        renderBookPageSpotlight(pageSpotlightItems[0]);
-        resetBookPageSpotlightTimer();
-      }
-
       function populateCategories() {
         const select = document.getElementById('categorySelect');
         if (!select) return;
@@ -1606,55 +1282,38 @@
         const empty = document.getElementById('emptyState');
         if (!grid) return;
         const requestSeq = ++state.requestSeq;
-        const cacheKey = getBooksCacheKey();
-        const cached = readBooksCache(cacheKey);
-
-        if (cached?.docs?.length) {
-          updateBookPageSpotlight(cached.docs);
-          displayBookResults(cached.docs, cached.numFound || cached.docs.length);
-        }
 
         let data;
         try {
-          data = await fetchLocalBooksPage();
-          updateBookPageSpotlight(data?.docs || []);
-          if (!Array.isArray(data?.docs) || !data.docs.length) {
-            const params = {
-              page: state.page,
-              limit: BOOKS_PER_PAGE,
-              language: 'en'
-            };
-            if (state.query) params.q = state.query;
-            if (state.author) params.author = state.author;
-            if (state.activeCategory) params.subject = state.activeCategory;
-            if (state.year) params.first_publish_year = state.year;
+          const params = {
+            page: state.page,
+            limit: BOOKS_PER_PAGE,
+            language: 'en'
+          };
+          if (state.query) params.q = state.query;
+          if (state.author) params.author = state.author;
+          if (state.activeCategory) params.subject = state.activeCategory;
+          if (state.year) params.first_publish_year = state.year;
 
-            if (!params.q && !params.author && !params.subject && !params.first_publish_year) {
-              if (Number(state.page || 1) === 1) {
-                data = await loadCuratedPopularBooks();
-              } else {
-                data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
-              }
+          if (!params.q && !params.author && !params.subject && !params.first_publish_year) {
+            if (Number(state.page || 1) === 1) {
+              data = await loadCuratedPopularBooks();
             } else {
-              data = await booksFetch('/search.json', params);
+              data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
             }
-            updateBookPageSpotlight(data?.docs || []);
+          } else {
+            data = await booksFetch('/search.json', params);
           }
           if (!Array.isArray(data?.docs) || !data.docs.length) {
-            data = cached && Array.isArray(cached.docs)
-              ? { docs: cached.docs, numFound: cached.numFound || cached.docs.length }
-              : { docs: [], numFound: 0 };
+            data = { docs: [], numFound: 0 };
           }
         } catch (e) {
           console.error('Books fetch error', e);
           showNotification('Could not load books right now. Please try again.', 'error', 4000);
-          data = cached && Array.isArray(cached.docs)
-            ? { docs: cached.docs, numFound: cached.numFound || cached.docs.length }
-            : { docs: [], numFound: 0 };
+          data = { docs: [], numFound: 0 };
         }
 
         if (requestSeq !== state.requestSeq) return;
-        writeBooksCache(cacheKey, data);
         displayBookResults(data.docs || [], data.numFound || 0);
       }
 
@@ -1699,7 +1358,7 @@
               <h3 class="card-title">${item.title || 'Untitled'}</h3>
               <div class="card-desc">${desc}</div>
               <div class="card-meta-row">
-                <div class="card-meta">${authors}${year ? ` \u2022 ${year}` : ''}</div>
+                <div class="card-meta">${authors}${year ? ` â€¢ ${year}` : ''}</div>
                 <div class="card-menu-wrap">
                   <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
                 </div>
@@ -2073,21 +1732,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

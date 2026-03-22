@@ -392,16 +392,12 @@ function mapRawgRowToCandidate(row) {
     ? row.short_screenshots.map((entry) => entry?.image)
     : [];
   const screenshots = normalizeScreenshots({ short_screenshots: shortScreenshots });
-  // Do not treat RAWG artwork as canonical cover art.
-  // RAWG remains useful for hero/background art until an official cover is synced.
-  const coverUrl = "";
-  const heroUrl = toHttpsUrl(
-    row?.background_image_additional ||
-    row?.background_image ||
+  const coverUrl = toHttpsUrl(
     row?.cover ||
     row?.cover_url ||
     ""
   );
+  const heroUrl = coverUrl;
   const releaseDate = toIsoDateOrNull(row?.released || row?.release_date);
   const rating = toNumberOrNull(row?.rating);
   const ratingCount = toPositiveIntOrNull(row?.ratings_count || row?.rating_count) || 0;
@@ -733,17 +729,7 @@ async function main() {
   console.log(`Target limit: ${options.limit}`);
   console.log(`Details enrichment: ${options.withDetails ? "on" : "off"}`);
 
-  let candidates = [];
-  let pagesFetched = 0;
-  let exhausted = false;
-  try {
-    const sourceResult = await collectPopularCandidates(options.baseUrl, options);
-    candidates = sourceResult.candidates;
-    pagesFetched = sourceResult.pagesFetched;
-    exhausted = sourceResult.exhausted;
-  } catch (error) {
-    console.warn(`Primary source fetch failed, falling back to RAWG-only import: ${error.message || error}`);
-  }
+  let { candidates, pagesFetched, exhausted } = await collectPopularCandidates(options.baseUrl, options);
   if (!candidates.length) {
     console.log("No source API candidates found from /api/igdb/games.");
   }

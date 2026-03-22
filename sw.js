@@ -1,8 +1,7 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v168';
-const PAGE_CACHE = 'zo2y-pages-v138';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v101';
+const PAGE_CACHE = 'zo2y-pages-v105';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
-const MOVIES_PAGE_VERSION = '20260322m';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
 
@@ -11,46 +10,41 @@ const STATIC_ASSETS = [
   '/index.html',
   '/credits.html',
   '/manifest.webmanifest',
-  '/css/pages/index.css?v=20260320f',
-  '/css/pages/index-landing.css?v=20260319e',
-  '/css/shared-header.css?v=20260319b',
+  '/css/pages/index.css?v=20260314m',
+  '/css/shared-header.css?v=20260316a',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260322b',
-  '/js/pages/index-home-heavy-loaders.js?v=20260319e',
+  '/js/pages/index.js?v=20260316d',
   '/js/home-desktop-rebrand.js?v=20260311e',
-  '/js/referral-utils.js?v=20260319a',
-  '/js/shared-header.js?v=20260322h',
+  '/js/shared-header.js?v=20260316a',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
-  '/js/list-utils.js?v=20260317b',
-  '/js/index-list-menu-adapter.js?v=20260317b',
+  '/js/list-utils.js?v=20260316a',
+  '/js/index-list-menu-adapter.js?v=20260316a',
   '/js/universal-search.js?v=20260315b',
-  '/js/auth-gate.js?v=20260322a',
+  '/js/auth-gate.js?v=20260315d',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260322r',
+  '/js/mobile-webapp.js?v=20260315e',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260308a',
   '/favicon.ico',
   '/favicon.ico?v=20260307a',
   '/newlogo.webp',
-  '/logo-placeholder.svg',
   '/scared.webp',
   '/file-blank.svg',
   '/file.svg',
   '/sports.html',
   '/sports-mobile.html',
   '/css/pages/sports.css?v=20260315b',
-  '/js/pages/sports.js?v=20260319e',
+  '/js/pages/sports.js?v=20260315b',
   '/fashion.html',
   '/food.html',
-  '/cars.html',
   '/brand.html',
-  '/css/pages/brands.css?v=20260322c',
+  '/css/pages/brands.css?v=20260316b',
   '/css/pages/brand.css?v=20260316b',
-  '/js/pages/brands.js?v=20260322e',
-  '/js/pages/brand.js?v=20260322a',
+  '/js/pages/brands.js?v=20260316e',
+  '/js/pages/brand.js?v=20260316e',
   '/team.html',
   '/css/pages/team.css?v=20260314a',
   '/js/pages/team.js?v=20260314d',
@@ -125,7 +119,7 @@ async function cacheFirst(request, cacheName) {
 
 async function networkFirst(request, cacheName, fallbackPath = '') {
   try {
-    const networkResponse = await fetch(request, { cache: 'no-store' });
+    const networkResponse = await fetch(request);
     queueCachePut(cacheName, request, networkResponse);
     return networkResponse;
   } catch (_error) {
@@ -146,7 +140,7 @@ async function networkFirstWithTimeout(request, cacheName, fallbackPath = '', ti
   let timer = null;
   try {
     const networkResponse = await Promise.race([
-      fetch(request, { cache: 'no-store' }),
+      fetch(request),
       new Promise((_, reject) => {
         timer = setTimeout(() => reject(new Error('network_timeout')), timeoutMs);
       })
@@ -196,14 +190,13 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(async (keys) => {
-      await Promise.all(
+    caches.keys().then((keys) =>
+      Promise.all(
         keys
           .filter((key) => !ACTIVE_CACHES.includes(key))
           .map((key) => caches.delete(key))
-      );
-      await caches.delete(PAGE_CACHE);
-    })
+      )
+    )
   );
   self.clients.claim();
 });
@@ -213,16 +206,6 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
-  const isMoviesHtml = url.origin === self.location.origin && url.pathname === '/movies.html';
-  const isMoviesMobileHtml = url.origin === self.location.origin && url.pathname === '/movies-mobile.html';
-  if (request.mode === 'navigate' && (isMoviesHtml || isMoviesMobileHtml) && !url.searchParams.has('v')) {
-    url.searchParams.set('v', MOVIES_PAGE_VERSION);
-    event.respondWith(fetch(url.toString(), { cache: 'no-store' }));
-    return;
-  }
-  const isLatestGamesPage =
-    url.origin === self.location.origin &&
-    (url.pathname === '/games.html' || url.pathname === '/games-mobile.html' || url.pathname === '/game.html');
   if (url.origin === self.location.origin && url.pathname === '/sw.js') return;
   if (url.origin === self.location.origin && url.pathname.startsWith('/_vercel/insights/')) return;
   // OAuth callbacks must always load the real callback page. A timeout fallback to `/index.html`
@@ -251,11 +234,6 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
 
-  if (request.mode === 'navigate' && isLatestGamesPage) {
-    event.respondWith(fetch(request, { cache: 'no-store' }));
-    return;
-  }
-
   if (request.mode === 'navigate') {
     event.respondWith(networkFirstWithTimeout(request, PAGE_CACHE, '/index.html'));
     return;
@@ -263,9 +241,6 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
-
-
-
 
 
 

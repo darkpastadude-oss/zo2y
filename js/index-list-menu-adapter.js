@@ -69,11 +69,6 @@
       { key: 'tried', label: 'Tried', icon: 'fas fa-check' },
       { key: 'want_to_try', label: 'Want to Try', icon: 'fas fa-bookmark' }
     ],
-    car: [
-      { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-      { key: 'owned', label: 'Owned', icon: 'fas fa-check' },
-      { key: 'wishlist', label: 'Wishlist', icon: 'fas fa-bookmark' }
-    ],
     sports: [
       { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' }
     ]
@@ -88,8 +83,7 @@
     music: { table: 'music_list_items', itemField: 'track_id' },
     travel: { table: 'travel_list_items', itemField: 'country_code' },
     fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
-    food: { table: 'food_list_items', itemField: 'brand_id' },
-    car: { table: 'car_list_items', itemField: 'brand_id' }
+    food: { table: 'food_list_items', itemField: 'brand_id' }
   };
 
   function escapeHtml(value) {
@@ -524,17 +518,6 @@
     return String(bridge?.mediaType || '').toLowerCase();
   }
 
-  function customListsEnabled() {
-    const mediaType = getMediaType();
-    if (!mediaType) return false;
-    if (!window.ListUtils || typeof ListUtils.getListConfig !== 'function') return true;
-    const cfg = ListUtils.getListConfig(mediaType);
-    if (!cfg) return false;
-    if (cfg.disableCustomLists) return false;
-    if (!cfg.listTable || !cfg.itemsTable) return false;
-    return true;
-  }
-
   function getQuickRowsForMenu() {
     return QUICK_ROWS_BY_TYPE[getMediaType()] || [];
   }
@@ -804,8 +787,8 @@
         });
       }
 
-        if (!window.ListUtils || !customListsEnabled()) return;
-        let customLists = readCachedCustomLists();
+      if (!window.ListUtils) return;
+      let customLists = readCachedCustomLists();
       if (!customLists.length) {
         customLists = await ListUtils.loadCustomLists(client, user.id, mediaType);
         writeCachedCustomLists(customLists);
@@ -977,14 +960,7 @@
 
   function renderItemMenuCustomLists() {
     const customContainer = document.getElementById('menuCustomLists');
-    const customSection = customContainer?.closest('.menu-custom-section');
     if (!customContainer) return;
-    if (!customListsEnabled()) {
-      if (customSection) customSection.style.display = 'none';
-      customContainer.innerHTML = '';
-      return;
-    }
-    if (customSection) customSection.style.display = '';
     if (!getCurrentUser()?.id) {
       customContainer.innerHTML = '<div class="menu-empty">Sign in to use custom lists.</div>';
       return;
@@ -1044,13 +1020,6 @@
 
     const user = getCurrentUser();
     const mediaType = getMediaType();
-    if (!customListsEnabled()) {
-      STATE.customLists = [];
-      STATE.selectedCustomLists = new Set();
-      renderItemMenuQuickLists();
-      renderItemMenuCustomLists();
-      return;
-    }
     if (!user?.id || !window.ListUtils) {
       STATE.customLists = [];
       STATE.selectedCustomLists = new Set();
@@ -1070,7 +1039,7 @@
 
     const [quickStatus, loadedLists] = await Promise.all([
       getDefaultListStatusMap(item.itemId, listKeys),
-      customListsEnabled() ? ListUtils.loadCustomLists(client, user.id, mediaType) : []
+      ListUtils.loadCustomLists(client, user.id, mediaType)
     ]);
 
     STATE.quickStatus = quickStatus;
@@ -1078,17 +1047,13 @@
     STATE.customLists = Array.isArray(loadedLists) ? loadedLists : [];
     writeCachedCustomLists(STATE.customLists);
     const listIds = STATE.customLists.map((l) => l.id).filter(Boolean);
-    if (customListsEnabled()) {
-      STATE.selectedCustomLists = await ListUtils.loadCustomListMembership(
-        client,
-        user.id,
-        mediaType,
-        item.itemId,
-        listIds
-      );
-    } else {
-      STATE.selectedCustomLists = new Set();
-    }
+    STATE.selectedCustomLists = await ListUtils.loadCustomListMembership(
+      client,
+      user.id,
+      mediaType,
+      item.itemId,
+      listIds
+    );
     writeCachedMembership(item.itemId, STATE.selectedCustomLists);
     renderItemMenuQuickLists();
     renderItemMenuCustomLists();

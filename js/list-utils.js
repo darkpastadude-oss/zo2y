@@ -63,20 +63,12 @@
       usesUserId: true,
       defaultIcon: 'fas fa-burger'
     },
-    car: {
-      listTable: 'car_lists',
-      itemsTable: 'car_list_items',
-      itemIdField: 'brand_id',
-      usesUserId: true,
-      defaultIcon: 'fas fa-car'
-    },
     sports: {
-      listTable: null,
-      itemsTable: null,
+      listTable: 'sports_lists',
+      itemsTable: 'sports_list_items',
       itemIdField: 'team_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-futbol',
-      disableCustomLists: true
+      defaultIcon: 'fas fa-futbol'
     },
     restaurant: {
       listTable: 'lists',
@@ -120,10 +112,6 @@
 
   function getListConfig(type) {
     return LIST_CONFIG[String(type || '').toLowerCase()] || null;
-  }
-
-  function customListsDisabled(cfg) {
-    return !cfg || cfg.disableCustomLists || !cfg.listTable || !cfg.itemsTable;
   }
 
   function coerceItemId(type, itemId) {
@@ -174,7 +162,6 @@
     if (raw.includes('fa-earth')) return 'travel';
     if (raw.includes('fa-shirt')) return 'fashion';
     if (raw.includes('fa-burger')) return 'food';
-    if (raw.includes('fa-car')) return 'car';
     if (raw.includes('fa-futbol') || raw.includes('fa-football')) return 'sports';
     if (raw.includes('fa-user')) return 'user';
     if (raw.includes('fa-tv')) return 'tv';
@@ -999,7 +986,6 @@
   async function loadCustomLists(client, userId, type) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return [];
-    if (customListsDisabled(cfg)) return [];
     setTierSyncContext(client, userId);
     const rpcLists = await loadAccessibleCustomListsViaRpc(client, userId, type);
     let enhancedRpc = null;
@@ -1119,7 +1105,6 @@
     const cfg = getListConfig(type);
     const normalizedItemId = normalizeQueryableItemId(type, itemId);
     if (!cfg || !client || !listIds || !listIds.length || normalizedItemId === null) return new Set();
-    if (customListsDisabled(cfg)) return new Set();
     if (missingItemTables.has(cfg.itemsTable)) return new Set();
     let query = client
       .from(cfg.itemsTable)
@@ -1140,7 +1125,6 @@
     const cfg = getListConfig(type);
     const normalizedItemId = normalizeQueryableItemId(type, itemId);
     if (!cfg || !client || normalizedItemId === null) return;
-    if (customListsDisabled(cfg)) return;
     if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return;
     if (userId) setTierSyncContext(client, userId);
     if (type === 'book' && itemPayload) {
@@ -1199,7 +1183,6 @@
   async function createCustomList(client, userId, type, payload) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return null;
-    if (customListsDisabled(cfg)) return null;
     if (missingListTables.has(cfg.listTable)) return null;
     setTierSyncContext(client, userId);
     const normalizedType = String(type || '').toLowerCase();
@@ -1255,7 +1238,6 @@
   async function renameCustomList(client, userId, type, listId, title) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId || !listId) return false;
-    if (customListsDisabled(cfg)) return false;
     if (missingListTables.has(cfg.listTable)) return false;
     setTierSyncContext(client, userId);
     const payload = { title };

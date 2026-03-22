@@ -7,7 +7,7 @@
   const TRACK_URL = "/api/analytics/track";
   const ERROR_URL = "/api/analytics/error";
   const MAX_QUEUE = 40;
-  const CONTACT_EMAIL = "darkpastadude@gmail.com";
+  const CONTACT_EMAIL = "zo2yhq@gmail.com";
   const CONTACT_SUBJECT = "Zo2y Support";
 
   let queue = [];

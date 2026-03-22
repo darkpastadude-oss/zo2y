@@ -1,7 +1,7 @@
-﻿import express from "express";
+import express from "express";
 import dotenv from "dotenv";
 import supportRoutes from "../backend/routes/support.js";
-import { applyApiGuardrails } from "../backend/lib/api-guardrails.js";
+import { applyApiGuardrails } from "./_guardrails.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
@@ -43,5 +43,4 @@ export default function handler(req, res) {
 
   return app(req, res);
 }
-
 

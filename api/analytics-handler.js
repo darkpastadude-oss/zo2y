@@ -1,7 +1,24 @@
+import express from "express";
 import dotenv from "dotenv";
+import { applyApiGuardrails } from "./_guardrails.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
+
+const app = express();
+applyApiGuardrails(app, { keyPrefix: "api-analytics", max: 300 });
+
+function pushQueryParam(params, key, value) {
+  if (value === undefined || value === null) return;
+  if (Array.isArray(value)) {
+    value.forEach((entry) => {
+      if (entry === undefined || entry === null) return;
+      params.append(key, String(entry));
+    });
+    return;
+  }
+  params.append(key, String(value));
+}
 
 function acceptedDroppedPayload(extra = {}) {
   return {
@@ -12,68 +29,70 @@ function acceptedDroppedPayload(extra = {}) {
   };
 }
 
-function readQuery(req) {
-  if (req.query && typeof req.query === "object") return req.query;
-  try {
-    const url = new URL(req.url || "", "http://localhost");
-    return Object.fromEntries(url.searchParams.entries());
-  } catch (_error) {
-    return {};
-  }
-}
+app.get("/api/analytics", (_req, res) => {
+  return res.json({
+    ok: true,
+    service: "analytics",
+    storage: "dropped"
+  });
+});
 
-function readPathParts(query) {
-  const rawPath = query?.path;
-  if (Array.isArray(rawPath)) return rawPath.filter(Boolean);
-  return String(rawPath || "")
-    .split("/")
-    .filter(Boolean);
-}
+app.get("/api/analytics/health", (_req, res) => {
+  return res.json({
+    ok: true,
+    service: "analytics",
+    storage: "dropped"
+  });
+});
 
-async function readJsonBody(req) {
-  if (req.body && typeof req.body === "object") return req.body;
-  const chunks = [];
-  for await (const chunk of req) {
-    chunks.push(chunk);
-  }
-  if (!chunks.length) return null;
-  const text = Buffer.concat(chunks).toString("utf8");
-  try {
-    return JSON.parse(text);
-  } catch (_error) {
-    return null;
-  }
-}
+app.post("/api/analytics/track", (_req, res) => {
+  return res.status(202).json(acceptedDroppedPayload());
+});
 
-export default async function handler(req, res) {
-  const query = readQuery(req);
-  const pathParts = readPathParts(query);
-  const section = String(pathParts[0] || "").trim().toLowerCase();
-  const method = String(req.method || "GET").toUpperCase();
+app.post("/api/analytics/error", (_req, res) => {
+  return res.status(202).json(acceptedDroppedPayload());
+});
 
-  if (!section) {
-    return res.json({ ok: true, service: "analytics", storage: "dropped" });
-  }
+app.post("/api/analytics/batch", (req, res) => {
+  const events = Array.isArray(req.body?.events) ? req.body.events : [];
+  return res.status(202).json(acceptedDroppedPayload({
+    dropped_count: events.length
+  }));
+});
 
-  if (section === "health") {
-    return res.json({ ok: true, service: "analytics", storage: "dropped" });
-  }
-
-  if (section === "track" && method === "POST") {
-    return res.status(202).json(acceptedDroppedPayload());
-  }
-
-  if (section === "error" && method === "POST") {
-    return res.status(202).json(acceptedDroppedPayload());
-  }
-
-  if (section === "batch" && method === "POST") {
-    const body = await readJsonBody(req);
-    const events = Array.isArray(body?.events) ? body.events : [];
-    return res.status(202).json(acceptedDroppedPayload({
-      dropped_count: events.length
-    }));
-  }
-
+app.use("/api/analytics/*", (_req, res) => {
   return res.status(404).json({ message: "Not found" });
+});
+
+app.use((error, _req, res, _next) => {
+  console.error("[analytics-handler] unexpected error:", String(error?.message || error));
+  if (res.headersSent) return;
+  return res.status(202).json(acceptedDroppedPayload());
+});
+
+export default function handler(req, res) {
+  try {
+    const query = req.query || {};
+    const rawPath = query.path;
+    const pathParts = Array.isArray(rawPath)
+      ? rawPath
+      : String(rawPath || "")
+        .split("/")
+        .filter(Boolean);
+
+    const nextParams = new URLSearchParams();
+    Object.entries(query).forEach(([key, value]) => {
+      if (key === "path") return;
+      pushQueryParam(nextParams, key, value);
+    });
+
+    const suffix = pathParts.length ? `/${pathParts.join("/")}` : "";
+    const search = nextParams.toString();
+    req.url = `/api/analytics${suffix}${search ? `?${search}` : ""}`;
+    return app(req, res);
+  } catch (error) {
+    console.error("[analytics-handler] invocation fallback:", String(error?.message || error));
+    if (res.headersSent) return;
+    return res.status(202).json(acceptedDroppedPayload());
+  }
 }
