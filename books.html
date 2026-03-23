@@ -1146,12 +1146,12 @@
       function getPreferredBookImage(doc) {
         const googleThumb = toHttpsUrl(doc?._googleThumbnail || '');
         if (googleThumb) return googleThumb;
-        const coverImage = toHttpsUrl(doc?.coverImage || '');
-        if (coverImage) return coverImage;
         const byCoverId = toHttpsUrl(buildOpenLibraryCoverUrl(doc, 'L'));
         if (byCoverId) return byCoverId;
         const byIsbn = toHttpsUrl(buildOpenLibraryCoverUrl(doc, 'M'));
         if (byIsbn) return byIsbn;
+        const coverImage = toHttpsUrl(doc?.coverImage || '');
+        if (coverImage) return coverImage;
         return null;
       }
 

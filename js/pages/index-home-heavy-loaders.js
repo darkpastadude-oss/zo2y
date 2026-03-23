@@ -129,11 +129,11 @@ async function loadBooks(signal) {
           if (minYear && year && year < minYear) return null;
 
           const coverCandidates = [
-            toHttpsUrl(localOverride?.thumbnail || ''),
             toHttpsUrl(normalized?._googleThumbnail || ''),
-            toHttpsUrl(normalized?.coverImage || ''),
             toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'L')),
-            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'M'))
+            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'M')),
+            toHttpsUrl(localOverride?.thumbnail || ''),
+            toHttpsUrl(normalized?.coverImage || '')
           ].filter(Boolean);
           const cover = coverCandidates[0] || '';
           if (!cover) return null;
