@@ -405,6 +405,12 @@
       background-position: center;
     }
 
+    .card .card-media.game-media img {
+      object-fit: contain;
+      object-position: center center;
+      padding: 8px;
+    }
+
     .card .card-media.game-media.plain-logo {
       background: transparent !important;
       background-image: none !important;
@@ -1021,11 +1027,13 @@
         }
         if (isOfficialGameProviderRow(row)) {
           return pickPreferredCoverUrl([
+            row?.cover_url,
+            row?.cover?.url,
+            row?.cover,
+            ...(Array.isArray(row?.extra?.local_covers) ? row.extra.local_covers : []),
+            ...(Array.isArray(row?.extra?.covers) ? row.extra.covers : []),
             row?.hero_url,
             row?.hero,
-            row?.cover,
-            row?.cover?.url,
-            row?.cover_url,
             ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
             ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
           ]);
@@ -1050,8 +1058,7 @@
         const value = String(url || '').trim().toLowerCase();
         if (!value) return false;
         if (value.endsWith('.svg') || value.includes('.svg?')) return true;
-        if (value.endsWith('.png') || value.includes('.png?')) return true;
-        return ['logo', 'wordmark', 'transparent', 'icon'].some((token) => value.includes(token));
+        return ['logo', 'wordmark', 'transparent', 'icon', 'banner'].some((token) => value.includes(token));
       }
 
         function shouldUsePlainGameStage(item, cover, hero) {
@@ -1399,13 +1406,17 @@
 
       function sortSearchResults(rows = [], query = '') {
         const cleanQuery = String(query || '').trim().toLowerCase();
-        if (!cleanQuery) return Array.isArray(rows) ? rows : [];
+        if (!cleanQuery) return sortGamesPosterFirst(rows);
         const list = Array.isArray(rows) ? rows.slice() : [];
         return list.sort((a, b) => {
           const aTitle = String(a?.title || a?.name || a?.slug || '').trim();
           const bTitle = String(b?.title || b?.name || b?.slug || '').trim();
           const scoreDiff = scoreSearchMatch(bTitle, cleanQuery) - scoreSearchMatch(aTitle, cleanQuery);
           if (scoreDiff !== 0) return scoreDiff;
+          const dateDiff = String(b?.release_date || '').localeCompare(String(a?.release_date || ''));
+          if (dateDiff !== 0) return dateDiff;
+          const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
+          if (countDiff !== 0) return countDiff;
           const aRating = Number(a?.rating || 0);
           const bRating = Number(b?.rating || 0);
           if (Number.isFinite(aRating) && Number.isFinite(bRating) && aRating !== bRating) {
@@ -1507,7 +1518,14 @@
       async function fetchTargetedSearchPage(pageSize) {
         const query = String(state.query || '').trim();
         if (!query) return null;
-        const supplement = await fetchSearchSupplementGames(query, state.activeGenre, state.year);
+        let supplement = await fetchSearchSupplementGames(query, state.activeGenre, state.year);
+        if (supplement.length < Math.max(pageSize * 3, 120)) {
+          const ready = await ensureGamesCatalogLoaded();
+          if (ready) {
+            const catalogMatches = filterCatalogGames(state.catalog);
+            supplement = dedupeRowsById([...supplement, ...catalogMatches]);
+          }
+        }
         if (!supplement.length) {
           return {
             rows: [],
@@ -1826,7 +1844,7 @@
         if (!supabaseClient) return null;
         if (state.query) {
           const targeted = await fetchTargetedSearchPage(pageSize);
-          if (targeted) return targeted;
+          if (targeted?.count) return targeted;
         }
         if (!state.query && !state.activeGenre && !state.year) {
           const fast = await fetchFastFeaturedGamesPage(pageSize);
@@ -1864,12 +1882,12 @@
           const aPoster = isPosterOfficialGameRow(a) ? 1 : 0;
           const bPoster = isPosterOfficialGameRow(b) ? 1 : 0;
           if (bPoster !== aPoster) return bPoster - aPoster;
+          const dateDiff = String(b?.release_date || '').localeCompare(String(a?.release_date || ''));
+          if (dateDiff !== 0) return dateDiff;
           const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
           if (countDiff !== 0) return countDiff;
           const ratingDiff = Number(b?.rating || 0) - Number(a?.rating || 0);
           if (ratingDiff !== 0) return ratingDiff;
-          const dateDiff = String(b?.release_date || '').localeCompare(String(a?.release_date || ''));
-          if (dateDiff !== 0) return dateDiff;
           return String(a?.title || '').localeCompare(String(b?.title || ''));
         });
       }
@@ -2096,12 +2114,16 @@
         const ratingValue = Number(item.rating || 0);
         const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
         const gameDescription = [genreText, ratingText].filter(Boolean).join(' | ') || String(item.description || '').trim() || 'Popular game';
-        const gameCover = resolveGameImageSource(item);
-        const gameHero = resolveGameHeroSource(item, gameCover);
+        const gameHeroFallback = pickPreferredCoverUrl([
+          item?.hero_url,
+          item?.hero,
+          item?.background_image,
+          ...(Array.isArray(item?.extra?.local_screenshots) ? item.extra.local_screenshots : []),
+          ...(Array.isArray(item?.extra?.screenshots) ? item.extra.screenshots : [])
+        ]) || IGDB_FALLBACK_IMAGE;
+        const gameCover = resolveGameImageSource(item) || gameHeroFallback;
+        const gameHero = resolveGameHeroSource(item, gameCover || gameHeroFallback);
         const plainGameStage = shouldUsePlainGameStage(item, gameCover, gameHero);
-        if (!gameCover || gameCover === IGDB_FALLBACK_IMAGE || gameCover.includes('/newlogo.webp')) {
-          return null;
-        }
 
         const gameId = Number(item.id);
         if (!Number.isFinite(gameId)) return null;
@@ -2114,7 +2136,7 @@
           : '';
         card.innerHTML = `
           <div class="card-media game-media${plainGameStage ? ' plain-logo' : ''}"${mediaStyle}>
-            <img src="${gameCover}" alt="${gameTitle}" loading="${isPriority ? 'eager' : 'lazy'}" fetchpriority="${isPriority ? 'high' : 'low'}" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;const c=this.closest('.card');if(c)c.remove();">
+            <img src="${gameCover}" alt="${gameTitle}" loading="${isPriority ? 'eager' : 'lazy'}" fetchpriority="${isPriority ? 'high' : 'low'}" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${(gameHero || IGDB_FALLBACK_IMAGE).replace(/'/g, '%27')}';">
           </div>
           <div class="card-body">
             <h3 class="card-title">${gameTitle}</h3>
