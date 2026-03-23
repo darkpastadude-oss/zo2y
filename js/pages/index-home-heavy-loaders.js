@@ -1334,6 +1334,38 @@ async function loadBooks(signal) {
         .trim();
     }
 
+    function isHomeSportsPriorityLeague(league) {
+      const value = normalizeHomeSportsName(league);
+      if (!value) return false;
+      return [
+        'premier league',
+        'la liga',
+        'serie a',
+        'bundesliga',
+        'ligue 1',
+        'champions league',
+        'major league soccer',
+        'saudi pro league',
+        'egyptian premier league',
+        'nba',
+        'nfl',
+        'mlb',
+        'nhl',
+        'formula 1',
+        'indian premier league'
+      ].some((token) => value.includes(token));
+    }
+
+    function scoreHomeSportsPriority(item) {
+      const title = normalizeHomeSportsName(item?.title || '');
+      const league = normalizeHomeSportsName(item?.league || '');
+      let score = 0;
+      if (HOME_SPORTS_SEEDS.some((seed) => normalizeHomeSportsName(seed) === title)) score += 500;
+      if (isHomeSportsPriorityLeague(league)) score += 220;
+      if (league.includes('premier league') || league.includes('nba') || league.includes('nfl')) score += 80;
+      return score;
+    }
+
     async function loadSports(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
       loadHomeSportsAssetManifestFromStorage();
@@ -1349,7 +1381,8 @@ async function loadBooks(signal) {
               strStadium: row.stadium,
               strCountry: row.country
             }))
-            .filter((item) => item && item.image),
+            .filter((item) => item && item.image)
+            .sort((a, b) => scoreHomeSportsPriority(b) - scoreHomeSportsPriority(a)),
           'sports:home-local'
         ).slice(0, targetCount);
         if (localItems.length >= Math.min(targetCount, 8)) {
@@ -1374,7 +1407,7 @@ async function loadBooks(signal) {
         if (dedupedCached.length) return dedupedCached.slice(0, targetCount);
       }
 
-      const seedTeams = shuffleArray([...HOME_SPORTS_SEEDS]).slice(0, Math.max(targetCount, 12));
+      const seedTeams = [...HOME_SPORTS_SEEDS].slice(0, Math.max(targetCount, 12));
       const items = [];
       const seen = new Set();
       void ensureHomeCountryIndex(signal);
@@ -1400,8 +1433,9 @@ async function loadBooks(signal) {
       });
 
       if (items.length) {
-        writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
-        return items;
+        const prioritized = items.slice().sort((a, b) => scoreHomeSportsPriority(b) - scoreHomeSportsPriority(a));
+        writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, prioritized);
+        return prioritized;
       }
 
       return [];

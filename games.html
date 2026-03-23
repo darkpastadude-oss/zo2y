@@ -1498,6 +1498,26 @@
         state.searchSupplementCache.set(cacheKey, filtered);
         return filtered;
       }
+
+      async function fetchTargetedSearchPage(pageSize) {
+        const query = String(state.query || '').trim();
+        if (!query) return null;
+        const supplement = await fetchSearchSupplementGames(query, state.activeGenre, state.year);
+        if (!supplement.length) {
+          return {
+            rows: [],
+            count: 0,
+            source: 'supabase-search'
+          };
+        }
+        const ranked = sortSearchResults(dedupeRowsByTitleEdition(supplement), query).filter(hasRenderableGameArt);
+        const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
+        return {
+          rows: ranked.slice(start, start + pageSize),
+          count: ranked.length,
+          source: 'supabase-search'
+        };
+      }
       function mapIgdbRowToCatalog(row) {
         if (!row) return null;
         const id = Number(row?.id || 0);
@@ -1747,6 +1767,10 @@
 
       async function fetchLocalGamesPage(pageSize) {
         if (!supabaseClient) return null;
+        if (state.query) {
+          const targeted = await fetchTargetedSearchPage(pageSize);
+          if (targeted) return targeted;
+        }
         if (!state.query && !state.activeGenre && !state.year) {
           const fast = await fetchFastFeaturedGamesPage(pageSize);
           if (fast?.rows?.length) return fast;

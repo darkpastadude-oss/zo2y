@@ -4525,7 +4525,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     function getBookCoverFallback(item) {
-      return '';
+      return String(item?.listImage || item?.image || '').trim();
     }
 
     function setSpotlightImageWithFallback(imgEl, sources, token) {
@@ -5188,8 +5188,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         const listImage = escapeHtml(itemData.listImage || itemData.image || '');
         const logo = escapeHtml(itemData.logo || '');
         const fallbackImage = escapeHtml(itemData.fallbackImage || '');
-        const safeImage = image || (mediaTypeRaw === 'travel' ? fallbackImage : '');
-        const coverImage = image || logo;
+        const safeImage = image || listImage || (mediaTypeRaw === 'travel' ? fallbackImage : '');
+        const coverImage = image || listImage || logo;
         const hrefRaw = itemData.href || '#';
         const href = escapeHtml(hrefRaw);
         const mediaType = escapeHtml(mediaTypeRaw);

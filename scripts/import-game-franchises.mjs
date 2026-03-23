@@ -1,8 +1,8 @@
 import { spawn } from 'child_process';
 
-const DEFAULT_LIMIT = 220;
-const DEFAULT_RAWG_MAX_PAGES = 18;
-const DEFAULT_MAX_PAGES = 12;
+const DEFAULT_LIMIT = 320;
+const DEFAULT_RAWG_MAX_PAGES = 28;
+const DEFAULT_MAX_PAGES = 18;
 
 const FRANCHISE_QUERIES = [
   { term: 'Super Mario', limit: 260 },

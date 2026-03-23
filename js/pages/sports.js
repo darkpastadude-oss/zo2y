@@ -387,6 +387,42 @@
       .trim();
   }
 
+  function normalizePriorityName(value) {
+    return normalizeSearchText(value).replace(/\b(fc|cf|sc|afc|club|the)\b/g, '').replace(/\s+/g, ' ').trim();
+  }
+
+  function isPriorityLeagueName(value) {
+    const league = normalizePriorityName(value);
+    if (!league) return false;
+    return [
+      'premier league',
+      'la liga',
+      'serie a',
+      'bundesliga',
+      'ligue 1',
+      'champions league',
+      'major league soccer',
+      'saudi pro league',
+      'egyptian premier league',
+      'nba',
+      'nfl',
+      'mlb',
+      'nhl',
+      'formula 1',
+      'indian premier league'
+    ].some((token) => league.includes(token));
+  }
+
+  function scoreFeaturedPriority(team) {
+    const name = normalizePriorityName(team?.name || team?.strTeam || '');
+    const league = normalizePriorityName(team?.league || team?.strLeague || '');
+    let score = 0;
+    if (SEED_TEAMS.some((seed) => normalizePriorityName(seed) === name)) score += 500;
+    if (isPriorityLeagueName(league)) score += 220;
+    if (league.includes('premier league') || league.includes('nba') || league.includes('nfl')) score += 80;
+    return score;
+  }
+
   function stripSearchStopwords(tokens) {
     const list = Array.isArray(tokens) ? tokens.filter(Boolean) : [];
     if (!list.length) return [];
@@ -1660,7 +1696,11 @@
 
     const localManifestRows = await ensureSportsAssetManifest().catch(() => []);
     if (Array.isArray(localManifestRows) && localManifestRows.length) {
-      const localTeams = shuffleArray(localManifestRows.map(applySportsAssetOverride).filter((team) => team && team.badge)).slice(0, 24);
+      const localTeams = localManifestRows
+        .map(applySportsAssetOverride)
+        .filter((team) => team && team.badge)
+        .sort((a, b) => scoreFeaturedPriority(b) - scoreFeaturedPriority(a))
+        .slice(0, 24);
       if (localTeams.length >= 12) {
         writeSportsFeaturedCache(localTeams);
         state.lastResults = localTeams;
@@ -1712,7 +1752,10 @@
       });
     }
 
-    if (picks.length) writeSportsFeaturedCache(picks);
+    if (picks.length) {
+      picks.sort((a, b) => scoreFeaturedPriority(b) - scoreFeaturedPriority(a));
+      writeSportsFeaturedCache(picks);
+    }
 
     state.lastResults = picks;
     state.lastQuery = '';

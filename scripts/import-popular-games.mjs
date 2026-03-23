@@ -19,16 +19,16 @@ const DEFAULT_BASE_URL = normalizeBaseUrl(
   process.env.BASE_URL ||
   "https://www.zo2y.com"
 );
-const DEFAULT_LIMIT = 300;
+const DEFAULT_LIMIT = 1200;
 const DEFAULT_PAGE_SIZE = 50;
 const DEFAULT_ORDERING = "-follows";
 const DEFAULT_DATES = "1990-01-01,2035-12-31";
 const DEFAULT_MIN_RATING_COUNT = 50;
-const DEFAULT_MAX_PAGES = 40;
+const DEFAULT_MAX_PAGES = 80;
 const DEFAULT_DETAIL_CONCURRENCY = 6;
 const DEFAULT_BATCH_SIZE = 200;
 const DEFAULT_RAWG_PAGE_SIZE = 40;
-const DEFAULT_RAWG_MAX_PAGES = 80;
+const DEFAULT_RAWG_MAX_PAGES = 140;
 
 function normalizeBaseUrl(value) {
   return String(value || "").trim().replace(/\/+$/, "");

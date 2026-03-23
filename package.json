@@ -9,6 +9,8 @@
     "dev": "cd backend && nodemon index.js",
     "import:books": "node scripts/import-books.mjs",
     "import:games:popular": "node scripts/import-popular-games.mjs",
+    "import:games:franchises": "node scripts/import-game-franchises.mjs",
+    "import:games:mega": "node scripts/import-popular-games.mjs --limit=1500 --max-pages=100 --rawg-max-pages=180 --with-details=false && node scripts/import-game-franchises.mjs --limit=320 --delay=250 --max-pages=18 --rawg-max-pages=28",
     "seed:brands": "node scripts/seed-brands.mjs",
     "import:brands:wikidata": "node scripts/import-brands-wikidata.mjs",
     "backfill:logos": "node scripts/backfill-brand-logos.mjs",
