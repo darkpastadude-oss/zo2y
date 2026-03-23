@@ -1,4 +1,4 @@
-// ===== GLOBAL PROFILE MANAGER =====
+﻿// ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
             // Supabase configuration
             const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
@@ -371,7 +371,7 @@
                     .trim()
                     .replace(/^@+/, '')
                     .toLowerCase()
-                    .replace(/['’]/g, '')
+                    .replace(/['â€™]/g, '')
                     .replace(/[^a-z0-9_]+/g, '_')
                     .replace(/_+/g, '_')
                     .replace(/^_+|_+$/g, '')
@@ -1732,7 +1732,7 @@
 
                 const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
                 const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
-                const summaryText = `${followersCount} followers · ${followingCount} following`;
+                const summaryText = `${followersCount} followers Â· ${followingCount} following`;
                 if (desktopMeta) desktopMeta.textContent = summaryText;
                 if (mobileMeta) mobileMeta.textContent = summaryText;
                 renderProfileBadges();
@@ -1810,7 +1810,7 @@
                 } finally {
                     const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
                     const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
-                    const summaryText = `${followersCount} followers · ${followingCount} following`;
+                    const summaryText = `${followersCount} followers Â· ${followingCount} following`;
                     if (desktopMeta) desktopMeta.textContent = summaryText;
                     if (mobileMeta) mobileMeta.textContent = summaryText;
                 }
@@ -6035,7 +6035,7 @@
                 if (listType !== 'custom') return baseTitle;
                 const tierMeta = getTierMetaForList(type, list, 0);
                 if (!tierMeta.isTier) return baseTitle;
-                return `${baseTitle} • Tier List`;
+                return `${baseTitle} â€¢ Tier List`;
             }
 
             function canReorderCollectionItems(contentType, listId, listType = 'custom', list = null) {
@@ -8270,7 +8270,7 @@
                 const sport = String(team?.sport || team?.strSport || '').trim();
                 const stadium = String(team?.stadium || team?.strStadium || '').trim();
                 const logo = normalizeSportsImageUrl(team?.logo_url || team?.strTeamBadge || team?.strTeamLogo || '');
-                const subtitle = [league, sport].filter(Boolean).join(' • ') || 'Team';
+                const subtitle = [league, sport].filter(Boolean).join(' â€¢ ') || 'Team';
                 const logoImage = logo || FALLBACK_BOOK_IMAGE;
                 const canRemove = !!options?.canRemove && !!id;
 
@@ -11903,162 +11903,75 @@
                     }
 
                     if (type === 'restaurant') {
-                        await supabase
+                        const { error } = await supabase
                             .from('lists_restraunts')
                             .delete()
                             .eq('list_id', collectionId)
                             .eq('restraunt_id', itemId);
-
-                        showToast('Removed from collection', 'success');
+                        if (error) throw error;
                     } else if (type === 'movie') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('movie_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('movie_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('movie_list_items')
-                                .delete()
-                                .eq('movie_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('movie_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('movie_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('movie_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'tv') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('tv_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('tv_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('tv_list_items')
-                                .delete()
-                                .eq('tv_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('tv_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('tv_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('tv_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'anime') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('anime_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('anime_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('anime_list_items')
-                                .delete()
-                                .eq('anime_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('anime_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('anime_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('anime_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'game') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('game_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('game_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('game_list_items')
-                                .delete()
-                                .eq('game_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('game_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('game_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('game_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'music') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('music_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('track_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('music_list_items')
-                                .delete()
-                                .eq('track_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('music_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('track_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('track_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'travel') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('travel_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('country_code', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('travel_list_items')
-                                .delete()
-                                .eq('country_code', itemId)
-                                .eq('list_id', collectionId);
-                        }
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('travel_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('country_code', itemId).eq('list_type', collectionId)
+                            : await query.eq('country_code', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'fashion') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('fashion_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('brand_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('fashion_list_items')
-                                .delete()
-                                .eq('brand_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('fashion_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('brand_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('brand_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'food') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('food_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('brand_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('food_list_items')
-                                .delete()
-                                .eq('brand_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('food_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('brand_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('brand_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
+                    } else if (type === 'car') {
+                        const query = supabase.from('car_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('brand_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('brand_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('book_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('book_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('book_list_items')
-                                .delete()
-                                .eq('book_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('book_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('book_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('book_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     }
+
+                    showToast('Removed from collection', 'success');
                     refreshCollectionViews();
                 } catch (error) {
                     if (typeof restoreRemovedNode === 'function') {
@@ -13142,6 +13055,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
+
 
 
 

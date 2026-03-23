@@ -6633,18 +6633,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           .eq('id', userId)
           .maybeSingle();
         const username = String(profile?.username || '').trim();
-        if (!username) {
-          shouldShow = true;
-        } else {
-          const { data: interestRow } = await client
-            .from('user_interest_profiles')
-            .select('interest_types, interest_tags')
-            .eq('user_id', userId)
-            .maybeSingle();
-          const types = Array.isArray(interestRow?.interest_types) ? interestRow.interest_types.filter(Boolean) : [];
-          const tags = Array.isArray(interestRow?.interest_tags) ? interestRow.interest_tags.filter(Boolean) : [];
-          shouldShow = !types.length && !tags.length;
-        }
+        shouldShow = !username;
       } catch (_err) {
         shouldShow = isOnboardingPending(userId) && !hasSeenOnboarding(userId);
       }
@@ -7890,6 +7879,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
+
 
 
 

@@ -1,5 +1,5 @@
-﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v174';
-const PAGE_CACHE = 'zo2y-pages-v144';
+﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v176';
+const PAGE_CACHE = 'zo2y-pages-v146';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
 const MOVIES_PAGE_VERSION = '20260322m';
@@ -15,7 +15,7 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260319e',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260323e',
+  '/js/pages/index.js?v=20260323f',
   '/js/pages/index-home-heavy-loaders.js?v=20260323b',
   '/js/home-desktop-rebrand.js?v=20260323b',
   '/js/referral-utils.js?v=20260319a',
@@ -61,6 +61,16 @@ const STATIC_ASSETS = [
 
 const ACTIVE_CACHES = [APP_SHELL_CACHE, PAGE_CACHE, IMAGE_CACHE, API_CACHE];
 
+function offlineResponse() {
+  return new Response('Offline', {
+    status: 503,
+    statusText: 'Offline',
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store'
+    }
+  });
+}
 function isCacheableResponse(response) {
   return !!response && (response.ok || response.type === 'opaque');
 }
@@ -123,7 +133,7 @@ async function cacheFirst(request, cacheName) {
     queueCachePut(cacheName, request, networkResponse);
     return networkResponse;
   } catch (_error) {
-    return cached || Response.error();
+    return cached || offlineResponse();
   }
 }
 
@@ -140,7 +150,7 @@ async function networkFirst(request, cacheName, fallbackPath = '') {
       const fallback = await caches.match(fallbackPath);
       if (fallback) return fallback;
     }
-    return Response.error();
+    return offlineResponse();
   }
 }
 
@@ -165,7 +175,7 @@ async function networkFirstWithTimeout(request, cacheName, fallbackPath = '', ti
       const fallback = await caches.match(fallbackPath);
       if (fallback) return fallback;
     }
-    return Response.error();
+    return offlineResponse();
   }
 }
 
@@ -185,7 +195,7 @@ async function staleWhileRevalidate(request, cacheName) {
   }
 
   const networkResponse = await networkPromise;
-  return networkResponse || Response.error();
+  return networkResponse || offlineResponse();
 }
 
 self.addEventListener('install', (event) => {
@@ -267,6 +277,9 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
+
+
+
 
 
 
