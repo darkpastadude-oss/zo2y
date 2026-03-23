@@ -1,4 +1,4 @@
-    const ENABLE_GAMES = true;
+﻿    const ENABLE_GAMES = true;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
     const ENABLE_FOOD = window.ZO2Y_DISABLE_FOOD !== true;
@@ -5864,7 +5864,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         {
           id: 'interests-setup',
           title: 'Tune Your Feed',
-          body: 'Choose formats and genres so the �For You� feed starts on the right note.',
+          body: 'Choose formats and genres so the ï¿½For Youï¿½ feed starts on the right note.',
           art: `
               <div class="onboarding-interest-layout">
                 <div class="onboarding-interest-photos">
@@ -6372,32 +6372,39 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           @media (max-width: 720px) {
             .home-onboarding-overlay {
               align-items: flex-end;
-              padding: 12px;
+              padding: 10px;
             }
             .home-onboarding-card {
               width: 100%;
               max-width: 520px;
-              padding: 18px;
-              border-radius: 22px;
-              max-height: 92vh;
-              gap: 10px;
+              padding: 16px;
+              border-radius: 20px;
+              max-height: 90vh;
+              gap: 8px;
               box-shadow: 0 18px 46px rgba(0,0,0,0.4);
             }
+            .home-onboarding-top {
+              margin-bottom: 4px;
+              font-size: 11px;
+            }
             .home-onboarding-title {
-              font-size: 22px;
+              font-size: 20px;
+              margin: 0 0 4px;
             }
             .home-onboarding-body {
-              font-size: 14px;
+              font-size: 13px;
+              line-height: 1.45;
               min-height: 0;
             }
             .home-onboarding-art {
-              padding: 12px;
+              padding: 10px;
+              min-height: 0;
             }
             .home-onboarding-actions {
               position: sticky;
               bottom: 0;
               padding-top: 10px;
-              background: linear-gradient(180deg, rgba(8,18,42,0) 0%, rgba(8,18,42,0.88) 35%, rgba(8,18,42,0.98) 100%);
+              background: linear-gradient(180deg, rgba(8,18,42,0) 0%, rgba(8,18,42,0.9) 35%, rgba(8,18,42,0.98) 100%);
               margin-top: auto;
             }
             .home-onboarding-left,
@@ -6407,21 +6414,50 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             .home-onboarding-right {
               justify-content: flex-end;
             }
-            .onboarding-photo-grid {
-              grid-template-columns: repeat(2, minmax(0, 1fr));
+            .onboarding-photo-grid,
+            .onboarding-photo-card,
+            .onboarding-interest-photos,
+            .onboarding-illustration {
+              display: none !important;
+            }
+            .onboarding-photo-caption {
+              display: none;
             }
             .onboarding-split,
             .onboarding-interest-layout {
               grid-template-columns: minmax(0, 1fr);
+              gap: 12px;
             }
-            .onboarding-photo-frame img {
-              height: 150px;
+            .onboarding-interest-panel,
+            .onboarding-form {
+              gap: 10px;
             }
-            .onboarding-photo-grid img {
-              height: 96px;
+            .onboarding-interest-panel {
+              padding: 12px;
             }
-            .mini-photo img {
-              height: 96px;
+            .onboarding-chip-grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 8px;
+              max-height: 220px;
+              overflow-y: auto;
+            }
+            .onboarding-chip {
+              width: 100%;
+              text-align: center;
+              padding: 9px 10px;
+              font-size: 12px;
+              min-height: 42px;
+            }
+            .onboarding-input-wrap {
+              padding: 10px 12px;
+            }
+            .onboarding-input {
+              font-size: 16px;
+            }
+            .home-onboarding-btn {
+              min-height: 42px;
+              padding: 10px 14px;
             }
           }
         `;
@@ -6586,51 +6622,42 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     async function maybeShowHomeOnboarding() {
       const userId = homeCurrentUser?.id;
       if (!userId) return;
-      if (hasSeenOnboarding(userId)) {
-        clearOnboardingPending(userId);
-        return;
-      }
-      let shouldShow = isOnboardingPending(userId);
-      if (!shouldShow) {
-        try {
-          const client = await ensureHomeSupabase();
-          if (!client) return;
-          const { data: profile } = await client
-            .from('user_profiles')
-            .select('username')
-            .eq('id', userId)
+
+      let shouldShow = false;
+      try {
+        const client = await ensureHomeSupabase();
+        if (!client) return;
+        const { data: profile } = await client
+          .from('user_profiles')
+          .select('username')
+          .eq('id', userId)
+          .maybeSingle();
+        const username = String(profile?.username || '').trim();
+        if (!username) {
+          shouldShow = true;
+        } else {
+          const { data: interestRow } = await client
+            .from('user_interest_profiles')
+            .select('interest_types, interest_tags')
+            .eq('user_id', userId)
             .maybeSingle();
-          const username = String(profile?.username || '').trim();
-          if (!username) {
-            shouldShow = true;
-          } else {
-            const { data: interestRow } = await client
-              .from('user_interest_profiles')
-              .select('interest_types, interest_tags')
-              .eq('user_id', userId)
-              .maybeSingle();
-            const types = Array.isArray(interestRow?.interest_types) ? interestRow.interest_types.filter(Boolean) : [];
-            const tags = Array.isArray(interestRow?.interest_tags) ? interestRow.interest_tags.filter(Boolean) : [];
-            if (!types.length && !tags.length) {
-              shouldShow = true;
-            }
-          }
-        } catch (_err) {
-          return;
+          const types = Array.isArray(interestRow?.interest_types) ? interestRow.interest_types.filter(Boolean) : [];
+          const tags = Array.isArray(interestRow?.interest_tags) ? interestRow.interest_tags.filter(Boolean) : [];
+          shouldShow = !types.length && !tags.length;
         }
-        if (shouldShow) {
-          localStorage.setItem(getOnboardingPendingKey(userId), '1');
-        }
+      } catch (_err) {
+        shouldShow = isOnboardingPending(userId) && !hasSeenOnboarding(userId);
       }
+
       if (!shouldShow) {
         markOnboardingSeen(userId);
         clearOnboardingPending(userId);
         return;
       }
+
+      localStorage.setItem(getOnboardingPendingKey(userId), '1');
       homeOnboardingUserId = userId;
       homeOnboardingIndex = 0;
-      // Ensure this is shown only once on first sign-in.
-      clearOnboardingPending(userId);
       ensureHomeOnboardingUi();
       attachHomeOnboardingEvents();
       renderHomeOnboardingStep();
@@ -7863,6 +7890,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
+
 
 
 
