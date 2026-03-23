@@ -899,7 +899,7 @@
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
       const BOOKS_PER_PAGE = 20;
-      const BOOKS_CACHE_TTL_MS = 1000 * 60 * 45;
+      const BOOKS_CACHE_BUSTER = '20260323-api-only';
       const CATEGORY_OPTIONS = [
         'Fiction',
         'Mystery',
@@ -944,8 +944,6 @@
         bookSyncWarned: false,
         backgroundRefreshes: new Set()
       };
-
-      const booksRuntimeCache = new Map();
 
       let supabaseClient = null;
 
@@ -1107,13 +1105,16 @@
           }
           url.searchParams.set(key, String(value));
         });
+        url.searchParams.set('cb', BOOKS_CACHE_BUSTER);
+        url.searchParams.set('_', String(Date.now()));
         const controller = new AbortController();
         const timeoutId = window.setTimeout(() => controller.abort(), 6500);
         let res;
         try {
           res = await fetch(url.toString(), {
             headers: { Accept: 'application/json' },
-            signal: controller.signal
+            signal: controller.signal,
+            cache: 'no-store'
           });
         } finally {
           window.clearTimeout(timeoutId);
@@ -1153,77 +1154,6 @@
         const coverImage = toHttpsUrl(doc?.coverImage || '');
         if (coverImage) return coverImage;
         return null;
-      }
-
-      function normalizeLocalBookDoc(row) {
-        if (!row) return null;
-        const authors = String(row.authors || '').trim();
-        const rawCategories = Array.isArray(row.categories) ? row.categories : [];
-        const categories = deriveCanonicalBookGenres(rawCategories);
-        const publishedYear = String(row.published_date || '').slice(0, 4);
-        return {
-          key: row.id ? `/books/${row.id}` : '',
-          title: String(row.title || '').trim(),
-          author_name: authors ? authors.split(',').map((entry) => String(entry || '').trim()).filter(Boolean) : [],
-          first_publish_year: publishedYear ? Number(publishedYear) : null,
-          subject: categories.length ? categories : rawCategories,
-          publisher: row.publisher ? [String(row.publisher).trim()] : [],
-          cover_i: null,
-          coverImage: toHttpsUrl(row.thumbnail || ''),
-          _googleThumbnail: toHttpsUrl(row.thumbnail || ''),
-          _googleVolumeId: '',
-          description: String(row.description || '').trim(),
-          pageCount: Number(row.page_count || 0) || null,
-          _source: 'supabase-books'
-        };
-      }
-
-      async function fetchLocalBooksPage() {
-        if (!supabaseClient) return null;
-        const page = Math.max(1, Number(state.page || 1));
-        const category = String(state.activeCategory || '').trim();
-        const q = String(state.query || '').trim();
-        const author = String(state.author || '').trim();
-        const year = String(state.year || '').trim();
-        const needsClientSideCategory = !!category;
-        let query = supabaseClient
-          .from('books')
-          .select('id,title,authors,thumbnail,published_date,categories,description,page_count,publisher,updated_at', { count: 'exact' });
-
-        if (q) query = query.ilike('title', `%${q}%`);
-        if (author) query = query.ilike('authors', `%${author}%`);
-        if (year) {
-          query = query.gte('published_date', `${year}-01-01`).lte('published_date', `${year}-12-31`);
-        }
-
-        query = query
-          .order('published_date', { ascending: false, nullsFirst: false })
-          .order('title', { ascending: true });
-
-        if (needsClientSideCategory) {
-          query = query.range(0, 799);
-        } else {
-          query = query.range((page - 1) * BOOKS_PER_PAGE, page * BOOKS_PER_PAGE - 1);
-        }
-
-        const { data, error, count } = await query;
-        if (error) return null;
-        let docs = (Array.isArray(data) ? data : []).map((row) => normalizeLocalBookDoc(row)).filter((row) => row && row.title);
-        if (needsClientSideCategory) {
-          docs = docs.filter((row) => bookMatchesCategory(row.subject || [], category));
-          const total = docs.length;
-          docs = docs.slice((page - 1) * BOOKS_PER_PAGE, page * BOOKS_PER_PAGE);
-          return {
-            docs,
-            numFound: total,
-            source: 'supabase-books'
-          };
-        }
-        return {
-          docs,
-          numFound: Number(count || docs.length) || docs.length,
-          source: 'supabase-books'
-        };
       }
 
       function slugifyBookPart(value) {
@@ -1317,47 +1247,18 @@
       }
 
 
-      function getBooksCacheKey() {
-        return `books_search_v4_${state.query}_${state.author}_${state.activeCategory}_${state.year}_${state.page}`;
-      }
-
-      function readBooksCache(cacheKey) {
-        const runtimeEntry = booksRuntimeCache.get(cacheKey);
-        if (runtimeEntry && runtimeEntry.cachedAt && (Date.now() - runtimeEntry.cachedAt) < BOOKS_CACHE_TTL_MS) {
-          return runtimeEntry;
-        }
-        const cachedRaw = localStorage.getItem(cacheKey);
-        if (!cachedRaw) return null;
+      function clearLegacyBooksCache() {
         try {
-          const parsed = JSON.parse(cachedRaw);
-          if (Array.isArray(parsed?.docs)) {
-            const normalized = {
-              docs: parsed.docs,
-              numFound: Number(parsed.numFound || parsed.docs.length) || parsed.docs.length,
-              cachedAt: Number(parsed.cachedAt || 0) || 0
-            };
-            booksRuntimeCache.set(cacheKey, normalized);
-            return normalized;
+          const keysToRemove = [];
+          for (let index = 0; index < localStorage.length; index += 1) {
+            const key = String(localStorage.key(index) || '');
+            if (!key) continue;
+            if (key.startsWith('books_search_v') || key.startsWith('zo2y_books_')) {
+              keysToRemove.push(key);
+            }
           }
-        } catch (error) {
-          console.warn('Cache read error', error);
-        }
-        return null;
-      }
-
-      function writeBooksCache(cacheKey, data) {
-        if (!cacheKey || !Array.isArray(data?.docs)) return;
-        const payload = {
-          docs: data.docs,
-          numFound: Number(data.numFound || data.docs.length) || data.docs.length,
-          cachedAt: Date.now()
-        };
-        booksRuntimeCache.set(cacheKey, payload);
-        try {
-          localStorage.setItem(cacheKey, JSON.stringify(payload));
-        } catch (_error) {
-          // Ignore storage quota errors.
-        }
+          keysToRemove.forEach((key) => localStorage.removeItem(key));
+        } catch (_error) {}
       }
 
       function scheduleBooksBackgroundRefresh(taskKey, callback) {
@@ -1653,52 +1554,28 @@
         return false;
       }
 
-      async function loadBooks() {
+      async function loadBooks(options = {}) {
         const grid = document.getElementById('booksGrid');
         if (!grid) return;
         const requestSeq = ++state.requestSeq;
-        const cacheKey = getBooksCacheKey();
-        const cached = readBooksCache(cacheKey);
         const hasActiveFilters = !!(state.query || state.author || state.activeCategory || state.year);
         const isFirstPopularPage = !hasActiveFilters && Number(state.page || 1) === 1;
-        const cachedIsFresh = !!(cached?.cachedAt && (Date.now() - cached.cachedAt) < BOOKS_CACHE_TTL_MS);
-
-        if (cached?.docs?.length) {
-          updateBookPageSpotlight(cached.docs);
-          displayBookResults(cached.docs, cached.numFound || cached.docs.length);
-          if (cachedIsFresh) {
-            if (isFirstPopularPage) {
-              scheduleBooksBackgroundRefresh('books-trending-warmup', async () => {
-                await fetchTrendingBooks(Math.min(8, BOOKS_PER_PAGE));
-              });
-            }
-            return;
-          }
+        if (Number(state.page || 1) === 1) {
+          grid.innerHTML = '<div class="empty">Loading books...</div>';
         }
 
-          let data;
-          try {
-            const localData = await fetchLocalBooksPage();
-            if (requestSeq !== state.requestSeq) return;
-            const localDocs = Array.isArray(localData?.docs) ? localData.docs : [];
-            if (localDocs.length) {
-              data = {
-                ...(localData || {}),
-                docs: localDocs,
-                numFound: Number(localData?.numFound || localDocs.length)
-              };
-              updateBookPageSpotlight(localDocs);
-              writeBooksCache(cacheKey, data);
-            } else {
-              const params = {
-                page: state.page,
-                limit: BOOKS_PER_PAGE,
-                language: 'en'
-              };
-              if (state.query) params.q = state.query;
-              if (state.author) params.author = state.author;
-              if (state.activeCategory) params.subject = state.activeCategory;
-              if (state.year) params.first_publish_year = state.year;
+        let data;
+        try {
+          const params = {
+            page: state.page,
+            limit: BOOKS_PER_PAGE,
+            language: 'en'
+          };
+          if (state.query) params.q = state.query;
+          if (state.author) params.author = state.author;
+          if (state.activeCategory) params.subject = state.activeCategory;
+          if (state.year) params.first_publish_year = state.year;
+          if (options?.cacheBust) params.cache_bust = Date.now();
           if (!params.q && !params.author && !params.subject && !params.first_publish_year) {
             data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
             if (Number(state.page || 1) === 1) {
@@ -1712,14 +1589,9 @@
           if (!Array.isArray(data?.docs) || !data.docs.length) {
             data = { docs: [], numFound: 0 };
           }
-          updateBookPageSpotlight(data.docs || []);
-          writeBooksCache(cacheKey, data);
-          }
         } catch (e) {
           console.error('Books fetch error', e);
-          data = cached && Array.isArray(cached.docs)
-            ? { docs: cached.docs, numFound: cached.numFound || cached.docs.length }
-            : { docs: [], numFound: 0 };
+          data = { docs: [], numFound: 0 };
         }
 
         if (requestSeq !== state.requestSeq) return;
@@ -2061,7 +1933,7 @@
           });
         }
         if (refreshBtn) {
-          refreshBtn.addEventListener('click', () => loadBooks());
+          refreshBtn.addEventListener('click', () => loadBooks({ cacheBust: true }));
         }
         if (prevBtn) {
           prevBtn.addEventListener('click', () => {
@@ -2140,6 +2012,7 @@
 
       (async function init() {
         await initSupabase();
+        clearLegacyBooksCache();
         wireUI();
         syncSearchStateFromUrl();
         populateCategories();

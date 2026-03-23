@@ -8,7 +8,9 @@
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
             const OPEN_LIBRARY_BASE = "https://openlibrary.org";
             const OPEN_LIBRARY_PROXY_BASE = "/api/openlibrary";
+            const GOOGLE_BOOKS_PROXY_BASE = "/api/books";
             const FALLBACK_BOOK_IMAGE = "/newlogo.webp";
+            const BOOKS_CACHE_BUSTER = "20260323-api-only-profile";
 
             async function igdbFetch(path, params = {}, signal = null) {
                 if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === "function") {
@@ -87,6 +89,20 @@
             const tabRenderCache = new Map();
             const PREVIEW_ASSET_CACHE_TTL_MS = 10 * 60 * 1000;
             const previewAssetCache = new Map();
+
+            function clearLegacyProfileBookCaches() {
+                try {
+                    const keysToRemove = [];
+                    for (let index = 0; index < localStorage.length; index += 1) {
+                        const key = String(localStorage.key(index) || '');
+                        if (!key) continue;
+                        if (key.startsWith('profile_books_') || key.startsWith('zo2y_books_') || key.startsWith('books_search_v')) {
+                            keysToRemove.push(key);
+                        }
+                    }
+                    keysToRemove.forEach((key) => localStorage.removeItem(key));
+                } catch (_err) {}
+            }
             const PROFILE_THEME_KEYS = ['navy', 'ocean', 'sunset', 'forest'];
             const PROFILE_THEME_META = {
                 navy: { themeColor: '#0b1633' },
@@ -196,6 +212,7 @@
             // ===== INITIALIZATION =====
             async function initialize() {
                 try {
+                    clearLegacyProfileBookCaches();
                     if (!window.supabase) {
                         console.error('Supabase library not loaded');
                         return;
@@ -3463,11 +3480,7 @@
                             } : null;
                         }
                         if (safeType === 'book') {
-                            const { data } = await supabase
-                                .from('books')
-                                .select('id, title, thumbnail')
-                                .eq('id', safeId)
-                                .maybeSingle();
+                            const data = await resolveProfileBookRecord(safeId);
                             return data ? {
                                 title: String(data.title || '').trim(),
                                 image: String(data.thumbnail || '').trim() || FALLBACK_BOOK_IMAGE
@@ -8064,6 +8077,53 @@
                 return normalizeBookImageUrl(coverById) || normalizeBookImageUrl(fallbackCover) || FALLBACK_BOOK_IMAGE;
             }
 
+            async function fetchGoogleBookVolume(volumeId) {
+                const cleanId = String(volumeId || '').trim();
+                if (!cleanId || cleanId.startsWith('search-')) return null;
+                try {
+                    const volumeUrl = new URL(`${GOOGLE_BOOKS_PROXY_BASE}/volumes/${encodeURIComponent(cleanId)}`, window.location.origin);
+                    volumeUrl.searchParams.set('cb', BOOKS_CACHE_BUSTER);
+                    volumeUrl.searchParams.set('_', String(Date.now()));
+                    const res = await fetch(volumeUrl.toString(), { headers: { Accept: 'application/json' }, cache: 'no-store' });
+                    if (!res.ok) return null;
+                    const json = await res.json();
+                    const info = json?.volumeInfo || {};
+                    const title = String(info?.title || '').trim();
+                    if (!title) return null;
+                    const authors = Array.isArray(info?.authors) ? info.authors.filter(Boolean).map((name) => String(name).trim()) : [];
+                    const publisher = String(info?.publisher || '').trim();
+                    const thumbnail = normalizeBookImageUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || '') || FALLBACK_BOOK_IMAGE;
+                    return {
+                        id: cleanId,
+                        title,
+                        authors: authors.join(', '),
+                        published_date: String(info?.publishedDate || '').trim(),
+                        thumbnail,
+                        publisher
+                    };
+                } catch (_err) {
+                    return null;
+                }
+            }
+
+            async function resolveProfileBookRecord(bookId) {
+                const safeId = String(bookId || '').trim();
+                if (!safeId) return null;
+                const workDetails = await fetchBookDetails(safeId);
+                if (workDetails) {
+                    const author = Array.isArray(workDetails?.authors) ? String(workDetails.authors[0] || '').trim() : '';
+                    return {
+                        id: safeId,
+                        title: String(workDetails?.title || '').trim() || `Book ${safeId}`,
+                        authors: author,
+                        published_date: String(workDetails?.first_publish_date || workDetails?.publishedDate || '').trim(),
+                        thumbnail: getBookThumbnail(workDetails),
+                        publisher: ''
+                    };
+                }
+                return await fetchGoogleBookVolume(safeId);
+            }
+
             async function renderBooks() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileBooksGrid') : document.getElementById('booksGrid');
@@ -9020,13 +9080,11 @@
                             if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
                         });
                     } else if (contentType === 'book') {
-                        const { data } = await supabase
-                            .from('books')
-                            .select('id, thumbnail')
-                            .in('id', missingIds);
-                        (data || []).forEach((row) => {
-                            const id = String(row.id || '').trim();
-                            const imageUrl = row.thumbnail || FALLBACK_BOOK_IMAGE;
+                        const rows = await Promise.all(missingIds.map((id) => resolveProfileBookRecord(id)));
+                        rows.forEach((row, index) => {
+                            const id = String(row?.id || missingIds[index] || '').trim();
+                            if (!id) return;
+                            const imageUrl = String(row?.thumbnail || '').trim() || FALLBACK_BOOK_IMAGE;
                             writePreviewAssetCache(contentType, id, imageUrl);
                         });
                     } else if (contentType === 'music') {
@@ -10224,33 +10282,9 @@
                 const canReorderList = canReorderCollectionItems('book', listId, listType, list);
                 const canEditItems = canEditCollectionItems('book', listId, listType, list);
 
-                // Check cache first
-                const cacheKey = `profile_books_${listId}_${rankedBookIds.join(',')}`;
-                const cached = localStorage.getItem(cacheKey);
-                let bookData = null;
-                
-                if (cached) {
-                    try {
-                        bookData = JSON.parse(cached);
-                    } catch (e) {
-                        console.warn('Cache parse error', e);
-                    }
-                }
-
-                // Show loading while fetching
-                if (!bookData) {
-                    container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
-                    
-                    // Fetch fresh data
-                    const { data } = await supabase
-                        .from('books')
-                        .select('id, title, authors, published_date, thumbnail, publisher')
-                        .in('id', rankedBookIds);
-                    
-                    bookData = data || [];
-                    // Cache the results
-                    localStorage.setItem(cacheKey, JSON.stringify(bookData));
-                }
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                const resolvedRows = await Promise.all(rankedBookIds.map((id) => resolveProfileBookRecord(id)));
+                const bookData = resolvedRows.filter(Boolean);
 
                 const bookMap = new Map();
                 (bookData || []).forEach(row => bookMap.set(row.id, row));

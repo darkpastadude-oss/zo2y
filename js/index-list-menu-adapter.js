@@ -10,8 +10,7 @@
     customLists: [],
     selectedCustomLists: new Set(),
     pendingCustomListIds: new Set(),
-    customMutationVersion: 0,
-    selectedIcon: 'fas fa-list'
+    customMutationVersion: 0
   };
   const CACHE = {
     quickStatusByItem: new Map(),
@@ -304,34 +303,6 @@
         outline: none;
         border-color: var(--accent, #f59e0b);
       }
-      .menu-icon-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 8px;
-        margin-bottom: 20px;
-      }
-      .menu-icon-option {
-        aspect-ratio: 1;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--card-2, #172b58);
-        border: 1px solid var(--border, rgba(255,255,255,0.12));
-        border-radius: 10px;
-        color: var(--white, #fff);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-size: 16px;
-      }
-      .menu-icon-option:hover {
-        border-color: var(--accent, #f59e0b);
-        transform: scale(1.05);
-      }
-      .menu-icon-option.selected {
-        border-color: var(--accent, #f59e0b);
-        background: rgba(245, 158, 11, 0.2);
-        color: var(--accent, #f59e0b);
-      }
       .menu-modal-actions {
         display: flex;
         gap: 10px;
@@ -427,10 +398,6 @@
           font-size: 15px;
           padding: 12px 14px;
         }
-        .menu-icon-option {
-          min-height: 46px;
-          border-radius: 12px;
-        }
         .menu-modal-actions {
           position: sticky;
           bottom: 0;
@@ -496,19 +463,6 @@
           </div>
           <div class="menu-modal-body">
             <input type="text" id="newListNameInput" class="menu-input" placeholder="List name..." maxlength="50">
-            <div class="menu-icon-grid">
-              <button class="menu-icon-option selected" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-earth-americas"><i class="fas fa-earth-americas"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-clapperboard"><i class="fas fa-clapperboard"></i></button>
-            </div>
             <div class="menu-modal-actions">
               <button class="menu-btn menu-btn-secondary" id="cancelCreateBtn">Cancel</button>
               <button class="menu-btn menu-btn-primary" id="saveNewListBtn">Create List</button>
@@ -1189,12 +1143,6 @@
     const itemModal = document.getElementById('itemMenuModal');
     const nameInput = document.getElementById('newListNameInput');
     if (nameInput) nameInput.value = '';
-    const options = document.querySelectorAll('.menu-icon-option');
-    STATE.selectedIcon = 'fas fa-list';
-    options.forEach((btn) => {
-      const icon = btn.getAttribute('data-icon') || '';
-      btn.classList.toggle('selected', icon === STATE.selectedIcon);
-    });
     if (itemModal) itemModal.classList.remove('active');
     if (createModal) {
       createModal.classList.add('active');
@@ -1232,7 +1180,6 @@
     if (!client) return;
     const created = await ListUtils.createCustomList(client, user.id, getMediaType(), {
       title,
-      icon: STATE.selectedIcon || 'fas fa-list',
       listKind: tierState.listKind,
       maxRank: tierState.maxRank
     });
@@ -1266,14 +1213,6 @@
   function bindListeners() {
     if (listenersBound) return;
     listenersBound = true;
-
-    document.querySelectorAll('.menu-icon-option').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.menu-icon-option').forEach((b) => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        STATE.selectedIcon = btn.getAttribute('data-icon') || 'fas fa-list';
-      });
-    });
 
     document.getElementById('closeMenuModalBtn')?.addEventListener('click', closeItemMenuModal);
     document.getElementById('closeCreateModalBtn')?.addEventListener('click', closeAllItemMenuModals);

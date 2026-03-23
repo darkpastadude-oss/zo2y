@@ -873,7 +873,7 @@
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
       const BOOKS_PER_PAGE = 20;
-      const BOOKS_CACHE_TTL_MS = 1000 * 60 * 45;
+      const BOOKS_CACHE_BUSTER = '20260323-api-only-mobile';
       const CATEGORY_OPTIONS = [
         'Fiction',
         'Mystery',
@@ -919,41 +919,6 @@
       };
 
       let supabaseClient = null;
-      const booksRuntimeCache = new Map();
-
-      function getBooksCacheKey() {
-        return `books_mobile_search_v1_${state.query}_${state.author}_${state.activeCategory}_${state.year}_${state.page}`;
-      }
-
-      function readBooksCache(cacheKey) {
-        const runtimeEntry = booksRuntimeCache.get(cacheKey);
-        if (runtimeEntry && runtimeEntry.cachedAt && (Date.now() - runtimeEntry.cachedAt) < BOOKS_CACHE_TTL_MS) {
-          return runtimeEntry;
-        }
-        try {
-          const raw = localStorage.getItem(cacheKey);
-          if (!raw) return null;
-          const parsed = JSON.parse(raw);
-          if (!Array.isArray(parsed?.docs)) return null;
-          booksRuntimeCache.set(cacheKey, parsed);
-          return parsed;
-        } catch (_err) {
-          return null;
-        }
-      }
-
-      function writeBooksCache(cacheKey, data) {
-        if (!cacheKey || !Array.isArray(data?.docs)) return;
-        const payload = {
-          docs: data.docs,
-          numFound: Number(data.numFound || data.docs.length || 0),
-          cachedAt: Date.now()
-        };
-        booksRuntimeCache.set(cacheKey, payload);
-        try {
-          localStorage.setItem(cacheKey, JSON.stringify(payload));
-        } catch (_err) {}
-      }
 
       function normalizeBookText(value) {
         return String(value || '')
@@ -1117,7 +1082,9 @@
           }
           url.searchParams.set(key, String(value));
         });
-        const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+        url.searchParams.set('cb', BOOKS_CACHE_BUSTER);
+        url.searchParams.set('_', String(Date.now()));
+        const res = await fetch(url.toString(), { headers: { Accept: 'application/json' }, cache: 'no-store' });
         if (!res.ok) throw new Error(`Books API error ${res.status}`);
         const json = await res.json();
         const docsRaw = Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.items) ? json.items : []);
@@ -1155,75 +1122,18 @@
         return null;
       }
 
-      function normalizeLocalBookDoc(row) {
-        if (!row) return null;
-        const authors = String(row.authors || '').trim();
-        const rawCategories = Array.isArray(row.categories) ? row.categories : [];
-        const categories = deriveCanonicalBookGenres(rawCategories);
-        const publishedYear = String(row.published_date || '').slice(0, 4);
-        return {
-          key: row.id ? `/books/${row.id}` : '',
-          title: String(row.title || '').trim(),
-          author_name: authors ? authors.split(',').map((entry) => String(entry || '').trim()).filter(Boolean) : [],
-          first_publish_year: publishedYear ? Number(publishedYear) : null,
-          subject: categories.length ? categories : rawCategories,
-          publisher: row.publisher ? [String(row.publisher).trim()] : [],
-          cover_i: null,
-          coverImage: '',
-          _googleThumbnail: '',
-          _googleVolumeId: '',
-          description: String(row.description || '').trim(),
-          pageCount: Number(row.page_count || 0) || null,
-          _source: 'supabase-books'
-        };
-      }
-
-      async function fetchLocalBooksPage() {
-        if (!supabaseClient) return null;
-        const page = Math.max(1, Number(state.page || 1));
-        const category = String(state.activeCategory || '').trim();
-        const q = String(state.query || '').trim();
-        const author = String(state.author || '').trim();
-        const year = String(state.year || '').trim();
-        const needsClientSideCategory = !!category;
-        let query = supabaseClient
-          .from('books')
-          .select('id,title,authors,thumbnail,published_date,categories,description,page_count,publisher,updated_at', { count: 'exact' });
-
-        if (q) query = query.ilike('title', `%${q}%`);
-        if (author) query = query.ilike('authors', `%${author}%`);
-        if (year) {
-          query = query.gte('published_date', `${year}-01-01`).lte('published_date', `${year}-12-31`);
-        }
-
-        query = query
-          .order('published_date', { ascending: false, nullsFirst: false })
-          .order('title', { ascending: true });
-
-        if (needsClientSideCategory) {
-          query = query.range(0, 799);
-        } else {
-          query = query.range((page - 1) * BOOKS_PER_PAGE, page * BOOKS_PER_PAGE - 1);
-        }
-
-        const { data, error, count } = await query;
-        if (error) return null;
-        let docs = (Array.isArray(data) ? data : []).map((row) => normalizeLocalBookDoc(row)).filter((row) => row && row.title);
-        if (needsClientSideCategory) {
-          docs = docs.filter((row) => bookMatchesCategory(row.subject || [], category));
-          const total = docs.length;
-          docs = docs.slice((page - 1) * BOOKS_PER_PAGE, page * BOOKS_PER_PAGE);
-          return {
-            docs,
-            numFound: total,
-            source: 'supabase-books'
-          };
-        }
-        return {
-          docs,
-          numFound: Number(count || docs.length) || docs.length,
-          source: 'supabase-books'
-        };
+      function clearLegacyBooksMobileCache() {
+        try {
+          const keysToRemove = [];
+          for (let index = 0; index < localStorage.length; index += 1) {
+            const key = String(localStorage.key(index) || '');
+            if (!key) continue;
+            if (key.startsWith('books_mobile_search_v') || key.startsWith('books_search_v') || key.startsWith('zo2y_books_')) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach((key) => localStorage.removeItem(key));
+        } catch (_err) {}
       }
 
       function slugifyBookPart(value) {
@@ -1601,41 +1511,27 @@
         return false;
       }
 
-      async function loadBooks() {
+      async function loadBooks(options = {}) {
         const grid = document.getElementById('booksGrid');
         const empty = document.getElementById('emptyState');
         if (!grid) return;
         const requestSeq = ++state.requestSeq;
-        const cacheKey = getBooksCacheKey();
-        const cached = readBooksCache(cacheKey);
-
-        if (cached?.docs?.length) {
-          updateBookPageSpotlight(cached.docs);
-          displayBookResults(cached.docs, cached.numFound || cached.docs.length);
+        if (Number(state.page || 1) === 1) {
+          grid.innerHTML = '<div class="empty">Loading books...</div>';
         }
 
-          let data;
-          try {
-            const localData = await fetchLocalBooksPage();
-            const localDocs = Array.isArray(localData?.docs) ? localData.docs : [];
-            const localDocsWithApiCovers = localDocs.filter((doc) => Boolean(getPreferredBookImage(doc)));
-            if (localDocsWithApiCovers.length) {
-              data = {
-                ...(localData || {}),
-                docs: localDocsWithApiCovers,
-                numFound: Number(localData?.numFound || localDocsWithApiCovers.length)
-              };
-              updateBookPageSpotlight(localDocsWithApiCovers);
-            } else {
-              const params = {
-                page: state.page,
-                limit: BOOKS_PER_PAGE,
-                language: 'en'
-              };
+        let data;
+        try {
+          const params = {
+            page: state.page,
+            limit: BOOKS_PER_PAGE,
+            language: 'en'
+          };
             if (state.query) params.q = state.query;
             if (state.author) params.author = state.author;
             if (state.activeCategory) params.subject = state.activeCategory;
             if (state.year) params.first_publish_year = state.year;
+            if (options?.cacheBust) params.cache_bust = Date.now();
 
             if (!params.q && !params.author && !params.subject && !params.first_publish_year) {
               if (Number(state.page || 1) === 1) {
@@ -1643,26 +1539,20 @@
               } else {
                 data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
               }
-              } else {
-                data = await booksFetch('/search.json', params);
-              }
-              updateBookPageSpotlight(data?.docs || []);
+            } else {
+              data = await booksFetch('/search.json', params);
             }
+            updateBookPageSpotlight(data?.docs || []);
           if (!Array.isArray(data?.docs) || !data.docs.length) {
-            data = cached && Array.isArray(cached.docs)
-              ? { docs: cached.docs, numFound: cached.numFound || cached.docs.length }
-              : { docs: [], numFound: 0 };
+            data = { docs: [], numFound: 0 };
           }
         } catch (e) {
           console.error('Books fetch error', e);
           showNotification('Could not load books right now. Please try again.', 'error', 4000);
-          data = cached && Array.isArray(cached.docs)
-            ? { docs: cached.docs, numFound: cached.numFound || cached.docs.length }
-            : { docs: [], numFound: 0 };
+          data = { docs: [], numFound: 0 };
         }
 
         if (requestSeq !== state.requestSeq) return;
-        writeBooksCache(cacheKey, data);
         displayBookResults(data.docs || [], data.numFound || 0);
       }
 
@@ -2000,7 +1890,7 @@
           });
         }
         if (refreshBtn) {
-          refreshBtn.addEventListener('click', () => loadBooks());
+          refreshBtn.addEventListener('click', () => loadBooks({ cacheBust: true }));
         }
         if (prevBtn) {
           prevBtn.addEventListener('click', () => {
@@ -2070,6 +1960,7 @@
 
       (async function init() {
         await initSupabase();
+        clearLegacyBooksMobileCache();
         wireUI();
         populateCategories();
         await initAuth();

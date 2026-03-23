@@ -117,7 +117,7 @@
   let tierMetaServerSupported = null;
   let tierRankServerSupported = null;
   let collaboratorTableSupported = null;
-  const MEDIA_ICON_PICKER_SELECTOR = '.icon-options[id$="ListIconOptions"], .icon-options[id*="ListIconOptions"], .list-icon-options';
+  const MEDIA_ICON_PICKER_SELECTOR = '.icon-options[id$="ListIconOptions"], .icon-options[id*="ListIconOptions"], .list-icon-options, .menu-icon-grid, .menu-icon-option';
 
   function getListConfig(type) {
     return LIST_CONFIG[String(type || '').toLowerCase()] || null;
