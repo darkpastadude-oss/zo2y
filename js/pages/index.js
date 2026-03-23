@@ -6622,7 +6622,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           localStorage.setItem(getOnboardingPendingKey(userId), '1');
         }
       }
-      if (!shouldShow) return;
+      if (!shouldShow) {
+        markOnboardingSeen(userId);
+        clearOnboardingPending(userId);
+        return;
+      }
       homeOnboardingUserId = userId;
       homeOnboardingIndex = 0;
       // Ensure this is shown only once on first sign-in.

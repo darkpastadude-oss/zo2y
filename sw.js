@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v172';
-const PAGE_CACHE = 'zo2y-pages-v142';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v173';
+const PAGE_CACHE = 'zo2y-pages-v143';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
 const MOVIES_PAGE_VERSION = '20260322m';
@@ -19,17 +19,17 @@ const STATIC_ASSETS = [
   '/js/pages/index-home-heavy-loaders.js?v=20260323b',
   '/js/home-desktop-rebrand.js?v=20260323b',
   '/js/referral-utils.js?v=20260319a',
-  '/js/shared-header.js?v=20260322h',
+  '/js/shared-header.js?v=20260323b',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
   '/js/list-utils.js?v=20260317b',
   '/js/index-list-menu-adapter.js?v=20260317b',
   '/js/universal-search.js?v=20260315b',
-  '/js/auth-gate.js?v=20260322a',
+  '/js/auth-gate.js?v=20260323b',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260322r',
+  '/js/mobile-webapp.js?v=20260323b',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260308a',
   '/favicon.ico',
@@ -118,9 +118,13 @@ async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
-  const networkResponse = await fetch(request);
-  queueCachePut(cacheName, request, networkResponse);
-  return networkResponse;
+  try {
+    const networkResponse = await fetch(request);
+    queueCachePut(cacheName, request, networkResponse);
+    return networkResponse;
+  } catch (_error) {
+    return cached || Response.error();
+  }
 }
 
 async function networkFirst(request, cacheName, fallbackPath = '') {

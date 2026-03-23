@@ -132,6 +132,10 @@
     var shell = pageKey === 'index' ? (authenticated ? 'app' : 'landing') : 'app';
     document.documentElement.dataset.authenticated = authenticated ? '1' : '0';
     document.documentElement.dataset.authShell = shell;
+    if (document.body) {
+      document.body.dataset.authenticated = authenticated ? '1' : '0';
+      document.body.dataset.authShell = shell;
+    }
     window.ZO2Y_AUTH_GATE = {
       pageKey: pageKey,
       authenticated: authenticated,
@@ -184,6 +188,9 @@
       } catch (_err) {
         var fallbackAuthenticated = hasStoredSupabaseSession();
         applyShellState(fallbackAuthenticated, pageKey);
+        window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
+          detail: { authenticated: fallbackAuthenticated, pageKey: pageKey }
+        }));
         return false;
       }
     }

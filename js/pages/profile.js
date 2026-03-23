@@ -4621,6 +4621,69 @@
                 return data;
             }
 
+            async function fetchCustomListById(contentType, listId) {
+                const safeType = String(contentType || '').trim().toLowerCase();
+                const safeListId = String(listId || '').trim();
+                if (!safeType || !safeListId) return null;
+
+                if (safeType === 'fashion' || safeType === 'food' || safeType === 'car') {
+                    const defaultMeta = safeType === 'fashion'
+                        ? {
+                            titles: { favorites: 'Favorites', owned: 'Owned', wishlist: 'Wishlist' },
+                            icons: { favorites: 'heart', owned: 'check', wishlist: 'bookmark' },
+                            descriptions: {
+                                favorites: 'Brands you love',
+                                owned: 'Brands you own',
+                                wishlist: 'Brands you want to try'
+                            },
+                            fallbackTitle: 'Fashion',
+                            fallbackIcon: 'fashion'
+                        }
+                        : safeType === 'food'
+                            ? {
+                                titles: { favorites: 'Favorites', tried: 'Tried', want_to_try: 'Want to Try' },
+                                icons: { favorites: 'heart', tried: 'check', want_to_try: 'bookmark' },
+                                descriptions: {
+                                    favorites: 'Brands you love',
+                                    tried: 'Places you tried',
+                                    want_to_try: 'Places you want to try'
+                                },
+                                fallbackTitle: 'Food',
+                                fallbackIcon: 'food'
+                            }
+                            : {
+                                titles: { favorites: 'Favorites', owned: 'Owned', wishlist: 'Wishlist' },
+                                icons: { favorites: 'heart', owned: 'check', wishlist: 'bookmark' },
+                                descriptions: {
+                                    favorites: 'Brands you love',
+                                    owned: 'Brands you own',
+                                    wishlist: 'Brands you want to try'
+                                },
+                                fallbackTitle: 'Cars',
+                                fallbackIcon: 'car'
+                            };
+                    if (Object.prototype.hasOwnProperty.call(defaultMeta.titles, safeListId)) {
+                        return {
+                            id: safeListId,
+                            title: defaultMeta.titles[safeListId] || defaultMeta.fallbackTitle,
+                            icon: defaultMeta.icons[safeListId] || defaultMeta.fallbackIcon,
+                            description: defaultMeta.descriptions[safeListId] || '',
+                            type: 'default'
+                        };
+                    }
+                }
+
+                const table = CUSTOM_LIST_TABLES[safeType];
+                if (!table || !supabase) return null;
+                const { data, error } = await supabase
+                    .from(table)
+                    .select('*')
+                    .eq('id', safeListId)
+                    .maybeSingle();
+                if (error || !data) return null;
+                return { ...data, type: 'custom' };
+            }
+
             async function ensureCollaborativeAccessForList(contentType, list = null) {
                 const safeType = String(contentType || '').trim().toLowerCase();
                 const safeListId = String(list?.id || '').trim();
@@ -5502,10 +5565,11 @@
                             params.set('mode', 'logo');
                             return `/api/logo?${params.toString()}`;
                         })();
+                        const localLogo = toHttpsUrl(row?.logo_url || '');
                         const brand = {
                             id,
                             name,
-                            logo: wikiLogo || toHttpsUrl(row?.logo_url || ''),
+                            logo: localLogo || wikiLogo,
                             category: String(row?.category || '').trim(),
                             description: String(row?.description || '').trim(),
                             country: String(row?.country || '').trim()
@@ -8778,22 +8842,25 @@
                                         : contentType === 'travel'
                                             ? 'travel'
                                             : 'music';
+                const isBrandCollection = contentType === 'fashion' || contentType === 'food' || contentType === 'car';
                 const buildPreviewHtml = (previewItems = []) => {
                     let html = '';
                     for (let i = 0; i < previewLimit; i++) {
                         const overflowHtml = (i === previewLimit - 1 && count > previewLimit)
                             ? `<div class="collection-preview-overflow">+${count - previewLimit}</div>`
                             : '';
+                        const previewClass = `collection-preview-item ${previewOrientationClass}${isBrandCollection ? ' brand-logo-preview' : ''}`;
+                        const imageClass = isBrandCollection ? 'brand-logo-preview-image' : '';
                         if (previewItems[i]) {
                             html += `
-                                <div class="collection-preview-item ${previewOrientationClass}">
-                                    <img src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                                <div class="${previewClass}">
+                                    <img class="${imageClass}" src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                                     ${overflowHtml}
                                 </div>
                             `;
                         } else {
                             html += `
-                                <div class="collection-preview-item ${previewOrientationClass}">
+                                <div class="${previewClass}">
                                     <div class="collection-preview-item-empty">${iconGlyph(fallbackPreviewIcon)}</div>
                                     ${overflowHtml}
                                 </div>
@@ -8893,7 +8960,7 @@
             }
 
             function getPreviewAssetCacheKey(contentType, id) {
-                return `${String(contentType || '').toLowerCase()}:${String(id || '').trim()}`;
+                return `v2:${String(contentType || '').toLowerCase()}:${String(id || '').trim()}`;
             }
 
             function readPreviewAssetCache(contentType, id) {
@@ -8964,7 +9031,10 @@
                             const name = String(row?.name || '').trim();
                             const domain = String(row?.domain || '').trim();
                             let imageUrl = '';
-                            if (name) {
+                            const localLogo = toHttpsUrl(row?.logo_url || '');
+                            if (localLogo) {
+                                imageUrl = localLogo;
+                            } else if (name) {
                                 const params = new URLSearchParams();
                                 params.set('title', name);
                                 if (domain) params.set('domain', domain);
@@ -8972,8 +9042,6 @@
                                 imageUrl = `/api/logo?${params.toString()}`;
                             } else if (domain) {
                                 imageUrl = `/api/logo?domain=${encodeURIComponent(domain)}&size=256`;
-                            } else if (row?.logo_url) {
-                                imageUrl = String(row.logo_url).trim();
                             }
                             writePreviewAssetCache(contentType, id, imageUrl || '/newlogo.webp');
                         });
@@ -10777,7 +10845,7 @@
                     };
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <img class="collection-item-image brand-logo-stage" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${escapeHtml(title)}</h3>
                             ${canEditItems ? `
@@ -10843,7 +10911,7 @@
                 if (!supabase) supabase = ensureSupabaseClient();
                 if (!supabase) return;
 
-                const list = await fetchCustomListById('car', listId);
+                let list = await fetchCustomListById('car', listId);
                 if (!list) return;
 
                 if (listType === 'custom' && window.ListUtils) {
@@ -10953,7 +11021,7 @@
                     };
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <img class="collection-item-image brand-logo-stage" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${escapeHtml(title)}</h3>
                             ${canEditItems ? `
@@ -11142,7 +11210,7 @@
                     };
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <img class="collection-item-image brand-logo-stage" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${escapeHtml(title)}</h3>
                             ${canEditItems ? `
