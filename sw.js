@@ -1,7 +1,7 @@
-﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v179';
-const PAGE_CACHE = 'zo2y-pages-v149';
-const IMAGE_CACHE = 'zo2y-images-v26';
-const API_CACHE = 'zo2y-api-v9';
+﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v180';
+const PAGE_CACHE = 'zo2y-pages-v150';
+const IMAGE_CACHE = 'zo2y-images-v27';
+const API_CACHE = 'zo2y-api-v10';
 const MOVIES_PAGE_VERSION = '20260322m';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
@@ -15,21 +15,21 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260319e',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260323h',
-  '/js/pages/index-home-heavy-loaders.js?v=20260323c',
+  '/js/pages/index.js?v=20260323i',
+  '/js/pages/index-home-heavy-loaders.js?v=20260323d',
   '/js/home-desktop-rebrand.js?v=20260323c',
   '/js/referral-utils.js?v=20260319a',
   '/js/shared-header.js?v=20260323c',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
-  '/js/list-utils.js?v=20260317b',
-  '/js/index-list-menu-adapter.js?v=20260317b',
+  '/js/list-utils.js?v=20260323a',
+  '/js/index-list-menu-adapter.js?v=20260323a',
   '/js/universal-search.js?v=20260323a',
   '/js/auth-gate.js?v=20260323b',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260323b',
+  '/js/mobile-webapp.js?v=20260323c',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260308a',
   '/favicon.ico',

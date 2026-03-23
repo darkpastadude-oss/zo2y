@@ -350,11 +350,18 @@
           backdrop-filter: blur(8px);
         }
         .menu-modal-content {
+          position: relative;
+          top: auto;
+          left: auto;
           width: calc(100vw - 14px);
           max-width: 100vw;
-          max-height: min(86dvh, 740px);
+          max-height: min(72dvh, 640px);
           border-radius: 18px 18px 14px 14px;
-          transform: translate(-50%, -50%);
+          transform: none;
+          margin: 0 auto calc(env(safe-area-inset-bottom, 0px) + 8px);
+        }
+        .menu-modal-content.menu-modal-fly-up {
+          animation: menuModalSheetUp 0.22s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .menu-modal-header {
           padding: 14px 16px;
@@ -414,6 +421,10 @@
           font-size: 15px;
           border-radius: 12px;
         }
+      }
+      @keyframes menuModalSheetUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
       }
     `;
     document.head.appendChild(style);
@@ -805,6 +816,14 @@
     const left = (visual?.offsetLeft || 0) + window.scrollX;
     const width = Math.max(0, Math.ceil(visual?.width || window.innerWidth || document.documentElement.clientWidth || 0));
     const height = Math.max(0, Math.ceil(visual?.height || window.innerHeight || document.documentElement.clientHeight || 0));
+    const compactSheet = width > 0 && width <= 768;
+    if (compactSheet) {
+      modal.style.top = '0px';
+      modal.style.left = '0px';
+      modal.style.width = '100vw';
+      modal.style.height = `${height}px`;
+      return;
+    }
     modal.style.top = `${top}px`;
     modal.style.left = `${left}px`;
     modal.style.width = `${width}px`;
@@ -1238,6 +1257,18 @@
 
     const newListNameInput = document.getElementById('newListNameInput');
     if (newListNameInput) {
+      const keepCreateModalInputVisible = () => {
+        const createModal = document.getElementById('createListModal');
+        const content = createModal?.querySelector('.menu-modal-content');
+        window.setTimeout(() => {
+          syncMenuModalViewport(createModal);
+          if (content && typeof content.scrollTo === 'function') {
+            content.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }, 40);
+      };
+      newListNameInput.addEventListener('focus', keepCreateModalInputVisible);
+      newListNameInput.addEventListener('input', keepCreateModalInputVisible);
       newListNameInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();

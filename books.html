@@ -11,8 +11,8 @@
   <link rel="icon" href="/newlogo.webp" type="image/webp" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/list-utils.js?v=20260317b"></script>
-  <script src="js/index-list-menu-adapter.js?v=20260317b"></script>
+<script src="js/list-utils.js?v=20260323a"></script>
+<script src="js/index-list-menu-adapter.js?v=20260323a"></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -786,7 +786,7 @@
   <link rel="manifest" href="/manifest.webmanifest?v=2" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260322r" defer></script>
+<script src="/js/mobile-webapp.js?v=20260323c" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
   <script src="js/shared-header.js?v=20260322h" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
@@ -899,7 +899,9 @@
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
       const BOOKS_PER_PAGE = 20;
-      const BOOKS_CACHE_BUSTER = '20260323-api-only';
+      const BOOKS_CACHE_BUSTER = '20260323-api-only-fast';
+      const BOOKS_PAGE_CACHE_KEY = 'zo2y_books_page_cache_v1';
+      const BOOKS_PAGE_CACHE_TTL_MS = 1000 * 60 * 20;
       const CATEGORY_OPTIONS = [
         'Fiction',
         'Mystery',
@@ -1261,6 +1263,34 @@
         } catch (_error) {}
       }
 
+      function readCachedBooksPage() {
+        try {
+          const raw = localStorage.getItem(BOOKS_PAGE_CACHE_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          const age = Date.now() - Number(parsed?.savedAt || 0);
+          if (!parsed || !Array.isArray(parsed?.docs) || age > BOOKS_PAGE_CACHE_TTL_MS) return null;
+          return {
+            docs: parsed.docs.map((entry, idx) => normalizeRemoteBookDoc(entry, idx)).filter((entry) => String(entry?.title || '').trim()),
+            numFound: Number(parsed?.numFound || 0) || parsed.docs.length
+          };
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function writeCachedBooksPage(data) {
+        try {
+          const docs = Array.isArray(data?.docs) ? data.docs : [];
+          if (!docs.length) return;
+          localStorage.setItem(BOOKS_PAGE_CACHE_KEY, JSON.stringify({
+            savedAt: Date.now(),
+            numFound: Number(data?.numFound || docs.length) || docs.length,
+            docs
+          }));
+        } catch (_error) {}
+      }
+
       function scheduleBooksBackgroundRefresh(taskKey, callback) {
         if (!taskKey || typeof callback !== 'function' || state.backgroundRefreshes.has(taskKey)) return;
         state.backgroundRefreshes.add(taskKey);
@@ -1560,7 +1590,15 @@
         const requestSeq = ++state.requestSeq;
         const hasActiveFilters = !!(state.query || state.author || state.activeCategory || state.year);
         const isFirstPopularPage = !hasActiveFilters && Number(state.page || 1) === 1;
-        if (Number(state.page || 1) === 1) {
+        if (isFirstPopularPage) {
+          const cachedPage = !options?.cacheBust ? readCachedBooksPage() : null;
+          if (cachedPage?.docs?.length) {
+            updateBookPageSpotlight(cachedPage.docs || []);
+            displayBookResults(cachedPage.docs || [], cachedPage.numFound || 0);
+          } else {
+            grid.innerHTML = '<div class="empty">Loading books...</div>';
+          }
+        } else if (Number(state.page || 1) === 1) {
           grid.innerHTML = '<div class="empty">Loading books...</div>';
         }
 
@@ -1577,7 +1615,11 @@
           if (state.year) params.first_publish_year = state.year;
           if (options?.cacheBust) params.cache_bust = Date.now();
           if (!params.q && !params.author && !params.subject && !params.first_publish_year) {
-            data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
+            if (isFirstPopularPage) {
+              data = await loadCuratedPopularBooks();
+            } else {
+              data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
+            }
             if (Number(state.page || 1) === 1) {
               scheduleBooksBackgroundRefresh('books-trending-warmup', async () => {
                 await fetchTrendingBooks(Math.min(8, BOOKS_PER_PAGE));
@@ -1595,6 +1637,9 @@
         }
 
         if (requestSeq !== state.requestSeq) return;
+        if (isFirstPopularPage && Array.isArray(data?.docs) && data.docs.length) {
+          writeCachedBooksPage(data);
+        }
         updateBookPageSpotlight(data.docs || []);
         displayBookResults(data.docs || [], data.numFound || 0);
       }

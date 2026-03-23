@@ -1,6 +1,9 @@
 (() => {
   if (window.__zo2yHomeHeavyLoaders) return;
 
+const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v1';
+const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 20;
+
 async function loadBooks(signal) {
       const targetCount = getHomeChannelTargetItems();
       const lightweightMode = shouldUseLightweightHomeBooksLoad();
@@ -151,6 +154,36 @@ async function loadBooks(signal) {
         return out;
       };
 
+      const sanitizeHomeBookItem = (item) => {
+        if (!item || String(item?.mediaType || '').trim().toLowerCase() !== 'book') return null;
+        const title = String(item?.title || '').trim();
+        const itemId = String(item?.itemId || '').trim();
+        const image = toHttpsUrl(String(item?.image || item?.listImage || item?.spotlightImage || '').trim());
+        if (!title || !itemId || !image) return null;
+        return {
+          ...item,
+          mediaType: 'book',
+          itemId,
+          title,
+          subtitle: String(item?.subtitle || '').trim(),
+          image,
+          listImage: image,
+          backgroundImage: toHttpsUrl(String(item?.backgroundImage || image).trim()) || image,
+          spotlightImage: toHttpsUrl(String(item?.spotlightImage || image).trim()) || image,
+          spotlightMediaImage: toHttpsUrl(String(item?.spotlightMediaImage || image).trim()) || image,
+          href: String(item?.href || '').trim() || 'books.html'
+        };
+      };
+
+      const cachedItems = readHomeItemsCache(
+        HOME_BOOKS_ITEMS_CACHE_KEY,
+        HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS,
+        sanitizeHomeBookItem
+      );
+      if (cachedItems.length) {
+        return cachedItems.slice(0, targetCount);
+      }
+
       try {
         const limit = lightweightMode ? Math.max(targetCount, 16) : Math.max(targetCount, 24);
         const booksRequestOptions = { signal, timeoutMs: 4200, retries: 1 };
@@ -175,13 +208,14 @@ async function loadBooks(signal) {
           if (docs.length) allDocsRaw.push(...docs);
         });
 
-        const strictModern = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: false, localOverrides });
-        const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: true, localOverrides });
-        const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 2008, allowMissingYear: true, localOverrides });
+        const strictModern = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: false });
+        const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: true });
+        const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 2008, allowMissingYear: true });
         const merged = mergeUniqueItems(strictModern, modernWithUnknownYear, relaxedFallback);
         const safeMerged = filterHomeSafeItems(merged);
         if (safeMerged.length) {
           const shuffled = shuffleArray(safeMerged);
+          writeHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, shuffled);
           return shuffled.slice(0, targetCount);
         }
       } catch (_e) {}

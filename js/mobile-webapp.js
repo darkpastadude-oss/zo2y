@@ -1,4 +1,6 @@
 (() => {
+  const APP_RUNTIME_VERSION = '20260323-cache-reset-a';
+
   const isMobileLike = window.matchMedia('(max-width: 900px)').matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   const path = window.location.pathname || '/';
   const base = path === '/' ? 'index.html' : path.split('/').pop();
@@ -781,10 +783,32 @@
     queuePrefetch(anchor.href);
   }, { passive: true });
 
+  async function resetZo2yCachesIfNeeded() {
+    try {
+      const lastVersion = localStorage.getItem('zo2y_runtime_version');
+      if (lastVersion === APP_RUNTIME_VERSION) return;
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(
+          keys
+            .filter((key) => /^zo2y-/i.test(String(key || '')))
+            .map((key) => caches.delete(key))
+        );
+      }
+      localStorage.setItem('zo2y_runtime_version', APP_RUNTIME_VERSION);
+    } catch (_error) {
+      try {
+        localStorage.setItem('zo2y_runtime_version', APP_RUNTIME_VERSION);
+      } catch (__error) {}
+    }
+  }
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js?v=20260322r').catch(() => {
+      void resetZo2yCachesIfNeeded().finally(() => {
+        navigator.serviceWorker.register('/sw.js?v=20260323a').catch(() => {
         // silent fail to avoid runtime noise
+        });
       });
     });
   }
