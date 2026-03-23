@@ -7301,84 +7301,78 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     async function loadGames(signal, options = {}) {
       const targetCount = Math.max(getHomeChannelTargetItems(), isHomeSlowNetwork() ? 18 : 28);
-      const mapToItem = (row) => {
-        const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
-        const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
-        const cover = resolveHomeGameCover(row);
-        const hero = resolveHomeGameHero(row, '');
-        const presentation = getHomeGamePresentation(cover, hero);
-        // Drop games that don't have a real cover image.
-        if (!cover || cover.includes('/newlogo.webp') || isLikelyBackdropGameUrl(cover)) return null;
-        const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
-        const title = String(row?.title || row?.name || 'Game').trim() || 'Game';
-        const releaseDate = String(row?.release_date || row?.released || '').trim();
-        const ratingValue = Number(row?.rating || 0);
-        const genreText = genres.length
-          ? genres.slice(0, 2).map((entry) => String(entry?.name || entry || '').trim()).filter(Boolean).join(' | ')
-          : 'Video Game';
-        const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
-        return {
-          mediaType: 'game',
-          itemId: id,
-          title,
-          subtitle: releaseDate ? releaseDate.slice(0, 10) : '',
-          extra: [genreText, ratingText].filter(Boolean).join(' | '),
-          image: cover,
-          backgroundImage: hero || cover,
-          spotlightImage: hero || cover,
-          spotlightMediaImage: cover,
-          spotlightMediaFit: presentation.spotlightFit,
-          spotlightMediaShape: presentation.spotlightShape,
-          gameCardMode: presentation.plain ? 'plain' : 'hero',
-          fallbackImage: '',
-          href: id ? `game.html?id=${encodeURIComponent(String(id))}` : 'games.html'
+        const mapToItem = (row) => {
+          const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
+          const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
+          const cover = resolveHomeGameCover(row);
+          const hero = resolveHomeGameHero(row, '') || cover;
+          const presentation = getHomeGamePresentation(cover, hero);
+          const visual = cover || hero || '/newlogo.webp';
+          const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
+          const title = String(row?.title || row?.name || 'Game').trim() || 'Game';
+          const releaseDate = String(row?.release_date || row?.released || '').trim();
+          const ratingValue = Number(row?.rating || 0);
+          const genreText = genres.length
+            ? genres.slice(0, 2).map((entry) => String(entry?.name || entry || '').trim()).filter(Boolean).join(' | ')
+            : 'Video Game';
+          const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
+          return {
+            mediaType: 'game',
+            itemId: id,
+            title,
+            subtitle: releaseDate ? releaseDate.slice(0, 10) : '',
+            extra: [genreText, ratingText].filter(Boolean).join(' | '),
+            image: visual,
+            backgroundImage: hero || visual,
+            spotlightImage: hero || visual,
+            spotlightMediaImage: visual,
+            spotlightMediaFit: presentation.spotlightFit,
+            spotlightMediaShape: presentation.spotlightShape,
+            gameCardMode: presentation.plain ? 'plain' : 'hero',
+            fallbackImage: '',
+            href: id ? `game.html?id=${encodeURIComponent(String(id))}` : 'games.html'
+          };
         };
-      };
 
       try {
         const client = await ensureHomeSupabase();
         if (!client) return [];
         try {
-          const { data, error } = await client
-            .from('games')
-            .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
-            .like('cover_url', '%/covers-official/%')
-            .order('rating_count', { ascending: false, nullsFirst: false })
-            .order('rating', { ascending: false, nullsFirst: false })
-            .limit(Math.max(targetCount * 12, 192));
+            const { data, error } = await client
+              .from('games')
+              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
+              .order('rating_count', { ascending: false, nullsFirst: false })
+              .order('rating', { ascending: false, nullsFirst: false })
+              .limit(Math.max(targetCount * 12, 192));
           if (error) return [];
           const primaryRows = Array.isArray(data) ? data : [];
           const titlePool = Array.from(new Set(primaryRows.map((row) => String(row?.title || '').trim()).filter(Boolean))).slice(0, Math.max(targetCount * 3, 48));
           const slugPool = Array.from(new Set(primaryRows.map((row) => String(row?.slug || '').trim()).filter(Boolean))).slice(0, Math.max(targetCount * 3, 48));
           let combinedRows = primaryRows.slice();
           if (titlePool.length) {
-            const { data: altRows, error: altError } = await client
-              .from('games')
-              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
-              .like('cover_url', '%/covers-official/%')
-              .in('title', titlePool);
+              const { data: altRows, error: altError } = await client
+                .from('games')
+                .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
+                .in('title', titlePool);
             if (!altError && Array.isArray(altRows) && altRows.length) {
               combinedRows = primaryRows.concat(altRows);
             }
           }
           if (slugPool.length) {
-            const { data: altSlugRows, error: altSlugError } = await client
-              .from('games')
-              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
-              .like('cover_url', '%/covers-official/%')
-              .in('slug', slugPool);
+              const { data: altSlugRows, error: altSlugError } = await client
+                .from('games')
+                .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
+                .in('slug', slugPool);
             if (!altSlugError && Array.isArray(altSlugRows) && altSlugRows.length) {
               combinedRows = combinedRows.concat(altSlugRows);
             }
           }
-          const dedupedRows = dedupeHomeGameRows(combinedRows, targetCount * 4);
-          const posterRows = dedupedRows.filter((row) => hasPosterOfficialGameCover(row));
-          const preferredRows = posterRows.filter((row) => isPreferredHomeGameRow(row));
-          const selectedRows = (preferredRows.length ? preferredRows : posterRows).slice(0, targetCount * 3);
-          const mappedItems = selectedRows
-            .map((row) => mapToItem(row))
-            .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim());
-          return mappedItems.slice(0, targetCount);
+            const dedupedRows = dedupeHomeGameRows(combinedRows, targetCount * 6);
+            const selectedRows = dedupedRows.slice(0, targetCount * 4);
+            const mappedItems = selectedRows
+              .map((row) => mapToItem(row))
+              .filter((item) => item && String(item.itemId || '').trim());
+            return mappedItems.slice(0, targetCount);
         } catch (_localGamesError) {
           return [];
         }

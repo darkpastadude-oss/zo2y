@@ -7,7 +7,7 @@
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
   const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
   const REVIEW_LIMIT = 22;
-  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
+  const GAMES_DISABLED = false;
 
   const REVIEW_SOURCES = [
     { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id', label: 'Movie' },

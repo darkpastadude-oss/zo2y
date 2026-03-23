@@ -36,7 +36,7 @@
             let targetUserId = null;
             let isViewingOwnProfile = true;
             const ENABLE_RESTAURANTS = false;
-            const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
+            const GAMES_DISABLED = false;
             const DEFAULT_PROFILE_TAB = ENABLE_RESTAURANTS ? 'restaurants' : 'movies';
             const VALID_PRIMARY_TABS = new Set(['overview', 'reviews', 'lists', 'activity', 'about']);
             let currentPrimaryTab = 'overview';
