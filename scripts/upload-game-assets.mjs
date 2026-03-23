@@ -7,7 +7,7 @@ const BUCKET_NAME = 'game-assets';
 const MANIFEST_PATH = 'manifest/game-assets.json';
 const ENV_FILES = ['.env', '.env.local', '.env.vercel', '.env.vercel.prod', 'backend/.env'].map((file) => path.join(ROOT, file));
 const FETCH_TIMEOUT_MS = 10000;
-const MAX_SCREENSHOTS = 2;
+const MAX_SCREENSHOTS = 1;
 const RAWG_API_BASE = 'https://api.rawg.io/api';
 const RAWG_BACKUP_KEY = '83b2a55ac54c4c1db7099212e740f680';
 
@@ -169,7 +169,7 @@ async function ensureBucket() {
   const { data } = await supabase.storage.getBucket(BUCKET_NAME);
   const config = {
     public: true,
-    fileSizeLimit: '15MB',
+    fileSizeLimit: '8MB',
     allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'application/json']
   };
   if (data) {
