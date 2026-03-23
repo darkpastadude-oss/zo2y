@@ -117,6 +117,7 @@
   let tierMetaServerSupported = null;
   let tierRankServerSupported = null;
   let collaboratorTableSupported = null;
+  const MEDIA_ICON_PICKER_SELECTOR = '.icon-options[id$="ListIconOptions"], .icon-options[id*="ListIconOptions"], .list-icon-options';
 
   function getListConfig(type) {
     return LIST_CONFIG[String(type || '').toLowerCase()] || null;
@@ -190,6 +191,16 @@
     if (!raw) return `<i class="${fallback}"></i>`;
     if (raw.includes('fa-')) return `<i class="${raw}"></i>`;
     return raw;
+  }
+
+  function hideMediaTypeIconPickers(root = document) {
+    if (!root || typeof root.querySelectorAll !== 'function') return;
+    root.querySelectorAll(MEDIA_ICON_PICKER_SELECTOR).forEach((node) => {
+      if (!(node instanceof HTMLElement)) return;
+      node.hidden = true;
+      node.setAttribute('aria-hidden', 'true');
+      node.style.display = 'none';
+    });
   }
 
   function safeJsonParse(raw, fallbackValue) {
@@ -840,6 +851,7 @@
     listUxBound = true;
     ensureListUxStyles();
     ensureKnownTierCreateControls(document);
+    hideMediaTypeIconPickers(document);
 
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
@@ -849,6 +861,7 @@
             ensureTierCreateControl(node);
           }
           ensureKnownTierCreateControls(node);
+          hideMediaTypeIconPickers(node);
         });
       });
     });
@@ -1246,7 +1259,7 @@
     let insertPayload = {
       user_id: userId,
       title: payload.title,
-      icon: payload.icon || cfg.defaultIcon || 'fas fa-list',
+      icon: cfg.defaultIcon || 'fas fa-list',
       list_kind: dbListKind,
       created_at: new Date().toISOString()
     };
