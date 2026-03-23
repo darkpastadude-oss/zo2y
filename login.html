@@ -134,7 +134,35 @@
   const submitDefaultHtml = submitBtn.innerHTML;
   const referralUtils = window.ZO2Y_REFERRALS || null;
   const activeReferral = referralUtils ? referralUtils.captureReferralFromLocation(window.location.search) : '';
-  const initialNextPath = sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || localStorage.getItem('postAuthRedirect') || 'index.html');
+  function safeGetAuthStorage(key) {
+    try {
+      const sessionValue = window.sessionStorage ? window.sessionStorage.getItem(key) : null;
+      if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
+    } catch (_err) {}
+    try {
+      return window.localStorage ? window.localStorage.getItem(key) : null;
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function safeSetAuthStorage(key, value) {
+    try {
+      if (window.sessionStorage) {
+        window.sessionStorage.setItem(key, value);
+        return true;
+      }
+    } catch (_err) {}
+    try {
+      if (window.localStorage) {
+        window.localStorage.setItem(key, value);
+        return true;
+      }
+    } catch (_err) {}
+    return false;
+  }
+
+  const initialNextPath = sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || safeGetAuthStorage('postAuthRedirect') || 'index.html');
 
   function analyticsTrack(eventName, properties = {}, essential = false) {
     try {
@@ -163,7 +191,7 @@
   }
 
   function getPostAuthRedirect() {
-    return sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || localStorage.getItem('postAuthRedirect') || initialNextPath || 'index.html');
+    return sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || safeGetAuthStorage('postAuthRedirect') || initialNextPath || 'index.html');
   }
 
   function decorateReferralLinks() {
@@ -352,8 +380,8 @@
       const callbackUrl = new URL('/auth-callback.html', window.location.origin);
       callbackUrl.searchParams.set('flow', 'login');
       callbackUrl.searchParams.set('next', nextPath);
-      localStorage.setItem('oauthFlow', 'login');
-      localStorage.setItem('postAuthRedirect', nextPath);
+      safeSetAuthStorage('oauthFlow', 'login');
+      safeSetAuthStorage('postAuthRedirect', nextPath);
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

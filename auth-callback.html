@@ -124,8 +124,29 @@
       const errorText = document.getElementById('errorText');
       const debugConsole = document.getElementById('debugConsole');
 
+      function safeGetAuthStorage(key) {
+        try {
+          const sessionValue = window.sessionStorage ? window.sessionStorage.getItem(key) : null;
+          if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
+        } catch (_err) {}
+        try {
+          return window.localStorage ? window.localStorage.getItem(key) : null;
+        } catch (_err) {
+          return null;
+        }
+      }
+
+      function safeRemoveAuthStorage(key) {
+        try {
+          if (window.sessionStorage) window.sessionStorage.removeItem(key);
+        } catch (_err) {}
+        try {
+          if (window.localStorage) window.localStorage.removeItem(key);
+        } catch (_err) {}
+      }
+
       const params = new URLSearchParams(window.location.search);
-      const storedNext = localStorage.getItem('postAuthRedirect');
+      const storedNext = safeGetAuthStorage('postAuthRedirect');
       const next = sanitizeNextPath(params.get('next') || storedNext || 'index.html');
       const flowParam = String(params.get('flow') || '').trim().toLowerCase();
       const referralUtils = window.ZO2Y_REFERRALS || null;
@@ -462,7 +483,7 @@
           }
         });
 
-        const oauthFlow = flowParam || String(localStorage.getItem('oauthFlow') || '').trim().toLowerCase();
+        const oauthFlow = flowParam || String(safeGetAuthStorage('oauthFlow') || '').trim().toLowerCase();
         const oauthError = params.get('error_description') || params.get('error');
         if (oauthError) {
           sendAnalyticsEvent('oauth_callback_error', {
@@ -543,15 +564,15 @@
         }
 
         statusText.textContent = 'Success! Redirecting...';
-        localStorage.removeItem('postAuthRedirect');
-        localStorage.removeItem('oauthFlow');
+        safeRemoveAuthStorage('postAuthRedirect');
+        safeRemoveAuthStorage('oauthFlow');
         log(`Redirecting to: ${next}`);
         setTimeout(() => {
           window.location.replace(next);
         }, 800);
       } catch (err) {
         const msg = (err && err.message) ? err.message : 'Authentication failed';
-        const oauthFlow = flowParam || String(localStorage.getItem('oauthFlow') || '').trim().toLowerCase();
+        const oauthFlow = flowParam || String(safeGetAuthStorage('oauthFlow') || '').trim().toLowerCase();
         sendAnalyticsEvent('oauth_callback_error', {
           flow: oauthFlow || 'unknown',
           message: String(msg).slice(0, 180)
