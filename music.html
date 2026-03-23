@@ -710,7 +710,7 @@
       section.hidden = false;
       if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${image}")`;
       if (titleEl) titleEl.textContent = String(item?.name || 'Music Spotlight');
-      if (metaEl) metaEl.textContent = [String(item?.subtitle || '').trim(), String(item?.release_date || '').trim()].filter(Boolean).join(' ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· ');
+      if (metaEl) metaEl.textContent = [String(item?.subtitle || '').trim(), String(item?.release_date || '').trim()].filter(Boolean).join(' ? ');
       if (summaryEl) summaryEl.textContent = getMusicCardExtra(item);
       if (imgEl) {
         imgEl.src = image || 'images/placeholder.jpg';

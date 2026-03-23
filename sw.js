@@ -1,5 +1,5 @@
-﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v176';
-const PAGE_CACHE = 'zo2y-pages-v146';
+﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v178';
+const PAGE_CACHE = 'zo2y-pages-v148';
 const IMAGE_CACHE = 'zo2y-images-v26';
 const API_CACHE = 'zo2y-api-v9';
 const MOVIES_PAGE_VERSION = '20260322m';
@@ -15,16 +15,16 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260319e',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260323f',
-  '/js/pages/index-home-heavy-loaders.js?v=20260323b',
+  '/js/pages/index.js?v=20260323g',
+  '/js/pages/index-home-heavy-loaders.js?v=20260323c',
   '/js/home-desktop-rebrand.js?v=20260323b',
   '/js/referral-utils.js?v=20260319a',
-  '/js/shared-header.js?v=20260323b',
+  '/js/shared-header.js?v=20260323c',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
   '/js/list-utils.js?v=20260317b',
   '/js/index-list-menu-adapter.js?v=20260317b',
-  '/js/universal-search.js?v=20260315b',
+  '/js/universal-search.js?v=20260323a',
   '/js/auth-gate.js?v=20260323b',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
@@ -277,6 +277,7 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
+
 
 
 

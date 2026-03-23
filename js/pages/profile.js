@@ -261,11 +261,7 @@
                     updateCollectionViewToggleButtons();
 
                     if (!isCollectionRouteActive()) {
-                        Promise.allSettled([
-                            renderMovies(),
-                            renderTvShows(),
-                            renderAnimeShows()
-                        ]).catch(() => {});
+                        renderMovies().catch(() => {});
                     }
                     
                     // Handle click outside dropdown
@@ -446,18 +442,19 @@
                 const deferMs = window.innerWidth <= 768 ? 2200 : 1200;
                 setTimeout(() => {
                     if (document.hidden) return;
+                    const activeTab = String(currentTab || 'movies').trim().toLowerCase();
                     const preloadTasks = [];
-                    if (!hasFreshTabRender('movies')) preloadTasks.push(renderMovies());
-                    if (!hasFreshTabRender('tv')) preloadTasks.push(renderTvShows());
-                    if (!hasFreshTabRender('anime')) preloadTasks.push(renderAnimeShows());
-                    if (!GAMES_DISABLED && !hasFreshTabRender('games')) preloadTasks.push(renderGames());
-                    if (!hasFreshTabRender('books')) preloadTasks.push(renderBooks());
-                    if (!hasFreshTabRender('music')) preloadTasks.push(renderMusic());
-                    if (!hasFreshTabRender('sports')) preloadTasks.push(renderSports());
-                    if (!hasFreshTabRender('travel')) preloadTasks.push(renderTravel());
-                    if (!hasFreshTabRender('fashion')) preloadTasks.push(renderFashion());
-                    if (!hasFreshTabRender('food')) preloadTasks.push(renderFood());
-                    if (!hasFreshTabRender('cars')) preloadTasks.push(renderCars());
+                    if (activeTab === 'movies' && !hasFreshTabRender('movies')) preloadTasks.push(renderMovies());
+                    if (activeTab === 'tv' && !hasFreshTabRender('tv')) preloadTasks.push(renderTvShows());
+                    if (activeTab === 'anime' && !hasFreshTabRender('anime')) preloadTasks.push(renderAnimeShows());
+                    if (activeTab === 'games' && !GAMES_DISABLED && !hasFreshTabRender('games')) preloadTasks.push(renderGames());
+                    if (activeTab === 'books' && !hasFreshTabRender('books')) preloadTasks.push(renderBooks());
+                    if (activeTab === 'music' && !hasFreshTabRender('music')) preloadTasks.push(renderMusic());
+                    if (activeTab === 'sports' && !hasFreshTabRender('sports')) preloadTasks.push(renderSports());
+                    if (activeTab === 'travel' && !hasFreshTabRender('travel')) preloadTasks.push(renderTravel());
+                    if (activeTab === 'fashion' && !hasFreshTabRender('fashion')) preloadTasks.push(renderFashion());
+                    if (activeTab === 'food' && !hasFreshTabRender('food')) preloadTasks.push(renderFood());
+                    if (activeTab === 'cars' && !hasFreshTabRender('cars')) preloadTasks.push(renderCars());
                     if (!preloadTasks.length) return;
                     Promise.allSettled(preloadTasks).catch(() => {});
                 }, deferMs);
@@ -2296,7 +2293,7 @@
                 
                 const title = document.getElementById('listName').value.trim();
                 const description = document.getElementById('listDescription').value.trim();
-                const icon = document.getElementById('selectedIcon').value;
+                const icon = getDefaultListIconForContext('restaurant');
                 const createListModal = document.getElementById('createListModal');
                 const tierState = window.ListUtils && createListModal
                     ? ListUtils.readTierCreateState(createListModal)
@@ -2491,7 +2488,7 @@
                     closeModal('createListModal');
                     
                     if (form) form.reset();
-                    document.getElementById('selectedIcon').value = 'heart';
+                    document.getElementById('selectedIcon').value = getDefaultListIconForContext('restaurant');
                     if (window.ListUtils && createListModal) {
                         ListUtils.resetTierCreateState(createListModal);
                     }
@@ -4208,10 +4205,10 @@
                 
                 document.getElementById('listName').value = list.title;
                 document.getElementById('listDescription').value = list.description || '';
-                document.getElementById('selectedIcon').value = normalizeIconKey(list.icon, 'list');
+                document.getElementById('selectedIcon').value = getDefaultListIconForContext('restaurant');
                 
                 document.querySelectorAll('.list-icon-option').forEach(icon => {
-                    const isSelected = icon.getAttribute('data-icon') === normalizeIconKey(list.icon, 'list');
+                    const isSelected = icon.getAttribute('data-icon') === getDefaultListIconForContext('restaurant');
                     icon.classList.toggle('selected', isSelected);
                 });
                 
@@ -5865,6 +5862,25 @@
                 await renderMovies();
             }
 
+            function getDefaultListIconForContext(type) {
+                const normalized = String(type || '').trim().toLowerCase();
+                const map = {
+                    restaurant: 'restaurant',
+                    movie: 'movie',
+                    tv: 'tv',
+                    anime: 'anime',
+                    game: 'game',
+                    book: 'book',
+                    music: 'music',
+                    travel: 'travel',
+                    fashion: 'fashion',
+                    food: 'food',
+                    car: 'car',
+                    cars: 'car'
+                };
+                return map[normalized] || 'list';
+            }
+
             function getMediaListConfig(type) {
                 const configMap = {
                     movie: { table: 'movie_lists', fallback: 'movie', label: 'Movie', rerender: renderMovies },
@@ -6547,7 +6563,7 @@
             }
 
             function setEditMediaListIcon(iconKey) {
-                const selected = normalizeIconKey(iconKey, 'list');
+                const selected = normalizeIconKey(iconKey, editingMediaList?.fallback || 'list');
                 const hiddenInput = document.getElementById('editMediaListSelectedIcon');
                 if (hiddenInput) hiddenInput.value = selected;
                 document.querySelectorAll('.edit-list-icon-option').forEach(option => {
@@ -6732,7 +6748,7 @@
 
                 const nameInput = document.getElementById('editMediaListName');
                 if (nameInput) nameInput.value = record.title || '';
-                setEditMediaListIcon(record.icon || config.fallback);
+                setEditMediaListIcon(config.fallback);
                 setEditMediaListModalMode(config, false);
                 showModal('editMediaListModal');
                 const editModal = document.getElementById('editMediaListModal');
@@ -6982,7 +6998,8 @@
                 const iconInput = document.getElementById('editMediaListSelectedIcon');
                 const editModal = document.getElementById('editMediaListModal');
                 const title = (nameInput?.value || '').trim();
-                const icon = normalizeIconKey(iconInput?.value || editingMediaList.fallback, editingMediaList.fallback);
+                const icon = normalizeIconKey(editingMediaList?.fallback || iconInput?.value || 'list', editingMediaList.fallback);
+                const enforcedIcon = editingMediaList?.fallback || icon;
                 const tierState = window.ListUtils && editModal
                     ? ListUtils.readTierCreateState(editModal)
                     : {
@@ -6999,7 +7016,7 @@
                     const created = await createMediaListRecord(
                         editingMediaList,
                         title,
-                        icon,
+                        enforcedIcon,
                         tierState.listKind,
                         tierState.maxRank
                     );
@@ -7027,7 +7044,7 @@
                     : null;
                 const updatePayload = {
                     title,
-                    icon,
+                    icon: enforcedIcon,
                     list_kind: normalizedKind === 'tier' ? 'tier' : editingMediaList.type
                 };
                 const hasListKindColumnError = (error) => {
@@ -8762,37 +8779,39 @@
                 const card = document.createElement('div');
                 card.className = 'collection-card';
 
+                const normalizedType = contentType === 'cars' ? 'car' : contentType;
+
                                 let itemIds = [];
-                if (contentType === 'restaurant') {
+                if (normalizedType === 'restaurant') {
                     itemIds = list.restaurantIds || [];
-                } else if (contentType === 'movie') {
+                } else if (normalizedType === 'movie') {
                     itemIds = list.movieIds || [];
-                } else if (contentType === 'tv') {
+                } else if (normalizedType === 'tv') {
                     itemIds = list.tvIds || [];
-                } else if (contentType === 'anime') {
+                } else if (normalizedType === 'anime') {
                     itemIds = list.animeIds || [];
-                } else if (contentType === 'game') {
+                } else if (normalizedType === 'game') {
                     itemIds = list.gameIds || [];
-                } else if (contentType === 'book') {
+                } else if (normalizedType === 'book') {
                     itemIds = list.bookIds || [];
-                } else if (contentType === 'fashion' || contentType === 'food' || contentType === 'car') {
+                } else if (normalizedType === 'fashion' || normalizedType === 'food' || normalizedType === 'car') {
                     itemIds = list.brandIds || [];
-                } else if (contentType === 'travel') {
+                } else if (normalizedType === 'travel') {
                     itemIds = list.countryCodes || [];
                 } else {
                     itemIds = list.trackIds || [];
-                }                const resolvedListType = resolveCollectionListType(contentType, list);
+                }                const resolvedListType = resolveCollectionListType(normalizedType, list);
                 const routeListId = String(list.id || '');
-                const { tierMeta, orderedIds } = await resolveTierOrderedIds(contentType, list, routeListId, itemIds, {
+                const { tierMeta, orderedIds } = await resolveTierOrderedIds(normalizedType, list, routeListId, itemIds, {
                     listType: resolvedListType,
                     ownerUserId
                 });
                 const count = orderedIds.length;
-                const isCustom = contentType === 'restaurant' ? !list.is_default : list.type === 'custom';
+                const isCustom = normalizedType === 'restaurant' ? !list.is_default : list.type === 'custom';
                 const collabAccess = isCustom
-                    ? getCollaborativeAccess(contentType, routeListId, list)
+                    ? getCollaborativeAccess(normalizedType, routeListId, list)
                     : { isOwner: true, canEdit: true, isCollaborative: false };
-                const pinKey = getPinnedCollectionKey(contentType, routeListId, resolvedListType);
+                const pinKey = getPinnedCollectionKey(normalizedType, routeListId, resolvedListType);
                 const isPinned = !!pinnedListsMap.get(pinKey);
                 const tierBadgeHtml = (isCustom && tierMeta.isTier)
                     ? `<div class="tier-list-badge"><i class="fas fa-layer-group"></i> Tier List</div>`
@@ -8806,10 +8825,10 @@
                 const routeListType = String(resolvedListType || '');
                 const safeListId = routeListId.replace(/'/g, "\\'");
                 const safeListType = routeListType.replace(/'/g, "\\'");
-                const countLabel = getCollectionItemLabel(contentType, count);
+                const countLabel = getCollectionItemLabel(normalizedType, count);
 
                 const previewLimit = 3;
-                const travelPreviewIds = contentType === 'travel'
+                const travelPreviewIds = normalizedType === 'travel'
                     ? Array.from(new Set(
                         [
                             ...(Array.isArray(list?.countryCodes) ? list.countryCodes : []),
@@ -8819,30 +8838,32 @@
                             .filter(Boolean)
                     ))
                     : [];
-                const previewIds = contentType === 'travel'
+                const previewIds = normalizedType === 'travel'
                     ? travelPreviewIds.slice(0, previewLimit)
                     : orderedIds.slice(0, previewLimit);
-                const previewOrientationClass = getPreviewOrientationClass(contentType);
-                const fallbackPreviewIcon = contentType === 'restaurant'
+                const previewOrientationClass = getPreviewOrientationClass(normalizedType);
+                const fallbackPreviewIcon = normalizedType === 'restaurant'
                     ? 'restaurant'
-                    : contentType === 'movie'
+                    : normalizedType === 'movie'
                         ? 'movie'
-                        : contentType === 'tv'
+                        : normalizedType === 'tv'
                             ? 'tv'
-                            : contentType === 'anime'
+                            : normalizedType === 'anime'
                                 ? 'anime'
-                                : contentType === 'game'
+                                : normalizedType === 'game'
                                     ? 'game'
-                                    : contentType === 'book'
+                                    : normalizedType === 'book'
                                         ? 'book'
-                                        : contentType === 'fashion'
+                                        : normalizedType === 'fashion'
                                             ? 'fashion'
-                                            : contentType === 'food'
+                                            : normalizedType === 'food'
                                                 ? 'food'
-                                        : contentType === 'travel'
+                                                : normalizedType === 'car'
+                                                    ? 'car'
+                                        : normalizedType === 'travel'
                                             ? 'travel'
                                             : 'music';
-                const isBrandCollection = contentType === 'fashion' || contentType === 'food' || contentType === 'car';
+                const isBrandCollection = normalizedType === 'fashion' || normalizedType === 'food' || normalizedType === 'car';
                 const buildPreviewHtml = (previewItems = []) => {
                     let html = '';
                     for (let i = 0; i < previewLimit; i++) {
@@ -8869,14 +8890,14 @@
                     }
                     return html;
                 };
-                const cachedPreviewItems = contentType === 'travel'
+                const cachedPreviewItems = normalizedType === 'travel'
                     ? previewIds.map((id) => {
                         const code = normalizeCountryCode(id);
                         const flagUrl = countryFlagFromCode(code || id);
-                        writePreviewAssetCache(contentType, code || id, flagUrl);
+                        writePreviewAssetCache(normalizedType, code || id, flagUrl);
                         return flagUrl;
                     })
-                    : previewIds.map((id) => readPreviewAssetCache(contentType, id));
+                    : previewIds.map((id) => readPreviewAssetCache(normalizedType, id));
                 const previewHtml = buildPreviewHtml(cachedPreviewItems);
 
                 const canEditCollection = isViewingOwnProfile && isCustom && !!collabAccess.canEdit;
@@ -8886,22 +8907,22 @@
                 const pinActionIcon = isPinned ? 'fa-thumbtack-slash' : 'fa-thumbtack';
                 const kebabHtml = (canEditCollection || canDeleteCollection || canPinCollection) ? `
                     <div class="collection-card-actions">
-                        <button class="collection-kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleCollectionMenu('${list.id}', '${contentType}')">
+                        <button class="collection-kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleCollectionMenu('${list.id}', '${normalizedType}')">
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
-                        <div class="collection-dropdown" id="collection-${contentType}-${list.id}">
+                        <div class="collection-dropdown" id="collection-${normalizedType}-${list.id}">
                             ${canPinCollection ? `
-                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.togglePinnedCollection('${safeListId}', '${contentType}', '${safeListType}')">
+                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.togglePinnedCollection('${safeListId}', '${normalizedType}', '${safeListType}')">
                                     <i class="fas ${pinActionIcon}"></i> ${pinActionLabel}
                                 </div>
                             ` : ''}
                             ${canEditCollection ? `
-                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.editCollection('${safeListId}', '${contentType}')">
+                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.editCollection('${safeListId}', '${normalizedType}')">
                                     <i class="fas fa-edit"></i> Edit
                                 </div>
                             ` : ''}
                             ${canDeleteCollection ? `
-                                <div class="collection-dropdown-item danger" onclick="event.stopPropagation(); ProfileManager.deleteCollection('${safeListId}', '${contentType}')">
+                                <div class="collection-dropdown-item danger" onclick="event.stopPropagation(); ProfileManager.deleteCollection('${safeListId}', '${normalizedType}')">
                                     <i class="fas fa-trash"></i> Delete
                                 </div>
                             ` : ''}
@@ -8913,7 +8934,7 @@
                     ${kebabHtml}
                     <div class="collection-card-header">
                         <div class="collection-card-title-group">
-                            <div class="collection-card-icon">${iconGlyph(list.icon, contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'anime' ? 'anime' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : (contentType === 'travel' ? 'travel' : (contentType === 'car' ? 'car' : 'music'))))))))}</div>
+                            <div class="collection-card-icon">${iconGlyph(list.icon, normalizedType === 'restaurant' ? 'restaurant' : (normalizedType === 'movie' ? 'movie' : (normalizedType === 'tv' ? 'tv' : (normalizedType === 'anime' ? 'anime' : (normalizedType === 'game' ? 'game' : (normalizedType === 'book' ? 'book' : (normalizedType === 'travel' ? 'travel' : (normalizedType === 'car' ? 'car' : 'music'))))))))}</div>
                             <div class="collection-card-info">
                                 <div class="collection-card-title">${list.title}</div>
                                 <div class="collection-card-count">${countLabel}</div>
@@ -8933,13 +8954,13 @@
                                 ${list.created_at ? new Date(list.created_at).toLocaleDateString() : ''}
                             </div>
                         </div>
-                        <button class="collection-view-btn" onclick="event.stopPropagation(); ProfileManager.openCollectionPage('${safeListId}', '${contentType}', '${safeListType}')">
+                        <button class="collection-view-btn" onclick="event.stopPropagation(); ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
                             View all ->
                         </button>
                     </div>
                 `;
 
-                card.onclick = () => openCollectionPage(routeListId, contentType, routeListType);
+                card.onclick = () => openCollectionPage(routeListId, normalizedType, routeListType);
 
                 // Hydrate preview images in the background to keep first paint instant.
                 if (previewIds.length) {
@@ -12312,7 +12333,7 @@
                     }
                     
                     if (modalId === 'createListModal') {
-                        const selectedValue = String(document.getElementById('selectedIcon')?.value || 'heart');
+                        const selectedValue = String(document.getElementById('selectedIcon')?.value || getDefaultListIconForContext('restaurant'));
                         document.querySelectorAll('.list-icon-option').forEach(icon => {
                             const isSelected = icon.getAttribute('data-icon') === selectedValue;
                             icon.classList.toggle('selected', isSelected);
@@ -12346,10 +12367,10 @@
                         const form = document.getElementById('createListForm');
                         if (form) form.reset();
                         const selectedInput = document.getElementById('selectedIcon');
-                        if (selectedInput) selectedInput.value = 'heart';
+                        if (selectedInput) selectedInput.value = getDefaultListIconForContext('restaurant');
 
                         document.querySelectorAll('.list-icon-option').forEach(icon => {
-                            const isSelected = icon.getAttribute('data-icon') === 'heart';
+                            const isSelected = icon.getAttribute('data-icon') === getDefaultListIconForContext('restaurant');
                             icon.classList.toggle('selected', isSelected);
                         });
                         
@@ -12362,7 +12383,7 @@
                         const form = document.getElementById('editMediaListForm');
                         if (form) form.reset();
                         const icon = document.getElementById('editMediaListSelectedIcon');
-                        if (icon) icon.value = 'list';
+                        if (icon) icon.value = editingMediaList?.fallback || 'list';
                         const titleEl = document.getElementById('editMediaListModalTitle');
                         if (titleEl) titleEl.textContent = 'Edit List';
                         const submitBtn = document.querySelector('#editMediaListForm button[type="submit"]');

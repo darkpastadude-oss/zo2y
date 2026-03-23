@@ -1151,7 +1151,7 @@
         const byIsbn = toHttpsUrl(buildOpenLibraryCoverUrl(doc, 'M'));
         if (byIsbn) return byIsbn;
         const coverImage = toHttpsUrl(doc?.coverImage || '');
-        if (coverImage) return coverImage;
+        if (coverImage && !/supabase\.co\/storage\/v1\/object\/public/i.test(coverImage)) return coverImage;
         return null;
       }
 
@@ -1169,7 +1169,7 @@
           subject: categories.length ? categories : rawCategories,
           publisher: row.publisher ? [String(row.publisher).trim()] : [],
           cover_i: null,
-          coverImage: toHttpsUrl(row.thumbnail || ''),
+          coverImage: '',
           _googleThumbnail: '',
           _googleVolumeId: '',
           description: String(row.description || '').trim(),
@@ -1676,24 +1676,30 @@
           }
         }
 
-        let data;
-        try {
-          const localData = await fetchLocalBooksPage();
-          if (requestSeq !== state.requestSeq) return;
-          if (Array.isArray(localData?.docs) && localData.docs.length) {
-            data = localData;
-            updateBookPageSpotlight(localData.docs || []);
-            writeBooksCache(cacheKey, data);
-          } else {
-          const params = {
-            page: state.page,
-            limit: BOOKS_PER_PAGE,
-            language: 'en'
-          };
-          if (state.query) params.q = state.query;
-          if (state.author) params.author = state.author;
-          if (state.activeCategory) params.subject = state.activeCategory;
-          if (state.year) params.first_publish_year = state.year;
+          let data;
+          try {
+            const localData = await fetchLocalBooksPage();
+            if (requestSeq !== state.requestSeq) return;
+            const localDocs = Array.isArray(localData?.docs) ? localData.docs : [];
+            const localDocsWithApiCovers = localDocs.filter((doc) => Boolean(getPreferredBookImage(doc)));
+            if (localDocsWithApiCovers.length) {
+              data = {
+                ...(localData || {}),
+                docs: localDocsWithApiCovers,
+                numFound: Number(localData?.numFound || localDocsWithApiCovers.length)
+              };
+              updateBookPageSpotlight(localDocsWithApiCovers);
+              writeBooksCache(cacheKey, data);
+            } else {
+              const params = {
+                page: state.page,
+                limit: BOOKS_PER_PAGE,
+                language: 'en'
+              };
+              if (state.query) params.q = state.query;
+              if (state.author) params.author = state.author;
+              if (state.activeCategory) params.subject = state.activeCategory;
+              if (state.year) params.first_publish_year = state.year;
           if (!params.q && !params.author && !params.subject && !params.first_publish_year) {
             data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
             if (Number(state.page || 1) === 1) {

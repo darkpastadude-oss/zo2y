@@ -1065,7 +1065,7 @@
         if (metaEl) {
           const date = String(item.first_air_date || item.release_date || '').trim();
           const rating = Number(item.vote_average || 0) > 0 ? `TMDB ${Number(item.vote_average).toFixed(1)}` : '';
-          metaEl.textContent = [date, rating].filter(Boolean).join(' Ãƒâ€šÃ‚Â· ');
+          metaEl.textContent = [date, rating].filter(Boolean).join(' ? ');
         }
         if (summaryEl) {
           summaryEl.textContent = String(item.overview || '').trim() || 'A standout anime from the live feed.';

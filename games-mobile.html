@@ -1310,12 +1310,11 @@
           for (const term of terms.slice(0, 3)) {
             const escaped = term.replace(/[%_,]/g, ' ').trim();
             if (!escaped) continue;
-            let queryBuilder = supabaseClient
-              .from('games')
-              .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug')
-              .like('cover_url', '%/covers-official/%')
-              .or(`title.ilike.%${escaped}%,slug.ilike.%${escaped}%`)
-              .limit(160);
+              let queryBuilder = supabaseClient
+                .from('games')
+                .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug')
+                .or(`title.ilike.%${escaped}%,slug.ilike.%${escaped}%`)
+                .limit(400);
             if (year) {
               queryBuilder = queryBuilder.gte('release_date', `${year}-01-01`).lte('release_date', `${year}-12-31`);
             }
@@ -1508,14 +1507,13 @@
         if (state.catalog.length && !force) return true;
         let rows = [];
         if (supabaseClient) {
-          const { data, error } = await supabaseClient
-            .from('games')
-            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source')
-            .like('cover_url', '%/covers-official/%')
-            .order('rating', { ascending: false, nullsFirst: false })
-            .order('rating_count', { ascending: false, nullsFirst: false })
-            .order('release_date', { ascending: false, nullsFirst: false })
-            .limit(1800);
+            const { data, error } = await supabaseClient
+              .from('games')
+              .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source')
+              .order('rating', { ascending: false, nullsFirst: false })
+              .order('rating_count', { ascending: false, nullsFirst: false })
+              .order('release_date', { ascending: false, nullsFirst: false })
+              .limit(6000);
           if (!error && Array.isArray(data)) rows = sortGamesPosterFirst(data);
         }
 
@@ -1536,15 +1534,13 @@
         const page = Math.max(1, Number(state.page || 1));
         const from = (page - 1) * pageSize;
         const to = from + Math.max(pageSize * 3, 24) - 1;
-        const { data, error, count } = await supabaseClient
-          .from('games')
-          .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug', { count: 'exact' })
-          .like('cover_url', '%/covers-official/%')
-          .eq('extra->>official_cover_is_poster', 'true')
-          .order('rating_count', { ascending: false, nullsFirst: false })
-          .order('rating', { ascending: false, nullsFirst: false })
-          .order('release_date', { ascending: false, nullsFirst: false })
-          .range(from, to);
+          const { data, error, count } = await supabaseClient
+            .from('games')
+            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug', { count: 'exact' })
+            .order('rating_count', { ascending: false, nullsFirst: false })
+            .order('rating', { ascending: false, nullsFirst: false })
+            .order('release_date', { ascending: false, nullsFirst: false })
+            .range(from, to);
         if (error || !Array.isArray(data) || !data.length) return null;
         const deduped = dedupeRowsByCanonicalTitle(sortGamesPosterFirst(dedupeRowsById(data)));
         return {

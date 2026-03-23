@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260302a" />
   <script src="/js/mobile-webapp.js?v=20260323b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260323b" defer></script>
+  <script src="js/shared-header.js?v=20260323c" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -1886,34 +1886,7 @@
                         <label class="form-label">Description</label>
                         <textarea class="form-textarea menu-input" id="listDescription" rows="2" placeholder="What's this list about?"></textarea>
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Icon</label>
-                        <div class="menu-icon-grid">
-                            <button type="button" class="list-icon-option menu-icon-option selected" data-icon="heart"><i class="fas fa-heart"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="check"><i class="fas fa-check"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="bookmark"><i class="fas fa-bookmark"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="restaurant"><i class="fas fa-clapperboard"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="movie"><i class="fas fa-film"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="tv"><i class="fas fa-tv"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="anime"><i class="fas fa-dragon"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="book"><i class="fas fa-book"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="list"><i class="fas fa-list"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="star"><i class="fas fa-star"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="fire"><i class="fas fa-fire"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="sparkles"><i class="fas fa-sparkles"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="rocket"><i class="fas fa-rocket"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="trophy"><i class="fas fa-trophy"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="gift"><i class="fas fa-gift"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="music"><i class="fas fa-music"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="travel"><i class="fas fa-earth-americas"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="fashion"><i class="fas fa-shirt"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="food"><i class="fas fa-burger"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="camera"><i class="fas fa-camera"></i></button>
-                            <button type="button" class="list-icon-option menu-icon-option" data-icon="soccer"><i class="fas fa-futbol"></i></button>
-                        </div>
-                        <input type="hidden" id="selectedIcon" value="heart">
-                    </div>
+                    <input type="hidden" id="selectedIcon" value="restaurant">
 
                     <div class="form-actions menu-modal-actions">
                         <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('createListModal')">Cancel</button>
@@ -1960,34 +1933,7 @@
                         <label class="form-label">List Name</label>
                         <input type="text" class="form-input" id="editMediaListName" required placeholder="Enter list name">
                     </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Icon</label>
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="editMediaListIconGrid">
-                            <button type="button" class="edit-list-icon-option" data-icon="heart"><i class="fas fa-heart"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="check"><i class="fas fa-check"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="bookmark"><i class="fas fa-bookmark"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="restaurant"><i class="fas fa-clapperboard"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="movie"><i class="fas fa-film"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="tv"><i class="fas fa-tv"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="anime"><i class="fas fa-dragon"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="book"><i class="fas fa-book"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="list"><i class="fas fa-list"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="star"><i class="fas fa-star"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="fire"><i class="fas fa-fire"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="sparkles"><i class="fas fa-sparkles"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="rocket"><i class="fas fa-rocket"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="trophy"><i class="fas fa-trophy"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="gift"><i class="fas fa-gift"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="music"><i class="fas fa-music"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="travel"><i class="fas fa-earth-americas"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="fashion"><i class="fas fa-shirt"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="food"><i class="fas fa-burger"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="camera"><i class="fas fa-camera"></i></button>
-                            <button type="button" class="edit-list-icon-option" data-icon="soccer"><i class="fas fa-futbol"></i></button>
-                        </div>
-                        <input type="hidden" id="editMediaListSelectedIcon" value="list">
-                    </div>
+                    <input type="hidden" id="editMediaListSelectedIcon" value="list">
 
                     <div class="form-group d-none" id="editMediaCollaboratorsGroup">
                         <label class="form-label">Collaborators</label>
@@ -2192,7 +2138,7 @@
     <script src="js/list-utils.js?v=20260317b"></script>
     <script src="js/referral-utils.js?v=20260319a"></script>
     <script src="js/igdb-client.js?v=20260311c"></script>
-    <script src="js/pages/profile.js?v=20260323e"></script>
+    <script src="js/pages/profile.js?v=20260323g"></script>
         <script src="js/production-runtime.js?v=20260307a" defer></script>
 
 </body>

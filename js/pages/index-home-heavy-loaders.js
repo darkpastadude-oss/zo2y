@@ -22,43 +22,7 @@ async function loadBooks(signal) {
         });
         return window.__ZO2Y_SUPABASE_CLIENT;
       };
-      const fetchLocalBookOverrides = async (docs = []) => {
-        const ids = Array.from(new Set((Array.isArray(docs) ? docs : []).map((doc) => getBookRecordId(doc)).filter(Boolean)));
-        if (!ids.length) return new Map();
-        const client = ensureHomeBooksSupabase();
-        if (!client) return new Map();
-        const map = new Map();
-        const chunkSize = 100;
-        for (let index = 0; index < ids.length; index += chunkSize) {
-          const chunk = ids.slice(index, index + chunkSize);
-          const { data, error } = await client
-            .from('books')
-            .select('id,title,authors,thumbnail,published_date,categories')
-            .in('id', chunk);
-          if (error || !Array.isArray(data)) continue;
-          data.forEach((row) => {
-            const key = String(row?.id || '').trim();
-            if (!key) return;
-            map.set(key, row);
-          });
-        }
-        return map;
-      };
-      const buildOpenLibraryCoverUrl = (doc, size = 'L') => {
-        const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
-          ? String(size || 'L').toUpperCase()
-          : 'L';
-        const coverId = Number(doc?.cover_i || 0) || 0;
-        if (coverId > 0) {
-          return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-${safeSize}.jpg`;
-        }
-        const isbnRaw = Array.isArray(doc?.isbn) ? String(doc.isbn[0] || '').trim() : String(doc?.isbn || '').trim();
-        const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
-        if (isbn) {
-          return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-${safeSize}.jpg`;
-        }
-        return '';
-      };
+        const fetchLocalBookOverrides = async () => new Map();
 
       const normalizeBookDoc = (row, idx = 0) => {
         if (!row) return null;
@@ -113,28 +77,24 @@ async function loadBooks(signal) {
       const mapDocsToRailItems = (docs, options = {}) => {
         const minYear = Number(options.minYear || 0);
         const allowMissingYear = !!options.allowMissingYear;
-        const localOverrides = options.localOverrides instanceof Map ? options.localOverrides : new Map();
-        const seen = new Set();
-        return (Array.isArray(docs) ? docs : []).map((doc, idx) => {
-          const normalized = normalizeBookDoc(doc, idx);
-          if (!normalized) return null;
-          const recordId = getBookRecordId(normalized);
-          const localOverride = recordId ? localOverrides.get(recordId) : null;
-          const title = String(normalized.title || '').trim();
-          const author = String((Array.isArray(normalized.author_name) ? normalized.author_name[0] : '') || '').trim() || 'Unknown author';
-          const overrideYear = String(localOverride?.published_date || '').slice(0, 4);
-          const year = Number(overrideYear || normalized?.first_publish_year || 0) || 0;
+          const seen = new Set();
+          return (Array.isArray(docs) ? docs : []).map((doc, idx) => {
+            const normalized = normalizeBookDoc(doc, idx);
+            if (!normalized) return null;
+            const recordId = getBookRecordId(normalized);
+            const title = String(normalized.title || '').trim();
+            const author = String((Array.isArray(normalized.author_name) ? normalized.author_name[0] : '') || '').trim() || 'Unknown author';
+            const year = Number(normalized?.first_publish_year || 0) || 0;
 
           if (!allowMissingYear && !year) return null;
           if (minYear && year && year < minYear) return null;
 
-          const coverCandidates = [
-            toHttpsUrl(normalized?._googleThumbnail || ''),
-            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'L')),
-            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'M')),
-            toHttpsUrl(localOverride?.thumbnail || ''),
-            toHttpsUrl(normalized?.coverImage || '')
-          ].filter(Boolean);
+            const coverCandidates = [
+              toHttpsUrl(normalized?._googleThumbnail || ''),
+              toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'L')),
+              toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'M')),
+              toHttpsUrl(normalized?.coverImage || '')
+            ].filter(Boolean);
           const cover = coverCandidates[0] || '';
           if (!cover) return null;
 
@@ -214,8 +174,6 @@ async function loadBooks(signal) {
             : (Array.isArray(payload?.items) ? payload.items : []);
           if (docs.length) allDocsRaw.push(...docs);
         });
-
-        const localOverrides = await fetchLocalBookOverrides(allDocsRaw);
 
         const strictModern = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: false, localOverrides });
         const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: true, localOverrides });
