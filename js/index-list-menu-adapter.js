@@ -344,24 +344,20 @@
       }
       @media (max-width: 768px) {
         .menu-modal {
-          align-items: flex-end;
+          align-items: center;
           justify-content: center;
           background: rgba(3, 10, 28, 0.8);
           backdrop-filter: blur(8px);
         }
         .menu-modal-content {
-          position: relative;
-          top: auto;
-          left: auto;
+          position: absolute;
+          top: 50%;
+          left: 50%;
           width: calc(100vw - 14px);
           max-width: 100vw;
-          max-height: min(72dvh, 640px);
-          border-radius: 18px 18px 14px 14px;
-          transform: none;
-          margin: 0 auto calc(env(safe-area-inset-bottom, 0px) + 8px);
-        }
-        .menu-modal-content.menu-modal-fly-up {
-          animation: menuModalSheetUp 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+          max-height: min(80dvh, 740px);
+          border-radius: 18px;
+          transform: translate(-50%, -50%);
         }
         .menu-modal-header {
           padding: 14px 16px;
@@ -421,10 +417,6 @@
           font-size: 15px;
           border-radius: 12px;
         }
-      }
-      @keyframes menuModalSheetUp {
-        from { opacity: 0; transform: translateY(18px); }
-        to { opacity: 1; transform: translateY(0); }
       }
     `;
     document.head.appendChild(style);
@@ -851,14 +843,6 @@
     const left = (visual?.offsetLeft || 0) + window.scrollX;
     const width = Math.max(0, Math.ceil(visual?.width || window.innerWidth || document.documentElement.clientWidth || 0));
     const height = Math.max(0, Math.ceil(visual?.height || window.innerHeight || document.documentElement.clientHeight || 0));
-    const compactSheet = width > 0 && width <= 768;
-    if (compactSheet) {
-      modal.style.top = '0px';
-      modal.style.left = '0px';
-      modal.style.width = '100vw';
-      modal.style.height = `${height}px`;
-      return;
-    }
     modal.style.top = `${top}px`;
     modal.style.left = `${left}px`;
     modal.style.width = `${width}px`;

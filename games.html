@@ -1480,21 +1480,26 @@
           for (const term of terms.slice(0, 3)) {
             const escaped = term.replace(/[%_,]/g, ' ').trim();
             if (!escaped) continue;
+            const batchSize = 1000;
+            let offset = 0;
+            while (true) {
               let queryBuilder = supabaseClient
                 .from('games')
                 .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug')
                 .or(`title.ilike.%${escaped}%,slug.ilike.%${escaped}%`)
-                .limit(800);
-            if (year) {
-              queryBuilder = queryBuilder.gte('release_date', `${year}-01-01`).lte('release_date', `${year}-12-31`);
-            }
-            const { data, error } = await queryBuilder;
-            if (!error && Array.isArray(data) && data.length) {
+                .range(offset, offset + batchSize - 1);
+              if (year) {
+                queryBuilder = queryBuilder.gte('release_date', `${year}-01-01`).lte('release_date', `${year}-12-31`);
+              }
+              const { data, error } = await queryBuilder;
+              if (error || !Array.isArray(data) || !data.length) break;
               allRows.push(...data);
+              if (data.length < batchSize) break;
+              offset += data.length;
             }
           }
         }
-        const filtered = dedupeRowsByTitleEdition(filterCatalogGames(dedupeRowsById(allRows)));
+        const filtered = filterCatalogGames(dedupeRowsById(allRows));
         state.searchSupplementCache.set(cacheKey, filtered);
         return filtered;
       }
@@ -1510,7 +1515,7 @@
             source: 'supabase-search'
           };
         }
-        const ranked = sortSearchResults(dedupeRowsByTitleEdition(supplement), query).filter(hasRenderableGameArt);
+        const ranked = sortSearchResults(dedupeRowsById(supplement), query);
         const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
         return {
           rows: ranked.slice(start, start + pageSize),
@@ -1762,7 +1767,7 @@
             if (data.length < pageSize) break;
             from += data.length;
           }
-          rows = dedupeRowsByTitleEdition(sortGamesPosterFirst(dedupeRowsById(rows)));
+          rows = sortGamesPosterFirst(dedupeRowsById(rows));
         }
 
         if (rows.length) {
@@ -1806,7 +1811,7 @@
           if (data.length < chunkSize) break;
           cursor += data.length;
         }
-        const deduped = dedupeRowsByTitleEdition(sortGamesPosterFirst(dedupeRowsById(collected))).filter(hasRenderableGameArt);
+        const deduped = sortGamesPosterFirst(dedupeRowsById(collected));
         if (!deduped.length) return null;
         const payload = {
           rows: deduped.slice(0, pageSize),
@@ -1837,13 +1842,12 @@
             workingSet = dedupeRowsById([...supplement, ...workingSet]);
           }
         }
-        const filtered = dedupeRowsByTitleEdition(filterCatalogGames(workingSet));
+        const filtered = filterCatalogGames(dedupeRowsById(workingSet));
         const ranked = query ? sortSearchResults(filtered, query) : filtered;
-        const renderable = ranked.filter(hasRenderableGameArt);
         const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
         return {
-          rows: renderable.slice(start, start + pageSize),
-          count: renderable.length,
+          rows: ranked.slice(start, start + pageSize),
+          count: ranked.length,
           source: 'supabase'
         };
       }

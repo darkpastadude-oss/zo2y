@@ -175,6 +175,44 @@ async function loadBooks(signal) {
         };
       };
 
+      const fetchLocalHomeBooks = async () => {
+        const client = ensureHomeBooksSupabase();
+        if (!client) return [];
+        try {
+          const { data, error } = await client
+            .from('books')
+            .select('id,title,authors,thumbnail,published_date,categories,google_volume_id')
+            .order('published_date', { ascending: false, nullsFirst: false })
+            .limit(Math.max(targetCount * 4, 60));
+          if (error || !Array.isArray(data) || !data.length) return [];
+          const mapped = mapDocsToRailItems(data.map((row) => {
+            const authorNames = String(row?.authors || '')
+              .split(',')
+              .map((entry) => String(entry || '').trim())
+              .filter(Boolean);
+            const published = String(row?.published_date || '').trim();
+            const yearMatch = published.match(/\d{4}/);
+            return {
+              id: String(row?.google_volume_id || row?.id || '').trim(),
+              title: String(row?.title || '').trim(),
+              author_name: authorNames,
+              first_publish_year: yearMatch ? Number(yearMatch[0]) : null,
+              coverImage: toHttpsUrl(String(row?.thumbnail || '').trim()),
+              _googleThumbnail: toHttpsUrl(String(row?.thumbnail || '').trim()),
+              _googleVolumeId: String(row?.google_volume_id || '').trim(),
+              subject: Array.isArray(row?.categories) ? row.categories : []
+            };
+          }), { minYear: 0, allowMissingYear: true });
+          const deduped = filterHomeSafeItems(mergeUniqueItems(mapped)).slice(0, targetCount);
+          if (deduped.length) {
+            writeHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, deduped);
+          }
+          return deduped;
+        } catch (_error) {
+          return [];
+        }
+      };
+
       const cachedItems = readHomeItemsCache(
         HOME_BOOKS_ITEMS_CACHE_KEY,
         HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS,
@@ -182,6 +220,11 @@ async function loadBooks(signal) {
       );
       if (cachedItems.length) {
         return cachedItems.slice(0, targetCount);
+      }
+
+      const localItems = await fetchLocalHomeBooks();
+      if (localItems.length) {
+        return localItems.slice(0, targetCount);
       }
 
       try {

@@ -1,7 +1,7 @@
-﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v181';
-const PAGE_CACHE = 'zo2y-pages-v151';
-const IMAGE_CACHE = 'zo2y-images-v28';
-const API_CACHE = 'zo2y-api-v11';
+﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v182';
+const PAGE_CACHE = 'zo2y-pages-v152';
+const IMAGE_CACHE = 'zo2y-images-v29';
+const API_CACHE = 'zo2y-api-v12';
 const MOVIES_PAGE_VERSION = '20260322m';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
@@ -15,8 +15,8 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260319e',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260323i',
-  '/js/pages/index-home-heavy-loaders.js?v=20260323d',
+  '/js/pages/index.js?v=20260324a',
+  '/js/pages/index-home-heavy-loaders.js?v=20260324a',
   '/js/home-desktop-rebrand.js?v=20260323c',
   '/js/referral-utils.js?v=20260319a',
   '/js/shared-header.js?v=20260323c',
@@ -29,7 +29,7 @@ const STATIC_ASSETS = [
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260324a',
+  '/js/mobile-webapp.js?v=20260324b',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260308a',
   '/favicon.ico',
