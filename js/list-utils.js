@@ -213,6 +213,34 @@
     } catch (_error) {}
   }
 
+  function withTimeout(promise, timeoutMs, fallbackValue) {
+    const safeTimeoutMs = Number(timeoutMs);
+    if (!promise || !Number.isFinite(safeTimeoutMs) || safeTimeoutMs <= 0) {
+      return Promise.resolve(promise);
+    }
+    return new Promise((resolve) => {
+      let settled = false;
+      const timeoutId = window.setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        resolve(fallbackValue);
+      }, safeTimeoutMs);
+      Promise.resolve(promise)
+        .then((value) => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timeoutId);
+          resolve(value);
+        })
+        .catch(() => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timeoutId);
+          resolve(fallbackValue);
+        });
+    });
+  }
+
   function setTierSyncContext(client, userId) {
     if (client) tierSyncContext.client = client;
     const safeUserId = String(userId || '').trim();
@@ -1001,7 +1029,7 @@
     if (!cfg || !client || !userId) return [];
     if (customListsDisabled(cfg)) return [];
     setTierSyncContext(client, userId);
-    const rpcLists = await loadAccessibleCustomListsViaRpc(client, userId, type);
+    const rpcLists = await withTimeout(loadAccessibleCustomListsViaRpc(client, userId, type), 2200, null);
     let enhancedRpc = null;
     if (Array.isArray(rpcLists)) {
       const groups = new Map();
@@ -1026,51 +1054,56 @@
       return Array.isArray(enhancedRpc) && enhancedRpc.length ? enhancedRpc : [];
     }
 
-    const { data, error } = await client
-      .from(cfg.listTable)
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-    if (error && isListTableMissingError(error, cfg.listTable)) {
-      missingListTables.add(cfg.listTable);
-      return Array.isArray(enhancedRpc) && enhancedRpc.length ? enhancedRpc : [];
-    }
-    const ownLists = error ? [] : (data || []);
-    const ownById = new Set(ownLists.map((row) => String(row?.id || '').trim()).filter(Boolean));
-
+    let ownLists = [];
     let sharedLists = [];
-    const collaboratorRows = await loadCollaboratorRows(client, userId, type);
-    const sharedIds = [...new Set((collaboratorRows || [])
-      .map((row) => String(row?.list_id || '').trim())
-      .filter((id) => id && !ownById.has(id)))];
-
-    if (sharedIds.length && !missingListTables.has(cfg.listTable)) {
-      const { data: rows, error: sharedError } = await client
+    try {
+      const { data, error } = await client
         .from(cfg.listTable)
         .select('*')
-        .in('id', sharedIds);
-      if (sharedError && isListTableMissingError(sharedError, cfg.listTable)) {
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (error && isListTableMissingError(error, cfg.listTable)) {
         missingListTables.add(cfg.listTable);
         return Array.isArray(enhancedRpc) && enhancedRpc.length ? enhancedRpc : [];
       }
-      if (!sharedError && Array.isArray(rows)) {
-        const collabById = new Map();
-        collaboratorRows.forEach((row) => {
-          const key = String(row?.list_id || '').trim();
-          if (!key) return;
-          collabById.set(key, row);
-        });
-        sharedLists = rows.map((row) => {
-          const key = String(row?.id || '').trim();
-          const collab = collabById.get(key);
-          return {
-            ...row,
-            __isCollaborative: true,
-            __canEdit: !!collab?.can_edit,
-            __listOwnerId: String(collab?.list_owner_id || row?.user_id || '').trim()
-          };
-        });
+      ownLists = error ? [] : (data || []);
+      const ownById = new Set(ownLists.map((row) => String(row?.id || '').trim()).filter(Boolean));
+
+      const collaboratorRows = await withTimeout(loadCollaboratorRows(client, userId, type), 2200, []);
+      const sharedIds = [...new Set((collaboratorRows || [])
+        .map((row) => String(row?.list_id || '').trim())
+        .filter((id) => id && !ownById.has(id)))];
+
+      if (sharedIds.length && !missingListTables.has(cfg.listTable)) {
+        const { data: rows, error: sharedError } = await client
+          .from(cfg.listTable)
+          .select('*')
+          .in('id', sharedIds);
+        if (sharedError && isListTableMissingError(sharedError, cfg.listTable)) {
+          missingListTables.add(cfg.listTable);
+          return Array.isArray(enhancedRpc) && enhancedRpc.length ? enhancedRpc : [];
+        }
+        if (!sharedError && Array.isArray(rows)) {
+          const collabById = new Map();
+          collaboratorRows.forEach((row) => {
+            const key = String(row?.list_id || '').trim();
+            if (!key) return;
+            collabById.set(key, row);
+          });
+          sharedLists = rows.map((row) => {
+            const key = String(row?.id || '').trim();
+            const collab = collabById.get(key);
+            return {
+              ...row,
+              __isCollaborative: true,
+              __canEdit: !!collab?.can_edit,
+              __listOwnerId: String(collab?.list_owner_id || row?.user_id || '').trim()
+            };
+          });
+        }
       }
+    } catch (_error) {
+      return Array.isArray(enhancedRpc) && enhancedRpc.length ? enhancedRpc : [];
     }
 
     const lists = [...ownLists, ...sharedLists];
@@ -1121,19 +1154,23 @@
     if (!cfg || !client || !listIds || !listIds.length || normalizedItemId === null) return new Set();
     if (customListsDisabled(cfg)) return new Set();
     if (missingItemTables.has(cfg.itemsTable)) return new Set();
-    let query = client
-      .from(cfg.itemsTable)
-      .select('list_id')
-      .eq(cfg.itemIdField, normalizedItemId)
-      .in('list_id', listIds);
-    const { data, error } = await query;
-    if (error && isListTableMissingError(error, cfg.itemsTable)) {
-      missingItemTables.add(cfg.itemsTable);
+    try {
+      let query = client
+        .from(cfg.itemsTable)
+        .select('list_id')
+        .eq(cfg.itemIdField, normalizedItemId)
+        .in('list_id', listIds);
+      const { data, error } = await query;
+      if (error && isListTableMissingError(error, cfg.itemsTable)) {
+        missingItemTables.add(cfg.itemsTable);
+        return new Set();
+      }
+      const set = new Set();
+      (data || []).forEach(row => set.add(row.list_id));
+      return set;
+    } catch (_error) {
       return new Set();
     }
-    const set = new Set();
-    (data || []).forEach(row => set.add(row.list_id));
-    return set;
   }
 
   async function saveCustomListChanges(client, userId, type, itemId, selectedListIds, itemPayload) {

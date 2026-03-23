@@ -1151,7 +1151,7 @@
         const byIsbn = toHttpsUrl(buildOpenLibraryCoverUrl(doc, 'M'));
         if (byIsbn) return byIsbn;
         const coverImage = toHttpsUrl(doc?.coverImage || '');
-        if (coverImage && !/supabase\.co\/storage\/v1\/object\/public/i.test(coverImage)) return coverImage;
+        if (coverImage) return coverImage;
         return null;
       }
 
@@ -1681,14 +1681,13 @@
             const localData = await fetchLocalBooksPage();
             if (requestSeq !== state.requestSeq) return;
             const localDocs = Array.isArray(localData?.docs) ? localData.docs : [];
-            const localDocsWithApiCovers = localDocs.filter((doc) => Boolean(getPreferredBookImage(doc)));
-            if (localDocsWithApiCovers.length) {
+            if (localDocs.length) {
               data = {
                 ...(localData || {}),
-                docs: localDocsWithApiCovers,
-                numFound: Number(localData?.numFound || localDocsWithApiCovers.length)
+                docs: localDocs,
+                numFound: Number(localData?.numFound || localDocs.length)
               };
-              updateBookPageSpotlight(localDocsWithApiCovers);
+              updateBookPageSpotlight(localDocs);
               writeBooksCache(cacheKey, data);
             } else {
               const params = {

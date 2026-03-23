@@ -1511,6 +1511,8 @@
 
       const GENRE_CACHE_KEY = 'zo2y_game_genres_cache_v3';
       const GENRE_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
+      const GAMES_PAGE_CACHE_KEY = 'zo2y_games_featured_pages_cache_v1';
+      const GAMES_PAGE_CACHE_TTL_MS = 1000 * 60 * 20;
 
       function readCachedGenres() {
         try {
@@ -1533,6 +1535,54 @@
             items
           }));
         } catch (_err) {}
+      }
+
+      function isPopularGamesBrowseState() {
+        return !state.query && !state.activeGenre && !state.year;
+      }
+
+      function readCachedGamePages() {
+        try {
+          const raw = localStorage.getItem(GAMES_PAGE_CACHE_KEY);
+          const parsed = raw ? JSON.parse(raw) : null;
+          return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (_err) {
+          return {};
+        }
+      }
+
+      function writeCachedGamePages(pages) {
+        try {
+          localStorage.setItem(GAMES_PAGE_CACHE_KEY, JSON.stringify(pages || {}));
+        } catch (_err) {}
+      }
+
+      function readCachedFeaturedGamesPage(page) {
+        const key = String(Math.max(1, Number(page || 1)));
+        const pages = readCachedGamePages();
+        const entry = pages?.[key];
+        if (!entry || !Array.isArray(entry.rows) || !entry.rows.length) return null;
+        const cachedAt = Number(entry.cachedAt || 0) || 0;
+        if (!cachedAt || (cachedAt + GAMES_PAGE_CACHE_TTL_MS) < Date.now()) return null;
+        return {
+          rows: entry.rows.filter(Boolean),
+          count: Number(entry.count || entry.rows.length) || entry.rows.length,
+          source: 'supabase-fast-cache',
+          cachedAt
+        };
+      }
+
+      function writeCachedFeaturedGamesPage(page, payload) {
+        const rows = Array.isArray(payload?.rows) ? payload.rows.filter(Boolean) : [];
+        if (!rows.length) return;
+        const key = String(Math.max(1, Number(page || 1)));
+        const pages = readCachedGamePages();
+        pages[key] = {
+          rows,
+          count: Number(payload?.count || rows.length) || rows.length,
+          cachedAt: Date.now()
+        };
+        writeCachedGamePages(pages);
       }
 
       async function loadGenreCatalog() {
@@ -1617,11 +1667,13 @@
         }
         const deduped = dedupeRowsByTitleEdition(sortGamesPosterFirst(dedupeRowsById(collected))).filter(hasRenderableGameArt);
         if (!deduped.length) return null;
-        return {
+        const payload = {
           rows: deduped.slice(0, pageSize),
           count: Number(count || deduped.length),
           source: 'supabase-fast'
         };
+        writeCachedFeaturedGamesPage(page, payload);
+        return payload;
       }
 
       async function fetchLocalGamesPage(pageSize) {
@@ -1957,10 +2009,33 @@
         }
         igdbAbortController = new AbortController();
         const signal = igdbAbortController.signal;
-        if (state.page === 1) {
+
+        const pageSize = getGamesPageSize();
+        const shouldUseFeaturedCache = isPopularGamesBrowseState();
+        const cachedFeaturedPage = shouldUseFeaturedCache ? readCachedFeaturedGamesPage(state.page) : null;
+
+        if (cachedFeaturedPage?.rows?.length) {
+          state.catalogSource = cachedFeaturedPage.source || 'supabase-fast-cache';
+          updateGamePageSpotlight(cachedFeaturedPage.rows);
+          grid.innerHTML = '';
+          const cachedFragment = document.createDocumentFragment();
+          cachedFeaturedPage.rows.slice(0, pageSize).forEach((item, idx) => {
+            const card = createGameCard(item, idx);
+            if (card) cachedFragment.appendChild(card);
+          });
+          grid.appendChild(cachedFragment);
+          const renderedCount = cachedFragment.childNodes.length;
+          if (empty) empty.style.display = renderedCount ? 'none' : 'block';
+          const totalMatches = Number(cachedFeaturedPage.count || renderedCount) || renderedCount;
+          state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
+          state.hasMore = state.page < state.totalPages;
+          updatePagination();
+          if (!options?.cacheBust) return;
+        }
+
+        if (!cachedFeaturedPage?.rows?.length && state.page === 1) {
           grid.innerHTML = '<div class="empty">Loading games...</div>';
         }
-        const pageSize = getGamesPageSize();
         const fetchLimitCap = isSlowNetwork() ? 30 : 50;
         const fetchMultiplier = state.query ? 2 : 1.5;
         const fetchPageSize = Math.min(Math.ceil(pageSize * fetchMultiplier), fetchLimitCap);
@@ -2332,10 +2407,10 @@
       (async function init() {
         await initSupabase();
         wireUI();
-        await loadGenreCatalog();
         await initAuth();
         renderFilters();
         loadGames();
+        loadGenreCatalog().catch(() => {});
       })();
     })();
   </script>
