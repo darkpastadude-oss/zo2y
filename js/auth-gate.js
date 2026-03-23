@@ -160,6 +160,7 @@
     var attempts = 0;
     var client = null;
     var protectedPage = !PUBLIC_PAGE_KEYS.has(pageKey);
+    var authStateVerifyTimer = null;
 
     async function verifyAndApply() {
       if (!client || !client.auth || typeof client.auth.getSession !== 'function') return false;
@@ -174,6 +175,13 @@
           var retryResult = await client.auth.getSession();
           var retrySession = retryResult && retryResult.data ? retryResult.data.session : null;
           var retryAuthenticated = !!(retrySession && retrySession.user);
+          if (!retryAuthenticated && typeof client.auth.refreshSession === 'function') {
+            try {
+              var refreshedResult = await client.auth.refreshSession();
+              var refreshedSession = refreshedResult && refreshedResult.data ? refreshedResult.data.session : null;
+              retryAuthenticated = !!(refreshedSession && refreshedSession.user);
+            } catch (_refreshErr) {}
+          }
           applyShellState(retryAuthenticated, pageKey);
           if (!retryAuthenticated && !hasStoredSupabaseSession()) {
             redirectToLanding();
@@ -230,15 +238,10 @@
       if (!window.__ZO2Y_AUTH_GATE_LISTENER_BOUND && client.auth && typeof client.auth.onAuthStateChange === 'function') {
         window.__ZO2Y_AUTH_GATE_LISTENER_BOUND = true;
         client.auth.onAuthStateChange(function (_event, session) {
-          var authenticated = !!(session && session.user);
-          applyShellState(authenticated, pageKey);
-          if (!authenticated && protectedPage && !hasStoredSupabaseSession()) {
-            redirectToLanding();
-            return;
-          }
-          window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
-            detail: { authenticated: authenticated, pageKey: pageKey }
-          }));
+          if (authStateVerifyTimer) window.clearTimeout(authStateVerifyTimer);
+          authStateVerifyTimer = window.setTimeout(function () {
+            void verifyAndApply();
+          }, session && session.user ? 0 : 400);
         });
       }
     }, 150);

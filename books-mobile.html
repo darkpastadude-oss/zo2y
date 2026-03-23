@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260322a"></script>
+<script src="/js/auth-gate.js?v=20260324a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Books</title>
   <link rel="icon" href="/newlogo.webp" type="image/webp" />
@@ -382,6 +382,10 @@
     .card-meta {
       font-size: 11px;
       color: var(--muted);
+      min-width: 0;
+      flex: 1;
+      line-height: 1.4;
+      word-break: break-word;
     }
 
     .card-desc {
@@ -409,6 +413,8 @@
       position: relative;
       margin-left: auto;
       flex-shrink: 0;
+      display: flex;
+      align-items: flex-end;
     }
 
     .menu-btn {
@@ -423,6 +429,15 @@
       align-items: center;
       justify-content: center;
       transition: all 0.2s ease;
+      flex: 0 0 30px;
+      overflow: hidden;
+    }
+
+    .menu-btn i {
+      display: block;
+      font-size: 13px;
+      line-height: 1;
+      pointer-events: none;
     }
 
     .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -763,7 +778,7 @@
   <link rel="manifest" href="/manifest.webmanifest?v=2" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-<script src="/js/mobile-webapp.js?v=20260323c" defer></script>
+<script src="/js/mobile-webapp.js?v=20260324a" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
   <script src="js/shared-header.js?v=20260322h" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
@@ -865,7 +880,7 @@
   </div>
 
 <script src="js/list-utils.js?v=20260323a"></script>
-<script src="js/index-list-menu-adapter.js?v=20260323a"></script>
+<script src="js/index-list-menu-adapter.js?v=20260324a"></script>
     <script>
     (function () {
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
@@ -873,7 +888,8 @@
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
       const BOOKS_PER_PAGE = 20;
-      const BOOKS_CACHE_BUSTER = '20260323-api-only-mobile-fast';
+      const BOOKS_CACHE_BUSTER = '20260324-api-only-mobile-fast';
+      const BOOKS_SESSION_RECOVERY_RETRY_MS = 350;
       const CATEGORY_OPTIONS = [
         'Fiction',
         'Mystery',
@@ -1084,7 +1100,18 @@
         });
         url.searchParams.set('cb', BOOKS_CACHE_BUSTER);
         url.searchParams.set('_', String(Date.now()));
-        const res = await fetch(url.toString(), { headers: { Accept: 'application/json' }, cache: 'no-store' });
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 4800);
+        let res;
+        try {
+          res = await fetch(url.toString(), {
+            headers: { Accept: 'application/json' },
+            cache: 'no-store',
+            signal: controller.signal
+          });
+        } finally {
+          window.clearTimeout(timeoutId);
+        }
         if (!res.ok) throw new Error(`Books API error ${res.status}`);
         const json = await res.json();
         const docsRaw = Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.items) ? json.items : []);
@@ -1308,13 +1335,44 @@
 
       async function initAuth() {
         if (!supabaseClient) return;
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        state.currentUser = user || null;
+        state.currentUser = await ensureBooksUserSession();
         await loadUserListStatus();
         supabaseClient.auth.onAuthStateChange((_event, session) => {
-          state.currentUser = session?.user || null;
-          loadUserListStatus();
+          if (session?.user) {
+            state.currentUser = session.user;
+            void loadUserListStatus();
+            return;
+          }
+          window.setTimeout(async () => {
+            state.currentUser = await ensureBooksUserSession();
+            await loadUserListStatus();
+          }, BOOKS_SESSION_RECOVERY_RETRY_MS);
         });
+      }
+
+      async function ensureBooksUserSession() {
+        if (!supabaseClient?.auth) return state.currentUser || null;
+        if (state.currentUser?.id) return state.currentUser;
+        try {
+          const sessionResult = await supabaseClient.auth.getSession();
+          const sessionUser = sessionResult?.data?.session?.user || null;
+          if (sessionUser?.id) return sessionUser;
+        } catch (_error) {}
+        try {
+          const refreshResult = typeof supabaseClient.auth.refreshSession === 'function'
+            ? await supabaseClient.auth.refreshSession()
+            : null;
+          const refreshedUser = refreshResult?.data?.session?.user || null;
+          if (refreshedUser?.id) return refreshedUser;
+        } catch (_error) {}
+        try {
+          const userResult = typeof supabaseClient.auth.getUser === 'function'
+            ? await supabaseClient.auth.getUser()
+            : null;
+          return userResult?.data?.user || null;
+        } catch (_error) {
+          return null;
+        }
       }
 
       async function loadUserListStatus() {
@@ -1667,7 +1725,9 @@
       }
 
       async function toggleDefaultList(bookId, listType, card, forcedNextSaved) {
-        if (!state.currentUser) {
+        const activeUser = await ensureBooksUserSession();
+        state.currentUser = activeUser || null;
+        if (!activeUser) {
           showNotification('Please sign in to save books', 'info');
           return { ok: false, saved: false };
         }
@@ -1691,14 +1751,14 @@
             if (!ensured) throw new Error('book_record_missing');
             const { error } = await supabaseClient
               .from('book_list_items')
-              .insert({ user_id: state.currentUser.id, book_id: bookId, list_type: listType });
+              .insert({ user_id: activeUser.id, book_id: bookId, list_type: listType });
             if (error && String(error.code || '') !== '23505') throw error;
             showNotification('Saved to list', 'success');
           } else {
             const { error } = await supabaseClient
               .from('book_list_items')
               .delete()
-              .eq('user_id', state.currentUser.id)
+              .eq('user_id', activeUser.id)
               .eq('book_id', bookId)
               .eq('list_type', listType);
             if (error) throw error;
@@ -1717,12 +1777,16 @@
       }
 
       async function loadCustomLists() {
-        if (!supabaseClient || !state.currentUser || !window.ListUtils) return [];
-        return await ListUtils.loadCustomLists(supabaseClient, state.currentUser.id, 'book');
+        const activeUser = await ensureBooksUserSession();
+        state.currentUser = activeUser || null;
+        if (!supabaseClient || !activeUser || !window.ListUtils) return [];
+        return await ListUtils.loadCustomLists(supabaseClient, activeUser.id, 'book');
       }
 
       async function openBookListsModal(bookId) {
-        if (!state.currentUser) {
+        const activeUser = await ensureBooksUserSession();
+        state.currentUser = activeUser || null;
+        if (!activeUser) {
           showNotification('Please sign in to manage lists', 'info');
           return;
         }
@@ -1734,7 +1798,7 @@
         state.customLists = await loadCustomLists();
         const listIds = state.customLists.map(l => l.id);
         state.modalSelectedLists = window.ListUtils
-          ? await ListUtils.loadCustomListMembership(supabaseClient, state.currentUser.id, 'book', bookId, listIds)
+          ? await ListUtils.loadCustomListMembership(supabaseClient, activeUser.id, 'book', bookId, listIds)
           : new Set();
         container.innerHTML = '';
         if (!state.customLists.length) {
@@ -1773,12 +1837,14 @@
       }
 
       async function saveBookListChanges() {
-        if (!supabaseClient || !state.currentUser || !state.activeBookId) return;
+        const activeUser = await ensureBooksUserSession();
+        state.currentUser = activeUser || null;
+        if (!supabaseClient || !activeUser || !state.activeBookId) return;
         if (window.ListUtils) {
           const book = state.bookIndex.get(state.activeBookId);
           await ListUtils.saveCustomListChanges(
             supabaseClient,
-            state.currentUser.id,
+            activeUser.id,
             'book',
             state.activeBookId,
             [...state.modalSelectedLists],
@@ -1805,14 +1871,19 @@
       async function createBookList() {
         const input = document.getElementById('newBookListName');
         if (!input || !input.value.trim()) return;
-        if (!supabaseClient || !state.currentUser) return;
+        const activeUser = await ensureBooksUserSession();
+        state.currentUser = activeUser || null;
+        if (!supabaseClient || !activeUser) {
+          showNotification('Please sign in to create lists', 'info');
+          return;
+        }
         const title = input.value.trim();
         const modal = document.getElementById('bookListsModal');
         const tierState = window.ListUtils && modal
           ? ListUtils.readTierCreateState(modal)
           : { listKind: 'standard', maxRank: null };
         const data = window.ListUtils
-          ? await ListUtils.createCustomList(supabaseClient, state.currentUser.id, 'book', {
+          ? await ListUtils.createCustomList(supabaseClient, activeUser.id, 'book', {
             title,
             icon: state.selectedIcon || 'fas fa-book',
           listKind: tierState.listKind,
@@ -1832,9 +1903,11 @@
       async function renameBookList(listId, currentTitle) {
         const nextTitle = prompt('Rename list', currentTitle || '');
         if (!nextTitle || !nextTitle.trim()) return;
-        if (!supabaseClient || !state.currentUser) return;
+        const activeUser = await ensureBooksUserSession();
+        state.currentUser = activeUser || null;
+        if (!supabaseClient || !activeUser) return;
         const ok = window.ListUtils
-          ? await ListUtils.renameCustomList(supabaseClient, state.currentUser.id, 'book', listId, nextTitle.trim())
+          ? await ListUtils.renameCustomList(supabaseClient, activeUser.id, 'book', listId, nextTitle.trim())
           : false;
         if (!ok) {
           showNotification('Could not rename list', 'error');

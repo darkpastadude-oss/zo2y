@@ -1,5 +1,5 @@
 (() => {
-  const APP_RUNTIME_VERSION = '20260323-cache-reset-a';
+  const APP_RUNTIME_VERSION = '20260324-cache-reset-a';
 
   const isMobileLike = window.matchMedia('(max-width: 900px)').matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   const path = window.location.pathname || '/';
@@ -806,7 +806,7 @@
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       void resetZo2yCachesIfNeeded().finally(() => {
-        navigator.serviceWorker.register('/sw.js?v=20260323a').catch(() => {
+        navigator.serviceWorker.register('/sw.js?v=20260324a').catch(() => {
         // silent fail to avoid runtime noise
         });
       });

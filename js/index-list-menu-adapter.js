@@ -632,6 +632,41 @@
     return bridge.ensureClient();
   }
 
+  function redirectToLogin() {
+    try {
+      const next = `${window.location.pathname || ''}${window.location.search || ''}${window.location.hash || ''}` || 'index.html';
+      localStorage.setItem('postAuthRedirect', next);
+    } catch (_error) {}
+    window.location.href = 'login.html';
+  }
+
+  async function resolveAuthenticatedUser() {
+    const existingUser = getCurrentUser();
+    if (existingUser?.id) return existingUser;
+    const client = await ensureClient();
+    if (!client?.auth) return null;
+    try {
+      const sessionResult = await client.auth.getSession();
+      const sessionUser = sessionResult?.data?.session?.user || null;
+      if (sessionUser?.id) return sessionUser;
+    } catch (_error) {}
+    try {
+      const refreshResult = typeof client.auth.refreshSession === 'function'
+        ? await client.auth.refreshSession()
+        : null;
+      const refreshedUser = refreshResult?.data?.session?.user || null;
+      if (refreshedUser?.id) return refreshedUser;
+    } catch (_error) {}
+    try {
+      const userResult = typeof client.auth.getUser === 'function'
+        ? await client.auth.getUser()
+        : null;
+      const user = userResult?.data?.user || null;
+      if (user?.id) return user;
+    } catch (_error) {}
+    return null;
+  }
+
   function getCardItem(card) {
     if (!card) return null;
     if (bridge && typeof bridge.getItemFromCard === 'function') {
@@ -1110,9 +1145,9 @@
 
   async function toggleMenuCustomList(listId) {
     const item = STATE.currentItem;
-    const user = getCurrentUser();
+    const user = await resolveAuthenticatedUser();
     if (!item || !user?.id || !window.ListUtils) {
-      window.location.href = 'login.html';
+      redirectToLogin();
       return;
     }
     const client = await ensureClient();
@@ -1152,10 +1187,10 @@
     })();
   }
 
-  function openCreateListModalFromMenu() {
-    const user = getCurrentUser();
+  async function openCreateListModalFromMenu() {
+    const user = await resolveAuthenticatedUser();
     if (!STATE.currentItem || !user?.id) {
-      window.location.href = 'login.html';
+      redirectToLogin();
       return;
     }
     const createModal = document.getElementById('createListModal');
@@ -1180,9 +1215,9 @@
 
   async function saveNewCustomListFromMenu() {
     const item = STATE.currentItem;
-    const user = getCurrentUser();
+    const user = await resolveAuthenticatedUser();
     if (!item || !window.ListUtils || !user?.id) {
-      window.location.href = 'login.html';
+      redirectToLogin();
       return;
     }
     const nameInput = document.getElementById('newListNameInput');
