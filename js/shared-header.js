@@ -843,7 +843,9 @@ const HEADER_HTML = `
 
   function boot() {
     if (isHeaderSuppressedPage(window.location.pathname)) return;
-    if (isLandingShell()) {
+    const currentPage = normalizePageName(window.location.pathname);
+    const currentShell = document.documentElement?.dataset?.authShell || document.body?.dataset?.authShell || '';
+    if (currentPage === 'index' && currentShell !== 'app') {
       teardownSharedHeader();
       window.addEventListener('zo2y-auth-gate-verified', (event) => {
         if (!event?.detail?.authenticated) return;

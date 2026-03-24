@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260323b"></script>
+<script src="/js/auth-gate.js?v=20260324c"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Sign Up</title>
 <link rel="icon" href="/newlogo.webp" type="image/webp" />
@@ -171,6 +171,15 @@
     return false;
   }
 
+  function safeRemoveAuthStorage(key) {
+    try {
+      if (window.sessionStorage) window.sessionStorage.removeItem(key);
+    } catch (_err) {}
+    try {
+      if (window.localStorage) window.localStorage.removeItem(key);
+    } catch (_err) {}
+  }
+
   const initialNextPath = sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || safeGetAuthStorage('postAuthRedirect') || 'index.html');
 
   function analyticsTrack(eventName, properties = {}, essential = false) {
@@ -247,8 +256,8 @@
   async function finalizeAuthRedirect() {
     await waitForStableSession(5000);
     const nextPath = getPostAuthRedirect();
-    localStorage.removeItem('postAuthRedirect');
-    window.location.href = nextPath;
+    safeRemoveAuthStorage('postAuthRedirect');
+    window.location.replace(nextPath);
   }
 
   function getOnboardingPendingKey(userId) {
@@ -299,7 +308,7 @@
       const user = await getVerifiedUser();
       if (user) {
         console.log('User already logged in, redirecting...');
-        window.location.href = 'index.html';
+        await finalizeAuthRedirect();
       }
     } catch (error) {
       console.error('Session check error:', error);

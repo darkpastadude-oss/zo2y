@@ -31,10 +31,26 @@
       padding-left: 0 !important;
     }
 
-    @media (min-width: 1025px) {
-      html[data-auth-shell="landing"] .zo2y-shared-header {
-        display: block !important;
-      }
+    html[data-auth-shell="landing"] .zo2y-shared-header,
+    html[data-auth-shell="landing"] .zo2y-mobile-drawer,
+    html[data-auth-shell="landing"] .zo2y-mobile-drawer-backdrop {
+      display: none !important;
+    }
+
+    html[data-auth-shell="pending"] .landing-experience,
+    html[data-auth-shell="pending"] .authenticated-only,
+    html[data-auth-shell="pending"] .zo2y-shared-header,
+    html[data-auth-shell="pending"] .zo2y-desktop-rail,
+    html[data-auth-shell="pending"] .zo2y-mobile-drawer,
+    html[data-auth-shell="pending"] .zo2y-mobile-drawer-backdrop {
+      display: none !important;
+    }
+
+    html[data-auth-shell="pending"] body {
+      background:
+        radial-gradient(circle at 18% -8%, rgba(245, 158, 11, 0.16), transparent 35%),
+        radial-gradient(circle at 85% -12%, rgba(88, 130, 255, 0.22), transparent 42%),
+        #0b1633;
     }
 
     .landing-header {

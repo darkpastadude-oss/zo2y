@@ -7417,7 +7417,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           return;
         }
         const script = document.createElement('script');
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260324c';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260324d';
         script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
@@ -7596,7 +7596,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       scheduleHomeMenuCachePrime();
     }
 
+    let landingExperienceInitialized = false;
+
     function initLandingExperience() {
+      if (landingExperienceInitialized) return;
+      landingExperienceInitialized = true;
       document.body?.classList.add('landing-mode');
       const authNotice = document.getElementById('landingAuthNotice');
       const revealNodes = Array.from(document.querySelectorAll('[data-landing-reveal]'));
@@ -7719,9 +7723,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     document.addEventListener('DOMContentLoaded', () => {
       const authGateState = getHomeAuthGateState();
-      if (isHomeLandingMode() && !authGateState?.authenticated) {
+      if (authGateState?.authShell === 'landing' && authGateState?.verified && !authGateState?.authenticated) {
         initLandingExperience();
-      } else {
+      } else if (authGateState?.authShell === 'app' && authGateState?.authenticated) {
         void bootAuthenticatedHome().catch((error) => {
           console.error('Home boot failed:', error);
           setStatus('Could not load your home feed right now. Please refresh.', true);
@@ -7730,12 +7734,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
       window.addEventListener('zo2y-auth-gate-verified', (event) => {
         const authenticated = !!event?.detail?.authenticated;
-        if (!authenticated) return;
-        document.body?.classList.remove('landing-mode');
-        void bootAuthenticatedHome().catch((error) => {
-          console.error('Home boot failed after auth verification:', error);
-          setStatus('Could not load your home feed right now. Please refresh.', true);
-        });
+        if (authenticated) {
+          document.body?.classList.remove('landing-mode');
+          void bootAuthenticatedHome().catch((error) => {
+            console.error('Home boot failed after auth verification:', error);
+            setStatus('Could not load your home feed right now. Please refresh.', true);
+          });
+          return;
+        }
+        initLandingExperience();
       });
 
       const itemMenuModal = document.getElementById('itemMenuModal');

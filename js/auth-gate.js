@@ -149,24 +149,30 @@
     return target.toString();
   }
 
-  function applyShellState(authenticated, pageKey) {
-    var shell = pageKey === 'index' ? (authenticated ? 'app' : 'landing') : 'app';
+  function applyShellState(authenticated, pageKey, options) {
+    var opts = options || {};
+    var verified = opts.verified !== false;
+    var shell = opts.shell || (pageKey === 'index' ? (authenticated ? 'app' : 'landing') : 'app');
     document.documentElement.dataset.authenticated = authenticated ? '1' : '0';
     document.documentElement.dataset.authShell = shell;
+    document.documentElement.dataset.authVerified = verified ? '1' : '0';
     if (document.body) {
       document.body.dataset.authenticated = authenticated ? '1' : '0';
       document.body.dataset.authShell = shell;
+      document.body.dataset.authVerified = verified ? '1' : '0';
     }
     window.ZO2Y_AUTH_GATE = {
       pageKey: pageKey,
       authenticated: authenticated,
       protectedPage: !PUBLIC_PAGE_KEYS.has(pageKey),
-      authShell: shell
+      authShell: shell,
+      verified: verified
     };
     document.addEventListener('DOMContentLoaded', function () {
       if (document.body) {
         document.body.dataset.authenticated = authenticated ? '1' : '0';
         document.body.dataset.authShell = shell;
+        document.body.dataset.authVerified = verified ? '1' : '0';
       }
     }, { once: true });
   }
@@ -189,7 +195,8 @@
         var sessionResult = await client.auth.getSession();
         var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
         var authenticated = !!(session && session.user);
-        applyShellState(authenticated, pageKey);
+        var finalAuthenticated = authenticated;
+        applyShellState(authenticated, pageKey, { verified: true });
 
         if (!authenticated && protectedPage) {
           // Retry once before redirect to avoid false negatives during token hydration.
@@ -203,7 +210,8 @@
               retryAuthenticated = !!(refreshedSession && refreshedSession.user);
             } catch (_refreshErr) {}
           }
-          applyShellState(retryAuthenticated, pageKey);
+          finalAuthenticated = retryAuthenticated;
+          applyShellState(retryAuthenticated, pageKey, { verified: true });
           if (!retryAuthenticated && !hasStoredSupabaseSession()) {
             redirectToLanding();
             return false;
@@ -211,14 +219,14 @@
         }
 
         window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
-          detail: { authenticated: authenticated, pageKey: pageKey }
+          detail: { authenticated: finalAuthenticated, pageKey: pageKey, verified: true }
         }));
         return true;
       } catch (_err) {
         var fallbackAuthenticated = hasStoredSupabaseSession();
-        applyShellState(fallbackAuthenticated, pageKey);
+        applyShellState(fallbackAuthenticated, pageKey, { verified: true });
         window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
-          detail: { authenticated: fallbackAuthenticated, pageKey: pageKey }
+          detail: { authenticated: fallbackAuthenticated, pageKey: pageKey, verified: true }
         }));
         return false;
       }
@@ -271,7 +279,11 @@
   var pageKey = normalizePageKey(window.location.pathname);
   maybeRedirectOAuthCallback(pageKey);
   var authenticated = hasStoredSupabaseSession();
-  applyShellState(authenticated, pageKey);
+  var initialShell = pageKey === 'index' && authenticated ? 'pending' : (pageKey === 'index' ? 'landing' : 'app');
+  applyShellState(initialShell === 'app' ? authenticated : false, pageKey, {
+    shell: initialShell,
+    verified: initialShell !== 'pending'
+  });
 
   if (pageKey === 'index' || !PUBLIC_PAGE_KEYS.has(pageKey)) {
     scheduleSessionVerification(pageKey);
