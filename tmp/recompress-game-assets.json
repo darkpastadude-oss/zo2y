@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-03-24T23:27:38.313Z",
+  "bucket": "game-assets",
+  "prefixes": [
+    "covers",
+    "covers-official",
+    "heroes"
+  ],
+  "dryRun": false,
+  "processed": 269,
+  "updated": 3,
+  "skipped": 266,
+  "failed": 0,
+  "bytesBefore": 4967353,
+  "bytesAfter": 4827330,
+  "estimatedSavingsBytes": 140023,
+  "failedPaths": []
+}

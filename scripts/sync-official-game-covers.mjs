@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
+import sharp from 'sharp';
 import { fetchWikipediaGamesList } from '../backend/lib/wiki-games-provider.js';
 
 const ROOT = process.cwd();
@@ -211,6 +212,27 @@ async function download(url) {
   return { buffer, contentType, finalUrl: response.url || url };
 }
 
+async function optimizeOfficialCover(buffer, contentType = '') {
+  const type = String(contentType || '').toLowerCase();
+  if (type.includes('svg')) {
+    return { buffer, contentType: 'image/svg+xml', ext: 'svg' };
+  }
+  const transformed = await sharp(buffer, { failOn: 'none' })
+    .rotate()
+    .resize({
+      width: 1600,
+      height: 2400,
+      fit: 'inside',
+      withoutEnlargement: true
+    })
+    .webp({
+      quality: 82,
+      effort: 4
+    })
+    .toBuffer();
+  return { buffer: transformed, contentType: 'image/webp', ext: 'webp' };
+}
+
 function getImageDimensions(buffer, contentType = '') {
   const type = String(contentType || '').toLowerCase();
   if (type.includes('png') && buffer.length >= 24) {
@@ -257,15 +279,16 @@ function isPosterLikeDimensions(width = 0, height = 0) {
 
 async function uploadAsset(supabase, remotePath, sourceUrl) {
   const { buffer, contentType, finalUrl } = await download(sourceUrl);
-  const ext = getExt(contentType, finalUrl || sourceUrl);
+  const optimized = await optimizeOfficialCover(buffer, contentType);
+  const ext = optimized.ext || getExt(contentType, finalUrl || sourceUrl);
   const storagePath = `${remotePath}.${ext}`;
-  const { error } = await supabase.storage.from(BUCKET_NAME).upload(storagePath, buffer, {
-    contentType,
+  const { error } = await supabase.storage.from(BUCKET_NAME).upload(storagePath, optimized.buffer, {
+    contentType: optimized.contentType,
     upsert: true,
     cacheControl: '31536000'
   });
   if (error) throw error;
-  const dimensions = getImageDimensions(buffer, contentType);
+  const dimensions = getImageDimensions(optimized.buffer, optimized.contentType);
   return {
     publicUrl: supabase.storage.from(BUCKET_NAME).getPublicUrl(storagePath).data.publicUrl,
     ...dimensions,

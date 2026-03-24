@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
+import sharp from 'sharp';
 
 const ROOT = process.cwd();
 const BUCKET_NAME = 'game-assets';
@@ -111,6 +112,29 @@ async function download(url) {
   return { buffer, contentType, finalUrl: response.url || url };
 }
 
+async function optimizeGameImage(buffer, contentType = '', remotePath = '') {
+  const type = String(contentType || '').toLowerCase();
+  if (type.includes('svg')) {
+    return { buffer, contentType: 'image/svg+xml', ext: 'svg' };
+  }
+  const normalizedPath = String(remotePath || '').toLowerCase();
+  const isPoster = normalizedPath.startsWith('covers/') || normalizedPath.startsWith('covers-official/');
+  const transformed = await sharp(buffer, { failOn: 'none' })
+    .rotate()
+    .resize({
+      width: isPoster ? 1600 : 1920,
+      height: isPoster ? 2400 : 1080,
+      fit: 'inside',
+      withoutEnlargement: true
+    })
+    .webp({
+      quality: 80,
+      effort: 4
+    })
+    .toBuffer();
+  return { buffer: transformed, contentType: 'image/webp', ext: 'webp' };
+}
+
 function extractScreenshotCandidates(row) {
   const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
   const candidates = [
@@ -181,10 +205,11 @@ async function ensureBucket() {
 
 async function uploadAsset(remotePath, sourceUrl) {
   const { buffer, contentType, finalUrl } = await download(sourceUrl);
-  const ext = getExt(contentType, finalUrl || sourceUrl);
+  const optimized = await optimizeGameImage(buffer, contentType, remotePath);
+  const ext = optimized.ext || getExt(contentType, finalUrl || sourceUrl);
   const storagePath = `${remotePath}.${ext}`;
-  const { error } = await supabase.storage.from(BUCKET_NAME).upload(storagePath, buffer, {
-    contentType,
+  const { error } = await supabase.storage.from(BUCKET_NAME).upload(storagePath, optimized.buffer, {
+    contentType: optimized.contentType,
     upsert: true,
     cacheControl: '31536000'
   });

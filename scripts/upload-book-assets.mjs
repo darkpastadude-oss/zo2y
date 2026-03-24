@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
+import sharp from 'sharp';
 
 const ROOT = process.cwd();
 const BUCKET_NAME = 'book-assets';
@@ -98,6 +99,27 @@ async function download(url) {
   return { buffer, contentType, finalUrl: response.url || url };
 }
 
+async function optimizeBookImage(buffer, contentType = '') {
+  const type = String(contentType || '').toLowerCase();
+  if (type.includes('svg')) {
+    return { buffer, contentType: 'image/svg+xml', ext: 'svg' };
+  }
+  const transformed = await sharp(buffer, { failOn: 'none' })
+    .rotate()
+    .resize({
+      width: 1400,
+      height: 2100,
+      fit: 'inside',
+      withoutEnlargement: true
+    })
+    .webp({
+      quality: 80,
+      effort: 4
+    })
+    .toBuffer();
+  return { buffer: transformed, contentType: 'image/webp', ext: 'webp' };
+}
+
 async function main() {
   hydrateEnv();
   const supabaseUrl = normalizeSupabaseUrl(process.env.SUPABASE_URL);
@@ -135,12 +157,13 @@ async function main() {
       if (!sourceUrl) continue;
       const fileBase = sanitizeFileBase(`${row.id}-${row.title}`);
       try {
-        const { buffer, contentType, finalUrl } = await download(sourceUrl);
-        const ext = getExt(contentType, finalUrl || sourceUrl);
+        const { buffer, contentType } = await download(sourceUrl);
+        const optimized = await optimizeBookImage(buffer, contentType);
+        const ext = optimized.ext || getExt(contentType, sourceUrl);
         const remoteBase = `covers/${fileBase}.${ext}`;
-        await supabase.storage.from(BUCKET_NAME).upload(remoteBase, buffer, {
+        await supabase.storage.from(BUCKET_NAME).upload(remoteBase, optimized.buffer, {
           upsert: true,
-          contentType,
+          contentType: optimized.contentType,
           cacheControl: '31536000'
         });
         const localUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${remoteBase}`;
