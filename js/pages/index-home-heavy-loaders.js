@@ -3,6 +3,58 @@
 
 const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v3';
 const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 20;
+const CURRENT_TOP_BOOK_SEEDS = [
+  { title: 'Heart the Lover', author: 'Lily King' },
+  { title: 'I Who Have Never Known Men', author: 'Jacqueline Harpman' },
+  { title: 'Small Things Like These', author: 'Claire Keegan' },
+  { title: "Mona's Eyes", author: 'Thomas Schlesser' },
+  { title: 'The Odyssey', author: 'Homer' },
+  { title: 'You Better Be Lightning', author: 'Andrea Gibson' },
+  { title: 'Culpability', author: 'Bruce Holsinger' },
+  { title: 'The Library of Amorlin', author: 'Kalyn Josephson' },
+  { title: 'Orbital', author: 'Samantha Harvey' },
+  { title: 'Foster', author: 'Claire Keegan' },
+  { title: 'Writers & Lovers', author: 'Lily King' },
+  { title: 'Hungerstone', author: 'Kat Dunn' },
+  { title: 'The Berry Pickers', author: 'Amanda Peters' },
+  { title: 'The True True Story of Raja the Gullible', author: 'Rabih Alameddine' },
+  { title: 'The Disappointment', author: 'Scott Broker' },
+  { title: 'My Brilliant Friend', author: 'Elena Ferrante' },
+  { title: 'The Overstory', author: 'Richard Powers' },
+  { title: 'Field Notes from an Extinction', author: 'Eoghan Walls' },
+  { title: 'The Land in Winter', author: 'Andrew Miller' },
+  { title: 'The Once and Future Queen', author: 'Paula Lafferty' },
+  { title: 'The Gales of November', author: 'John U. Bacon' },
+  { title: 'Braiding Sweetgrass', author: 'Robin Wall Kimmerer' },
+  { title: 'The Beginning Comes After the End', author: 'Rebecca Solnit' },
+  { title: 'The Glorians', author: 'Terry Tempest Williams' },
+  { title: 'On Democracy', author: 'Walt Whitman' },
+  { title: 'Mutual Aid', author: 'Dean Spade' },
+  { title: 'Guinness World Records 2026', author: 'Guinness World Records' },
+  { title: "I'm Just a Little Guy", author: 'Charlie James' },
+  { title: "Ursula K. Le Guin's Book of Cats", author: 'Ursula K. Le Guin' },
+  { title: "Man's Search for Meaning", author: 'Viktor E. Frankl' },
+  { title: 'The Road Less Triggered', author: 'Kelly Flanagan' },
+  { title: 'Stuff Every Bird Lover Should Know', author: 'Alice Sun' },
+  { title: 'Gathering Moss', author: 'Robin Wall Kimmerer' },
+  { title: 'A Philosophy of Walking', author: 'Frederic Gros' },
+  { title: 'The Company of Owls', author: 'Polly Atkin' },
+  { title: 'How to Relax', author: 'Thich Nhat Hanh' },
+  { title: 'How to Dream', author: 'Thich Nhat Hanh' },
+  { title: 'On Censorship', author: 'Ai Weiwei' },
+  { title: 'We the People', author: 'Jill Lepore' },
+  { title: 'Jesus and John Wayne', author: 'Kristin Kobes Du Mez' },
+  { title: 'The Hybrid Prince', author: 'Tui T. Sutherland' },
+  { title: 'Theo of Golden', author: 'Allen Levi' },
+  { title: 'Just Friends', author: 'Haley Pham' },
+  { title: 'Project Hail Mary', author: 'Andy Weir' },
+  { title: 'Want to Know a Secret?', author: 'Freida McFadden' },
+  { title: 'You with the Sad Eyes', author: 'Christina Applegate' },
+  { title: 'Dear Debbie', author: 'Freida McFadden' },
+  { title: 'The Let Them Theory', author: 'Mel Robbins' },
+  { title: 'Green Eggs and Ham', author: 'Dr. Seuss' },
+  { title: 'One Fish Two Fish Red Fish Blue Fish', author: 'Dr. Seuss' }
+];
 
 function buildOpenLibraryCoverUrl(doc, size = 'L') {
   const safeSize = String(size || 'L').trim().toUpperCase() || 'L';
@@ -18,6 +70,35 @@ function buildOpenLibraryCoverUrl(doc, size = 'L') {
     return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(normalizedIsbn)}-${safeSize}.jpg`;
   }
   return '';
+}
+
+function normalizeBookSeedText(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function scoreSeededBookMatch(row, seed) {
+  const normalizedTitle = normalizeBookSeedText(row?.title || '');
+  const normalizedAuthor = normalizeBookSeedText(Array.isArray(row?.author_name) ? row.author_name[0] : '');
+  const seedTitle = normalizeBookSeedText(seed?.title || '');
+  const seedAuthor = normalizeBookSeedText(seed?.author || '');
+  let score = 0;
+  if (normalizedTitle && seedTitle) {
+    if (normalizedTitle === seedTitle) score += 120;
+    else if (normalizedTitle.startsWith(seedTitle) || seedTitle.startsWith(normalizedTitle)) score += 80;
+    else if (normalizedTitle.includes(seedTitle) || seedTitle.includes(normalizedTitle)) score += 48;
+  }
+  if (normalizedAuthor && seedAuthor) {
+    if (normalizedAuthor === seedAuthor) score += 70;
+    else if (normalizedAuthor.includes(seedAuthor) || seedAuthor.includes(normalizedAuthor)) score += 42;
+  }
+  if (row?._googleThumbnail || row?.coverImage || row?.cover_i) score += 16;
+  if (row?.first_publish_year) score += 8;
+  return score;
 }
 
 async function loadBooks(signal) {
@@ -238,9 +319,41 @@ async function loadBooks(signal) {
         }
       };
 
+      const fetchSeededTopBooks = async (limit = targetCount) => {
+        const pool = shuffleArray(CURRENT_TOP_BOOK_SEEDS).slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, Math.max(limit * 3, 18)));
+        const results = await Promise.allSettled(pool.map(async (seed) => {
+          const payload = await fetchBooksPayload('/search', {
+            q: `${seed.title} ${seed.author}`,
+            limit: 5,
+            page: 1
+          });
+          const docs = Array.isArray(payload?.docs)
+            ? payload.docs
+            : (Array.isArray(payload?.items) ? payload.items : []);
+          if (!docs.length) return null;
+          const normalizedDocs = docs
+            .map((row, idx) => normalizeBookDoc(row, idx))
+            .filter(Boolean)
+            .sort((a, b) => scoreSeededBookMatch(b, seed) - scoreSeededBookMatch(a, seed));
+          return normalizedDocs[0] || null;
+        }));
+        const seen = new Set();
+        const seededDocs = [];
+        results.forEach((result) => {
+          if (result.status !== 'fulfilled' || !result.value) return;
+          const row = result.value;
+          const key = `${normalizeBookSeedText(row?.title || '')}::${normalizeBookSeedText(Array.isArray(row?.author_name) ? row.author_name[0] : '')}`;
+          if (!key || seen.has(key)) return;
+          seen.add(key);
+          seededDocs.push(row);
+        });
+        return seededDocs;
+      };
+
       try {
         const limit = lightweightMode ? Math.max(targetCount, 12) : Math.max(targetCount, 18);
-        const [popularResult, trendingResult] = await Promise.allSettled([
+        const [seededResult, popularResult, trendingResult] = await Promise.allSettled([
+          fetchSeededTopBooks(limit),
           fetchBooksPayload('/popular', {
             page: 1,
             limit,
@@ -254,6 +367,7 @@ async function loadBooks(signal) {
           })
         ]);
 
+        const seededDocs = seededResult.status === 'fulfilled' && Array.isArray(seededResult.value) ? seededResult.value : [];
         const popularPayload = popularResult.status === 'fulfilled' ? popularResult.value : null;
         const trendingPayload = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
         const popularDocs = Array.isArray(popularPayload?.docs)
@@ -262,13 +376,16 @@ async function loadBooks(signal) {
         const trendingDocs = Array.isArray(trendingPayload?.docs)
           ? trendingPayload.docs
           : (Array.isArray(trendingPayload?.items) ? trendingPayload.items : []);
-        const allDocsRaw = [...trendingDocs, ...popularDocs];
+        const allDocsRaw = [...seededDocs, ...trendingDocs, ...popularDocs];
         setBooksDebug('payload-merged', {
           limit,
+          seededStatus: seededResult.status,
+          seededCount: seededDocs.length,
           popularStatus: popularResult.status,
           trendingStatus: trendingResult.status,
           popularCount: popularDocs.length,
           trendingCount: trendingDocs.length,
+          seededError: seededResult.status === 'rejected' ? String(seededResult.reason?.message || seededResult.reason || '') : '',
           popularError: popularResult.status === 'rejected' ? String(popularResult.reason?.message || popularResult.reason || '') : '',
           trendingError: trendingResult.status === 'rejected' ? String(trendingResult.reason?.message || trendingResult.reason || '') : ''
         });

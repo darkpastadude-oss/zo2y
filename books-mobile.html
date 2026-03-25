@@ -967,6 +967,59 @@
         return String(value || '').replace(/^http:\/\//i, 'https://').trim();
       }
 
+      const CURRENT_TOP_BOOK_SEEDS = [
+        { title: 'Heart the Lover', author: 'Lily King' },
+        { title: 'I Who Have Never Known Men', author: 'Jacqueline Harpman' },
+        { title: 'Small Things Like These', author: 'Claire Keegan' },
+        { title: "Mona's Eyes", author: 'Thomas Schlesser' },
+        { title: 'The Odyssey', author: 'Homer' },
+        { title: 'You Better Be Lightning', author: 'Andrea Gibson' },
+        { title: 'Culpability', author: 'Bruce Holsinger' },
+        { title: 'The Library of Amorlin', author: 'Kalyn Josephson' },
+        { title: 'Orbital', author: 'Samantha Harvey' },
+        { title: 'Foster', author: 'Claire Keegan' },
+        { title: 'Writers & Lovers', author: 'Lily King' },
+        { title: 'Hungerstone', author: 'Kat Dunn' },
+        { title: 'The Berry Pickers', author: 'Amanda Peters' },
+        { title: 'The True True Story of Raja the Gullible', author: 'Rabih Alameddine' },
+        { title: 'The Disappointment', author: 'Scott Broker' },
+        { title: 'My Brilliant Friend', author: 'Elena Ferrante' },
+        { title: 'The Overstory', author: 'Richard Powers' },
+        { title: 'Field Notes from an Extinction', author: 'Eoghan Walls' },
+        { title: 'The Land in Winter', author: 'Andrew Miller' },
+        { title: 'The Once and Future Queen', author: 'Paula Lafferty' },
+        { title: 'The Gales of November', author: 'John U. Bacon' },
+        { title: 'Braiding Sweetgrass', author: 'Robin Wall Kimmerer' },
+        { title: 'The Beginning Comes After the End', author: 'Rebecca Solnit' },
+        { title: 'The Glorians', author: 'Terry Tempest Williams' },
+        { title: 'On Democracy', author: 'Walt Whitman' },
+        { title: 'Mutual Aid', author: 'Dean Spade' },
+        { title: 'Guinness World Records 2026', author: 'Guinness World Records' },
+        { title: "I'm Just a Little Guy", author: 'Charlie James' },
+        { title: "Ursula K. Le Guin's Book of Cats", author: 'Ursula K. Le Guin' },
+        { title: "Man's Search for Meaning", author: 'Viktor E. Frankl' },
+        { title: 'The Road Less Triggered', author: 'Kelly Flanagan' },
+        { title: 'Stuff Every Bird Lover Should Know', author: 'Alice Sun' },
+        { title: 'Gathering Moss', author: 'Robin Wall Kimmerer' },
+        { title: 'A Philosophy of Walking', author: 'Frederic Gros' },
+        { title: 'The Company of Owls', author: 'Polly Atkin' },
+        { title: 'How to Relax', author: 'Thich Nhat Hanh' },
+        { title: 'How to Dream', author: 'Thich Nhat Hanh' },
+        { title: 'On Censorship', author: 'Ai Weiwei' },
+        { title: 'We the People', author: 'Jill Lepore' },
+        { title: 'Jesus and John Wayne', author: 'Kristin Kobes Du Mez' },
+        { title: 'The Hybrid Prince', author: 'Tui T. Sutherland' },
+        { title: 'Theo of Golden', author: 'Allen Levi' },
+        { title: 'Just Friends', author: 'Haley Pham' },
+        { title: 'Project Hail Mary', author: 'Andy Weir' },
+        { title: 'Want to Know a Secret?', author: 'Freida McFadden' },
+        { title: 'You with the Sad Eyes', author: 'Christina Applegate' },
+        { title: 'Dear Debbie', author: 'Freida McFadden' },
+        { title: 'The Let Them Theory', author: 'Mel Robbins' },
+        { title: 'Green Eggs and Ham', author: 'Dr. Seuss' },
+        { title: 'One Fish Two Fish Red Fish Blue Fish', author: 'Dr. Seuss' }
+      ];
+
       function buildOpenLibraryCoverUrl(doc, size = 'L') {
         const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
           ? String(size).toUpperCase()
@@ -981,6 +1034,15 @@
           return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-${safeSize}.jpg`;
         }
         return '';
+      }
+
+      function normalizeBookSeedText(value) {
+        return String(value || '')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
       }
 
       function normalizeRemoteBookDoc(raw, idx = 0) {
@@ -1137,6 +1199,52 @@
         });
       }
 
+      function scoreCuratedTopBookDoc(doc, seed) {
+        const normalizedTitle = normalizeBookSeedText(doc?.title || '');
+        const normalizedAuthor = normalizeBookSeedText(Array.isArray(doc?.author_name) ? doc.author_name[0] : '');
+        const seedTitle = normalizeBookSeedText(seed?.title || '');
+        const seedAuthor = normalizeBookSeedText(seed?.author || '');
+        let score = 0;
+        if (normalizedTitle && seedTitle) {
+          if (normalizedTitle === seedTitle) score += 120;
+          else if (normalizedTitle.startsWith(seedTitle) || seedTitle.startsWith(normalizedTitle)) score += 80;
+          else if (normalizedTitle.includes(seedTitle) || seedTitle.includes(normalizedTitle)) score += 48;
+        }
+        if (normalizedAuthor && seedAuthor) {
+          if (normalizedAuthor === seedAuthor) score += 70;
+          else if (normalizedAuthor.includes(seedAuthor) || seedAuthor.includes(normalizedAuthor)) score += 42;
+        }
+        if (getPreferredBookImage(doc)) score += 16;
+        if (doc?.first_publish_year) score += 8;
+        return score;
+      }
+
+      async function fetchCuratedTopBookSeeds(limit = BOOKS_PER_PAGE * 2) {
+        const desired = Math.max(limit, BOOKS_PER_PAGE);
+        const pool = CURRENT_TOP_BOOK_SEEDS.slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, desired * 2));
+        const results = await Promise.allSettled(pool.map(async (seed) => {
+          const payload = await booksFetch('/search.json', {
+            q: `${seed.title} ${seed.author}`,
+            limit: 5,
+            page: 1
+          });
+          const docs = Array.isArray(payload?.docs) ? payload.docs : [];
+          if (!docs.length) return null;
+          return docs.slice().sort((a, b) => scoreCuratedTopBookDoc(b, seed) - scoreCuratedTopBookDoc(a, seed))[0] || null;
+        }));
+        const seen = new Set();
+        const docs = [];
+        results.forEach((result) => {
+          if (result.status !== 'fulfilled' || !result.value) return;
+          const doc = result.value;
+          const key = `${normalizeBookSeedText(doc?.title || '')}::${normalizeBookSeedText(Array.isArray(doc?.author_name) ? doc.author_name[0] : '')}`;
+          if (!key || seen.has(key)) return;
+          seen.add(key);
+          docs.push(doc);
+        });
+        return docs;
+      }
+
       function getPreferredBookImage(doc) {
         const googleThumb = toHttpsUrl(doc?._googleThumbnail || '');
         if (googleThumb) return googleThumb;
@@ -1187,32 +1295,35 @@
       }
 
       async function loadCuratedPopularBooks() {
-        const [trendingResult, popularResult] = await Promise.allSettled([
+        const [seededResult, trendingResult, popularResult] = await Promise.allSettled([
+          fetchCuratedTopBookSeeds(BOOKS_PER_PAGE * 2),
           fetchTrendingBooks(BOOKS_PER_PAGE),
           fetchPopularBooks(1, BOOKS_PER_PAGE)
         ]);
 
+        const seededDocs = seededResult.status === 'fulfilled' ? seededResult.value.slice(0, BOOKS_PER_PAGE * 2) : [];
         const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
         const popular = popularResult.status === 'fulfilled' ? popularResult.value : null;
         const trendingDocs = Array.isArray(trending?.docs) ? trending.docs.slice(0, BOOKS_PER_PAGE) : [];
         const popularDocs = Array.isArray(popular?.docs) ? popular.docs.slice(0, BOOKS_PER_PAGE) : [];
 
-        if (popularDocs.length || trendingDocs.length) {
+        if (seededDocs.length || popularDocs.length || trendingDocs.length) {
           const merged = [];
           const seen = new Set();
-          [...trendingDocs, ...popularDocs].forEach((doc) => {
-            const title = String(doc?.title || '').trim().toLowerCase();
-            const author = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').trim().toLowerCase();
+          [...seededDocs, ...trendingDocs, ...popularDocs].forEach((doc) => {
+            const title = normalizeBookSeedText(doc?.title || '');
+            const author = normalizeBookSeedText((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '');
             const key = `${title}::${author}`;
             if (!title || seen.has(key)) return;
             seen.add(key);
             merged.push(doc);
           });
 
-          const docs = (merged.length ? merged : (popularDocs.length ? popularDocs : trendingDocs)).slice(0, BOOKS_PER_PAGE);
+          const docs = merged.slice(0, BOOKS_PER_PAGE);
           return {
             docs,
             numFound: Math.max(
+              seededDocs.length,
               Number(popular?.numFound || 0),
               Number(trending?.numFound || 0),
               docs.length,
