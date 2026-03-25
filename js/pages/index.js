@@ -7472,7 +7472,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           return;
         }
         const script = document.createElement('script');
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260325b';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260325c';
         script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});

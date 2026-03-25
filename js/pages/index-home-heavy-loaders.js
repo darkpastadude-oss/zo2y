@@ -4,6 +4,22 @@
 const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v3';
 const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 20;
 
+function buildOpenLibraryCoverUrl(doc, size = 'L') {
+  const safeSize = String(size || 'L').trim().toUpperCase() || 'L';
+  const coverId = Number(doc?.cover_i || 0) || 0;
+  if (coverId > 0) {
+    return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-${safeSize}.jpg`;
+  }
+  const isbn = Array.isArray(doc?.isbn)
+    ? String(doc.isbn[0] || '').trim()
+    : String(doc?.isbn || '').trim();
+  const normalizedIsbn = isbn.replace(/[^0-9Xx]/g, '');
+  if (normalizedIsbn) {
+    return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(normalizedIsbn)}-${safeSize}.jpg`;
+  }
+  return '';
+}
+
 async function loadBooks(signal) {
       const targetCount = getHomeChannelTargetItems();
       const lightweightMode = shouldUseLightweightHomeBooksLoad();
