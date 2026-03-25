@@ -1,14 +1,14 @@
 (() => {
   if (window.__zo2yHomeHeavyLoaders) return;
 
-const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v2';
+const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v3';
 const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 20;
 
 async function loadBooks(signal) {
       const targetCount = getHomeChannelTargetItems();
       const lightweightMode = shouldUseLightweightHomeBooksLoad();
       const currentYear = new Date().getUTCFullYear();
-      const recentFloor = Math.max(2018, currentYear - 2);
+      const recentFloor = Math.max(2010, currentYear - 8);
       const getBookRecordId = (doc) => {
         const volumeId = String(doc?._googleVolumeId || doc?.id || '').trim();
         if (volumeId) return volumeId;
@@ -176,33 +176,59 @@ async function loadBooks(signal) {
         return cachedItems.slice(0, targetCount);
       }
 
-      try {
-        const limit = lightweightMode ? Math.max(targetCount, 16) : Math.max(targetCount, 24);
-        const booksRequestOptions = { signal, timeoutMs: 4200, retries: 1 };
-        const queryUrls = [
-          `/api/books/popular?q=${encodeURIComponent('subject:fiction bestseller 2023 2024 2025')}&limit=${limit}&page=1&orderBy=relevance`,
-          `/api/books/popular?q=${encodeURIComponent('subject:fantasy bestseller')}&limit=${limit}&page=1&orderBy=relevance`,
-          `/api/books/popular?q=${encodeURIComponent('subject:romance bestseller')}&limit=${limit}&page=1&orderBy=relevance`,
-          `/api/books/popular?q=${encodeURIComponent('bestseller popular books')}&limit=${limit}&page=1&orderBy=relevance`,
-          `/api/books/trending?period=weekly&limit=${limit}`
-        ].slice(0, lightweightMode ? 3 : 5);
-        const results = await Promise.allSettled(queryUrls.map((url) => (
-          fetchJsonWithPerfCache(url, { ...booksRequestOptions, cacheKey: `books:${url}` })
-        )));
-
-        const allDocsRaw = [];
-        results.forEach((result) => {
-          if (result.status !== 'fulfilled') return;
-          const payload = result.value;
-          const docs = Array.isArray(payload?.docs)
-            ? payload.docs
-            : (Array.isArray(payload?.items) ? payload.items : []);
-          if (docs.length) allDocsRaw.push(...docs);
+      const fetchBooksPayload = async (path, params = {}) => {
+        const normalizedPath = String(path || '').startsWith('/') ? String(path) : `/${String(path || '')}`;
+        const url = new URL(`/api/books${normalizedPath}`, window.location.origin);
+        Object.entries(params || {}).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === '') return;
+          url.searchParams.set(key, String(value));
         });
+        url.searchParams.set('cb', '20260325a');
+        url.searchParams.set('_', String(Date.now()));
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), lightweightMode ? 4200 : 5200);
+        try {
+          const response = await fetch(url.toString(), {
+            headers: { Accept: 'application/json' },
+            signal: controller.signal,
+            cache: 'no-store'
+          });
+          if (!response.ok) throw new Error(`Books API error ${response.status}`);
+          return await response.json();
+        } finally {
+          window.clearTimeout(timeoutId);
+        }
+      };
+
+      try {
+        const limit = lightweightMode ? Math.max(targetCount, 12) : Math.max(targetCount, 18);
+        const [popularResult, trendingResult] = await Promise.allSettled([
+          fetchBooksPayload('/popular', {
+            page: 1,
+            limit,
+            subject: 'fiction',
+            language: 'en',
+            orderBy: 'relevance'
+          }),
+          fetchBooksPayload('/trending', {
+            period: 'weekly',
+            limit
+          })
+        ]);
+
+        const popularPayload = popularResult.status === 'fulfilled' ? popularResult.value : null;
+        const trendingPayload = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
+        const popularDocs = Array.isArray(popularPayload?.docs)
+          ? popularPayload.docs
+          : (Array.isArray(popularPayload?.items) ? popularPayload.items : []);
+        const trendingDocs = Array.isArray(trendingPayload?.docs)
+          ? trendingPayload.docs
+          : (Array.isArray(trendingPayload?.items) ? trendingPayload.items : []);
+        const allDocsRaw = [...trendingDocs, ...popularDocs];
 
         const strictModern = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: false });
         const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: true });
-        const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 2008, allowMissingYear: true });
+        const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 0, allowMissingYear: true });
         const merged = mergeUniqueItems(strictModern, modernWithUnknownYear, relaxedFallback);
         const safeMerged = filterHomeSafeItems(merged);
         if (safeMerged.length) {

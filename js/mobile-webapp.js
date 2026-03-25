@@ -806,7 +806,7 @@
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       void resetZo2yCachesIfNeeded().finally(() => {
-        navigator.serviceWorker.register('/sw.js?v=20260324b').catch(() => {
+        navigator.serviceWorker.register('/sw.js?v=20260325a').catch(() => {
         // silent fail to avoid runtime noise
         });
       });

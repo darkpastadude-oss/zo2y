@@ -5129,10 +5129,28 @@
                             list_type: safeListType,
                             sort_order: nextOrder
                         };
-                        const { error } = await supabase
+                        const { error: insertError } = await supabase
                             .from(PROFILE_PIN_TABLE)
-                            .upsert(payload, { onConflict: 'user_id,media_type,list_id,list_type' });
-                        if (error) throw error;
+                            .insert(payload);
+                        if (insertError) {
+                            const insertCode = String(insertError?.code || '').trim();
+                            const insertMessage = String(insertError?.message || '').toLowerCase();
+                            const isConflict =
+                                insertCode === '23505' ||
+                                insertMessage.includes('duplicate key') ||
+                                insertMessage.includes('unique constraint');
+                            if (!isConflict) {
+                                throw insertError;
+                            }
+                            const { error: updateError } = await supabase
+                                .from(PROFILE_PIN_TABLE)
+                                .update({ sort_order: nextOrder })
+                                .eq('user_id', currentUser.id)
+                                .eq('media_type', safeType)
+                                .eq('list_id', safeListId)
+                                .eq('list_type', safeListType);
+                            if (updateError) throw updateError;
+                        }
                         pinnedListsMap.set(key, { sort_order: nextOrder });
                         showToast('Pinned collection to top', 'success');
                     }
