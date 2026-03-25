@@ -111,6 +111,30 @@
         return new URLSearchParams(hash);
       }
 
+      function decodeJwtPayload(token) {
+        try {
+          const parts = String(token || '').split('.');
+          if (parts.length < 2) return null;
+          const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+          return JSON.parse(atob(padded));
+        } catch (_err) {
+          return null;
+        }
+      }
+
+      async function waitForTokenClockSkew(accessToken) {
+        const payload = decodeJwtPayload(accessToken);
+        const issuedAt = Number(payload?.iat || 0);
+        if (!issuedAt) return;
+        const now = Math.floor(Date.now() / 1000);
+        const skewSeconds = issuedAt - now;
+        if (skewSeconds <= 1) return;
+        const waitMs = Math.min(6000, (skewSeconds + 1) * 1000);
+        log(`Token clock skew detected (${skewSeconds}s). Waiting ${waitMs}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
+      }
+
       const RESERVED_USERNAMES = new Set([
         'admin', 'api', 'app', 'auth', 'authcallback', 'blog', 'book', 'books',
         'country', 'edit', 'explore', 'game', 'games', 'help', 'home', 'index',
@@ -143,7 +167,7 @@
         return `${base.slice(0, limit)}_${normalizedSuffix}`;
       }
 
-      async function waitForVerifiedUser(client) {
+      async function waitForVerifiedUser(client, accessTokenHint = '') {
         let refreshAttempted = false;
         for (let attempt = 0; attempt < 4; attempt += 1) {
           const { data: sessionData } = await client.auth.getSession();
@@ -166,6 +190,18 @@
             errorMessage.includes('token') ||
             errorMessage.includes('session') ||
             errorMessage.includes('unauthorized');
+          const futureIssued =
+            errorMessage.includes('issued in the future') ||
+            errorMessage.includes('clock for skew') ||
+            errorMessage.includes('clock skew');
+
+          if (futureIssued) {
+            await waitForTokenClockSkew(accessTokenHint || session?.access_token || '');
+            if (attempt < 3) {
+              await new Promise((resolve) => setTimeout(resolve, 350));
+              continue;
+            }
+          }
 
           if (invalidSession) {
             if (!refreshAttempted) {
@@ -182,7 +218,7 @@
         return null;
       }
 
-      async function ensureSessionStored(client, timeoutMs = 5000) {
+      async function ensureSessionStored(client, timeoutMs = 8000) {
         const startedAt = Date.now();
         while ((Date.now() - startedAt) < timeoutMs) {
           const { data: sessionData } = await client.auth.getSession();
@@ -404,12 +440,15 @@
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
         let exchangeError = null;
+        let resolvedSession = null;
 
         if (code) {
           statusText.textContent = 'Finalizing secure sign-in...';
           log('Auth code found, exchanging for session...');
           const { data, error } = await client.auth.exchangeCodeForSession(code);
           if (data?.session?.access_token && data?.session?.refresh_token) {
+            resolvedSession = data.session;
+            persistSessionSnapshot(data.session);
             await client.auth.setSession({
               access_token: data.session.access_token,
               refresh_token: data.session.refresh_token
@@ -422,23 +461,29 @@
         } else if (accessToken && refreshToken) {
           statusText.textContent = 'Finalizing secure sign-in...';
           log('Token hash found, setting session...');
-          const { error } = await client.auth.setSession({
+          await waitForTokenClockSkew(accessToken);
+          const { data, error } = await client.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken
           });
           if (error) throw error;
+          if (data?.session?.access_token && data?.session?.refresh_token) {
+            resolvedSession = data.session;
+            persistSessionSnapshot(data.session);
+          }
         } else {
           log('No code/hash provided, verifying existing session...');
         }
 
-        const storedSession = await ensureSessionStored(client);
+        const storedSession = resolvedSession || await ensureSessionStored(client);
         if (!storedSession) {
           if (exchangeError) throw exchangeError;
           throw new Error('Authentication was not completed. Please sign in again.');
         }
         persistSessionSnapshot(storedSession);
 
-        const user = await waitForVerifiedUser(client);
+        await waitForTokenClockSkew(storedSession?.access_token || accessToken || '');
+        const user = await waitForVerifiedUser(client, storedSession?.access_token || accessToken || '');
         if (!user) {
           throw new Error('Authentication was not completed. Please sign in again.');
         }

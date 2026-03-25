@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260325a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Processing Authentication - Zo2y</title>
 <link rel="icon" href="/newlogo.webp" type="image/webp" />
@@ -75,39 +74,9 @@
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
   <script src="/js/mobile-webapp.js?v=20260325a" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260324a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
-<header class="zo2y-shared-header" role="banner" data-shared-header="1">
-  <div class="zo2y-shared-header-inner">
-    <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
-      <img src="/file.svg" alt="Logo" />
-    </a>
-    <div class="nav-search zo2y-shared-search">
-      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
-      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
-      <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
-    </div>
-    <nav class="zo2y-shared-nav" aria-label="Primary navigation">
-      <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
-      <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
-      <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
-      <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
-      <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
-      <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
-      <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
-      <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
-      <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
-    </nav>
-    <div class="zo2y-shared-auth">
-      <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
-      <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
-      <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
-</div>
-  </div>
-</header>
   <div class="container">
     <div class="spinner"></div>
     <h2>Completing Authentication...</h2>
@@ -229,6 +198,30 @@
         return new URLSearchParams(hash);
       }
 
+      function decodeJwtPayload(token) {
+        try {
+          const parts = String(token || '').split('.');
+          if (parts.length < 2) return null;
+          const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+          return JSON.parse(atob(padded));
+        } catch (_err) {
+          return null;
+        }
+      }
+
+      async function waitForTokenClockSkew(accessToken) {
+        const payload = decodeJwtPayload(accessToken);
+        const issuedAt = Number(payload?.iat || 0);
+        if (!issuedAt) return;
+        const now = Math.floor(Date.now() / 1000);
+        const skewSeconds = issuedAt - now;
+        if (skewSeconds <= 1) return;
+        const waitMs = Math.min(6000, (skewSeconds + 1) * 1000);
+        log(`Token clock skew detected (${skewSeconds}s). Waiting ${waitMs}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
+      }
+
       const RESERVED_USERNAMES = new Set([
         'admin', 'api', 'app', 'auth', 'authcallback', 'blog', 'book', 'books',
         'country', 'edit', 'explore', 'game', 'games', 'help', 'home', 'index',
@@ -261,7 +254,7 @@
         return `${base.slice(0, limit)}_${normalizedSuffix}`;
       }
 
-      async function waitForVerifiedUser(client) {
+      async function waitForVerifiedUser(client, accessTokenHint = '') {
         let refreshAttempted = false;
         for (let attempt = 0; attempt < 4; attempt += 1) {
           const { data: sessionData } = await client.auth.getSession();
@@ -284,6 +277,18 @@
             errorMessage.includes('token') ||
             errorMessage.includes('session') ||
             errorMessage.includes('unauthorized');
+          const futureIssued =
+            errorMessage.includes('issued in the future') ||
+            errorMessage.includes('clock for skew') ||
+            errorMessage.includes('clock skew');
+
+          if (futureIssued) {
+            await waitForTokenClockSkew(accessTokenHint || session?.access_token || '');
+            if (attempt < 3) {
+              await new Promise((resolve) => setTimeout(resolve, 350));
+              continue;
+            }
+          }
 
           if (invalidSession) {
             if (!refreshAttempted) {
@@ -300,7 +305,7 @@
         return null;
       }
 
-      async function ensureSessionStored(client, timeoutMs = 5000) {
+      async function ensureSessionStored(client, timeoutMs = 8000) {
         const startedAt = Date.now();
         while ((Date.now() - startedAt) < timeoutMs) {
           const { data: sessionData } = await client.auth.getSession();
@@ -522,12 +527,15 @@
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
         let exchangeError = null;
+        let resolvedSession = null;
 
         if (code) {
           statusText.textContent = 'Finalizing secure sign-in...';
           log('Auth code found, exchanging for session...');
           const { data, error } = await client.auth.exchangeCodeForSession(code);
           if (data?.session?.access_token && data?.session?.refresh_token) {
+            resolvedSession = data.session;
+            persistSessionSnapshot(data.session);
             await client.auth.setSession({
               access_token: data.session.access_token,
               refresh_token: data.session.refresh_token
@@ -540,23 +548,29 @@
         } else if (accessToken && refreshToken) {
           statusText.textContent = 'Finalizing secure sign-in...';
           log('Token hash found, setting session...');
-          const { error } = await client.auth.setSession({
+          await waitForTokenClockSkew(accessToken);
+          const { data, error } = await client.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken
           });
           if (error) throw error;
+          if (data?.session?.access_token && data?.session?.refresh_token) {
+            resolvedSession = data.session;
+            persistSessionSnapshot(data.session);
+          }
         } else {
           log('No code/hash provided, verifying existing session...');
         }
 
-        const storedSession = await ensureSessionStored(client);
+        const storedSession = resolvedSession || await ensureSessionStored(client);
         if (!storedSession) {
           if (exchangeError) throw exchangeError;
           throw new Error('Authentication was not completed. Please sign in again.');
         }
         persistSessionSnapshot(storedSession);
 
-        const user = await waitForVerifiedUser(client);
+        await waitForTokenClockSkew(storedSession?.access_token || accessToken || '');
+        const user = await waitForVerifiedUser(client, storedSession?.access_token || accessToken || '');
         if (!user) {
           throw new Error('Authentication was not completed. Please sign in again.');
         }
