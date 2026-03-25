@@ -9,6 +9,15 @@ async function loadBooks(signal) {
       const lightweightMode = shouldUseLightweightHomeBooksLoad();
       const currentYear = new Date().getUTCFullYear();
       const recentFloor = Math.max(2010, currentYear - 8);
+      const setBooksDebug = (stage, detail = {}) => {
+        try {
+          window.__zo2yHomeBooksDebug = {
+            stage: String(stage || '').trim() || 'unknown',
+            detail: detail && typeof detail === 'object' ? detail : {},
+            at: new Date().toISOString()
+          };
+        } catch (_error) {}
+      };
       const getBookRecordId = (doc) => {
         const volumeId = String(doc?._googleVolumeId || doc?.id || '').trim();
         if (volumeId) return volumeId;
@@ -173,6 +182,7 @@ async function loadBooks(signal) {
         sanitizeHomeBookItem
       );
       if (cachedItems.length) {
+        setBooksDebug('cache-hit', { count: cachedItems.length });
         return cachedItems.slice(0, targetCount);
       }
 
@@ -188,13 +198,25 @@ async function loadBooks(signal) {
         const controller = new AbortController();
         const timeoutId = window.setTimeout(() => controller.abort(), lightweightMode ? 4200 : 5200);
         try {
+          setBooksDebug('fetching', { path: normalizedPath, params });
           const response = await fetch(url.toString(), {
             headers: { Accept: 'application/json' },
             signal: controller.signal,
             cache: 'no-store'
           });
-          if (!response.ok) throw new Error(`Books API error ${response.status}`);
-          return await response.json();
+          if (!response.ok) {
+            const error = new Error(`Books API error ${response.status}`);
+            error.status = response.status;
+            error.path = normalizedPath;
+            throw error;
+          }
+          const json = await response.json();
+          setBooksDebug('fetched', {
+            path: normalizedPath,
+            docs: Array.isArray(json?.docs) ? json.docs.length : 0,
+            items: Array.isArray(json?.items) ? json.items.length : 0
+          });
+          return json;
         } finally {
           window.clearTimeout(timeoutId);
         }
@@ -225,18 +247,50 @@ async function loadBooks(signal) {
           ? trendingPayload.docs
           : (Array.isArray(trendingPayload?.items) ? trendingPayload.items : []);
         const allDocsRaw = [...trendingDocs, ...popularDocs];
+        setBooksDebug('payload-merged', {
+          limit,
+          popularStatus: popularResult.status,
+          trendingStatus: trendingResult.status,
+          popularCount: popularDocs.length,
+          trendingCount: trendingDocs.length,
+          popularError: popularResult.status === 'rejected' ? String(popularResult.reason?.message || popularResult.reason || '') : '',
+          trendingError: trendingResult.status === 'rejected' ? String(trendingResult.reason?.message || trendingResult.reason || '') : ''
+        });
 
         const strictModern = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: false });
         const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: true });
         const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 0, allowMissingYear: true });
         const merged = mergeUniqueItems(strictModern, modernWithUnknownYear, relaxedFallback);
         const safeMerged = filterHomeSafeItems(merged);
+        setBooksDebug('items-mapped', {
+          rawDocs: allDocsRaw.length,
+          strictModern: strictModern.length,
+          modernWithUnknownYear: modernWithUnknownYear.length,
+          relaxedFallback: relaxedFallback.length,
+          merged: merged.length,
+          safeMerged: safeMerged.length
+        });
         if (safeMerged.length) {
           const shuffled = shuffleArray(safeMerged);
           writeHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, shuffled);
+          setBooksDebug('success', { count: shuffled.length });
           return shuffled.slice(0, targetCount);
         }
-      } catch (_e) {}
+        const emptyDetail = {
+          rawDocs: allDocsRaw.length,
+          recentFloor
+        };
+        setBooksDebug('empty-after-mapping', emptyDetail);
+        console.error('[home books] no usable homepage book items after mapping', emptyDetail);
+      } catch (error) {
+        const detail = {
+          message: String(error?.message || error || ''),
+          status: Number(error?.status || 0) || null,
+          path: String(error?.path || '').trim()
+        };
+        setBooksDebug('error', detail);
+        console.error('[home books] failed to load homepage books', detail, error);
+      }
 
       return [];
     }

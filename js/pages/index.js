@@ -5162,6 +5162,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       rail.classList.remove('games-rail');
 
       if (!items || !items.length) {
+        if (railId === 'booksRail') {
+          const debug = window.__zo2yHomeBooksDebug || null;
+          if (debug) {
+            console.error('[home books] books rail rendered empty', debug);
+            const stage = escapeHtml(String(debug?.stage || 'unknown'));
+            rail.innerHTML = `<div class="empty">Books failed to load. Check console. Stage: ${stage}</div>`;
+            return;
+          }
+        }
         rail.innerHTML = '<div class="empty">No items right now.</div>';
         return;
       }
@@ -7463,7 +7472,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           return;
         }
         const script = document.createElement('script');
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260325a';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260325b';
         script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
