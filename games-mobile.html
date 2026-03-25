@@ -1909,9 +1909,29 @@
         return Boolean(row?.extra?.official_cover_is_poster);
       }
 
+      function scoreResolvedGameCover(row) {
+        const directCover = normalizeGameImageUrl(row?.cover_url || row?.cover?.url || row?.cover);
+        const resolvedCover = resolveGameImageSource(row);
+        if (!resolvedCover) return Number.NEGATIVE_INFINITY;
+        let score = 0;
+        if (hasPosterOfficialGameCover(row) || isPosterOfficialGameRow(row)) score += 900;
+        if (/\/game-assets\/covers\//.test(resolvedCover)) score += 420;
+        if (/\/game-assets\/covers-official\//.test(resolvedCover)) score += 520;
+        if (/wikimedia|wikipedia/.test(resolvedCover)) score += 340;
+        if (/igdb|images\.igdb\.com/.test(resolvedCover)) score += 240;
+        if (/rawg|media\.rawg/.test(resolvedCover)) score += 120;
+        if (directCover && resolvedCover === directCover) score += 110;
+        if (isLikelyPosterGameUrl(resolvedCover)) score += 180;
+        if (isLikelyBackdropGameUrl(resolvedCover)) score -= 700;
+        if (isLikelyLogoOnlyGameArt(resolvedCover)) score -= 160;
+        return score;
+      }
+
       function sortGamesPosterFirst(rows) {
         const list = Array.isArray(rows) ? rows.slice() : [];
         return list.sort((a, b) => {
+          const coverDiff = scoreResolvedGameCover(b) - scoreResolvedGameCover(a);
+          if (coverDiff !== 0) return coverDiff;
           const aPoster = isPosterOfficialGameRow(a) ? 1 : 0;
           const bPoster = isPosterOfficialGameRow(b) ? 1 : 0;
           if (bPoster !== aPoster) return bPoster - aPoster;
@@ -2208,6 +2228,9 @@
         const grid = document.getElementById('gamesGrid');
         const empty = document.getElementById('emptyState');
         if (!grid) return;
+        if (!supabaseClient) {
+          await initSupabase();
+        }
         const requestId = ++state.requestId;
         if (igdbAbortController) {
           igdbAbortController.abort();
@@ -2218,6 +2241,7 @@
         const pageSize = getGamesPageSize();
         const shouldUseFeaturedCache = isPopularGamesBrowseState();
         const cachedFeaturedPage = shouldUseFeaturedCache ? readCachedFeaturedGamesPage(state.page) : null;
+        if (empty) empty.style.display = 'none';
 
         if (cachedFeaturedPage?.rows?.length) {
           state.catalogSource = cachedFeaturedPage.source || 'supabase-fast-cache';
@@ -2228,8 +2252,8 @@
             const card = createGameCard(item, idx);
             if (card) cachedFragment.appendChild(card);
           });
-          grid.appendChild(cachedFragment);
           const renderedCount = cachedFragment.childNodes.length;
+          grid.appendChild(cachedFragment);
           if (empty) empty.style.display = renderedCount ? 'none' : 'block';
           const totalMatches = Number(cachedFeaturedPage.count || renderedCount) || renderedCount;
           state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
@@ -2264,8 +2288,8 @@
             const card = createGameCard(item, idx);
             if (card) fragment.appendChild(card);
           });
-          grid.appendChild(fragment);
           const renderedCount = fragment.childNodes.length;
+          grid.appendChild(fragment);
           if (empty) empty.style.display = renderedCount ? 'none' : 'block';
           const totalMatches = Number(localPayload.count || renderedCount) || renderedCount;
           state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
@@ -2276,11 +2300,12 @@
 
         if (empty) {
           empty.style.display = 'block';
-          empty.textContent = 'No games found for this search yet.';
+          empty.textContent = 'No games found.';
         }
         updateGamePageSpotlight([]);
         grid.innerHTML = '';
         state.hasMore = false;
+        state.totalPages = 1;
         updatePagination();
       }
 
@@ -2578,9 +2603,7 @@
         const info = document.getElementById('pageInfo');
         if (prevBtn) prevBtn.disabled = state.page <= 1;
         if (nextBtn) nextBtn.disabled = !state.hasMore;
-        if (info) info.textContent = state.hasMore
-          ? `Page ${state.page}+`
-          : `Page ${state.page}`;
+        if (info) info.textContent = `Page ${Math.max(1, Number(state.page || 1))} of ${Math.max(1, Number(state.totalPages || 1))}`;
       }
 
       if (window.initIndexStyleListMenu) {

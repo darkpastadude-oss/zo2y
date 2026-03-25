@@ -279,7 +279,7 @@
   var pageKey = normalizePageKey(window.location.pathname);
   maybeRedirectOAuthCallback(pageKey);
   var authenticated = hasStoredSupabaseSession();
-  var initialShell = pageKey === 'index' && authenticated ? 'pending' : (pageKey === 'index' ? 'landing' : 'app');
+  var initialShell = pageKey === 'index' ? 'pending' : 'app';
   applyShellState(initialShell === 'app' ? authenticated : false, pageKey, {
     shell: initialShell,
     verified: initialShell !== 'pending'

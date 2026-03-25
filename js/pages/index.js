@@ -7249,6 +7249,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return score;
     }
 
+    function scoreHomeGameBaseRow(row, hasPreferredAlternatives = false) {
+      if (!row) return Number.NEGATIVE_INFINITY;
+      let score = 0;
+      score += scoreHomeGameCoverRow(row, hasPreferredAlternatives) * 2.5;
+      score += scoreHomeGameHeroRow(row) * 0.35;
+      score += Math.min(Number(row?.rating_count || 0), 5000) / 20;
+      score += Number(row?.rating || 0) * 8;
+      return score;
+    }
+
     function scoreHomeGameHeroRow(row) {
       const cover = resolveHomeGameCover(row);
       const hero = resolveHomeGameHero(row, '');
@@ -7267,18 +7277,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const list = Array.isArray(rows) ? rows.filter((row) => row && isLikelyRealHomeGameRow(row)) : [];
       if (!list.length) return null;
       if (list.length === 1) return list[0];
-      const sortedByPopularity = list.slice().sort((a, b) => {
+      const hasPreferredAlternatives = list.some((row) => {
+        const importedFrom = getHomeGameImportedFrom(row);
+        return importedFrom.includes('igdb') || importedFrom.includes('wikipedia');
+      });
+      const sortedBaseRows = list.slice().sort((a, b) => {
+        const scoreDiff = scoreHomeGameBaseRow(b, hasPreferredAlternatives) - scoreHomeGameBaseRow(a, hasPreferredAlternatives);
+        if (scoreDiff !== 0) return scoreDiff;
         const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
         if (countDiff !== 0) return countDiff;
         const ratingDiff = Number(b?.rating || 0) - Number(a?.rating || 0);
         if (ratingDiff !== 0) return ratingDiff;
         return String(a?.title || a?.name || '').localeCompare(String(b?.title || b?.name || ''));
       });
-      const baseRow = sortedByPopularity[0];
-      const hasPreferredAlternatives = list.some((row) => {
-        const importedFrom = getHomeGameImportedFrom(row);
-        return importedFrom.includes('igdb') || importedFrom.includes('wikipedia');
-      });
+      const baseRow = sortedBaseRows[0];
       const bestCoverRow = list.slice().sort((a, b) => scoreHomeGameCoverRow(b, hasPreferredAlternatives) - scoreHomeGameCoverRow(a, hasPreferredAlternatives))[0] || baseRow;
       const bestHeroRow = list.slice().sort((a, b) => scoreHomeGameHeroRow(b) - scoreHomeGameHeroRow(a))[0] || baseRow;
       const merged = { ...baseRow };
