@@ -48,6 +48,10 @@ function parseArg(flag, fallback = '') {
   return process.argv[idx + 1] ?? fallback;
 }
 
+function hasFlag(flag) {
+  return process.argv.includes(flag);
+}
+
 function sanitizeFileBase(value) {
   return String(value || '')
     .trim()
@@ -133,6 +137,19 @@ function toHttpsUrl(value) {
 
 function normalizeCoverUrl(value) {
   return toHttpsUrl(value).replace(/\s+/g, '');
+}
+
+function rowHasAnyCover(row) {
+  const candidates = [
+    row?.cover_url,
+    row?.cover?.url,
+    row?.cover,
+    ...(Array.isArray(row?.extra?.local_covers) ? row.extra.local_covers : []),
+    ...(Array.isArray(row?.extra?.covers) ? row.extra.covers : []),
+    ...(Array.isArray(row?.extra?.official_covers) ? row.extra.official_covers : []),
+    ...(Array.isArray(row?.extra?.cover_candidates) ? row.extra.cover_candidates : [])
+  ].map((entry) => normalizeCoverUrl(entry)).filter(Boolean);
+  return candidates.some((url) => !isLikelyBackdropUrl(url));
 }
 
 function isLikelyBackdropUrl(value) {
@@ -343,9 +360,12 @@ async function main() {
   const limit = Math.max(1, Number(parseArg('--limit', 2500)));
   const offset = Math.max(0, Number(parseArg('--offset', 0)));
   const concurrency = Math.max(1, Number(parseArg('--concurrency', 4)));
+  const missingOnly = hasFlag('--missing-only');
 
   const rows = await fetchAllGames(supabase);
-  const groupedRows = Array.from(buildGroups(rows).values()).slice(offset, offset + limit);
+  const groupedRows = Array.from(buildGroups(rows).values())
+    .filter((group) => !missingOnly || group.some((row) => !rowHasAnyCover(row)))
+    .slice(offset, offset + limit);
   const groups = [];
   for (const group of groupedRows) {
     const officialRows = group
@@ -425,6 +445,7 @@ async function main() {
   await Promise.all(Array.from({ length: concurrency }, () => worker()));
   console.log(JSON.stringify({
     totalGroups: groups.length,
+    missingOnly,
     updatedRows,
     skipped
   }, null, 2));

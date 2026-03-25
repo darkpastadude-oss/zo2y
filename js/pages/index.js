@@ -7113,8 +7113,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const likelyCovers = cleaned.filter((url) => !isLikelyBackdropGameUrl(url));
       const pool = likelyCovers.length ? likelyCovers : cleaned;
       return pool.find((url) => /\/game-assets\/covers-official\//.test(url))
+        || pool.find((url) => /\/game-assets\/covers\//.test(url))
         || pool.find((url) => /wikimedia|wikipedia/.test(url))
+        || pool.find((url) => /igdb|images\.igdb\.com/.test(url))
         || pool.find((url) => /\/game-assets\//.test(url))
+        || pool.find((url) => /rawg|media\.rawg/.test(url))
         || pool[0]
         || '';
     }
@@ -7165,18 +7168,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       if (hasPosterOfficialGameCover(row)) {
         return pickOfficialPosterGameUrl([row?.cover_url, row?.cover?.url, row?.cover]);
       }
-      if (isOfficialGameProviderRow(row)) {
-        return pickOfficialPosterGameUrl([
-          row?.hero_url,
-          row?.hero,
-          row?.cover,
-          row?.cover?.url,
-          row?.cover_url,
-          ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
-          ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
-        ]);
-      }
-      return '';
+      return pickPreferredGameCoverUrl([
+        row?.cover_url,
+        row?.cover?.url,
+        row?.cover,
+        ...(Array.isArray(row?.extra?.local_covers) ? row.extra.local_covers : []),
+        ...(Array.isArray(row?.extra?.covers) ? row.extra.covers : []),
+        ...(Array.isArray(row?.extra?.official_covers) ? row.extra.official_covers : []),
+        ...(Array.isArray(row?.extra?.cover_candidates) ? row.extra.cover_candidates : []),
+        isOfficialGameProviderRow(row) ? '' : row?.hero_url,
+        isOfficialGameProviderRow(row) ? '' : row?.hero,
+        ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+        ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
+      ]);
     }
 
     function resolveHomeGameHero(row, fallback) {
@@ -7194,7 +7198,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const value = String(url || '').trim().toLowerCase();
       if (!value) return false;
       if (value.endsWith('.svg') || value.includes('.svg?')) return true;
-      if (value.endsWith('.png') || value.includes('.png?')) return true;
       return ['logo', 'wordmark', 'transparent', 'icon'].some((token) => value.includes(token));
     }
 

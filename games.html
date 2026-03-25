@@ -983,9 +983,14 @@
 
       function pickPreferredCoverUrl(candidates = []) {
         const cleaned = candidates.map(normalizeGameImageUrl).filter(Boolean);
-        const pool = cleaned.filter((url) => !isLikelyBackdropGameUrl(url));
+        const likelyCovers = cleaned.filter((url) => !isLikelyBackdropGameUrl(url));
+        const pool = likelyCovers.length ? likelyCovers : cleaned;
         return pool.find((url) => /\/game-assets\/covers-official\//.test(url))
+          || pool.find((url) => /\/game-assets\/covers\//.test(url))
           || pool.find((url) => /wikimedia|wikipedia/.test(url))
+          || pool.find((url) => /igdb|images\.igdb\.com/.test(url))
+          || pool.find((url) => /rawg|media\.rawg/.test(url))
+          || pool[0]
           || '';
       }
 
@@ -1025,20 +1030,19 @@
         if (hasPosterOfficialGameCover(row)) {
           return pickPreferredCoverUrl([row?.cover_url, row?.cover?.url, row?.cover]);
         }
-        if (isOfficialGameProviderRow(row)) {
-          return pickPreferredCoverUrl([
-            row?.cover_url,
-            row?.cover?.url,
-            row?.cover,
-            ...(Array.isArray(row?.extra?.local_covers) ? row.extra.local_covers : []),
-            ...(Array.isArray(row?.extra?.covers) ? row.extra.covers : []),
-            row?.hero_url,
-            row?.hero,
-            ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
-            ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
-          ]);
-        }
-        return '';
+        return pickPreferredCoverUrl([
+          row?.cover_url,
+          row?.cover?.url,
+          row?.cover,
+          ...(Array.isArray(row?.extra?.local_covers) ? row.extra.local_covers : []),
+          ...(Array.isArray(row?.extra?.covers) ? row.extra.covers : []),
+          ...(Array.isArray(row?.extra?.official_covers) ? row.extra.official_covers : []),
+          ...(Array.isArray(row?.extra?.cover_candidates) ? row.extra.cover_candidates : []),
+          isOfficialGameProviderRow(row) ? '' : row?.hero_url,
+          isOfficialGameProviderRow(row) ? '' : row?.hero,
+          ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+          ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
+        ]);
       }
 
       function resolveGameHeroSource(row, fallback) {
