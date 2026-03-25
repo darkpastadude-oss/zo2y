@@ -1,5 +1,5 @@
 ﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v190';
-const PAGE_CACHE = 'zo2y-pages-v160';
+const PAGE_CACHE = 'zo2y-pages-v161';
 const IMAGE_CACHE = 'zo2y-images-v29';
 const API_CACHE = 'zo2y-api-v12';
 const MOVIES_PAGE_VERSION = '20260322m';
@@ -25,7 +25,7 @@ const STATIC_ASSETS = [
   '/js/list-utils.js?v=20260323a',
   '/js/index-list-menu-adapter.js?v=20260324a',
   '/js/universal-search.js?v=20260323a',
-  '/js/auth-gate.js?v=20260325a',
+  '/js/auth-gate.js?v=20260325b',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
@@ -247,6 +247,27 @@ self.addEventListener('fetch', (event) => {
     (url.pathname === '/auth-callback.html' || url.searchParams.has('code') || url.searchParams.has('error') || url.searchParams.has('error_description'))
   ) {
     event.respondWith(fetch(request));
+    return;
+  }
+  if (
+    request.mode === 'navigate' &&
+    url.origin === self.location.origin &&
+    url.pathname === '/index.html' &&
+    url.searchParams.has('auth_return')
+  ) {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request, { cache: 'no-store' });
+        if (response && response.ok) {
+          const cache = await caches.open(PAGE_CACHE);
+          cache.put(request, response.clone()).catch(() => {});
+        }
+        return response;
+      } catch (_error) {
+        const cached = await caches.match(request, { ignoreSearch: true }) || await caches.match('/index.html');
+        return cached || offlineResponse();
+      }
+    })());
     return;
   }
   const isImageRequest = request.destination === 'image'
