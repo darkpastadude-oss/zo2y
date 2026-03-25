@@ -81,6 +81,14 @@
   ],
   "rewrites": [
     {
+      "source": "/api/auth",
+      "destination": "/api/auth-handler"
+    },
+    {
+      "source": "/api/auth/:path*",
+      "destination": "/api/auth-handler?path=:path*"
+    },
+    {
       "source": "/api/music",
       "destination": "/api/music-handler"
     },

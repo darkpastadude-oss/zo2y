@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260326a"></script>
+<script src="/js/auth-gate.js?v=20260326c"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Sign Up</title>
 <link rel="icon" href="/newlogo.webp" type="image/webp" />
@@ -342,6 +342,17 @@
     return value;
   }
 
+  function getCanonicalAppOrigin() {
+    const hostname = String(window.location.hostname || '').trim().toLowerCase();
+    if (!hostname || hostname === 'localhost' || hostname === '127.0.0.1') {
+      return window.location.origin;
+    }
+    if (hostname === 'zo2y.com' || hostname === 'www.zo2y.com') {
+      return 'https://www.zo2y.com';
+    }
+    return window.location.origin;
+  }
+
   function getPostAuthRedirect() {
     return sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || safeGetAuthStorage('postAuthRedirect') || initialNextPath || 'index.html');
   }
@@ -581,7 +592,7 @@
       
       // Store that this is a signup flow
       const nextPath = getPostAuthRedirect();
-      const callbackUrl = new URL('/auth-callback.html', window.location.origin);
+      const callbackUrl = new URL('/auth-callback.html', getCanonicalAppOrigin());
       callbackUrl.searchParams.set('flow', 'signup');
       callbackUrl.searchParams.set('next', nextPath);
       safeSetAuthStorage('oauthFlow', 'signup');
@@ -620,6 +631,7 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
 
 
 

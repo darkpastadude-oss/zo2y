@@ -267,6 +267,24 @@
         }
       }
 
+      function getCanonicalAppOrigin() {
+        const hostname = String(window.location.hostname || '').trim().toLowerCase();
+        if (!hostname || hostname === 'localhost' || hostname === '127.0.0.1') {
+          return window.location.origin;
+        }
+        if (hostname === 'zo2y.com' || hostname === 'www.zo2y.com') {
+          return 'https://www.zo2y.com';
+        }
+        return window.location.origin;
+      }
+
+      const CANONICAL_APP_ORIGIN = getCanonicalAppOrigin();
+      if (window.location.origin !== CANONICAL_APP_ORIGIN) {
+        const canonicalTarget = `${CANONICAL_APP_ORIGIN}${window.location.pathname}${window.location.search}${window.location.hash}`;
+        window.location.replace(canonicalTarget);
+        return;
+      }
+
       const params = new URLSearchParams(window.location.search);
       const storedNext = safeGetAuthStorage('postAuthRedirect');
       const next = sanitizeNextPath(params.get('next') || storedNext || 'index.html');
@@ -328,7 +346,12 @@
       }
 
       function buildPostAuthRedirectTarget(rawNext) {
-        return sanitizeNextPath(rawNext || 'index.html');
+        const safeNext = sanitizeNextPath(rawNext || 'index.html');
+        try {
+          return new URL(safeNext, `${CANONICAL_APP_ORIGIN}/`).toString();
+        } catch (_err) {
+          return `${CANONICAL_APP_ORIGIN}/${safeNext.replace(/^\/+/, '')}`;
+        }
       }
 
       function redirectToApp(rawNext, delayMs = 120) {
