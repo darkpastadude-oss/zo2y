@@ -1,0 +1,140 @@
+{
+  "generatedAt": "2026-03-25T18:57:50.234Z",
+  "bucketFilter": "travel-photos",
+  "prefixFilter": "",
+  "grandTotalBytes": 194817790,
+  "grandTotalPretty": "186 MB",
+  "buckets": [
+    {
+      "bucket": "travel-photos",
+      "prefix": "",
+      "totalFiles": 734,
+      "totalBytes": 194817790,
+      "prettyBytes": "186 MB",
+      "topLevel": [
+        {
+          "prefix": "NG",
+          "bytes": 2532868,
+          "files": 3,
+          "prettyBytes": "2.42 MB"
+        },
+        {
+          "prefix": "WS",
+          "bytes": 2422072,
+          "files": 3,
+          "prettyBytes": "2.31 MB"
+        },
+        {
+          "prefix": "UZ",
+          "bytes": 2159643,
+          "files": 3,
+          "prettyBytes": "2.06 MB"
+        },
+        {
+          "prefix": "YE",
+          "bytes": 2114059,
+          "files": 3,
+          "prettyBytes": "2.02 MB"
+        },
+        {
+          "prefix": "UY",
+          "bytes": 2105386,
+          "files": 3,
+          "prettyBytes": "2.01 MB"
+        },
+        {
+          "prefix": "ZM",
+          "bytes": 2077511,
+          "files": 3,
+          "prettyBytes": "1.98 MB"
+        },
+        {
+          "prefix": "VE",
+          "bytes": 2020056,
+          "files": 3,
+          "prettyBytes": "1.93 MB"
+        },
+        {
+          "prefix": "VC",
+          "bytes": 1912107,
+          "files": 3,
+          "prettyBytes": "1.82 MB"
+        },
+        {
+          "prefix": "DK",
+          "bytes": 1825310,
+          "files": 3,
+          "prettyBytes": "1.74 MB"
+        },
+        {
+          "prefix": "ZW",
+          "bytes": 1817259,
+          "files": 3,
+          "prettyBytes": "1.73 MB"
+        }
+      ],
+      "topLevelDepth2": [
+        {
+          "prefix": "NG/nature.jpg",
+          "bytes": 1238412,
+          "files": 1,
+          "prettyBytes": "1.18 MB"
+        },
+        {
+          "prefix": "NG/scenic.jpg",
+          "bytes": 1238412,
+          "files": 1,
+          "prettyBytes": "1.18 MB"
+        },
+        {
+          "prefix": "TZ/city.jpg",
+          "bytes": 1050505,
+          "files": 1,
+          "prettyBytes": "1.00 MB"
+        },
+        {
+          "prefix": "TV/scenic.jpg",
+          "bytes": 981972,
+          "files": 1,
+          "prettyBytes": "959 KB"
+        },
+        {
+          "prefix": "VA/scenic.jpg",
+          "bytes": 975284,
+          "files": 1,
+          "prettyBytes": "952 KB"
+        },
+        {
+          "prefix": "WS/nature.jpg",
+          "bytes": 971795,
+          "files": 1,
+          "prettyBytes": "949 KB"
+        },
+        {
+          "prefix": "WS/scenic.jpg",
+          "bytes": 971795,
+          "files": 1,
+          "prettyBytes": "949 KB"
+        },
+        {
+          "prefix": "VC/city.jpg",
+          "bytes": 947356,
+          "files": 1,
+          "prettyBytes": "925 KB"
+        },
+        {
+          "prefix": "VC/nature.jpg",
+          "bytes": 943257,
+          "files": 1,
+          "prettyBytes": "921 KB"
+        },
+        {
+          "prefix": "UY/city.jpg",
+          "bytes": 932696,
+          "files": 1,
+          "prettyBytes": "911 KB"
+        }
+      ]
+    }
+  ]
+}

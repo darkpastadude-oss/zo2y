@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
+import sharp from 'sharp';
 
 const ROOT = process.cwd();
 const USER_AGENT = 'Zo2yTravelSeeder/1.0 (+https://zo2y.com; support@zo2y.com)';
@@ -308,6 +309,27 @@ async function downloadImage(sourceUrl, attempts = 5) {
   return null;
 }
 
+async function optimizeTravelImage(buffer, contentType = '') {
+  const type = String(contentType || '').toLowerCase();
+  if (type.includes('svg')) {
+    return { buffer, contentType: 'image/svg+xml', ext: 'svg' };
+  }
+  const optimized = await sharp(buffer, { failOn: 'none' })
+    .rotate()
+    .resize({
+      width: 1920,
+      height: 1200,
+      fit: 'inside',
+      withoutEnlargement: true
+    })
+    .webp({
+      quality: 80,
+      effort: 4
+    })
+    .toBuffer();
+  return { buffer: optimized, contentType: 'image/webp', ext: 'webp' };
+}
+
 function extensionFromContentType(contentType, sourceUrl) {
   const type = String(contentType || '').toLowerCase();
   if (type.includes('jpeg') || type.includes('jpg')) return 'jpg';
@@ -344,11 +366,16 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 
 async function ensureBucket() {
   const { data, error } = await supabase.storage.getBucket(BUCKET_NAME);
-  if (data && !error) return;
-  await supabase.storage.createBucket(BUCKET_NAME, {
+  const config = {
     public: true,
-    fileSizeLimit: 20 * 1024 * 1024
-  });
+    fileSizeLimit: 8 * 1024 * 1024,
+    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif', 'application/json']
+  };
+  if (data && !error) {
+    await supabase.storage.updateBucket(BUCKET_NAME, config);
+    return;
+  }
+  await supabase.storage.createBucket(BUCKET_NAME, config);
 }
 
 async function fetchCountries() {
@@ -450,12 +477,13 @@ async function hydrateManifestFromBucket(countries, manifestCountries) {
 async function uploadTravelPhoto(code, kind, sourceUrl) {
   const downloaded = await downloadImage(sourceUrl);
   if (!downloaded) throw new Error(`Download failed: ${sourceUrl}`);
-  const ext = extensionFromContentType(downloaded.contentType, sourceUrl);
+  const optimized = await optimizeTravelImage(downloaded.buffer, downloaded.contentType);
+  const ext = optimized.ext || extensionFromContentType(downloaded.contentType, sourceUrl);
   const filePath = `${String(code).toUpperCase()}/${kind}.${ext}`;
   const { error } = await supabase.storage
     .from(BUCKET_NAME)
-    .upload(filePath, downloaded.buffer, {
-      contentType: downloaded.contentType || 'image/jpeg',
+    .upload(filePath, optimized.buffer, {
+      contentType: optimized.contentType || 'image/webp',
       upsert: true,
       cacheControl: '604800'
     });

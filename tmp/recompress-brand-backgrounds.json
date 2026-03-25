@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-03-25T19:07:39.871Z",
+  "bucket": "brand-backgrounds",
+  "prefixes": [
+    ""
+  ],
+  "dryRun": false,
+  "recursive": true,
+  "processed": 272,
+  "updated": 262,
+  "skipped": 10,
+  "failed": 0,
+  "bytesBefore": 181267274,
+  "bytesAfter": 20587788,
+  "estimatedSavingsBytes": 160679486,
+  "failedPaths": []
+}

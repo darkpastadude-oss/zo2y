@@ -1,0 +1,500 @@
+{
+  "generatedAt": "2026-03-25T17:54:31.335Z",
+  "bucketFilter": "sports-assets",
+  "prefixFilter": "",
+  "grandTotalBytes": 487611106,
+  "grandTotalPretty": "465 MB",
+  "buckets": [
+    {
+      "bucket": "sports-assets",
+      "prefix": "",
+      "totalFiles": 3116,
+      "totalBytes": 487611106,
+      "prettyBytes": "465 MB",
+      "topLevel": [
+        {
+          "prefix": "136013",
+          "bytes": 2155059,
+          "files": 3,
+          "prettyBytes": "2.06 MB"
+        },
+        {
+          "prefix": "134293",
+          "bytes": 1937210,
+          "files": 4,
+          "prettyBytes": "1.85 MB"
+        },
+        {
+          "prefix": "136022",
+          "bytes": 1876872,
+          "files": 3,
+          "prettyBytes": "1.79 MB"
+        },
+        {
+          "prefix": "135172",
+          "bytes": 1675245,
+          "files": 4,
+          "prettyBytes": "1.60 MB"
+        },
+        {
+          "prefix": "136018",
+          "bytes": 1621388,
+          "files": 3,
+          "prettyBytes": "1.55 MB"
+        },
+        {
+          "prefix": "135156",
+          "bytes": 1577723,
+          "files": 4,
+          "prettyBytes": "1.50 MB"
+        },
+        {
+          "prefix": "134866",
+          "bytes": 1527561,
+          "files": 4,
+          "prettyBytes": "1.46 MB"
+        },
+        {
+          "prefix": "138159",
+          "bytes": 1468847,
+          "files": 2,
+          "prettyBytes": "1.40 MB"
+        },
+        {
+          "prefix": "138280",
+          "bytes": 1383673,
+          "files": 4,
+          "prettyBytes": "1.32 MB"
+        },
+        {
+          "prefix": "133687",
+          "bytes": 1336488,
+          "files": 4,
+          "prettyBytes": "1.27 MB"
+        },
+        {
+          "prefix": "138133",
+          "bytes": 1333346,
+          "files": 2,
+          "prettyBytes": "1.27 MB"
+        },
+        {
+          "prefix": "137731",
+          "bytes": 1328940,
+          "files": 3,
+          "prettyBytes": "1.27 MB"
+        },
+        {
+          "prefix": "138997",
+          "bytes": 1323324,
+          "files": 2,
+          "prettyBytes": "1.26 MB"
+        },
+        {
+          "prefix": "134919",
+          "bytes": 1285331,
+          "files": 4,
+          "prettyBytes": "1.23 MB"
+        },
+        {
+          "prefix": "134848",
+          "bytes": 1267108,
+          "files": 4,
+          "prettyBytes": "1.21 MB"
+        },
+        {
+          "prefix": "134299",
+          "bytes": 1258831,
+          "files": 4,
+          "prettyBytes": "1.20 MB"
+        },
+        {
+          "prefix": "134775",
+          "bytes": 1246990,
+          "files": 4,
+          "prettyBytes": "1.19 MB"
+        },
+        {
+          "prefix": "134831",
+          "bytes": 1236395,
+          "files": 4,
+          "prettyBytes": "1.18 MB"
+        },
+        {
+          "prefix": "135160",
+          "bytes": 1232318,
+          "files": 4,
+          "prettyBytes": "1.18 MB"
+        },
+        {
+          "prefix": "136665",
+          "bytes": 1193460,
+          "files": 4,
+          "prettyBytes": "1.14 MB"
+        },
+        {
+          "prefix": "135171",
+          "bytes": 1180494,
+          "files": 4,
+          "prettyBytes": "1.13 MB"
+        },
+        {
+          "prefix": "138141",
+          "bytes": 1166031,
+          "files": 4,
+          "prettyBytes": "1.11 MB"
+        },
+        {
+          "prefix": "136664",
+          "bytes": 1165955,
+          "files": 4,
+          "prettyBytes": "1.11 MB"
+        },
+        {
+          "prefix": "134880",
+          "bytes": 1147570,
+          "files": 4,
+          "prettyBytes": "1.09 MB"
+        },
+        {
+          "prefix": "134855",
+          "bytes": 1145405,
+          "files": 4,
+          "prettyBytes": "1.09 MB"
+        },
+        {
+          "prefix": "133670",
+          "bytes": 1140798,
+          "files": 4,
+          "prettyBytes": "1.09 MB"
+        },
+        {
+          "prefix": "134859",
+          "bytes": 1135858,
+          "files": 4,
+          "prettyBytes": "1.08 MB"
+        },
+        {
+          "prefix": "134839",
+          "bytes": 1111582,
+          "files": 4,
+          "prettyBytes": "1.06 MB"
+        },
+        {
+          "prefix": "133724",
+          "bytes": 1101767,
+          "files": 4,
+          "prettyBytes": "1.05 MB"
+        },
+        {
+          "prefix": "134853",
+          "bytes": 1096633,
+          "files": 4,
+          "prettyBytes": "1.05 MB"
+        },
+        {
+          "prefix": "144246",
+          "bytes": 1082216,
+          "files": 4,
+          "prettyBytes": "1.03 MB"
+        },
+        {
+          "prefix": "134845",
+          "bytes": 1075237,
+          "files": 4,
+          "prettyBytes": "1.03 MB"
+        },
+        {
+          "prefix": "137722",
+          "bytes": 1054045,
+          "files": 3,
+          "prettyBytes": "1.01 MB"
+        },
+        {
+          "prefix": "135260",
+          "bytes": 1052816,
+          "files": 4,
+          "prettyBytes": "1.00 MB"
+        },
+        {
+          "prefix": "133767",
+          "bytes": 1043502,
+          "files": 4,
+          "prettyBytes": "1019 KB"
+        },
+        {
+          "prefix": "134858",
+          "bytes": 1014656,
+          "files": 4,
+          "prettyBytes": "991 KB"
+        },
+        {
+          "prefix": "136033",
+          "bytes": 1012232,
+          "files": 3,
+          "prettyBytes": "989 KB"
+        },
+        {
+          "prefix": "134366",
+          "bytes": 1009001,
+          "files": 3,
+          "prettyBytes": "985 KB"
+        },
+        {
+          "prefix": "133730",
+          "bytes": 1005610,
+          "files": 4,
+          "prettyBytes": "982 KB"
+        },
+        {
+          "prefix": "133908",
+          "bytes": 1005525,
+          "files": 3,
+          "prettyBytes": "982 KB"
+        }
+      ],
+      "topLevelDepth2": [
+        {
+          "prefix": "136013/al-hilal-fanart.jpg",
+          "bytes": 1775606,
+          "files": 1,
+          "prettyBytes": "1.69 MB"
+        },
+        {
+          "prefix": "136022/al-nassr-fanart.jpg",
+          "bytes": 1611670,
+          "files": 1,
+          "prettyBytes": "1.54 MB"
+        },
+        {
+          "prefix": "134293/bahia-jersey.png",
+          "bytes": 1535159,
+          "files": 1,
+          "prettyBytes": "1.46 MB"
+        },
+        {
+          "prefix": "136018/al-ittihad-fanart.jpg",
+          "bytes": 1438546,
+          "files": 1,
+          "prettyBytes": "1.37 MB"
+        },
+        {
+          "prefix": "135172/rosario-central-fanart.jpg",
+          "bytes": 1317581,
+          "files": 1,
+          "prettyBytes": "1.26 MB"
+        },
+        {
+          "prefix": "138997/zamalek-fanart.jpg",
+          "bytes": 1243084,
+          "files": 1,
+          "prettyBytes": "1.19 MB"
+        },
+        {
+          "prefix": "138159/barcelona-sc-badge.png",
+          "bytes": 1219128,
+          "files": 1,
+          "prettyBytes": "1.16 MB"
+        },
+        {
+          "prefix": "138133/amrun-spartans-jersey.png",
+          "bytes": 1173547,
+          "files": 1,
+          "prettyBytes": "1.12 MB"
+        },
+        {
+          "prefix": "135156/boca-juniors-fanart.jpg",
+          "bytes": 1117545,
+          "files": 1,
+          "prettyBytes": "1.07 MB"
+        },
+        {
+          "prefix": "137731/ohiggins-fanart.jpg",
+          "bytes": 1070738,
+          "files": 1,
+          "prettyBytes": "1.02 MB"
+        },
+        {
+          "prefix": "134299/atletico-mineiro-jersey.png",
+          "bytes": 1034627,
+          "files": 1,
+          "prettyBytes": "1010 KB"
+        },
+        {
+          "prefix": "133687/torino-jersey.png",
+          "bytes": 1001332,
+          "files": 1,
+          "prettyBytes": "978 KB"
+        },
+        {
+          "prefix": "135171/river-plate-fanart.jpg",
+          "bytes": 992785,
+          "files": 1,
+          "prettyBytes": "970 KB"
+        },
+        {
+          "prefix": "134775/wrexham-fanart.jpg",
+          "bytes": 973084,
+          "files": 1,
+          "prettyBytes": "950 KB"
+        },
+        {
+          "prefix": "138280/fc-andorra-fanart.jpg",
+          "bytes": 961919,
+          "files": 1,
+          "prettyBytes": "939 KB"
+        },
+        {
+          "prefix": "134919/miami-dolphins-fanart.jpg",
+          "bytes": 932367,
+          "files": 1,
+          "prettyBytes": "911 KB"
+        },
+        {
+          "prefix": "135160/estudiantes-de-la-plata-fanart.jpg",
+          "bytes": 915385,
+          "files": 1,
+          "prettyBytes": "894 KB"
+        },
+        {
+          "prefix": "139097/primeiro-de-agosto-badge.png",
+          "bytes": 893386,
+          "files": 1,
+          "prettyBytes": "872 KB"
+        },
+        {
+          "prefix": "manifest/sports-assets.json",
+          "bytes": 807602,
+          "files": 1,
+          "prettyBytes": "789 KB"
+        },
+        {
+          "prefix": "133908/portugal-fanart.jpg",
+          "bytes": 798747,
+          "files": 1,
+          "prettyBytes": "780 KB"
+        },
+        {
+          "prefix": "138141/union-saint-gilloise-fanart.jpg",
+          "bytes": 792279,
+          "files": 1,
+          "prettyBytes": "774 KB"
+        },
+        {
+          "prefix": "145563/gaborone-united-badge.png",
+          "bytes": 788127,
+          "files": 1,
+          "prettyBytes": "770 KB"
+        },
+        {
+          "prefix": "136665/hurricanes-super-rugby-jersey.png",
+          "bytes": 761533,
+          "files": 1,
+          "prettyBytes": "744 KB"
+        },
+        {
+          "prefix": "134866/los-angeles-clippers-fanart.jpg",
+          "bytes": 750379,
+          "files": 1,
+          "prettyBytes": "733 KB"
+        },
+        {
+          "prefix": "134366/chesterfield-fanart.jpg",
+          "bytes": 749483,
+          "files": 1,
+          "prettyBytes": "732 KB"
+        },
+        {
+          "prefix": "134831/buffalo-sabres-fanart.jpg",
+          "bytes": 747805,
+          "files": 1,
+          "prettyBytes": "730 KB"
+        },
+        {
+          "prefix": "133901/poland-fanart.jpg",
+          "bytes": 738635,
+          "files": 1,
+          "prettyBytes": "721 KB"
+        },
+        {
+          "prefix": "136664/highlanders-super-rugby-jersey.png",
+          "bytes": 734550,
+          "files": 1,
+          "prettyBytes": "717 KB"
+        },
+        {
+          "prefix": "144246/eldense-fanart.jpg",
+          "bytes": 710992,
+          "files": 1,
+          "prettyBytes": "694 KB"
+        },
+        {
+          "prefix": "137723/cobresal-fanart.jpg",
+          "bytes": 704523,
+          "files": 1,
+          "prettyBytes": "688 KB"
+        },
+        {
+          "prefix": "134848/calgary-flames-fanart.jpg",
+          "bytes": 690096,
+          "files": 1,
+          "prettyBytes": "674 KB"
+        },
+        {
+          "prefix": "137725/coquimbo-unido-fanart.jpg",
+          "bytes": 680256,
+          "files": 1,
+          "prettyBytes": "664 KB"
+        },
+        {
+          "prefix": "138050/al-rayyan-badge.png",
+          "bytes": 676366,
+          "files": 1,
+          "prettyBytes": "661 KB"
+        },
+        {
+          "prefix": "134589/istanbul-basaksehir-fanart.jpg",
+          "bytes": 671647,
+          "files": 1,
+          "prettyBytes": "656 KB"
+        },
+        {
+          "prefix": "134296/fluminense-jersey.png",
+          "bytes": 661687,
+          "files": 1,
+          "prettyBytes": "646 KB"
+        },
+        {
+          "prefix": "145304/kabuscorp-badge.png",
+          "bytes": 653987,
+          "files": 1,
+          "prettyBytes": "639 KB"
+        },
+        {
+          "prefix": "134880/atlanta-hawks-fanart.jpg",
+          "bytes": 652801,
+          "files": 1,
+          "prettyBytes": "638 KB"
+        },
+        {
+          "prefix": "133767/az-alkmaar-fanart.jpg",
+          "bytes": 652255,
+          "files": 1,
+          "prettyBytes": "637 KB"
+        },
+        {
+          "prefix": "135260/new-york-yankees-fanart.jpg",
+          "bytes": 650764,
+          "files": 1,
+          "prettyBytes": "636 KB"
+        },
+        {
+          "prefix": "134839/columbus-blue-jackets-fanart.jpg",
+          "bytes": 634575,
+          "files": 1,
+          "prettyBytes": "620 KB"
+        }
+      ]
+    }
+  ]
+}
