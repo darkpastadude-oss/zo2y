@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260325e"></script>
+<script src="/js/auth-gate.js?v=20260325f"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Sign Up</title>
 <link rel="icon" href="/newlogo.webp" type="image/webp" />
@@ -123,11 +123,91 @@
   const STORAGE_KEY = 'zo2y-auth-v1';
   const LEGACY_STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
   const POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
+  const AUTH_STORAGE_PROTECTED_KEYS = new Set([
+    STORAGE_KEY,
+    LEGACY_STORAGE_KEY,
+    POST_AUTH_BOOTSTRAP_KEY,
+    'postAuthRedirect',
+    'postauthredirect',
+    'oauthFlow',
+    'oauthflow',
+    'rememberedEmail',
+    'rememberedemail'
+  ]);
+  function isQuotaExceededStorageError(error) {
+    const message = String((error && error.message) || error || '').toLowerCase();
+    return message.includes('quota') || message.includes('exceeded the quota');
+  }
+  function isDisposableStorageKey(key) {
+    const value = String(key || '').trim().toLowerCase();
+    if (!value || AUTH_STORAGE_PROTECTED_KEYS.has(value)) return false;
+    if (value.startsWith('zo2y_onboarding_')) return false;
+    if (value.startsWith('zo2y_')) return true;
+    if (value.startsWith('books_') || value.startsWith('books_mobile_')) return true;
+    if (value.startsWith('games_') || value.startsWith('travel_')) return true;
+    return value.includes('cache') || value.includes('search') || value.includes('feed') || value.includes('rail') || value.includes('manifest') || value.includes('page');
+  }
+  function releaseLocalStoragePressure() {
+    try {
+      if (!window.localStorage) return 0;
+      const candidates = [];
+      for (let index = 0; index < window.localStorage.length; index += 1) {
+        const key = String(window.localStorage.key(index) || '');
+        if (!isDisposableStorageKey(key)) continue;
+        const value = window.localStorage.getItem(key) || '';
+        candidates.push({ key, size: value.length });
+      }
+      candidates.sort((a, b) => b.size - a.size);
+      candidates.slice(0, 24).forEach((entry) => window.localStorage.removeItem(entry.key));
+      return Math.min(candidates.length, 24);
+    } catch (_error) {
+      return 0;
+    }
+  }
+  function buildQuotaSafeSupabaseStorage() {
+    return {
+      getItem(key) {
+        try {
+          const sessionValue = window.sessionStorage ? window.sessionStorage.getItem(key) : null;
+          if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
+        } catch (_err) {}
+        try {
+          return window.localStorage ? window.localStorage.getItem(key) : null;
+        } catch (_err) {
+          return null;
+        }
+      },
+      setItem(key, value) {
+        try {
+          if (window.sessionStorage) window.sessionStorage.setItem(key, value);
+        } catch (_err) {}
+        try {
+          if (window.localStorage) window.localStorage.setItem(key, value);
+        } catch (_err) {
+          if (isQuotaExceededStorageError(_err)) {
+            releaseLocalStoragePressure();
+            try {
+              if (window.localStorage) window.localStorage.setItem(key, value);
+            } catch (_retryErr) {}
+          }
+        }
+      },
+      removeItem(key) {
+        try {
+          if (window.sessionStorage) window.sessionStorage.removeItem(key);
+        } catch (_err) {}
+        try {
+          if (window.localStorage) window.localStorage.removeItem(key);
+        } catch (_err) {}
+      }
+    };
+  }
 
   // Initialize Supabase
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: {
       storageKey: STORAGE_KEY,
+      storage: window.__ZO2Y_SUPABASE_AUTH_STORAGE || buildQuotaSafeSupabaseStorage(),
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: false  // Important: Don't auto-detect on signup page
@@ -169,7 +249,17 @@
         window.localStorage.setItem(key, value);
         return true;
       }
-    } catch (_err) {}
+    } catch (_err) {
+      if (isQuotaExceededStorageError(_err)) {
+        releaseLocalStoragePressure();
+        try {
+          if (window.localStorage) {
+            window.localStorage.setItem(key, value);
+            return true;
+          }
+        } catch (_retryErr) {}
+      }
+    }
     return false;
   }
 
@@ -180,6 +270,26 @@
     try {
       if (window.localStorage) window.localStorage.removeItem(key);
     } catch (_err) {}
+  }
+
+  function safeSetLocalStorageValue(key, value) {
+    try {
+      if (window.localStorage) {
+        window.localStorage.setItem(key, value);
+        return true;
+      }
+    } catch (_err) {
+      if (isQuotaExceededStorageError(_err)) {
+        releaseLocalStoragePressure();
+        try {
+          if (window.localStorage) {
+            window.localStorage.setItem(key, value);
+            return true;
+          }
+        } catch (_retryErr) {}
+      }
+    }
+    return false;
   }
 
   function persistSessionSnapshot(session) {
@@ -197,11 +307,10 @@
   function persistPendingPostAuthBootstrap(payload) {
     if (!payload || typeof payload !== 'object') return false;
     try {
-      localStorage.setItem(POST_AUTH_BOOTSTRAP_KEY, JSON.stringify({
+      return safeSetLocalStorageValue(POST_AUTH_BOOTSTRAP_KEY, JSON.stringify({
         ...payload,
         createdAt: Date.now()
       }));
-      return true;
     } catch (_err) {
       return false;
     }
@@ -451,7 +560,7 @@
       analyticsTrack('signup_success', { method: 'password', auto_login: true, path: window.location.pathname }, true);
       analyticsMarkFirstAction('first_signup_success', { method: 'password' });
       try {
-        localStorage.setItem(getOnboardingPendingKey(data.session.user.id), '1');
+          safeSetLocalStorageValue(getOnboardingPendingKey(data.session.user.id), '1');
       } catch (_err) {}
       persistPendingPostAuthBootstrap({
         flow: 'signup',

@@ -91,9 +91,92 @@
       const STORAGE_KEY = 'zo2y-auth-v1';
       const LEGACY_STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
       const POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
+      const AUTH_STORAGE_PROTECTED_KEYS = new Set([
+        STORAGE_KEY,
+        LEGACY_STORAGE_KEY,
+        POST_AUTH_BOOTSTRAP_KEY,
+        'postAuthRedirect',
+        'postauthredirect',
+        'oauthFlow',
+        'oauthflow',
+        'rememberedEmail',
+        'rememberedemail'
+      ]);
       const statusText = document.getElementById('statusText');
       const errorText = document.getElementById('errorText');
       const debugConsole = document.getElementById('debugConsole');
+
+      function isQuotaExceededStorageError(error) {
+        const message = String((error && error.message) || error || '').toLowerCase();
+        return message.includes('quota') || message.includes('exceeded the quota');
+      }
+
+      function isDisposableStorageKey(key) {
+        const value = String(key || '').trim().toLowerCase();
+        if (!value || AUTH_STORAGE_PROTECTED_KEYS.has(value)) return false;
+        if (value.startsWith('zo2y_onboarding_')) return false;
+        if (value.startsWith('zo2y_')) return true;
+        if (value.startsWith('books_') || value.startsWith('books_mobile_')) return true;
+        if (value.startsWith('games_') || value.startsWith('travel_')) return true;
+        return value.includes('cache') || value.includes('search') || value.includes('feed') || value.includes('rail') || value.includes('manifest') || value.includes('page');
+      }
+
+      function releaseLocalStoragePressure() {
+        try {
+          if (!window.localStorage) return 0;
+          const candidates = [];
+          for (let index = 0; index < window.localStorage.length; index += 1) {
+            const key = String(window.localStorage.key(index) || '');
+            if (!isDisposableStorageKey(key)) continue;
+            const value = window.localStorage.getItem(key) || '';
+            candidates.push({ key, size: value.length });
+          }
+          candidates.sort((a, b) => b.size - a.size);
+          candidates.slice(0, 24).forEach((entry) => window.localStorage.removeItem(entry.key));
+          return Math.min(candidates.length, 24);
+        } catch (_error) {
+          return 0;
+        }
+      }
+
+      function buildQuotaSafeSupabaseStorage() {
+        return {
+          getItem(key) {
+            try {
+              const sessionValue = window.sessionStorage ? window.sessionStorage.getItem(key) : null;
+              if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
+            } catch (_err) {}
+            try {
+              return window.localStorage ? window.localStorage.getItem(key) : null;
+            } catch (_err) {
+              return null;
+            }
+          },
+          setItem(key, value) {
+            try {
+              if (window.sessionStorage) window.sessionStorage.setItem(key, value);
+            } catch (_err) {}
+            try {
+              if (window.localStorage) window.localStorage.setItem(key, value);
+            } catch (_err) {
+              if (isQuotaExceededStorageError(_err)) {
+                releaseLocalStoragePressure();
+                try {
+                  if (window.localStorage) window.localStorage.setItem(key, value);
+                } catch (_retryErr) {}
+              }
+            }
+          },
+          removeItem(key) {
+            try {
+              if (window.sessionStorage) window.sessionStorage.removeItem(key);
+            } catch (_err) {}
+            try {
+              if (window.localStorage) window.localStorage.removeItem(key);
+            } catch (_err) {}
+          }
+        };
+      }
 
       function safeGetAuthStorage(key) {
         try {
@@ -116,6 +199,26 @@
         } catch (_err) {}
       }
 
+      function safeSetLocalStorageValue(key, value) {
+        try {
+          if (window.localStorage) {
+            window.localStorage.setItem(key, value);
+            return true;
+          }
+        } catch (_err) {
+          if (isQuotaExceededStorageError(_err)) {
+            releaseLocalStoragePressure();
+            try {
+              if (window.localStorage) {
+                window.localStorage.setItem(key, value);
+                return true;
+              }
+            } catch (_retryErr) {}
+          }
+        }
+        return false;
+      }
+
       function safeSetAuthStorage(key, value) {
         try {
           if (window.sessionStorage) {
@@ -126,7 +229,14 @@
           if (window.localStorage) {
             window.localStorage.setItem(key, value);
           }
-        } catch (_err) {}
+        } catch (_err) {
+          if (isQuotaExceededStorageError(_err)) {
+            releaseLocalStoragePressure();
+            try {
+              if (window.localStorage) window.localStorage.setItem(key, value);
+            } catch (_retryErr) {}
+          }
+        }
       }
 
       function persistSessionSnapshot(session) {
@@ -144,11 +254,10 @@
       function persistPendingPostAuthBootstrap(payload) {
         if (!payload || typeof payload !== 'object') return false;
         try {
-          localStorage.setItem(POST_AUTH_BOOTSTRAP_KEY, JSON.stringify({
+          return safeSetLocalStorageValue(POST_AUTH_BOOTSTRAP_KEY, JSON.stringify({
             ...payload,
             createdAt: Date.now()
           }));
-          return true;
         } catch (_err) {
           return false;
         }
@@ -567,6 +676,7 @@
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
           auth: {
             storageKey: STORAGE_KEY,
+            storage: buildQuotaSafeSupabaseStorage(),
             persistSession: true,
             autoRefreshToken: true,
             // Handle callback tokens manually so we can tolerate small mobile clock skew.
@@ -645,9 +755,7 @@
         }
         persistSessionSnapshot(finalSession);
         if (oauthFlow === 'signup' && finalSession?.user?.id) {
-          try {
-            localStorage.setItem(getOnboardingPendingKey(finalSession.user.id), '1');
-          } catch (_err) {}
+          safeSetLocalStorageValue(getOnboardingPendingKey(finalSession.user.id), '1');
           persistPendingPostAuthBootstrap({
             flow: 'signup',
             userId: finalSession.user.id,
@@ -689,7 +797,7 @@
         statusText.textContent = 'Setting up your profile...';
         const profileResult = await ensureUserProfile(client, user);
         if (oauthFlow === 'signup' || profileResult?.created) {
-          localStorage.setItem(getOnboardingPendingKey(user.id), '1');
+          safeSetLocalStorageValue(getOnboardingPendingKey(user.id), '1');
         }
 
         statusText.textContent = 'Finishing setup...';

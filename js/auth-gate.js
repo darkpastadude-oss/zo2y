@@ -18,11 +18,87 @@
   ]);
   var SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  var AUTH_GATE_VERSION = '20260325e';
+  var AUTH_GATE_VERSION = '20260325f';
+  var AUTH_STORAGE_PROTECTED_KEYS = new Set([
+    STORAGE_KEY,
+    LEGACY_STORAGE_KEY,
+    POST_AUTH_BOOTSTRAP_KEY,
+    'postAuthRedirect',
+    'postauthredirect',
+    'oauthFlow',
+    'oauthflow',
+    'rememberedEmail'
+    ,
+    'rememberedemail'
+  ]);
 
   function normalizePageKey(pathname) {
     var file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
     return file.replace(/\.html?$/i, '') || 'index';
+  }
+
+  function isQuotaExceededStorageError(error) {
+    var message = String((error && error.message) || error || '').toLowerCase();
+    if (message.indexOf('quota') !== -1) return true;
+    if (message.indexOf('exceeded the quota') !== -1) return true;
+    return false;
+  }
+
+  function isProtectedStorageKey(key) {
+    var value = String(key || '').trim();
+    var normalized = value.toLowerCase();
+    if (!value) return true;
+    if (AUTH_STORAGE_PROTECTED_KEYS.has(value) || AUTH_STORAGE_PROTECTED_KEYS.has(normalized)) return true;
+    if (normalized.indexOf('zo2y_onboarding_') === 0) return true;
+    if (normalized.indexOf('zo2y_onboarding_pending_') === 0) return true;
+    return false;
+  }
+
+  function isDisposableStorageKey(key) {
+    var value = String(key || '').trim().toLowerCase();
+    if (!value || isProtectedStorageKey(value)) return false;
+    if (value.indexOf('zo2y_') === 0) return true;
+    if (value.indexOf('books_') === 0) return true;
+    if (value.indexOf('books_mobile_') === 0) return true;
+    if (value.indexOf('games_') === 0) return true;
+    if (value.indexOf('travel_') === 0) return true;
+    if (value.indexOf('movies_') === 0) return true;
+    if (value.indexOf('tv_') === 0) return true;
+    if (value.indexOf('anime_') === 0) return true;
+    if (value.indexOf('music_') === 0) return true;
+    if (value.indexOf('search') !== -1) return true;
+    if (value.indexOf('cache') !== -1) return true;
+    if (value.indexOf('manifest') !== -1) return true;
+    if (value.indexOf('feed') !== -1) return true;
+    if (value.indexOf('rail') !== -1) return true;
+    if (value.indexOf('page') !== -1) return true;
+    if (value.indexOf('photo') !== -1) return true;
+    return false;
+  }
+
+  function releaseLocalStoragePressure() {
+    try {
+      if (!window.localStorage) return 0;
+      var candidates = [];
+      for (var index = 0; index < window.localStorage.length; index += 1) {
+        var key = String(window.localStorage.key(index) || '');
+        if (!isDisposableStorageKey(key)) continue;
+        var value = window.localStorage.getItem(key) || '';
+        candidates.push({ key: key, size: value.length });
+      }
+      candidates.sort(function (left, right) {
+        return right.size - left.size;
+      });
+      var removed = 0;
+      for (var candidateIndex = 0; candidateIndex < candidates.length; candidateIndex += 1) {
+        window.localStorage.removeItem(candidates[candidateIndex].key);
+        removed += 1;
+        if (removed >= 24) break;
+      }
+      return removed;
+    } catch (_err) {
+      return 0;
+    }
   }
 
   function safeGetStorageItem(key) {
@@ -41,13 +117,25 @@
         window.sessionStorage.setItem(key, value);
         return true;
       }
-    } catch (_err) {}
+    } catch (_err) {
+      if (!isQuotaExceededStorageError(_err)) return false;
+    }
     try {
       if (window.localStorage) {
         window.localStorage.setItem(key, value);
         return true;
       }
-    } catch (_err) {}
+    } catch (_err) {
+      if (isQuotaExceededStorageError(_err)) {
+        releaseLocalStoragePressure();
+        try {
+          if (window.localStorage) {
+            window.localStorage.setItem(key, value);
+            return true;
+          }
+        } catch (_retryErr) {}
+      }
+    }
     return false;
   }
 
@@ -88,6 +176,15 @@
       if (window.localStorage) window.localStorage.setItem(key, value);
       return true;
     } catch (_err) {
+      if (location === 'local' && isQuotaExceededStorageError(_err)) {
+        releaseLocalStoragePressure();
+        try {
+          if (window.localStorage) {
+            window.localStorage.setItem(key, value);
+            return true;
+          }
+        } catch (_retryErr) {}
+      }
       return false;
     }
   }
@@ -108,6 +205,23 @@
     var legacy = safeGetStorageItem(LEGACY_STORAGE_KEY);
     if (!legacy) return;
     safeSetStorageItem(STORAGE_KEY, legacy);
+  }
+
+  function getQuotaSafeSupabaseStorage() {
+    if (window.__ZO2Y_SUPABASE_AUTH_STORAGE) return window.__ZO2Y_SUPABASE_AUTH_STORAGE;
+    window.__ZO2Y_SUPABASE_AUTH_STORAGE = {
+      getItem: function (key) {
+        return safeGetStorageItem(key);
+      },
+      setItem: function (key, value) {
+        safeSetStorageItemToLocation('session', key, value);
+        safeSetStorageItemToLocation('local', key, value);
+      },
+      removeItem: function (key) {
+        safeRemoveStorageItem(key);
+      }
+    };
+    return window.__ZO2Y_SUPABASE_AUTH_STORAGE;
   }
 
   function isAuthCallbackLikePage(pageKey) {
@@ -345,6 +459,7 @@
         authOptions.storageKey = STORAGE_KEY;
         authOptions.persistSession = authOptions.persistSession !== false;
         authOptions.autoRefreshToken = authOptions.autoRefreshToken !== false;
+        authOptions.storage = getQuotaSafeSupabaseStorage();
         if (shouldForceSharedSupabaseClient(pageKey)) {
           authOptions.detectSessionInUrl = false;
         } else if (typeof authOptions.detectSessionInUrl === 'undefined') {
@@ -655,6 +770,8 @@
   }
 
   var pageKey = normalizePageKey(window.location.pathname);
+  migrateLegacySessionStorage();
+  installSupabaseClientFactoryPatch(pageKey);
   maybeRedirectOAuthCallback(pageKey);
   var authenticated = hasStoredSupabaseSession();
   var initialShell = pageKey === 'index' ? 'pending' : 'app';
