@@ -180,6 +180,17 @@
     } catch (_err) {}
   }
 
+  function persistSessionSnapshot(session) {
+    if (!session || typeof session !== 'object') return false;
+    try {
+      const payload = JSON.stringify({ currentSession: session });
+      safeSetAuthStorage(STORAGE_KEY, payload);
+      return true;
+    } catch (_err) {
+      return false;
+    }
+  }
+
   const initialNextPath = sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || safeGetAuthStorage('postAuthRedirect') || 'index.html');
 
   function analyticsTrack(eventName, properties = {}, essential = false) {
@@ -253,7 +264,8 @@
     return null;
   }
 
-  async function finalizeAuthRedirect() {
+  async function finalizeAuthRedirect(sessionOverride = null) {
+    if (sessionOverride) persistSessionSnapshot(sessionOverride);
     await waitForStableSession(5000);
     const nextPath = getPostAuthRedirect();
     safeRemoveAuthStorage('postAuthRedirect');
@@ -397,8 +409,9 @@
         if (data.user?.id) {
           localStorage.setItem(getOnboardingPendingKey(data.user.id), '1');
         }
+        persistSessionSnapshot(data?.session || null);
         showSuccess('Account created! Redirecting...');
-        await finalizeAuthRedirect();
+        await finalizeAuthRedirect(data?.session || null);
       }
       
     } catch (error) {
