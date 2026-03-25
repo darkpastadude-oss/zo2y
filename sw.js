@@ -1,5 +1,5 @@
-﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v190';
-const PAGE_CACHE = 'zo2y-pages-v163';
+﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v191';
+const PAGE_CACHE = 'zo2y-pages-v164';
 const IMAGE_CACHE = 'zo2y-images-v29';
 const API_CACHE = 'zo2y-api-v12';
 const MOVIES_PAGE_VERSION = '20260322m';
@@ -15,8 +15,8 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260324a',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260325g',
-  '/js/pages/index-home-heavy-loaders.js?v=20260325d',
+  '/js/pages/index.js?v=20260325h',
+  '/js/pages/index-home-heavy-loaders.js?v=20260325e',
   '/js/home-desktop-rebrand.js?v=20260323c',
   '/js/referral-utils.js?v=20260319a',
   '/js/shared-header.js?v=20260324a',
@@ -25,7 +25,7 @@ const STATIC_ASSETS = [
   '/js/list-utils.js?v=20260323a',
   '/js/index-list-menu-adapter.js?v=20260324a',
   '/js/universal-search.js?v=20260323a',
-  '/js/auth-gate.js?v=20260325c',
+  '/js/auth-gate.js?v=20260325d',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
@@ -237,6 +237,9 @@ self.addEventListener('fetch', (event) => {
   const isLatestGamesPage =
     url.origin === self.location.origin &&
     (url.pathname === '/games.html' || url.pathname === '/games-mobile.html' || url.pathname === '/game.html');
+  const isBooksPage =
+    url.origin === self.location.origin &&
+    (url.pathname === '/books.html' || url.pathname === '/books-mobile.html' || url.pathname === '/book.html');
   if (url.origin === self.location.origin && url.pathname === '/sw.js') return;
   if (url.origin === self.location.origin && url.pathname.startsWith('/_vercel/insights/')) return;
   // OAuth callbacks must always load the real callback page. A timeout fallback to `/index.html`
@@ -288,6 +291,23 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate' && isLatestGamesPage) {
     event.respondWith(fetch(request, { cache: 'no-store' }));
+    return;
+  }
+
+  if (request.mode === 'navigate' && isBooksPage) {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request, { cache: 'no-store' });
+        if (response && response.ok) {
+          const cache = await caches.open(PAGE_CACHE);
+          cache.put(request, response.clone()).catch(() => {});
+        }
+        return response;
+      } catch (_error) {
+        const cached = await caches.match(request, { ignoreSearch: true }) || await caches.match(url.pathname);
+        return cached || offlineResponse();
+      }
+    })());
     return;
   }
 
