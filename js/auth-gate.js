@@ -4,6 +4,7 @@
   var PROJECT_REF = 'gfkhjbztayjyojsgdpgk';
   var STORAGE_KEY = 'zo2y-auth-v1';
   var LEGACY_STORAGE_KEY = 'sb-' + PROJECT_REF + '-auth-token';
+  var POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
     'login',
@@ -17,7 +18,7 @@
   ]);
   var SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  var AUTH_GATE_VERSION = '20260325d';
+  var AUTH_GATE_VERSION = '20260325e';
 
   function normalizePageKey(pathname) {
     var file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
@@ -57,6 +58,14 @@
     try {
       if (window.localStorage) window.localStorage.removeItem(key);
     } catch (_err) {}
+  }
+
+  function safeGetLocalStorageItem(key) {
+    try {
+      return window.localStorage ? window.localStorage.getItem(key) : null;
+    } catch (_err) {
+      return null;
+    }
   }
 
   function safeGetStorageItemFromLocation(location, key) {
@@ -161,6 +170,20 @@
 
   function hasStoredSupabaseSession() {
     return !!getBestStoredSessionRecord();
+  }
+
+  function hasPendingPostAuthBootstrap() {
+    var raw = safeGetLocalStorageItem(POST_AUTH_BOOTSTRAP_KEY);
+    if (!raw) return false;
+    try {
+      var parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return false;
+      var createdAt = Number(parsed.createdAt || 0);
+      if (!createdAt) return true;
+      return (Date.now() - createdAt) < (1000 * 60 * 60 * 24 * 3);
+    } catch (_err) {
+      return false;
+    }
   }
 
   function extractSessionFromPayload(value) {
@@ -424,6 +447,8 @@
     var client = null;
     var protectedPage = !PUBLIC_PAGE_KEYS.has(pageKey);
     var authStateVerifyTimer = null;
+    var authReturnRequested = pageKey === 'index' && new URLSearchParams(window.location.search || '').has('auth_return');
+    var authReturnStartedAt = authReturnRequested ? Date.now() : 0;
 
     async function bootstrapClientSessionFromStorage() {
       if (!client || !client.auth || typeof client.auth.setSession !== 'function') return false;
@@ -486,6 +511,7 @@
         var sessionResult = await client.auth.getSession();
         var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
         var hasStoredSnapshot = !!getStoredSessionSnapshot();
+        var pendingPostAuthBootstrap = hasPendingPostAuthBootstrap();
         if (!session && hasStoredSnapshot) {
           for (var bootstrapAttempt = 0; bootstrapAttempt < 4 && !session; bootstrapAttempt += 1) {
             await bootstrapClientSessionFromStorage();
@@ -503,6 +529,19 @@
         }
         var authenticated = !!(session && session.user);
         var finalAuthenticated = authenticated;
+        var shouldHoldForPostAuth =
+          !authenticated &&
+          pageKey === 'index' &&
+          (authReturnRequested || pendingPostAuthBootstrap) &&
+          ((Date.now() - authReturnStartedAt) < 8000);
+        if (shouldHoldForPostAuth) {
+          applyShellState(false, pageKey, { shell: 'pending', verified: false });
+          if (authStateVerifyTimer) window.clearTimeout(authStateVerifyTimer);
+          authStateVerifyTimer = window.setTimeout(function () {
+            void verifyAndApply();
+          }, hasStoredSnapshot ? 180 : 320);
+          return false;
+        }
         if (!authenticated && hasStoredSnapshot && client.__zo2yFutureRetryWaitMs > 0 && pageKey === 'index') {
           applyShellState(false, pageKey, { shell: 'pending', verified: false });
           if (client.__zo2yFutureRetryTimer) window.clearTimeout(client.__zo2yFutureRetryTimer);
@@ -544,6 +583,15 @@
         }));
         return true;
       } catch (_err) {
+        var shouldRetryPostAuth = pageKey === 'index' && (authReturnRequested || hasPendingPostAuthBootstrap()) && ((Date.now() - authReturnStartedAt) < 8000);
+        if (shouldRetryPostAuth) {
+          applyShellState(false, pageKey, { shell: 'pending', verified: false });
+          if (authStateVerifyTimer) window.clearTimeout(authStateVerifyTimer);
+          authStateVerifyTimer = window.setTimeout(function () {
+            void verifyAndApply();
+          }, 280);
+          return false;
+        }
         var fallbackAuthenticated = hasStoredSupabaseSession();
         applyShellState(fallbackAuthenticated, pageKey, { verified: true });
         window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
