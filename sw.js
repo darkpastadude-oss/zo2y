@@ -1,5 +1,5 @@
-﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v193';
-const PAGE_CACHE = 'zo2y-pages-v166';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v194';
+const PAGE_CACHE = 'zo2y-pages-v167';
 const IMAGE_CACHE = 'zo2y-images-v29';
 const API_CACHE = 'zo2y-api-v12';
 const MOVIES_PAGE_VERSION = '20260322m';
@@ -25,7 +25,7 @@ const STATIC_ASSETS = [
   '/js/list-utils.js?v=20260323a',
   '/js/index-list-menu-adapter.js?v=20260324a',
   '/js/universal-search.js?v=20260323a',
-  '/js/auth-gate.js?v=20260325f',
+  '/js/auth-gate.js?v=20260326a',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
@@ -335,6 +335,7 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
+
 
 
 

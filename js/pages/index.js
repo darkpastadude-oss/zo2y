@@ -1,4 +1,4 @@
-﻿    const ENABLE_GAMES = true;
+    const ENABLE_GAMES = true;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
     const ENABLE_FOOD = window.ZO2Y_DISABLE_FOOD !== true;
@@ -2752,7 +2752,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           autoRefreshToken: true,
           // OAuth callback is handled on auth-callback.html, keep homepage parser off.
           detectSessionInUrl: false,
-          storageKey: 'zo2y-auth-v1'
+          storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token'
         }
       });
       window.__ZO2Y_SUPABASE_CLIENT = homeSupabaseClient;
@@ -6002,7 +6002,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         {
           id: 'interests-setup',
           title: 'Tune Your Feed',
-          body: 'Choose formats and genres so the ï¿½For Youï¿½ feed starts on the right note.',
+          body: 'Choose formats and genres so the �For You� feed starts on the right note.',
           art: `
               <div class="onboarding-interest-layout">
                 <div class="onboarding-interest-photos">
@@ -8071,6 +8071,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
+
 
 
 

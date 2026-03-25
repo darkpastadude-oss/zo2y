@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260325f"></script>
+<script src="/js/auth-gate.js?v=20260326a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex">
   <title>Zo2y - Travel</title>
   <meta name="description" content="Browse countries, save travel lists, and open country pages with reviews.">
@@ -1671,7 +1671,7 @@
         }
         if (window.supabase && typeof window.supabase.createClient === 'function') {
           client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'zo2y-auth-v1' }
+            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token' }
           });
           return client;
         }
@@ -2232,6 +2232,8 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
+
 
 
 

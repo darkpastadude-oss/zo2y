@@ -415,7 +415,7 @@ const HEADER_HTML = `
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: false,
-          storageKey: 'zo2y-auth-v1'
+          storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token'
         }
       });
       window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
@@ -884,4 +884,5 @@ const HEADER_HTML = `
     boot();
   }
 })();
+
 

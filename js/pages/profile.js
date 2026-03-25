@@ -1,4 +1,4 @@
-﻿// ===== GLOBAL PROFILE MANAGER =====
+// ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
             // Supabase configuration
             const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
@@ -224,7 +224,7 @@
                     if (!supabase) {
                         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
                             auth: {
-                                storageKey: 'zo2y-auth-v1',
+                                storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token',
                                 persistSession: true,
                                 autoRefreshToken: true,
                                 detectSessionInUrl: false
@@ -384,7 +384,7 @@
                     .trim()
                     .replace(/^@+/, '')
                     .toLowerCase()
-                    .replace(/['â€™]/g, '')
+                    .replace(/['’]/g, '')
                     .replace(/[^a-z0-9_]+/g, '_')
                     .replace(/_+/g, '_')
                     .replace(/^_+|_+$/g, '')
@@ -1746,7 +1746,7 @@
 
                 const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
                 const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
-                const summaryText = `${followersCount} followers Â· ${followingCount} following`;
+                const summaryText = `${followersCount} followers · ${followingCount} following`;
                 if (desktopMeta) desktopMeta.textContent = summaryText;
                 if (mobileMeta) mobileMeta.textContent = summaryText;
                 renderProfileBadges();
@@ -1824,7 +1824,7 @@
                 } finally {
                     const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
                     const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
-                    const summaryText = `${followersCount} followers Â· ${followingCount} following`;
+                    const summaryText = `${followersCount} followers · ${followingCount} following`;
                     if (desktopMeta) desktopMeta.textContent = summaryText;
                     if (mobileMeta) mobileMeta.textContent = summaryText;
                 }
@@ -6082,7 +6082,7 @@
                 if (listType !== 'custom') return baseTitle;
                 const tierMeta = getTierMetaForList(type, list, 0);
                 if (!tierMeta.isTier) return baseTitle;
-                return `${baseTitle} â€¢ Tier List`;
+                return `${baseTitle} • Tier List`;
             }
 
             function canReorderCollectionItems(contentType, listId, listType = 'custom', list = null) {
@@ -8365,7 +8365,7 @@
                 const sport = String(team?.sport || team?.strSport || '').trim();
                 const stadium = String(team?.stadium || team?.strStadium || '').trim();
                 const logo = normalizeSportsImageUrl(team?.logo_url || team?.strTeamBadge || team?.strTeamLogo || '');
-                const subtitle = [league, sport].filter(Boolean).join(' â€¢ ') || 'Team';
+                const subtitle = [league, sport].filter(Boolean).join(' • ') || 'Team';
                 const logoImage = logo || FALLBACK_BOOK_IMAGE;
                 const canRemove = !!options?.canRemove && !!id;
 
@@ -13128,6 +13128,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
+
 
 
 
