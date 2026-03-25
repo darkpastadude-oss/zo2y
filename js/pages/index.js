@@ -227,6 +227,7 @@ const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
     const HOME_BECAUSE_SIGNAL_RECENCY_HOURS = 24 * 21;
     const HOME_MENU_PRIME_IDLE_DELAY_MS = 2500;
     const HOME_ONBOARDING_VERSION = 'v1';
+    const HOME_POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
     const PROFILE_USERNAME_MAX_LENGTH = 30;
 const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     const HOME_TRAVEL_VARIANT_SESSION_SEED = Math.floor(Math.random() * 2147483647);
@@ -5623,6 +5624,23 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       localStorage.removeItem(getOnboardingPendingKey(userId));
     }
 
+    function readPendingHomePostAuthBootstrap() {
+      try {
+        const raw = localStorage.getItem(HOME_POST_AUTH_BOOTSTRAP_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : null;
+      } catch (_err) {
+        return null;
+      }
+    }
+
+    function clearPendingHomePostAuthBootstrap() {
+      try {
+        localStorage.removeItem(HOME_POST_AUTH_BOOTSTRAP_KEY);
+      } catch (_err) {}
+    }
+
     function homeMediaLabel(type) {
       const key = String(type || '').toLowerCase();
       const map = {
@@ -5691,6 +5709,117 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const isTaken = Array.isArray(data) && data.some((row) => String(row?.id || '') !== String(currentProfileId || homeCurrentUser?.id || ''));
       if (isTaken) throw new Error('That username is already taken.');
       return normalizedUsername;
+    }
+
+    async function ensureHomeProfileSeeded() {
+      if (!homeCurrentUser?.id) return { ok: false, created: false };
+      const client = await ensureHomeSupabase();
+      if (!client) return { ok: false, created: false };
+
+      const { data: existingProfile, error: lookupError } = await client
+        .from('user_profiles')
+        .select('id, username, full_name')
+        .eq('id', homeCurrentUser.id)
+        .maybeSingle();
+      if (existingProfile?.id) {
+        return { ok: true, created: false, profile: existingProfile };
+      }
+      if (lookupError) {
+        throw lookupError;
+      }
+
+      const metadata = homeCurrentUser.user_metadata || {};
+      const emailPrefix = String(homeCurrentUser.email || '').split('@')[0] || 'user';
+      const baseSeed = normalizeProfileUsername(
+        metadata.username ||
+        metadata.preferred_username ||
+        metadata.full_name ||
+        metadata.name ||
+        emailPrefix ||
+        'user'
+      ) || 'user';
+      const suffixSeed = String(homeCurrentUser.id || '').replace(/-/g, '').slice(0, 6) || 'user';
+      let username = '';
+      try {
+        username = await ensureHomeUsernameAvailable(baseSeed, homeCurrentUser.id);
+      } catch (_baseErr) {
+        try {
+          username = await ensureHomeUsernameAvailable(`${baseSeed.slice(0, 22)}_${suffixSeed}`, homeCurrentUser.id);
+        } catch (_suffixErr) {
+          username = `${baseSeed.slice(0, 22)}_${suffixSeed}`.slice(0, PROFILE_USERNAME_MAX_LENGTH);
+        }
+      }
+      const fullName = String(metadata.full_name || metadata.name || emailPrefix || username).trim().slice(0, 80);
+
+      const { data: createdProfile, error: createError } = await client
+        .from('user_profiles')
+        .insert({
+          id: homeCurrentUser.id,
+          username,
+          full_name: fullName || null
+        })
+        .select('id, username, full_name')
+        .maybeSingle();
+      if (createError) {
+        const message = String(createError?.message || '').toLowerCase();
+        if (message.includes('duplicate') || message.includes('unique')) {
+          return { ok: true, created: false, profile: null };
+        }
+        throw createError;
+      }
+      return { ok: true, created: true, profile: createdProfile || null };
+    }
+
+    async function triggerHomeWelcomeEmail(session, flow = 'signup') {
+      const accessToken = String(session?.access_token || '').trim();
+      if (!accessToken) return false;
+      try {
+        const response = await fetch('/api/emails/welcome/trigger', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({
+            appUrl: window.location.origin,
+            flow
+          })
+        });
+        return response.ok;
+      } catch (_err) {
+        return false;
+      }
+    }
+
+    async function finishPendingPostAuthBootstrap() {
+      if (!homeCurrentUser?.id) return false;
+      const pending = readPendingHomePostAuthBootstrap();
+      if (!pending) return false;
+
+      const pendingUserId = String(pending?.userId || '').trim();
+      if (pendingUserId && pendingUserId !== String(homeCurrentUser.id)) {
+        clearPendingHomePostAuthBootstrap();
+        return false;
+      }
+
+      const createdAt = Number(pending?.createdAt || 0);
+      if (createdAt && (Date.now() - createdAt) > (1000 * 60 * 60 * 24 * 3)) {
+        clearPendingHomePostAuthBootstrap();
+        return false;
+      }
+
+      try {
+        await ensureHomeProfileSeeded();
+        localStorage.setItem(getOnboardingPendingKey(homeCurrentUser.id), '1');
+        clearPendingHomePostAuthBootstrap();
+        const client = await ensureHomeSupabase();
+        const { data: sessionData } = client ? await client.auth.getSession() : { data: { session: null } };
+        void triggerHomeWelcomeEmail(sessionData?.session || null, String(pending?.flow || 'signup'));
+        return true;
+      } catch (error) {
+        console.warn('Pending auth bootstrap failed:', error);
+        return false;
+      }
     }
 
     async function loadHomeInterestProfile(client) {
@@ -6632,7 +6761,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const userId = homeCurrentUser?.id;
       if (!userId) return;
 
-      let shouldShow = false;
+      const pendingOnboarding = isOnboardingPending(userId) && !hasSeenOnboarding(userId);
+      let shouldShow = pendingOnboarding;
       try {
         const client = await ensureHomeSupabase();
         if (!client) return;
@@ -6642,13 +6772,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           .eq('id', userId)
           .maybeSingle();
         const username = String(profile?.username || '').trim();
-        shouldShow = !username;
+        shouldShow = pendingOnboarding || !username;
       } catch (_err) {
-        shouldShow = isOnboardingPending(userId) && !hasSeenOnboarding(userId);
+        shouldShow = pendingOnboarding;
       }
 
       if (!shouldShow) {
-        markOnboardingSeen(userId);
+        if (!hasSeenOnboarding(userId)) {
+          markOnboardingSeen(userId);
+        }
         clearOnboardingPending(userId);
         return;
       }
@@ -7767,6 +7899,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         await setupHomeAuthListener();
         await completeHomeOAuthReturnIfNeeded();
         await initAuthUi();
+        const bootstrapApplied = await finishPendingPostAuthBootstrap();
+        if ((bootstrapApplied || isOnboardingPending(homeCurrentUser?.id)) && !hasSeenOnboarding(homeCurrentUser?.id)) {
+          void maybeShowHomeOnboarding();
+        }
         await initUniversalHome();
         scheduleDeferredHomeStartupTasks();
       })().catch((error) => {

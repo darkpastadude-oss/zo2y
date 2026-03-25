@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import { sendWelcomeEmail } from "../lib/email/service.js";
+import { getSupabaseAdminClient } from "../lib/supabase-admin.js";
 import { createRateLimiter } from "../lib/guardrails.js";
 
 const router = express.Router();
@@ -14,11 +15,96 @@ router.use(createRateLimiter({
   max: 30
 }));
 
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function normalizeFullName(value) {
+  return String(value || "").trim().slice(0, 80);
+}
+
+function isValidEmail(value) {
+  return /\S+@\S+\.\S+/.test(String(value || "").trim());
+}
+
+function mapSupabaseSignupError(error) {
+  const message = String(error?.message || "").trim() || "Signup failed";
+  const normalized = message.toLowerCase();
+  if (normalized.includes("already registered") || normalized.includes("already been registered")) {
+    return { status: 409, message: "This email is already registered. Please log in instead." };
+  }
+  if (normalized.includes("password")) {
+    return { status: 400, message };
+  }
+  if (normalized.includes("email")) {
+    return { status: 400, message };
+  }
+  return { status: Number(error?.status || 500) || 500, message };
+}
+
+router.post("/password-signup", async (req, res) => {
+  try {
+    const fullName = normalizeFullName(req.body?.fullName);
+    const email = normalizeEmail(req.body?.email);
+    const password = String(req.body?.password || "");
+
+    if (!fullName || fullName.length < 2) {
+      return res.status(400).json({ success: false, message: "Full name is required." });
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: "Please provide a valid email address." });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ success: false, message: "Password must be at least 8 characters." });
+    }
+
+    const admin = getSupabaseAdminClient();
+    if (!admin) {
+      return res.status(500).json({
+        success: false,
+        message: "Signup service is not configured."
+      });
+    }
+
+    const { data, error } = await admin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        full_name: fullName,
+        name: fullName
+      }
+    });
+
+    if (error || !data?.user?.id) {
+      const mapped = mapSupabaseSignupError(error);
+      return res.status(mapped.status).json({
+        success: false,
+        message: mapped.message
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      user: {
+        id: data.user.id,
+        email: data.user.email || email,
+        full_name: fullName
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error?.message || "Signup failed"
+    });
+  }
+});
+
 // ===== SIGNUP =====
 router.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    const safeEmail = String(email || "").trim().toLowerCase();
+    const safeEmail = normalizeEmail(email);
     const safeUsername = String(username || "").trim();
 
     if (!safeUsername || safeUsername.length < 3 || safeUsername.length > 40) {

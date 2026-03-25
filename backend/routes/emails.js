@@ -84,6 +84,13 @@ router.get("/health", (_req, res) => {
 
 router.post("/welcome/trigger", async (req, res) => {
   try {
+    if (!emailConfigured()) {
+      return res.status(200).json({
+        success: true,
+        status: "skipped_unconfigured"
+      });
+    }
+
     const auth = await getAuthenticatedSupabaseUser(req);
     if (auth.error || !auth.user || !auth.admin) {
       return res.status(auth.status || 401).json({ success: false, message: auth.error || "Unauthorized" });

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260325b"></script>
+<script src="/js/auth-gate.js?v=20260325c"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Login</title>
 <link rel="icon" href="/newlogo.webp" type="image/webp" />
@@ -216,6 +216,18 @@
     return sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || safeGetAuthStorage('postAuthRedirect') || initialNextPath || 'index.html');
   }
 
+  function buildPostAuthRedirectTarget(rawNext) {
+    const safeNext = sanitizeNextPath(rawNext || 'index.html');
+    try {
+      const targetUrl = new URL(safeNext, window.location.origin);
+      targetUrl.searchParams.set('auth_return', '1');
+      targetUrl.searchParams.set('authv', '20260325c');
+      return `${targetUrl.pathname.replace(/^\//, '')}${targetUrl.search}${targetUrl.hash}`;
+    } catch (_err) {
+      return safeNext;
+    }
+  }
+
   function decorateReferralLinks() {
     const inviteBanner = document.getElementById('authInviteBanner');
     const safeReferral = referralUtils ? referralUtils.getStoredReferral() : activeReferral;
@@ -247,22 +259,24 @@
 
   decorateReferralLinks();
 
-  async function waitForStableSession(timeoutMs = 5000) {
+  async function waitForStableSession(timeoutMs = 1200) {
     const startedAt = Date.now();
     while ((Date.now() - startedAt) < timeoutMs) {
       const user = await getVerifiedUser();
       if (user?.id) return user;
-      await new Promise((resolve) => setTimeout(resolve, 180));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
     return null;
   }
 
   async function finalizeAuthRedirect(sessionOverride = null) {
     if (sessionOverride) persistSessionSnapshot(sessionOverride);
-    await waitForStableSession(5000);
+    if (!sessionOverride?.user?.id) {
+      await waitForStableSession(1200);
+    }
     const nextPath = getPostAuthRedirect();
     safeRemoveAuthStorage('postAuthRedirect');
-    window.location.replace(nextPath);
+    window.location.replace(buildPostAuthRedirectTarget(nextPath));
   }
 
   function showError(msg) {

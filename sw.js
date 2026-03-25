@@ -1,5 +1,5 @@
 ﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v190';
-const PAGE_CACHE = 'zo2y-pages-v161';
+const PAGE_CACHE = 'zo2y-pages-v163';
 const IMAGE_CACHE = 'zo2y-images-v29';
 const API_CACHE = 'zo2y-api-v12';
 const MOVIES_PAGE_VERSION = '20260322m';
@@ -15,7 +15,7 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260324a',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260325f',
+  '/js/pages/index.js?v=20260325g',
   '/js/pages/index-home-heavy-loaders.js?v=20260325d',
   '/js/home-desktop-rebrand.js?v=20260323c',
   '/js/referral-utils.js?v=20260319a',
@@ -25,7 +25,7 @@ const STATIC_ASSETS = [
   '/js/list-utils.js?v=20260323a',
   '/js/index-list-menu-adapter.js?v=20260324a',
   '/js/universal-search.js?v=20260323a',
-  '/js/auth-gate.js?v=20260325b',
+  '/js/auth-gate.js?v=20260325c',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',

@@ -1,10 +1,22 @@
-﻿import express from "express";
-import { applyApiGuardrails } from "../backend/lib/api-guardrails.js";
-
-const app = express();
-applyApiGuardrails(app, { keyPrefix: "api-openlibrary", max: 240 });
-
 const OPEN_LIBRARY_BASE = "https://openlibrary.org";
+
+function readQuery(req) {
+  if (req.query && typeof req.query === "object") return req.query;
+  try {
+    const url = new URL(req.url || "", "http://localhost");
+    return Object.fromEntries(url.searchParams.entries());
+  } catch (_error) {
+    return {};
+  }
+}
+
+function readPathParts(query) {
+  const rawPath = query?.path;
+  if (Array.isArray(rawPath)) return rawPath.filter(Boolean);
+  return String(rawPath || "")
+    .split("/")
+    .filter(Boolean);
+}
 
 function pushQueryParam(params, key, value) {
   if (value === undefined || value === null) return;
@@ -41,12 +53,26 @@ async function fetchWithRetry(url, init = {}, attempts = 4) {
   throw lastError || new Error("Open Library request failed");
 }
 
-app.get("/api/openlibrary/*", async (req, res) => {
+export default async function handler(req, res) {
   try {
-    const relativePath = req.path.replace(/^\/api\/openlibrary\//, "");
-    const sanitizedPath = String(relativePath || "").replace(/^\/+/, "");
+    const query = readQuery(req);
+    const pathParts = readPathParts(query);
+    const method = String(req.method || "GET").toUpperCase();
+
+    if (method !== "GET") {
+      return res.status(405).json({ message: "Method not allowed" });
+    }
+
+    if (!pathParts.length) {
+      return res.status(200).json({ ok: true, service: "openlibrary-proxy" });
+    }
+
+    const sanitizedPath = pathParts.join("/").replace(/^\/+/, "");
     const target = new URL(`${OPEN_LIBRARY_BASE}/${sanitizedPath}`);
-    Object.entries(req.query || {}).forEach(([paramKey, value]) => pushQueryParam(target.searchParams, paramKey, value));
+    Object.entries(query || {}).forEach(([key, value]) => {
+      if (key === "path") return;
+      pushQueryParam(target.searchParams, key, value);
+    });
 
     const upstream = await fetchWithRetry(target.toString(), {
       headers: { Accept: "application/json" }
@@ -59,31 +85,4 @@ app.get("/api/openlibrary/*", async (req, res) => {
   } catch (error) {
     return res.status(502).json({ message: error?.message || "Open Library proxy failed" });
   }
-});
-
-app.get("/api/openlibrary", (_req, res) => {
-  res.json({ ok: true, service: "openlibrary-proxy" });
-});
-
-export default function handler(req, res) {
-  const query = req.query || {};
-  const rawPath = query.path;
-  const pathParts = Array.isArray(rawPath)
-    ? rawPath
-    : String(rawPath || "")
-      .split("/")
-      .filter(Boolean);
-
-  const nextParams = new URLSearchParams();
-  Object.entries(query).forEach(([key, value]) => {
-    if (key === "path") return;
-    pushQueryParam(nextParams, key, value);
-  });
-
-  const suffix = pathParts.length ? `/${pathParts.join("/")}` : "";
-  const search = nextParams.toString();
-  req.url = `/api/openlibrary${suffix}${search ? `?${search}` : ""}`;
-  return app(req, res);
 }
-
-

@@ -35,7 +35,9 @@ function parseCorsOrigins() {
     "https://zo2y.com",
     "https://www.zo2y.com",
     "http://localhost:3000",
-    "http://localhost:5000"
+    "http://localhost:5000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5000"
   ].filter(Boolean);
   return new Set([...defaults, ...raw]);
 }

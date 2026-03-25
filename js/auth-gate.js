@@ -168,6 +168,28 @@
     return String(session.access_token).slice(0, 24) + '|' + String(session.refresh_token).slice(0, 24);
   }
 
+  function decodeJwtPayload(token) {
+    try {
+      var parts = String(token || '').split('.');
+      if (parts.length < 2) return null;
+      var base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      var padded = base64 + '==='.slice((base64.length + 3) % 4);
+      return JSON.parse(window.atob(padded));
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function getStoredSessionFutureWaitMs(session) {
+    var payload = decodeJwtPayload(session && session.access_token);
+    var issuedAt = Number(payload && payload.iat ? payload.iat : 0);
+    if (!issuedAt) return 0;
+    var now = Math.floor(Date.now() / 1000);
+    var skewSeconds = issuedAt - now;
+    if (skewSeconds <= 1) return 0;
+    return Math.min(4500, (skewSeconds + 1) * 1000);
+  }
+
   function sanitizeNextPath(raw) {
     var value = String(raw || '').trim();
     if (!value) return 'index.html';
@@ -257,9 +279,16 @@
         var authenticated = !!(setResult && setResult.data && setResult.data.session && setResult.data.session.user);
         if (authenticated) {
           client.__zo2yStorageBootstrap.done = true;
+          client.__zo2yFutureRetryWaitMs = 0;
         }
         return authenticated;
       } catch (_err) {
+        var errorMessage = String((_err && _err.message) || '').toLowerCase();
+        if (errorMessage.indexOf('issued in the future') !== -1 || errorMessage.indexOf('clock skew') !== -1 || errorMessage.indexOf('clock for skew') !== -1) {
+          client.__zo2yFutureRetryWaitMs = getStoredSessionFutureWaitMs(storedSession);
+        } else {
+          client.__zo2yFutureRetryWaitMs = 0;
+        }
         return false;
       }
     }
@@ -275,7 +304,7 @@
             await bootstrapClientSessionFromStorage();
             if (bootstrapAttempt > 0) {
               await new Promise(function (resolve) {
-                window.setTimeout(resolve, 180);
+                window.setTimeout(resolve, 70);
               });
             }
             sessionResult = await client.auth.getSession();
@@ -287,6 +316,16 @@
         }
         var authenticated = !!(session && session.user);
         var finalAuthenticated = authenticated;
+        if (!authenticated && hasStoredSnapshot && client.__zo2yFutureRetryWaitMs > 0 && pageKey === 'index') {
+          applyShellState(false, pageKey, { shell: 'pending', verified: false });
+          if (client.__zo2yFutureRetryTimer) window.clearTimeout(client.__zo2yFutureRetryTimer);
+          client.__zo2yFutureRetryTimer = window.setTimeout(function () {
+            client.__zo2yFutureRetryTimer = null;
+            client.__zo2yFutureRetryWaitMs = 0;
+            void verifyAndApply();
+          }, client.__zo2yFutureRetryWaitMs);
+          return false;
+        }
         applyShellState(authenticated, pageKey, { verified: true });
 
         if (!authenticated && protectedPage) {
@@ -362,10 +401,10 @@
           if (authStateVerifyTimer) window.clearTimeout(authStateVerifyTimer);
           authStateVerifyTimer = window.setTimeout(function () {
             void verifyAndApply();
-          }, session && session.user ? 0 : 400);
+          }, session && session.user ? 0 : 120);
         });
       }
-    }, 150);
+    }, 90);
   }
 
   var pageKey = normalizePageKey(window.location.pathname);
