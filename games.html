@@ -1201,7 +1201,7 @@
 
       function scheduleGamesLoad(delayMs = 360) {
         if (loadGamesTimer) clearTimeout(loadGamesTimer);
-        const effectiveDelay = isSlowNetwork() ? Math.max(420, delayMs) : delayMs;
+        const effectiveDelay = isSlowNetwork() ? Math.max(220, delayMs) : Math.min(140, delayMs);
         loadGamesTimer = setTimeout(() => {
           loadGames();
         }, effectiveDelay);
@@ -1467,7 +1467,15 @@
         /\bcreepy red\b/i,
         /\bradical red\b/i,
         /\bmeta fire\s?red\b/i,
-        /\bace ?dragon\b/i
+        /\bace ?dragon\b/i,
+        /\bpc port\b/i,
+        /\bchapter\b/i,
+        /\bepisode\b/i,
+        /\bmission\b/i,
+        /\bprologue\b/i,
+        /\bside story\b/i,
+        /\bdlc\b/i,
+        /\bexpansion\b/i
       ];
 
       function normalizeSearchCanonicalTitleKey(value) {
@@ -1587,10 +1595,10 @@
           const bTitle = String(b?.title || b?.name || b?.slug || '').trim();
           const scoreDiff = scoreSearchMatch(bTitle, cleanQuery) - scoreSearchMatch(aTitle, cleanQuery);
           if (scoreDiff !== 0) return scoreDiff;
-          const dateDiff = String(b?.release_date || '').localeCompare(String(a?.release_date || ''));
-          if (dateDiff !== 0) return dateDiff;
           const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
           if (countDiff !== 0) return countDiff;
+          const dateDiff = String(b?.release_date || '').localeCompare(String(a?.release_date || ''));
+          if (dateDiff !== 0) return dateDiff;
           const aRating = Number(a?.rating || 0);
           const bRating = Number(b?.rating || 0);
           if (Number.isFinite(aRating) && Number.isFinite(bRating) && aRating !== bRating) {
@@ -1658,29 +1666,27 @@
           return true;
         });
         const allRows = [];
-        for (const variant of uniqueVariants.slice(0, 6)) {
+        for (const variant of uniqueVariants.slice(0, 2)) {
           const terms = [variant, normalizeTitleKey(variant), normalizeFranchiseTitleKey(variant)]
             .map((value) => String(value || '').trim())
             .filter((value, index, array) => value && array.indexOf(value) === index);
-          for (const term of terms.slice(0, 3)) {
+          for (const term of terms.slice(0, 2)) {
             const escaped = term.replace(/[%_,]/g, ' ').trim();
             if (!escaped) continue;
-            const batchSize = 1000;
-            let offset = 0;
-            while (true) {
-              let queryBuilder = supabaseClient
-                .from('games')
-                .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug')
-                .or(`title.ilike.%${escaped}%,slug.ilike.%${escaped}%`)
-                .range(offset, offset + batchSize - 1);
-              if (year) {
-                queryBuilder = queryBuilder.gte('release_date', `${year}-01-01`).lte('release_date', `${year}-12-31`);
-              }
-              const { data, error } = await queryBuilder;
-              if (error || !Array.isArray(data) || !data.length) break;
+            let queryBuilder = supabaseClient
+              .from('games')
+              .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug')
+              .or(`title.ilike.%${escaped}%,slug.ilike.%${escaped}%`)
+              .order('rating_count', { ascending: false, nullsFirst: false })
+              .order('rating', { ascending: false, nullsFirst: false })
+              .order('release_date', { ascending: false, nullsFirst: false })
+              .range(0, 119);
+            if (year) {
+              queryBuilder = queryBuilder.gte('release_date', `${year}-01-01`).lte('release_date', `${year}-12-31`);
+            }
+            const { data, error } = await queryBuilder;
+            if (!error && Array.isArray(data) && data.length) {
               allRows.push(...data);
-              if (data.length < batchSize) break;
-              offset += data.length;
             }
           }
         }
@@ -1693,11 +1699,13 @@
         const query = String(state.query || '').trim();
         if (!query) return null;
         let supplement = await fetchSearchSupplementGames(query, state.activeGenre, state.year);
-        if (supplement.length < Math.max(pageSize * 3, 120)) {
-          const ready = await ensureGamesCatalogLoaded();
+        if (supplement.length < Math.max(pageSize * 3, 60)) {
+          const ready = state.catalogLoadedAll;
           if (ready) {
             const catalogMatches = filterCatalogGames(state.catalog);
             supplement = dedupeSearchResults([...supplement, ...catalogMatches], query);
+          } else {
+            void ensureGamesCatalogLoaded().catch(() => false);
           }
         }
         if (!supplement.length) {
@@ -2666,7 +2674,7 @@
             state.query = e.target.value.trim();
             renderFilters();
             state.page = 1;
-            scheduleGamesLoad(380);
+            scheduleGamesLoad(90);
           });
           searchInput.addEventListener('change', (e) => {
             state.query = e.target.value.trim();
@@ -2687,7 +2695,7 @@
             state.activeGenre = e.target.value;
             renderFilters();
             state.page = 1;
-            scheduleGamesLoad(320);
+            scheduleGamesLoad(90);
           });
         }
         if (yearInput) {
@@ -2695,7 +2703,7 @@
             state.year = e.target.value.trim();
             renderFilters();
             state.page = 1;
-            scheduleGamesLoad(340);
+            scheduleGamesLoad(90);
           });
         }
         if (refreshBtn) {
