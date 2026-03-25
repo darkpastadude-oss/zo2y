@@ -82,11 +82,11 @@
   "rewrites": [
     {
       "source": "/api/auth",
-      "destination": "/api/auth-handler"
+      "destination": "/api/support-handler?path=auth"
     },
     {
       "source": "/api/auth/:path*",
-      "destination": "/api/auth-handler?path=:path*"
+      "destination": "/api/support-handler?path=auth/:path*"
     },
     {
       "source": "/api/music",
