@@ -225,16 +225,17 @@
   }
 
   function safeSetAuthStorage(key, value) {
+    let wrote = false;
     try {
       if (window.sessionStorage) {
         window.sessionStorage.setItem(key, value);
-        return true;
+        wrote = true;
       }
     } catch (_err) {}
     try {
       if (window.localStorage) {
         window.localStorage.setItem(key, value);
-        return true;
+        wrote = true;
       }
     } catch (_err) {
       if (isQuotaExceededStorageError(_err)) {
@@ -242,12 +243,12 @@
         try {
           if (window.localStorage) {
             window.localStorage.setItem(key, value);
-            return true;
+            wrote = true;
           }
         } catch (_retryErr) {}
       }
     }
-    return false;
+    return wrote;
   }
 
   function safeRemoveAuthStorage(key) {

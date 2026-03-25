@@ -218,23 +218,30 @@
       }
 
       function safeSetAuthStorage(key, value) {
+        let wrote = false;
         try {
           if (window.sessionStorage) {
             window.sessionStorage.setItem(key, value);
+            wrote = true;
           }
         } catch (_err) {}
         try {
           if (window.localStorage) {
             window.localStorage.setItem(key, value);
+            wrote = true;
           }
         } catch (_err) {
           if (isQuotaExceededStorageError(_err)) {
             releaseLocalStoragePressure();
             try {
-              if (window.localStorage) window.localStorage.setItem(key, value);
+              if (window.localStorage) {
+                window.localStorage.setItem(key, value);
+                wrote = true;
+              }
             } catch (_retryErr) {}
           }
         }
+        return wrote;
       }
 
       function persistSessionSnapshot(session) {

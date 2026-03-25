@@ -410,12 +410,16 @@ const HEADER_HTML = `
     }
     if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
     try {
+      const sharedStorage = typeof window.__ZO2Y_GET_SUPABASE_AUTH_STORAGE === 'function'
+        ? window.__ZO2Y_GET_SUPABASE_AUTH_STORAGE()
+        : undefined;
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: false,
-          storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token'
+          storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token',
+          storage: sharedStorage
         }
       });
       window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;

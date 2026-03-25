@@ -122,6 +122,8 @@
     return window.__ZO2Y_SUPABASE_AUTH_STORAGE;
   }
 
+  window.__ZO2Y_GET_SUPABASE_AUTH_STORAGE = getQuotaSafeSupabaseStorage;
+
   function getHashParams() {
     var rawHash = window.location.hash || '';
     if (rawHash.charAt(0) === '#') rawHash = rawHash.slice(1);

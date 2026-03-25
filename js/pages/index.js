@@ -2746,13 +2746,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         return homeSupabaseClient;
       }
       if (!window.supabase || !window.supabase.createClient) return null;
+      const sharedStorage = typeof window.__ZO2Y_GET_SUPABASE_AUTH_STORAGE === 'function'
+        ? window.__ZO2Y_GET_SUPABASE_AUTH_STORAGE()
+        : undefined;
       homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
           // OAuth callback is handled on auth-callback.html, keep homepage parser off.
           detectSessionInUrl: false,
-          storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token'
+          storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token',
+          storage: sharedStorage
         }
       });
       window.__ZO2Y_SUPABASE_CLIENT = homeSupabaseClient;
