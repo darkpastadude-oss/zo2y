@@ -1448,6 +1448,28 @@
         'ace dragon'
       ];
 
+      const UNOFFICIAL_GAME_PATTERNS = [
+        /\bprototype\b/i,
+        /\btech demo\b/i,
+        /\bdemo\b/i,
+        /\bfan\s?game\b/i,
+        /\bfanmade\b/i,
+        /\brom hack\b/i,
+        /\bmod\b/i,
+        /\bmodded\b/i,
+        /\bpictures pack\b/i,
+        /\bimages pack\b/i,
+        /\bwallpaper pack\b/i,
+        /\bsoundtrack\b/i,
+        /\bost\b/i,
+        /\bupdate\s*\d+\b/i,
+        /\bfield trip\b/i,
+        /\bcreepy red\b/i,
+        /\bradical red\b/i,
+        /\bmeta fire\s?red\b/i,
+        /\bace ?dragon\b/i
+      ];
+
       function normalizeSearchCanonicalTitleKey(value) {
         return normalizeFranchiseTitleKey(value)
           .replace(/\bversion\b/g, ' ')
@@ -1471,6 +1493,15 @@
         if (title.includes(`${queryKey} s `) || title.includes(`${queryKey}s `)) return true;
         if (/[[(][^)]+[)\]]/.test(String(row?.title || '')) && !String(row?.source || '').toLowerCase().includes('wikipedia')) return true;
         return false;
+      }
+
+      function isLikelyRealGameRow(row) {
+        const title = String(row?.title || row?.name || row?.slug || '').trim();
+        if (!title) return false;
+        if (UNOFFICIAL_GAME_PATTERNS.some((pattern) => pattern.test(title))) return false;
+        const importedFrom = getGameImportedFrom(row);
+        if (/[[(][^)]+[)\]]/.test(title) && importedFrom.includes('rawg')) return false;
+        return true;
       }
 
       function scoreSearchResultRow(row, query = '') {
@@ -1972,7 +2003,7 @@
           if (data.length < chunkSize) break;
           cursor += data.length;
         }
-        const deduped = sortGamesPosterFirst(dedupeRowsById(collected));
+        const deduped = sortGamesPosterFirst(dedupeRowsById(collected.filter((row) => isLikelyRealGameRow(row))));
         if (!deduped.length) return null;
         const payload = {
           rows: deduped.slice(0, pageSize),
@@ -2043,6 +2074,8 @@
         const filtered = catalog.filter((item) => {
           const title = String(item?.title || '').trim();
           if (!title) return false;
+
+          if (!isLikelyRealGameRow(item)) return false;
 
           if (query) {
             if (!titleMatchesQuery(title, query)) return false;
