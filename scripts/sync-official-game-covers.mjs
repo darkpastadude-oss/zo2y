@@ -361,6 +361,7 @@ async function main() {
   const offset = Math.max(0, Number(parseArg('--offset', 0)));
   const concurrency = Math.max(1, Number(parseArg('--concurrency', 4)));
   const missingOnly = hasFlag('--missing-only');
+  const externalOnly = hasFlag('--external-only');
 
   const rows = await fetchAllGames(supabase);
   const groupedRows = Array.from(buildGroups(rows).values())
@@ -396,26 +397,37 @@ async function main() {
       const official = current.official;
       const title = String(official?.title || group[0]?.title || 'game').trim();
       const slug = sanitizeFileBase(official?.slug || group[0]?.slug || title);
-      const existingPosterOfficial = group.find((row) => {
+      const existingPosterOfficial = externalOnly ? null : group.find((row) => {
         const url = normalizeCoverUrl(row?.cover_url);
         return /\/storage\/v1\/object\/public\/game-assets\/covers-official\//.test(url) && Boolean(row?.extra?.official_cover_is_poster);
       });
       const existingLocalOfficial = existingPosterOfficial ? normalizeCoverUrl(existingPosterOfficial?.cover_url) : '';
 
       try {
-        const uploaded = existingLocalOfficial
-          ? { publicUrl: existingLocalOfficial, width: Number(existingPosterOfficial?.extra?.official_cover_width || 0), height: Number(existingPosterOfficial?.extra?.official_cover_height || 0), isPoster: true }
-          : await uploadAsset(supabase, `covers-official/${slug}`, current.officialCoverSource);
-        if (!existingLocalOfficial && !uploaded.isPoster) {
+        const uploaded = externalOnly
+          ? {
+            publicUrl: normalizeCoverUrl(current.officialCoverSource),
+            width: 0,
+            height: 0,
+            isPoster: !isLikelyBackdropUrl(current.officialCoverSource)
+          }
+          : existingLocalOfficial
+            ? { publicUrl: existingLocalOfficial, width: Number(existingPosterOfficial?.extra?.official_cover_width || 0), height: Number(existingPosterOfficial?.extra?.official_cover_height || 0), isPoster: true }
+            : await uploadAsset(supabase, `covers-official/${slug}`, current.officialCoverSource);
+        if (!uploaded.publicUrl) {
+          throw new Error('no-cover-url');
+        }
+        if (!uploaded.isPoster) {
           throw new Error('not-poster');
         }
-        const localCover = uploaded.publicUrl;
+        const selectedCover = uploaded.publicUrl;
         const patchPromises = group.map(async (row) => {
           const currentExtra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
           const nextExtra = {
             ...currentExtra,
             official_cover_source: current.officialCoverSource,
             official_cover_synced_at: new Date().toISOString(),
+            official_cover_storage: externalOnly ? 'remote' : 'bucket',
             official_cover_width: Number(uploaded.width || currentExtra.official_cover_width || 0) || 0,
             official_cover_height: Number(uploaded.height || currentExtra.official_cover_height || 0) || 0,
             official_cover_is_poster: uploaded.isPoster || Boolean(currentExtra.official_cover_is_poster)
@@ -423,7 +435,7 @@ async function main() {
           const { error } = await supabase
             .from('games')
             .update({
-              cover_url: localCover,
+              cover_url: selectedCover,
               extra: nextExtra
             })
             .eq('id', row.id);
@@ -446,6 +458,7 @@ async function main() {
   console.log(JSON.stringify({
     totalGroups: groups.length,
     missingOnly,
+    externalOnly,
     updatedRows,
     skipped
   }, null, 2));

@@ -1379,6 +1379,111 @@
         return Array.from(grouped.values()).map((group) => sortGamesPosterFirst(group)[0]).filter(Boolean);
       }
 
+      const SEARCH_TITLE_SUFFIX_NOISE = new Set([
+        'version',
+        'edition',
+        'standard edition',
+        'deluxe edition',
+        'ultimate edition',
+        'definitive edition',
+        'game of the year edition',
+        'goty edition'
+      ]);
+
+      const SEARCH_UNOFFICIAL_TOKENS = [
+        'prototype',
+        'demo',
+        'tech demo',
+        'fan game',
+        'fangame',
+        'rom hack',
+        'hack',
+        'mod',
+        'modded',
+        'creepy',
+        'creepypasta',
+        'but the',
+        'pictures pack',
+        'images pack',
+        'soundtrack',
+        'music',
+        'field trip',
+        'dream prototype',
+        'radical red',
+        'meta firered',
+        'ace dragon'
+      ];
+
+      function normalizeSearchCanonicalTitleKey(value) {
+        return normalizeFranchiseTitleKey(value)
+          .replace(/\bversion\b/g, ' ')
+          .replace(/\bedition\b/g, ' ')
+          .replace(/\bstandard\b/g, ' ')
+          .replace(/\bultimate\b/g, ' ')
+          .replace(/\bdefinitive\b/g, ' ')
+          .replace(/\bdeluxe\b/g, ' ')
+          .replace(/\bgame of the year\b/g, ' ')
+          .replace(/\bgoty\b/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      function isLikelyUnofficialSearchResult(row, query = '') {
+        const title = normalizeFranchiseTitleKey(row?.title || row?.name || row?.slug || '');
+        const queryKey = normalizeFranchiseTitleKey(query);
+        if (!title) return false;
+        if (!queryKey || !title.includes(queryKey)) return false;
+        if (SEARCH_UNOFFICIAL_TOKENS.some((token) => title.includes(token))) return true;
+        if (title.includes(`${queryKey} s `) || title.includes(`${queryKey}s `)) return true;
+        if (/[[(][^)]+[)\]]/.test(String(row?.title || '')) && !String(row?.source || '').toLowerCase().includes('wikipedia')) return true;
+        return false;
+      }
+
+      function scoreSearchResultRow(row, query = '') {
+        const title = String(row?.title || row?.name || row?.slug || '').trim();
+        const titleKey = normalizeSearchCanonicalTitleKey(title);
+        const queryKey = normalizeSearchCanonicalTitleKey(query);
+        let score = scoreSearchMatch(title, query);
+        if (queryKey && titleKey === queryKey) score += 1200;
+        if (queryKey && titleKey.startsWith(`${queryKey} `)) {
+          const suffix = titleKey.slice(queryKey.length).trim();
+          if (!suffix || SEARCH_TITLE_SUFFIX_NOISE.has(suffix)) score += 700;
+        }
+        if (hasPosterOfficialGameCover(row)) score += 260;
+        if (/\/game-assets\/covers\//.test(normalizeGameImageUrl(row?.cover_url))) score += 120;
+        if (isOfficialGameProviderRow(row)) score += 80;
+        if (isLikelyUnofficialSearchResult(row, query)) score -= 2000;
+        score += Math.min(Number(row?.rating_count || 0), 5000) / 50;
+        return score;
+      }
+
+      function buildSearchDedupKey(row, query = '') {
+        const title = String(row?.title || row?.name || row?.slug || '').trim();
+        const canonicalTitle = normalizeSearchCanonicalTitleKey(title);
+        const queryKey = normalizeSearchCanonicalTitleKey(query);
+        if (!canonicalTitle) return '';
+        if (queryKey && (canonicalTitle === queryKey || canonicalTitle.startsWith(`${queryKey} `))) {
+          const suffix = canonicalTitle.slice(queryKey.length).trim();
+          if (!suffix || SEARCH_TITLE_SUFFIX_NOISE.has(suffix)) return `${queryKey}::query`;
+        }
+        return canonicalTitle;
+      }
+
+      function dedupeSearchResults(rows = [], query = '') {
+        const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+        if (!query) return dedupeRowsById(list);
+        const grouped = new Map();
+        list.forEach((row) => {
+          const key = buildSearchDedupKey(row, query) || buildTitleEditionKey(row) || String(row?.id || '');
+          if (!key) return;
+          if (!grouped.has(key)) grouped.set(key, []);
+          grouped.get(key).push(row);
+        });
+        return Array.from(grouped.values()).map((group) => {
+          return group.slice().sort((a, b) => scoreSearchResultRow(b, query) - scoreSearchResultRow(a, query))[0];
+        }).filter(Boolean);
+      }
+
       function scoreSearchMatch(title, query) {
         const cleanTitle = normalizeTitleKey(title);
         const cleanQuery = normalizeTitleKey(query);
@@ -1514,7 +1619,7 @@
             }
           }
         }
-        const filtered = filterCatalogGames(dedupeRowsById(allRows));
+        const filtered = filterCatalogGames(dedupeSearchResults(allRows, rawQuery));
         state.searchSupplementCache.set(cacheKey, filtered);
         return filtered;
       }
@@ -1527,7 +1632,7 @@
           const ready = await ensureGamesCatalogLoaded();
           if (ready) {
             const catalogMatches = filterCatalogGames(state.catalog);
-            supplement = dedupeRowsById([...supplement, ...catalogMatches]);
+            supplement = dedupeSearchResults([...supplement, ...catalogMatches], query);
           }
         }
         if (!supplement.length) {
@@ -1537,7 +1642,7 @@
             source: 'supabase-search'
           };
         }
-        const ranked = sortSearchResults(dedupeRowsById(supplement), query);
+        const ranked = sortSearchResults(dedupeSearchResults(supplement, query), query);
         const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
         return {
           rows: ranked.slice(start, start + pageSize),
@@ -1861,10 +1966,10 @@
         if (query) {
           const supplement = await fetchSearchSupplementGames(query, state.activeGenre, state.year);
           if (supplement.length) {
-            workingSet = dedupeRowsById([...supplement, ...workingSet]);
+            workingSet = dedupeSearchResults([...supplement, ...workingSet], query);
           }
         }
-        const filtered = filterCatalogGames(dedupeRowsById(workingSet));
+        const filtered = filterCatalogGames(dedupeSearchResults(workingSet, query));
         const ranked = query ? sortSearchResults(filtered, query) : filtered;
         const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
         return {
@@ -1907,6 +2012,7 @@
 
           if (query) {
             if (!titleMatchesQuery(title, query)) return false;
+            if (isLikelyUnofficialSearchResult(item, query)) return false;
           }
 
           if (activeGenre) {
@@ -1920,7 +2026,8 @@
           }
           return true;
         });
-        return sortGamesPosterFirst(filtered);
+        const deduped = query ? dedupeSearchResults(filtered, query) : dedupeRowsById(filtered);
+        return query ? sortSearchResults(deduped, query) : sortGamesPosterFirst(deduped);
       }
 
 
@@ -2236,7 +2343,7 @@
         if (requestId !== state.requestId) return;
         if (empty) {
           empty.style.display = 'block';
-          empty.textContent = 'No local games found for this search yet.';
+          empty.textContent = 'No games found for this search yet.';
         }
         updateGamePageSpotlight([]);
         grid.innerHTML = '';
