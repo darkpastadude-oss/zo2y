@@ -135,6 +135,29 @@
         await new Promise((resolve) => setTimeout(resolve, waitMs));
       }
 
+      function buildSessionFromHashTokens(accessToken, refreshToken, hashParams) {
+        const payload = decodeJwtPayload(accessToken);
+        if (!payload?.sub || !accessToken || !refreshToken) return null;
+        return {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          token_type: String(hashParams?.get('token_type') || 'bearer').trim() || 'bearer',
+          expires_at: Number(hashParams?.get('expires_at') || payload?.exp || 0) || null,
+          expires_in: Number(hashParams?.get('expires_in') || 0) || null,
+          user: {
+            id: String(payload.sub || '').trim(),
+            aud: payload.aud,
+            role: payload.role,
+            email: payload.email || '',
+            phone: payload.phone || '',
+            app_metadata: payload.app_metadata || {},
+            user_metadata: payload.user_metadata || {},
+            session_id: payload.session_id || '',
+            is_anonymous: payload.is_anonymous === true
+          }
+        };
+      }
+
       const RESERVED_USERNAMES = new Set([
         'admin', 'api', 'app', 'auth', 'authcallback', 'blog', 'book', 'books',
         'country', 'edit', 'explore', 'game', 'games', 'help', 'home', 'index',
@@ -441,6 +464,7 @@
         const refreshToken = hashParams.get('refresh_token');
         let exchangeError = null;
         let resolvedSession = null;
+        const manualHashSession = buildSessionFromHashTokens(accessToken, refreshToken, hashParams);
 
         if (code) {
           statusText.textContent = 'Finalizing secure sign-in...';
@@ -476,15 +500,26 @@
         }
 
         const storedSession = resolvedSession || await ensureSessionStored(client);
-        if (!storedSession) {
+        const finalSession = storedSession || manualHashSession;
+        if (!finalSession) {
           if (exchangeError) throw exchangeError;
           throw new Error('Authentication was not completed. Please sign in again.');
         }
-        persistSessionSnapshot(storedSession);
+        persistSessionSnapshot(finalSession);
 
-        await waitForTokenClockSkew(storedSession?.access_token || accessToken || '');
-        const user = await waitForVerifiedUser(client, storedSession?.access_token || accessToken || '');
+        await waitForTokenClockSkew(finalSession?.access_token || accessToken || '');
+        const user = await waitForVerifiedUser(client, finalSession?.access_token || accessToken || '');
         if (!user) {
+          if (oauthFlow === 'login' && finalSession?.user?.id) {
+            log('Verified user fetch still pending. Continuing with manual session bootstrap for login.');
+            statusText.textContent = 'Success! Redirecting...';
+            safeRemoveAuthStorage('postAuthRedirect');
+            safeRemoveAuthStorage('oauthFlow');
+            setTimeout(() => {
+              window.location.replace(next);
+            }, 500);
+            return;
+          }
           throw new Error('Authentication was not completed. Please sign in again.');
         }
 
@@ -497,7 +532,7 @@
 
         statusText.textContent = 'Finishing setup...';
         await persistReferralMetadata(client, user, oauthFlow, log);
-        await triggerWelcomeEmail(storedSession, oauthFlow, log);
+        await triggerWelcomeEmail(finalSession, oauthFlow, log);
 
         sendAnalyticsEvent('oauth_callback_success', {
           flow: oauthFlow || 'unknown',
