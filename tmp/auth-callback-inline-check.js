@@ -420,8 +420,8 @@
             storageKey: STORAGE_KEY,
             persistSession: true,
             autoRefreshToken: true,
-            // Allow Supabase to detect session tokens in the callback URL.
-            detectSessionInUrl: true
+            // Handle callback tokens manually so we can tolerate small mobile clock skew.
+            detectSessionInUrl: false
           }
         });
 
