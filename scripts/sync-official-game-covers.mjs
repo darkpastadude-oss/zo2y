@@ -152,6 +152,37 @@ function rowHasAnyCover(row) {
   return candidates.some((url) => !isLikelyBackdropUrl(url));
 }
 
+const UNOFFICIAL_GAME_PATTERNS = [
+  /\bprototype\b/i,
+  /\btech demo\b/i,
+  /\bdemo\b/i,
+  /\bfan\s?game\b/i,
+  /\bfanmade\b/i,
+  /\brom hack\b/i,
+  /\bmod\b/i,
+  /\bmodded\b/i,
+  /\bpictures pack\b/i,
+  /\bimages pack\b/i,
+  /\bwallpaper pack\b/i,
+  /\bsoundtrack\b/i,
+  /\bost\b/i,
+  /\bupdate\s*\d+\b/i,
+  /\bfield trip\b/i,
+  /\bcreepy red\b/i,
+  /\bradical red\b/i,
+  /\bmeta fire\s?red\b/i,
+  /\bace ?dragon\b/i
+];
+
+function isLikelyRealGameRow(row) {
+  const title = String(row?.title || row?.name || row?.slug || '').trim();
+  if (!title) return false;
+  if (UNOFFICIAL_GAME_PATTERNS.some((pattern) => pattern.test(title))) return false;
+  const importedFrom = String(row?.extra?.imported_from || row?.source || '').trim().toLowerCase();
+  if (/[[(][^)]+[)\]]/.test(title) && importedFrom.includes('rawg')) return false;
+  return true;
+}
+
 function isLikelyBackdropUrl(value) {
   const url = normalizeCoverUrl(value).toLowerCase();
   if (!url) return false;
@@ -365,6 +396,7 @@ async function main() {
 
   const rows = await fetchAllGames(supabase);
   const groupedRows = Array.from(buildGroups(rows).values())
+    .filter((group) => group.some((row) => isLikelyRealGameRow(row)))
     .filter((group) => !missingOnly || group.some((row) => !rowHasAnyCover(row)))
     .slice(offset, offset + limit);
   const groups = [];

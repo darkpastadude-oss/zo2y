@@ -7153,6 +7153,37 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         .trim();
     }
 
+    const HOME_UNOFFICIAL_GAME_PATTERNS = [
+      /\bprototype\b/i,
+      /\btech demo\b/i,
+      /\bdemo\b/i,
+      /\bfan\s?game\b/i,
+      /\bfanmade\b/i,
+      /\brom hack\b/i,
+      /\bmod\b/i,
+      /\bmodded\b/i,
+      /\bpictures pack\b/i,
+      /\bimages pack\b/i,
+      /\bwallpaper pack\b/i,
+      /\bsoundtrack\b/i,
+      /\bost\b/i,
+      /\bupdate\s*\d+\b/i,
+      /\bfield trip\b/i,
+      /\bcreepy red\b/i,
+      /\bradical red\b/i,
+      /\bmeta fire\s?red\b/i,
+      /\bace ?dragon\b/i
+    ];
+
+    function isLikelyRealHomeGameRow(row) {
+      const title = String(row?.title || row?.name || row?.slug || '').trim();
+      if (!title) return false;
+      if (HOME_UNOFFICIAL_GAME_PATTERNS.some((pattern) => pattern.test(title))) return false;
+      const importedFrom = getHomeGameImportedFrom(row);
+      if (/[[(][^)]+[)\]]/.test(title) && importedFrom.includes('rawg')) return false;
+      return true;
+    }
+
     function pickBackdropGameUrl(candidates = [], fallback = '') {
       const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
       const fallbackUrl = normalizeGameCoverUrl(fallback);
@@ -7233,7 +7264,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     function mergeHomeGameRows(rows) {
-      const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+      const list = Array.isArray(rows) ? rows.filter((row) => row && isLikelyRealHomeGameRow(row)) : [];
       if (!list.length) return null;
       if (list.length === 1) return list[0];
       const sortedByPopularity = list.slice().sort((a, b) => {
@@ -7266,7 +7297,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     function dedupeHomeGameRows(rows, targetCount = 0) {
-      const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+      const list = Array.isArray(rows) ? rows.filter((row) => row && isLikelyRealHomeGameRow(row)) : [];
       if (!list.length) return [];
       const groups = new Map();
       list.forEach((row) => {
