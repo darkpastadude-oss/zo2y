@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
-import sharp from 'sharp';
 
 const ROOT = process.cwd();
 const BUCKET_NAME = 'sports-assets';
@@ -311,29 +310,6 @@ async function downloadImage(sourceUrl) {
   };
 }
 
-async function optimizeSportsImage(buffer, contentType = '', kind = '') {
-  const type = String(contentType || '').toLowerCase();
-  if (type.includes('svg')) {
-    return { buffer, contentType: 'image/svg+xml', ext: 'svg' };
-  }
-  const normalizedKind = String(kind || '').toLowerCase();
-  const isSquareAsset = ['badge', 'logo', 'jersey'].includes(normalizedKind);
-  const optimized = await sharp(buffer, { failOn: 'none' })
-    .rotate()
-    .resize({
-      width: isSquareAsset ? 1200 : 1920,
-      height: isSquareAsset ? 1200 : 1080,
-      fit: 'inside',
-      withoutEnlargement: true
-    })
-    .webp({
-      quality: 80,
-      effort: 4
-    })
-    .toBuffer();
-  return { buffer: optimized, contentType: 'image/webp', ext: 'webp' };
-}
-
 function mapTeam(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const rawId = String(raw.idTeam || '').trim();
@@ -409,29 +385,24 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 
 async function ensureBucket() {
   const { data } = await supabase.storage.getBucket(BUCKET_NAME);
-  const config = {
+  if (data) return;
+  const { error } = await supabase.storage.createBucket(BUCKET_NAME, {
     public: true,
-    fileSizeLimit: '8MB',
+    fileSizeLimit: '12MB',
     allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif', 'application/json']
-  };
-  if (data) {
-    await supabase.storage.updateBucket(BUCKET_NAME, config);
-    return;
-  }
-  const { error } = await supabase.storage.createBucket(BUCKET_NAME, config);
+  });
   if (error) throw error;
 }
 
 async function uploadAsset(team, kind, sourceUrl) {
   const asset = await downloadImage(sourceUrl);
   if (!asset) return '';
-  const optimized = await optimizeSportsImage(asset.buffer, asset.contentType, kind);
-  const ext = optimized.ext || getExtFromContentType(asset.contentType, asset.finalUrl);
+  const ext = getExtFromContentType(asset.contentType, asset.finalUrl);
   const teamSlug = slugify(team.name || team.sportsDbId || team.id);
   const teamId = String(team.sportsDbId || team.id || teamSlug).trim();
   const remotePath = `${teamId}/${teamSlug}-${kind}.${ext}`;
-  const { error } = await supabase.storage.from(BUCKET_NAME).upload(remotePath, optimized.buffer, {
-    contentType: optimized.contentType,
+  const { error } = await supabase.storage.from(BUCKET_NAME).upload(remotePath, asset.buffer, {
+    contentType: asset.contentType,
     upsert: true,
     cacheControl: '31536000'
   });

@@ -2,7 +2,8 @@
   'use strict';
 
   var PROJECT_REF = 'gfkhjbztayjyojsgdpgk';
-  var STORAGE_KEY = 'sb-' + PROJECT_REF + '-auth-token';
+  var STORAGE_KEY = 'zo2y-auth-v1';
+  var LEGACY_STORAGE_KEY = 'sb-' + PROJECT_REF + '-auth-token';
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
     'login',
@@ -24,6 +25,8 @@
 
   function safeGetStorageItem(key) {
     try {
+      var sessionValue = window.sessionStorage ? window.sessionStorage.getItem(key) : null;
+      if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
       return window.localStorage ? window.localStorage.getItem(key) : null;
     } catch (_err) {
       return null;
@@ -32,8 +35,35 @@
 
   function safeSetStorageItem(key, value) {
     try {
-      if (window.localStorage) window.localStorage.setItem(key, value);
+      if (window.sessionStorage) {
+        window.sessionStorage.setItem(key, value);
+        return true;
+      }
     } catch (_err) {}
+    try {
+      if (window.localStorage) {
+        window.localStorage.setItem(key, value);
+        return true;
+      }
+    } catch (_err) {}
+    return false;
+  }
+
+  function safeRemoveStorageItem(key) {
+    try {
+      if (window.sessionStorage) window.sessionStorage.removeItem(key);
+    } catch (_err) {}
+    try {
+      if (window.localStorage) window.localStorage.removeItem(key);
+    } catch (_err) {}
+  }
+
+  function migrateLegacySessionStorage() {
+    var current = safeGetStorageItem(STORAGE_KEY);
+    if (current) return;
+    var legacy = safeGetStorageItem(LEGACY_STORAGE_KEY);
+    if (!legacy) return;
+    safeSetStorageItem(STORAGE_KEY, legacy);
   }
 
   function getHashParams() {
@@ -87,13 +117,77 @@
   }
 
   function hasStoredSupabaseSession() {
-    var raw = safeGetStorageItem(STORAGE_KEY);
-    if (!raw) return false;
-    try {
-      return hasSessionPayload(JSON.parse(raw));
-    } catch (_err) {
-      return /access_token|refresh_token|currentSession|expires_at/i.test(String(raw));
+    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY];
+    for (var i = 0; i < keys.length; i += 1) {
+      var raw = safeGetStorageItem(keys[i]);
+      if (!raw) continue;
+      try {
+        if (hasSessionPayload(JSON.parse(raw))) return true;
+      } catch (_err) {
+        if (/access_token|refresh_token|currentSession|expires_at/i.test(String(raw))) return true;
+      }
     }
+    return false;
+  }
+
+  function extractSessionFromPayload(value) {
+    if (!value) return null;
+    if (Array.isArray(value)) {
+      for (var i = 0; i < value.length; i += 1) {
+        var nested = extractSessionFromPayload(value[i]);
+        if (nested) return nested;
+      }
+      return null;
+    }
+    if (typeof value !== 'object') return null;
+    if (value.access_token && value.refresh_token) return value;
+    if (value.currentSession) return extractSessionFromPayload(value.currentSession);
+    if (value.session) return extractSessionFromPayload(value.session);
+    if (value.sessions) return extractSessionFromPayload(value.sessions);
+    return null;
+  }
+
+  function getStoredSessionSnapshot() {
+    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY];
+    for (var i = 0; i < keys.length; i += 1) {
+      var raw = safeGetStorageItem(keys[i]);
+      if (!raw) continue;
+      try {
+        var parsed = JSON.parse(raw);
+        var session = extractSessionFromPayload(parsed);
+        if (session && session.access_token && session.refresh_token) {
+          return session;
+        }
+      } catch (_err) {}
+    }
+    return null;
+  }
+
+  function getStoredSessionSignature(session) {
+    if (!session || !session.access_token || !session.refresh_token) return '';
+    return String(session.access_token).slice(0, 24) + '|' + String(session.refresh_token).slice(0, 24);
+  }
+
+  function decodeJwtPayload(token) {
+    try {
+      var parts = String(token || '').split('.');
+      if (parts.length < 2) return null;
+      var base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      var padded = base64 + '==='.slice((base64.length + 3) % 4);
+      return JSON.parse(window.atob(padded));
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function getStoredSessionFutureWaitMs(session) {
+    var payload = decodeJwtPayload(session && session.access_token);
+    var issuedAt = Number(payload && payload.iat ? payload.iat : 0);
+    if (!issuedAt) return 0;
+    var now = Math.floor(Date.now() / 1000);
+    var skewSeconds = issuedAt - now;
+    if (skewSeconds <= 1) return 0;
+    return Math.min(4500, (skewSeconds + 1) * 1000);
   }
 
   function sanitizeNextPath(raw) {
@@ -115,20 +209,30 @@
     return target.toString();
   }
 
-  function applyShellState(authenticated, pageKey) {
-    var shell = pageKey === 'index' ? (authenticated ? 'app' : 'landing') : 'app';
+  function applyShellState(authenticated, pageKey, options) {
+    var opts = options || {};
+    var verified = opts.verified !== false;
+    var shell = opts.shell || (pageKey === 'index' ? (authenticated ? 'app' : 'landing') : 'app');
     document.documentElement.dataset.authenticated = authenticated ? '1' : '0';
     document.documentElement.dataset.authShell = shell;
+    document.documentElement.dataset.authVerified = verified ? '1' : '0';
+    if (document.body) {
+      document.body.dataset.authenticated = authenticated ? '1' : '0';
+      document.body.dataset.authShell = shell;
+      document.body.dataset.authVerified = verified ? '1' : '0';
+    }
     window.ZO2Y_AUTH_GATE = {
       pageKey: pageKey,
       authenticated: authenticated,
       protectedPage: !PUBLIC_PAGE_KEYS.has(pageKey),
-      authShell: shell
+      authShell: shell,
+      verified: verified
     };
     document.addEventListener('DOMContentLoaded', function () {
       if (document.body) {
         document.body.dataset.authenticated = authenticated ? '1' : '0';
         document.body.dataset.authShell = shell;
+        document.body.dataset.authVerified = verified ? '1' : '0';
       }
     }, { once: true });
   }
@@ -139,24 +243,105 @@
 
   function scheduleSessionVerification(pageKey) {
     if (typeof window === 'undefined') return;
+    migrateLegacySessionStorage();
     var attempts = 0;
     var client = null;
     var protectedPage = !PUBLIC_PAGE_KEYS.has(pageKey);
+    var authStateVerifyTimer = null;
+
+    async function bootstrapClientSessionFromStorage() {
+      if (!client || !client.auth || typeof client.auth.setSession !== 'function') return false;
+      var storedSession = getStoredSessionSnapshot();
+      if (!storedSession || !storedSession.access_token || !storedSession.refresh_token) return false;
+      var sessionSignature = getStoredSessionSignature(storedSession);
+      if (!client.__zo2yStorageBootstrap) {
+        client.__zo2yStorageBootstrap = {
+          done: false,
+          attempts: 0,
+          signature: ''
+        };
+      }
+      if (client.__zo2yStorageBootstrap.done && client.__zo2yStorageBootstrap.signature === sessionSignature) {
+        return false;
+      }
+      if (client.__zo2yStorageBootstrap.signature !== sessionSignature) {
+        client.__zo2yStorageBootstrap.attempts = 0;
+        client.__zo2yStorageBootstrap.done = false;
+        client.__zo2yStorageBootstrap.signature = sessionSignature;
+      }
+      if (client.__zo2yStorageBootstrap.attempts >= 4) return false;
+      client.__zo2yStorageBootstrap.attempts += 1;
+      try {
+        var setResult = await client.auth.setSession({
+          access_token: storedSession.access_token,
+          refresh_token: storedSession.refresh_token
+        });
+        var authenticated = !!(setResult && setResult.data && setResult.data.session && setResult.data.session.user);
+        if (authenticated) {
+          client.__zo2yStorageBootstrap.done = true;
+          client.__zo2yFutureRetryWaitMs = 0;
+        }
+        return authenticated;
+      } catch (_err) {
+        var errorMessage = String((_err && _err.message) || '').toLowerCase();
+        if (errorMessage.indexOf('issued in the future') !== -1 || errorMessage.indexOf('clock skew') !== -1 || errorMessage.indexOf('clock for skew') !== -1) {
+          client.__zo2yFutureRetryWaitMs = getStoredSessionFutureWaitMs(storedSession);
+        } else {
+          client.__zo2yFutureRetryWaitMs = 0;
+        }
+        return false;
+      }
+    }
 
     async function verifyAndApply() {
       if (!client || !client.auth || typeof client.auth.getSession !== 'function') return false;
       try {
         var sessionResult = await client.auth.getSession();
         var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
+        var hasStoredSnapshot = !!getStoredSessionSnapshot();
+        if (!session && hasStoredSnapshot) {
+          for (var bootstrapAttempt = 0; bootstrapAttempt < 4 && !session; bootstrapAttempt += 1) {
+            await bootstrapClientSessionFromStorage();
+            if (bootstrapAttempt > 0) {
+              await new Promise(function (resolve) {
+                window.setTimeout(resolve, 70);
+              });
+            }
+            sessionResult = await client.auth.getSession();
+            session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
+          }
+        } else if (!session) {
+          sessionResult = await client.auth.getSession();
+          session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
+        }
         var authenticated = !!(session && session.user);
-        applyShellState(authenticated, pageKey);
+        var finalAuthenticated = authenticated;
+        if (!authenticated && hasStoredSnapshot && client.__zo2yFutureRetryWaitMs > 0 && pageKey === 'index') {
+          applyShellState(false, pageKey, { shell: 'pending', verified: false });
+          if (client.__zo2yFutureRetryTimer) window.clearTimeout(client.__zo2yFutureRetryTimer);
+          client.__zo2yFutureRetryTimer = window.setTimeout(function () {
+            client.__zo2yFutureRetryTimer = null;
+            client.__zo2yFutureRetryWaitMs = 0;
+            void verifyAndApply();
+          }, client.__zo2yFutureRetryWaitMs);
+          return false;
+        }
+        applyShellState(authenticated, pageKey, { verified: true });
 
         if (!authenticated && protectedPage) {
           // Retry once before redirect to avoid false negatives during token hydration.
           var retryResult = await client.auth.getSession();
           var retrySession = retryResult && retryResult.data ? retryResult.data.session : null;
           var retryAuthenticated = !!(retrySession && retrySession.user);
-          applyShellState(retryAuthenticated, pageKey);
+          if (!retryAuthenticated && typeof client.auth.refreshSession === 'function') {
+            try {
+              var refreshedResult = await client.auth.refreshSession();
+              var refreshedSession = refreshedResult && refreshedResult.data ? refreshedResult.data.session : null;
+              retryAuthenticated = !!(refreshedSession && refreshedSession.user);
+            } catch (_refreshErr) {}
+          }
+          finalAuthenticated = retryAuthenticated;
+          applyShellState(retryAuthenticated, pageKey, { verified: true });
           if (!retryAuthenticated && !hasStoredSupabaseSession()) {
             redirectToLanding();
             return false;
@@ -164,12 +349,15 @@
         }
 
         window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
-          detail: { authenticated: authenticated, pageKey: pageKey }
+          detail: { authenticated: finalAuthenticated, pageKey: pageKey, verified: true }
         }));
         return true;
       } catch (_err) {
         var fallbackAuthenticated = hasStoredSupabaseSession();
-        applyShellState(fallbackAuthenticated, pageKey);
+        applyShellState(fallbackAuthenticated, pageKey, { verified: true });
+        window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
+          detail: { authenticated: fallbackAuthenticated, pageKey: pageKey, verified: true }
+        }));
         return false;
       }
     }
@@ -205,28 +393,28 @@
       }
       if (!client) return;
       window.clearInterval(timer);
+      await bootstrapClientSessionFromStorage();
       await verifyAndApply();
       if (!window.__ZO2Y_AUTH_GATE_LISTENER_BOUND && client.auth && typeof client.auth.onAuthStateChange === 'function') {
         window.__ZO2Y_AUTH_GATE_LISTENER_BOUND = true;
         client.auth.onAuthStateChange(function (_event, session) {
-          var authenticated = !!(session && session.user);
-          applyShellState(authenticated, pageKey);
-          if (!authenticated && protectedPage && !hasStoredSupabaseSession()) {
-            redirectToLanding();
-            return;
-          }
-          window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
-            detail: { authenticated: authenticated, pageKey: pageKey }
-          }));
+          if (authStateVerifyTimer) window.clearTimeout(authStateVerifyTimer);
+          authStateVerifyTimer = window.setTimeout(function () {
+            void verifyAndApply();
+          }, session && session.user ? 0 : 120);
         });
       }
-    }, 150);
+    }, 90);
   }
 
   var pageKey = normalizePageKey(window.location.pathname);
   maybeRedirectOAuthCallback(pageKey);
   var authenticated = hasStoredSupabaseSession();
-  applyShellState(authenticated, pageKey);
+  var initialShell = pageKey === 'index' ? 'pending' : 'app';
+  applyShellState(initialShell === 'app' ? authenticated : false, pageKey, {
+    shell: initialShell,
+    verified: initialShell !== 'pending'
+  });
 
   if (pageKey === 'index' || !PUBLIC_PAGE_KEYS.has(pageKey)) {
     scheduleSessionVerification(pageKey);

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260326c"></script>
+<script src="/js/auth-gate.js?v=20260324a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Books</title>
   <link rel="icon" href="/newlogo.webp" type="image/webp" />
@@ -905,13 +905,17 @@
 
       <script>
     (function () {
+      if (window.innerWidth <= 768) {
+        window.location.href = 'books-mobile.html';
+        return;
+      }
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
       const BOOKS_PER_PAGE = 20;
-      const BOOKS_CACHE_BUSTER = '20260325-books-fast';
-      const BOOKS_PAGE_CACHE_KEY = 'zo2y_books_page_cache_v2';
+      const BOOKS_CACHE_BUSTER = '20260324-api-only-fast';
+      const BOOKS_PAGE_CACHE_KEY = 'zo2y_books_page_cache_v1';
       const BOOKS_PAGE_CACHE_TTL_MS = 1000 * 60 * 20;
       const BOOKS_SESSION_RECOVERY_RETRY_MS = 350;
       const CATEGORY_OPTIONS = [
@@ -1239,9 +1243,9 @@
         return score;
       }
 
-      async function fetchCuratedTopBookSeeds(limit = 8) {
-        const desired = Math.max(4, Number(limit || 0));
-        const pool = CURRENT_TOP_BOOK_SEEDS.slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, Math.max(desired, 8)));
+      async function fetchCuratedTopBookSeeds(limit = BOOKS_PER_PAGE * 2) {
+        const desired = Math.max(limit, BOOKS_PER_PAGE);
+        const pool = CURRENT_TOP_BOOK_SEEDS.slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, desired * 2));
         const results = await Promise.allSettled(pool.map(async (seed) => {
           const payload = await booksFetch('/search.json', {
             q: `${seed.title} ${seed.author}`,
@@ -1301,18 +1305,19 @@
       }
 
       async function loadCuratedPopularBooks() {
-        const [popularResult, trendingResult] = await Promise.allSettled([
+        const [seededResult, popularResult, trendingResult] = await Promise.allSettled([
+          fetchCuratedTopBookSeeds(BOOKS_PER_PAGE * 2),
           fetchPopularBooks(1, BOOKS_PER_PAGE),
           fetchTrendingBooks(BOOKS_PER_PAGE)
         ]);
+        const seededDocs = seededResult.status === 'fulfilled' ? seededResult.value.slice(0, BOOKS_PER_PAGE * 2) : [];
         const popular = popularResult.status === 'fulfilled' ? popularResult.value : null;
         const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
         const popularDocs = Array.isArray(popular?.docs) ? popular.docs.slice(0, BOOKS_PER_PAGE) : [];
         const trendingDocs = Array.isArray(trending?.docs) ? trending.docs.slice(0, BOOKS_PER_PAGE) : [];
-        let seededDocs = [];
         const merged = [];
         const seen = new Set();
-        [...popularDocs, ...trendingDocs].forEach((doc) => {
+        [...seededDocs, ...popularDocs, ...trendingDocs].forEach((doc) => {
           const title = normalizeBookSeedText(doc?.title || '');
           const author = normalizeBookSeedText(Array.isArray(doc?.author_name) ? doc.author_name[0] : '');
           const key = `${title}::${author}`;
@@ -1320,20 +1325,9 @@
           seen.add(key);
           merged.push(doc);
         });
-        if (merged.length < Math.max(10, Math.ceil(BOOKS_PER_PAGE * 0.7))) {
-          seededDocs = await fetchCuratedTopBookSeeds(Math.min(10, BOOKS_PER_PAGE));
-          seededDocs.forEach((doc) => {
-            const title = normalizeBookSeedText(doc?.title || '');
-            const author = normalizeBookSeedText(Array.isArray(doc?.author_name) ? doc.author_name[0] : '');
-            const key = `${title}::${author}`;
-            if (!title || seen.has(key)) return;
-            seen.add(key);
-            merged.push(doc);
-          });
-        }
         return {
           docs: merged.slice(0, BOOKS_PER_PAGE),
-          numFound: Math.max(Number(popular?.numFound || 0), Number(trending?.numFound || 0), seededDocs.length, merged.length, BOOKS_PER_PAGE * 2)
+          numFound: Math.max(Number(popular?.numFound || 0), Number(trending?.numFound || 0), merged.length, BOOKS_PER_PAGE * 2)
         };
       }
 
@@ -1498,7 +1492,7 @@
               persistSession: true,
               autoRefreshToken: true,
               detectSessionInUrl: false,
-              storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token'
+              storageKey: 'zo2y-auth-v1'
             }
           });
         }
@@ -2234,9 +2228,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
 
 
 

@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
-import sharp from 'sharp';
 
 const ROOT = process.cwd();
 const BUCKET_NAME = 'brand-backgrounds';
@@ -160,26 +159,6 @@ async function downloadImageBuffer(url) {
   const buffer = Buffer.from(await res.arrayBuffer());
   return { buffer, contentType, finalUrl: res.url || url };
 }
-async function optimizeBackgroundImage(buffer, contentType = '') {
-  const type = String(contentType || '').toLowerCase();
-  if (type.includes('svg')) {
-    return { buffer, contentType: 'image/svg+xml', ext: 'svg' };
-  }
-  const optimized = await sharp(buffer, { failOn: 'none' })
-    .rotate()
-    .resize({
-      width: 1920,
-      height: 1080,
-      fit: 'inside',
-      withoutEnlargement: true
-    })
-    .webp({
-      quality: 80,
-      effort: 4
-    })
-    .toBuffer();
-  return { buffer: optimized, contentType: 'image/webp', ext: 'webp' };
-}
 async function mapWithConcurrency(items, worker, concurrency = CONCURRENCY) {
   const results = [];
   let cursor = 0;
@@ -201,25 +180,20 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: {
 
 async function ensureBucket() {
   const { data } = await supabase.storage.getBucket(BUCKET_NAME);
-  const config = {
+  if (data) return;
+  await supabase.storage.createBucket(BUCKET_NAME, {
     public: true,
-    fileSizeLimit: '6MB',
+    fileSizeLimit: '8MB',
     allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif']
-  };
-  if (data) {
-    await supabase.storage.updateBucket(BUCKET_NAME, config);
-    return;
-  }
-  await supabase.storage.createBucket(BUCKET_NAME, config);
+  });
 }
 async function uploadBackground(table, row, imageUrl) {
   const { buffer, contentType, finalUrl } = await downloadImageBuffer(imageUrl);
-  const optimized = await optimizeBackgroundImage(buffer, contentType);
-  const ext = optimized.ext || getExtFromContentType(contentType, finalUrl || imageUrl);
+  const ext = getExtFromContentType(contentType, finalUrl || imageUrl);
   const slug = sanitizeFileBase(row.slug || row.name || row.id);
   const remotePath = `${table}/${slug}.${ext}`;
-  const { error } = await supabase.storage.from(BUCKET_NAME).upload(remotePath, optimized.buffer, {
-    contentType: optimized.contentType,
+  const { error } = await supabase.storage.from(BUCKET_NAME).upload(remotePath, buffer, {
+    contentType,
     upsert: true,
     cacheControl: '31536000'
   });

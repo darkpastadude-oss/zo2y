@@ -7,8 +7,7 @@
   const DESKTOP_RAIL_COLLAPSE_KEY = 'zo2y_desktop_rail_collapsed';
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
-  let authStateListenerBound = false;
-  if (window.ZO2Y_SPORTS_LISTS == null) {
+  let authStateListenerBound = false;if (window.ZO2Y_SPORTS_LISTS == null) {
     window.ZO2Y_SPORTS_LISTS = true;
   }
 
@@ -213,6 +212,9 @@ const HEADER_HTML = `
       : [];
     queued.forEach((options) => {
       try {
+        if (options && options.fallbackRoute === 'movies.html') {
+          options = { ...options, fallbackRoute: MOVIES_ROUTE };
+        }
         window.initUniversalSearch(options || {});
       } catch (_err) {}
     });
@@ -370,6 +372,8 @@ const HEADER_HTML = `
     const mobilePage = isMobileContentPage(window.location.pathname);
     document.body.setAttribute('data-zo2y-compact-header', mobilePage ? '1' : '0');
 
+
+
     const activePage = normalizePageName(window.location.pathname);
 
     document.querySelectorAll('[data-nav-page]').forEach((link) => {
@@ -410,15 +414,19 @@ const HEADER_HTML = `
         auth: {
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: true
+          detectSessionInUrl: false,
+          storageKey: 'zo2y-auth-v1'
         }
       });
       window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+      window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSupabaseClient;
       return supabaseClient;
     } catch (_err) {
       return null;
     }
   }
+
+  window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSupabaseClient;
 
   function readDesktopRailCollapsedPreference() {
     try {
@@ -523,12 +531,15 @@ const HEADER_HTML = `
 
         if (profileBtn) {
           profileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
+          profileBtn.title = label;
         }
         if (mobileProfileBtn) {
           mobileProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
+          mobileProfileBtn.title = label;
         }
         if (desktopRailProfileBtn) {
           desktopRailProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
+          desktopRailProfileBtn.title = label;
         }
       }
     } catch (_err) {}
@@ -787,7 +798,7 @@ const HEADER_HTML = `
       const init = () => {
         if (typeof window.initUniversalSearch !== 'function') return;
         try {
-          window.initUniversalSearch({ input, fallbackRoute: 'movies.html' });
+      window.initUniversalSearch({ input, fallbackRoute: MOVIES_ROUTE });
           input.dataset.zo2yUniversalWired = '1';
         } catch (_err) {}
       };
@@ -832,8 +843,23 @@ const HEADER_HTML = `
 
   function boot() {
     if (isHeaderSuppressedPage(window.location.pathname)) return;
-    if (isLandingShell()) {
+    const currentPage = normalizePageName(window.location.pathname);
+    const currentShell = document.documentElement?.dataset?.authShell || document.body?.dataset?.authShell || '';
+    if (currentPage === 'index' && currentShell !== 'app') {
       teardownSharedHeader();
+      window.addEventListener('zo2y-auth-gate-verified', (event) => {
+        if (!event?.detail?.authenticated) return;
+        mountSharedHeader();
+        wireLogoAnim();
+        const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+        document.body.classList.toggle('zo2y-mobile-header-fixed', !!isMobile);
+        wireSearchButton();
+        wireMobileDrawer();
+        wireMobileAccordions();
+        wireDesktopRailCollapse();
+        wireAuthStateSync();
+        void syncAuthHeaderState();
+      }, { once: true });
       return;
     }
     mountSharedHeader();
@@ -858,3 +884,4 @@ const HEADER_HTML = `
     boot();
   }
 })();
+

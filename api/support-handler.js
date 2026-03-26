@@ -20,25 +20,6 @@ function isValidEmail(value) {
   return /\S+@\S+\.\S+/.test(String(value || "").trim());
 }
 
-function normalizeFullName(value) {
-  return normalizeText(value, 80);
-}
-
-function mapSupabaseSignupError(error) {
-  const message = String(error?.message || "").trim() || "Signup failed";
-  const normalized = message.toLowerCase();
-  if (normalized.includes("already registered") || normalized.includes("already been registered")) {
-    return { status: 409, message: "This email is already registered. Please log in instead." };
-  }
-  if (normalized.includes("password")) {
-    return { status: 400, message };
-  }
-  if (normalized.includes("email")) {
-    return { status: 400, message };
-  }
-  return { status: Number(error?.status || 500) || 500, message };
-}
-
 function parseUuid(value) {
   const text = normalizeText(value, 100).toLowerCase();
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(text)) {
@@ -124,66 +105,6 @@ export default async function handler(req, res) {
     const section = String(pathParts[0] || "").trim().toLowerCase();
     const maybeId = String(pathParts[1] || "").trim();
     const method = String(req.method || "GET").toUpperCase();
-
-    if (section === "auth" && maybeId === "password-signup" && method === "POST") {
-      const body = await readJsonBody(req);
-      const fullName = normalizeFullName(body?.fullName);
-      const email = normalizeEmail(body?.email);
-      const password = String(body?.password || "");
-
-      if (!fullName || fullName.length < 2) {
-        return json(res, 400, { success: false, message: "Full name is required." });
-      }
-      if (!isValidEmail(email)) {
-        return json(res, 400, { success: false, message: "Please provide a valid email address." });
-      }
-      if (password.length < 8) {
-        return json(res, 400, { success: false, message: "Password must be at least 8 characters." });
-      }
-
-      const admin = getSupabaseAdminClient();
-      if (!admin) {
-        return json(res, 500, {
-          success: false,
-          message: "Signup service is not configured."
-        });
-      }
-
-      const { data, error } = await admin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: fullName,
-          name: fullName
-        }
-      });
-
-      if (error || !data?.user?.id) {
-        const mapped = mapSupabaseSignupError(error);
-        return json(res, mapped.status, {
-          success: false,
-          message: mapped.message
-        });
-      }
-
-      return json(res, 201, {
-        success: true,
-        user: {
-          id: data.user.id,
-          email: data.user.email || email,
-          full_name: fullName
-        }
-      });
-    }
-
-    if (section === "auth" && maybeId === "health" && method === "GET") {
-      return json(res, 200, {
-        ok: true,
-        service: "auth",
-        storage: getSupabaseAdminClient() ? "supabase" : "disabled"
-      });
-    }
 
     if (!section || (section === "health" && method === "GET")) {
       return json(res, 200, {

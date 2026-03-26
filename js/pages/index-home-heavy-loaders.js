@@ -1,7 +1,7 @@
 (() => {
   if (window.__zo2yHomeHeavyLoaders) return;
 
-const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v4';
+const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v3';
 const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 20;
 const CURRENT_TOP_BOOK_SEEDS = [
   { title: 'Heart the Lover', author: 'Lily King' },
@@ -320,7 +320,7 @@ async function loadBooks(signal) {
       };
 
       const fetchSeededTopBooks = async (limit = targetCount) => {
-        const pool = shuffleArray(CURRENT_TOP_BOOK_SEEDS).slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, Math.max(6, Math.min(Number(limit || targetCount), 10))));
+        const pool = shuffleArray(CURRENT_TOP_BOOK_SEEDS).slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, Math.max(limit * 3, 18)));
         const results = await Promise.allSettled(pool.map(async (seed) => {
           const payload = await fetchBooksPayload('/search', {
             q: `${seed.title} ${seed.author}`,
@@ -352,7 +352,8 @@ async function loadBooks(signal) {
 
       try {
         const limit = lightweightMode ? Math.max(targetCount, 12) : Math.max(targetCount, 18);
-        const [popularResult, trendingResult] = await Promise.allSettled([
+        const [seededResult, popularResult, trendingResult] = await Promise.allSettled([
+          fetchSeededTopBooks(limit),
           fetchBooksPayload('/popular', {
             page: 1,
             limit,
@@ -366,6 +367,7 @@ async function loadBooks(signal) {
           })
         ]);
 
+        const seededDocs = seededResult.status === 'fulfilled' && Array.isArray(seededResult.value) ? seededResult.value : [];
         const popularPayload = popularResult.status === 'fulfilled' ? popularResult.value : null;
         const trendingPayload = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
         const popularDocs = Array.isArray(popularPayload?.docs)
@@ -374,25 +376,16 @@ async function loadBooks(signal) {
         const trendingDocs = Array.isArray(trendingPayload?.docs)
           ? trendingPayload.docs
           : (Array.isArray(trendingPayload?.items) ? trendingPayload.items : []);
-        let seededDocs = [];
-        let allDocsRaw = [...trendingDocs, ...popularDocs];
-        if (allDocsRaw.length < Math.max(targetCount, 10)) {
-          try {
-            seededDocs = await fetchSeededTopBooks(Math.min(targetCount, 8));
-          } catch (_error) {
-            seededDocs = [];
-          }
-          allDocsRaw = [...trendingDocs, ...popularDocs, ...seededDocs];
-        }
+        const allDocsRaw = [...seededDocs, ...trendingDocs, ...popularDocs];
         setBooksDebug('payload-merged', {
           limit,
-          seededStatus: seededDocs.length ? 'fulfilled' : 'skipped',
+          seededStatus: seededResult.status,
           seededCount: seededDocs.length,
           popularStatus: popularResult.status,
           trendingStatus: trendingResult.status,
           popularCount: popularDocs.length,
           trendingCount: trendingDocs.length,
-          seededError: '',
+          seededError: seededResult.status === 'rejected' ? String(seededResult.reason?.message || seededResult.reason || '') : '',
           popularError: popularResult.status === 'rejected' ? String(popularResult.reason?.message || popularResult.reason || '') : '',
           trendingError: trendingResult.status === 'rejected' ? String(trendingResult.reason?.message || trendingResult.reason || '') : ''
         });

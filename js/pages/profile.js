@@ -1,4 +1,4 @@
-// ===== GLOBAL PROFILE MANAGER =====
+﻿// ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
             // Supabase configuration
             const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
@@ -209,36 +209,6 @@
                 "\u{2B50}", "\u{1F680}", "\u{1F3AF}", "\u{1F3C6}", "\u{2728}"
             ];
 
-            async function sleep(ms) {
-                await new Promise((resolve) => setTimeout(resolve, ms));
-            }
-
-            async function resolveAuthenticatedProfileUser() {
-                if (!supabase || !supabase.auth) return null;
-
-                try {
-                    const { data: sessionData } = await supabase.auth.getSession();
-                    const sessionUser = sessionData?.session?.user || null;
-                    if (sessionUser?.id) return sessionUser;
-                } catch (_sessionErr) {}
-
-                for (let attempt = 0; attempt < 4; attempt += 1) {
-                    try {
-                        const { data: userData, error } = await supabase.auth.getUser();
-                        const verifiedUser = userData?.user || null;
-                        if (!error && verifiedUser?.id) return verifiedUser;
-                    } catch (_userErr) {}
-                    await sleep(180 * (attempt + 1));
-                }
-
-                try {
-                    const { data: fallbackSessionData } = await supabase.auth.getSession();
-                    return fallbackSessionData?.session?.user || null;
-                } catch (_fallbackErr) {
-                    return null;
-                }
-            }
-
             // ===== INITIALIZATION =====
             async function initialize() {
                 try {
@@ -254,20 +224,20 @@
                     if (!supabase) {
                         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
                             auth: {
-                                storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token',
+                                storageKey: 'zo2y-auth-v1',
                                 persistSession: true,
                                 autoRefreshToken: true,
                                 detectSessionInUrl: false
                             }
                         });
                     }
-
-                    const user = await resolveAuthenticatedProfileUser();
-                    if (!user) {
-                        window.location.replace("login.html");
-                        return;
+                    
+                    const { data: { user }, error } = await supabase.auth.getUser();
+                    if (error || !user) { 
+                        window.location.href = "login.html"; 
+                        return; 
                     }
-
+                    
                     currentUser = user;
                     if (window.ListUtils && typeof ListUtils.setTierSyncContext === 'function') {
                         ListUtils.setTierSyncContext(supabase, currentUser.id);
@@ -414,7 +384,7 @@
                     .trim()
                     .replace(/^@+/, '')
                     .toLowerCase()
-                    .replace(/['’]/g, '')
+                    .replace(/['â€™]/g, '')
                     .replace(/[^a-z0-9_]+/g, '_')
                     .replace(/_+/g, '_')
                     .replace(/^_+|_+$/g, '')
@@ -1776,7 +1746,7 @@
 
                 const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
                 const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
-                const summaryText = `${followersCount} followers · ${followingCount} following`;
+                const summaryText = `${followersCount} followers Â· ${followingCount} following`;
                 if (desktopMeta) desktopMeta.textContent = summaryText;
                 if (mobileMeta) mobileMeta.textContent = summaryText;
                 renderProfileBadges();
@@ -1854,7 +1824,7 @@
                 } finally {
                     const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
                     const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
-                    const summaryText = `${followersCount} followers · ${followingCount} following`;
+                    const summaryText = `${followersCount} followers Â· ${followingCount} following`;
                     if (desktopMeta) desktopMeta.textContent = summaryText;
                     if (mobileMeta) mobileMeta.textContent = summaryText;
                 }
@@ -6112,7 +6082,7 @@
                 if (listType !== 'custom') return baseTitle;
                 const tierMeta = getTierMetaForList(type, list, 0);
                 if (!tierMeta.isTier) return baseTitle;
-                return `${baseTitle} • Tier List`;
+                return `${baseTitle} â€¢ Tier List`;
             }
 
             function canReorderCollectionItems(contentType, listId, listType = 'custom', list = null) {
@@ -8395,7 +8365,7 @@
                 const sport = String(team?.sport || team?.strSport || '').trim();
                 const stadium = String(team?.stadium || team?.strStadium || '').trim();
                 const logo = normalizeSportsImageUrl(team?.logo_url || team?.strTeamBadge || team?.strTeamLogo || '');
-                const subtitle = [league, sport].filter(Boolean).join(' • ') || 'Team';
+                const subtitle = [league, sport].filter(Boolean).join(' â€¢ ') || 'Team';
                 const logoImage = logo || FALLBACK_BOOK_IMAGE;
                 const canRemove = !!options?.canRemove && !!id;
 
@@ -13158,7 +13128,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
-
 
 
 

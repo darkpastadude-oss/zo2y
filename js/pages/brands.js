@@ -1,4 +1,4 @@
-(() => {
+ï»¿(() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
 
@@ -87,7 +87,7 @@
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: false,
-        storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token'
+        storageKey: 'zo2y-auth-v1'
       }
     });
     window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
@@ -318,7 +318,7 @@
     if (spotlight.meta) {
       spotlight.meta.textContent = [brand.category, brand.country, brand.founded ? `since ${brand.founded}` : '']
         .filter(Boolean)
-        .join(' · ');
+        .join(' Â· ');
     }
     if (spotlight.summary) {
       spotlight.summary.textContent = brand.description || `A standout ${BRAND_LABEL.toLowerCase()} pick from the local catalog.`;
@@ -623,7 +623,7 @@
   }
 
   function initPageMeta() {
-    const title = `${BRAND_LABEL} Brands · Zo2y`;
+    const title = `${BRAND_LABEL} Brands Â· Zo2y`;
     document.title = title;
     const titleEl = document.getElementById('pageTitle');
     const subtitleEl = document.getElementById('pageSubtitle');
@@ -645,7 +645,6 @@
     boot();
   }
 })();
-
 
 
 

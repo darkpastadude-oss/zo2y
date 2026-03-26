@@ -47,47 +47,29 @@ function parseArg(flag, fallback = '') {
   return process.argv[idx + 1] ?? fallback;
 }
 
-async function listObjects(storage, prefix, { recursive = false } = {}) {
+async function listObjects(storage, prefix) {
   const items = [];
-  const queue = [String(prefix || '').trim().replace(/^\/+|\/+$/g, '')];
-  const seen = new Set(queue);
-
-  while (queue.length) {
-    const currentPrefix = queue.shift() || '';
-    let offset = 0;
-    const limit = 100;
-
-    while (true) {
-      const { data, error } = await storage.list(currentPrefix, {
-        limit,
-        offset,
-        sortBy: { column: 'name', order: 'asc' }
+  let offset = 0;
+  const limit = 100;
+  while (true) {
+    const { data, error } = await storage.list(prefix, {
+      limit,
+      offset,
+      sortBy: { column: 'name', order: 'asc' }
+    });
+    if (error) throw error;
+    const batch = Array.isArray(data) ? data : [];
+    batch.forEach((entry) => {
+      if (!entry?.name || entry.name.endsWith('/')) return;
+      items.push({
+        path: `${prefix}/${entry.name}`,
+        metadata: entry.metadata || {},
+        name: entry.name
       });
-      if (error) throw error;
-      const batch = Array.isArray(data) ? data : [];
-      batch.forEach((entry) => {
-        if (!entry?.name) return;
-        const childPath = currentPrefix ? `${currentPrefix}/${entry.name}` : entry.name;
-        const hasSize = Number.isFinite(Number(entry?.metadata?.size));
-        const isFile = hasSize || Boolean(entry?.metadata?.mimetype || entry?.metadata?.contentType);
-        if (isFile) {
-          items.push({
-            path: childPath,
-            metadata: entry.metadata || {},
-            name: entry.name
-          });
-          return;
-        }
-        if (recursive && !seen.has(childPath)) {
-          seen.add(childPath);
-          queue.push(childPath);
-        }
-      });
-      if (batch.length < limit) break;
-      offset += limit;
-    }
+    });
+    if (batch.length < limit) break;
+    offset += limit;
   }
-
   return items;
 }
 
@@ -137,13 +119,11 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 
 async function main() {
   const bucket = String(parseArg('--bucket', '')).trim();
-  const rawPrefixes = String(parseArg('--prefixes', '')).split(',').map((value) => value.trim()).filter((value) => value.length > 0);
-  const prefixes = rawPrefixes.map((value) => (value === '.' || value === '/' || value === '*' ? '' : value));
+  const prefixes = String(parseArg('--prefixes', '')).split(',').map((value) => value.trim()).filter(Boolean);
   const quality = Math.max(60, Math.min(90, Number(parseArg('--quality', '80')) || 80));
   const limit = Math.max(1, Number(parseArg('--limit', '1000')) || 1000);
   const minSavingsRatio = Math.max(0, Math.min(0.95, Number(parseArg('--min-savings-ratio', '0.92')) || 0.92));
   const dryRun = ['1', 'true', 'yes', 'on'].includes(String(parseArg('--dry-run', 'true')).trim().toLowerCase());
-  const recursive = ['1', 'true', 'yes', 'on'].includes(String(parseArg('--recursive', 'false')).trim().toLowerCase());
 
   if (!bucket || !prefixes.length) {
     throw new Error('Usage: node scripts/recompress-storage-bucket.mjs --bucket=<bucket> --prefixes=<a,b,c> [--dry-run=true]');
@@ -152,7 +132,7 @@ async function main() {
   const storage = supabase.storage.from(bucket);
   const allObjects = [];
   for (const prefix of prefixes) {
-    const objects = await listObjects(storage, prefix, { recursive });
+    const objects = await listObjects(storage, prefix);
     allObjects.push(...objects);
   }
 
@@ -217,11 +197,10 @@ async function main() {
     generatedAt: new Date().toISOString(),
     bucket,
     prefixes,
-      dryRun,
-      recursive,
-      processed,
-      updated,
-      skipped,
+    dryRun,
+    processed,
+    updated,
+    skipped,
     failed,
     bytesBefore,
     bytesAfter,
@@ -233,7 +212,6 @@ async function main() {
     bucket,
     prefixes,
     dryRun,
-    recursive,
     processed,
     updated,
     skipped,

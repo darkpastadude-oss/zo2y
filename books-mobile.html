@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260326c"></script>
+<script src="/js/auth-gate.js?v=20260324a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Books</title>
   <link rel="icon" href="/newlogo.webp" type="image/webp" />
@@ -888,7 +888,7 @@
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
       const BOOKS_PER_PAGE = 20;
-      const BOOKS_CACHE_BUSTER = '20260325-books-fast';
+      const BOOKS_CACHE_BUSTER = '20260324-api-only-mobile-fast';
       const BOOKS_SESSION_RECOVERY_RETRY_MS = 350;
       const CATEGORY_OPTIONS = [
         'Fiction',
@@ -1219,9 +1219,9 @@
         return score;
       }
 
-      async function fetchCuratedTopBookSeeds(limit = 8) {
-        const desired = Math.max(4, Number(limit || 0));
-        const pool = CURRENT_TOP_BOOK_SEEDS.slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, Math.max(desired, 8)));
+      async function fetchCuratedTopBookSeeds(limit = BOOKS_PER_PAGE * 2) {
+        const desired = Math.max(limit, BOOKS_PER_PAGE);
+        const pool = CURRENT_TOP_BOOK_SEEDS.slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, desired * 2));
         const results = await Promise.allSettled(pool.map(async (seed) => {
           const payload = await booksFetch('/search.json', {
             q: `${seed.title} ${seed.author}`,
@@ -1295,21 +1295,22 @@
       }
 
       async function loadCuratedPopularBooks() {
-        const [trendingResult, popularResult] = await Promise.allSettled([
+        const [seededResult, trendingResult, popularResult] = await Promise.allSettled([
+          fetchCuratedTopBookSeeds(BOOKS_PER_PAGE * 2),
           fetchTrendingBooks(BOOKS_PER_PAGE),
           fetchPopularBooks(1, BOOKS_PER_PAGE)
         ]);
 
-        let seededDocs = [];
+        const seededDocs = seededResult.status === 'fulfilled' ? seededResult.value.slice(0, BOOKS_PER_PAGE * 2) : [];
         const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
         const popular = popularResult.status === 'fulfilled' ? popularResult.value : null;
         const trendingDocs = Array.isArray(trending?.docs) ? trending.docs.slice(0, BOOKS_PER_PAGE) : [];
         const popularDocs = Array.isArray(popular?.docs) ? popular.docs.slice(0, BOOKS_PER_PAGE) : [];
 
-        if (popularDocs.length || trendingDocs.length) {
+        if (seededDocs.length || popularDocs.length || trendingDocs.length) {
           const merged = [];
           const seen = new Set();
-          [...trendingDocs, ...popularDocs].forEach((doc) => {
+          [...seededDocs, ...trendingDocs, ...popularDocs].forEach((doc) => {
             const title = normalizeBookSeedText(doc?.title || '');
             const author = normalizeBookSeedText((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '');
             const key = `${title}::${author}`;
@@ -1317,17 +1318,6 @@
             seen.add(key);
             merged.push(doc);
           });
-          if (merged.length < Math.max(10, Math.ceil(BOOKS_PER_PAGE * 0.7))) {
-            seededDocs = await fetchCuratedTopBookSeeds(Math.min(10, BOOKS_PER_PAGE));
-            seededDocs.forEach((doc) => {
-              const title = normalizeBookSeedText(doc?.title || '');
-              const author = normalizeBookSeedText((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '');
-              const key = `${title}::${author}`;
-              if (!title || seen.has(key)) return;
-              seen.add(key);
-              merged.push(doc);
-            });
-          }
 
           const docs = merged.slice(0, BOOKS_PER_PAGE);
           return {
@@ -1447,7 +1437,7 @@
               persistSession: true,
               autoRefreshToken: true,
               detectSessionInUrl: false,
-              storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token'
+              storageKey: 'zo2y-auth-v1'
             }
           });
         }
@@ -2166,9 +2156,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
 
 
 

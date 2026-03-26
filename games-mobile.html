@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260326c"></script>
+<script src="/js/auth-gate.js?v=20260322a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Games</title>
   <link rel="icon" href="/newlogo.webp" type="image/webp" />
@@ -1049,9 +1049,7 @@
         modalSelectedLists: new Set(),
         selectedIcon: 'fas fa-gamepad',
         pendingDefaultOps: new Set(),
-        searchSupplementCache: new Map(),
-        searchResultsCache: new Map(),
-        catalogWarmStarted: false
+        searchSupplementCache: new Map()
       };
 
       let supabaseClient = null;
@@ -1062,51 +1060,10 @@
 
       function scheduleGamesLoad(delayMs = 360) {
         if (loadGamesTimer) clearTimeout(loadGamesTimer);
-        const effectiveDelay = isSlowNetwork() ? Math.max(160, delayMs) : Math.min(55, delayMs);
+        const effectiveDelay = isSlowNetwork() ? Math.max(220, delayMs) : Math.min(140, delayMs);
         loadGamesTimer = setTimeout(() => {
           loadGames();
         }, effectiveDelay);
-      }
-
-      function getSearchResultCacheKey(query = state.query, activeGenre = state.activeGenre, year = state.year) {
-        return [String(query || '').trim().toLowerCase(), String(activeGenre || '').trim().toLowerCase(), String(year || '').trim()].join('::');
-      }
-
-      function readCachedSearchResults(query = state.query, activeGenre = state.activeGenre, year = state.year) {
-        const key = getSearchResultCacheKey(query, activeGenre, year);
-        const cached = state.searchResultsCache.get(key);
-        return Array.isArray(cached) ? cached.slice() : [];
-      }
-
-      function writeCachedSearchResults(query = state.query, activeGenre = state.activeGenre, year = state.year, rows = []) {
-        const key = getSearchResultCacheKey(query, activeGenre, year);
-        const safeRows = Array.isArray(rows) ? rows.filter(Boolean).slice(0, 800) : [];
-        if (!key || !safeRows.length) return;
-        if (state.searchResultsCache.has(key)) state.searchResultsCache.delete(key);
-        state.searchResultsCache.set(key, safeRows);
-        while (state.searchResultsCache.size > 24) {
-          const oldestKey = state.searchResultsCache.keys().next().value;
-          if (!oldestKey) break;
-          state.searchResultsCache.delete(oldestKey);
-        }
-      }
-
-      function scheduleCatalogWarmup(force = false) {
-        if ((state.catalogLoadedAll && state.catalog.length && !force) || state.catalogWarmStarted) return;
-        state.catalogWarmStarted = true;
-        const run = () => {
-          Promise.resolve()
-            .then(() => ensureGamesCatalogLoaded(force))
-            .catch(() => false)
-            .finally(() => {
-              state.catalogWarmStarted = false;
-            });
-        };
-        if (typeof requestIdleCallback === 'function') {
-          requestIdleCallback(run, { timeout: 900 });
-        } else {
-          window.setTimeout(run, 120);
-        }
       }
 
       function isSlowNetwork() {
@@ -1323,16 +1280,7 @@
         'ultimate edition',
         'definitive edition',
         'game of the year edition',
-        'goty edition',
-        'remaster',
-        'remastered',
-        'remake',
-        'redux',
-        'enhanced edition',
-        'complete edition',
-        'anniversary edition',
-        'director s cut',
-        'directors cut'
+        'goty edition'
       ]);
 
       const SEARCH_UNOFFICIAL_TOKENS = [
@@ -1389,25 +1337,6 @@
         /\bexpansion\b/i
       ];
 
-      const OFFICIAL_VARIANT_PATTERNS = [
-        /\bremaster(?:ed)?\b/i,
-        /\bremake\b/i,
-        /\bredux\b/i,
-        /\bdirector'?s cut\b/i,
-        /\banniversary edition\b/i,
-        /\benhanced edition\b/i,
-        /\bcomplete edition\b/i,
-        /\bgold edition\b/i,
-        /\blegacy collection\b/i,
-        /\bhd remaster\b/i,
-        /\bhd collection\b/i,
-        /\bvr missions?\b/i,
-        /\bseason pass\b/i,
-        /\bstory expansion\b/i
-      ];
-
-      const CURRENT_RELEASE_YEAR = new Date().getUTCFullYear();
-
       function normalizeSearchCanonicalTitleKey(value) {
         return normalizeFranchiseTitleKey(value)
           .replace(/\bversion\b/g, ' ')
@@ -1418,22 +1347,8 @@
           .replace(/\bdeluxe\b/g, ' ')
           .replace(/\bgame of the year\b/g, ' ')
           .replace(/\bgoty\b/g, ' ')
-          .replace(/\bremaster(?:ed)?\b/g, ' ')
-          .replace(/\bremake\b/g, ' ')
-          .replace(/\bredux\b/g, ' ')
-          .replace(/\benhanced\b/g, ' ')
-          .replace(/\bcomplete\b/g, ' ')
-          .replace(/\banniversary\b/g, ' ')
-          .replace(/\bdirector s cut\b/g, ' ')
-          .replace(/\bdirectors cut\b/g, ' ')
           .replace(/\s+/g, ' ')
           .trim();
-      }
-
-      function isLikelyVariantOnlyTitle(title = '') {
-        const value = String(title || '').trim();
-        if (!value) return false;
-        return OFFICIAL_VARIANT_PATTERNS.some((pattern) => pattern.test(value));
       }
 
       function isLikelyUnofficialSearchResult(row, query = '') {
@@ -1442,7 +1357,6 @@
         if (!title) return false;
         if (!queryKey || !title.includes(queryKey)) return false;
         if (SEARCH_UNOFFICIAL_TOKENS.some((token) => title.includes(token))) return true;
-        if (isLikelyVariantOnlyTitle(String(row?.title || row?.name || row?.slug || ''))) return true;
         if (title.includes(`${queryKey} s `) || title.includes(`${queryKey}s `)) return true;
         if (/[[(][^)]+[)\]]/.test(String(row?.title || '')) && !String(row?.source || '').toLowerCase().includes('wikipedia')) return true;
         return false;
@@ -1452,7 +1366,6 @@
         const title = String(row?.title || row?.name || row?.slug || '').trim();
         if (!title) return false;
         if (UNOFFICIAL_GAME_PATTERNS.some((pattern) => pattern.test(title))) return false;
-        if (isLikelyVariantOnlyTitle(title)) return false;
         const importedFrom = getGameImportedFrom(row);
         if (/[[(][^)]+[)\]]/.test(title) && importedFrom.includes('rawg')) return false;
         return true;
@@ -1472,15 +1385,7 @@
         if (/\/game-assets\/covers\//.test(normalizeGameImageUrl(row?.cover_url))) score += 120;
         if (isOfficialGameProviderRow(row)) score += 80;
         if (isLikelyUnofficialSearchResult(row, query)) score -= 2000;
-        if (isLikelyVariantOnlyTitle(title)) score -= 900;
-        const ratingCount = Number(row?.rating_count || 0);
-        score += Math.min(ratingCount, 25000) / 22;
-        score += Math.max(0, Number(row?.rating || 0)) * 18;
-        const releaseYear = Number(String(row?.release_date || '').slice(0, 4)) || 0;
-        if (releaseYear > 0) {
-          const age = Math.max(0, CURRENT_RELEASE_YEAR - releaseYear);
-          score += Math.max(0, 220 - (age * 12));
-        }
+        score += Math.min(Number(row?.rating_count || 0), 5000) / 50;
         return score;
       }
 
@@ -1547,12 +1452,12 @@
         return list.sort((a, b) => {
           const aTitle = String(a?.title || a?.name || a?.slug || '').trim();
           const bTitle = String(b?.title || b?.name || b?.slug || '').trim();
-          const scoreDiff = scoreSearchResultRow(b, cleanQuery) - scoreSearchResultRow(a, cleanQuery);
+          const scoreDiff = scoreSearchMatch(bTitle, cleanQuery) - scoreSearchMatch(aTitle, cleanQuery);
           if (scoreDiff !== 0) return scoreDiff;
-          const dateDiff = String(b?.release_date || '').localeCompare(String(a?.release_date || ''));
-          if (dateDiff !== 0) return dateDiff;
           const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
           if (countDiff !== 0) return countDiff;
+          const dateDiff = String(b?.release_date || '').localeCompare(String(a?.release_date || ''));
+          if (dateDiff !== 0) return dateDiff;
           const aRating = Number(a?.rating || 0);
           const bRating = Number(b?.rating || 0);
           if (Number.isFinite(aRating) && Number.isFinite(bRating) && aRating !== bRating) {
@@ -1619,35 +1524,31 @@
           seenVariants.add(key);
           return true;
         });
-        const clauses = [];
-        uniqueVariants.slice(0, 2).forEach((variant) => {
-          [variant, normalizeTitleKey(variant), normalizeFranchiseTitleKey(variant)]
+        const allRows = [];
+        for (const variant of uniqueVariants.slice(0, 2)) {
+          const terms = [variant, normalizeTitleKey(variant), normalizeFranchiseTitleKey(variant)]
             .map((value) => String(value || '').trim())
-            .filter((value, index, array) => value && array.indexOf(value) === index)
-            .slice(0, 2)
-            .forEach((term) => {
-              const escaped = term.replace(/[%_,]/g, ' ').trim();
-              if (escaped) clauses.push(escaped);
-            });
-        });
-        const uniqueClauses = clauses.filter((value, index, array) => array.indexOf(value) === index).slice(0, state.catalogLoadedAll ? 2 : 3);
-        const results = await Promise.allSettled(uniqueClauses.map(async (escaped) => {
-          let queryBuilder = supabaseClient
-            .from('games')
-            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug')
-            .or(`title.ilike.%${escaped}%,slug.ilike.%${escaped}%`)
-            .order('release_date', { ascending: false, nullsFirst: false })
-            .order('rating_count', { ascending: false, nullsFirst: false })
-            .order('rating', { ascending: false, nullsFirst: false })
-            .range(0, 79);
-          if (year) {
-            queryBuilder = queryBuilder.gte('release_date', `${year}-01-01`).lte('release_date', `${year}-12-31`);
+            .filter((value, index, array) => value && array.indexOf(value) === index);
+          for (const term of terms.slice(0, 2)) {
+            const escaped = term.replace(/[%_,]/g, ' ').trim();
+            if (!escaped) continue;
+            let queryBuilder = supabaseClient
+              .from('games')
+              .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug')
+              .or(`title.ilike.%${escaped}%,slug.ilike.%${escaped}%`)
+              .order('rating_count', { ascending: false, nullsFirst: false })
+              .order('rating', { ascending: false, nullsFirst: false })
+              .order('release_date', { ascending: false, nullsFirst: false })
+              .range(0, 119);
+            if (year) {
+              queryBuilder = queryBuilder.gte('release_date', `${year}-01-01`).lte('release_date', `${year}-12-31`);
+            }
+            const { data, error } = await queryBuilder;
+            if (!error && Array.isArray(data) && data.length) {
+              allRows.push(...data);
+            }
           }
-          const { data, error } = await queryBuilder;
-          if (error || !Array.isArray(data)) return [];
-          return data;
-        }));
-        const allRows = results.flatMap((entry) => entry.status === 'fulfilled' && Array.isArray(entry.value) ? entry.value : []);
+        }
         const filtered = filterCatalogGames(dedupeSearchResults(allRows, rawQuery));
         state.searchSupplementCache.set(cacheKey, filtered);
         return filtered;
@@ -1674,7 +1575,6 @@
           };
         }
         const ranked = sortSearchResults(dedupeSearchResults(supplement, query), query);
-        writeCachedSearchResults(query, state.activeGenre, state.year, ranked);
         const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
         return {
           rows: ranked.slice(start, start + pageSize),
@@ -1933,7 +1833,6 @@
           state.catalog = rows;
           state.catalogLoadedAll = true;
           state.catalogSource = 'supabase';
-          state.searchResultsCache.clear();
           buildGenreCatalog();
           populateGenreSelect();
           return true;
@@ -1985,33 +1884,10 @@
       async function fetchLocalGamesPage(pageSize) {
         if (!supabaseClient) return null;
         if (state.query) {
-          const cachedResults = readCachedSearchResults(state.query, state.activeGenre, state.year);
-          if (cachedResults.length) {
-            const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
-            return {
-              rows: cachedResults.slice(start, start + pageSize),
-              count: cachedResults.length,
-              source: 'search-cache'
-            };
-          }
-          if (state.catalogLoadedAll) {
-            const ranked = filterCatalogGames(state.catalog);
-            if (ranked.length) {
-              writeCachedSearchResults(state.query, state.activeGenre, state.year, ranked);
-              const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
-              return {
-                rows: ranked.slice(start, start + pageSize),
-                count: ranked.length,
-                source: 'supabase-catalog-search'
-              };
-            }
-          }
-          scheduleCatalogWarmup();
           const targeted = await fetchTargetedSearchPage(pageSize);
           if (targeted?.count) return targeted;
         }
         if (!state.query && !state.activeGenre && !state.year) {
-          scheduleCatalogWarmup();
           const fast = await fetchFastFeaturedGamesPage(pageSize);
           if (fast?.rows?.length) return fast;
         }
@@ -2027,9 +1903,6 @@
         }
         const filtered = filterCatalogGames(dedupeSearchResults(workingSet, query));
         const ranked = query ? sortSearchResults(filtered, query) : filtered;
-        if (query && ranked.length) {
-          writeCachedSearchResults(query, state.activeGenre, state.year, ranked);
-        }
         const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
         return {
           rows: ranked.slice(start, start + pageSize),
@@ -2143,7 +2016,7 @@
               persistSession: true,
               autoRefreshToken: true,
               detectSessionInUrl: false,
-              storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token'
+              storageKey: 'zo2y-auth-v1'
             }
           });
         }
@@ -2773,7 +2646,6 @@
         await initAuth();
         renderFilters();
         loadGames();
-        scheduleCatalogWarmup();
         loadGenreCatalog().catch(() => {});
       })();
     })();
@@ -2781,9 +2653,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
 
 
 
