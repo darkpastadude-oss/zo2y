@@ -1125,12 +1125,31 @@
       let pageSpotlightItems = [];
       let pageSpotlightIndex = 0;
 
+      function optimizeRemoteImage(url, { width = 360, quality = 70, height = 0, fit = 'cover' } = {}) {
+        const raw = String(url || '').trim();
+        if (!raw) return '';
+        let normalized = raw;
+        if (normalized.startsWith('//')) normalized = `https:${normalized}`;
+        normalized = normalized.replace(/^http:\/\//i, 'https://');
+        if (!/^https:\/\//i.test(normalized)) return normalized;
+        if (normalized.includes('/cdn-cgi/image/')) return normalized;
+        if (/\.svg(?:[?#].*)?$/i.test(normalized) || /\.gif(?:[?#].*)?$/i.test(normalized)) return normalized;
+        const transforms = [`format=auto`, `quality=${quality}`, `width=${Math.round(width)}`];
+        if (height) transforms.push(`height=${Math.round(height)}`);
+        if (fit) transforms.push(`fit=${fit}`);
+        return `/cdn-cgi/image/${transforms.join(',')}/${encodeURI(normalized)}`;
+      }
+
       function getTvPosterUrl(item) {
-        return item?.poster_path ? POSTER_BASE + item.poster_path : 'images/placeholder.jpg';
+        return item?.poster_path
+          ? optimizeRemoteImage(POSTER_BASE + item.poster_path, { width: 360, quality: 70, fit: 'cover' })
+          : 'images/placeholder.jpg';
       }
 
       function getTvBackdropUrl(item) {
-        return item?.backdrop_path ? BACKDROP_BASE + item.backdrop_path : getTvPosterUrl(item);
+        return item?.backdrop_path
+          ? optimizeRemoteImage(BACKDROP_BASE + item.backdrop_path, { width: 1080, quality: 68, fit: 'cover' })
+          : getTvPosterUrl(item);
       }
 
       function pickTvSpotlightPool(items = []) {
@@ -1312,7 +1331,7 @@
           const showTitle = item.name || item.original_name || item.title || 'Untitled';
           const showDate = item.first_air_date || item.release_date || '';
           card.innerHTML = `
-            <img src="${item.poster_path ? POSTER_BASE + item.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}">
+            <img src="${getTvPosterUrl(item)}" alt="${showTitle}" loading="lazy" decoding="async">
             <div class="card-body">
               <h3 class="card-title">${showTitle}</h3>
               <div class="card-meta-row">

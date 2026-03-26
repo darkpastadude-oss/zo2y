@@ -827,6 +827,21 @@
       let modalSelectedLists = new Set();
       let selectedIcon = 'fas fa-film';
 
+      function optimizeRemoteImage(url, { width = 560, quality = 74, height = 0, fit = 'cover' } = {}) {
+        const raw = String(url || '').trim();
+        if (!raw) return '';
+        let normalized = raw;
+        if (normalized.startsWith('//')) normalized = `https:${normalized}`;
+        normalized = normalized.replace(/^http:\/\//i, 'https://');
+        if (!/^https:\/\//i.test(normalized)) return normalized;
+        if (normalized.includes('/cdn-cgi/image/')) return normalized;
+        if (/\.svg(?:[?#].*)?$/i.test(normalized) || /\.gif(?:[?#].*)?$/i.test(normalized)) return normalized;
+        const transforms = [`format=auto`, `quality=${quality}`, `width=${Math.round(width)}`];
+        if (height) transforms.push(`height=${Math.round(height)}`);
+        if (fit) transforms.push(`fit=${fit}`);
+        return `/cdn-cgi/image/${transforms.join(',')}/${encodeURI(normalized)}`;
+      }
+
       async function tmdbFetch(path) {
         const joiner = path.includes('?') ? '&' : '?';
         const res = await fetch(`${TMDB_PROXY_BASE}${path}${joiner}strict=1`);
@@ -1001,7 +1016,9 @@
         document.getElementById('title').textContent = data.title || 'Untitled';
         document.getElementById('overview').textContent = data.overview || 'No description available.';
         document.getElementById('meta').textContent = `${data.release_date || ''} - ${data.runtime || ''} min`;
-        document.getElementById('poster').src = data.poster_path ? POSTER_BASE + data.poster_path : 'images/placeholder.jpg';
+        document.getElementById('poster').src = data.poster_path
+          ? optimizeRemoteImage(POSTER_BASE + data.poster_path, { width: 560, quality: 74, fit: 'cover' })
+          : 'images/placeholder.jpg';
         const tags = document.getElementById('tags');
         if (tags && Array.isArray(data.genres)) {
           tags.innerHTML = data.genres.map(g => `<span class="tag">${g.name}</span>`).join('');
@@ -1728,7 +1745,7 @@ const url = new URL('movies.html?v=20260322m', window.location.href);
               id: m.id,
               title: m.title || 'Movie',
               sub: m.release_date ? String(m.release_date).slice(0, 4) : 'Movie',
-              image: m.poster_path ? `${POSTER_BASE}${m.poster_path}` : ''
+              image: m.poster_path ? optimizeRemoteImage(`${POSTER_BASE}${m.poster_path}`, { width: 220, quality: 70, fit: 'cover' }) : ''
             }));
             activeIndex = -1;
             renderSuggest();

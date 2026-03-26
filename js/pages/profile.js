@@ -5474,12 +5474,21 @@
                 return `https://flagcdn.com/w640/${safeCode.toLowerCase()}.png`;
             }
 
-            function toHttpsUrl(url) {
+            function toHttpsUrl(url, options = null) {
                 const text = String(url || '').trim();
                 if (!text) return '';
-                if (text.startsWith('//')) return `https:${text}`;
-                if (text.startsWith('http://')) return text.replace(/^http:\/\//i, 'https://');
-                return text;
+                let normalized = text;
+                if (normalized.startsWith('//')) normalized = `https:${normalized}`;
+                if (normalized.startsWith('http://')) normalized = normalized.replace(/^http:\/\//i, 'https://');
+                if (!/^https:\/\//i.test(normalized)) return normalized;
+                if (normalized.includes('/cdn-cgi/image/')) return normalized;
+                if (/\.svg(?:[?#].*)?$/i.test(normalized) || /\.gif(?:[?#].*)?$/i.test(normalized)) return normalized;
+                const width = Math.max(32, Number(options?.width || 520) || 520);
+                const quality = Math.max(30, Math.min(90, Number(options?.quality || 74) || 74));
+                const transforms = [`format=auto`, `quality=${quality}`, `width=${Math.round(width)}`];
+                if (options?.height) transforms.push(`height=${Math.max(32, Math.round(Number(options.height) || 0))}`);
+                if (options?.fit) transforms.push(`fit=${String(options.fit)}`);
+                return `/cdn-cgi/image/${transforms.join(',')}/${encodeURI(normalized)}`;
             }
 
             async function fetchTravelCountriesByCodes(codes = []) {

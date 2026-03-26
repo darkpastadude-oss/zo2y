@@ -471,8 +471,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         .replace(/'/g, '&#039;');
     }
 
-    function toHttpsUrl(value) {
-      return String(value || '').replace(/^http:\/\//i, 'https://');
+    function buildCloudflareImageUrl(value, options = {}) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      let normalized = raw;
+      if (normalized.startsWith('//')) normalized = `https:${normalized}`;
+      normalized = normalized.replace(/^http:\/\//i, 'https://');
+      if (!/^https:\/\//i.test(normalized)) return normalized;
+      if (normalized.includes('/cdn-cgi/image/')) return normalized;
+      if (/\.svg(?:[?#].*)?$/i.test(normalized) || /\.gif(?:[?#].*)?$/i.test(normalized)) return normalized;
+      const width = Math.max(32, Number(options?.width || 520) || 520);
+      const quality = Math.max(30, Math.min(90, Number(options?.quality || 75) || 75));
+      const transforms = [`format=auto`, `quality=${quality}`, `width=${Math.round(width)}`];
+      if (options?.height) transforms.push(`height=${Math.max(32, Math.round(Number(options.height) || 0))}`);
+      if (options?.fit) transforms.push(`fit=${String(options.fit)}`);
+      if (options?.gravity) transforms.push(`gravity=${String(options.gravity)}`);
+      return `/cdn-cgi/image/${transforms.join(',')}/${encodeURI(normalized)}`;
+    }
+
+    function toHttpsUrl(value, options = null) {
+      return buildCloudflareImageUrl(value, options || undefined);
     }
 
     function normalizeCountryName(value) {
