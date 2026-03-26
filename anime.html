@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
 <script src="/js/auth-gate.js?v=20260322a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Anime</title>
@@ -829,9 +828,14 @@
       let selectedIcon = 'fas fa-film';
 
       async function tmdbFetch(path) {
-        const res = await fetch(`${TMDB_PROXY_BASE}${path}`);
+        const joiner = path.includes('?') ? '&' : '?';
+        const res = await fetch(`${TMDB_PROXY_BASE}${path}${joiner}strict=1`);
         if (!res.ok) throw new Error('TMDB error');
-        return res.json();
+        const json = await res.json();
+        if (json && json.source === 'tmdb-fallback') {
+          throw new Error(json.message || 'TMDB unavailable');
+        }
+        return json;
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -887,13 +891,20 @@
 
       async function load() {
         if (!id) return;
-        const [data, credits, videos, keywords, externals] = await Promise.all([
-          tmdbFetch(`/tv/${id}?language=en`),
-          tmdbFetch(`/tv/${id}/credits?language=en`),
-          tmdbFetch(`/tv/${id}/videos?language=en`),
-          tmdbFetch(`/tv/${id}/keywords`),
-          tmdbFetch(`/tv/${id}/external_ids`)
-        ]);
+        let payload;
+        try {
+          payload = await tmdbFetch(`/tv/${id}?language=en&append_to_response=credits,videos,keywords,external_ids`);
+        } catch (error) {
+          document.getElementById('title').textContent = 'Anime unavailable';
+          document.getElementById('overview').textContent = 'We could not load this anime right now. Please try again in a moment.';
+          document.getElementById('meta').textContent = String(error?.message || 'TMDB unavailable');
+          throw error;
+        }
+        const data = payload || {};
+        const credits = payload?.credits || {};
+        const videos = payload?.videos || {};
+        const keywords = payload?.keywords || {};
+        const externals = payload?.external_ids || {};
         document.getElementById('title').textContent = data.name || data.original_name || data.title || 'Untitled';
         document.getElementById('overview').textContent = data.overview || 'No description available.';
         document.getElementById('meta').textContent = `${data.first_air_date || data.release_date || ''} - ${(Array.isArray(data.episode_run_time) && data.episode_run_time.length ? data.episode_run_time[0] : '')} min`;
@@ -1689,7 +1700,10 @@
         await initAuth();
         await load();
         await initReviewSystem();
-      })();
+      })().catch((error) => {
+        console.error('Anime page init failed:', error);
+        showNotification(String(error?.message || 'Could not load this anime right now.'), 'error', 4200);
+      });
     })();
   </script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>

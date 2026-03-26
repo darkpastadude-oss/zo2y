@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
 <script src="/js/auth-gate.js?v=20260322a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Movie</title>
@@ -829,9 +828,14 @@
       let selectedIcon = 'fas fa-film';
 
       async function tmdbFetch(path) {
-        const res = await fetch(`${TMDB_PROXY_BASE}${path}`);
+        const joiner = path.includes('?') ? '&' : '?';
+        const res = await fetch(`${TMDB_PROXY_BASE}${path}${joiner}strict=1`);
         if (!res.ok) throw new Error('TMDB error');
-        return res.json();
+        const json = await res.json();
+        if (json && json.source === 'tmdb-fallback') {
+          throw new Error(json.message || 'TMDB unavailable');
+        }
+        return json;
       }
 
       function showNotification(message, type = 'info', duration = 3000) {
@@ -980,13 +984,20 @@
 
       async function load() {
         if (!id) return;
-        const [data, credits, videos, keywords, externals] = await Promise.all([
-          tmdbFetch(`/movie/${id}?language=en`),
-          tmdbFetch(`/movie/${id}/credits?language=en`),
-          tmdbFetch(`/movie/${id}/videos?language=en`),
-          tmdbFetch(`/movie/${id}/keywords`),
-          tmdbFetch(`/movie/${id}/external_ids`)
-        ]);
+        let payload;
+        try {
+          payload = await tmdbFetch(`/movie/${id}?language=en&append_to_response=credits,videos,keywords,external_ids`);
+        } catch (error) {
+          document.getElementById('title').textContent = 'Movie unavailable';
+          document.getElementById('overview').textContent = 'We could not load this movie right now. Please try again in a moment.';
+          document.getElementById('meta').textContent = String(error?.message || 'TMDB unavailable');
+          throw error;
+        }
+        const data = payload || {};
+        const credits = payload?.credits || {};
+        const videos = payload?.videos || {};
+        const keywords = payload?.keywords || {};
+        const externals = payload?.external_ids || {};
         document.getElementById('title').textContent = data.title || 'Untitled';
         document.getElementById('overview').textContent = data.overview || 'No description available.';
         document.getElementById('meta').textContent = `${data.release_date || ''} - ${data.runtime || ''} min`;
@@ -1784,7 +1795,10 @@ const url = new URL('movies.html?v=20260322m', window.location.href);
         await initAuth();
         await load();
         await initReviewSystem();
-      })();
+      })().catch((error) => {
+        console.error('Movie page init failed:', error);
+        showNotification(String(error?.message || 'Could not load this movie right now.'), 'error', 4200);
+      });
     })();
   </script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>

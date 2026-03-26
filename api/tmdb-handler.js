@@ -27,6 +27,8 @@ function getTmdbCacheProfile(path = "") {
 function getTmdbToken() {
   return String(
     process.env.TMDB_TOKEN ||
+    process.env.TMDB_API_KEY ||
+    process.env.TMDB_ACCESS_TOKEN ||
     process.env.TMDB_BEARER_TOKEN ||
     process.env.TMDB_API_READ_TOKEN ||
     ""
@@ -94,6 +96,8 @@ export default async function handler(req, res) {
   const query = readQuery(req);
   const pathParts = readPathParts(query);
   const relativePath = pathParts.join("/");
+  const strictMode = String(query?.strict || "").trim().toLowerCase();
+  const shouldFailOpen = !["1", "true", "yes", "on"].includes(strictMode);
 
   if (!relativePath) {
     setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
@@ -106,7 +110,8 @@ export default async function handler(req, res) {
   try {
     const token = getTmdbToken();
     if (!token) {
-      return res.status(200).json({
+      const status = shouldFailOpen ? 200 : 503;
+      return res.status(status).json({
         ...fallbackPayload,
         source: "tmdb-fallback",
         message: "TMDB is not configured"
@@ -124,7 +129,8 @@ export default async function handler(req, res) {
     });
 
     if (!tmdbRes.ok) {
-      return res.status(200).json({
+      const status = shouldFailOpen ? 200 : tmdbRes.status;
+      return res.status(status).json({
         ...fallbackPayload,
         source: "tmdb-fallback",
         upstream_status: tmdbRes.status
@@ -136,7 +142,8 @@ export default async function handler(req, res) {
     res.setHeader("content-type", tmdbRes.headers.get("content-type") || "application/json; charset=utf-8");
     return res.send(text);
   } catch (error) {
-    return res.status(200).json({
+    const status = shouldFailOpen ? 200 : 502;
+    return res.status(status).json({
       ...fallbackPayload,
       source: "tmdb-fallback",
       message: error?.message || "TMDB proxy error"

@@ -1,4 +1,4 @@
-﻿const APP_SHELL_CACHE = 'zo2y-app-shell-v190';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v191';
 const PAGE_CACHE = 'zo2y-pages-v163';
 const IMAGE_CACHE = 'zo2y-images-v29';
 const API_CACHE = 'zo2y-api-v12';
@@ -21,7 +21,6 @@ const STATIC_ASSETS = [
   '/js/referral-utils.js?v=20260319a',
   '/js/shared-header.js?v=20260324a',
   '/js/review-interactions.js?v=20260308a',
-  '/js/vercel-analytics.js?v=20260307a',
   '/js/list-utils.js?v=20260323a',
   '/js/index-list-menu-adapter.js?v=20260324a',
   '/js/universal-search.js?v=20260323a',
@@ -238,7 +237,6 @@ self.addEventListener('fetch', (event) => {
     url.origin === self.location.origin &&
     (url.pathname === '/games.html' || url.pathname === '/games-mobile.html' || url.pathname === '/game.html');
   if (url.origin === self.location.origin && url.pathname === '/sw.js') return;
-  if (url.origin === self.location.origin && url.pathname.startsWith('/_vercel/insights/')) return;
   // OAuth callbacks must always load the real callback page. A timeout fallback to `/index.html`
   // can silently break sign-in (it looks like "landing refreshed" with no error).
   if (

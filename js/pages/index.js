@@ -2160,31 +2160,40 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         return mixed.slice(0, takeCount);
       };
 
+      const includeExtendedSources = !isHomeCompactViewport() && !isHomeSlowNetwork();
       const [movieNowRes, movieUpcomingRes, tvEpisodeRes, tvSeasonRes, animeEpisodeRes, animeSeasonRes, gamesRes, booksRes, musicTrackRes, musicAlbumRes] = await Promise.allSettled([
         fetchJsonWithPerfCache(
           `${TMDB_PROXY_BASE}/movie/now_playing?language=en-US&page=${movieNowPage}`,
           { signal, cacheKey: `tmdb:new-releases:movie-now:${movieNowPage}` }
         ),
-        fetchJsonWithPerfCache(
-          `${TMDB_PROXY_BASE}/movie/upcoming?language=en-US&page=${movieUpcomingPage}`,
-          { signal, cacheKey: `tmdb:new-releases:movie-upcoming:${movieUpcomingPage}` }
-        ),
+        includeExtendedSources
+          ? fetchJsonWithPerfCache(
+            `${TMDB_PROXY_BASE}/movie/upcoming?language=en-US&page=${movieUpcomingPage}`,
+            { signal, cacheKey: `tmdb:new-releases:movie-upcoming:${movieUpcomingPage}` }
+          )
+          : Promise.resolve({ results: [] }),
         fetchJsonWithPerfCache(
           `${TMDB_PROXY_BASE}/tv/airing_today?language=en-US&page=1`,
           { signal, cacheKey: 'tmdb:new-releases:tv-episode' }
         ),
-        fetchJsonWithPerfCache(
-          `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=first_air_date.desc&page=1&first_air_date.gte=${recentSeasonDate}&first_air_date.lte=${todayDate}`,
-          { signal, cacheKey: `tmdb:new-releases:tv-season:${recentSeasonDate}:${todayDate}` }
-        ),
-        fetchJsonWithPerfCache(
-          `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=popularity.desc&page=1&with_genres=16&with_original_language=ja&air_date.gte=${recentEpisodeDate}&air_date.lte=${todayDate}`,
-          { signal, cacheKey: `tmdb:new-releases:anime-episode:${recentEpisodeDate}:${todayDate}` }
-        ),
-        fetchJsonWithPerfCache(
-          `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=first_air_date.desc&page=1&with_genres=16&with_original_language=ja&first_air_date.gte=${recentSeasonDate}`,
-          { signal, cacheKey: `tmdb:new-releases:anime-season:${recentSeasonDate}` }
-        ),
+        includeExtendedSources
+          ? fetchJsonWithPerfCache(
+            `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=first_air_date.desc&page=1&first_air_date.gte=${recentSeasonDate}&first_air_date.lte=${todayDate}`,
+            { signal, cacheKey: `tmdb:new-releases:tv-season:${recentSeasonDate}:${todayDate}` }
+          )
+          : Promise.resolve({ results: [] }),
+        includeExtendedSources
+          ? fetchJsonWithPerfCache(
+            `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=popularity.desc&page=1&with_genres=16&with_original_language=ja&air_date.gte=${recentEpisodeDate}&air_date.lte=${todayDate}`,
+            { signal, cacheKey: `tmdb:new-releases:anime-episode:${recentEpisodeDate}:${todayDate}` }
+          )
+          : Promise.resolve({ results: [] }),
+        includeExtendedSources
+          ? fetchJsonWithPerfCache(
+            `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=first_air_date.desc&page=1&with_genres=16&with_original_language=ja&first_air_date.gte=${recentSeasonDate}`,
+            { signal, cacheKey: `tmdb:new-releases:anime-season:${recentSeasonDate}` }
+          )
+          : Promise.resolve({ results: [] }),
         ENABLE_GAMES
           ? (async () => {
             const client = await ensureHomeSupabase();
@@ -2199,18 +2208,24 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             return { results: Array.isArray(data) ? data : [] };
           })()
           : Promise.resolve({ results: [] }),
-        fetchJsonWithPerfCache(
-          `/api/books/popular?limit=30&page=1&language=en&orderBy=newest&q=${bookReleaseQuery}`,
-          { signal, cacheKey: `books:new-releases:newest:${recentBookMinYear}:${currentYear}` }
-        ),
-        fetchJsonWithPerfCache(
-          '/api/music/top-50?limit=40&market=US',
-          { signal, cacheKey: 'music:new-releases:top-50-us-40' }
-        ),
-        fetchJsonWithPerfCache(
-          '/api/music/new-releases?limit=40&market=US&album_types=album',
-          { signal, cacheKey: 'music:new-releases:albums-us-40:album' }
-        )
+        includeExtendedSources
+          ? fetchJsonWithPerfCache(
+            `/api/books/popular?limit=30&page=1&language=en&orderBy=newest&q=${bookReleaseQuery}`,
+            { signal, cacheKey: `books:new-releases:newest:${recentBookMinYear}:${currentYear}` }
+          )
+          : Promise.resolve({ docs: [] }),
+        includeExtendedSources
+          ? fetchJsonWithPerfCache(
+            '/api/music/top-50?limit=40&market=US',
+            { signal, cacheKey: 'music:new-releases:top-50-us-40' }
+          )
+          : Promise.resolve({ results: [] }),
+        includeExtendedSources
+          ? fetchJsonWithPerfCache(
+            '/api/music/new-releases?limit=40&market=US&album_types=album',
+            { signal, cacheKey: 'music:new-releases:albums-us-40:album' }
+          )
+          : Promise.resolve({ results: [] })
       ]);
 
       const movieNowRows = movieNowRes.status === 'fulfilled' && Array.isArray(movieNowRes.value?.results) ? movieNowRes.value.results : [];
@@ -5103,7 +5118,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
       renderOrDeferHomeRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
-      scheduleHomeNewReleasesRefresh(homeFeedState);
       scheduleHomeMixedRefresh(homeFeedState, scoredPool);
       hydrateSpotlightFromPool(scoredPool);
       scheduleHomeMenuCachePrime();
