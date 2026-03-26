@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v191';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v192';
 const PAGE_CACHE = 'zo2y-pages-v163';
 const IMAGE_CACHE = 'zo2y-images-v29';
 const API_CACHE = 'zo2y-api-v12';
@@ -307,7 +307,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirstWithTimeout(request, PAGE_CACHE, '/index.html'));
+    event.respondWith(networkFirstWithTimeout(request, PAGE_CACHE, ''));
     return;
   }
 
