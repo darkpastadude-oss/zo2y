@@ -81,6 +81,10 @@
       return;
     }
 
+    if (!String(window.location.hostname || '').toLowerCase().endsWith('.vercel.app')) {
+      return;
+    }
+
     if (document.head.querySelector('script[data-zo2y-vercel-analytics="1"]')) {
       return;
     }

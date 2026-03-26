@@ -117,6 +117,49 @@
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
   }
 
+  const LEGACY_BRAND_ID_ALIASES = {
+    fashion: {
+      'fashion-nike': 'nike.com',
+      'fashion-adidas': 'adidas.com',
+      'fashion-zara': 'zara.com',
+      'fashion-uniqlo': 'uniqlo.com',
+      'fashion-hm': 'hm.com',
+      'fashion-gucci': 'gucci.com',
+      'fashion-prada': 'prada.com',
+      'fashion-lv': 'louisvuitton.com',
+      'fashion-offwhite': 'offwhite.com',
+      'fashion-supreme': 'supremenewyork.com'
+    },
+    food: {
+      'food-mcd': 'mcdonalds.com',
+      'food-kfc': 'kfc.com',
+      'food-bk': 'burgerking.com',
+      'food-subway': 'subway.com',
+      'food-taco': 'tacobell.com',
+      'food-starbucks': 'starbucks.com',
+      'food-dominos': 'dominos.com',
+      'food-pizzahut': 'pizzahut.com',
+      'food-chipotle': 'chipotle.com',
+      'food-shakeshack': 'shakeshack.com'
+    },
+    car: {
+      'car-toyota': 'toyota.com',
+      'car-honda': 'honda.com',
+      'car-bmw': 'bmw.com',
+      'car-mercedes': 'mercedes-benz.com',
+      'car-audi': 'audi.com',
+      'car-ford': 'ford.com',
+      'car-chevrolet': 'chevrolet.com',
+      'car-tesla': 'tesla.com'
+    }
+  };
+
+  function resolveLegacyBrandLookup(rawValue) {
+    const safeValue = String(rawValue || '').trim().toLowerCase();
+    if (!safeValue) return '';
+    return LEGACY_BRAND_ID_ALIASES[brandType]?.[safeValue] || safeValue;
+  }
+
   function showBrandToast(message, isError = false) {
     if (typeof window.showToast === 'function') {
       window.showToast(message, isError ? 'error' : 'success');
@@ -344,7 +387,7 @@
     if (isUuid(brandIdParam)) {
       query = query.eq('id', brandIdParam);
     } else {
-      const safe = brandIdParam.replace(/,/g, '');
+      const safe = resolveLegacyBrandLookup(brandIdParam).replace(/,/g, '');
       query = query.or(`slug.eq.${safe},domain.eq.${safe},name.ilike.%${safe}%`);
     }
     const { data, error } = await query;

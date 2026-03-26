@@ -14,35 +14,35 @@
 
   const FALLBACKS = BRAND_TYPE === 'food'
     ? [
-        { id: 'food-mcd', name: "McDonald's", category: 'Fast Food', domain: 'mcdonalds.com', description: 'American fast-food chain.' },
-        { id: 'food-kfc', name: 'KFC', category: 'Fast Food', domain: 'kfc.com', description: 'Fried chicken specialists.' },
-        { id: 'food-bk', name: 'Burger King', category: 'Fast Food', domain: 'burgerking.com', description: 'Home of the Whopper.' },
-        { id: 'food-subway', name: 'Subway', category: 'Fast Food', domain: 'subway.com', description: 'Sandwich chain.' },
-        { id: 'food-taco', name: 'Taco Bell', category: 'Fast Food', domain: 'tacobell.com', description: 'Mexican-inspired fast food.' },
-        { id: 'food-starbucks', name: 'Starbucks', category: 'Coffee', domain: 'starbucks.com', description: 'Coffeehouse chain.' },
-        { id: 'food-dominos', name: "Domino's", category: 'Pizza', domain: 'dominos.com', description: 'Pizza delivery chain.' },
-        { id: 'food-pizzahut', name: 'Pizza Hut', category: 'Pizza', domain: 'pizzahut.com', description: 'Pizza restaurant chain.' }
+        { id: 'b5be652a-1f9b-498c-90c8-325cb9e2d887', name: "McDonald's", category: 'Fast Food', domain: 'mcdonalds.com', description: 'American fast-food chain.' },
+        { id: 'ae58f6af-fc0c-48bc-893b-22b8c9bea2f3', name: 'KFC', category: 'Fast Food', domain: 'kfc.com', description: 'Fried chicken specialists.' },
+        { id: 'e89ab03c-f3eb-4e8a-9ac6-7a78dd8cfebf', name: 'Burger King', category: 'Fast Food', domain: 'burgerking.com', description: 'Home of the Whopper.' },
+        { id: 'e43b76c1-9592-4451-a376-beb5cadaead0', name: 'Subway', category: 'Fast Food', domain: 'subway.com', description: 'Sandwich chain.' },
+        { id: 'dcbdebe1-e413-45f3-b73b-3680c7449687', name: 'Taco Bell', category: 'Fast Food', domain: 'tacobell.com', description: 'Mexican-inspired fast food.' },
+        { id: '212ce36e-df31-4c8e-a8f1-8640b5b47602', name: 'Starbucks', category: 'Coffee', domain: 'starbucks.com', description: 'Coffeehouse chain.' },
+        { id: '65836949-6f8c-4d12-9601-1b37030a8d4f', name: "Domino's", category: 'Pizza', domain: 'dominos.com', description: 'Pizza delivery chain.' },
+        { id: 'e2e4a465-c9e9-4124-b600-4e587e973b52', name: 'Pizza Hut', category: 'Pizza', domain: 'pizzahut.com', description: 'Pizza restaurant chain.' }
       ]
     : (BRAND_TYPE === 'car'
       ? [
-          { id: 'car-toyota', name: 'Toyota', category: 'Automaker', domain: 'toyota.com', description: 'Global automaker.' },
-          { id: 'car-honda', name: 'Honda', category: 'Automaker', domain: 'honda.com', description: 'Japanese automaker.' },
-          { id: 'car-bmw', name: 'BMW', category: 'Luxury', domain: 'bmw.com', description: 'German luxury automaker.' },
-          { id: 'car-mercedes', name: 'Mercedes-Benz', category: 'Luxury', domain: 'mercedes-benz.com', description: 'German luxury automaker.' },
-          { id: 'car-audi', name: 'Audi', category: 'Luxury', domain: 'audi.com', description: 'German luxury automaker.' },
-          { id: 'car-ford', name: 'Ford', category: 'Automaker', domain: 'ford.com', description: 'American automaker.' },
-          { id: 'car-chevrolet', name: 'Chevrolet', category: 'Automaker', domain: 'chevrolet.com', description: 'American automaker.' },
-          { id: 'car-tesla', name: 'Tesla', category: 'EV', domain: 'tesla.com', description: 'Electric vehicle maker.' }
+          { id: 'b4bd539e-490f-406a-89b0-6d4c52043154', name: 'Toyota', category: 'Automaker', domain: 'toyota.com', description: 'Global automaker.' },
+          { id: '8d466b94-2cde-446b-b17f-05160ce9c92a', name: 'Honda', category: 'Automaker', domain: 'honda.com', description: 'Japanese automaker.' },
+          { id: '8a5091a6-a0b6-46ae-9adf-9ef96012fe1d', name: 'BMW', category: 'Luxury', domain: 'bmw.com', description: 'German luxury automaker.' },
+          { id: 'd569b2c2-8738-4f3a-b2aa-066d6b7a303d', name: 'Mercedes-Benz', category: 'Luxury', domain: 'mercedes-benz.com', description: 'German luxury automaker.' },
+          { id: '7125a959-48c6-458b-873f-3256ecba9813', name: 'Audi', category: 'Luxury', domain: 'audi.com', description: 'German luxury automaker.' },
+          { id: '163c6005-e94b-4b0d-ae95-b9210bd20571', name: 'Ford', category: 'Automaker', domain: 'ford.com', description: 'American automaker.' },
+          { id: 'c65e5725-4f9a-40ab-97b1-51b17ecfd52a', name: 'Chevrolet', category: 'Automaker', domain: 'chevrolet.com', description: 'American automaker.' },
+          { id: 'ae7822a8-c2cc-462b-84bc-16f70c256992', name: 'Tesla', category: 'EV', domain: 'tesla.com', description: 'Electric vehicle maker.' }
         ]
       : [
-          { id: 'fashion-nike', name: 'Nike', category: 'Sportswear', domain: 'nike.com', description: 'Global sportswear brand.' },
-          { id: 'fashion-adidas', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com', description: 'Athletic apparel and footwear.' },
-          { id: 'fashion-zara', name: 'Zara', category: 'Fast Fashion', domain: 'zara.com', description: 'Spanish fashion retailer.' },
-          { id: 'fashion-uniqlo', name: 'Uniqlo', category: 'Basics', domain: 'uniqlo.com', description: 'Japanese casualwear brand.' },
-          { id: 'fashion-hm', name: 'H&M', category: 'Fast Fashion', domain: 'hm.com', description: 'Global fashion retailer.' },
-          { id: 'fashion-gucci', name: 'Gucci', category: 'Luxury', domain: 'gucci.com', description: 'Italian luxury fashion.' },
-          { id: 'fashion-prada', name: 'Prada', category: 'Luxury', domain: 'prada.com', description: 'Luxury fashion house.' },
-          { id: 'fashion-lv', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com', description: 'French luxury fashion.' }
+          { id: 'fab6ce34-9e00-4d2a-a4ad-ebb69a8a318c', name: 'Nike', category: 'Sportswear', domain: 'nike.com', description: 'Global sportswear brand.' },
+          { id: '1982d6c7-716d-4f92-8529-039e03d83b72', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com', description: 'Athletic apparel and footwear.' },
+          { id: '520d0db2-1e34-4076-9db7-06b7dccc9643', name: 'Zara', category: 'Fast Fashion', domain: 'zara.com', description: 'Spanish fashion retailer.' },
+          { id: '1d7003d5-dcce-4506-8cb3-2da40b6e8f24', name: 'Uniqlo', category: 'Basics', domain: 'uniqlo.com', description: 'Japanese casualwear brand.' },
+          { id: '6c5bbaa5-7007-4c62-b143-e5f89926b649', name: 'H&M', category: 'Fast Fashion', domain: 'hm.com', description: 'Global fashion retailer.' },
+          { id: 'a733512f-2667-4e87-9486-ec2be20fc557', name: 'Gucci', category: 'Luxury', domain: 'gucci.com', description: 'Italian luxury fashion.' },
+          { id: '0d44e575-c7d4-40fc-9489-1eaa69cb7663', name: 'Prada', category: 'Luxury', domain: 'prada.com', description: 'Luxury fashion house.' },
+          { id: 'dfe029f5-dee4-434a-bb6c-5015bc36c334', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com', description: 'French luxury fashion.' }
         ]);
 
   const grid = document.getElementById('brandGrid');
