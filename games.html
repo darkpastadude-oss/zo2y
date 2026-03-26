@@ -1558,6 +1558,20 @@
         return 'base';
       }
 
+      function getStrictGameQueryKey(query = '') {
+        const normalized = normalizeFranchiseTitleKey(query);
+        if (normalized === 'fortnite') return 'fortnite';
+        if (normalized === 'overwatch' || normalized === 'overwatch 2') return 'overwatch';
+        if (normalized === 'undertale') return 'undertale';
+        return '';
+      }
+
+      function matchesStrictGameQuery(row, query = '') {
+        const strictKey = getStrictGameQueryKey(query);
+        if (!strictKey) return true;
+        return isAllowedStrictGameFranchiseRow(row, strictKey) && getStrictGameFranchiseKey(row) === strictKey;
+      }
+
       function applyStrictGameFranchiseLimits(rows = [], query = '') {
         const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
         if (!list.length) return [];
@@ -2190,6 +2204,7 @@
           if (!title) return false;
 
           if (!isLikelyRealGameRow(item)) return false;
+          if (!matchesStrictGameQuery(item, query)) return false;
 
           if (query) {
             if (!titleMatchesQuery(title, query)) return false;

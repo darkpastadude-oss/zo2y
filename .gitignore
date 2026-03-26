@@ -18,6 +18,7 @@ Thumbs.db
 
 # Build/cache artifacts and local deployment output
 .vercel/
+dist/
 
 # Backup/temp files
 *.bak

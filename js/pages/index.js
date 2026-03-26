@@ -93,6 +93,7 @@
       'Los Angeles Lakers',
       'Golden State Warriors',
       'Boston Celtics',
+      'Chicago Bulls',
       'Kansas City Chiefs',
       'Dallas Cowboys',
       'New York Yankees',
@@ -100,6 +101,7 @@
       'Toronto Maple Leafs',
       'Ferrari',
       'Mercedes AMG Petronas',
+      'Red Bull Racing',
       'Mumbai Indians',
       'New Zealand All Blacks'
     ];
@@ -4844,24 +4846,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     function renderOrDeferHomeRail(railId, items, opts) {
       const key = String(railId || '').trim();
       if (!key) return;
-      const payload = {
-        items: Array.isArray(items) ? items : [],
-        opts: opts || {}
-      };
-      const shouldRenderImmediately = payload.items.some((item) => item?.isPlaceholder);
-      if (shouldRenderImmediately) {
-        homePendingRailRenderState.delete(key);
-        clearHomeRailDeferredPlaceholder(key);
-        renderRail(key, payload.items, payload.opts);
-        return;
-      }
-      homePendingRailRenderState.set(key, payload);
-      if (isHomeRailNearViewport(key)) {
-        flushPendingHomeRailRender(key);
-        return;
-      }
-      setHomeRailDeferredPlaceholder(key);
-      observeHomeRailViewport(key);
+      homePendingRailRenderState.delete(key);
+      clearHomeRailDeferredPlaceholder(key);
+      renderRail(key, Array.isArray(items) ? items : [], opts || {});
     }
 
     function resetHomeViewportDeferrals() {
@@ -4885,22 +4872,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         status: 'idle',
         promise: null
       });
-      if (isHomeRailNearViewport(key)) {
-        void startHomeDeferredChannelLoad(key);
-        return;
-      }
-      setHomeRailDeferredPlaceholder(key);
-      observeHomeRailViewport(key);
+      void startHomeDeferredChannelLoad(key);
     }
 
     function scheduleHomeMixedRefresh(feedMap, scoredPool) {
-      if (!homeUserInteracted && !isHomeRailNearViewport('unifiedRail')) {
-        homePendingMixedRefresh = true;
-        homePendingMixedRefreshArgs = { feedMap, scoredPool };
-        ensureHomeInteractionWatch();
-        observeHomeRailViewport('unifiedRail');
-        return;
-      }
+      homePendingMixedRefresh = false;
+      homePendingMixedRefreshArgs = null;
       if (homeMixedRefreshScheduled) return;
       homeMixedRefreshScheduled = true;
       const run = () => {
@@ -4936,12 +4913,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         homeNewReleasesState.length ? homeNewReleasesState : buildNewReleasesFallback(feedMap)
       );
       renderOrDeferHomeRail('newReleasesRail', fallbackItems, railOptions);
-      if (!homeUserInteracted && !isHomeRailNearViewport('newReleasesRail')) {
-        homePendingNewReleasesRefresh = true;
-        ensureHomeInteractionWatch();
-        observeHomeRailViewport('newReleasesRail');
-        return;
-      }
       homePendingNewReleasesRefresh = false;
       if (homeNewReleasesRefreshScheduled) return;
       homeNewReleasesRefreshScheduled = true;
@@ -7669,15 +7640,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const freshLoadedKeys = new Set();
       let workingFeed = normalizeHomeFeedMap(baselineFeed) || blankFeed;
 
-      if (!baselineFeed) {
-        quickFallbackFeed = buildInstantFallbackFeed();
-        const quickResult = applyHomeFeedMap(quickFallbackFeed);
-        if (quickResult.scoredPool.length) {
-          setStatus('Quick feed ready. Syncing live data...', false);
-        }
-        workingFeed = normalizeHomeFeedMap(quickFallbackFeed) || blankFeed;
-      }
-
       if (baselineFeed) {
         const cachedResult = applyHomeFeedMap(baselineFeed);
         if (cachedResult.scoredPool.length) {
@@ -7704,6 +7666,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const loadedPromise = loadHomeChannelGroup(initialChannels, loadChannel);
       const precomputedFeed = await withTimeout(precomputedFeedPromise, 450, null);
       if (initSeq !== homeFeedInitSeq) return;
+      if (!baselineFeed && precomputedFeed == null) {
+        quickFallbackFeed = buildInstantFallbackFeed();
+        const quickResult = applyHomeFeedMap(quickFallbackFeed);
+        if (quickResult.scoredPool.length) {
+          setStatus('Quick feed ready. Syncing live data...', false);
+        }
+        workingFeed = normalizeHomeFeedMap(quickFallbackFeed) || blankFeed;
+      }
       if (precomputedFeed) {
         const precomputedActiveChannels = countActiveHomeChannels(precomputedFeed);
         const baselineActiveChannels = countActiveHomeChannels(baselineFeed);
@@ -7730,9 +7700,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       await loadedPromise;
       if (initSeq !== homeFeedInitSeq) return;
 
-      deferredChannels.forEach((channel) => {
-        queueHomeDeferredChannel(channel, loadChannel, initSeq);
-      });
+      deferredChannels.forEach((channel) => queueHomeDeferredChannel(channel, loadChannel, initSeq));
 
       const mergedFeed = normalizeHomeFeedMap(workingFeed) || blankFeed;
 
