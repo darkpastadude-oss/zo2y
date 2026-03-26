@@ -82,43 +82,26 @@
       'sabrina carpenter'
     ];
     const HOME_SPORTS_SEEDS = [
-      'Liverpool',
       'Real Madrid',
       'FC Barcelona',
+      'Liverpool',
       'Manchester City',
       'Arsenal',
-      'Chelsea',
-      'Manchester United',
       'Bayern Munich',
-      'Juventus',
-      'Inter Milan',
-      'AC Milan',
       'Paris Saint-Germain',
-      'Al Ahly',
-      'Al Hilal',
-      'Raja Casablanca',
-      'Kaizer Chiefs',
-      'Boca Juniors',
-      'Flamengo',
-      'LA Galaxy',
       'Inter Miami',
-      'Seattle Sounders',
-      'New Zealand All Blacks',
-      'Mumbai Indians',
-      'Chennai Super Kings',
-      'Kolkata Knight Riders',
-      'Royal Challengers Bengaluru',
       'Los Angeles Lakers',
       'Golden State Warriors',
       'Boston Celtics',
-      'Chicago Bulls',
-      'New York Yankees',
-      'Dallas Cowboys',
       'Kansas City Chiefs',
+      'Dallas Cowboys',
+      'New York Yankees',
+      'Los Angeles Dodgers',
       'Toronto Maple Leafs',
-      'New Zealand Warriors',
       'Ferrari',
-      'Mercedes AMG Petronas'
+      'Mercedes AMG Petronas',
+      'Mumbai Indians',
+      'New Zealand All Blacks'
     ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-clapperboard', accent: '#f59e0b' },
@@ -4572,7 +4555,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     function buildInstantFallbackFeed() {
-      const fallbackImage = '';
+      const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE;
       const targetCount = getHomeChannelTargetItems();
       const instantTravelItems = getCachedHomeTravelItems(targetCount);
       const fallbackTravelItems = instantTravelItems.length
@@ -4621,6 +4604,30 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         } : {}),
         music: makeSeedItems('music', ['Global Hits', 'Viral Tracks', 'Fresh Releases', 'Chill Vibes', 'Late Night Mix'], 'music.html'),
         book: makeSeedItems('book', ['Bestselling Books', 'Popular Fiction', 'Book Club Picks', 'Page-Turners', 'Must Read Stories'], 'books.html'),
+        ...(ENABLE_FASHION ? {
+          fashion: HOME_FASHION_FALLBACKS.slice(0, targetCount).map((row, index) => ({
+            ...mapHomeBrandItem(row, 'fashion', index),
+            subtitle: row.category || 'Fashion',
+            extra: row.domain || '',
+            isPlaceholder: true
+          }))
+        } : {}),
+        ...(ENABLE_FOOD ? {
+          food: HOME_FOOD_FALLBACKS.slice(0, targetCount).map((row, index) => ({
+            ...mapHomeBrandItem(row, 'food', index),
+            subtitle: row.category || 'Food',
+            extra: row.domain || '',
+            isPlaceholder: true
+          }))
+        } : {}),
+        ...(ENABLE_CARS ? {
+          car: HOME_CAR_FALLBACKS.slice(0, targetCount).map((row, index) => ({
+            ...mapHomeBrandItem(row, 'car', index),
+            subtitle: row.category || 'Cars',
+            extra: row.domain || '',
+            isPlaceholder: true
+          }))
+        } : {}),
         travel: fallbackTravelItems,
         sports: makeSeedItems('sports', ['Top Teams', 'Fan Favorites', 'Legendary Clubs', 'Home Stadiums', 'Rivalry Picks'], 'sports.html')
       };
@@ -4841,6 +4848,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         items: Array.isArray(items) ? items : [],
         opts: opts || {}
       };
+      const shouldRenderImmediately = payload.items.some((item) => item?.isPlaceholder);
+      if (shouldRenderImmediately) {
+        homePendingRailRenderState.delete(key);
+        clearHomeRailDeferredPlaceholder(key);
+        renderRail(key, payload.items, payload.opts);
+        return;
+      }
       homePendingRailRenderState.set(key, payload);
       if (isHomeRailNearViewport(key)) {
         flushPendingHomeRailRender(key);

@@ -889,6 +889,8 @@
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
       const BOOKS_PER_PAGE = 20;
       const BOOKS_CACHE_BUSTER = '20260324-api-only-mobile-fast';
+      const BOOKS_MOBILE_PAGE_CACHE_KEY = 'zo2y_books_mobile_page_cache_v1';
+      const BOOKS_MOBILE_PAGE_CACHE_TTL_MS = 1000 * 60 * 20;
       const BOOKS_SESSION_RECOVERY_RETRY_MS = 350;
       const CATEGORY_OPTIONS = [
         'Fiction',
@@ -1268,6 +1270,34 @@
             }
           }
           keysToRemove.forEach((key) => localStorage.removeItem(key));
+        } catch (_err) {}
+      }
+
+      function readCachedBooksPage() {
+        try {
+          const raw = localStorage.getItem(BOOKS_MOBILE_PAGE_CACHE_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          const age = Date.now() - Number(parsed?.savedAt || 0);
+          if (!parsed || !Array.isArray(parsed?.docs) || age > BOOKS_MOBILE_PAGE_CACHE_TTL_MS) return null;
+          return {
+            docs: parsed.docs.map((entry, idx) => normalizeRemoteBookDoc(entry, idx)).filter((entry) => String(entry?.title || '').trim()),
+            numFound: Number(parsed?.numFound || 0) || parsed.docs.length
+          };
+        } catch (_err) {
+          return null;
+        }
+      }
+
+      function writeCachedBooksPage(data) {
+        try {
+          const docs = Array.isArray(data?.docs) ? data.docs : [];
+          if (!docs.length) return;
+          localStorage.setItem(BOOKS_MOBILE_PAGE_CACHE_KEY, JSON.stringify({
+            savedAt: Date.now(),
+            numFound: Number(data?.numFound || docs.length) || docs.length,
+            docs
+          }));
         } catch (_err) {}
       }
 
@@ -1685,6 +1715,16 @@
         const empty = document.getElementById('emptyState');
         if (!grid) return;
         const requestSeq = ++state.requestSeq;
+        const hasActiveFilters = !!(state.query || state.author || state.activeCategory || state.year);
+        const isFirstPopularPage = !hasActiveFilters && Number(state.page || 1) === 1;
+        if (isFirstPopularPage) {
+          const cachedPage = !options?.cacheBust ? readCachedBooksPage() : null;
+          if (cachedPage?.docs?.length) {
+            updateBookPageSpotlight(cachedPage.docs || []);
+            displayBookResults(cachedPage.docs || [], cachedPage.numFound || 0);
+            return;
+          }
+        }
         if (Number(state.page || 1) === 1) {
           grid.innerHTML = '<div class="empty">Loading books...</div>';
         }
@@ -1703,7 +1743,7 @@
             if (options?.cacheBust) params.cache_bust = Date.now();
 
             if (!params.q && !params.author && !params.subject && !params.first_publish_year) {
-              if (Number(state.page || 1) === 1) {
+              if (isFirstPopularPage) {
                 data = await loadCuratedPopularBooks();
               } else {
                 data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
@@ -1722,6 +1762,9 @@
         }
 
         if (requestSeq !== state.requestSeq) return;
+        if (isFirstPopularPage && Array.isArray(data?.docs) && data.docs.length) {
+          writeCachedBooksPage(data);
+        }
         displayBookResults(data.docs || [], data.numFound || 0);
       }
 
@@ -2044,7 +2087,7 @@
           renderFilters();
           state.page = 1;
           loadBooks();
-        }, 280);
+        }, 220);
         if (searchInput) {
           searchInput.addEventListener('input', (e) => {
             state.query = e.target.value.trim();
