@@ -1,14 +1,15 @@
-    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
-    const ENABLE_GAMES = !GAMES_DISABLED;
+    const ENABLE_GAMES = true;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
     const ENABLE_FOOD = window.ZO2Y_DISABLE_FOOD !== true;
+    const ENABLE_CARS = window.ZO2Y_DISABLE_CARS !== true;
     const HOME_BASE_MEDIA_TYPES = ENABLE_GAMES
       ? ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'sports']
       : ['movie', 'tv', 'anime', 'book', 'music', 'travel', 'sports'];
     const HOME_LIFESTYLE_MEDIA_TYPES = [
       ...(ENABLE_FASHION ? ['fashion'] : []),
       ...(ENABLE_FOOD ? ['food'] : []),
+      ...(ENABLE_CARS ? ['car'] : []),
       ...(ENABLE_RESTAURANTS ? ['restaurant'] : [])
     ];
     const HOME_ACTIVE_MEDIA_TYPES = [...HOME_BASE_MEDIA_TYPES, ...HOME_LIFESTYLE_MEDIA_TYPES];
@@ -329,9 +330,6 @@
     ];
 
     async function homeIgdbFetch(path, params = {}, signal) {
-      if (GAMES_DISABLED) {
-        return { results: [] };
-      }
       const requestParams = { ...(params || {}) };
       if (requestParams.search) delete requestParams.ordering;
       if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
@@ -6449,10 +6447,6 @@
       const rail = document.getElementById('gamesRail');
       if (!rail) return;
       const wrap = rail.closest('.rail-wrap') || rail;
-      if (GAMES_DISABLED) {
-        wrap.style.display = 'none';
-        return;
-      }
       wrap.style.display = '';
     }
 
@@ -7761,10 +7755,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      if (GAMES_DISABLED) {
-        document.querySelectorAll('.popular-games-wrap, #gamesRail').forEach((el) => el.remove());
-        document.querySelectorAll('[data-nav-page="games"], a[href="games.html"], a[href="/games.html"], a[href^="game.html"]').forEach((el) => el.remove());
-      }
       const authGateState = getHomeAuthGateState();
       if (isHomeLandingMode() && !authGateState?.authenticated) {
         initLandingExperience();

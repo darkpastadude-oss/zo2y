@@ -209,6 +209,36 @@
                 "\u{2B50}", "\u{1F680}", "\u{1F3AF}", "\u{1F3C6}", "\u{2728}"
             ];
 
+            async function sleep(ms) {
+                await new Promise((resolve) => setTimeout(resolve, ms));
+            }
+
+            async function resolveAuthenticatedProfileUser() {
+                if (!supabase || !supabase.auth) return null;
+
+                try {
+                    const { data: sessionData } = await supabase.auth.getSession();
+                    const sessionUser = sessionData?.session?.user || null;
+                    if (sessionUser?.id) return sessionUser;
+                } catch (_sessionErr) {}
+
+                for (let attempt = 0; attempt < 4; attempt += 1) {
+                    try {
+                        const { data: userData, error } = await supabase.auth.getUser();
+                        const verifiedUser = userData?.user || null;
+                        if (!error && verifiedUser?.id) return verifiedUser;
+                    } catch (_userErr) {}
+                    await sleep(180 * (attempt + 1));
+                }
+
+                try {
+                    const { data: fallbackSessionData } = await supabase.auth.getSession();
+                    return fallbackSessionData?.session?.user || null;
+                } catch (_fallbackErr) {
+                    return null;
+                }
+            }
+
             // ===== INITIALIZATION =====
             async function initialize() {
                 try {
@@ -231,13 +261,13 @@
                             }
                         });
                     }
-                    
-                    const { data: { user }, error } = await supabase.auth.getUser();
-                    if (error || !user) { 
-                        window.location.href = "login.html"; 
-                        return; 
+
+                    const user = await resolveAuthenticatedProfileUser();
+                    if (!user) {
+                        window.location.replace("login.html");
+                        return;
                     }
-                    
+
                     currentUser = user;
                     if (window.ListUtils && typeof ListUtils.setTierSyncContext === 'function') {
                         ListUtils.setTierSyncContext(supabase, currentUser.id);
