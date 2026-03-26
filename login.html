@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260326c"></script>
+<script src="/js/auth-gate.js?v=20260315d"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Login</title>
-<link rel="icon" href="/newlogo.webp" type="image/webp" />
+<link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="css/pages/auth-entry.css?v=20260319a">
+<link rel="stylesheet" href="css/pages/auth-entry.css?v=20260307a">
   <meta name="theme-color" content="#0b1633" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -19,7 +19,7 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-<script src="/js/mobile-webapp.js?v=20260325a" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body data-auth-variant="login">
@@ -55,7 +55,6 @@
 
       <div id="errorMessage" class="message error"></div>
       <div id="successMessage" class="message success"></div>
-      <div class="auth-invite-banner" id="authInviteBanner" hidden></div>
 
       <button class="google-btn" id="googleAuthBtn">
         <svg width="20" height="20" viewBox="0 0 24 24">
@@ -85,12 +84,12 @@
         <button type="submit" class="submit-btn" id="submitBtn"><i class="fas fa-sign-in-alt"></i> Log In</button>
       </form>
 
-      <div class="alt-link">Need an account? <a href="sign-up.html" id="altSignupLink">Create one</a></div>
+      <div class="alt-link">Need an account? <a href="sign-up.html">Create one</a></div>
 
       <div class="legal-strip">
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
-        <a href="mailto:darkpastadude@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
+        <a href="mailto:zo2yhq@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
       </div>
 
       <div class="auth-panel-footnote">
@@ -101,96 +100,17 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/referral-utils.js?v=20260319a"></script>
 <script>
 (function () {
   'use strict';
 
   const STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
-  const AUTH_STORAGE_PROTECTED_KEYS = new Set([
-    STORAGE_KEY,
-    'postAuthRedirect',
-    'postauthredirect',
-    'oauthFlow',
-    'oauthflow',
-    'rememberedEmail',
-    'rememberedemail'
-  ]);
-  function isQuotaExceededStorageError(error) {
-    const message = String((error && error.message) || error || '').toLowerCase();
-    return message.includes('quota') || message.includes('exceeded the quota');
-  }
-  function isDisposableStorageKey(key) {
-    const value = String(key || '').trim().toLowerCase();
-    if (!value || AUTH_STORAGE_PROTECTED_KEYS.has(value)) return false;
-    if (value.startsWith('zo2y_onboarding_')) return false;
-    if (value.startsWith('zo2y_')) return true;
-    if (value.startsWith('books_') || value.startsWith('books_mobile_')) return true;
-    if (value.startsWith('games_') || value.startsWith('travel_')) return true;
-    return value.includes('cache') || value.includes('search') || value.includes('feed') || value.includes('rail') || value.includes('manifest') || value.includes('page');
-  }
-  function releaseLocalStoragePressure() {
-    try {
-      if (!window.localStorage) return 0;
-      const candidates = [];
-      for (let index = 0; index < window.localStorage.length; index += 1) {
-        const key = String(window.localStorage.key(index) || '');
-        if (!isDisposableStorageKey(key)) continue;
-        const value = window.localStorage.getItem(key) || '';
-        candidates.push({ key, size: value.length });
-      }
-      candidates.sort((a, b) => b.size - a.size);
-      candidates.slice(0, 24).forEach((entry) => window.localStorage.removeItem(entry.key));
-      return Math.min(candidates.length, 24);
-    } catch (_error) {
-      return 0;
-    }
-  }
-  function buildQuotaSafeSupabaseStorage() {
-    return {
-      getItem(key) {
-        try {
-          const sessionValue = window.sessionStorage ? window.sessionStorage.getItem(key) : null;
-          if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
-        } catch (_err) {}
-        try {
-          return window.localStorage ? window.localStorage.getItem(key) : null;
-        } catch (_err) {
-          return null;
-        }
-      },
-      setItem(key, value) {
-        try {
-          if (window.sessionStorage) window.sessionStorage.setItem(key, value);
-        } catch (_err) {}
-        try {
-          if (window.localStorage) window.localStorage.setItem(key, value);
-        } catch (_err) {
-          if (isQuotaExceededStorageError(_err)) {
-            releaseLocalStoragePressure();
-            try {
-              if (window.localStorage) window.localStorage.setItem(key, value);
-            } catch (_retryErr) {}
-          }
-        }
-      },
-      removeItem(key) {
-        try {
-          if (window.sessionStorage) window.sessionStorage.removeItem(key);
-        } catch (_err) {}
-        try {
-          if (window.localStorage) window.localStorage.removeItem(key);
-        } catch (_err) {}
-      }
-    };
-  }
   const supabase = window.supabase.createClient(
     'https://gfkhjbztayjyojsgdpgk.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s',
     {
       auth: {
         storageKey: STORAGE_KEY,
-        storage: window.__ZO2Y_SUPABASE_AUTH_STORAGE || buildQuotaSafeSupabaseStorage(),
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: false  // Important: Don't auto-detect on login page
@@ -210,68 +130,7 @@
 
   const googleDefaultHtml = googleBtn.innerHTML;
   const submitDefaultHtml = submitBtn.innerHTML;
-  const referralUtils = window.ZO2Y_REFERRALS || null;
-  const activeReferral = referralUtils ? referralUtils.captureReferralFromLocation(window.location.search) : '';
-  function safeGetAuthStorage(key) {
-    try {
-      const sessionValue = window.sessionStorage ? window.sessionStorage.getItem(key) : null;
-      if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
-    } catch (_err) {}
-    try {
-      return window.localStorage ? window.localStorage.getItem(key) : null;
-    } catch (_err) {
-      return null;
-    }
-  }
-
-  function safeSetAuthStorage(key, value) {
-    let wrote = false;
-    try {
-      if (window.sessionStorage) {
-        window.sessionStorage.setItem(key, value);
-        wrote = true;
-      }
-    } catch (_err) {}
-    try {
-      if (window.localStorage) {
-        window.localStorage.setItem(key, value);
-        wrote = true;
-      }
-    } catch (_err) {
-      if (isQuotaExceededStorageError(_err)) {
-        releaseLocalStoragePressure();
-        try {
-          if (window.localStorage) {
-            window.localStorage.setItem(key, value);
-            wrote = true;
-          }
-        } catch (_retryErr) {}
-      }
-    }
-    return wrote;
-  }
-
-  function safeRemoveAuthStorage(key) {
-    try {
-      if (window.sessionStorage) window.sessionStorage.removeItem(key);
-    } catch (_err) {}
-    try {
-      if (window.localStorage) window.localStorage.removeItem(key);
-    } catch (_err) {}
-  }
-
-  function persistSessionSnapshot(session) {
-    if (!session || typeof session !== 'object') return false;
-    try {
-      const payload = JSON.stringify({ currentSession: session });
-      safeSetAuthStorage(STORAGE_KEY, payload);
-      return true;
-    } catch (_err) {
-      return false;
-    }
-  }
-
-  const initialNextPath = sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || safeGetAuthStorage('postAuthRedirect') || 'index.html');
+  const initialNextPath = sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || localStorage.getItem('postAuthRedirect') || 'index.html');
 
   function analyticsTrack(eventName, properties = {}, essential = false) {
     try {
@@ -299,71 +158,25 @@
     return value;
   }
 
-  function getCanonicalAppOrigin() {
-    const hostname = String(window.location.hostname || '').trim().toLowerCase();
-    if (!hostname || hostname === 'localhost' || hostname === '127.0.0.1') {
-      return window.location.origin;
-    }
-    if (hostname === 'zo2y.com' || hostname === 'www.zo2y.com') {
-      return 'https://www.zo2y.com';
-    }
-    return window.location.origin;
-  }
-
   function getPostAuthRedirect() {
-    return sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || safeGetAuthStorage('postAuthRedirect') || initialNextPath || 'index.html');
+    return sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || localStorage.getItem('postAuthRedirect') || initialNextPath || 'index.html');
   }
 
-  function decorateReferralLinks() {
-    const inviteBanner = document.getElementById('authInviteBanner');
-    const safeReferral = referralUtils ? referralUtils.getStoredReferral() : activeReferral;
-    if (inviteBanner) {
-      if (safeReferral) {
-        inviteBanner.hidden = false;
-        inviteBanner.innerHTML = `<i class="fas fa-user-group"></i><span>You came through @${safeReferral}'s invite. Log in or create an account to keep exploring.</span>`;
-      } else {
-        inviteBanner.hidden = true;
-      }
-    }
-
-    const signupLink = document.getElementById('altSignupLink');
-    if (signupLink && referralUtils) {
-      signupLink.href = referralUtils.appendReferralToHref('sign-up.html', {
-        referral: safeReferral,
-        next: getPostAuthRedirect()
-      });
-    }
-
-    document.querySelectorAll('.auth-entry-home').forEach((link) => {
-      if (!referralUtils) return;
-      link.href = referralUtils.appendReferralToHref('index.html', {
-        referral: safeReferral,
-        next: 'index.html'
-      });
-    });
-  }
-
-  decorateReferralLinks();
-
-  async function waitForStableSession(timeoutMs = 1200) {
+  async function waitForStableSession(timeoutMs = 5000) {
     const startedAt = Date.now();
     while ((Date.now() - startedAt) < timeoutMs) {
       const user = await getVerifiedUser();
       if (user?.id) return user;
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 180));
     }
     return null;
   }
 
-  async function finalizeAuthRedirect(sessionOverride = null) {
-    if (sessionOverride) persistSessionSnapshot(sessionOverride);
-    if (!sessionOverride?.user?.id) {
-      await waitForStableSession(1200);
-    }
+  async function finalizeAuthRedirect() {
+    await waitForStableSession(5000);
     const nextPath = getPostAuthRedirect();
-    safeRemoveAuthStorage('postAuthRedirect');
-    safeRemoveAuthStorage('oauthFlow');
-    window.location.replace(nextPath);
+    localStorage.removeItem('postAuthRedirect');
+    window.location.href = nextPath;
   }
 
   function showError(msg) {
@@ -437,7 +250,7 @@
       const user = await getVerifiedUser();
       if (user) {
         console.log('User already logged in, redirecting...');
-        await finalizeAuthRedirect();
+        window.location.href = 'index.html';
       }
     } catch (error) {
       console.error('Session check error:', error);
@@ -479,9 +292,8 @@
       if (remember.checked) localStorage.setItem('rememberedEmail', email);
       else localStorage.removeItem('rememberedEmail');
       
-      persistSessionSnapshot(data?.session || null);
       showSuccess('Login successful! Redirecting...');
-      await finalizeAuthRedirect(data?.session || null);
+      await finalizeAuthRedirect();
       
     } catch (err) {
       console.error('Login error:', err);
@@ -502,11 +314,11 @@
       
       // Store that this is a login flow
       const nextPath = getPostAuthRedirect();
-      const callbackUrl = new URL('/auth-callback.html', getCanonicalAppOrigin());
+      const callbackUrl = new URL('/auth-callback.html', window.location.origin);
       callbackUrl.searchParams.set('flow', 'login');
       callbackUrl.searchParams.set('next', nextPath);
-      safeSetAuthStorage('oauthFlow', 'login');
-      safeSetAuthStorage('postAuthRedirect', nextPath);
+      localStorage.setItem('oauthFlow', 'login');
+      localStorage.setItem('postAuthRedirect', nextPath);
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -563,15 +375,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
 
 
 

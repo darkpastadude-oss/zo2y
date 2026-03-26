@@ -1,15 +1,15 @@
 (() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260323a';
-  const MOVIES_ROUTE = 'movies.html?v=20260322m';
-  const MOVIES_MOBILE_ROUTE = 'movies-mobile.html?v=20260322m';
+  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260315b';
   const DESKTOP_RAIL_COLLAPSE_KEY = 'zo2y_desktop_rail_collapsed';
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
-  let authStateListenerBound = false;if (window.ZO2Y_SPORTS_LISTS == null) {
-    window.ZO2Y_SPORTS_LISTS = true;
+  let authStateListenerBound = false;
+  if (window.ZO2Y_DISABLE_GAMES !== false) {
+    window.ZO2Y_DISABLE_GAMES = true;
   }
+  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
 
   const LOGO_HTML = `
 <span class="zo2y-logo-anim" data-zo2y-logo="1">
@@ -64,10 +64,10 @@ const HEADER_HTML = `
       <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
       <div class="zo2y-nav-group" data-nav-group="media">
         <button class="zo2y-shared-pill zo2y-nav-toggle" type="button" aria-expanded="false">
-          <i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> <span>Media</span>
+          Media <i class="fa-solid fa-chevron-down"></i>
         </button>
         <div class="zo2y-nav-menu" role="menu">
-          <a class="zo2y-nav-link" data-nav-page="movies" href="${MOVIES_ROUTE}">Movies</a>
+          <a class="zo2y-nav-link" data-nav-page="movies" href="movies.html">Movies</a>
           <a class="zo2y-nav-link" data-nav-page="tvshows" href="tvshows.html">TV Shows</a>
           <a class="zo2y-nav-link" data-nav-page="animes" href="animes.html">Anime</a>
           <a class="zo2y-nav-link" data-nav-page="games" href="games.html">Games</a>
@@ -77,14 +77,13 @@ const HEADER_HTML = `
       </div>
       <div class="zo2y-nav-group" data-nav-group="lifestyle">
         <button class="zo2y-shared-pill zo2y-nav-toggle" type="button" aria-expanded="false">
-          <i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> <span>Lifestyle</span>
+          Lifestyle <i class="fa-solid fa-chevron-down"></i>
         </button>
         <div class="zo2y-nav-menu" role="menu">
           <a class="zo2y-nav-link" data-nav-page="travel" href="travel.html">Travel</a>
           <a class="zo2y-nav-link" data-nav-page="sports" href="sports.html">Sports</a>
           <a class="zo2y-nav-link" data-nav-page="fashion" href="fashion.html">Fashion</a>
           <a class="zo2y-nav-link" data-nav-page="food" href="food.html">Food</a>
-          <a class="zo2y-nav-link" data-nav-page="cars" href="cars.html">Cars</a>
         </div>
       </div>
       <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
@@ -120,7 +119,7 @@ const HEADER_HTML = `
     <a class="zo2y-desktop-rail-link" data-nav-page="index" href="index.html"><i class="fa-solid fa-house"></i><span>home</span></a>
     <div class="zo2y-rail-section">
       <div class="zo2y-rail-section-title">media</div>
-      <a class="zo2y-desktop-rail-link" data-nav-page="movies" href="${MOVIES_ROUTE}"><i class="fa-solid fa-film"></i><span>movies</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="movies" href="movies.html"><i class="fa-solid fa-film"></i><span>movies</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="tvshows" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>tv shows</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="animes" href="animes.html"><i class="fa-solid fa-dragon"></i><span>anime</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="games" href="games.html"><i class="fa-solid fa-gamepad"></i><span>games</span></a>
@@ -133,7 +132,6 @@ const HEADER_HTML = `
       <a class="zo2y-desktop-rail-link" data-nav-page="sports" href="sports.html"><i class="fa-solid fa-futbol"></i><span>sports</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="fashion" href="fashion.html"><i class="fa-solid fa-shirt"></i><span>fashion</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="food" href="food.html"><i class="fa-solid fa-burger"></i><span>food</span></a>
-      <a class="zo2y-desktop-rail-link" data-nav-page="cars" href="cars.html"><i class="fa-solid fa-car"></i><span>cars</span></a>
     </div>
     <a class="zo2y-desktop-rail-link accent" data-nav-page="reviews" href="reviews.html"><i class="fa-solid fa-star"></i><span>reviews</span></a>
   </nav>
@@ -168,10 +166,11 @@ const HEADER_HTML = `
     <a class="zo2y-mobile-drawer-link" data-nav-page="index" href="index.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
     <div class="zo2y-mobile-accordion" data-accordion="media">
       <button class="zo2y-mobile-accordion-toggle" type="button" aria-expanded="false">
-        <span><i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> Media</span>
+        <span><i class="fa-solid fa-layer-group"></i> Media</span>
+        <i class="fa-solid fa-chevron-down"></i>
       </button>
       <div class="zo2y-mobile-accordion-panel">
-        <a class="zo2y-mobile-drawer-link" data-nav-page="movies" href="${MOVIES_ROUTE}"><i class="fa-solid fa-film"></i><span>Movies</span></a>
+        <a class="zo2y-mobile-drawer-link" data-nav-page="movies" href="movies.html"><i class="fa-solid fa-film"></i><span>Movies</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="tvshows" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>TV Shows</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="animes" href="animes.html"><i class="fa-solid fa-dragon"></i><span>Anime</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="games" href="games.html"><i class="fa-solid fa-gamepad"></i><span>Games</span></a>
@@ -181,14 +180,14 @@ const HEADER_HTML = `
     </div>
     <div class="zo2y-mobile-accordion" data-accordion="lifestyle">
       <button class="zo2y-mobile-accordion-toggle" type="button" aria-expanded="false">
-        <span><i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> Lifestyle</span>
+        <span><i class="fa-solid fa-sparkles"></i> Lifestyle</span>
+        <i class="fa-solid fa-chevron-down"></i>
       </button>
       <div class="zo2y-mobile-accordion-panel">
         <a class="zo2y-mobile-drawer-link" data-nav-page="travel" href="travel.html"><i class="fa-solid fa-earth-americas"></i><span>Travel</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="sports" href="sports.html"><i class="fa-solid fa-futbol"></i><span>Sports</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="fashion" href="fashion.html"><i class="fa-solid fa-shirt"></i><span>Fashion</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="food" href="food.html"><i class="fa-solid fa-burger"></i><span>Food</span></a>
-        <a class="zo2y-mobile-drawer-link" data-nav-page="cars" href="cars.html"><i class="fa-solid fa-car"></i><span>Cars</span></a>
       </div>
     </div>
     <a class="zo2y-mobile-drawer-link accent" data-nav-page="reviews" href="reviews.html"><i class="fa-solid fa-star"></i><span>Reviews</span></a>
@@ -212,9 +211,6 @@ const HEADER_HTML = `
       : [];
     queued.forEach((options) => {
       try {
-        if (options && options.fallbackRoute === 'movies.html') {
-          options = { ...options, fallbackRoute: MOVIES_ROUTE };
-        }
         window.initUniversalSearch(options || {});
       } catch (_err) {}
     });
@@ -281,7 +277,6 @@ const HEADER_HTML = `
     if (file.startsWith('sport')) return 'sports';
     if (file.startsWith('fashion')) return 'fashion';
     if (file.startsWith('food')) return 'food';
-    if (file.startsWith('cars') || file.startsWith('car')) return 'cars';
     if (file.startsWith('review')) return 'reviews';
     if (file.startsWith('profile')) return 'profile';
     return 'index';
@@ -372,7 +367,13 @@ const HEADER_HTML = `
     const mobilePage = isMobileContentPage(window.location.pathname);
     document.body.setAttribute('data-zo2y-compact-header', mobilePage ? '1' : '0');
 
+    if (mobilePage || GAMES_DISABLED) {
+      document.querySelectorAll('[data-nav-page="games"]').forEach((gamesNavItem) => gamesNavItem.remove());
+    }
 
+    if (document.body) {
+      document.body.dataset.gamesDisabled = GAMES_DISABLED ? '1' : '0';
+    }
 
     const activePage = normalizePageName(window.location.pathname);
 
@@ -410,27 +411,19 @@ const HEADER_HTML = `
     }
     if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
     try {
-      const sharedStorage = typeof window.__ZO2Y_GET_SUPABASE_AUTH_STORAGE === 'function'
-        ? window.__ZO2Y_GET_SUPABASE_AUTH_STORAGE()
-        : undefined;
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: false,
-          storageKey: 'sb-gfkhjbztayjyojsgdpgk-auth-token',
-          storage: sharedStorage
+          detectSessionInUrl: true
         }
       });
       window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
-      window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSupabaseClient;
       return supabaseClient;
     } catch (_err) {
       return null;
     }
   }
-
-  window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSupabaseClient;
 
   function readDesktopRailCollapsedPreference() {
     try {
@@ -535,15 +528,12 @@ const HEADER_HTML = `
 
         if (profileBtn) {
           profileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
-          profileBtn.title = label;
         }
         if (mobileProfileBtn) {
           mobileProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
-          mobileProfileBtn.title = label;
         }
         if (desktopRailProfileBtn) {
           desktopRailProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
-          desktopRailProfileBtn.title = label;
         }
       }
     } catch (_err) {}
@@ -802,7 +792,7 @@ const HEADER_HTML = `
       const init = () => {
         if (typeof window.initUniversalSearch !== 'function') return;
         try {
-      window.initUniversalSearch({ input, fallbackRoute: MOVIES_ROUTE });
+          window.initUniversalSearch({ input, fallbackRoute: 'movies.html' });
           input.dataset.zo2yUniversalWired = '1';
         } catch (_err) {}
       };
@@ -847,23 +837,8 @@ const HEADER_HTML = `
 
   function boot() {
     if (isHeaderSuppressedPage(window.location.pathname)) return;
-    const currentPage = normalizePageName(window.location.pathname);
-    const currentShell = document.documentElement?.dataset?.authShell || document.body?.dataset?.authShell || '';
-    if (currentPage === 'index' && currentShell !== 'app') {
+    if (isLandingShell()) {
       teardownSharedHeader();
-      window.addEventListener('zo2y-auth-gate-verified', (event) => {
-        if (!event?.detail?.authenticated) return;
-        mountSharedHeader();
-        wireLogoAnim();
-        const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
-        document.body.classList.toggle('zo2y-mobile-header-fixed', !!isMobile);
-        wireSearchButton();
-        wireMobileDrawer();
-        wireMobileAccordions();
-        wireDesktopRailCollapse();
-        wireAuthStateSync();
-        void syncAuthHeaderState();
-      }, { once: true });
       return;
     }
     mountSharedHeader();
@@ -888,5 +863,3 @@ const HEADER_HTML = `
     boot();
   }
 })();
-
-

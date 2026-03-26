@@ -16,61 +16,13 @@
   ]);
   var SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  var AUTH_GATE_VERSION = '20260326a';
 
   function normalizePageKey(pathname) {
     var file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
     return file.replace(/\.html?$/i, '') || 'index';
   }
 
-  function isQuotaExceededStorageError(error) {
-    var message = String((error && error.message) || error || '').toLowerCase();
-    return message.indexOf('quota') !== -1 || message.indexOf('exceeded the quota') !== -1;
-  }
-
-  function isDisposableStorageKey(key) {
-    var value = String(key || '').trim().toLowerCase();
-    if (!value) return false;
-    if (value === STORAGE_KEY.toLowerCase()) return false;
-    if (value === 'postauthredirect' || value === 'oauthflow' || value === 'rememberedemail') return false;
-    if (value.indexOf('zo2y_onboarding_') === 0) return false;
-    if (value.indexOf('zo2y_') === 0) return true;
-    if (value.indexOf('books_') === 0 || value.indexOf('books_mobile_') === 0) return true;
-    if (value.indexOf('games_') === 0 || value.indexOf('travel_') === 0) return true;
-    if (value.indexOf('movies_') === 0 || value.indexOf('tv_') === 0 || value.indexOf('anime_') === 0 || value.indexOf('music_') === 0) return true;
-    return value.indexOf('cache') !== -1 || value.indexOf('search') !== -1 || value.indexOf('feed') !== -1 || value.indexOf('rail') !== -1 || value.indexOf('manifest') !== -1 || value.indexOf('page') !== -1 || value.indexOf('photo') !== -1;
-  }
-
-  function releaseLocalStoragePressure() {
-    try {
-      if (!window.localStorage) return 0;
-      var candidates = [];
-      for (var index = 0; index < window.localStorage.length; index += 1) {
-        var key = String(window.localStorage.key(index) || '');
-        if (!isDisposableStorageKey(key)) continue;
-        var value = window.localStorage.getItem(key) || '';
-        candidates.push({ key: key, size: value.length });
-      }
-      candidates.sort(function (left, right) {
-        return right.size - left.size;
-      });
-      var removed = 0;
-      for (var candidateIndex = 0; candidateIndex < candidates.length; candidateIndex += 1) {
-        window.localStorage.removeItem(candidates[candidateIndex].key);
-        removed += 1;
-        if (removed >= 24) break;
-      }
-      return removed;
-    } catch (_err) {
-      return 0;
-    }
-  }
-
   function safeGetStorageItem(key) {
-    try {
-      var sessionValue = window.sessionStorage ? window.sessionStorage.getItem(key) : null;
-      if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
-    } catch (_err) {}
     try {
       return window.localStorage ? window.localStorage.getItem(key) : null;
     } catch (_err) {
@@ -80,49 +32,9 @@
 
   function safeSetStorageItem(key, value) {
     try {
-      if (window.sessionStorage) window.sessionStorage.setItem(key, value);
+      if (window.localStorage) window.localStorage.setItem(key, value);
     } catch (_err) {}
-    try {
-      if (window.localStorage) {
-        window.localStorage.setItem(key, value);
-        return true;
-      }
-    } catch (_err) {
-      if (isQuotaExceededStorageError(_err)) {
-        releaseLocalStoragePressure();
-        try {
-          if (window.localStorage) {
-            window.localStorage.setItem(key, value);
-            return true;
-          }
-        } catch (_retryErr) {}
-      }
-    }
-    return false;
   }
-
-  function getQuotaSafeSupabaseStorage() {
-    if (window.__ZO2Y_SUPABASE_AUTH_STORAGE) return window.__ZO2Y_SUPABASE_AUTH_STORAGE;
-    window.__ZO2Y_SUPABASE_AUTH_STORAGE = {
-      getItem: function (key) {
-        return safeGetStorageItem(key);
-      },
-      setItem: function (key, value) {
-        safeSetStorageItem(key, value);
-      },
-      removeItem: function (key) {
-        try {
-          if (window.sessionStorage) window.sessionStorage.removeItem(key);
-        } catch (_err) {}
-        try {
-          if (window.localStorage) window.localStorage.removeItem(key);
-        } catch (_err) {}
-      }
-    };
-    return window.__ZO2Y_SUPABASE_AUTH_STORAGE;
-  }
-
-  window.__ZO2Y_GET_SUPABASE_AUTH_STORAGE = getQuotaSafeSupabaseStorage;
 
   function getHashParams() {
     var rawHash = window.location.hash || '';
@@ -142,8 +54,12 @@
     if (!hasOauthCode && !hasOauthError && !hasHashTokens) return;
 
     var callbackUrl = new URL('auth-callback.html', window.location.origin);
-    if (window.location.search) callbackUrl.search = window.location.search;
-    if (window.location.hash) callbackUrl.hash = window.location.hash;
+    if (window.location.search) {
+      callbackUrl.search = window.location.search;
+    }
+    if (window.location.hash) {
+      callbackUrl.hash = window.location.hash;
+    }
     if (oauthFlow && !callbackUrl.searchParams.has('flow')) {
       callbackUrl.searchParams.set('flow', oauthFlow);
     }
@@ -156,13 +72,16 @@
 
   function hasSessionPayload(value) {
     if (!value) return false;
-    if (Array.isArray(value)) return value.some(hasSessionPayload);
+    if (Array.isArray(value)) {
+      return value.some(hasSessionPayload);
+    }
     if (typeof value === 'object') {
       if (value.access_token || value.refresh_token) return true;
       if (hasSessionPayload(value.currentSession)) return true;
       if (hasSessionPayload(value.session)) return true;
       if (hasSessionPayload(value.sessions)) return true;
       if (hasSessionPayload(value.user)) return true;
+      return false;
     }
     return false;
   }
@@ -200,19 +119,16 @@
     var shell = pageKey === 'index' ? (authenticated ? 'app' : 'landing') : 'app';
     document.documentElement.dataset.authenticated = authenticated ? '1' : '0';
     document.documentElement.dataset.authShell = shell;
-    document.documentElement.dataset.authVerified = '1';
     window.ZO2Y_AUTH_GATE = {
       pageKey: pageKey,
       authenticated: authenticated,
       protectedPage: !PUBLIC_PAGE_KEYS.has(pageKey),
-      authShell: shell,
-      verified: true
+      authShell: shell
     };
     document.addEventListener('DOMContentLoaded', function () {
       if (document.body) {
         document.body.dataset.authenticated = authenticated ? '1' : '0';
         document.body.dataset.authShell = shell;
-        document.body.dataset.authVerified = '1';
       }
     }, { once: true });
   }
@@ -236,6 +152,7 @@
         applyShellState(authenticated, pageKey);
 
         if (!authenticated && protectedPage) {
+          // Retry once before redirect to avoid false negatives during token hydration.
           var retryResult = await client.auth.getSession();
           var retrySession = retryResult && retryResult.data ? retryResult.data.session : null;
           var retryAuthenticated = !!(retrySession && retrySession.user);
@@ -247,15 +164,12 @@
         }
 
         window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
-          detail: { authenticated: authenticated, pageKey: pageKey, verified: true }
+          detail: { authenticated: authenticated, pageKey: pageKey }
         }));
         return true;
       } catch (_err) {
         var fallbackAuthenticated = hasStoredSupabaseSession();
         applyShellState(fallbackAuthenticated, pageKey);
-        window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
-          detail: { authenticated: fallbackAuthenticated, pageKey: pageKey, verified: true }
-        }));
         return false;
       }
     }
@@ -274,19 +188,16 @@
           if (window.__ZO2Y_SUPABASE_CLIENT) {
             client = window.__ZO2Y_SUPABASE_CLIENT;
           } else {
+            var detectSessionInUrl = pageKey !== 'auth-callback';
             client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
               auth: {
                 storageKey: STORAGE_KEY,
                 persistSession: true,
                 autoRefreshToken: true,
-                detectSessionInUrl: pageKey !== 'auth-callback',
-                storage: getQuotaSafeSupabaseStorage()
+                detectSessionInUrl: detectSessionInUrl
               }
             });
             window.__ZO2Y_SUPABASE_CLIENT = client;
-            window.__ZO2Y_ENSURE_SUPABASE_CLIENT = function () {
-              return window.__ZO2Y_SUPABASE_CLIENT;
-            };
           }
         } catch (_clientErr) {
           client = null;
@@ -305,7 +216,7 @@
             return;
           }
           window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
-            detail: { authenticated: authenticated, pageKey: pageKey, verified: true }
+            detail: { authenticated: authenticated, pageKey: pageKey }
           }));
         });
       }
@@ -314,7 +225,8 @@
 
   var pageKey = normalizePageKey(window.location.pathname);
   maybeRedirectOAuthCallback(pageKey);
-  applyShellState(hasStoredSupabaseSession(), pageKey);
+  var authenticated = hasStoredSupabaseSession();
+  applyShellState(authenticated, pageKey);
 
   if (pageKey === 'index' || !PUBLIC_PAGE_KEYS.has(pageKey)) {
     scheduleSessionVerification(pageKey);
