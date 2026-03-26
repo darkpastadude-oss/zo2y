@@ -56,6 +56,16 @@
       { id: 'food-chipotle', name: 'Chipotle', category: 'Fast Casual', domain: 'chipotle.com', logo_url: 'https://logo.clearbit.com/chipotle.com' },
       { id: 'food-shakeshack', name: 'Shake Shack', category: 'Fast Casual', domain: 'shakeshack.com', logo_url: 'https://logo.clearbit.com/shakeshack.com' }
     ];
+    const HOME_CAR_FALLBACKS = [
+      { id: 'car-toyota', name: 'Toyota', category: 'Automaker', domain: 'toyota.com' },
+      { id: 'car-honda', name: 'Honda', category: 'Automaker', domain: 'honda.com' },
+      { id: 'car-bmw', name: 'BMW', category: 'Luxury', domain: 'bmw.com' },
+      { id: 'car-mercedes', name: 'Mercedes-Benz', category: 'Luxury', domain: 'mercedes-benz.com' },
+      { id: 'car-audi', name: 'Audi', category: 'Luxury', domain: 'audi.com' },
+      { id: 'car-ford', name: 'Ford', category: 'Automaker', domain: 'ford.com' },
+      { id: 'car-chevrolet', name: 'Chevrolet', category: 'Automaker', domain: 'chevrolet.com' },
+      { id: 'car-tesla', name: 'Tesla', category: 'EV', domain: 'tesla.com' }
+    ];
     const POPULAR_MUSIC_QUERIES = [
       'top 50 usa',
       'top 50 global',
@@ -981,7 +991,8 @@
     function mapHomeBrandItem(row, type, fallbackIndex = 0) {
       const safeType = String(type || '').toLowerCase();
       const title = String(row?.name || row?.title || '').trim() || 'Brand';
-      const category = String(row?.category || '').trim() || (safeType === 'fashion' ? 'Fashion' : 'Food');
+      const category = String(row?.category || '').trim()
+        || (safeType === 'fashion' ? 'Fashion' : safeType === 'car' ? 'Automaker' : 'Food');
       const country = String(row?.country || '').trim();
       const founded = row?.founded ? String(row.founded) : '';
       const logo = resolveBrandLogo(row);
@@ -4113,6 +4124,7 @@
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 },
         ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 6200 }] : []),
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 6200 }] : []),
+        ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 6200 }] : []),
         { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 6800 },
         { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: false }, timeoutMs: 6800 }
       ];
@@ -5889,6 +5901,22 @@
           .limit(fetchLimit);
         if (error || !data || !data.length) return fallbackItems.slice(0, target);
         return (data || []).map((row, index) => mapHomeBrandItem(row, 'food', index)).slice(0, target);
+      }
+
+      async function loadCarBrands() {
+        const client = await ensureHomeSupabase();
+        const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
+        const fallbackItems = HOME_CAR_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'car', index));
+        if (!client) return fallbackItems.slice(0, target);
+
+        const fetchLimit = Math.max(target * 2, target);
+        const { data, error } = await client
+          .from('car_brands')
+          .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
+          .order('name', { ascending: true })
+          .limit(fetchLimit);
+        if (error || !data || !data.length) return fallbackItems.slice(0, target);
+        return (data || []).map((row, index) => mapHomeBrandItem(row, 'car', index)).slice(0, target);
       }
 
       async function loadMovies(signal) {

@@ -1,7 +1,8 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v102';
-const PAGE_CACHE = 'zo2y-pages-v106';
-const IMAGE_CACHE = 'zo2y-images-v26';
-const API_CACHE = 'zo2y-api-v9';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v196';
+const PAGE_CACHE = 'zo2y-pages-v169';
+const IMAGE_CACHE = 'zo2y-images-v29';
+const API_CACHE = 'zo2y-api-v12';
+const MOVIES_PAGE_VERSION = '20260322m';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
 
@@ -10,42 +11,46 @@ const STATIC_ASSETS = [
   '/index.html',
   '/credits.html',
   '/manifest.webmanifest',
-  '/css/pages/index-landing.css?v=20260326a',
-  '/css/pages/index.css?v=20260314m',
-  '/css/shared-header.css?v=20260316a',
+  '/css/pages/index.css?v=20260320f',
+  '/css/pages/index-landing.css?v=20260324a',
+  '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260316d',
-  '/js/home-desktop-rebrand.js?v=20260311e',
-  '/js/shared-header.js?v=20260316a',
+  '/js/pages/index.js?v=20260326c',
+  '/js/pages/index-home-heavy-loaders.js?v=20260325e',
+  '/js/home-desktop-rebrand.js?v=20260323c',
+  '/js/referral-utils.js?v=20260319a',
+  '/js/shared-header.js?v=20260326c',
   '/js/review-interactions.js?v=20260308a',
   '/js/vercel-analytics.js?v=20260307a',
-  '/js/list-utils.js?v=20260316a',
-  '/js/index-list-menu-adapter.js?v=20260316a',
-  '/js/universal-search.js?v=20260315b',
-  '/js/auth-gate.js?v=20260315d',
+  '/js/list-utils.js?v=20260323a',
+  '/js/index-list-menu-adapter.js?v=20260324a',
+  '/js/universal-search.js?v=20260323a',
+  '/js/auth-gate.js?v=20260326c',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260315e',
+  '/js/mobile-webapp.js?v=20260325a',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260308a',
   '/favicon.ico',
   '/favicon.ico?v=20260307a',
   '/newlogo.webp',
+  '/logo-placeholder.svg',
   '/scared.webp',
   '/file-blank.svg',
   '/file.svg',
   '/sports.html',
   '/sports-mobile.html',
   '/css/pages/sports.css?v=20260315b',
-  '/js/pages/sports.js?v=20260315b',
+  '/js/pages/sports.js?v=20260319e',
   '/fashion.html',
   '/food.html',
+  '/cars.html',
   '/brand.html',
-  '/css/pages/brands.css?v=20260316b',
+  '/css/pages/brands.css?v=20260322c',
   '/css/pages/brand.css?v=20260316b',
-  '/js/pages/brands.js?v=20260316e',
-  '/js/pages/brand.js?v=20260316e',
+  '/js/pages/brands.js?v=20260322e',
+  '/js/pages/brand.js?v=20260322a',
   '/team.html',
   '/css/pages/team.css?v=20260314a',
   '/js/pages/team.js?v=20260314d',
@@ -56,6 +61,16 @@ const STATIC_ASSETS = [
 
 const ACTIVE_CACHES = [APP_SHELL_CACHE, PAGE_CACHE, IMAGE_CACHE, API_CACHE];
 
+function offlineResponse() {
+  return new Response('Offline', {
+    status: 503,
+    statusText: 'Offline',
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store'
+    }
+  });
+}
 function isCacheableResponse(response) {
   return !!response && (response.ok || response.type === 'opaque');
 }
@@ -113,14 +128,18 @@ async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
-  const networkResponse = await fetch(request);
-  queueCachePut(cacheName, request, networkResponse);
-  return networkResponse;
+  try {
+    const networkResponse = await fetch(request);
+    queueCachePut(cacheName, request, networkResponse);
+    return networkResponse;
+  } catch (_error) {
+    return cached || offlineResponse();
+  }
 }
 
 async function networkFirst(request, cacheName, fallbackPath = '') {
   try {
-    const networkResponse = await fetch(request);
+    const networkResponse = await fetch(request, { cache: 'no-store' });
     queueCachePut(cacheName, request, networkResponse);
     return networkResponse;
   } catch (_error) {
@@ -131,7 +150,7 @@ async function networkFirst(request, cacheName, fallbackPath = '') {
       const fallback = await caches.match(fallbackPath);
       if (fallback) return fallback;
     }
-    return Response.error();
+    return offlineResponse();
   }
 }
 
@@ -141,7 +160,7 @@ async function networkFirstWithTimeout(request, cacheName, fallbackPath = '', ti
   let timer = null;
   try {
     const networkResponse = await Promise.race([
-      fetch(request),
+      fetch(request, { cache: 'no-store' }),
       new Promise((_, reject) => {
         timer = setTimeout(() => reject(new Error('network_timeout')), timeoutMs);
       })
@@ -156,7 +175,7 @@ async function networkFirstWithTimeout(request, cacheName, fallbackPath = '', ti
       const fallback = await caches.match(fallbackPath);
       if (fallback) return fallback;
     }
-    return Response.error();
+    return offlineResponse();
   }
 }
 
@@ -176,7 +195,7 @@ async function staleWhileRevalidate(request, cacheName) {
   }
 
   const networkResponse = await networkPromise;
-  return networkResponse || Response.error();
+  return networkResponse || offlineResponse();
 }
 
 self.addEventListener('install', (event) => {
@@ -191,13 +210,14 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
+    caches.keys().then(async (keys) => {
+      await Promise.all(
         keys
           .filter((key) => !ACTIVE_CACHES.includes(key))
           .map((key) => caches.delete(key))
-      )
-    )
+      );
+      await caches.delete(PAGE_CACHE);
+    })
   );
   self.clients.claim();
 });
@@ -207,16 +227,48 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
+  const isMoviesHtml = url.origin === self.location.origin && url.pathname === '/movies.html';
+  const isMoviesMobileHtml = url.origin === self.location.origin && url.pathname === '/movies-mobile.html';
+  if (request.mode === 'navigate' && (isMoviesHtml || isMoviesMobileHtml) && !url.searchParams.has('v')) {
+    url.searchParams.set('v', MOVIES_PAGE_VERSION);
+    event.respondWith(fetch(url.toString(), { cache: 'no-store' }));
+    return;
+  }
+  const isLatestGamesPage =
+    url.origin === self.location.origin &&
+    (url.pathname === '/games.html' || url.pathname === '/games-mobile.html' || url.pathname === '/game.html');
+  const isBooksPage =
+    url.origin === self.location.origin &&
+    (url.pathname === '/books.html' || url.pathname === '/books-mobile.html' || url.pathname === '/book.html');
   if (url.origin === self.location.origin && url.pathname === '/sw.js') return;
   if (url.origin === self.location.origin && url.pathname.startsWith('/_vercel/insights/')) return;
-  // OAuth callbacks must always load the real callback page. A timeout fallback to `/index.html`
-  // can silently break sign-in (it looks like "landing refreshed" with no error).
   if (
     request.mode === 'navigate' &&
     url.origin === self.location.origin &&
     (url.pathname === '/auth-callback.html' || url.searchParams.has('code') || url.searchParams.has('error') || url.searchParams.has('error_description'))
   ) {
     event.respondWith(fetch(request));
+    return;
+  }
+  if (
+    request.mode === 'navigate' &&
+    url.origin === self.location.origin &&
+    url.pathname === '/index.html' &&
+    url.searchParams.has('auth_return')
+  ) {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request, { cache: 'no-store' });
+        if (response && response.ok) {
+          const cache = await caches.open(PAGE_CACHE);
+          cache.put(request, response.clone()).catch(() => {});
+        }
+        return response;
+      } catch (_error) {
+        const cached = await caches.match(request, { ignoreSearch: true }) || await caches.match('/index.html');
+        return cached || offlineResponse();
+      }
+    })());
     return;
   }
   const isImageRequest = request.destination === 'image'
@@ -235,6 +287,45 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
 
+  if (request.mode === 'navigate' && isLatestGamesPage) {
+    event.respondWith(fetch(request, { cache: 'no-store' }));
+    return;
+  }
+
+  if (request.mode === 'navigate' && isBooksPage) {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request, { cache: 'no-store' });
+        if (response && response.ok) {
+          const cache = await caches.open(PAGE_CACHE);
+          cache.put(request, response.clone()).catch(() => {});
+        }
+        return response;
+      } catch (_error) {
+        const cached = await caches.match(request, { ignoreSearch: true }) || await caches.match(url.pathname);
+        return cached || offlineResponse();
+      }
+    })());
+    return;
+  }
+
+  if (request.mode === 'navigate' && url.pathname === '/profile.html') {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request, { cache: 'no-store' });
+        if (response && response.ok) {
+          const cache = await caches.open(PAGE_CACHE);
+          cache.put(request, response.clone()).catch(() => {});
+        }
+        return response;
+      } catch (_error) {
+        const cached = await caches.match(request, { ignoreSearch: true }) || await caches.match('/profile.html');
+        return cached || offlineResponse();
+      }
+    })());
+    return;
+  }
+
   if (request.mode === 'navigate') {
     event.respondWith(networkFirstWithTimeout(request, PAGE_CACHE, '/index.html'));
     return;
@@ -242,24 +333,3 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
