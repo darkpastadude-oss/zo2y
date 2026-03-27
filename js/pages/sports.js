@@ -12,11 +12,11 @@
       <rect width='24' height='24' fill='#10224a'/>
     </svg>
   `)}`;
-  const SPORTS_FEATURED_CACHE_KEY = 'zo2y_sports_featured_cache_v1';
+  const SPORTS_FEATURED_CACHE_KEY = 'zo2y_sports_featured_cache_v2';
   const SPORTS_FEATURED_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
   const SPORTS_ASSET_BUCKET_NAME = 'sports-assets';
   const SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;
-  const SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_sports_asset_manifest_v1';
+  const SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_sports_asset_manifest_v2';
   const SPORTS_ASSET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
   const FALLBACK_LEAGUES = [
     'English Premier League',

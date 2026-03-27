@@ -1376,7 +1376,7 @@ async function loadBooks(signal) {
 
     const HOME_SPORTS_ASSET_BUCKET_NAME = 'sports-assets';
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;
-    const HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_home_sports_asset_manifest_v1';
+    const HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_home_sports_asset_manifest_v2';
     const HOME_SPORTS_ASSET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
     let homeSportsAssetManifestPromise = null;
     const homeSportsAssetManifestRows = [];
