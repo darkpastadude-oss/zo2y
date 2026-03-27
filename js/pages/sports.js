@@ -12,11 +12,11 @@
       <rect width='24' height='24' fill='#10224a'/>
     </svg>
   `)}`;
-  const SPORTS_FEATURED_CACHE_KEY = 'zo2y_sports_featured_cache_v2';
+  const SPORTS_FEATURED_CACHE_KEY = 'zo2y_sports_featured_cache_v3';
   const SPORTS_FEATURED_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
   const SPORTS_ASSET_BUCKET_NAME = 'sports-assets';
   const SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;
-  const SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_sports_asset_manifest_v2';
+  const SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_sports_asset_manifest_v3';
   const SPORTS_ASSET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
   const FALLBACK_LEAGUES = [
     'English Premier League',
@@ -472,10 +472,10 @@
         country: String(row.country || '').trim(),
         stadium: String(row.stadium || '').trim(),
         badge: toHttps(row.badge || row.logo_url || ''),
-        banner: toHttps(row.banner || row.banner_url || ''),
-        fanart: toHttps(row.fanart || row.fanart_url || ''),
-        stadiumThumb: toHttps(row.stadiumImage || row.stadium_thumb || row.stadium_url || ''),
-        jersey: toHttps(row.jersey || row.jersey_url || '')
+        banner: '',
+        fanart: '',
+        stadiumThumb: '',
+        jersey: ''
       };
       team.searchText = buildTeamSearchText(team);
       return team;
@@ -491,10 +491,10 @@
         ...existing,
         ...row,
         badge: row.badge || existing.badge || '',
-        banner: row.banner || existing.banner || '',
-        fanart: row.fanart || existing.fanart || '',
-        stadiumThumb: row.stadiumThumb || existing.stadiumThumb || '',
-        jersey: row.jersey || existing.jersey || ''
+        banner: '',
+        fanart: '',
+        stadiumThumb: '',
+        jersey: ''
       } : row;
       if (!existing) {
         sportsAssetManifestRows.push(merged);
@@ -586,10 +586,10 @@
       country: override.country || team.country || '',
       stadium: override.stadium || team.stadium || '',
       badge: override.badge || team.badge || '',
-      banner: override.banner || team.banner || '',
-      fanart: override.fanart || team.fanart || '',
-      stadiumThumb: override.stadiumThumb || team.stadiumThumb || '',
-      jersey: override.jersey || team.jersey || ''
+      banner: '',
+      fanart: '',
+      stadiumThumb: '',
+      jersey: ''
     };
     merged.searchText = buildTeamSearchText(merged);
     return merged;
@@ -1151,14 +1151,10 @@
       country: String(override?.country || raw.strCountry || '').trim(),
       stadium: String(override?.stadium || raw.strStadium || '').trim(),
       badge: toHttps(override?.badge || raw.strBadge || raw.strTeamBadge || raw.strLogo || raw.strTeamLogo || ''),
-      banner: toHttps(override?.banner || raw.strBanner || raw.strTeamBanner || ''),
-      fanart: toHttps(
-        override?.fanart ||
-        raw.strFanart1 || raw.strFanart2 || raw.strFanart3 || raw.strFanart4 ||
-        raw.strTeamFanart1 || raw.strTeamFanart2 || raw.strTeamFanart3 || ''
-      ),
-      stadiumThumb: toHttps(override?.stadiumThumb || raw.strStadiumThumb || ''),
-      jersey: toHttps(override?.jersey || raw.strEquipment || raw.strTeamJersey || '')
+      banner: '',
+      fanart: '',
+      stadiumThumb: '',
+      jersey: ''
     };
     team.searchText = buildTeamSearchText(team);
     return team;
@@ -1243,7 +1239,7 @@
       ui.heroBadge.referrerPolicy = 'no-referrer';
     }
     if (ui.heroLogo) {
-      const heroLogo = team.badge || team.jersey || FALLBACK_BADGE;
+      const heroLogo = team.badge || FALLBACK_BADGE;
       ui.heroLogo.src = heroLogo;
       ui.heroLogo.alt = `${team.name} logo`;
       ui.heroLogo.referrerPolicy = 'no-referrer';
@@ -1251,7 +1247,7 @@
     }
     if (ui.heroMeta) ui.heroMeta.innerHTML = metaHtml;
 
-    const heroImage = team.fanart || team.stadiumThumb || team.banner || FALLBACK_IMAGE;
+    const heroImage = team.badge || FALLBACK_IMAGE;
     if (ui.heroMedia) {
       if (heroImage) {
         ui.heroMedia.style.setProperty('--hero-bg', `url("${heroImage}")`);
@@ -1370,10 +1366,10 @@
     card.dataset.title = team.name;
     card.tabIndex = 0;
 
-    const mediaImage = team.fanart || team.stadiumThumb || team.jersey || team.banner || team.badge || FALLBACK_IMAGE;
+    const mediaImage = team.badge || FALLBACK_IMAGE;
     const logo = team.badge || FALLBACK_BADGE;
-    const usesBannerOnly = !team.fanart && !team.stadiumThumb && !team.jersey && !!team.banner;
-    const usesBadgeOnly = !team.fanart && !team.stadiumThumb && !team.jersey && !team.banner && !!team.badge;
+    const usesBannerOnly = false;
+    const usesBadgeOnly = !!team.badge;
     const metaLine = [team.league, team.sport].filter(Boolean).join(' | ') || 'Team';
     const sportIcon = getSportEmoji(team.sport);
     const metaLineWithIcon = sportIcon ? `${sportIcon} ${metaLine}` : metaLine;
@@ -1531,15 +1527,14 @@
     const subtitle = String(card.dataset.subtitle || card.querySelector('.sports-card-meta')?.textContent || '').trim();
     const [league, sport] = subtitle.split('|').map((value) => String(value || '').trim());
     const logo = String(card.dataset.listImage || card.querySelector('.sports-card-logo img')?.getAttribute('src') || '').trim();
-    const banner = String(card.dataset.image || card.querySelector('.sports-card-media img')?.getAttribute('src') || '').trim();
     return {
       id,
       name: title || id,
       league: league || '',
       sport: sport || '',
       badge: logo,
-      banner,
-      fanart: banner
+      banner: '',
+      fanart: ''
     };
   }
 
@@ -1599,11 +1594,11 @@
       sport: team.sport || null,
       league: team.league || null,
       logo_url: team.badge || null,
-      banner_url: team.banner || null,
+      banner_url: null,
       stadium: team.stadium || null,
-      stadium_url: team.stadiumThumb || null,
-      jersey_url: team.jersey || null,
-      fanart_url: team.fanart || null
+      stadium_url: null,
+      jersey_url: null,
+      fanart_url: null
     };
 
     const { error: teamError } = await state.supabase

@@ -1376,8 +1376,10 @@ async function loadBooks(signal) {
 
     const HOME_SPORTS_ASSET_BUCKET_NAME = 'sports-assets';
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;
-    const HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_home_sports_asset_manifest_v2';
+    const HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_home_sports_asset_manifest_v3';
     const HOME_SPORTS_ASSET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v3';
+    const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     let homeSportsAssetManifestPromise = null;
     const homeSportsAssetManifestRows = [];
     const homeSportsAssetManifestById = new Map();
@@ -1399,10 +1401,10 @@ async function loadBooks(signal) {
           country: String(row.country || '').trim(),
           stadium: String(row.stadium || '').trim(),
           badge: toHttpsUrl(row.badge || row.logo_url || ''),
-          banner: toHttpsUrl(row.banner || row.banner_url || ''),
-          fanart: toHttpsUrl(row.fanart || row.fanart_url || ''),
-          stadiumImage: toHttpsUrl(row.stadiumImage || row.stadium_url || ''),
-          jersey: toHttpsUrl(row.jersey || row.jersey_url || '')
+          banner: '',
+          fanart: '',
+          stadiumImage: '',
+          jersey: ''
         };
       }).filter(Boolean);
     }
@@ -1416,10 +1418,10 @@ async function loadBooks(signal) {
           ...existing,
           ...row,
           badge: row.badge || existing.badge || '',
-          banner: row.banner || existing.banner || '',
-          fanart: row.fanart || existing.fanart || '',
-          stadiumImage: row.stadiumImage || existing.stadiumImage || '',
-          jersey: row.jersey || existing.jersey || ''
+          banner: '',
+          fanart: '',
+          stadiumImage: '',
+          jersey: ''
         } : row;
         if (!existing) {
           homeSportsAssetManifestRows.push(merged);
@@ -1508,24 +1510,16 @@ async function loadBooks(signal) {
       const stadium = String(override?.stadium || team.strStadium || '').trim();
       const country = String(override?.country || team.strCountry || '').trim();
       const badge = toHttpsUrl(override?.badge || team.strBadge || team.strTeamBadge || team.strTeamLogo || team.strLogo || '');
-      const banner = toHttpsUrl(override?.banner || team.strBanner || team.strTeamBanner || '');
-      const fanart = toHttpsUrl(
-        override?.fanart ||
-        team.strFanart1 || team.strFanart2 || team.strFanart3 || team.strFanart4 ||
-        team.strTeamFanart1 || team.strTeamFanart2 || team.strTeamFanart3 || ''
-      );
-      const stadiumImage = toHttpsUrl(override?.stadiumImage || team.strStadiumThumb || '');
-      const jersey = toHttpsUrl(override?.jersey || team.strEquipment || team.strTeamJersey || '');
       const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
       if (!badge) return null;
-      const background = fanart || stadiumImage || banner || badge || fallbackImage;
+      const background = badge || fallbackImage;
       const image = badge;
       const subtitle = [league, sport].filter(Boolean).join(' | ') || 'Team';
       const sportIcon = getHomeSportEmoji(sport);
       const subtitleWithIcon = sportIcon ? `${sportIcon} ${subtitle}` : subtitle;
       const flagImage = getHomeCountryFlag(country);
-      const spotlightMedia = badge || flagImage || jersey || background;
-      const spotlightMediaFit = (badge || flagImage || jersey) ? 'contain' : 'cover';
+      const spotlightMedia = badge || flagImage || background;
+      const spotlightMediaFit = (badge || flagImage) ? 'contain' : 'cover';
       const params = new URLSearchParams();
       if (id) params.set('id', id);
       if (title) params.set('team', title);
@@ -1554,10 +1548,10 @@ async function loadBooks(signal) {
         flagImage,
         stadium,
         badge,
-        banner,
-        fanart,
-        jersey,
-        stadiumImage,
+        banner: '',
+        fanart: '',
+        jersey: '',
+        stadiumImage: '',
         href
       };
     }

@@ -193,7 +193,7 @@
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
-    const HOME_CHANNEL_TIMEOUT_MS = 4200;
+    const HOME_CHANNEL_TIMEOUT_MS = 6500;
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 1200;
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
     const SPOTLIGHT_ROTATE_MS = 5000;
@@ -5248,8 +5248,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         const flagImage = escapeHtml(itemData.flagImage || '');
         const listImage = escapeHtml(itemData.listImage || itemData.image || '');
         const logo = escapeHtml(itemData.logo || '');
-        const fallbackImage = escapeHtml(itemData.fallbackImage || '');
-        const safeImage = image || listImage || (mediaTypeRaw === 'travel' ? fallbackImage : '');
+        const fallbackImage = escapeHtml(itemData.fallbackImage || HOME_LOCAL_FALLBACK_IMAGE);
+        const safeImage = image || listImage || fallbackImage;
         const coverImage = image || listImage || logo;
         const hrefRaw = itemData.href || '#';
         const href = escapeHtml(hrefRaw);
@@ -5407,12 +5407,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             img.src = fallback;
             return;
           }
-          if (!card) return;
-          const rail = card.parentElement;
-          card.remove();
-          if (rail && !rail.querySelector('.card')) {
-            rail.innerHTML = '<div class="empty">No items right now.</div>';
-          }
+          img.setAttribute('data-image-ready', '1');
+          img.setAttribute('data-home-image-state', 'ready');
+          img.src = HOME_LOCAL_FALLBACK_IMAGE;
+          const wrapper = getHomeImageWrapper(img);
+          if (wrapper) wrapper.classList.remove('is-loading-media');
         };
 
         const handleLoaded = () => {
@@ -7666,7 +7665,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           return;
         }
         const script = document.createElement('script');
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260325d';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260328e';
         script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
@@ -7741,9 +7740,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       };
 
       const loadedPromise = loadHomeChannelGroup(initialChannels, loadChannel);
-      const precomputedFeed = await withTimeout(precomputedFeedPromise, 450, null);
+      const precomputedFeed = await withTimeout(precomputedFeedPromise, 1200, null);
       if (initSeq !== homeFeedInitSeq) return;
-      if (!baselineFeed && precomputedFeed == null) {
+      if (!baselineFeed && precomputedFeed == null && freshLoadedKeys.size === 0) {
         quickFallbackFeed = buildInstantFallbackFeed();
         const quickResult = applyHomeFeedMap(quickFallbackFeed);
         if (quickResult.scoredPool.length) {

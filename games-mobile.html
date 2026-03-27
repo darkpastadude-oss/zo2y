@@ -851,15 +851,16 @@
         const pool = likelyCovers.length ? likelyCovers : cleaned;
         const posterPool = pool.filter((url) => isLikelyPosterGameUrl(url));
         const preferredPool = posterPool.length ? posterPool : pool;
-        return preferredPool.find((url) => /\/game-assets\/covers-official\//.test(url))
-          || preferredPool.find((url) => /\/game-assets\/covers\//.test(url))
-          || preferredPool.find((url) => /wikimedia|wikipedia/.test(url))
+        return preferredPool.find((url) => /wikimedia|wikipedia/.test(url))
           || preferredPool.find((url) => /igdb|images\.igdb\.com/.test(url))
           || preferredPool.find((url) => /rawg|media\.rawg/.test(url))
-          || pool.find((url) => /\/game-assets\/covers\//.test(url))
+          || preferredPool.find((url) => /\/game-assets\/covers-official\//.test(url))
+          || preferredPool.find((url) => /\/game-assets\/covers\//.test(url))
           || pool.find((url) => /wikimedia|wikipedia/.test(url))
           || pool.find((url) => /igdb|images\.igdb\.com/.test(url))
           || pool.find((url) => /rawg|media\.rawg/.test(url))
+          || pool.find((url) => /\/game-assets\/covers-official\//.test(url))
+          || pool.find((url) => /\/game-assets\/covers\//.test(url))
           || pool[0]
           || '';
       }
@@ -927,6 +928,36 @@
           ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
           ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
         ]);
+      }
+
+      function buildGameCoverFallbackChain(row, preferredCover = '', preferredHero = '') {
+        const chain = [
+          preferredCover,
+          row?.cover_url,
+          row?.cover?.url,
+          row?.cover,
+          ...(Array.isArray(row?.extra?.official_covers) ? row.extra.official_covers : []),
+          ...(Array.isArray(row?.extra?.cover_candidates) ? row.extra.cover_candidates : []),
+          ...(Array.isArray(row?.extra?.covers) ? row.extra.covers : []),
+          ...(Array.isArray(row?.extra?.local_covers) ? row.extra.local_covers : []),
+          preferredHero,
+          row?.hero_url,
+          row?.hero,
+          row?.background_image,
+          ...(Array.isArray(row?.extra?.screenshots) ? row.extra.screenshots : []),
+          ...(Array.isArray(row?.extra?.local_screenshots) ? row.extra.local_screenshots : []),
+          ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+          ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : []),
+          IGDB_FALLBACK_IMAGE
+        ]
+          .map(normalizeGameImageUrl)
+          .filter(Boolean);
+        const seen = new Set();
+        return chain.filter((url) => {
+          if (seen.has(url)) return false;
+          seen.add(url);
+          return true;
+        });
       }
 
       function resolveGameHeroSource(row, fallback) {
@@ -2329,6 +2360,7 @@
         ]) || IGDB_FALLBACK_IMAGE;
         const gameCover = resolveGameImageSource(item) || gameHeroFallback;
         const gameHero = resolveGameHeroSource(item, gameCover || gameHeroFallback);
+        const coverFallbackChain = buildGameCoverFallbackChain(item, gameCover, gameHero);
         const plainGameStage = shouldUsePlainGameStage(item, gameCover, gameHero);
         const usePortraitPosterFit = !plainGameStage && shouldUsePortraitPosterFit(item, gameCover);
 
@@ -2343,7 +2375,7 @@
           : '';
         card.innerHTML = `
           <div class="card-media game-media${plainGameStage ? ' plain-logo' : ''}${usePortraitPosterFit ? ' portrait-poster' : ''}"${mediaStyle}>
-            <img src="${gameCover}" alt="${gameTitle}" loading="${isPriority ? 'eager' : 'lazy'}" fetchpriority="${isPriority ? 'high' : 'low'}" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${(gameHero || IGDB_FALLBACK_IMAGE).replace(/'/g, '%27')}';">
+            <img src="${gameCover}" alt="${gameTitle}" loading="${isPriority ? 'eager' : 'lazy'}" fetchpriority="${isPriority ? 'high' : 'low'}" decoding="async" referrerpolicy="no-referrer">
           </div>
           <div class="card-body">
             <h3 class="card-title">${gameTitle}</h3>
@@ -2356,6 +2388,18 @@
             <p class="card-desc">${gameDesc}</p>
           </div>
         `;
+        const cardImage = card.querySelector('.card-media img');
+        if (cardImage) {
+          let fallbackIndex = 1;
+          cardImage.addEventListener('error', () => {
+            const nextSrc = coverFallbackChain[fallbackIndex++] || IGDB_FALLBACK_IMAGE;
+            if (!nextSrc || cardImage.src === nextSrc) {
+              cardImage.onerror = null;
+              return;
+            }
+            cardImage.src = nextSrc;
+          });
+        }
         card.onclick = (e) => {
           if (e.target.closest('.menu-btn')) return;
           window.location.href = `game.html?id=${encodeURIComponent(String(gameId))}`;
