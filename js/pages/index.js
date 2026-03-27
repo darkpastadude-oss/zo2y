@@ -471,15 +471,40 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         .replace(/'/g, '&#039;');
     }
 
+    function unwrapCloudflareImageUrl(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      const marker = '/cdn-cgi/image/';
+      const markerIndex = raw.indexOf(marker);
+      if (markerIndex === -1) return raw;
+      const tail = raw.slice(markerIndex + marker.length);
+      const remoteMatch = tail.match(/(?:^|\/)(https?:\/\/.+)$/i);
+      if (!remoteMatch || !remoteMatch[1]) return raw;
+      let unwrapped = String(remoteMatch[1] || '').trim();
+      try {
+        unwrapped = decodeURI(unwrapped);
+      } catch (_err) {}
+      if (unwrapped.startsWith('//')) unwrapped = `https:${unwrapped}`;
+      return unwrapped.replace(/^http:\/\//i, 'https://');
+    }
+
+    function shouldProxyHomeImageThroughCloudflare(normalized) {
+      const src = String(normalized || '').trim();
+      if (!src) return false;
+      if (!/^https:\/\//i.test(src)) return false;
+      if (typeof window === 'undefined' || !window.location?.origin) return false;
+      return src.startsWith(window.location.origin);
+    }
+
     function buildCloudflareImageUrl(value, options = {}) {
       const raw = String(value || '').trim();
       if (!raw) return '';
-      let normalized = raw;
+      let normalized = unwrapCloudflareImageUrl(raw);
       if (normalized.startsWith('//')) normalized = `https:${normalized}`;
       normalized = normalized.replace(/^http:\/\//i, 'https://');
       if (!/^https:\/\//i.test(normalized)) return normalized;
-      if (normalized.includes('/cdn-cgi/image/')) return normalized;
       if (/\.svg(?:[?#].*)?$/i.test(normalized) || /\.gif(?:[?#].*)?$/i.test(normalized)) return normalized;
+      if (!shouldProxyHomeImageThroughCloudflare(normalized)) return normalized;
       const width = Math.max(32, Number(options?.width || 520) || 520);
       const quality = Math.max(30, Math.min(90, Number(options?.quality || 75) || 75));
       const transforms = [`format=auto`, `quality=${quality}`, `width=${Math.round(width)}`];
@@ -4557,7 +4582,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       }
 
       const candidates = [...new Set((sources || [])
-        .map((value) => String(value || '').trim())
+        .map((value) => toHttpsUrl(String(value || '').trim()))
         .filter(Boolean))];
 
       if (!candidates.length) {
@@ -5358,6 +5383,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         const handleMissing = () => {
           if (isBrandRail) {
             markLogoMissing(card, img);
+            return;
+          }
+          const directSrc = unwrapCloudflareImageUrl(img.currentSrc || img.src || '');
+          const currentSrc = String(img.currentSrc || img.src || '').trim();
+          if (directSrc && directSrc !== currentSrc && img.getAttribute('data-cf-direct-retry') !== '1') {
+            img.setAttribute('data-cf-direct-retry', '1');
+            img.setAttribute('data-image-ready', '0');
+            img.setAttribute('data-home-image-state', 'loading');
+            const wrapper = getHomeImageWrapper(img);
+            if (wrapper) wrapper.classList.add('is-loading-media');
+            img.src = directSrc;
             return;
           }
           const fallback = String(img.getAttribute('data-fallback-image') || '').trim();
