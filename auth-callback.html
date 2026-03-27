@@ -140,6 +140,19 @@
         }
       }
 
+      const authStorageBridge = window.__ZO2Y_AUTH_STORAGE_BRIDGE || {
+        getItem(key) {
+          return safeGetAuthStorage(key);
+        },
+        setItem(key, value) {
+          safeSetAuthStorage(key, value);
+        },
+        removeItem(key) {
+          safeRemoveAuthStorage(key);
+        }
+      };
+      window.__ZO2Y_AUTH_STORAGE_BRIDGE = authStorageBridge;
+
       function persistPendingPostAuthBootstrap(payload) {
         if (!payload || typeof payload !== 'object') return false;
         try {
@@ -565,6 +578,7 @@
 
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
           auth: {
+            storage: authStorageBridge,
             storageKey: STORAGE_KEY,
             persistSession: true,
             autoRefreshToken: true,

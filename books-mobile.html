@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <script src="/js/auth-gate.js?v=20260324a"></script>
+  <script src="/js/auth-gate.js?v=20260328a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Books</title>
   <link rel="icon" href="/newlogo.webp" type="image/webp" />
@@ -779,7 +779,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
 <script src="/js/mobile-webapp.js?v=20260324b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260322h" defer></script>
+  <script src="js/shared-header.js?v=20260328a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -890,7 +890,11 @@
       const BOOKS_CACHE_BUSTER = '20260324-api-only-mobile-fast';
       const BOOKS_MOBILE_PAGE_CACHE_KEY = 'zo2y_books_mobile_page_cache_v1';
       const BOOKS_MOBILE_PAGE_CACHE_TTL_MS = 1000 * 60 * 20;
+      const BOOKS_API_CACHE_PREFIX = 'zo2y_books_mobile_api_cache_v1';
+      const BOOKS_API_CACHE_TTL_MS = 1000 * 60 * 10;
       const BOOKS_SESSION_RECOVERY_RETRY_MS = 350;
+      const booksApiMemoryCache = new Map();
+      const booksApiInFlight = new Map();
       const CATEGORY_OPTIONS = [
         'Fiction',
         'Mystery',
@@ -1162,14 +1166,38 @@
           url.searchParams.set(key, String(value));
         });
         url.searchParams.set('cb', BOOKS_CACHE_BUSTER);
-        url.searchParams.set('_', String(Date.now()));
+        const cacheBust = params?.cache_bust != null && params?.cache_bust !== false;
+        if (cacheBust) {
+          url.searchParams.set('_', String(params.cache_bust || Date.now()));
+        }
+        const cacheKey = cacheBust ? '' : `${BOOKS_API_CACHE_PREFIX}:${url.pathname}?${url.searchParams.toString()}`;
+        if (cacheKey) {
+          const memoryEntry = booksApiMemoryCache.get(cacheKey);
+          if (memoryEntry && (Date.now() - Number(memoryEntry.savedAt || 0)) < BOOKS_API_CACHE_TTL_MS) {
+            return JSON.parse(JSON.stringify(memoryEntry.payload || { docs: [], numFound: 0 }));
+          }
+          try {
+            const rawCached = localStorage.getItem(cacheKey);
+            if (rawCached) {
+              const parsedCached = JSON.parse(rawCached);
+              if (parsedCached && (Date.now() - Number(parsedCached.savedAt || 0)) < BOOKS_API_CACHE_TTL_MS) {
+                booksApiMemoryCache.set(cacheKey, parsedCached);
+                return JSON.parse(JSON.stringify(parsedCached.payload || { docs: [], numFound: 0 }));
+              }
+            }
+          } catch (_error) {}
+          if (booksApiInFlight.has(cacheKey)) {
+            return booksApiInFlight.get(cacheKey);
+          }
+        }
+        const requestTask = (async () => {
         const controller = new AbortController();
         const timeoutId = window.setTimeout(() => controller.abort(), 4800);
         let res;
         try {
           res = await fetch(url.toString(), {
             headers: { Accept: 'application/json' },
-            cache: 'no-store',
+            cache: cacheBust ? 'no-store' : 'default',
             signal: controller.signal
           });
         } finally {
@@ -1180,7 +1208,23 @@
         const docsRaw = Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.items) ? json.items : []);
         const docs = docsRaw.map((entry, idx) => normalizeRemoteBookDoc(entry, idx)).filter((entry) => String(entry?.title || '').trim());
         const numFound = Number(json?.numFound || json?.count || json?.totalItems || docs.length) || docs.length;
-        return { docs, numFound };
+          const payload = { docs, numFound };
+          if (cacheKey) {
+            const cachedEntry = { savedAt: Date.now(), payload };
+            booksApiMemoryCache.set(cacheKey, cachedEntry);
+            try {
+              localStorage.setItem(cacheKey, JSON.stringify(cachedEntry));
+            } catch (_error) {}
+          }
+          return payload;
+        })();
+        if (!cacheKey) return requestTask;
+        booksApiInFlight.set(cacheKey, requestTask);
+        try {
+          return await requestTask;
+        } finally {
+          booksApiInFlight.delete(cacheKey);
+        }
       }
 
       async function fetchPopularBooks(page = 1, limit = BOOKS_PER_PAGE) {
@@ -1385,7 +1429,7 @@
         setTimeout(() => notification.remove(), duration);
       }
 
-      function debounce(fn, wait = 260) {
+      function debounce(fn, wait = 180) {
         let timeoutId = null;
         return (...args) => {
           if (timeoutId) clearTimeout(timeoutId);

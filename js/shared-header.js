@@ -409,9 +409,40 @@ const HEADER_HTML = `
       return supabaseClient;
     }
     if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+    const storageBridge = window.__ZO2Y_AUTH_STORAGE_BRIDGE || {
+      getItem(key) {
+        try {
+          const localValue = window.localStorage ? window.localStorage.getItem(key) : null;
+          if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
+        } catch (_err) {}
+        try {
+          return window.sessionStorage ? window.sessionStorage.getItem(key) : null;
+        } catch (_err) {
+          return null;
+        }
+      },
+      setItem(key, value) {
+        try {
+          if (window.localStorage) window.localStorage.setItem(key, value);
+        } catch (_err) {}
+        try {
+          if (window.sessionStorage) window.sessionStorage.setItem(key, value);
+        } catch (_err) {}
+      },
+      removeItem(key) {
+        try {
+          if (window.sessionStorage) window.sessionStorage.removeItem(key);
+        } catch (_err) {}
+        try {
+          if (window.localStorage) window.localStorage.removeItem(key);
+        } catch (_err) {}
+      }
+    };
+    window.__ZO2Y_AUTH_STORAGE_BRIDGE = storageBridge;
     try {
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
+          storage: storageBridge,
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: false,

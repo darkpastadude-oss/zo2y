@@ -107,11 +107,42 @@
 
   const STORAGE_KEY = 'zo2y-auth-v1';
   const LEGACY_STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
+  const bootstrapAuthStorageBridge = window.__ZO2Y_AUTH_STORAGE_BRIDGE || {
+    getItem(key) {
+      try {
+        const localValue = window.localStorage ? window.localStorage.getItem(key) : null;
+        if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
+      } catch (_err) {}
+      try {
+        return window.sessionStorage ? window.sessionStorage.getItem(key) : null;
+      } catch (_err) {
+        return null;
+      }
+    },
+    setItem(key, value) {
+      try {
+        if (window.localStorage) window.localStorage.setItem(key, value);
+      } catch (_err) {}
+      try {
+        if (window.sessionStorage) window.sessionStorage.setItem(key, value);
+      } catch (_err) {}
+    },
+    removeItem(key) {
+      try {
+        if (window.sessionStorage) window.sessionStorage.removeItem(key);
+      } catch (_err) {}
+      try {
+        if (window.localStorage) window.localStorage.removeItem(key);
+      } catch (_err) {}
+    }
+  };
+  window.__ZO2Y_AUTH_STORAGE_BRIDGE = bootstrapAuthStorageBridge;
   const supabase = window.supabase.createClient(
     'https://gfkhjbztayjyojsgdpgk.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s',
     {
       auth: {
+        storage: bootstrapAuthStorageBridge,
         storageKey: STORAGE_KEY,
         persistSession: true,
         autoRefreshToken: true,
@@ -182,6 +213,19 @@
       return false;
     }
   }
+
+  const authStorageBridge = window.__ZO2Y_AUTH_STORAGE_BRIDGE || {
+    getItem(key) {
+      return safeGetAuthStorage(key);
+    },
+    setItem(key, value) {
+      safeSetAuthStorage(key, value);
+    },
+    removeItem(key) {
+      safeRemoveAuthStorage(key);
+    }
+  };
+  window.__ZO2Y_AUTH_STORAGE_BRIDGE = authStorageBridge;
 
   const initialNextPath = sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || safeGetAuthStorage('postAuthRedirect') || 'index.html');
 

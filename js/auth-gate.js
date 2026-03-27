@@ -91,6 +91,23 @@
     } catch (_err) {}
   }
 
+  function getSupabaseStorageBridge() {
+    if (window.__ZO2Y_AUTH_STORAGE_BRIDGE) return window.__ZO2Y_AUTH_STORAGE_BRIDGE;
+    var bridge = {
+      getItem: function (key) {
+        return safeGetStorageItem(key);
+      },
+      setItem: function (key, value) {
+        safeSetStorageItem(key, value);
+      },
+      removeItem: function (key) {
+        safeRemoveStorageItem(key);
+      }
+    };
+    window.__ZO2Y_AUTH_STORAGE_BRIDGE = bridge;
+    return bridge;
+  }
+
   function migrateLegacySessionStorage() {
     var current = safeGetStorageItem(STORAGE_KEY);
     if (current) return;
@@ -412,6 +429,7 @@
             var detectSessionInUrl = pageKey !== 'auth-callback';
             client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
               auth: {
+                storage: getSupabaseStorageBridge(),
                 storageKey: STORAGE_KEY,
                 persistSession: true,
                 autoRefreshToken: true,
@@ -428,6 +446,15 @@
       window.clearInterval(timer);
       await bootstrapClientSessionFromStorage();
       await verifyAndApply();
+      if (!window.__ZO2Y_AUTH_GATE_RESUME_BOUND) {
+        window.__ZO2Y_AUTH_GATE_RESUME_BOUND = true;
+        document.addEventListener('visibilitychange', function () {
+          if (!document.hidden) void verifyAndApply();
+        });
+        window.addEventListener('focus', function () {
+          void verifyAndApply();
+        });
+      }
       if (!window.__ZO2Y_AUTH_GATE_LISTENER_BOUND && client.auth && typeof client.auth.onAuthStateChange === 'function') {
         window.__ZO2Y_AUTH_GATE_LISTENER_BOUND = true;
         client.auth.onAuthStateChange(function (_event, session) {

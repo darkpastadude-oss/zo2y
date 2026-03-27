@@ -4668,6 +4668,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       };
     }
 
+    function getHomeRailFallbackItems(channelKey) {
+      const key = String(channelKey || '').trim();
+      if (!key) return [];
+      const fallbackFeed = buildInstantFallbackFeed();
+      const items = Array.isArray(fallbackFeed?.[key]) ? fallbackFeed[key] : [];
+      return items.filter(Boolean);
+    }
+
     function getHomeChannels() {
       return [
         ...(ENABLE_RESTAURANTS ? [{ key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant', landscape: true, restaurantComposite: true } }] : []),
@@ -5112,8 +5120,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       let activeChannels = 0;
       channels.forEach((channel) => {
         const items = Array.isArray(normalizedFeed?.[channel.key]) ? normalizedFeed[channel.key] : [];
+        const railItems = items.length ? items : getHomeRailFallbackItems(channel.key);
         homeFeedState[channel.key] = items;
-        renderOrDeferHomeRail(channel.railId, items, channel.opts);
+        renderOrDeferHomeRail(channel.railId, railItems, channel.opts);
         if (items.length) activeChannels += 1;
       });
 
