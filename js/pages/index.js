@@ -4656,13 +4656,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             isPlaceholder: true
           }))
         } : {}),
-        movie: makeSeedItems('movie', ['Popular Movies', 'Now in Theaters', 'Award Winners', 'Critics Picks', 'Weekend Watch'], 'movies.html'),
-        tv: makeSeedItems('tv', ['Top TV Shows', 'Binge Picks', 'New Seasons', 'Global Hits', 'Fan Favorites'], 'tvshows.html'),
-        anime: makeSeedItems('anime', ['Top Anime', 'Fan Favorites', 'Must Watch Series', 'Shonen Hits', 'Classic Anime'], 'animes.html'),
+        movie: [],
+        tv: [],
+        anime: [],
         ...(ENABLE_GAMES ? {
           game: makeSeedItems('game', ['Top Games', 'New Releases', 'Community Picks', 'Multiplayer Hits', 'Story Games'], 'games.html')
         } : {}),
-        music: makeSeedItems('music', ['Global Hits', 'Viral Tracks', 'Fresh Releases', 'Chill Vibes', 'Late Night Mix'], 'music.html'),
+        music: [],
         book: makeSeedItems('book', ['Bestselling Books', 'Popular Fiction', 'Book Club Picks', 'Page-Turners', 'Must Read Stories'], 'books.html'),
         ...(ENABLE_FASHION ? {
           fashion: HOME_FASHION_FALLBACKS.slice(0, targetCount).map((row, index) => ({
@@ -7665,7 +7665,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           return;
         }
         const script = document.createElement('script');
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260328e';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260328f';
         script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
