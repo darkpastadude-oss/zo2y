@@ -136,11 +136,11 @@
   const activeReferral = referralUtils ? referralUtils.captureReferralFromLocation(window.location.search) : '';
   function safeGetAuthStorage(key) {
     try {
-      const sessionValue = window.sessionStorage ? window.sessionStorage.getItem(key) : null;
-      if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
+      const localValue = window.localStorage ? window.localStorage.getItem(key) : null;
+      if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
     } catch (_err) {}
     try {
-      return window.localStorage ? window.localStorage.getItem(key) : null;
+      return window.sessionStorage ? window.sessionStorage.getItem(key) : null;
     } catch (_err) {
       return null;
     }
@@ -148,14 +148,14 @@
 
   function safeSetAuthStorage(key, value) {
     try {
-      if (window.sessionStorage) {
-        window.sessionStorage.setItem(key, value);
+      if (window.localStorage) {
+        window.localStorage.setItem(key, value);
         return true;
       }
     } catch (_err) {}
     try {
-      if (window.localStorage) {
-        window.localStorage.setItem(key, value);
+      if (window.sessionStorage) {
+        window.sessionStorage.setItem(key, value);
         return true;
       }
     } catch (_err) {}

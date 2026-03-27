@@ -5347,25 +5347,53 @@
                 return data;
             }
 
-                        function normalizeGameImageSource(game) {
+            function normalizeGameImageUrl(url) {
+                const value = typeof url === 'string'
+                    ? url.trim()
+                    : (url && typeof url === 'object' && typeof url.url === 'string' ? url.url.trim() : '');
+                if (!value) return '';
+                if (value.startsWith('//')) return `https:${value}`;
+                if (value.startsWith('http://')) return value.replace(/^http:\/\//i, 'https://');
+                return value;
+            }
+
+            function isLikelyBackdropGameUrl(url) {
+                const value = String(url || '').trim().toLowerCase();
+                if (!value) return false;
+                return ['/heroes/', '/hero/', 'background', 'fanart', 'screenshot', 'screenshots', 'backdrop'].some((token) => value.includes(token));
+            }
+
+            function pickPreferredCoverUrl(candidates = []) {
+                const normalized = (Array.isArray(candidates) ? candidates : [])
+                    .map((candidate) => normalizeGameImageUrl(candidate))
+                    .filter(Boolean);
+                if (!normalized.length) return '';
+                const preferred = normalized.find((url) => !isLikelyBackdropGameUrl(url));
+                return preferred || normalized[0] || '';
+            }
+
+            function normalizeGameImageSource(game) {
                 if (!game || typeof game !== 'object') return '/newlogo.webp';
-                const candidates = [
-                    game.cover,
-                    game.cover_url,
-                    game.hero,
-                    game.hero_url,
-                    game.background_image
-                ];
                 const screenshots = Array.isArray(game.screenshots) ? game.screenshots : [];
                 const shortScreens = Array.isArray(game.short_screenshots)
                     ? game.short_screenshots.map((entry) => entry?.image)
                     : [];
-                candidates.push(screenshots[0], shortScreens[0]);
-                for (const entry of candidates) {
-                    const url = String(entry || '').trim();
-                    if (url) return url;
-                }
-                return '/newlogo.webp';
+                const extra = game.extra && typeof game.extra === 'object' ? game.extra : {};
+                const cover = pickPreferredCoverUrl([
+                    game.cover_url,
+                    game.cover,
+                    game.cover?.url,
+                    ...(Array.isArray(extra.local_covers) ? extra.local_covers : []),
+                    ...(Array.isArray(extra.covers) ? extra.covers : []),
+                    ...(Array.isArray(extra.official_covers) ? extra.official_covers : []),
+                    ...(Array.isArray(extra.cover_candidates) ? extra.cover_candidates : []),
+                    game.hero_url,
+                    game.hero,
+                    game.background_image,
+                    ...screenshots,
+                    ...shortScreens
+                ]);
+                return cover || '/newlogo.webp';
             }
 
             function normalizeSupabaseGameRecord(row, fallbackId = '') {
@@ -5374,7 +5402,25 @@
                 const title = String(row.title || row.name || row.slug || '').trim() || 'Untitled';
                 const ratingValue = Number(row.rating);
                 const ratingCountValue = Number(row.rating_count ?? row.ratings_count ?? 0);
-                const coverUrl = String(row.cover_url || row.cover || '').trim();
+                const extra = row.extra && typeof row.extra === 'object' ? row.extra : {};
+                const coverUrl = pickPreferredCoverUrl([
+                    row.cover_url,
+                    row.cover,
+                    row.cover?.url,
+                    ...(Array.isArray(extra.local_covers) ? extra.local_covers : []),
+                    ...(Array.isArray(extra.covers) ? extra.covers : []),
+                    ...(Array.isArray(extra.official_covers) ? extra.official_covers : []),
+                    ...(Array.isArray(extra.cover_candidates) ? extra.cover_candidates : [])
+                ]);
+                const heroUrl = pickPreferredCoverUrl([
+                    row.hero_url,
+                    row.hero,
+                    row.background_image,
+                    ...(Array.isArray(extra.local_screenshots) ? extra.local_screenshots : []),
+                    ...(Array.isArray(extra.screenshots) ? extra.screenshots : []),
+                    ...(Array.isArray(row.screenshots) ? row.screenshots : []),
+                    ...(Array.isArray(row.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
+                ]);
                 const releaseDate = String(row.release_date || row.released || '').trim();
                 return {
                     ...row,
@@ -5383,8 +5429,8 @@
                     title,
                     cover: coverUrl,
                     cover_url: coverUrl,
-                    hero: coverUrl,
-                    hero_url: coverUrl,
+                    hero: heroUrl || coverUrl,
+                    hero_url: heroUrl || coverUrl,
                     released: releaseDate,
                     release_date: releaseDate,
                     rating: Number.isFinite(ratingValue) ? ratingValue : null,
@@ -5480,15 +5526,7 @@
                 let normalized = text;
                 if (normalized.startsWith('//')) normalized = `https:${normalized}`;
                 if (normalized.startsWith('http://')) normalized = normalized.replace(/^http:\/\//i, 'https://');
-                if (!/^https:\/\//i.test(normalized)) return normalized;
-                if (normalized.includes('/cdn-cgi/image/')) return normalized;
-                if (/\.svg(?:[?#].*)?$/i.test(normalized) || /\.gif(?:[?#].*)?$/i.test(normalized)) return normalized;
-                const width = Math.max(32, Number(options?.width || 520) || 520);
-                const quality = Math.max(30, Math.min(90, Number(options?.quality || 74) || 74));
-                const transforms = [`format=auto`, `quality=${quality}`, `width=${Math.round(width)}`];
-                if (options?.height) transforms.push(`height=${Math.max(32, Math.round(Number(options.height) || 0))}`);
-                if (options?.fit) transforms.push(`fit=${String(options.fit)}`);
-                return `/cdn-cgi/image/${transforms.join(',')}/${encodeURI(normalized)}`;
+                return normalized;
             }
 
             async function fetchTravelCountriesByCodes(codes = []) {

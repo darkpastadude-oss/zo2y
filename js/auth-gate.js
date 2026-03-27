@@ -56,9 +56,11 @@
 
   function safeGetStorageItem(key) {
     try {
-      var sessionValue = window.sessionStorage ? window.sessionStorage.getItem(key) : null;
-      if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
-      return window.localStorage ? window.localStorage.getItem(key) : null;
+      var localValue = window.localStorage ? window.localStorage.getItem(key) : null;
+      if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
+    } catch (_err) {}
+    try {
+      return window.sessionStorage ? window.sessionStorage.getItem(key) : null;
     } catch (_err) {
       return null;
     }
@@ -66,14 +68,14 @@
 
   function safeSetStorageItem(key, value) {
     try {
-      if (window.sessionStorage) {
-        window.sessionStorage.setItem(key, value);
+      if (window.localStorage) {
+        window.localStorage.setItem(key, value);
         return true;
       }
     } catch (_err) {}
     try {
-      if (window.localStorage) {
-        window.localStorage.setItem(key, value);
+      if (window.sessionStorage) {
+        window.sessionStorage.setItem(key, value);
         return true;
       }
     } catch (_err) {}

@@ -994,13 +994,7 @@
         let normalized = raw;
         if (normalized.startsWith('//')) normalized = `https:${normalized}`;
         normalized = normalized.replace(/^http:\/\//i, 'https://');
-        if (!/^https:\/\//i.test(normalized)) return normalized;
-        if (normalized.includes('/cdn-cgi/image/')) return normalized;
-        if (/\.svg(?:[?#].*)?$/i.test(normalized) || /\.gif(?:[?#].*)?$/i.test(normalized)) return normalized;
-        const transforms = [`format=auto`, `quality=${quality}`, `width=${Math.round(width)}`];
-        if (height) transforms.push(`height=${Math.round(height)}`);
-        if (fit) transforms.push(`fit=${fit}`);
-        return `/cdn-cgi/image/${transforms.join(',')}/${encodeURI(normalized)}`;
+        return normalized;
       }
 
       function getAnimePosterUrl(item) {
@@ -1173,7 +1167,7 @@
           const showTitle = item.name || item.original_name || item.title || 'Untitled';
           const showDate = item.first_air_date || item.release_date || '';
           card.innerHTML = `
-            <img src="${getAnimePosterUrl(item)}" alt="${showTitle}" loading="lazy" decoding="async">
+            <img src="${getAnimePosterUrl(item)}" alt="${showTitle}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
             <div class="card-body">
               <h3 class="card-title">${showTitle}</h3>
               <div class="card-meta-row">

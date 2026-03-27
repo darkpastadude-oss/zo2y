@@ -833,13 +833,7 @@
         let normalized = raw;
         if (normalized.startsWith('//')) normalized = `https:${normalized}`;
         normalized = normalized.replace(/^http:\/\//i, 'https://');
-        if (!/^https:\/\//i.test(normalized)) return normalized;
-        if (normalized.includes('/cdn-cgi/image/')) return normalized;
-        if (/\.svg(?:[?#].*)?$/i.test(normalized) || /\.gif(?:[?#].*)?$/i.test(normalized)) return normalized;
-        const transforms = [`format=auto`, `quality=${quality}`, `width=${Math.round(width)}`];
-        if (height) transforms.push(`height=${Math.round(height)}`);
-        if (fit) transforms.push(`fit=${fit}`);
-        return `/cdn-cgi/image/${transforms.join(',')}/${encodeURI(normalized)}`;
+        return normalized;
       }
 
       async function tmdbFetch(path) {
@@ -923,9 +917,16 @@
         document.getElementById('title').textContent = data.name || data.original_name || data.title || 'Untitled';
         document.getElementById('overview').textContent = data.overview || 'No description available.';
         document.getElementById('meta').textContent = `${data.first_air_date || data.release_date || ''} - ${(Array.isArray(data.episode_run_time) && data.episode_run_time.length ? data.episode_run_time[0] : '')} min`;
-        document.getElementById('poster').src = data.poster_path
-          ? optimizeRemoteImage(POSTER_BASE + data.poster_path, { width: 560, quality: 74, fit: 'cover' })
-          : 'images/placeholder.jpg';
+        const posterEl = document.getElementById('poster');
+        if (posterEl) {
+          posterEl.src = data.poster_path
+            ? optimizeRemoteImage(POSTER_BASE + data.poster_path, { width: 560, quality: 74, fit: 'cover' })
+            : 'images/placeholder.jpg';
+          posterEl.onerror = () => {
+            posterEl.onerror = null;
+            posterEl.src = 'images/placeholder.jpg';
+          };
+        }
         const tags = document.getElementById('tags');
         if (tags && Array.isArray(data.genres)) {
           tags.innerHTML = data.genres.map(g => `<span class="tag">${g.name}</span>`).join('');
