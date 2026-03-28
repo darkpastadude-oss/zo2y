@@ -1946,9 +1946,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       };
     }
 
-    function buildNewReleasesFallback() {
-      // Keep this rail strict: do not backfill with generic/trending content.
-      return [];
+    function buildNewReleasesFallback(feedMap = homeFeedState) {
+      const sourceOrder = ['movie', 'tv', 'anime', 'game', 'book', 'music'];
+      const seen = new Set();
+      const fallback = [];
+      sourceOrder.forEach((key) => {
+        const items = Array.isArray(feedMap?.[key]) ? feedMap[key] : [];
+        items.forEach((item) => {
+          if (!item || fallback.length >= 18) return;
+          const dedupeKey = `${String(item.mediaType || key).trim().toLowerCase()}:${String(item.itemId || item.title || '').trim().toLowerCase()}`;
+          if (!dedupeKey || seen.has(dedupeKey)) return;
+          seen.add(dedupeKey);
+          fallback.push(item);
+        });
+      });
+      return fallback;
     }
 
     async function loadNewReleases(signal) {
@@ -5273,7 +5285,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
         if (mediaTypeRaw === 'music') mediaClasses.push('music-cover');
         if (mediaTypeRaw === 'travel') mediaClasses.push('travel-photo');
-        if (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food' || mediaTypeRaw === 'car') mediaClasses.push('brand-cover');
+        if (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food' || mediaTypeRaw === 'car' || mediaTypeRaw === 'sports') mediaClasses.push('brand-cover');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         if (hasVisualImage) mediaClasses.push('is-loading-media');
         if (restaurantComposite && !coverImage && !logo) return '';
@@ -5351,7 +5363,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       primeHomeDeferredImages(rail);
     }
 
-    const BRAND_RAIL_MEDIA_TYPES = new Set(['fashion', 'food', 'car']);
+    const BRAND_RAIL_MEDIA_TYPES = new Set(['fashion', 'food', 'car', 'sports']);
     const LOGO_PLACEHOLDER_TOKENS = ['logo-placeholder.svg', 'newlogo.webp'];
 
     function isLogoPlaceholder(url) {
@@ -7612,7 +7624,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             }
           }
             const dedupedRows = dedupeHomeGameRows(combinedRows, targetCount * 6);
-            const selectedRows = dedupedRows.slice(0, targetCount * 4);
+            const preferredRows = dedupedRows.filter((row) => isPreferredHomeGameRow(row));
+            const shuffledPreferred = stableShuffleHomeItems(preferredRows, 'games:home:preferred');
+            const shuffledAll = stableShuffleHomeItems(dedupedRows, 'games:home:all');
+            const selectedRows = [];
+            const seenRowIds = new Set();
+            [...shuffledPreferred, ...shuffledAll].forEach((row) => {
+              if (selectedRows.length >= targetCount * 4) return;
+              const rowKey = String(row?.id || row?.slug || row?.title || '').trim().toLowerCase();
+              if (!rowKey || seenRowIds.has(rowKey)) return;
+              seenRowIds.add(rowKey);
+              selectedRows.push(row);
+            });
             const mappedItems = selectedRows
               .map((row) => mapToItem(row))
               .filter((item) => item && String(item.itemId || '').trim());
@@ -7661,7 +7684,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           return;
         }
         const script = document.createElement('script');
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260328f';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260329a';
         script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});

@@ -1378,7 +1378,7 @@ async function loadBooks(signal) {
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;
     const HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_home_sports_asset_manifest_v3';
     const HOME_SPORTS_ASSET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
-    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v3';
+      const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v4';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     let homeSportsAssetManifestPromise = null;
     const homeSportsAssetManifestRows = [];
@@ -1599,12 +1599,33 @@ async function loadBooks(signal) {
       return score;
     }
 
+    function prioritizeHomeSportsItems(items = [], targetCount = 16) {
+      const deduped = [];
+      const seen = new Set();
+      (Array.isArray(items) ? items : []).forEach((item) => {
+        const key = [String(item?.itemId || '').trim().toLowerCase(), normalizeHomeSportsName(item?.title || '')]
+          .filter(Boolean)
+          .join('|');
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        deduped.push(item);
+      });
+      const sorted = deduped.slice().sort((a, b) => {
+        const scoreDiff = scoreHomeSportsPriority(b) - scoreHomeSportsPriority(a);
+        if (scoreDiff) return scoreDiff;
+        return String(a?.title || '').localeCompare(String(b?.title || ''));
+      });
+      const featuredPool = sorted.slice(0, Math.max(targetCount * 2, 16));
+      const shuffledFeatured = stableShuffleHomeItems(featuredPool, 'sports:home-priority').slice(0, targetCount);
+      return shuffledFeatured.length ? shuffledFeatured : sorted.slice(0, targetCount);
+    }
+
     async function loadSports(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
       loadHomeSportsAssetManifestFromStorage();
       const localManifestRows = await ensureHomeSportsAssetManifest(signal).catch(() => []);
       if (Array.isArray(localManifestRows) && localManifestRows.length) {
-        const localItems = stableShuffleHomeItems(
+        const localItems = prioritizeHomeSportsItems(
           localManifestRows
             .map((row) => mapSportsTeamToHomeItem({
               idTeam: row.sportsDbId || row.id,
@@ -1614,10 +1635,9 @@ async function loadBooks(signal) {
               strStadium: row.stadium,
               strCountry: row.country
             }))
-            .filter((item) => item && item.image)
-            .sort((a, b) => scoreHomeSportsPriority(b) - scoreHomeSportsPriority(a)),
-          'sports:home-local'
-        ).slice(0, targetCount);
+            .filter((item) => item && item.image),
+          targetCount
+        );
         if (localItems.length >= Math.min(targetCount, 8)) {
           writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, localItems);
           return localItems;
@@ -1637,7 +1657,7 @@ async function loadBooks(signal) {
           seenCached.add(dedupeKey);
           dedupedCached.push(item);
         });
-        if (dedupedCached.length) return dedupedCached.slice(0, targetCount);
+        if (dedupedCached.length) return prioritizeHomeSportsItems(dedupedCached, targetCount);
       }
 
       const seedTeams = [...HOME_SPORTS_SEEDS].slice(0, Math.max(targetCount, 12));
@@ -1666,7 +1686,7 @@ async function loadBooks(signal) {
       });
 
       if (items.length) {
-        const prioritized = items.slice().sort((a, b) => scoreHomeSportsPriority(b) - scoreHomeSportsPriority(a));
+        const prioritized = prioritizeHomeSportsItems(items, targetCount);
         writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, prioritized);
         return prioritized;
       }

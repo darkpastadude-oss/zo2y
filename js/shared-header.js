@@ -513,6 +513,43 @@ const HEADER_HTML = `
     });
   }
 
+  function readStoredHeaderSession() {
+    const bridge = window.__ZO2Y_AUTH_STORAGE_BRIDGE;
+    if (!bridge || typeof bridge.getItem !== 'function') return null;
+    const keys = ['zo2y-auth-v1', 'sb-gfkhjbztayjyojsgdpgk-auth-token'];
+    for (const key of keys) {
+      try {
+        const raw = bridge.getItem(key);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        const session = parsed?.currentSession || parsed?.session || parsed;
+        if (session?.access_token && session?.refresh_token) return session;
+      } catch (_err) {}
+    }
+    return null;
+  }
+
+  async function bootstrapHeaderSessionFromStorage(client) {
+    if (!client?.auth || typeof client.auth.setSession !== 'function') return false;
+    const storedSession = readStoredHeaderSession();
+    if (!storedSession?.access_token || !storedSession?.refresh_token) return false;
+    try {
+      const result = await client.auth.setSession({
+        access_token: storedSession.access_token,
+        refresh_token: storedSession.refresh_token
+      });
+      const session = result?.data?.session || null;
+      if (session?.access_token && session?.refresh_token && window.__ZO2Y_AUTH_STORAGE_BRIDGE) {
+        const payload = JSON.stringify(session);
+        window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem('zo2y-auth-v1', payload);
+        window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem('sb-gfkhjbztayjyojsgdpgk-auth-token', payload);
+      }
+      return !!session?.user;
+    } catch (_err) {
+      return false;
+    }
+  }
+
   async function syncAuthHeaderState() {
     const loginBtn = document.getElementById('loginBtn');
     const signupBtn = document.getElementById('signupBtn');
@@ -529,8 +566,13 @@ const HEADER_HTML = `
     }
 
     try {
-      const { data } = await client.auth.getSession();
-      const session = data && data.session ? data.session : null;
+      let { data } = await client.auth.getSession();
+      let session = data && data.session ? data.session : null;
+      if (!session) {
+        await bootstrapHeaderSessionFromStorage(client);
+        ({ data } = await client.auth.getSession());
+        session = data && data.session ? data.session : null;
+      }
       if (session && session.access_token && session.refresh_token && window.__ZO2Y_AUTH_STORAGE_BRIDGE) {
         try {
           const payload = JSON.stringify(session);
@@ -923,6 +965,9 @@ const HEADER_HTML = `
     wireMobileAccordions();
     wireDesktopRailCollapse();
     wireAuthStateSync();
+    window.addEventListener('zo2y-auth-gate-verified', () => {
+      void syncAuthHeaderState();
+    });
     void syncAuthHeaderState();
   }
 

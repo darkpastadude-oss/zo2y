@@ -56,10 +56,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/pages/index.css?v=20260321e" />
-<link rel="preload" href="css/pages/index-landing.css?v=20260324a" as="style">
-<link rel="stylesheet" href="css/pages/index-landing.css?v=20260324a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/pages/index-landing.css?v=20260324a"></noscript>
+  <link rel="stylesheet" href="css/pages/index.css?v=20260329a" />
+<link rel="preload" href="css/pages/index-landing.css?v=20260329a" as="style">
+<link rel="stylesheet" href="css/pages/index-landing.css?v=20260329a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/pages/index-landing.css?v=20260329a"></noscript>
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -67,11 +67,11 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-<script src="/js/mobile-webapp.js?v=20260324b" defer></script>
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
+<script src="/js/mobile-webapp.js?v=20260329b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
   <script src="js/referral-utils.js?v=20260319a"></script>
-  <script src="js/shared-header.js?v=20260328a" defer></script>
+  <script src="js/shared-header.js?v=20260329a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -84,11 +84,11 @@
           </div>
         </div>
         <div class="landing-hero-copy">
-          <p class="landing-kicker">Your taste map, not another feed</p>
-          <h1 class="landing-title">Track movies, TV, anime, books, music, travel, sports, and reviews in one account.</h1>
+          <p class="landing-kicker">Taste tracking without the chaos</p>
+          <h1 class="landing-title">One profile for every movie, game, book, team, trip, and obsession.</h1>
           <p class="landing-summary">
-            Zo2y is a private-first culture tracker. Save what matters, build custom lists, write reviews, follow friends,
-            and keep every obsession in one place without juggling separate apps.
+            Zo2y is a culture-tracking app for people who bounce between movies, games, anime, books, music, sports, and lifestyle picks all week.
+            Save instantly, build custom lists, review what matters, and keep your taste readable in one clean account.
           </p>
           <div class="landing-auth-notice" id="landingAuthNotice" hidden>
             Sign in to keep browsing. This app is members-only once you leave the landing page.
@@ -103,9 +103,32 @@
             </a>
           </div>
           <div class="landing-proof-strip">
-            <div class="landing-proof-chip"><span>01</span> Custom lists across every medium</div>
-            <div class="landing-proof-chip"><span>02</span> Review feeds and friend activity</div>
-            <div class="landing-proof-chip"><span>03</span> Fast mobile-first saves and ranking</div>
+            <div class="landing-proof-chip"><span>01</span> Save across movies, TV, anime, books, games, music, sports, travel, food, fashion, and cars.</div>
+            <div class="landing-proof-chip"><span>02</span> Build private or public custom lists instead of losing everything in bookmarks.</div>
+            <div class="landing-proof-chip"><span>03</span> Follow people for their taste, not endless posting.</div>
+            <div class="landing-proof-chip"><span>04</span> Mobile-first save flows, profile grids, and faster browsing everywhere.</div>
+          </div>
+          <div class="landing-save-grid" aria-label="Example media types">
+            <article class="landing-save-card">
+              <span class="landing-save-icon"><i class="fa-solid fa-film"></i></span>
+              <strong>Movies</strong>
+              <span>Favorites, watchlists, yearly marathons</span>
+            </article>
+            <article class="landing-save-card">
+              <span class="landing-save-icon"><i class="fa-solid fa-gamepad"></i></span>
+              <strong>Games</strong>
+              <span>Backlogs, played lists, official covers</span>
+            </article>
+            <article class="landing-save-card">
+              <span class="landing-save-icon"><i class="fa-solid fa-book"></i></span>
+              <strong>Books</strong>
+              <span>Read piles, authors, editions, standouts</span>
+            </article>
+            <article class="landing-save-card">
+              <span class="landing-save-icon"><i class="fa-solid fa-futbol"></i></span>
+              <strong>Sports</strong>
+              <span>Teams you follow across football, NBA, F1, NFL, and more</span>
+            </article>
           </div>
         </div>
 
@@ -114,49 +137,64 @@
           <div class="landing-stage-orb landing-stage-orb-b"></div>
           <article class="landing-stage-card landing-stage-card-primary">
             <div class="landing-stage-card-top">
-              <span class="landing-stage-label">Taste Engine</span>
-              <span class="landing-stage-pill">Live</span>
+              <span class="landing-stage-label">Inside Zo2y</span>
+              <span class="landing-stage-pill">Multi-category</span>
             </div>
-            <h3>One home feed for all your interests.</h3>
-            <p>Spotlights, category rails, and review highlights adapt to what you save and rate.</p>
-            <div class="landing-stage-tags">
-              <span>Movies</span>
-              <span>Anime</span>
-              <span>Books</span>
-              <span>Travel</span>
-              <span>Sports</span>
+            <h3>Everything you care about stays in one sharp profile.</h3>
+            <p>Track across media and lifestyle without splitting your identity across five different apps.</p>
+            <div class="landing-stage-showcase-grid">
+              <div class="landing-stage-media-card">
+                <span>Movie list</span>
+                <strong>Best endings ever</strong>
+                <small>4 items saved today</small>
+              </div>
+              <div class="landing-stage-media-card">
+                <span>Game backlog</span>
+                <strong>Jedi, Hades, Persona</strong>
+                <small>Official cover art, cleaner browsing</small>
+              </div>
+              <div class="landing-stage-media-card">
+                <span>Bookshelf</span>
+                <strong>Read this year</strong>
+                <small>Fast scanning, simple progress</small>
+              </div>
+              <div class="landing-stage-media-card">
+                <span>Sports</span>
+                <strong>Real Madrid, Lakers, Ferrari</strong>
+                <small>Teams and leagues in one place</small>
+              </div>
             </div>
           </article>
           <article class="landing-stage-card landing-stage-card-secondary">
-            <p class="landing-stage-mini-label">Custom list demo</p>
+            <p class="landing-stage-mini-label">Profile snapshot</p>
             <div class="landing-stage-list">
-              <div><i class="fa-solid fa-film"></i><span>Neo-noir movies</span></div>
-              <div><i class="fa-solid fa-book"></i><span>Books that wrecked me</span></div>
-              <div><i class="fa-solid fa-earth-americas"></i><span>Dream trips 2026</span></div>
+              <div><i class="fa-solid fa-film"></i><span>61 saved</span></div>
+              <div><i class="fa-solid fa-list"></i><span>14 custom lists</span></div>
+              <div><i class="fa-solid fa-users"></i><span>Follow taste you trust</span></div>
             </div>
           </article>
           <article class="landing-stage-card landing-stage-card-tertiary">
-            <p class="landing-stage-mini-label">Community pulse</p>
-            <strong>@mika added 4 new anime picks</strong>
-            <span>Friend activity lands next to your own lists and reviews.</span>
+            <p class="landing-stage-mini-label">Why it feels better</p>
+            <strong>No split identity across five niche apps.</strong>
+            <span>Everything you save rolls into one profile, one feed, and one history.</span>
           </article>
         </div>
 
         <div class="landing-mobile-stack landing-mobile-only" aria-hidden="true">
           <article class="landing-mobile-card">
-            <p class="landing-mobile-card-kicker">Feed</p>
-            <strong>One clean home for every category</strong>
-            <span>Movies, TV, anime, books, music, travel, and sports stay connected.</span>
+            <p class="landing-mobile-card-kicker">Movies + TV + Anime</p>
+            <strong>Track culture like it belongs together</strong>
+            <span>One save flow, one profile, one history.</span>
           </article>
           <article class="landing-mobile-card landing-mobile-card-accent">
-            <p class="landing-mobile-card-kicker">Lists</p>
-            <strong>Save fast, rank fast</strong>
-            <span>Built for taps, popups, and quick edits on mobile.</span>
+            <p class="landing-mobile-card-kicker">Games + Books + Music</p>
+            <strong>Fast save, browse, and list building</strong>
+            <span>Built for quick taps, clean cards, and custom collections.</span>
           </article>
           <article class="landing-mobile-card">
-            <p class="landing-mobile-card-kicker">Friends</p>
-            <strong>Follow taste you trust</strong>
-            <span>See what people you follow are saving and reviewing.</span>
+            <p class="landing-mobile-card-kicker">Sports + Lifestyle</p>
+            <strong>Teams, trips, food, fashion, cars</strong>
+            <span>Your profile can hold more than just media titles.</span>
           </article>
         </div>
       </section>
@@ -528,7 +566,7 @@
       });
     })();
   </script>
-  <script src="js/pages/index.js?v=20260328e" defer></script>
+  <script src="js/pages/index.js?v=20260329a" defer></script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
   <script src="js/home-desktop-rebrand.js?v=20260323c" defer></script>
 </body>

@@ -71,8 +71,8 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260325a" defer></script>
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
+  <script src="/js/mobile-webapp.js?v=20260329b" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -238,7 +238,7 @@
         }
       }
 
-      function redirectToApp(rawNext, delayMs = 120) {
+      function redirectToApp(rawNext, delayMs = 40) {
         statusText.textContent = 'Success! Redirecting...';
         safeRemoveAuthStorage('postAuthRedirect');
         safeRemoveAuthStorage('oauthFlow');
@@ -669,6 +669,20 @@
           });
         }
 
+        if ((oauthFlow === 'login' || oauthFlow === 'signup') && finalSession?.user?.id) {
+          const onboardingName = String(
+            finalSession?.user?.user_metadata?.full_name ||
+            finalSession?.user?.user_metadata?.name ||
+            ''
+          ).trim();
+          persistPendingPostAuthBootstrap({
+            flow: oauthFlow || 'login',
+            userId: finalSession.user.id,
+            email: String(finalSession?.user?.email || '').trim(),
+            fullName: onboardingName
+          });
+        }
+
         if (oauthFlow === 'login' && finalSession?.user?.id) {
           sendAnalyticsEvent('oauth_callback_success', {
             flow: oauthFlow,
@@ -679,6 +693,20 @@
             method: 'google'
           });
           redirectToApp(next, 80);
+          return;
+        }
+
+        if (oauthFlow === 'signup' && finalSession?.user?.id) {
+          sendAnalyticsEvent('oauth_callback_success', {
+            flow: oauthFlow,
+            created_profile: false,
+            next
+          });
+          sendAnalyticsEvent('signup_success', {
+            method: 'google',
+            created_profile: false
+          });
+          redirectToApp(next, 30);
           return;
         }
 

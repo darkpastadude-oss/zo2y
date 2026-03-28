@@ -1924,7 +1924,7 @@
         window.clearTimeout(state.searchTimer);
         state.searchTimer = window.setTimeout(() => {
           searchTeams(ui.searchInput.value).catch(() => {});
-        }, 220);
+        }, 100);
       });
 
       ui.searchInput.addEventListener('keydown', (event) => {
