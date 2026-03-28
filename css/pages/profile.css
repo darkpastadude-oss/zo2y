@@ -4988,15 +4988,19 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 #mobileCreateFashionListBtn,
 #mobileCreateCarsListBtn,
 #mobileCreateFoodListBtn {
-  width: 40px !important;
-  min-width: 40px;
-  height: 40px;
-  min-height: 40px;
+  width: 28px !important;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
   padding: 0 !important;
   font-size: 0 !important;
   line-height: 1;
   justify-content: center;
-  border-radius: 14px;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--accent) !important;
 }
 
 #createRestaurantListBtn i,
@@ -5022,7 +5026,8 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 #mobileCreateCarsListBtn i,
 #mobileCreateFoodListBtn i {
   margin: 0;
-  font-size: 17px;
+  font-size: 22px;
+  line-height: 1;
 }
 
 #createRestaurantListBtn::after,
@@ -5048,6 +5053,56 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 #mobileCreateCarsListBtn::after,
 #mobileCreateFoodListBtn::after {
   content: "";
+}
+
+#createRestaurantListBtn:hover,
+#createMovieListBtn:hover,
+#createTvListBtn:hover,
+#createAnimeListBtn:hover,
+#createGameListBtn:hover,
+#createBookListBtn:hover,
+#createMusicListBtn:hover,
+#createTravelListBtn:hover,
+#createFashionListBtn:hover,
+#createCarsListBtn:hover,
+#createFoodListBtn:hover,
+#mobileCreateRestaurantListBtn:hover,
+#mobileCreateMovieListBtn:hover,
+#mobileCreateTvListBtn:hover,
+#mobileCreateAnimeListBtn:hover,
+#mobileCreateGameListBtn:hover,
+#mobileCreateBookListBtn:hover,
+#mobileCreateMusicListBtn:hover,
+#mobileCreateTravelListBtn:hover,
+#mobileCreateFashionListBtn:hover,
+#mobileCreateCarsListBtn:hover,
+#mobileCreateFoodListBtn:hover,
+#createRestaurantListBtn:focus-visible,
+#createMovieListBtn:focus-visible,
+#createTvListBtn:focus-visible,
+#createAnimeListBtn:focus-visible,
+#createGameListBtn:focus-visible,
+#createBookListBtn:focus-visible,
+#createMusicListBtn:focus-visible,
+#createTravelListBtn:focus-visible,
+#createFashionListBtn:focus-visible,
+#createCarsListBtn:focus-visible,
+#createFoodListBtn:focus-visible,
+#mobileCreateRestaurantListBtn:focus-visible,
+#mobileCreateMovieListBtn:focus-visible,
+#mobileCreateTvListBtn:focus-visible,
+#mobileCreateAnimeListBtn:focus-visible,
+#mobileCreateGameListBtn:focus-visible,
+#mobileCreateBookListBtn:focus-visible,
+#mobileCreateMusicListBtn:focus-visible,
+#mobileCreateTravelListBtn:focus-visible,
+#mobileCreateFashionListBtn:focus-visible,
+#mobileCreateCarsListBtn:focus-visible,
+#mobileCreateFoodListBtn:focus-visible {
+  background: transparent !important;
+  color: #ffbf47 !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .mobile-overview-flow {
