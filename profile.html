@@ -9,7 +9,7 @@
     <title>Zo2y - Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260328f" />
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260328g" />
     <link rel="icon" href="/newlogo.webp" type="image/webp" />
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -60,10 +60,10 @@
             <div class="viewing-other-profile" id="viewingOtherProfile">
                 <div class="viewing-indicator">
                     <i class="fas fa-eye"></i>
-                    <span>You are viewing another user's profile</span>
+                    <span id="viewingOtherProfileText">Viewing this profile</span>
                 </div>
-                <button class="btn btn-outline" style="border-color: #0b1633; color: #0b1633;" onclick="ProfileManager.goToMyProfile()">
-                    <i class="fas fa-user"></i> Back to My Profile
+                <button class="btn btn-outline viewing-profile-cta" onclick="ProfileManager.goToMyProfile()">
+                    <i class="fas fa-user"></i> My Profile
                 </button>
             </div>
         </div>
@@ -151,11 +151,7 @@
         <div class="container">
             <div class="profile-primary-nav-shell">
                 <div class="profile-primary-nav" role="tablist" aria-label="Profile sections">
-                    <button class="profile-primary-tab active" type="button" data-primary-tab="overview" onclick="ProfileManager.showPrimaryTab('overview')">
-                        <span class="profile-primary-tab-label">Overview</span>
-                        <span class="profile-primary-tab-copy">Snapshot</span>
-                    </button>
-                    <button class="profile-primary-tab" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
+                    <button class="profile-primary-tab active" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
                         <span class="profile-primary-tab-label">Lists</span>
                         <span class="profile-primary-tab-copy">Media and lifestyle</span>
                     </button>
@@ -165,17 +161,6 @@
                     </button>
                 </div>
             </div>
-
-            <section class="profile-primary-panel" data-panel="overview">
-            <div class="social-preview-row" id="desktopSocialPreview">
-                <div class="social-preview-info">
-                    <div class="social-preview-title">Community Snapshot</div>
-                    <div class="social-preview-meta" id="desktopSocialPreviewMeta">0 followers &middot; 0 following</div>
-                </div>
-                <div class="social-preview-avatars" id="desktopFriendsPreviewAvatars"></div>
-                <button class="social-preview-link" onclick="ProfileManager.showTab('community')">View community -></button>
-            </div>
-            </section>
 
             <section class="profile-primary-panel" data-panel="lists">
             <!-- Navigation Tabs -->
@@ -597,10 +582,10 @@
                     <div class="section-header">
                         <div>
                             <h2 class="section-title" id="communityTitle">Community</h2>
-                            <p class="section-subtitle" id="communitySubtitle">Connect with other food lovers</p>
+                            <p class="section-subtitle" id="communitySubtitle">Follow collectors, discover lists, and keep up with what your circle is saving.</p>
                         </div>
                         <div class="section-actions">
-                            <div class="d-flex gap-sm">
+                            <div class="community-switcher d-flex gap-sm">
                                 <button class="btn btn-secondary btn-sm active" id="showFollowersBtn" onclick="ProfileManager.showCommunitySection('followers')">
                                     Followers <span id="followersCountBadge" class="nav-tab-badge">0</span>
                                 </button>
@@ -617,17 +602,30 @@
                         </div>
                     </div>
 
+                    <div class="community-intro-card">
+                        <div class="community-intro-copy">
+                            <span class="community-intro-kicker">Network</span>
+                            <h3>Build a circle around taste</h3>
+                            <p>Follow people whose lists you trust, see what they are saving, and jump straight into their collections.</p>
+                        </div>
+                        <div class="community-intro-actions">
+                            <button class="btn btn-primary" type="button" onclick="ProfileManager.showModal('communitySearchModal')">
+                                <i class="fas fa-user-plus"></i> Find People
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Followers Section -->
                     <div class="community-section active" id="followersSection">
                         <div class="section-header">
                             <h3 class="section-title" id="followersSectionTitle">Your Followers</h3>
-                            <p class="section-subtitle">People who follow your food journey</p>
+                            <p class="section-subtitle">People keeping up with this profile's saved items and lists.</p>
                         </div>
                         <div id="followersList">
                             <div class="empty-state">
                                 <div class="empty-icon"><i class="fas fa-list"></i></div>
                                 <h3 class="empty-title">No followers yet</h3>
-                                <p class="empty-description">Share your profile to get followers!</p>
+                                <p class="empty-description">Share a few strong lists and this space will start filling up.</p>
                             </div>
                         </div>
                     </div>
@@ -636,13 +634,13 @@
                     <div class="community-section" id="followingSection">
                         <div class="section-header">
                             <h3 class="section-title" id="followingSectionTitle">You're Following</h3>
-                            <p class="section-subtitle">People whose food journey you follow</p>
+                            <p class="section-subtitle">Profiles you follow for ideas, recommendations, and list inspiration.</p>
                         </div>
                         <div id="followingList">
                             <div class="empty-state">
                                 <div class="empty-icon"><i class="fas fa-list"></i></div>
                                 <h3 class="empty-title">Not following anyone yet</h3>
-                                <p class="empty-description">Discover and follow other food lovers!</p>
+                                <p class="empty-description">Start following a few people to build a more useful feed.</p>
                             </div>
                         </div>
                     </div>
@@ -651,13 +649,13 @@
                     <div class="community-section" id="activitySection">
                         <div class="section-header">
                             <h3 class="section-title" id="activitySectionTitle">Community Activity</h3>
-                            <p class="section-subtitle">Recent list adds and reviews from people you follow</p>
+                            <p class="section-subtitle">Recent saves, new lists, and review activity from people you follow.</p>
                         </div>
                         <div id="activityList">
                             <div class="empty-state">
                                 <div class="empty-icon"><i class="fas fa-list"></i></div>
                                 <h3 class="empty-title">No activity yet</h3>
-                                <p class="empty-description">Follow users and add reviews to populate this feed.</p>
+                                <p class="empty-description">Follow more people or publish fresh lists to wake this feed up.</p>
                             </div>
                         </div>
                     </div>
@@ -1033,9 +1031,9 @@
         <div class="mobile-viewing-indicator" id="mobileViewingIndicator">
             <div class="viewing-indicator">
                 <i class="fas fa-eye"></i>
-                <span>You are viewing another user's profile</span>
+                <span id="mobileViewingOtherProfileText">Viewing this profile</span>
             </div>
-            <button class="btn btn-outline btn-sm" onclick="ProfileManager.goToMyProfile()" style="border-color: #0b1633; color: #0b1633; padding: 4px 8px; font-size: 12px;">
+            <button class="btn btn-outline btn-sm viewing-profile-cta" onclick="ProfileManager.goToMyProfile()" style="padding: 4px 8px; font-size: 12px;">
                 <i class="fas fa-user"></i> My Profile
             </button>
         </div>
@@ -1440,7 +1438,7 @@
             <div class="mobile-section" id="mobileCommunitySection">
                 <div class="mobile-section-title">
                     <span id="mobileCommunityTitle">Community</span>
-                    <div style="display: flex; gap: 8px;">
+                    <div class="community-switcher mobile-community-switcher">
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px;" onclick="ProfileManager.showCommunitySection('followers')" id="mobileFollowersTabBtn">
                             Followers
                         </button>
@@ -1452,43 +1450,50 @@
                         </button>
                     </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileCommunitySubtitle">Connect with other food lovers</div>
-                <button class="mobile-action-btn secondary" style="width: auto; margin: 0 0 12px 0;" onclick="ProfileManager.showModal('communitySearchModal')">
-                    <i class="fas fa-user-plus"></i> Find Users
-                </button>
+                <div class="mobile-section-subtitle" id="mobileCommunitySubtitle">Follow collectors, see what they save, and keep up with new lists.</div>
+                <div class="mobile-community-intro">
+                    <div class="mobile-community-intro-copy">
+                        <span class="community-intro-kicker">Network</span>
+                        <strong>Find people worth following</strong>
+                        <p>Build a sharper feed by following profiles with good taste across media and lifestyle.</p>
+                    </div>
+                    <button class="mobile-action-btn secondary" style="width: auto; margin: 0;" onclick="ProfileManager.showModal('communitySearchModal')">
+                        <i class="fas fa-user-plus"></i> Find Users
+                    </button>
+                </div>
                 
                 <!-- Followers Tab -->
                 <div class="mobile-community-tab active" id="mobileFollowersTab">
                     <div id="mobileFollowersList">
-                        <div class="mobile-empty-state">
-                            <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                            <div class="mobile-empty-title">No followers yet</div>
-                            <div class="mobile-empty-description">Share your profile to get followers!</div>
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                                <div class="mobile-empty-title">No followers yet</div>
+                                <div class="mobile-empty-description">Share a few standout lists and your audience will build over time.</div>
+                            </div>
                         </div>
                     </div>
-                </div>
                 
                 <!-- Following Tab -->
                 <div class="mobile-community-tab" id="mobileFollowingTab">
                     <div id="mobileFollowingList">
-                        <div class="mobile-empty-state">
-                            <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                            <div class="mobile-empty-title">Not following anyone</div>
-                            <div class="mobile-empty-description">Discover and follow other food lovers!</div>
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                                <div class="mobile-empty-title">Not following anyone</div>
+                                <div class="mobile-empty-description">Follow a few strong profiles to make this tab useful.</div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
                 <!-- Activity Tab -->
                 <div class="mobile-community-tab" id="mobileActivityTab">
                     <div id="mobileActivityList">
-                        <div class="mobile-empty-state">
-                            <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                            <div class="mobile-empty-title">No activity yet</div>
-                            <div class="mobile-empty-description">Follow users and add reviews to populate this feed.</div>
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                                <div class="mobile-empty-title">No activity yet</div>
+                                <div class="mobile-empty-description">Follow more people or publish new lists to populate this feed.</div>
+                            </div>
                         </div>
                     </div>
-                </div>
             </div>
             </section>
 

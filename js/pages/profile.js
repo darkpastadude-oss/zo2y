@@ -40,8 +40,8 @@
             const ENABLE_RESTAURANTS = false;
             const GAMES_DISABLED = false;
             const DEFAULT_PROFILE_TAB = ENABLE_RESTAURANTS ? 'restaurants' : 'movies';
-            const VALID_PRIMARY_TABS = new Set(['overview', 'reviews', 'lists', 'activity', 'about']);
-            let currentPrimaryTab = 'overview';
+            const VALID_PRIMARY_TABS = new Set(['lists', 'activity']);
+            let currentPrimaryTab = 'lists';
             let lastMediaTab = DEFAULT_PROFILE_TAB;
             let restaurants = [];
             let customLists = [];
@@ -266,7 +266,7 @@
                     
                     // 2. FIX: Update setupEventListeners to prevent multiple bindings
                     setupEventListeners();
-                    showPrimaryTab(window.innerWidth <= 768 ? 'lists' : 'overview', { force: true, skipTabSync: true });
+                    showPrimaryTab('lists', { force: true, skipTabSync: true });
                     bindRouteListeners();
                     
                     if (window.innerWidth <= 768) {
@@ -602,7 +602,7 @@
 
             function normalizePrimaryTab(tabName) {
                 const safe = String(tabName || '').trim().toLowerCase();
-                return VALID_PRIMARY_TABS.has(safe) ? safe : 'overview';
+                return VALID_PRIMARY_TABS.has(safe) ? safe : 'lists';
             }
 
             function syncPrimaryTabUi(activeTab) {
@@ -907,7 +907,7 @@
 
                 targetUser = profile;
                 updateProfileUI(profile);
-                updateTabTitlesForOtherUser(profile.full_name || profile.username || 'User');
+                updateTabTitlesForOtherUser(profile.username || profile.full_name || 'User');
                 await updateFollowButton();
                 await updateStats(targetUserId);
             }
@@ -1158,6 +1158,8 @@
                 const communitySubtitle = document.getElementById('communitySubtitle');
                 const followersSectionTitle = document.getElementById('followersSectionTitle');
                 const followingSectionTitle = document.getElementById('followingSectionTitle');
+                const viewingOtherProfileText = document.getElementById('viewingOtherProfileText');
+                const mobileViewingOtherProfileText = document.getElementById('mobileViewingOtherProfileText');
                 
                 if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
                 if (restaurantsTabText) restaurantsTabText.textContent = `${userName}'s Collections`;
@@ -1187,6 +1189,8 @@
                 if (communitySubtitle) communitySubtitle.textContent = `${userName}'s community connections`;
                 if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
                 if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
+                if (viewingOtherProfileText) viewingOtherProfileText.textContent = `Viewing ${userName}'s profile`;
+                if (mobileViewingOtherProfileText) mobileViewingOtherProfileText.textContent = `${userName}'s profile`;
                 
                 const mobileJournalTabText = document.getElementById('mobileJournalTabText');
                 const mobileTabJournal = document.getElementById('mobileTabJournal');
@@ -4040,6 +4044,9 @@
                             
                             const isMobile = window.innerWidth <= 768 || containerId.includes('mobile');
                             
+                            const savedItemsCount = user.saved_items_count ?? user.saved_count ?? user.visited_count ?? user.favorites_count ?? 0;
+                            const createdListsCount = user.created_lists_count ?? user.lists_count ?? 0;
+
                             if (isMobile) {
                                 const userCard = document.createElement('div');
                                 userCard.className = 'mobile-community-card';
@@ -4054,12 +4061,12 @@
                                     </div>
                                     <div class="mobile-community-stats">
                                         <div class="mobile-community-stat">
-                                            <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
-                                            <span class="mobile-community-stat-label">Visited</span>
+                                            <span class="mobile-community-stat-number">${savedItemsCount}</span>
+                                            <span class="mobile-community-stat-label">Saved items</span>
                                         </div>
                                         <div class="mobile-community-stat">
-                                            <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
-                                            <span class="mobile-community-stat-label">Favorites</span>
+                                            <span class="mobile-community-stat-number">${createdListsCount}</span>
+                                            <span class="mobile-community-stat-label">Lists created</span>
                                         </div>
                                         <div class="mobile-community-stat">
                                             <span class="mobile-community-stat-number">${user.followers_count || 0}</span>
@@ -4096,12 +4103,12 @@
                                     </div>
                                     <div class="community-stats">
                                         <div class="community-stat">
-                                            <span class="community-stat-number">${user.visited_count || 0}</span>
-                                            <span class="community-stat-label">Visited</span>
+                                            <span class="community-stat-number">${savedItemsCount}</span>
+                                            <span class="community-stat-label">Saved items</span>
                                         </div>
                                         <div class="community-stat">
-                                            <span class="community-stat-number">${user.lists_count || 0}</span>
-                                            <span class="community-stat-label">Lists</span>
+                                            <span class="community-stat-number">${createdListsCount}</span>
+                                            <span class="community-stat-label">Lists created</span>
                                         </div>
                                         <div class="community-stat">
                                             <span class="community-stat-number">${user.followers_count || 0}</span>
@@ -12798,7 +12805,6 @@
             // ===== SETUP EVENT LISTENERS =====
             function setupEventListeners() {
                 console.log('Setting up event listeners...');
-                setupCommunitySnapshotNavigation();
                 wireProfileTabGroups();
                 bindProfileModalViewportListeners();
                 
