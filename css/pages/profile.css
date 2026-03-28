@@ -5140,6 +5140,74 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   .profile-tab-group-toggle {
     gap: 8px;
   }
+
+  .mobile-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px 12px;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .mobile-tab[data-tab="restaurants"],
+  .mobile-tab.profile-tab-group-toggle {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 52px;
+    padding: 12px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom-width: 1px;
+  }
+
+  .mobile-tab.profile-tab-group-toggle {
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .mobile-tab.profile-tab-group-toggle i {
+    font-size: 13px;
+    margin: 1px 0 0;
+  }
+
+  .mobile-tab.profile-tab-group-toggle span,
+  .mobile-tab[data-tab="restaurants"] span {
+    font-size: 14px;
+    font-weight: 700;
+  }
+}
+
+.section-header .section-actions,
+.mobile-section-title > div {
+  align-items: center;
+}
+
+#createRestaurantListBtn i,
+#createMovieListBtn i,
+#createTvListBtn i,
+#createAnimeListBtn i,
+#createGameListBtn i,
+#createBookListBtn i,
+#createMusicListBtn i,
+#createTravelListBtn i,
+#createFashionListBtn i,
+#createCarsListBtn i,
+#createFoodListBtn i,
+#mobileCreateRestaurantListBtn i,
+#mobileCreateMovieListBtn i,
+#mobileCreateTvListBtn i,
+#mobileCreateAnimeListBtn i,
+#mobileCreateGameListBtn i,
+#mobileCreateBookListBtn i,
+#mobileCreateMusicListBtn i,
+#mobileCreateTravelListBtn i,
+#mobileCreateFashionListBtn i,
+#mobileCreateCarsListBtn i,
+#mobileCreateFoodListBtn i {
+  transform: translateY(3px) !important;
 }
 
 .mobile-overview-flow {

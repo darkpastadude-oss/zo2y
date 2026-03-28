@@ -213,6 +213,18 @@
     return null;
   }
 
+  function persistSessionSnapshot(session) {
+    if (!session || !session.access_token || !session.refresh_token) return false;
+    try {
+      var payload = JSON.stringify(session);
+      safeSetStorageItem(STORAGE_KEY, payload);
+      safeSetStorageItem(LEGACY_STORAGE_KEY, payload);
+      return true;
+    } catch (_err) {
+      return false;
+    }
+  }
+
   function getStoredSessionSignature(session) {
     if (!session || !session.access_token || !session.refresh_token) return '';
     return String(session.access_token).slice(0, 24) + '|' + String(session.refresh_token).slice(0, 24);
@@ -328,6 +340,7 @@
         });
         var authenticated = !!(setResult && setResult.data && setResult.data.session && setResult.data.session.user);
         if (authenticated) {
+          persistSessionSnapshot(setResult.data.session);
           client.__zo2yStorageBootstrap.done = true;
           client.__zo2yFutureRetryWaitMs = 0;
         }
@@ -366,6 +379,7 @@
         }
         var authenticated = !!(session && session.user);
         var finalAuthenticated = authenticated;
+        if (authenticated) persistSessionSnapshot(session);
         if (!authenticated && hasStoredSnapshot && client.__zo2yFutureRetryWaitMs > 0 && pageKey === 'index') {
           applyShellState(false, pageKey, { shell: 'pending', verified: false });
           if (client.__zo2yFutureRetryTimer) window.clearTimeout(client.__zo2yFutureRetryTimer);
@@ -388,6 +402,7 @@
               var refreshedResult = await client.auth.refreshSession();
               var refreshedSession = refreshedResult && refreshedResult.data ? refreshedResult.data.session : null;
               retryAuthenticated = !!(refreshedSession && refreshedSession.user);
+              if (retryAuthenticated && refreshedSession) persistSessionSnapshot(refreshedSession);
             } catch (_refreshErr) {}
           }
           finalAuthenticated = retryAuthenticated;
@@ -458,6 +473,9 @@
       if (!window.__ZO2Y_AUTH_GATE_LISTENER_BOUND && client.auth && typeof client.auth.onAuthStateChange === 'function') {
         window.__ZO2Y_AUTH_GATE_LISTENER_BOUND = true;
         client.auth.onAuthStateChange(function (_event, session) {
+          if (session && session.access_token && session.refresh_token) {
+            persistSessionSnapshot(session);
+          }
           if (authStateVerifyTimer) window.clearTimeout(authStateVerifyTimer);
           authStateVerifyTimer = window.setTimeout(function () {
             void verifyAndApply();

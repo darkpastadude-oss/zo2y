@@ -492,7 +492,14 @@ const HEADER_HTML = `
     if (!client || !client.auth || typeof client.auth.onAuthStateChange !== 'function') return;
 
     authStateListenerBound = true;
-    client.auth.onAuthStateChange(() => {
+    client.auth.onAuthStateChange((_event, session) => {
+      if (session && session.access_token && session.refresh_token && window.__ZO2Y_AUTH_STORAGE_BRIDGE) {
+        try {
+          const payload = JSON.stringify(session);
+          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem('zo2y-auth-v1', payload);
+          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(`sb-gfkhjbztayjyojsgdpgk-auth-token`, payload);
+        } catch (_err) {}
+      }
       void syncAuthHeaderState();
     });
     document.addEventListener('visibilitychange', () => {
@@ -521,6 +528,13 @@ const HEADER_HTML = `
     try {
       const { data } = await client.auth.getSession();
       const session = data && data.session ? data.session : null;
+      if (session && session.access_token && session.refresh_token && window.__ZO2Y_AUTH_STORAGE_BRIDGE) {
+        try {
+          const payload = JSON.stringify(session);
+          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem('zo2y-auth-v1', payload);
+          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(`sb-gfkhjbztayjyojsgdpgk-auth-token`, payload);
+        } catch (_err) {}
+      }
       const loggedIn = !!session;
       const user = session && session.user ? session.user : null;
       const hiddenDisplay = 'none';
