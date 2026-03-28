@@ -8092,6 +8092,59 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       renderLandingFeedPreview(feed || {});
     }
 
+    function wireLandingHomePreviewGate() {
+      const root = document.querySelector('.desktop-app-shell.landing-preview-allowed');
+      if (!root || root.dataset.landingGateWired === '1') return;
+      root.dataset.landingGateWired = '1';
+
+      const isAllowedPublicHref = (href) => {
+        const safeHref = String(href || '').trim().toLowerCase();
+        return safeHref.startsWith('privacy.html')
+          || safeHref.startsWith('terms.html')
+          || safeHref.startsWith('support.html')
+          || safeHref.startsWith('mailto:');
+      };
+
+      const spotlightOpenBtn = document.getElementById('spotlightOpenBtn');
+      if (spotlightOpenBtn) {
+        spotlightOpenBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Unlock';
+      }
+
+      const loadStatus = document.getElementById('loadStatus');
+      if (loadStatus) {
+        loadStatus.textContent = 'Live homepage preview. Sign up to save, review, and build lists.';
+      }
+
+      root.addEventListener('click', (event) => {
+        const target = event.target instanceof Element ? event.target : null;
+        if (!target) return;
+        if (target.closest('#spotlightNextBtn') || target.closest('[data-spotlight-index]')) return;
+
+        const card = target.closest('.card');
+        const anchor = target.closest('a');
+        const spotlight = target.closest('#spotlightSection');
+        let next = '';
+
+        if (card) {
+          next = String(card.getAttribute('data-href') || '').trim();
+        } else if (anchor) {
+          next = String(anchor.getAttribute('href') || '').trim();
+        } else if (spotlight && !isSpotlightInteractiveTarget(target)) {
+          next = String(spotlight.getAttribute('data-href') || spotlightOpenBtn?.getAttribute('href') || '').trim();
+        }
+
+        if (!next || isAllowedPublicHref(next)) return;
+        const safeNext = sanitizeHomeNextPath(next);
+        if (!safeNext || safeNext === 'index.html' || /^#/.test(safeNext)) return;
+        if (/^(login|sign-up)\.html/i.test(safeNext)) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        localStorage.setItem('postAuthRedirect', safeNext);
+        window.location.href = buildLandingAuthHref(safeNext);
+      }, true);
+    }
+
     function initLandingExperience() {
       if (landingExperienceInitialized) return;
       landingExperienceInitialized = true;
@@ -8116,6 +8169,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       initLandingMascot();
       wireLandingAuthNextLinks(document);
       void hydrateLandingFeedPreview();
+      wireLandingHomePreviewGate();
 
       if (!revealNodes.length || typeof window.IntersectionObserver !== 'function') {
         revealNodes.forEach((node) => node.classList.add('is-visible'));
@@ -8225,6 +8279,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const authGateState = getHomeAuthGateState();
       if (authGateState?.authShell === 'landing' && authGateState?.verified && !authGateState?.authenticated) {
         initLandingExperience();
+        wireLandingHomePreviewGate();
+        void initUniversalHome().catch((error) => {
+          console.error('Landing home preview boot failed:', error);
+          setStatus('Could not load the live homepage preview right now. Please refresh.', true);
+        });
       } else if (authGateState?.authShell === 'app' && authGateState?.authenticated) {
         void bootAuthenticatedHome().catch((error) => {
           console.error('Home boot failed:', error);
@@ -8243,6 +8302,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           return;
         }
         initLandingExperience();
+        wireLandingHomePreviewGate();
+        void initUniversalHome().catch((error) => {
+          console.error('Landing home preview boot failed after auth verification:', error);
+          setStatus('Could not load the live homepage preview right now. Please refresh.', true);
+        });
       });
 
       const itemMenuModal = document.getElementById('itemMenuModal');

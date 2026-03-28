@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v199';
-const PAGE_CACHE = 'zo2y-pages-v170';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v200';
+const PAGE_CACHE = 'zo2y-pages-v171';
 const IMAGE_CACHE = 'zo2y-images-v32';
 const API_CACHE = 'zo2y-api-v12';
 const MOVIES_PAGE_VERSION = '20260322m';
@@ -12,10 +12,10 @@ const STATIC_ASSETS = [
   '/credits.html',
   '/manifest.webmanifest',
   '/css/pages/index.css?v=20260329a',
-  '/css/pages/index-landing.css?v=20260329c',
+  '/css/pages/index-landing.css?v=20260329d',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260329b',
+  '/js/pages/index.js?v=20260329c',
   '/js/pages/index-home-heavy-loaders.js?v=20260329a',
   '/js/home-desktop-rebrand.js?v=20260323c',
   '/js/referral-utils.js?v=20260319a',

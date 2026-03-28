@@ -23,6 +23,10 @@
       display: none !important;
     }
 
+    html[data-auth-shell="landing"] .authenticated-only.landing-preview-allowed {
+      display: block !important;
+    }
+
     html[data-auth-shell="landing"] .zo2y-desktop-rail {
       display: none !important;
     }
@@ -135,9 +139,9 @@
     .landing-main {
       width: min(1240px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 28px 0 64px;
+      padding: 18px 0 18px;
       display: grid;
-      gap: 28px;
+      gap: 18px;
     }
 
     .landing-hero,
@@ -154,10 +158,10 @@
 
     .landing-hero {
       min-height: 0;
-      padding: 54px;
+      padding: 30px 32px;
       display: grid;
-      grid-template-columns: minmax(0, 0.84fr) minmax(360px, 1.16fr);
-      gap: 34px;
+      grid-template-columns: 1fr;
+      gap: 16px;
       align-items: start;
     }
 
@@ -232,20 +236,20 @@
     }
 
     .landing-title {
-      margin-top: 16px;
+      margin-top: 10px;
       font-family: 'Outfit', 'Sora', sans-serif;
-      font-size: clamp(46px, 6vw, 74px);
-      line-height: 0.95;
+      font-size: clamp(34px, 5vw, 56px);
+      line-height: 0.98;
       letter-spacing: -0.04em;
-      max-width: 10ch;
+      max-width: 13ch;
     }
 
     .landing-summary {
-      margin-top: 18px;
-      max-width: 620px;
+      margin-top: 12px;
+      max-width: 70ch;
       color: rgba(232, 240, 255, 0.84);
-      font-size: 17px;
-      line-height: 1.75;
+      font-size: 16px;
+      line-height: 1.7;
     }
 
     .landing-auth-notice {
@@ -298,6 +302,37 @@
       background: linear-gradient(180deg, rgba(6, 13, 31, 0.94), rgba(12, 26, 60, 0.96));
       box-shadow: 0 28px 54px rgba(0,0,0,0.28);
       overflow: hidden;
+    }
+
+    html[data-auth-shell="landing"] .landing-app-shell,
+    html[data-auth-shell="landing"] .landing-preview-band,
+    html[data-auth-shell="landing"] .landing-trust-band,
+    html[data-auth-shell="landing"] .landing-close-band {
+      display: none !important;
+    }
+
+    html[data-auth-shell="landing"] .desktop-app-shell.landing-preview-allowed {
+      margin: 0 auto;
+    }
+
+    html[data-auth-shell="landing"] .desktop-app-shell.landing-preview-allowed .desktop-main-panel {
+      width: min(1240px, calc(100% - 32px));
+      margin: 0 auto 42px;
+    }
+
+    html[data-auth-shell="landing"] .desktop-app-shell.landing-preview-allowed .container.page-shell {
+      margin-top: 0;
+      padding-top: 0;
+    }
+
+    html[data-auth-shell="landing"] .desktop-app-shell.landing-preview-allowed .legal-strip {
+      display: none;
+    }
+
+    html[data-auth-shell="landing"] .desktop-app-shell.landing-preview-allowed .card-menu-btn,
+    html[data-auth-shell="landing"] .desktop-app-shell.landing-preview-allowed .menu-create-list-btn,
+    html[data-auth-shell="landing"] .desktop-app-shell.landing-preview-allowed .card-hover-cue {
+      display: none !important;
     }
 
     .landing-app-shell::before {
