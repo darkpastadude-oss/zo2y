@@ -915,6 +915,7 @@
         if (!supabaseClient) {
           supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
             auth: {
+              storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE,
               persistSession: true,
               autoRefreshToken: true,
               detectSessionInUrl: false,

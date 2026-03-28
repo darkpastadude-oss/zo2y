@@ -4145,6 +4145,9 @@ header, .top-stripe, .section-nav {
 
 .nav-tabs {
   position: static;
+  display: grid;
+  grid-template-columns: minmax(126px, 1fr) minmax(0, 1.2fr) minmax(0, 1.2fr);
+  gap: 10px;
   margin-bottom: 10px;
   padding: 6px;
   background: rgba(19, 35, 71, 0.78);
@@ -4154,19 +4157,24 @@ header, .top-stripe, .section-nav {
 }
 
 .profile-tab-group-toggle {
-  gap: 8px;
-  background: transparent;
+  justify-content: center;
+  gap: 10px;
+  min-height: 54px;
+  background: rgba(255, 255, 255, 0.02);
   border: 0;
   color: var(--text);
-  padding: 12px 20px;
-  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  border-radius: 14px;
   font: inherit;
+  font-size: 15px;
+  font-weight: 700;
   appearance: none;
   -webkit-appearance: none;
 }
 
 .profile-tab-group-toggle i.fa-chevron-down {
-  font-size: 0.85em;
+  font-size: 0.86em;
+  margin-top: 1px;
 }
 
 .profile-tab-group-row {
@@ -4203,6 +4211,12 @@ header, .top-stripe, .section-nav {
   padding: 10px 14px;
   font-size: 13px;
   font-weight: 600;
+}
+
+.profile-tab-collections {
+  justify-content: center;
+  min-height: 54px;
+  border-radius: 14px;
 }
 
 .section {
@@ -4988,6 +5002,9 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 #mobileCreateFashionListBtn,
 #mobileCreateCarsListBtn,
 #mobileCreateFoodListBtn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
   width: 28px !important;
   min-width: 28px;
   height: 28px;
@@ -4995,7 +5012,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   padding: 0 !important;
   font-size: 0 !important;
   line-height: 1;
-  justify-content: center;
+  vertical-align: middle;
   border: 0 !important;
   border-radius: 0;
   background: transparent !important;
@@ -5028,6 +5045,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   margin: 0;
   font-size: 22px;
   line-height: 1;
+  transform: translateY(1px);
 }
 
 #createRestaurantListBtn::after,
@@ -5103,6 +5121,25 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   color: #ffbf47 !important;
   transform: none !important;
   box-shadow: none !important;
+}
+
+@media (max-width: 768px) {
+  .nav-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .profile-tab-collections,
+  .profile-tab-group-toggle {
+    min-height: 50px;
+    padding: 12px 10px;
+    font-size: 14px;
+  }
+
+  .profile-tab-group-toggle {
+    gap: 8px;
+  }
 }
 
 .mobile-overview-flow {

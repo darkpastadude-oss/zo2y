@@ -771,6 +771,7 @@
       if (!window.supabase || !window.supabase.createClient) return null;
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
+          storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE,
           flowType: 'pkce',
           persistSession: true,
           autoRefreshToken: true,

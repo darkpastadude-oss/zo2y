@@ -1670,7 +1670,7 @@
         }
         if (window.supabase && typeof window.supabase.createClient === 'function') {
           client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'zo2y-auth-v1' }
+            auth: { storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'zo2y-auth-v1' }
           });
           return client;
         }

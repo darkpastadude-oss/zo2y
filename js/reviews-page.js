@@ -39,9 +39,16 @@
   function safeHttps(url) {
     const text = String(url || "").trim();
     if (!text) return "";
+    if (/\.php(?:$|[?#])/i.test(text)) return "";
     if (text.startsWith("//")) return `https:${text}`;
     if (text.startsWith("http://")) return text.replace(/^http:\/\//i, "https://");
     return text;
+  }
+
+  function getSafeReviewImage(url) {
+    const clean = safeHttps(url);
+    if (!clean) return FALLBACK_IMAGE;
+    return clean;
   }
 
   function reviewKey(mediaType, itemId) {
@@ -125,7 +132,13 @@
     for (let i = 0; i < 20; i += 1) {
       if (window.supabase?.createClient) {
         client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+          auth: {
+            storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE,
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: false,
+            storageKey: "zo2y-auth-v1"
+          }
         });
         window.__ZO2Y_SUPABASE_CLIENT = client;
         return client;
@@ -379,7 +392,7 @@
         return {
           title: meta.title || "Untitled",
           subtitle: meta.subtitle || (LABEL_BY_MEDIA[row.mediaType] || "Media"),
-          image: safeHttps(meta.image || "") || FALLBACK_IMAGE,
+          image: getSafeReviewImage(meta.image || ""),
           href: meta.href || "reviews.html",
           mediaLabel: LABEL_BY_MEDIA[row.mediaType] || "Media",
           reviewer: getReviewer(row.userId),
@@ -442,7 +455,7 @@
             <div class="reviews-spotlight-card-signoff">-(${escapeHtml(String(item.reviewer || "").replace(/^@/, "") || "zo2y")})</div>
           </div>
           <div class="reviews-spotlight-card-thumb-wrap">
-            <img class="reviews-spotlight-card-thumb" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)} artwork" loading="lazy" decoding="async">
+            <img class="reviews-spotlight-card-thumb" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)} artwork" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'">
           </div>
         </a>`;
     }).join("");
@@ -452,7 +465,7 @@
     if (popStars) popStars.innerHTML = stars(current.rating);
     if (popByline) popByline.textContent = `${current.reviewer} | ${current.rating.toFixed(1)}/5 | ${current.dateLabel}`;
     if (popQuote) popQuote.textContent = current.quote;
-    if (popThumb) popThumb.src = current.image || FALLBACK_IMAGE;
+    if (popThumb) popThumb.src = getSafeReviewImage(current.image || FALLBACK_IMAGE);
     if (popLink) popLink.href = current.href || "reviews.html";
   }
 
@@ -495,7 +508,7 @@
       const mediaLabel = escapeHtml(LABEL_BY_MEDIA[media] || "Media");
       const mediaIcon = escapeHtml(ICON_BY_MEDIA[media] || "fa-shapes");
       const href = escapeHtml(meta.href || "#");
-      const image = escapeHtml(safeHttps(meta.image || "") || FALLBACK_IMAGE);
+      const image = escapeHtml(getSafeReviewImage(meta.image || ""));
       const comment = escapeHtml(String(row.comment || "").trim()) || "No written comment provided.";
       const dateText = escapeHtml(formatDate(row.createdAt));
       return `
