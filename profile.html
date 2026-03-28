@@ -9,7 +9,7 @@
     <title>Zo2y - Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260328c" />
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260328d" />
     <link rel="icon" href="/newlogo.webp" type="image/webp" />
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -72,57 +72,79 @@
         <div class="profile-header">
             <div class="container">
                 <div class="profile-hero-card">
-                <div class="profile-top">
-                    <div class="avatar-container">
-                        <div class="profile-avatar" onclick="ProfileManager.showAvatarModal()" id="profileAvatar">
-                            @
+                    <div class="profile-banner"></div>
+                    <div class="profile-header-body">
+                        <div class="profile-top">
+                            <div class="avatar-container">
+                                <div class="profile-avatar" onclick="ProfileManager.showAvatarModal()" id="profileAvatar">
+                                    @
+                                </div>
+                            </div>
+
+                            <div class="profile-info">
+                                <div class="profile-eyebrow">Profile</div>
+                                <div class="profile-name" id="profileName">
+                                    Loading...
+                                </div>
+                                <div class="profile-username" id="profileUsername">@username</div>
+                                <div class="profile-bio" id="profileBio">
+                                    No bio yet. Click edit to add one!
+                                </div>
+                                <div class="profile-meta">
+                                    <div class="meta-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span id="profileLocation">Location not set</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <i class="fas fa-calendar"></i>
+                                        <span id="memberSince">Member since 2023</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <i class="fas fa-bookmark"></i>
+                                        <span id="visitedCountMeta">0 saved items</span>
+                                    </div>
+                                </div>
+                                <div class="profile-badges" id="profileBadges"></div>
+                            </div>
+
+                            <div class="profile-actions">
+                                <div class="profile-actions-label">Quick actions</div>
+                                <div class="profile-actions-grid">
+                                    <button class="btn btn-outline" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
+                                        <i class="fas fa-edit"></i> Edit Profile
+                                    </button>
+                                    <button class="btn btn-secondary d-none" id="followButton">
+                                        Follow
+                                    </button>
+                                    <button class="btn btn-secondary" id="settingsBtn" onclick="ProfileManager.showModal('accountSettingsModal')">
+                                        <i class="fas fa-cog"></i> Settings
+                                    </button>
+                                    <button class="btn btn-secondary profile-logout-btn" onclick="ProfileManager.logout()" id="logoutActionBtn">
+                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile-stat-row" aria-label="Profile stats">
+                            <div class="profile-stat-pill">
+                                <span class="profile-stat-value" id="visitedCount">0</span>
+                                <span class="profile-stat-key">Saved</span>
+                            </div>
+                            <div class="profile-stat-pill">
+                                <span class="profile-stat-value" id="listsCount">0</span>
+                                <span class="profile-stat-key">Lists</span>
+                            </div>
+                            <div class="profile-stat-pill">
+                                <span class="profile-stat-value" id="reviewsCount">0</span>
+                                <span class="profile-stat-key">Reviews</span>
+                            </div>
+                            <div class="profile-stat-pill">
+                                <span class="profile-stat-value" id="followersCount">0</span>
+                                <span class="profile-stat-key">Followers</span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="profile-info">
-                        <div class="profile-eyebrow">Profile</div>
-                        <div class="profile-name" id="profileName">
-                            Loading...
-                        </div>
-                        <div class="profile-username" id="profileUsername">@username</div>
-                        <div class="profile-bio" id="profileBio">
-                            No bio yet. Click edit to add one!
-                        </div>
-                        <div class="profile-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span id="profileLocation">Location not set</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-calendar"></i>
-                                <span id="memberSince">Member since 2023</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-bookmark"></i>
-                                <span id="visitedCountMeta">0 saved items</span>
-                            </div>
-                        </div>
-                        <div class="profile-badges" id="profileBadges"></div>
-                    </div>
-                    
-                    <div class="profile-actions">
-                        <div class="profile-actions-label">Quick actions</div>
-                        <div class="profile-actions-grid">
-                            <button class="btn btn-outline" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
-                                <i class="fas fa-edit"></i> Edit Profile
-                            </button>
-                            <button class="btn btn-secondary d-none" id="followButton">
-                                Follow
-                            </button>
-                            <button class="btn btn-secondary" id="settingsBtn" onclick="ProfileManager.showModal('accountSettingsModal')">
-                                <i class="fas fa-cog"></i> Settings
-                            </button>
-                            <button class="btn btn-secondary profile-logout-btn" onclick="ProfileManager.logout()" id="logoutActionBtn">
-                                <i class="fas fa-sign-out-alt"></i> Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
                 </div>
             </div>
         </div>
@@ -146,37 +168,6 @@
             </div>
 
             <section class="profile-primary-panel" data-panel="overview">
-            <!-- Stats Grid -->
-            <div class="profile-section-shell profile-summary-shell">
-                <div class="profile-section-intro">
-                    <span class="profile-section-kicker">Overview</span>
-                    <h2 class="profile-section-heading">At a glance</h2>
-                    <p class="profile-section-copy">A quick snapshot of saved media, social reach, and activity.</p>
-                </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-bookmark"></i></div>
-                    <div class="stat-number" id="visitedCount">0</div>
-                    <div class="stat-label">Items Saved</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    <div class="stat-number" id="followersCount">0</div>
-                    <div class="stat-label">Followers</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-list"></i></div>
-                    <div class="stat-number" id="listsCount">0</div>
-                    <div class="stat-label">Lists Created</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-star"></i></div>
-                    <div class="stat-number" id="reviewsCount">0</div>
-                    <div class="stat-label">Reviews Written</div>
-                </div>
-            </div>
-            </div>
-
             <div class="social-preview-row" id="desktopSocialPreview">
                 <div class="social-preview-info">
                     <div class="social-preview-title">Community Snapshot</div>
@@ -1052,6 +1043,7 @@
 
         <!-- Mobile Profile Header -->
         <div class="mobile-profile-header">
+            <div class="mobile-profile-banner"></div>
             <div class="mobile-profile-topbar">
                 <div class="mobile-profile-eyebrow">Profile</div>
                 <button class="mobile-menu-btn mobile-profile-menu-btn" onclick="ProfileManager.showMobileMenu()">
@@ -1091,6 +1083,7 @@
                 </div>
             </div>
             <div class="profile-badges mobile-profile-badges" id="mobileProfileBadges"></div>
+            <div class="mobile-profile-divider"></div>
         </div>
 
         <div class="mobile-profile-primary-nav-shell">
