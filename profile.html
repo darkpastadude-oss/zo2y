@@ -9,7 +9,7 @@
     <title>Zo2y - Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260323b" />
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260328b" />
     <link rel="icon" href="/newlogo.webp" type="image/webp" />
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -134,6 +134,24 @@
         </div>
 
         <div class="container">
+            <div class="profile-primary-nav-shell">
+                <div class="profile-primary-nav" role="tablist" aria-label="Profile sections">
+                    <button class="profile-primary-tab active" type="button" data-primary-tab="overview" onclick="ProfileManager.showPrimaryTab('overview')">
+                        <span class="profile-primary-tab-label">Overview</span>
+                        <span class="profile-primary-tab-copy">Snapshot</span>
+                    </button>
+                    <button class="profile-primary-tab" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
+                        <span class="profile-primary-tab-label">Lists</span>
+                        <span class="profile-primary-tab-copy">Media and lifestyle</span>
+                    </button>
+                    <button class="profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
+                        <span class="profile-primary-tab-label">Community</span>
+                        <span class="profile-primary-tab-copy">Followers and activity</span>
+                    </button>
+                </div>
+            </div>
+
+            <section class="profile-primary-panel" data-panel="overview">
             <!-- Stats Grid -->
             <div class="profile-section-shell profile-summary-shell">
                 <div class="profile-section-intro">
@@ -173,7 +191,9 @@
                 <div class="social-preview-avatars" id="desktopFriendsPreviewAvatars"></div>
                 <button class="social-preview-link" onclick="ProfileManager.showTab('community')">View community -></button>
             </div>
+            </section>
 
+            <section class="profile-primary-panel" data-panel="lists">
             <!-- Navigation Tabs -->
             <div class="profile-section-shell profile-nav-shell">
                 <div class="profile-section-intro profile-section-intro-compact">
@@ -584,7 +604,9 @@
                     <div id="bookItemsContainer"></div>
                 </div>
             </div>
+            </section>
 
+            <section class="profile-primary-panel" data-panel="activity">
             <!-- Community Tab Content -->
             <div class="tab-content" id="community-tab">
                 <div class="section">
@@ -657,7 +679,9 @@
                     </div>
                 </div>
             </div>
+            </section>
 
+            <section class="profile-primary-panel" data-panel="lists">
             <!-- Music Tab Content -->
             <div class="tab-content" id="music-tab">
                 <div class="section">
@@ -999,6 +1023,7 @@
                     <div id="foodItemsContainer"></div>
                 </div>
             </div>
+            </section>
         </div>
         
         <!-- Footer -->
@@ -1062,72 +1087,127 @@
             </div>
         </div>
 
-        <!-- Mobile Stats -->
-        <div class="mobile-stats">
-            <div class="mobile-stat">
-                <span class="mobile-stat-number" id="mobileVisitedCount">0</span>
-                <span class="mobile-stat-label">Saved</span>
+        <div class="mobile-profile-primary-nav-shell">
+            <div class="mobile-profile-primary-nav" role="tablist" aria-label="Profile sections">
+                <button class="mobile-profile-primary-tab active" type="button" data-primary-tab="overview" onclick="ProfileManager.showPrimaryTab('overview')">
+                    <span>Overview</span>
+                </button>
+                <button class="mobile-profile-primary-tab" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
+                    <span>Lists</span>
+                </button>
+                <button class="mobile-profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
+                    <span>Community</span>
+                </button>
             </div>
-            <div class="mobile-stat">
-                <span class="mobile-stat-number" id="mobileFollowersCount">0</span>
-                <span class="mobile-stat-label">Followers</span>
-            </div>
-            <div class="mobile-stat">
-                <span class="mobile-stat-number" id="mobileListsCount">0</span>
-                <span class="mobile-stat-label">Lists</span>
-            </div>
-            <div class="mobile-stat">
-                <span class="mobile-stat-number" id="mobileReviewsCount">0</span>
-                <span class="mobile-stat-label">Reviews</span>
-            </div>
-        </div>
-
-        <div class="mobile-social-preview" id="mobileSocialPreview">
-            <div class="social-preview-info">
-                <div class="social-preview-title">Friends</div>
-                <div class="social-preview-meta" id="mobileSocialPreviewMeta">0 followers &middot; 0 following</div>
-            </div>
-            <div class="social-preview-avatars" id="mobileFriendsPreviewAvatars"></div>
-            <button class="social-preview-link" onclick="ProfileManager.showTab('community')">View community -></button>
-        </div>
-
-        <!-- Mobile Tabs Navigation -->
-        <div class="mobile-tabs">
-            <div class="mobile-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
-                <i class="fas fa-clapperboard"></i>
-                <span id="mobileTabRestaurants">Collections</span>
-            </div>
-            <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
-                <i class="fas fa-chevron-down"></i>
-                <span>Media</span>
-            </button>
-            <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="lifestyle" aria-expanded="false">
-                <i class="fas fa-chevron-down"></i>
-                <span>Lifestyle</span>
-            </button>
-        </div>
-            <div class="profile-tab-group-row mobile" data-group="media">
-                <div class="mobile-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')"><i class="fas fa-film"></i> <span>Movies</span></div>
-                <div class="mobile-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')"><i class="fas fa-tv"></i> <span id="mobileTabTv">TV Shows</span></div>
-                <div class="mobile-tab" data-tab="anime" onclick="ProfileManager.showTab('anime')"><i class="fas fa-dragon"></i> <span id="mobileTabAnime">Anime</span></div>
-                <div class="mobile-tab" data-tab="games" onclick="ProfileManager.showTab('games')"><i class="fas fa-gamepad"></i> <span id="mobileTabGames">Games</span></div>
-                <div class="mobile-tab" data-tab="books" onclick="ProfileManager.showTab('books')"><i class="fas fa-book"></i> <span id="mobileTabBooks">Books</span></div>
-                <div class="mobile-tab" data-tab="music" onclick="ProfileManager.showTab('music')"><i class="fas fa-music"></i> <span id="mobileTabMusic">Music</span></div>
-            </div>
-        <div class="profile-tab-group-row mobile" data-group="lifestyle">
-            <div class="mobile-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')"><i class="fas fa-futbol"></i> <span id="mobileTabSports">Sports</span></div>
-            <div class="mobile-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')"><i class="fas fa-earth-americas"></i> <span id="mobileTabTravel">Travel</span></div>
-            <div class="mobile-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')"><i class="fas fa-shirt"></i> <span id="mobileTabFashion">Fashion</span></div>
-            <div class="mobile-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="mobileTabFood">Food</span></div>
-            <div class="mobile-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="mobileTabCars">Cars</span></div>
-        </div>
-        <div class="mobile-tabs-swipe-hint" id="mobileTabsSwipeHint">
-            <div class="mobile-tabs-swipe-pill"></div>
-            <span>Swipe tabs</span>
         </div>
 
         <!-- Mobile Content Area -->
         <div class="mobile-content">
+            <section class="mobile-primary-panel active" data-panel="overview">
+                <div class="mobile-overview-grid">
+                    <div class="mobile-overview-card mobile-overview-card-stats">
+                        <div class="mobile-overview-card-header">
+                            <div>
+                                <div class="mobile-overview-card-kicker">Overview</div>
+                                <h2 class="mobile-overview-card-title">At a glance</h2>
+                            </div>
+                        </div>
+                        <div class="mobile-stats">
+                            <div class="mobile-stat">
+                                <span class="mobile-stat-number" id="mobileVisitedCount">0</span>
+                                <span class="mobile-stat-label">Saved</span>
+                            </div>
+                            <div class="mobile-stat">
+                                <span class="mobile-stat-number" id="mobileFollowersCount">0</span>
+                                <span class="mobile-stat-label">Followers</span>
+                            </div>
+                            <div class="mobile-stat">
+                                <span class="mobile-stat-number" id="mobileListsCount">0</span>
+                                <span class="mobile-stat-label">Lists</span>
+                            </div>
+                            <div class="mobile-stat">
+                                <span class="mobile-stat-number" id="mobileReviewsCount">0</span>
+                                <span class="mobile-stat-label">Reviews</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mobile-overview-card mobile-overview-card-community" id="mobileSocialPreview">
+                        <div class="mobile-overview-card-header">
+                            <div>
+                                <div class="mobile-overview-card-kicker">Community</div>
+                                <h2 class="mobile-overview-card-title">People and activity</h2>
+                            </div>
+                            <button class="mobile-overview-link" type="button" onclick="ProfileManager.showTab('community')">Open</button>
+                        </div>
+                        <div class="social-preview-info">
+                            <div class="social-preview-title">Friends</div>
+                            <div class="social-preview-meta" id="mobileSocialPreviewMeta">0 followers &middot; 0 following</div>
+                        </div>
+                        <div class="social-preview-avatars" id="mobileFriendsPreviewAvatars"></div>
+                    </div>
+
+                    <div class="mobile-overview-card mobile-overview-card-shortcuts">
+                        <div class="mobile-overview-card-header">
+                            <div>
+                                <div class="mobile-overview-card-kicker">Shortcuts</div>
+                                <h2 class="mobile-overview-card-title">Jump back in</h2>
+                            </div>
+                        </div>
+                        <div class="mobile-overview-shortcuts">
+                            <button class="mobile-overview-shortcut" type="button" onclick="ProfileManager.showTab('restaurants')">
+                                <i class="fas fa-clapperboard"></i>
+                                <span>Collections</span>
+                            </button>
+                            <button class="mobile-overview-shortcut" type="button" onclick="ProfileManager.showTab('movies')">
+                                <i class="fas fa-film"></i>
+                                <span>Movies</span>
+                            </button>
+                            <button class="mobile-overview-shortcut" type="button" onclick="ProfileManager.showTab('community')">
+                                <i class="fas fa-users"></i>
+                                <span>Community</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mobile-primary-panel" data-panel="lists">
+            <!-- Mobile Tabs Navigation -->
+            <div class="mobile-tabs">
+                <div class="mobile-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
+                    <i class="fas fa-clapperboard"></i>
+                    <span id="mobileTabRestaurants">Collections</span>
+                </div>
+                <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
+                    <i class="fas fa-chevron-down"></i>
+                    <span>Media</span>
+                </button>
+                <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="lifestyle" aria-expanded="false">
+                    <i class="fas fa-chevron-down"></i>
+                    <span>Lifestyle</span>
+                </button>
+            </div>
+                <div class="profile-tab-group-row mobile" data-group="media">
+                    <div class="mobile-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')"><i class="fas fa-film"></i> <span>Movies</span></div>
+                    <div class="mobile-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')"><i class="fas fa-tv"></i> <span id="mobileTabTv">TV Shows</span></div>
+                    <div class="mobile-tab" data-tab="anime" onclick="ProfileManager.showTab('anime')"><i class="fas fa-dragon"></i> <span id="mobileTabAnime">Anime</span></div>
+                    <div class="mobile-tab" data-tab="games" onclick="ProfileManager.showTab('games')"><i class="fas fa-gamepad"></i> <span id="mobileTabGames">Games</span></div>
+                    <div class="mobile-tab" data-tab="books" onclick="ProfileManager.showTab('books')"><i class="fas fa-book"></i> <span id="mobileTabBooks">Books</span></div>
+                    <div class="mobile-tab" data-tab="music" onclick="ProfileManager.showTab('music')"><i class="fas fa-music"></i> <span id="mobileTabMusic">Music</span></div>
+                </div>
+            <div class="profile-tab-group-row mobile" data-group="lifestyle">
+                <div class="mobile-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')"><i class="fas fa-futbol"></i> <span id="mobileTabSports">Sports</span></div>
+                <div class="mobile-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')"><i class="fas fa-earth-americas"></i> <span id="mobileTabTravel">Travel</span></div>
+                <div class="mobile-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')"><i class="fas fa-shirt"></i> <span id="mobileTabFashion">Fashion</span></div>
+                <div class="mobile-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="mobileTabFood">Food</span></div>
+                <div class="mobile-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="mobileTabCars">Cars</span></div>
+            </div>
+            <div class="mobile-tabs-swipe-hint" id="mobileTabsSwipeHint">
+                <div class="mobile-tabs-swipe-pill"></div>
+                <span>Swipe tabs</span>
+            </div>
+
             <!-- Mobile Restaurants Section -->
             <div class="mobile-section active" id="mobileRestaurantsSection">
                 <div class="mobile-section-title">
@@ -1426,7 +1506,9 @@
                     <div id="mobileBookItems"></div>
                 </div>
             </div>
+            </section>
 
+            <section class="mobile-primary-panel" data-panel="activity">
             <!-- Community Section -->
             <div class="mobile-section" id="mobileCommunitySection">
                 <div class="mobile-section-title">
@@ -1481,7 +1563,9 @@
                     </div>
                 </div>
             </div>
+            </section>
 
+            <section class="mobile-primary-panel" data-panel="lists">
             <!-- Music Section -->
             <div class="mobile-section" id="mobileMusicSection">
                 <div class="mobile-section-title">
@@ -1707,7 +1791,7 @@
         </div>
 
         <!-- Food Section -->
-        <div class="mobile-section" id="mobileFoodSection">
+            <div class="mobile-section" id="mobileFoodSection">
                 <div class="mobile-section-title">
                     <span id="mobileFoodTitle">My Food</span>
                     <div style="display: flex; gap: 8px;">
@@ -1755,6 +1839,7 @@
                     <div id="mobileFoodItems"></div>
                 </div>
             </div>
+            </section>
         </div>
 
         <!-- Mobile Bottom Navigation -->
