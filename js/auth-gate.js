@@ -466,6 +466,9 @@
         document.addEventListener('visibilitychange', function () {
           if (!document.hidden) void verifyAndApply();
         });
+        window.addEventListener('pageshow', function () {
+          void verifyAndApply();
+        });
         window.addEventListener('focus', function () {
           void verifyAndApply();
         });

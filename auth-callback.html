@@ -699,15 +699,16 @@
         }
 
         log(`Authenticated user: ${user.id}`);
-        statusText.textContent = 'Setting up your profile...';
+        statusText.textContent = 'Opening your account...';
         const profileResult = await ensureUserProfile(client, user);
         if (oauthFlow === 'signup' || profileResult?.created) {
           localStorage.setItem(getOnboardingPendingKey(user.id), '1');
         }
 
-        statusText.textContent = 'Finishing setup...';
-        await persistReferralMetadata(client, user, oauthFlow, log);
-        await triggerWelcomeEmail(finalSession, oauthFlow, log);
+        Promise.allSettled([
+          persistReferralMetadata(client, user, oauthFlow, log),
+          triggerWelcomeEmail(finalSession, oauthFlow, log)
+        ]).catch(() => {});
 
         sendAnalyticsEvent('oauth_callback_success', {
           flow: oauthFlow || 'unknown',
@@ -725,7 +726,7 @@
           });
         }
 
-        redirectToApp(next, 120);
+        redirectToApp(next, 40);
       } catch (err) {
         const msg = (err && err.message) ? err.message : 'Authentication failed';
         const oauthFlow = flowParam || String(safeGetAuthStorage('oauthFlow') || '').trim().toLowerCase();

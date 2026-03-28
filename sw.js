@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v196';
-const PAGE_CACHE = 'zo2y-pages-v167';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v197';
+const PAGE_CACHE = 'zo2y-pages-v168';
 const IMAGE_CACHE = 'zo2y-images-v32';
 const API_CACHE = 'zo2y-api-v12';
 const MOVIES_PAGE_VERSION = '20260322m';
@@ -61,11 +61,95 @@ const STATIC_ASSETS = [
 const ACTIVE_CACHES = [APP_SHELL_CACHE, PAGE_CACHE, IMAGE_CACHE, API_CACHE];
 
 function offlineResponse() {
-  return new Response('Offline', {
+  return new Response(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connection issue</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #08132b;
+      --card: #122247;
+      --border: rgba(255,255,255,0.08);
+      --text: #f8fafc;
+      --muted: #9fb0cf;
+      --accent: #ffb020;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top, rgba(255,176,32,0.12), transparent 32%),
+        linear-gradient(180deg, #0b1734, var(--bg));
+      color: var(--text);
+      font: 500 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .offline-shell {
+      width: min(100%, 460px);
+      padding: 24px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(18, 34, 71, 0.94);
+      box-shadow: 0 18px 44px rgba(1, 7, 18, 0.32);
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 5vw, 34px);
+      line-height: 1.05;
+    }
+    p {
+      margin: 0 0 18px;
+      color: var(--muted);
+    }
+    .offline-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .offline-actions a,
+    .offline-actions button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #182a56;
+      color: var(--text);
+      text-decoration: none;
+      font: inherit;
+      cursor: pointer;
+    }
+    .offline-actions .primary {
+      background: var(--accent);
+      color: #08132b;
+      border-color: transparent;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <main class="offline-shell">
+    <h1>Connection looks shaky.</h1>
+    <p>Zo2y could not reach fresh data right now. Try again in a second, or open the home page if it is already cached on this device.</p>
+    <div class="offline-actions">
+      <button class="primary" type="button" onclick="location.reload()">Try again</button>
+      <a href="/index.html">Open home</a>
+    </div>
+  </main>
+</body>
+</html>`, {
     status: 503,
     statusText: 'Offline',
     headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
+      'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'no-store'
     }
   });

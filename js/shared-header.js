@@ -505,6 +505,9 @@ const HEADER_HTML = `
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) void syncAuthHeaderState();
     });
+    window.addEventListener('pageshow', () => {
+      void syncAuthHeaderState();
+    });
     window.addEventListener('focus', () => {
       void syncAuthHeaderState();
     });

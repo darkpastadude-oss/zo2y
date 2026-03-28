@@ -220,19 +220,7 @@
       min-width: 0;
     }
 
-    .media-spotlight-kicker {
-      display: inline-flex;
-      width: fit-content;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(19,35,71,0.48);
-      color: #dbe7ff;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
+    .media-spotlight-kicker { display: none; }
 
     .media-spotlight-copy h2 { margin: 0; font-size: clamp(22px, 2.8vw, 30px); line-height: 1.05; max-width: 12ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
@@ -257,18 +245,22 @@
     }
 
     .media-spotlight-poster {
-      padding: 18px 18px 18px 0;
+      padding: 0;
       display: flex;
-      align-items: center;
-      justify-content: center;
+      align-items: stretch;
+      justify-content: stretch;
+      overflow: hidden;
     }
 
     .media-spotlight-poster img {
-      width: min(100%, 168px);
-      max-height: 200px;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
       object-fit: cover;
-      border-radius: 14px;
-      box-shadow: 0 10px 22px rgba(0,0,0,0.2);
+      object-position: center top;
+      border-radius: 0;
+      box-shadow: none;
       background: rgba(255,255,255,0.04);
     }
 
@@ -320,6 +312,24 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+    }
+
+    .filter-launch-btn {
+      width: 48px;
+      min-width: 48px;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .filter-launch-btn i {
+      margin: 0;
+    }
+
+    .filter-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 8px;
     }
 
     .chip {
@@ -910,7 +920,6 @@
     <div class="media-spotlight-shell">
       <div class="media-spotlight-bg" id="gamesSpotlightBg"></div>
       <div class="media-spotlight-copy">
-        <span class="media-spotlight-kicker">Game Spotlight</span>
         <h2 id="gamesSpotlightTitle">Loading?</h2>
         <p class="media-spotlight-meta" id="gamesSpotlightMeta"></p>
         <p class="media-spotlight-summary" id="gamesSpotlightSummary"></p>
@@ -926,13 +935,25 @@
 
   <div class="controls">
     <input id="searchInput" class="search-input" type="text" placeholder="Search games..." />
-    <select id="genreSelect" class="filter-select">
-      <option value="">All Genres</option>
-    </select>
-    <input id="yearInput" class="search-input small-input" type="number" min="1900" max="2100" placeholder="Year" />
-    <button class="btn" id="refreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
+    <button class="btn filter-launch-btn" id="filterToggleBtn" type="button" aria-label="Open filters">
+      <i class="fas fa-sliders-h"></i>
+    </button>
   </div>
   <div id="activeFilters" class="chip-row"></div>
+  <div class="modal" id="filterModal">
+    <div class="modal-content filter-modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Filter games</div>
+        <button class="modal-close" id="closeFilterModalBtn">&times;</button>
+      </div>
+      <div class="filter-form-grid">
+        <select id="genreSelect" class="filter-select">
+          <option value="">All Genres</option>
+        </select>
+        <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year" />
+      </div>
+    </div>
+  </div>
 
   <div id="gamesGrid" class="grid"></div>
   <div id="emptyState" class="empty" style="display:none;">No games found.</div>
@@ -2845,7 +2866,9 @@
         const searchInput = document.getElementById('searchInput');
         const genreSelect = document.getElementById('genreSelect');
         const yearInput = document.getElementById('yearInput');
-        const refreshBtn = document.getElementById('refreshBtn');
+        const filterToggleBtn = document.getElementById('filterToggleBtn');
+        const filterModal = document.getElementById('filterModal');
+        const closeFilterModalBtn = document.getElementById('closeFilterModalBtn');
         const prevBtn = document.getElementById('prevPageBtn');
         const nextBtn = document.getElementById('nextPageBtn');
         const closeListsBtn = document.getElementById('closeGameListsBtn');
@@ -2889,8 +2912,20 @@
             scheduleGamesLoad(30);
           });
         }
-        if (refreshBtn) {
-          refreshBtn.addEventListener('click', () => loadGames({ cacheBust: true }));
+        if (filterToggleBtn && filterModal) {
+          filterToggleBtn.addEventListener('click', () => {
+            filterModal.style.display = 'flex';
+          });
+        }
+        if (closeFilterModalBtn && filterModal) {
+          closeFilterModalBtn.addEventListener('click', () => {
+            filterModal.style.display = 'none';
+          });
+        }
+        if (filterModal) {
+          filterModal.addEventListener('click', (e) => {
+            if (e.target === filterModal) filterModal.style.display = 'none';
+          });
         }
         if (prevBtn) {
           prevBtn.addEventListener('click', () => {
@@ -2920,7 +2955,10 @@
         });
 
         document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') closeAllListMenus();
+          if (e.key === 'Escape') {
+            closeAllListMenus();
+            if (filterModal) filterModal.style.display = 'none';
+          }
         });
       }
 
