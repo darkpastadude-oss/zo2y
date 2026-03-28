@@ -134,11 +134,12 @@
     .media-spotlight-poster { position: relative; z-index: 1; }
 
     .media-spotlight-copy {
-      padding: 28px;
+      padding: 18px 18px 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      justify-content: center;
+      gap: 8px;
+      justify-content: flex-start;
+      min-width: 0;
     }
 
     .media-spotlight-kicker {
@@ -155,26 +156,44 @@
       text-transform: uppercase;
     }
 
-    .media-spotlight-copy h2 { margin: 0; font-size: clamp(28px, 4vw, 42px); line-height: 1.02; }
+    .media-spotlight-copy h2 { margin: 0; font-size: clamp(22px, 2.8vw, 30px); line-height: 1.05; max-width: 12ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .media-spotlight-meta,
-    .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.5; }
+    .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.45; }
+
+    .media-spotlight-meta {
+      font-size: 13px;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .media-spotlight-summary {
+      font-size: 14px;
+      max-width: 36ch;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
 
     .media-spotlight-poster {
-      padding: 28px;
+      padding: 18px 18px 18px 0;
       display: flex;
+      align-items: center;
       justify-content: center;
     }
 
     .media-spotlight-poster img {
-      width: min(100%, 260px);
-      max-height: 360px;
-      object-fit: contain;
-      border-radius: 18px;
-      box-shadow: 0 20px 36px rgba(0,0,0,0.28);
+      width: min(100%, 168px);
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 14px;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.2);
       background: rgba(255,255,255,0.04);
     }
 
-    .media-spotlight-actions { margin-top: 6px; display: flex; gap: 10px; }
+    .media-spotlight-actions { margin-top: auto; display: flex; gap: 10px; padding-top: 4px; }
 
     .section {
       background: rgba(19, 35, 71, 0.9);
@@ -361,11 +380,19 @@
         grid-template-columns: 1fr;
       }
       .media-spotlight-copy {
-        padding: 18px;
-      }
+      padding: 18px 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      justify-content: flex-start;
+      min-width: 0;
+    }
       .media-spotlight-poster {
-        padding: 0 18px 18px;
-      }
+      padding: 18px 18px 18px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
     }
   </style>
   <meta name="theme-color" content="#0b1633" />
@@ -1146,6 +1173,15 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
 
 
 
