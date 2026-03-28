@@ -187,8 +187,8 @@
       min-height: 236px;
       max-height: 236px;
       display: grid;
-      grid-template-columns: minmax(0, 1.22fr) minmax(132px, 0.78fr);
-      gap: 10px;
+      grid-template-columns: minmax(0, 1fr) clamp(248px, 28vw, 360px);
+      gap: 0;
       align-items: stretch;
       background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
     }
@@ -205,7 +205,7 @@
     .media-spotlight-poster { position: relative; z-index: 1; }
 
     .media-spotlight-copy {
-      padding: 18px 18px 16px;
+      padding: 22px 24px 20px;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -242,6 +242,9 @@
       align-items: stretch;
       justify-content: stretch;
       overflow: hidden;
+      height: 100%;
+      min-height: 100%;
+      border-left: 1px solid rgba(255,255,255,0.08);
     }
 
     .media-spotlight-poster img {
