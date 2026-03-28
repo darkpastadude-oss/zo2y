@@ -71,6 +71,7 @@
         <!-- Profile Header -->
         <div class="profile-header">
             <div class="container">
+                <div class="profile-hero-card">
                 <div class="profile-top">
                     <div class="avatar-container">
                         <div class="profile-avatar" onclick="ProfileManager.showAvatarModal()" id="profileAvatar">
@@ -79,6 +80,7 @@
                     </div>
                     
                     <div class="profile-info">
+                        <div class="profile-eyebrow">Profile</div>
                         <div class="profile-name" id="profileName">
                             Loading...
                         </div>
@@ -104,31 +106,41 @@
                     </div>
                     
                     <div class="profile-actions">
-                        <button class="btn btn-outline" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
-                            <i class="fas fa-edit"></i> Edit Profile
-                        </button>
-                        <button class="btn btn-secondary" type="button" id="shareProfileBtn" onclick="ProfileManager.shareProfile()">
-                            <i class="fas fa-share-nodes"></i> Share Profile
-                        </button>
-                        <button class="btn btn-secondary" type="button" id="inviteFriendsBtn" onclick="ProfileManager.inviteFriends()">
-                            <i class="fas fa-user-plus"></i> Invite Friends
-                        </button>
-                        <button class="btn btn-secondary" id="settingsBtn" onclick="ProfileManager.showModal('accountSettingsModal')">
-                            <i class="fas fa-cog"></i> Settings
-                        </button>
-                        <button class="btn btn-secondary" onclick="ProfileManager.logout()" style="margin-left: auto;" id="logoutActionBtn">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
-                        <button class="btn btn-secondary d-none" id="followButton">
-                            Follow
-                        </button>
+                        <div class="profile-actions-label">Quick actions</div>
+                        <div class="profile-actions-grid">
+                            <button class="btn btn-outline" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
+                                <i class="fas fa-edit"></i> Edit Profile
+                            </button>
+                            <button class="btn btn-secondary d-none" id="followButton">
+                                Follow
+                            </button>
+                            <button class="btn btn-secondary" type="button" id="shareProfileBtn" onclick="ProfileManager.shareProfile()">
+                                <i class="fas fa-share-nodes"></i> Share Profile
+                            </button>
+                            <button class="btn btn-secondary" type="button" id="inviteFriendsBtn" onclick="ProfileManager.inviteFriends()">
+                                <i class="fas fa-user-plus"></i> Invite Friends
+                            </button>
+                            <button class="btn btn-secondary" id="settingsBtn" onclick="ProfileManager.showModal('accountSettingsModal')">
+                                <i class="fas fa-cog"></i> Settings
+                            </button>
+                            <button class="btn btn-secondary profile-logout-btn" onclick="ProfileManager.logout()" id="logoutActionBtn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
                     </div>
+                </div>
                 </div>
             </div>
         </div>
 
         <div class="container">
             <!-- Stats Grid -->
+            <div class="profile-section-shell profile-summary-shell">
+                <div class="profile-section-intro">
+                    <span class="profile-section-kicker">Overview</span>
+                    <h2 class="profile-section-heading">At a glance</h2>
+                    <p class="profile-section-copy">A quick snapshot of saved media, social reach, and activity.</p>
+                </div>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-bookmark"></i></div>
@@ -151,6 +163,7 @@
                     <div class="stat-label">Reviews Written</div>
                 </div>
             </div>
+            </div>
 
             <div class="social-preview-row" id="desktopSocialPreview">
                 <div class="social-preview-info">
@@ -162,6 +175,11 @@
             </div>
 
             <!-- Navigation Tabs -->
+            <div class="profile-section-shell profile-nav-shell">
+                <div class="profile-section-intro profile-section-intro-compact">
+                    <span class="profile-section-kicker">Browse</span>
+                    <h2 class="profile-section-heading">Collections and lists</h2>
+                </div>
             <div class="nav-tabs">
                 <div class="nav-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
                     <i class="fas fa-clapperboard"></i> <span id="restaurantsTabText">Collections</span>
@@ -187,6 +205,7 @@
                 <div class="nav-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')"><i class="fas fa-shirt"></i> <span id="fashionTabText">Fashion</span></div>
                 <div class="nav-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="foodTabText">Food</span></div>
                 <div class="nav-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="carsTabText">Cars</span></div>
+            </div>
             </div>
 
             <!-- Restaurants Tab Content -->
@@ -1014,27 +1033,32 @@
 
         <!-- Mobile Profile Header -->
         <div class="mobile-profile-header">
-            <button class="mobile-menu-btn mobile-profile-menu-btn" onclick="ProfileManager.showMobileMenu()">
-                <i class="fas fa-bars"></i>
-            </button>
-            <div class="mobile-avatar-container">
-                <div class="mobile-avatar" id="mobileAvatar" onclick="ProfileManager.showAvatarModal()">
-                    @
+            <div class="mobile-profile-topbar">
+                <button class="mobile-menu-btn mobile-profile-menu-btn" onclick="ProfileManager.showMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="mobile-profile-eyebrow">Profile</div>
+            </div>
+            <div class="mobile-profile-hero">
+                <div class="mobile-avatar-container">
+                    <div class="mobile-avatar" id="mobileAvatar" onclick="ProfileManager.showAvatarModal()">
+                        @
+                    </div>
                 </div>
-            </div>
-            <div class="mobile-profile-name" id="mobileProfileName">Loading...</div>
-            <div class="mobile-profile-username" id="mobileProfileUsername">@username</div>
-            <div class="mobile-profile-bio" id="mobileProfileBio">
-                No bio yet. Tap edit to add one!
-            </div>
-            <div class="profile-badges mobile-profile-badges" id="mobileProfileBadges"></div>
-            <div class="mobile-profile-actions-row">
-                <button class="mobile-action-btn secondary compact" type="button" id="mobileShareProfileBtn" onclick="ProfileManager.shareProfile()">
-                    <i class="fas fa-share-nodes"></i> Share
-                </button>
-                <button class="mobile-action-btn compact" type="button" id="mobileInviteFriendsBtn" onclick="ProfileManager.inviteFriends()">
-                    <i class="fas fa-user-plus"></i> Invite
-                </button>
+                <div class="mobile-profile-name" id="mobileProfileName">Loading...</div>
+                <div class="mobile-profile-username" id="mobileProfileUsername">@username</div>
+                <div class="mobile-profile-bio" id="mobileProfileBio">
+                    No bio yet. Tap edit to add one!
+                </div>
+                <div class="profile-badges mobile-profile-badges" id="mobileProfileBadges"></div>
+                <div class="mobile-profile-actions-row">
+                    <button class="mobile-action-btn secondary compact" type="button" id="mobileShareProfileBtn" onclick="ProfileManager.shareProfile()">
+                        <i class="fas fa-share-nodes"></i> Share
+                    </button>
+                    <button class="mobile-action-btn compact" type="button" id="mobileInviteFriendsBtn" onclick="ProfileManager.inviteFriends()">
+                        <i class="fas fa-user-plus"></i> Invite
+                    </button>
+                </div>
             </div>
         </div>
 
