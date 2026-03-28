@@ -7861,6 +7861,236 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     let landingExperienceInitialized = false;
+    let landingPreviewHydrated = false;
+
+    function normalizeLandingImageUrl(value) {
+      const raw = unwrapCloudflareImageUrl(String(value || '').trim());
+      if (!raw) return '';
+      if (raw.startsWith('//')) return `https:${raw}`;
+      return raw;
+    }
+
+    function truncateLandingText(value, maxLength = 120) {
+      const normalized = String(value || '').replace(/\s+/g, ' ').trim();
+      if (!normalized) return '';
+      if (normalized.length <= maxLength) return normalized;
+      return `${normalized.slice(0, Math.max(0, maxLength - 3)).trim()}...`;
+    }
+
+    function getLandingBrowsePath(mediaType) {
+      switch (String(mediaType || '').toLowerCase()) {
+        case 'movie': return 'movies.html';
+        case 'tv': return 'tvshows.html';
+        case 'anime': return 'animes.html';
+        case 'game': return 'games.html';
+        case 'book': return 'books.html';
+        case 'music': return 'music.html';
+        case 'travel': return 'travel.html';
+        case 'sports': return 'sports.html';
+        case 'fashion': return 'fashion.html';
+        case 'food': return 'food.html';
+        case 'car': return 'cars.html';
+        default: return 'index.html';
+      }
+    }
+
+    function getLandingItemNextPath(item) {
+      const href = String(item?.href || '').trim();
+      return sanitizeHomeNextPath(href || getLandingBrowsePath(item?.mediaType));
+    }
+
+    function buildLandingAuthHref(nextPath = 'index.html') {
+      const safeNext = sanitizeHomeNextPath(nextPath || 'index.html');
+      return `sign-up.html?next=${encodeURIComponent(safeNext)}`;
+    }
+
+    function getLandingPreviewPoster(item) {
+      if (!item || typeof item !== 'object') return '/newlogo.webp';
+      const type = String(item.mediaType || '').toLowerCase();
+      const cover = type === 'game'
+        ? resolveHomeGameCover(item)
+        : (type === 'book'
+          ? (item.spotlightMediaImage || item.image || getBookCoverFallback(item))
+          : (type === 'sports'
+            ? (item.logo || item.badge || item.flagImage || item.image || item.spotlightMediaImage)
+            : (item.spotlightMediaImage || item.image || item.listImage || item.logo || item.badge || item.flagImage)));
+      return normalizeLandingImageUrl(cover) || '/newlogo.webp';
+    }
+
+    function getLandingPreviewBackdrop(item) {
+      if (!item || typeof item !== 'object') return '';
+      const type = String(item.mediaType || '').toLowerCase();
+      const backdrop = type === 'game'
+        ? pickBackdropGameUrl([
+          item.spotlightImage,
+          item.backgroundImage,
+          item.hero_url,
+          item.hero,
+          ...(Array.isArray(item?.screenshots) ? item.screenshots : [])
+        ], getLandingPreviewPoster(item))
+        : (type === 'travel'
+          ? (item.spotlightImage || item.backgroundImage || getSafeTravelScenicImage(item.title, item.itemId, item.image))
+          : (item.spotlightImage || item.backgroundImage || item.image || item.listImage));
+      return normalizeLandingImageUrl(backdrop);
+    }
+
+    function getLandingPreviewMeta(item) {
+      const meta = getHomeMediaMeta(item?.mediaType);
+      const detail = String(item?.subtitle || item?.extra || '').trim();
+      return truncateLandingText(detail || `${meta.label} pick from the live feed.`, 72);
+    }
+
+    function rotateLandingList(items, offset = 0) {
+      const list = Array.isArray(items) ? items.filter(Boolean) : [];
+      if (list.length <= 1) return list;
+      const safeOffset = ((Number(offset) || 0) % list.length + list.length) % list.length;
+      return list.slice(safeOffset).concat(list.slice(0, safeOffset));
+    }
+
+    function buildLandingPreviewCard(item) {
+      const safeItem = item && typeof item === 'object' ? item : {};
+      const meta = getHomeMediaMeta(safeItem.mediaType);
+      const nextPath = getLandingItemNextPath(safeItem);
+      const href = buildLandingAuthHref(nextPath);
+      const image = escapeHtml(getLandingPreviewPoster(safeItem));
+      const title = escapeHtml(String(safeItem.title || meta.label || 'Item').trim() || 'Item');
+      const subtitle = escapeHtml(getLandingPreviewMeta(safeItem));
+      return `
+        <a class="landing-preview-card" href="${href}" data-auth-entry="signup" data-auth-next="${escapeHtml(nextPath)}" aria-label="Unlock ${title}">
+          <div class="landing-preview-card-media">
+            <img src="${image}" alt="${title}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+          </div>
+          <div class="landing-preview-card-body">
+            <span class="landing-preview-card-label">${escapeHtml(meta.label)}</span>
+            <strong class="landing-preview-card-title">${title}</strong>
+            <span class="landing-preview-card-meta">${subtitle}</span>
+          </div>
+        </a>
+      `;
+    }
+
+    function buildLandingReviewCard(item) {
+      const safeItem = item && typeof item === 'object' ? item : {};
+      const meta = getHomeMediaMeta(safeItem.mediaType);
+      const image = escapeHtml(getLandingPreviewPoster(safeItem));
+      const title = escapeHtml(String(safeItem.title || meta.label || 'Item').trim() || 'Item');
+      const summary = escapeHtml(truncateLandingText(getSpotlightSummary(safeItem), 120) || 'Fresh signal from the live discovery engine.');
+      return `
+        <article class="landing-review-card">
+          <div class="landing-review-card-head">
+            <div class="landing-review-card-thumb">
+              <img src="${image}" alt="${title}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+            </div>
+            <div class="landing-review-card-meta">
+              <span>${escapeHtml(meta.label)} review</span>
+              <strong>${title}</strong>
+            </div>
+          </div>
+          <p>${summary}</p>
+        </article>
+      `;
+    }
+
+    function wireLandingAuthNextLinks(scope = document) {
+      if (!scope || typeof scope.querySelectorAll !== 'function') return;
+      scope.querySelectorAll('[data-auth-next]').forEach((link) => {
+        if (link.dataset.authNextWired === '1') return;
+        link.dataset.authNextWired = '1';
+        link.addEventListener('click', () => {
+          const next = sanitizeHomeNextPath(link.getAttribute('data-auth-next') || 'index.html');
+          localStorage.setItem('postAuthRedirect', next);
+        });
+      });
+    }
+
+    function renderLandingFeedPreview(feedMap) {
+      const normalized = normalizeHomeFeedMap(feedMap);
+      if (!normalized || countActiveHomeChannels(normalized) === 0) return false;
+
+      const movies = rotateLandingList(normalized.movie, 1).slice(0, 3);
+      const games = rotateLandingList(normalized.game, 2).slice(0, 3);
+      const sports = rotateLandingList(normalized.sports, 3).slice(0, 3);
+      const reviews = ['movie', 'tv', 'anime', 'game', 'book', 'music']
+        .flatMap((type, index) => rotateLandingList(normalized[type], index + 1))
+        .filter((item) => item && (item.title || item.subtitle || item.extra))
+        .slice(0, 3);
+
+      const spotlight = [
+        ...movies,
+        ...games,
+        ...(Array.isArray(normalized.book) ? rotateLandingList(normalized.book, 1).slice(0, 1) : []),
+        ...(Array.isArray(normalized.anime) ? rotateLandingList(normalized.anime, 2).slice(0, 1) : []),
+        ...sports.slice(0, 1)
+      ].find(Boolean) || Object.values(normalized).flat().find(Boolean);
+
+      const spotlightLink = document.getElementById('landingPreviewSpotlightLink');
+      const spotlightBackdrop = document.getElementById('landingPreviewSpotlightBackdrop');
+      const spotlightPoster = document.getElementById('landingPreviewSpotlightPoster');
+      const spotlightType = document.getElementById('landingPreviewSpotlightType');
+      const spotlightTitle = document.getElementById('landingPreviewSpotlightTitle');
+      const spotlightMeta = document.getElementById('landingPreviewSpotlightMeta');
+      const spotlightSummary = document.getElementById('landingPreviewSpotlightSummary');
+      const movieRail = document.getElementById('landingPreviewMovies');
+      const gameRail = document.getElementById('landingPreviewGames');
+      const sportsRail = document.getElementById('landingPreviewSports');
+      const reviewGrid = document.getElementById('landingPreviewReviews');
+
+      if (spotlight && spotlightLink && spotlightBackdrop && spotlightPoster && spotlightType && spotlightTitle && spotlightMeta && spotlightSummary) {
+        const nextPath = getLandingItemNextPath(spotlight);
+        const meta = getHomeMediaMeta(spotlight.mediaType);
+        const poster = getLandingPreviewPoster(spotlight);
+        const backdrop = getLandingPreviewBackdrop(spotlight);
+        spotlightLink.href = buildLandingAuthHref(nextPath);
+        spotlightLink.setAttribute('data-auth-next', nextPath);
+        spotlightType.textContent = `${meta.label} spotlight`;
+        spotlightTitle.textContent = String(spotlight.title || `${meta.label} pick`).trim() || `${meta.label} pick`;
+        spotlightMeta.textContent = getLandingPreviewMeta(spotlight);
+        spotlightSummary.textContent = truncateLandingText(getSpotlightSummary(spotlight), 156) || 'Live pick from the Zo2y home feed.';
+        spotlightPoster.src = poster;
+        spotlightPoster.alt = String(spotlight.title || meta.label || 'Item').trim() || meta.label;
+        spotlightBackdrop.style.backgroundImage = backdrop
+          ? `linear-gradient(90deg, rgba(6, 11, 27, 0.88) 0%, rgba(6, 11, 27, 0.58) 52%, rgba(6, 11, 27, 0.12) 100%), url("${String(backdrop).replace(/"/g, '%22')}")`
+          : 'linear-gradient(90deg, rgba(6, 11, 27, 0.88) 0%, rgba(6, 11, 27, 0.58) 52%, rgba(6, 11, 27, 0.12) 100%), linear-gradient(150deg, rgba(14, 27, 60, 0.94), rgba(9, 17, 36, 0.9))';
+      }
+
+      if (movieRail) {
+        movieRail.innerHTML = (movies.length ? movies : rotateLandingList(normalized.book, 1).slice(0, 3))
+          .map((item) => buildLandingPreviewCard(item))
+          .join('');
+      }
+      if (gameRail) {
+        gameRail.innerHTML = (games.length ? games : rotateLandingList(normalized.anime, 1).slice(0, 3))
+          .map((item) => buildLandingPreviewCard(item))
+          .join('');
+      }
+      if (sportsRail) {
+        sportsRail.innerHTML = (sports.length ? sports : rotateLandingList(normalized.music, 1).slice(0, 3))
+          .map((item) => buildLandingPreviewCard(item))
+          .join('');
+      }
+      if (reviewGrid) {
+        reviewGrid.innerHTML = (reviews.length ? reviews : [spotlight].filter(Boolean))
+          .map((item) => buildLandingReviewCard(item))
+          .join('');
+      }
+
+      wireLandingAuthNextLinks(document.getElementById('landingAppShell'));
+      wireLandingAuthNextLinks(reviewGrid);
+      return true;
+    }
+
+    async function hydrateLandingFeedPreview() {
+      if (landingPreviewHydrated) return;
+      landingPreviewHydrated = true;
+      let feed = null;
+      try {
+        feed = await loadPrecomputedHomeFeed();
+      } catch (_err) {}
+      if (!feed || countActiveHomeChannels(feed) === 0) {
+        feed = readHomeFeedCache() || readPrecomputedHomeFeedCache();
+      }
+      renderLandingFeedPreview(feed || {});
+    }
 
     function initLandingExperience() {
       if (landingExperienceInitialized) return;
@@ -7884,6 +8114,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       });
 
       initLandingMascot();
+      wireLandingAuthNextLinks(document);
+      void hydrateLandingFeedPreview();
 
       if (!revealNodes.length || typeof window.IntersectionObserver !== 'function') {
         revealNodes.forEach((node) => node.classList.add('is-visible'));
