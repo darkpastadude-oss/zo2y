@@ -232,7 +232,7 @@
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" onclick="ProfileManager.showCreateListModal()" id="createRestaurantListBtn">
-                                <i class="fas fa-plus"></i> New Collection
+                                <i class="fas fa-plus"></i>
                             </button>
                         </div>
                     </div>
@@ -294,7 +294,7 @@
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" id="createMovieListBtn" onclick="ProfileManager.createMovieList()">
-                                <i class="fas fa-plus"></i> New Collection
+                                <i class="fas fa-plus"></i>
                             </button>
                             <button class="btn btn-secondary btn-sm" onclick="window.location.href='movies.html'">
                                 <i class="fas fa-film"></i> Browse Movies
@@ -357,7 +357,7 @@
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" id="createTvListBtn" onclick="ProfileManager.createTvList()">
-                                <i class="fas fa-plus"></i> New Collection
+                                <i class="fas fa-plus"></i>
                             </button>
                             <button class="btn btn-secondary btn-sm" onclick="window.location.href='tvshows.html'">
                                 <i class="fas fa-tv"></i> Browse TV Shows
@@ -420,7 +420,7 @@
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" id="createAnimeListBtn" onclick="ProfileManager.createAnimeList()">
-                                <i class="fas fa-plus"></i> New Collection
+                                <i class="fas fa-plus"></i>
                             </button>
                             <button class="btn btn-secondary btn-sm" onclick="window.location.href='animes.html'">
                                 <i class="fas fa-dragon"></i> Browse Anime
@@ -483,7 +483,7 @@
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" id="createGameListBtn" onclick="ProfileManager.createGameList()">
-                                <i class="fas fa-plus"></i> New Collection
+                                <i class="fas fa-plus"></i>
                             </button>
                             <button class="btn btn-secondary btn-sm" onclick="window.location.href='games.html'">
                                 <i class="fas fa-gamepad"></i> Browse Games
@@ -546,7 +546,7 @@
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" id="createBookListBtn" onclick="ProfileManager.createBookList()">
-                                <i class="fas fa-plus"></i> New Collection
+                                <i class="fas fa-plus"></i>
                             </button>
                             <button class="btn btn-secondary btn-sm" onclick="window.location.href='books.html'">
                                 <i class="fas fa-book"></i> Browse Books
@@ -686,7 +686,7 @@
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" id="createMusicListBtn" onclick="ProfileManager.createMusicList()">
-                                <i class="fas fa-plus"></i> New Collection
+                                <i class="fas fa-plus"></i>
                             </button>
                             <button class="btn btn-secondary btn-sm" onclick="window.location.href='music.html'">
                                 <i class="fas fa-music"></i> Browse Music
@@ -776,7 +776,7 @@
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" id="createTravelListBtn" onclick="ProfileManager.createTravelList()">
-                                <i class="fas fa-plus"></i> New Collection
+                                <i class="fas fa-plus"></i>
                             </button>
                             <button class="btn btn-secondary btn-sm" onclick="window.location.href='travel.html'">
                                 <i class="fas fa-earth-americas"></i> Browse Travel
@@ -839,7 +839,7 @@
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" id="createFashionListBtn" onclick="ProfileManager.createFashionList()">
-                                <i class="fas fa-plus"></i> New Collection
+                                <i class="fas fa-plus"></i>
                             </button>
                             <button class="btn btn-secondary btn-sm" onclick="window.location.href='fashion.html'">
                                 <i class="fas fa-shirt"></i> Browse Fashion
@@ -902,7 +902,7 @@
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" id="createCarsListBtn" onclick="ProfileManager.createCarList()">
-                                <i class="fas fa-plus"></i> New Collection
+                                <i class="fas fa-plus"></i>
                             </button>
                             <button class="btn btn-secondary btn-sm" onclick="window.location.href='cars.html'">
                                 <i class="fas fa-car"></i> Browse Cars
@@ -965,7 +965,7 @@
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" id="createFoodListBtn" onclick="ProfileManager.createFoodList()">
-                                <i class="fas fa-plus"></i> New Collection
+                                <i class="fas fa-plus"></i>
                             </button>
                             <button class="btn btn-secondary btn-sm" onclick="window.location.href='food.html'">
                                 <i class="fas fa-burger"></i> Browse Food
@@ -1053,10 +1053,10 @@
         <!-- Mobile Profile Header -->
         <div class="mobile-profile-header">
             <div class="mobile-profile-topbar">
+                <div class="mobile-profile-eyebrow">Profile</div>
                 <button class="mobile-menu-btn mobile-profile-menu-btn" onclick="ProfileManager.showMobileMenu()">
                     <i class="fas fa-bars"></i>
                 </button>
-                <div class="mobile-profile-eyebrow">Profile</div>
             </div>
             <div class="mobile-profile-hero">
                 <div class="mobile-avatar-container">
@@ -1064,31 +1064,33 @@
                         @
                     </div>
                 </div>
-                <div class="mobile-profile-name" id="mobileProfileName">Loading...</div>
-                <div class="mobile-profile-username" id="mobileProfileUsername">@username</div>
-                <div class="mobile-profile-bio" id="mobileProfileBio">
-                    No bio yet. Tap edit to add one!
+                <div class="mobile-profile-main">
+                    <div class="mobile-profile-name" id="mobileProfileName">Loading...</div>
+                    <div class="mobile-profile-username" id="mobileProfileUsername">@username</div>
+                    <div class="mobile-profile-bio" id="mobileProfileBio">
+                        No bio yet. Tap edit to add one!
+                    </div>
+                    <div class="mobile-profile-inline-stats">
+                        <div class="mobile-inline-stat">
+                            <span class="mobile-inline-stat-number" id="mobileVisitedCount">0</span>
+                            <span class="mobile-inline-stat-label">saved</span>
+                        </div>
+                        <div class="mobile-inline-stat">
+                            <span class="mobile-inline-stat-number" id="mobileFollowersCount">0</span>
+                            <span class="mobile-inline-stat-label">followers</span>
+                        </div>
+                        <div class="mobile-inline-stat">
+                            <span class="mobile-inline-stat-number" id="mobileListsCount">0</span>
+                            <span class="mobile-inline-stat-label">lists</span>
+                        </div>
+                        <div class="mobile-inline-stat">
+                            <span class="mobile-inline-stat-number" id="mobileReviewsCount">0</span>
+                            <span class="mobile-inline-stat-label">reviews</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="mobile-profile-inline-stats">
-                    <div class="mobile-inline-stat">
-                        <span class="mobile-inline-stat-number" id="mobileVisitedCount">0</span>
-                        <span class="mobile-inline-stat-label">saved</span>
-                    </div>
-                    <div class="mobile-inline-stat">
-                        <span class="mobile-inline-stat-number" id="mobileFollowersCount">0</span>
-                        <span class="mobile-inline-stat-label">followers</span>
-                    </div>
-                    <div class="mobile-inline-stat">
-                        <span class="mobile-inline-stat-number" id="mobileListsCount">0</span>
-                        <span class="mobile-inline-stat-label">lists</span>
-                    </div>
-                    <div class="mobile-inline-stat">
-                        <span class="mobile-inline-stat-number" id="mobileReviewsCount">0</span>
-                        <span class="mobile-inline-stat-label">reviews</span>
-                    </div>
-                </div>
-                <div class="profile-badges mobile-profile-badges" id="mobileProfileBadges"></div>
             </div>
+            <div class="profile-badges mobile-profile-badges" id="mobileProfileBadges"></div>
         </div>
 
         <div class="mobile-profile-primary-nav-shell">
@@ -1116,21 +1118,6 @@
                         </div>
                         <div class="social-preview-avatars" id="mobileFriendsPreviewAvatars"></div>
                         <button class="social-preview-link" type="button" onclick="ProfileManager.showTab('community')">Open community</button>
-                    </div>
-
-                    <div class="mobile-overview-shortcuts">
-                        <button class="mobile-overview-shortcut" type="button" onclick="ProfileManager.showTab('restaurants')">
-                            <i class="fas fa-clapperboard"></i>
-                            <span>Collections</span>
-                        </button>
-                        <button class="mobile-overview-shortcut" type="button" onclick="ProfileManager.showTab('movies')">
-                            <i class="fas fa-film"></i>
-                            <span>Movies</span>
-                        </button>
-                        <button class="mobile-overview-shortcut" type="button" onclick="ProfileManager.showTab('community')">
-                            <i class="fas fa-users"></i>
-                            <span>Community</span>
-                        </button>
                     </div>
                 </div>
             </section>
@@ -1177,7 +1164,7 @@
                     <span id="mobileRestaurantsTitle">My Collections</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="mobile-action-btn" id="mobileCreateRestaurantListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.showCreateListModal()">
-                            <i class="fas fa-plus"></i> New Collection
+                            <i class="fas fa-plus"></i>
                         </button>
                     </div>
                 </div>
@@ -1226,7 +1213,7 @@
                     <span>My Movies</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="mobile-action-btn" id="mobileCreateMovieListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createMovieList()">
-                            <i class="fas fa-plus"></i> New Collection
+                            <i class="fas fa-plus"></i>
                         </button>
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='movies.html'">
                             <i class="fas fa-film"></i> Browse
@@ -1276,7 +1263,7 @@
                     <span>My TV Shows</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="mobile-action-btn" id="mobileCreateTvListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createTvList()">
-                            <i class="fas fa-plus"></i> New Collection
+                            <i class="fas fa-plus"></i>
                         </button>
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='tvshows.html'">
                             <i class="fas fa-tv"></i> Browse
@@ -1326,7 +1313,7 @@
                     <span id="mobileAnimeTitle">My Anime</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="mobile-action-btn" id="mobileCreateAnimeListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createAnimeList()">
-                            <i class="fas fa-plus"></i> New Collection
+                            <i class="fas fa-plus"></i>
                         </button>
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='animes.html'">
                             <i class="fas fa-dragon"></i> Browse
@@ -1376,7 +1363,7 @@
                     <span id="mobileGamesTitle">My Games</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="mobile-action-btn" id="mobileCreateGameListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createGameList()">
-                            <i class="fas fa-plus"></i> New Collection
+                            <i class="fas fa-plus"></i>
                         </button>
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='games.html'">
                             <i class="fas fa-gamepad"></i> Browse
@@ -1426,7 +1413,7 @@
                     <span id="mobileBooksTitle">My Books</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="mobile-action-btn" id="mobileCreateBookListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createBookList()">
-                            <i class="fas fa-plus"></i> New Collection
+                            <i class="fas fa-plus"></i>
                         </button>
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='books.html'">
                             <i class="fas fa-book"></i> Browse
@@ -1535,7 +1522,7 @@
                     <span id="mobileMusicTitle">My Music</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="mobile-action-btn" id="mobileCreateMusicListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createMusicList()">
-                            <i class="fas fa-plus"></i> New Collection
+                            <i class="fas fa-plus"></i>
                         </button>
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='music.html'">
                             <i class="fas fa-music"></i> Browse
@@ -1609,7 +1596,7 @@
                     <span id="mobileTravelTitle">My Travel</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="mobile-action-btn" id="mobileCreateTravelListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createTravelList()">
-                            <i class="fas fa-plus"></i> New Collection
+                            <i class="fas fa-plus"></i>
                         </button>
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='travel.html'">
                             <i class="fas fa-earth-americas"></i> Browse
@@ -1659,7 +1646,7 @@
                     <span id="mobileFashionTitle">My Fashion</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="mobile-action-btn" id="mobileCreateFashionListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createFashionList()">
-                            <i class="fas fa-plus"></i> New
+                            <i class="fas fa-plus"></i>
                         </button>
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='fashion.html'">
                             <i class="fas fa-shirt"></i> Browse
@@ -1709,7 +1696,7 @@
                 <span id="mobileCarsTitle">My Cars</span>
                 <div style="display: flex; gap: 8px;">
                     <button class="mobile-action-btn" id="mobileCreateCarsListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createCarList()">
-                        <i class="fas fa-plus"></i> New
+                        <i class="fas fa-plus"></i>
                     </button>
                     <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='cars.html'">
                         <i class="fas fa-car"></i> Browse
@@ -1759,7 +1746,7 @@
                     <span id="mobileFoodTitle">My Food</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="mobile-action-btn" id="mobileCreateFoodListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createFoodList()">
-                            <i class="fas fa-plus"></i> New
+                            <i class="fas fa-plus"></i>
                         </button>
                         <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="window.location.href='food.html'">
                             <i class="fas fa-burger"></i> Browse

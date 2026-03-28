@@ -5052,8 +5052,8 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 .mobile-overview-flow {
   display: grid;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .mobile-overview-social {
@@ -5061,8 +5061,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 0 2px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2px 2px 10px;
 }
 
 .mobile-overview-social .social-preview-title {
@@ -5080,19 +5079,22 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 .mobile-profile-inline-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  margin-top: 2px;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .mobile-inline-stat {
   display: grid;
-  gap: 2px;
-  justify-items: start;
+  gap: 3px;
+  justify-items: center;
+  text-align: center;
 }
 
 .mobile-inline-stat-number {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
   color: #ffffff;
   line-height: 1;
@@ -5101,7 +5103,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 .mobile-inline-stat-label {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: rgba(203, 213, 225, 0.72);
 }
@@ -5113,40 +5115,57 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
   .mobile-profile-header {
     margin: 8px 12px 8px;
-    padding: 10px 12px 12px;
+    padding: 8px 12px 10px;
     border-radius: 16px;
   }
 
   .mobile-profile-topbar {
-    margin-bottom: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .mobile-avatar {
-    width: 96px;
-    height: 96px;
-    font-size: 2.3rem;
+    width: 78px;
+    height: 78px;
+    font-size: 1.95rem;
   }
 
   .mobile-profile-hero {
-    gap: 6px;
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+  }
+
+  .mobile-avatar-container {
+    margin-bottom: 0;
+  }
+
+  .mobile-profile-main {
+    min-width: 0;
   }
 
   .mobile-profile-name {
-    font-size: 1.28rem;
+    font-size: 1.5rem;
+    line-height: 1.05;
+    margin-bottom: 4px;
   }
 
   .mobile-profile-username {
-    font-size: 0.95rem;
+    font-size: 0.98rem;
+    margin-bottom: 8px;
   }
 
   .mobile-profile-bio {
     font-size: 12px;
     line-height: 1.35;
-    margin-bottom: 2px;
+    margin-bottom: 0;
   }
 
   .mobile-profile-badges {
-    margin-top: 2px;
+    margin-top: 8px;
   }
 
   .mobile-profile-primary-nav-shell {
@@ -5165,16 +5184,5 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
   .mobile-content {
     padding-top: 2px;
-  }
-
-  .mobile-overview-shortcuts {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
-  }
-
-  .mobile-overview-shortcut {
-    padding: 10px 6px;
-    border-radius: 12px;
-    font-size: 11px;
   }
 }
