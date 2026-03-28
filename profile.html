@@ -114,12 +114,6 @@
                             <button class="btn btn-secondary d-none" id="followButton">
                                 Follow
                             </button>
-                            <button class="btn btn-secondary" type="button" id="shareProfileBtn" onclick="ProfileManager.shareProfile()">
-                                <i class="fas fa-share-nodes"></i> Share Profile
-                            </button>
-                            <button class="btn btn-secondary" type="button" id="inviteFriendsBtn" onclick="ProfileManager.inviteFriends()">
-                                <i class="fas fa-user-plus"></i> Invite Friends
-                            </button>
                             <button class="btn btn-secondary" id="settingsBtn" onclick="ProfileManager.showModal('accountSettingsModal')">
                                 <i class="fas fa-cog"></i> Settings
                             </button>
@@ -1075,15 +1069,25 @@
                 <div class="mobile-profile-bio" id="mobileProfileBio">
                     No bio yet. Tap edit to add one!
                 </div>
-                <div class="profile-badges mobile-profile-badges" id="mobileProfileBadges"></div>
-                <div class="mobile-profile-actions-row">
-                    <button class="mobile-action-btn secondary compact" type="button" id="mobileShareProfileBtn" onclick="ProfileManager.shareProfile()">
-                        <i class="fas fa-share-nodes"></i> Share
-                    </button>
-                    <button class="mobile-action-btn compact" type="button" id="mobileInviteFriendsBtn" onclick="ProfileManager.inviteFriends()">
-                        <i class="fas fa-user-plus"></i> Invite
-                    </button>
+                <div class="mobile-profile-inline-stats">
+                    <div class="mobile-inline-stat">
+                        <span class="mobile-inline-stat-number" id="mobileVisitedCount">0</span>
+                        <span class="mobile-inline-stat-label">saved</span>
+                    </div>
+                    <div class="mobile-inline-stat">
+                        <span class="mobile-inline-stat-number" id="mobileFollowersCount">0</span>
+                        <span class="mobile-inline-stat-label">followers</span>
+                    </div>
+                    <div class="mobile-inline-stat">
+                        <span class="mobile-inline-stat-number" id="mobileListsCount">0</span>
+                        <span class="mobile-inline-stat-label">lists</span>
+                    </div>
+                    <div class="mobile-inline-stat">
+                        <span class="mobile-inline-stat-number" id="mobileReviewsCount">0</span>
+                        <span class="mobile-inline-stat-label">reviews</span>
+                    </div>
                 </div>
+                <div class="profile-badges mobile-profile-badges" id="mobileProfileBadges"></div>
             </div>
         </div>
 
@@ -1104,70 +1108,29 @@
         <!-- Mobile Content Area -->
         <div class="mobile-content">
             <section class="mobile-primary-panel active" data-panel="overview">
-                <div class="mobile-overview-grid">
-                    <div class="mobile-overview-card mobile-overview-card-stats">
-                        <div class="mobile-overview-card-header">
-                            <div>
-                                <div class="mobile-overview-card-kicker">Overview</div>
-                                <h2 class="mobile-overview-card-title">At a glance</h2>
-                            </div>
-                        </div>
-                        <div class="mobile-stats">
-                            <div class="mobile-stat">
-                                <span class="mobile-stat-number" id="mobileVisitedCount">0</span>
-                                <span class="mobile-stat-label">Saved</span>
-                            </div>
-                            <div class="mobile-stat">
-                                <span class="mobile-stat-number" id="mobileFollowersCount">0</span>
-                                <span class="mobile-stat-label">Followers</span>
-                            </div>
-                            <div class="mobile-stat">
-                                <span class="mobile-stat-number" id="mobileListsCount">0</span>
-                                <span class="mobile-stat-label">Lists</span>
-                            </div>
-                            <div class="mobile-stat">
-                                <span class="mobile-stat-number" id="mobileReviewsCount">0</span>
-                                <span class="mobile-stat-label">Reviews</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mobile-overview-card mobile-overview-card-community" id="mobileSocialPreview">
-                        <div class="mobile-overview-card-header">
-                            <div>
-                                <div class="mobile-overview-card-kicker">Community</div>
-                                <h2 class="mobile-overview-card-title">People and activity</h2>
-                            </div>
-                            <button class="mobile-overview-link" type="button" onclick="ProfileManager.showTab('community')">Open</button>
-                        </div>
+                <div class="mobile-overview-flow">
+                    <div class="mobile-social-preview mobile-overview-social" id="mobileSocialPreview">
                         <div class="social-preview-info">
-                            <div class="social-preview-title">Friends</div>
+                            <div class="social-preview-title">Community</div>
                             <div class="social-preview-meta" id="mobileSocialPreviewMeta">0 followers &middot; 0 following</div>
                         </div>
                         <div class="social-preview-avatars" id="mobileFriendsPreviewAvatars"></div>
+                        <button class="social-preview-link" type="button" onclick="ProfileManager.showTab('community')">Open community</button>
                     </div>
 
-                    <div class="mobile-overview-card mobile-overview-card-shortcuts">
-                        <div class="mobile-overview-card-header">
-                            <div>
-                                <div class="mobile-overview-card-kicker">Shortcuts</div>
-                                <h2 class="mobile-overview-card-title">Jump back in</h2>
-                            </div>
-                        </div>
-                        <div class="mobile-overview-shortcuts">
-                            <button class="mobile-overview-shortcut" type="button" onclick="ProfileManager.showTab('restaurants')">
-                                <i class="fas fa-clapperboard"></i>
-                                <span>Collections</span>
-                            </button>
-                            <button class="mobile-overview-shortcut" type="button" onclick="ProfileManager.showTab('movies')">
-                                <i class="fas fa-film"></i>
-                                <span>Movies</span>
-                            </button>
-                            <button class="mobile-overview-shortcut" type="button" onclick="ProfileManager.showTab('community')">
-                                <i class="fas fa-users"></i>
-                                <span>Community</span>
-                            </button>
-                        </div>
+                    <div class="mobile-overview-shortcuts">
+                        <button class="mobile-overview-shortcut" type="button" onclick="ProfileManager.showTab('restaurants')">
+                            <i class="fas fa-clapperboard"></i>
+                            <span>Collections</span>
+                        </button>
+                        <button class="mobile-overview-shortcut" type="button" onclick="ProfileManager.showTab('movies')">
+                            <i class="fas fa-film"></i>
+                            <span>Movies</span>
+                        </button>
+                        <button class="mobile-overview-shortcut" type="button" onclick="ProfileManager.showTab('community')">
+                            <i class="fas fa-users"></i>
+                            <span>Community</span>
+                        </button>
                     </div>
                 </div>
             </section>
@@ -2212,16 +2175,6 @@
                         <span>Search Users</span>
                     </div>
 
-                    <div class="mobile-menu-item" onclick="ProfileManager.shareProfile(); ProfileManager.closeModal('mobileMenuModal')">
-                        <i class="fas fa-share-nodes"></i>
-                        <span>Share Profile</span>
-                    </div>
-
-                    <div class="mobile-menu-item" id="mobileMenuInviteFriendsItem" onclick="ProfileManager.inviteFriends(); ProfileManager.closeModal('mobileMenuModal')">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Invite Friends</span>
-                    </div>
-                    
                     <div class="mobile-menu-item" onclick="ProfileManager.showModal('avatarModal'); ProfileManager.closeModal('mobileMenuModal')">
                         <i class="fas fa-user-circle"></i>
                         <span>Change Avatar</span>

@@ -4964,3 +4964,217 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
     box-shadow: none;
   }
 }
+
+/* ===== Profile Follow-up Cleanup ===== */
+#createRestaurantListBtn,
+#createMovieListBtn,
+#createTvListBtn,
+#createAnimeListBtn,
+#createGameListBtn,
+#createBookListBtn,
+#createMusicListBtn,
+#createTravelListBtn,
+#createFashionListBtn,
+#createCarsListBtn,
+#createFoodListBtn,
+#mobileCreateRestaurantListBtn,
+#mobileCreateMovieListBtn,
+#mobileCreateTvListBtn,
+#mobileCreateAnimeListBtn,
+#mobileCreateGameListBtn,
+#mobileCreateBookListBtn,
+#mobileCreateMusicListBtn,
+#mobileCreateTravelListBtn,
+#mobileCreateFashionListBtn,
+#mobileCreateCarsListBtn,
+#mobileCreateFoodListBtn {
+  width: 40px !important;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 !important;
+  font-size: 0 !important;
+  line-height: 1;
+  justify-content: center;
+  border-radius: 14px;
+}
+
+#createRestaurantListBtn i,
+#createMovieListBtn i,
+#createTvListBtn i,
+#createAnimeListBtn i,
+#createGameListBtn i,
+#createBookListBtn i,
+#createMusicListBtn i,
+#createTravelListBtn i,
+#createFashionListBtn i,
+#createCarsListBtn i,
+#createFoodListBtn i,
+#mobileCreateRestaurantListBtn i,
+#mobileCreateMovieListBtn i,
+#mobileCreateTvListBtn i,
+#mobileCreateAnimeListBtn i,
+#mobileCreateGameListBtn i,
+#mobileCreateBookListBtn i,
+#mobileCreateMusicListBtn i,
+#mobileCreateTravelListBtn i,
+#mobileCreateFashionListBtn i,
+#mobileCreateCarsListBtn i,
+#mobileCreateFoodListBtn i {
+  margin: 0;
+  font-size: 17px;
+}
+
+#createRestaurantListBtn::after,
+#createMovieListBtn::after,
+#createTvListBtn::after,
+#createAnimeListBtn::after,
+#createGameListBtn::after,
+#createBookListBtn::after,
+#createMusicListBtn::after,
+#createTravelListBtn::after,
+#createFashionListBtn::after,
+#createCarsListBtn::after,
+#createFoodListBtn::after,
+#mobileCreateRestaurantListBtn::after,
+#mobileCreateMovieListBtn::after,
+#mobileCreateTvListBtn::after,
+#mobileCreateAnimeListBtn::after,
+#mobileCreateGameListBtn::after,
+#mobileCreateBookListBtn::after,
+#mobileCreateMusicListBtn::after,
+#mobileCreateTravelListBtn::after,
+#mobileCreateFashionListBtn::after,
+#mobileCreateCarsListBtn::after,
+#mobileCreateFoodListBtn::after {
+  content: "";
+}
+
+.mobile-overview-flow {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.mobile-overview-social {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 2px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mobile-overview-social .social-preview-title {
+  font-size: 14px;
+}
+
+.mobile-overview-social .social-preview-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.mobile-profile-inline-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.mobile-inline-stat {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+}
+
+.mobile-inline-stat-number {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.mobile-inline-stat-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(203, 213, 225, 0.72);
+}
+
+@media (max-width: 768px) {
+  .profile-actions-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mobile-profile-header {
+    margin: 8px 12px 8px;
+    padding: 10px 12px 12px;
+    border-radius: 16px;
+  }
+
+  .mobile-profile-topbar {
+    margin-bottom: 6px;
+  }
+
+  .mobile-avatar {
+    width: 96px;
+    height: 96px;
+    font-size: 2.3rem;
+  }
+
+  .mobile-profile-hero {
+    gap: 6px;
+  }
+
+  .mobile-profile-name {
+    font-size: 1.28rem;
+  }
+
+  .mobile-profile-username {
+    font-size: 0.95rem;
+  }
+
+  .mobile-profile-bio {
+    font-size: 12px;
+    line-height: 1.35;
+    margin-bottom: 2px;
+  }
+
+  .mobile-profile-badges {
+    margin-top: 2px;
+  }
+
+  .mobile-profile-primary-nav-shell {
+    margin: 0 12px 8px;
+  }
+
+  .mobile-profile-primary-nav {
+    padding: 4px;
+    border-radius: 14px;
+  }
+
+  .mobile-profile-primary-tab {
+    min-height: 38px;
+    font-size: 12px;
+  }
+
+  .mobile-content {
+    padding-top: 2px;
+  }
+
+  .mobile-overview-shortcuts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .mobile-overview-shortcut {
+    padding: 10px 6px;
+    border-radius: 12px;
+    font-size: 11px;
+  }
+}
