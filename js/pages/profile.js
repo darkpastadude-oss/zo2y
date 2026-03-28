@@ -1044,21 +1044,8 @@
                 return theme;
             }
 
-            function getAutoProfileBadges(stats) {
-                const badgeList = [];
-                if ((stats?.listsCount || 0) >= 10) {
-                    badgeList.push({ label: 'Master Curator', icon: 'fa-layer-group', manual: false });
-                }
-                if ((stats?.followersCount || 0) >= 25) {
-                    badgeList.push({ label: 'Rising Creator', icon: 'fa-chart-line', manual: false });
-                }
-                if ((stats?.visitedCount || 0) >= 50) {
-                    badgeList.push({ label: 'Explorer', icon: 'fa-compass', manual: false });
-                }
-                if ((stats?.followingCount || 0) >= 20) {
-                    badgeList.push({ label: 'Connector', icon: 'fa-link', manual: false });
-                }
-                return badgeList;
+            function getAutoProfileBadges() {
+                return [];
             }
 
             function renderProfileBadges(profile = userProfile) {
@@ -1108,9 +1095,13 @@
                 }
                 renderProfileBadges(profile);
                 
+                const rawUsername = String(profile?.username || currentUser.email.split('@')[0] || 'user').replace(/^@+/, '').trim();
+                const normalizedUsername = rawUsername || 'user';
+                const displayIdentity = `@${normalizedUsername}`;
+
                 if (isMobile) {
-                    document.getElementById('mobileProfileName').textContent = profile?.full_name || profile?.username || currentUser.email.split('@')[0];
-                    document.getElementById('mobileProfileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
+                    document.getElementById('mobileProfileName').textContent = displayIdentity;
+                    document.getElementById('mobileProfileUsername').textContent = '';
                     document.getElementById('mobileProfileBio').textContent = profile?.bio || "No bio yet. Tap edit to add one!";
                     document.getElementById('mobileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
                     const mobileAboutBio = document.getElementById('mobileAboutBio');
@@ -1120,8 +1111,8 @@
                     if (mobileAboutLocation) mobileAboutLocation.textContent = profile?.location || "Location not set";
                     if (mobileAboutMember) mobileAboutMember.textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
                 } else {
-                    document.getElementById('profileName').textContent = profile?.full_name || profile?.username || currentUser.email.split('@')[0];
-                    document.getElementById('profileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
+                    document.getElementById('profileName').textContent = displayIdentity;
+                    document.getElementById('profileUsername').textContent = '';
                     document.getElementById('profileBio').textContent = profile?.bio || "No bio yet. Click edit to add one!";
                     document.getElementById('profileLocation').textContent = profile?.location || "Location not set";
                     document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
