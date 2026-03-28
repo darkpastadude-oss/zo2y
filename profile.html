@@ -9,7 +9,7 @@
     <title>Zo2y - Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260328b" />
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260328c" />
     <link rel="icon" href="/newlogo.webp" type="image/webp" />
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -1095,10 +1095,7 @@
 
         <div class="mobile-profile-primary-nav-shell">
             <div class="mobile-profile-primary-nav" role="tablist" aria-label="Profile sections">
-                <button class="mobile-profile-primary-tab active" type="button" data-primary-tab="overview" onclick="ProfileManager.showPrimaryTab('overview')">
-                    <span>Overview</span>
-                </button>
-                <button class="mobile-profile-primary-tab" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
+                <button class="mobile-profile-primary-tab active" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
                     <span>Lists</span>
                 </button>
                 <button class="mobile-profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
@@ -1109,18 +1106,7 @@
 
         <!-- Mobile Content Area -->
         <div class="mobile-content">
-            <section class="mobile-primary-panel active" data-panel="overview">
-                <div class="mobile-overview-flow">
-                    <div class="mobile-social-preview mobile-overview-social" id="mobileSocialPreview">
-                        <div class="social-preview-info">
-                            <div class="social-preview-title">Community</div>
-                            <div class="social-preview-meta" id="mobileSocialPreviewMeta">0 followers &middot; 0 following</div>
-                        </div>
-                        <div class="social-preview-avatars" id="mobileFriendsPreviewAvatars"></div>
-                        <button class="social-preview-link" type="button" onclick="ProfileManager.showTab('community')">Open community</button>
-                    </div>
-                </div>
-            </section>
+            <section class="mobile-primary-panel" data-panel="overview"></section>
 
             <section class="mobile-primary-panel" data-panel="lists">
             <!-- Mobile Tabs Navigation -->

@@ -266,7 +266,7 @@
                     
                     // 2. FIX: Update setupEventListeners to prevent multiple bindings
                     setupEventListeners();
-                    showPrimaryTab('overview', { force: true, skipTabSync: true });
+                    showPrimaryTab(window.innerWidth <= 768 ? 'lists' : 'overview', { force: true, skipTabSync: true });
                     bindRouteListeners();
                     
                     if (window.innerWidth <= 768) {
