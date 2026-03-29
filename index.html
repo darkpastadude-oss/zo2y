@@ -57,9 +57,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/pages/index.css?v=20260329a" />
-<link rel="preload" href="css/pages/index-landing.css?v=20260329e" as="style">
-<link rel="stylesheet" href="css/pages/index-landing.css?v=20260329e" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/pages/index-landing.css?v=20260329e"></noscript>
+<link rel="preload" href="css/pages/index-landing.css?v=20260329f" as="style">
+<link rel="stylesheet" href="css/pages/index-landing.css?v=20260329f" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/pages/index-landing.css?v=20260329f"></noscript>
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -101,18 +101,13 @@
               <i class="fa-solid fa-right-to-bracket"></i> Log in
             </a>
           </div>
-          <div class="landing-proof-inline" aria-label="Key product traits">
-            <span><i class="fa-solid fa-film"></i> movies, TV, anime, and games</span>
-            <span><i class="fa-solid fa-book"></i> books, music, sports, and travel</span>
-            <span><i class="fa-solid fa-lock"></i> the feed is live, saving is what unlocks</span>
-          </div>
         </div>
 
         <div class="landing-app-shell" id="landingAppShell" aria-label="Locked Zo2y home preview">
           <div class="landing-shell-strip">
-            <div class="landing-shell-lock">
+            <div class="landing-shell-lock" aria-label="Locked home">
               <i class="fa-solid fa-lock"></i>
-              <span>live homepage preview</span>
+              <span>locked home</span>
             </div>
             <a class="landing-shell-profile" href="sign-up.html" data-auth-entry="signup">
               <span class="landing-shell-profile-icon"><i class="fa-solid fa-user-lock"></i></span>
@@ -125,59 +120,33 @@
           <a class="landing-preview-spotlight" id="landingPreviewSpotlightLink" href="sign-up.html" data-auth-entry="signup" aria-label="Open locked spotlight preview">
             <div class="landing-preview-spotlight-backdrop" id="landingPreviewSpotlightBackdrop"></div>
             <div class="landing-preview-spotlight-copy">
-              <span class="landing-preview-badge" id="landingPreviewSpotlightType">loading live preview</span>
-              <h2 id="landingPreviewSpotlightTitle">building your locked homepage</h2>
-              <p class="landing-preview-meta" id="landingPreviewSpotlightMeta">movies, games, sports, books, and more</p>
-              <p class="landing-preview-summary" id="landingPreviewSpotlightSummary">Pulling actual picks from the live Zo2y feed.</p>
+              <span class="landing-preview-badge" id="landingPreviewSpotlightType">live spotlight</span>
+              <h2 id="landingPreviewSpotlightTitle">Loading the live feed</h2>
+              <p class="landing-preview-meta" id="landingPreviewSpotlightMeta">real picks from movies, games, TV, sports, and more</p>
+              <p class="landing-preview-summary" id="landingPreviewSpotlightSummary">The homepage stays live. Saving, lists, and tracking unlock after signup.</p>
             </div>
             <div class="landing-preview-spotlight-poster">
               <img id="landingPreviewSpotlightPoster" src="/newlogo.webp" alt="" loading="eager" fetchpriority="high">
             </div>
-            <div class="landing-preview-lock-overlay"><i class="fa-solid fa-lock"></i> unlock to open</div>
+            <div class="landing-preview-lock-overlay"><i class="fa-solid fa-lock"></i> sign up to open</div>
           </a>
-          <div class="landing-preview-rail-grid">
-            <section class="landing-preview-rail" aria-label="Movie preview rail">
-              <div class="landing-preview-rail-head">
-                <span>movies</span>
-                <a href="sign-up.html" data-auth-entry="signup">unlock</a>
+          <div class="landing-live-rails">
+            <section class="rail-wrap landing-rail-wrap" aria-label="Movie preview rail">
+              <div class="rail-title">
+                <span><i class="fa-solid fa-film"></i> movies</span>
+                <a href="sign-up.html" data-auth-entry="signup">sign up to save</a>
               </div>
-              <div class="landing-preview-card-row" id="landingPreviewMovies">
-                <article class="landing-preview-card is-loading"><span>loading</span></article>
-                <article class="landing-preview-card is-loading"><span>loading</span></article>
-                <article class="landing-preview-card is-loading"><span>loading</span></article>
+              <div class="rail" id="landingMoviesRail">
+                <div class="empty">Loading live movies...</div>
               </div>
             </section>
-            <section class="landing-preview-rail" aria-label="Game preview rail">
-              <div class="landing-preview-rail-head">
-                <span>games</span>
-                <a href="sign-up.html" data-auth-entry="signup">unlock</a>
+            <section class="rail-wrap landing-rail-wrap" aria-label="Game preview rail">
+              <div class="rail-title">
+                <span><i class="fa-solid fa-gamepad"></i> games</span>
+                <a href="sign-up.html" data-auth-entry="signup">sign up to save</a>
               </div>
-              <div class="landing-preview-card-row" id="landingPreviewGames">
-                <article class="landing-preview-card is-loading"><span>loading</span></article>
-                <article class="landing-preview-card is-loading"><span>loading</span></article>
-                <article class="landing-preview-card is-loading"><span>loading</span></article>
-              </div>
-            </section>
-            <section class="landing-preview-rail" aria-label="TV preview rail">
-              <div class="landing-preview-rail-head">
-                <span>tv shows</span>
-                <a href="sign-up.html" data-auth-entry="signup">unlock</a>
-              </div>
-              <div class="landing-preview-card-row" id="landingPreviewTv">
-                <article class="landing-preview-card is-loading"><span>loading</span></article>
-                <article class="landing-preview-card is-loading"><span>loading</span></article>
-                <article class="landing-preview-card is-loading"><span>loading</span></article>
-              </div>
-            </section>
-            <section class="landing-preview-rail" aria-label="Sports preview rail">
-              <div class="landing-preview-rail-head">
-                <span>sports</span>
-                <a href="sign-up.html" data-auth-entry="signup">unlock</a>
-              </div>
-              <div class="landing-preview-card-row" id="landingPreviewSports">
-                <article class="landing-preview-card is-loading"><span>loading</span></article>
-                <article class="landing-preview-card is-loading"><span>loading</span></article>
-                <article class="landing-preview-card is-loading"><span>loading</span></article>
+              <div class="rail" id="landingGamesRail">
+                <div class="empty">Loading live games...</div>
               </div>
             </section>
           </div>
@@ -187,17 +156,17 @@
       <section class="landing-section landing-preview-band" data-landing-reveal>
         <div class="landing-section-head">
           <p class="landing-section-kicker">Recent reviews</p>
-          <h2>Real titles. Real notes. Real reasons to make the account.</h2>
+          <h2>Real reviews from the community, not filler.</h2>
         </div>
         <div class="landing-review-grid" id="landingPreviewReviews">
           <article class="landing-review-card is-loading">
-            <div class="landing-review-card-head"><span>Loading review preview</span></div>
+            <div class="landing-review-card-head"><span>Loading reviews</span></div>
           </article>
           <article class="landing-review-card is-loading">
-            <div class="landing-review-card-head"><span>Loading review preview</span></div>
+            <div class="landing-review-card-head"><span>Loading reviews</span></div>
           </article>
           <article class="landing-review-card is-loading">
-            <div class="landing-review-card-head"><span>Loading review preview</span></div>
+            <div class="landing-review-card-head"><span>Loading reviews</span></div>
           </article>
         </div>
       </section>
@@ -245,10 +214,27 @@
       </section>
     </main>
 
-    <div class="landing-legal-strip">
+  <div class="landing-legal-strip">
       <a href="privacy.html">Privacy</a>
       <a href="terms.html">Terms</a>
       <a href="mailto:darkpastadude@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
+    </div>
+
+    <div class="landing-save-prompt" id="landingSavePrompt" hidden aria-live="polite">
+      <div class="landing-save-prompt-card">
+        <button class="landing-save-prompt-close" id="landingSavePromptClose" type="button" aria-label="Close save prompt">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <span class="landing-save-prompt-badge"><i class="fa-solid fa-lock"></i> sign up required</span>
+        <strong>Start saving with your own account</strong>
+        <p id="landingSavePromptText">Sign up required to start saving titles, building lists, and shaping your feed.</p>
+        <div class="landing-save-prompt-actions">
+          <a class="landing-cta landing-cta-primary" id="landingSavePromptCta" href="sign-up.html" data-auth-entry="signup">
+            <i class="fa-solid fa-user-plus"></i> Sign up
+          </a>
+          <button class="landing-cta" id="landingSavePromptDismiss" type="button">Not now</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -462,7 +448,7 @@
       });
     })();
   </script>
-  <script src="js/pages/index.js?v=20260329d" defer></script>
+  <script src="js/pages/index.js?v=20260329f" defer></script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
   <script src="js/home-desktop-rebrand.js?v=20260323c" defer></script>
 </body>

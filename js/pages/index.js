@@ -7862,11 +7862,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     let landingExperienceInitialized = false;
     let landingPreviewHydrated = false;
+    let landingReviewHydrated = false;
+    let landingSavePromptTimer = null;
+    const landingReviewUsers = new Map();
+    const landingReviewMeta = new Map();
+    const LANDING_REVIEW_LIMIT = 6;
+    const LANDING_REVIEW_SOURCES = [
+      { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id' },
+      { mediaType: 'tv', table: 'tv_reviews', idField: 'tv_id' },
+      { mediaType: 'anime', table: 'anime_reviews', idField: 'anime_id' },
+      { mediaType: 'game', table: 'game_reviews', idField: 'game_id' },
+      { mediaType: 'book', table: 'book_reviews', idField: 'book_id' },
+      { mediaType: 'music', table: 'music_reviews', idField: 'track_id' },
+      { mediaType: 'travel', table: 'travel_reviews', idField: 'country_code' }
+    ];
 
     function normalizeLandingImageUrl(value) {
       const raw = unwrapCloudflareImageUrl(String(value || '').trim());
       if (!raw) return '';
       if (raw.startsWith('//')) return `https:${raw}`;
+      if (/^http:\/\//i.test(raw)) return raw.replace(/^http:\/\//i, 'https://');
       return raw;
     }
 
@@ -8003,22 +8018,354 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       });
     }
 
+    function hideLandingSavePrompt() {
+      const prompt = document.getElementById('landingSavePrompt');
+      if (!prompt) return;
+      prompt.hidden = true;
+      if (landingSavePromptTimer) {
+        clearTimeout(landingSavePromptTimer);
+        landingSavePromptTimer = null;
+      }
+    }
+
+    function showLandingSavePrompt(message, nextPath = 'index.html') {
+      const prompt = document.getElementById('landingSavePrompt');
+      const text = document.getElementById('landingSavePromptText');
+      const cta = document.getElementById('landingSavePromptCta');
+      if (!prompt || !text || !cta) return;
+      const safeNext = sanitizeHomeNextPath(nextPath || 'index.html');
+      text.textContent = String(message || 'Sign up required to start saving titles, building lists, and shaping your feed.');
+      cta.href = buildLandingAuthHref(safeNext);
+      cta.setAttribute('data-auth-next', safeNext);
+      prompt.hidden = false;
+      wireLandingAuthNextLinks(prompt);
+      if (landingSavePromptTimer) clearTimeout(landingSavePromptTimer);
+      landingSavePromptTimer = window.setTimeout(() => {
+        hideLandingSavePrompt();
+      }, 4200);
+    }
+
+    function lockLandingRailInteractions(scope) {
+      if (!scope) return;
+      scope.querySelectorAll('.card').forEach((card) => {
+        const nextPath = sanitizeHomeNextPath(card.getAttribute('data-href') || 'index.html');
+        card.onclick = (event) => {
+          if (event.target.closest('.card-menu-btn') || event.target.closest('.card-open-link') || event.target.closest('.card-preview-btn')) return;
+          localStorage.setItem('postAuthRedirect', nextPath);
+          window.location.href = buildLandingAuthHref(nextPath);
+        };
+      });
+
+      scope.querySelectorAll('.card-menu-btn').forEach((btn) => {
+        const replacement = btn.cloneNode(true);
+        btn.replaceWith(replacement);
+        replacement.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const card = replacement.closest('.card');
+          const nextPath = sanitizeHomeNextPath(card?.getAttribute('data-href') || 'index.html');
+          showLandingSavePrompt('Sign up required to start saving, building lists, and tracking your taste.', nextPath);
+        });
+      });
+
+      scope.querySelectorAll('.card-open-link').forEach((link) => {
+        const nextPath = sanitizeHomeNextPath(link.closest('.card')?.getAttribute('data-href') || 'index.html');
+        link.setAttribute('href', buildLandingAuthHref(nextPath));
+        link.setAttribute('data-auth-next', nextPath);
+        link.removeAttribute('target');
+        link.removeAttribute('rel');
+      });
+
+      wireLandingAuthNextLinks(scope);
+    }
+
+    function getLandingReviewKey(mediaType, itemId) {
+      const media = String(mediaType || '').trim().toLowerCase();
+      const id = String(itemId || '').trim();
+      return media && id ? `${media}:${id}` : '';
+    }
+
+    function getLandingReviewFallbackMeta(row) {
+      const mediaType = String(row?.mediaType || '').trim().toLowerCase();
+      const itemId = String(row?.itemId || '').trim();
+      const media = getHomeMediaMeta(mediaType);
+      let href = getLandingBrowsePath(mediaType);
+      if (itemId) {
+        if (mediaType === 'movie') href = `movie.html?id=${encodeURIComponent(itemId)}`;
+        else if (mediaType === 'tv') href = `tvshow.html?id=${encodeURIComponent(itemId)}`;
+        else if (mediaType === 'anime') href = `anime.html?id=${encodeURIComponent(itemId)}`;
+        else if (mediaType === 'game') href = `game.html?id=${encodeURIComponent(itemId)}`;
+        else if (mediaType === 'book') href = `book.html?id=${encodeURIComponent(itemId)}`;
+        else if (mediaType === 'music') href = `song.html?id=${encodeURIComponent(itemId)}`;
+        else if (mediaType === 'travel') href = `country.html?code=${encodeURIComponent(itemId.toUpperCase())}`;
+      }
+      return {
+        title: media.label,
+        subtitle: `${media.label} review`,
+        image: '/newlogo.webp',
+        href
+      };
+    }
+
+    function getLandingReviewMeta(row) {
+      return landingReviewMeta.get(getLandingReviewKey(row?.mediaType, row?.itemId)) || getLandingReviewFallbackMeta(row);
+    }
+
+    function getLandingReviewUserLabel(userId) {
+      const profile = landingReviewUsers.get(String(userId || '').trim());
+      if (!profile) return 'Zo2y member';
+      if (profile.username) return `@${profile.username}`;
+      return profile.fullName || 'Zo2y member';
+    }
+
+    async function fetchLandingReviewRows() {
+      const client = await ensureHomeSupabase();
+      if (!client) return [];
+      const results = await Promise.allSettled(
+        LANDING_REVIEW_SOURCES.map(async (source) => {
+          const { data, error } = await client
+            .from(source.table)
+            .select(`id,user_id,rating,comment,created_at,${source.idField}`)
+            .order('created_at', { ascending: false })
+            .limit(5);
+          if (error || !Array.isArray(data)) return [];
+          return data
+            .map((row) => {
+              const itemId = String(row?.[source.idField] || '').trim();
+              const comment = String(row?.comment || '').trim();
+              if (!itemId || !comment) return null;
+              return {
+                id: `${source.mediaType}:${String(row?.id || itemId)}`,
+                mediaType: source.mediaType,
+                itemId,
+                userId: String(row?.user_id || '').trim(),
+                rating: Math.max(0, Math.min(5, Number(row?.rating || 0))),
+                comment,
+                createdAt: row?.created_at || ''
+              };
+            })
+            .filter(Boolean);
+        })
+      );
+
+      return results
+        .flatMap((entry) => entry.status === 'fulfilled' ? entry.value : [])
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, LANDING_REVIEW_LIMIT);
+    }
+
+    async function loadLandingReviewUsers(rows) {
+      const client = await ensureHomeSupabase();
+      if (!client) return;
+      const ids = [...new Set((Array.isArray(rows) ? rows : []).map((row) => String(row?.userId || '').trim()).filter(Boolean))];
+      if (!ids.length) return;
+      const { data, error } = await client
+        .from('user_profiles')
+        .select('id, username, full_name')
+        .in('id', ids);
+      if (error || !Array.isArray(data)) return;
+      data.forEach((row) => {
+        const id = String(row?.id || '').trim();
+        if (!id) return;
+        landingReviewUsers.set(id, {
+          username: String(row?.username || '').trim(),
+          fullName: String(row?.full_name || '').trim()
+        });
+      });
+    }
+
+    async function hydrateLandingReviewLocalMeta(rows) {
+      const client = await ensureHomeSupabase();
+      if (!client) return;
+      const safeRows = Array.isArray(rows) ? rows : [];
+      const bookIds = [...new Set(safeRows.filter((row) => row.mediaType === 'book').map((row) => row.itemId).filter(Boolean))];
+      const trackIds = [...new Set(safeRows.filter((row) => row.mediaType === 'music').map((row) => row.itemId).filter(Boolean))];
+
+      if (bookIds.length) {
+        const { data } = await client
+          .from('books')
+          .select('id,title,authors,thumbnail')
+          .in('id', bookIds.slice(0, 40));
+        (Array.isArray(data) ? data : []).forEach((row) => {
+          const id = String(row?.id || '').trim();
+          if (!id) return;
+          landingReviewMeta.set(getLandingReviewKey('book', id), {
+            title: String(row?.title || 'Book').trim(),
+            subtitle: String(row?.authors || 'Book').trim(),
+            image: normalizeLandingImageUrl(row?.thumbnail || '') || '/newlogo.webp',
+            href: `book.html?id=${encodeURIComponent(id)}`
+          });
+        });
+      }
+
+      if (trackIds.length) {
+        const { data } = await client
+          .from('tracks')
+          .select('id,name,artists,image_url,album_name')
+          .in('id', trackIds.slice(0, 40));
+        (Array.isArray(data) ? data : []).forEach((row) => {
+          const id = String(row?.id || '').trim();
+          if (!id) return;
+          landingReviewMeta.set(getLandingReviewKey('music', id), {
+            title: String(row?.name || 'Track').trim(),
+            subtitle: String(row?.artists || row?.album_name || 'Music').trim(),
+            image: normalizeLandingImageUrl(row?.image_url || '') || '/newlogo.webp',
+            href: `song.html?id=${encodeURIComponent(id)}`
+          });
+        });
+      }
+    }
+
+    async function fetchLandingReviewJson(url, timeoutMs = 8000) {
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      let timer = null;
+      try {
+        if (controller) timer = setTimeout(() => controller.abort(), timeoutMs);
+        const response = await fetch(url, {
+          headers: { Accept: 'application/json' },
+          signal: controller ? controller.signal : undefined
+        });
+        if (!response.ok) return null;
+        return await response.json();
+      } catch (_error) {
+        return null;
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    }
+
+    async function hydrateLandingReviewRemoteMeta(rows) {
+      const uniqueRows = new Map();
+      (Array.isArray(rows) ? rows : []).forEach((row) => {
+        const key = getLandingReviewKey(row?.mediaType, row?.itemId);
+        if (!key || uniqueRows.has(key)) return;
+        uniqueRows.set(key, row);
+      });
+
+      const tasks = [...uniqueRows.values()].map(async (row) => {
+        const mediaType = String(row?.mediaType || '').toLowerCase();
+        const itemId = String(row?.itemId || '').trim();
+        if (!itemId) return;
+
+        if (mediaType === 'movie') {
+          const json = await fetchLandingReviewJson(`/api/tmdb/movie/${encodeURIComponent(itemId)}?language=en-US`, 7000);
+          if (!json?.title) return;
+          landingReviewMeta.set(getLandingReviewKey('movie', itemId), {
+            title: String(json.title || 'Movie').trim(),
+            subtitle: String(json.release_date || '').slice(0, 4) || 'Movie',
+            image: json.poster_path ? `${TMDB_POSTER}${json.poster_path}` : '/newlogo.webp',
+            href: `movie.html?id=${encodeURIComponent(itemId)}`
+          });
+          return;
+        }
+
+        if (mediaType === 'tv' || mediaType === 'anime') {
+          const json = await fetchLandingReviewJson(`/api/tmdb/tv/${encodeURIComponent(itemId)}?language=en-US`, 7000);
+          if (!json?.name) return;
+          landingReviewMeta.set(getLandingReviewKey(mediaType, itemId), {
+            title: String(json.name || 'Series').trim(),
+            subtitle: String(json.first_air_date || '').slice(0, 4) || (mediaType === 'anime' ? 'Anime' : 'TV Show'),
+            image: json.poster_path ? `${TMDB_POSTER}${json.poster_path}` : '/newlogo.webp',
+            href: `${mediaType === 'anime' ? 'anime' : 'tvshow'}.html?id=${encodeURIComponent(itemId)}`
+          });
+          return;
+        }
+
+        if (mediaType === 'game') {
+          const json = await fetchLandingReviewJson(`/api/igdb/games/${encodeURIComponent(itemId)}`, 8000);
+          if (!json?.name) return;
+          landingReviewMeta.set(getLandingReviewKey('game', itemId), {
+            title: String(json.name || 'Game').trim(),
+            subtitle: String(json.released || '').slice(0, 4) || 'Game',
+            image: normalizeLandingImageUrl(json.cover || json.hero || json.background_image || '') || '/newlogo.webp',
+            href: `game.html?id=${encodeURIComponent(itemId)}`
+          });
+          return;
+        }
+
+        if (mediaType === 'travel') {
+          const code = itemId.toUpperCase();
+          const json = await fetchLandingReviewJson(`https://restcountries.com/v3.1/alpha?codes=${encodeURIComponent(code)}&fields=name,capital,region,flags`, 9000);
+          const country = Array.isArray(json) ? json[0] : null;
+          if (!country) return;
+          const capital = Array.isArray(country?.capital) ? String(country.capital[0] || '').trim() : String(country?.capital || '').trim();
+          landingReviewMeta.set(getLandingReviewKey('travel', code), {
+            title: String(country?.name?.common || code).trim(),
+            subtitle: [capital, String(country?.region || '').trim()].filter(Boolean).join(' | ') || 'Travel',
+            image: normalizeLandingImageUrl(country?.flags?.png || country?.flags?.svg || '') || '/newlogo.webp',
+            href: `country.html?code=${encodeURIComponent(code)}`
+          });
+        }
+      });
+
+      await Promise.allSettled(tasks);
+    }
+
+    function buildLandingLiveReviewCard(review) {
+      const meta = getLandingReviewMeta(review);
+      const media = getHomeMediaMeta(review?.mediaType);
+      const title = escapeHtml(String(meta?.title || media.label || 'Item').trim() || 'Item');
+      const subtitle = escapeHtml(String(meta?.subtitle || `${media.label} review`).trim() || `${media.label} review`);
+      const image = escapeHtml(normalizeLandingImageUrl(meta?.image || '') || '/newlogo.webp');
+      const comment = escapeHtml(truncateLandingText(review?.comment || 'Fresh review from the Zo2y community.', 180));
+      const reviewer = escapeHtml(getLandingReviewUserLabel(review?.userId));
+      const rating = Number(review?.rating || 0);
+      const nextPath = sanitizeHomeNextPath(meta?.href || getLandingBrowsePath(review?.mediaType));
+      return `
+        <a class="landing-review-card" href="${buildLandingAuthHref(nextPath)}" data-auth-entry="signup" data-auth-next="${escapeHtml(nextPath)}" aria-label="Read ${title}">
+          <div class="landing-review-card-head">
+            <div class="landing-review-card-thumb">
+              <img src="${image}" alt="${title}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+            </div>
+            <div class="landing-review-card-meta">
+              <div class="landing-review-card-topline">
+                <span>${escapeHtml(media.label)} review</span>
+                <span class="landing-review-card-user">${reviewer}</span>
+                ${rating > 0 ? `<span class="landing-review-card-rating"><i class="fa-solid fa-star"></i>${rating.toFixed(1)}</span>` : ''}
+              </div>
+              <strong>${title}</strong>
+              <span>${subtitle}</span>
+            </div>
+          </div>
+          <p>${comment}</p>
+        </a>
+      `;
+    }
+
+    async function hydrateLandingLiveReviews() {
+      if (landingReviewHydrated) return;
+      landingReviewHydrated = true;
+      const reviewGrid = document.getElementById('landingPreviewReviews');
+      if (!reviewGrid) return;
+
+      const rows = await fetchLandingReviewRows();
+      if (!rows.length) {
+        reviewGrid.innerHTML = '<article class="landing-review-card"><p>Reviews will show up here as soon as the live feed responds.</p></article>';
+        return;
+      }
+
+      await Promise.allSettled([
+        loadLandingReviewUsers(rows),
+        hydrateLandingReviewLocalMeta(rows),
+        hydrateLandingReviewRemoteMeta(rows)
+      ]);
+
+      reviewGrid.innerHTML = rows.map((row) => buildLandingLiveReviewCard(row)).join('');
+      wireLandingAuthNextLinks(reviewGrid);
+    }
+
     function renderLandingFeedPreview(feedMap) {
       const normalized = normalizeHomeFeedMap(feedMap);
       if (!normalized || countActiveHomeChannels(normalized) === 0) return false;
 
-      const movies = rotateLandingList(normalized.movie, 1).slice(0, 3);
-      const games = rotateLandingList(normalized.game, 2).slice(0, 3);
+      const movies = rotateLandingList(normalized.movie, 1).slice(0, 10);
+      const games = rotateLandingList(normalized.game, 2).slice(0, 10);
       const sports = rotateLandingList(normalized.sports, 3).slice(0, 3);
-      const reviews = ['movie', 'tv', 'anime', 'game', 'book', 'music']
-        .flatMap((type, index) => rotateLandingList(normalized[type], index + 1))
-        .filter((item) => item && (item.title || item.subtitle || item.extra))
-        .slice(0, 3);
 
       const spotlight = [
-        ...movies,
-        ...games,
-        ...(Array.isArray(normalized.book) ? rotateLandingList(normalized.book, 1).slice(0, 1) : []),
+        ...movies.slice(0, 2),
+        ...games.slice(0, 2),
+        ...(Array.isArray(normalized.tv) ? rotateLandingList(normalized.tv, 1).slice(0, 1) : []),
         ...(Array.isArray(normalized.anime) ? rotateLandingList(normalized.anime, 2).slice(0, 1) : []),
         ...sports.slice(0, 1)
       ].find(Boolean) || Object.values(normalized).flat().find(Boolean);
@@ -8030,13 +8377,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const spotlightTitle = document.getElementById('landingPreviewSpotlightTitle');
       const spotlightMeta = document.getElementById('landingPreviewSpotlightMeta');
       const spotlightSummary = document.getElementById('landingPreviewSpotlightSummary');
-      const movieRail = document.getElementById('landingPreviewMovies');
-      const gameRail = document.getElementById('landingPreviewGames');
-      const tvRail = document.getElementById('landingPreviewTv');
-      const sportsRail = document.getElementById('landingPreviewSports');
-      const reviewGrid = document.getElementById('landingPreviewReviews');
 
-      const tv = rotateLandingList(normalized.tv, 2).slice(0, 3);
       if (spotlight && spotlightLink && spotlightBackdrop && spotlightPoster && spotlightType && spotlightTitle && spotlightMeta && spotlightSummary) {
         const nextPath = getLandingItemNextPath(spotlight);
         const meta = getHomeMediaMeta(spotlight.mediaType);
@@ -8044,10 +8385,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         const backdrop = getLandingPreviewBackdrop(spotlight);
         spotlightLink.href = buildLandingAuthHref(nextPath);
         spotlightLink.setAttribute('data-auth-next', nextPath);
-        spotlightType.textContent = `${meta.label} spotlight`;
+        spotlightType.textContent = meta.label;
         spotlightTitle.textContent = String(spotlight.title || `${meta.label} pick`).trim() || `${meta.label} pick`;
         spotlightMeta.textContent = getLandingPreviewMeta(spotlight);
-        spotlightSummary.textContent = truncateLandingText(getSpotlightSummary(spotlight), 156) || 'Live pick from the Zo2y home feed.';
+        spotlightSummary.textContent = truncateLandingText(getSpotlightSummary(spotlight), 140) || 'Live pick from the Zo2y feed.';
         spotlightPoster.src = poster;
         spotlightPoster.alt = String(spotlight.title || meta.label || 'Item').trim() || meta.label;
         spotlightBackdrop.style.backgroundImage = backdrop
@@ -8055,34 +8396,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           : 'linear-gradient(90deg, rgba(6, 11, 27, 0.88) 0%, rgba(6, 11, 27, 0.58) 52%, rgba(6, 11, 27, 0.12) 100%), linear-gradient(150deg, rgba(14, 27, 60, 0.94), rgba(9, 17, 36, 0.9))';
       }
 
-      if (movieRail) {
-        movieRail.innerHTML = (movies.length ? movies : rotateLandingList(normalized.book, 1).slice(0, 3))
-          .map((item) => buildLandingPreviewCard(item))
-          .join('');
-      }
-      if (gameRail) {
-        gameRail.innerHTML = (games.length ? games : rotateLandingList(normalized.anime, 1).slice(0, 3))
-          .map((item) => buildLandingPreviewCard(item))
-          .join('');
-      }
-      if (tvRail) {
-        tvRail.innerHTML = (tv.length ? tv : rotateLandingList(normalized.anime, 2).slice(0, 3))
-          .map((item) => buildLandingPreviewCard(item))
-          .join('');
-      }
-      if (sportsRail) {
-        sportsRail.innerHTML = (sports.length ? sports : rotateLandingList(normalized.music, 1).slice(0, 3))
-          .map((item) => buildLandingPreviewCard(item))
-          .join('');
-      }
-      if (reviewGrid) {
-        reviewGrid.innerHTML = (reviews.length ? reviews : [spotlight].filter(Boolean))
-          .map((item) => buildLandingReviewCard(item))
-          .join('');
-      }
-
+      renderRail('landingMoviesRail', movies, { mediaType: 'movie' });
+      renderRail('landingGamesRail', games, { mediaType: 'game' });
+      lockLandingRailInteractions(document.getElementById('landingMoviesRail'));
+      lockLandingRailInteractions(document.getElementById('landingGamesRail'));
       wireLandingAuthNextLinks(document.getElementById('landingAppShell'));
-      wireLandingAuthNextLinks(reviewGrid);
       return true;
     }
 
@@ -8106,8 +8424,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const authNotice = document.getElementById('landingAuthNotice');
       const revealNodes = Array.from(document.querySelectorAll('[data-landing-reveal]'));
       const params = new URLSearchParams(window.location.search || '');
-      const next = sanitizeHomeNextPath(params.get('next') || localStorage.getItem('postAuthRedirect') || 'index.html');
       const authRequired = params.get('auth') === 'required';
+      const savePromptDismiss = document.getElementById('landingSavePromptDismiss');
+      const savePromptClose = document.getElementById('landingSavePromptClose');
 
       if (authRequired && authNotice) {
         authNotice.hidden = false;
@@ -8120,9 +8439,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         });
       });
 
+      savePromptDismiss?.addEventListener('click', hideLandingSavePrompt);
+      savePromptClose?.addEventListener('click', hideLandingSavePrompt);
+
       initLandingMascot();
       wireLandingAuthNextLinks(document);
       void hydrateLandingFeedPreview();
+      void hydrateLandingLiveReviews();
 
       if (!revealNodes.length || typeof window.IntersectionObserver !== 'function') {
         revealNodes.forEach((node) => node.classList.add('is-visible'));
