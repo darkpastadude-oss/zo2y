@@ -211,7 +211,7 @@ const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
     const HOME_BECAUSE_MAX_FOLLOWED_USERS = 24;
     const HOME_BECAUSE_SIGNAL_RECENCY_HOURS = 24 * 21;
     const HOME_MENU_PRIME_IDLE_DELAY_MS = 2500;
-    const HOME_ONBOARDING_VERSION = 'v1';
+    const HOME_ONBOARDING_VERSION = 'v2';
     const HOME_POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
     const PROFILE_USERNAME_MAX_LENGTH = 30;
 const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
@@ -3655,10 +3655,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const quickContainer = document.getElementById('menuQuickLists');
       if (!quickContainer) return;
       if (!homeItemMenuState.quickRows.length) {
-        quickContainer.innerHTML = '<div class="menu-empty">Lists are not available for this item.</div>';
+        quickContainer.innerHTML = '<div class="menu-empty menu-empty-rich"><div class="menu-empty-title">No quick saves here yet</div><div class="menu-empty-copy">This item type does not have fast-save rows right now, but custom lists can still help you organize it.</div></div>';
         return;
       }
-      quickContainer.innerHTML = homeItemMenuState.quickRows.map((row) => {
+      quickContainer.innerHTML = `
+        <div class="menu-helper">Tap once to save instantly. Use quick lists for speed, then build custom lists underneath.</div>
+        ${homeItemMenuState.quickRows.map((row) => {
         const isActive = !!homeItemMenuState.quickStatus[row.key];
         const isBusy = homeItemMenuState.pendingQuickKeys.has(row.key);
         return `
@@ -3670,7 +3672,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             <span class="menu-quick-state">${isActive ? 'Saved' : 'Add'}</span>
           </div>
         `;
-      }).join('');
+      }).join('')}`;
 
       quickContainer.querySelectorAll('.menu-quick-item').forEach((node) => {
         node.addEventListener('click', async () => {
@@ -3707,7 +3709,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         return;
       }
       if (!homeItemMenuState.customLists.length) {
-        customContainer.innerHTML = '<div class="menu-empty">No custom lists yet. Create one.</div>';
+        customContainer.innerHTML = `
+          <div class="menu-empty menu-empty-rich">
+            <div class="menu-empty-title">Create your first custom list</div>
+            <div class="menu-empty-copy">Make something like “Weekend movies”, “Games to finish”, or “2026 favorites” and reuse it everywhere.</div>
+            <button class="menu-empty-cta" type="button">Create first list</button>
+          </div>
+        `;
+        const createBtn = customContainer.querySelector('.menu-empty-cta');
+        if (createBtn) {
+          createBtn.addEventListener('click', () => {
+            if (homeItemMenuState.currentItem) {
+              void openHomeListsModal(homeItemMenuState.currentItem);
+            }
+          });
+        }
         return;
       }
 
@@ -6021,38 +6037,168 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return raw.filter((item) => !item?.isPlaceholder && String(item?.title || '').trim());
     }
 
+    function getHomeOnboardingPreviewItems(limit = 6) {
+      const liveItems = Array.from(document.querySelectorAll('.card[data-media-type][data-item-id]'))
+        .map((card) => {
+          const image = String(card.getAttribute('data-list-image') || card.getAttribute('data-image') || '').trim();
+          const title = String(card.getAttribute('data-title') || '').trim();
+          const subtitle = String(card.getAttribute('data-subtitle') || '').trim();
+          const mediaType = String(card.getAttribute('data-media-type') || '').trim().toLowerCase();
+          const itemId = String(card.getAttribute('data-item-id') || '').trim();
+          if (!image || !title || !itemId) return null;
+          return { image, title, subtitle, mediaType, itemId };
+        })
+        .filter(Boolean);
+
+      const unique = [];
+      const seen = new Set();
+      liveItems.forEach((item) => {
+        const key = `${item.mediaType}:${String(item.itemId || item.title || '').toLowerCase()}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        unique.push(item);
+      });
+
+      const fallback = [
+        { title: 'Movies', subtitle: 'Save watchlists and favorites.', image: '/images/onboarding/onboard-media.svg', mediaType: 'movie', itemId: 'onboarding-movie' },
+        { title: 'Games', subtitle: 'Build backlogs and finish lists.', image: '/images/onboarding/onboard-interests.svg', mediaType: 'game', itemId: 'onboarding-game' },
+        { title: 'TV Shows', subtitle: 'Track what you are watching next.', image: '/images/onboarding/onboard-profile.svg', mediaType: 'tv', itemId: 'onboarding-tv' },
+        { title: 'Books', subtitle: 'Keep read piles in one place.', image: '/images/onboarding/onboard-travel.svg', mediaType: 'book', itemId: 'onboarding-book' }
+      ];
+
+      return (unique.length ? unique : fallback).slice(0, limit);
+    }
+
+    function buildHomeOnboardingShelfMarkup(limit = 6) {
+      const items = getHomeOnboardingPreviewItems(limit);
+      if (!items.length) return '';
+      return `
+        <div class="onboarding-shelf">
+          ${items.map((item) => `
+            <figure class="onboarding-shelf-card">
+              <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy">
+              <figcaption>${escapeHtml(item.title)}</figcaption>
+            </figure>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function getHomeOnboardingPrimaryCard() {
+      return Array.from(document.querySelectorAll('.card[data-media-type][data-item-id]'))
+        .find((card) => !!card.querySelector('.card-menu-btn'));
+    }
+
+    function getHomeOnboardingPrimaryItem() {
+      const card = getHomeOnboardingPrimaryCard();
+      if (card) {
+        return {
+          image: String(card.getAttribute('data-list-image') || card.getAttribute('data-image') || '').trim(),
+          title: String(card.getAttribute('data-title') || '').trim(),
+          subtitle: String(card.getAttribute('data-subtitle') || '').trim(),
+          mediaType: String(card.getAttribute('data-media-type') || '').trim().toLowerCase()
+        };
+      }
+      return getHomeOnboardingPreviewItems(1)[0] || null;
+    }
+
+    function buildHomeOnboardingSaveDemoMarkup() {
+      const item = getHomeOnboardingPrimaryItem();
+      const mediaLabels = {
+        movie: 'Movie card',
+        tv: 'TV show card',
+        anime: 'Anime card',
+        game: 'Game card',
+        book: 'Book card',
+        music: 'Music card',
+        sport: 'Sports card',
+        travel: 'Travel card',
+        fashion: 'Fashion card',
+        food: 'Food card',
+        car: 'Car card'
+      };
+      const image = item?.image || '/images/onboarding/onboard-media.svg';
+      const title = item?.title || 'Your next save';
+      const subtitle = item?.subtitle || 'Use the menu to send this into favorites or a custom list.';
+      const label = mediaLabels[item?.mediaType] || 'Card menu';
+      return `
+        <div class="onboarding-save-demo">
+          <div class="onboarding-save-card">
+            <div class="onboarding-save-poster">
+              <img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy">
+            </div>
+            <div class="onboarding-save-meta">
+              <span class="photo-label">${escapeHtml(label)}</span>
+              <strong>${escapeHtml(title)}</strong>
+              <span>${escapeHtml(subtitle)}</span>
+            </div>
+            <div class="onboarding-save-kebab" aria-hidden="true"><i class="fas fa-ellipsis-v"></i></div>
+          </div>
+          <div class="onboarding-save-panel">
+            <div class="onboarding-save-step"><span>1</span><div><strong>Open the three-dot menu</strong><small>Every card uses the same save entry point.</small></div></div>
+            <div class="onboarding-save-step"><span>2</span><div><strong>Use a quick list first</strong><small>Favorites, watched, played, owned, or want to try are one tap away.</small></div></div>
+            <div class="onboarding-save-step"><span>3</span><div><strong>Create your own list</strong><small>Make collections like “2026 favorites” or “Games to finish”.</small></div></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function launchHomeOnboardingSaveDemo() {
+      const card = getHomeOnboardingPrimaryCard();
+      const menuBtn = card ? card.querySelector('.card-menu-btn') : null;
+      if (!card || !menuBtn) {
+        showHomeToast('Cards are still loading. Try the save menu in a moment.', true);
+        return;
+      }
+      closeHomeOnboarding(true);
+      try {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      } catch (_err) {}
+      window.setTimeout(() => {
+        menuBtn.click();
+        showHomeToast('Start with a quick save, or tap New to create your first custom list.');
+      }, 220);
+    }
+
     function getHomeOnboardingSteps() {
       return [
         {
           id: 'welcome',
-          title: 'Welcome to Zo2y',
-          body: 'A quick tour to personalize your feed, save to lists, and keep everything in one clean profile.',
-            art: `
-              <div class="onboarding-photo-grid">
-                <img src="/images/onboarding/onboard-media.svg" alt="Media mix" loading="lazy">
-                <img src="/images/onboarding/onboard-food.svg" alt="Food finds" loading="lazy">
-                <img src="/images/onboarding/onboard-travel.svg" alt="Travel spots" loading="lazy">
-                <img src="/images/onboarding/onboard-fashion.svg" alt="Fashion brands" loading="lazy">
+          title: 'Make Zo2y feel like yours',
+          body: 'The feed gets much better after your first few saves. Start with a couple of movies, shows, or games and the rest of the app begins to organize around your taste.',
+          art: `
+            <div class="onboarding-kicker">Start with real picks, not a blank profile</div>
+            ${buildHomeOnboardingShelfMarkup(5)}
+            <div class="onboarding-bento">
+              <div class="onboarding-bento-card">
+                <strong>Save fast</strong>
+                <span>Use quick lists right from the card menu to build momentum.</span>
               </div>
-              <div class="onboarding-photo-caption">Save what you love across fashion, food, travel, movies, music, and more.</div>
-            `,
+              <div class="onboarding-bento-card">
+                <strong>Build lists</strong>
+                <span>Make your own collections once you want something more specific.</span>
+              </div>
+              <div class="onboarding-bento-card">
+                <strong>Fill your profile</strong>
+                <span>Your saved items, lists, and reviews all show up in one place.</span>
+              </div>
+            </div>
+          `,
           actionLabel: null,
           action: null
         },
         {
           id: 'username-setup',
-          title: 'Claim Your Username',
-          body: 'Pick a unique @username. This is your profile link everywhere on Zo2y.',
+          title: 'Claim your profile name',
+          body: 'Pick a clean @username once, and every save, list, and review lives under that handle.',
           art: `
             <div class="onboarding-split">
-                <div class="onboarding-photo-card">
-                  <div class="onboarding-photo-frame">
-                    <img src="/images/onboarding/onboard-profile.svg" alt="Profile preview" loading="lazy">
-                  </div>
-                  <div class="onboarding-photo-meta">
+              <div class="onboarding-identity-card">
+                <div class="onboarding-avatar-preview"><i class="fas fa-user"></i></div>
+                <div class="onboarding-photo-meta">
                   <span class="photo-label">Profile preview</span>
                   <strong>@yourname</strong>
-                  <span>Your lists and reviews live here.</span>
+                  <span>People will find your lists, reviews, and saves here.</span>
                 </div>
               </div>
               <div class="onboarding-form">
@@ -6070,19 +6216,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         },
         {
           id: 'interests-setup',
-          title: 'Tune Your Feed',
-          body: 'Choose formats and genres so the ï¿½For Youï¿½ feed starts on the right note.',
+          title: 'Tune the feed in one pass',
+          body: 'Choose a few formats and vibes now. We will use them to make home, spotlight picks, and community more relevant from the start.',
           art: `
-              <div class="onboarding-interest-layout">
-                <div class="onboarding-interest-photos">
-                  <div class="onboarding-photo-grid compact">
-                    <img src="/images/onboarding/onboard-interests.svg" alt="Interest picks" loading="lazy">
-                    <img src="/images/onboarding/onboard-media.svg" alt="Media formats" loading="lazy">
-                    <img src="/images/onboarding/onboard-fashion.svg" alt="Fashion vibes" loading="lazy">
-                    <img src="/images/onboarding/onboard-food.svg" alt="Food finds" loading="lazy">
-                  </div>
-                  <div class="onboarding-photo-caption">Pick what you want more of. You can edit this later.</div>
-                </div>
+            <div class="onboarding-interest-layout">
+              <div class="onboarding-interest-photos">
+                <div class="onboarding-kicker">This shapes your first home feed</div>
+                ${buildHomeOnboardingShelfMarkup(4)}
+                <div class="onboarding-photo-caption">Pick what you want more of first. You can always edit this later.</div>
+              </div>
               <div class="onboarding-interest-panel">
                 <div class="onboarding-label">Formats</div>
                 <div class="onboarding-chip-grid">
@@ -6100,90 +6242,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           requiresSave: true
         },
         {
-          id: 'lists',
-          title: 'Add Places To Lists',
-          body: 'On any card, tap the three-dot menu. Use quick list buttons, or choose Custom Lists to organize it your way.',
-          art: `
-              <div class="onboarding-illustration">
-                <div class="mini-card">
-                  <div class="mini-photo">
-                    <img src="/images/onboarding/onboard-food.svg" alt="List demo" loading="lazy">
-                  </div>
-                <div class="mini-card-head">
-                  <span><i class="fas fa-clapperboard"></i> Spotlight Pick</span>
-                  <i class="fas fa-ellipsis-v"></i>
-                </div>
-                <div class="mini-tags">
-                  <span>Favorites</span>
-                  <span>Want To Go</span>
-                  <span>Custom Lists</span>
-                </div>
-              </div>
-            </div>
-          `,
-          actionLabel: 'Open A Card Menu',
-          action: () => {
-            const menuBtn = document.querySelector('.card-menu-btn');
-            if (!menuBtn) {
-              showHomeToast('Cards are still loading. Try again in a moment.', true);
-              return;
-            }
-            closeHomeOnboarding(false);
-            menuBtn.click();
-          }
-        },
-        {
-          id: 'custom-lists',
-          title: 'Create Your Own Lists',
-          body: 'In the Custom Lists modal, enter a list name, pick an icon, then press Create.',
-          art: `
-              <div class="onboarding-illustration">
-                <div class="mini-card">
-                  <div class="mini-photo">
-                    <img src="/images/onboarding/onboard-fashion.svg" alt="Custom list demo" loading="lazy">
-                  </div>
-                <div class="mini-input"><i class="fas fa-pen"></i> Date Night Spots</div>
-                <div class="mini-icons">
-                  <span><i class="fas fa-heart"></i></span>
-                  <span><i class="fas fa-star"></i></span>
-                  <span><i class="fas fa-bookmark"></i></span>
-                </div>
-                <div class="mini-create-btn">Create List</div>
-              </div>
-            </div>
-          `,
-          actionLabel: 'Open Custom Lists',
-          action: () => {
-            const firstCard = document.querySelector('.card[data-media-type][data-item-id]');
-            if (!firstCard) {
-              showHomeToast('Cards are still loading. Try again in a moment.', true);
-              return;
-            }
-            closeHomeOnboarding(false);
-            void openItemMenu(firstCard);
-          }
-        },
-        {
-          id: 'profile',
-          title: 'View Your Profile',
-          body: 'Head to your profile to see every list, rating, and save in one place.',
-          art: `
-              <div class="onboarding-illustration">
-                <div class="mini-card">
-                  <div class="mini-photo">
-                    <img src="/images/onboarding/onboard-profile.svg" alt="Profile overview" loading="lazy">
-                  </div>
-                <div class="friend-row"><span><i class="fas fa-user-circle"></i> Your lists</span><span class="friend-pill">Open</span></div>
-                <div class="friend-row"><span><i class="fas fa-star"></i> Reviews</span><span class="friend-pill">View</span></div>
-                <div class="friend-row"><span><i class="fas fa-heart"></i> Favorites</span><span class="friend-pill">See all</span></div>
-              </div>
-            </div>
-          `,
-          actionLabel: 'Go To My Profile',
-          action: () => {
-            closeHomeOnboarding(true);
-            window.location.href = 'index.html';
-          }
+          id: 'save-first',
+          title: 'Save your first pick from a card',
+          body: 'Use the three-dot menu on any card. Quick lists make the first save instant, and custom lists are there once you want to organize things your own way.',
+          art: buildHomeOnboardingSaveDemoMarkup(),
+          actionLabel: 'Try it on a card',
+          action: () => launchHomeOnboardingSaveDemo(),
+          nextLabel: 'Finish'
         }
       ];
     }
@@ -6214,12 +6279,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
                 linear-gradient(180deg, rgba(15,30,61,0.98), rgba(8,18,42,0.98));
               border: 1px solid rgba(255,255,255,0.12);
               border-radius: 16px;
-              box-shadow: 0 30px 80px rgba(0,0,0,0.45);
-              padding: 24px;
+              box-shadow: 0 28px 72px rgba(0,0,0,0.42);
+              padding: 28px;
               color: #fff;
               display: flex;
               flex-direction: column;
-              gap: 12px;
+              gap: 16px;
               max-height: min(92vh, 860px);
               overflow: auto;
               overscroll-behavior: contain;
@@ -6229,8 +6294,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            margin-bottom: 12px;
-            font-size: 13px;
+            margin-bottom: 4px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
             color: rgba(255,255,255,0.78);
           }
           .home-onboarding-skip {
@@ -6242,15 +6309,74 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           }
           .home-onboarding-skip:hover { color: #fff; }
           .home-onboarding-title {
-            margin: 6px 0 8px;
-            font-size: clamp(24px, 3vw, 32px);
-            line-height: 1.2;
+            margin: 2px 0 0;
+            font-size: clamp(28px, 3vw, 36px);
+            line-height: 1.08;
+            letter-spacing: -0.03em;
           }
           .home-onboarding-body {
             color: rgba(255,255,255,0.88);
-            font-size: 16px;
-            line-height: 1.55;
-            min-height: 56px;
+            font-size: 15px;
+            line-height: 1.65;
+            min-height: 0;
+          }
+          .onboarding-kicker {
+            display: inline-flex;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(245, 158, 11, 0.9);
+            margin-bottom: 12px;
+          }
+          .onboarding-shelf {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 12px;
+          }
+          .onboarding-shelf-card {
+            margin: 0;
+            display: grid;
+            gap: 8px;
+          }
+          .onboarding-shelf-card img {
+            width: 100%;
+            aspect-ratio: 0.72;
+            object-fit: cover;
+            border-radius: 14px;
+            display: block;
+            background: rgba(10, 22, 50, 0.72);
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 16px 32px rgba(0,0,0,0.28);
+          }
+          .onboarding-shelf-card figcaption {
+            font-size: 12px;
+            color: rgba(226,236,255,0.74);
+            line-height: 1.3;
+          }
+          .onboarding-bento {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+          }
+          .onboarding-bento-card {
+            display: grid;
+            gap: 6px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+          }
+          .onboarding-bento-card strong {
+            font-size: 15px;
+            color: #fff;
+          }
+          .onboarding-bento-card span {
+            font-size: 13px;
+            line-height: 1.5;
+            color: rgba(226,236,255,0.76);
           }
           .onboarding-photo-grid {
             display: grid;
@@ -6273,6 +6399,28 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             margin-top: 10px;
             font-size: 13px;
             color: rgba(226,236,255,0.7);
+          }
+          .onboarding-identity-card {
+            display: grid;
+            grid-template-columns: 84px minmax(0, 1fr);
+            gap: 14px;
+            align-items: center;
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.04);
+          }
+          .onboarding-avatar-preview {
+            width: 84px;
+            height: 84px;
+            border-radius: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, rgba(245, 158, 11, 0.95), rgba(249, 115, 22, 0.9));
+            color: #0b1633;
+            font-size: 28px;
+            box-shadow: 0 18px 30px rgba(245, 158, 11, 0.2);
           }
           .onboarding-split {
             display: grid;
@@ -6400,12 +6548,102 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             border-color: rgba(245, 158, 11, 0.75);
             color: #fff7ed;
           }
+          .onboarding-save-demo {
+            display: grid;
+            grid-template-columns: minmax(0, 0.96fr) minmax(0, 1.04fr);
+            gap: 16px;
+            align-items: stretch;
+          }
+          .onboarding-save-card {
+            display: grid;
+            grid-template-columns: 112px minmax(0, 1fr) auto;
+            gap: 14px;
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.04);
+            align-items: center;
+          }
+          .onboarding-save-poster img {
+            width: 112px;
+            aspect-ratio: 0.72;
+            object-fit: cover;
+            display: block;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(10, 22, 50, 0.72);
+          }
+          .onboarding-save-meta {
+            display: grid;
+            gap: 6px;
+            min-width: 0;
+          }
+          .onboarding-save-meta strong {
+            font-size: 18px;
+            line-height: 1.15;
+            color: #fff;
+          }
+          .onboarding-save-meta span:last-child {
+            color: rgba(226,236,255,0.74);
+            font-size: 13px;
+            line-height: 1.45;
+          }
+          .onboarding-save-kebab {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            border: 1px solid rgba(245,158,11,0.4);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(245,158,11,0.95);
+            background: rgba(245,158,11,0.12);
+            font-size: 16px;
+          }
+          .onboarding-save-panel {
+            display: grid;
+            gap: 10px;
+          }
+          .onboarding-save-step {
+            display: grid;
+            grid-template-columns: 32px minmax(0, 1fr);
+            gap: 12px;
+            align-items: start;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+          }
+          .onboarding-save-step span {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0b1633;
+            background: linear-gradient(145deg, rgba(245, 158, 11, 0.95), rgba(249, 115, 22, 0.9));
+          }
+          .onboarding-save-step strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 2px;
+            color: #fff;
+          }
+          .onboarding-save-step small {
+            display: block;
+            font-size: 12px;
+            line-height: 1.45;
+            color: rgba(226,236,255,0.7);
+          }
             .home-onboarding-art {
               margin-top: 4px;
               border: 1px solid rgba(255,255,255,0.12);
-              border-radius: 14px;
-              padding: 14px;
-              background: linear-gradient(145deg, rgba(14,28,58,0.9), rgba(8,18,42,0.9));
+              border-radius: 18px;
+              padding: 18px;
+              background: linear-gradient(145deg, rgba(14,28,58,0.94), rgba(8,18,42,0.92));
               min-height: 160px;
             }
           .onboarding-hero-badge {
@@ -6603,6 +6841,42 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
               line-height: 1.45;
               min-height: 0;
             }
+            .onboarding-shelf {
+              grid-template-columns: repeat(3, minmax(0, 1fr));
+              gap: 10px;
+            }
+            .onboarding-shelf-card:nth-child(n+4) {
+              display: none;
+            }
+            .onboarding-bento,
+            .onboarding-save-demo {
+              grid-template-columns: minmax(0, 1fr);
+            }
+            .onboarding-identity-card {
+              grid-template-columns: 64px minmax(0, 1fr);
+              padding: 12px;
+            }
+            .onboarding-avatar-preview {
+              width: 64px;
+              height: 64px;
+              border-radius: 18px;
+              font-size: 22px;
+            }
+            .onboarding-save-card {
+              grid-template-columns: 88px minmax(0, 1fr) auto;
+              gap: 10px;
+              padding: 12px;
+            }
+            .onboarding-save-poster img {
+              width: 88px;
+              border-radius: 12px;
+            }
+            .onboarding-save-meta strong {
+              font-size: 16px;
+            }
+            .onboarding-save-step {
+              padding: 10px 12px;
+            }
             .home-onboarding-art {
               padding: 10px;
               min-height: 0;
@@ -6790,7 +7064,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             if (!ok) return;
             if (homeOnboardingIndex >= steps.length - 1) {
               closeHomeOnboarding(true);
-              showHomeToast('Tour completed. You can start saving now.');
+              showHomeToast('You are set. Use the three-dot menu on any card to save your first pick.');
               return;
             }
             homeOnboardingIndex += 1;
@@ -6803,7 +7077,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             if (!ok) return;
             if (homeOnboardingIndex >= steps.length - 1) {
               closeHomeOnboarding(true);
-              showHomeToast('Tour completed. You can start saving now.');
+              showHomeToast('You are set. Use the three-dot menu on any card to save your first pick.');
               return;
             }
             homeOnboardingIndex += 1;
@@ -6813,7 +7087,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         }
         if (homeOnboardingIndex >= steps.length - 1) {
           closeHomeOnboarding(true);
-          showHomeToast('Tour completed. You can start saving now.');
+          showHomeToast('You are set. Use the three-dot menu on any card to save your first pick.');
           return;
         }
         homeOnboardingIndex += 1;
@@ -6830,21 +7104,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const userId = homeCurrentUser?.id;
       if (!userId) return;
 
-      const pendingOnboarding = isOnboardingPending(userId) && !hasSeenOnboarding(userId);
-      let shouldShow = pendingOnboarding;
-      try {
-        const client = await ensureHomeSupabase();
-        if (!client) return;
-        const { data: profile } = await client
-          .from('user_profiles')
-          .select('username')
-          .eq('id', userId)
-          .maybeSingle();
-        const username = String(profile?.username || '').trim();
-        shouldShow = pendingOnboarding || !username;
-      } catch (_err) {
-        shouldShow = pendingOnboarding;
-      }
+      const unseenOnboarding = !hasSeenOnboarding(userId);
+      let shouldShow = unseenOnboarding;
 
       if (!shouldShow) {
         if (!hasSeenOnboarding(userId)) {
