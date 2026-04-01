@@ -6165,24 +6165,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         {
           id: 'welcome',
           title: 'Make Zo2y feel like yours',
-          body: 'The feed gets much better after your first few saves. Start with a couple of movies, shows, or games and the rest of the app begins to organize around your taste.',
+          body: 'Save a few favorites and Zo2y starts learning your taste.',
           art: `
-            <div class="onboarding-kicker">Start with real picks, not a blank profile</div>
             ${buildHomeOnboardingShelfMarkup(5)}
-            <div class="onboarding-bento">
-              <div class="onboarding-bento-card">
-                <strong>Save fast</strong>
-                <span>Use quick lists right from the card menu to build momentum.</span>
-              </div>
-              <div class="onboarding-bento-card">
-                <strong>Build lists</strong>
-                <span>Make your own collections once you want something more specific.</span>
-              </div>
-              <div class="onboarding-bento-card">
-                <strong>Fill your profile</strong>
-                <span>Your saved items, lists, and reviews all show up in one place.</span>
-              </div>
-            </div>
+            <div class="onboarding-photo-caption">Start with movies, TV, games, or books. Everything lands in one profile.</div>
           `,
           actionLabel: null,
           action: null
@@ -6190,7 +6176,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         {
           id: 'username-setup',
           title: 'Claim your profile name',
-          body: 'Pick a clean @username once, and every save, list, and review lives under that handle.',
+          body: 'Pick the @username that will sit on your profile.',
           art: `
             <div class="onboarding-split">
               <div class="onboarding-identity-card">
@@ -6217,14 +6203,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         {
           id: 'interests-setup',
           title: 'Tune the feed in one pass',
-          body: 'Choose a few formats and vibes now. We will use them to make home, spotlight picks, and community more relevant from the start.',
+          body: 'Pick what you want to see more of first.',
           art: `
             <div class="onboarding-interest-layout">
-              <div class="onboarding-interest-photos">
-                <div class="onboarding-kicker">This shapes your first home feed</div>
-                ${buildHomeOnboardingShelfMarkup(4)}
-                <div class="onboarding-photo-caption">Pick what you want more of first. You can always edit this later.</div>
-              </div>
               <div class="onboarding-interest-panel">
                 <div class="onboarding-label">Formats</div>
                 <div class="onboarding-chip-grid">
@@ -6244,7 +6225,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         {
           id: 'save-first',
           title: 'Save your first pick from a card',
-          body: 'Use the three-dot menu on any card. Quick lists make the first save instant, and custom lists are there once you want to organize things your own way.',
+          body: 'Use the three-dot menu. Quick lists are the fastest way to start.',
           art: buildHomeOnboardingSaveDemoMarkup(),
           actionLabel: 'Try it on a card',
           action: () => launchHomeOnboardingSaveDemo(),
@@ -6316,9 +6297,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           }
           .home-onboarding-body {
             color: rgba(255,255,255,0.88);
-            font-size: 15px;
-            line-height: 1.65;
+            font-size: 14px;
+            line-height: 1.55;
             min-height: 0;
+            max-width: 54ch;
           }
           .onboarding-kicker {
             display: inline-flex;
@@ -6468,8 +6450,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           }
           .onboarding-interest-layout {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-            gap: 18px;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 12px;
             align-items: start;
           }
           .onboarding-interest-panel {
@@ -6773,8 +6755,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             padding: 5px 9px;
           }
           .home-onboarding-progress {
-            margin-top: 14px;
-            margin-bottom: 20px;
+            margin-top: 4px;
+            margin-bottom: 0;
             display: flex;
             gap: 8px;
           }
@@ -6825,21 +6807,25 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
               padding: 16px;
               border-radius: 20px;
               max-height: 90vh;
-              gap: 8px;
+              display: grid;
+              grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+              gap: 10px;
               box-shadow: 0 18px 46px rgba(0,0,0,0.4);
+              overflow: hidden;
             }
             .home-onboarding-top {
               margin-bottom: 4px;
               font-size: 11px;
             }
             .home-onboarding-title {
-              font-size: 20px;
-              margin: 0 0 4px;
+              font-size: 18px;
+              margin: 0;
             }
             .home-onboarding-body {
-              font-size: 13px;
+              font-size: 12px;
               line-height: 1.45;
               min-height: 0;
+              max-width: none;
             }
             .onboarding-shelf {
               grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -6851,6 +6837,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             .onboarding-bento,
             .onboarding-save-demo {
               grid-template-columns: minmax(0, 1fr);
+            }
+            .onboarding-photo-caption {
+              margin-top: 8px;
+              font-size: 12px;
+              line-height: 1.4;
             }
             .onboarding-identity-card {
               grid-template-columns: 64px minmax(0, 1fr);
@@ -6880,17 +6871,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             .home-onboarding-art {
               padding: 10px;
               min-height: 0;
+              overflow-y: auto;
             }
             .home-onboarding-actions {
-              position: sticky;
-              bottom: 0;
-              padding-top: 10px;
-              background: linear-gradient(180deg, rgba(8,18,42,0) 0%, rgba(8,18,42,0.9) 35%, rgba(8,18,42,0.98) 100%);
-              margin-top: auto;
+              position: static;
+              padding-top: 0;
+              background: none;
+              margin-top: 0;
+              align-items: center;
             }
             .home-onboarding-left,
             .home-onboarding-right {
               flex: 1;
+            }
+            .home-onboarding-left {
+              justify-content: flex-start;
             }
             .home-onboarding-right {
               justify-content: flex-end;
@@ -6920,15 +6915,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
               display: grid;
               grid-template-columns: repeat(2, minmax(0, 1fr));
               gap: 8px;
-              max-height: 220px;
+              max-height: 180px;
               overflow-y: auto;
             }
             .onboarding-chip {
               width: 100%;
               text-align: center;
-              padding: 9px 10px;
+              padding: 8px 10px;
               font-size: 12px;
-              min-height: 42px;
+              min-height: 40px;
             }
             .onboarding-input-wrap {
               padding: 10px 12px;
@@ -6937,7 +6932,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
               font-size: 16px;
             }
             .home-onboarding-btn {
-              min-height: 42px;
+              min-height: 40px;
               padding: 10px 14px;
             }
           }
