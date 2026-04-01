@@ -3049,11 +3049,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             return result;
           }
 
-          showHomeToast('Added to favorites');
-          result.ok = true;
-          result.saved = true;
-          invalidateActivitySignals();
-          return result;
+            showHomeToast('Added to favorites');
+            result.ok = true;
+            result.saved = true;
+            markStartedHomeListFlow(homeCurrentUser?.id);
+            invalidateActivitySignals();
+            return result;
         }
 
         const defaultListTable = getHomeDefaultListTable(mediaType);
@@ -3100,6 +3101,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             showHomeToast('Added to list');
             result.ok = true;
             result.saved = true;
+            markStartedHomeListFlow(homeCurrentUser?.id);
             invalidateActivitySignals();
             return result;
           }
@@ -3136,6 +3138,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           showHomeToast('Added to list');
           result.ok = true;
           result.saved = true;
+          markStartedHomeListFlow(homeCurrentUser?.id);
           invalidateActivitySignals();
           return result;
         }
@@ -3346,7 +3349,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       pendingQuickKeys: new Set(),
       customLists: [],
       selectedCustomLists: new Set(),
-      selectedIcon: 'fas fa-list'
+      selectedIcon: 'fas fa-list',
+      hasStartedSaving: false
     };
     const homeItemMenuCache = {
       quickStatusByItem: new Map(),
@@ -3686,8 +3690,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         quickContainer.innerHTML = '<div class="menu-empty menu-empty-rich"><div class="menu-empty-title">No quick saves here yet</div><div class="menu-empty-copy">This item type does not have fast-save rows right now, but custom lists can still help you organize it.</div></div>';
         return;
       }
-      const hasStartedSaving = Object.values(homeItemMenuState.quickStatus || {}).some(Boolean)
-        || (homeItemMenuState.selectedCustomLists instanceof Set && homeItemMenuState.selectedCustomLists.size > 0);
+      const hasStartedSaving = !!homeItemMenuState.hasStartedSaving;
       quickContainer.innerHTML = `
         ${hasStartedSaving ? '' : '<div class="menu-helper">Tap once to save instantly. Use quick lists for speed, then build custom lists underneath.</div>'}
         ${homeItemMenuState.quickRows.map((row) => {
@@ -3739,6 +3742,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         return;
       }
       if (!homeItemMenuState.customLists.length) {
+        if (homeItemMenuState.hasStartedSaving) {
+          customContainer.innerHTML = '';
+          return;
+        }
         customContainer.innerHTML = `
           <div class="menu-empty menu-empty-rich">
             <div class="menu-empty-title">Create your first custom list</div>
@@ -3788,6 +3795,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     async function loadItemMenuData() {
       const item = homeItemMenuState.currentItem;
       if (!item) return;
+      homeItemMenuState.hasStartedSaving = hasStartedHomeListFlow(homeCurrentUser?.id);
       homeItemMenuState.quickRows = getQuickRowsForMenu(item.mediaType);
       homeItemMenuState.pendingQuickKeys = new Set();
       homeItemMenuState.quickStatus = readHomeMenuQuickStatusCache(
@@ -3832,6 +3840,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         listIds
       );
       writeHomeMenuMembershipCache(item.mediaType, item.itemId, homeItemMenuState.selectedCustomLists);
+      if (
+        Object.values(homeItemMenuState.quickStatus || {}).some(Boolean)
+        || (homeItemMenuState.selectedCustomLists instanceof Set && homeItemMenuState.selectedCustomLists.size > 0)
+        || homeItemMenuState.customLists.length > 0
+      ) {
+        homeItemMenuState.hasStartedSaving = true;
+        markStartedHomeListFlow(homeCurrentUser?.id);
+      }
       renderItemMenuQuickLists();
       renderItemMenuCustomLists();
     }
@@ -4005,6 +4021,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         ...homeItemMenuState.customLists.filter((list) => String(list.id) !== String(created.id))
       ];
       homeItemMenuState.selectedCustomLists.add(created.id);
+      homeItemMenuState.hasStartedSaving = true;
+      markStartedHomeListFlow(homeCurrentUser?.id);
       writeHomeMenuCustomListsCache(item.mediaType, homeItemMenuState.customLists);
       writeHomeMenuMembershipCache(item.mediaType, item.itemId, homeItemMenuState.selectedCustomLists);
       if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
@@ -5716,6 +5734,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return `zo2y_onboarding_seen_${HOME_ONBOARDING_VERSION}_${String(userId || '').trim()}`;
     }
 
+    function getListHelperDismissKey(userId) {
+      return `zo2y_list_helper_seen_v1_${String(userId || '').trim()}`;
+    }
+
     function getOnboardingPendingKey(userId) {
       return `zo2y_onboarding_pending_${HOME_ONBOARDING_VERSION}_${String(userId || '').trim()}`;
     }
@@ -5738,6 +5760,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     function clearOnboardingPending(userId) {
       if (!userId) return;
       localStorage.removeItem(getOnboardingPendingKey(userId));
+    }
+
+    function hasStartedHomeListFlow(userId) {
+      if (!userId) return false;
+      return localStorage.getItem(getListHelperDismissKey(userId)) === '1';
+    }
+
+    function markStartedHomeListFlow(userId) {
+      if (!userId) return;
+      try {
+        localStorage.setItem(getListHelperDismissKey(userId), '1');
+      } catch (_err) {}
     }
 
     function readPendingHomePostAuthBootstrap() {
