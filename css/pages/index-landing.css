@@ -156,41 +156,9 @@
       min-height: 0;
       padding: 30px 32px;
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
+      grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+      gap: 24px;
       align-items: start;
-    }
-
-    .landing-mascot {
-      position: absolute;
-      top: 22px;
-      right: 24px;
-      width: clamp(96px, 10vw, 132px);
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    .landing-mascot-shell {
-      transform:
-        translate3d(var(--landing-mascot-x, 0px), var(--landing-mascot-y, 0px), 0)
-        rotate(var(--landing-mascot-tilt, 0deg));
-      transform-origin: center;
-      transition: transform 180ms ease-out;
-      animation: landingMascotFloat 7.2s ease-in-out infinite;
-      filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.26));
-    }
-
-    .landing-mascot img {
-      display: block;
-      width: 100%;
-      height: auto;
-      user-select: none;
-      transform-origin: center;
-      transition: transform 110ms ease;
-    }
-
-    .landing-mascot.is-blinking img {
-      transform: scaleY(0.08);
     }
 
     .landing-hero::before,
@@ -202,11 +170,6 @@
         radial-gradient(circle at 82% 18%, rgba(255, 188, 66, 0.16), transparent 26%),
         radial-gradient(circle at 8% 88%, rgba(78, 152, 255, 0.12), transparent 26%);
       pointer-events: none;
-    }
-
-    @keyframes landingMascotFloat {
-      0%, 100% { transform: translate3d(var(--landing-mascot-x, 0px), calc(var(--landing-mascot-y, 0px) - 2px), 0) rotate(var(--landing-mascot-tilt, 0deg)); }
-      50% { transform: translate3d(var(--landing-mascot-x, 0px), calc(var(--landing-mascot-y, 0px) + 6px), 0) rotate(calc(var(--landing-mascot-tilt, 0deg) + 1.25deg)); }
     }
 
     .landing-hero-copy,
@@ -242,10 +205,36 @@
 
     .landing-summary {
       margin-top: 12px;
-      max-width: 70ch;
+      max-width: 34ch;
       color: rgba(232, 240, 255, 0.84);
       font-size: 16px;
       line-height: 1.7;
+    }
+
+    .landing-media-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .landing-media-tags span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(239, 245, 255, 0.88);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .landing-media-tags i {
+      color: #ffbc42;
+      font-size: 12px;
     }
 
     .landing-auth-notice {
@@ -522,7 +511,7 @@ html[data-auth-shell="landing"] .card-hover-cue {
 
     .landing-live-rails {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 18px;
     }
 
@@ -564,6 +553,13 @@ html[data-auth-shell="landing"] .card-hover-cue {
 
     .landing-preview-band {
       padding: 28px;
+    }
+
+    .landing-compact-cta {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 18px;
     }
 
     .landing-review-grid {
@@ -1321,12 +1317,6 @@ html[data-auth-shell="landing"] .card-hover-cue {
         gap: 22px;
       }
 
-      .landing-mascot {
-        top: 18px;
-        right: 18px;
-        width: 92px;
-      }
-
       .landing-title,
       .landing-section-head h2,
       .landing-close-copy h2 {
@@ -1402,20 +1392,17 @@ html[data-auth-shell="landing"] .card-hover-cue {
         border-radius: 18px;
       }
 
-      .landing-mascot {
-        position: relative;
-        top: auto;
-        right: auto;
-        width: 86px;
-        margin: 0 0 2px auto;
-      }
-
       .landing-title {
         font-size: clamp(34px, 11vw, 48px);
       }
 
       .landing-summary {
         font-size: 14px;
+      }
+
+      .landing-media-tags span {
+        font-size: 12px;
+        padding: 0 11px;
       }
 
       .landing-hero-actions,
@@ -1453,6 +1440,10 @@ html[data-auth-shell="landing"] .card-hover-cue {
       }
 
       .landing-review-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .landing-compact-cta {
         grid-template-columns: 1fr;
       }
 

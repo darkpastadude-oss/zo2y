@@ -1,5 +1,5 @@
 (() => {
-const APP_RUNTIME_VERSION = '20260329-landing-live-f';
+const APP_RUNTIME_VERSION = '20260401-landing-revamp-a';
 
   const isMobileLike = window.matchMedia('(max-width: 900px)').matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   const path = window.location.pathname || '/';
@@ -806,7 +806,7 @@ const APP_RUNTIME_VERSION = '20260329-landing-live-f';
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       void resetZo2yCachesIfNeeded().finally(() => {
-    navigator.serviceWorker.register('/sw.js?v=20260329f').catch(() => {
+    navigator.serviceWorker.register('/sw.js?v=20260401a').catch(() => {
         // silent fail to avoid runtime noise
         });
       });

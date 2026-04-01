@@ -57,9 +57,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/pages/index.css?v=20260329a" />
-<link rel="preload" href="css/pages/index-landing.css?v=20260329f" as="style">
-<link rel="stylesheet" href="css/pages/index-landing.css?v=20260329f" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/pages/index-landing.css?v=20260329f"></noscript>
+<link rel="preload" href="css/pages/index-landing.css?v=20260401a" as="style">
+<link rel="stylesheet" href="css/pages/index-landing.css?v=20260401a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/pages/index-landing.css?v=20260401a"></noscript>
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -78,21 +78,24 @@
   <div class="landing-experience" id="homeLandingPage" aria-label="Zo2y introduction">
     <main class="landing-main">
       <section class="landing-hero">
-        <div class="landing-mascot" id="landingMascot" aria-hidden="true">
-          <div class="landing-mascot-shell">
-            <img src="/newlogo.webp" alt="" loading="eager" fetchpriority="high">
-          </div>
-        </div>
         <div class="landing-hero-copy">
-          <p class="landing-kicker">Locked homepage</p>
-          <h1 class="landing-title">Movies, games, sports, reviews, and the rest. Locked until you join.</h1>
+          <p class="landing-kicker">one profile for everything you track</p>
+          <h1 class="landing-title">Save movies, games, TV, books, music, sports, and more in one place.</h1>
           <p class="landing-summary">
-            Not a fake mockup. These are real picks from the Zo2y feed, shown like a locked homepage so people can feel the product before signing up.
+            Zo2y lets you build lists, save favorites, post reviews, and follow taste across every category that actually matters to you.
           </p>
           <div class="landing-auth-notice" id="landingAuthNotice" hidden>
             Sign in to keep browsing. This app is members-only once you leave the landing page.
           </div>
           <div class="landing-referral-banner" id="landingReferralBanner" hidden></div>
+          <div class="landing-media-tags" aria-label="What you can track">
+            <span><i class="fa-solid fa-film"></i> Movies</span>
+            <span><i class="fa-solid fa-tv"></i> TV</span>
+            <span><i class="fa-solid fa-gamepad"></i> Games</span>
+            <span><i class="fa-solid fa-book"></i> Books</span>
+            <span><i class="fa-solid fa-music"></i> Music</span>
+            <span><i class="fa-solid fa-futbol"></i> Sports</span>
+          </div>
           <div class="landing-hero-actions">
             <a class="landing-cta landing-cta-primary" data-auth-entry="signup" href="sign-up.html">
               <i class="fa-solid fa-user-plus"></i> Create your account
@@ -107,23 +110,23 @@
           <div class="landing-shell-strip">
             <div class="landing-shell-lock" aria-label="Locked home">
               <i class="fa-solid fa-lock"></i>
-              <span>locked home</span>
+              <span>browse the live feed</span>
             </div>
             <a class="landing-shell-profile" href="sign-up.html" data-auth-entry="signup">
               <span class="landing-shell-profile-icon"><i class="fa-solid fa-user-lock"></i></span>
               <div>
-                <strong>locked profile</strong>
-                <span>sign up to save</span>
+                <strong>your profile unlocks after signup</strong>
+                <span>save lists, reviews, and favorites</span>
               </div>
             </a>
           </div>
           <a class="landing-preview-spotlight" id="landingPreviewSpotlightLink" href="sign-up.html" data-auth-entry="signup" aria-label="Open locked spotlight preview">
             <div class="landing-preview-spotlight-backdrop" id="landingPreviewSpotlightBackdrop"></div>
             <div class="landing-preview-spotlight-copy">
-              <span class="landing-preview-badge" id="landingPreviewSpotlightType">live spotlight</span>
-              <h2 id="landingPreviewSpotlightTitle">Loading the live feed</h2>
-              <p class="landing-preview-meta" id="landingPreviewSpotlightMeta">real picks from movies, games, TV, sports, and more</p>
-              <p class="landing-preview-summary" id="landingPreviewSpotlightSummary">The homepage stays live. Saving, lists, and tracking unlock after signup.</p>
+              <span class="landing-preview-badge" id="landingPreviewSpotlightType">tonight on zo2y</span>
+              <h2 id="landingPreviewSpotlightTitle">Movies, TV, and games people are saving right now.</h2>
+              <p class="landing-preview-meta" id="landingPreviewSpotlightMeta">real picks from the live feed</p>
+              <p class="landing-preview-summary" id="landingPreviewSpotlightSummary">Create an account to save what you love, track your taste, and build your own homepage.</p>
             </div>
             <div class="landing-preview-spotlight-poster">
               <img id="landingPreviewSpotlightPoster" src="/newlogo.webp" alt="" loading="eager" fetchpriority="high">
@@ -137,7 +140,7 @@
                 <a href="sign-up.html" data-auth-entry="signup">sign up to save</a>
               </div>
               <div class="rail" id="landingMoviesRail">
-                <div class="empty">Loading live movies...</div>
+                <div class="empty">Movie picks appear here.</div>
               </div>
             </section>
             <section class="rail-wrap landing-rail-wrap" aria-label="Game preview rail">
@@ -146,7 +149,16 @@
                 <a href="sign-up.html" data-auth-entry="signup">sign up to save</a>
               </div>
               <div class="rail" id="landingGamesRail">
-                <div class="empty">Loading live games...</div>
+                <div class="empty">Game picks appear here.</div>
+              </div>
+            </section>
+            <section class="rail-wrap landing-rail-wrap" aria-label="TV preview rail">
+              <div class="rail-title">
+                <span><i class="fa-solid fa-tv"></i> tv shows</span>
+                <a href="sign-up.html" data-auth-entry="signup">sign up to save</a>
+              </div>
+              <div class="rail" id="landingTvRail">
+                <div class="empty">TV picks appear here.</div>
               </div>
             </section>
           </div>
@@ -156,56 +168,25 @@
       <section class="landing-section landing-preview-band" data-landing-reveal>
         <div class="landing-section-head">
           <p class="landing-section-kicker">Recent reviews</p>
-          <h2>Real reviews from the community, not filler.</h2>
+          <h2>Real reviews from the actual Zo2y community.</h2>
         </div>
         <div class="landing-review-grid" id="landingPreviewReviews">
           <article class="landing-review-card is-loading">
-            <div class="landing-review-card-head"><span>Loading reviews</span></div>
+            <div class="landing-review-card-head"><span>Recent reviews appear here</span></div>
           </article>
           <article class="landing-review-card is-loading">
-            <div class="landing-review-card-head"><span>Loading reviews</span></div>
+            <div class="landing-review-card-head"><span>Recent reviews appear here</span></div>
           </article>
           <article class="landing-review-card is-loading">
-            <div class="landing-review-card-head"><span>Loading reviews</span></div>
+            <div class="landing-review-card-head"><span>Recent reviews appear here</span></div>
           </article>
         </div>
       </section>
 
-      <section class="landing-section landing-trust-band" data-landing-reveal aria-label="Google sign-in and legal information">
-        <div class="landing-section-head">
-          <p class="landing-section-kicker">Google Sign-In And Legal Info</p>
-          <h2>Clear app purpose, clear data use, clear public links.</h2>
-        </div>
-        <div class="landing-trust-grid">
-          <article class="landing-trust-card">
-            <h3>What Zo2y does</h3>
-            <p>Zo2y is a culture and lifestyle tracker where people save titles, build lists, post reviews, and manage interests across movies, TV, anime, books, music, travel, sports, fashion, food, and cars.</p>
-          </article>
-          <article class="landing-trust-card">
-            <h3>How Google Sign-In is used</h3>
-            <p>Google Sign-In is used only to create or access a Zo2y account. The app uses basic account identity details such as your name, email address, and profile image so you can sign in and personalize your profile.</p>
-          </article>
-          <article class="landing-trust-card">
-            <h3>Minimum access only</h3>
-            <p>Zo2y does not request Gmail, Drive, Calendar, Contacts, Photos, YouTube, or other restricted Google data. It uses only the minimum Google account scopes required for authentication.</p>
-          </article>
-          <article class="landing-trust-card">
-            <h3>Public policy and support</h3>
-            <p>Privacy Policy, Terms of Service, and Support are all available publicly on this domain without sign-in. For privacy, account, or verification questions, contact <a href="mailto:darkpastadude@gmail.com?subject=Zo2y%20Support">darkpastadude@gmail.com</a>.</p>
-          </article>
-        </div>
-        <div class="landing-trust-links">
-          <a class="landing-trust-link" href="privacy.html">Privacy Policy</a>
-          <a class="landing-trust-link" href="terms.html">Terms of Service</a>
-          <a class="landing-trust-link" href="support.html">Support</a>
-        </div>
-      </section>
-
-      <section class="landing-section landing-close-band" data-landing-reveal>
+      <section class="landing-section landing-compact-cta" data-landing-reveal>
         <div class="landing-close-copy">
-          <p class="landing-section-kicker">Ready</p>
-          <h2>Join before you lose track of the next thing you care about.</h2>
-          <p>Make one account, save your first list, and start shaping a home feed around your actual taste.</p>
+          <p class="landing-section-kicker">unlock your profile</p>
+          <h2>The feed is already here. Signing up is what lets you save it.</h2>
         </div>
         <div class="landing-close-actions">
           <a class="landing-cta landing-cta-primary" data-auth-entry="signup" href="sign-up.html">Create account</a>
@@ -448,7 +429,7 @@
       });
     })();
   </script>
-  <script src="js/pages/index.js?v=20260329f" defer></script>
+  <script src="js/pages/index.js?v=20260401a" defer></script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
   <script src="js/home-desktop-rebrand.js?v=20260323c" defer></script>
 </body>

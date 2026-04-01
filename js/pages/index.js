@@ -8360,6 +8360,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
       const movies = rotateLandingList(normalized.movie, 1).slice(0, 10);
       const games = rotateLandingList(normalized.game, 2).slice(0, 10);
+      const tv = rotateLandingList(normalized.tv, 3).slice(0, 10);
       const sports = rotateLandingList(normalized.sports, 3).slice(0, 3);
 
       const spotlight = [
@@ -8398,8 +8399,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
       renderRail('landingMoviesRail', movies, { mediaType: 'movie' });
       renderRail('landingGamesRail', games, { mediaType: 'game' });
+      renderRail('landingTvRail', tv, { mediaType: 'tv' });
       lockLandingRailInteractions(document.getElementById('landingMoviesRail'));
       lockLandingRailInteractions(document.getElementById('landingGamesRail'));
+      lockLandingRailInteractions(document.getElementById('landingTvRail'));
       wireLandingAuthNextLinks(document.getElementById('landingAppShell'));
       return true;
     }
@@ -8442,7 +8445,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       savePromptDismiss?.addEventListener('click', hideLandingSavePrompt);
       savePromptClose?.addEventListener('click', hideLandingSavePrompt);
 
-      initLandingMascot();
       wireLandingAuthNextLinks(document);
       void hydrateLandingFeedPreview();
       void hydrateLandingLiveReviews();
