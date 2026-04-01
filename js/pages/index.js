@@ -6256,28 +6256,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           requiresSave: true
         },
         {
-          id: 'interests-setup',
-          title: 'Pick your lane',
-          body: 'Choose a few formats and vibes to shape your first feed.',
-          art: `
-            <div class="onboarding-interest-layout">
-              <div class="onboarding-interest-panel">
-                <div class="onboarding-label">Formats</div>
-                <div class="onboarding-chip-grid">
-                  ${buildHomeInterestOptionsMarkup('type')}
-                </div>
-                <div class="onboarding-label">Genres & Vibes</div>
-                <div class="onboarding-chip-grid">
-                  ${buildHomeInterestOptionsMarkup('tag')}
-                </div>
-                <div id="homeOnboardingInterestStatus" class="onboarding-status">Pick at least one interest to continue.</div>
-              </div>
-            </div>
-          `,
-          nextLabel: 'Save Interests',
-          requiresSave: true
-        },
-        {
           id: 'save-first',
           title: 'Save your first pick from a card',
           body: 'Use the three-dot menu to save fast, then build your own lists when you want more control.',
