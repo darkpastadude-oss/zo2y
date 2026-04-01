@@ -3686,8 +3686,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         quickContainer.innerHTML = '<div class="menu-empty menu-empty-rich"><div class="menu-empty-title">No quick saves here yet</div><div class="menu-empty-copy">This item type does not have fast-save rows right now, but custom lists can still help you organize it.</div></div>';
         return;
       }
+      const hasStartedSaving = Object.values(homeItemMenuState.quickStatus || {}).some(Boolean)
+        || (homeItemMenuState.selectedCustomLists instanceof Set && homeItemMenuState.selectedCustomLists.size > 0);
       quickContainer.innerHTML = `
-        <div class="menu-helper">Tap once to save instantly. Use quick lists for speed, then build custom lists underneath.</div>
+        ${hasStartedSaving ? '' : '<div class="menu-helper">Tap once to save instantly. Use quick lists for speed, then build custom lists underneath.</div>'}
         ${homeItemMenuState.quickRows.map((row) => {
         const isActive = !!homeItemMenuState.quickStatus[row.key];
         const isBusy = homeItemMenuState.pendingQuickKeys.has(row.key);
@@ -3747,9 +3749,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         const createBtn = customContainer.querySelector('.menu-empty-cta');
         if (createBtn) {
           createBtn.addEventListener('click', () => {
-            if (homeItemMenuState.currentItem) {
-              void openHomeListsModal(homeItemMenuState.currentItem);
-            }
+            openCreateListModalFromMenu();
           });
         }
         return;
@@ -3957,7 +3957,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         const icon = btn.getAttribute('data-icon') || '';
         btn.classList.toggle('selected', icon === homeItemMenuState.selectedIcon);
       });
-      if (itemModal) itemModal.classList.remove('active');
+      if (itemModal) {
+        itemModal.classList.remove('active');
+        itemModal.setAttribute('aria-hidden', 'true');
+      }
       if (createModal) {
         createModal.classList.add('active');
         createModal.setAttribute('aria-hidden', 'false');

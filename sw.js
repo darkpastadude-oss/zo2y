@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v204';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v205';
 const PAGE_CACHE = 'zo2y-pages-v172';
 const IMAGE_CACHE = 'zo2y-images-v32';
 const API_CACHE = 'zo2y-api-v12';
@@ -12,10 +12,10 @@ const STATIC_ASSETS = [
   '/credits.html',
   '/manifest.webmanifest',
   '/css/pages/index.css?v=20260329a',
-  '/css/pages/index-landing.css?v=20260401b',
+  '/css/pages/index-landing.css?v=20260401c',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260401b',
+  '/js/pages/index.js?v=20260401c',
   '/js/pages/index-home-heavy-loaders.js?v=20260329a',
   '/js/home-desktop-rebrand.js?v=20260323c',
   '/js/referral-utils.js?v=20260319a',
@@ -28,7 +28,7 @@ const STATIC_ASSETS = [
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260329b',
+  '/js/mobile-webapp.js?v=20260401c',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260329b',
   '/favicon.ico',
@@ -345,7 +345,10 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       } catch (_error) {
-        const cached = await caches.match(request, { ignoreSearch: true }) || await caches.match('/index.html');
+        const cached = await caches.match(request, { ignoreSearch: true })
+          || await caches.match(url.pathname || '/')
+          || await caches.match('/')
+          || await caches.match('/index.html');
         return cached || offlineResponse();
       }
     })());
