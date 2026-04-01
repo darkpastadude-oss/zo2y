@@ -8332,6 +8332,38 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       `;
     }
 
+    function renderLandingHeroStrip(items) {
+      const strip = document.getElementById('landingHeroStrip');
+      if (!strip) return;
+      const safeItems = (Array.isArray(items) ? items : []).filter(Boolean).slice(0, 6);
+      if (!safeItems.length) return;
+      strip.innerHTML = safeItems.map((item) => {
+        const nextPath = getLandingItemNextPath(item);
+        const image = escapeHtml(getLandingPreviewPoster(item));
+        const title = escapeHtml(String(item?.title || 'Title').trim() || 'Title');
+        return `
+          <a class="landing-hero-poster" href="${buildLandingAuthHref(nextPath)}" data-auth-entry="signup" data-auth-next="${escapeHtml(nextPath)}" aria-label="Open ${title}">
+            <img src="${image}" alt="${title}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+          </a>
+        `;
+      }).join('');
+      wireLandingAuthNextLinks(strip);
+    }
+
+    async function loadLandingLiveFeed() {
+      const [movieRes, tvRes, gameRes] = await Promise.allSettled([
+        loadMovies(null),
+        loadTv(null),
+        loadGames(null)
+      ]);
+      const toItems = (entry) => filterHomeSafeItems(entry?.status === 'fulfilled' ? entry.value : []);
+      return {
+        movie: toItems(movieRes),
+        tv: toItems(tvRes),
+        game: toItems(gameRes)
+      };
+    }
+
     async function hydrateLandingLiveReviews() {
       if (landingReviewHydrated) return;
       landingReviewHydrated = true;
@@ -8362,6 +8394,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const games = rotateLandingList(normalized.game, 2).slice(0, 10);
       const tv = rotateLandingList(normalized.tv, 3).slice(0, 10);
       const sports = rotateLandingList(normalized.sports, 3).slice(0, 3);
+      renderLandingHeroStrip([
+        ...movies.slice(0, 2),
+        ...tv.slice(0, 2),
+        ...games.slice(0, 2)
+      ]);
 
       const spotlight = [
         ...movies.slice(0, 2),
@@ -8410,6 +8447,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     async function hydrateLandingFeedPreview() {
       if (landingPreviewHydrated) return;
       landingPreviewHydrated = true;
+      let rendered = false;
       let feed = null;
       try {
         feed = await loadPrecomputedHomeFeed();
@@ -8417,7 +8455,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       if (!feed || countActiveHomeChannels(feed) === 0) {
         feed = readHomeFeedCache() || readPrecomputedHomeFeedCache();
       }
-      renderLandingFeedPreview(feed || {});
+      if (feed && countActiveHomeChannels(feed) > 0) {
+        rendered = renderLandingFeedPreview(feed);
+      }
+
+      try {
+        const liveFeed = await loadLandingLiveFeed();
+        if (countActiveHomeChannels(liveFeed) > 0) {
+          renderLandingFeedPreview(liveFeed);
+          rendered = true;
+        }
+      } catch (_err) {}
+
+      if (!rendered) {
+        renderLandingFeedPreview(feed || {});
+      }
     }
 
     function initLandingExperience() {
