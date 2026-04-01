@@ -339,6 +339,34 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       { id: 'pizza', label: 'Pizza', kind: 'tag', tags: ['pizza'] },
       { id: 'burgers', label: 'Burgers', kind: 'tag', tags: ['burger', 'burgers'] }
     ];
+    const HOME_ONBOARDING_TAG_IDS = [
+      'action', 'comedy', 'drama', 'horror', 'romance', 'sci-fi',
+      'thriller', 'documentary', 'soccer', 'basketball', 'motorsport', 'streetwear'
+    ];
+    const HOME_INTEREST_CARD_META = {
+      movie: { icon: 'fas fa-film', hint: 'Watchlists and favorites', fallback: '/images/onboarding/onboard-media.svg' },
+      tv: { icon: 'fas fa-tv', hint: 'Series and rewatches', fallback: '/images/onboarding/onboard-profile.svg' },
+      anime: { icon: 'fas fa-dragon', hint: 'Shonen and classics', fallback: '/images/onboarding/onboard-interests.svg' },
+      game: { icon: 'fas fa-gamepad', hint: 'Backlogs and finishes', fallback: '/images/onboarding/onboard-interests.svg' },
+      book: { icon: 'fas fa-book', hint: 'Read piles and standouts', fallback: '/images/onboarding/onboard-travel.svg' },
+      music: { icon: 'fas fa-music', hint: 'Albums and tracks', fallback: '/images/onboarding/onboard-media.svg' },
+      travel: { icon: 'fas fa-earth-americas', hint: 'Trips and countries', fallback: '/images/onboarding/onboard-travel.svg' },
+      sports: { icon: 'fas fa-futbol', hint: 'Teams and leagues', fallback: '/images/onboarding/onboard-media.svg' },
+      fashion: { icon: 'fas fa-shirt', hint: 'Brands and style', fallback: '/images/onboarding/onboard-fashion.svg' },
+      food: { icon: 'fas fa-utensils', hint: 'Spots and cravings', fallback: '/images/onboarding/onboard-food.svg' },
+      action: { icon: 'fas fa-bolt', hint: 'Fast and intense', fallback: '/images/onboarding/onboard-media.svg' },
+      comedy: { icon: 'fas fa-face-laugh', hint: 'Light and fun', fallback: '/images/onboarding/onboard-food.svg' },
+      drama: { icon: 'fas fa-theater-masks', hint: 'Character driven', fallback: '/images/onboarding/onboard-profile.svg' },
+      horror: { icon: 'fas fa-ghost', hint: 'Dark and tense', fallback: '/images/onboarding/onboard-media.svg' },
+      romance: { icon: 'fas fa-heart', hint: 'Warm and emotional', fallback: '/images/onboarding/onboard-fashion.svg' },
+      'sci-fi': { icon: 'fas fa-rocket', hint: 'Big worlds and ideas', fallback: '/images/onboarding/onboard-interests.svg' },
+      thriller: { icon: 'fas fa-user-secret', hint: 'Suspense and twists', fallback: '/images/onboarding/onboard-media.svg' },
+      documentary: { icon: 'fas fa-camera-retro', hint: 'Real stories', fallback: '/images/onboarding/onboard-travel.svg' },
+      soccer: { icon: 'fas fa-futbol', hint: 'Club and country', fallback: '/images/onboarding/onboard-media.svg' },
+      basketball: { icon: 'fas fa-basketball', hint: 'NBA and beyond', fallback: '/images/onboarding/onboard-media.svg' },
+      motorsport: { icon: 'fas fa-flag-checkered', hint: 'F1 and racing', fallback: '/images/onboarding/onboard-interests.svg' },
+      streetwear: { icon: 'fas fa-shoe-prints', hint: 'Sneakers and drops', fallback: '/images/onboarding/onboard-fashion.svg' }
+    };
 
     async function homeIgdbFetch(path, params = {}, signal) {
       const requestParams = { ...(params || {}) };
@@ -5740,11 +5768,35 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return map[key] || 'Pick';
     }
 
+    function getHomeOnboardingInterestImage(option, index = 0) {
+      const pool = getHomeOnboardingPreviewItems(10);
+      const fallback = HOME_INTEREST_CARD_META[option?.id]?.fallback || '/images/onboarding/onboard-media.svg';
+      if (!pool.length) return fallback;
+      if (option?.kind === 'type') {
+        const match = pool.find((item) => String(item?.mediaType || '').toLowerCase() === String(option.id || '').toLowerCase());
+        return match?.image || fallback;
+      }
+      return pool[index % pool.length]?.image || fallback;
+    }
+
     function buildHomeInterestOptionsMarkup(kind = '') {
-      const filtered = HOME_INTEREST_OPTIONS.filter((option) => !kind || option.kind === kind);
-      return filtered.map((option) => `
-        <button type="button" class="onboarding-chip" data-interest-id="${escapeHtml(option.id)}" data-interest-kind="${escapeHtml(option.kind)}">
-          ${escapeHtml(option.label)}
+      let filtered = HOME_INTEREST_OPTIONS.filter((option) => !kind || option.kind === kind);
+      if (kind === 'tag') {
+        filtered = filtered.filter((option) => HOME_ONBOARDING_TAG_IDS.includes(option.id));
+      }
+      return filtered.map((option, index) => `
+        <button type="button" class="onboarding-chip onboarding-interest-card ${escapeHtml(option.kind)}" data-interest-id="${escapeHtml(option.id)}" data-interest-kind="${escapeHtml(option.kind)}">
+          <span class="onboarding-interest-thumb">
+            <img src="${escapeHtml(getHomeOnboardingInterestImage(option, index))}" alt="${escapeHtml(option.label)}" loading="lazy">
+          </span>
+          <span class="onboarding-interest-scrim"></span>
+          <span class="onboarding-interest-copy">
+            <span class="onboarding-interest-icon"><i class="${escapeHtml(HOME_INTEREST_CARD_META[option.id]?.icon || 'fas fa-star')}"></i></span>
+            <span class="onboarding-interest-text">
+              <strong>${escapeHtml(option.label)}</strong>
+              <small>${escapeHtml(HOME_INTEREST_CARD_META[option.id]?.hint || 'Pick what fits your taste')}</small>
+            </span>
+          </span>
         </button>
       `).join('');
     }
@@ -6202,8 +6254,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         },
         {
           id: 'interests-setup',
-          title: 'Tune the feed in one pass',
-          body: 'Pick what you want to see more of first.',
+          title: 'Pick your lane',
+          body: 'Choose a few formats and vibes to shape your first feed.',
           art: `
             <div class="onboarding-interest-layout">
               <div class="onboarding-interest-panel">
@@ -6225,7 +6277,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         {
           id: 'save-first',
           title: 'Save your first pick from a card',
-          body: 'Use the three-dot menu. Quick lists are the fastest way to start.',
+          body: 'Use the three-dot menu to save fast, then build your own lists when you want more control.',
           art: buildHomeOnboardingSaveDemoMarkup(),
           actionLabel: 'Try it on a card',
           action: () => launchHomeOnboardingSaveDemo(),
@@ -6455,16 +6507,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             align-items: start;
           }
           .onboarding-interest-panel {
-            background: rgba(10,20,40,0.65);
-            border: 1px solid rgba(255,255,255,0.14);
-            border-radius: 14px;
-            padding: 14px;
+            background: rgba(10,20,40,0.55);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 18px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
           }
           .onboarding-interest-panel .onboarding-chip-grid {
-            max-height: 170px;
+            max-height: 260px;
             overflow-y: auto;
             padding-right: 4px;
           }
@@ -6509,26 +6561,84 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           .onboarding-status.ok { color: #34d399; }
           .onboarding-status.bad { color: #fca5a5; }
           .onboarding-chip-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
           }
           .onboarding-chip {
-            border-radius: 999px;
-            padding: 6px 12px;
+            border-radius: 16px;
+            padding: 0;
             font-size: 12px;
             color: rgba(226,236,255,0.8);
             background: rgba(15, 23, 42, 0.7);
             border: 1px solid rgba(255,255,255,0.12);
             cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            min-height: 110px;
           }
           .onboarding-chip:hover {
             border-color: rgba(255,255,255,0.3);
           }
           .onboarding-chip.selected {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(249, 115, 22, 0.35));
             border-color: rgba(245, 158, 11, 0.75);
             color: #fff7ed;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.22);
+          }
+          .onboarding-interest-card {
+            display: block;
+          }
+          .onboarding-interest-thumb,
+          .onboarding-interest-thumb img,
+          .onboarding-interest-scrim {
+            position: absolute;
+            inset: 0;
+          }
+          .onboarding-interest-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+          }
+          .onboarding-interest-scrim {
+            background: linear-gradient(180deg, rgba(7,14,32,0.14) 0%, rgba(7,14,32,0.45) 42%, rgba(7,14,32,0.95) 100%);
+          }
+          .onboarding-interest-copy {
+            position: relative;
+            z-index: 1;
+            min-height: 110px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 10px;
+          }
+          .onboarding-interest-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: #fff;
+            font-size: 14px;
+          }
+          .onboarding-interest-text {
+            display: grid;
+            gap: 3px;
+            text-align: left;
+          }
+          .onboarding-interest-text strong {
+            font-size: 15px;
+            line-height: 1.1;
+            color: #fff;
+          }
+          .onboarding-interest-text small {
+            font-size: 11px;
+            line-height: 1.35;
+            color: rgba(226,236,255,0.74);
           }
           .onboarding-save-demo {
             display: grid;
@@ -6771,7 +6881,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
-            gap: 10px;
+            gap: 12px;
           }
           .home-onboarding-left, .home-onboarding-right {
             display: flex;
@@ -6878,17 +6988,23 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
               padding-top: 0;
               background: none;
               margin-top: 0;
-              align-items: center;
+              display: grid;
+              grid-template-columns: 1fr;
+              gap: 8px;
             }
             .home-onboarding-left,
             .home-onboarding-right {
-              flex: 1;
+              flex: initial;
+              width: 100%;
             }
             .home-onboarding-left {
               justify-content: flex-start;
             }
             .home-onboarding-right {
-              justify-content: flex-end;
+              justify-content: stretch;
+              display: grid;
+              grid-template-columns: 1fr;
+              gap: 8px;
             }
             .onboarding-photo-grid,
             .onboarding-photo-card,
@@ -6915,15 +7031,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
               display: grid;
               grid-template-columns: repeat(2, minmax(0, 1fr));
               gap: 8px;
-              max-height: 180px;
+              max-height: 240px;
               overflow-y: auto;
             }
             .onboarding-chip {
               width: 100%;
               text-align: center;
-              padding: 8px 10px;
+              padding: 0;
               font-size: 12px;
-              min-height: 40px;
+              min-height: 96px;
+            }
+            .onboarding-interest-copy {
+              min-height: 96px;
+              padding: 10px;
+              gap: 8px;
+            }
+            .onboarding-interest-text strong {
+              font-size: 13px;
+            }
+            .onboarding-interest-text small {
+              font-size: 10px;
             }
             .onboarding-input-wrap {
               padding: 10px 12px;
@@ -6934,6 +7061,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             .home-onboarding-btn {
               min-height: 40px;
               padding: 10px 14px;
+            }
+            .home-onboarding-left .home-onboarding-btn,
+            .home-onboarding-right .home-onboarding-btn {
+              width: 100%;
             }
           }
         `;
