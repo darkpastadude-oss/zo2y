@@ -4,6 +4,7 @@
   var PROJECT_REF = 'gfkhjbztayjyojsgdpgk';
   var STORAGE_KEY = 'zo2y-auth-v1';
   var LEGACY_STORAGE_KEY = 'sb-' + PROJECT_REF + '-auth-token';
+  var PERSIST_STORAGE_KEY = 'zo2y-auth-persist-v1';
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
     'login',
@@ -54,41 +55,67 @@
     return file.replace(/\.html?$/i, '') || 'index';
   }
 
-  function safeGetStorageItem(key) {
-    try {
-      var localValue = window.localStorage ? window.localStorage.getItem(key) : null;
-      if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
-    } catch (_err) {}
-    try {
-      return window.sessionStorage ? window.sessionStorage.getItem(key) : null;
-    } catch (_err) {
-      return null;
+  function getAuthStorageKeys(key) {
+    var value = String(key || '').trim();
+    if (!value) return [];
+    var keys = [value];
+    if (value === STORAGE_KEY || value === LEGACY_STORAGE_KEY || value === PERSIST_STORAGE_KEY) {
+      keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
     }
+    return Array.from(new Set(keys));
+  }
+
+  function safeGetStorageItem(key) {
+    var keys = getAuthStorageKeys(key);
+    for (var i = 0; i < keys.length; i += 1) {
+      try {
+        var localValue = window.localStorage ? window.localStorage.getItem(keys[i]) : null;
+        if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
+      } catch (_err) {}
+    }
+    for (var j = 0; j < keys.length; j += 1) {
+      try {
+        var sessionValue = window.sessionStorage ? window.sessionStorage.getItem(keys[j]) : null;
+        if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
+      } catch (_err) {}
+    }
+    return null;
   }
 
   function safeSetStorageItem(key, value) {
-    try {
-      if (window.localStorage) {
-        window.localStorage.setItem(key, value);
-        return true;
-      }
-    } catch (_err) {}
-    try {
-      if (window.sessionStorage) {
-        window.sessionStorage.setItem(key, value);
-        return true;
-      }
-    } catch (_err) {}
-    return false;
+    var keys = getAuthStorageKeys(key);
+    var wroteAny = false;
+    for (var i = 0; i < keys.length; i += 1) {
+      try {
+        if (window.localStorage) {
+          window.localStorage.setItem(keys[i], value);
+          wroteAny = true;
+        }
+      } catch (_err) {}
+    }
+    for (var j = 0; j < keys.length; j += 1) {
+      try {
+        if (window.sessionStorage) {
+          window.sessionStorage.setItem(keys[j], value);
+          wroteAny = true;
+        }
+      } catch (_err) {}
+    }
+    return wroteAny;
   }
 
   function safeRemoveStorageItem(key) {
-    try {
-      if (window.sessionStorage) window.sessionStorage.removeItem(key);
-    } catch (_err) {}
-    try {
-      if (window.localStorage) window.localStorage.removeItem(key);
-    } catch (_err) {}
+    var keys = getAuthStorageKeys(key);
+    for (var i = 0; i < keys.length; i += 1) {
+      try {
+        if (window.sessionStorage) window.sessionStorage.removeItem(keys[i]);
+      } catch (_err) {}
+    }
+    for (var j = 0; j < keys.length; j += 1) {
+      try {
+        if (window.localStorage) window.localStorage.removeItem(keys[j]);
+      } catch (_err) {}
+    }
   }
 
   function getSupabaseStorageBridge() {
@@ -167,7 +194,7 @@
   }
 
   function hasStoredSupabaseSession() {
-    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY];
+    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
     for (var i = 0; i < keys.length; i += 1) {
       var raw = safeGetStorageItem(keys[i]);
       if (!raw) continue;
@@ -198,7 +225,7 @@
   }
 
   function getStoredSessionSnapshot() {
-    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY];
+    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
     for (var i = 0; i < keys.length; i += 1) {
       var raw = safeGetStorageItem(keys[i]);
       if (!raw) continue;
@@ -483,6 +510,15 @@
           authStateVerifyTimer = window.setTimeout(function () {
             void verifyAndApply();
           }, session && session.user ? 0 : 120);
+        });
+      }
+      if (!window.__ZO2Y_AUTH_GATE_STORAGE_BOUND) {
+        window.__ZO2Y_AUTH_GATE_STORAGE_BOUND = true;
+        window.addEventListener('storage', function (event) {
+          var key = String(event && event.key || '').trim();
+          if (key === STORAGE_KEY || key === LEGACY_STORAGE_KEY || key === PERSIST_STORAGE_KEY) {
+            void verifyAndApply();
+          }
         });
       }
     }, 90);

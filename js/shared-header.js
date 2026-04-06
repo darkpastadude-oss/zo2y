@@ -1,6 +1,9 @@
 (() => {
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+  const AUTH_STORAGE_KEY = 'zo2y-auth-v1';
+  const LEGACY_AUTH_STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
+  const PERSIST_AUTH_STORAGE_KEY = 'zo2y-auth-persist-v1';
   const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260323a';
   const MOVIES_ROUTE = 'movies.html?v=20260322m';
   const MOVIES_MOBILE_ROUTE = 'movies-mobile.html?v=20260322m';
@@ -409,33 +412,56 @@ const HEADER_HTML = `
       return supabaseClient;
     }
     if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+    const getAuthStorageKeys = (key) => {
+      const value = String(key || '').trim();
+      if (!value) return [];
+      if (value === AUTH_STORAGE_KEY || value === LEGACY_AUTH_STORAGE_KEY || value === PERSIST_AUTH_STORAGE_KEY) {
+        return [AUTH_STORAGE_KEY, LEGACY_AUTH_STORAGE_KEY, PERSIST_AUTH_STORAGE_KEY];
+      }
+      return [value];
+    };
     const storageBridge = window.__ZO2Y_AUTH_STORAGE_BRIDGE || {
       getItem(key) {
-        try {
-          const localValue = window.localStorage ? window.localStorage.getItem(key) : null;
-          if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
-        } catch (_err) {}
-        try {
-          return window.sessionStorage ? window.sessionStorage.getItem(key) : null;
-        } catch (_err) {
-          return null;
+        const keys = getAuthStorageKeys(key);
+        for (const candidate of keys) {
+          try {
+            const localValue = window.localStorage ? window.localStorage.getItem(candidate) : null;
+            if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
+          } catch (_err) {}
         }
+        for (const candidate of keys) {
+          try {
+            const sessionValue = window.sessionStorage ? window.sessionStorage.getItem(candidate) : null;
+            if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
+          } catch (_err) {}
+        }
+        return null;
       },
       setItem(key, value) {
-        try {
-          if (window.localStorage) window.localStorage.setItem(key, value);
-        } catch (_err) {}
-        try {
-          if (window.sessionStorage) window.sessionStorage.setItem(key, value);
-        } catch (_err) {}
+        const keys = getAuthStorageKeys(key);
+        keys.forEach((candidate) => {
+          try {
+            if (window.localStorage) window.localStorage.setItem(candidate, value);
+          } catch (_err) {}
+        });
+        keys.forEach((candidate) => {
+          try {
+            if (window.sessionStorage) window.sessionStorage.setItem(candidate, value);
+          } catch (_err) {}
+        });
       },
       removeItem(key) {
-        try {
-          if (window.sessionStorage) window.sessionStorage.removeItem(key);
-        } catch (_err) {}
-        try {
-          if (window.localStorage) window.localStorage.removeItem(key);
-        } catch (_err) {}
+        const keys = getAuthStorageKeys(key);
+        keys.forEach((candidate) => {
+          try {
+            if (window.sessionStorage) window.sessionStorage.removeItem(candidate);
+          } catch (_err) {}
+        });
+        keys.forEach((candidate) => {
+          try {
+            if (window.localStorage) window.localStorage.removeItem(candidate);
+          } catch (_err) {}
+        });
       }
     };
     window.__ZO2Y_AUTH_STORAGE_BRIDGE = storageBridge;
@@ -446,7 +472,7 @@ const HEADER_HTML = `
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: false,
-          storageKey: 'zo2y-auth-v1'
+          storageKey: AUTH_STORAGE_KEY
         }
       });
       window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
@@ -496,8 +522,8 @@ const HEADER_HTML = `
       if (session && session.access_token && session.refresh_token && window.__ZO2Y_AUTH_STORAGE_BRIDGE) {
         try {
           const payload = JSON.stringify(session);
-          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem('zo2y-auth-v1', payload);
-          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(`sb-gfkhjbztayjyojsgdpgk-auth-token`, payload);
+          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(AUTH_STORAGE_KEY, payload);
+          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(LEGACY_AUTH_STORAGE_KEY, payload);
         } catch (_err) {}
       }
       void syncAuthHeaderState();
@@ -511,12 +537,18 @@ const HEADER_HTML = `
     window.addEventListener('focus', () => {
       void syncAuthHeaderState();
     });
+    window.addEventListener('storage', (event) => {
+      const key = String(event?.key || '').trim();
+      if (key === AUTH_STORAGE_KEY || key === LEGACY_AUTH_STORAGE_KEY || key === PERSIST_AUTH_STORAGE_KEY) {
+        void syncAuthHeaderState();
+      }
+    });
   }
 
   function readStoredHeaderSession() {
     const bridge = window.__ZO2Y_AUTH_STORAGE_BRIDGE;
     if (!bridge || typeof bridge.getItem !== 'function') return null;
-    const keys = ['zo2y-auth-v1', 'sb-gfkhjbztayjyojsgdpgk-auth-token'];
+    const keys = [AUTH_STORAGE_KEY, LEGACY_AUTH_STORAGE_KEY, PERSIST_AUTH_STORAGE_KEY];
     for (const key of keys) {
       try {
         const raw = bridge.getItem(key);
@@ -541,8 +573,8 @@ const HEADER_HTML = `
       const session = result?.data?.session || null;
       if (session?.access_token && session?.refresh_token && window.__ZO2Y_AUTH_STORAGE_BRIDGE) {
         const payload = JSON.stringify(session);
-        window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem('zo2y-auth-v1', payload);
-        window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem('sb-gfkhjbztayjyojsgdpgk-auth-token', payload);
+        window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(AUTH_STORAGE_KEY, payload);
+        window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(LEGACY_AUTH_STORAGE_KEY, payload);
       }
       return !!session?.user;
     } catch (_err) {
@@ -576,8 +608,8 @@ const HEADER_HTML = `
       if (session && session.access_token && session.refresh_token && window.__ZO2Y_AUTH_STORAGE_BRIDGE) {
         try {
           const payload = JSON.stringify(session);
-          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem('zo2y-auth-v1', payload);
-          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(`sb-gfkhjbztayjyojsgdpgk-auth-token`, payload);
+          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(AUTH_STORAGE_KEY, payload);
+          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(LEGACY_AUTH_STORAGE_KEY, payload);
         } catch (_err) {}
       }
       const loggedIn = !!session;

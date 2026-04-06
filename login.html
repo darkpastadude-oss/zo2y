@@ -107,33 +107,57 @@
 
   const STORAGE_KEY = 'zo2y-auth-v1';
   const LEGACY_STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
+  const PERSIST_STORAGE_KEY = 'zo2y-auth-persist-v1';
+  function getAuthStorageKeys(key) {
+    const value = String(key || '').trim();
+    if (!value) return [];
+    if (value === STORAGE_KEY || value === LEGACY_STORAGE_KEY || value === PERSIST_STORAGE_KEY) {
+      return [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
+    }
+    return [value];
+  }
   const bootstrapAuthStorageBridge = window.__ZO2Y_AUTH_STORAGE_BRIDGE || {
     getItem(key) {
-      try {
-        const localValue = window.localStorage ? window.localStorage.getItem(key) : null;
-        if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
-      } catch (_err) {}
-      try {
-        return window.sessionStorage ? window.sessionStorage.getItem(key) : null;
-      } catch (_err) {
-        return null;
+      const keys = getAuthStorageKeys(key);
+      for (const candidate of keys) {
+        try {
+          const localValue = window.localStorage ? window.localStorage.getItem(candidate) : null;
+          if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
+        } catch (_err) {}
       }
+      for (const candidate of keys) {
+        try {
+          const sessionValue = window.sessionStorage ? window.sessionStorage.getItem(candidate) : null;
+          if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
+        } catch (_err) {}
+      }
+      return null;
     },
     setItem(key, value) {
-      try {
-        if (window.localStorage) window.localStorage.setItem(key, value);
-      } catch (_err) {}
-      try {
-        if (window.sessionStorage) window.sessionStorage.setItem(key, value);
-      } catch (_err) {}
+      const keys = getAuthStorageKeys(key);
+      keys.forEach((candidate) => {
+        try {
+          if (window.localStorage) window.localStorage.setItem(candidate, value);
+        } catch (_err) {}
+      });
+      keys.forEach((candidate) => {
+        try {
+          if (window.sessionStorage) window.sessionStorage.setItem(candidate, value);
+        } catch (_err) {}
+      });
     },
     removeItem(key) {
-      try {
-        if (window.sessionStorage) window.sessionStorage.removeItem(key);
-      } catch (_err) {}
-      try {
-        if (window.localStorage) window.localStorage.removeItem(key);
-      } catch (_err) {}
+      const keys = getAuthStorageKeys(key);
+      keys.forEach((candidate) => {
+        try {
+          if (window.sessionStorage) window.sessionStorage.removeItem(candidate);
+        } catch (_err) {}
+      });
+      keys.forEach((candidate) => {
+        try {
+          if (window.localStorage) window.localStorage.removeItem(candidate);
+        } catch (_err) {}
+      });
     }
   };
   window.__ZO2Y_AUTH_STORAGE_BRIDGE = bootstrapAuthStorageBridge;
@@ -166,40 +190,56 @@
   const referralUtils = window.ZO2Y_REFERRALS || null;
   const activeReferral = referralUtils ? referralUtils.captureReferralFromLocation(window.location.search) : '';
   function safeGetAuthStorage(key) {
-    try {
-      const localValue = window.localStorage ? window.localStorage.getItem(key) : null;
-      if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
-    } catch (_err) {}
-    try {
-      return window.sessionStorage ? window.sessionStorage.getItem(key) : null;
-    } catch (_err) {
-      return null;
+    const keys = getAuthStorageKeys(key);
+    for (const candidate of keys) {
+      try {
+        const localValue = window.localStorage ? window.localStorage.getItem(candidate) : null;
+        if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
+      } catch (_err) {}
     }
+    for (const candidate of keys) {
+      try {
+        const sessionValue = window.sessionStorage ? window.sessionStorage.getItem(candidate) : null;
+        if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
+      } catch (_err) {}
+    }
+    return null;
   }
 
   function safeSetAuthStorage(key, value) {
-    try {
-      if (window.localStorage) {
-        window.localStorage.setItem(key, value);
-        return true;
-      }
-    } catch (_err) {}
-    try {
-      if (window.sessionStorage) {
-        window.sessionStorage.setItem(key, value);
-        return true;
-      }
-    } catch (_err) {}
-    return false;
+    const keys = getAuthStorageKeys(key);
+    let wroteAny = false;
+    keys.forEach((candidate) => {
+      try {
+        if (window.localStorage) {
+          window.localStorage.setItem(candidate, value);
+          wroteAny = true;
+        }
+      } catch (_err) {}
+    });
+    keys.forEach((candidate) => {
+      try {
+        if (window.sessionStorage) {
+          window.sessionStorage.setItem(candidate, value);
+          wroteAny = true;
+        }
+      } catch (_err) {}
+    });
+    return wroteAny;
   }
 
   function safeRemoveAuthStorage(key) {
-    try {
-      if (window.sessionStorage) window.sessionStorage.removeItem(key);
-    } catch (_err) {}
-    try {
-      if (window.localStorage) window.localStorage.removeItem(key);
-    } catch (_err) {}
+    const keys = getAuthStorageKeys(key);
+    keys.forEach((candidate) => {
+      try {
+        if (window.sessionStorage) window.sessionStorage.removeItem(candidate);
+      } catch (_err) {}
+    });
+    keys.forEach((candidate) => {
+      try {
+        if (window.localStorage) window.localStorage.removeItem(candidate);
+      } catch (_err) {}
+    });
   }
 
   function persistSessionSnapshot(session) {
@@ -302,7 +342,7 @@
 
   decorateReferralLinks();
 
-  async function waitForStableSession(timeoutMs = 1200) {
+  async function waitForStableSession(timeoutMs = 2400) {
     const startedAt = Date.now();
     while ((Date.now() - startedAt) < timeoutMs) {
       const user = await getVerifiedUser();
@@ -315,7 +355,7 @@
   async function finalizeAuthRedirect(sessionOverride = null) {
     if (sessionOverride) persistSessionSnapshot(sessionOverride);
     if (!sessionOverride?.user?.id) {
-      await waitForStableSession(1200);
+      await waitForStableSession(2400);
     }
     const nextPath = getPostAuthRedirect();
     safeRemoveAuthStorage('postAuthRedirect');
