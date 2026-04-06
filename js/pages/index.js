@@ -203,8 +203,8 @@
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
     const HOME_PUBLIC_FEED_ENDPOINT = '/api/home-feed';
-    const HOME_CHANNEL_TIMEOUT_MS = 6500;
-    const HOME_BOOKS_FETCH_TIMEOUT_MS = 1200;
+    const HOME_CHANNEL_TIMEOUT_MS = 8000;
+    const HOME_BOOKS_FETCH_TIMEOUT_MS = 2200;
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 16;
@@ -2379,12 +2379,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     async function refreshHomeNewReleases(feedMap = homeFeedState, options = {}) {
       const railOptions = { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true };
-      const fallbackItems = filterHomeSafeItems(buildNewReleasesFallback(feedMap));
 
       if (homeNewReleasesState.length) {
         renderOrDeferHomeRail('newReleasesRail', filterHomeSafeItems(homeNewReleasesState), railOptions);
-      } else if (fallbackItems.length) {
-        renderOrDeferHomeRail('newReleasesRail', fallbackItems, railOptions);
+      } else {
+        setHomeRailDeferredPlaceholder('newReleasesRail');
       }
 
       const force = options.force === true;
@@ -2407,8 +2406,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           homeNewReleasesState = safeLiveItems;
           homeNewReleasesLastFetchAt = Date.now();
           renderOrDeferHomeRail('newReleasesRail', homeNewReleasesState, railOptions);
-        } else if (!homeNewReleasesState.length && fallbackItems.length) {
-          renderOrDeferHomeRail('newReleasesRail', fallbackItems, railOptions);
+        } else if (!homeNewReleasesState.length) {
+          renderOrDeferHomeRail('newReleasesRail', [], { ...railOptions, allowEmptyState: true });
         }
       })();
       homeNewReleasesInFlight = requestTask;
@@ -2883,7 +2882,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const fallbackItems = buildUnifiedFeed(localPool, getHomeUnifiedTargetItems());
 
       if (!homeCurrentUser?.id) {
-        renderOrDeferHomeRail('unifiedRail', fallbackItems, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+        if (fallbackItems.length) {
+          renderOrDeferHomeRail('unifiedRail', fallbackItems, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+        } else {
+          setHomeRailDeferredPlaceholder('unifiedRail');
+        }
         return;
       }
 
@@ -2892,11 +2895,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const boostedPool = applyActivitySignalsToPool(localPool, signalPayload);
       const unified = buildUnifiedFeed(boostedPool, getHomeUnifiedTargetItems());
       if (boostedPool.length) hydrateSpotlightFromPool(boostedPool);
-      renderOrDeferHomeRail('unifiedRail', unified.length ? unified : fallbackItems, {
-        mediaType: 'mixed',
-        uniformMedia: true,
-        restaurantComposite: true
-      });
+      if (unified.length) {
+        renderOrDeferHomeRail('unifiedRail', unified, {
+          mediaType: 'mixed',
+          uniformMedia: true,
+          restaurantComposite: true
+        });
+      } else if (fallbackItems.length) {
+        renderOrDeferHomeRail('unifiedRail', fallbackItems, {
+          mediaType: 'mixed',
+          uniformMedia: true,
+          restaurantComposite: true
+        });
+      } else {
+        renderOrDeferHomeRail('unifiedRail', [], {
+          mediaType: 'mixed',
+          uniformMedia: true,
+          restaurantComposite: true,
+          allowEmptyState: true
+        });
+      }
     }
 
     function invalidateActivitySignals() {
@@ -5088,12 +5106,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       };
     }
 
-    function getHomeRailFallbackItems(channelKey) {
-      const key = String(channelKey || '').trim();
-      if (!key) return [];
-      const fallbackFeed = buildInstantFallbackFeed();
-      const items = Array.isArray(fallbackFeed?.[key]) ? fallbackFeed[key] : [];
-      return items.filter(Boolean);
+    function getHomeRailFallbackItems(_channelKey) {
+      return [];
     }
 
     function getHomeChannels() {
@@ -5307,9 +5321,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     function renderOrDeferHomeRail(railId, items, opts) {
       const key = String(railId || '').trim();
       if (!key) return;
+      const normalizedItems = Array.isArray(items) ? items : [];
+      const renderOpts = opts || {};
+      if (!normalizedItems.length && renderOpts.allowEmptyState !== true) {
+        setHomeRailDeferredPlaceholder(key);
+        return;
+      }
       homePendingRailRenderState.delete(key);
       clearHomeRailDeferredPlaceholder(key);
-      renderRail(key, Array.isArray(items) ? items : [], opts || {});
+      renderRail(key, normalizedItems, renderOpts);
     }
 
     function resetHomeViewportDeferrals() {
@@ -5370,10 +5390,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     function scheduleHomeNewReleasesRefresh(feedMap = homeFeedState, options = {}) {
       const railOptions = { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true };
-      const fallbackItems = filterHomeSafeItems(
-        homeNewReleasesState.length ? homeNewReleasesState : buildNewReleasesFallback(feedMap)
-      );
-      renderOrDeferHomeRail('newReleasesRail', fallbackItems, railOptions);
+      if (homeNewReleasesState.length) {
+        renderOrDeferHomeRail('newReleasesRail', filterHomeSafeItems(homeNewReleasesState), railOptions);
+      } else {
+        setHomeRailDeferredPlaceholder('newReleasesRail');
+      }
       homePendingNewReleasesRefresh = false;
       if (homeNewReleasesRefreshScheduled) return;
       homeNewReleasesRefreshScheduled = true;
@@ -5556,20 +5577,32 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         getHomeChannels().map((channel) => [channel.key, []])
       );
       const channels = getHomeChannels();
+      const showEmptyRails = options.showEmptyRails === true;
       resetHomeImageRequestBudget();
       warmHomeFeedImages(normalizedFeed);
       let activeChannels = 0;
       channels.forEach((channel) => {
         const items = Array.isArray(normalizedFeed?.[channel.key]) ? normalizedFeed[channel.key] : [];
-        const railItems = items.length ? items : getHomeRailFallbackItems(channel.key);
         homeFeedState[channel.key] = items;
-        renderOrDeferHomeRail(channel.railId, railItems, channel.opts);
+        if (items.length) {
+          renderOrDeferHomeRail(channel.railId, items, channel.opts);
+        } else if (showEmptyRails) {
+          renderOrDeferHomeRail(channel.railId, [], { ...(channel.opts || {}), allowEmptyState: true });
+        } else {
+          setHomeRailDeferredPlaceholder(channel.railId);
+        }
         if (items.length) activeChannels += 1;
       });
 
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
-      renderOrDeferHomeRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+      if (unified.length) {
+        renderOrDeferHomeRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+      } else if (showEmptyRails) {
+        renderOrDeferHomeRail('unifiedRail', [], { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true, allowEmptyState: true });
+      } else {
+        setHomeRailDeferredPlaceholder('unifiedRail');
+      }
       if (options.refreshSecondary !== false) {
         scheduleHomeNewReleasesRefresh(homeFeedState);
         scheduleHomeMixedRefresh(homeFeedState, scoredPool);
@@ -8474,11 +8507,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const deferredChannels = channels.filter((channel) => !initialChannels.includes(channel));
       const cachedFeed = readHomeFeedCache();
       const baselineFeed = cachedFeed || null;
-      let quickFallbackFeed = null;
-      const precomputedFeedPromise = loadPrecomputedHomeFeed().catch(() => null);
-      const blankFeed = Object.fromEntries(initialChannels.map((channel) => [channel.key, []]));
-      const freshLoadedKeys = new Set();
-      let workingFeed = normalizeHomeFeedMap(baselineFeed) || blankFeed;
+        const precomputedFeedPromise = loadPrecomputedHomeFeed().catch(() => null);
+        const blankFeed = Object.fromEntries(initialChannels.map((channel) => [channel.key, []]));
+        const freshLoadedKeys = new Set();
+        let workingFeed = normalizeHomeFeedMap(baselineFeed) || blankFeed;
 
       if (baselineFeed) {
         const cachedResult = applyHomeFeedMap(baselineFeed);
@@ -8506,15 +8538,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const loadedPromise = loadHomeChannelGroup(initialChannels, loadChannel);
       const precomputedFeed = await withTimeout(precomputedFeedPromise, 1200, null);
       if (initSeq !== homeFeedInitSeq) return;
-      if (!baselineFeed && precomputedFeed == null && freshLoadedKeys.size === 0) {
-        quickFallbackFeed = buildInstantFallbackFeed();
-        const quickResult = applyHomeFeedMap(quickFallbackFeed);
-        if (quickResult.scoredPool.length) {
-          setStatus('Quick feed ready. Syncing live data...', false);
-        }
-        workingFeed = normalizeHomeFeedMap(quickFallbackFeed) || blankFeed;
-      }
-      if (precomputedFeed) {
+        if (precomputedFeed) {
         const precomputedActiveChannels = countActiveHomeChannels(precomputedFeed);
         const baselineActiveChannels = countActiveHomeChannels(baselineFeed);
         if (precomputedActiveChannels > baselineActiveChannels) {
@@ -8544,27 +8568,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
       const mergedFeed = normalizeHomeFeedMap(workingFeed) || blankFeed;
 
-      const { scoredPool } = applyHomeFeedMap(mergedFeed);
+        const hasWeakFeed = countActiveHomeChannels(mergedFeed) < healthyChannelFloor;
+        const { scoredPool } = applyHomeFeedMap(mergedFeed, { showEmptyRails: !hasWeakFeed });
 
-      if (!scoredPool.length) {
-        homeSpotlightItems = [{
-          mediaType: 'movie',
-          title: 'No live spotlight yet',
-          subtitle: 'We are refreshing your feed',
-          extra: 'Try again in a moment.',
-          image: '',
-          spotlightImage: '',
-          spotlightMediaImage: '',
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          href: 'movies.html',
-          discoveryScore: 0.5
-        }];
-        showSpotlightByIndex(0, false);
-        resetSpotlightTimer(false);
-        setStatus('Could not load live feeds right now. Try again shortly.', true);
-        return;
-      }
+        if (!scoredPool.length) {
+          resetSpotlightTimer(false);
+          setStatus('Could not load live feeds right now. Try again shortly.', true);
+          return;
+        }
 
       const initialChannelsCount = initialChannels.length;
       const freshActiveChannels = freshLoadedKeys.size;
@@ -8594,13 +8605,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           homeWeakFeedRetryTimer = null;
         }
         homeWeakFeedRetryCount = 0;
-      } else if (homeWeakFeedRetryCount < 1 && !homeWeakFeedRetryTimer) {
-        homeWeakFeedRetryTimer = setTimeout(() => {
-          homeWeakFeedRetryTimer = null;
-          homeWeakFeedRetryCount += 1;
-          void initUniversalHome();
-        }, 1600);
-      }
+        } else if (homeWeakFeedRetryCount < 2 && !homeWeakFeedRetryTimer) {
+          homeWeakFeedRetryTimer = setTimeout(() => {
+            homeWeakFeedRetryTimer = null;
+            homeWeakFeedRetryCount += 1;
+            void initUniversalHome();
+          }, 1800);
+        }
 
       scheduleHomeMenuCachePrime();
     }
