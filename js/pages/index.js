@@ -136,6 +136,15 @@
       ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {}),
       ...(ENABLE_CARS ? { car: { table: 'car_list_items', itemField: 'brand_id' } } : {})
     };
+    const HOME_REVIEW_SIGNAL_TABLES = {
+      movie: { table: 'movie_reviews', itemField: 'movie_id' },
+      tv: { table: 'tv_reviews', itemField: 'tv_id' },
+      anime: { table: 'anime_reviews', itemField: 'anime_id' },
+      ...(ENABLE_GAMES ? { game: { table: 'game_reviews', itemField: 'game_id' } } : {}),
+      book: { table: 'book_reviews', itemField: 'book_id' },
+      music: { table: 'music_reviews', itemField: 'track_id' },
+      travel: { table: 'travel_reviews', itemField: 'country_code' }
+    };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v12';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
     const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v12';
@@ -211,6 +220,17 @@ const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
     const HOME_BECAUSE_SIGNAL_CACHE_MS = 1000 * 60 * 3;
     const HOME_BECAUSE_MAX_FOLLOWED_USERS = 24;
     const HOME_BECAUSE_SIGNAL_RECENCY_HOURS = 24 * 21;
+    const HOME_TASTE_PROFILE_TOKEN_LIMIT = 56;
+    const HOME_TASTE_PROFILE_REVIEW_LIMIT = 84;
+    const HOME_TASTE_MIN_TOKEN_LENGTH = 3;
+    const HOME_TASTE_STOPWORDS = new Set([
+      'about', 'after', 'again', 'all', 'and', 'are', 'around', 'back', 'best', 'but',
+      'day', 'days', 'episode', 'film', 'for', 'from', 'game', 'gets', 'has', 'have',
+      'into', 'its', 'just', 'latest', 'live', 'more', 'movie', 'new', 'now', 'off',
+      'one', 'only', 'our', 'out', 'over', 'pick', 'picks', 'show', 'shows', 'song',
+      'still', 'that', 'the', 'their', 'them', 'this', 'title', 'top', 'track', 'tv',
+      'watch', 'with', 'your'
+    ]);
     const HOME_MENU_PRIME_IDLE_DELAY_MS = 2500;
     const HOME_ONBOARDING_VERSION = 'v2';
     const HOME_POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
@@ -2426,6 +2446,235 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return Math.max(0.2, 1 - (ageHours / HOME_BECAUSE_SIGNAL_RECENCY_HOURS));
     }
 
+    function getReviewSignalWeight(rating) {
+      const value = Number(rating || 0);
+      if (value >= 5) return 0.95;
+      if (value >= 4) return 0.72;
+      if (value >= 3) return 0.42;
+      return 0.18;
+    }
+
+    function splitHomeTastePhrases(value) {
+      return String(value || '')
+        .split(/[|,/]+|&/g)
+        .map((part) => String(part || '').trim().toLowerCase())
+        .filter(Boolean);
+    }
+
+    function tokenizeHomeTasteText(value) {
+      return Array.from(new Set(
+        String(value || '')
+          .toLowerCase()
+          .replace(/[’']/g, '')
+          .split(/[^a-z0-9+#-]+/i)
+          .map((token) => String(token || '').trim())
+          .filter((token) => (
+            token.length >= HOME_TASTE_MIN_TOKEN_LENGTH &&
+            !HOME_TASTE_STOPWORDS.has(token) &&
+            !/^\d+$/.test(token)
+          ))
+      ));
+    }
+
+    function buildHomeItemTasteTokens(item) {
+      if (!item || typeof item !== 'object') return [];
+      const tokens = new Set();
+      const addToken = (token) => {
+        const text = String(token || '').trim().toLowerCase();
+        if (!text) return;
+        if (text.length < HOME_TASTE_MIN_TOKEN_LENGTH && !/[+#-]/.test(text)) return;
+        if (HOME_TASTE_STOPWORDS.has(text)) return;
+        tokens.add(text);
+      };
+      const addText = (text) => tokenizeHomeTasteText(text).forEach(addToken);
+      const addPhraseParts = (value) => {
+        splitHomeTastePhrases(value).forEach((part) => {
+          addToken(part);
+          addText(part);
+        });
+      };
+
+      addToken(item.mediaType);
+      addPhraseParts(item.genreText);
+      addPhraseParts(item.subtitle);
+      addPhraseParts(item.extra);
+      addPhraseParts(item.category);
+      addPhraseParts(item.country);
+      addPhraseParts(item.sport);
+      addPhraseParts(item.league);
+      addPhraseParts(item.maturityRating);
+      addText(item.title);
+      addText(item.overview);
+      addText(item.description);
+      if (Array.isArray(item.genres)) item.genres.forEach(addPhraseParts);
+      if (Array.isArray(item.tags)) item.tags.forEach(addPhraseParts);
+      return Array.from(tokens).slice(0, HOME_TASTE_PROFILE_TOKEN_LIMIT);
+    }
+
+    function getHomeRecommendationCandidateIndex(feedMap = homeFeedState) {
+      const index = new Map();
+      const addItems = (items) => {
+        (Array.isArray(items) ? items : []).forEach((item) => {
+          const key = getRecommendationItemKey(item?.mediaType, item?.itemId);
+          if (!key || !item) return;
+          const existing = index.get(key);
+          if (!existing || Number(item?.discoveryScore || 0) > Number(existing?.discoveryScore || 0)) {
+            index.set(key, item);
+          }
+        });
+      };
+      Object.values(feedMap || {}).forEach(addItems);
+      addItems(homeNewReleasesState);
+      addItems(homeSpotlightItems);
+      return index;
+    }
+
+    function getHomeRelatedTypeAffinity(mediaType, typeWeights) {
+      const type = String(mediaType || '').trim().toLowerCase();
+      if (!(typeWeights instanceof Map) || !type) return 0;
+      const relatedGroups = {
+        movie: ['tv', 'anime', 'book'],
+        tv: ['movie', 'anime', 'book'],
+        anime: ['tv', 'movie', 'game'],
+        game: ['anime', 'movie'],
+        book: ['movie', 'tv', 'anime'],
+        music: ['book'],
+        travel: ['sports'],
+        sports: ['travel']
+      };
+      const related = relatedGroups[type] || [];
+      return related.reduce((best, key) => Math.max(best, Number(typeWeights.get(key) || 0)), 0);
+    }
+
+    function humanizeHomeTasteToken(token) {
+      const value = String(token || '').trim().toLowerCase();
+      if (!value) return '';
+      const aliases = {
+        scifi: 'sci-fi',
+        'sci-fi': 'sci-fi',
+        romcom: 'rom-com',
+        'rom-com': 'rom-com',
+        truecrime: 'true crime',
+        'true-crime': 'true crime',
+        tv: 'tv',
+        anime: 'anime',
+        nba: 'nba',
+        nfl: 'nfl',
+        f1: 'f1'
+      };
+      return aliases[value] || value.replace(/-/g, ' ');
+    }
+
+    function buildHomeTasteProfile(signalEntries = [], feedMap = homeFeedState) {
+      const candidateIndex = getHomeRecommendationCandidateIndex(feedMap);
+      const tokenWeights = new Map();
+      const typeWeightsRaw = new Map();
+      const consumedKeys = new Set();
+
+      const addTokenWeight = (token, amount) => {
+        const key = String(token || '').trim().toLowerCase();
+        const weight = Number(amount || 0);
+        if (!key || !Number.isFinite(weight) || weight <= 0) return;
+        tokenWeights.set(key, Number((Number(tokenWeights.get(key) || 0) + weight).toFixed(4)));
+      };
+
+      (Array.isArray(signalEntries) ? signalEntries : []).forEach((entry) => {
+        const mediaType = String(entry?.mediaType || '').trim().toLowerCase();
+        const itemId = entry?.itemId;
+        const key = getRecommendationItemKey(mediaType, itemId);
+        const weight = Number(entry?.weight || 0);
+        if (!key || !mediaType || !Number.isFinite(weight) || weight <= 0) return;
+
+        if (entry?.isOwn) consumedKeys.add(key);
+        typeWeightsRaw.set(mediaType, Number((Number(typeWeightsRaw.get(mediaType) || 0) + weight).toFixed(4)));
+
+        const item = candidateIndex.get(key);
+        if (!item) return;
+        const tokens = buildHomeItemTasteTokens(item);
+        const tokenShare = weight / Math.max(4, Math.min(tokens.length || 1, 10));
+        tokens.forEach((token) => addTokenWeight(token, tokenShare));
+      });
+
+      (homeInterestProfile?.tags || []).forEach((tag) => {
+        splitHomeTastePhrases(tag).forEach((part) => addTokenWeight(part, 0.32));
+      });
+      (homeInterestProfile?.types || []).forEach((type) => {
+        const key = String(type || '').trim().toLowerCase();
+        if (!key) return;
+        typeWeightsRaw.set(key, Number((Number(typeWeightsRaw.get(key) || 0) + 0.42).toFixed(4)));
+      });
+
+      const typeWeights = new Map();
+      const maxTypeWeight = Math.max(0, ...Array.from(typeWeightsRaw.values()).map((value) => Number(value || 0)));
+      typeWeightsRaw.forEach((value, key) => {
+        const normalized = maxTypeWeight > 0 ? (value / maxTypeWeight) : 0;
+        typeWeights.set(key, Number(Math.min(1.12, 0.18 + (normalized * 0.94)).toFixed(4)));
+      });
+
+      const rankedTokens = Array.from(tokenWeights.entries())
+        .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))
+        .slice(0, HOME_TASTE_PROFILE_TOKEN_LIMIT);
+      const rankedTokenMap = new Map(rankedTokens);
+      const tokenNorm = Math.max(
+        0.9,
+        rankedTokens.reduce((sum, [, value]) => sum + Number(value || 0), 0) / Math.max(1, rankedTokens.length)
+      );
+
+      return {
+        candidateIndex,
+        consumedKeys,
+        tokenWeights: rankedTokenMap,
+        tokenNorm,
+        typeWeights,
+        signalCount: Array.isArray(signalEntries) ? signalEntries.length : 0
+      };
+    }
+
+    function scoreHomeTasteProfileMatch(item, tasteProfile) {
+      if (!item || typeof item !== 'object' || !tasteProfile) {
+        return { score: 0, reason: '', matchedTokens: [] };
+      }
+
+      const tokens = buildHomeItemTasteTokens(item);
+      const matched = [];
+      let tokenScore = 0;
+      tokens.forEach((token) => {
+        const weight = Number(tasteProfile?.tokenWeights?.get?.(token) || 0);
+        if (weight <= 0) return;
+        tokenScore += weight;
+        matched.push([token, weight]);
+      });
+      matched.sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0));
+
+      const mediaType = String(item.mediaType || '').trim().toLowerCase();
+      const typeAffinity = Number(tasteProfile?.typeWeights?.get?.(mediaType) || 0);
+      const relatedAffinity = getHomeRelatedTypeAffinity(mediaType, tasteProfile?.typeWeights);
+      const normalizedTokenScore = Math.min(1.75, tokenScore / Math.max(0.82, Number(tasteProfile?.tokenNorm || 1)));
+      const crossMediaBoost = typeAffinity < 0.4 && matched.length >= 2
+        ? Math.min(0.42, relatedAffinity * 0.5)
+        : Math.min(0.18, relatedAffinity * 0.18);
+      const score = Number((normalizedTokenScore * 1.18 + typeAffinity * 0.58 + crossMediaBoost).toFixed(4));
+
+      const matchedTokens = matched
+        .slice(0, 2)
+        .map(([token]) => humanizeHomeTasteToken(token))
+        .filter(Boolean);
+
+      let reason = '';
+      if (matchedTokens.length >= 2) {
+        reason = `Because you save ${matchedTokens[0]} and ${matchedTokens[1]}`;
+      } else if (matchedTokens.length === 1) {
+        reason = `Because you save a lot of ${matchedTokens[0]}`;
+      } else if (typeAffinity >= 0.95) {
+        const meta = getHomeMediaMeta(mediaType);
+        reason = `More ${meta.label.toLowerCase()} picks based on your saves`;
+      } else if (relatedAffinity >= 0.95) {
+        reason = 'Cross-media pick based on your taste';
+      }
+
+      return { score, reason, matchedTokens };
+    }
+
     async function fetchBecauseYouLikedSignals() {
       if (!homeCurrentUser?.id) return null;
       const client = await ensureHomeSupabase();
@@ -2479,8 +2728,25 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       });
 
       const batches = await Promise.all(queryTasks);
+      const reviewTasks = Object.entries(HOME_REVIEW_SIGNAL_TABLES).map(([mediaType, cfg]) => {
+        return client
+          .from(cfg.table)
+          .select(`${cfg.itemField}, rating, created_at`)
+          .eq('user_id', homeCurrentUser.id)
+          .gte('rating', 4)
+          .order('created_at', { ascending: false })
+          .limit(HOME_TASTE_PROFILE_REVIEW_LIMIT)
+          .then((res) => ({
+            mediaType,
+            itemField: cfg.itemField,
+            rows: Array.isArray(res?.data) ? res.data : []
+          }))
+          .catch(() => ({ mediaType, itemField: cfg.itemField, rows: [] }));
+      });
+      const reviewBatches = await Promise.all(reviewTasks);
       const signalMap = new Map();
       const reasonsMap = new Map();
+      const tasteSignalEntries = [];
 
       batches.forEach(({ mediaType, itemField, rows }) => {
         rows.forEach((row) => {
@@ -2495,8 +2761,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           const recency = getRecencyWeight(row?.created_at);
           const listWeight = getListTypeWeight(row?.list_type);
           const score = (isOwn ? 2.2 : 1.3) * recency + listWeight;
+          const profileWeight = (isOwn ? 1.24 : 0.46) * (listWeight + (recency * 0.72));
 
           signalMap.set(key, Number((Number(signalMap.get(key) || 0) + score).toFixed(4)));
+          tasteSignalEntries.push({
+            mediaType,
+            itemId,
+            isOwn,
+            listType: row?.list_type,
+            createdAt: row?.created_at,
+            weight: Number(profileWeight.toFixed(4))
+          });
 
           const existingReason = reasonsMap.get(key) || { ownCount: 0, followingCount: 0, recentAt: '' };
           if (isOwn) existingReason.ownCount += 1;
@@ -2508,10 +2783,45 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         });
       });
 
+      reviewBatches.forEach(({ mediaType, itemField, rows }) => {
+        rows.forEach((row) => {
+          const rawItemId = row?.[itemField];
+          const itemId = normalizeHomeDefaultItemId(mediaType, rawItemId);
+          if (itemId === null || itemId === undefined) return;
+          const key = getRecommendationItemKey(mediaType, itemId);
+          if (!key) return;
+
+          const recency = getRecencyWeight(row?.created_at);
+          const reviewWeight = getReviewSignalWeight(row?.rating);
+          tasteSignalEntries.push({
+            mediaType,
+            itemId,
+            isOwn: true,
+            listType: Number(row?.rating || 0) >= 5 ? 'favorites' : 'review',
+            createdAt: row?.created_at,
+            weight: Number((reviewWeight * (0.92 + recency)).toFixed(4))
+          });
+
+          const reviewBoost = (reviewWeight * 0.34) + (recency * 0.18);
+          signalMap.set(key, Number((Number(signalMap.get(key) || 0) + reviewBoost).toFixed(4)));
+
+          const existingReason = reasonsMap.get(key) || { ownCount: 0, followingCount: 0, recentAt: '', reviewCount: 0 };
+          existingReason.ownCount += 1;
+          existingReason.reviewCount = Number(existingReason.reviewCount || 0) + 1;
+          if (!existingReason.recentAt || (row?.created_at && new Date(row.created_at).getTime() > new Date(existingReason.recentAt).getTime())) {
+            existingReason.recentAt = String(row?.created_at || '');
+          }
+          reasonsMap.set(key, existingReason);
+        });
+      });
+
+      const tasteProfile = buildHomeTasteProfile(tasteSignalEntries, homeFeedState);
+
       return {
         signalMap,
         reasonsMap,
-        followedCount: followedIds.length
+        followedCount: followedIds.length,
+        tasteProfile
       };
     }
 
@@ -2537,20 +2847,30 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     function applyActivitySignalsToPool(scoredPool, signalPayload) {
       const signalMap = signalPayload?.signalMap instanceof Map ? signalPayload.signalMap : new Map();
       const reasonsMap = signalPayload?.reasonsMap instanceof Map ? signalPayload.reasonsMap : new Map();
+      const tasteProfile = signalPayload?.tasteProfile || null;
+      const consumedKeys = tasteProfile?.consumedKeys instanceof Set ? tasteProfile.consumedKeys : new Set();
       if (!Array.isArray(scoredPool) || !scoredPool.length) return [];
       return scoredPool
+        .filter((item) => {
+          const key = getRecommendationItemKey(item?.mediaType, item?.itemId);
+          return !key || !consumedKeys.has(key);
+        })
         .map((item) => {
           const key = getRecommendationItemKey(item?.mediaType, item?.itemId);
           const signal = Number(signalMap.get(key) || 0);
-          const reason = reasonsMap.get(key) || { ownCount: 0, followingCount: 0 };
+          const reason = reasonsMap.get(key) || { ownCount: 0, followingCount: 0, reviewCount: 0 };
+          const tasteMatch = scoreHomeTasteProfileMatch(item, tasteProfile);
           let reasonText = '';
-          if (reason.ownCount > 0 && reason.followingCount > 0) reasonText = 'Saved by you and people you follow';
+          if (tasteMatch.reason) reasonText = tasteMatch.reason;
+          else if (reason.ownCount > 0 && reason.followingCount > 0) reasonText = 'Saved by you and people you follow';
+          else if (reason.ownCount > 0 && Number(reason.reviewCount || 0) > 0) reasonText = 'Based on what you save and rate highly';
           else if (reason.ownCount > 0) reasonText = 'From your recent saves';
           else if (reason.followingCount > 0) reasonText = 'Popular with people you follow';
           return {
             ...item,
             extra: reasonText || item.extra || '',
-            discoveryScore: Number(item.discoveryScore || 0) + Math.min(4.6, signal * 0.92)
+            recommendationReason: reasonText || '',
+            discoveryScore: Number(item.discoveryScore || 0) + Math.min(4.6, signal * 0.92) + Number(tasteMatch.score || 0)
           };
         })
         .sort((a, b) => Number(b.discoveryScore || 0) - Number(a.discoveryScore || 0));
@@ -2571,6 +2891,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       if (seq !== homeBecauseRefreshSeq) return;
       const boostedPool = applyActivitySignalsToPool(localPool, signalPayload);
       const unified = buildUnifiedFeed(boostedPool, getHomeUnifiedTargetItems());
+      if (boostedPool.length) hydrateSpotlightFromPool(boostedPool);
       renderOrDeferHomeRail('unifiedRail', unified.length ? unified : fallbackItems, {
         mediaType: 'mixed',
         uniformMedia: true,
