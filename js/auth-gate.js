@@ -491,10 +491,12 @@
   var pageKey = normalizePageKey(window.location.pathname);
   maybeRedirectOAuthCallback(pageKey);
   var authenticated = hasStoredSupabaseSession();
-  var initialShell = pageKey === 'index' ? 'pending' : 'app';
-  applyShellState(initialShell === 'app' ? authenticated : false, pageKey, {
+  var initialShell = pageKey === 'index'
+    ? (authenticated ? 'app' : 'pending')
+    : 'app';
+  applyShellState(authenticated, pageKey, {
     shell: initialShell,
-    verified: initialShell !== 'pending'
+    verified: initialShell === 'app'
   });
 
   if (pageKey === 'index' || !PUBLIC_PAGE_KEYS.has(pageKey)) {

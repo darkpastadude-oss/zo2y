@@ -193,6 +193,7 @@
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
+    const HOME_PUBLIC_FEED_ENDPOINT = '/api/home-feed';
     const HOME_CHANNEL_TIMEOUT_MS = 6500;
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 1200;
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
@@ -4802,15 +4803,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     function getHomeInitialChannels(channels) {
       const list = Array.isArray(channels) ? channels : [];
-      if (isHomeSlowNetwork()) return list.slice(0, 2);
-      if (isHomeCompactViewport()) return list.slice(0, 3);
-      return list.slice(0, 4);
+      if (isHomeSlowNetwork()) return list.slice(0, Math.min(4, list.length));
+      if (isHomeCompactViewport()) return list.slice(0, Math.min(6, list.length));
+      return list.slice(0, Math.min(8, list.length));
     }
 
     function getHomeInitialChannelConcurrency() {
-      if (isHomeSlowNetwork()) return 1;
-      if (isHomeCompactViewport()) return 2;
-      return 3;
+      if (isHomeSlowNetwork()) return 2;
+      if (isHomeCompactViewport()) return 3;
+      return 4;
     }
 
     function getHomeRailViewportMarginPx() {
@@ -5148,9 +5149,30 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return feed;
     }
 
+    async function fetchPrecomputedHomeFeedFromApi() {
+      const payload = await fetchJsonWithPerfCache(HOME_PUBLIC_FEED_ENDPOINT, {
+        cacheKey: 'home-public-feed',
+        ttlMs: 1000 * 60,
+        timeoutMs: 2400,
+        retries: 2
+      });
+      const feed = normalizeHomeFeedMap(payload?.feed);
+      if (!feed || countActiveHomeChannels(feed) === 0) return null;
+
+      const generatedAtMs = payload?.generatedAt ? new Date(payload.generatedAt).getTime() : Date.now();
+      const expiresAtMs = payload?.expiresAt ? new Date(payload.expiresAt).getTime() : (generatedAtMs + HOME_PRECOMPUTED_FEED_MAX_AGE_MS);
+      writePrecomputedHomeFeedCache(feed, {
+        savedAt: generatedAtMs,
+        expiresAt: expiresAtMs
+      });
+      return feed;
+    }
+
     async function loadPrecomputedHomeFeed() {
       const cached = readPrecomputedHomeFeedCache();
       if (cached && countActiveHomeChannels(cached) > 0) return cached;
+      const apiFeed = await fetchPrecomputedHomeFeedFromApi();
+      if (apiFeed && countActiveHomeChannels(apiFeed) > 0) return apiFeed;
       return fetchPrecomputedHomeFeedFromSupabase();
     }
 
@@ -8287,6 +8309,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return raw;
     }
 
+    function isRenderableLandingImage(value) {
+      const normalized = normalizeLandingImageUrl(value);
+      if (!normalized) return false;
+      return !isLogoPlaceholder(normalized);
+    }
+
     function truncateLandingText(value, maxLength = 120) {
       const normalized = String(value || '').replace(/\s+/g, ' ').trim();
       if (!normalized) return '';
@@ -8322,7 +8350,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     function getLandingPreviewPoster(item) {
-      if (!item || typeof item !== 'object') return '/newlogo.webp';
+      if (!item || typeof item !== 'object') return '';
       const type = String(item.mediaType || '').toLowerCase();
       const cover = type === 'game'
         ? resolveHomeGameCover(item)
@@ -8331,7 +8359,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           : (type === 'sports'
             ? (item.logo || item.badge || item.flagImage || item.image || item.spotlightMediaImage)
             : (item.spotlightMediaImage || item.image || item.listImage || item.logo || item.badge || item.flagImage)));
-      return normalizeLandingImageUrl(cover) || '/newlogo.webp';
+      const normalized = normalizeLandingImageUrl(cover);
+      return isRenderableLandingImage(normalized) ? normalized : '';
     }
 
     function getLandingPreviewBackdrop(item) {
@@ -8369,7 +8398,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const meta = getHomeMediaMeta(safeItem.mediaType);
       const nextPath = getLandingItemNextPath(safeItem);
       const href = buildLandingAuthHref(nextPath);
-      const image = escapeHtml(getLandingPreviewPoster(safeItem));
+      const image = escapeHtml(getLandingPreviewPoster(safeItem) || HOME_IMAGE_PLACEHOLDER);
       const title = escapeHtml(String(safeItem.title || meta.label || 'Item').trim() || 'Item');
       const subtitle = escapeHtml(getLandingPreviewMeta(safeItem));
       return `
@@ -8737,11 +8766,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     function renderLandingHeroStrip(items) {
       const strip = document.getElementById('landingHeroStrip');
       if (!strip) return;
-      const safeItems = (Array.isArray(items) ? items : []).filter(Boolean).slice(0, 6);
+      const safeItems = (Array.isArray(items) ? items : [])
+        .filter((item) => item && isRenderableLandingImage(getLandingPreviewPoster(item)))
+        .slice(0, 6);
       if (!safeItems.length) return;
       strip.innerHTML = safeItems.map((item) => {
         const nextPath = getLandingItemNextPath(item);
-        const image = escapeHtml(getLandingPreviewPoster(item));
+        const image = escapeHtml(getLandingPreviewPoster(item) || HOME_IMAGE_PLACEHOLDER);
         const title = escapeHtml(String(item?.title || 'Title').trim() || 'Title');
         return `
           <a class="landing-hero-poster" href="${buildLandingAuthHref(nextPath)}" data-auth-entry="signup" data-auth-next="${escapeHtml(nextPath)}" aria-label="Open ${title}">
@@ -8753,6 +8784,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     async function loadLandingLiveFeed() {
+      const apiPayload = await fetchJsonWithPerfCache(HOME_PUBLIC_FEED_ENDPOINT, {
+        cacheKey: 'landing-public-feed',
+        ttlMs: 1000 * 30,
+        timeoutMs: 2200,
+        retries: 2
+      });
+      const apiFeed = normalizeHomeFeedMap(apiPayload?.feed);
+      if (apiFeed && countActiveHomeChannels(apiFeed) > 0) {
+        return {
+          movie: filterHomeSafeItems(apiFeed.movie || []),
+          tv: filterHomeSafeItems(apiFeed.tv || []),
+          game: filterHomeSafeItems(apiFeed.game || [])
+        };
+      }
       const [movieRes, tvRes, gameRes] = await Promise.allSettled([
         loadMovies(null),
         loadTv(null),
@@ -8792,9 +8837,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const normalized = normalizeHomeFeedMap(feedMap);
       if (!normalized || countActiveHomeChannels(normalized) === 0) return false;
 
-      const movies = rotateLandingList(normalized.movie, 1).slice(0, 10);
-      const games = rotateLandingList(normalized.game, 2).slice(0, 10);
-      const tv = rotateLandingList(normalized.tv, 3).slice(0, 10);
+      const movies = rotateLandingList(normalized.movie, 1)
+        .filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item)))
+        .slice(0, 10);
+      const games = rotateLandingList(normalized.game, 2)
+        .filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item)))
+        .slice(0, 10);
+      const tv = rotateLandingList(normalized.tv, 3)
+        .filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item)))
+        .slice(0, 10);
       const sports = rotateLandingList(normalized.sports, 3).slice(0, 3);
       renderLandingHeroStrip([
         ...movies.slice(0, 2),
@@ -8829,7 +8880,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         spotlightTitle.textContent = String(spotlight.title || `${meta.label} pick`).trim() || `${meta.label} pick`;
         spotlightMeta.textContent = getLandingPreviewMeta(spotlight);
         spotlightSummary.textContent = truncateLandingText(getSpotlightSummary(spotlight), 140) || 'Live pick from the Zo2y feed.';
-        spotlightPoster.src = poster;
+        spotlightPoster.src = poster || HOME_IMAGE_PLACEHOLDER;
         spotlightPoster.alt = String(spotlight.title || meta.label || 'Item').trim() || meta.label;
         spotlightBackdrop.style.backgroundImage = backdrop
           ? `linear-gradient(90deg, rgba(6, 11, 27, 0.88) 0%, rgba(6, 11, 27, 0.58) 52%, rgba(6, 11, 27, 0.12) 100%), url("${String(backdrop).replace(/"/g, '%22')}")`
@@ -8889,6 +8940,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         authNotice.hidden = false;
         authNotice.textContent = 'Sign in to continue into Zo2y.';
       }
+
+      void ensureHomeHeavyLoaders().catch(() => {});
 
       document.querySelectorAll('[data-auth-entry]').forEach((link) => {
         link.addEventListener('click', () => {
@@ -9030,6 +9083,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         }
         initLandingExperience();
       });
+
+      void ensureHomeHeavyLoaders().catch(() => {});
 
       const itemMenuModal = document.getElementById('itemMenuModal');
       const createListModal = document.getElementById('createListModal');

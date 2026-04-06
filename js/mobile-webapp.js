@@ -1,5 +1,5 @@
 (() => {
-const APP_RUNTIME_VERSION = '20260401-list-fixes-c';
+const APP_RUNTIME_VERSION = '20260406-security-feed-a';
 
   const isMobileLike = window.matchMedia('(max-width: 900px)').matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   const path = window.location.pathname || '/';
