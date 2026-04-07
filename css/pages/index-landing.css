@@ -2315,16 +2315,16 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   html[data-auth-shell="landing"] .landing-v4-link,
   html[data-auth-shell="landing"] .landing-v4-primary {
     min-height: 42px;
-    padding: 0 14px;
+    padding: 0 12px;
     font-size: 13px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-link {
-    min-width: 92px;
+    min-width: 104px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-primary {
-    min-width: 108px;
+    min-width: 116px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-main {
@@ -2347,13 +2347,13 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   html[data-auth-shell="landing"] .landing-v4-setup-hero {
     min-height: 0;
     height: auto;
-    aspect-ratio: 0.82;
+    aspect-ratio: 0.72;
     max-height: 700px;
     border-radius: 22px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall {
-    grid-template-rows: repeat(6, 84px);
+    grid-template-rows: repeat(6, 92px);
     gap: 6px;
     padding: 12px;
     align-content: start;
@@ -2389,11 +2389,11 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall-copy {
-    top: 54%;
+    top: 52%;
     bottom: auto;
     transform: translate(-50%, -50%);
     width: calc(100% - 40px);
-    gap: 8px;
+    gap: 10px;
     justify-items: center;
   }
 
@@ -2408,20 +2408,18 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-summary {
-    max-width: 18ch;
-    font-size: 11px;
-    line-height: 1.4;
+    display: none;
   }
 
   html[data-auth-shell="landing"] .landing-v4-hero-actions {
     display: grid;
     grid-template-columns: 1fr;
     gap: 8px;
-    width: min(250px, 100%);
+    width: min(264px, 100%);
   }
 
   html[data-auth-shell="landing"] .landing-v4-primary {
-    min-height: 48px;
+    min-height: 50px;
     width: 100%;
   }
 }
