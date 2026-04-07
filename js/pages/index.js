@@ -8710,17 +8710,27 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       [
         ['movie-1', movieItems[0]],
         ['movie-2', movieItems[1] || movieItems[0]],
+        ['movie-3', movieItems[2] || movieItems[1] || movieItems[0]],
+        ['movie-4', movieItems[3] || movieItems[2] || movieItems[0]],
         ['tv-1', tvItems[0]],
         ['tv-2', tvItems[1] || tvItems[0]],
+        ['tv-3', tvItems[2] || tvItems[1] || tvItems[0]],
         ['anime-1', animeItems[0] || tvItems[2] || movieItems[2]],
+        ['anime-2', animeItems[1] || animeItems[0] || tvItems[0]],
         ['game-1', gameItems[0]],
         ['game-2', gameItems[1] || gameItems[0]],
+        ['game-3', gameItems[2] || gameItems[1] || gameItems[0]],
+        ['game-4', gameItems[3] || gameItems[2] || gameItems[0]],
         ['book-1', bookItems[0]],
         ['book-2', bookItems[1] || bookItems[0]],
+        ['book-3', bookItems[2] || bookItems[1] || bookItems[0]],
         ['music-1', musicItems[0]],
+        ['music-2', musicItems[1] || musicItems[0]],
         ['country-1', travelItems[0]],
+        ['country-2', travelItems[1] || travelItems[0]],
         ['sports-1', sportsItems[0]],
-        ['sports-2', sportsItems[1] || sportsItems[0]]
+        ['sports-2', sportsItems[1] || sportsItems[0]],
+        ['sports-3', sportsItems[2] || sportsItems[1] || sportsItems[0]]
       ].forEach(([slot, item]) => {
         if (!item) return;
         const image = getLandingPreviewPoster(item);
