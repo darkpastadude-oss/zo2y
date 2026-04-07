@@ -8658,6 +8658,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const node = getLandingWallTile(slot);
       const normalized = normalizeLandingImageUrl(image);
       if (!node || !isRenderableLandingImage(normalized)) return false;
+      if (!node.dataset.fallbackSrc) {
+        node.dataset.fallbackSrc = String(node.getAttribute('src') || '').trim();
+      }
+      node.onerror = () => {
+        const fallback = normalizeLandingImageUrl(node.dataset.fallbackSrc || '');
+        if (fallback && node.src !== fallback) {
+          node.onerror = null;
+          node.src = fallback;
+        }
+      };
       node.src = normalized;
       node.alt = String(alt || '').trim();
       node.loading = 'eager';
@@ -8674,10 +8684,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         || getLandingWallTile('game-1'));
       if (!hasWallTargets) return;
 
-      const [moviesRes, tvRes, gamesRes] = await Promise.allSettled([
+      const [moviesRes, tvRes, animeRes, gamesRes, booksRes, musicRes, travelRes, sportsRes] = await Promise.allSettled([
         loadMovies(null),
         loadTv(null),
-        loadGames(null)
+        loadAnime(null),
+        loadGames(null),
+        loadBooks(null),
+        loadMusic(null),
+        loadTravel(null),
+        loadSports(null)
       ]);
 
       const pickRenderable = (items) => filterHomeSafeItems(Array.isArray(items) ? items : [])
@@ -8685,15 +8700,27 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
       const movieItems = pickRenderable(moviesRes.status === 'fulfilled' ? moviesRes.value : []);
       const tvItems = pickRenderable(tvRes.status === 'fulfilled' ? tvRes.value : []);
+      const animeItems = pickRenderable(animeRes.status === 'fulfilled' ? animeRes.value : []);
       const gameItems = pickRenderable(gamesRes.status === 'fulfilled' ? gamesRes.value : []);
+      const bookItems = pickRenderable(booksRes.status === 'fulfilled' ? booksRes.value : []);
+      const musicItems = pickRenderable(musicRes.status === 'fulfilled' ? musicRes.value : []);
+      const travelItems = pickRenderable(travelRes.status === 'fulfilled' ? travelRes.value : []);
+      const sportsItems = pickRenderable(sportsRes.status === 'fulfilled' ? sportsRes.value : []);
 
       [
         ['movie-1', movieItems[0]],
         ['movie-2', movieItems[1] || movieItems[0]],
         ['tv-1', tvItems[0]],
         ['tv-2', tvItems[1] || tvItems[0]],
+        ['anime-1', animeItems[0] || tvItems[2] || movieItems[2]],
         ['game-1', gameItems[0]],
-        ['game-2', gameItems[1] || gameItems[0]]
+        ['game-2', gameItems[1] || gameItems[0]],
+        ['book-1', bookItems[0]],
+        ['book-2', bookItems[1] || bookItems[0]],
+        ['music-1', musicItems[0]],
+        ['country-1', travelItems[0]],
+        ['sports-1', sportsItems[0]],
+        ['sports-2', sportsItems[1] || sportsItems[0]]
       ].forEach(([slot, item]) => {
         if (!item) return;
         const image = getLandingPreviewPoster(item);

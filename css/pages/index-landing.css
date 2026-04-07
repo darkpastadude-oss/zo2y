@@ -2085,8 +2085,8 @@ html[data-auth-shell="landing"] .landing-v4-setup-hero {
     radial-gradient(circle at top right, rgba(255, 188, 66, 0.12), transparent 30%);
   box-shadow: 0 30px 72px rgba(0,0,0,0.24);
   overflow: hidden;
-  height: calc(100vh - 116px);
-  min-height: 660px;
+  height: calc(100vh - 112px);
+  min-height: 700px;
   display: grid;
   align-items: end;
   padding: 18px;
@@ -2095,8 +2095,8 @@ html[data-auth-shell="landing"] .landing-v4-setup-hero {
 html[data-auth-shell="landing"] .landing-v4-wall {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 10px;
   height: 100%;
   filter: saturate(1.04);
 }
@@ -2174,12 +2174,12 @@ html[data-auth-shell="landing"] .landing-v4-wall-copy {
   position: absolute;
   left: 50%;
   right: auto;
-  bottom: 28px;
+  bottom: 24px;
   transform: translateX(-50%);
   z-index: 2;
   width: min(820px, calc(100% - 56px));
   display: grid;
-  gap: 14px;
+  gap: 12px;
   justify-items: center;
   text-align: center;
 }
@@ -2196,10 +2196,10 @@ html[data-auth-shell="landing"] .landing-v4-kicker {
 html[data-auth-shell="landing"] .landing-v4-title {
   margin: 0;
   font-family: 'Outfit', 'Sora', sans-serif;
-  font-size: clamp(52px, 5.8vw, 86px);
+  font-size: clamp(44px, 4.9vw, 74px);
   line-height: 0.94;
   letter-spacing: -0.05em;
-  max-width: 11ch;
+  max-width: 12ch;
   color: #ffffff;
   text-wrap: balance;
   text-shadow: 0 18px 44px rgba(0,0,0,0.34);
@@ -2209,7 +2209,7 @@ html[data-auth-shell="landing"] .landing-v4-summary {
   margin: 0;
   max-width: 34ch;
   color: rgba(232, 240, 255, 0.88);
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.5;
 }
 
@@ -2228,12 +2228,12 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
   html[data-auth-shell="landing"] .landing-v4-setup-hero {
     height: calc(100vh - 110px);
-    min-height: 600px;
+    min-height: 680px;
     padding: 16px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     grid-template-rows: repeat(3, minmax(0, 1fr));
     height: 100%;
   }
@@ -2298,14 +2298,14 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
   html[data-auth-shell="landing"] .landing-v4-setup-hero {
     height: calc(100svh - 92px);
-    min-height: 540px;
+    min-height: 600px;
     padding: 12px;
     border-radius: 22px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(4, minmax(0, 1fr));
     gap: 10px;
     height: 100%;
   }
@@ -2314,7 +2314,7 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
     border-radius: 16px;
   }
 
-  html[data-auth-shell="landing"] .landing-v4-wall > :nth-child(n+10) {
+  html[data-auth-shell="landing"] .landing-v4-wall > :nth-child(n+13) {
     display: none;
   }
 
