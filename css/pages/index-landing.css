@@ -1974,3 +1974,203 @@ html[data-auth-shell="landing"] .card-hover-cue {
 .landing-referral-banner i {
   color: #ffb84d;
 }
+
+/* Landing cleanup override */
+html[data-auth-shell="landing"] .landing-header {
+  position: sticky;
+  top: 0;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 22px;
+  padding: 12px 18px;
+}
+
+html[data-auth-shell="landing"] .landing-brand {
+  gap: 12px;
+}
+
+html[data-auth-shell="landing"] .landing-main {
+  gap: 18px;
+}
+
+html[data-auth-shell="landing"] .landing-hero.landing-hero-stage {
+  gap: 14px;
+}
+
+html[data-auth-shell="landing"] .landing-cinematic-hero {
+  min-height: 520px;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  padding: 34px;
+}
+
+html[data-auth-shell="landing"] .landing-cinematic-hero::after {
+  background:
+    linear-gradient(180deg, rgba(6, 12, 28, 0.2) 0%, rgba(6, 12, 28, 0.56) 48%, rgba(6, 12, 28, 0.9) 100%),
+    linear-gradient(90deg, rgba(6, 12, 28, 0.86) 0%, rgba(6, 12, 28, 0.4) 48%, rgba(6, 12, 28, 0.22) 100%);
+}
+
+html[data-auth-shell="landing"] .landing-cinematic-overlay {
+  max-width: 720px;
+  align-content: end;
+  gap: 18px;
+}
+
+html[data-auth-shell="landing"] .landing-cinematic-poster {
+  display: none;
+}
+
+html[data-auth-shell="landing"] .landing-title,
+html[data-auth-shell="landing"] .landing-section-head h2,
+html[data-auth-shell="landing"] .landing-close-copy h2,
+html[data-auth-shell="landing"] .landing-cinematic-live strong {
+  color: #ffffff;
+}
+
+html[data-auth-shell="landing"] .landing-title {
+  font-size: clamp(42px, 5.4vw, 72px);
+  max-width: 9.5ch;
+}
+
+html[data-auth-shell="landing"] .landing-summary {
+  max-width: 34ch;
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+html[data-auth-shell="landing"] .landing-cinematic-foot {
+  display: grid;
+  justify-content: start;
+  gap: 8px;
+}
+
+html[data-auth-shell="landing"] .landing-preview-meta {
+  font-size: 13px;
+  color: rgba(224, 235, 255, 0.74);
+}
+
+html[data-auth-shell="landing"] .landing-preview-summary {
+  max-width: 34ch;
+}
+
+html[data-auth-shell="landing"] .landing-hero-strip {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 2px 2px 0;
+  scrollbar-width: none;
+}
+
+html[data-auth-shell="landing"] .landing-hero-strip::-webkit-scrollbar {
+  display: none;
+}
+
+html[data-auth-shell="landing"] .landing-hero-poster {
+  flex: 0 0 88px;
+  min-width: 88px;
+  border-radius: 14px;
+}
+
+html[data-auth-shell="landing"] .landing-rail-stage,
+html[data-auth-shell="landing"] .landing-preview-band,
+html[data-auth-shell="landing"] .landing-compact-cta {
+  padding: 24px 26px;
+}
+
+html[data-auth-shell="landing"] .landing-benefits-stage {
+  display: none;
+}
+
+html[data-auth-shell="landing"] .landing-section-head h2,
+html[data-auth-shell="landing"] .landing-close-copy h2 {
+  max-width: 16ch;
+  font-size: clamp(28px, 3.6vw, 42px);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+html[data-auth-shell="landing"] .landing-live-rails {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+html[data-auth-shell="landing"] .landing-rail-wrap .rail {
+  min-height: 248px;
+}
+
+html[data-auth-shell="landing"] .landing-review-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+html[data-auth-shell="landing"] .landing-compact-cta {
+  align-items: center;
+}
+
+@media (max-width: 1024px) {
+  html[data-auth-shell="landing"] .landing-cinematic-hero {
+    min-height: 440px;
+    padding: 26px 24px;
+  }
+
+  html[data-auth-shell="landing"] .landing-live-rails,
+  html[data-auth-shell="landing"] .landing-review-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  html[data-auth-shell="landing"] .landing-header {
+    padding: 10px 12px;
+    border-radius: 18px;
+  }
+
+  html[data-auth-shell="landing"] .landing-brand-copy span,
+  html[data-auth-shell="landing"] .landing-header-nav {
+    display: none;
+  }
+
+  html[data-auth-shell="landing"] .landing-header-actions {
+    width: auto;
+    display: flex;
+    gap: 8px;
+  }
+
+  html[data-auth-shell="landing"] .landing-header-link,
+  html[data-auth-shell="landing"] .landing-header-btn,
+  html[data-auth-shell="landing"] .landing-cta {
+    min-height: 42px;
+    padding: 0 14px;
+  }
+
+  html[data-auth-shell="landing"] .landing-cinematic-hero {
+    min-height: 380px;
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+
+  html[data-auth-shell="landing"] .landing-title {
+    font-size: clamp(30px, 10vw, 42px);
+    max-width: 8.8ch;
+  }
+
+  html[data-auth-shell="landing"] .landing-summary {
+    max-width: 22ch;
+    font-size: 14px;
+  }
+
+  html[data-auth-shell="landing"] .landing-hero-poster {
+    flex: 0 0 72px;
+    min-width: 72px;
+  }
+
+  html[data-auth-shell="landing"] .landing-rail-stage,
+  html[data-auth-shell="landing"] .landing-preview-band,
+  html[data-auth-shell="landing"] .landing-compact-cta {
+    padding: 18px;
+  }
+
+  html[data-auth-shell="landing"] .landing-close-actions,
+  html[data-auth-shell="landing"] .landing-hero-actions {
+    grid-template-columns: 1fr;
+  }
+}
