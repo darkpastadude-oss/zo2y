@@ -8681,18 +8681,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       landingWallHydrated = true;
       const hasWallTargets = Boolean(getLandingWallTile('movie-1')
         || getLandingWallTile('tv-1')
+        || getLandingWallTile('anime-1')
         || getLandingWallTile('game-1')
-        || getLandingWallTile('book-1'));
+        || getLandingWallTile('sports-1'));
       if (!hasWallTargets) return;
 
-      const [moviesRes, tvRes, animeRes, gamesRes, booksRes, musicRes, travelRes, sportsRes] = await Promise.allSettled([
+      const [moviesRes, tvRes, animeRes, gamesRes, sportsRes] = await Promise.allSettled([
         loadMovies(null),
         loadTv(null),
         loadAnime(null),
         loadGames(null),
-        loadBooks(null),
-        loadMusic(null),
-        loadTravel(null),
         loadSports(null)
       ]);
 
@@ -8703,9 +8701,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const tvItems = pickRenderable(tvRes.status === 'fulfilled' ? tvRes.value : []);
       const animeItems = pickRenderable(animeRes.status === 'fulfilled' ? animeRes.value : []);
       const gameItems = pickRenderable(gamesRes.status === 'fulfilled' ? gamesRes.value : []);
-      const bookItems = pickRenderable(booksRes.status === 'fulfilled' ? booksRes.value : []);
-      const musicItems = pickRenderable(musicRes.status === 'fulfilled' ? musicRes.value : []);
-      const travelItems = pickRenderable(travelRes.status === 'fulfilled' ? travelRes.value : []);
       const sportsItems = pickRenderable(sportsRes.status === 'fulfilled' ? sportsRes.value : []);
 
       [
@@ -8713,34 +8708,42 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         ['movie-2', movieItems[1] || movieItems[0]],
         ['movie-3', movieItems[2] || movieItems[1] || movieItems[0]],
         ['movie-4', movieItems[3] || movieItems[2] || movieItems[0]],
+        ['movie-5', movieItems[4] || movieItems[3] || movieItems[0]],
+        ['movie-6', movieItems[5] || movieItems[4] || movieItems[0]],
+        ['movie-7', movieItems[6] || movieItems[5] || movieItems[0]],
+        ['movie-8', movieItems[7] || movieItems[6] || movieItems[0]],
         ['tv-1', tvItems[0]],
         ['tv-2', tvItems[1] || tvItems[0]],
         ['tv-3', tvItems[2] || tvItems[1] || tvItems[0]],
         ['tv-4', tvItems[3] || tvItems[2] || tvItems[0]],
+        ['tv-5', tvItems[4] || tvItems[3] || tvItems[0]],
+        ['tv-6', tvItems[5] || tvItems[4] || tvItems[0]],
+        ['tv-7', tvItems[6] || tvItems[5] || tvItems[0]],
+        ['tv-8', tvItems[7] || tvItems[6] || tvItems[0]],
         ['anime-1', animeItems[0] || tvItems[2] || movieItems[2]],
         ['anime-2', animeItems[1] || animeItems[0] || tvItems[0]],
         ['anime-3', animeItems[2] || animeItems[1] || movieItems[1]],
         ['anime-4', animeItems[3] || animeItems[2] || tvItems[1]],
+        ['anime-5', animeItems[4] || animeItems[3] || tvItems[2] || movieItems[3]],
+        ['anime-6', animeItems[5] || animeItems[4] || tvItems[3] || movieItems[2]],
+        ['anime-7', animeItems[6] || animeItems[5] || tvItems[4] || movieItems[4]],
+        ['anime-8', animeItems[7] || animeItems[6] || tvItems[5] || movieItems[5]],
         ['game-1', gameItems[0]],
         ['game-2', gameItems[1] || gameItems[0]],
         ['game-3', gameItems[2] || gameItems[1] || gameItems[0]],
         ['game-4', gameItems[3] || gameItems[2] || gameItems[0]],
-        ['book-1', bookItems[0]],
-        ['book-2', bookItems[1] || bookItems[0]],
-        ['book-3', bookItems[2] || bookItems[1] || bookItems[0]],
-        ['book-4', bookItems[3] || bookItems[2] || bookItems[0]],
-        ['music-1', musicItems[0]],
-        ['music-2', musicItems[1] || musicItems[0]],
-        ['music-3', musicItems[2] || musicItems[1] || musicItems[0]],
-        ['music-4', musicItems[3] || musicItems[2] || musicItems[0]],
-        ['country-1', travelItems[0]],
-        ['country-2', travelItems[1] || travelItems[0]],
-        ['country-3', travelItems[2] || travelItems[1] || travelItems[0]],
-        ['country-4', travelItems[3] || travelItems[2] || travelItems[0]],
+        ['game-5', gameItems[4] || gameItems[3] || gameItems[0]],
+        ['game-6', gameItems[5] || gameItems[4] || gameItems[0]],
+        ['game-7', gameItems[6] || gameItems[5] || gameItems[0]],
+        ['game-8', gameItems[7] || gameItems[6] || gameItems[0]],
         ['sports-1', sportsItems[0]],
         ['sports-2', sportsItems[1] || sportsItems[0]],
         ['sports-3', sportsItems[2] || sportsItems[1] || sportsItems[0]],
-        ['sports-4', sportsItems[3] || sportsItems[2] || sportsItems[0]]
+        ['sports-4', sportsItems[3] || sportsItems[2] || sportsItems[0]],
+        ['sports-5', sportsItems[4] || sportsItems[3] || sportsItems[0]],
+        ['sports-6', sportsItems[5] || sportsItems[4] || sportsItems[0]],
+        ['sports-7', sportsItems[6] || sportsItems[5] || sportsItems[0]],
+        ['sports-8', sportsItems[7] || sportsItems[6] || sportsItems[0]]
       ].forEach(([slot, item]) => {
         if (!item) return;
         const image = getLandingPreviewPoster(item);
