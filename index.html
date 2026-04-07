@@ -101,29 +101,40 @@
         <a class="landing-v4-spotlight" id="landingPreviewSpotlightLink" href="sign-up.html" data-auth-entry="signup" aria-label="Open featured Zo2y pick">
           <div class="landing-v4-spotlight-bg" id="landingPreviewSpotlightBackdrop"></div>
           <div class="landing-v4-spotlight-overlay"></div>
-          <div class="landing-v4-spotlight-copy">
-            <div class="landing-v4-spotlight-top">
-              <p class="landing-v4-kicker">track what you watch. save what you love.</p>
-              <span class="landing-v4-lock"><i class="fa-solid fa-lock"></i> sign up to save</span>
+          <div class="landing-v4-hero-grid">
+            <div class="landing-v4-spotlight-copy">
+              <div class="landing-v4-spotlight-top">
+                <p class="landing-v4-kicker">real feed. real taste. one profile.</p>
+                <span class="landing-v4-lock"><i class="fa-solid fa-lock"></i> sign up to save</span>
+              </div>
+              <h1 class="landing-v4-title">track movies, tv, games, books, and more in one place.</h1>
+              <p class="landing-v4-summary">save what you love, build lists fast, and follow people whose taste actually matches yours.</p>
+              <div class="landing-auth-notice" id="landingAuthNotice" hidden>
+                Sign in to keep browsing. This app is members-only once you leave the landing page.
+              </div>
+              <div class="landing-referral-banner" id="landingReferralBanner" hidden></div>
+              <div class="landing-v4-hero-actions">
+                <a class="landing-v4-primary" data-auth-entry="signup" href="sign-up.html">create account</a>
+                <a class="landing-v4-link" data-auth-entry="login" href="login.html">sign in</a>
+              </div>
+              <div class="landing-v4-featured">
+                <span class="landing-v4-featured-type" id="landingPreviewSpotlightType">movie</span>
+                <strong id="landingPreviewSpotlightTitle">Popular movies, TV shows, and games on Zo2y.</strong>
+                <p id="landingPreviewSpotlightSummary">Live picks from movies, TV, games, and more.</p>
+                <span class="landing-v4-featured-meta" id="landingPreviewSpotlightMeta">Real picks from the live feed.</span>
+              </div>
             </div>
-            <h1 class="landing-v4-title">real movies, tv, games, and reviews in one place.</h1>
-            <p class="landing-v4-summary">build lists, save favorites, and shape a feed around your taste.</p>
-            <div class="landing-auth-notice" id="landingAuthNotice" hidden>
-              Sign in to keep browsing. This app is members-only once you leave the landing page.
-            </div>
-            <div class="landing-referral-banner" id="landingReferralBanner" hidden></div>
-            <div class="landing-v4-hero-actions">
-              <a class="landing-v4-primary" data-auth-entry="signup" href="sign-up.html">get started</a>
-              <a class="landing-v4-link" data-auth-entry="login" href="login.html">log in</a>
-            </div>
-            <div class="landing-v4-featured">
-              <span class="landing-v4-featured-type" id="landingPreviewSpotlightType">movie</span>
-              <strong id="landingPreviewSpotlightTitle">Popular movies, TV shows, and games on Zo2y.</strong>
-              <p id="landingPreviewSpotlightSummary">Sign up to save titles, build lists, post reviews, and shape your own home page.</p>
-              <span class="landing-v4-featured-meta" id="landingPreviewSpotlightMeta">Real picks from the live feed.</span>
+            <div class="landing-v4-live-side" aria-hidden="true">
+              <div class="landing-v4-live-card">
+                <img class="landing-v4-spotlight-poster" id="landingPreviewSpotlightPoster" src="/newlogo.webp" alt="" loading="eager" fetchpriority="high">
+                <div class="landing-v4-live-card-copy">
+                  <span>live right now</span>
+                  <strong>open the feed after signup</strong>
+                  <p>save from any rail, build quick lists, and keep browsing from one home.</p>
+                </div>
+              </div>
             </div>
           </div>
-          <img class="landing-v4-hidden-poster" id="landingPreviewSpotlightPoster" src="/newlogo.webp" alt="" loading="eager" fetchpriority="high">
         </a>
         <div class="landing-v4-poster-row" id="landingHeroStrip" aria-label="Live titles on Zo2y">
           <a class="landing-v4-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="Movie preview"></a>
@@ -137,8 +148,8 @@
 
       <section class="landing-v4-section" data-landing-reveal>
         <div class="landing-v4-section-head">
-          <p>browse the live feed</p>
-          <h2>see what people are tracking right now.</h2>
+          <p>browse live rails</p>
+          <h2>see real movies, games, and tv shows before you join.</h2>
         </div>
         <div class="landing-v4-rails">
           <section class="landing-v4-rail-wrap" aria-label="Movie preview rail">
@@ -174,7 +185,7 @@
       <section class="landing-v4-section" data-landing-reveal>
         <div class="landing-v4-section-head">
           <p>recent reviews</p>
-          <h2>real reviews from the zo2y community.</h2>
+          <h2>read real reviews from the zo2y community.</h2>
         </div>
         <div class="landing-review-grid landing-v4-review-grid" id="landingPreviewReviews">
           <article class="landing-review-card is-loading">
@@ -192,7 +203,7 @@
       <section class="landing-v4-cta" data-landing-reveal>
         <div>
           <p>ready to start</p>
-          <h2>create your profile and start saving from the live feed.</h2>
+          <h2>create your account and start saving from the live feed.</h2>
         </div>
         <div class="landing-v4-hero-actions">
           <a class="landing-v4-primary" data-auth-entry="signup" href="sign-up.html">create account</a>
