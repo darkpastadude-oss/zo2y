@@ -2325,6 +2325,8 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
   html[data-auth-shell="landing"] .landing-v4-primary {
     min-width: 116px;
+    width: auto;
+    flex: 0 0 auto;
   }
 
   html[data-auth-shell="landing"] .landing-v4-main {
@@ -2418,7 +2420,7 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
     width: min(264px, 100%);
   }
 
-  html[data-auth-shell="landing"] .landing-v4-primary {
+  html[data-auth-shell="landing"] .landing-v4-hero-actions .landing-v4-primary {
     min-height: 50px;
     width: 100%;
   }
