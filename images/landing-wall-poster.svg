@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 620" role="img" aria-labelledby="title desc">
+  <title id="title">Zo2y poster placeholder</title>
+  <desc id="desc">Dark cinematic placeholder used while landing wall content hydrates.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18284f"/>
+      <stop offset="55%" stop-color="#0b1633"/>
+      <stop offset="100%" stop-color="#091225"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffbc42" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#ff9642" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="420" height="620" rx="34" fill="url(#bg)"/>
+  <rect x="24" y="24" width="372" height="572" rx="28" fill="none" stroke="rgba(255,255,255,0.14)"/>
+  <circle cx="326" cy="114" r="138" fill="url(#glow)"/>
+  <rect x="84" y="118" width="252" height="330" rx="26" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.08)"/>
+  <path d="M181 208l86 74-86 74z" fill="#ffbc42" fill-opacity="0.9"/>
+  <rect x="88" y="486" width="244" height="14" rx="7" fill="rgba(255,255,255,0.16)"/>
+  <rect x="108" y="520" width="204" height="12" rx="6" fill="rgba(255,255,255,0.1)"/>
+</svg>

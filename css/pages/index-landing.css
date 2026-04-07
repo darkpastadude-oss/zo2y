@@ -2076,6 +2076,31 @@ html[data-auth-shell="landing"] .landing-v4-main {
   padding: 14px 0 22px;
 }
 
+html[data-auth-shell="landing"] .landing-legal-strip {
+  width: min(1320px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 10px 0 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+html[data-auth-shell="landing"] .landing-legal-strip a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 999px;
+  color: #ffbc42;
+  font-size: 14px;
+  font-weight: 800;
+  background: rgba(255, 188, 66, 0.08);
+  border: 1px solid rgba(255, 188, 66, 0.22);
+}
+
 html[data-auth-shell="landing"] .landing-v4-setup-hero {
   position: relative;
   border: 1px solid rgba(255,255,255,0.1);
@@ -2229,7 +2254,8 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
 @media (max-width: 1100px) {
   html[data-auth-shell="landing"] .landing-v4-header,
-  html[data-auth-shell="landing"] .landing-v4-main {
+  html[data-auth-shell="landing"] .landing-v4-main,
+  html[data-auth-shell="landing"] .landing-legal-strip {
     width: min(100%, calc(100% - 24px));
   }
 
@@ -2249,7 +2275,8 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
 @media (max-width: 760px) {
   html[data-auth-shell="landing"] .landing-v4-header,
-  html[data-auth-shell="landing"] .landing-v4-main {
+  html[data-auth-shell="landing"] .landing-v4-main,
+  html[data-auth-shell="landing"] .landing-legal-strip {
     width: min(100%, calc(100% - 16px));
   }
 
@@ -2288,6 +2315,19 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
   html[data-auth-shell="landing"] .landing-v4-main {
     padding-top: 14px;
+  }
+
+  html[data-auth-shell="landing"] .landing-legal-strip {
+    padding: 10px 0 22px;
+    gap: 10px;
+    justify-content: center;
+    flex-direction: row;
+  }
+
+  html[data-auth-shell="landing"] .landing-legal-strip a {
+    min-height: 38px;
+    padding: 0 14px;
+    font-size: 13px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-setup-hero {
