@@ -2073,7 +2073,7 @@ html[data-auth-shell="landing"] .landing-v4-primary:hover {
 }
 
 html[data-auth-shell="landing"] .landing-v4-main {
-  padding: 14px 0 18px;
+  padding: 14px 0 22px;
 }
 
 html[data-auth-shell="landing"] .landing-v4-setup-hero {
@@ -2085,30 +2085,55 @@ html[data-auth-shell="landing"] .landing-v4-setup-hero {
     radial-gradient(circle at top right, rgba(255, 188, 66, 0.12), transparent 30%);
   box-shadow: 0 30px 72px rgba(0,0,0,0.24);
   overflow: hidden;
-  height: calc(100vh - 108px);
-  min-height: 720px;
-  max-height: 940px;
   display: grid;
-  align-items: end;
-  padding: 14px;
+  gap: 18px;
+  align-items: start;
+  padding: 22px;
 }
 
-html[data-auth-shell="landing"] .landing-v4-wall {
+html[data-auth-shell="landing"] .landing-v4-wall-copy {
   display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  grid-template-rows: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  height: 100%;
-  filter: saturate(1.06);
+  gap: 12px;
+  justify-items: center;
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+html[data-auth-shell="landing"] .landing-v4-matrix {
+  display: grid;
+  gap: 12px;
+}
+
+html[data-auth-shell="landing"] .landing-v4-row {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+html[data-auth-shell="landing"] .landing-v4-row-label {
+  color: rgba(255, 188, 66, 0.96);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile {
   position: relative;
   overflow: hidden;
-  border-radius: 16px;
+  aspect-ratio: 0.78;
+  border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.05);
   box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+html[data-auth-shell="landing"] .landing-v4-row-track {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile img {
@@ -2136,7 +2161,7 @@ html[data-auth-shell="landing"] .landing-v4-tile--logo {
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile--logo img {
-  width: min(68%, 108px);
+  width: min(74%, 100px);
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 8px 18px rgba(0,0,0,0.22));
@@ -2151,7 +2176,7 @@ html[data-auth-shell="landing"] .landing-v4-tile--light {
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile--light img {
-  width: min(68%, 112px);
+  width: min(74%, 104px);
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile--light figcaption {
@@ -2160,29 +2185,6 @@ html[data-auth-shell="landing"] .landing-v4-tile--light figcaption {
 
 html[data-auth-shell="landing"] .landing-v4-tile--light::after {
   background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(232, 238, 248, 0.34) 100%);
-}
-
-html[data-auth-shell="landing"] .landing-v4-wall-overlay {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at center, rgba(9, 18, 40, 0.02) 0%, rgba(9, 18, 40, 0.18) 45%, rgba(7, 14, 31, 0.7) 100%),
-    linear-gradient(180deg, rgba(7, 14, 31, 0.06) 0%, rgba(7, 14, 31, 0.12) 42%, rgba(7, 14, 31, 0.74) 100%);
-  pointer-events: none;
-}
-
-html[data-auth-shell="landing"] .landing-v4-wall-copy {
-  position: absolute;
-  left: 50%;
-  right: auto;
-  bottom: 18px;
-  transform: translateX(-50%);
-  z-index: 2;
-  width: min(760px, calc(100% - 44px));
-  display: grid;
-  gap: 10px;
-  justify-items: center;
-  text-align: center;
 }
 
 html[data-auth-shell="landing"] .landing-v4-kicker {
@@ -2197,10 +2199,10 @@ html[data-auth-shell="landing"] .landing-v4-kicker {
 html[data-auth-shell="landing"] .landing-v4-title {
   margin: 0;
   font-family: 'Outfit', 'Sora', sans-serif;
-  font-size: clamp(36px, 4vw, 58px);
+  font-size: clamp(34px, 3.6vw, 54px);
   line-height: 0.94;
   letter-spacing: -0.05em;
-  max-width: 10ch;
+  max-width: 11ch;
   color: #ffffff;
   text-wrap: balance;
   text-shadow: 0 18px 44px rgba(0,0,0,0.34);
@@ -2208,7 +2210,7 @@ html[data-auth-shell="landing"] .landing-v4-title {
 
 html[data-auth-shell="landing"] .landing-v4-summary {
   margin: 0;
-  max-width: 44ch;
+  max-width: 54ch;
   color: rgba(232, 240, 255, 0.88);
   font-size: 15px;
   line-height: 1.45;
@@ -2228,20 +2230,15 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-setup-hero {
-    height: calc(100vh - 110px);
-    min-height: 680px;
-    max-height: 880px;
-    padding: 12px;
+    padding: 18px;
   }
 
-  html[data-auth-shell="landing"] .landing-v4-wall {
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    grid-template-rows: repeat(4, minmax(0, 1fr));
-    height: 100%;
+  html[data-auth-shell="landing"] .landing-v4-row {
+    grid-template-columns: 92px 1fr;
   }
 
-  html[data-auth-shell="landing"] .landing-v4-wall-copy {
-    width: min(620px, calc(100% - 40px));
+  html[data-auth-shell="landing"] .landing-v4-row-track {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -2289,54 +2286,49 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-title {
-    font-size: clamp(24px, 7.8vw, 34px);
-    max-width: 9ch;
+    font-size: clamp(24px, 7.2vw, 32px);
+    max-width: 11ch;
   }
 
   html[data-auth-shell="landing"] .landing-v4-summary {
-    max-width: 26ch;
+    max-width: 30ch;
     font-size: 12px;
     line-height: 1.4;
   }
 
   html[data-auth-shell="landing"] .landing-v4-setup-hero {
-    height: calc(100svh - 88px);
-    min-height: 620px;
-    padding: 10px;
+    gap: 16px;
+    padding: 14px 12px 16px;
     border-radius: 22px;
   }
 
-  html[data-auth-shell="landing"] .landing-v4-wall {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    grid-template-rows: repeat(6, minmax(0, 1fr));
+  html[data-auth-shell="landing"] .landing-v4-matrix {
+    gap: 10px;
+  }
+
+  html[data-auth-shell="landing"] .landing-v4-row {
+    grid-template-columns: 1fr;
     gap: 8px;
-    height: 100%;
+  }
+
+  html[data-auth-shell="landing"] .landing-v4-row-label {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    padding-left: 2px;
+  }
+
+  html[data-auth-shell="landing"] .landing-v4-row-track {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile {
-    border-radius: 14px;
-  }
-
-  html[data-auth-shell="landing"] .landing-v4-wall > :nth-child(n+31) {
-    display: none;
+    aspect-ratio: 0.72;
+    border-radius: 12px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile--logo img,
   html[data-auth-shell="landing"] .landing-v4-tile--light img {
-    width: min(64%, 74px);
-  }
-
-  html[data-auth-shell="landing"] .landing-v4-wall-overlay {
-    background:
-      radial-gradient(circle at center, rgba(9, 18, 40, 0.08) 0%, rgba(9, 18, 40, 0.34) 56%, rgba(7, 14, 31, 0.88) 100%),
-      linear-gradient(180deg, rgba(7, 14, 31, 0.06) 0%, rgba(7, 14, 31, 0.2) 42%, rgba(7, 14, 31, 0.8) 100%);
-  }
-
-  html[data-auth-shell="landing"] .landing-v4-wall-copy {
-    left: 50%;
-    bottom: 14px;
-    width: calc(100% - 22px);
-    gap: 8px;
+    width: min(68%, 70px);
   }
 
   html[data-auth-shell="landing"] .landing-v4-kicker {

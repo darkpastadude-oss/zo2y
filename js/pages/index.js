@@ -8681,7 +8681,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       landingWallHydrated = true;
       const hasWallTargets = Boolean(getLandingWallTile('movie-1')
         || getLandingWallTile('tv-1')
-        || getLandingWallTile('game-1'));
+        || getLandingWallTile('game-1')
+        || getLandingWallTile('book-1'));
       if (!hasWallTargets) return;
 
       const [moviesRes, tvRes, animeRes, gamesRes, booksRes, musicRes, travelRes, sportsRes] = await Promise.allSettled([
@@ -8715,8 +8716,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         ['tv-1', tvItems[0]],
         ['tv-2', tvItems[1] || tvItems[0]],
         ['tv-3', tvItems[2] || tvItems[1] || tvItems[0]],
+        ['tv-4', tvItems[3] || tvItems[2] || tvItems[0]],
         ['anime-1', animeItems[0] || tvItems[2] || movieItems[2]],
         ['anime-2', animeItems[1] || animeItems[0] || tvItems[0]],
+        ['anime-3', animeItems[2] || animeItems[1] || movieItems[1]],
+        ['anime-4', animeItems[3] || animeItems[2] || tvItems[1]],
         ['game-1', gameItems[0]],
         ['game-2', gameItems[1] || gameItems[0]],
         ['game-3', gameItems[2] || gameItems[1] || gameItems[0]],
@@ -8727,8 +8731,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         ['book-4', bookItems[3] || bookItems[2] || bookItems[0]],
         ['music-1', musicItems[0]],
         ['music-2', musicItems[1] || musicItems[0]],
+        ['music-3', musicItems[2] || musicItems[1] || musicItems[0]],
+        ['music-4', musicItems[3] || musicItems[2] || musicItems[0]],
         ['country-1', travelItems[0]],
         ['country-2', travelItems[1] || travelItems[0]],
+        ['country-3', travelItems[2] || travelItems[1] || travelItems[0]],
+        ['country-4', travelItems[3] || travelItems[2] || travelItems[0]],
         ['sports-1', sportsItems[0]],
         ['sports-2', sportsItems[1] || sportsItems[0]],
         ['sports-3', sportsItems[2] || sportsItems[1] || sportsItems[0]],
