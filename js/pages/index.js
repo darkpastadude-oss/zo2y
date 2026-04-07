@@ -8724,13 +8724,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         ['book-1', bookItems[0]],
         ['book-2', bookItems[1] || bookItems[0]],
         ['book-3', bookItems[2] || bookItems[1] || bookItems[0]],
+        ['book-4', bookItems[3] || bookItems[2] || bookItems[0]],
         ['music-1', musicItems[0]],
         ['music-2', musicItems[1] || musicItems[0]],
         ['country-1', travelItems[0]],
         ['country-2', travelItems[1] || travelItems[0]],
         ['sports-1', sportsItems[0]],
         ['sports-2', sportsItems[1] || sportsItems[0]],
-        ['sports-3', sportsItems[2] || sportsItems[1] || sportsItems[0]]
+        ['sports-3', sportsItems[2] || sportsItems[1] || sportsItems[0]],
+        ['sports-4', sportsItems[3] || sportsItems[2] || sportsItems[0]]
       ].forEach(([slot, item]) => {
         if (!item) return;
         const image = getLandingPreviewPoster(item);

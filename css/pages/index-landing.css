@@ -2095,7 +2095,7 @@ html[data-auth-shell="landing"] .landing-v4-setup-hero {
 
 html[data-auth-shell="landing"] .landing-v4-wall {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(9, minmax(0, 1fr));
   grid-template-rows: repeat(4, minmax(0, 1fr));
   gap: 8px;
   height: 100%;
@@ -2136,7 +2136,7 @@ html[data-auth-shell="landing"] .landing-v4-tile--logo {
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile--logo img {
-  width: min(52%, 84px);
+  width: min(68%, 108px);
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 8px 18px rgba(0,0,0,0.22));
@@ -2151,7 +2151,7 @@ html[data-auth-shell="landing"] .landing-v4-tile--light {
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile--light img {
-  width: min(52%, 88px);
+  width: min(68%, 112px);
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile--light figcaption {
@@ -2235,7 +2235,7 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     grid-template-rows: repeat(4, minmax(0, 1fr));
     height: 100%;
   }
@@ -2307,7 +2307,7 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     grid-template-rows: repeat(6, minmax(0, 1fr));
     gap: 8px;
     height: 100%;
@@ -2317,13 +2317,13 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
     border-radius: 14px;
   }
 
-  html[data-auth-shell="landing"] .landing-v4-wall > :nth-child(n+25) {
+  html[data-auth-shell="landing"] .landing-v4-wall > :nth-child(n+31) {
     display: none;
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile--logo img,
   html[data-auth-shell="landing"] .landing-v4-tile--light img {
-    width: min(54%, 58px);
+    width: min(64%, 74px);
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall-overlay {
