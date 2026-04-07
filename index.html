@@ -84,130 +84,81 @@
           <span>track your taste</span>
         </div>
       </a>
-      <nav class="landing-v4-nav" aria-label="Zo2y preview sections">
-        <a href="movies.html" data-auth-entry="signup">movies</a>
-        <a href="tvshows.html" data-auth-entry="signup">tv</a>
-        <a href="games.html" data-auth-entry="signup">games</a>
-        <a href="#landingPreviewReviews">reviews</a>
-      </nav>
       <div class="landing-v4-actions">
-        <a class="landing-v4-link" data-auth-entry="login" href="login.html">sign in</a>
-        <a class="landing-v4-primary" data-auth-entry="signup" href="sign-up.html">create account</a>
+        <a class="landing-v4-link" data-auth-entry="login" href="login.html">log in</a>
+        <a class="landing-v4-primary" data-auth-entry="signup" href="sign-up.html">sign up</a>
       </div>
     </header>
 
     <main class="landing-v4-main" id="landingAppShell">
-      <section class="landing-v4-hero">
-        <a class="landing-v4-spotlight" id="landingPreviewSpotlightLink" href="sign-up.html" data-auth-entry="signup" aria-label="Open featured Zo2y pick">
-          <div class="landing-v4-spotlight-bg" id="landingPreviewSpotlightBackdrop"></div>
-          <div class="landing-v4-spotlight-overlay"></div>
-          <div class="landing-v4-hero-grid">
-            <div class="landing-v4-spotlight-copy">
-              <div class="landing-v4-spotlight-top">
-                <p class="landing-v4-kicker">real feed. real taste. one profile.</p>
-                <span class="landing-v4-lock"><i class="fa-solid fa-lock"></i> sign up to save</span>
-              </div>
-              <h1 class="landing-v4-title">track movies, tv, games, books, and more in one place.</h1>
-              <p class="landing-v4-summary">save what you love, build lists fast, and follow people whose taste actually matches yours.</p>
-              <div class="landing-auth-notice" id="landingAuthNotice" hidden>
-                Sign in to keep browsing. This app is members-only once you leave the landing page.
-              </div>
-              <div class="landing-referral-banner" id="landingReferralBanner" hidden></div>
-              <div class="landing-v4-hero-actions">
-                <a class="landing-v4-primary" data-auth-entry="signup" href="sign-up.html">create account</a>
-                <a class="landing-v4-link" data-auth-entry="login" href="login.html">sign in</a>
-              </div>
-              <div class="landing-v4-featured">
-                <span class="landing-v4-featured-type" id="landingPreviewSpotlightType">movie</span>
-                <strong id="landingPreviewSpotlightTitle">Popular movies, TV shows, and games on Zo2y.</strong>
-                <p id="landingPreviewSpotlightSummary">Live picks from movies, TV, games, and more.</p>
-                <span class="landing-v4-featured-meta" id="landingPreviewSpotlightMeta">Real picks from the live feed.</span>
-              </div>
-            </div>
-            <div class="landing-v4-live-side" aria-hidden="true">
-              <div class="landing-v4-live-card">
-                <img class="landing-v4-spotlight-poster" id="landingPreviewSpotlightPoster" src="/newlogo.webp" alt="" loading="eager" fetchpriority="high">
-                <div class="landing-v4-live-card-copy">
-                  <span>live right now</span>
-                  <strong>open the feed after signup</strong>
-                  <p>save from any rail, build quick lists, and keep browsing from one home.</p>
-                </div>
-              </div>
-            </div>
+      <section class="landing-v4-setup-hero">
+        <div class="landing-v4-wall" aria-hidden="true">
+          <figure class="landing-v4-tile landing-v4-tile--poster landing-v4-tile--tall">
+            <img src="https://image.tmdb.org/t/p/w780/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg" alt="">
+            <figcaption>movies</figcaption>
+          </figure>
+          <figure class="landing-v4-tile landing-v4-tile--poster">
+            <img src="https://image.tmdb.org/t/p/w780/7jEVqXC14bhfAzSPgr896dMdDv6.jpg" alt="">
+            <figcaption>tv shows</figcaption>
+          </figure>
+          <figure class="landing-v4-tile landing-v4-tile--image">
+            <img src="assets/home-spotlights/fashion.jpg" alt="">
+            <figcaption>fashion</figcaption>
+          </figure>
+          <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light">
+            <img src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" alt="">
+            <figcaption>real madrid</figcaption>
+          </figure>
+          <figure class="landing-v4-tile landing-v4-tile--poster">
+            <img src="https://upload.wikimedia.org/wikipedia/en/0/03/Alan_Wake_2_cover_art.jpg" alt="">
+            <figcaption>games</figcaption>
+          </figure>
+          <figure class="landing-v4-tile landing-v4-tile--logo">
+            <img src="https://cdn.simpleicons.org/nike/ffffff" alt="">
+            <figcaption>nike</figcaption>
+          </figure>
+          <figure class="landing-v4-tile landing-v4-tile--poster">
+            <img src="https://image.tmdb.org/t/p/w780/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg" alt="">
+            <figcaption>movies</figcaption>
+          </figure>
+          <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light">
+            <img src="https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" alt="">
+            <figcaption>barcelona</figcaption>
+          </figure>
+          <figure class="landing-v4-tile landing-v4-tile--image">
+            <img src="assets/home-spotlights/cars.jpg" alt="">
+            <figcaption>cars</figcaption>
+          </figure>
+          <figure class="landing-v4-tile landing-v4-tile--poster landing-v4-tile--wide">
+            <img src="https://image.tmdb.org/t/p/w780/uKvVjHNqB5VmOrdxqAt2F7J78ED.jpg" alt="">
+            <figcaption>tv shows</figcaption>
+          </figure>
+          <figure class="landing-v4-tile landing-v4-tile--logo">
+            <img src="https://cdn.simpleicons.org/adidas/ffffff" alt="">
+            <figcaption>adidas</figcaption>
+          </figure>
+          <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light">
+            <img src="https://upload.wikimedia.org/wikipedia/en/d/d1/Scuderia_Ferrari_Logo.svg" alt="">
+            <figcaption>ferrari</figcaption>
+          </figure>
+          <figure class="landing-v4-tile landing-v4-tile--poster">
+            <img src="https://upload.wikimedia.org/wikipedia/en/4/44/Baldur%27s_Gate_3_cover_art.jpg" alt="">
+            <figcaption>games</figcaption>
+          </figure>
+          <figure class="landing-v4-tile landing-v4-tile--image">
+            <img src="assets/home-spotlights/food.jpg" alt="">
+            <figcaption>food</figcaption>
+          </figure>
+        </div>
+        <div class="landing-v4-wall-overlay"></div>
+        <div class="landing-v4-wall-copy">
+          <p class="landing-v4-kicker">one profile for everything you track</p>
+          <h1 class="landing-v4-title">save movies, shows, games, sports, and style in one place.</h1>
+          <p class="landing-v4-summary">build lists fast, keep favorites, and shape a home feed around your taste.</p>
+          <div class="landing-v4-hero-actions">
+            <a class="landing-v4-primary" data-auth-entry="signup" href="sign-up.html">sign up now</a>
+            <a class="landing-v4-link" data-auth-entry="login" href="login.html">log in</a>
           </div>
-        </a>
-        <div class="landing-v4-poster-row" id="landingHeroStrip" aria-label="Live titles on Zo2y">
-          <a class="landing-v4-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="Movie preview"></a>
-          <a class="landing-v4-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="TV preview"></a>
-          <a class="landing-v4-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="Game preview"></a>
-          <a class="landing-v4-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="Movie preview"></a>
-          <a class="landing-v4-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="TV preview"></a>
-          <a class="landing-v4-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="Game preview"></a>
-        </div>
-      </section>
-
-      <section class="landing-v4-section" data-landing-reveal>
-        <div class="landing-v4-section-head">
-          <p>browse live rails</p>
-          <h2>see real movies, games, and tv shows before you join.</h2>
-        </div>
-        <div class="landing-v4-rails">
-          <section class="landing-v4-rail-wrap" aria-label="Movie preview rail">
-            <div class="rail-title">
-              <span><i class="fa-solid fa-film"></i> movies</span>
-              <a href="sign-up.html" data-auth-entry="signup">sign up to save</a>
-            </div>
-            <div class="rail" id="landingMoviesRail">
-              <div class="empty">Live movie picks.</div>
-            </div>
-          </section>
-          <section class="landing-v4-rail-wrap" aria-label="Game preview rail">
-            <div class="rail-title">
-              <span><i class="fa-solid fa-gamepad"></i> games</span>
-              <a href="sign-up.html" data-auth-entry="signup">sign up to save</a>
-            </div>
-            <div class="rail" id="landingGamesRail">
-              <div class="empty">Live game picks.</div>
-            </div>
-          </section>
-          <section class="landing-v4-rail-wrap" aria-label="TV preview rail">
-            <div class="rail-title">
-              <span><i class="fa-solid fa-tv"></i> tv shows</span>
-              <a href="sign-up.html" data-auth-entry="signup">sign up to save</a>
-            </div>
-            <div class="rail" id="landingTvRail">
-              <div class="empty">Live TV picks.</div>
-            </div>
-          </section>
-        </div>
-      </section>
-
-      <section class="landing-v4-section" data-landing-reveal>
-        <div class="landing-v4-section-head">
-          <p>recent reviews</p>
-          <h2>read real reviews from the zo2y community.</h2>
-        </div>
-        <div class="landing-review-grid landing-v4-review-grid" id="landingPreviewReviews">
-          <article class="landing-review-card is-loading">
-            <div class="landing-review-card-head"><span>Recent reviews appear here</span></div>
-          </article>
-          <article class="landing-review-card is-loading">
-            <div class="landing-review-card-head"><span>Recent reviews appear here</span></div>
-          </article>
-          <article class="landing-review-card is-loading">
-            <div class="landing-review-card-head"><span>Recent reviews appear here</span></div>
-          </article>
-        </div>
-      </section>
-
-      <section class="landing-v4-cta" data-landing-reveal>
-        <div>
-          <p>ready to start</p>
-          <h2>create your account and start saving from the live feed.</h2>
-        </div>
-        <div class="landing-v4-hero-actions">
-          <a class="landing-v4-primary" data-auth-entry="signup" href="sign-up.html">create account</a>
-          <a class="landing-v4-link" data-auth-entry="login" href="login.html">i already have an account</a>
         </div>
       </section>
     </main>

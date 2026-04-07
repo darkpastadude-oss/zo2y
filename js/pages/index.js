@@ -9242,6 +9242,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     async function hydrateLandingFeedPreview() {
       if (landingPreviewHydrated) return;
       landingPreviewHydrated = true;
+      const hasLandingPreviewTargets =
+        !!document.getElementById('landingPreviewSpotlightLink') ||
+        !!document.getElementById('landingHeroStrip') ||
+        !!document.getElementById('landingMoviesRail') ||
+        !!document.getElementById('landingGamesRail') ||
+        !!document.getElementById('landingTvRail');
+      if (!hasLandingPreviewTargets) return;
       let rendered = false;
       let feed = null;
       try {
