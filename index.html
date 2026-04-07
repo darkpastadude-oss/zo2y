@@ -57,9 +57,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/pages/index.css?v=20260329a" />
-<link rel="preload" href="css/pages/index-landing.css?v=20260407c" as="style">
-<link rel="stylesheet" href="css/pages/index-landing.css?v=20260407c" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/pages/index-landing.css?v=20260407c"></noscript>
+<link rel="preload" href="css/pages/index-landing.css?v=20260407d" as="style">
+<link rel="stylesheet" href="css/pages/index-landing.css?v=20260407d" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/pages/index-landing.css?v=20260407d"></noscript>
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -68,89 +68,80 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/newlogo.webp" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
-<script src="/js/mobile-webapp.js?v=20260407c" defer></script>
+<script src="/js/mobile-webapp.js?v=20260407d" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
   <script src="js/referral-utils.js?v=20260319a"></script>
   <script src="js/shared-header.js?v=20260329a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
-  <div class="landing-experience" id="homeLandingPage" aria-label="Zo2y introduction">
-    <header class="landing-header">
-      <a class="landing-brand" href="index.html" aria-label="Zo2y home">
+  <div class="landing-experience landing-v4" id="homeLandingPage" aria-label="Zo2y introduction">
+    <header class="landing-v4-header">
+      <a class="landing-v4-brand" href="index.html" aria-label="Zo2y home">
         <img src="/newlogo.webp" alt="Zo2y logo" loading="eager" fetchpriority="high">
-        <span class="landing-brand-copy">
+        <div>
           <strong>zo2y</strong>
           <span>track your taste</span>
-        </span>
+        </div>
       </a>
-      <nav class="landing-header-nav" aria-label="Zo2y preview sections">
-        <a class="landing-header-link" href="movies.html" data-auth-entry="signup">movies</a>
-        <a class="landing-header-link" href="tvshows.html" data-auth-entry="signup">tv</a>
-        <a class="landing-header-link" href="games.html" data-auth-entry="signup">games</a>
-        <a class="landing-header-link" href="#landingPreviewReviews">reviews</a>
+      <nav class="landing-v4-nav" aria-label="Zo2y preview sections">
+        <a href="movies.html" data-auth-entry="signup">movies</a>
+        <a href="tvshows.html" data-auth-entry="signup">tv</a>
+        <a href="games.html" data-auth-entry="signup">games</a>
+        <a href="#landingPreviewReviews">reviews</a>
       </nav>
-      <div class="landing-header-actions">
-        <a class="landing-header-link" data-auth-entry="login" href="login.html">Sign in</a>
-        <a class="landing-header-btn landing-header-btn-primary" data-auth-entry="signup" href="sign-up.html">Create account</a>
+      <div class="landing-v4-actions">
+        <a class="landing-v4-link" data-auth-entry="login" href="login.html">sign in</a>
+        <a class="landing-v4-primary" data-auth-entry="signup" href="sign-up.html">create account</a>
       </div>
     </header>
 
-    <main class="landing-main" id="landingAppShell">
-      <section class="landing-hero landing-hero-stage">
-        <a class="landing-cinematic-hero" id="landingPreviewSpotlightLink" href="sign-up.html" data-auth-entry="signup" aria-label="Open featured Zo2y pick">
-          <div class="landing-preview-spotlight-backdrop" id="landingPreviewSpotlightBackdrop"></div>
-          <div class="landing-cinematic-overlay">
-            <div class="landing-cinematic-topline">
-              <p class="landing-kicker">one profile for everything you track</p>
-              <span class="landing-live-chip"><i class="fa-solid fa-lock"></i> sign up to save</span>
+    <main class="landing-v4-main" id="landingAppShell">
+      <section class="landing-v4-hero">
+        <a class="landing-v4-spotlight" id="landingPreviewSpotlightLink" href="sign-up.html" data-auth-entry="signup" aria-label="Open featured Zo2y pick">
+          <div class="landing-v4-spotlight-bg" id="landingPreviewSpotlightBackdrop"></div>
+          <div class="landing-v4-spotlight-overlay"></div>
+          <div class="landing-v4-spotlight-copy">
+            <div class="landing-v4-spotlight-top">
+              <p class="landing-v4-kicker">track what you watch. save what you love.</p>
+              <span class="landing-v4-lock"><i class="fa-solid fa-lock"></i> sign up to save</span>
             </div>
-            <div class="landing-cinematic-copy">
-              <h1 class="landing-title">Track what you watch. Save what you love. Follow real taste.</h1>
-              <p class="landing-summary">Movies, TV, games, books, music, sports, travel, and more in one place.</p>
-              <div class="landing-auth-notice" id="landingAuthNotice" hidden>
-                Sign in to keep browsing. This app is members-only once you leave the landing page.
-              </div>
-              <div class="landing-referral-banner" id="landingReferralBanner" hidden></div>
-              <div class="landing-hero-actions">
-                <a class="landing-cta landing-cta-primary" data-auth-entry="signup" href="sign-up.html">
-                  <i class="fa-solid fa-user-plus"></i> Get started
-                </a>
-                <a class="landing-cta" data-auth-entry="login" href="login.html">
-                  <i class="fa-solid fa-right-to-bracket"></i> Log in
-                </a>
-              </div>
+            <h1 class="landing-v4-title">real movies, tv, games, and reviews in one place.</h1>
+            <p class="landing-v4-summary">build lists, save favorites, and shape a feed around your taste.</p>
+            <div class="landing-auth-notice" id="landingAuthNotice" hidden>
+              Sign in to keep browsing. This app is members-only once you leave the landing page.
             </div>
-            <div class="landing-cinematic-foot">
-              <div class="landing-cinematic-live">
-                <span class="landing-cinematic-live-label" id="landingPreviewSpotlightType">movie</span>
-                <strong id="landingPreviewSpotlightTitle">Popular movies, TV shows, and games on Zo2y.</strong>
-                <p class="landing-preview-summary" id="landingPreviewSpotlightSummary">Sign up to save titles, build lists, post reviews, and shape your own home page.</p>
-              </div>
-              <p class="landing-preview-meta" id="landingPreviewSpotlightMeta">Real picks from the live feed.</p>
+            <div class="landing-referral-banner" id="landingReferralBanner" hidden></div>
+            <div class="landing-v4-hero-actions">
+              <a class="landing-v4-primary" data-auth-entry="signup" href="sign-up.html">get started</a>
+              <a class="landing-v4-link" data-auth-entry="login" href="login.html">log in</a>
+            </div>
+            <div class="landing-v4-featured">
+              <span class="landing-v4-featured-type" id="landingPreviewSpotlightType">movie</span>
+              <strong id="landingPreviewSpotlightTitle">Popular movies, TV shows, and games on Zo2y.</strong>
+              <p id="landingPreviewSpotlightSummary">Sign up to save titles, build lists, post reviews, and shape your own home page.</p>
+              <span class="landing-v4-featured-meta" id="landingPreviewSpotlightMeta">Real picks from the live feed.</span>
             </div>
           </div>
-          <div class="landing-cinematic-poster">
-            <img id="landingPreviewSpotlightPoster" src="/newlogo.webp" alt="" loading="eager" fetchpriority="high">
-          </div>
+          <img class="landing-v4-hidden-poster" id="landingPreviewSpotlightPoster" src="/newlogo.webp" alt="" loading="eager" fetchpriority="high">
         </a>
-        <div class="landing-hero-strip" id="landingHeroStrip" aria-label="Live titles on Zo2y">
-          <a class="landing-hero-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="Movie preview"></a>
-          <a class="landing-hero-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="TV preview"></a>
-          <a class="landing-hero-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="Game preview"></a>
-          <a class="landing-hero-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="Movie preview"></a>
-          <a class="landing-hero-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="TV preview"></a>
-          <a class="landing-hero-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="Game preview"></a>
+        <div class="landing-v4-poster-row" id="landingHeroStrip" aria-label="Live titles on Zo2y">
+          <a class="landing-v4-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="Movie preview"></a>
+          <a class="landing-v4-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="TV preview"></a>
+          <a class="landing-v4-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="Game preview"></a>
+          <a class="landing-v4-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="Movie preview"></a>
+          <a class="landing-v4-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="TV preview"></a>
+          <a class="landing-v4-poster is-placeholder" href="sign-up.html" data-auth-entry="signup" aria-label="Game preview"></a>
         </div>
       </section>
 
-      <section class="landing-section landing-rail-stage" data-landing-reveal>
-        <div class="landing-section-head">
-          <p class="landing-section-kicker">browse the live feed</p>
-          <h2>See what people are tracking right now.</h2>
+      <section class="landing-v4-section" data-landing-reveal>
+        <div class="landing-v4-section-head">
+          <p>browse the live feed</p>
+          <h2>see what people are tracking right now.</h2>
         </div>
-        <div class="landing-live-rails">
-          <section class="rail-wrap landing-rail-wrap" aria-label="Movie preview rail">
+        <div class="landing-v4-rails">
+          <section class="landing-v4-rail-wrap" aria-label="Movie preview rail">
             <div class="rail-title">
               <span><i class="fa-solid fa-film"></i> movies</span>
               <a href="sign-up.html" data-auth-entry="signup">sign up to save</a>
@@ -159,7 +150,7 @@
               <div class="empty">Live movie picks.</div>
             </div>
           </section>
-          <section class="rail-wrap landing-rail-wrap" aria-label="Game preview rail">
+          <section class="landing-v4-rail-wrap" aria-label="Game preview rail">
             <div class="rail-title">
               <span><i class="fa-solid fa-gamepad"></i> games</span>
               <a href="sign-up.html" data-auth-entry="signup">sign up to save</a>
@@ -168,7 +159,7 @@
               <div class="empty">Live game picks.</div>
             </div>
           </section>
-          <section class="rail-wrap landing-rail-wrap" aria-label="TV preview rail">
+          <section class="landing-v4-rail-wrap" aria-label="TV preview rail">
             <div class="rail-title">
               <span><i class="fa-solid fa-tv"></i> tv shows</span>
               <a href="sign-up.html" data-auth-entry="signup">sign up to save</a>
@@ -180,36 +171,12 @@
         </div>
       </section>
 
-      <section class="landing-section landing-benefits-stage" data-landing-reveal>
-        <div class="landing-section-head">
-          <p class="landing-section-kicker">why people use zo2y</p>
-          <h2>One place to save, review, and organize everything.</h2>
+      <section class="landing-v4-section" data-landing-reveal>
+        <div class="landing-v4-section-head">
+          <p>recent reviews</p>
+          <h2>real reviews from the zo2y community.</h2>
         </div>
-        <div class="landing-benefit-grid">
-          <article class="landing-benefit-card">
-            <i class="fa-solid fa-bookmark"></i>
-            <h3>Save instantly</h3>
-            <p>Keep movies, shows, games, books, music, sports, travel spots, and more in one profile.</p>
-          </article>
-          <article class="landing-benefit-card">
-            <i class="fa-solid fa-list"></i>
-            <h3>Build real lists</h3>
-            <p>Turn quick saves into favorites, watchlists, backlogs, and custom collections that feel like yours.</p>
-          </article>
-          <article class="landing-benefit-card">
-            <i class="fa-solid fa-star"></i>
-            <h3>Share your taste</h3>
-            <p>Post reviews, follow people with sharp taste, and get better recommendations the more you save.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="landing-section landing-preview-band" data-landing-reveal>
-        <div class="landing-section-head">
-          <p class="landing-section-kicker">Recent reviews</p>
-          <h2>Real reviews from the actual Zo2y community.</h2>
-        </div>
-        <div class="landing-review-grid" id="landingPreviewReviews">
+        <div class="landing-review-grid landing-v4-review-grid" id="landingPreviewReviews">
           <article class="landing-review-card is-loading">
             <div class="landing-review-card-head"><span>Recent reviews appear here</span></div>
           </article>
@@ -222,14 +189,14 @@
         </div>
       </section>
 
-      <section class="landing-section landing-compact-cta" data-landing-reveal>
-        <div class="landing-close-copy">
-          <p class="landing-section-kicker">ready to start</p>
-          <h2>Create your profile and start saving from the live feed.</h2>
+      <section class="landing-v4-cta" data-landing-reveal>
+        <div>
+          <p>ready to start</p>
+          <h2>create your profile and start saving from the live feed.</h2>
         </div>
-        <div class="landing-close-actions">
-          <a class="landing-cta landing-cta-primary" data-auth-entry="signup" href="sign-up.html">Create account</a>
-          <a class="landing-cta" data-auth-entry="login" href="login.html">I already have an account</a>
+        <div class="landing-v4-hero-actions">
+          <a class="landing-v4-primary" data-auth-entry="signup" href="sign-up.html">create account</a>
+          <a class="landing-v4-link" data-auth-entry="login" href="login.html">i already have an account</a>
         </div>
       </section>
     </main>
@@ -468,7 +435,7 @@
       });
     })();
   </script>
-  <script src="js/pages/index.js?v=20260407c" defer></script>
+  <script src="js/pages/index.js?v=20260407d" defer></script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
   <script src="js/home-desktop-rebrand.js?v=20260323c" defer></script>
 </body>
