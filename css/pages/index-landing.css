@@ -205,10 +205,10 @@
 
     .landing-summary {
       margin-top: 12px;
-      max-width: 34ch;
+      max-width: 28ch;
       color: rgba(232, 240, 255, 0.84);
-      font-size: 16px;
-      line-height: 1.7;
+      font-size: 15px;
+      line-height: 1.6;
     }
 
     .landing-media-tags {
@@ -763,7 +763,7 @@ html[data-auth-shell="landing"] .card-hover-cue {
       display: grid;
       grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 10px;
-      margin-top: 22px;
+      margin-top: 18px;
     }
 
     .landing-hero-poster {
@@ -1433,16 +1433,20 @@ html[data-auth-shell="landing"] .card-hover-cue {
       }
 
       .landing-hero {
-        padding: 22px 18px;
+        padding: 18px 16px;
         border-radius: 18px;
+        gap: 16px;
       }
 
       .landing-title {
-        font-size: clamp(34px, 11vw, 48px);
+        font-size: clamp(28px, 9vw, 40px);
+        max-width: 10ch;
       }
 
       .landing-summary {
-        font-size: 14px;
+        max-width: none;
+        font-size: 13px;
+        line-height: 1.55;
       }
 
       .landing-media-tags span {
@@ -1451,8 +1455,22 @@ html[data-auth-shell="landing"] .card-hover-cue {
       }
 
       .landing-hero-strip {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        display: flex;
         gap: 8px;
+        margin-top: 14px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+      }
+
+      .landing-hero-strip::-webkit-scrollbar {
+        display: none;
+      }
+
+      .landing-hero-poster {
+        flex: 0 0 78px;
+        min-width: 78px;
+        border-radius: 12px;
       }
 
       .landing-hero-actions,
@@ -1468,25 +1486,38 @@ html[data-auth-shell="landing"] .card-hover-cue {
 
       .landing-shell-strip {
         flex-direction: column;
+        gap: 10px;
       }
 
       .landing-shell-profile {
-        width: 100%;
+        display: none;
       }
 
       .landing-preview-spotlight {
         min-height: 0;
         grid-template-columns: 1fr;
-        padding: 18px;
+        gap: 12px;
+        padding: 14px;
       }
 
       .landing-preview-spotlight-poster {
         order: -1;
-        min-height: 220px;
+        min-height: 150px;
+        max-height: 170px;
       }
 
       .landing-preview-spotlight-copy h2 {
+        font-size: clamp(24px, 8vw, 30px);
         max-width: none;
+      }
+
+      .landing-preview-summary {
+        font-size: 13px;
+        line-height: 1.55;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
 
       .landing-review-grid {

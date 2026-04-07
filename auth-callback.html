@@ -156,7 +156,7 @@
       function persistSessionSnapshot(session) {
         if (!session || typeof session !== 'object') return false;
         try {
-          const payload = JSON.stringify({ currentSession: session });
+          const payload = JSON.stringify(session);
           safeSetAuthStorage(STORAGE_KEY, payload);
           safeSetAuthStorage(LEGACY_STORAGE_KEY, payload);
           return true;

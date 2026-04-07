@@ -8725,6 +8725,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return list.slice(safeOffset).concat(list.slice(0, safeOffset));
     }
 
+    function getLandingRailItems(items, offset = 0, limit = 10) {
+      const rotated = rotateLandingList(items, offset);
+      if (!rotated.length) return [];
+      const preferred = [];
+      const fallback = [];
+      rotated.forEach((item) => {
+        if (!item) return;
+        if (isRenderableLandingImage(getLandingPreviewPoster(item))) preferred.push(item);
+        else fallback.push(item);
+      });
+      return preferred.concat(fallback).slice(0, limit);
+    }
+
     function buildLandingPreviewCard(item) {
       const safeItem = item && typeof item === 'object' ? item : {};
       const meta = getHomeMediaMeta(safeItem.mediaType);
@@ -9119,8 +9132,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const apiPayload = await fetchJsonWithPerfCache(HOME_PUBLIC_FEED_ENDPOINT, {
         cacheKey: 'landing-public-feed',
         ttlMs: 1000 * 30,
-        timeoutMs: 2200,
-        retries: 2
+        timeoutMs: 3200,
+        retries: 3
       });
       const apiFeed = normalizeHomeFeedMap(apiPayload?.feed);
       if (apiFeed && countActiveHomeChannels(apiFeed) > 0) {
@@ -9169,20 +9182,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const normalized = normalizeHomeFeedMap(feedMap);
       if (!normalized || countActiveHomeChannels(normalized) === 0) return false;
 
-      const movies = rotateLandingList(normalized.movie, 1)
-        .filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item)))
-        .slice(0, 10);
-      const games = rotateLandingList(normalized.game, 2)
-        .filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item)))
-        .slice(0, 10);
-      const tv = rotateLandingList(normalized.tv, 3)
-        .filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item)))
-        .slice(0, 10);
-      const sports = rotateLandingList(normalized.sports, 3).slice(0, 3);
+      const movies = getLandingRailItems(normalized.movie, 1, 10);
+      const games = getLandingRailItems(normalized.game, 2, 10);
+      const tv = getLandingRailItems(normalized.tv, 3, 10);
+      const sports = getLandingRailItems(normalized.sports, 3, 3);
+      const heroStripItems = [
+        ...movies.filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item))).slice(0, 2),
+        ...tv.filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item))).slice(0, 2),
+        ...games.filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item))).slice(0, 2)
+      ];
       renderLandingHeroStrip([
-        ...movies.slice(0, 2),
-        ...tv.slice(0, 2),
-        ...games.slice(0, 2)
+        ...heroStripItems
       ]);
 
       const spotlight = [
