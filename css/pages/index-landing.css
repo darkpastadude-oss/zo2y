@@ -2316,7 +2316,15 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   html[data-auth-shell="landing"] .landing-v4-primary {
     min-height: 42px;
     padding: 0 14px;
-    font-size: 14px;
+    font-size: 13px;
+  }
+
+  html[data-auth-shell="landing"] .landing-v4-link {
+    min-width: 92px;
+  }
+
+  html[data-auth-shell="landing"] .landing-v4-primary {
+    min-width: 108px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-main {
@@ -2337,8 +2345,10 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-setup-hero {
-    min-height: 640px;
-    height: min(calc(100svh - 92px), 700px);
+    min-height: 0;
+    height: auto;
+    aspect-ratio: 0.82;
+    max-height: 700px;
     border-radius: 22px;
   }
 
@@ -2364,6 +2374,7 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
   html[data-auth-shell="landing"] .landing-v4-tile {
     border-radius: 12px;
+    aspect-ratio: 1 / 1;
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile--logo img,
@@ -2378,11 +2389,12 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall-copy {
-    top: 50%;
+    top: 54%;
     bottom: auto;
     transform: translate(-50%, -50%);
-    width: calc(100% - 32px);
-    gap: 10px;
+    width: calc(100% - 40px);
+    gap: 8px;
+    justify-items: center;
   }
 
   html[data-auth-shell="landing"] .landing-v4-kicker {
@@ -2391,21 +2403,21 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-title {
-    font-size: clamp(24px, 8.4vw, 38px);
-    max-width: 9ch;
+    font-size: clamp(22px, 8vw, 34px);
+    max-width: 8ch;
   }
 
   html[data-auth-shell="landing"] .landing-v4-summary {
-    max-width: 20ch;
-    font-size: 12px;
-    line-height: 1.45;
+    max-width: 18ch;
+    font-size: 11px;
+    line-height: 1.4;
   }
 
   html[data-auth-shell="landing"] .landing-v4-hero-actions {
     display: grid;
     grid-template-columns: 1fr;
     gap: 8px;
-    width: min(276px, 100%);
+    width: min(250px, 100%);
   }
 
   html[data-auth-shell="landing"] .landing-v4-primary {
