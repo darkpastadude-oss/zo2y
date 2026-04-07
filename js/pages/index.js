@@ -8619,6 +8619,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     let landingExperienceInitialized = false;
     let landingPreviewHydrated = false;
     let landingReviewHydrated = false;
+    let landingWallHydrated = false;
     let landingSavePromptTimer = null;
     const landingReviewUsers = new Map();
     const landingReviewMeta = new Map();
@@ -8645,6 +8646,60 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const normalized = normalizeLandingImageUrl(value);
       if (!normalized) return false;
       return !isLogoPlaceholder(normalized);
+    }
+
+    function getLandingWallTile(slot) {
+      const key = String(slot || '').trim();
+      if (!key) return null;
+      return document.querySelector(`[data-wall-slot="${key}"] img`);
+    }
+
+    function setLandingWallTile(slot, image, alt) {
+      const node = getLandingWallTile(slot);
+      const normalized = normalizeLandingImageUrl(image);
+      if (!node || !isRenderableLandingImage(normalized)) return false;
+      node.src = normalized;
+      node.alt = String(alt || '').trim();
+      node.loading = 'eager';
+      node.decoding = 'async';
+      node.referrerPolicy = 'no-referrer';
+      return true;
+    }
+
+    async function hydrateLandingSetupWall() {
+      if (landingWallHydrated) return;
+      landingWallHydrated = true;
+      const hasWallTargets = Boolean(getLandingWallTile('movie-1')
+        || getLandingWallTile('tv-1')
+        || getLandingWallTile('game-1'));
+      if (!hasWallTargets) return;
+
+      const [moviesRes, tvRes, gamesRes] = await Promise.allSettled([
+        loadMovies(null),
+        loadTv(null),
+        loadGames(null)
+      ]);
+
+      const pickRenderable = (items) => filterHomeSafeItems(Array.isArray(items) ? items : [])
+        .filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item)));
+
+      const movieItems = pickRenderable(moviesRes.status === 'fulfilled' ? moviesRes.value : []);
+      const tvItems = pickRenderable(tvRes.status === 'fulfilled' ? tvRes.value : []);
+      const gameItems = pickRenderable(gamesRes.status === 'fulfilled' ? gamesRes.value : []);
+
+      [
+        ['movie-1', movieItems[0]],
+        ['movie-2', movieItems[1] || movieItems[0]],
+        ['tv-1', tvItems[0]],
+        ['tv-2', tvItems[1] || tvItems[0]],
+        ['game-1', gameItems[0]],
+        ['game-2', gameItems[1] || gameItems[0]]
+      ].forEach(([slot, item]) => {
+        if (!item) return;
+        const image = getLandingPreviewPoster(item);
+        const alt = String(item?.title || item?.name || '').trim();
+        setLandingWallTile(slot, image, alt);
+      });
     }
 
     function truncateLandingText(value, maxLength = 120) {
@@ -9302,6 +9357,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       savePromptClose?.addEventListener('click', hideLandingSavePrompt);
 
       wireLandingAuthNextLinks(document);
+      void hydrateLandingSetupWall();
       void hydrateLandingFeedPreview();
       void hydrateLandingLiveReviews();
 
