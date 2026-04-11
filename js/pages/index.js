@@ -8620,10 +8620,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     let landingPreviewHydrated = false;
     let landingReviewHydrated = false;
     let landingWallHydrated = false;
+    let landingWallCarouselTimer = null;
+    let landingWallCarouselKickoffTimer = null;
+    let landingWallCarouselStarted = false;
     let landingSavePromptTimer = null;
+    const landingWallRowStates = new Map();
     const landingReviewUsers = new Map();
     const landingReviewMeta = new Map();
     const LANDING_REVIEW_LIMIT = 6;
+    const LANDING_WALL_SLOT_COUNT = 8;
+    const LANDING_WALL_ANIMATION_MS = 560;
+    const LANDING_WALL_FALLBACK_LOGOS = {
+      sports: ['Real Madrid', 'FC Barcelona', 'Los Angeles Lakers', 'Boston Celtics', 'New York Yankees', 'Kansas City Chiefs', 'Ferrari', 'Arsenal', 'Liverpool', 'Golden State Warriors', 'Los Angeles Dodgers', 'Mercedes AMG Petronas'],
+      food: ['McDonalds', 'KFC', 'Starbucks', 'Taco Bell', 'Burger King', 'Dominos', 'Subway', 'Chipotle', 'Popeyes', 'Wendys', 'Pizza Hut', 'Shake Shack'],
+      fashion: ['Nike', 'Adidas', 'Zara', 'Uniqlo', 'H&M', 'Gucci', 'Louis Vuitton', 'Supreme', 'Prada', 'Dior', 'Chanel', 'Burberry']
+    };
     const LANDING_REVIEW_SOURCES = [
       { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id' },
       { mediaType: 'tv', table: 'tv_reviews', idField: 'tv_id' },
@@ -8654,6 +8665,73 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return document.querySelector(`[data-wall-slot="${key}"] img`);
     }
 
+    function getLandingWallFigure(slot) {
+      const key = String(slot || '').trim();
+      if (!key) return null;
+      return document.querySelector(`[data-wall-slot="${key}"]`);
+    }
+
+    function getLandingWallSlots(prefix) {
+      const base = String(prefix || '').trim();
+      if (!base) return [];
+      return Array.from({ length: LANDING_WALL_SLOT_COUNT }, (_value, index) => `${base}-${index + 1}`);
+    }
+
+    function getLandingWallVisibleCount() {
+      return window.matchMedia && window.matchMedia('(max-width: 760px)').matches ? 4 : LANDING_WALL_SLOT_COUNT;
+    }
+
+    function buildLandingWallLogoEntry(title) {
+      const cleanTitle = String(title || '').trim();
+      if (!cleanTitle) return null;
+      return {
+        image: `/api/logo?mode=logo&title=${encodeURIComponent(cleanTitle)}&size=256`,
+        alt: cleanTitle
+      };
+    }
+
+    function dedupeLandingWallEntries(entries) {
+      const deduped = [];
+      const seen = new Set();
+      (Array.isArray(entries) ? entries : []).forEach((entry) => {
+        const image = normalizeLandingImageUrl(entry?.image || '');
+        const alt = String(entry?.alt || '').trim();
+        if (!isRenderableLandingImage(image)) return;
+        if (seen.has(image)) return;
+        seen.add(image);
+        deduped.push({ image, alt });
+      });
+      return deduped;
+    }
+
+    function buildLandingWallEntries(items) {
+      return dedupeLandingWallEntries(
+        filterHomeSafeItems(Array.isArray(items) ? items : []).map((item) => ({
+          image: getLandingPreviewPoster(item),
+          alt: String(item?.title || item?.name || '').trim()
+        }))
+      );
+    }
+
+    function mergeLandingWallEntries(primary, fallback) {
+      return dedupeLandingWallEntries([...(Array.isArray(primary) ? primary : []), ...(Array.isArray(fallback) ? fallback : [])]);
+    }
+
+    function animateLandingWallTile(slot, direction, index) {
+      const tile = getLandingWallFigure(slot);
+      if (!tile) return;
+      const slideClass = direction === 'right' ? 'landing-v4-tile--slide-right' : 'landing-v4-tile--slide-left';
+      tile.classList.remove('landing-v4-tile--slide-left', 'landing-v4-tile--slide-right');
+      tile.style.setProperty('--landing-tile-delay', `${Math.min(Number(index) || 0, LANDING_WALL_SLOT_COUNT) * 32}ms`);
+      void tile.offsetWidth;
+      tile.classList.add(slideClass);
+      if (tile.__landingSlideTimer) window.clearTimeout(tile.__landingSlideTimer);
+      tile.__landingSlideTimer = window.setTimeout(() => {
+        tile.classList.remove('landing-v4-tile--slide-left', 'landing-v4-tile--slide-right');
+        tile.style.removeProperty('--landing-tile-delay');
+      }, LANDING_WALL_ANIMATION_MS + 260);
+    }
+
     function setLandingWallTile(slot, image, alt) {
       const node = getLandingWallTile(slot);
       const normalized = normalizeLandingImageUrl(image);
@@ -8676,6 +8754,82 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return true;
     }
 
+    function renderLandingWallRow(prefix, entries, offset = 0, options = {}) {
+      const slots = getLandingWallSlots(prefix);
+      const pool = Array.isArray(entries) ? entries.filter(Boolean) : [];
+      if (!slots.length || !pool.length) return;
+      const rotated = rotateLandingList(pool, offset);
+      slots.forEach((slot, index) => {
+        const entry = rotated[index % rotated.length];
+        if (!entry) return;
+        if (setLandingWallTile(slot, entry.image, entry.alt) && options.animate) {
+          animateLandingWallTile(slot, options.direction || 'left', index);
+        }
+      });
+    }
+
+    function setLandingWallRowEntries(prefix, entries, direction = 'left') {
+      const normalized = dedupeLandingWallEntries(entries);
+      if (!normalized.length) return;
+      const existing = landingWallRowStates.get(prefix);
+      const nextState = {
+        entries: normalized,
+        offset: existing && Number.isFinite(existing.offset) ? existing.offset % normalized.length : 0,
+        direction: direction === 'right' ? 'right' : 'left'
+      };
+      landingWallRowStates.set(prefix, nextState);
+      renderLandingWallRow(prefix, normalized, nextState.offset);
+    }
+
+    function stopLandingWallCarousel() {
+      if (landingWallCarouselKickoffTimer) {
+        window.clearTimeout(landingWallCarouselKickoffTimer);
+        landingWallCarouselKickoffTimer = null;
+      }
+      if (landingWallCarouselTimer) {
+        window.clearInterval(landingWallCarouselTimer);
+        landingWallCarouselTimer = null;
+      }
+      landingWallCarouselStarted = false;
+    }
+
+    function startLandingWallCarousel() {
+      if (landingWallCarouselStarted) return;
+      if (!landingWallRowStates.size) return;
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      landingWallCarouselStarted = true;
+
+      const tick = () => {
+        const visibleCount = getLandingWallVisibleCount();
+        landingWallRowStates.forEach((state, prefix) => {
+          const entries = Array.isArray(state?.entries) ? state.entries : [];
+          if (entries.length <= visibleCount) return;
+          state.offset = (Number(state.offset) + 1) % entries.length;
+          renderLandingWallRow(prefix, entries, state.offset, { animate: true, direction: state.direction });
+        });
+      };
+
+      landingWallCarouselKickoffTimer = window.setTimeout(() => {
+        tick();
+        landingWallCarouselTimer = window.setInterval(tick, 4600);
+      }, 1600);
+
+      if (!window.__ZO2Y_LANDING_WALL_VIS_BOUND) {
+        window.__ZO2Y_LANDING_WALL_VIS_BOUND = true;
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden) {
+            stopLandingWallCarousel();
+            return;
+          }
+          startLandingWallCarousel();
+        });
+        window.addEventListener('pagehide', stopLandingWallCarousel);
+        window.addEventListener('pageshow', () => {
+          startLandingWallCarousel();
+        });
+      }
+    }
+
     async function hydrateLandingSetupWall() {
       if (landingWallHydrated) return;
       landingWallHydrated = true;
@@ -8694,62 +8848,25 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         loadSports(null)
       ]);
 
-      const pickRenderable = (items) => filterHomeSafeItems(Array.isArray(items) ? items : [])
-        .filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item)));
+      const movieEntries = buildLandingWallEntries(moviesRes.status === 'fulfilled' ? moviesRes.value : []);
+      const tvEntries = buildLandingWallEntries(tvRes.status === 'fulfilled' ? tvRes.value : []);
+      const animeEntries = buildLandingWallEntries(animeRes.status === 'fulfilled' ? animeRes.value : []);
+      const gameEntries = buildLandingWallEntries(gamesRes.status === 'fulfilled' ? gamesRes.value : []);
+      const sportsEntries = mergeLandingWallEntries(
+        buildLandingWallEntries(sportsRes.status === 'fulfilled' ? sportsRes.value : []),
+        LANDING_WALL_FALLBACK_LOGOS.sports.map(buildLandingWallLogoEntry)
+      );
+      const foodEntries = dedupeLandingWallEntries(LANDING_WALL_FALLBACK_LOGOS.food.map(buildLandingWallLogoEntry));
+      const fashionEntries = dedupeLandingWallEntries(LANDING_WALL_FALLBACK_LOGOS.fashion.map(buildLandingWallLogoEntry));
 
-      const movieItems = pickRenderable(moviesRes.status === 'fulfilled' ? moviesRes.value : []);
-      const tvItems = pickRenderable(tvRes.status === 'fulfilled' ? tvRes.value : []);
-      const animeItems = pickRenderable(animeRes.status === 'fulfilled' ? animeRes.value : []);
-      const gameItems = pickRenderable(gamesRes.status === 'fulfilled' ? gamesRes.value : []);
-      const sportsItems = pickRenderable(sportsRes.status === 'fulfilled' ? sportsRes.value : []);
-
-      [
-        ['movie-1', movieItems[0]],
-        ['movie-2', movieItems[1] || movieItems[0]],
-        ['movie-3', movieItems[2] || movieItems[1] || movieItems[0]],
-        ['movie-4', movieItems[3] || movieItems[2] || movieItems[0]],
-        ['movie-5', movieItems[4] || movieItems[3] || movieItems[0]],
-        ['movie-6', movieItems[5] || movieItems[4] || movieItems[0]],
-        ['movie-7', movieItems[6] || movieItems[5] || movieItems[0]],
-        ['movie-8', movieItems[7] || movieItems[6] || movieItems[0]],
-        ['tv-1', tvItems[0]],
-        ['tv-2', tvItems[1] || tvItems[0]],
-        ['tv-3', tvItems[2] || tvItems[1] || tvItems[0]],
-        ['tv-4', tvItems[3] || tvItems[2] || tvItems[0]],
-        ['tv-5', tvItems[4] || tvItems[3] || tvItems[0]],
-        ['tv-6', tvItems[5] || tvItems[4] || tvItems[0]],
-        ['tv-7', tvItems[6] || tvItems[5] || tvItems[0]],
-        ['tv-8', tvItems[7] || tvItems[6] || tvItems[0]],
-        ['anime-1', animeItems[0] || tvItems[2] || movieItems[2]],
-        ['anime-2', animeItems[1] || animeItems[0] || tvItems[0]],
-        ['anime-3', animeItems[2] || animeItems[1] || movieItems[1]],
-        ['anime-4', animeItems[3] || animeItems[2] || tvItems[1]],
-        ['anime-5', animeItems[4] || animeItems[3] || tvItems[2] || movieItems[3]],
-        ['anime-6', animeItems[5] || animeItems[4] || tvItems[3] || movieItems[2]],
-        ['anime-7', animeItems[6] || animeItems[5] || tvItems[4] || movieItems[4]],
-        ['anime-8', animeItems[7] || animeItems[6] || tvItems[5] || movieItems[5]],
-        ['game-1', gameItems[0]],
-        ['game-2', gameItems[1] || gameItems[0]],
-        ['game-3', gameItems[2] || gameItems[1] || gameItems[0]],
-        ['game-4', gameItems[3] || gameItems[2] || gameItems[0]],
-        ['game-5', gameItems[4] || gameItems[3] || gameItems[0]],
-        ['game-6', gameItems[5] || gameItems[4] || gameItems[0]],
-        ['game-7', gameItems[6] || gameItems[5] || gameItems[0]],
-        ['game-8', gameItems[7] || gameItems[6] || gameItems[0]],
-        ['sports-1', sportsItems[0]],
-        ['sports-2', sportsItems[1] || sportsItems[0]],
-        ['sports-3', sportsItems[2] || sportsItems[1] || sportsItems[0]],
-        ['sports-4', sportsItems[3] || sportsItems[2] || sportsItems[0]],
-        ['sports-5', sportsItems[4] || sportsItems[3] || sportsItems[0]],
-        ['sports-6', sportsItems[5] || sportsItems[4] || sportsItems[0]],
-        ['sports-7', sportsItems[6] || sportsItems[5] || sportsItems[0]],
-        ['sports-8', sportsItems[7] || sportsItems[6] || sportsItems[0]]
-      ].forEach(([slot, item]) => {
-        if (!item) return;
-        const image = getLandingPreviewPoster(item);
-        const alt = String(item?.title || item?.name || '').trim();
-        setLandingWallTile(slot, image, alt);
-      });
+      setLandingWallRowEntries('movie', movieEntries, 'left');
+      setLandingWallRowEntries('tv', tvEntries, 'right');
+      setLandingWallRowEntries('anime', animeEntries, 'left');
+      setLandingWallRowEntries('game', gameEntries, 'right');
+      setLandingWallRowEntries('sports', sportsEntries, 'left');
+      setLandingWallRowEntries('food', foodEntries, 'right');
+      setLandingWallRowEntries('fashion', fashionEntries, 'left');
+      startLandingWallCarousel();
     }
 
     function truncateLandingText(value, maxLength = 120) {

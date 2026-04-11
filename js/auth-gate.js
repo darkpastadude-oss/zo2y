@@ -338,6 +338,17 @@
     var protectedPage = !PUBLIC_PAGE_KEYS.has(pageKey);
     var authStateVerifyTimer = null;
 
+    async function persistLiveClientSession() {
+      if (!client || !client.auth || typeof client.auth.getSession !== 'function') return;
+      try {
+        var liveResult = await client.auth.getSession();
+        var liveSession = liveResult && liveResult.data ? liveResult.data.session : null;
+        if (liveSession && liveSession.access_token && liveSession.refresh_token) {
+          persistSessionSnapshot(liveSession);
+        }
+      } catch (_err) {}
+    }
+
     async function bootstrapClientSessionFromStorage() {
       if (!client || !client.auth || typeof client.auth.setSession !== 'function') return false;
       var storedSession = getStoredSessionSnapshot();
@@ -491,13 +502,23 @@
       if (!window.__ZO2Y_AUTH_GATE_RESUME_BOUND) {
         window.__ZO2Y_AUTH_GATE_RESUME_BOUND = true;
         document.addEventListener('visibilitychange', function () {
-          if (!document.hidden) void verifyAndApply();
+          if (document.hidden) {
+            void persistLiveClientSession();
+            return;
+          }
+          void verifyAndApply();
         });
         window.addEventListener('pageshow', function () {
           void verifyAndApply();
         });
         window.addEventListener('focus', function () {
           void verifyAndApply();
+        });
+        window.addEventListener('pagehide', function () {
+          void persistLiveClientSession();
+        });
+        window.addEventListener('beforeunload', function () {
+          void persistLiveClientSession();
         });
       }
       if (!window.__ZO2Y_AUTH_GATE_LISTENER_BOUND && client.auth && typeof client.auth.onAuthStateChange === 'function') {
