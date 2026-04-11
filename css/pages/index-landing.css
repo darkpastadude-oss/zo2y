@@ -2175,7 +2175,6 @@ html[data-auth-shell="landing"] .landing-v4-tile {
   transform: translateZ(0);
   backface-visibility: hidden;
   height: 100%;
-  flex: 0 0 clamp(72px, 5vw, 96px);
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile img {
@@ -2188,6 +2187,8 @@ html[data-auth-shell="landing"] .landing-v4-tile img {
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile--poster {
+  flex: 0 0 auto;
+  aspect-ratio: 2 / 3;
   background:
     radial-gradient(circle at center, rgba(255,255,255,0.08), rgba(255,255,255,0.02) 58%, rgba(255,255,255,0) 100%),
     linear-gradient(180deg, rgba(8, 15, 32, 0.96), rgba(11, 22, 49, 0.98));
@@ -2209,7 +2210,7 @@ html[data-auth-shell="landing"] .landing-v4-tile--poster::before {
 html[data-auth-shell="landing"] .landing-v4-tile--poster img {
   object-fit: contain;
   object-position: center center;
-  padding: 0;
+  padding: 2px;
   position: relative;
   z-index: 1;
 }
@@ -2229,7 +2230,8 @@ html[data-auth-shell="landing"] .landing-v4-tile--logo {
   display: grid;
   place-items: center;
   background: linear-gradient(180deg, rgba(10, 18, 38, 0.98), rgba(15, 29, 67, 0.94));
-  flex-basis: clamp(112px, 8vw, 146px);
+  flex: 0 0 auto;
+  aspect-ratio: 1 / 1;
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile--logo img {
@@ -2463,12 +2465,15 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
   html[data-auth-shell="landing"] .landing-v4-tile {
     border-radius: 12px;
-    flex-basis: 58px;
     aspect-ratio: auto;
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile--poster img {
     padding: 0;
+  }
+
+  html[data-auth-shell="landing"] .landing-v4-tile--poster {
+    aspect-ratio: 2 / 3;
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile--logo img,
@@ -2477,7 +2482,7 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile--logo {
-    flex-basis: 88px;
+    aspect-ratio: 1 / 1;
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall-overlay {

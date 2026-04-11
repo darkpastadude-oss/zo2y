@@ -8839,10 +8839,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const direction = getLandingWallRowDirection(prefix);
       const visibleCount = getLandingWallVisibleCount();
       const minimumCount = kind === 'poster' ? visibleCount * 4 : visibleCount * 3;
-      const loopEntries = buildLandingWallLoopEntries(entries, minimumCount);
-      if (!loopEntries.length) return;
-
-      const stripEntries = dedupeLandingWallEntries(loopEntries);
+      const baseEntries = dedupeLandingWallEntries(entries);
+      if (!baseEntries.length) return;
+      const stripEntries = buildLandingWallLoopEntries(baseEntries, minimumCount);
       if (!stripEntries.length) return;
 
       row.dataset.rowKind = kind;
