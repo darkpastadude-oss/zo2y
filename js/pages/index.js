@@ -8620,16 +8620,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     let landingPreviewHydrated = false;
     let landingReviewHydrated = false;
     let landingWallHydrated = false;
-    let landingWallCarouselTimer = null;
-    let landingWallCarouselKickoffTimer = null;
-    let landingWallCarouselStarted = false;
     let landingSavePromptTimer = null;
     const landingWallRowStates = new Map();
     const landingReviewUsers = new Map();
     const landingReviewMeta = new Map();
     const LANDING_REVIEW_LIMIT = 6;
     const LANDING_WALL_SLOT_COUNT = 8;
-    const LANDING_WALL_ANIMATION_MS = 560;
     const LANDING_WALL_FALLBACK_LOGOS = {
       sports: ['Real Madrid', 'FC Barcelona', 'Los Angeles Lakers', 'Boston Celtics', 'New York Yankees', 'Kansas City Chiefs', 'Ferrari', 'Arsenal', 'Liverpool', 'Golden State Warriors', 'Los Angeles Dodgers', 'Mercedes AMG Petronas'],
       food: ['McDonalds', 'KFC', 'Starbucks', 'Taco Bell', 'Burger King', 'Dominos', 'Subway', 'Chipotle', 'Popeyes', 'Wendys', 'Pizza Hut', 'Shake Shack'],
@@ -8679,6 +8675,45 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     function getLandingWallVisibleCount() {
       return window.matchMedia && window.matchMedia('(max-width: 760px)').matches ? 4 : LANDING_WALL_SLOT_COUNT;
+    }
+
+    function getLandingWallRow(prefix) {
+      const key = String(prefix || '').trim();
+      const existing = document.querySelector(`.landing-v4-wall-row[data-wall-prefix="${key}"]`);
+      if (existing) return existing;
+      const anchor = document.querySelector(`[data-wall-slot="${key}-1"]`);
+      return anchor ? anchor.closest('.landing-v4-wall-row') : null;
+    }
+
+    function getLandingWallRowKind(prefix) {
+      const key = String(prefix || '').trim().toLowerCase();
+      return key === 'sports' || key === 'food' || key === 'fashion' ? 'logo' : 'poster';
+    }
+
+    function getLandingWallRowDirection(prefix) {
+      const key = String(prefix || '').trim().toLowerCase();
+      return key === 'tv' || key === 'game' || key === 'food' ? 'right' : 'left';
+    }
+
+    function buildLandingWallLoopEntries(entries, minimumCount) {
+      const seed = Array.isArray(entries) ? entries.filter(Boolean) : [];
+      if (!seed.length) return [];
+      const targetCount = Math.max(Number(minimumCount) || 0, seed.length);
+      const loop = [];
+      while (loop.length < targetCount) {
+        loop.push(...seed);
+      }
+      return loop.slice(0, targetCount);
+    }
+
+    function setLandingPosterBackground(figure, image) {
+      if (!figure) return;
+      const normalized = normalizeLandingImageUrl(image);
+      if (!normalized) {
+        figure.style.removeProperty('--landing-poster-image');
+        return;
+      }
+      figure.style.setProperty('--landing-poster-image', `url("${String(normalized).replace(/"/g, '%22')}")`);
     }
 
     function buildLandingWallLogoEntry(title) {
@@ -8736,6 +8771,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const node = getLandingWallTile(slot);
       const normalized = normalizeLandingImageUrl(image);
       if (!node || !isRenderableLandingImage(normalized)) return false;
+      const figure = node.closest('.landing-v4-tile');
       if (!node.dataset.fallbackSrc) {
         node.dataset.fallbackSrc = String(node.getAttribute('src') || '').trim();
       }
@@ -8744,6 +8780,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         if (fallback && node.src !== fallback) {
           node.onerror = null;
           node.src = fallback;
+          if (figure && figure.classList.contains('landing-v4-tile--poster')) {
+            setLandingPosterBackground(figure, fallback);
+          }
         }
       };
       node.src = normalized;
@@ -8751,83 +8790,89 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       node.loading = 'eager';
       node.decoding = 'async';
       node.referrerPolicy = 'no-referrer';
+      if (figure && figure.classList.contains('landing-v4-tile--poster')) {
+        setLandingPosterBackground(figure, normalized);
+      }
       return true;
     }
 
-    function renderLandingWallRow(prefix, entries, offset = 0, options = {}) {
-      const slots = getLandingWallSlots(prefix);
-      const pool = Array.isArray(entries) ? entries.filter(Boolean) : [];
-      if (!slots.length || !pool.length) return;
-      const rotated = rotateLandingList(pool, offset);
-      slots.forEach((slot, index) => {
-        const entry = rotated[index % rotated.length];
-        if (!entry) return;
-        if (setLandingWallTile(slot, entry.image, entry.alt) && options.animate) {
-          animateLandingWallTile(slot, options.direction || 'left', index);
+    function createLandingWallTileFigure(entry, kind, eager = false) {
+      const figure = document.createElement('figure');
+      figure.className = kind === 'logo'
+        ? 'landing-v4-tile landing-v4-tile--logo landing-v4-tile--light'
+        : 'landing-v4-tile landing-v4-tile--poster';
+
+      const img = document.createElement('img');
+      const normalized = normalizeLandingImageUrl(entry?.image || '');
+      const fallback = normalizeLandingImageUrl(entry?.fallback || '');
+      img.src = normalized || fallback || '/images/landing-wall-poster.svg';
+      img.alt = String(entry?.alt || '').trim();
+      img.decoding = 'async';
+      img.referrerPolicy = 'no-referrer';
+      img.loading = eager ? 'eager' : 'lazy';
+      if (eager) img.fetchPriority = 'high';
+      img.onerror = () => {
+        if (fallback && img.src !== fallback) {
+          img.onerror = null;
+          img.src = fallback;
+          if (kind === 'poster') setLandingPosterBackground(figure, fallback);
         }
-      });
+      };
+      figure.appendChild(img);
+
+      const caption = document.createElement('figcaption');
+      caption.textContent = kind === 'logo' ? 'logo' : 'poster';
+      figure.appendChild(caption);
+
+      if (kind === 'poster') {
+        setLandingPosterBackground(figure, normalized || fallback);
+      }
+
+      return figure;
     }
 
-    function setLandingWallRowEntries(prefix, entries, direction = 'left') {
+    function renderLandingWallRowTrack(prefix, entries) {
+      const row = getLandingWallRow(prefix);
+      if (!row) return;
+
+      const kind = getLandingWallRowKind(prefix);
+      const direction = getLandingWallRowDirection(prefix);
+      const visibleCount = getLandingWallVisibleCount();
+      const minimumCount = kind === 'poster' ? visibleCount * 4 : visibleCount * 3;
+      const loopEntries = buildLandingWallLoopEntries(entries, minimumCount);
+      if (!loopEntries.length) return;
+
+      const stripEntries = dedupeLandingWallEntries(loopEntries);
+      if (!stripEntries.length) return;
+
+      row.dataset.rowKind = kind;
+      row.dataset.direction = direction;
+      row.dataset.wallPrefix = prefix;
+      row.style.setProperty('--landing-row-duration', `${Math.max(18, stripEntries.length * (kind === 'poster' ? 2.5 : 2.2))}s`);
+      row.replaceChildren();
+
+      const track = document.createElement('div');
+      track.className = 'landing-v4-wall-track';
+
+      const buildStrip = (sourceEntries, eager) => {
+        const strip = document.createElement('div');
+        strip.className = 'landing-v4-wall-strip';
+        sourceEntries.forEach((entry) => {
+          strip.appendChild(createLandingWallTileFigure(entry, kind, eager));
+        });
+        return strip;
+      };
+
+      track.appendChild(buildStrip(stripEntries, true));
+      track.appendChild(buildStrip(stripEntries, false));
+      row.appendChild(track);
+    }
+
+    function setLandingWallRowEntries(prefix, entries) {
       const normalized = dedupeLandingWallEntries(entries);
       if (!normalized.length) return;
-      const existing = landingWallRowStates.get(prefix);
-      const nextState = {
-        entries: normalized,
-        offset: existing && Number.isFinite(existing.offset) ? existing.offset % normalized.length : 0,
-        direction: direction === 'right' ? 'right' : 'left'
-      };
-      landingWallRowStates.set(prefix, nextState);
-      renderLandingWallRow(prefix, normalized, nextState.offset);
-    }
-
-    function stopLandingWallCarousel() {
-      if (landingWallCarouselKickoffTimer) {
-        window.clearTimeout(landingWallCarouselKickoffTimer);
-        landingWallCarouselKickoffTimer = null;
-      }
-      if (landingWallCarouselTimer) {
-        window.clearInterval(landingWallCarouselTimer);
-        landingWallCarouselTimer = null;
-      }
-      landingWallCarouselStarted = false;
-    }
-
-    function startLandingWallCarousel() {
-      if (landingWallCarouselStarted) return;
-      if (!landingWallRowStates.size) return;
-      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      landingWallCarouselStarted = true;
-
-      const tick = () => {
-        const visibleCount = getLandingWallVisibleCount();
-        landingWallRowStates.forEach((state, prefix) => {
-          const entries = Array.isArray(state?.entries) ? state.entries : [];
-          if (entries.length <= visibleCount) return;
-          state.offset = (Number(state.offset) + 1) % entries.length;
-          renderLandingWallRow(prefix, entries, state.offset, { animate: true, direction: state.direction });
-        });
-      };
-
-      landingWallCarouselKickoffTimer = window.setTimeout(() => {
-        tick();
-        landingWallCarouselTimer = window.setInterval(tick, 4600);
-      }, 1600);
-
-      if (!window.__ZO2Y_LANDING_WALL_VIS_BOUND) {
-        window.__ZO2Y_LANDING_WALL_VIS_BOUND = true;
-        document.addEventListener('visibilitychange', () => {
-          if (document.hidden) {
-            stopLandingWallCarousel();
-            return;
-          }
-          startLandingWallCarousel();
-        });
-        window.addEventListener('pagehide', stopLandingWallCarousel);
-        window.addEventListener('pageshow', () => {
-          startLandingWallCarousel();
-        });
-      }
+      landingWallRowStates.set(prefix, { entries: normalized });
+      renderLandingWallRowTrack(prefix, normalized);
     }
 
     async function hydrateLandingSetupWall() {
@@ -8859,14 +8904,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const foodEntries = dedupeLandingWallEntries(LANDING_WALL_FALLBACK_LOGOS.food.map(buildLandingWallLogoEntry));
       const fashionEntries = dedupeLandingWallEntries(LANDING_WALL_FALLBACK_LOGOS.fashion.map(buildLandingWallLogoEntry));
 
-      setLandingWallRowEntries('movie', movieEntries, 'left');
-      setLandingWallRowEntries('tv', tvEntries, 'right');
-      setLandingWallRowEntries('anime', animeEntries, 'left');
-      setLandingWallRowEntries('game', gameEntries, 'right');
-      setLandingWallRowEntries('sports', sportsEntries, 'left');
-      setLandingWallRowEntries('food', foodEntries, 'right');
-      setLandingWallRowEntries('fashion', fashionEntries, 'left');
-      startLandingWallCarousel();
+      setLandingWallRowEntries('movie', movieEntries);
+      setLandingWallRowEntries('tv', tvEntries);
+      setLandingWallRowEntries('anime', animeEntries);
+      setLandingWallRowEntries('game', gameEntries);
+      setLandingWallRowEntries('sports', sportsEntries);
+      setLandingWallRowEntries('food', foodEntries);
+      setLandingWallRowEntries('fashion', fashionEntries);
     }
 
     function truncateLandingText(value, maxLength = 120) {

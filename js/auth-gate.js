@@ -246,6 +246,7 @@
       var payload = JSON.stringify(session);
       safeSetStorageItem(STORAGE_KEY, payload);
       safeSetStorageItem(LEGACY_STORAGE_KEY, payload);
+      safeSetStorageItem(PERSIST_STORAGE_KEY, payload);
       return true;
     } catch (_err) {
       return false;

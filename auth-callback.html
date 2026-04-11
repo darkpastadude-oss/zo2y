@@ -153,17 +153,18 @@
         });
       }
 
-      function persistSessionSnapshot(session) {
-        if (!session || typeof session !== 'object') return false;
-        try {
-          const payload = JSON.stringify(session);
-          safeSetAuthStorage(STORAGE_KEY, payload);
-          safeSetAuthStorage(LEGACY_STORAGE_KEY, payload);
-          return true;
-        } catch (_err) {
-          return false;
+        function persistSessionSnapshot(session) {
+          if (!session || typeof session !== 'object') return false;
+          try {
+            const payload = JSON.stringify(session);
+            safeSetAuthStorage(STORAGE_KEY, payload);
+            safeSetAuthStorage(LEGACY_STORAGE_KEY, payload);
+            safeSetAuthStorage(PERSIST_STORAGE_KEY, payload);
+            return true;
+          } catch (_err) {
+            return false;
+          }
         }
-      }
 
       const authStorageBridge = window.__ZO2Y_AUTH_STORAGE_BRIDGE || {
         getItem(key) {

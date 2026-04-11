@@ -537,6 +537,7 @@ const HEADER_HTML = `
           const payload = JSON.stringify(session);
           window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(AUTH_STORAGE_KEY, payload);
           window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(LEGACY_AUTH_STORAGE_KEY, payload);
+          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(PERSIST_AUTH_STORAGE_KEY, payload);
         } catch (_err) {}
       }
       void syncAuthHeaderState();
@@ -595,6 +596,7 @@ const HEADER_HTML = `
         const payload = JSON.stringify(session);
         window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(AUTH_STORAGE_KEY, payload);
         window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(LEGACY_AUTH_STORAGE_KEY, payload);
+        window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(PERSIST_AUTH_STORAGE_KEY, payload);
       }
       return !!session?.user;
     } catch (_err) {
@@ -630,6 +632,7 @@ const HEADER_HTML = `
           const payload = JSON.stringify(session);
           window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(AUTH_STORAGE_KEY, payload);
           window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(LEGACY_AUTH_STORAGE_KEY, payload);
+          window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(PERSIST_AUTH_STORAGE_KEY, payload);
         } catch (_err) {}
       }
       const loggedIn = !!session;

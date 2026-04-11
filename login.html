@@ -248,6 +248,7 @@
       const payload = JSON.stringify(session);
       safeSetAuthStorage(STORAGE_KEY, payload);
       safeSetAuthStorage(LEGACY_STORAGE_KEY, payload);
+      safeSetAuthStorage(PERSIST_STORAGE_KEY, payload);
       return true;
     } catch (_err) {
       return false;
