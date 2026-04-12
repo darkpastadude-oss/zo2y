@@ -8642,46 +8642,42 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     ];
     const LANDING_WALL_FALLBACK_LOGOS = {
       sports: [
-        { title: 'Real Madrid', domain: 'realmadrid.com' },
-        { title: 'FC Barcelona', domain: 'fcbarcelona.com' },
-        { title: 'Arsenal', domain: 'arsenal.com' },
-        { title: 'Liverpool', domain: 'liverpoolfc.com' },
-        { title: 'Los Angeles Lakers', domain: 'lakers.com' },
-        { title: 'Boston Celtics', domain: 'celtics.com' },
-        { title: 'New York Yankees', domain: 'yankees.com' },
-        { title: 'Los Angeles Dodgers', domain: 'dodgers.com' },
-        { title: 'Kansas City Chiefs', domain: 'chiefs.com' },
-        { title: 'Golden State Warriors', domain: 'warriors.com' },
-        { title: 'Ferrari', domain: 'ferrari.com' },
-        { title: 'Mercedes AMG Petronas', domain: 'mercedesamgf1.com' }
+        { title: 'Real Madrid', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133738/real-madrid-badge.png' },
+        { title: 'Arsenal', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133604/arsenal-badge.png' },
+        { title: 'Liverpool', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133602/liverpool-badge.png' },
+        { title: 'Los Angeles Lakers', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134867/los-angeles-lakers-badge.png' },
+        { title: 'Boston Celtics', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134860/boston-celtics-badge.png' },
+        { title: 'New York Yankees', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/135260/new-york-yankees-badge.png' },
+        { title: 'Kansas City Chiefs', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134931/kansas-city-chiefs-badge.png' },
+        { title: 'Golden State Warriors', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134865/golden-state-warriors-badge.png' }
       ],
       food: [
-        { title: 'McDonald\'s', domain: 'mcdonalds.com' },
-        { title: 'KFC', domain: 'kfc.com' },
-        { title: 'Starbucks', domain: 'starbucks.com' },
-        { title: 'Taco Bell', domain: 'tacobell.com' },
-        { title: 'Burger King', domain: 'burgerking.com' },
-        { title: 'Domino\'s', domain: 'dominos.com' },
-        { title: 'Subway', domain: 'subway.com' },
-        { title: 'Chipotle', domain: 'chipotle.com' },
-        { title: 'Popeyes', domain: 'popeyes.com' },
-        { title: 'Wendy\'s', domain: 'wendys.com' },
-        { title: 'Pizza Hut', domain: 'pizzahut.com' },
-        { title: 'Shake Shack', domain: 'shakeshack.com' }
+        { title: 'McDonald\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/mcdonalds-com.svg' },
+        { title: 'KFC', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/kfc-com.svg' },
+        { title: 'Starbucks', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/starbucks-com.png' },
+        { title: 'Taco Bell', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/tacobell-com.jpg' },
+        { title: 'Burger King', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/burgerking-com.svg' },
+        { title: 'Domino\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/dominos-com.svg' },
+        { title: 'Subway', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/subway-com.svg' },
+        { title: 'Chipotle', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/chipotle-com.svg' },
+        { title: 'Popeyes', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/popeyes-com.svg' },
+        { title: 'Wendy\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/wendys-com.svg' },
+        { title: 'Pizza Hut', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/pizzahut-com.svg' },
+        { title: 'Shake Shack', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/shakeshack-com.svg' }
       ],
       fashion: [
-        { title: 'Nike', domain: 'nike.com' },
-        { title: 'Adidas', domain: 'adidas.com' },
-        { title: 'Zara', domain: 'zara.com' },
-        { title: 'Uniqlo', domain: 'uniqlo.com' },
-        { title: 'H&M', domain: 'hm.com' },
-        { title: 'Gucci', domain: 'gucci.com' },
-        { title: 'Louis Vuitton', domain: 'louisvuitton.com' },
-        { title: 'Prada', domain: 'prada.com' },
-        { title: 'Dior', domain: 'dior.com' },
-        { title: 'Chanel', domain: 'chanel.com' },
-        { title: 'Burberry', domain: 'burberry.com' },
-        { title: 'Supreme', domain: 'supremenewyork.com' }
+        { title: 'Nike', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/nike-com.svg' },
+        { title: 'Adidas', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/adidas-com.svg' },
+        { title: 'Zara', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zara-com.jpeg' },
+        { title: 'Uniqlo', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/uniqlo-com.svg' },
+        { title: 'H&M', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hm-com.svg' },
+        { title: 'Gucci', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/gucci-com.svg' },
+        { title: 'Louis Vuitton', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/louisvuitton-com.svg' },
+        { title: 'Prada', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/prada-com.svg' },
+        { title: 'Dior', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/dior-com.svg' },
+        { title: 'Chanel', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/chanel-com.svg' },
+        { title: 'Burberry', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/burberry-com.svg' },
+        { title: 'Supreme', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/supremenewyork-com.svg' }
       ]
     };
     const LANDING_REVIEW_SOURCES = [

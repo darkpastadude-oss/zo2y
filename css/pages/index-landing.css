@@ -2464,32 +2464,24 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-setup-hero {
-    min-height: 0;
-    height: auto;
-    aspect-ratio: 0.72;
-    max-height: 700px;
+    min-height: clamp(620px, calc(100svh - 102px), 760px);
+    height: clamp(620px, calc(100svh - 102px), 760px);
+    aspect-ratio: auto;
+    max-height: none;
     border-radius: 22px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall {
-    grid-template-rows: repeat(6, 92px);
-    gap: 6px;
-    padding: 12px;
-    align-content: start;
+    grid-template-rows: repeat(7, minmax(0, 1fr));
+    gap: 5px;
+    padding: 10px;
+    align-content: stretch;
     overflow: hidden;
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall-row {
-    --landing-row-gap: 6px;
+    --landing-row-gap: 5px;
     overflow: clip;
-  }
-
-  html[data-auth-shell="landing"] .landing-v4-wall > :nth-child(n + 7) {
-    display: none;
-  }
-
-  html[data-auth-shell="landing"] .landing-v4-wall-row > :nth-child(n + 5) {
-    display: none;
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile {
@@ -2507,7 +2499,7 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
   html[data-auth-shell="landing"] .landing-v4-tile--logo img,
   html[data-auth-shell="landing"] .landing-v4-tile--light img {
-    width: min(78%, 58px);
+    width: min(82%, 62px);
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile--logo {
