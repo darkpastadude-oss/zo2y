@@ -8769,6 +8769,37 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       figure.style.setProperty('--landing-poster-image', `url("${String(normalized).replace(/"/g, '%22')}")`);
     }
 
+    function setLandingLogoTileFallback(figure, label) {
+      if (!figure) return;
+      const cleanLabel = String(label || '').trim() || 'brand';
+      figure.classList.add('landing-v4-tile--text-fallback');
+      figure.setAttribute('data-logo-text', cleanLabel);
+      const image = figure.querySelector('img');
+      if (image) {
+        image.style.visibility = 'hidden';
+        image.style.opacity = '0';
+      }
+    }
+
+    function clearLandingLogoTileFallback(figure) {
+      if (!figure) return;
+      figure.classList.remove('landing-v4-tile--text-fallback');
+      figure.removeAttribute('data-logo-text');
+      const image = figure.querySelector('img');
+      if (image) {
+        image.style.visibility = '';
+        image.style.opacity = '';
+      }
+    }
+
+    function looksLikeLandingPlaceholder(url) {
+      const normalized = normalizeLandingImageUrl(url);
+      if (!normalized) return true;
+      return isLogoPlaceholder(normalized)
+        || normalized.includes('logo-placeholder.svg')
+        || normalized.includes('/newlogo.webp');
+    }
+
     function buildLandingWallLogoEntry(input) {
       const source = input && typeof input === 'object'
         ? input
@@ -8838,6 +8869,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       if (!node.dataset.fallbackSrc) {
         node.dataset.fallbackSrc = String(node.getAttribute('src') || '').trim();
       }
+      node.onload = () => {
+        if (figure && figure.classList.contains('landing-v4-tile--logo')) {
+          const current = String(node.currentSrc || node.src || '').trim();
+          if (looksLikeLandingPlaceholder(current)) {
+            setLandingLogoTileFallback(figure, alt);
+          } else {
+            clearLandingLogoTileFallback(figure);
+          }
+        }
+      };
       node.onerror = () => {
         const fallback = normalizeLandingImageUrl(node.dataset.fallbackSrc || '');
         if (fallback && node.src !== fallback) {
@@ -8846,6 +8887,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           if (figure && figure.classList.contains('landing-v4-tile--poster')) {
             setLandingPosterBackground(figure, fallback);
           }
+        } else if (figure && figure.classList.contains('landing-v4-tile--logo')) {
+          setLandingLogoTileFallback(figure, alt);
         }
       };
       node.src = normalized;
@@ -8874,11 +8917,23 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       img.referrerPolicy = 'no-referrer';
       img.loading = eager ? 'eager' : 'lazy';
       if (eager) img.fetchPriority = 'high';
+      img.onload = () => {
+        if (kind === 'logo') {
+          const current = String(img.currentSrc || img.src || '').trim();
+          if (looksLikeLandingPlaceholder(current)) {
+            setLandingLogoTileFallback(figure, entry?.alt);
+          } else {
+            clearLandingLogoTileFallback(figure);
+          }
+        }
+      };
       img.onerror = () => {
         if (fallback && img.src !== fallback) {
           img.onerror = null;
           img.src = fallback;
           if (kind === 'poster') setLandingPosterBackground(figure, fallback);
+        } else if (kind === 'logo') {
+          setLandingLogoTileFallback(figure, entry?.alt);
         }
       };
       figure.appendChild(img);

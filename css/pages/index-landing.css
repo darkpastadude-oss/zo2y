@@ -2245,6 +2245,32 @@ html[data-auth-shell="landing"] .landing-v4-tile--logo::after {
   background: linear-gradient(180deg, rgba(6, 12, 28, 0.02) 0%, rgba(6, 12, 28, 0.32) 100%);
 }
 
+html[data-auth-shell="landing"] .landing-v4-tile--logo.landing-v4-tile--text-fallback {
+  place-items: center;
+}
+
+html[data-auth-shell="landing"] .landing-v4-tile--logo.landing-v4-tile--text-fallback::before {
+  content: attr(data-logo-text);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  text-align: center;
+  color: #10223f;
+  font-size: clamp(11px, 1vw, 16px);
+  line-height: 1.05;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  z-index: 1;
+  text-transform: none;
+}
+
+html[data-auth-shell="landing"] .landing-v4-tile--logo.landing-v4-tile--text-fallback img {
+  visibility: hidden;
+  opacity: 0;
+}
+
 html[data-auth-shell="landing"] .landing-v4-tile--light {
   background: linear-gradient(180deg, rgba(244, 246, 252, 0.96), rgba(224, 231, 246, 0.94));
 }
