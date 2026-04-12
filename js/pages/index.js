@@ -8626,10 +8626,63 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     const landingReviewMeta = new Map();
     const LANDING_REVIEW_LIMIT = 6;
     const LANDING_WALL_SLOT_COUNT = 8;
+    const LANDING_WALL_FALLBACK_GAMES = [
+      { title: 'Portal 2', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' },
+      { title: 'Persona 5', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/persona-5.jpg' },
+      { title: 'Titanfall 2', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/titanfall-2.jpg' },
+      { title: 'The Witcher 3: Wild Hunt', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
+      { title: 'Red Dead Redemption 2', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg' },
+      { title: 'Resident Evil Village', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/resident-evil-village.png' },
+      { title: 'Sifu', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/sifu.jpg' },
+      { title: 'Warframe', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/warframe.png' },
+      { title: 'Hades', image: 'https://upload.wikimedia.org/wikipedia/en/c/cc/Hades_cover_art.jpg' },
+      { title: 'Cyberpunk 2077', image: 'https://upload.wikimedia.org/wikipedia/en/9/9f/Cyberpunk_2077_box_art.jpg' },
+      { title: 'Elden Ring', image: 'https://upload.wikimedia.org/wikipedia/en/b/b9/Elden_Ring_Box_art.jpg' },
+      { title: 'Baldur\'s Gate 3', image: 'https://upload.wikimedia.org/wikipedia/en/1/12/Baldur%27s_Gate_3_cover_art.jpg' }
+    ];
     const LANDING_WALL_FALLBACK_LOGOS = {
-      sports: ['Real Madrid', 'FC Barcelona', 'Los Angeles Lakers', 'Boston Celtics', 'New York Yankees', 'Kansas City Chiefs', 'Ferrari', 'Arsenal', 'Liverpool', 'Golden State Warriors', 'Los Angeles Dodgers', 'Mercedes AMG Petronas'],
-      food: ['McDonalds', 'KFC', 'Starbucks', 'Taco Bell', 'Burger King', 'Dominos', 'Subway', 'Chipotle', 'Popeyes', 'Wendys', 'Pizza Hut', 'Shake Shack'],
-      fashion: ['Nike', 'Adidas', 'Zara', 'Uniqlo', 'H&M', 'Gucci', 'Louis Vuitton', 'Supreme', 'Prada', 'Dior', 'Chanel', 'Burberry']
+      sports: [
+        { title: 'Real Madrid', domain: 'realmadrid.com' },
+        { title: 'FC Barcelona', domain: 'fcbarcelona.com' },
+        { title: 'Arsenal', domain: 'arsenal.com' },
+        { title: 'Liverpool', domain: 'liverpoolfc.com' },
+        { title: 'Los Angeles Lakers', domain: 'lakers.com' },
+        { title: 'Boston Celtics', domain: 'celtics.com' },
+        { title: 'New York Yankees', domain: 'yankees.com' },
+        { title: 'Los Angeles Dodgers', domain: 'dodgers.com' },
+        { title: 'Kansas City Chiefs', domain: 'chiefs.com' },
+        { title: 'Golden State Warriors', domain: 'warriors.com' },
+        { title: 'Ferrari', domain: 'ferrari.com' },
+        { title: 'Mercedes AMG Petronas', domain: 'mercedesamgf1.com' }
+      ],
+      food: [
+        { title: 'McDonald\'s', domain: 'mcdonalds.com' },
+        { title: 'KFC', domain: 'kfc.com' },
+        { title: 'Starbucks', domain: 'starbucks.com' },
+        { title: 'Taco Bell', domain: 'tacobell.com' },
+        { title: 'Burger King', domain: 'burgerking.com' },
+        { title: 'Domino\'s', domain: 'dominos.com' },
+        { title: 'Subway', domain: 'subway.com' },
+        { title: 'Chipotle', domain: 'chipotle.com' },
+        { title: 'Popeyes', domain: 'popeyes.com' },
+        { title: 'Wendy\'s', domain: 'wendys.com' },
+        { title: 'Pizza Hut', domain: 'pizzahut.com' },
+        { title: 'Shake Shack', domain: 'shakeshack.com' }
+      ],
+      fashion: [
+        { title: 'Nike', domain: 'nike.com' },
+        { title: 'Adidas', domain: 'adidas.com' },
+        { title: 'Zara', domain: 'zara.com' },
+        { title: 'Uniqlo', domain: 'uniqlo.com' },
+        { title: 'H&M', domain: 'hm.com' },
+        { title: 'Gucci', domain: 'gucci.com' },
+        { title: 'Louis Vuitton', domain: 'louisvuitton.com' },
+        { title: 'Prada', domain: 'prada.com' },
+        { title: 'Dior', domain: 'dior.com' },
+        { title: 'Chanel', domain: 'chanel.com' },
+        { title: 'Burberry', domain: 'burberry.com' },
+        { title: 'Supreme', domain: 'supremenewyork.com' }
+      ]
     };
     const LANDING_REVIEW_SOURCES = [
       { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id' },
@@ -8716,11 +8769,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       figure.style.setProperty('--landing-poster-image', `url("${String(normalized).replace(/"/g, '%22')}")`);
     }
 
-    function buildLandingWallLogoEntry(title) {
-      const cleanTitle = String(title || '').trim();
+    function buildLandingWallLogoEntry(input) {
+      const source = input && typeof input === 'object'
+        ? input
+        : { title: String(input || '').trim() };
+      const cleanTitle = String(source.title || '').trim();
+      const cleanDomain = String(source.domain || '').trim();
+      const preferred = normalizeLandingImageUrl(source.image || '');
       if (!cleanTitle) return null;
       return {
-        image: `/api/logo?mode=logo&title=${encodeURIComponent(cleanTitle)}&size=256`,
+        image: preferred || `/api/logo?mode=logo&${cleanDomain ? `domain=${encodeURIComponent(cleanDomain)}` : `title=${encodeURIComponent(cleanTitle)}`}&size=256`,
+        fallback: cleanDomain
+          ? `/api/logo?mode=logo&title=${encodeURIComponent(cleanTitle)}&size=256`
+          : '',
         alt: cleanTitle
       };
     }
@@ -8730,11 +8791,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const seen = new Set();
       (Array.isArray(entries) ? entries : []).forEach((entry) => {
         const image = normalizeLandingImageUrl(entry?.image || '');
+        const fallback = normalizeLandingImageUrl(entry?.fallback || '');
         const alt = String(entry?.alt || '').trim();
         if (!isRenderableLandingImage(image)) return;
-        if (seen.has(image)) return;
-        seen.add(image);
-        deduped.push({ image, alt });
+        const key = `${image}::${alt.toLowerCase()}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        deduped.push({ image, fallback, alt });
       });
       return deduped;
     }
@@ -8895,7 +8958,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const movieEntries = buildLandingWallEntries(moviesRes.status === 'fulfilled' ? moviesRes.value : []);
       const tvEntries = buildLandingWallEntries(tvRes.status === 'fulfilled' ? tvRes.value : []);
       const animeEntries = buildLandingWallEntries(animeRes.status === 'fulfilled' ? animeRes.value : []);
-      const gameEntries = buildLandingWallEntries(gamesRes.status === 'fulfilled' ? gamesRes.value : []);
+      const gameEntries = mergeLandingWallEntries(
+        buildLandingWallEntries(gamesRes.status === 'fulfilled' ? gamesRes.value : []),
+        LANDING_WALL_FALLBACK_GAMES.map((entry) => ({
+          image: entry.image,
+          alt: entry.title
+        }))
+      );
       const sportsEntries = mergeLandingWallEntries(
         buildLandingWallEntries(sportsRes.status === 'fulfilled' ? sportsRes.value : []),
         LANDING_WALL_FALLBACK_LOGOS.sports.map(buildLandingWallLogoEntry)
