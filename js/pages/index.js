@@ -8730,6 +8730,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return window.matchMedia && window.matchMedia('(max-width: 760px)').matches ? 4 : LANDING_WALL_SLOT_COUNT;
     }
 
+    function getLandingWallMinimumCount(kind) {
+      const isMobile = Boolean(window.matchMedia && window.matchMedia('(max-width: 760px)').matches);
+      if (isMobile) return kind === 'poster' ? 20 : 18;
+      const visibleCount = getLandingWallVisibleCount();
+      return kind === 'poster' ? visibleCount * 4 : visibleCount * 3;
+    }
+
     function getLandingWallRow(prefix) {
       const key = String(prefix || '').trim();
       const existing = document.querySelector(`.landing-v4-wall-row[data-wall-prefix="${key}"]`);
@@ -8955,8 +8962,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
       const kind = getLandingWallRowKind(prefix);
       const direction = getLandingWallRowDirection(prefix);
-      const visibleCount = getLandingWallVisibleCount();
-      const minimumCount = kind === 'poster' ? visibleCount * 4 : visibleCount * 3;
+      const minimumCount = getLandingWallMinimumCount(kind);
       const baseEntries = dedupeLandingWallEntries(entries);
       if (!baseEntries.length) return;
       const stripEntries = buildLandingWallLoopEntries(baseEntries, minimumCount);
@@ -9002,12 +9008,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         || getLandingWallTile('sports-1'));
       if (!hasWallTargets) return;
 
-      const [moviesRes, tvRes, animeRes, gamesRes, sportsRes] = await Promise.allSettled([
+      const [moviesRes, tvRes, animeRes, gamesRes, sportsRes, foodRes, fashionRes] = await Promise.allSettled([
         loadMovies(null),
         loadTv(null),
         loadAnime(null),
         loadGames(null),
-        loadSports(null)
+        loadSports(null),
+        loadFoodBrands(),
+        loadFashionBrands()
       ]);
 
       const movieEntries = buildLandingWallEntries(moviesRes.status === 'fulfilled' ? moviesRes.value : []);
@@ -9024,8 +9032,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         buildLandingWallEntries(sportsRes.status === 'fulfilled' ? sportsRes.value : []),
         LANDING_WALL_FALLBACK_LOGOS.sports.map(buildLandingWallLogoEntry)
       );
-      const foodEntries = dedupeLandingWallEntries(LANDING_WALL_FALLBACK_LOGOS.food.map(buildLandingWallLogoEntry));
-      const fashionEntries = dedupeLandingWallEntries(LANDING_WALL_FALLBACK_LOGOS.fashion.map(buildLandingWallLogoEntry));
+      const foodEntries = mergeLandingWallEntries(
+        buildLandingWallEntries(foodRes.status === 'fulfilled' ? foodRes.value : []),
+        LANDING_WALL_FALLBACK_LOGOS.food.map(buildLandingWallLogoEntry)
+      );
+      const fashionEntries = mergeLandingWallEntries(
+        buildLandingWallEntries(fashionRes.status === 'fulfilled' ? fashionRes.value : []),
+        LANDING_WALL_FALLBACK_LOGOS.fashion.map(buildLandingWallLogoEntry)
+      );
 
       setLandingWallRowEntries('movie', movieEntries);
       setLandingWallRowEntries('tv', tvEntries);

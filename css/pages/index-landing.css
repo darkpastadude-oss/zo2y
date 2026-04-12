@@ -2124,11 +2124,12 @@ html[data-auth-shell="landing"] .landing-v4-wall {
   grid-template-rows: repeat(7, minmax(0, 1fr));
   gap: 8px;
   padding: 18px;
+  overflow: hidden;
 }
 
 html[data-auth-shell="landing"] .landing-v4-wall-row {
   position: relative;
-  overflow: hidden;
+  overflow: clip;
   display: block;
   min-height: 0;
   align-items: stretch;
@@ -2475,10 +2476,12 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
     gap: 6px;
     padding: 12px;
     align-content: start;
+    overflow: hidden;
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall-row {
     --landing-row-gap: 6px;
+    overflow: clip;
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall > :nth-child(n + 7) {
