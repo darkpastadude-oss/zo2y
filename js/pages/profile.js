@@ -1127,6 +1127,7 @@
             }
 
             function updateTabTitlesForOtherUser(userName) {
+                const movieTabText = document.getElementById('movieTabText');
                 const journalTabText = document.getElementById('journalTabText');
                 const restaurantsTabText = document.getElementById('restaurantsTabText');
                 const tvTabText = document.getElementById('tvTabText');
@@ -1136,6 +1137,7 @@
                 const musicTabText = document.getElementById('musicTabText');
                 const sportsTabText = document.getElementById('sportsTabText');
                 const carsTabText = document.getElementById('carsTabText');
+                const moviesTitle = document.getElementById('moviesTitle');
                 const journalTitle = document.getElementById('journalTitle');
                 const restaurantsTitle = document.getElementById('restaurantsTitle');
                 const tvTitle = document.getElementById('tvTitle');
@@ -1148,6 +1150,7 @@
                 const communityTitle = document.getElementById('communityTitle');
                 const journalSubtitle = document.getElementById('journalSubtitle');
                 const restaurantsSubtitle = document.getElementById('restaurantsSubtitle');
+                const moviesSubtitle = document.getElementById('moviesSubtitle');
                 const tvSubtitle = document.getElementById('tvSubtitle');
                 const animeSubtitle = document.getElementById('animeSubtitle');
                 const gamesSubtitle = document.getElementById('gamesSubtitle');
@@ -1161,6 +1164,7 @@
                 const viewingOtherProfileText = document.getElementById('viewingOtherProfileText');
                 const mobileViewingOtherProfileText = document.getElementById('mobileViewingOtherProfileText');
                 
+                if (movieTabText) movieTabText.textContent = `${userName}'s Movies`;
                 if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
                 if (restaurantsTabText) restaurantsTabText.textContent = `${userName}'s Collections`;
                 if (tvTabText) tvTabText.textContent = `${userName}'s TV Shows`;
@@ -1169,6 +1173,7 @@
                 if (booksTabText) booksTabText.textContent = `${userName}'s Books`;
                 if (musicTabText) musicTabText.textContent = `${userName}'s Music`;
                 if (sportsTabText) sportsTabText.textContent = `${userName}'s Sports`;
+                if (moviesTitle) moviesTitle.textContent = `${userName}'s Movies`;
                 if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
                 if (restaurantsTitle) restaurantsTitle.textContent = `${userName}'s Collections`;
                 if (tvTitle) tvTitle.textContent = `${userName}'s TV Shows`;
@@ -1180,6 +1185,7 @@
                 if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
                 if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s featured collections`;
+                if (moviesSubtitle) moviesSubtitle.textContent = `${userName}'s favorite films`;
                 if (tvSubtitle) tvSubtitle.textContent = `${userName}'s favorite TV shows`;
                 if (animeSubtitle) animeSubtitle.textContent = `${userName}'s favorite anime`;
                 if (gamesSubtitle) gamesSubtitle.textContent = `${userName}'s favorite games`;
@@ -1192,6 +1198,7 @@
                 if (viewingOtherProfileText) viewingOtherProfileText.textContent = `Viewing ${userName}'s profile`;
                 if (mobileViewingOtherProfileText) mobileViewingOtherProfileText.textContent = `${userName}'s profile`;
                 
+                const mobileTabMovies = document.getElementById('mobileTabMovies');
                 const mobileJournalTabText = document.getElementById('mobileJournalTabText');
                 const mobileTabJournal = document.getElementById('mobileTabJournal');
                 const mobileTabRestaurants = document.getElementById('mobileTabRestaurants');
@@ -1204,6 +1211,7 @@
                 const mobileTabFashion = document.getElementById('mobileTabFashion');
                 const mobileTabFood = document.getElementById('mobileTabFood');
                 const mobileTabCars = document.getElementById('mobileTabCars');
+                const mobileMoviesTitle = document.getElementById('mobileMoviesTitle');
                 const mobileJournalTitle = document.getElementById('mobileJournalTitle');
                 const mobileRestaurantsTitle = document.getElementById('mobileRestaurantsTitle');
                 const mobileAnimeTitle = document.getElementById('mobileAnimeTitle');
@@ -1217,6 +1225,7 @@
                 const mobileCommunityTitle = document.getElementById('mobileCommunityTitle');
                 const mobileJournalSubtitle = document.getElementById('mobileJournalSubtitle');
                 const mobileRestaurantsSubtitle = document.getElementById('mobileRestaurantsSubtitle');
+                const mobileMoviesSubtitle = document.getElementById('mobileMoviesSubtitle');
                 const mobileAnimeSubtitle = document.getElementById('mobileAnimeSubtitle');
                 const mobileGamesSubtitle = document.getElementById('mobileGamesSubtitle');
                 const mobileBooksSubtitle = document.getElementById('mobileBooksSubtitle');
@@ -1227,6 +1236,7 @@
                 const mobileCarsSubtitle = document.getElementById('mobileCarsSubtitle');
                 const mobileCommunitySubtitle = document.getElementById('mobileCommunitySubtitle');
                 
+                if (mobileTabMovies) mobileTabMovies.textContent = `${userName}'s Movies`;
                 if (mobileJournalTabText) mobileJournalTabText.textContent = `${userName}'s Journal`;
                 if (mobileTabJournal) mobileTabJournal.textContent = `${userName}'s Journal`;
                 if (mobileTabRestaurants) mobileTabRestaurants.textContent = `${userName}'s Collections`;
@@ -1236,6 +1246,7 @@
                 if (mobileTabBooks) mobileTabBooks.textContent = `${userName}'s Books`;
                 if (mobileTabMusic) mobileTabMusic.textContent = `${userName}'s Music`;
                 if (mobileTabSports) mobileTabSports.textContent = `${userName}'s Sports`;
+                if (mobileMoviesTitle) mobileMoviesTitle.textContent = `${userName}'s Movies`;
                 if (mobileJournalTitle) mobileJournalTitle.textContent = `${userName}'s Food Journal`;
                 if (mobileRestaurantsTitle) mobileRestaurantsTitle.textContent = `${userName}'s Collections`;
                 if (mobileAnimeTitle) mobileAnimeTitle.textContent = `${userName}'s Anime`;
@@ -1246,6 +1257,7 @@
                 if (mobileCommunityTitle) mobileCommunityTitle.textContent = `${userName}'s Community`;
                 if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (mobileRestaurantsSubtitle) mobileRestaurantsSubtitle.textContent = `${userName}'s featured collections`;
+                if (mobileMoviesSubtitle) mobileMoviesSubtitle.textContent = `${userName}'s favorite films`;
                 if (mobileAnimeSubtitle) mobileAnimeSubtitle.textContent = `${userName}'s favorite anime`;
                 if (mobileGamesSubtitle) mobileGamesSubtitle.textContent = `${userName}'s favorite games`;
                 if (mobileBooksSubtitle) mobileBooksSubtitle.textContent = `${userName}'s favorite books`;
@@ -9196,7 +9208,7 @@
                     } else if (contentType === 'game') {
                         await Promise.all(missingIds.map(async (id) => {
                             const game = await fetchGameDetails(id);
-                            const imageUrl = game?.cover ? String(game.cover).trim() : null;
+                            const imageUrl = normalizeGameImageSource(game);
                             if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
                         }));
                     } else if (contentType === 'tv') {
@@ -9225,6 +9237,7 @@
                     if (cached) return cached;
                     if (contentType === 'book') return FALLBACK_BOOK_IMAGE;
                     if (contentType === 'music') return '/newlogo.webp';
+                    if (contentType === 'game') return '/newlogo.webp';
                     if (contentType === 'travel') return countryFlagFromCode(normalizeCountryCode(id) || id);
                     return null;
                 });

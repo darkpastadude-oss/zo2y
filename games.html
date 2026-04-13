@@ -336,6 +336,19 @@
       margin-top: 8px;
     }
 
+    .filter-form-grid > * {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .filter-form-grid .search-input,
+    .filter-form-grid .filter-select {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
     .chip {
       padding: 6px 10px;
       border-radius: 999px;
@@ -955,6 +968,7 @@
           <option value="">All Genres</option>
         </select>
         <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year" />
+        <input id="platformInput" class="search-input full-span" type="text" placeholder="Platform (e.g., PC, PlayStation, Xbox)" />
       </div>
     </div>
   </div>
@@ -1236,6 +1250,7 @@
         activeGenre: '',
         query: '',
         year: '',
+        platform: '',
         page: 1,
         totalPages: 1,
         hasMore: true,
@@ -2041,7 +2056,7 @@
       }
 
       function isPopularGamesBrowseState() {
-        return !state.query && !state.activeGenre && !state.year;
+        return !state.query && !state.activeGenre && !state.year && !state.platform;
       }
 
       function readCachedGamePages() {
@@ -2292,6 +2307,7 @@
         const query = String(state.query || '').trim();
         const activeGenre = String(state.activeGenre || '').trim().toLowerCase();
         const year = String(state.year || '').trim();
+        const platform = String(state.platform || '').trim().toLowerCase();
         const filtered = catalog.filter((item) => {
           const title = String(item?.title || '').trim();
           if (!title) return false;
@@ -2312,6 +2328,13 @@
           if (year) {
             const releaseYear = String(item?.release_date || '').slice(0, 4);
             if (releaseYear !== year) return false;
+          }
+
+          if (platform) {
+            const platforms = Array.isArray(item?.extra?.platforms) ? item.extra.platforms : [];
+            if (!platforms.some((entry) => String(entry || '').trim().toLowerCase().includes(platform))) {
+              return false;
+            }
           }
           return true;
         });
@@ -2417,6 +2440,7 @@
         if (state.activeGenre) items.push({ label: state.activeGenre, type: 'genre' });
         if (state.query) items.push({ label: state.query, type: 'query' });
         if (state.year) items.push({ label: state.year, type: 'year' });
+        if (state.platform) items.push({ label: state.platform, type: 'platform' });
         items.forEach(item => {
           const chip = document.createElement('div');
           chip.className = 'chip active';
@@ -2425,9 +2449,12 @@
             if (item.type === 'genre') state.activeGenre = '';
             if (item.type === 'query') state.query = '';
             if (item.type === 'year') state.year = '';
+            if (item.type === 'platform') state.platform = '';
             document.getElementById('searchInput').value = state.query;
             document.getElementById('genreSelect').value = state.activeGenre;
             document.getElementById('yearInput').value = state.year;
+            const platformInput = document.getElementById('platformInput');
+            if (platformInput) platformInput.value = state.platform;
             renderFilters();
             state.page = 1;
             loadGames();
@@ -2620,9 +2647,9 @@
         const fetchPageSize = Math.min(Math.ceil(pageSize * fetchMultiplier), fetchLimitCap);
         const dates = state.year ? `${state.year}-01-01,${state.year}-12-31` : '';
         const ordering = state.query ? '-rating' : '-follows';
-        const minRatingCount = (!state.query && !state.activeGenre && !state.year) ? 50 : 0;
-        const popularityType = (!state.query && !state.activeGenre && !state.year) ? 1 : 0;
-        const shouldWarmCache = state.page === 1 && !state.query && !state.activeGenre && !state.year;
+        const minRatingCount = (!state.query && !state.activeGenre && !state.year && !state.platform) ? 50 : 0;
+        const popularityType = (!state.query && !state.activeGenre && !state.year && !state.platform) ? 1 : 0;
+        const shouldWarmCache = state.page === 1 && !state.query && !state.activeGenre && !state.year && !state.platform;
         const cacheFlag = shouldWarmCache ? 1 : undefined;
         const cachePages = shouldWarmCache ? 2 : undefined;
 
@@ -2870,6 +2897,7 @@
         const searchInput = document.getElementById('searchInput');
         const genreSelect = document.getElementById('genreSelect');
         const yearInput = document.getElementById('yearInput');
+        const platformInput = document.getElementById('platformInput');
         const filterToggleBtn = document.getElementById('filterToggleBtn');
         const filterModal = document.getElementById('filterModal');
         const closeFilterModalBtn = document.getElementById('closeFilterModalBtn');
@@ -2911,6 +2939,14 @@
         if (yearInput) {
           yearInput.addEventListener('input', (e) => {
             state.year = e.target.value.trim();
+            renderFilters();
+            state.page = 1;
+            scheduleGamesLoad(30);
+          });
+        }
+        if (platformInput) {
+          platformInput.addEventListener('input', (e) => {
+            state.platform = e.target.value.trim();
             renderFilters();
             state.page = 1;
             scheduleGamesLoad(30);

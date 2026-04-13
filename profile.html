@@ -181,7 +181,7 @@
                 </button>
             </div>
             <div class="profile-tab-group-row" data-group="media">
-                <div class="nav-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')"><i class="fas fa-film"></i> Movies</div>
+                <div class="nav-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')"><i class="fas fa-film"></i> <span id="movieTabText">Movies</span></div>
                 <div class="nav-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')"><i class="fas fa-tv"></i> <span id="tvTabText">TV Shows</span></div>
                 <div class="nav-tab" data-tab="anime" onclick="ProfileManager.showTab('anime')"><i class="fas fa-dragon"></i> <span id="animeTabText">Anime</span></div>
                 <div class="nav-tab" data-tab="games" onclick="ProfileManager.showTab('games')"><i class="fas fa-gamepad"></i> <span id="gamesTabText">Games</span></div>
@@ -264,8 +264,8 @@
                 <div class="section">
                     <div class="section-header">
                         <div>
-                            <h2 class="section-title">My Movies</h2>
-                            <p class="section-subtitle">Organize your favorite films</p>
+                            <h2 class="section-title" id="moviesTitle">My Movies</h2>
+                            <p class="section-subtitle" id="moviesSubtitle">Organize your favorite films</p>
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" id="createMovieListBtn" onclick="ProfileManager.createMovieList()">
@@ -1114,7 +1114,7 @@
                 </button>
             </div>
                 <div class="profile-tab-group-row mobile" data-group="media">
-                    <div class="mobile-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')"><i class="fas fa-film"></i> <span>Movies</span></div>
+                    <div class="mobile-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')"><i class="fas fa-film"></i> <span id="mobileTabMovies">Movies</span></div>
                     <div class="mobile-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')"><i class="fas fa-tv"></i> <span id="mobileTabTv">TV Shows</span></div>
                     <div class="mobile-tab" data-tab="anime" onclick="ProfileManager.showTab('anime')"><i class="fas fa-dragon"></i> <span id="mobileTabAnime">Anime</span></div>
                     <div class="mobile-tab" data-tab="games" onclick="ProfileManager.showTab('games')"><i class="fas fa-gamepad"></i> <span id="mobileTabGames">Games</span></div>
@@ -1185,7 +1185,7 @@
             <!-- Movies Section -->
             <div class="mobile-section" id="mobileMoviesSection">
                 <div class="mobile-section-title">
-                    <span>My Movies</span>
+                    <span id="mobileMoviesTitle">My Movies</span>
                     <div style="display: flex; gap: 8px;">
                         <button class="mobile-action-btn" id="mobileCreateMovieListBtn" style="padding: 8px 12px; font-size: 14px; width: auto; margin-bottom: 0;" onclick="ProfileManager.createMovieList()">
                             <i class="fas fa-plus"></i>
@@ -1195,7 +1195,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="mobile-section-subtitle">Organize your favorite films</div>
+                <div class="mobile-section-subtitle" id="mobileMoviesSubtitle">Organize your favorite films</div>
                 
                 <div class="collection-grid" id="mobileMoviesGrid">
                     <div class="mobile-empty-state">
