@@ -8732,13 +8732,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     function getLandingWallMinimumCount(kind) {
-      if (isMobileLandingWall()) return kind === 'poster' ? 12 : 10;
+      if (isMobileLandingWall()) return kind === 'poster' ? 18 : 16;
       const visibleCount = getLandingWallVisibleCount();
       return kind === 'poster' ? visibleCount * 4 : visibleCount * 3;
     }
 
     function getLandingWallTrackCount(kind) {
-      if (isMobileLandingWall()) return kind === 'poster' ? 12 : 10;
+      if (isMobileLandingWall()) return kind === 'poster' ? 18 : 16;
       return kind === 'poster' ? 18 : 14;
     }
 
@@ -8995,7 +8995,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       row.dataset.rowKind = kind;
       row.dataset.direction = direction;
       row.dataset.wallPrefix = prefix;
-      row.style.setProperty('--landing-row-duration', `${Math.max(isMobileLandingWall() ? 20 : 18, displayEntries.length * (kind === 'poster' ? 2.8 : 2.4))}s`);
+      const rowDuration = isMobileLandingWall()
+        ? (kind === 'poster' ? 24 : 22)
+        : Math.max(18, displayEntries.length * (kind === 'poster' ? 2.8 : 2.4));
+      row.style.setProperty('--landing-row-duration', `${rowDuration}s`);
       row.replaceChildren();
 
       const track = document.createElement('div');

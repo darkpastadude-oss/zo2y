@@ -2473,8 +2473,8 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall {
-    --landing-mobile-poster-row-height: clamp(66px, 9vh, 82px);
-    --landing-mobile-logo-row-height: clamp(54px, 7.4vh, 64px);
+    --landing-mobile-poster-row-height: clamp(72px, 9.8vh, 90px);
+    --landing-mobile-logo-row-height: clamp(58px, 7.9vh, 70px);
     grid-template-rows:
       var(--landing-mobile-poster-row-height)
       var(--landing-mobile-poster-row-height)
@@ -2483,14 +2483,14 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
       var(--landing-mobile-logo-row-height)
       var(--landing-mobile-logo-row-height)
       var(--landing-mobile-logo-row-height);
-    gap: 6px;
-    padding: 14px 10px;
+    gap: 7px;
+    padding: 14px 8px;
     align-content: center;
     overflow: hidden;
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall-row {
-    --landing-row-gap: 6px;
+    --landing-row-gap: 7px;
     height: var(--landing-mobile-poster-row-height);
     min-height: var(--landing-mobile-poster-row-height);
     overflow: clip;
@@ -2512,12 +2512,12 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
   html[data-auth-shell="landing"] .landing-v4-tile--poster {
     aspect-ratio: 0.72 / 1;
-    min-width: 48px;
+    min-width: 56px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile--logo img,
   html[data-auth-shell="landing"] .landing-v4-tile--light img {
-    width: min(84%, 58px);
+    width: min(86%, 62px);
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile--logo {
