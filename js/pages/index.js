@@ -8743,8 +8743,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     function getLandingWallEagerCount(kind) {
-      if (isMobileLandingWall()) return kind === 'poster' ? 2 : 3;
-      return kind === 'poster' ? 4 : 5;
+      if (isMobileLandingWall()) return kind === 'poster' ? 3 : 4;
+      return kind === 'poster' ? 5 : 6;
     }
 
     function getLandingWallRow(prefix) {
@@ -8945,7 +8945,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       img.decoding = 'async';
       img.referrerPolicy = 'no-referrer';
       img.loading = eager ? 'eager' : 'lazy';
-      if (eager) img.fetchPriority = 'high';
+      img.fetchPriority = eager ? 'high' : 'low';
       img.onload = () => {
         if (kind === 'logo') {
           const current = String(img.currentSrc || img.src || '').trim();
@@ -8996,8 +8996,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       row.dataset.direction = direction;
       row.dataset.wallPrefix = prefix;
       const rowDuration = isMobileLandingWall()
-        ? (kind === 'poster' ? 24 : 22)
-        : Math.max(18, displayEntries.length * (kind === 'poster' ? 2.8 : 2.4));
+        ? (kind === 'poster' ? 34 : 30)
+        : Math.max(30, displayEntries.length * (kind === 'poster' ? 3.8 : 3.2));
       row.style.setProperty('--landing-row-duration', `${rowDuration}s`);
       row.replaceChildren();
 

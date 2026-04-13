@@ -2086,21 +2086,24 @@ html[data-auth-shell="landing"] .landing-legal-strip {
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px;
 }
 
 html[data-auth-shell="landing"] .landing-legal-strip a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  padding: 0 18px;
-  border-radius: 999px;
+  display: inline-block;
+  padding: 0;
   color: #ffbc42;
   font-size: 14px;
   font-weight: 800;
-  background: rgba(255, 188, 66, 0.08);
-  border: 1px solid rgba(255, 188, 66, 0.22);
+  line-height: 1.2;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 188, 66, 0.42);
+  transition: color 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+}
+
+html[data-auth-shell="landing"] .landing-legal-strip a:hover {
+  color: #ffd37d;
+  border-color: rgba(255, 211, 125, 0.72);
 }
 
 html[data-auth-shell="landing"] .landing-v4-setup-hero {
@@ -2453,14 +2456,12 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
   html[data-auth-shell="landing"] .landing-legal-strip {
     padding: 10px 0 22px;
-    gap: 10px;
+    gap: 14px;
     justify-content: center;
     flex-direction: row;
   }
 
   html[data-auth-shell="landing"] .landing-legal-strip a {
-    min-height: 38px;
-    padding: 0 14px;
     font-size: 13px;
   }
 
