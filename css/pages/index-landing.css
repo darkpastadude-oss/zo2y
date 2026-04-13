@@ -2465,16 +2465,16 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-setup-hero {
-    min-height: clamp(620px, calc(100svh - 102px), 720px);
-    height: clamp(620px, calc(100svh - 102px), 720px);
+    min-height: clamp(650px, calc(100svh - 92px), 760px);
+    height: clamp(650px, calc(100svh - 92px), 760px);
     aspect-ratio: auto;
     max-height: none;
     border-radius: 22px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall {
-    --landing-mobile-poster-row-height: clamp(72px, 9.8vh, 90px);
-    --landing-mobile-logo-row-height: clamp(58px, 7.9vh, 70px);
+    --landing-mobile-poster-row-height: clamp(82px, 10.6vh, 102px);
+    --landing-mobile-logo-row-height: clamp(64px, 8.3vh, 78px);
     grid-template-rows:
       var(--landing-mobile-poster-row-height)
       var(--landing-mobile-poster-row-height)
@@ -2483,14 +2483,14 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
       var(--landing-mobile-logo-row-height)
       var(--landing-mobile-logo-row-height)
       var(--landing-mobile-logo-row-height);
-    gap: 7px;
-    padding: 14px 8px;
+    gap: 8px;
+    padding: 16px 6px;
     align-content: center;
     overflow: hidden;
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall-row {
-    --landing-row-gap: 7px;
+    --landing-row-gap: 8px;
     height: var(--landing-mobile-poster-row-height);
     min-height: var(--landing-mobile-poster-row-height);
     overflow: clip;
@@ -2512,12 +2512,12 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
   html[data-auth-shell="landing"] .landing-v4-tile--poster {
     aspect-ratio: 0.72 / 1;
-    min-width: 56px;
+    min-width: 64px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile--logo img,
   html[data-auth-shell="landing"] .landing-v4-tile--light img {
-    width: min(86%, 62px);
+    width: min(88%, 68px);
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile--logo {
