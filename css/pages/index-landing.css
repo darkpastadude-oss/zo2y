@@ -2140,28 +2140,12 @@ html[data-auth-shell="landing"] .landing-v4-wall-row {
 
 html[data-auth-shell="landing"] .landing-v4-wall-track {
   display: flex;
-  gap: 0;
-  width: max-content;
-  min-width: 100%;
-  height: 100%;
-  will-change: transform;
-}
-
-html[data-auth-shell="landing"] .landing-v4-wall-strip {
-  display: flex;
   align-items: stretch;
   gap: var(--landing-row-gap);
-  padding-right: var(--landing-row-gap);
+  width: max-content;
+  min-width: max-content;
   height: 100%;
-  flex: 0 0 auto;
-}
-
-html[data-auth-shell="landing"] .landing-v4-wall-row[data-direction="left"] .landing-v4-wall-track {
-  animation: landing-v4-marquee-left var(--landing-row-duration) linear infinite;
-}
-
-html[data-auth-shell="landing"] .landing-v4-wall-row[data-direction="right"] .landing-v4-wall-track {
-  animation: landing-v4-marquee-right var(--landing-row-duration) linear infinite;
+  will-change: transform;
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile {
@@ -2181,7 +2165,7 @@ html[data-auth-shell="landing"] .landing-v4-tile {
 html[data-auth-shell="landing"] .landing-v4-tile img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -2302,16 +2286,6 @@ html[data-auth-shell="landing"] .landing-v4-tile--slide-left {
 
 html[data-auth-shell="landing"] .landing-v4-tile--slide-right {
   animation-name: landing-v4-tile-slide-right;
-}
-
-@keyframes landing-v4-marquee-left {
-  0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-50%, 0, 0); }
-}
-
-@keyframes landing-v4-marquee-right {
-  0% { transform: translate3d(-50%, 0, 0); }
-  100% { transform: translate3d(0, 0, 0); }
 }
 
 html[data-auth-shell="landing"] .landing-v4-wall-overlay {
@@ -2472,8 +2446,16 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 
   html[data-auth-shell="landing"] .landing-v4-wall {
-    --landing-mobile-row-height: clamp(58px, 8.3vh, 72px);
-    grid-template-rows: repeat(7, var(--landing-mobile-row-height));
+    --landing-mobile-poster-row-height: clamp(66px, 9vh, 82px);
+    --landing-mobile-logo-row-height: clamp(54px, 7.4vh, 64px);
+    grid-template-rows:
+      var(--landing-mobile-poster-row-height)
+      var(--landing-mobile-poster-row-height)
+      var(--landing-mobile-poster-row-height)
+      var(--landing-mobile-poster-row-height)
+      var(--landing-mobile-logo-row-height)
+      var(--landing-mobile-logo-row-height)
+      var(--landing-mobile-logo-row-height);
     gap: 6px;
     padding: 14px 10px;
     align-content: center;
@@ -2482,14 +2464,14 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
   html[data-auth-shell="landing"] .landing-v4-wall-row {
     --landing-row-gap: 6px;
-    height: var(--landing-mobile-row-height);
-    min-height: var(--landing-mobile-row-height);
+    height: var(--landing-mobile-poster-row-height);
+    min-height: var(--landing-mobile-poster-row-height);
     overflow: clip;
   }
 
-  html[data-auth-shell="landing"] .landing-v4-wall-track,
-  html[data-auth-shell="landing"] .landing-v4-wall-strip {
-    height: 100%;
+  html[data-auth-shell="landing"] .landing-v4-wall-row[data-row-kind="logo"] {
+    height: var(--landing-mobile-logo-row-height);
+    min-height: var(--landing-mobile-logo-row-height);
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile {
@@ -2503,11 +2485,12 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 
   html[data-auth-shell="landing"] .landing-v4-tile--poster {
     aspect-ratio: 0.72 / 1;
+    min-width: 48px;
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile--logo img,
   html[data-auth-shell="landing"] .landing-v4-tile--light img {
-    width: min(80%, 56px);
+    width: min(84%, 58px);
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile--logo {
@@ -2557,7 +2540,6 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-auth-shell="landing"] .landing-v4-wall-track,
   html[data-auth-shell="landing"] .landing-v4-tile--slide-left,
   html[data-auth-shell="landing"] .landing-v4-tile--slide-right {
     animation: none !important;

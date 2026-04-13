@@ -8622,6 +8622,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     let landingWallHydrated = false;
     let landingSavePromptTimer = null;
     const landingWallRowStates = new Map();
+    const landingWallRowRotators = new Map();
     const landingReviewUsers = new Map();
     const landingReviewMeta = new Map();
     const LANDING_REVIEW_LIMIT = 6;
@@ -8736,6 +8737,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return kind === 'poster' ? visibleCount * 4 : visibleCount * 3;
     }
 
+    function getLandingWallTrackCount(kind) {
+      if (isMobileLandingWall()) return kind === 'poster' ? 12 : 10;
+      return kind === 'poster' ? 18 : 14;
+    }
+
     function getLandingWallEagerCount(kind) {
       if (isMobileLandingWall()) return kind === 'poster' ? 2 : 3;
       return kind === 'poster' ? 4 : 5;
@@ -8768,6 +8774,60 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         loop.push(...seed);
       }
       return loop.slice(0, targetCount);
+    }
+
+    function stopLandingWallRowRotation(prefix) {
+      const key = String(prefix || '').trim();
+      const existing = landingWallRowRotators.get(key);
+      if (!existing) return;
+      if (existing.interval) window.clearInterval(existing.interval);
+      landingWallRowRotators.delete(key);
+    }
+
+    function startLandingWallRowRotation(row, prefix) {
+      if (!row || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+      const key = String(prefix || '').trim();
+      const track = row.querySelector('.landing-v4-wall-track');
+      if (!track || track.children.length < 2) return;
+
+      stopLandingWallRowRotation(key);
+
+      const direction = row.dataset.direction === 'right' ? 'right' : 'left';
+      const gap = parseFloat(getComputedStyle(row).getPropertyValue('--landing-row-gap')) || 0;
+      const kind = row.dataset.rowKind === 'logo' ? 'logo' : 'poster';
+      const stepMs = isMobileLandingWall()
+        ? (kind === 'poster' ? 2100 : 1900)
+        : (kind === 'poster' ? 2300 : 2050);
+      const transitionMs = isMobileLandingWall() ? 760 : 840;
+
+      let busy = false;
+      const step = () => {
+        if (busy || track.children.length < 2 || !row.isConnected) return;
+        const mover = direction === 'left' ? track.firstElementChild : track.lastElementChild;
+        if (!mover) return;
+        const width = mover.getBoundingClientRect().width + gap;
+        if (!width) return;
+        busy = true;
+        track.style.transition = `transform ${transitionMs}ms cubic-bezier(0.22, 1, 0.36, 1)`;
+        track.style.transform = direction === 'left'
+          ? `translate3d(${-width}px, 0, 0)`
+          : `translate3d(${width}px, 0, 0)`;
+
+        window.setTimeout(() => {
+          track.style.transition = 'none';
+          if (direction === 'left') {
+            track.appendChild(mover);
+          } else {
+            track.insertBefore(mover, track.firstElementChild);
+          }
+          track.style.transform = 'translate3d(0, 0, 0)';
+          void track.offsetWidth;
+          busy = false;
+        }, transitionMs + 28);
+      };
+
+      const interval = window.setInterval(step, stepMs);
+      landingWallRowRotators.set(key, { interval });
     }
 
     function setLandingPosterBackground(figure, image) {
@@ -8967,33 +9027,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const kind = getLandingWallRowKind(prefix);
       const direction = getLandingWallRowDirection(prefix);
       const minimumCount = getLandingWallMinimumCount(kind);
+      const trackCount = getLandingWallTrackCount(kind);
       const eagerCount = getLandingWallEagerCount(kind);
       const baseEntries = dedupeLandingWallEntries(entries);
       if (!baseEntries.length) return;
-      const stripEntries = buildLandingWallLoopEntries(baseEntries, minimumCount);
-      if (!stripEntries.length) return;
+      const displayEntries = baseEntries.slice(0, Math.max(minimumCount, Math.min(trackCount, baseEntries.length)));
+      if (!displayEntries.length) return;
 
       row.dataset.rowKind = kind;
       row.dataset.direction = direction;
       row.dataset.wallPrefix = prefix;
-      row.style.setProperty('--landing-row-duration', `${Math.max(isMobileLandingWall() ? 20 : 18, stripEntries.length * (kind === 'poster' ? 2.8 : 2.4))}s`);
+      row.style.setProperty('--landing-row-duration', `${Math.max(isMobileLandingWall() ? 20 : 18, displayEntries.length * (kind === 'poster' ? 2.8 : 2.4))}s`);
       row.replaceChildren();
 
       const track = document.createElement('div');
       track.className = 'landing-v4-wall-track';
-
-      const buildStrip = (sourceEntries, eager) => {
-        const strip = document.createElement('div');
-        strip.className = 'landing-v4-wall-strip';
-        sourceEntries.forEach((entry, index) => {
-          strip.appendChild(createLandingWallTileFigure(entry, kind, eager && index < eagerCount));
-        });
-        return strip;
-      };
-
-      track.appendChild(buildStrip(stripEntries, true));
-      track.appendChild(buildStrip(stripEntries, false));
+      displayEntries.forEach((entry, index) => {
+        track.appendChild(createLandingWallTileFigure(entry, kind, index < eagerCount));
+      });
       row.appendChild(track);
+      startLandingWallRowRotation(row, prefix);
     }
 
     function setLandingWallRowEntries(prefix, entries) {
