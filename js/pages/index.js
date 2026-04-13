@@ -8726,11 +8726,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return window.matchMedia && window.matchMedia('(max-width: 760px)').matches ? 4 : LANDING_WALL_SLOT_COUNT;
     }
 
+    function isMobileLandingWall() {
+      return Boolean(window.matchMedia && window.matchMedia('(max-width: 760px)').matches);
+    }
+
     function getLandingWallMinimumCount(kind) {
-      const isMobile = Boolean(window.matchMedia && window.matchMedia('(max-width: 760px)').matches);
-      if (isMobile) return kind === 'poster' ? 20 : 18;
+      if (isMobileLandingWall()) return kind === 'poster' ? 12 : 10;
       const visibleCount = getLandingWallVisibleCount();
       return kind === 'poster' ? visibleCount * 4 : visibleCount * 3;
+    }
+
+    function getLandingWallEagerCount(kind) {
+      if (isMobileLandingWall()) return kind === 'poster' ? 2 : 3;
+      return kind === 'poster' ? 4 : 5;
     }
 
     function getLandingWallRow(prefix) {
@@ -8959,6 +8967,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const kind = getLandingWallRowKind(prefix);
       const direction = getLandingWallRowDirection(prefix);
       const minimumCount = getLandingWallMinimumCount(kind);
+      const eagerCount = getLandingWallEagerCount(kind);
       const baseEntries = dedupeLandingWallEntries(entries);
       if (!baseEntries.length) return;
       const stripEntries = buildLandingWallLoopEntries(baseEntries, minimumCount);
@@ -8967,7 +8976,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       row.dataset.rowKind = kind;
       row.dataset.direction = direction;
       row.dataset.wallPrefix = prefix;
-      row.style.setProperty('--landing-row-duration', `${Math.max(18, stripEntries.length * (kind === 'poster' ? 2.5 : 2.2))}s`);
+      row.style.setProperty('--landing-row-duration', `${Math.max(isMobileLandingWall() ? 20 : 18, stripEntries.length * (kind === 'poster' ? 2.8 : 2.4))}s`);
       row.replaceChildren();
 
       const track = document.createElement('div');
@@ -8976,8 +8985,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const buildStrip = (sourceEntries, eager) => {
         const strip = document.createElement('div');
         strip.className = 'landing-v4-wall-strip';
-        sourceEntries.forEach((entry) => {
-          strip.appendChild(createLandingWallTileFigure(entry, kind, eager));
+        sourceEntries.forEach((entry, index) => {
+          strip.appendChild(createLandingWallTileFigure(entry, kind, eager && index < eagerCount));
         });
         return strip;
       };
@@ -9004,46 +9013,44 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         || getLandingWallTile('sports-1'));
       if (!hasWallTargets) return;
 
-      const [moviesRes, tvRes, animeRes, gamesRes, sportsRes, foodRes, fashionRes] = await Promise.allSettled([
-        loadMovies(null),
-        loadTv(null),
-        loadAnime(null),
-        loadGames(null),
-        loadSports(null),
-        loadFoodBrands(),
-        loadFashionBrands()
-      ]);
+      const updateWallRow = async (prefix, loader, fallbackEntries = []) => {
+        let liveEntries = [];
+        try {
+          const result = await loader();
+          liveEntries = buildLandingWallEntries(result);
+        } catch (_error) {
+          liveEntries = [];
+        }
+        const merged = mergeLandingWallEntries(liveEntries, fallbackEntries);
+        if (merged.length) setLandingWallRowEntries(prefix, merged);
+      };
 
-      const movieEntries = buildLandingWallEntries(moviesRes.status === 'fulfilled' ? moviesRes.value : []);
-      const tvEntries = buildLandingWallEntries(tvRes.status === 'fulfilled' ? tvRes.value : []);
-      const animeEntries = buildLandingWallEntries(animeRes.status === 'fulfilled' ? animeRes.value : []);
-      const gameEntries = mergeLandingWallEntries(
-        buildLandingWallEntries(gamesRes.status === 'fulfilled' ? gamesRes.value : []),
+      void updateWallRow('movie', () => loadMovies(null));
+      void updateWallRow('tv', () => loadTv(null));
+      void updateWallRow('anime', () => loadAnime(null));
+      void updateWallRow(
+        'game',
+        () => loadGames(null),
         LANDING_WALL_FALLBACK_GAMES.map((entry) => ({
           image: entry.image,
           alt: entry.title
         }))
       );
-      const sportsEntries = mergeLandingWallEntries(
-        buildLandingWallEntries(sportsRes.status === 'fulfilled' ? sportsRes.value : []),
+      void updateWallRow(
+        'sports',
+        () => loadSports(null),
         LANDING_WALL_FALLBACK_LOGOS.sports.map(buildLandingWallLogoEntry)
       );
-      const foodEntries = mergeLandingWallEntries(
-        buildLandingWallEntries(foodRes.status === 'fulfilled' ? foodRes.value : []),
+      void updateWallRow(
+        'food',
+        () => loadFoodBrands(),
         LANDING_WALL_FALLBACK_LOGOS.food.map(buildLandingWallLogoEntry)
       );
-      const fashionEntries = mergeLandingWallEntries(
-        buildLandingWallEntries(fashionRes.status === 'fulfilled' ? fashionRes.value : []),
+      void updateWallRow(
+        'fashion',
+        () => loadFashionBrands(),
         LANDING_WALL_FALLBACK_LOGOS.fashion.map(buildLandingWallLogoEntry)
       );
-
-      setLandingWallRowEntries('movie', movieEntries);
-      setLandingWallRowEntries('tv', tvEntries);
-      setLandingWallRowEntries('anime', animeEntries);
-      setLandingWallRowEntries('game', gameEntries);
-      setLandingWallRowEntries('sports', sportsEntries);
-      setLandingWallRowEntries('food', foodEntries);
-      setLandingWallRowEntries('fashion', fashionEntries);
     }
 
     function truncateLandingText(value, maxLength = 120) {
