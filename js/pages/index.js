@@ -8996,8 +8996,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       row.dataset.direction = direction;
       row.dataset.wallPrefix = prefix;
       const rowDuration = isMobileLandingWall()
-        ? (kind === 'poster' ? 34 : 30)
-        : Math.max(30, displayEntries.length * (kind === 'poster' ? 3.8 : 3.2));
+        ? (kind === 'poster' ? 48 : 42)
+        : Math.max(38, displayEntries.length * (kind === 'poster' ? 4.6 : 4.0));
       row.style.setProperty('--landing-row-duration', `${rowDuration}s`);
       row.replaceChildren();
 
