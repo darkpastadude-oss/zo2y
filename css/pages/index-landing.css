@@ -2501,20 +2501,6 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
     min-height: var(--landing-mobile-logo-row-height);
   }
 
-  html[data-auth-shell="landing"] .landing-v4-wall-row[data-direction="left"] .landing-v4-wall-track,
-  html[data-auth-shell="landing"] .landing-v4-wall-row[data-direction="right"] .landing-v4-wall-track {
-    animation: none;
-  }
-
-  html[data-auth-shell="landing"] .landing-v4-wall-track {
-    gap: var(--landing-row-gap);
-    min-width: max-content;
-  }
-
-  html[data-auth-shell="landing"] .landing-v4-wall-strip {
-    display: none;
-  }
-
   html[data-auth-shell="landing"] .landing-v4-tile {
     border-radius: 12px;
     aspect-ratio: auto;

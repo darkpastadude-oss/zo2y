@@ -8784,50 +8784,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       landingWallRowRotators.delete(key);
     }
 
-    function startLandingWallRowRotation(row, prefix) {
-      if (!row || !isMobileLandingWall() || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-      const key = String(prefix || '').trim();
-      const track = row.querySelector('.landing-v4-wall-track');
-      if (!track || track.children.length < 2) return;
-
-      stopLandingWallRowRotation(key);
-
-      const direction = row.dataset.direction === 'right' ? 'right' : 'left';
-      const gap = parseFloat(getComputedStyle(row).getPropertyValue('--landing-row-gap')) || 0;
-      const kind = row.dataset.rowKind === 'logo' ? 'logo' : 'poster';
-      const stepMs = isMobileLandingWall()
-        ? (kind === 'poster' ? 2100 : 1900)
-        : (kind === 'poster' ? 2300 : 2050);
-      const transitionMs = isMobileLandingWall() ? 760 : 840;
-
-      let busy = false;
-      const step = () => {
-        if (busy || track.children.length < 2 || !row.isConnected) return;
-        const mover = direction === 'left' ? track.firstElementChild : track.lastElementChild;
-        if (!mover) return;
-        const width = mover.getBoundingClientRect().width + gap;
-        if (!width) return;
-        busy = true;
-        track.style.transition = `transform ${transitionMs}ms cubic-bezier(0.22, 1, 0.36, 1)`;
-        track.style.transform = direction === 'left'
-          ? `translate3d(${-width}px, 0, 0)`
-          : `translate3d(${width}px, 0, 0)`;
-
-        window.setTimeout(() => {
-          track.style.transition = 'none';
-          if (direction === 'left') {
-            track.appendChild(mover);
-          } else {
-            track.insertBefore(mover, track.firstElementChild);
-          }
-          track.style.transform = 'translate3d(0, 0, 0)';
-          void track.offsetWidth;
-          busy = false;
-        }, transitionMs + 28);
-      };
-
-      const interval = window.setInterval(step, stepMs);
-      landingWallRowRotators.set(key, { interval });
+    function startLandingWallRowRotation(_row, prefix) {
+      stopLandingWallRowRotation(prefix);
     }
 
     function setLandingPosterBackground(figure, image) {
@@ -9051,19 +9009,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         return strip;
       };
 
-      if (isMobileLandingWall()) {
-        displayEntries.forEach((entry, index) => {
-          track.appendChild(createLandingWallTileFigure(entry, kind, index < eagerCount));
-        });
-        row.appendChild(track);
-        startLandingWallRowRotation(row, prefix);
-        return;
-      }
-
       const desktopEntries = buildLandingWallLoopEntries(baseEntries, Math.max(trackCount, minimumCount));
       track.appendChild(buildStrip(desktopEntries, true));
       track.appendChild(buildStrip(desktopEntries, false));
       row.appendChild(track);
+      startLandingWallRowRotation(row, prefix);
     }
 
     function setLandingWallRowEntries(prefix, entries) {
