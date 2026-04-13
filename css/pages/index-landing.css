@@ -2141,11 +2141,28 @@ html[data-auth-shell="landing"] .landing-v4-wall-row {
 html[data-auth-shell="landing"] .landing-v4-wall-track {
   display: flex;
   align-items: stretch;
-  gap: var(--landing-row-gap);
+  gap: 0;
   width: max-content;
-  min-width: max-content;
+  min-width: 100%;
   height: 100%;
   will-change: transform;
+}
+
+html[data-auth-shell="landing"] .landing-v4-wall-strip {
+  display: flex;
+  align-items: stretch;
+  gap: var(--landing-row-gap);
+  padding-right: var(--landing-row-gap);
+  height: 100%;
+  flex: 0 0 auto;
+}
+
+html[data-auth-shell="landing"] .landing-v4-wall-row[data-direction="left"] .landing-v4-wall-track {
+  animation: landing-v4-marquee-left var(--landing-row-duration) linear infinite;
+}
+
+html[data-auth-shell="landing"] .landing-v4-wall-row[data-direction="right"] .landing-v4-wall-track {
+  animation: landing-v4-marquee-right var(--landing-row-duration) linear infinite;
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile {
@@ -2198,6 +2215,16 @@ html[data-auth-shell="landing"] .landing-v4-tile--poster img {
   padding: 0;
   position: relative;
   z-index: 1;
+}
+
+@keyframes landing-v4-marquee-left {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes landing-v4-marquee-right {
+  0% { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
 html[data-auth-shell="landing"] .landing-v4-tile::after {
@@ -2472,6 +2499,20 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   html[data-auth-shell="landing"] .landing-v4-wall-row[data-row-kind="logo"] {
     height: var(--landing-mobile-logo-row-height);
     min-height: var(--landing-mobile-logo-row-height);
+  }
+
+  html[data-auth-shell="landing"] .landing-v4-wall-row[data-direction="left"] .landing-v4-wall-track,
+  html[data-auth-shell="landing"] .landing-v4-wall-row[data-direction="right"] .landing-v4-wall-track {
+    animation: none;
+  }
+
+  html[data-auth-shell="landing"] .landing-v4-wall-track {
+    gap: var(--landing-row-gap);
+    min-width: max-content;
+  }
+
+  html[data-auth-shell="landing"] .landing-v4-wall-strip {
+    display: none;
   }
 
   html[data-auth-shell="landing"] .landing-v4-tile {
