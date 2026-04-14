@@ -167,7 +167,7 @@
       min-height: 154px;
       max-height: 154px;
       display: grid;
-      grid-template-columns: minmax(0, 1.26fr) minmax(88px, 0.74fr);
+      grid-template-columns: minmax(0, 1.22fr) minmax(110px, 0.78fr);
       gap: 0;
       background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
     }
@@ -234,7 +234,7 @@
       border-radius: 0;
       box-shadow: none;
       background: rgba(255,255,255,0.04);
-      padding: 8px 10px;
+      padding: 0;
     }
 
     .media-spotlight-actions { margin-top: auto; display: flex; gap: 8px; padding-top: 2px; }
@@ -1426,7 +1426,7 @@
       ];
 
       const STRICT_GAME_FRANCHISE_LIMITS = {
-        fortnite: 1,
+        fortnite: 2,
         overwatch: 2,
         undertale: 1
       };
@@ -2091,7 +2091,7 @@
             return targeted;
           }
         }
-        if (!state.query && !state.activeGenre && !state.year) {
+        if (Math.max(1, Number(state.page || 1)) === 1 && !state.query && !state.activeGenre && !state.year && !state.platform) {
           const fast = await fetchFastFeaturedGamesPage(pageSize);
           if (fast?.rows?.length) return fast;
         }
@@ -2477,7 +2477,7 @@
         const signal = igdbAbortController.signal;
 
         const pageSize = getGamesPageSize();
-        const shouldUseFeaturedCache = isPopularGamesBrowseState();
+        const shouldUseFeaturedCache = isPopularGamesBrowseState() && Math.max(1, Number(state.page || 1)) === 1;
         const cachedFeaturedPage = shouldUseFeaturedCache ? readCachedFeaturedGamesPage(state.page) : null;
         if (empty) empty.style.display = 'none';
 

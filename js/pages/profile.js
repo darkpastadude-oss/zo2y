@@ -1136,6 +1136,9 @@
                 const booksTabText = document.getElementById('booksTabText');
                 const musicTabText = document.getElementById('musicTabText');
                 const sportsTabText = document.getElementById('sportsTabText');
+                const travelTabText = document.getElementById('travelTabText');
+                const fashionTabText = document.getElementById('fashionTabText');
+                const foodTabText = document.getElementById('foodTabText');
                 const carsTabText = document.getElementById('carsTabText');
                 const moviesTitle = document.getElementById('moviesTitle');
                 const journalTitle = document.getElementById('journalTitle');
@@ -1146,6 +1149,9 @@
                 const booksTitle = document.getElementById('booksTitle');
                 const musicTitle = document.getElementById('musicTitle');
                 const sportsTitle = document.getElementById('sportsTitle');
+                const travelTitle = document.getElementById('travelTitle');
+                const fashionTitle = document.getElementById('fashionTitle');
+                const foodTitle = document.getElementById('foodTitle');
                 const carsTitle = document.getElementById('carsTitle');
                 const communityTitle = document.getElementById('communityTitle');
                 const journalSubtitle = document.getElementById('journalSubtitle');
@@ -1157,6 +1163,9 @@
                 const booksSubtitle = document.getElementById('booksSubtitle');
                 const musicSubtitle = document.getElementById('musicSubtitle');
                 const sportsSubtitle = document.getElementById('sportsSubtitle');
+                const travelSubtitle = document.getElementById('travelSubtitle');
+                const fashionSubtitle = document.getElementById('fashionSubtitle');
+                const foodSubtitle = document.getElementById('foodSubtitle');
                 const carsSubtitle = document.getElementById('carsSubtitle');
                 const communitySubtitle = document.getElementById('communitySubtitle');
                 const followersSectionTitle = document.getElementById('followersSectionTitle');
@@ -1173,6 +1182,10 @@
                 if (booksTabText) booksTabText.textContent = `${userName}'s Books`;
                 if (musicTabText) musicTabText.textContent = `${userName}'s Music`;
                 if (sportsTabText) sportsTabText.textContent = `${userName}'s Sports`;
+                if (travelTabText) travelTabText.textContent = `${userName}'s Travel`;
+                if (fashionTabText) fashionTabText.textContent = `${userName}'s Fashion`;
+                if (foodTabText) foodTabText.textContent = `${userName}'s Food`;
+                if (carsTabText) carsTabText.textContent = `${userName}'s Cars`;
                 if (moviesTitle) moviesTitle.textContent = `${userName}'s Movies`;
                 if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
                 if (restaurantsTitle) restaurantsTitle.textContent = `${userName}'s Collections`;
@@ -1182,6 +1195,10 @@
                 if (booksTitle) booksTitle.textContent = `${userName}'s Books`;
                 if (musicTitle) musicTitle.textContent = `${userName}'s Music`;
                 if (sportsTitle) sportsTitle.textContent = `${userName}'s Teams`;
+                if (travelTitle) travelTitle.textContent = `${userName}'s Travel`;
+                if (fashionTitle) fashionTitle.textContent = `${userName}'s Fashion`;
+                if (foodTitle) foodTitle.textContent = `${userName}'s Food`;
+                if (carsTitle) carsTitle.textContent = `${userName}'s Cars`;
                 if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
                 if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s featured collections`;
@@ -1192,6 +1209,10 @@
                 if (booksSubtitle) booksSubtitle.textContent = `${userName}'s favorite books`;
                 if (musicSubtitle) musicSubtitle.textContent = `${userName}'s favorite tracks`;
                 if (sportsSubtitle) sportsSubtitle.textContent = `${userName}'s favorite teams`;
+                if (travelSubtitle) travelSubtitle.textContent = `${userName}'s saved countries and travel goals`;
+                if (fashionSubtitle) fashionSubtitle.textContent = `${userName}'s favorite fashion brands`;
+                if (foodSubtitle) foodSubtitle.textContent = `${userName}'s favorite food brands`;
+                if (carsSubtitle) carsSubtitle.textContent = `${userName}'s favorite car brands`;
                 if (communitySubtitle) communitySubtitle.textContent = `${userName}'s community connections`;
                 if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
                 if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
@@ -1208,6 +1229,7 @@
                 const mobileTabBooks = document.getElementById('mobileTabBooks');
                 const mobileTabMusic = document.getElementById('mobileTabMusic');
                 const mobileTabSports = document.getElementById('mobileTabSports');
+                const mobileTabTravel = document.getElementById('mobileTabTravel');
                 const mobileTabFashion = document.getElementById('mobileTabFashion');
                 const mobileTabFood = document.getElementById('mobileTabFood');
                 const mobileTabCars = document.getElementById('mobileTabCars');
@@ -1219,6 +1241,7 @@
                 const mobileBooksTitle = document.getElementById('mobileBooksTitle');
                 const mobileMusicTitle = document.getElementById('mobileMusicTitle');
                 const mobileSportsTitle = document.getElementById('mobileSportsTitle');
+                const mobileTravelTitle = document.getElementById('mobileTravelTitle');
                 const mobileFashionTitle = document.getElementById('mobileFashionTitle');
                 const mobileFoodTitle = document.getElementById('mobileFoodTitle');
                 const mobileCarsTitle = document.getElementById('mobileCarsTitle');
@@ -1231,6 +1254,7 @@
                 const mobileBooksSubtitle = document.getElementById('mobileBooksSubtitle');
                 const mobileMusicSubtitle = document.getElementById('mobileMusicSubtitle');
                 const mobileSportsSubtitle = document.getElementById('mobileSportsSubtitle');
+                const mobileTravelSubtitle = document.getElementById('mobileTravelSubtitle');
                 const mobileFashionSubtitle = document.getElementById('mobileFashionSubtitle');
                 const mobileFoodSubtitle = document.getElementById('mobileFoodSubtitle');
                 const mobileCarsSubtitle = document.getElementById('mobileCarsSubtitle');
@@ -1246,6 +1270,10 @@
                 if (mobileTabBooks) mobileTabBooks.textContent = `${userName}'s Books`;
                 if (mobileTabMusic) mobileTabMusic.textContent = `${userName}'s Music`;
                 if (mobileTabSports) mobileTabSports.textContent = `${userName}'s Sports`;
+                if (mobileTabTravel) mobileTabTravel.textContent = `${userName}'s Travel`;
+                if (mobileTabFashion) mobileTabFashion.textContent = `${userName}'s Fashion`;
+                if (mobileTabFood) mobileTabFood.textContent = `${userName}'s Food`;
+                if (mobileTabCars) mobileTabCars.textContent = `${userName}'s Cars`;
                 if (mobileMoviesTitle) mobileMoviesTitle.textContent = `${userName}'s Movies`;
                 if (mobileJournalTitle) mobileJournalTitle.textContent = `${userName}'s Food Journal`;
                 if (mobileRestaurantsTitle) mobileRestaurantsTitle.textContent = `${userName}'s Collections`;
@@ -1254,6 +1282,10 @@
                 if (mobileBooksTitle) mobileBooksTitle.textContent = `${userName}'s Books`;
                 if (mobileMusicTitle) mobileMusicTitle.textContent = `${userName}'s Music`;
                 if (mobileSportsTitle) mobileSportsTitle.textContent = `${userName}'s Teams`;
+                if (mobileTravelTitle) mobileTravelTitle.textContent = `${userName}'s Travel`;
+                if (mobileFashionTitle) mobileFashionTitle.textContent = `${userName}'s Fashion`;
+                if (mobileFoodTitle) mobileFoodTitle.textContent = `${userName}'s Food`;
+                if (mobileCarsTitle) mobileCarsTitle.textContent = `${userName}'s Cars`;
                 if (mobileCommunityTitle) mobileCommunityTitle.textContent = `${userName}'s Community`;
                 if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (mobileRestaurantsSubtitle) mobileRestaurantsSubtitle.textContent = `${userName}'s featured collections`;
@@ -1263,6 +1295,10 @@
                 if (mobileBooksSubtitle) mobileBooksSubtitle.textContent = `${userName}'s favorite books`;
                 if (mobileMusicSubtitle) mobileMusicSubtitle.textContent = `${userName}'s favorite tracks`;
                 if (mobileSportsSubtitle) mobileSportsSubtitle.textContent = `${userName}'s favorite teams`;
+                if (mobileTravelSubtitle) mobileTravelSubtitle.textContent = `${userName}'s saved countries and travel goals`;
+                if (mobileFashionSubtitle) mobileFashionSubtitle.textContent = `${userName}'s favorite fashion brands`;
+                if (mobileFoodSubtitle) mobileFoodSubtitle.textContent = `${userName}'s favorite food brands`;
+                if (mobileCarsSubtitle) mobileCarsSubtitle.textContent = `${userName}'s favorite car brands`;
                 if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s community connections`;
             }
 
@@ -5382,6 +5418,13 @@
                 return preferred || normalized[0] || '';
             }
 
+            function isLikelyLogoOnlyGameArt(url) {
+                const value = String(url || '').trim().toLowerCase();
+                if (!value) return false;
+                if (value.endsWith('.svg') || value.includes('.svg?')) return true;
+                return ['logo', 'wordmark', 'transparent', 'icon', 'banner'].some((token) => value.includes(token));
+            }
+
             function normalizeGameImageSource(game) {
                 if (!game || typeof game !== 'object') return '/newlogo.webp';
                 const screenshots = Array.isArray(game.screenshots) ? game.screenshots : [];
@@ -5393,17 +5436,38 @@
                     game.cover_url,
                     game.cover,
                     game.cover?.url,
+                    game.poster,
+                    game.poster_url,
+                    game.image,
+                    game.image_url,
+                    game.thumbnail,
+                    game.thumbnail_url,
                     ...(Array.isArray(extra.local_covers) ? extra.local_covers : []),
                     ...(Array.isArray(extra.covers) ? extra.covers : []),
                     ...(Array.isArray(extra.official_covers) ? extra.official_covers : []),
                     ...(Array.isArray(extra.cover_candidates) ? extra.cover_candidates : []),
+                    ...(Array.isArray(extra.artworks) ? extra.artworks : []),
+                    extra.local_cover,
+                    extra.poster,
+                    extra.poster_url,
+                    extra.cover,
                     game.hero_url,
                     game.hero,
                     game.background_image,
                     ...screenshots,
                     ...shortScreens
                 ]);
-                return cover || '/newlogo.webp';
+                if (cover && !isLikelyLogoOnlyGameArt(cover)) return cover;
+                const hero = pickPreferredCoverUrl([
+                    game.hero_url,
+                    game.hero,
+                    game.background_image,
+                    ...(Array.isArray(extra.local_screenshots) ? extra.local_screenshots : []),
+                    ...(Array.isArray(extra.screenshots) ? extra.screenshots : []),
+                    ...screenshots,
+                    ...shortScreens
+                ]);
+                return hero || cover || '/newlogo.webp';
             }
 
             function normalizeSupabaseGameRecord(row, fallbackId = '') {
