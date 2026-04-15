@@ -407,6 +407,11 @@ const HEADER_HTML = `
   }
 
   function ensureSupabaseClient() {
+    if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+      try {
+        window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+      } catch (_err) {}
+    }
     if (supabaseClient) return supabaseClient;
     if (window.__ZO2Y_SUPABASE_CLIENT) {
       supabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
@@ -578,7 +583,12 @@ const HEADER_HTML = `
     });
     window.addEventListener('storage', (event) => {
       const key = String(event?.key || '').trim();
-      if (key === AUTH_STORAGE_KEY || key === LEGACY_AUTH_STORAGE_KEY || key === PERSIST_AUTH_STORAGE_KEY) {
+      if (
+        key === AUTH_STORAGE_KEY ||
+        key === LEGACY_AUTH_STORAGE_KEY ||
+        key === PERSIST_AUTH_STORAGE_KEY ||
+        key === DURABLE_AUTH_STORAGE_KEY
+      ) {
         void syncAuthHeaderState();
       }
     });

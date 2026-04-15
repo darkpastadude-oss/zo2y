@@ -209,6 +209,40 @@
                 "\u{2B50}", "\u{1F680}", "\u{1F3AF}", "\u{1F3C6}", "\u{2728}"
             ];
 
+            async function resolveAuthenticatedProfileUser(client) {
+                if (!client?.auth) return null;
+                for (let attempt = 0; attempt < 4; attempt += 1) {
+                    if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+                        try {
+                            window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+                        } catch (_err) {}
+                    }
+                    try {
+                        const { data: sessionData } = await client.auth.getSession();
+                        const session = sessionData?.session || null;
+                        if (session?.user) return session.user;
+                    } catch (_err) {}
+
+                    if (typeof client.auth.refreshSession === 'function') {
+                        try {
+                            const refreshed = await client.auth.refreshSession();
+                            const refreshedUser = refreshed?.data?.session?.user || null;
+                            if (refreshedUser) return refreshedUser;
+                        } catch (_err) {}
+                    }
+
+                    try {
+                        const { data, error } = await client.auth.getUser();
+                        if (!error && data?.user) return data.user;
+                    } catch (_err) {}
+
+                    if (attempt < 3) {
+                        await new Promise((resolve) => window.setTimeout(resolve, 120 * (attempt + 1)));
+                    }
+                }
+                return null;
+            }
+
             // ===== INITIALIZATION =====
             async function initialize() {
                 try {
@@ -222,8 +256,14 @@
                         supabase = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
                     }
                     if (!supabase) {
+                        if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+                            try {
+                                window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+                            } catch (_err) {}
+                        }
                         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
                             auth: {
+                                storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
                                 storageKey: 'zo2y-auth-v1',
                                 persistSession: true,
                                 autoRefreshToken: true,
@@ -232,8 +272,8 @@
                         });
                     }
                     
-                    const { data: { user }, error } = await supabase.auth.getUser();
-                    if (error || !user) { 
+                    const user = await resolveAuthenticatedProfileUser(supabase);
+                    if (!user) { 
                         window.location.href = "login.html"; 
                         return; 
                     }

@@ -3159,6 +3159,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     async function ensureHomeSupabase() {
+      if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+        try {
+          window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+        } catch (_err) {}
+      }
       if (homeSupabaseClient) return homeSupabaseClient;
       if (window.__ZO2Y_SUPABASE_CLIENT) {
         homeSupabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
@@ -3167,6 +3172,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       if (!window.supabase || !window.supabase.createClient) return null;
       homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
+          storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
           persistSession: true,
           autoRefreshToken: true,
           // OAuth callback is handled on auth-callback.html, keep homepage parser off.

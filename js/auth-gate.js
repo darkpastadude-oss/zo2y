@@ -154,6 +154,69 @@
     return bridge;
   }
 
+  function hydrateCanonicalAuthStorageFromDurable() {
+    var durableSession = getDurableSessionSnapshot();
+    if (!durableSession || !durableSession.access_token || !durableSession.refresh_token) return false;
+    try {
+      var payload = JSON.stringify(durableSession);
+      safeSetStorageItem(STORAGE_KEY, payload);
+      safeSetStorageItem(LEGACY_STORAGE_KEY, payload);
+      safeSetStorageItem(PERSIST_STORAGE_KEY, payload);
+      return true;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function buildZo2yAuthOptions(options) {
+    var next = Object.assign({}, options || {});
+    var auth = Object.assign({}, next.auth || {});
+    var requestedStorageKey = String(auth.storageKey || '').trim();
+    var usesZo2yAuth =
+      !requestedStorageKey ||
+      requestedStorageKey === STORAGE_KEY ||
+      requestedStorageKey === LEGACY_STORAGE_KEY ||
+      requestedStorageKey === PERSIST_STORAGE_KEY;
+    if (usesZo2yAuth) {
+      auth.storage = getSupabaseStorageBridge();
+      auth.storageKey = STORAGE_KEY;
+      if (auth.persistSession === undefined) auth.persistSession = true;
+      if (auth.autoRefreshToken === undefined) auth.autoRefreshToken = true;
+    }
+    next.auth = auth;
+    return next;
+  }
+
+  function installSupabaseCreateClientPatch() {
+    if (window.__ZO2Y_SUPABASE_CREATE_CLIENT_PATCHED) return;
+
+    function patchNow() {
+      if (!window.supabase || typeof window.supabase.createClient !== 'function') return false;
+      if (window.supabase.__zo2yCreateClientPatched) {
+        window.__ZO2Y_SUPABASE_CREATE_CLIENT_PATCHED = true;
+        return true;
+      }
+      var originalCreateClient = window.supabase.createClient.bind(window.supabase);
+      window.supabase.createClient = function (url, key, options) {
+        hydrateCanonicalAuthStorageFromDurable();
+        return originalCreateClient(url, key, buildZo2yAuthOptions(options));
+      };
+      window.supabase.__zo2yCreateClientPatched = true;
+      window.__ZO2Y_SUPABASE_CREATE_CLIENT_PATCHED = true;
+      return true;
+    }
+
+    if (patchNow()) return;
+
+    var attempts = 0;
+    var pollTimer = window.setInterval(function () {
+      attempts += 1;
+      if (patchNow() || attempts > 200) {
+        window.clearInterval(pollTimer);
+      }
+    }, 50);
+  }
+
   function migrateLegacySessionStorage() {
     var current = safeGetStorageItem(STORAGE_KEY);
     if (current) return;
@@ -213,6 +276,7 @@
   }
 
   function hasStoredSupabaseSession() {
+    hydrateCanonicalAuthStorageFromDurable();
     var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
     for (var i = 0; i < keys.length; i += 1) {
       var raw = safeGetStorageItem(keys[i]);
@@ -248,6 +312,7 @@
   }
 
   function getStoredSessionSnapshot() {
+    hydrateCanonicalAuthStorageFromDurable();
     var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
     for (var i = 0; i < keys.length; i += 1) {
       var raw = safeGetStorageItem(keys[i]);
@@ -377,6 +442,7 @@
 
   function scheduleSessionVerification(pageKey) {
     if (typeof window === 'undefined') return;
+    hydrateCanonicalAuthStorageFromDurable();
     migrateLegacySessionStorage();
     var attempts = 0;
     var client = null;
@@ -592,7 +658,7 @@
         window.__ZO2Y_AUTH_GATE_STORAGE_BOUND = true;
         window.addEventListener('storage', function (event) {
           var key = String(event && event.key || '').trim();
-          if (key === STORAGE_KEY || key === LEGACY_STORAGE_KEY || key === PERSIST_STORAGE_KEY) {
+          if (key === STORAGE_KEY || key === LEGACY_STORAGE_KEY || key === PERSIST_STORAGE_KEY || key === DURABLE_STORAGE_KEY) {
             void verifyAndApply();
           }
         });
@@ -600,6 +666,9 @@
     }, 90);
   }
 
+  hydrateCanonicalAuthStorageFromDurable();
+  window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE = hydrateCanonicalAuthStorageFromDurable;
+  installSupabaseCreateClientPatch();
   var pageKey = normalizePageKey(window.location.pathname);
   maybeRedirectOAuthCallback(pageKey);
   var authenticated = hasStoredSupabaseSession();
