@@ -759,6 +759,16 @@
                     showToast('Logging out...', 'info');
                     await teardownStatsRealtimeSubscriptions();
                     await supabase.auth.signOut();
+                    try {
+                        localStorage.removeItem('zo2y-auth-v1');
+                        localStorage.removeItem('sb-gfkhjbztayjyojsgdpgk-auth-token');
+                        localStorage.removeItem('zo2y-auth-persist-v1');
+                        localStorage.removeItem('zo2y-auth-durable-v1');
+                        localStorage.removeItem('zo2y_post_auth_bootstrap_v1');
+                        sessionStorage.removeItem('zo2y-auth-v1');
+                        sessionStorage.removeItem('sb-gfkhjbztayjyojsgdpgk-auth-token');
+                        sessionStorage.removeItem('zo2y-auth-persist-v1');
+                    } catch (_err) {}
                     setTimeout(() => {
                         window.location.href = 'login.html';
                     }, 1000);

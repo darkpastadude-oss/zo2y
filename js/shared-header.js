@@ -4,6 +4,7 @@
   const AUTH_STORAGE_KEY = 'zo2y-auth-v1';
   const LEGACY_AUTH_STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
   const PERSIST_AUTH_STORAGE_KEY = 'zo2y-auth-persist-v1';
+  const DURABLE_AUTH_STORAGE_KEY = 'zo2y-auth-durable-v1';
   const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260323a';
   const MOVIES_ROUTE = 'movies.html?v=20260322m';
   const MOVIES_MOBILE_ROUTE = 'movies-mobile.html?v=20260322m';
@@ -527,6 +528,15 @@ const HEADER_HTML = `
         const payload = JSON.stringify(session);
         window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(AUTH_STORAGE_KEY, payload);
         window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(LEGACY_AUTH_STORAGE_KEY, payload);
+        window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(PERSIST_AUTH_STORAGE_KEY, payload);
+        try {
+          if (window.localStorage) {
+            window.localStorage.setItem(DURABLE_AUTH_STORAGE_KEY, JSON.stringify({
+              session,
+              createdAt: Date.now()
+            }));
+          }
+        } catch (_err) {}
       } catch (_err) {}
     };
 
@@ -538,6 +548,14 @@ const HEADER_HTML = `
           window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(AUTH_STORAGE_KEY, payload);
           window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(LEGACY_AUTH_STORAGE_KEY, payload);
           window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(PERSIST_AUTH_STORAGE_KEY, payload);
+          try {
+            if (window.localStorage) {
+              window.localStorage.setItem(DURABLE_AUTH_STORAGE_KEY, JSON.stringify({
+                session,
+                createdAt: Date.now()
+              }));
+            }
+          } catch (_err) {}
         } catch (_err) {}
       }
       void syncAuthHeaderState();
@@ -579,6 +597,14 @@ const HEADER_HTML = `
         if (session?.access_token && session?.refresh_token) return session;
       } catch (_err) {}
     }
+    try {
+      const raw = window.localStorage ? window.localStorage.getItem(DURABLE_AUTH_STORAGE_KEY) : null;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const session = parsed?.session || parsed?.currentSession || parsed;
+        if (session?.access_token && session?.refresh_token) return session;
+      }
+    } catch (_err) {}
     return null;
   }
 
@@ -597,6 +623,14 @@ const HEADER_HTML = `
         window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(AUTH_STORAGE_KEY, payload);
         window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(LEGACY_AUTH_STORAGE_KEY, payload);
         window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(PERSIST_AUTH_STORAGE_KEY, payload);
+        try {
+          if (window.localStorage) {
+            window.localStorage.setItem(DURABLE_AUTH_STORAGE_KEY, JSON.stringify({
+              session,
+              createdAt: Date.now()
+            }));
+          }
+        } catch (_err) {}
       }
       return !!session?.user;
     } catch (_err) {
@@ -626,6 +660,12 @@ const HEADER_HTML = `
         await bootstrapHeaderSessionFromStorage(client);
         ({ data } = await client.auth.getSession());
         session = data && data.session ? data.session : null;
+        if (!session && typeof client.auth.refreshSession === 'function' && readStoredHeaderSession()?.refresh_token) {
+          try {
+            const refreshed = await client.auth.refreshSession();
+            session = refreshed?.data?.session || null;
+          } catch (_err) {}
+        }
       }
       if (session && session.access_token && session.refresh_token && window.__ZO2Y_AUTH_STORAGE_BRIDGE) {
         try {
@@ -633,6 +673,14 @@ const HEADER_HTML = `
           window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(AUTH_STORAGE_KEY, payload);
           window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(LEGACY_AUTH_STORAGE_KEY, payload);
           window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(PERSIST_AUTH_STORAGE_KEY, payload);
+          try {
+            if (window.localStorage) {
+              window.localStorage.setItem(DURABLE_AUTH_STORAGE_KEY, JSON.stringify({
+                session,
+                createdAt: Date.now()
+              }));
+            }
+          } catch (_err) {}
         } catch (_err) {}
       }
       const loggedIn = !!session;

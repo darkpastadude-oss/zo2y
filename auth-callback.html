@@ -90,6 +90,7 @@
       const STORAGE_KEY = 'zo2y-auth-v1';
       const LEGACY_STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
       const PERSIST_STORAGE_KEY = 'zo2y-auth-persist-v1';
+      const DURABLE_STORAGE_KEY = 'zo2y-auth-durable-v1';
       const POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
       const statusText = document.getElementById('statusText');
       const errorText = document.getElementById('errorText');
@@ -160,6 +161,12 @@
             safeSetAuthStorage(STORAGE_KEY, payload);
             safeSetAuthStorage(LEGACY_STORAGE_KEY, payload);
             safeSetAuthStorage(PERSIST_STORAGE_KEY, payload);
+            try {
+              localStorage.setItem(DURABLE_STORAGE_KEY, JSON.stringify({
+                session,
+                createdAt: Date.now()
+              }));
+            } catch (_err) {}
             return true;
           } catch (_err) {
             return false;

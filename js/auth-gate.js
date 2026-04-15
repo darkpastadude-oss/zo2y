@@ -5,6 +5,7 @@
   var STORAGE_KEY = 'zo2y-auth-v1';
   var LEGACY_STORAGE_KEY = 'sb-' + PROJECT_REF + '-auth-token';
   var PERSIST_STORAGE_KEY = 'zo2y-auth-persist-v1';
+  var DURABLE_STORAGE_KEY = 'zo2y-auth-durable-v1';
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
     'login',
@@ -118,6 +119,24 @@
     }
   }
 
+  function safeGetLocalStorageItem(key) {
+    try {
+      return window.localStorage ? window.localStorage.getItem(key) : null;
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function safeSetLocalStorageItem(key, value) {
+    try {
+      if (window.localStorage) {
+        window.localStorage.setItem(key, value);
+        return true;
+      }
+    } catch (_err) {}
+    return false;
+  }
+
   function getSupabaseStorageBridge() {
     if (window.__ZO2Y_AUTH_STORAGE_BRIDGE) return window.__ZO2Y_AUTH_STORAGE_BRIDGE;
     var bridge = {
@@ -204,6 +223,10 @@
         if (/access_token|refresh_token|currentSession|expires_at/i.test(String(raw))) return true;
       }
     }
+    var durableSession = getDurableSessionSnapshot();
+    if (durableSession && durableSession.access_token && durableSession.refresh_token) {
+      return true;
+    }
     return false;
   }
 
@@ -237,6 +260,23 @@
         }
       } catch (_err) {}
     }
+    var durableSession = getDurableSessionSnapshot();
+    if (durableSession && durableSession.access_token && durableSession.refresh_token) {
+      return durableSession;
+    }
+    return null;
+  }
+
+  function getDurableSessionSnapshot() {
+    var raw = safeGetLocalStorageItem(DURABLE_STORAGE_KEY);
+    if (!raw) return null;
+    try {
+      var parsed = JSON.parse(raw);
+      var session = extractSessionFromPayload(parsed && parsed.session ? parsed.session : parsed);
+      if (session && session.access_token && session.refresh_token) {
+        return session;
+      }
+    } catch (_err) {}
     return null;
   }
 
@@ -247,6 +287,10 @@
       safeSetStorageItem(STORAGE_KEY, payload);
       safeSetStorageItem(LEGACY_STORAGE_KEY, payload);
       safeSetStorageItem(PERSIST_STORAGE_KEY, payload);
+      safeSetLocalStorageItem(DURABLE_STORAGE_KEY, JSON.stringify({
+        session: session,
+        createdAt: Date.now()
+      }));
       return true;
     } catch (_err) {
       return false;
@@ -415,6 +459,16 @@
         } else if (!session) {
           sessionResult = await client.auth.getSession();
           session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
+        }
+        if (!session && hasStoredSnapshot && typeof client.auth.refreshSession === 'function') {
+          try {
+            var publicRefreshResult = await client.auth.refreshSession();
+            var publicRefreshedSession = publicRefreshResult && publicRefreshResult.data ? publicRefreshResult.data.session : null;
+            if (publicRefreshedSession && publicRefreshedSession.user) {
+              session = publicRefreshedSession;
+              persistSessionSnapshot(publicRefreshedSession);
+            }
+          } catch (_refreshErr) {}
         }
         var authenticated = !!(session && session.user);
         var finalAuthenticated = authenticated;
