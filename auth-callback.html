@@ -167,6 +167,9 @@
                 createdAt: Date.now()
               }));
             } catch (_err) {}
+            if (typeof window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT === 'function') {
+              window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT();
+            }
             return true;
           } catch (_err) {
             return false;
@@ -603,6 +606,43 @@
         }
       }
 
+      async function finishAuthenticatedRedirect(client, user, session, flow, nextPath, logFn) {
+        logFn(`Authenticated user: ${user.id}`);
+        statusText.textContent = 'Opening your account...';
+        const profileResult = await ensureUserProfile(client, user);
+        if (flow === 'signup' || profileResult?.created) {
+          try {
+            localStorage.setItem(getOnboardingPendingKey(user.id), '1');
+          } catch (_err) {}
+        }
+
+        const backgroundTasks = [
+          persistReferralMetadata(client, user, flow, logFn)
+        ];
+        if (flow === 'signup') {
+          backgroundTasks.push(triggerWelcomeEmail(session, flow, logFn));
+        }
+        Promise.allSettled(backgroundTasks).catch(() => {});
+
+        sendAnalyticsEvent('oauth_callback_success', {
+          flow: flow || 'unknown',
+          created_profile: !!profileResult?.created,
+          next: nextPath
+        });
+        if (flow === 'signup') {
+          sendAnalyticsEvent('signup_success', {
+            method: 'google',
+            created_profile: !!profileResult?.created
+          });
+        } else if (flow === 'login') {
+          sendAnalyticsEvent('login_success', {
+            method: 'google'
+          });
+        }
+
+        redirectToApp(nextPath, flow === 'signup' ? 30 : 40);
+      }
+
       try {
         log('Initializing auth callback...');
         if (!window.supabase || !window.supabase.createClient) {
@@ -703,6 +743,16 @@
         }
 
         if ((oauthFlow === 'login' || oauthFlow === 'signup') && finalSession?.user?.id) {
+          await waitForTokenClockSkew(finalSession?.access_token || accessToken || '');
+          let directUser = await waitForVerifiedUser(client, finalSession?.access_token || accessToken || '');
+          if (!directUser && finalSession?.user?.id) {
+            log('Verified user fetch still pending. Using session user from callback payload.');
+            directUser = finalSession.user;
+          }
+          if (directUser?.id) {
+            await finishAuthenticatedRedirect(client, directUser, finalSession, oauthFlow, next, log);
+            return;
+          }
           const onboardingName = String(
             finalSession?.user?.user_metadata?.full_name ||
             finalSession?.user?.user_metadata?.name ||
@@ -714,32 +764,8 @@
             email: String(finalSession?.user?.email || '').trim(),
             fullName: onboardingName
           });
-        }
-
-        if (oauthFlow === 'login' && finalSession?.user?.id) {
-          sendAnalyticsEvent('oauth_callback_success', {
-            flow: oauthFlow,
-            created_profile: false,
-            next
-          });
-          sendAnalyticsEvent('login_success', {
-            method: 'google'
-          });
-          redirectToApp(next, 80);
-          return;
-        }
-
-        if (oauthFlow === 'signup' && finalSession?.user?.id) {
-          sendAnalyticsEvent('oauth_callback_success', {
-            flow: oauthFlow,
-            created_profile: false,
-            next
-          });
-          sendAnalyticsEvent('signup_success', {
-            method: 'google',
-            created_profile: false
-          });
-          redirectToApp(next, 30);
+          log('Verified user fetch still pending. Continuing with manual session bootstrap.');
+          redirectToApp(next, oauthFlow === 'signup' ? 30 : 80);
           return;
         }
 
@@ -759,35 +785,7 @@
           throw new Error('Authentication was not completed. Please sign in again.');
         }
 
-        log(`Authenticated user: ${user.id}`);
-        statusText.textContent = 'Opening your account...';
-        const profileResult = await ensureUserProfile(client, user);
-        if (oauthFlow === 'signup' || profileResult?.created) {
-          localStorage.setItem(getOnboardingPendingKey(user.id), '1');
-        }
-
-        Promise.allSettled([
-          persistReferralMetadata(client, user, oauthFlow, log),
-          triggerWelcomeEmail(finalSession, oauthFlow, log)
-        ]).catch(() => {});
-
-        sendAnalyticsEvent('oauth_callback_success', {
-          flow: oauthFlow || 'unknown',
-          created_profile: !!profileResult?.created,
-          next
-        });
-        if (oauthFlow === 'signup') {
-          sendAnalyticsEvent('signup_success', {
-            method: 'google',
-            created_profile: !!profileResult?.created
-          });
-        } else if (oauthFlow === 'login') {
-          sendAnalyticsEvent('login_success', {
-            method: 'google'
-          });
-        }
-
-        redirectToApp(next, 40);
+        await finishAuthenticatedRedirect(client, user, finalSession, oauthFlow, next, log);
       } catch (err) {
         const msg = (err && err.message) ? err.message : 'Authentication failed';
         const oauthFlow = flowParam || String(safeGetAuthStorage('oauthFlow') || '').trim().toLowerCase();

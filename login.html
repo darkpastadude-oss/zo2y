@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <script src="/js/auth-gate.js?v=20260415b"></script>
+  <script src="/js/auth-gate.js?v=20260415c"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Login</title>
 <link rel="icon" href="/newlogo.webp" type="image/webp" />
@@ -256,6 +256,9 @@
           createdAt: Date.now()
         }));
       } catch (_err) {}
+      if (typeof window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT === 'function') {
+        window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT();
+      }
       return true;
     } catch (_err) {
       return false;
@@ -399,10 +402,27 @@
     return null;
   }
 
+  async function ensureProfileBootstrap(userOverride = null) {
+    const user = userOverride?.id ? userOverride : await getVerifiedUser();
+    if (!user?.id || typeof window.__ZO2Y_ENSURE_AUTH_PROFILE !== 'function') {
+      return false;
+    }
+    try {
+      const result = await window.__ZO2Y_ENSURE_AUTH_PROFILE(supabase, user);
+      return !!(result && result.ok !== false);
+    } catch (_err) {
+      return false;
+    }
+  }
+
   async function finalizeAuthRedirect(sessionOverride = null) {
     if (sessionOverride) persistSessionSnapshot(sessionOverride);
-    if (!sessionOverride?.user?.id) {
-      await waitForStableSession(2400);
+    let stableUser = sessionOverride?.user || null;
+    if (!stableUser?.id) {
+      stableUser = await waitForStableSession(2400);
+    }
+    if (stableUser?.id) {
+      await ensureProfileBootstrap(stableUser);
     }
     const nextPath = getPostAuthRedirect();
     safeRemoveAuthStorage('postAuthRedirect');

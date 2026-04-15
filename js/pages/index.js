@@ -5981,11 +5981,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       if (!client) return;
       homeAuthListenerReady = true;
 
-      client.auth.onAuthStateChange((event, session) => {
+      client.auth.onAuthStateChange(async (event, session) => {
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
           homeCurrentUser = session.user;
           homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
         } else if (event === 'SIGNED_OUT') {
+          if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
+            const restoredSession = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
+            if (restoredSession?.user) {
+              homeCurrentUser = restoredSession.user;
+              homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
+              void initAuthUi();
+              void refreshHomePersonalization();
+              return;
+            }
+          }
           homeCurrentUser = null;
           homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
         } else if (event === 'TOKEN_REFRESHED') {
@@ -8573,17 +8583,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       deferredChannels.forEach((channel) => queueHomeDeferredChannel(channel, loadChannel, initSeq));
 
       const mergedFeed = normalizeHomeFeedMap(workingFeed) || blankFeed;
-
-        const hasWeakFeed = countActiveHomeChannels(mergedFeed) < healthyChannelFloor;
-        const { scoredPool } = applyHomeFeedMap(mergedFeed, { showEmptyRails: !hasWeakFeed });
-
-        if (!scoredPool.length) {
-          resetSpotlightTimer(false);
-          setStatus('Could not load live feeds right now. Try again shortly.', true);
-          return;
-        }
-
       const initialChannelsCount = initialChannels.length;
+      const healthyChannelFloor = Math.min(initialChannelsCount, 3);
+
+      const hasWeakFeed = countActiveHomeChannels(mergedFeed) < healthyChannelFloor;
+      const { scoredPool } = applyHomeFeedMap(mergedFeed, { showEmptyRails: !hasWeakFeed });
+
+      if (!scoredPool.length) {
+        resetSpotlightTimer(false);
+        setStatus('Could not load live feeds right now. Try again shortly.', true);
+        return;
+      }
+
       const freshActiveChannels = freshLoadedKeys.size;
       if (freshActiveChannels > 0) {
         writeHomeFeedCache(mergedFeed);
@@ -8604,7 +8615,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         setStatus(`Live feed ready. ${freshActiveChannels}/${initialChannelsCount} core channels live.`, false);
       }
 
-      const healthyChannelFloor = Math.min(initialChannelsCount, 3);
       if (freshActiveChannels >= healthyChannelFloor) {
         if (homeWeakFeedRetryTimer) {
           clearTimeout(homeWeakFeedRetryTimer);

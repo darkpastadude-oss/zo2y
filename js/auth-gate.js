@@ -6,6 +6,7 @@
   var LEGACY_STORAGE_KEY = 'sb-' + PROJECT_REF + '-auth-token';
   var PERSIST_STORAGE_KEY = 'zo2y-auth-persist-v1';
   var DURABLE_STORAGE_KEY = 'zo2y-auth-durable-v1';
+  var EXPLICIT_SIGNOUT_KEY = 'zo2y-auth-explicit-signout-v1';
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
     'login',
@@ -47,6 +48,14 @@
     'restaurant',
     'restraunts',
     'credits'
+  ]);
+  var RESERVED_PROFILE_USERNAMES = new Set([
+    'admin', 'api', 'app', 'auth', 'authcallback', 'blog', 'book', 'books',
+    'country', 'edit', 'explore', 'game', 'games', 'help', 'home', 'index',
+    'login', 'movie', 'movies', 'music', 'new', 'privacy', 'profile',
+    'resetpassword', 'reviews', 'search', 'settings', 'signup', 'support',
+    'terms', 'travel', 'tv', 'tvshow', 'tvshows', 'updatepassword', 'user',
+    'users', 'zo2y'
   ]);
   var SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
@@ -154,7 +163,47 @@
     return bridge;
   }
 
+  function hasCanonicalSessionInStorage() {
+    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
+    for (var i = 0; i < keys.length; i += 1) {
+      var raw = safeGetStorageItem(keys[i]);
+      if (!raw) continue;
+      try {
+        var parsed = JSON.parse(raw);
+        var session = extractSessionFromPayload(parsed);
+        if (session && session.access_token && session.refresh_token) return true;
+      } catch (_err) {}
+    }
+    return false;
+  }
+
+  function clearExplicitSignoutMarker() {
+    try {
+      if (window.localStorage) window.localStorage.removeItem(EXPLICIT_SIGNOUT_KEY);
+    } catch (_err) {}
+  }
+
+  function markExplicitSignout() {
+    return safeSetLocalStorageItem(EXPLICIT_SIGNOUT_KEY, String(Date.now()));
+  }
+
+  function hasRecentExplicitSignout() {
+    var raw = safeGetLocalStorageItem(EXPLICIT_SIGNOUT_KEY);
+    if (!raw) return false;
+    var timestamp = Number(raw || 0);
+    if (!timestamp) {
+      clearExplicitSignoutMarker();
+      return false;
+    }
+    if ((Date.now() - timestamp) > 1000 * 60 * 10) {
+      clearExplicitSignoutMarker();
+      return false;
+    }
+    return true;
+  }
+
   function hydrateCanonicalAuthStorageFromDurable() {
+    if (hasCanonicalSessionInStorage()) return false;
     var durableSession = getDurableSessionSnapshot();
     if (!durableSession || !durableSession.access_token || !durableSession.refresh_token) return false;
     try {
@@ -345,6 +394,15 @@
     return null;
   }
 
+  function clearPersistedSessionSnapshots() {
+    safeRemoveStorageItem(STORAGE_KEY);
+    safeRemoveStorageItem(LEGACY_STORAGE_KEY);
+    safeRemoveStorageItem(PERSIST_STORAGE_KEY);
+    try {
+      if (window.localStorage) window.localStorage.removeItem(DURABLE_STORAGE_KEY);
+    } catch (_err) {}
+  }
+
   function persistSessionSnapshot(session) {
     if (!session || !session.access_token || !session.refresh_token) return false;
     try {
@@ -356,10 +414,39 @@
         session: session,
         createdAt: Date.now()
       }));
+      clearExplicitSignoutMarker();
       return true;
     } catch (_err) {
       return false;
     }
+  }
+
+  async function restoreClientSessionFromSnapshot(client) {
+    if (hasRecentExplicitSignout()) return null;
+    if (!client || !client.auth || typeof client.auth.setSession !== 'function') return null;
+    var storedSession = getStoredSessionSnapshot();
+    if (!storedSession || !storedSession.access_token || !storedSession.refresh_token) return null;
+    try {
+      var setResult = await client.auth.setSession({
+        access_token: storedSession.access_token,
+        refresh_token: storedSession.refresh_token
+      });
+      var session = setResult && setResult.data ? setResult.data.session : null;
+      if (session && session.access_token && session.refresh_token) {
+        persistSessionSnapshot(session);
+        return session;
+      }
+    } catch (_err) {
+      var errorMessage = String((_err && _err.message) || '').toLowerCase();
+      if (
+        errorMessage.indexOf('refresh token') !== -1 ||
+        errorMessage.indexOf('invalid grant') !== -1 ||
+        errorMessage.indexOf('session missing') !== -1
+      ) {
+        clearPersistedSessionSnapshots();
+      }
+    }
+    return null;
   }
 
   function getStoredSessionSignature(session) {
@@ -387,6 +474,114 @@
     var skewSeconds = issuedAt - now;
     if (skewSeconds <= 1) return 0;
     return Math.min(4500, (skewSeconds + 1) * 1000);
+  }
+
+  function normalizeProfileUsername(value) {
+    var normalized = String(value || '')
+      .trim()
+      .replace(/^@+/, '')
+      .toLowerCase()
+      .replace(/[\u0027\u2019]/g, '')
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 30);
+    if (!normalized) return 'user';
+    if (normalized.length < 3) return normalizeProfileUsername('user_' + normalized);
+    if (RESERVED_PROFILE_USERNAMES.has(normalized.replace(/_/g, ''))) {
+      return (normalized.slice(0, 24) + '_user').slice(0, 30);
+    }
+    return normalized;
+  }
+
+  function profileUsernameWithSuffix(base, suffix) {
+    var normalizedBase = normalizeProfileUsername(base || 'user');
+    var normalizedSuffix = normalizeProfileUsername(suffix || 'user').slice(0, 8) || 'user';
+    var limit = Math.max(3, 30 - normalizedSuffix.length - 1);
+    return (normalizedBase.slice(0, limit) + '_' + normalizedSuffix).slice(0, 30);
+  }
+
+  async function ensureAuthProfile(client, user) {
+    if (!client || typeof client.from !== 'function' || !user || !user.id) {
+      return { ok: false, created: false, profile: null };
+    }
+
+    try {
+      var existingResult = await client
+        .from('user_profiles')
+        .select('id, username, full_name')
+        .eq('id', user.id)
+        .maybeSingle();
+      var existingProfile = existingResult && existingResult.data ? existingResult.data : null;
+      if (existingProfile && existingProfile.id) {
+        return { ok: true, created: false, profile: existingProfile };
+      }
+      if (existingResult && existingResult.error) {
+        return { ok: false, created: false, profile: null, error: existingResult.error };
+      }
+
+      var userData = user.user_metadata || {};
+      var emailPrefix = String(user.email || '').split('@')[0] || 'user';
+      var baseUsername = normalizeProfileUsername(
+        userData.username ||
+        userData.preferred_username ||
+        userData.user_name ||
+        userData.full_name ||
+        userData.name ||
+        emailPrefix
+      );
+      var displayName = String(userData.full_name || userData.name || emailPrefix || baseUsername).trim().slice(0, 80);
+      var idSuffix = String(user.id || '').replace(/-/g, '').slice(0, 6) || 'user';
+      var usernameCandidates = [
+        baseUsername,
+        profileUsernameWithSuffix(baseUsername, idSuffix),
+        profileUsernameWithSuffix(baseUsername, idSuffix + String(Date.now()).slice(-2))
+      ];
+
+      for (var i = 0; i < usernameCandidates.length; i += 1) {
+        var username = usernameCandidates[i];
+        var createResult = await client
+          .from('user_profiles')
+          .insert({
+            id: user.id,
+            username: username,
+            full_name: displayName || username
+          })
+          .select('id, username, full_name')
+          .maybeSingle();
+        if (!createResult || !createResult.error) {
+          return {
+            ok: true,
+            created: true,
+            profile: createResult && createResult.data ? createResult.data : {
+              id: user.id,
+              username: username,
+              full_name: displayName || username
+            }
+          };
+        }
+
+        var message = String(createResult.error && createResult.error.message || '').toLowerCase();
+        var duplicate = message.indexOf('duplicate') !== -1 || message.indexOf('unique') !== -1;
+        if (!duplicate) {
+          return { ok: false, created: false, profile: null, error: createResult.error };
+        }
+
+        var raceResult = await client
+          .from('user_profiles')
+          .select('id, username, full_name')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (raceResult && raceResult.data && raceResult.data.id) {
+          return { ok: true, created: false, profile: raceResult.data };
+        }
+      }
+    } catch (_err) {
+      return { ok: false, created: false, profile: null, error: _err };
+    }
+
+    return { ok: false, created: false, profile: null };
   }
 
   function sanitizeNextPath(raw) {
@@ -496,6 +691,9 @@
         return authenticated;
       } catch (_err) {
         var errorMessage = String((_err && _err.message) || '').toLowerCase();
+        if (errorMessage.indexOf('refresh token') !== -1 || errorMessage.indexOf('invalid grant') !== -1 || errorMessage.indexOf('session missing') !== -1) {
+          clearPersistedSessionSnapshots();
+        }
         if (errorMessage.indexOf('issued in the future') !== -1 || errorMessage.indexOf('clock skew') !== -1 || errorMessage.indexOf('clock for skew') !== -1) {
           client.__zo2yFutureRetryWaitMs = getStoredSessionFutureWaitMs(storedSession);
         } else {
@@ -534,7 +732,12 @@
               session = publicRefreshedSession;
               persistSessionSnapshot(publicRefreshedSession);
             }
-          } catch (_refreshErr) {}
+          } catch (_refreshErr) {
+            var refreshMessage = String((_refreshErr && _refreshErr.message) || '').toLowerCase();
+            if (refreshMessage.indexOf('refresh token') !== -1 || refreshMessage.indexOf('invalid grant') !== -1 || refreshMessage.indexOf('jwt') !== -1) {
+              clearPersistedSessionSnapshots();
+            }
+          }
         }
         var authenticated = !!(session && session.user);
         var finalAuthenticated = authenticated;
@@ -562,7 +765,12 @@
               var refreshedSession = refreshedResult && refreshedResult.data ? refreshedResult.data.session : null;
               retryAuthenticated = !!(refreshedSession && refreshedSession.user);
               if (retryAuthenticated && refreshedSession) persistSessionSnapshot(refreshedSession);
-            } catch (_refreshErr) {}
+            } catch (_refreshErr) {
+              var retryRefreshMessage = String((_refreshErr && _refreshErr.message) || '').toLowerCase();
+              if (retryRefreshMessage.indexOf('refresh token') !== -1 || retryRefreshMessage.indexOf('invalid grant') !== -1 || retryRefreshMessage.indexOf('jwt') !== -1) {
+                clearPersistedSessionSnapshots();
+              }
+            }
           }
           finalAuthenticated = retryAuthenticated;
           applyShellState(retryAuthenticated, pageKey, { verified: true });
@@ -644,11 +852,27 @@
       }
       if (!window.__ZO2Y_AUTH_GATE_LISTENER_BOUND && client.auth && typeof client.auth.onAuthStateChange === 'function') {
         window.__ZO2Y_AUTH_GATE_LISTENER_BOUND = true;
-        client.auth.onAuthStateChange(function (_event, session) {
+        client.auth.onAuthStateChange(function (event, session) {
           if (session && session.access_token && session.refresh_token) {
             persistSessionSnapshot(session);
           }
           if (authStateVerifyTimer) window.clearTimeout(authStateVerifyTimer);
+          if (
+            !session &&
+            event === 'SIGNED_OUT' &&
+            !hasRecentExplicitSignout() &&
+            getStoredSessionSnapshot()
+          ) {
+            authStateVerifyTimer = window.setTimeout(async function () {
+              await restoreClientSessionFromSnapshot(client);
+              void verifyAndApply();
+            }, 40);
+            return;
+          }
+          if (event === 'SIGNED_OUT' && hasRecentExplicitSignout()) {
+            clearPersistedSessionSnapshots();
+            clearExplicitSignoutMarker();
+          }
           authStateVerifyTimer = window.setTimeout(function () {
             void verifyAndApply();
           }, session && session.user ? 0 : 120);
@@ -668,6 +892,11 @@
 
   hydrateCanonicalAuthStorageFromDurable();
   window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE = hydrateCanonicalAuthStorageFromDurable;
+  window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT = restoreClientSessionFromSnapshot;
+  window.__ZO2Y_HAS_STORED_AUTH_SESSION = hasStoredSupabaseSession;
+  window.__ZO2Y_ENSURE_AUTH_PROFILE = ensureAuthProfile;
+  window.__ZO2Y_MARK_EXPLICIT_SIGNOUT = markExplicitSignout;
+  window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT = clearExplicitSignoutMarker;
   installSupabaseCreateClientPatch();
   var pageKey = normalizePageKey(window.location.pathname);
   maybeRedirectOAuthCallback(pageKey);

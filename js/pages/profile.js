@@ -798,6 +798,9 @@
                 try {
                     showToast('Logging out...', 'info');
                     await teardownStatsRealtimeSubscriptions();
+                    if (typeof window.__ZO2Y_MARK_EXPLICIT_SIGNOUT === 'function') {
+                        window.__ZO2Y_MARK_EXPLICIT_SIGNOUT();
+                    }
                     await supabase.auth.signOut();
                     try {
                         localStorage.removeItem('zo2y-auth-v1');
