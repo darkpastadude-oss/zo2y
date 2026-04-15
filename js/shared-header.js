@@ -11,7 +11,13 @@
   const DESKTOP_RAIL_COLLAPSE_KEY = 'zo2y_desktop_rail_collapsed';
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
-  let authStateListenerBound = false;if (window.ZO2Y_SPORTS_LISTS == null) {
+  let authStateListenerBound = false;
+  let authHeaderSyncPromise = null;
+  let authHeaderSyncQueued = false;
+  let authHeaderProfileLabelUserId = '';
+  let authHeaderProfileLabelValue = '';
+  let authHeaderProfileLabelAt = 0;
+  if (window.ZO2Y_SPORTS_LISTS == null) {
     window.ZO2Y_SPORTS_LISTS = true;
   }
 
@@ -547,6 +553,11 @@ const HEADER_HTML = `
 
     authStateListenerBound = true;
     client.auth.onAuthStateChange((_event, session) => {
+      if (session?.user?.id) {
+        authHeaderProfileLabelUserId = '';
+        authHeaderProfileLabelValue = '';
+        authHeaderProfileLabelAt = 0;
+      }
       if (session && session.access_token && session.refresh_token && window.__ZO2Y_AUTH_STORAGE_BRIDGE) {
         try {
           const payload = JSON.stringify(session);
@@ -649,6 +660,11 @@ const HEADER_HTML = `
   }
 
   async function syncAuthHeaderState() {
+    if (authHeaderSyncPromise) {
+      authHeaderSyncQueued = true;
+      return authHeaderSyncPromise;
+    }
+    authHeaderSyncPromise = (async () => {
     const loginBtn = document.getElementById('loginBtn');
     const signupBtn = document.getElementById('signupBtn');
     const profileBtn = document.getElementById('profileBtn');
@@ -666,10 +682,18 @@ const HEADER_HTML = `
     try {
       let { data } = await client.auth.getSession();
       let session = data && data.session ? data.session : null;
-      if (!session) {
-        await bootstrapHeaderSessionFromStorage(client);
+      const hasStoredAuthSession =
+        typeof window.__ZO2Y_HAS_STORED_AUTH_SESSION === 'function'
+          ? !!window.__ZO2Y_HAS_STORED_AUTH_SESSION()
+          : !!readStoredHeaderSession();
+      if (!session && hasStoredAuthSession) {
+        if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
+          session = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
+        } else {
+          await bootstrapHeaderSessionFromStorage(client);
+        }
         ({ data } = await client.auth.getSession());
-        session = data && data.session ? data.session : null;
+        session = session || (data && data.session ? data.session : null);
         if (!session && typeof client.auth.refreshSession === 'function' && readStoredHeaderSession()?.refresh_token) {
           try {
             const refreshed = await client.auth.refreshSession();
@@ -714,22 +738,40 @@ const HEADER_HTML = `
       if (loggedIn) {
         let label = 'Profile';
         try {
-          if (user && user.id && client.from) {
+          const userId = String(user?.id || '').trim();
+          const cachedFresh =
+            userId &&
+            authHeaderProfileLabelUserId === userId &&
+            authHeaderProfileLabelValue &&
+            (Date.now() - authHeaderProfileLabelAt) < 30000;
+          if (cachedFresh) {
+            label = authHeaderProfileLabelValue;
+          } else if (user && user.id && client.from) {
             const { data: profile } = await client
               .from('user_profiles')
               .select('username, full_name')
               .eq('id', user.id)
-              .single();
+              .maybeSingle();
             const raw = profile?.username || profile?.full_name || '';
             const clean = String(raw || '').trim();
-            if (clean) label = clean.startsWith('@') ? clean : `@${clean}`;
+            if (clean) {
+              label = clean.startsWith('@') ? clean : `@${clean}`;
+              authHeaderProfileLabelUserId = userId;
+              authHeaderProfileLabelValue = label;
+              authHeaderProfileLabelAt = Date.now();
+            }
           }
         } catch (_profileErr) {
           const fallback =
             (user && user.user_metadata && (user.user_metadata.username || user.user_metadata.full_name || user.user_metadata.name)) ||
             (user && user.email ? String(user.email).split('@')[0] : '');
           const cleanFallback = String(fallback || '').trim();
-          if (cleanFallback) label = cleanFallback.startsWith('@') ? cleanFallback : `@${cleanFallback}`;
+          if (cleanFallback) {
+            label = cleanFallback.startsWith('@') ? cleanFallback : `@${cleanFallback}`;
+            authHeaderProfileLabelUserId = String(user?.id || '').trim();
+            authHeaderProfileLabelValue = label;
+            authHeaderProfileLabelAt = Date.now();
+          }
         }
 
         if (profileBtn) {
@@ -746,6 +788,16 @@ const HEADER_HTML = `
         }
       }
     } catch (_err) {}
+    })();
+    try {
+      return await authHeaderSyncPromise;
+    } finally {
+      authHeaderSyncPromise = null;
+      if (authHeaderSyncQueued) {
+        authHeaderSyncQueued = false;
+        void syncAuthHeaderState();
+      }
+    }
   }
 
   function wireMobileDrawer() {
