@@ -319,10 +319,12 @@
     if (pageKey === 'auth-callback' || pageKey === 'update-password') return;
     var search = new URLSearchParams(window.location.search);
     var hashParams = getHashParams();
+    var inlineOauthReturn = search.get('native_oauth') === '1' && (pageKey === 'login' || pageKey === 'sign-up' || pageKey === 'signup');
     var hasOauthCode = search.has('code') && (search.has('state') || search.has('provider') || search.has('flow'));
     var hasOauthError = search.has('error') || search.has('error_description');
     var hasHashTokens = hashParams.has('access_token') || hashParams.has('error') || hashParams.has('error_description');
     var oauthFlow = safeGetStorageItem('oauthFlow');
+    if (inlineOauthReturn && (hasOauthCode || hasOauthError || hasHashTokens)) return;
     if (!(hasOauthCode || hasOauthError || hasHashTokens || oauthFlow)) return;
     if (!hasOauthCode && !hasOauthError && !hasHashTokens) return;
 

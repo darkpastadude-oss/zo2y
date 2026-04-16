@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <script src="/js/auth-gate.js?v=20260416d"></script>
+  <script src="/js/auth-gate.js?v=20260416e"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Login</title>
 <link rel="icon" href="/newlogo.webp" type="image/webp" />
@@ -320,6 +320,11 @@
     return sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || safeGetAuthStorage('postAuthRedirect') || initialNextPath || 'index.html');
   }
 
+  function getHashParams() {
+    const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : '';
+    return new URLSearchParams(hash);
+  }
+
   function buildPostAuthRedirectTarget(rawNext) {
     const safeNext = sanitizeNextPath(rawNext || 'index.html');
     try {
@@ -398,6 +403,48 @@
     const nextPath = getPostAuthRedirect();
     safeRemoveAuthStorage('postAuthRedirect');
     window.location.replace(buildPostAuthRedirectTarget(nextPath));
+  }
+
+  async function completeGoogleLoginFromReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const hashParams = getHashParams();
+    const oauthError = params.get('error_description') || params.get('error') || hashParams.get('error_description') || hashParams.get('error');
+    if (oauthError) {
+      throw new Error(String(oauthError).trim() || 'Google login failed.');
+    }
+
+    const code = params.get('code');
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    let session = null;
+
+    if (code) {
+      const { data, error } = await withTimeout(
+        supabase.auth.exchangeCodeForSession(code),
+        12000,
+        'Google login timed out'
+      );
+      if (error) throw error;
+      session = data?.session || null;
+    } else if (accessToken && refreshToken) {
+      const { data, error } = await withTimeout(
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        }),
+        12000,
+        'Google login timed out'
+      );
+      if (error) throw error;
+      session = data?.session || null;
+    }
+
+    if (!session?.access_token || !session?.refresh_token) {
+      throw new Error('Google login did not return a usable session.');
+    }
+
+    persistSessionSnapshot(session);
+    await finalizeAuthRedirect(session);
   }
 
   function showError(msg) {
@@ -515,6 +562,23 @@
   // Check if already logged in
   (async () => {
     try {
+      const nativeOauthReturn = new URLSearchParams(window.location.search).get('native_oauth') === '1';
+      const hashParams = getHashParams();
+      if (
+        nativeOauthReturn &&
+        (
+          new URLSearchParams(window.location.search).has('code') ||
+          new URLSearchParams(window.location.search).has('error') ||
+          new URLSearchParams(window.location.search).has('error_description') ||
+          hashParams.has('access_token') ||
+          hashParams.has('error') ||
+          hashParams.has('error_description')
+        )
+      ) {
+        setGoogleLoading(true, 'Signing in...');
+        await completeGoogleLoginFromReturn();
+        return;
+      }
       const user = await getVerifiedUser();
       if (user) {
         console.log('User already logged in, redirecting...');
@@ -583,7 +647,8 @@
       
       // Store that this is a login flow
       const nextPath = getPostAuthRedirect();
-      const callbackUrl = new URL('/auth-callback.html', window.location.origin);
+      const callbackUrl = new URL('/login.html', window.location.origin);
+      callbackUrl.searchParams.set('native_oauth', '1');
       callbackUrl.searchParams.set('flow', 'login');
       callbackUrl.searchParams.set('next', nextPath);
       safeSetAuthStorage('oauthFlow', 'login');
