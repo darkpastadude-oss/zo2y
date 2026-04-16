@@ -331,6 +331,46 @@
         }, delayMs);
       }
 
+      function redirectToNativeAuthRouteIfNeeded() {
+        const hashParams = getHashParams();
+        const hasOauthPayload =
+          params.has('code') ||
+          params.has('error') ||
+          params.has('error_description') ||
+          hashParams.has('access_token') ||
+          hashParams.has('refresh_token') ||
+          hashParams.has('error') ||
+          hashParams.has('error_description');
+        if (!hasOauthPayload) return false;
+
+        const storedFlow = String(safeGetAuthStorage('oauthFlow') || '').trim().toLowerCase();
+        const oauthFlow = flowParam || storedFlow;
+        const targetPage = oauthFlow === 'signup' ? 'sign-up.html' : (oauthFlow === 'login' || !oauthFlow ? 'login.html' : '');
+        if (!targetPage) return false;
+
+        const targetUrl = new URL(targetPage, window.location.origin);
+        if (window.location.search) {
+          targetUrl.search = window.location.search;
+        }
+        if (window.location.hash) {
+          targetUrl.hash = window.location.hash;
+        }
+        targetUrl.searchParams.set('native_oauth', '1');
+        if (!targetUrl.searchParams.has('flow')) {
+          targetUrl.searchParams.set('flow', oauthFlow || 'login');
+        }
+        if (!targetUrl.searchParams.has('next') && next) {
+          targetUrl.searchParams.set('next', next);
+        }
+        statusText.textContent = 'Finishing sign-in...';
+        window.location.replace(targetUrl.toString());
+        return true;
+      }
+
+      if (redirectToNativeAuthRouteIfNeeded()) {
+        return;
+      }
+
       function decodeJwtPayload(token) {
         try {
           const parts = String(token || '').split('.');
