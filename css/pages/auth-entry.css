@@ -65,16 +65,16 @@ body[data-auth-variant]::before {
 }
 
 .auth-entry-panel {
-  width: min(100%, 540px);
+  width: min(100%, 500px);
   margin: 0 auto;
 }
 
 .auth-panel-topbar {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 14px;
-  margin-bottom: 56px;
+  margin-bottom: 48px;
 }
 
 .auth-entry-home,
@@ -82,28 +82,33 @@ body[data-auth-variant]::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  padding: 0 18px;
-  border-radius: 999px;
-  border: 1px solid var(--auth-border);
-  background: rgba(255, 255, 255, 0.04);
   color: var(--auth-text);
   text-decoration: none;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+  letter-spacing: -0.02em;
+  transition: color 160ms ease, opacity 160ms ease, transform 160ms ease;
 }
 
-.auth-entry-home:hover,
-.auth-topbar-link:hover {
-  border-color: var(--auth-border-strong);
-  background: rgba(255, 255, 255, 0.08);
+.auth-entry-home:hover {
   transform: translateY(-1px);
 }
 
+.auth-entry-home img {
+  display: block;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(255, 140, 66, 0.2));
+}
+
 .auth-topbar-link {
-  display: none;
+  color: var(--auth-accent);
+}
+
+.auth-topbar-link:hover {
+  color: #ffd089;
+  transform: translateY(-1px);
 }
 
 .auth-panel-card {
@@ -112,15 +117,28 @@ body[data-auth-variant]::before {
   background:
     linear-gradient(180deg, rgba(15, 30, 66, 0.94), rgba(8, 18, 42, 0.98));
   box-shadow: var(--auth-shadow);
-  padding: 34px 36px 30px;
+  padding: 28px 34px 28px;
 }
 
 .auth-panel-card h2 {
-  margin: 0 0 22px;
+  position: relative;
+  width: fit-content;
+  margin: 0 auto 20px;
   font-family: "Outfit", "Space Grotesk", sans-serif;
-  font-size: clamp(2rem, 4vw, 2.7rem);
-  line-height: 0.96;
+  font-size: clamp(1.7rem, 3vw, 2.15rem);
+  line-height: 1;
   letter-spacing: -0.06em;
+  text-align: center;
+}
+
+.auth-panel-card h2::after {
+  content: "";
+  display: block;
+  width: 72px;
+  height: 3px;
+  margin: 10px auto 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ffc760 0%, var(--auth-accent-strong) 100%);
 }
 
 .message {
@@ -174,8 +192,8 @@ body[data-auth-variant]::before {
 .google-btn,
 .submit-btn {
   width: 100%;
-  min-height: 58px;
-  border-radius: 16px;
+  min-height: 56px;
+  border-radius: 15px;
   padding: 0 18px;
   border: 1px solid transparent;
   font: inherit;
@@ -223,7 +241,7 @@ body[data-auth-variant]::before {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin: 24px 0 18px;
+  margin: 22px 0 16px;
   color: var(--auth-soft);
   font-size: 11px;
   font-weight: 700;
@@ -264,8 +282,8 @@ body[data-auth-variant]::before {
 
 .input-group input {
   width: 100%;
-  min-height: 58px;
-  border-radius: 16px;
+  min-height: 54px;
+  border-radius: 15px;
   border: 1px solid rgba(193, 206, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
   color: var(--auth-text);
@@ -317,7 +335,7 @@ body[data-auth-variant]::before {
 }
 
 .alt-link {
-  margin-top: 20px;
+  margin-top: 18px;
   color: var(--auth-muted);
   font-size: 14px;
   text-align: center;
@@ -325,10 +343,6 @@ body[data-auth-variant]::before {
 
 .legal-strip {
   display: none;
-}
-
-.auth-entry-home .fas {
-  margin-right: 8px;
 }
 
 .loading {
@@ -353,24 +367,27 @@ body[data-auth-variant]::before {
   }
 
   .auth-panel-topbar {
-    margin-bottom: 28px;
+    margin-bottom: 24px;
   }
 
   .auth-entry-home,
   .auth-topbar-link {
-    min-height: 40px;
-    padding: 0 14px;
-    font-size: 12px;
+    font-size: 15px;
+  }
+
+  .auth-entry-home img {
+    width: 38px;
+    height: 38px;
   }
 
   .auth-panel-card {
-    padding: 26px 18px 22px;
+    padding: 24px 18px 22px;
     border-radius: 20px;
   }
 
   .auth-panel-card h2 {
-    margin-bottom: 20px;
-    font-size: 2.2rem;
+    margin-bottom: 18px;
+    font-size: 1.9rem;
   }
 
   .google-btn,

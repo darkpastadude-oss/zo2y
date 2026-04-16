@@ -5,6 +5,7 @@ const API_CACHE = 'zo2y-api-v12';
 const MOVIES_PAGE_VERSION = '20260322m';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
+const AUTH_PAGE_PATHS = new Set(['/login.html', '/sign-up.html', '/update-password.html']);
 
 const STATIC_ASSETS = [
   '/',
@@ -329,6 +330,26 @@ self.addEventListener('fetch', (event) => {
     (url.pathname === '/auth-callback.html' || url.searchParams.has('code') || url.searchParams.has('error') || url.searchParams.has('error_description'))
   ) {
     event.respondWith(fetch(request));
+    return;
+  }
+  if (
+    request.mode === 'navigate' &&
+    url.origin === self.location.origin &&
+    AUTH_PAGE_PATHS.has(url.pathname)
+  ) {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request, { cache: 'no-store' });
+        if (response && response.ok) {
+          const cache = await caches.open(PAGE_CACHE);
+          cache.put(request, response.clone()).catch(() => {});
+        }
+        return response;
+      } catch (_error) {
+        const cached = await caches.match(request, { ignoreSearch: true }) || await caches.match(url.pathname);
+        return cached || Response.error();
+      }
+    })());
     return;
   }
   if (
