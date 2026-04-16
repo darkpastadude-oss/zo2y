@@ -1,5 +1,9 @@
 (() => {
 const APP_RUNTIME_VERSION = '20260406-security-feed-a';
+  const isLocalhostRuntime = (() => {
+    const hostname = String(window.location.hostname || '').trim().toLowerCase();
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
+  })();
 
   const isMobileLike = window.matchMedia('(max-width: 900px)').matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   const path = window.location.pathname || '/';
@@ -803,8 +807,24 @@ const APP_RUNTIME_VERSION = '20260406-security-feed-a';
     }
   }
 
+  async function unregisterZo2yServiceWorkers() {
+    if (!('serviceWorker' in navigator)) return;
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(
+        registrations.map((registration) => registration.unregister().catch(() => false))
+      );
+    } catch (_error) {
+      // Ignore unregister failures so the page can continue booting.
+    }
+  }
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
+      if (isLocalhostRuntime) {
+        void unregisterZo2yServiceWorkers();
+        return;
+      }
       void resetZo2yCachesIfNeeded().finally(() => {
     navigator.serviceWorker.register('/sw.js?v=20260401b').catch(() => {
         // silent fail to avoid runtime noise

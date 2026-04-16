@@ -5,49 +5,85 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
-  <title>Processing Authentication - Zo2y</title>
+  <title>Signing In - Zo2y</title>
 <link rel="icon" href="/newlogo.webp" type="image/webp" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/referral-utils.js?v=20260319a"></script>
   <style>
+    :root {
+      color-scheme: dark;
+    }
     body {
-      background: #0b1633;
+      background:
+        radial-gradient(circle at top, rgba(245, 158, 11, 0.16), transparent 24%),
+        linear-gradient(180deg, #09142d 0%, #0b1633 100%);
       color: white;
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Manrope', system-ui, sans-serif;
       min-height: 100vh;
       margin: 0;
+      display: grid;
+      place-items: center;
+      transition: background 180ms ease, color 180ms ease;
     }
-    .container {
+    body.auth-callback-error {
+      background:
+        radial-gradient(circle at top, rgba(248, 113, 113, 0.14), transparent 24%),
+        linear-gradient(180deg, #1a1222 0%, #140f1d 100%);
+    }
+    .callback-shell {
       text-align: center;
-      padding: 40px;
-      background: #132347;
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.1);
-      width: min(calc(100% - 24px), 400px);
-      margin: 30px auto 24px;
+      width: min(calc(100% - 32px), 340px);
+      padding: 24px 22px;
+      border-radius: 24px;
+      background: rgba(11, 22, 51, 0.42);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+      backdrop-filter: blur(14px);
+    }
+    .callback-logo {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 18px;
+      display: block;
+      margin: 0 auto 18px;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.2);
     }
     .spinner {
-      border: 4px solid rgba(255,255,255,0.1);
-      border-top: 4px solid #f59e0b;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top: 3px solid #f59e0b;
       border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
+      width: 24px;
+      height: 24px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 18px;
     }
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    .success {
-      color: #10b981;
-      font-size: 3rem;
-      margin-bottom: 20px;
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      font-family: 'Space Grotesk', 'Manrope', system-ui, sans-serif;
+    }
+    .callback-copy {
+      margin: 0;
+      color: rgba(232, 239, 255, 0.78);
+      font-size: 14px;
+      line-height: 1.5;
     }
     .error {
-      color: #fca5a5;
-      margin-top: 12px;
+      color: #fecaca;
+      margin-top: 16px;
       font-size: 14px;
+      line-height: 1.5;
+      display: none;
+    }
+    body.auth-callback-error .error {
+      display: block;
     }
     .debug {
       margin-top: 20px;
@@ -76,11 +112,12 @@
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
-  <div class="container">
+  <div class="callback-shell">
+    <img class="callback-logo" src="/newlogo.webp" alt="Zo2y">
     <div class="spinner"></div>
-    <h2>Completing Authentication...</h2>
-    <p id="statusText">Please wait while we set up your account.</p>
-    <p id="errorText" class="error" style="display:none;"></p>
+    <h1>Signing you in</h1>
+    <p id="statusText" class="callback-copy">Just a second while we open your account.</p>
+    <p id="errorText" class="error"></p>
     <div id="debugConsole" class="debug"></div>
   </div>
   <script>
@@ -274,12 +311,16 @@
         }
       }
 
-      function redirectToApp(rawNext, delayMs = 120) {
-        statusText.textContent = 'Success! Redirecting...';
+      function redirectToApp(rawNext, delayMs = 0) {
+        statusText.textContent = 'Opening Zo2y...';
         safeRemoveAuthStorage('postAuthRedirect');
         safeRemoveAuthStorage('oauthFlow');
         const target = buildPostAuthRedirectTarget(rawNext);
         log(`Redirecting to: ${target}`);
+        if (delayMs <= 0) {
+          window.location.replace(target);
+          return;
+        }
         setTimeout(() => {
           window.location.replace(target);
         }, delayMs);
@@ -608,7 +649,7 @@
 
       async function finishAuthenticatedRedirect(client, user, session, flow, nextPath, logFn) {
         logFn(`Authenticated user: ${user.id}`);
-        statusText.textContent = 'Opening your account...';
+        statusText.textContent = 'Opening Zo2y...';
         const profileResult = await ensureUserProfile(client, user);
         if (flow === 'signup' || profileResult?.created) {
           try {
@@ -794,9 +835,9 @@
           message: String(msg).slice(0, 180)
         });
         log(`Fatal error: ${msg}`, true);
-        statusText.textContent = 'Could not complete authentication.';
+        document.body.classList.add('auth-callback-error');
+        statusText.textContent = 'We could not finish signing you in.';
         errorText.textContent = msg;
-        errorText.style.display = 'block';
         setTimeout(() => {
           window.location.replace('login.html');
         }, 2500);

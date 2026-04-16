@@ -238,6 +238,14 @@ async function networkFirst(request, cacheName, fallbackPath = '') {
   }
 }
 
+async function navigationNetworkOnly(request) {
+  try {
+    return await fetch(request, { cache: 'no-store' });
+  } catch (_error) {
+    return offlineResponse();
+  }
+}
+
 async function networkFirstWithTimeout(request, cacheName, fallbackPath = '', timeoutMs = 1400) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
@@ -396,25 +404,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (request.mode === 'navigate' && url.pathname === '/profile.html') {
-    event.respondWith((async () => {
-      try {
-        const response = await fetch(request, { cache: 'no-store' });
-        if (response && response.ok) {
-          const cache = await caches.open(PAGE_CACHE);
-          cache.put(request, response.clone()).catch(() => {});
-        }
-        return response;
-      } catch (_error) {
-        const cached = await caches.match(request, { ignoreSearch: true }) || await caches.match('/profile.html');
-        return cached || offlineResponse();
-      }
-    })());
-    return;
-  }
-
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirstWithTimeout(request, PAGE_CACHE, ''));
+    // Never serve cached HTML shells for app navigations. Fresh documents avoid stale auth/app-shell
+    // combinations that can break session restore after login, reopen, or deploys.
+    event.respondWith(navigationNetworkOnly(request));
     return;
   }
 
