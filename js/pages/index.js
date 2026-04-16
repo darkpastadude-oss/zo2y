@@ -3195,6 +3195,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       window.__ZO2Y_SUPABASE_CLIENT = homeSupabaseClient;
       return homeSupabaseClient;
     }
+    window.ensureHomeSupabase = ensureHomeSupabase;
 
     function clearHomeAuthParamsFromUrl() {
       const url = new URL(window.location.href);
@@ -6104,6 +6105,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       }
       return null;
     }
+    window.getVerifiedHomeUser = getVerifiedHomeUser;
 
     function getHomeProfileLabelFallback(user) {
       const fallback =

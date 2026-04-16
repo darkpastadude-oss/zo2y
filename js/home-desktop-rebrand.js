@@ -61,6 +61,10 @@
 
   const SOURCE_BY_MEDIA = Object.fromEntries(REVIEW_SOURCES.map((source) => [source.mediaType, source]));
   let lastLiveReviewSlides = [];
+  let sidebarPreviewPromise = null;
+  let sidebarPreviewQueued = false;
+  let sidebarPreviewTimer = null;
+  let sidebarPreviewLastUserId = '';
 
   const imdbTopMovies = [
     {
@@ -402,6 +406,21 @@
   async function ensureSupabaseClient() {
     if (supabaseClient) return supabaseClient;
 
+    if (window.__ZO2Y_SUPABASE_CLIENT) {
+      supabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
+      return supabaseClient;
+    }
+
+    if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+      try {
+        const client = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        if (client) {
+          supabaseClient = client;
+          return supabaseClient;
+        }
+      } catch (_err) {}
+    }
+
     if (typeof window.ensureHomeSupabase === 'function') {
       try {
         const client = await window.ensureHomeSupabase();
@@ -415,8 +434,15 @@
     for (let i = 0; i < 20; i += 1) {
       if (window.supabase?.createClient) {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+          auth: {
+            storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: false,
+            storageKey: 'zo2y-auth-v1'
+          }
         });
+        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
         return supabaseClient;
       }
       await wait(120);
@@ -437,10 +463,6 @@
     try {
       const { data: sessionData } = await client.auth.getSession();
       const sessionUser = sessionData?.session?.user || null;
-      if (!sessionUser) return null;
-
-      const { data: userData, error: userError } = await client.auth.getUser();
-      if (!userError && userData?.user) return userData.user;
       return sessionUser;
     } catch (_err) {
       return null;
@@ -947,7 +969,28 @@
     restartAutoRotate();
   }
 
+  function queueSidebarCustomListPreview(delayMs = 0) {
+    if (sidebarPreviewTimer) {
+      window.clearTimeout(sidebarPreviewTimer);
+      sidebarPreviewTimer = null;
+    }
+    if (delayMs > 0) {
+      sidebarPreviewTimer = window.setTimeout(() => {
+        sidebarPreviewTimer = null;
+        void loadSidebarCustomListPreview();
+      }, delayMs);
+      return;
+    }
+    void loadSidebarCustomListPreview();
+  }
+
   async function loadSidebarCustomListPreview() {
+    if (sidebarPreviewPromise) {
+      sidebarPreviewQueued = true;
+      return sidebarPreviewPromise;
+    }
+
+    sidebarPreviewPromise = (async () => {
     const listContainer = document.getElementById('sidebarCustomListItems');
     if (!listContainer) return;
 
@@ -971,9 +1014,11 @@
       }
     }
     if (!user?.id) {
+      sidebarPreviewLastUserId = '';
       listContainer.innerHTML = '<div class="sidebar-list-empty">Sign in to preview your custom lists.</div>';
       return;
     }
+    sidebarPreviewLastUserId = String(user.id || '').trim();
 
     const perType = await Promise.all(SIDEBAR_MEDIA_TYPES.map(async (mediaType) => {
       try {
@@ -1024,6 +1069,17 @@
         </a>
       `;
     }).join('');
+    })();
+
+    try {
+      return await sidebarPreviewPromise;
+    } finally {
+      sidebarPreviewPromise = null;
+      if (sidebarPreviewQueued) {
+        sidebarPreviewQueued = false;
+        queueSidebarCustomListPreview(120);
+      }
+    }
   }
 
   async function bindSidebarListAuthRefresh() {
@@ -1032,8 +1088,16 @@
     if (bindSidebarListAuthRefresh.bound) return;
 
     bindSidebarListAuthRefresh.bound = true;
-    client.auth.onAuthStateChange(() => {
-      void loadSidebarCustomListPreview();
+    client.auth.onAuthStateChange((event, session) => {
+      const normalizedEvent = String(event || '').trim().toUpperCase();
+      if (normalizedEvent === 'INITIAL_SESSION' || normalizedEvent === 'TOKEN_REFRESHED') {
+        return;
+      }
+      const nextUserId = String(session?.user?.id || '').trim();
+      if (!nextUserId && !sidebarPreviewLastUserId && normalizedEvent !== 'SIGNED_OUT') {
+        return;
+      }
+      queueSidebarCustomListPreview(120);
     });
   }
 
@@ -1065,10 +1129,11 @@
     syncDesktopSidebarDocking();
     void initReviewSlideshow();
     renderCuratedRails();
-    void loadSidebarCustomListPreview();
+    queueSidebarCustomListPreview(240);
     void bindSidebarListAuthRefresh();
-    window.setTimeout(() => { void loadSidebarCustomListPreview(); }, 1200);
-    window.setTimeout(() => { void loadSidebarCustomListPreview(); }, 3600);
+    window.addEventListener('zo2y-auth-gate-verified', () => {
+      queueSidebarCustomListPreview(120);
+    });
     window.addEventListener('resize', syncDesktopSidebarDocking, { passive: true });
     window.addEventListener('orientationchange', syncDesktopSidebarDocking, { passive: true });
     window.addEventListener('pageshow', syncDesktopSidebarDocking);
