@@ -23,31 +23,13 @@
 </head>
 <body data-auth-variant="login">
 <div class="auth-entry-shell auth-entry-shell-login">
-  <section class="auth-entry-showcase">
-    <div class="auth-entry-topbar">
-      <a class="auth-entry-home" href="index.html"><i class="fas fa-home"></i> Landing</a>
-      <div class="auth-entry-wordmark"><img src="/newlogo.webp" alt="Zo2y logo"></div>
-    </div>
-
-    <div class="auth-showcase-copy">
-      <p class="auth-showcase-kicker">Members-only culture map</p>
-      <h1>Pick up where you left off.</h1>
-      <p>Sign back in to reopen your lists, recommendations, profile, and review history without losing your place.</p>
-    </div>
-
-    <article class="auth-showcase-note">
-      <p>Your account</p>
-      <strong>One login brings back your full Zo2y setup.</strong>
-      <span>Email, Google, and password reset all reconnect to the same saved identity.</span>
-    </article>
-  </section>
-
   <section class="auth-entry-panel">
     <div class="auth-panel-topbar">
       <a class="auth-entry-home" href="index.html"><i class="fas fa-home"></i> Landing</a>
+      <a class="auth-topbar-link" href="sign-up.html">Sign up</a>
     </div>
     <div class="auth-panel-card auth-panel-card-login auth-card">
-      <h2>Zo2y</h2>
+      <h2>Log in</h2>
 
       <div id="errorMessage" class="message error"></div>
       <div id="successMessage" class="message success"></div>
@@ -68,11 +50,11 @@
       <form id="authForm">
         <div class="input-group">
           <i class="fas fa-envelope"></i>
-          <input type="email" placeholder="Enter your email" id="email" required>
+          <input type="email" placeholder="Email" id="email" required>
         </div>
         <div class="input-group">
           <i class="fas fa-lock"></i>
-          <input type="password" placeholder="Enter your password" id="password" required>
+          <input type="password" placeholder="Password" id="password" required>
         </div>
         <div class="actions-row">
           <label><input type="checkbox" id="remember"> Remember me</label>
@@ -81,7 +63,7 @@
         <button type="submit" class="submit-btn" id="submitBtn"><i class="fas fa-sign-in-alt"></i> Log In</button>
       </form>
 
-      <div class="alt-link">Need an account? <a href="sign-up.html" id="altSignupLink">Create one</a></div>
+      <div class="alt-link">Don't have an account? <a href="sign-up.html" id="altSignupLink">Sign up</a></div>
     </div>
   </section>
 </div>
