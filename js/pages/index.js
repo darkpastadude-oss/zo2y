@@ -6110,6 +6110,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     function getHomeProfileLabelFallback(user) {
       const fallback =
         user?.user_metadata?.username ||
+        user?.user_metadata?.preferred_username ||
         user?.user_metadata?.full_name ||
         user?.user_metadata?.name ||
         (user?.email ? String(user.email).split('@')[0] : '');
@@ -6121,7 +6122,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     async function getHomeProfileLabel(client, user) {
       const userId = String(user?.id || '').trim();
       const fallbackLabel = getHomeProfileLabelFallback(user);
-      if (!userId || !client?.from) {
+      if (!userId) {
         return fallbackLabel;
       }
 
@@ -6131,60 +6132,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         cacheMatchesUser &&
         homeProfileLabelCache.label &&
         (now - homeProfileLabelCache.fetchedAt) < 60000
-      ) {
+        ) {
         return homeProfileLabelCache.label;
       }
 
-      if (
-        cacheMatchesUser &&
-        homeProfileLabelCache.failedAt &&
-        (now - homeProfileLabelCache.failedAt) < 15000
-      ) {
-        return homeProfileLabelCache.label || fallbackLabel;
-      }
-
-      if (homeProfileLabelLookupPromise && cacheMatchesUser) {
-        try {
-          return await homeProfileLabelLookupPromise;
-        } catch (_err) {
-          return homeProfileLabelCache.label || fallbackLabel;
-        }
-      }
-
-      homeProfileLabelCache.userId = userId;
-      homeProfileLabelLookupPromise = (async () => {
-        try {
-          const { data: profile } = await client
-            .from('user_profiles')
-            .select('username, full_name')
-            .eq('id', userId)
-            .maybeSingle();
-          const raw = profile?.username || profile?.full_name || '';
-          const clean = String(raw || '').trim();
-          const label = clean
-            ? (clean.startsWith('@') ? clean : `@${clean}`)
-            : fallbackLabel;
-          homeProfileLabelCache = {
-            userId,
-            label,
-            fetchedAt: Date.now(),
-            failedAt: 0
-          };
-          return label;
-        } catch (_profileErr) {
-          homeProfileLabelCache = {
-            userId,
-            label: homeProfileLabelCache.label || fallbackLabel,
-            fetchedAt: homeProfileLabelCache.fetchedAt,
-            failedAt: Date.now()
-          };
-          return homeProfileLabelCache.label || fallbackLabel;
-        } finally {
-          homeProfileLabelLookupPromise = null;
-        }
-      })();
-
-      return homeProfileLabelLookupPromise;
+      homeProfileLabelLookupPromise = null;
+      homeProfileLabelCache = {
+        userId,
+        label: fallbackLabel,
+        fetchedAt: Date.now(),
+        failedAt: 0
+      };
+      return fallbackLabel;
     }
 
     async function initAuthUi() {
@@ -7789,22 +7748,24 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const userId = homeCurrentUser?.id;
       if (!userId) return;
       const overlay = document.getElementById('homeOnboardingOverlay');
+      const pendingOnboarding = isOnboardingPending(userId);
+      const alreadyStartedSaving = hasStartedHomeListFlow(userId);
 
       if (homeOnboardingEvaluatedUserId === userId) {
         if (overlay?.classList.contains('active') && homeOnboardingUserId === userId) {
           return;
         }
-        if (hasSeenOnboarding(userId) || !isOnboardingPending(userId)) {
+        if (hasSeenOnboarding(userId) || !pendingOnboarding || alreadyStartedSaving) {
           return;
         }
       }
       homeOnboardingEvaluatedUserId = userId;
 
       const unseenOnboarding = !hasSeenOnboarding(userId);
-      let shouldShow = unseenOnboarding;
+      const shouldShow = unseenOnboarding && pendingOnboarding && !alreadyStartedSaving;
 
       if (!shouldShow) {
-        if (!hasSeenOnboarding(userId)) {
+        if (!hasSeenOnboarding(userId) && (!pendingOnboarding || alreadyStartedSaving)) {
           markOnboardingSeen(userId);
         }
         clearOnboardingPending(userId);

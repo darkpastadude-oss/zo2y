@@ -98,16 +98,22 @@
     for (var i = 0; i < keys.length; i += 1) {
       try {
         if (window.localStorage) {
-          window.localStorage.setItem(keys[i], value);
-          wroteAny = true;
+          var currentLocalValue = window.localStorage.getItem(keys[i]);
+          if (currentLocalValue !== value) {
+            window.localStorage.setItem(keys[i], value);
+            wroteAny = true;
+          }
         }
       } catch (_err) {}
     }
     for (var j = 0; j < keys.length; j += 1) {
       try {
         if (window.sessionStorage) {
-          window.sessionStorage.setItem(keys[j], value);
-          wroteAny = true;
+          var currentSessionValue = window.sessionStorage.getItem(keys[j]);
+          if (currentSessionValue !== value) {
+            window.sessionStorage.setItem(keys[j], value);
+            wroteAny = true;
+          }
         }
       } catch (_err) {}
     }
@@ -139,8 +145,12 @@
   function safeSetLocalStorageItem(key, value) {
     try {
       if (window.localStorage) {
-        window.localStorage.setItem(key, value);
-        return true;
+        var currentValue = window.localStorage.getItem(key);
+        if (currentValue !== value) {
+          window.localStorage.setItem(key, value);
+          return true;
+        }
+        return false;
       }
     } catch (_err) {}
     return false;
@@ -428,19 +438,34 @@
     } catch (_err) {}
   }
 
+  function buildDurableSessionPayload(session) {
+    if (!session || !session.access_token || !session.refresh_token) return '';
+    try {
+      return JSON.stringify({
+        session: session,
+        signature: getStoredSessionSignature(session),
+        userId: String(session.user && session.user.id || '').trim() || null,
+        expiresAt: Number(session.expires_at || 0) || null
+      });
+    } catch (_err) {
+      return '';
+    }
+  }
+
   function persistSessionSnapshot(session) {
     if (!session || !session.access_token || !session.refresh_token) return false;
     try {
       var payload = JSON.stringify(session);
-      safeSetStorageItem(STORAGE_KEY, payload);
-      safeSetStorageItem(LEGACY_STORAGE_KEY, payload);
-      safeSetStorageItem(PERSIST_STORAGE_KEY, payload);
-      safeSetLocalStorageItem(DURABLE_STORAGE_KEY, JSON.stringify({
-        session: session,
-        createdAt: Date.now()
-      }));
+      var durablePayload = buildDurableSessionPayload(session);
+      var wroteAny =
+        safeSetStorageItem(STORAGE_KEY, payload) ||
+        safeSetStorageItem(LEGACY_STORAGE_KEY, payload) ||
+        safeSetStorageItem(PERSIST_STORAGE_KEY, payload);
+      if (durablePayload) {
+        wroteAny = safeSetLocalStorageItem(DURABLE_STORAGE_KEY, durablePayload) || wroteAny;
+      }
       clearExplicitSignoutMarker();
-      return true;
+      return wroteAny;
     } catch (_err) {
       return false;
     }
@@ -900,7 +925,7 @@
         window.__ZO2Y_AUTH_GATE_STORAGE_BOUND = true;
         window.addEventListener('storage', function (event) {
           var key = String(event && event.key || '').trim();
-          if (key === STORAGE_KEY || key === LEGACY_STORAGE_KEY || key === PERSIST_STORAGE_KEY || key === DURABLE_STORAGE_KEY) {
+          if (key === STORAGE_KEY || key === LEGACY_STORAGE_KEY || key === PERSIST_STORAGE_KEY) {
             void verifyAndApply();
           }
         });
@@ -912,6 +937,7 @@
   window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE = hydrateCanonicalAuthStorageFromDurable;
   window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT = restoreClientSessionFromSnapshot;
   window.__ZO2Y_HAS_STORED_AUTH_SESSION = hasStoredSupabaseSession;
+  window.__ZO2Y_PERSIST_SESSION_SNAPSHOT = persistSessionSnapshot;
   window.__ZO2Y_ENSURE_AUTH_PROFILE = ensureAuthProfile;
   window.__ZO2Y_MARK_EXPLICIT_SIGNOUT = markExplicitSignout;
   window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT = clearExplicitSignoutMarker;
