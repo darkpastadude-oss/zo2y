@@ -421,12 +421,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     let homeSupabaseClient = null;
     let homeCurrentUser = null;
     let homeAuthListenerReady = false;
+    let homeAuthUiSyncPromise = null;
+    let homeAuthUiSyncQueued = false;
+    let homeAuthSyncTimer = null;
+    let homeAuthSyncNeedsPersonalization = false;
     let homeSpotlightTimer = null;
     let homeSpotlightItems = [];
     let homeSpotlightIndex = 0;
     let homeSpotlightImageToken = 0;
     let homeOnboardingIndex = 0;
     let homeOnboardingUserId = null;
+    let homeOnboardingEvaluatedUserId = '';
     let homeOnboardingProfile = {
       username: '',
       types: new Set(),
@@ -473,6 +478,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       userId: '',
       savedAt: 0,
       payload: null
+    };
+    let homeProfileLabelLookupPromise = null;
+    let homeProfileLabelCache = {
+      userId: '',
+      label: '',
+      fetchedAt: 0,
+      failedAt: 0
     };
     const homeTravelPhotoCache = new Map();
     let homeTravelPhotoCacheSaveTimer = null;
@@ -3235,6 +3247,32 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       }
     }
 
+    function resetHomeProfileLabelCache() {
+      homeProfileLabelLookupPromise = null;
+      homeProfileLabelCache = {
+        userId: '',
+        label: '',
+        fetchedAt: 0,
+        failedAt: 0
+      };
+    }
+
+    function queueHomeAuthUiSync(options = {}) {
+      if (options && options.refreshPersonalization) {
+        homeAuthSyncNeedsPersonalization = true;
+      }
+      if (homeAuthSyncTimer) return;
+      homeAuthSyncTimer = window.setTimeout(() => {
+        const shouldRefreshPersonalization = homeAuthSyncNeedsPersonalization;
+        homeAuthSyncTimer = null;
+        homeAuthSyncNeedsPersonalization = false;
+        void initAuthUi();
+        if (shouldRefreshPersonalization) {
+          void refreshHomePersonalization();
+        }
+      }, 90);
+    }
+
     async function ensureRestaurantList(userId, listType) {
       const client = await ensureHomeSupabase();
       if (!client) return null;
@@ -4036,7 +4074,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         quickContainer.innerHTML = '<div class="menu-empty menu-empty-rich"><div class="menu-empty-title">No quick saves here yet</div><div class="menu-empty-copy">This item type does not have fast-save rows right now, but custom lists can still help you organize it.</div></div>';
         return;
       }
-      const hasStartedSaving = !!homeItemMenuState.hasStartedSaving;
+      const hasStartedSaving = !homeCurrentUser?.id || !!homeItemMenuState.hasStartedSaving;
       quickContainer.innerHTML = `
         ${hasStartedSaving ? '' : '<div class="menu-helper">Tap once to save instantly. Use quick lists for speed, then build custom lists underneath.</div>'}
         ${homeItemMenuState.quickRows.map((row) => {
@@ -5982,41 +6020,59 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       homeAuthListenerReady = true;
 
       client.auth.onAuthStateChange(async (event, session) => {
-        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
-          homeCurrentUser = session.user;
-          homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
-        } else if (event === 'SIGNED_OUT') {
+        const normalizedEvent = String(event || '').trim().toUpperCase();
+        const sessionUserId = String(session?.user?.id || '').trim();
+
+        if (normalizedEvent === 'SIGNED_OUT') {
+          resetHomeProfileLabelCache();
+          homeOnboardingEvaluatedUserId = '';
+          homeOnboardingUserId = null;
           if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
             const restoredSession = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
             if (restoredSession?.user) {
               homeCurrentUser = restoredSession.user;
               homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
-              void initAuthUi();
-              void refreshHomePersonalization();
+              queueHomeAuthUiSync({ refreshPersonalization: true });
               return;
             }
           }
           homeCurrentUser = null;
           homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
-        } else if (event === 'TOKEN_REFRESHED') {
-          if (session?.user) {
-            homeCurrentUser = session.user;
-          }
+          queueHomeAuthUiSync({ refreshPersonalization: true });
+          return;
         }
 
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
-          void initAuthUi();
-          void refreshHomePersonalization();
+        if (sessionUserId) {
+          if (String(homeCurrentUser?.id || '').trim() !== sessionUserId) {
+            resetHomeProfileLabelCache();
+            homeOnboardingEvaluatedUserId = '';
+          }
+          homeCurrentUser = session.user;
+        }
+
+        if (normalizedEvent === 'SIGNED_IN') {
+          homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
+          queueHomeAuthUiSync({ refreshPersonalization: true });
+          return;
+        }
+
+        if (normalizedEvent === 'USER_UPDATED') {
+          resetHomeProfileLabelCache();
+          queueHomeAuthUiSync();
         }
       });
     }
 
     async function getVerifiedHomeUser(client) {
-      // Short retry window to avoid race right after OAuth redirect.
       let refreshAttempted = false;
+      let remoteUserAttempted = false;
       for (let attempt = 0; attempt < 4; attempt += 1) {
         const { data: sessionData } = await client.auth.getSession();
         const session = sessionData?.session || null;
+        const sessionUser = session?.user || null;
+        if (sessionUser?.id) {
+          return sessionUser;
+        }
         if (!session) {
           if (attempt < 3) {
             await new Promise((resolve) => setTimeout(resolve, 250));
@@ -6025,26 +6081,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           return null;
         }
 
-        const { data: userData, error: userError } = await client.auth.getUser();
-        if (!userError && userData?.user) {
-          return userData.user;
+        if (!remoteUserAttempted && client?.auth && typeof client.auth.getUser === 'function') {
+          remoteUserAttempted = true;
+          const { data: userData, error: userError } = await client.auth.getUser();
+          if (!userError && userData?.user) {
+            return userData.user;
+          }
         }
 
-        const errorMessage = String(userError?.message || '').toLowerCase();
-        const invalidSession =
-          userError?.status === 401 ||
-          errorMessage.includes('jwt') ||
-          errorMessage.includes('token') ||
-          errorMessage.includes('session') ||
-          errorMessage.includes('unauthorized');
-
-        if (invalidSession) {
-          if (!refreshAttempted) {
-            refreshAttempted = true;
-            const { data: refreshed, error: refreshError } = await client.auth.refreshSession();
-            if (!refreshError && refreshed?.session?.user) {
-              return refreshed.session.user;
-            }
+        if (!refreshAttempted && client?.auth && typeof client.auth.refreshSession === 'function') {
+          refreshAttempted = true;
+          const { data: refreshed, error: refreshError } = await client.auth.refreshSession();
+          if (!refreshError && refreshed?.session?.user) {
+            return refreshed.session.user;
           }
         }
         if (attempt < 3) {
@@ -6056,52 +6105,140 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return null;
     }
 
+    function getHomeProfileLabelFallback(user) {
+      const fallback =
+        user?.user_metadata?.username ||
+        user?.user_metadata?.full_name ||
+        user?.user_metadata?.name ||
+        (user?.email ? String(user.email).split('@')[0] : '');
+      const cleanFallback = String(fallback || '').trim();
+      if (!cleanFallback) return 'Profile';
+      return cleanFallback.startsWith('@') ? cleanFallback : `@${cleanFallback}`;
+    }
+
+    async function getHomeProfileLabel(client, user) {
+      const userId = String(user?.id || '').trim();
+      const fallbackLabel = getHomeProfileLabelFallback(user);
+      if (!userId || !client?.from) {
+        return fallbackLabel;
+      }
+
+      const now = Date.now();
+      const cacheMatchesUser = homeProfileLabelCache.userId === userId;
+      if (
+        cacheMatchesUser &&
+        homeProfileLabelCache.label &&
+        (now - homeProfileLabelCache.fetchedAt) < 60000
+      ) {
+        return homeProfileLabelCache.label;
+      }
+
+      if (
+        cacheMatchesUser &&
+        homeProfileLabelCache.failedAt &&
+        (now - homeProfileLabelCache.failedAt) < 15000
+      ) {
+        return homeProfileLabelCache.label || fallbackLabel;
+      }
+
+      if (homeProfileLabelLookupPromise && cacheMatchesUser) {
+        try {
+          return await homeProfileLabelLookupPromise;
+        } catch (_err) {
+          return homeProfileLabelCache.label || fallbackLabel;
+        }
+      }
+
+      homeProfileLabelCache.userId = userId;
+      homeProfileLabelLookupPromise = (async () => {
+        try {
+          const { data: profile } = await client
+            .from('user_profiles')
+            .select('username, full_name')
+            .eq('id', userId)
+            .maybeSingle();
+          const raw = profile?.username || profile?.full_name || '';
+          const clean = String(raw || '').trim();
+          const label = clean
+            ? (clean.startsWith('@') ? clean : `@${clean}`)
+            : fallbackLabel;
+          homeProfileLabelCache = {
+            userId,
+            label,
+            fetchedAt: Date.now(),
+            failedAt: 0
+          };
+          return label;
+        } catch (_profileErr) {
+          homeProfileLabelCache = {
+            userId,
+            label: homeProfileLabelCache.label || fallbackLabel,
+            fetchedAt: homeProfileLabelCache.fetchedAt,
+            failedAt: Date.now()
+          };
+          return homeProfileLabelCache.label || fallbackLabel;
+        } finally {
+          homeProfileLabelLookupPromise = null;
+        }
+      })();
+
+      return homeProfileLabelLookupPromise;
+    }
+
     async function initAuthUi() {
-      const client = await ensureHomeSupabase();
-      if (!client) return;
-      const loginBtn = document.getElementById('loginBtn');
-      const signupBtn = document.getElementById('signupBtn');
-      const profileBtn = document.getElementById('profileBtn');
-      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-      const mobileSignupBtn = document.getElementById('mobileSignupBtn');
-      const mobileProfileBtn = document.getElementById('mobileProfileBtn');
-      const sidebarProfileBtn = document.getElementById('sidebarProfileBtn');
-      try {
-        const user = await getVerifiedHomeUser(client);
-        homeCurrentUser = user;
-        const isLoggedIn = !!user;
-        if (isLoggedIn) {
-          if (loginBtn) loginBtn.style.display = 'none';
-          if (signupBtn) signupBtn.style.display = 'none';
-          if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
-          if (mobileSignupBtn) mobileSignupBtn.style.display = 'none';
-          let label = 'Profile';
-          try {
-            const { data: profile } = await client
-              .from('user_profiles')
-              .select('username, full_name')
-              .eq('id', user.id)
-              .single();
-            const raw = profile?.username || profile?.full_name || '';
-            const clean = String(raw || '').trim();
-            if (clean) label = clean.startsWith('@') ? clean : `@${clean}`;
-          } catch (_profileErr) {}
-          if (profileBtn) {
-            profileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
-            profileBtn.title = label;
-            profileBtn.style.display = 'inline-flex';
+      if (homeAuthUiSyncPromise) {
+        homeAuthUiSyncQueued = true;
+        return homeAuthUiSyncPromise;
+      }
+
+      homeAuthUiSyncPromise = (async () => {
+        const client = await ensureHomeSupabase();
+        if (!client) return;
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+        const profileBtn = document.getElementById('profileBtn');
+        const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+        const mobileSignupBtn = document.getElementById('mobileSignupBtn');
+        const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+        const sidebarProfileBtn = document.getElementById('sidebarProfileBtn');
+        try {
+          const user = await getVerifiedHomeUser(client);
+          homeCurrentUser = user;
+          const isLoggedIn = !!user;
+          if (isLoggedIn) {
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (signupBtn) signupBtn.style.display = 'none';
+            if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
+            if (mobileSignupBtn) mobileSignupBtn.style.display = 'none';
+            const label = await getHomeProfileLabel(client, user);
+            if (profileBtn) {
+              profileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+              profileBtn.title = label;
+              profileBtn.style.display = 'inline-flex';
+            }
+            if (mobileProfileBtn) {
+              mobileProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+              mobileProfileBtn.title = label;
+              mobileProfileBtn.style.display = 'inline-flex';
+            }
+            if (sidebarProfileBtn) {
+              sidebarProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+              sidebarProfileBtn.title = label;
+              sidebarProfileBtn.style.display = 'inline-flex';
+            }
+          } else {
+            resetHomeProfileLabelCache();
+            if (loginBtn) loginBtn.style.display = 'inline-flex';
+            if (signupBtn) signupBtn.style.display = 'inline-flex';
+            if (mobileLoginBtn) mobileLoginBtn.style.display = 'inline-flex';
+            if (mobileSignupBtn) mobileSignupBtn.style.display = 'inline-flex';
+            if (profileBtn) profileBtn.style.display = 'none';
+            if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
+            if (sidebarProfileBtn) sidebarProfileBtn.style.display = 'none';
           }
-          if (mobileProfileBtn) {
-            mobileProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
-            mobileProfileBtn.title = label;
-            mobileProfileBtn.style.display = 'inline-flex';
-          }
-          if (sidebarProfileBtn) {
-            sidebarProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
-            sidebarProfileBtn.title = label;
-            sidebarProfileBtn.style.display = 'inline-flex';
-          }
-        } else {
+        } catch (_e) {
+          homeCurrentUser = null;
+          resetHomeProfileLabelCache();
           if (loginBtn) loginBtn.style.display = 'inline-flex';
           if (signupBtn) signupBtn.style.display = 'inline-flex';
           if (mobileLoginBtn) mobileLoginBtn.style.display = 'inline-flex';
@@ -6110,15 +6247,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
           if (sidebarProfileBtn) sidebarProfileBtn.style.display = 'none';
         }
-      } catch (_e) {
-        homeCurrentUser = null;
-        if (loginBtn) loginBtn.style.display = 'inline-flex';
-        if (signupBtn) signupBtn.style.display = 'inline-flex';
-        if (mobileLoginBtn) mobileLoginBtn.style.display = 'inline-flex';
-        if (mobileSignupBtn) mobileSignupBtn.style.display = 'inline-flex';
-        if (profileBtn) profileBtn.style.display = 'none';
-        if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
-        if (sidebarProfileBtn) sidebarProfileBtn.style.display = 'none';
+      })();
+
+      try {
+        return await homeAuthUiSyncPromise;
+      } finally {
+        homeAuthUiSyncPromise = null;
+        if (homeAuthUiSyncQueued) {
+          homeAuthUiSyncQueued = false;
+          void initAuthUi();
+        }
       }
     }
 
@@ -6375,13 +6513,25 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       }
 
       try {
-        await ensureHomeProfileSeeded();
-        localStorage.setItem(getOnboardingPendingKey(homeCurrentUser.id), '1');
+        const seededProfile = await ensureHomeProfileSeeded();
+        const pendingFlow = String(pending?.flow || '').trim().toLowerCase();
+        const shouldShowOnboarding =
+          pendingFlow === 'signup' ||
+          !!seededProfile?.created ||
+          !!(seededProfile?.profile && !String(seededProfile.profile.username || '').trim());
+
+        if (shouldShowOnboarding) {
+          localStorage.setItem(getOnboardingPendingKey(homeCurrentUser.id), '1');
+        } else {
+          clearOnboardingPending(homeCurrentUser.id);
+        }
         clearPendingHomePostAuthBootstrap();
-        const client = await ensureHomeSupabase();
-        const { data: sessionData } = client ? await client.auth.getSession() : { data: { session: null } };
-        void triggerHomeWelcomeEmail(sessionData?.session || null, String(pending?.flow || 'signup'));
-        return true;
+        if (pendingFlow === 'signup') {
+          const client = await ensureHomeSupabase();
+          const { data: sessionData } = client ? await client.auth.getSession() : { data: { session: null } };
+          void triggerHomeWelcomeEmail(sessionData?.session || null, 'signup');
+        }
+        return shouldShowOnboarding;
       } catch (error) {
         console.warn('Pending auth bootstrap failed:', error);
         return false;
@@ -7636,6 +7786,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     async function maybeShowHomeOnboarding() {
       const userId = homeCurrentUser?.id;
       if (!userId) return;
+      const overlay = document.getElementById('homeOnboardingOverlay');
+
+      if (homeOnboardingEvaluatedUserId === userId) {
+        if (overlay?.classList.contains('active') && homeOnboardingUserId === userId) {
+          return;
+        }
+        if (hasSeenOnboarding(userId) || !isOnboardingPending(userId)) {
+          return;
+        }
+      }
+      homeOnboardingEvaluatedUserId = userId;
 
       const unseenOnboarding = !hasSeenOnboarding(userId);
       let shouldShow = unseenOnboarding;
@@ -7654,7 +7815,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       ensureHomeOnboardingUi();
       attachHomeOnboardingEvents();
       renderHomeOnboardingStep();
-      const overlay = document.getElementById('homeOnboardingOverlay');
       if (overlay) overlay.classList.add('active');
       document.body.style.overflow = 'hidden';
     }

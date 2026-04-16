@@ -552,8 +552,14 @@ const HEADER_HTML = `
     };
 
     authStateListenerBound = true;
-    client.auth.onAuthStateChange((_event, session) => {
-      if (session?.user?.id) {
+    client.auth.onAuthStateChange((event, session) => {
+      const normalizedEvent = String(event || '').trim().toUpperCase();
+      const sessionUserId = String(session?.user?.id || '').trim();
+      if (sessionUserId && authHeaderProfileLabelUserId && authHeaderProfileLabelUserId !== sessionUserId) {
+        authHeaderProfileLabelUserId = '';
+        authHeaderProfileLabelValue = '';
+        authHeaderProfileLabelAt = 0;
+      } else if (!sessionUserId && normalizedEvent === 'SIGNED_OUT') {
         authHeaderProfileLabelUserId = '';
         authHeaderProfileLabelValue = '';
         authHeaderProfileLabelAt = 0;
@@ -573,6 +579,9 @@ const HEADER_HTML = `
             }
           } catch (_err) {}
         } catch (_err) {}
+      }
+      if (normalizedEvent === 'TOKEN_REFRESHED' || normalizedEvent === 'INITIAL_SESSION') {
+        return;
       }
       void syncAuthHeaderState();
     });
