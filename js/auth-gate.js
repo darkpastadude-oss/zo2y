@@ -328,12 +328,21 @@
     if (!(hasOauthCode || hasOauthError || hasHashTokens || oauthFlow)) return;
     if (!hasOauthCode && !hasOauthError && !hasHashTokens) return;
 
-    var callbackUrl = new URL('auth-callback.html', window.location.origin);
+    var callbackTarget = 'auth-callback.html';
+    if (oauthFlow === 'login') {
+      callbackTarget = 'login.html';
+    } else if (oauthFlow === 'signup') {
+      callbackTarget = 'sign-up.html';
+    }
+    var callbackUrl = new URL(callbackTarget, window.location.origin);
     if (window.location.search) {
       callbackUrl.search = window.location.search;
     }
     if (window.location.hash) {
       callbackUrl.hash = window.location.hash;
+    }
+    if (callbackTarget !== 'auth-callback.html') {
+      callbackUrl.searchParams.set('native_oauth', '1');
     }
     if (oauthFlow && !callbackUrl.searchParams.has('flow')) {
       callbackUrl.searchParams.set('flow', oauthFlow);
