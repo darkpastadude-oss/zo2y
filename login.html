@@ -462,6 +462,23 @@
     } catch (_err) {}
   }
 
+  function shouldClearStoredAuthSnapshotsForError(error) {
+    const message = String(error?.message || '').trim().toLowerCase();
+    const code = String(error?.code || '').trim().toLowerCase();
+    if (!message && !code) return false;
+    if (message.includes('refresh token already used') || message.includes('already been used')) return false;
+    return (
+      message.includes('invalid refresh token') ||
+      message.includes('refresh token not found') ||
+      message.includes('invalid grant') ||
+      message.includes('session missing') ||
+      message.includes('session not found') ||
+      message.includes('user from sub claim in jwt does not exist') ||
+      code === 'refresh_token_not_found' ||
+      code === 'session_not_found'
+    );
+  }
+
   async function getVerifiedUser() {
     if (verifiedUserPromise) return verifiedUserPromise;
     verifiedUserPromise = (async () => {
@@ -474,13 +491,16 @@
       if (!userError && userData?.user) {
         return userData.user;
       }
-      if (userError && /403|jwt|token|session/i.test(String(userError.message || ''))) {
+      if (userError && shouldClearStoredAuthSnapshotsForError(userError)) {
         clearStoredAuthSnapshots();
         return null;
       }
       const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
-      if (!refreshError && refreshed?.session?.user) return refreshed.session.user;
-      if (refreshError && /403|jwt|token|session/i.test(String(refreshError.message || ''))) {
+      if (!refreshError && refreshed?.session?.user) {
+        persistSessionSnapshot(refreshed.session);
+        return refreshed.session.user;
+      }
+      if (refreshError && shouldClearStoredAuthSnapshotsForError(refreshError)) {
         clearStoredAuthSnapshots();
       }
       return null;

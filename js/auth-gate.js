@@ -177,6 +177,31 @@
     return false;
   }
 
+  function getAuthErrorDetails(error) {
+    return {
+      status: Number(error && (error.status || error.statusCode) || 0),
+      code: String(error && error.code || '').trim().toLowerCase(),
+      message: String(error && error.message || '').trim().toLowerCase()
+    };
+  }
+
+  function shouldClearPersistedSessionForError(error) {
+    var details = getAuthErrorDetails(error);
+    var message = details.message;
+    var code = details.code;
+    if (!message && !code && !details.status) return false;
+    if (message.indexOf('refresh token already used') !== -1) return false;
+    if (message.indexOf('already been used') !== -1) return false;
+    if (message.indexOf('invalid refresh token') !== -1) return true;
+    if (message.indexOf('refresh token not found') !== -1) return true;
+    if (message.indexOf('invalid grant') !== -1) return true;
+    if (message.indexOf('session missing') !== -1) return true;
+    if (message.indexOf('session not found') !== -1) return true;
+    if (message.indexOf('user from sub claim in jwt does not exist') !== -1) return true;
+    if (code === 'refresh_token_not_found' || code === 'session_not_found') return true;
+    return false;
+  }
+
   function clearExplicitSignoutMarker() {
     try {
       if (window.localStorage) window.localStorage.removeItem(EXPLICIT_SIGNOUT_KEY);
@@ -437,12 +462,7 @@
         return session;
       }
     } catch (_err) {
-      var errorMessage = String((_err && _err.message) || '').toLowerCase();
-      if (
-        errorMessage.indexOf('refresh token') !== -1 ||
-        errorMessage.indexOf('invalid grant') !== -1 ||
-        errorMessage.indexOf('session missing') !== -1
-      ) {
+      if (shouldClearPersistedSessionForError(_err)) {
         clearPersistedSessionSnapshots();
       }
     }
@@ -691,7 +711,7 @@
         return authenticated;
       } catch (_err) {
         var errorMessage = String((_err && _err.message) || '').toLowerCase();
-        if (errorMessage.indexOf('refresh token') !== -1 || errorMessage.indexOf('invalid grant') !== -1 || errorMessage.indexOf('session missing') !== -1) {
+        if (shouldClearPersistedSessionForError(_err)) {
           clearPersistedSessionSnapshots();
         }
         if (errorMessage.indexOf('issued in the future') !== -1 || errorMessage.indexOf('clock skew') !== -1 || errorMessage.indexOf('clock for skew') !== -1) {
@@ -733,8 +753,7 @@
               persistSessionSnapshot(publicRefreshedSession);
             }
           } catch (_refreshErr) {
-            var refreshMessage = String((_refreshErr && _refreshErr.message) || '').toLowerCase();
-            if (refreshMessage.indexOf('refresh token') !== -1 || refreshMessage.indexOf('invalid grant') !== -1 || refreshMessage.indexOf('jwt') !== -1) {
+            if (shouldClearPersistedSessionForError(_refreshErr)) {
               clearPersistedSessionSnapshots();
             }
           }
@@ -766,8 +785,7 @@
               retryAuthenticated = !!(refreshedSession && refreshedSession.user);
               if (retryAuthenticated && refreshedSession) persistSessionSnapshot(refreshedSession);
             } catch (_refreshErr) {
-              var retryRefreshMessage = String((_refreshErr && _refreshErr.message) || '').toLowerCase();
-              if (retryRefreshMessage.indexOf('refresh token') !== -1 || retryRefreshMessage.indexOf('invalid grant') !== -1 || retryRefreshMessage.indexOf('jwt') !== -1) {
+              if (shouldClearPersistedSessionForError(_refreshErr)) {
                 clearPersistedSessionSnapshots();
               }
             }
@@ -897,6 +915,30 @@
   window.__ZO2Y_ENSURE_AUTH_PROFILE = ensureAuthProfile;
   window.__ZO2Y_MARK_EXPLICIT_SIGNOUT = markExplicitSignout;
   window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT = clearExplicitSignoutMarker;
+  window.__ZO2Y_AUTH_DIAGNOSTICS = function () {
+    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY, DURABLE_STORAGE_KEY];
+    var storage = {};
+    for (var i = 0; i < keys.length; i += 1) {
+      var key = keys[i];
+      storage[key] = {
+        local: !!safeGetLocalStorageItem(key),
+        shared: !!safeGetStorageItem(key)
+      };
+    }
+    var snapshot = getStoredSessionSnapshot();
+    return {
+      pageKey: pageKey,
+      hasStoredSupabaseSession: hasStoredSupabaseSession(),
+      hasRecentExplicitSignout: hasRecentExplicitSignout(),
+      storage: storage,
+      sessionPreview: snapshot ? {
+        hasAccessToken: !!snapshot.access_token,
+        hasRefreshToken: !!snapshot.refresh_token,
+        userId: String(snapshot.user && snapshot.user.id || '').trim() || null,
+        expiresAt: snapshot.expires_at || null
+      } : null
+    };
+  };
   installSupabaseCreateClientPatch();
   var pageKey = normalizePageKey(window.location.pathname);
   maybeRedirectOAuthCallback(pageKey);

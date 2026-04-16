@@ -415,7 +415,7 @@
     for (let i = 0; i < 20; i += 1) {
       if (window.supabase?.createClient) {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
         });
         return supabaseClient;
       }
