@@ -382,29 +382,66 @@
     return null;
   }
 
-  async function ensureProfileBootstrap(userOverride = null) {
+  async function ensureProfileBootstrap(userOverride = null, clientOverride = null) {
     const user = userOverride?.id ? userOverride : await getVerifiedUser();
     if (!user?.id || typeof window.__ZO2Y_ENSURE_AUTH_PROFILE !== 'function') {
       return false;
     }
     try {
-      const result = await window.__ZO2Y_ENSURE_AUTH_PROFILE(supabase, user);
+      const result = await window.__ZO2Y_ENSURE_AUTH_PROFILE(clientOverride || supabase, user);
       return !!(result && result.ok !== false);
     } catch (_err) {
       return false;
     }
   }
 
-  async function finalizeAuthRedirect(sessionOverride = null) {
+  function getPreferredOAuthClient() {
+    const sharedClient = window.__ZO2Y_SUPABASE_CLIENT;
+    if (sharedClient?.auth && typeof sharedClient.auth.getSession === 'function') {
+      return sharedClient;
+    }
+    return supabase;
+  }
+
+  async function resolveStableOAuthSession(client, fallbackSession = null) {
+    const fallback = fallbackSession?.access_token && fallbackSession?.refresh_token
+      ? fallbackSession
+      : null;
+    if (!client?.auth || typeof client.auth.getSession !== 'function') {
+      return fallback;
+    }
+    try {
+      const { data } = await client.auth.getSession();
+      const liveSession = data?.session || null;
+      if (liveSession?.access_token && liveSession?.refresh_token) {
+        return liveSession;
+      }
+    } catch (_err) {}
+    return fallback;
+  }
+
+  function persistGoogleOAuthSession(session) {
+    let wroteAny = false;
+    if (typeof window.__ZO2Y_PERSIST_SESSION_SNAPSHOT === 'function') {
+      try {
+        wroteAny = window.__ZO2Y_PERSIST_SESSION_SNAPSHOT(session) || wroteAny;
+      } catch (_err) {}
+    }
+    wroteAny = persistSessionSnapshot(session) || wroteAny;
+    return wroteAny;
+  }
+
+  async function finalizeAuthRedirect(sessionOverride = null, clientOverride = null) {
     if (sessionOverride) persistSessionSnapshot(sessionOverride);
     let stableUser = sessionOverride?.user || null;
     if (!stableUser?.id) {
       stableUser = await waitForStableSession(2400);
     }
     if (stableUser?.id) {
-      await ensureProfileBootstrap(stableUser);
+      await ensureProfileBootstrap(stableUser, clientOverride || supabase);
     }
     const nextPath = getPostAuthRedirect();
+    safeRemoveAuthStorage('oauthFlow');
     safeRemoveAuthStorage('postAuthRedirect');
     window.location.replace(buildPostAuthRedirectTarget(nextPath));
   }
@@ -420,14 +457,15 @@
     const code = params.get('code');
     const accessToken = hashParams.get('access_token');
     const refreshToken = hashParams.get('refresh_token');
+    const authClient = getPreferredOAuthClient();
     let session = null;
 
     if (code) {
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      const { data, error } = await authClient.auth.exchangeCodeForSession(code);
       if (error) throw error;
       session = data?.session || null;
     } else if (accessToken && refreshToken) {
-      const { data, error } = await supabase.auth.setSession({
+      const { data, error } = await authClient.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken
       });
@@ -439,6 +477,11 @@
       throw new Error('Google signup did not return a usable session.');
     }
 
+    session = await resolveStableOAuthSession(authClient, session);
+    if (!session?.access_token || !session?.refresh_token || !session?.user?.id) {
+      throw new Error('Google signup did not persist a usable session.');
+    }
+
     try {
       localStorage.setItem(getOnboardingPendingKey(session.user.id), '1');
     } catch (_err) {}
@@ -448,9 +491,9 @@
       email: String(session?.user?.email || '').trim(),
       fullName: String(session?.user?.user_metadata?.full_name || session?.user?.user_metadata?.name || '').trim()
     });
-    persistSessionSnapshot(session);
+    persistGoogleOAuthSession(session);
     void triggerWelcomeEmail(session);
-    await finalizeAuthRedirect(session);
+    await finalizeAuthRedirect(session, authClient);
   }
 
   function getOnboardingPendingKey(userId) {

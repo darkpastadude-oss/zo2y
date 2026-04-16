@@ -3735,7 +3735,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       customLists: [],
       selectedCustomLists: new Set(),
       selectedIcon: 'fas fa-list',
-      hasStartedSaving: false
+      hasStartedSaving: false,
+      forceShowHelperOnce: false
     };
     const homeItemMenuCache = {
       quickStatusByItem: new Map(),
@@ -4002,6 +4003,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         itemModal.setAttribute('aria-hidden', 'true');
       }
       homeItemMenuState.pendingQuickKeys = new Set();
+      homeItemMenuState.forceShowHelperOnce = false;
       syncMenuModalBodyLock();
     }
 
@@ -4180,7 +4182,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     async function loadItemMenuData() {
       const item = homeItemMenuState.currentItem;
       if (!item) return;
-      homeItemMenuState.hasStartedSaving = hasStartedHomeListFlow(homeCurrentUser?.id);
+      const startedSavingKeySeen = hasStartedHomeListFlow(homeCurrentUser?.id);
       homeItemMenuState.quickRows = getQuickRowsForMenu(item.mediaType);
       homeItemMenuState.pendingQuickKeys = new Set();
       homeItemMenuState.quickStatus = readHomeMenuQuickStatusCache(
@@ -4194,6 +4196,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       if (!homeItemMenuState.selectedCustomLists.size) {
         homeItemMenuState.selectedCustomLists = readHomeMenuMembershipCache(item.mediaType, item.itemId);
       }
+      const hasCachedSaving =
+        Object.values(homeItemMenuState.quickStatus || {}).some(Boolean)
+        || (homeItemMenuState.selectedCustomLists instanceof Set && homeItemMenuState.selectedCustomLists.size > 0)
+        || homeItemMenuState.customLists.length > 0;
+      if (hasCachedSaving) {
+        homeItemMenuState.forceShowHelperOnce = false;
+        markStartedHomeListFlow(homeCurrentUser?.id);
+      }
+      homeItemMenuState.hasStartedSaving = hasCachedSaving || (startedSavingKeySeen && !homeItemMenuState.forceShowHelperOnce);
       renderItemMenuQuickLists();
       renderItemMenuCustomLists();
 
@@ -4254,6 +4265,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         subtitle: card.getAttribute('data-subtitle') || '',
         image: card.getAttribute('data-list-image') || card.getAttribute('data-image') || ''
       };
+      const shouldShowHelperOnce = !!homeCurrentUser?.id && !hasStartedHomeListFlow(homeCurrentUser.id);
+      homeItemMenuState.forceShowHelperOnce = shouldShowHelperOnce;
+      if (shouldShowHelperOnce) {
+        markStartedHomeListFlow(homeCurrentUser.id);
+      }
       homeItemMenuState.quickRows = getQuickRowsForMenu(mediaType);
       homeItemMenuState.quickStatus = readHomeMenuQuickStatusCache(
         mediaType,
@@ -6221,48 +6237,104 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       }
     }
 
+    function hasStoredLocalFlag(keys) {
+      return (Array.isArray(keys) ? keys : []).some((key) => {
+        if (!key) return false;
+        try {
+          return localStorage.getItem(key) === '1';
+        } catch (_err) {
+          return false;
+        }
+      });
+    }
+
+    function writeStoredLocalFlags(keys) {
+      (Array.isArray(keys) ? keys : []).forEach((key) => {
+        if (!key) return;
+        try {
+          localStorage.setItem(key, '1');
+        } catch (_err) {}
+      });
+    }
+
+    function clearStoredLocalFlags(keys) {
+      (Array.isArray(keys) ? keys : []).forEach((key) => {
+        if (!key) return;
+        try {
+          localStorage.removeItem(key);
+        } catch (_err) {}
+      });
+    }
+
+    function getOnboardingStorageKeys(userId) {
+      const safeUserId = String(userId || '').trim();
+      if (!safeUserId) return [];
+      return [
+        `zo2y_onboarding_seen_once_v1_${safeUserId}`,
+        `zo2y_onboarding_seen_${HOME_ONBOARDING_VERSION}_${safeUserId}`,
+        `zo2y_onboarding_seen_v1_${safeUserId}`
+      ];
+    }
+
     function getOnboardingStorageKey(userId) {
-      return `zo2y_onboarding_seen_${HOME_ONBOARDING_VERSION}_${String(userId || '').trim()}`;
+      return getOnboardingStorageKeys(userId)[0] || '';
     }
 
     function getListHelperDismissKey(userId) {
       return `zo2y_list_helper_seen_v1_${String(userId || '').trim()}`;
     }
 
+    function getListHelperDismissKeys(userId) {
+      const key = getListHelperDismissKey(userId);
+      return key ? [key] : [];
+    }
+
+    function getOnboardingPendingKeys(userId) {
+      const safeUserId = String(userId || '').trim();
+      if (!safeUserId) return [];
+      return [
+        `zo2y_onboarding_pending_${HOME_ONBOARDING_VERSION}_${safeUserId}`,
+        `zo2y_onboarding_pending_v1_${safeUserId}`
+      ];
+    }
+
     function getOnboardingPendingKey(userId) {
-      return `zo2y_onboarding_pending_${HOME_ONBOARDING_VERSION}_${String(userId || '').trim()}`;
+      return getOnboardingPendingKeys(userId)[0] || '';
     }
 
     function hasSeenOnboarding(userId) {
       if (!userId) return true;
-      return localStorage.getItem(getOnboardingStorageKey(userId)) === '1';
+      return hasStoredLocalFlag(getOnboardingStorageKeys(userId));
     }
 
     function isOnboardingPending(userId) {
       if (!userId) return false;
-      return localStorage.getItem(getOnboardingPendingKey(userId)) === '1';
+      return hasStoredLocalFlag(getOnboardingPendingKeys(userId));
     }
 
     function markOnboardingSeen(userId) {
       if (!userId) return;
-      localStorage.setItem(getOnboardingStorageKey(userId), '1');
+      writeStoredLocalFlags(getOnboardingStorageKeys(userId));
+    }
+
+    function markOnboardingPending(userId) {
+      if (!userId) return;
+      writeStoredLocalFlags(getOnboardingPendingKeys(userId));
     }
 
     function clearOnboardingPending(userId) {
       if (!userId) return;
-      localStorage.removeItem(getOnboardingPendingKey(userId));
+      clearStoredLocalFlags(getOnboardingPendingKeys(userId));
     }
 
     function hasStartedHomeListFlow(userId) {
       if (!userId) return false;
-      return localStorage.getItem(getListHelperDismissKey(userId)) === '1';
+      return hasStoredLocalFlag(getListHelperDismissKeys(userId));
     }
 
     function markStartedHomeListFlow(userId) {
       if (!userId) return;
-      try {
-        localStorage.setItem(getListHelperDismissKey(userId), '1');
-      } catch (_err) {}
+      writeStoredLocalFlags(getListHelperDismissKeys(userId));
     }
 
     function readPendingHomePostAuthBootstrap() {
@@ -6482,7 +6554,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           !!(seededProfile?.profile && !String(seededProfile.profile.username || '').trim());
 
         if (shouldShowOnboarding) {
-          localStorage.setItem(getOnboardingPendingKey(homeCurrentUser.id), '1');
+          markOnboardingPending(homeCurrentUser.id);
         } else {
           clearOnboardingPending(homeCurrentUser.id);
         }
@@ -7772,7 +7844,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         return;
       }
 
-      localStorage.setItem(getOnboardingPendingKey(userId), '1');
+      markOnboardingSeen(userId);
+      clearOnboardingPending(userId);
       homeOnboardingUserId = userId;
       homeOnboardingIndex = 0;
       ensureHomeOnboardingUi();
