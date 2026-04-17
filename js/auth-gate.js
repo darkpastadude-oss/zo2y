@@ -272,6 +272,19 @@
     return next;
   }
 
+  function ensureSharedSupabaseClient(options) {
+    hydrateCanonicalAuthStorageFromDurable();
+    if (window.__ZO2Y_SUPABASE_CLIENT) return window.__ZO2Y_SUPABASE_CLIENT;
+    if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+    var nextOptions = buildZo2yAuthOptions(options);
+    if (!nextOptions.auth) nextOptions.auth = {};
+    if (nextOptions.auth.detectSessionInUrl === undefined) {
+      nextOptions.auth.detectSessionInUrl = false;
+    }
+    window.__ZO2Y_SUPABASE_CLIENT = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, nextOptions);
+    return window.__ZO2Y_SUPABASE_CLIENT;
+  }
+
   function installSupabaseCreateClientPatch() {
     if (window.__ZO2Y_SUPABASE_CREATE_CLIENT_PATCHED) return;
 
@@ -935,21 +948,12 @@
       }
       if (!client) {
         try {
-          if (window.__ZO2Y_SUPABASE_CLIENT) {
-            client = window.__ZO2Y_SUPABASE_CLIENT;
-          } else {
-            var detectSessionInUrl = pageKey !== 'auth-callback';
-            client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-              auth: {
-                storage: getSupabaseStorageBridge(),
-                storageKey: STORAGE_KEY,
-                persistSession: true,
-                autoRefreshToken: true,
-                detectSessionInUrl: detectSessionInUrl
-              }
-            });
-            window.__ZO2Y_SUPABASE_CLIENT = client;
-          }
+          var detectSessionInUrl = pageKey !== 'auth-callback';
+          client = ensureSharedSupabaseClient({
+            auth: {
+              detectSessionInUrl: detectSessionInUrl
+            }
+          });
         } catch (_clientErr) {
           client = null;
         }
@@ -1029,6 +1033,7 @@
   window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT = restoreClientSessionFromSnapshot;
   window.__ZO2Y_HAS_STORED_AUTH_SESSION = hasStoredSupabaseSession;
   window.__ZO2Y_PERSIST_SESSION_SNAPSHOT = persistSessionSnapshot;
+  window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSharedSupabaseClient;
   window.__ZO2Y_ENSURE_AUTH_PROFILE = ensureAuthProfile;
   window.__ZO2Y_MARK_EXPLICIT_SIGNOUT = markExplicitSignout;
   window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT = clearExplicitSignoutMarker;

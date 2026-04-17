@@ -778,6 +778,7 @@
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
   <script src="js/shared-header.js?v=20260415b" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+  <link rel="stylesheet" href="/css/pages/media-spotlight.css?v=20260417a">
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -1053,7 +1054,7 @@
 
       function getAnimePosterUrl(item) {
         return item?.poster_path
-          ? optimizeRemoteImage(POSTER_BASE + item.poster_path, { width: 360, quality: 70, fit: 'cover' })
+          ? optimizeRemoteImage(POSTER_BASE + item.poster_path, { width: 360, quality: 70, fit: 'contain' })
           : 'images/placeholder.jpg';
       }
 
@@ -1574,8 +1575,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
 
 
 

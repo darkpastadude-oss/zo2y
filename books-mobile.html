@@ -827,6 +827,7 @@
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
   <script src="js/shared-header.js?v=20260415b" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+  <link rel="stylesheet" href="/css/pages/media-spotlight.css?v=20260417a">
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -1601,13 +1602,6 @@
           if (sessionUser?.id) return sessionUser;
         } catch (_error) {}
         try {
-          const refreshResult = typeof supabaseClient.auth.refreshSession === 'function'
-            ? await supabaseClient.auth.refreshSession()
-            : null;
-          const refreshedUser = refreshResult?.data?.session?.user || null;
-          if (refreshedUser?.id) return refreshedUser;
-        } catch (_error) {}
-        try {
           const userResult = typeof supabaseClient.auth.getUser === 'function'
             ? await supabaseClient.auth.getUser()
             : null;
@@ -1694,6 +1688,44 @@
         return getPreferredBookImage(book) || FALLBACK_BOOK_IMAGE;
       }
 
+      function hashBookSpotlightSeed(value) {
+        let hash = 0;
+        const text = String(value || '');
+        for (let i = 0; i < text.length; i += 1) {
+          hash = ((hash << 5) - hash) + text.charCodeAt(i);
+          hash |= 0;
+        }
+        return Math.abs(hash);
+      }
+
+      function buildBookSpotlightBackdrop(book) {
+        const seedSource = [
+          book?.title || '',
+          Array.isArray(book?.author_name) ? book.author_name.join('|') : '',
+          Array.isArray(book?.subject) ? book.subject.slice(0, 5).join('|') : '',
+          book?.first_publish_year || ''
+        ].join('::');
+        const seed = hashBookSpotlightSeed(seedSource);
+        const themes = String(seedSource).toLowerCase();
+        const warmTheme = /fantasy|magic|myth|romance|adventure|fairy|dragon|love|legend|histor/i.test(themes);
+        const noirTheme = /mystery|crime|thriller|horror|dark|murder|detective|war/i.test(themes);
+        const scholarlyTheme = /history|science|philosophy|politic|economics|psychology|essay/i.test(themes);
+        const hueA = seed % 360;
+        const hueB = (hueA + (warmTheme ? 32 : 78)) % 360;
+        const hueC = (hueA + (noirTheme ? 208 : 146)) % 360;
+        const saturation = warmTheme ? 72 : scholarlyTheme ? 48 : noirTheme ? 42 : 58;
+        const lightA = noirTheme ? 20 : 26;
+        const lightB = warmTheme ? 34 : 28;
+        const lightC = scholarlyTheme ? 18 : 22;
+        return [
+          `radial-gradient(circle at 16% 18%, hsla(${hueA}, ${saturation}%, ${lightB + 18}%, 0.92), transparent 34%)`,
+          `radial-gradient(circle at 82% 20%, hsla(${hueB}, ${Math.max(36, saturation - 10)}%, ${lightB + 10}%, 0.78), transparent 30%)`,
+          `linear-gradient(135deg, hsl(${hueC}, ${Math.max(22, saturation - 22)}%, ${lightC}%) 0%, hsl(${hueA}, ${saturation}%, ${lightA}%) 48%, hsl(${hueB}, ${Math.max(28, saturation - 12)}%, ${lightB}%) 100%)`,
+          'repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 2px, transparent 2px 18px)',
+          'linear-gradient(120deg, rgba(8,14,31,0.46), rgba(10,19,39,0.14))'
+        ].join(', ');
+      }
+
       function pickBookSpotlightPool(items = []) {
         const seen = new Set();
         return (Array.isArray(items) ? items : []).filter((book) => {
@@ -1715,12 +1747,12 @@
         const imgEl = document.getElementById('booksSpotlightImage');
         const openEl = document.getElementById('booksSpotlightOpen');
         const cover = getBookSpotlightCover(book);
-        const hasRealCover = cover && cover !== FALLBACK_BOOK_IMAGE;
         section.hidden = false;
         if (bg) {
-          bg.style.backgroundImage = hasRealCover
-            ? `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${cover}")`
-            : 'linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%)';
+          bg.style.backgroundImage = buildBookSpotlightBackdrop(book);
+          bg.style.backgroundSize = 'cover';
+          bg.style.backgroundPosition = 'center center';
+          bg.style.backgroundRepeat = 'no-repeat';
         }
         if (titleEl) titleEl.textContent = book.title || 'Book Spotlight';
         if (metaEl) metaEl.textContent = [Array.isArray(book.author_name) ? book.author_name.slice(0, 2).join(', ') : '', book.first_publish_year || ''].filter(Boolean).join(' ? ');
@@ -2314,9 +2346,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
 
 
 
