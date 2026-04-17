@@ -13,7 +13,7 @@
   min-height: var(--spotlight-shell-height) !important;
   max-height: none !important;
   height: var(--spotlight-shell-height);
-  grid-template-columns: minmax(0, 1fr) var(--spotlight-poster-column) !important;
+  grid-template-columns: minmax(0, 1fr) fit-content(var(--spotlight-poster-column)) !important;
   align-items: stretch;
 }
 
@@ -68,6 +68,9 @@
 .media-spotlight-poster {
   padding: var(--spotlight-poster-padding) !important;
   border-left: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background:
     linear-gradient(180deg, rgba(11, 22, 49, 0.58), rgba(8, 16, 36, 0.88)),
     radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.18), transparent 46%);

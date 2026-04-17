@@ -146,7 +146,7 @@
       travel: { table: 'travel_reviews', itemField: 'country_code' }
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v12';
-    const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
+    const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 90;
     const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v12';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
@@ -211,7 +211,7 @@
     const HOME_SPOTLIGHT_POOL_SIZE = 20;
     const HOME_NEW_RELEASES_TARGET_ITEMS = 16;
     const HOME_NEW_RELEASES_TIMEOUT_MS = 5600;
-    const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 12;
+    const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 45;
 const HOME_EAGER_IMAGE_COUNT = 1;
 const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
     const HOME_PRELOAD_PER_CHANNEL = 0;
@@ -235,7 +235,7 @@ const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
     const HOME_ONBOARDING_VERSION = 'v2';
     const HOME_POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
     const PROFILE_USERNAME_MAX_LENGTH = 30;
-    const HOME_RESUME_REFRESH_THROTTLE_MS = 1000 * 60 * 4;
+    const HOME_RESUME_REFRESH_THROTTLE_MS = 1000 * 60 * 15;
     const HOME_PERSONALIZATION_THROTTLE_MS = 1000 * 60 * 5;
     const HOME_TASTE_WEIGHTS_CACHE_MS = 1000 * 60 * 10;
 const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
@@ -8802,18 +8802,28 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const deferredChannels = channels.filter((channel) => !initialChannels.includes(channel));
       const cachedFeed = readHomeFeedCache();
       const baselineFeed = cachedFeed || null;
-        const precomputedFeedPromise = loadPrecomputedHomeFeed().catch(() => null);
-        const blankFeed = Object.fromEntries(initialChannels.map((channel) => [channel.key, []]));
-        const freshLoadedKeys = new Set();
-        let workingFeed = normalizeHomeFeedMap(baselineFeed) || blankFeed;
 
       if (baselineFeed) {
-        const cachedResult = applyHomeFeedMap(baselineFeed);
+        const baselineActiveChannels = countActiveHomeChannels(baselineFeed);
+        const cacheHealthyFloor = Math.min(initialChannels.length, 3);
+        const cacheOnly = !force && baselineActiveChannels >= cacheHealthyFloor;
+        const cachedResult = cacheOnly
+          ? applyHomeFeedMap(baselineFeed, { refreshSecondary: false })
+          : applyHomeFeedMap(baselineFeed);
         if (cachedResult.scoredPool.length) {
           homeLastGoodFeedAt = Date.now();
-          setStatus(cachedFeed ? 'Feed ready from cache. Syncing live data...' : 'Feed ready. Syncing live data...', false);
+          setStatus(cacheOnly ? 'Feed ready from cache.' : 'Feed ready from cache. Syncing live data...', false);
+        }
+        if (cacheOnly && cachedResult.scoredPool.length) {
+          resetSpotlightTimer(true);
+          return;
         }
       }
+
+      const precomputedFeedPromise = loadPrecomputedHomeFeed().catch(() => null);
+      const blankFeed = Object.fromEntries(initialChannels.map((channel) => [channel.key, []]));
+      const freshLoadedKeys = new Set();
+      let workingFeed = normalizeHomeFeedMap(baselineFeed) || blankFeed;
 
       const loadChannel = async (channel) => {
         const items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));

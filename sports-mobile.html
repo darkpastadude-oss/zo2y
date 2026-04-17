@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
-  <script src="/js/auth-gate.js?v=20260417a"></script>
+  <script src="/js/auth-gate.js?v=20260418a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Sports</title>
   <meta name="description" content="Track your favorite teams, browse leagues, and save sports to your Zo2y profile." />
@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="js/list-utils.js?v=20260317b" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260317b" defer></script>
-  <link rel="stylesheet" href="css/pages/sports.css?v=20260417f" />
+  <link rel="stylesheet" href="css/pages/sports.css?v=20260418a" />
   <meta name="theme-color" content="#0b1633" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
   <script src="/js/mobile-webapp.js?v=20260329b" defer></script>
@@ -86,40 +86,9 @@
     <section class="sports-search">
       <div class="sports-search-bar">
         <input id="sportsSearchInput" type="search" placeholder="Search teams, leagues, countries, or sports" aria-label="Search teams, leagues, countries, or sports" />
-        <button id="sportsSearchBtn" type="button" aria-label="Search sports"><i class="fas fa-search"></i><span>Search</span></button>
+        <button id="sportsSearchBtn" type="button" aria-label="Search sports"><i class="fas fa-search"></i></button>
         <button id="sportsFilterToggleBtn" class="sports-filter-toggle" type="button" aria-label="Open sports filters"><i class="fas fa-sliders-h"></i></button>
         <div class="sports-search-suggest" id="sportsSearchSuggest"></div>
-      </div>
-      <div class="sports-search-filters">
-        <label>
-          <span>Sport</span>
-          <select id="sportsFilterSport">
-            <option value="all">All sports</option>
-          </select>
-        </label>
-        <label>
-          <span>Country</span>
-          <select id="sportsFilterCountry">
-            <option value="all">All countries</option>
-          </select>
-        </label>
-        <label>
-          <span>League</span>
-          <select id="sportsFilterLeague">
-            <option value="all">All leagues</option>
-          </select>
-        </label>
-      </div>
-      <div class="sports-search-tags" id="sportsSearchTags">
-        <button class="sports-search-tag" type="button" data-team="Liverpool">Liverpool</button>
-        <button class="sports-search-tag" type="button" data-team="F1">F1</button>
-        <button class="sports-search-tag" type="button" data-team="NBA">NBA</button>
-        <button class="sports-search-tag" type="button" data-team="NFL">NFL</button>
-        <button class="sports-search-tag" type="button" data-team="Real Madrid">Real Madrid</button>
-        <button class="sports-search-tag" type="button" data-team="Los Angeles Lakers">LA Lakers</button>
-        <button class="sports-search-tag" type="button" data-team="Egypt">Egypt</button>
-        <button class="sports-search-tag" type="button" data-team="Saudi Pro League">Saudi Pro League</button>
-        <button class="sports-search-tag" type="button" data-team="New York Yankees">NY Yankees</button>
       </div>
     </section>
 
@@ -167,8 +136,7 @@
 
   <div class="sports-toast" id="sportsToast" role="status" aria-live="polite"></div>
 
-    <script src="js/pages/sports.js?v=20260417e" defer></script>
+    <script src="js/pages/sports.js?v=20260418a" defer></script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-

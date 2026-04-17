@@ -8,8 +8,9 @@
   var DURABLE_STORAGE_KEY = 'zo2y-auth-durable-v1';
   var EXPLICIT_SIGNOUT_KEY = 'zo2y-auth-explicit-signout-v1';
   var AUTH_DEBUG_KEY = 'zo2y_auth_debug';
-  var PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 3;
-  var PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 15;
+  // Reduce background auth churn when users tab away/return (avoids refresh-token rate limits).
+  var PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 8;
+  var PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60;
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
     'login',
@@ -299,7 +300,17 @@
       var originalCreateClient = window.supabase.createClient.bind(window.supabase);
       window.supabase.createClient = function (url, key, options) {
         hydrateCanonicalAuthStorageFromDurable();
-        return originalCreateClient(url, key, buildZo2yAuthOptions(options));
+        var normalizedUrl = String(url || '').trim();
+        var normalizedKey = String(key || '').trim();
+        var nextOptions = buildZo2yAuthOptions(options);
+        // Ensure every page only owns a single Supabase client for this project.
+        // Multiple clients in the same window can race refreshSession() and cause 429 + "lock stolen".
+        if (normalizedUrl === SUPABASE_URL && normalizedKey === SUPABASE_KEY) {
+          if (window.__ZO2Y_SUPABASE_CLIENT) return window.__ZO2Y_SUPABASE_CLIENT;
+          window.__ZO2Y_SUPABASE_CLIENT = originalCreateClient(url, key, nextOptions);
+          return window.__ZO2Y_SUPABASE_CLIENT;
+        }
+        return originalCreateClient(url, key, nextOptions);
       };
       window.supabase.__zo2yCreateClientPatched = true;
       window.__ZO2Y_SUPABASE_CREATE_CLIENT_PATCHED = true;
@@ -307,6 +318,36 @@
     }
 
     if (patchNow()) return;
+
+    // Patch immediately when the CDN script assigns `window.supabase`, avoiding a race where
+    // other deferred scripts create multiple clients (causing refreshSession contention).
+    if (!window.__ZO2Y_SUPABASE_SETTER_PATCHED) {
+      window.__ZO2Y_SUPABASE_SETTER_PATCHED = true;
+      try {
+        if (!window.supabase) {
+          var supabaseValue = null;
+          Object.defineProperty(window, 'supabase', {
+            configurable: true,
+            enumerable: true,
+            get: function () {
+              return supabaseValue;
+            },
+            set: function (value) {
+              supabaseValue = value;
+              try {
+                Object.defineProperty(window, 'supabase', {
+                  value: value,
+                  writable: true,
+                  configurable: true,
+                  enumerable: true
+                });
+              } catch (_err2) {}
+              patchNow();
+            }
+          });
+        }
+      } catch (_err3) {}
+    }
 
     var attempts = 0;
     var pollTimer = window.setInterval(function () {
@@ -776,19 +817,20 @@
     var lastVerifyAt = 0;
     var verifyInFlight = null;
     var verifyCooldownUntil = 0;
+    var refreshInFlight = null;
+    var lastRefreshAttemptAt = 0;
+    var refreshCooldownUntil = 0;
 
-    async function persistLiveClientSession() {
-      if (!client || !client.auth || typeof client.auth.getSession !== 'function') return;
-      try {
-        var liveResult = await client.auth.getSession();
-        var liveSession = liveResult && liveResult.data ? liveResult.data.session : null;
-        if (liveSession && liveSession.access_token && liveSession.refresh_token) {
-          persistSessionSnapshot(liveSession);
-        }
-        authDebug('persistLiveClientSession', {
-          session: previewSession(liveSession)
-        });
-      } catch (_err) {}
+    function persistLiveClientSession() {
+      // Tab switches should not trigger Supabase session refresh calls. Persist the latest snapshot we
+      // already have in storage instead of calling `auth.getSession()` (which can refresh tokens).
+      var storedSession = getStoredSessionSnapshot();
+      if (storedSession && storedSession.access_token && storedSession.refresh_token) {
+        persistSessionSnapshot(storedSession);
+      }
+      authDebug('persistLiveClientSession', {
+        session: previewSession(storedSession)
+      });
     }
 
     async function bootstrapClientSessionFromStorage() {
@@ -839,6 +881,48 @@
       }
     }
 
+    async function tryRefreshSession(reason) {
+      if (!client || !client.auth || typeof client.auth.refreshSession !== 'function') return null;
+      var now = Date.now();
+      if (refreshCooldownUntil && now < refreshCooldownUntil) return null;
+      if (refreshInFlight) return refreshInFlight;
+      if (lastRefreshAttemptAt && (now - lastRefreshAttemptAt) < 1000 * 25) return null;
+      lastRefreshAttemptAt = now;
+      refreshInFlight = (async function () {
+        try {
+          var refreshResult = await client.auth.refreshSession();
+          var refreshError = refreshResult ? refreshResult.error : null;
+          if (refreshError) throw refreshError;
+          var refreshedSession = refreshResult && refreshResult.data ? refreshResult.data.session : null;
+          if (refreshedSession && refreshedSession.access_token && refreshedSession.refresh_token) {
+            persistSessionSnapshot(refreshedSession);
+          }
+          authDebug('tryRefreshSession', {
+            reason: String(reason || ''),
+            session: previewSession(refreshedSession)
+          });
+          return refreshedSession || null;
+        } catch (_refreshErr) {
+          var statusCode = Number(_refreshErr && _refreshErr.status || 0);
+          var messageLower = String((_refreshErr && _refreshErr.message) || '').toLowerCase();
+          if (statusCode === 429 || messageLower.indexOf('rate limit') !== -1) {
+            refreshCooldownUntil = Date.now() + 1000 * 60 * 2;
+          } else if (shouldClearPersistedSessionForError(_refreshErr)) {
+            clearPersistedSessionSnapshots();
+          }
+          authDebug('tryRefreshSession:error', {
+            reason: String(reason || ''),
+            status: statusCode,
+            message: String((_refreshErr && _refreshErr.message) || _refreshErr || '')
+          });
+          return null;
+        } finally {
+          refreshInFlight = null;
+        }
+      })();
+      return refreshInFlight;
+    }
+
     async function verifyAndApply() {
       if (!client || !client.auth || typeof client.auth.getSession !== 'function') return false;
       if (verifyInFlight) return verifyInFlight;
@@ -870,18 +954,10 @@
           sessionResult = await client.auth.getSession();
           session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
         }
-        if (!session && hasStoredSnapshot && typeof client.auth.refreshSession === 'function') {
-          try {
-            var publicRefreshResult = await client.auth.refreshSession();
-            var publicRefreshedSession = publicRefreshResult && publicRefreshResult.data ? publicRefreshResult.data.session : null;
-            if (publicRefreshedSession && publicRefreshedSession.user) {
-              session = publicRefreshedSession;
-              persistSessionSnapshot(publicRefreshedSession);
-            }
-          } catch (_refreshErr) {
-            if (shouldClearPersistedSessionForError(_refreshErr)) {
-              clearPersistedSessionSnapshots();
-            }
+        if (!session && hasStoredSnapshot) {
+          var publicRefreshedSession = await tryRefreshSession('verify');
+          if (publicRefreshedSession && publicRefreshedSession.user) {
+            session = publicRefreshedSession;
           }
         }
         var authenticated = !!(session && session.user);
@@ -909,17 +985,9 @@
           var retryResult = await client.auth.getSession();
           var retrySession = retryResult && retryResult.data ? retryResult.data.session : null;
           var retryAuthenticated = !!(retrySession && retrySession.user);
-          if (!retryAuthenticated && typeof client.auth.refreshSession === 'function') {
-            try {
-              var refreshedResult = await client.auth.refreshSession();
-              var refreshedSession = refreshedResult && refreshedResult.data ? refreshedResult.data.session : null;
-              retryAuthenticated = !!(refreshedSession && refreshedSession.user);
-              if (retryAuthenticated && refreshedSession) persistSessionSnapshot(refreshedSession);
-            } catch (_refreshErr) {
-              if (shouldClearPersistedSessionForError(_refreshErr)) {
-                clearPersistedSessionSnapshots();
-              }
-            }
+          if (!retryAuthenticated) {
+            var refreshedSession = await tryRefreshSession('protected-retry');
+            retryAuthenticated = !!(refreshedSession && refreshedSession.user);
           }
           finalAuthenticated = retryAuthenticated;
           applyShellState(retryAuthenticated, pageKey, { verified: true });

@@ -873,9 +873,9 @@
   }
 
   function getActiveFilters() {
-    const sport = normalizeFilterValue(ui.filterSport?.value || '');
-    const country = normalizeFilterValue(ui.filterCountry?.value || '');
-    const league = normalizeFilterValue(ui.filterLeague?.value || '');
+    const sport = normalizeFilterValue(ui.filterSport?.value || ui.filterSportModal?.value || '');
+    const country = normalizeFilterValue(ui.filterCountry?.value || ui.filterCountryModal?.value || '');
+    const league = normalizeFilterValue(ui.filterLeague?.value || ui.filterLeagueModal?.value || '');
     return { sport, country, league };
   }
 
@@ -2110,6 +2110,15 @@
     }
     if (ui.filterLeague) {
       ui.filterLeague.addEventListener('change', handleFilterChange);
+    }
+    if (!ui.filterSport && ui.filterSportModal) {
+      ui.filterSportModal.addEventListener('change', handleFilterChange);
+    }
+    if (!ui.filterCountry && ui.filterCountryModal) {
+      ui.filterCountryModal.addEventListener('change', handleFilterChange);
+    }
+    if (!ui.filterLeague && ui.filterLeagueModal) {
+      ui.filterLeagueModal.addEventListener('change', handleFilterChange);
     }
     bindMirroredFilterSelect(ui.filterSport, ui.filterSportModal);
     bindMirroredFilterSelect(ui.filterCountry, ui.filterCountryModal);
