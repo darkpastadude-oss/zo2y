@@ -8,6 +8,7 @@
   var DURABLE_STORAGE_KEY = 'zo2y-auth-durable-v1';
   var EXPLICIT_SIGNOUT_KEY = 'zo2y-auth-explicit-signout-v1';
   var AUTH_DEBUG_KEY = 'zo2y_auth_debug';
+  var PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 3;
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
     'login',
@@ -771,6 +772,7 @@
     var client = null;
     var protectedPage = !PUBLIC_PAGE_KEYS.has(pageKey);
     var authStateVerifyTimer = null;
+    var lastVerifyAt = 0;
 
     async function persistLiveClientSession() {
       if (!client || !client.auth || typeof client.auth.getSession !== 'function') return;
@@ -836,6 +838,7 @@
 
     async function verifyAndApply() {
       if (!client || !client.auth || typeof client.auth.getSession !== 'function') return false;
+      lastVerifyAt = Date.now();
       try {
         var sessionResult = await client.auth.getSession();
         var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
@@ -937,6 +940,18 @@
       }
     }
 
+    function shouldThrottlePublicResumeVerification() {
+      if (protectedPage) return false;
+      if (!lastVerifyAt) return false;
+      return (Date.now() - lastVerifyAt) < PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS;
+    }
+
+    function maybeVerifyAfterResume(force) {
+      if (!client) return;
+      if (!force && shouldThrottlePublicResumeVerification()) return;
+      void verifyAndApply();
+    }
+
     var timer = window.setInterval(async function () {
       attempts += 1;
       if (!window.supabase || typeof window.supabase.createClient !== 'function') {
@@ -969,13 +984,13 @@
             void persistLiveClientSession();
             return;
           }
-          void verifyAndApply();
+          maybeVerifyAfterResume(false);
         });
         window.addEventListener('pageshow', function () {
-          void verifyAndApply();
+          maybeVerifyAfterResume(false);
         });
         window.addEventListener('focus', function () {
-          void verifyAndApply();
+          maybeVerifyAfterResume(false);
         });
         window.addEventListener('pagehide', function () {
           void persistLiveClientSession();
@@ -1012,7 +1027,7 @@
             clearExplicitSignoutMarker();
           }
           authStateVerifyTimer = window.setTimeout(function () {
-            void verifyAndApply();
+            maybeVerifyAfterResume(true);
           }, session && session.user ? 0 : 120);
         });
       }
@@ -1021,7 +1036,7 @@
         window.addEventListener('storage', function (event) {
           var key = String(event && event.key || '').trim();
           if (key === STORAGE_KEY || key === LEGACY_STORAGE_KEY || key === PERSIST_STORAGE_KEY) {
-            void verifyAndApply();
+            maybeVerifyAfterResume(true);
           }
         });
       }

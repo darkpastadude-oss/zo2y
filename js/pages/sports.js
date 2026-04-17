@@ -1271,29 +1271,28 @@
     window.location.href = buildTeamDetailUrl(team);
   }
 
-  function getSportEmoji(sportRaw = '') {
+  function getSportIconClass(sportRaw = '') {
     const sport = String(sportRaw || '').trim().toLowerCase();
     if (!sport) return '';
-    if (sport.includes('soccer')) return 'âš½';
-    if (sport.includes('american football')) return 'ðŸˆ';
-    if (sport.includes('football')) return 'âš½';
-    if (sport.includes('basketball')) return 'ðŸ€';
-    if (sport.includes('baseball')) return 'âš¾';
-    if (sport.includes('ice hockey') || sport.includes('hockey')) return 'ðŸ’';
-    if (sport.includes('cricket')) return 'ðŸ';
-    if (sport.includes('rugby')) return 'ðŸ‰';
-    if (sport.includes('golf')) return 'â›³';
-    if (sport.includes('tennis')) return 'ðŸŽ¾';
-    if (sport.includes('volleyball')) return 'ðŸ';
-    if (sport.includes('handball')) return 'ðŸ¤¾';
-    if (sport.includes('boxing')) return 'ðŸ¥Š';
-    if (sport.includes('mma') || sport.includes('mixed martial')) return 'ðŸ¥‹';
-    if (sport.includes('motorsport') || sport.includes('racing')) return 'ðŸŽï¸';
-    if (sport.includes('cycling')) return 'ðŸš´';
-    if (sport.includes('snooker') || sport.includes('billiard')) return 'ðŸŽ±';
-    if (sport.includes('darts')) return 'ðŸŽ¯';
-    if (sport.includes('table tennis') || sport.includes('ping pong')) return 'ðŸ“';
-    return 'ðŸŸï¸';
+    if (sport.includes('soccer')) return 'fa-futbol';
+    if (sport.includes('american football')) return 'fa-football';
+    if (sport.includes('football')) return 'fa-futbol';
+    if (sport.includes('basketball')) return 'fa-basketball';
+    if (sport.includes('baseball')) return 'fa-baseball';
+    if (sport.includes('ice hockey') || sport.includes('hockey')) return 'fa-hockey-puck';
+    if (sport.includes('cricket')) return 'fa-baseball-bat-ball';
+    if (sport.includes('rugby')) return 'fa-football';
+    if (sport.includes('golf')) return 'fa-golf-ball-tee';
+    if (sport.includes('tennis') || sport.includes('table tennis') || sport.includes('ping pong')) return 'fa-table-tennis-paddle-ball';
+    if (sport.includes('volleyball')) return 'fa-volleyball';
+    if (sport.includes('handball')) return 'fa-futbol';
+    if (sport.includes('boxing')) return 'fa-hand-fist';
+    if (sport.includes('mma') || sport.includes('mixed martial')) return 'fa-hand-fist';
+    if (sport.includes('motorsport') || sport.includes('racing') || sport.includes('formula')) return 'fa-flag-checkered';
+    if (sport.includes('cycling')) return 'fa-person-biking';
+    if (sport.includes('snooker') || sport.includes('billiard')) return 'fa-bowling-ball';
+    if (sport.includes('darts')) return 'fa-bullseye';
+    return 'fa-trophy';
   }
 
   function getSportsImageObserver() {
@@ -1371,13 +1370,18 @@
     const usesBannerOnly = false;
     const usesBadgeOnly = !!team.badge;
     const metaLine = [team.league, team.sport].filter(Boolean).join(' | ') || 'Team';
-    const sportIcon = getSportEmoji(team.sport);
-    const metaLineWithIcon = sportIcon ? `${sportIcon} ${metaLine}` : metaLine;
+    const sportIcon = getSportIconClass(team.sport);
     const showMenu = SPORTS_LISTS_ENABLED && typeof window.openIndexStyleListMenu === 'function';
-    card.dataset.subtitle = metaLineWithIcon;
+    card.dataset.subtitle = metaLine;
     card.dataset.image = mediaImage;
     card.dataset.listImage = logo;
     card.dataset.mediaFit = (usesBannerOnly || usesBadgeOnly) ? 'contain' : 'cover';
+    const leagueChip = team.league
+      ? `<span class="sports-card-chip sports-card-chip-league">${escapeHtml(team.league)}</span>`
+      : `<span class="sports-card-chip sports-card-chip-league">Team spotlight</span>`;
+    const sportChip = team.sport
+      ? `<span class="sports-card-chip sports-card-chip-sport">${sportIcon ? `<i class="fas ${sportIcon}" aria-hidden="true"></i>` : ''}<span>${escapeHtml(team.sport)}</span></span>`
+      : '';
 
     card.innerHTML = `
       <div class="sports-card-media is-loading">
@@ -1388,12 +1392,12 @@
       </div>
       <div class="sports-card-body">
         <div class="sports-card-title">${escapeHtml(team.name)}</div>
-        <div class="sports-card-meta">${escapeHtml(metaLineWithIcon)}</div>
-        ${team.stadium ? `<div class="sports-card-stadium"><i class="fas fa-location-dot"></i> ${escapeHtml(team.stadium)}</div>` : ''}
+        <div class="sports-card-meta">${leagueChip}${sportChip}</div>
+        ${team.stadium ? `<div class="sports-card-stadium"><i class="fas fa-location-dot" aria-hidden="true"></i><span>${escapeHtml(team.stadium)}</span></div>` : ''}
         <div class="sports-card-actions">
           ${showMenu ? `
             <button class="card-menu-btn" type="button" aria-label="Add to lists">
-              <i class="fas fa-ellipsis-v"></i>
+              <i class="fas fa-ellipsis"></i>
             </button>
           ` : ''}
         </div>
