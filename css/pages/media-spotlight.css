@@ -1,7 +1,7 @@
 .media-spotlight {
   --spotlight-shell-height: clamp(300px, 34vw, 360px);
-  --spotlight-poster-column: clamp(168px, 18vw, 214px);
-  --spotlight-poster-padding: clamp(16px, 1.8vw, 22px);
+  --spotlight-poster-padding: clamp(8px, 1vw, 12px);
+  --spotlight-poster-column: calc(((var(--spotlight-shell-height) - (var(--spotlight-poster-padding) * 2)) * 0.6667) + (var(--spotlight-poster-padding) * 2));
   --spotlight-copy-inline: clamp(22px, 2.7vw, 30px);
   --spotlight-copy-block-start: clamp(22px, 2.4vw, 30px);
   --spotlight-copy-block-end: clamp(20px, 2.2vw, 26px);
@@ -13,7 +13,7 @@
   min-height: var(--spotlight-shell-height) !important;
   max-height: none !important;
   height: var(--spotlight-shell-height);
-  grid-template-columns: minmax(0, 1fr) minmax(144px, var(--spotlight-poster-column)) !important;
+  grid-template-columns: minmax(0, 1fr) var(--spotlight-poster-column) !important;
   align-items: stretch;
 }
 
@@ -75,9 +75,9 @@
 
 .media-spotlight-poster img {
   display: block;
-  width: 100% !important;
+  width: auto !important;
   height: 100% !important;
-  max-width: clamp(152px, 16vw, 204px);
+  max-width: 100%;
   max-height: calc(var(--spotlight-shell-height) - (var(--spotlight-poster-padding) * 2));
   aspect-ratio: 2 / 3;
   object-fit: contain !important;
@@ -88,8 +88,8 @@
 @media (max-width: 740px) {
   .media-spotlight {
     --spotlight-shell-height: clamp(220px, 59vw, 252px);
-    --spotlight-poster-column: clamp(110px, 30vw, 138px);
-    --spotlight-poster-padding: 10px;
+    --spotlight-poster-padding: 6px;
+    --spotlight-poster-column: calc(((var(--spotlight-shell-height) - (var(--spotlight-poster-padding) * 2)) * 0.6667) + (var(--spotlight-poster-padding) * 2));
     --spotlight-copy-inline: 12px;
     --spotlight-copy-block-start: 12px;
     --spotlight-copy-block-end: 10px;
@@ -126,6 +126,6 @@
   }
 
   .media-spotlight-poster img {
-    max-width: clamp(106px, 28vw, 132px);
+    max-width: 100%;
   }
 }
