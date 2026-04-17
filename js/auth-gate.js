@@ -7,6 +7,7 @@
   var PERSIST_STORAGE_KEY = 'zo2y-auth-persist-v1';
   var DURABLE_STORAGE_KEY = 'zo2y-auth-durable-v1';
   var EXPLICIT_SIGNOUT_KEY = 'zo2y-auth-explicit-signout-v1';
+  var AUTH_DEBUG_KEY = 'zo2y_auth_debug';
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
     'login',
@@ -315,6 +316,41 @@
     return new URLSearchParams(rawHash);
   }
 
+  function authDebugEnabled() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('debug_auth') === '1') {
+        if (window.localStorage) window.localStorage.setItem(AUTH_DEBUG_KEY, '1');
+        return true;
+      }
+    } catch (_err) {}
+    try {
+      return !!(window.localStorage && window.localStorage.getItem(AUTH_DEBUG_KEY) === '1');
+    } catch (_err2) {
+      return false;
+    }
+  }
+
+  function previewSession(session) {
+    return session ? {
+      hasAccessToken: !!session.access_token,
+      hasRefreshToken: !!session.refresh_token,
+      userId: String(session.user && session.user.id || '').trim() || null,
+      email: String(session.user && session.user.email || '').trim() || null,
+      provider: String(session.user && session.user.app_metadata && session.user.app_metadata.provider || session.user && session.user.user_metadata && session.user.user_metadata.provider || '').trim() || null,
+      expiresAt: session.expires_at || null
+    } : null;
+  }
+
+  function authDebug(label, payload) {
+    if (!authDebugEnabled()) return;
+    if (payload === undefined) {
+      console.log('[ZO2Y AUTH][gate]', label);
+      return;
+    }
+    console.log('[ZO2Y AUTH][gate]', label, payload);
+  }
+
   function maybeRedirectOAuthCallback(pageKey) {
     if (pageKey === 'auth-callback' || pageKey === 'update-password') return;
     var search = new URLSearchParams(window.location.search);
@@ -351,6 +387,13 @@
     if (nextParam && !callbackUrl.searchParams.has('next')) {
       callbackUrl.searchParams.set('next', nextParam);
     }
+    authDebug('maybeRedirectOAuthCallback', {
+      pageKey: pageKey,
+      oauthFlow: oauthFlow,
+      callbackTarget: callbackTarget,
+      search: window.location.search,
+      hash: window.location.hash
+    });
     window.location.replace(callbackUrl.toString());
   }
 
@@ -476,8 +519,15 @@
         wroteAny = safeSetLocalStorageItem(DURABLE_STORAGE_KEY, durablePayload) || wroteAny;
       }
       clearExplicitSignoutMarker();
+      authDebug('persistSessionSnapshot', {
+        wroteAny: wroteAny,
+        session: previewSession(session)
+      });
       return wroteAny;
     } catch (_err) {
+      authDebug('persistSessionSnapshot:error', {
+        message: String(_err && _err.message || _err || '')
+      });
       return false;
     }
   }
@@ -487,6 +537,9 @@
     if (!client || !client.auth || typeof client.auth.setSession !== 'function') return null;
     var storedSession = getStoredSessionSnapshot();
     if (!storedSession || !storedSession.access_token || !storedSession.refresh_token) return null;
+    authDebug('restoreClientSessionFromSnapshot:start', {
+      session: previewSession(storedSession)
+    });
     try {
       var setResult = await client.auth.setSession({
         access_token: storedSession.access_token,
@@ -495,9 +548,15 @@
       var session = setResult && setResult.data ? setResult.data.session : null;
       if (session && session.access_token && session.refresh_token) {
         persistSessionSnapshot(session);
+        authDebug('restoreClientSessionFromSnapshot:success', {
+          session: previewSession(session)
+        });
         return session;
       }
     } catch (_err) {
+      authDebug('restoreClientSessionFromSnapshot:error', {
+        message: String(_err && _err.message || _err || '')
+      });
       if (shouldClearPersistedSessionForError(_err)) {
         clearPersistedSessionSnapshots();
       }
@@ -708,6 +767,9 @@
         if (liveSession && liveSession.access_token && liveSession.refresh_token) {
           persistSessionSnapshot(liveSession);
         }
+        authDebug('persistLiveClientSession', {
+          session: previewSession(liveSession)
+        });
       } catch (_err) {}
     }
 
@@ -765,6 +827,11 @@
         var sessionResult = await client.auth.getSession();
         var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
         var hasStoredSnapshot = !!getStoredSessionSnapshot();
+        authDebug('verifyAndApply:getSession', {
+          pageKey: pageKey,
+          session: previewSession(session),
+          hasStoredSnapshot: hasStoredSnapshot
+        });
         if (!session && hasStoredSnapshot) {
           for (var bootstrapAttempt = 0; bootstrapAttempt < 4 && !session; bootstrapAttempt += 1) {
             await bootstrapClientSessionFromStorage();
@@ -797,6 +864,11 @@
         var authenticated = !!(session && session.user);
         var finalAuthenticated = authenticated;
         if (authenticated) persistSessionSnapshot(session);
+        authDebug('verifyAndApply:result', {
+          authenticated: authenticated,
+          session: previewSession(session),
+          protectedPage: protectedPage
+        });
         if (!authenticated && hasStoredSnapshot && client.__zo2yFutureRetryWaitMs > 0 && pageKey === 'index') {
           applyShellState(false, pageKey, { shell: 'pending', verified: false });
           if (client.__zo2yFutureRetryTimer) window.clearTimeout(client.__zo2yFutureRetryTimer);
@@ -840,6 +912,10 @@
         return true;
       } catch (_err) {
         var fallbackAuthenticated = hasStoredSupabaseSession();
+        authDebug('verifyAndApply:error', {
+          message: String(_err && _err.message || _err || ''),
+          fallbackAuthenticated: fallbackAuthenticated
+        });
         applyShellState(fallbackAuthenticated, pageKey, { verified: true });
         window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
           detail: { authenticated: fallbackAuthenticated, pageKey: pageKey, verified: true }
@@ -907,6 +983,10 @@
       if (!window.__ZO2Y_AUTH_GATE_LISTENER_BOUND && client.auth && typeof client.auth.onAuthStateChange === 'function') {
         window.__ZO2Y_AUTH_GATE_LISTENER_BOUND = true;
         client.auth.onAuthStateChange(function (event, session) {
+          authDebug('onAuthStateChange', {
+            event: event,
+            session: previewSession(session)
+          });
           if (session && session.access_token && session.refresh_token) {
             persistSessionSnapshot(session);
           }
@@ -965,8 +1045,15 @@
     var snapshot = getStoredSessionSnapshot();
     return {
       pageKey: pageKey,
+      debugEnabled: authDebugEnabled(),
+      location: {
+        search: window.location.search,
+        hash: window.location.hash
+      },
       hasStoredSupabaseSession: hasStoredSupabaseSession(),
       hasRecentExplicitSignout: hasRecentExplicitSignout(),
+      oauthFlow: safeGetStorageItem('oauthFlow'),
+      postAuthRedirect: safeGetStorageItem('postAuthRedirect'),
       storage: storage,
       sessionPreview: snapshot ? {
         hasAccessToken: !!snapshot.access_token,
@@ -975,6 +1062,19 @@
         expiresAt: snapshot.expires_at || null
       } : null
     };
+  };
+  window.__ZO2Y_SET_AUTH_DEBUG = function (enabled) {
+    try {
+      if (!window.localStorage) return false;
+      if (enabled) {
+        window.localStorage.setItem(AUTH_DEBUG_KEY, '1');
+      } else {
+        window.localStorage.removeItem(AUTH_DEBUG_KEY);
+      }
+      return true;
+    } catch (_err) {
+      return false;
+    }
   };
   installSupabaseCreateClientPatch();
   var pageKey = normalizePageKey(window.location.pathname);

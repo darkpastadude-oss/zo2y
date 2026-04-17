@@ -4,13 +4,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <script src="/js/auth-gate.js?v=20260416f"></script>
+  <script src="/js/auth-gate.js?v=20260417a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Sign Up</title>
 <link rel="icon" href="/newlogo.webp" type="image/webp" />
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="css/pages/auth-entry.css?v=20260416c">
+<link rel="stylesheet" href="css/pages/auth-entry.css?v=20260417a">
   <meta name="theme-color" content="#0b1633" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -165,6 +165,7 @@
   const referralUtils = window.ZO2Y_REFERRALS || null;
   const activeReferral = referralUtils ? referralUtils.captureReferralFromLocation(window.location.search) : '';
   let verifiedUserPromise = null;
+  const AUTH_DEBUG_KEY = 'zo2y_auth_debug';
   function safeGetAuthStorage(key) {
     const keys = getAuthStorageKeys(key);
     for (const candidate of keys) {
@@ -218,6 +219,58 @@
     });
   }
 
+  function authDebugEnabled() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('debug_auth') === '1') {
+        if (window.localStorage) window.localStorage.setItem(AUTH_DEBUG_KEY, '1');
+        return true;
+      }
+    } catch (_err) {}
+    try {
+      return !!(window.localStorage && window.localStorage.getItem(AUTH_DEBUG_KEY) === '1');
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function previewSession(session) {
+    return session ? {
+      hasAccessToken: !!session.access_token,
+      hasRefreshToken: !!session.refresh_token,
+      userId: String(session.user?.id || '').trim() || null,
+      email: String(session.user?.email || '').trim() || null,
+      provider: String(session.user?.app_metadata?.provider || session.user?.user_metadata?.provider || '').trim() || null,
+      expiresAt: session.expires_at || null
+    } : null;
+  }
+
+  function getAuthStoragePresence() {
+    const keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY, DURABLE_STORAGE_KEY, POST_AUTH_BOOTSTRAP_KEY];
+    const state = {};
+    keys.forEach((key) => {
+      let local = false;
+      let session = false;
+      try {
+        local = !!(window.localStorage && window.localStorage.getItem(key));
+      } catch (_err) {}
+      try {
+        session = !!(window.sessionStorage && window.sessionStorage.getItem(key));
+      } catch (_err) {}
+      state[key] = { local, session };
+    });
+    return state;
+  }
+
+  function authDebug(label, payload) {
+    if (!authDebugEnabled()) return;
+    if (payload === undefined) {
+      console.log('[ZO2Y AUTH][signup]', label);
+      return;
+    }
+    console.log('[ZO2Y AUTH][signup]', label, payload);
+  }
+
   function persistSessionSnapshot(session) {
     if (!session || typeof session !== 'object') return false;
     try {
@@ -234,8 +287,15 @@
       if (typeof window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT === 'function') {
         window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT();
       }
+      authDebug('persistSessionSnapshot', {
+        session: previewSession(session),
+        storage: getAuthStoragePresence()
+      });
       return true;
     } catch (_err) {
+      authDebug('persistSessionSnapshot:error', {
+        message: String(_err?.message || _err || '')
+      });
       return false;
     }
   }
@@ -384,13 +444,23 @@
 
   async function ensureProfileBootstrap(userOverride = null, clientOverride = null) {
     const user = userOverride?.id ? userOverride : await getVerifiedUser();
+    authDebug('ensureProfileBootstrap:start', {
+      userId: String(user?.id || '').trim() || null
+    });
     if (!user?.id || typeof window.__ZO2Y_ENSURE_AUTH_PROFILE !== 'function') {
       return false;
     }
     try {
       const result = await window.__ZO2Y_ENSURE_AUTH_PROFILE(clientOverride || supabase, user);
+      authDebug('ensureProfileBootstrap:result', {
+        ok: !!(result && result.ok !== false),
+        created: !!result?.created
+      });
       return !!(result && result.ok !== false);
     } catch (_err) {
+      authDebug('ensureProfileBootstrap:error', {
+        message: String(_err?.message || _err || '')
+      });
       return false;
     }
   }
@@ -398,8 +468,10 @@
   function getPreferredOAuthClient() {
     const sharedClient = window.__ZO2Y_SUPABASE_CLIENT;
     if (sharedClient?.auth && typeof sharedClient.auth.getSession === 'function') {
+      authDebug('getPreferredOAuthClient', { client: 'shared' });
       return sharedClient;
     }
+    authDebug('getPreferredOAuthClient', { client: 'page-local' });
     return supabase;
   }
 
@@ -407,6 +479,9 @@
     const fallback = fallbackSession?.access_token && fallbackSession?.refresh_token
       ? fallbackSession
       : null;
+    authDebug('resolveStableOAuthSession:start', {
+      fallback: previewSession(fallback)
+    });
     if (!client?.auth || typeof client.auth.getSession !== 'function') {
       return fallback;
     }
@@ -414,9 +489,15 @@
       const { data } = await client.auth.getSession();
       const liveSession = data?.session || null;
       if (liveSession?.access_token && liveSession?.refresh_token) {
+        authDebug('resolveStableOAuthSession:live-session', previewSession(liveSession));
         return liveSession;
       }
-    } catch (_err) {}
+    } catch (_err) {
+      authDebug('resolveStableOAuthSession:error', {
+        message: String(_err?.message || _err || '')
+      });
+    }
+    authDebug('resolveStableOAuthSession:fallback', previewSession(fallback));
     return fallback;
   }
 
@@ -428,10 +509,20 @@
       } catch (_err) {}
     }
     wroteAny = persistSessionSnapshot(session) || wroteAny;
+    authDebug('persistGoogleOAuthSession', {
+      wroteAny,
+      session: previewSession(session),
+      storage: getAuthStoragePresence()
+    });
     return wroteAny;
   }
 
   async function finalizeAuthRedirect(sessionOverride = null, clientOverride = null) {
+    authDebug('finalizeAuthRedirect:start', {
+      session: previewSession(sessionOverride),
+      next: getPostAuthRedirect(),
+      storage: getAuthStoragePresence()
+    });
     if (sessionOverride) persistSessionSnapshot(sessionOverride);
     let stableUser = sessionOverride?.user || null;
     if (!stableUser?.id) {
@@ -443,14 +534,24 @@
     const nextPath = getPostAuthRedirect();
     safeRemoveAuthStorage('oauthFlow');
     safeRemoveAuthStorage('postAuthRedirect');
+    authDebug('finalizeAuthRedirect:replace', {
+      stableUserId: String(stableUser?.id || '').trim() || null,
+      target: buildPostAuthRedirectTarget(nextPath)
+    });
     window.location.replace(buildPostAuthRedirectTarget(nextPath));
   }
 
   async function completeGoogleSignupFromReturn() {
     const params = new URLSearchParams(window.location.search);
     const hashParams = getHashParams();
+    authDebug('completeGoogleSignupFromReturn:start', {
+      search: window.location.search,
+      hashKeys: Array.from(hashParams.keys()),
+      storage: getAuthStoragePresence()
+    });
     const oauthError = params.get('error_description') || params.get('error') || hashParams.get('error_description') || hashParams.get('error');
     if (oauthError) {
+      authDebug('completeGoogleSignupFromReturn:oauth-error', { oauthError });
       throw new Error(String(oauthError).trim() || 'Google signup failed.');
     }
 
@@ -461,10 +562,18 @@
     let session = null;
 
     if (code) {
+      authDebug('completeGoogleSignupFromReturn:exchange-code', {
+        hasCode: true,
+        flow: params.get('flow') || safeGetAuthStorage('oauthFlow') || null
+      });
       const { data, error } = await authClient.auth.exchangeCodeForSession(code);
       if (error) throw error;
       session = data?.session || null;
     } else if (accessToken && refreshToken) {
+      authDebug('completeGoogleSignupFromReturn:set-session-from-hash', {
+        hasAccessToken: true,
+        hasRefreshToken: true
+      });
       const { data, error } = await authClient.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken
@@ -472,12 +581,14 @@
       if (error) throw error;
       session = data?.session || null;
     }
+    authDebug('completeGoogleSignupFromReturn:session-after-exchange', previewSession(session));
 
     if (!session?.access_token || !session?.refresh_token || !session?.user?.id) {
       throw new Error('Google signup did not return a usable session.');
     }
 
     session = await resolveStableOAuthSession(authClient, session);
+    authDebug('completeGoogleSignupFromReturn:stable-session', previewSession(session));
     if (!session?.access_token || !session?.refresh_token || !session?.user?.id) {
       throw new Error('Google signup did not persist a usable session.');
     }
@@ -574,11 +685,17 @@
     if (verifiedUserPromise) return verifiedUserPromise;
     verifiedUserPromise = (async () => {
       let { data: { session } } = await supabase.auth.getSession();
+      authDebug('getVerifiedUser:getSession', previewSession(session));
       if (!session) {
         session = await restoreSessionFromStorage();
+        authDebug('getVerifiedUser:restored-session', previewSession(session));
         if (!session) return null;
       }
       const { data: userData, error: userError } = await supabase.auth.getUser();
+      authDebug('getVerifiedUser:getUser', {
+        userId: String(userData?.user?.id || '').trim() || null,
+        error: String(userError?.message || '').trim() || null
+      });
       if (!userError && userData?.user) {
         return userData.user;
       }
@@ -748,6 +865,10 @@
       callbackUrl.searchParams.set('native_oauth', '1');
       callbackUrl.searchParams.set('flow', 'signup');
       callbackUrl.searchParams.set('next', nextPath);
+      authDebug('google-button:redirect-start', {
+        redirectTo: callbackUrl.toString(),
+        storage: getAuthStoragePresence()
+      });
       safeSetAuthStorage('oauthFlow', 'signup');
       safeSetAuthStorage('postAuthRedirect', nextPath);
       
@@ -778,6 +899,22 @@
       googleSignup.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Sign up with Google';
     }
   });
+
+  window.__ZO2Y_SIGNUP_AUTH_DEBUG = function () {
+    const snapshot = readStoredSessionSnapshot();
+    return {
+      page: 'signup',
+      debugEnabled: authDebugEnabled(),
+      location: {
+        search: window.location.search,
+        hash: window.location.hash
+      },
+      storage: getAuthStoragePresence(),
+      oauthFlow: safeGetAuthStorage('oauthFlow'),
+      postAuthRedirect: safeGetAuthStorage('postAuthRedirect'),
+      sessionPreview: previewSession(snapshot)
+    };
+  };
   
 })();
 </script>
