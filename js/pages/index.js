@@ -235,6 +235,9 @@ const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
     const HOME_ONBOARDING_VERSION = 'v2';
     const HOME_POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
     const PROFILE_USERNAME_MAX_LENGTH = 30;
+    const HOME_RESUME_REFRESH_THROTTLE_MS = 1000 * 60 * 4;
+    const HOME_PERSONALIZATION_THROTTLE_MS = 1000 * 60 * 5;
+    const HOME_TASTE_WEIGHTS_CACHE_MS = 1000 * 60 * 10;
 const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     const HOME_TRAVEL_VARIANT_SESSION_SEED = Math.floor(Math.random() * 2147483647);
     const HOME_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
@@ -478,6 +481,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       userId: '',
       savedAt: 0,
       payload: null
+    };
+    let homeLastGoodFeedAt = 0;
+    let homeLastUniversalInitAt = 0;
+    let homeLastPersonalizationAt = 0;
+    let homeTasteWeightsCache = {
+      userId: '',
+      savedAt: 0,
+      weights: null
     };
     let homeProfileLabelLookupPromise = null;
     let homeProfileLabelCache = {
@@ -2994,28 +3005,60 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         .map(([type]) => type);
       if (!activeTypes.length) return candidates.slice(0, maxItems);
 
-      const allocation = new Map(activeTypes.map((type) => [type, 0]));
-      const baseCount = Math.floor(maxItems / activeTypes.length);
+      const hasBackdrop = (item) => !!String(item?.spotlightImage || item?.backgroundImage || '').trim();
       activeTypes.forEach((type) => {
-        allocation.set(type, Math.min(baseCount, grouped.get(type).length));
+        const items = grouped.get(type);
+        if (!Array.isArray(items) || items.length < 2) return;
+        const withBackdrop = [];
+        const withoutBackdrop = [];
+        items.forEach((item) => (hasBackdrop(item) ? withBackdrop : withoutBackdrop).push(item));
+        grouped.set(type, withBackdrop.concat(withoutBackdrop));
+      });
+
+      const allocation = new Map(activeTypes.map((type) => [type, 0]));
+      const PRIMARY_SPOTLIGHT_TYPES = ['game', 'movie', 'tv', 'anime'];
+      const primaryTypes = PRIMARY_SPOTLIGHT_TYPES.filter((type) => activeTypes.includes(type));
+      const secondaryTypes = activeTypes.filter((type) => !PRIMARY_SPOTLIGHT_TYPES.includes(type));
+      const primaryBudget = primaryTypes.length
+        ? Math.min(
+          maxItems,
+          Math.max(Math.floor(maxItems * 0.85), Math.min(maxItems, primaryTypes.length * 2))
+        )
+        : maxItems;
+
+      const basePrimary = primaryTypes.length ? Math.floor(primaryBudget / primaryTypes.length) : 0;
+      primaryTypes.forEach((type) => {
+        allocation.set(type, Math.min(basePrimary, grouped.get(type).length));
       });
 
       let used = [...allocation.values()].reduce((sum, value) => sum + Number(value || 0), 0);
-      while (used < maxItems) {
-        const nextType = [...activeTypes]
+      while (used < primaryBudget) {
+        const nextType = [...primaryTypes]
           .map((type) => {
             const allocated = Number(allocation.get(type) || 0);
             const remaining = grouped.get(type).length - allocated;
-            return {
-              type,
-              remaining,
-              weight: Number(homeTasteWeights[type] || 1)
-            };
+            const baseWeight = Number(homeTasteWeights[type] || 1);
+            const focusBoost = (type === 'game' || type === 'movie' || type === 'tv') ? 0.6 : 0.25;
+            return { type, remaining, weight: baseWeight + focusBoost };
           })
           .filter((entry) => entry.remaining > 0)
           .sort((a, b) => b.remaining - a.remaining || b.weight - a.weight || a.type.localeCompare(b.type))[0];
         if (!nextType) break;
         allocation.set(nextType.type, Number(allocation.get(nextType.type) || 0) + 1);
+        used += 1;
+      }
+
+      while (used < maxItems) {
+        const nextSecondary = [...secondaryTypes]
+          .map((type) => {
+            const allocated = Number(allocation.get(type) || 0);
+            const remaining = grouped.get(type).length - allocated;
+            return { type, remaining, weight: Number(homeTasteWeights[type] || 1) };
+          })
+          .filter((entry) => entry.remaining > 0)
+          .sort((a, b) => b.weight - a.weight || b.remaining - a.remaining || a.type.localeCompare(b.type))[0];
+        if (!nextSecondary) break;
+        allocation.set(nextSecondary.type, Number(allocation.get(nextSecondary.type) || 0) + 1);
         used += 1;
       }
 
@@ -3025,9 +3068,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         selectedByType.set(type, grouped.get(type).slice(0, takeCount));
       });
 
-      const roundRobinOrder = [...activeTypes].sort(
-        (a, b) => Number(homeTasteWeights[b] || 1) - Number(homeTasteWeights[a] || 1)
-      );
+      const roundRobinOrder = [...activeTypes].sort((a, b) => {
+        const aPrimary = primaryTypes.includes(a) ? 0 : 1;
+        const bPrimary = primaryTypes.includes(b) ? 0 : 1;
+        if (aPrimary !== bPrimary) return aPrimary - bPrimary;
+        return Number(homeTasteWeights[b] || 1) - Number(homeTasteWeights[a] || 1);
+      });
       const shortlist = [];
       let guard = 0;
       while (shortlist.length < maxItems && guard < (maxItems * 8)) {
@@ -3099,6 +3145,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     async function loadTasteWeights() {
       const weights = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, 1]));
       if (!homeCurrentUser?.id) return weights;
+      const now = Date.now();
+      if (
+        homeTasteWeightsCache
+        && homeTasteWeightsCache.weights
+        && homeTasteWeightsCache.userId === homeCurrentUser.id
+        && (now - Number(homeTasteWeightsCache.savedAt || 0)) < HOME_TASTE_WEIGHTS_CACHE_MS
+      ) {
+        return homeTasteWeightsCache.weights;
+      }
 
       const client = await ensureHomeSupabase();
       if (!client) return weights;
@@ -3167,6 +3222,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           });
         }
       } catch (_err) {}
+      homeTasteWeightsCache = {
+        userId: homeCurrentUser.id,
+        savedAt: now,
+        weights
+      };
       return weights;
     }
 
@@ -5673,9 +5733,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return { activeChannels, scoredPool, channelsCount: channels.length };
     }
 
-    async function refreshHomePersonalization() {
+    async function refreshHomePersonalization(options = {}) {
       const hasItems = Object.values(homeFeedState).some((items) => Array.isArray(items) && items.length);
       if (!hasItems) return;
+      const now = Date.now();
+      const force = !!options.force;
+      if (!force && homeLastPersonalizationAt && (now - homeLastPersonalizationAt) < HOME_PERSONALIZATION_THROTTLE_MS) {
+        return;
+      }
+      homeLastPersonalizationAt = now;
       homeTasteWeights = await loadTasteWeights();
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
@@ -6044,6 +6110,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           resetHomeProfileLabelCache();
           homeOnboardingEvaluatedUserId = '';
           homeOnboardingUserId = null;
+          homeTasteWeightsCache = { userId: '', savedAt: 0, weights: null };
+          homeLastPersonalizationAt = 0;
           if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
             const restoredSession = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
             if (restoredSession?.user) {
@@ -6069,6 +6137,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
         if (normalizedEvent === 'SIGNED_IN') {
           homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
+          homeTasteWeightsCache = { userId: '', savedAt: 0, weights: null };
+          homeLastPersonalizationAt = 0;
           queueHomeAuthUiSync({ refreshPersonalization: true });
           return;
         }
@@ -8704,7 +8774,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return typeof loaders.loadSports === 'function' ? loaders.loadSports(signal) : [];
     }
 
-    async function initUniversalHome() {
+    async function initUniversalHome(options = {}) {
+      const now = Date.now();
+      const force = !!options.force;
+      const hasExistingItems = Object.values(homeFeedState).some((items) => Array.isArray(items) && items.length);
+      if (
+        !force
+        && hasExistingItems
+        && homeLastGoodFeedAt
+        && (now - homeLastGoodFeedAt) < HOME_RESUME_REFRESH_THROTTLE_MS
+      ) {
+        resetSpotlightTimer(true);
+        return;
+      }
+      homeLastUniversalInitAt = now;
       const initSeq = ++homeFeedInitSeq;
       ensureHomeInteractionWatch();
       resetHomeViewportDeferrals();
@@ -8727,6 +8810,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       if (baselineFeed) {
         const cachedResult = applyHomeFeedMap(baselineFeed);
         if (cachedResult.scoredPool.length) {
+          homeLastGoodFeedAt = Date.now();
           setStatus(cachedFeed ? 'Feed ready from cache. Syncing live data...' : 'Feed ready. Syncing live data...', false);
         }
       }
@@ -8790,6 +8874,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         setStatus('Could not load live feeds right now. Try again shortly.', true);
         return;
       }
+      homeLastGoodFeedAt = Date.now();
 
       const freshActiveChannels = freshLoadedKeys.size;
       if (freshActiveChannels > 0) {
@@ -8817,11 +8902,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           homeWeakFeedRetryTimer = null;
         }
         homeWeakFeedRetryCount = 0;
-        } else if (homeWeakFeedRetryCount < 2 && !homeWeakFeedRetryTimer) {
+        } else if (homeWeakFeedRetryCount < 2 && !homeWeakFeedRetryTimer && !document.hidden) {
           homeWeakFeedRetryTimer = setTimeout(() => {
             homeWeakFeedRetryTimer = null;
             homeWeakFeedRetryCount += 1;
-            void initUniversalHome();
+            void initUniversalHome({ force: true });
           }, 1800);
         }
 
