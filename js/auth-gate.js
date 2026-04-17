@@ -9,6 +9,7 @@
   var EXPLICIT_SIGNOUT_KEY = 'zo2y-auth-explicit-signout-v1';
   var AUTH_DEBUG_KEY = 'zo2y_auth_debug';
   var PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 3;
+  var PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 15;
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
     'login',
@@ -773,6 +774,8 @@
     var protectedPage = !PUBLIC_PAGE_KEYS.has(pageKey);
     var authStateVerifyTimer = null;
     var lastVerifyAt = 0;
+    var verifyInFlight = null;
+    var verifyCooldownUntil = 0;
 
     async function persistLiveClientSession() {
       if (!client || !client.auth || typeof client.auth.getSession !== 'function') return;
@@ -838,7 +841,11 @@
 
     async function verifyAndApply() {
       if (!client || !client.auth || typeof client.auth.getSession !== 'function') return false;
-      lastVerifyAt = Date.now();
+      if (verifyInFlight) return verifyInFlight;
+      var now = Date.now();
+      if (verifyCooldownUntil && now < verifyCooldownUntil) return false;
+      lastVerifyAt = now;
+      verifyInFlight = (async function () {
       try {
         var sessionResult = await client.auth.getSession();
         var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
@@ -927,6 +934,11 @@
         }));
         return true;
       } catch (_err) {
+        var statusCode = Number(_err && _err.status || 0);
+        var messageLower = String((_err && _err.message) || '').toLowerCase();
+        if (statusCode === 429 || messageLower.indexOf('rate limit') !== -1) {
+          verifyCooldownUntil = Date.now() + 1000 * 60;
+        }
         var fallbackAuthenticated = hasStoredSupabaseSession();
         authDebug('verifyAndApply:error', {
           message: String(_err && _err.message || _err || ''),
@@ -937,17 +949,22 @@
           detail: { authenticated: fallbackAuthenticated, pageKey: pageKey, verified: true }
         }));
         return false;
+      } finally {
+        verifyInFlight = null;
       }
+      })();
+      return verifyInFlight;
     }
 
     function shouldThrottlePublicResumeVerification() {
-      if (protectedPage) return false;
       if (!lastVerifyAt) return false;
-      return (Date.now() - lastVerifyAt) < PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS;
+      var throttleMs = protectedPage ? PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS : PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS;
+      return (Date.now() - lastVerifyAt) < throttleMs;
     }
 
     function maybeVerifyAfterResume(force) {
       if (!client) return;
+      if (verifyCooldownUntil && Date.now() < verifyCooldownUntil) return;
       if (!force && shouldThrottlePublicResumeVerification()) return;
       void verifyAndApply();
     }
