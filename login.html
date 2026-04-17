@@ -7,7 +7,8 @@
   <script src="/js/auth-gate.js?v=20260417a"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Login</title>
-<link rel="icon" href="/newlogo.webp" type="image/webp" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="css/pages/auth-entry.css?v=20260417a">
@@ -17,7 +18,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="/newlogo.webp" />
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body data-auth-variant="login">
@@ -317,11 +318,13 @@
     return null;
   }
 
-  async function restoreSessionFromStorage() {
+  async function restoreSessionFromStorage(clientOverride = null) {
     const storedSession = readStoredSessionSnapshot();
     if (!storedSession?.access_token || !storedSession?.refresh_token) return null;
+    const authClient = clientOverride || getPreferredOAuthClient();
+    if (!authClient?.auth || typeof authClient.auth.setSession !== 'function') return null;
     try {
-      const { data } = await supabase.auth.setSession({
+      const { data } = await authClient.auth.setSession({
         access_token: storedSession.access_token,
         refresh_token: storedSession.refresh_token
       });
@@ -687,14 +690,15 @@
   async function getVerifiedUser() {
     if (verifiedUserPromise) return verifiedUserPromise;
     verifiedUserPromise = (async () => {
-      let { data: { session } } = await supabase.auth.getSession();
+      const authClient = getPreferredOAuthClient();
+      let { data: { session } } = await authClient.auth.getSession();
       authDebug('getVerifiedUser:getSession', previewSession(session));
       if (!session) {
-        session = await restoreSessionFromStorage();
+        session = await restoreSessionFromStorage(authClient);
         authDebug('getVerifiedUser:restored-session', previewSession(session));
         if (!session) return null;
       }
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const { data: userData, error: userError } = await authClient.auth.getUser();
       authDebug('getVerifiedUser:getUser', {
         userId: String(userData?.user?.id || '').trim() || null,
         error: String(userError?.message || '').trim() || null
@@ -706,7 +710,7 @@
         clearStoredAuthSnapshots();
         return null;
       }
-      const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+      const { data: refreshed, error: refreshError } = await authClient.auth.refreshSession();
       if (!refreshError && refreshed?.session?.user) {
         persistSessionSnapshot(refreshed.session);
         return refreshed.session.user;
@@ -816,20 +820,16 @@
       callbackUrl.searchParams.set('flow', 'login');
       callbackUrl.searchParams.set('next', nextPath);
       authDebug('google-button:redirect-start', {
-        redirectTo: callbackUrl.toString(),
-        storage: getAuthStoragePresence()
-      });
+          redirectTo: callbackUrl.toString(),
+          storage: getAuthStoragePresence()
+        });
       safeSetAuthStorage('oauthFlow', 'login');
       safeSetAuthStorage('postAuthRedirect', nextPath);
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: callbackUrl.toString(),
-          queryParams: { 
-            access_type: 'offline', 
-            prompt: 'consent' 
-          }
+          redirectTo: callbackUrl.toString()
         }
       });
       
