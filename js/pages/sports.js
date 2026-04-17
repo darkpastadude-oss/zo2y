@@ -12,7 +12,7 @@
       <rect width='24' height='24' fill='#10224a'/>
     </svg>
   `)}`;
-  const SPORTS_FEATURED_CACHE_KEY = 'zo2y_sports_featured_cache_v3';
+  const SPORTS_FEATURED_CACHE_KEY = 'zo2y_sports_featured_cache_v4';
   const SPORTS_FEATURED_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
   const SPORTS_ASSET_BUCKET_NAME = 'sports-assets';
   const SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;
@@ -97,58 +97,135 @@
     'MLB',
     'Indian Premier League'
   ];
+  const FEATURED_TEAMS_LIMIT = 100;
   const FEATURED_LEAGUES = [
     'English Premier League',
     'Spanish La Liga',
+    'German Bundesliga',
+    'Italian Serie A',
+    'French Ligue 1',
     'Saudi Pro League',
-    'English Championship',
+    'Egyptian Premier League',
+    'Major League Soccer',
+    'Brazilian Serie A',
+    'Argentine Primera Division',
+    'Mexican Primera League',
     'NBA',
+    'WNBA',
+    'EuroLeague',
     'NFL',
     'MLB',
-    'Indian Premier League',
     'NHL',
-    'Major League Soccer',
-    'UEFA Champions League'
+    'Indian Premier League',
+    'Pakistan Super League',
+    'Big Bash League',
+    'National Rugby League',
+    'Super Rugby',
+    'AFL'
   ];
-  const SEED_TEAMS = [
+  const CURRENT_RELEVANT_TEAMS = [
+    'Arsenal',
     'Liverpool',
+    'Manchester City',
+    'Newcastle United',
+    'Chelsea',
+    'Aston Villa',
+    'Manchester United',
     'Real Madrid',
     'FC Barcelona',
-    'Manchester City',
-    'Arsenal',
-    'Manchester United',
-    'Chelsea',
+    'Atletico Madrid',
     'Bayern Munich',
-    'Juventus',
-    'Inter Milan',
-    'AC Milan',
+    'Bayer Leverkusen',
+    'Borussia Dortmund',
     'Paris Saint-Germain',
+    'Olympique de Marseille',
+    'Inter Milan',
+    'Napoli',
+    'Juventus',
+    'AC Milan',
+    'Roma',
+    'Ajax',
+    'PSV Eindhoven',
+    'Benfica',
+    'FC Porto',
+    'Sporting CP',
     'Al Ahly',
+    'Zamalek',
     'Al Hilal',
-    'Raja Casablanca',
-    'Kaizer Chiefs',
-    'Boca Juniors',
-    'Flamengo',
+    'Al Nassr',
+    'Al-Ittihad',
+    'Inter Miami CF',
+    'Los Angeles FC',
     'LA Galaxy',
-    'Inter Miami',
-    'Seattle Sounders',
-    'New Zealand All Blacks',
+    'Palmeiras',
+    'Flamengo',
+    'River Plate',
+    'Boca Juniors',
+    'Monterrey',
+    'Club America',
+    'Raja Casablanca',
+    'Oklahoma City Thunder',
+    'Boston Celtics',
+    'Cleveland Cavaliers',
+    'New York Knicks',
+    'Los Angeles Lakers',
+    'Denver Nuggets',
+    'Golden State Warriors',
+    'Minnesota Timberwolves',
+    'Houston Rockets',
+    'San Antonio Spurs',
+    'Milwaukee Bucks',
+    'Indiana Pacers',
+    'Kansas City Chiefs',
+    'Philadelphia Eagles',
+    'Buffalo Bills',
+    'Baltimore Ravens',
+    'Detroit Lions',
+    'Cincinnati Bengals',
+    'Washington Commanders',
+    'San Francisco 49ers',
+    'Los Angeles Rams',
+    'Seattle Seahawks',
+    'Los Angeles Dodgers',
+    'New York Yankees',
+    'Atlanta Braves',
+    'Philadelphia Phillies',
+    'Houston Astros',
+    'Baltimore Orioles',
+    'New York Mets',
+    'Texas Rangers',
+    'San Diego Padres',
+    'Chicago Cubs',
+    'Colorado Avalanche',
+    'Carolina Hurricanes',
+    'Dallas Stars',
+    'Minnesota Wild',
+    'Edmonton Oilers',
+    'Florida Panthers',
+    'Toronto Maple Leafs',
+    'Vegas Golden Knights',
+    'New York Rangers',
+    'Los Angeles Kings',
+    'Royal Challengers Bengaluru',
     'Mumbai Indians',
     'Chennai Super Kings',
     'Kolkata Knight Riders',
-    'Royal Challengers Bengaluru',
-    'Los Angeles Lakers',
-    'Golden State Warriors',
-    'Boston Celtics',
-    'Chicago Bulls',
-    'New York Yankees',
-    'Dallas Cowboys',
-    'Toronto Maple Leafs',
-    'Kansas City Chiefs',
-    'New Zealand Warriors',
-    'Ferrari',
-    'Mercedes AMG Petronas'
+    'Rajasthan Royals',
+    'Sunrisers Hyderabad',
+    'Delhi Capitals',
+    'Gujarat Titans',
+    'Lucknow Super Giants',
+    'Punjab Kings',
+    'Penrith Panthers',
+    'Melbourne Storm',
+    'Brisbane Broncos',
+    'Sydney Roosters',
+    'Crusaders',
+    'Chiefs',
+    'Blues',
+    'Brumbies'
   ];
+  const SEED_TEAMS = CURRENT_RELEVANT_TEAMS.slice();
   const DEMONYM_MAP = {
     egyptian: 'egypt',
     spanish: 'spain',
@@ -423,10 +500,24 @@
     const name = normalizePriorityName(team?.name || team?.strTeam || '');
     const league = normalizePriorityName(team?.league || team?.strLeague || '');
     let score = 0;
-    if (SEED_TEAMS.some((seed) => normalizePriorityName(seed) === name)) score += 500;
+    const relevantIndex = CURRENT_RELEVANT_TEAMS.findIndex((seed) => normalizePriorityName(seed) === name);
+    if (relevantIndex >= 0) score += Math.max(900 - (relevantIndex * 6), 240);
+    else if (SEED_TEAMS.some((seed) => normalizePriorityName(seed) === name)) score += 500;
     if (isPriorityLeagueName(league)) score += 220;
     if (league.includes('premier league') || league.includes('nba') || league.includes('nfl')) score += 80;
+    if (team?.badge) score += 24;
     return score;
+  }
+
+  function rankFeaturedTeams(teams, limit = FEATURED_TEAMS_LIMIT) {
+    return dedupeTeams(Array.isArray(teams) ? teams : [])
+      .filter((team) => team && team.name && team.badge)
+      .sort((a, b) => {
+        const diff = scoreFeaturedPriority(b) - scoreFeaturedPriority(a);
+        if (diff) return diff;
+        return String(a?.name || '').localeCompare(String(b?.name || ''));
+      })
+      .slice(0, limit);
   }
 
   function stripSearchStopwords(tokens) {
@@ -1725,7 +1816,9 @@
     clearTeamUrl();
     setLoading(true, 'Loading featured teams...');
     loadSportsAssetManifestFromStorage();
-    const cached = readSportsFeaturedCache().filter((team) => team && team.name).map(applySportsAssetOverride);
+    const cached = rankFeaturedTeams(
+      readSportsFeaturedCache().filter((team) => team && team.name).map(applySportsAssetOverride)
+    );
     if (cached.length) {
       state.lastResults = cached;
       state.lastQuery = '';
@@ -1733,7 +1826,7 @@
       const filtered = applyTeamFilters(cached);
       renderTeams(filtered, {
         title: 'Featured teams',
-        subtitle: 'Tap a team to see details and save it.',
+        subtitle: 'Current relevant teams across football, basketball, baseball, hockey, cricket, and more.',
         emptyMessage: 'No teams match your filters yet.'
       });
       return;
@@ -1741,12 +1834,8 @@
 
     const localManifestRows = await ensureSportsAssetManifest().catch(() => []);
     if (Array.isArray(localManifestRows) && localManifestRows.length) {
-      const localTeams = localManifestRows
-        .map(applySportsAssetOverride)
-        .filter((team) => team && team.badge)
-        .sort((a, b) => scoreFeaturedPriority(b) - scoreFeaturedPriority(a))
-        .slice(0, 24);
-      if (localTeams.length >= 12) {
+      const localTeams = rankFeaturedTeams(localManifestRows.map(applySportsAssetOverride));
+      if (localTeams.length >= 24) {
         writeSportsFeaturedCache(localTeams);
         state.lastResults = localTeams;
         state.lastQuery = '';
@@ -1754,7 +1843,7 @@
         const filteredLocal = applyTeamFilters(localTeams);
         renderTeams(filteredLocal, {
           title: 'Featured teams',
-          subtitle: 'Tap a team to see details and save it.',
+          subtitle: 'Current relevant teams across football, basketball, baseball, hockey, cricket, and more.',
           emptyMessage: 'No teams match your filters yet.'
         });
         return;
@@ -1763,30 +1852,26 @@
 
     const picks = [];
     const seen = new Set();
-    const leagues = FEATURED_LEAGUES.slice(0, 8);
+    const leagues = FEATURED_LEAGUES.slice();
     const responses = await Promise.allSettled(leagues.map((league) => loadLeagueTeams(league)));
     responses.forEach((result) => {
-      if (picks.length >= 20) return;
       if (!result || result.status !== 'fulfilled') return;
       const teams = Array.isArray(result.value) ? result.value : [];
-      shuffleArray(teams)
+      teams
         .filter((team) => team?.badge)
-        .slice(0, 4)
         .forEach((team) => {
-          if (picks.length >= 20) return;
           if (seen.has(team.id)) return;
           seen.add(team.id);
           picks.push(team);
         });
     });
 
-    if (picks.length < 12) {
-      const seeds = SEED_TEAMS.slice(0, 12);
+    if (picks.length < FEATURED_TEAMS_LIMIT) {
+      const seeds = SEED_TEAMS.slice(0, FEATURED_TEAMS_LIMIT);
       const seedResponses = await Promise.allSettled(
         seeds.map((seed) => fetchSportsDb('searchteams.php', { t: seed }))
       );
       seedResponses.forEach((result) => {
-        if (picks.length >= 20) return;
         if (!result || result.status !== 'fulfilled') return;
         const teamRaw = Array.isArray(result.value?.teams) ? result.value.teams[0] : null;
         const mapped = mapTeam(teamRaw);
@@ -1797,19 +1882,17 @@
       });
     }
 
-    if (picks.length) {
-      picks.sort((a, b) => scoreFeaturedPriority(b) - scoreFeaturedPriority(a));
-      writeSportsFeaturedCache(picks);
-    }
+    const rankedPicks = rankFeaturedTeams(picks);
+    if (rankedPicks.length) writeSportsFeaturedCache(rankedPicks);
 
-    state.lastResults = picks;
+    state.lastResults = rankedPicks;
     state.lastQuery = '';
-    updateFilterOptions(picks);
-    const filtered = applyTeamFilters(picks);
+    updateFilterOptions(rankedPicks);
+    const filtered = applyTeamFilters(rankedPicks);
 
     renderTeams(filtered, {
       title: 'Featured teams',
-      subtitle: 'Tap a team to see details and save it.',
+      subtitle: 'Current relevant teams across football, basketball, baseball, hockey, cricket, and more.',
       emptyMessage: 'No teams match your filters yet.'
     });
   }
@@ -1956,7 +2039,7 @@
     const title = state.lastQuery ? `Results for "${state.lastQuery}"` : 'Featured teams';
     const subtitle = state.lastQuery
       ? (filtered.length ? `${filtered.length} teams found` : 'No matching teams yet')
-      : 'Tap a team to see details and save it.';
+      : 'Current relevant teams across football, basketball, baseball, hockey, cricket, and more.';
     renderTeams(filtered, {
       title,
       subtitle,

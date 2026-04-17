@@ -316,7 +316,15 @@
       padding: 0;
     }
 
-    .filter-launch-btn i {
+    .search-submit-btn {
+      width: 48px;
+      min-width: 48px;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .filter-launch-btn i,
+    .search-submit-btn i {
       margin: 0;
     }
 
@@ -879,6 +887,9 @@
 
   <div class="controls">
     <input id="searchInput" class="search-input" type="text" placeholder="Search anime..." />
+    <button class="btn search-submit-btn" id="searchSubmitBtn" type="button" aria-label="Search anime">
+      <i class="fas fa-search"></i>
+    </button>
     <button class="btn filter-launch-btn" id="filterToggleBtn" type="button" aria-label="Open filters">
       <i class="fas fa-sliders-h"></i>
     </button>
@@ -1507,6 +1518,7 @@
         const searchInput = document.getElementById('searchInput');
         const genreSelect = document.getElementById('genreSelect');
         const yearInput = document.getElementById('yearInput');
+        const searchSubmitBtn = document.getElementById('searchSubmitBtn');
         const filterToggleBtn = document.getElementById('filterToggleBtn');
         const filterModal = document.getElementById('filterModal');
         const closeFilterModalBtn = document.getElementById('closeFilterModalBtn');
@@ -1522,6 +1534,11 @@
             renderFilters();
             state.page = 1;
             loadMovies();
+          });
+        }
+        if (searchSubmitBtn && searchInput) {
+          searchSubmitBtn.addEventListener('click', () => {
+            searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
           });
         }
         if (genreSelect) {
@@ -1644,8 +1661,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
 
 
 

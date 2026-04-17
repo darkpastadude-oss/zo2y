@@ -241,7 +241,7 @@
       margin: 12px auto 0;
       padding: 0 12px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) 46px 46px;
       gap: 8px;
       align-items: center;
     }
@@ -267,7 +267,15 @@
       padding: 0;
     }
 
-    .filter-launch-btn i {
+    .search-submit-btn {
+      width: 46px;
+      min-width: 46px;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .filter-launch-btn i,
+    .search-submit-btn i {
       margin: 0;
     }
 
@@ -838,6 +846,9 @@
 
   <div class="controls">
     <input id="searchInput" class="search-input" type="text" placeholder="Search TV shows...">
+    <button class="btn search-submit-btn" id="searchSubmitBtn" type="button" aria-label="Search TV shows">
+      <i class="fas fa-search"></i>
+    </button>
     <button class="btn filter-launch-btn" id="filterToggleBtn" type="button" aria-label="Open filters">
       <i class="fas fa-sliders-h"></i>
     </button>
@@ -1622,6 +1633,7 @@
         const genreSelect = document.getElementById('genreSelect');
         const yearInput = document.getElementById('yearInput');
         const actorInput = document.getElementById('actorInput');
+        const searchSubmitBtn = document.getElementById('searchSubmitBtn');
         const filterToggleBtn = document.getElementById('filterToggleBtn');
         const filterModal = document.getElementById('filterModal');
         const closeFilterModalBtn = document.getElementById('closeFilterModalBtn');
@@ -1648,6 +1660,11 @@
             renderFilters();
             state.page = 1;
             loadTvShows();
+          });
+        }
+        if (searchSubmitBtn && searchInput) {
+          searchSubmitBtn.addEventListener('click', () => {
+            searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
           });
         }
         if (genreSelect) {

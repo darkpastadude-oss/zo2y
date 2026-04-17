@@ -241,7 +241,7 @@
       margin: 12px auto 0;
       padding: 0 12px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) 46px 46px;
       gap: 8px;
       align-items: center;
     }
@@ -267,7 +267,15 @@
       padding: 0;
     }
 
-    .filter-launch-btn i {
+    .search-submit-btn {
+      width: 46px;
+      min-width: 46px;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .filter-launch-btn i,
+    .search-submit-btn i {
       margin: 0;
     }
 
@@ -883,6 +891,9 @@
 
   <div class="controls">
     <input id="searchInput" class="search-input" type="text" placeholder="Search books...">
+    <button class="btn search-submit-btn" id="searchSubmitBtn" type="button" aria-label="Search books">
+      <i class="fas fa-search"></i>
+    </button>
     <button class="btn filter-launch-btn" id="filterToggleBtn" type="button" aria-label="Open filters">
       <i class="fas fa-sliders-h"></i>
     </button>
@@ -2209,6 +2220,7 @@
         const categorySelect = document.getElementById('categorySelect');
         const yearInput = document.getElementById('yearInput');
         const authorInput = document.getElementById('authorInput');
+        const searchSubmitBtn = document.getElementById('searchSubmitBtn');
         const filterToggleBtn = document.getElementById('filterToggleBtn');
         const filterModal = document.getElementById('filterModal');
         const closeFilterModalBtn = document.getElementById('closeFilterModalBtn');
@@ -2227,6 +2239,14 @@
           searchInput.addEventListener('input', (e) => {
             state.query = e.target.value.trim();
             debouncedSearchReload();
+          });
+        }
+        if (searchSubmitBtn && searchInput) {
+          searchSubmitBtn.addEventListener('click', () => {
+            state.query = searchInput.value.trim();
+            renderFilters();
+            state.page = 1;
+            loadBooks();
           });
         }
         if (categorySelect) {
@@ -2346,9 +2366,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
 
 
 
