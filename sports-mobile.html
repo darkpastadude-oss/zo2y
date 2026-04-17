@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="js/list-utils.js?v=20260317b" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260317b" defer></script>
-  <link rel="stylesheet" href="css/pages/sports.css?v=20260417b" />
+  <link rel="stylesheet" href="css/pages/sports.css?v=20260417c" />
   <meta name="theme-color" content="#0b1633" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
   <script src="/js/mobile-webapp.js?v=20260329b" defer></script>
@@ -91,7 +91,8 @@
     <section class="sports-search">
       <div class="sports-search-bar">
         <input id="sportsSearchInput" type="search" placeholder="Search teams, leagues, countries, or sports" aria-label="Search teams, leagues, countries, or sports" />
-        <button id="sportsSearchBtn" type="button"><i class="fas fa-search"></i> Search</button>
+        <button id="sportsSearchBtn" type="button" aria-label="Search sports"><i class="fas fa-search"></i><span>Search</span></button>
+        <button id="sportsFilterToggleBtn" class="sports-filter-toggle" type="button" aria-label="Open sports filters"><i class="fas fa-sliders-h"></i></button>
         <div class="sports-search-suggest" id="sportsSearchSuggest"></div>
       </div>
       <div class="sports-search-filters">
@@ -127,6 +128,37 @@
       </div>
     </section>
 
+    <div class="sports-filter-modal" id="sportsFilterModal" aria-hidden="true">
+      <div class="sports-filter-modal-card">
+        <div class="sports-filter-modal-head">
+          <div class="sports-filter-modal-title">Filter teams</div>
+          <button class="sports-filter-modal-close" id="sportsFilterCloseBtn" type="button" aria-label="Close sports filters">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="sports-filter-modal-grid">
+          <label>
+            <span>Sport</span>
+            <select id="sportsFilterSportModal">
+              <option value="all">All sports</option>
+            </select>
+          </label>
+          <label>
+            <span>Country</span>
+            <select id="sportsFilterCountryModal">
+              <option value="all">All countries</option>
+            </select>
+          </label>
+          <label class="sports-filter-modal-league">
+            <span>League</span>
+            <select id="sportsFilterLeagueModal">
+              <option value="all">All leagues</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </div>
+
     <section class="sports-results">
       <div class="sports-results-head">
         <h2 id="sportsResultsTitle">Featured teams</h2>
@@ -140,12 +172,10 @@
 
   <div class="sports-toast" id="sportsToast" role="status" aria-live="polite"></div>
 
-    <script src="js/pages/sports.js?v=20260417b" defer></script>
+    <script src="js/pages/sports.js?v=20260417c" defer></script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
 
 
 

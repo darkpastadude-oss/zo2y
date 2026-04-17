@@ -347,11 +347,17 @@
     heroSave: document.getElementById('sportsHeroSaveBtn'),
     searchInput: document.getElementById('sportsSearchInput'),
     searchBtn: document.getElementById('sportsSearchBtn'),
+    filterToggleBtn: document.getElementById('sportsFilterToggleBtn'),
+    filterModal: document.getElementById('sportsFilterModal'),
+    filterCloseBtn: document.getElementById('sportsFilterCloseBtn'),
     searchTags: document.getElementById('sportsSearchTags'),
     searchSuggest: document.getElementById('sportsSearchSuggest'),
     filterSport: document.getElementById('sportsFilterSport'),
     filterCountry: document.getElementById('sportsFilterCountry'),
     filterLeague: document.getElementById('sportsFilterLeague'),
+    filterSportModal: document.getElementById('sportsFilterSportModal'),
+    filterCountryModal: document.getElementById('sportsFilterCountryModal'),
+    filterLeagueModal: document.getElementById('sportsFilterLeagueModal'),
     resultsTitle: document.getElementById('sportsResultsTitle'),
     resultsSubtitle: document.getElementById('sportsResultsSubtitle'),
     grid: document.getElementById('sportsGrid'),
@@ -808,6 +814,19 @@
     selectEl.value = candidate;
   }
 
+  function syncFilterSelectMirrors() {
+    const pairs = [
+      [ui.filterSport, ui.filterSportModal],
+      [ui.filterCountry, ui.filterCountryModal],
+      [ui.filterLeague, ui.filterLeagueModal]
+    ];
+    pairs.forEach(([primary, mirror]) => {
+      if (!primary || !mirror) return;
+      const value = String(primary.value || 'all');
+      if (mirror.value !== value) mirror.value = value;
+    });
+  }
+
   function updateFilterOptions(teams) {
     const sports = new Set();
     const countries = new Set();
@@ -826,6 +845,33 @@
     setSelectOptions(ui.filterSport, sportList, 'All sports', ui.filterSport?.value);
     setSelectOptions(ui.filterCountry, countryList, 'All countries', ui.filterCountry?.value);
     setSelectOptions(ui.filterLeague, leagueList, 'All leagues', ui.filterLeague?.value);
+    setSelectOptions(ui.filterSportModal, sportList, 'All sports', ui.filterSport?.value || ui.filterSportModal?.value);
+    setSelectOptions(ui.filterCountryModal, countryList, 'All countries', ui.filterCountry?.value || ui.filterCountryModal?.value);
+    setSelectOptions(ui.filterLeagueModal, leagueList, 'All leagues', ui.filterLeague?.value || ui.filterLeagueModal?.value);
+    syncFilterSelectMirrors();
+  }
+
+  function openFilterModal() {
+    if (!ui.filterModal) return;
+    ui.filterModal.classList.add('show');
+    ui.filterModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeFilterModal() {
+    if (!ui.filterModal) return;
+    ui.filterModal.classList.remove('show');
+    ui.filterModal.setAttribute('aria-hidden', 'true');
+  }
+
+  function bindMirroredFilterSelect(primary, mirror) {
+    if (!primary || !mirror) return;
+    mirror.addEventListener('change', () => {
+      primary.value = mirror.value;
+      handleFilterChange();
+    });
+    primary.addEventListener('change', () => {
+      if (mirror.value !== primary.value) mirror.value = primary.value;
+    });
   }
 
   function buildTeamSearchText(team) {
@@ -1982,10 +2028,30 @@
     if (ui.filterLeague) {
       ui.filterLeague.addEventListener('change', handleFilterChange);
     }
+    bindMirroredFilterSelect(ui.filterSport, ui.filterSportModal);
+    bindMirroredFilterSelect(ui.filterCountry, ui.filterCountryModal);
+    bindMirroredFilterSelect(ui.filterLeague, ui.filterLeagueModal);
+    if (ui.filterToggleBtn) {
+      ui.filterToggleBtn.addEventListener('click', () => {
+        syncFilterSelectMirrors();
+        openFilterModal();
+      });
+    }
+    if (ui.filterCloseBtn) {
+      ui.filterCloseBtn.addEventListener('click', closeFilterModal);
+    }
+    if (ui.filterModal) {
+      ui.filterModal.addEventListener('click', (event) => {
+        if (event.target === ui.filterModal) closeFilterModal();
+      });
+    }
 
     document.addEventListener('click', (event) => {
       if (event.target.closest('.sports-search-bar')) return;
       clearSearchSuggestions();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeFilterModal();
     });
   }
 
