@@ -279,9 +279,9 @@ select {
 .sports-search-bar input {
   min-width: 0;
   height: 56px;
-  border-radius: 14px;
+  border-radius: 18px;
   border: 1px solid var(--border);
-  background: rgba(8, 19, 45, 0.94);
+  background: #10224a;
   color: var(--white);
   padding: 0 18px;
   outline: none;
@@ -300,17 +300,17 @@ select {
 
 .sports-search-bar button {
   height: 56px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--white);
+  border-radius: 18px;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+  color: #0b1633;
   padding: 0 16px;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: none;
+  box-shadow: 0 10px 24px rgba(245, 158, 11, 0.22);
 }
 
 .sports-filter-toggle {
@@ -859,24 +859,24 @@ select {
   }
 
   .sports-search-bar {
-    grid-template-columns: minmax(0, 1fr) 46px 46px;
-    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) 52px 52px;
+    gap: 10px;
   }
 
   .sports-search-bar input {
-    height: 46px;
-    border-radius: 12px;
-    font-size: 15px;
-    padding: 0 14px;
+    height: 52px;
+    border-radius: 16px;
+    font-size: 16px;
+    padding: 0 16px;
   }
 
   .sports-search-bar button,
   .sports-filter-toggle {
     display: inline-flex;
-    width: 46px;
-    height: 46px;
-    min-width: 46px;
-    border-radius: 12px;
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    border-radius: 16px;
     padding: 0;
     justify-content: center;
   }

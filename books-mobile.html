@@ -241,37 +241,46 @@
       margin: 12px auto 0;
       padding: 0 12px;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 46px 46px;
-      gap: 8px;
+      grid-template-columns: minmax(0, 1fr) 52px 52px;
+      gap: 10px;
       align-items: center;
     }
 
     .search-input,
     .filter-select {
       width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
+      height: 52px;
+      padding: 0 16px;
+      border-radius: 16px;
       border: 1px solid var(--border);
-      background: #0f1f40;
+      background: #10224a;
       color: var(--white);
       outline: none;
-      font-size: 12px;
+      font-size: 16px;
+      box-sizing: border-box;
     }
 
     .full-span { grid-column: 1 / -1; }
 
-    .filter-launch-btn {
-      width: 46px;
-      min-width: 46px;
+    .filter-launch-btn,
+    .search-submit-btn {
+      width: 52px;
+      min-width: 52px;
+      height: 52px;
       justify-content: center;
       padding: 0;
+      border-radius: 16px;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
     }
 
-    .search-submit-btn {
-      width: 46px;
-      min-width: 46px;
-      justify-content: center;
-      padding: 0;
+    .filter-launch-btn:hover,
+    .filter-launch-btn:focus-visible,
+    .search-submit-btn:hover,
+    .search-submit-btn:focus-visible {
+      border-color: rgba(245, 158, 11, 0.55);
+      color: #0b1633;
     }
 
     .filter-launch-btn i,
@@ -2366,7 +2375,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
 
 
 

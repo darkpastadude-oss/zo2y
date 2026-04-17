@@ -670,6 +670,19 @@
     } catch (_err) {}
   }
 
+  async function clearActiveAuthSessionForSwitch() {
+    clearStoredAuthSnapshots();
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (_err) {}
+    try {
+      const authClient = getPreferredOAuthClient();
+      if (authClient && authClient.auth && typeof authClient.auth.signOut === 'function') {
+        await authClient.auth.signOut({ scope: 'local' });
+      }
+    } catch (_err) {}
+  }
+
   function shouldClearStoredAuthSnapshotsForError(error) {
     const message = String(error?.message || '').trim().toLowerCase();
     const code = String(error?.code || '').trim().toLowerCase();
@@ -747,11 +760,7 @@
         await completeGoogleLoginFromReturn();
         return;
       }
-      const user = await getVerifiedUser();
-      if (user) {
-        console.log('User already logged in, redirecting...');
-        await finalizeAuthRedirect();
-      }
+      await clearActiveAuthSessionForSwitch();
     } catch (error) {
       console.error('Session check error:', error);
     }
@@ -826,10 +835,14 @@
       safeSetAuthStorage('oauthFlow', 'login');
       safeSetAuthStorage('postAuthRedirect', nextPath);
       
+      await clearActiveAuthSessionForSwitch();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: callbackUrl.toString()
+          redirectTo: callbackUrl.toString(),
+          queryParams: {
+            prompt: 'select_account'
+          }
         }
       });
       

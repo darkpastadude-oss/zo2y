@@ -156,8 +156,8 @@ main.container {
   width: 100%;
   min-width: 0;
   height: 56px;
-  padding: 0 16px;
-  border-radius: 16px;
+  padding: 0 18px;
+  border-radius: 18px;
   border: 1px solid var(--brand-border);
   background: #10224a;
   color: #fff;
@@ -168,7 +168,7 @@ main.container {
 .control-icon-btn {
   width: 56px;
   height: 56px;
-  border-radius: 16px;
+  border-radius: 18px;
   border: 1px solid var(--brand-border);
   background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
   color: #0b1633;
@@ -399,6 +399,7 @@ main.container {
 @media (max-width: 900px) {
   .controls {
     grid-template-columns: minmax(0, 1fr) 52px 52px;
+    gap: 10px;
   }
 }
 

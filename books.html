@@ -267,23 +267,23 @@
       max-width: 1200px;
       margin: 16px auto 0;
       padding: 0 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 56px 56px;
+      gap: 12px;
       align-items: center;
     }
 
     .search-input {
-      flex: 1 1 280px;
-      width: min(92vw, 320px);
-      max-height: 70vh;
-      overflow-y: auto;
-      padding: 12px 14px;
-      border-radius: 10px;
+      width: 100%;
+      min-width: 0;
+      height: 56px;
+      padding: 0 18px;
+      border-radius: 18px;
       border: 1px solid var(--border);
-      background: #0f1f40;
+      background: #10224a;
       color: var(--white);
       outline: none;
+      box-sizing: border-box;
     }
 
     .filter-select {
@@ -309,18 +309,27 @@
       gap: 8px;
     }
 
-    .filter-launch-btn {
-      width: 48px;
-      min-width: 48px;
+    .filter-launch-btn,
+    .search-submit-btn {
+      width: 56px;
+      min-width: 56px;
+      height: 56px;
       justify-content: center;
       padding: 0;
+      border-radius: 18px;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      box-shadow: 0 10px 24px rgba(245, 158, 11, 0.22);
     }
 
-    .search-submit-btn {
-      width: 48px;
-      min-width: 48px;
-      justify-content: center;
-      padding: 0;
+    .filter-launch-btn:hover,
+    .filter-launch-btn:focus-visible,
+    .search-submit-btn:hover,
+    .search-submit-btn:focus-visible {
+      border-color: rgba(245, 158, 11, 0.55);
+      color: #0b1633;
+      transform: translateY(-1px);
     }
 
     .filter-launch-btn i,
@@ -2401,7 +2410,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
 
 
 
