@@ -47,7 +47,11 @@
 
   const grid = document.getElementById('brandGrid');
   const searchInput = document.getElementById('brandSearch');
+  const searchBtn = document.getElementById('brandSearchBtn');
   const categorySelect = document.getElementById('brandCategory');
+  const filterBtn = document.getElementById('brandFilterBtn');
+  const filterModal = document.getElementById('brandFilterModal');
+  const filterCloseBtn = document.getElementById('brandFilterCloseBtn');
   const countText = document.getElementById('brandCount');
   const spotlight = {
     section: document.getElementById('brandSpotlight'),
@@ -617,8 +621,30 @@
     if (searchInput) {
       searchInput.addEventListener('input', renderGrid);
     }
+    if (searchBtn) {
+      searchBtn.addEventListener('click', renderGrid);
+    }
     if (categorySelect) {
       categorySelect.addEventListener('change', renderGrid);
+    }
+    if (filterBtn && filterModal) {
+      filterBtn.addEventListener('click', () => {
+        filterModal.classList.add('show');
+        filterModal.setAttribute('aria-hidden', 'false');
+      });
+    }
+    if (filterCloseBtn && filterModal) {
+      filterCloseBtn.addEventListener('click', () => {
+        filterModal.classList.remove('show');
+        filterModal.setAttribute('aria-hidden', 'true');
+      });
+    }
+    if (filterModal) {
+      filterModal.addEventListener('click', (event) => {
+        if (event.target !== filterModal) return;
+        filterModal.classList.remove('show');
+        filterModal.setAttribute('aria-hidden', 'true');
+      });
     }
   }
 

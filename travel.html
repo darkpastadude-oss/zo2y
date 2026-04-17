@@ -207,27 +207,94 @@
     }
     .controls {
       display: grid;
-      grid-template-columns: 1fr 180px 160px auto;
+      grid-template-columns: minmax(0, 1fr) 52px 52px;
       gap: 8px;
     }
     .controls input, .controls select {
-      height: 40px;
+      height: 52px;
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 14px;
       background: #10224a;
       color: #fff;
-      padding: 0 10px;
+      padding: 0 14px;
       font-size: 16px;
       -webkit-appearance: none;
       appearance: none;
     }
     .controls button, .pager button {
-      height: 40px;
+      height: 52px;
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      padding: 0;
+      cursor: pointer;
+    }
+    .control-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(4, 10, 23, 0.72);
+      backdrop-filter: blur(6px);
+    }
+    .control-modal.show {
+      display: flex;
+    }
+    .control-modal-card {
+      width: min(480px, 100%);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(19, 35, 71, 0.98), rgba(11, 23, 50, 0.98));
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+      padding: 16px;
+    }
+    .control-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .control-modal-title {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .control-modal-close {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: #fff;
+      cursor: pointer;
+    }
+    .control-modal-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .control-modal-grid select,
+    .control-modal-action {
+      width: 100%;
+      height: 48px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #10224a;
+      color: #fff;
+      padding: 0 14px;
+      font-size: 14px;
+    }
+    .control-modal-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       background: var(--card);
       color: #fff;
-      padding: 0 12px;
       cursor: pointer;
     }
     .shell { padding: 12px; min-height: 220px; }
@@ -451,11 +518,11 @@
       .hero-spotlight {
         grid-template-columns: 1fr;
       }
-      .controls { grid-template-columns: 1fr; }
+      .controls { grid-template-columns: minmax(0, 1fr) 48px 48px; }
       .controls input,
       .controls select,
       .controls button {
-        height: 44px;
+        height: 48px;
         font-size: 16px;
       }
       .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -512,15 +579,27 @@
   </section>
 
   <section class="controls">
-    <input id="q" placeholder="Search countries, capitals, regions...">
-    <select id="region"><option value="">All Regions</option></select>
-    <select id="sort">
-      <option value="popular">popular right now</option>
-      <option value="name">Name A-Z</option>
-      <option value="region">Region</option>
-    </select>
-    <button id="refresh"><i class="fas fa-rotate"></i> Refresh</button>
+    <input id="q" class="search-input" placeholder="Search countries, capitals, regions...">
+    <button id="travelSearchBtn" class="control-icon-btn" type="button" aria-label="Search countries"><i class="fas fa-search"></i></button>
+    <button id="travelFilterBtn" class="control-icon-btn" type="button" aria-label="Open travel filters"><i class="fas fa-sliders-h"></i></button>
   </section>
+  <div class="control-modal" id="travelFilterModal" aria-hidden="true">
+    <div class="control-modal-card">
+      <div class="control-modal-head">
+        <div class="control-modal-title">Filter countries</div>
+        <button class="control-modal-close" id="travelFilterCloseBtn" type="button" aria-label="Close travel filters">&times;</button>
+      </div>
+      <div class="control-modal-grid">
+        <select id="region"><option value="">All Regions</option></select>
+        <select id="sort">
+          <option value="popular">popular right now</option>
+          <option value="name">Name A-Z</option>
+          <option value="region">Region</option>
+        </select>
+        <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+      </div>
+    </div>
+  </div>
 
   <section class="shell">
     <div id="grid" class="grid"></div>
@@ -2108,8 +2187,12 @@
     function wireEvents() {
       let searchTimer = null;
       const searchInput = document.getElementById('q');
+      const searchBtn = document.getElementById('travelSearchBtn');
       const regionSelect = document.getElementById('region');
       const sortSelect = document.getElementById('sort');
+      const filterBtn = document.getElementById('travelFilterBtn');
+      const filterModal = document.getElementById('travelFilterModal');
+      const filterCloseBtn = document.getElementById('travelFilterCloseBtn');
       const refreshBtn = document.getElementById('refresh');
       const prevBtn = document.getElementById('prev');
       const nextBtn = document.getElementById('next');
@@ -2122,6 +2205,13 @@
             state.page = 1;
             render();
           }, 200);
+        });
+      }
+      if (searchBtn && searchInput) {
+        searchBtn.addEventListener('click', () => {
+          state.search = String(searchInput.value || '').trim();
+          state.page = 1;
+          render();
         });
       }
 
@@ -2138,6 +2228,25 @@
           state.sort = String(event.target.value || 'pop');
           state.page = 1;
           render();
+        });
+      }
+      if (filterBtn && filterModal) {
+        filterBtn.addEventListener('click', () => {
+          filterModal.classList.add('show');
+          filterModal.setAttribute('aria-hidden', 'false');
+        });
+      }
+      if (filterCloseBtn && filterModal) {
+        filterCloseBtn.addEventListener('click', () => {
+          filterModal.classList.remove('show');
+          filterModal.setAttribute('aria-hidden', 'true');
+        });
+      }
+      if (filterModal) {
+        filterModal.addEventListener('click', (event) => {
+          if (event.target !== filterModal) return;
+          filterModal.classList.remove('show');
+          filterModal.setAttribute('aria-hidden', 'true');
         });
       }
 
@@ -2232,9 +2341,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
 
 
 

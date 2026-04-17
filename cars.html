@@ -50,19 +50,26 @@
     </section>
 
     <div class="controls">
-      <div class="control-field">
+      <input id="brandSearch" class="search-input" type="search" placeholder="Search car brands, categories, countries..." />
+      <button class="control-icon-btn" id="brandSearchBtn" type="button" aria-label="Search car brands">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <input id="brandSearch" type="search" placeholder="Search car brands, categories, countries..." />
-      </div>
-      <div class="control-field">
-        <i class="fa-solid fa-tag"></i>
+      </button>
+      <button class="control-icon-btn" id="brandFilterBtn" type="button" aria-label="Open car filters">
+        <i class="fa-solid fa-sliders-h"></i>
+      </button>
+    </div>
+    <div class="controls-meta">
+      <span id="brandCount">0 brands shown</span>
+    </div>
+    <div class="control-modal" id="brandFilterModal" aria-hidden="true">
+      <div class="control-modal-card">
+        <div class="control-modal-head">
+          <div class="control-modal-title">Filter car brands</div>
+          <button class="control-modal-close" id="brandFilterCloseBtn" type="button" aria-label="Close car filters">&times;</button>
+        </div>
         <select id="brandCategory">
-          <option value="all">All Fashion Brands</option>
+          <option value="all">All Car Brands</option>
         </select>
-      </div>
-      <div class="control-field">
-        <i class="fa-solid fa-chart-simple"></i>
-        <span id="brandCount">0 brands shown</span>
       </div>
     </div>
 
@@ -114,7 +121,6 @@
   </div>
 </body>
 </html>
-
 
 
 
