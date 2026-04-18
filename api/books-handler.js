@@ -430,17 +430,20 @@ export default async function handler(req, res) {
         return res.status(400).json({ ok: false, message: "Missing book id" });
       }
 
-      const { data, error } = await client
+      const { error } = await client
         .from("books")
-        .upsert(payload, { onConflict: "id" })
-        .select("id")
-        .maybeSingle();
+        .upsert(payload, { onConflict: "id" });
 
       if (error) {
-        return res.status(500).json({ ok: false, message: error.message || "Book sync failed" });
+        return res.status(500).json({
+          ok: false,
+          message: error.message || "Book sync failed",
+          code: error.code || null,
+          details: error.details || null
+        });
       }
 
-      return res.json({ ok: true, id: data?.id || payload.id });
+      return res.json({ ok: true, id: payload.id });
     } catch (error) {
       return res.status(500).json({ ok: false, message: error?.message || "Book sync error" });
     }

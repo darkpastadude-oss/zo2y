@@ -994,7 +994,13 @@
         bookSyncSupported = true;
         return true;
       }
-      if ([401, 403, 404, 405, 503].includes(response.status)) {
+      try {
+        const body = await response.json();
+        console.warn('zo2y:books/sync failed', response.status, body && body.message ? body.message : body);
+      } catch (_err) {
+        console.warn('zo2y:books/sync failed', response.status);
+      }
+      if ([401, 403, 404, 405].includes(response.status)) {
         bookSyncSupported = false;
       }
       return false;
@@ -1009,6 +1015,10 @@
 
     const synced = await syncBookRecordViaApi(normalized);
     if (synced) return true;
+
+    // If the API endpoint exists but failed, avoid falling back to direct client writes
+    // (those will often 403 due to RLS and create confusing double-errors in the console).
+    if (bookSyncSupported !== false) return false;
 
     if (!client || bookDirectWriteSupported === false) return false;
     try {
