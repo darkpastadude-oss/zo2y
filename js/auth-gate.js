@@ -7,6 +7,10 @@
   var PERSIST_STORAGE_KEY = 'zo2y-auth-persist-v1';
   var DURABLE_STORAGE_KEY = 'zo2y-auth-durable-v1';
   var EXPLICIT_SIGNOUT_KEY = 'zo2y-auth-explicit-signout-v1';
+  var NEEDS_USERNAME_CACHE_PREFIX = 'zo2y_needs_username_v1_';
+  var ONBOARDING_PENDING_PREFIX = 'zo2y_onboarding_pending_v1_';
+  var ONBOARDING_SESSION_PREFIX = 'zo2y_onboarding_session_v1_';
+  var NEEDS_USERNAME_CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24h
   var AUTH_DEBUG_KEY = 'zo2y_auth_debug';
   // Reduce background auth churn when users tab away/return (avoids refresh-token rate limits).
   var PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 8;
@@ -158,6 +162,70 @@
       }
     } catch (_err) {}
     return false;
+  }
+
+  function getOnboardingPendingKey(userId) {
+    return ONBOARDING_PENDING_PREFIX + String(userId || '').trim();
+  }
+
+  function getNeedsUsernameCacheKey(userId) {
+    return NEEDS_USERNAME_CACHE_PREFIX + String(userId || '').trim();
+  }
+
+  function wasOnboardingEnforcedThisSession(userId) {
+    try {
+      var key = ONBOARDING_SESSION_PREFIX + String(userId || '').trim();
+      return window.sessionStorage ? window.sessionStorage.getItem(key) === '1' : false;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function markOnboardingEnforcedThisSession(userId) {
+    try {
+      var key = ONBOARDING_SESSION_PREFIX + String(userId || '').trim();
+      if (window.sessionStorage) window.sessionStorage.setItem(key, '1');
+    } catch (_err) {}
+  }
+
+  function hasOnboardingPending(userId) {
+    try {
+      var key = getOnboardingPendingKey(userId);
+      return !!(window.localStorage && window.localStorage.getItem(key) === '1');
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function markOnboardingPending(userId) {
+    try {
+      var key = getOnboardingPendingKey(userId);
+      if (window.localStorage) window.localStorage.setItem(key, '1');
+    } catch (_err) {}
+  }
+
+  function readNeedsUsernameCache(userId) {
+    try {
+      if (!window.localStorage) return null;
+      var raw = window.localStorage.getItem(getNeedsUsernameCacheKey(userId));
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      var savedAt = Number(parsed && parsed.savedAt || 0);
+      if (!savedAt || (Date.now() - savedAt) > NEEDS_USERNAME_CACHE_TTL_MS) return null;
+      return !!(parsed && parsed.needsUsername);
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function writeNeedsUsernameCache(userId, needsUsername) {
+    try {
+      if (!window.localStorage) return;
+      window.localStorage.setItem(getNeedsUsernameCacheKey(userId), JSON.stringify({
+        savedAt: Date.now(),
+        needsUsername: !!needsUsername
+      }));
+    } catch (_err) {}
   }
 
   function getSupabaseStorageBridge() {
@@ -960,6 +1028,46 @@
             redirectToLanding();
             return false;
           }
+        }
+
+        // Enforce username onboarding globally so accounts without a real username cannot slip through.
+        if (finalAuthenticated && session && session.user && session.user.id) {
+          try {
+            var userId = session.user.id;
+            var isProfilePage = pageKey === 'profile';
+            var isOnboardingPage = pageKey === 'onboarding';
+            var onboardingParam = false;
+            try {
+              var params = new URLSearchParams(window.location.search);
+              onboardingParam = params.get('onboarding') === '1';
+            } catch (_errSearch) {}
+
+            if (!isProfilePage && !isOnboardingPage && !onboardingParam && !wasOnboardingEnforcedThisSession(userId)) {
+              var cachedNeeds = readNeedsUsernameCache(userId);
+              var pending = hasOnboardingPending(userId);
+              if (cachedNeeds === true || pending) {
+                markOnboardingEnforcedThisSession(userId);
+                var nextPath = sanitizeNextPath(window.location.pathname + window.location.search + window.location.hash);
+                safeSetStorageItem('postAuthRedirect', nextPath);
+                window.location.replace('onboarding.html?onboarding=1&next=' + encodeURIComponent(nextPath));
+                return true;
+              }
+
+              if (cachedNeeds === null) {
+                var profileCheck = await ensureAuthProfile(client, session.user);
+                var needs = !!(profileCheck && profileCheck.needsUsername);
+                writeNeedsUsernameCache(userId, needs);
+                if (needs) {
+                  markOnboardingPending(userId);
+                  markOnboardingEnforcedThisSession(userId);
+                  var nextPath2 = sanitizeNextPath(window.location.pathname + window.location.search + window.location.hash);
+                  safeSetStorageItem('postAuthRedirect', nextPath2);
+                  window.location.replace('onboarding.html?onboarding=1&next=' + encodeURIComponent(nextPath2));
+                  return true;
+                }
+              }
+            }
+          } catch (_enforceErr) {}
         }
 
         window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {

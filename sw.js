@@ -25,7 +25,7 @@ const STATIC_ASSETS = [
   '/js/list-utils.js?v=20260323a',
   '/js/index-list-menu-adapter.js?v=20260324a',
   '/js/universal-search.js?v=20260323a',
-  '/js/auth-gate.js?v=20260418d',
+  '/js/auth-gate.js?v=20260418f',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',

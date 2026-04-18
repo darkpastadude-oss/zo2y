@@ -316,16 +316,9 @@ const HEADER_HTML = `
   }
 
   function getUserProfileLabelFallback(user) {
-    const metadata = user?.user_metadata || {};
-    const raw =
-      metadata.username ||
-      metadata.preferred_username ||
-      metadata.full_name ||
-      metadata.name ||
-      (user?.email ? String(user.email).split('@')[0] : '');
-    const clean = String(raw || '').trim();
-    if (!clean) return 'Profile';
-    return clean.startsWith('@') ? clean : `@${clean}`;
+    // If we don't have a saved profile username yet, do NOT fall back to Gmail/OAuth nicknames.
+    // Keep the label neutral so it nudges users to pick a real username via onboarding.
+    return '@set username';
   }
 
   function persistHeaderSessionSnapshot(session) {
