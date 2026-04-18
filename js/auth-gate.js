@@ -319,36 +319,6 @@
 
     if (patchNow()) return;
 
-    // Patch immediately when the CDN script assigns `window.supabase`, avoiding a race where
-    // other deferred scripts create multiple clients (causing refreshSession contention).
-    if (!window.__ZO2Y_SUPABASE_SETTER_PATCHED) {
-      window.__ZO2Y_SUPABASE_SETTER_PATCHED = true;
-      try {
-        if (!window.supabase) {
-          var supabaseValue = null;
-          Object.defineProperty(window, 'supabase', {
-            configurable: true,
-            enumerable: true,
-            get: function () {
-              return supabaseValue;
-            },
-            set: function (value) {
-              supabaseValue = value;
-              try {
-                Object.defineProperty(window, 'supabase', {
-                  value: value,
-                  writable: true,
-                  configurable: true,
-                  enumerable: true
-                });
-              } catch (_err2) {}
-              patchNow();
-            }
-          });
-        }
-      } catch (_err3) {}
-    }
-
     var attempts = 0;
     var pollTimer = window.setInterval(function () {
       attempts += 1;

@@ -419,6 +419,45 @@
                 'users', 'zo2y'
             ]);
 
+            const PROFILE_ONBOARDING_PENDING_PREFIX = 'zo2y_onboarding_pending_v1_';
+            const PROFILE_ONBOARDING_SESSION_PREFIX = 'zo2y_onboarding_session_v1_';
+
+            function getOnboardingPendingKey(userId) {
+                return `${PROFILE_ONBOARDING_PENDING_PREFIX}${String(userId || '').trim()}`;
+            }
+
+            function hasOnboardingPending(userId) {
+                try {
+                    const key = getOnboardingPendingKey(userId);
+                    return localStorage.getItem(key) === '1';
+                } catch (_err) {
+                    return false;
+                }
+            }
+
+            function clearOnboardingPending(userId) {
+                try {
+                    const key = getOnboardingPendingKey(userId);
+                    localStorage.removeItem(key);
+                } catch (_err) {}
+            }
+
+            function markOnboardingShownThisSession(userId) {
+                try {
+                    const key = `${PROFILE_ONBOARDING_SESSION_PREFIX}${String(userId || '').trim()}`;
+                    sessionStorage.setItem(key, '1');
+                } catch (_err) {}
+            }
+
+            function wasOnboardingShownThisSession(userId) {
+                try {
+                    const key = `${PROFILE_ONBOARDING_SESSION_PREFIX}${String(userId || '').trim()}`;
+                    return sessionStorage.getItem(key) === '1';
+                } catch (_err) {
+                    return false;
+                }
+            }
+
             function normalizeProfileUsername(value) {
                 const normalized = String(value || '')
                     .trim()
@@ -470,6 +509,37 @@
                 }
 
                 return normalizedUsername;
+            }
+
+            function maybeTriggerUsernameOnboarding() {
+                if (!isViewingOwnProfile) return;
+                if (!currentUser?.id) return;
+                if (!userProfile) return;
+                if (wasOnboardingShownThisSession(currentUser.id)) return;
+
+                const needsUsername = !String(userProfile.username || '').trim();
+                const pending = hasOnboardingPending(currentUser.id);
+                if (!needsUsername && !pending) return;
+
+                // Clear "pending" once we show it; if they close without saving, it can reappear next visit
+                // due to `needsUsername` still being true.
+                clearOnboardingPending(currentUser.id);
+                markOnboardingShownThisSession(currentUser.id);
+
+                try {
+                    showModal('editProfileModal');
+                    setTimeout(() => {
+                        const input = document.getElementById('editUsername');
+                        if (input && typeof input.focus === 'function') {
+                            input.focus();
+                            try { input.select(); } catch (_err) {}
+                        }
+                        const hint = document.getElementById('editUsernameHint');
+                        if (hint) {
+                            hint.textContent = 'Choose a username to finish setting up your profile.';
+                        }
+                    }, 60);
+                } catch (_err) {}
             }
 
             function setupMobileTabsHint() {
@@ -897,6 +967,8 @@
                 }
                 
                 updateProfileUI();
+                // New accounts should be prompted immediately to pick a username.
+                maybeTriggerUsernameOnboarding();
                 
                 // Load stats in background (don't block UI)
                 updateStats().catch(err => console.error('Stats error:', err));
