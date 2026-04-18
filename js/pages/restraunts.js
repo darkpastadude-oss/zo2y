@@ -2,8 +2,9 @@
       'use strict';
       
       // ---------- CONFIG ----------
-      const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-      const SUPABASE_KEY = 'sb_publishable_2J1YezYMq3A-lNP6sUIKPg_Kv5XFXx8';
+      const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+      const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+      const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
       
       // Wait for Supabase to load before creating client
       let supabase;

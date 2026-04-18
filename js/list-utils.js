@@ -1013,11 +1013,42 @@
     const normalized = normalizeBookPayload(payload);
     if (!normalized) return false;
 
+    // Prefer direct writes (same pattern as other media types) and fall back to API only
+    // when RLS blocks direct upserts.
+    if (client && bookDirectWriteSupported !== false) {
+      try {
+        const { error } = await client.from('books').upsert({
+          id: normalized.id,
+          title: normalized.title,
+          authors: normalized.authors || '',
+          thumbnail: normalized.thumbnail || '',
+          published_date: normalized.published_date,
+          categories: normalized.categories,
+          description: normalized.description,
+          page_count: normalized.page_count,
+          publisher: normalized.publisher,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+
+        if (!error) {
+          bookDirectWriteSupported = true;
+          return true;
+        }
+        if (isBookWritePermissionError(error)) {
+          bookDirectWriteSupported = false;
+        } else {
+          // Non-RLS error: do not assume API can fix it (but try once).
+          bookDirectWriteSupported = true;
+        }
+      } catch (_err) {
+        // Network/runtime errors: do not permanently disable direct writes.
+      }
+    }
+
     const synced = await syncBookRecordViaApi(normalized);
     if (synced) return true;
 
-    // If the API endpoint exists but failed, avoid falling back to direct client writes
-    // (those will often 403 due to RLS and create confusing double-errors in the console).
+    // If the API is reachable but failing, don't spam repeated direct attempts in the same session.
     if (bookSyncSupported !== false) return false;
 
     if (!client || bookDirectWriteSupported === false) return false;

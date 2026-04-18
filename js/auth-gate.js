@@ -1008,6 +1008,32 @@
       if (refreshInFlight) return refreshInFlight;
       if (lastRefreshAttemptAt && (now - lastRefreshAttemptAt) < 1000 * 25) return null;
       lastRefreshAttemptAt = now;
+
+      async function hardResetAuth(reasonLabel, err) {
+        try {
+          markExplicitSignout();
+          clearPersistedSessionSnapshots();
+          if (client && client.auth && typeof client.auth.signOut === 'function') {
+            await client.auth.signOut({ scope: 'local' });
+          }
+        } catch (_err) {}
+
+        authDebug('hardResetAuth', {
+          reason: String(reasonLabel || ''),
+          message: String(err && err.message || err || '')
+        });
+
+        // Avoid redirect loops on auth entry pages.
+        var isAuthEntry = pageKey === 'login' || pageKey === 'sign-up' || pageKey === 'signup' || pageKey === 'update-password' || pageKey === 'auth-callback';
+        if (isAuthEntry) return;
+        try {
+          var nextPath = sanitizeNextPath(window.location.pathname + window.location.search + window.location.hash);
+          window.location.replace('login.html?next=' + encodeURIComponent(nextPath));
+        } catch (_err2) {
+          window.location.replace('login.html');
+        }
+      }
+
       refreshInFlight = (async function () {
         try {
           var refreshResult = await client.auth.refreshSession();
@@ -1028,7 +1054,7 @@
           if (statusCode === 429 || messageLower.indexOf('rate limit') !== -1) {
             refreshCooldownUntil = Date.now() + 1000 * 60 * 2;
           } else if (shouldClearPersistedSessionForError(_refreshErr)) {
-            clearPersistedSessionSnapshots();
+            await hardResetAuth('refreshSession', _refreshErr);
           }
           authDebug('tryRefreshSession:error', {
             reason: String(reason || ''),
@@ -1052,6 +1078,15 @@
       verifyInFlight = (async function () {
       try {
         var sessionResult = await client.auth.getSession();
+        if (sessionResult && sessionResult.error && shouldClearPersistedSessionForError(sessionResult.error)) {
+          try {
+            markExplicitSignout();
+            clearPersistedSessionSnapshots();
+            await client.auth.signOut({ scope: 'local' });
+          } catch (_err) {}
+          redirectToLanding();
+          return false;
+        }
         var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
         var hasStoredSnapshot = !!getStoredSessionSnapshot();
         authDebug('verifyAndApply:getSession', {
