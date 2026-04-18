@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <script src="/js/auth-gate.js?v=20260418k"></script>
+  <script src="/js/auth-gate.js?v=20260418l"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Movies</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -791,7 +791,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
   <script src="/js/mobile-webapp.js?v=20260329b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-  <script src="js/shared-header.js?v=20260418a" defer></script>
+<script src="js/shared-header.js?v=20260418c" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
   <link rel="stylesheet" href="/css/pages/media-spotlight.css?v=20260418a">
 </head>
@@ -909,8 +909,9 @@
   <script src="js/index-list-menu-adapter.js?v=20260317b"></script>
   <script>
     (function () {
-      const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-      const SUPABASE_KEY = 'sb_publishable_2J1YezYMq3A-lNP6sUIKPg_Kv5XFXx8';
+      const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+      const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+      const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
       const TMDB_PROXY_BASE = '/api/tmdb';
       const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
       const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';

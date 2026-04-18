@@ -1,6 +1,7 @@
 (() => {
-  const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_2J1YezYMq3A-lNP6sUIKPg_Kv5XFXx8";
+  const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+  const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+  const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
   const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
   const FALLBACK_IMAGE = "/newlogo.webp";
   const REVIEW_LIMIT = 70;

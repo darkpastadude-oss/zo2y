@@ -1,11 +1,12 @@
 (() => {
-  const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_2J1YezYMq3A-lNP6sUIKPg_Kv5XFXx8';
+  const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+  const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+  const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
   const AUTH_STORAGE_KEY = 'zo2y-auth-v1';
   const LEGACY_AUTH_STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
   const PERSIST_AUTH_STORAGE_KEY = 'zo2y-auth-persist-v1';
   const DURABLE_AUTH_STORAGE_KEY = 'zo2y-auth-durable-v1';
-  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260323a';
+  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260323b';
   const MOVIES_ROUTE = 'movies.html?v=20260322m';
   const MOVIES_MOBILE_ROUTE = 'movies-mobile.html?v=20260322m';
   const DESKTOP_RAIL_COLLAPSE_KEY = 'zo2y_desktop_rail_collapsed';

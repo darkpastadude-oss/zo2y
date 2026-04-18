@@ -4,12 +4,22 @@ let cachedClient;
 let attempted = false;
 
 function readEnv() {
-  const url = String(process.env.SUPABASE_URL || "").trim();
+  const rawUrl = String(process.env.SUPABASE_URL || process.env.SUPABASE_PROJECT_REF || "").trim();
   const serviceRoleKey = String(
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     process.env.SUPABASE_SERVICE_KEY ||
     ""
   ).trim();
+
+  let url = rawUrl;
+  if (url && !/^https?:\/\//i.test(url)) {
+    if (/^[a-z0-9]{20}$/i.test(url)) {
+      url = `https://${url}.supabase.co`;
+    } else if (/supabase\.co/i.test(url)) {
+      url = `https://${url}`;
+    }
+  }
+
   return { url, serviceRoleKey };
 }
 

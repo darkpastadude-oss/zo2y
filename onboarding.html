@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <script src="/js/auth-gate.js?v=20260418k"></script>
+  <script src="/js/auth-gate.js?v=20260418l"></script>
   <meta name="robots" content="noindex,nofollow" />
   <title>Zo2y - Onboarding</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -280,8 +280,9 @@
           if (c) return c;
         }
         if (window.supabase && window.supabase.createClient) {
-          const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-          const SUPABASE_KEY = 'sb_publishable_2J1YezYMq3A-lNP6sUIKPg_Kv5XFXx8';
+      const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+      const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+      const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
           return window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
             auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'zo2y-auth-v1' }
           });

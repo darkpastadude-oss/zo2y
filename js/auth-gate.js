@@ -67,7 +67,17 @@
     'users', 'zo2y'
   ]);
   var SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  var SUPABASE_KEY = 'sb_publishable_2J1YezYMq3A-lNP6sUIKPg_Kv5XFXx8';
+  var SUPABASE_KEY = 'sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd';
+
+  try {
+    if (!window.__ZO2Y_SUPABASE_CONFIG) {
+      window.__ZO2Y_SUPABASE_CONFIG = {
+        url: SUPABASE_URL,
+        key: SUPABASE_KEY,
+        projectRef: PROJECT_REF
+      };
+    }
+  } catch (_err) {}
 
   function normalizePageKey(pathname) {
     var file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';

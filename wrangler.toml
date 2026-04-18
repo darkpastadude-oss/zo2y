@@ -8,3 +8,4 @@ mode = "smart"
 
 [vars]
 APP_BASE_URL = "https://zo2y.com"
+SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co"
