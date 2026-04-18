@@ -422,7 +422,14 @@ export default async function handler(req, res) {
     try {
       const client = getSupabaseAdminClient();
       if (!client) {
-        return res.status(503).json({ ok: false, message: "Supabase admin not configured" });
+        const urlSet = Boolean(String(process.env.SUPABASE_URL || "").trim());
+        const serviceRoleSet = Boolean(String(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "").trim());
+        return res.status(503).json({
+          ok: false,
+          message: "Supabase admin not configured",
+          supabase_url_set: urlSet,
+          supabase_service_role_set: serviceRoleSet
+        });
       }
       const body = await readJsonBody(req);
       const payload = sanitizeBookPayload(body || {});
