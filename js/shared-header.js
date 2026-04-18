@@ -316,8 +316,17 @@ const HEADER_HTML = `
   }
 
   function getUserProfileLabelFallback(user) {
-    // If we don't have a saved profile username yet, do NOT fall back to Gmail/OAuth nicknames.
-    // Keep the label neutral so it nudges users to pick a real username via onboarding.
+    // Only trust a Zo2y-chosen handle (set by our onboarding flow), never OAuth/Gmail nicknames.
+    var raw = '';
+    try {
+      raw = String(user && user.user_metadata && user.user_metadata.zo2y_username || '').trim();
+    } catch (_err) {
+      raw = '';
+    }
+    var normalized = raw.replace(/^@+/, '').toLowerCase();
+    if (/^[a-z0-9_]{3,30}$/.test(normalized) && normalized !== 'user' && normalized.indexOf('user_') !== 0) {
+      return '@' + normalized;
+    }
     return '@set username';
   }
 

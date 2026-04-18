@@ -6194,15 +6194,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     window.getVerifiedHomeUser = getVerifiedHomeUser;
 
     function getHomeProfileLabelFallback(user) {
-      const fallback =
-        user?.user_metadata?.username ||
-        user?.user_metadata?.preferred_username ||
-        user?.user_metadata?.full_name ||
-        user?.user_metadata?.name ||
-        (user?.email ? String(user.email).split('@')[0] : '');
-      const cleanFallback = String(fallback || '').trim();
-      if (!cleanFallback) return 'Profile';
-      return cleanFallback.startsWith('@') ? cleanFallback : `@${cleanFallback}`;
+      // Never fall back to Gmail/OAuth nicknames or email prefixes.
+      // We only show a real chosen username (stored in user_metadata.username),
+      // otherwise keep it neutral so onboarding can take over.
+      const raw = String(user?.user_metadata?.zo2y_username || '').trim();
+      const normalized = normalizeProfileUsername(raw);
+      if (
+        normalized &&
+        isValidProfileUsername(normalized) &&
+        !RESERVED_PROFILE_USERNAMES.has(normalized.replace(/_/g, '')) &&
+        normalized !== 'user' &&
+        !normalized.startsWith('user_')
+      ) {
+        return `@${normalized}`;
+      }
+      return '@set username';
     }
 
     async function getHomeProfileLabel(client, user) {
@@ -6535,35 +6541,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         throw lookupError;
       }
 
-      const metadata = homeCurrentUser.user_metadata || {};
-      const emailPrefix = String(homeCurrentUser.email || '').split('@')[0] || 'user';
-      const baseSeed = normalizeProfileUsername(
-        metadata.username ||
-        metadata.preferred_username ||
-        metadata.full_name ||
-        metadata.name ||
-        emailPrefix ||
-        'user'
-      ) || 'user';
       const suffixSeed = String(homeCurrentUser.id || '').replace(/-/g, '').slice(0, 6) || 'user';
-      let username = '';
-      try {
-        username = await ensureHomeUsernameAvailable(baseSeed, homeCurrentUser.id);
-      } catch (_baseErr) {
-        try {
-          username = await ensureHomeUsernameAvailable(`${baseSeed.slice(0, 22)}_${suffixSeed}`, homeCurrentUser.id);
-        } catch (_suffixErr) {
-          username = `${baseSeed.slice(0, 22)}_${suffixSeed}`.slice(0, PROFILE_USERNAME_MAX_LENGTH);
-        }
-      }
-      const fullName = String(metadata.full_name || metadata.name || emailPrefix || username).trim().slice(0, 80);
+      const username = `user_${suffixSeed}`.slice(0, PROFILE_USERNAME_MAX_LENGTH);
 
       const { data: createdProfile, error: createError } = await client
         .from('user_profiles')
         .insert({
           id: homeCurrentUser.id,
           username,
-          full_name: fullName || null
+          full_name: null
         })
         .select('id, username, full_name')
         .maybeSingle();
@@ -6618,10 +6604,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       try {
         const seededProfile = await ensureHomeProfileSeeded();
         const pendingFlow = String(pending?.flow || '').trim().toLowerCase();
+        const seededUsername = String(seededProfile?.profile?.username || '').trim().toLowerCase();
+        const seededNeedsUsername = !seededUsername || seededUsername === 'user' || seededUsername.startsWith('user_');
         const shouldShowOnboarding =
           pendingFlow === 'signup' ||
           !!seededProfile?.created ||
-          !!(seededProfile?.profile && !String(seededProfile.profile.username || '').trim());
+          !!(seededProfile?.profile && seededNeedsUsername);
 
         if (shouldShowOnboarding) {
           markOnboardingPending(homeCurrentUser.id);

@@ -1,9 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <script src="/js/auth-gate.js?v=20260418h"></script>
+  <script src="/js/auth-gate.js?v=20260418i"></script>
   <meta name="robots" content="noindex,nofollow" />
   <title>Zo2y - Onboarding</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -350,6 +350,13 @@
               setStatus('saving...', '');
               const { error } = await client.from('user_profiles').update({ username }).eq('id', user.id);
               if (error) throw error;
+
+              // Persist the chosen handle into auth metadata so all pages can display it without extra DB lookups.
+              try {
+                if (client?.auth && typeof client.auth.updateUser === 'function') {
+                  await client.auth.updateUser({ data: { zo2y_username: username } });
+                }
+              } catch (_metaErr) {}
               clearFlags(user.id);
               setStatus('saved. redirecting...', 'success');
               window.location.replace(getNext());

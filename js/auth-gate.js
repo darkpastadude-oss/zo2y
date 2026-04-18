@@ -10,6 +10,7 @@
   var NEEDS_USERNAME_CACHE_PREFIX = 'zo2y_needs_username_v1_';
   var ONBOARDING_PENDING_PREFIX = 'zo2y_onboarding_pending_v1_';
   var ONBOARDING_SESSION_PREFIX = 'zo2y_onboarding_session_v1_';
+  var USERNAME_CHECK_SESSION_PREFIX = 'zo2y_username_check_session_v1_';
   var NEEDS_USERNAME_CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24h
   var AUTH_DEBUG_KEY = 'zo2y_auth_debug';
   // Reduce background auth churn when users tab away/return (avoids refresh-token rate limits).
@@ -184,6 +185,22 @@
   function markOnboardingEnforcedThisSession(userId) {
     try {
       var key = ONBOARDING_SESSION_PREFIX + String(userId || '').trim();
+      if (window.sessionStorage) window.sessionStorage.setItem(key, '1');
+    } catch (_err) {}
+  }
+
+  function wasUsernameCheckedThisSession(userId) {
+    try {
+      var key = USERNAME_CHECK_SESSION_PREFIX + String(userId || '').trim();
+      return window.sessionStorage ? window.sessionStorage.getItem(key) === '1' : false;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function markUsernameCheckedThisSession(userId) {
+    try {
+      var key = USERNAME_CHECK_SESSION_PREFIX + String(userId || '').trim();
       if (window.sessionStorage) window.sessionStorage.setItem(key, '1');
     } catch (_err) {}
   }
@@ -1098,10 +1115,14 @@
                 return true;
               }
 
-              if (cachedNeeds === null) {
+              // Re-check at least once per browser session so stale "false" caches can't keep showing
+              // OAuth/Gmail-derived handles on pages like index.
+              var shouldRecheck = cachedNeeds === null || !wasUsernameCheckedThisSession(userId);
+              if (shouldRecheck) {
                 var profileCheck = await ensureAuthProfile(client, session.user);
                 var needs = !!(profileCheck && profileCheck.needsUsername);
                 writeNeedsUsernameCache(userId, needs);
+                markUsernameCheckedThisSession(userId);
                 if (needs) {
                   markOnboardingPending(userId);
                   markOnboardingEnforcedThisSession(userId);

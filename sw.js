@@ -1,5 +1,5 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v209';
-const PAGE_CACHE = 'zo2y-pages-v175';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v210';
+const PAGE_CACHE = 'zo2y-pages-v176';
 const IMAGE_CACHE = 'zo2y-images-v33';
 const API_CACHE = 'zo2y-api-v13';
 const MOVIES_PAGE_VERSION = '20260418a';
@@ -25,7 +25,7 @@ const STATIC_ASSETS = [
   '/js/list-utils.js?v=20260323a',
   '/js/index-list-menu-adapter.js?v=20260324a',
   '/js/universal-search.js?v=20260323a',
-  '/js/auth-gate.js?v=20260418h',
+  '/js/auth-gate.js?v=20260418i',
   '/onboarding.html',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
