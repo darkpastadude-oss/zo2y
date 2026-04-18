@@ -475,6 +475,15 @@
                 return /^[a-z0-9_]{3,30}$/.test(String(value || ''));
             }
 
+            function isPlaceholderUsername(value) {
+                const username = String(value || '').trim().toLowerCase();
+                if (!username) return true;
+                if (username === 'user') return true;
+                // Neutral placeholders we generate to avoid using email/OAuth-derived handles.
+                if (username.startsWith('user_')) return true;
+                return false;
+            }
+
             function buildProfileUsernameCandidates(seed, userId) {
                 const rawBaseSeed = normalizeProfileUsername(seed) || 'user';
                 const baseSeed = RESERVED_PROFILE_USERNAMES.has(rawBaseSeed.replace(/_/g, ''))
@@ -517,7 +526,7 @@
                 if (!userProfile) return;
                 if (wasOnboardingShownThisSession(currentUser.id)) return;
 
-                const needsUsername = !String(userProfile.username || '').trim();
+                const needsUsername = isPlaceholderUsername(userProfile.username);
                 const pending = hasOnboardingPending(currentUser.id);
                 if (!needsUsername && !pending) return;
 
@@ -1072,19 +1081,13 @@
                 userProfile = profile || {};
                 if (profile) return;
 
-                const usernameCandidates = buildProfileUsernameCandidates(
-                    currentUser?.user_metadata?.username ||
-                    currentUser?.user_metadata?.full_name ||
-                    currentUser?.email?.split('@')[0] ||
-                    'user',
-                    currentUser?.id
-                );
-                const bootstrapUsername = usernameCandidates[0] || 'user';
+                const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
+                const bootstrapUsername = profileUsernameWithSuffix('user', idSuffix);
                 const bootstrapDisplayName = String(
                     currentUser?.user_metadata?.full_name ||
                     currentUser?.user_metadata?.name ||
-                    bootstrapUsername
-                ).trim().slice(0, 80) || bootstrapUsername;
+                    'User'
+                ).trim().slice(0, 80) || 'User';
 
                 const basePayload = {
                     id: currentUser.id,
@@ -1131,6 +1134,11 @@
                     ...basePayload,
                     user_id: currentUser.id
                 };
+
+                // Mark onboarding pending so the username picker pops instantly for fresh profiles.
+                try {
+                    localStorage.setItem(getOnboardingPendingKey(currentUser.id), '1');
+                } catch (_err) {}
             }
 
             function normalizeProfileTheme(themeValue) {

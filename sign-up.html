@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <script src="/js/auth-gate.js?v=20260418c"></script>
+  <script src="/js/auth-gate.js?v=20260418d"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Sign Up</title>
 <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -451,7 +451,7 @@
       userId: String(user?.id || '').trim() || null
     });
     if (!user?.id || typeof window.__ZO2Y_ENSURE_AUTH_PROFILE !== 'function') {
-      return false;
+      return { ok: false, needsUsername: false, profile: null };
     }
     try {
       const result = await window.__ZO2Y_ENSURE_AUTH_PROFILE(clientOverride || supabase, user);
@@ -459,12 +459,16 @@
         ok: !!(result && result.ok !== false),
         created: !!result?.created
       });
-      return !!(result && result.ok !== false);
+      return {
+        ok: !!(result && result.ok !== false),
+        needsUsername: !!result?.needsUsername,
+        profile: result?.profile || null
+      };
     } catch (_err) {
       authDebug('ensureProfileBootstrap:error', {
         message: String(_err?.message || _err || '')
       });
-      return false;
+      return { ok: false, needsUsername: false, profile: null };
     }
   }
 
@@ -532,7 +536,16 @@
       stableUser = await waitForStableSession(2400);
     }
     if (stableUser?.id) {
-      await ensureProfileBootstrap(stableUser, clientOverride || supabase);
+      const boot = await ensureProfileBootstrap(stableUser, clientOverride || supabase);
+      if (boot?.needsUsername) {
+        try {
+          localStorage.setItem(getOnboardingPendingKey(stableUser.id), '1');
+        } catch (_err) {}
+        const nextPath = getPostAuthRedirect();
+        safeSetAuthStorage('postAuthRedirect', nextPath);
+        window.location.replace(`profile.html?onboarding=1&next=${encodeURIComponent(nextPath)}`);
+        return;
+      }
     }
     const nextPath = getPostAuthRedirect();
     safeRemoveAuthStorage('oauthFlow');
@@ -938,6 +951,7 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
 
 
 

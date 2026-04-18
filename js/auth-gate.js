@@ -656,29 +656,21 @@
         .maybeSingle();
       var existingProfile = existingResult && existingResult.data ? existingResult.data : null;
       if (existingProfile && existingProfile.id) {
-        return { ok: true, created: false, profile: existingProfile };
+        var existingUsername = String(existingProfile.username || '').trim().toLowerCase();
+        var existingNeedsUsername = !existingUsername || existingUsername === 'user' || existingUsername.indexOf('user_') === 0;
+        return { ok: true, created: false, profile: existingProfile, needsUsername: existingNeedsUsername };
       }
       if (existingResult && existingResult.error) {
         return { ok: false, created: false, profile: null, error: existingResult.error };
       }
 
       var userData = user.user_metadata || {};
-      var emailPrefix = String(user.email || '').split('@')[0] || 'user';
-      var baseUsername = normalizeProfileUsername(
-        userData.username ||
-        userData.preferred_username ||
-        userData.user_name ||
-        userData.full_name ||
-        userData.name ||
-        emailPrefix
-      );
-      var displayName = String(userData.full_name || userData.name || emailPrefix || baseUsername).trim().slice(0, 80);
       var idSuffix = String(user.id || '').replace(/-/g, '').slice(0, 6) || 'user';
-      var usernameCandidates = [
-        baseUsername,
-        profileUsernameWithSuffix(baseUsername, idSuffix),
-        profileUsernameWithSuffix(baseUsername, idSuffix + String(Date.now()).slice(-2))
-      ];
+      // Do NOT derive username from email / OAuth metadata. Use a neutral placeholder and
+      // force users to choose their own handle during onboarding.
+      var placeholderUsername = profileUsernameWithSuffix('user', idSuffix);
+      var displayName = String(userData.full_name || userData.name || 'User').trim().slice(0, 80) || 'User';
+      var usernameCandidates = [placeholderUsername];
 
       for (var i = 0; i < usernameCandidates.length; i += 1) {
         var username = usernameCandidates[i];
@@ -695,6 +687,7 @@
           return {
             ok: true,
             created: true,
+            needsUsername: true,
             profile: createResult && createResult.data ? createResult.data : {
               id: user.id,
               username: username,
@@ -715,7 +708,9 @@
           .eq('id', user.id)
           .maybeSingle();
         if (raceResult && raceResult.data && raceResult.data.id) {
-          return { ok: true, created: false, profile: raceResult.data };
+          var raceUsername = String(raceResult.data.username || '').trim().toLowerCase();
+          var raceNeedsUsername = !raceUsername || raceUsername === 'user' || raceUsername.indexOf('user_') === 0;
+          return { ok: true, created: false, profile: raceResult.data, needsUsername: raceNeedsUsername };
         }
       }
     } catch (_err) {
