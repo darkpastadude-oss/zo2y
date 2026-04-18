@@ -896,6 +896,19 @@
     return false;
   }
 
+  function isConflictError(error) {
+    if (!error) return false;
+    const status = Number(error?.status || error?.statusCode || 0);
+    const code = String(error?.code || '').trim();
+    const message = String(error?.message || '').toLowerCase();
+    // PostgREST typically surfaces unique violations as 409 / 23505.
+    if (status === 409) return true;
+    if (code === '23505') return true;
+    if (message.includes('duplicate key')) return true;
+    if (message.includes('unique constraint')) return true;
+    return false;
+  }
+
   function normalizeBookAuthors(value) {
     if (Array.isArray(value)) {
       const joined = value
@@ -1242,6 +1255,10 @@
       const { error: insertError } = await client.from(cfg.itemsTable).insert(inserts);
       if (insertError && isListTableMissingError(insertError, cfg.itemsTable)) {
         missingItemTables.add(cfg.itemsTable);
+      } else if (insertError && isConflictError(insertError)) {
+        // Idempotency: if the row already exists (double-click/retry/race), treat as success.
+        // The UI already reflects the desired final state.
+        return;
       }
     }
   }

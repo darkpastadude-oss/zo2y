@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v212';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v213';
 const PAGE_CACHE = 'zo2y-pages-v176';
 const IMAGE_CACHE = 'zo2y-images-v33';
 const API_CACHE = 'zo2y-api-v13';
@@ -22,7 +22,7 @@ const STATIC_ASSETS = [
   '/js/referral-utils.js?v=20260319a',
   '/js/shared-header.js?v=20260415b',
   '/js/review-interactions.js?v=20260308a',
-  '/js/list-utils.js?v=20260323a',
+  '/js/list-utils.js?v=20260418b',
   '/js/index-list-menu-adapter.js?v=20260324a',
   '/js/universal-search.js?v=20260323a',
   '/js/auth-gate.js?v=20260418k',
