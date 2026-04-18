@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <script src="/js/auth-gate.js?v=20260418g"></script>
+  <script src="/js/auth-gate.js?v=20260418h"></script>
   <meta name="robots" content="noindex,nofollow" />
-  <title>Zo2y - Choose Username</title>
+  <title>Zo2y - Onboarding</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -17,319 +17,188 @@
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
   <script src="/js/mobile-webapp.js?v=20260329b" defer></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
   <style>
-    :root {
-      --bg: #0b1633;
-      --card: #132347;
-      --muted: #8ca3c7;
-      --accent: #f59e0b;
-      --white: #ffffff;
-      --border: rgba(255,255,255,0.1);
-      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      --surface: rgba(19, 35, 71, 0.65);
-      --shadow: 0 18px 50px rgba(0,0,0,0.35);
-      --error: #ef4444;
-      --success: #10b981;
+    :root{
+      --bg:#0b1633;
+      --card:#132347;
+      --muted:#8ca3c7;
+      --accent:#f59e0b;
+      --white:#fff;
+      --border:rgba(255,255,255,.1);
+      --gradient:linear-gradient(135deg,#f59e0b 0%,#ffb84d 100%);
     }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--white);
-      min-height: 100vh;
-      overflow-x: hidden;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--white);
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:22px;
     }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: -25% 0 0 0;
-      background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.16), transparent 62%);
-      pointer-events: none;
-      z-index: -2;
+    body::before{
+      content:"";
+      position:fixed;
+      inset:-25% 0 0 0;
+      background:radial-gradient(circle at 50% 0%, rgba(245,158,11,.16), transparent 62%);
+      pointer-events:none;
+      z-index:-2;
     }
-
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0 12px, rgba(255, 184, 77, 0) 12px 24px);
-      opacity: 0.22;
-      pointer-events: none;
-      z-index: -3;
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      background:repeating-linear-gradient(135deg, rgba(245,158,11,.08) 0 12px, rgba(255,184,77,0) 12px 24px);
+      opacity:.22;
+      pointer-events:none;
+      z-index:-3;
     }
-
-    a { color: inherit; text-decoration: none; }
-
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      padding: 14px 16px;
-      background: rgba(11, 22, 51, 0.92);
-      border-bottom: 1px solid rgba(255,255,255,0.12);
-      backdrop-filter: blur(10px) saturate(170%);
+    .shell{
+      width:min(560px,100%);
+      border:1px solid var(--border);
+      border-radius:22px;
+      background:rgba(19,35,71,.86);
+      box-shadow:0 18px 50px rgba(0,0,0,.35);
+      padding:18px;
+      text-transform:lowercase;
     }
-
-    .topbar-inner {
-      width: min(980px, calc(100% - 12px));
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px;
     }
-
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 900;
-      letter-spacing: -0.02em;
+    .brand{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      font-weight:900;
+      letter-spacing:-.02em;
     }
-
-    .brand img {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      object-fit: cover;
+    .brand img{
+      width:36px;
+      height:36px;
+      border-radius:12px;
+      object-fit:cover;
+      background:#0f1f40;
     }
-
-    .ghost-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
-      color: #eaf2ff;
-      cursor: pointer;
+    .signout{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);
+      color:#eaf2ff;
+      cursor:pointer;
     }
-
-    .ghost-btn:hover { border-color: rgba(245, 158, 11, 0.45); color: var(--accent); }
-
-    main {
-      width: min(980px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: clamp(22px, 4vw, 44px) 0 70px;
-      display: grid;
-      gap: 18px;
+    .signout:hover{border-color:rgba(245,158,11,.45);color:var(--accent)}
+    h1{
+      margin:10px 0 6px;
+      font-size:26px;
+      letter-spacing:-.03em;
+      line-height:1.05;
     }
-
-    .welcome {
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      background: linear-gradient(140deg, rgba(16, 31, 64, 0.92), rgba(8, 19, 41, 0.92));
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      position: relative;
-      padding: clamp(18px, 3.5vw, 30px);
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
-      gap: 18px;
-      align-items: start;
+    .sub{
+      margin:0 0 14px;
+      color:#d7e7ff;
+      font-size:14px;
+      line-height:1.55;
+      text-transform:none;
     }
-
-    .welcome::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.12), transparent 36%),
-        linear-gradient(110deg, rgba(8, 14, 31, 0.78), rgba(10, 19, 39, 0.25));
-      pointer-events: none;
-      z-index: 0;
+    .row{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 160px;
+      gap:12px;
+      align-items:center;
     }
-
-    .welcome > * { position: relative; z-index: 1; }
-
-    .kicker {
-      text-transform: uppercase;
-      font-size: 12px;
-      letter-spacing: 0.16em;
-      color: #a7bde4;
-      font-weight: 800;
+    .input{
+      width:100%;
+      height:56px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);
+      background:#10224a;
+      color:#fff;
+      padding:0 16px;
+      outline:none;
+      font-size:16px;
+      text-transform:none;
     }
-
-    h1 {
-      margin: 10px 0 10px;
-      font-size: clamp(26px, 4.2vw, 44px);
-      line-height: 1.05;
-      letter-spacing: -0.04em;
+    .input:focus{
+      border-color:rgba(245,158,11,.6);
+      box-shadow:0 0 0 3px rgba(245,158,11,.16);
     }
-
-    .sub {
-      margin: 0;
-      color: #d7e7ff;
-      line-height: 1.6;
-      max-width: 62ch;
-      font-size: 15px;
+    .btn{
+      height:56px;
+      border-radius:18px;
+      border:1px solid rgba(245,158,11,.35);
+      background:var(--gradient);
+      color:#0b1633;
+      font-weight:900;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      text-transform:lowercase;
     }
-
-    .bullets {
-      margin: 14px 0 0;
-      display: grid;
-      gap: 10px;
-      color: #cfe3ff;
-      font-size: 14px;
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .hint{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.4;
+      text-transform:none;
     }
-
-    .bullet {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
+    .status{
+      min-height:20px;
+      margin-top:8px;
+      font-size:13px;
+      color:var(--muted);
+      text-transform:none;
     }
-
-    .bullet i { color: var(--accent); margin-top: 2px; }
-
-    .panel {
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      background: rgba(19, 35, 71, 0.82);
-      box-shadow: 0 14px 34px rgba(0,0,0,0.28);
-      padding: 18px;
-      display: grid;
-      gap: 12px;
-    }
-
-    .panel h2 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: -0.02em;
-    }
-
-    .field {
-      display: grid;
-      gap: 8px;
-    }
-
-    .label {
-      font-size: 12px;
-      color: #a7bde4;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-weight: 800;
-    }
-
-    .input-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 160px;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .input {
-      width: 100%;
-      height: 56px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: #10224a;
-      color: #fff;
-      padding: 0 16px;
-      outline: none;
-      font-size: 16px;
-    }
-
-    .input:focus {
-      border-color: rgba(245, 158, 11, 0.6);
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.16);
-    }
-
-    .primary-btn {
-      height: 56px;
-      border-radius: 18px;
-      border: 1px solid rgba(245, 158, 11, 0.35);
-      background: var(--gradient);
-      color: #0b1633;
-      font-weight: 900;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .primary-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .hint {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    .status {
-      min-height: 20px;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .status.error { color: #ffb4b4; }
-    .status.success { color: #b9ffe4; }
-
-    @media (max-width: 860px) {
-      .welcome { grid-template-columns: 1fr; }
-      .input-row { grid-template-columns: 1fr; }
-      .primary-btn { width: 100%; }
+    .status.error{color:#ffb4b4}
+    .status.success{color:#b9ffe4}
+    @media (max-width: 520px){
+      .row{grid-template-columns:1fr}
+      .btn{width:100%}
     }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <a class="brand" href="index.html" aria-label="Zo2y Home">
-        <img src="/file.svg" alt="Logo" />
-        <span>Zo2y</span>
-      </a>
-      <button class="ghost-btn" id="signOutBtn" type="button" aria-label="Sign out">
+  <div class="shell">
+    <div class="top">
+      <div class="brand">
+        <img src="/file.svg" alt="logo" />
+        <span>zo2y</span>
+      </div>
+      <button class="signout" id="signOutBtn" type="button" aria-label="sign out">
         <i class="fas fa-right-from-bracket"></i>
-        <span>Sign out</span>
+        <span>sign out</span>
       </button>
     </div>
-  </header>
 
-  <main>
-    <section class="welcome" aria-label="Welcome to Zo2y">
-      <div>
-        <div class="kicker">Welcome</div>
-        <h1>Choose your username</h1>
-        <p class="sub">
-          Zo2y is a place to save your favorites across movies, tv, anime, games, books, music, sports, travel, and brands.
-          Your username is how people find you and how your profile link looks.
-        </p>
-        <div class="bullets">
-          <div class="bullet"><i class="fas fa-bookmark"></i><span>Save and organize favorites into lists.</span></div>
-          <div class="bullet"><i class="fas fa-bolt"></i><span>Quick search + filters across every page.</span></div>
-          <div class="bullet"><i class="fas fa-user"></i><span>Share your profile and collections with one link.</span></div>
-        </div>
-      </div>
-      <div class="panel">
-        <h2>Set your handle</h2>
-        <div class="field">
-          <div class="label">Username</div>
-          <div class="input-row">
-            <input id="usernameInput" class="input" type="text" inputmode="text" autocomplete="username"
-              placeholder="username (no spaces)" maxlength="30" />
-            <button id="saveBtn" class="primary-btn" type="button">
-              <i class="fas fa-check"></i>
-              <span>Continue</span>
-            </button>
-          </div>
-          <div class="hint">3-30 chars. Letters, numbers, underscores. No email or Google nickname.</div>
-          <div id="status" class="status"></div>
-        </div>
-      </div>
-    </section>
-  </main>
+    <h1>choose username</h1>
+    <p class="sub">pick a handle for your profile link.</p>
+
+    <div class="row">
+      <input id="usernameInput" class="input" type="text" autocomplete="off" spellcheck="false"
+        placeholder="username" maxlength="30" aria-label="username" />
+      <button id="saveBtn" class="btn" type="button">
+        <i class="fas fa-check"></i>
+        <span>continue</span>
+      </button>
+    </div>
+
+    <div class="hint">3-30 chars. letters, numbers, underscore. no spaces.</div>
+    <div id="status" class="status"></div>
+  </div>
 
   <script>
     (function () {
@@ -338,6 +207,7 @@
         'help','home','index','login','movie','movies','music','new','privacy','profile','resetpassword','reviews',
         'search','settings','signup','support','terms','travel','tv','tvshow','tvshows','updatepassword','user','users','zo2y'
       ]);
+
       const NEEDS_KEY_PREFIX = 'zo2y_needs_username_v1_';
       const PENDING_PREFIX = 'zo2y_onboarding_pending_v1_';
       const SESSION_PREFIX = 'zo2y_onboarding_session_v1_';
@@ -349,82 +219,66 @@
         signOut: document.getElementById('signOutBtn')
       };
 
-      const getNext = () => {
+      function setStatus(msg, type) {
+        if (!els.status) return;
+        els.status.className = 'status' + (type ? (' ' + type) : '');
+        els.status.textContent = msg || '';
+      }
+
+      function getNext() {
         try {
           const params = new URLSearchParams(window.location.search);
           const next = String(params.get('next') || '').trim();
           if (!next) return 'index.html';
-          if (/^https?:\\/\\//i.test(next) || next.startsWith('//')) return 'index.html';
+          const lower = next.toLowerCase();
+          if (lower.startsWith('http://') || lower.startsWith('https://') || lower.startsWith('//')) return 'index.html';
           if (next.startsWith('/')) return next.slice(1) || 'index.html';
           return next;
         } catch (_err) {
           return 'index.html';
         }
-      };
+      }
 
-      const setStatus = (msg, type) => {
-        if (!els.status) return;
-        els.status.className = 'status' + (type ? (' ' + type) : '');
-        els.status.textContent = msg || '';
-      };
-
-      const normalize = (value) => {
-        const normalized = String(value || '')
-          .trim()
+      function normalize(value) {
+        // hard strip whitespace first so users can't even leave a space
+        const noSpaces = String(value || '').replace(/\s+/g, '');
+        return noSpaces
           .replace(/^@+/, '')
           .toLowerCase()
-          .replace(/['Ã¢â‚¬â„¢]/g, '')
           .replace(/[^a-z0-9_]+/g, '_')
           .replace(/_+/g, '_')
           .replace(/^_+|_+$/g, '')
           .slice(0, 30);
-        return normalized;
-      };
+      }
 
-      const isValid = (value) => /^[a-z0-9_]{3,30}$/.test(String(value || ''));
-      const buildAutoCandidates = (user) => {
-        const md = user?.user_metadata || {};
-        const emailPrefix = user?.email ? String(user.email).split('@')[0] : '';
-        const raws = [md.username, md.preferred_username, md.user_name, emailPrefix].filter(Boolean);
-        const out = [];
-        raws.forEach((raw) => {
-          const n = normalize(raw);
-          if (!n) return;
-          if (RESERVED.has(n.replace(/_/g, ''))) return;
-          if (!out.includes(n)) out.push(n);
+      function isValid(value) {
+        return /^[a-z0-9_]{3,30}$/.test(String(value || ''));
+      }
+
+      function waitForSupabase() {
+        return new Promise((resolve) => {
+          let tries = 0;
+          const t = setInterval(() => {
+            tries += 1;
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+              clearInterval(t);
+              resolve(true);
+              return;
+            }
+            if (tries > 240) {
+              clearInterval(t);
+              resolve(false);
+            }
+          }, 50);
         });
-        return out;
-      };
+      }
 
-      const isPlaceholder = (value, user) => {
-        const u = normalize(value || '');
-        if (!u || u === 'user' || u.startsWith('user_')) return true;
-        const auto = buildAutoCandidates(user);
-        return auto.includes(u);
-      };
-
-      const waitForSupabase = () => new Promise((resolve) => {
-        let tries = 0;
-        const t = setInterval(() => {
-          tries += 1;
-          if (window.supabase && typeof window.supabase.createClient === 'function') {
-            clearInterval(t);
-            resolve(true);
-          }
-          if (tries > 220) {
-            clearInterval(t);
-            resolve(false);
-          }
-        }, 50);
-      });
-
-      const getClient = async () => {
+      async function getClient() {
         await waitForSupabase();
         if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
           const c = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
           if (c) return c;
         }
-        // Fallback (should rarely happen).
         if (window.supabase && window.supabase.createClient) {
           const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
           const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
@@ -433,144 +287,115 @@
           });
         }
         return null;
-      };
+      }
 
-      const clearOnboardingFlags = (userId) => {
+      function clearFlags(userId) {
         try { localStorage.removeItem(PENDING_PREFIX + userId); } catch (_e) {}
         try { localStorage.removeItem(NEEDS_KEY_PREFIX + userId); } catch (_e2) {}
         try { sessionStorage.removeItem(SESSION_PREFIX + userId); } catch (_e3) {}
-      };
+      }
 
-      const ensureProfile = async (client, user) => {
-        if (typeof window.__ZO2Y_ENSURE_AUTH_PROFILE === 'function') {
-          try { await window.__ZO2Y_ENSURE_AUTH_PROFILE(client, user); } catch (_err) {}
-        }
-      };
-
-      const requireAuthedUser = async (client) => {
+      async function requireUser(client) {
         const { data } = await client.auth.getSession();
         const session = data ? data.session : null;
         const user = session ? session.user : null;
         if (!user || !user.id) {
-          const next = encodeURIComponent('onboarding.html');
-          window.location.replace('login.html?next=' + next);
+          window.location.replace('login.html?next=' + encodeURIComponent('onboarding.html'));
           return null;
         }
         return user;
-      };
+      }
 
-      const loadProfile = async (client, user) => {
-        await ensureProfile(client, user);
-        const { data, error } = await client
-          .from('user_profiles')
-          .select('id, username')
-          .eq('id', user.id)
-          .maybeSingle();
-        if (error) return { username: '' };
-        return { username: (data && data.username) ? String(data.username) : '' };
-      };
-
-      const checkAvailable = async (client, username, userId) => {
-        const { data, error } = await client
-          .from('user_profiles')
-          .select('id')
-          .eq('username', username)
-          .limit(2);
+      async function checkAvailable(client, username, userId) {
+        const { data, error } = await client.from('user_profiles').select('id').eq('username', username).limit(2);
         if (error) throw error;
         const taken = Array.isArray(data) && data.some((row) => String(row && row.id || '') !== String(userId || ''));
         return !taken;
-      };
+      }
 
-      const saveUsername = async () => {
-        const raw = els.username ? els.username.value : '';
-        const username = normalize(raw);
-        if (!username) {
-          setStatus('Enter a username.', 'error');
-          return;
+      async function ensureProfile(client, user) {
+        if (typeof window.__ZO2Y_ENSURE_AUTH_PROFILE === 'function') {
+          try { await window.__ZO2Y_ENSURE_AUTH_PROFILE(client, user); } catch (_err) {}
         }
-        if (!isValid(username)) {
-          setStatus('Use 3-30 chars: letters, numbers, underscore.', 'error');
-          return;
-        }
-        if (RESERVED.has(username.replace(/_/g, ''))) {
-          setStatus('That username is reserved. Pick another.', 'error');
-          return;
-        }
-        if (!state.client || !state.user) return;
+      }
 
-        els.save.disabled = true;
-        setStatus('Checking availability...', '');
-        try {
-          const ok = await checkAvailable(state.client, username, state.user.id);
-          if (!ok) {
-            setStatus('That username is taken.', 'error');
-            return;
-          }
-          setStatus('Saving...', '');
-          const { error } = await state.client
-            .from('user_profiles')
-            .update({ username })
-            .eq('id', state.user.id);
-          if (error) throw error;
-          clearOnboardingFlags(state.user.id);
-          setStatus('Username saved. Redirecting...', 'success');
-          window.location.replace(getNext());
-        } catch (err) {
-          setStatus((err && err.message) ? err.message : 'Could not save username.', 'error');
-        } finally {
-          els.save.disabled = false;
-        }
-      };
-
-      const state = { client: null, user: null };
-
-      const init = async () => {
-        setStatus('Loading...', '');
+      async function init() {
+        setStatus('loading...', '');
         const client = await getClient();
-        state.client = client;
         if (!client) {
-          setStatus('Could not load auth client. Refresh the page.', 'error');
+          setStatus('could not load auth. refresh.', 'error');
           return;
         }
-        const user = await requireAuthedUser(client);
+        const user = await requireUser(client);
         if (!user) return;
-        state.user = user;
-
-        const profile = await loadProfile(client, user);
-        if (!isPlaceholder(profile.username, user)) {
-          clearOnboardingFlags(user.id);
-          window.location.replace(getNext());
-          return;
-        }
-
-        setStatus('Pick a username to continue.', '');
+        await ensureProfile(client, user);
+        setStatus('', '');
         if (els.username) els.username.focus();
-      };
 
-      if (els.save) els.save.addEventListener('click', saveUsername);
+        // keep a tiny breadcrumb for debugging
+        window.__ZO2Y_ONBOARDING_DEBUG = { userId: user.id, next: getNext() };
+
+        // wire handlers
+        if (els.save) {
+          els.save.addEventListener('click', async () => {
+            const username = normalize(els.username ? els.username.value : '');
+            if (!username) return setStatus('enter a username.', 'error');
+            if (!isValid(username)) return setStatus('use 3-30 chars: a-z 0-9 _.', 'error');
+            if (RESERVED.has(username.replace(/_/g, ''))) return setStatus('reserved username.', 'error');
+            els.save.disabled = true;
+            try {
+              setStatus('checking...', '');
+              const ok = await checkAvailable(client, username, user.id);
+              if (!ok) return setStatus('taken.', 'error');
+              setStatus('saving...', '');
+              const { error } = await client.from('user_profiles').update({ username }).eq('id', user.id);
+              if (error) throw error;
+              clearFlags(user.id);
+              setStatus('saved. redirecting...', 'success');
+              window.location.replace(getNext());
+            } catch (err) {
+              setStatus(String((err && err.message) || 'could not save.'), 'error');
+            } finally {
+              els.save.disabled = false;
+            }
+          });
+        }
+      }
+
       if (els.username) {
         els.username.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') saveUsername();
+          if (e.key === ' ') {
+            e.preventDefault();
+            return;
+          }
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (els.save) els.save.click();
+          }
         });
         els.username.addEventListener('input', () => {
-          const v = normalize(els.username.value);
-          if (!v) { setStatus('', ''); return; }
-          if (!isValid(v)) { setStatus('Use only letters, numbers, underscore.', 'error'); return; }
-          if (RESERVED.has(v.replace(/_/g, ''))) { setStatus('That username is reserved.', 'error'); return; }
-          setStatus('Looks good. Tap continue to save.', '');
+          const before = String(els.username.value || '');
+          const after = normalize(before);
+          if (after !== before) els.username.value = after;
+          if (!after) return setStatus('', '');
+          if (!isValid(after)) return setStatus('letters, numbers, underscore only.', 'error');
+          if (RESERVED.has(after.replace(/_/g, ''))) return setStatus('reserved username.', 'error');
+          setStatus('', '');
         });
       }
+
       if (els.signOut) {
         els.signOut.addEventListener('click', async () => {
           try {
-            if (!state.client) state.client = await getClient();
-            if (state.client) await state.client.auth.signOut({ scope: 'local' });
+            const client = await getClient();
+            if (client) await client.auth.signOut({ scope: 'local' });
           } catch (_err) {}
           try { if (typeof window.__ZO2Y_MARK_EXPLICIT_SIGNOUT === 'function') window.__ZO2Y_MARK_EXPLICIT_SIGNOUT(); } catch (_err2) {}
           window.location.replace('login.html');
         });
       }
 
+      // start
       init();
     })();
   </script>
