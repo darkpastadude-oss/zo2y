@@ -5229,6 +5229,46 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     function getHomeRailFallbackItems(_channelKey) {
+      const key = String(_channelKey || '').trim().toLowerCase();
+      const targetCount = getHomeChannelTargetItems();
+      if (key === 'travel') {
+        const cached = getCachedHomeTravelItems(targetCount);
+        return cached.length ? cached : getHomeTravelFallbackItems(targetCount);
+      }
+      if (key === 'food' && ENABLE_FOOD) {
+        return HOME_FOOD_FALLBACKS.slice(0, targetCount).map((row, index) => ({
+          ...mapHomeBrandItem(row, 'food', index),
+          subtitle: row.category || 'Food',
+          extra: row.domain || ''
+        }));
+      }
+      if (key === 'car' && ENABLE_CARS) {
+        return HOME_CAR_FALLBACKS.slice(0, targetCount).map((row, index) => ({
+          ...mapHomeBrandItem(row, 'car', index),
+          subtitle: row.category || 'Cars',
+          extra: row.domain || ''
+        }));
+      }
+      if (key === 'sports') {
+        const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE;
+        const titles = ['Top Teams', 'Fan Favorites', 'Legendary Clubs', 'Home Stadiums', 'Rivalry Picks'];
+        return titles.slice(0, Math.max(3, Math.min(targetCount, titles.length))).map((title, index) => ({
+          mediaType: 'sports',
+          itemId: `seed-sports-${index + 1}`,
+          title,
+          subtitle: 'Sports',
+          extra: 'Loading teams',
+          image: fallbackImage,
+          backgroundImage: fallbackImage,
+          spotlightImage: fallbackImage,
+          spotlightMediaImage: fallbackImage,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          fallbackImage,
+          href: 'sports.html',
+          isPlaceholder: true
+        }));
+      }
       return [];
     }
 
@@ -8754,13 +8794,78 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     async function loadTravel(signal) {
-      const loaders = await ensureHomeHeavyLoaders();
-      return typeof loaders.loadTravel === 'function' ? loaders.loadTravel(signal) : [];
+      const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
+      const cached = getCachedHomeTravelItems(targetCount);
+      if (cached.length) return cached.slice(0, targetCount);
+      // Keep travel reliable even if external sources are slow.
+      return getHomeTravelFallbackItems(targetCount);
+    }
+
+    function mapSportsTeamToHomeItem(team) {
+      if (!team || typeof team !== 'object') return null;
+      const id = String(team.idTeam || team.team_id || team.id || '').trim();
+      const name = String(team.strTeam || team.name || '').trim();
+      const badge = toHttpsUrl(String(team.strTeamBadge || team.strTeamLogo || team.badge || '').trim());
+      if (!id || !name || !badge) return null;
+      const sport = String(team.strSport || '').trim();
+      const league = String(team.strLeague || '').trim();
+      const country = String(team.strCountry || '').trim();
+      const stadium = String(team.strStadium || '').trim();
+      const subtitle = league || sport || 'Team';
+      const extra = [country, stadium].filter(Boolean).join(' | ');
+      return {
+        mediaType: 'sports',
+        itemId: id,
+        title: name,
+        subtitle,
+        extra,
+        image: badge,
+        backgroundImage: badge,
+        spotlightImage: badge,
+        spotlightMediaImage: badge,
+        spotlightMediaFit: 'cover',
+        spotlightMediaShape: 'square',
+        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+        href: `team.html?id=${encodeURIComponent(id)}`
+      };
     }
 
     async function loadSports(signal) {
-      const loaders = await ensureHomeHeavyLoaders();
-      return typeof loaders.loadSports === 'function' ? loaders.loadSports(signal) : [];
+      const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
+      const cached = readHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS)
+        .filter((item) => item && item.image);
+      if (cached.length) return cached.slice(0, targetCount);
+
+      const seeds = Array.isArray(HOME_SPORTS_SEEDS) ? HOME_SPORTS_SEEDS : [];
+      if (!seeds.length) return getHomeRailFallbackItems('sports');
+
+      const requests = seeds.slice(0, Math.max(targetCount, 10)).map((seed) => {
+        return fetchSportsDb('searchteams.php', { t: seed }, { signal, timeoutMs: 6500, retries: 1 });
+      });
+      const responses = await Promise.allSettled(requests);
+      const seen = new Set();
+      const items = [];
+      responses.forEach((result) => {
+        if (items.length >= targetCount) return;
+        if (!result || result.status !== 'fulfilled') return;
+        const teams = Array.isArray(result.value?.teams) ? result.value.teams : [];
+        teams.forEach((team) => {
+          if (items.length >= targetCount) return;
+          const item = mapSportsTeamToHomeItem(team);
+          if (!item) return;
+          const key = String(item.itemId || item.title || '').toLowerCase().trim();
+          if (!key || seen.has(key)) return;
+          seen.add(key);
+          items.push(item);
+        });
+      });
+
+      if (items.length) {
+        writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items.slice(0, targetCount));
+        return items.slice(0, targetCount);
+      }
+
+      return getHomeRailFallbackItems('sports');
     }
 
     async function initUniversalHome(options = {}) {
@@ -8807,6 +8912,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           resetSpotlightTimer(true);
           return;
         }
+
+        // Fill any empty local rails with fallbacks so refreshes don't get stuck on placeholders.
+        try {
+          const normalized = normalizeHomeFeedMap(baselineFeed) || {};
+          const filled = { ...normalized };
+          channels.forEach((channel) => {
+            const existing = Array.isArray(filled?.[channel.key]) ? filled[channel.key] : [];
+            if (existing.length) return;
+            const fallback = getHomeRailFallbackItems(channel.key);
+            if (Array.isArray(fallback) && fallback.length) {
+              filled[channel.key] = fallback;
+            }
+          });
+          applyHomeFeedMap(filled, { refreshSecondary: false });
+        } catch (_err) {}
+      }
+
+      if (!baselineFeed) {
+        // Ensure local rails never stay on placeholders when remote loaders fail.
+        applyHomeFeedMap(buildInstantFallbackFeed(), { refreshSecondary: false });
       }
 
       const precomputedFeedPromise = loadPrecomputedHomeFeed().catch(() => null);
@@ -8815,8 +8940,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       let workingFeed = normalizeHomeFeedMap(baselineFeed) || blankFeed;
 
       const loadChannel = async (channel) => {
-        const items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
-        if (initSeq === homeFeedInitSeq && Array.isArray(items) && items.length) {
+        let items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
+        if (!Array.isArray(items)) items = [];
+
+        if (!items.length) {
+          const existing = Array.isArray(workingFeed?.[channel.key]) ? workingFeed[channel.key] : [];
+          if (!existing.length) {
+            const fallback = getHomeRailFallbackItems(channel.key);
+            if (Array.isArray(fallback) && fallback.length) {
+              items = fallback;
+            }
+          }
+        }
+
+        if (initSeq === homeFeedInitSeq && items.length) {
           freshLoadedKeys.add(channel.key);
           workingFeed = {
             ...workingFeed,
