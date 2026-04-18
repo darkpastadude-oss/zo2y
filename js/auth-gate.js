@@ -356,7 +356,20 @@
       auth.storage = getSupabaseStorageBridge();
       auth.storageKey = STORAGE_KEY;
       if (auth.persistSession === undefined) auth.persistSession = true;
-      if (auth.autoRefreshToken === undefined) auth.autoRefreshToken = true;
+      // Many pages explicitly set autoRefreshToken=false. That causes silent breakage once the access token expires,
+      // which then cascades into a wall of PostgREST 401s. Keep auth pages quiet, but refresh everywhere else.
+      var currentPageKey = normalizePageKey(window.location && window.location.pathname);
+      var isAuthPage =
+        currentPageKey === 'login' ||
+        currentPageKey === 'sign-up' ||
+        currentPageKey === 'signup' ||
+        currentPageKey === 'update-password' ||
+        currentPageKey === 'auth-callback';
+      if (!isAuthPage) {
+        auth.autoRefreshToken = true;
+      } else if (auth.autoRefreshToken === undefined) {
+        auth.autoRefreshToken = true;
+      }
     }
     next.auth = auth;
     return next;
