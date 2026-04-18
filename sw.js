@@ -1,8 +1,8 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v208';
-const PAGE_CACHE = 'zo2y-pages-v174';
-const IMAGE_CACHE = 'zo2y-images-v32';
-const API_CACHE = 'zo2y-api-v12';
-const MOVIES_PAGE_VERSION = '20260322m';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v209';
+const PAGE_CACHE = 'zo2y-pages-v175';
+const IMAGE_CACHE = 'zo2y-images-v33';
+const API_CACHE = 'zo2y-api-v13';
+const MOVIES_PAGE_VERSION = '20260418a';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
 const AUTH_PAGE_PATHS = new Set(['/login.html', '/sign-up.html', '/update-password.html']);
@@ -16,7 +16,7 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260406a',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260415b',
+  '/js/pages/index.js?v=20260418a',
   '/js/pages/index-home-heavy-loaders.js?v=20260329a',
   '/js/home-desktop-rebrand.js?v=20260323c',
   '/js/referral-utils.js?v=20260319a',
@@ -25,7 +25,7 @@ const STATIC_ASSETS = [
   '/js/list-utils.js?v=20260323a',
   '/js/index-list-menu-adapter.js?v=20260324a',
   '/js/universal-search.js?v=20260323a',
-  '/js/auth-gate.js?v=20260415c',
+  '/js/auth-gate.js?v=20260418b',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
@@ -41,8 +41,8 @@ const STATIC_ASSETS = [
   '/file.svg',
   '/sports.html',
   '/sports-mobile.html',
-  '/css/pages/sports.css?v=20260329a',
-  '/js/pages/sports.js?v=20260329a',
+  '/css/pages/sports.css?v=20260418a',
+  '/js/pages/sports.js?v=20260418a',
   '/fashion.html',
   '/food.html',
   '/cars.html',

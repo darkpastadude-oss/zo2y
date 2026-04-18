@@ -1128,7 +1128,6 @@
     }, 90);
   }
 
-  hydrateCanonicalAuthStorageFromDurable();
   window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE = hydrateCanonicalAuthStorageFromDurable;
   window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT = restoreClientSessionFromSnapshot;
   window.__ZO2Y_HAS_STORED_AUTH_SESSION = hasStoredSupabaseSession;
@@ -1183,8 +1182,13 @@
   };
   installSupabaseCreateClientPatch();
   var pageKey = normalizePageKey(window.location.pathname);
+  var AUTH_ENTRY_PAGES = new Set(['login', 'sign-up', 'signup', 'update-password']);
+  var isAuthEntryPage = AUTH_ENTRY_PAGES.has(pageKey);
+  if (!isAuthEntryPage) {
+    hydrateCanonicalAuthStorageFromDurable();
+  }
   maybeRedirectOAuthCallback(pageKey);
-  var authenticated = hasStoredSupabaseSession();
+  var authenticated = !isAuthEntryPage && hasStoredSupabaseSession();
   var initialShell = pageKey === 'index'
     ? (authenticated ? 'app' : 'pending')
     : 'app';
@@ -1193,7 +1197,7 @@
     verified: initialShell === 'app'
   });
 
-  if (pageKey === 'index' || !PUBLIC_PAGE_KEYS.has(pageKey)) {
+  if (!isAuthEntryPage && (pageKey === 'index' || !PUBLIC_PAGE_KEYS.has(pageKey))) {
     scheduleSessionVerification(pageKey);
   }
 })();
