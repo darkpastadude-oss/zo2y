@@ -711,6 +711,33 @@
     return (normalizedBase.slice(0, limit) + '_' + normalizedSuffix).slice(0, 30);
   }
 
+  function buildAutoAssignedUsernameCandidates(user) {
+    var userData = user && user.user_metadata ? user.user_metadata : {};
+    var emailPrefix = String(user && user.email || '').split('@')[0] || '';
+    var rawCandidates = [
+      userData.username,
+      userData.preferred_username,
+      userData.user_name,
+      emailPrefix
+    ];
+    var out = [];
+    for (var i = 0; i < rawCandidates.length; i += 1) {
+      var normalized = normalizeProfileUsername(rawCandidates[i] || '');
+      if (!normalized) continue;
+      if (RESERVED_PROFILE_USERNAMES.has(normalized.replace(/_/g, ''))) continue;
+      if (out.indexOf(normalized) !== -1) continue;
+      out.push(normalized);
+    }
+    return out;
+  }
+
+  function isAutoAssignedUsernameForUser(profileUsername, user) {
+    var normalizedProfile = normalizeProfileUsername(profileUsername || '');
+    if (!normalizedProfile) return true;
+    var candidates = buildAutoAssignedUsernameCandidates(user);
+    return candidates.indexOf(normalizedProfile) !== -1;
+  }
+
   async function ensureAuthProfile(client, user) {
     if (!client || typeof client.from !== 'function' || !user || !user.id) {
       return { ok: false, created: false, profile: null };
@@ -725,7 +752,25 @@
       var existingProfile = existingResult && existingResult.data ? existingResult.data : null;
       if (existingProfile && existingProfile.id) {
         var existingUsername = String(existingProfile.username || '').trim().toLowerCase();
-        var existingNeedsUsername = !existingUsername || existingUsername === 'user' || existingUsername.indexOf('user_') === 0;
+        var existingNeedsUsername =
+          !existingUsername
+          || existingUsername === 'user'
+          || existingUsername.indexOf('user_') === 0
+          || isAutoAssignedUsernameForUser(existingUsername, user);
+
+        // If the profile has an auto-assigned username (google nickname/email prefix), replace it with a
+        // neutral placeholder so it doesn't keep showing as if it was user-chosen.
+        if (existingNeedsUsername && existingUsername && existingUsername.indexOf('user_') !== 0) {
+          try {
+            var idSuffix = String(user.id || '').replace(/-/g, '').slice(0, 6) || 'user';
+            var placeholder = profileUsernameWithSuffix('user', idSuffix);
+            if (placeholder && placeholder !== existingUsername) {
+              await client.from('user_profiles').update({ username: placeholder }).eq('id', user.id);
+              existingProfile.username = placeholder;
+            }
+          } catch (_updateErr) {}
+        }
+
         return { ok: true, created: false, profile: existingProfile, needsUsername: existingNeedsUsername };
       }
       if (existingResult && existingResult.error) {

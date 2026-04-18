@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <script src="/js/auth-gate.js?v=20260418f"></script>
+  <script src="/js/auth-gate.js?v=20260418g"></script>
   <meta name="robots" content="noindex,nofollow" />
   <title>Zo2y - Choose Username</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -373,7 +373,7 @@
           .trim()
           .replace(/^@+/, '')
           .toLowerCase()
-          .replace(/['â€™]/g, '')
+          .replace(/['Ã¢â‚¬â„¢]/g, '')
           .replace(/[^a-z0-9_]+/g, '_')
           .replace(/_+/g, '_')
           .replace(/^_+|_+$/g, '')
@@ -382,9 +382,25 @@
       };
 
       const isValid = (value) => /^[a-z0-9_]{3,30}$/.test(String(value || ''));
-      const isPlaceholder = (value) => {
-        const u = String(value || '').trim().toLowerCase();
-        return !u || u === 'user' || u.startsWith('user_');
+      const buildAutoCandidates = (user) => {
+        const md = user?.user_metadata || {};
+        const emailPrefix = user?.email ? String(user.email).split('@')[0] : '';
+        const raws = [md.username, md.preferred_username, md.user_name, emailPrefix].filter(Boolean);
+        const out = [];
+        raws.forEach((raw) => {
+          const n = normalize(raw);
+          if (!n) return;
+          if (RESERVED.has(n.replace(/_/g, ''))) return;
+          if (!out.includes(n)) out.push(n);
+        });
+        return out;
+      };
+
+      const isPlaceholder = (value, user) => {
+        const u = normalize(value || '');
+        if (!u || u === 'user' || u.startsWith('user_')) return true;
+        const auto = buildAutoCandidates(user);
+        return auto.includes(u);
       };
 
       const waitForSupabase = () => new Promise((resolve) => {
@@ -521,7 +537,7 @@
         state.user = user;
 
         const profile = await loadProfile(client, user);
-        if (!isPlaceholder(profile.username)) {
+        if (!isPlaceholder(profile.username, user)) {
           clearOnboardingFlags(user.id);
           window.location.replace(getNext());
           return;
