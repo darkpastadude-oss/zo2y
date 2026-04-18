@@ -1,9 +1,9 @@
-﻿(() => {
+(() => {
   const DESKTOP_BREAKPOINT = 1025;
   const SIDEBAR_STORAGE_KEY = 'zo2y_home_sidebar_collapsed_v1';
   const REVIEW_ROTATE_MS = 6200;
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+  const SUPABASE_KEY = 'sb_publishable_2J1YezYMq3A-lNP6sUIKPg_Kv5XFXx8';
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
   const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
   const REVIEW_LIMIT = 22;

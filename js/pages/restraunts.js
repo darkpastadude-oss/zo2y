@@ -3,7 +3,7 @@
       
       // ---------- CONFIG ----------
       const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+      const SUPABASE_KEY = 'sb_publishable_2J1YezYMq3A-lNP6sUIKPg_Kv5XFXx8';
       
       // Wait for Supabase to load before creating client
       let supabase;
@@ -18,7 +18,7 @@
               detectSessionInUrl: false
             }
           });
-          console.log('✅ Supabase client initialized');
+          console.log('âœ… Supabase client initialized');
           return true;
         }
         return false;
@@ -56,21 +56,21 @@
           },
           
           async init() { 
-            console.log('🔄 Initializing list manager...');
+            console.log('ðŸ”„ Initializing list manager...');
             if (!state.isLoggedIn || !state.currentUser || !supabase) {
-              console.log('❌ List manager not initialized: Not logged in');
+              console.log('âŒ List manager not initialized: Not logged in');
               return;
             }
             
             await this.loadUserLists();
             // Load all restaurant statuses immediately - CRITICAL OPTIMIZATION
             await this.loadAllRestaurantStatuses();
-            console.log('✅ List manager initialized');
+            console.log('âœ… List manager initialized');
           },
           
           async loadUserLists() {
             try {
-              console.log('📋 Loading user lists...');
+              console.log('ðŸ“‹ Loading user lists...');
               if (!state.currentUser || !supabase) return;
 
               const { data: lists, error } = await supabase
@@ -84,7 +84,7 @@
               this.customLists = this.userLists.filter(list => 
                 !['Favorites', 'Visited', 'Want to Go'].includes(list.title)
               );
-              console.log(`📋 Found ${this.userLists.length} lists (${this.customLists.length} custom)`);
+              console.log(`ðŸ“‹ Found ${this.userLists.length} lists (${this.customLists.length} custom)`);
               
               await this.setupDefaultLists();
               await this.loadListRestaurants();
@@ -122,7 +122,7 @@
                   user_id: state.currentUser.id,
                   title: title,
                   description: description,
-                  icon: '📋',
+                  icon: 'ðŸ“‹',
                   is_default: title === 'Favorites' || title === 'Visited' || title === 'Want to Go'
                 }
               ])
@@ -177,9 +177,9 @@
           
           // NEW: Load all restaurant statuses at once - CRITICAL OPTIMIZATION
           async loadAllRestaurantStatuses() {
-            console.log('📊 Loading all restaurant statuses...');
+            console.log('ðŸ“Š Loading all restaurant statuses...');
             if (!supabase || !state.isLoggedIn || !state.currentUser) {
-              console.log('❌ Cannot load statuses: Not authenticated');
+              console.log('âŒ Cannot load statuses: Not authenticated');
               return;
             }
             
@@ -193,7 +193,7 @@
               ].filter(Boolean);
               
               if (listIds.length === 0) {
-                console.log('📊 No lists found for user');
+                console.log('ðŸ“Š No lists found for user');
                 // Initialize empty statuses for all restaurants
                 state.restaurants.forEach(restaurant => {
                   state.restaurantListStatuses.set(restaurant.id, {
@@ -255,14 +255,14 @@
                   status.customLists.push({
                     id: customList.id,
                     name: customList.title,
-                    icon: customList.icon || '📋'
+                    icon: customList.icon || 'ðŸ“‹'
                   });
                 }
                 
                 state.restaurantListStatuses.set(restaurantId, status);
               });
               
-              console.log(`✅ Loaded list statuses for ${state.restaurantListStatuses.size} restaurants`);
+              console.log(`âœ… Loaded list statuses for ${state.restaurantListStatuses.size} restaurants`);
               
               // Immediately update all UI elements
               renderRestaurants();
@@ -371,7 +371,7 @@
                     currentStatus.customLists.push({
                       id: list.id,
                       name: list.title,
-                      icon: list.icon || '📋'
+                      icon: list.icon || 'ðŸ“‹'
                     });
                   }
                 } else {
@@ -528,7 +528,7 @@
         });
       }
       async function ensureUserProfileExists(user, retries = 3) {
-        console.log('🔍 Ensuring profile exists for:', user.id);
+        console.log('ðŸ” Ensuring profile exists for:', user.id);
         
         if (!supabase) return false;
         
@@ -547,7 +547,7 @@
               .maybeSingle();
             
             if (profile) {
-              console.log('✅ Profile exists:', profile);
+              console.log('âœ… Profile exists:', profile);
               return true;
             }
             
@@ -555,7 +555,7 @@
               console.error('Profile check error:', checkError);
             }
             
-            console.log('📝 Creating profile for user...');
+            console.log('ðŸ“ Creating profile for user...');
             
             const userData = user.user_metadata || {};
             const email = user.email || '';
@@ -577,7 +577,7 @@
               id: user.id,
               username: username,
               full_name: userData.full_name || userData.name || username,
-              avatar_icon: '🍔',
+              avatar_icon: 'ðŸ”',
               bio: '',
               location: '',
               is_private: false
@@ -592,7 +592,7 @@
               .maybeSingle();
             
             if (createError) {
-              console.error('❌ Profile creation error:', createError);
+              console.error('âŒ Profile creation error:', createError);
               
               if (createError.code === '23505') {
                 console.log('Profile already exists (created by trigger)');
@@ -607,7 +607,7 @@
             }
             
             if (newProfile) {
-              console.log('✅ Profile created successfully:', newProfile);
+              console.log('âœ… Profile created successfully:', newProfile);
               return true;
             }
             
@@ -657,7 +657,7 @@
       }
       // ---------- OPTIMIZED RESTAURANT DATA LOADING ----------
       async function loadRestaurantsData() {
-        console.log('🍽️ Loading restaurant data...');
+        console.log('ðŸ½ï¸ Loading restaurant data...');
         
         if (!supabase) {
           console.error('Supabase client not initialized');
@@ -693,7 +693,7 @@
               isCloudKitchen: state.cloudKitchens.has(restaurant.id)
             }));
             
-            console.log(`✅ Loaded ${state.restaurants.length} restaurants`);
+            console.log(`âœ… Loaded ${state.restaurants.length} restaurants`);
             
             // Initialize empty statuses for all restaurants
             state.restaurants.forEach(restaurant => {
@@ -724,7 +724,7 @@
           }
           
         } catch (error) {
-          console.error('❌ Error loading restaurants:', error);
+          console.error('âŒ Error loading restaurants:', error);
           showNotification('Failed to load restaurants', 'error');
           showEmptyState();
         }
@@ -892,16 +892,16 @@
       function createFallbackCategories() {
         state.categories.clear();
         const fallbackCategories = [
-          { id: 1, name: 'Burgers', slug: 'burgers', icon: '🍔', sort_order: 1 },
-          { id: 2, name: 'Chicken', slug: 'chicken', icon: '🍗', sort_order: 2 },
-          { id: 3, name: 'Middle Eastern', slug: 'middle-eastern', icon: '🥙', sort_order: 3 },
-          { id: 4, name: 'Pizza', slug: 'pizza', icon: '🍕', sort_order: 4 },
-          { id: 5, name: 'Asian', slug: 'asian', icon: '🍜', sort_order: 5 },
-          { id: 6, name: 'Mexican', slug: 'mexican', icon: '🌮', sort_order: 6 },
-          { id: 7, name: 'Cafe & Bakery', slug: 'cafe-bakery', icon: '☕', sort_order: 7 },
-          { id: 8, name: 'Fast Food', slug: 'fast-food', icon: '🍟', sort_order: 8 },
-          { id: 9, name: 'Seafood', slug: 'seafood', icon: '🐟', sort_order: 9 },
-          { id: 10, name: 'International', slug: 'international', icon: '🌍', sort_order: 10 }
+          { id: 1, name: 'Burgers', slug: 'burgers', icon: 'ðŸ”', sort_order: 1 },
+          { id: 2, name: 'Chicken', slug: 'chicken', icon: 'ðŸ—', sort_order: 2 },
+          { id: 3, name: 'Middle Eastern', slug: 'middle-eastern', icon: 'ðŸ¥™', sort_order: 3 },
+          { id: 4, name: 'Pizza', slug: 'pizza', icon: 'ðŸ•', sort_order: 4 },
+          { id: 5, name: 'Asian', slug: 'asian', icon: 'ðŸœ', sort_order: 5 },
+          { id: 6, name: 'Mexican', slug: 'mexican', icon: 'ðŸŒ®', sort_order: 6 },
+          { id: 7, name: 'Cafe & Bakery', slug: 'cafe-bakery', icon: 'â˜•', sort_order: 7 },
+          { id: 8, name: 'Fast Food', slug: 'fast-food', icon: 'ðŸŸ', sort_order: 8 },
+          { id: 9, name: 'Seafood', slug: 'seafood', icon: 'ðŸŸ', sort_order: 9 },
+          { id: 10, name: 'International', slug: 'international', icon: 'ðŸŒ', sort_order: 10 }
         ];
         
         fallbackCategories.forEach(cat => {
@@ -926,7 +926,7 @@
         sortedCategories.forEach(cat => {
           const option = document.createElement('option');
           option.value = cat.id;
-          option.textContent = `${cat.icon || '🍴'} ${cat.name}`;
+          option.textContent = `${cat.icon || 'ðŸ´'} ${cat.name}`;
           select.appendChild(option);
         });
       }
@@ -991,7 +991,7 @@
         if (status.favorites) {
           listBadges += `
             <div class="list-badge">
-              ❤️
+              â¤ï¸
               <div class="list-badge-tooltip">Favorited</div>
             </div>
           `;
@@ -1000,7 +1000,7 @@
         if (status.wantToGo) {
           listBadges += `
             <div class="list-badge">
-              📍
+              ðŸ“
               <div class="list-badge-tooltip">Want to go to</div>
             </div>
           `;
@@ -1009,7 +1009,7 @@
         if (status.visited) {
           listBadges += `
             <div class="list-badge">
-              ✓
+              âœ“
               <div class="list-badge-tooltip">Visited</div>
             </div>
           `;
@@ -1022,7 +1022,7 @@
           const firstList = status.customLists[0];
           listBadges += `
             <div class="list-badge">
-              ${firstList.icon || '📋'}
+              ${firstList.icon || 'ðŸ“‹'}
               <div class="list-badge-tooltip">
                 <strong>${firstList.name}</strong>
                 ${customListCount > 1 ? `<br>+ ${customListCount - 1} more list${customListCount > 2 ? 's' : ''}` : ''}
@@ -1117,23 +1117,23 @@
       
       function getCategoryIconFallback(categoryName) {
         const icons = {
-          'Burgers': '🍔',
-          'Chicken': '🍗',
-          'Middle Eastern': '🥙',
-          'Pizza': '🍕',
-          'Asian': '🍜',
-          'Mexican': '🌮',
-          'Cafe & Bakery': '☕',
-          'Fast Food': '🍟',
-          'Seafood': '🐟',
-          'Breakfast': '🥞',
-          'Desserts': '🍰',
-          'Indian': '🍛',
-          'BBQ & Ribs': '🥩',
-          'International': '🌍'
+          'Burgers': 'ðŸ”',
+          'Chicken': 'ðŸ—',
+          'Middle Eastern': 'ðŸ¥™',
+          'Pizza': 'ðŸ•',
+          'Asian': 'ðŸœ',
+          'Mexican': 'ðŸŒ®',
+          'Cafe & Bakery': 'â˜•',
+          'Fast Food': 'ðŸŸ',
+          'Seafood': 'ðŸŸ',
+          'Breakfast': 'ðŸ¥ž',
+          'Desserts': 'ðŸ°',
+          'Indian': 'ðŸ›',
+          'BBQ & Ribs': 'ðŸ¥©',
+          'International': 'ðŸŒ'
         };
         
-        return icons[categoryName] || '🍴';
+        return icons[categoryName] || 'ðŸ´';
       }
       
       // ---------- FILTERING & SORTING ----------
@@ -1492,7 +1492,7 @@
         notification.innerHTML = `
           <i class="notification-icon ${iconClass}"></i>
           <span class="notification-message">${message}</span>
-          <button class="notification-close" aria-label="Close notification">×</button>
+          <button class="notification-close" aria-label="Close notification">Ã—</button>
         `;
         
         container.appendChild(notification);
@@ -1608,7 +1608,7 @@
 
         function setSelectedIcon(icon) {
           if (!newListIconInput) return;
-          newListIconInput.value = icon || '📋';
+          newListIconInput.value = icon || 'ðŸ“‹';
           if (iconOptions && iconOptions.length > 0) {
             iconOptions.forEach(option => {
               option.classList.toggle('selected', option.getAttribute('data-icon') === newListIconInput.value);
@@ -1618,7 +1618,7 @@
 
         function resetListForm() {
           if (newListNameInput) newListNameInput.value = '';
-          setSelectedIcon('📋');
+          setSelectedIcon('ðŸ“‹');
           editingListId = null;
           if (createListBtn) {
             createListBtn.innerHTML = '<i class="fas fa-plus"></i> Create';
@@ -1632,7 +1632,7 @@
           if (!list || !newListNameInput) return;
           editingListId = list.id;
           newListNameInput.value = list.title || '';
-          setSelectedIcon(list.icon || '📋');
+          setSelectedIcon(list.icon || 'ðŸ“‹');
           if (createListBtn) {
             createListBtn.innerHTML = '<i class="fas fa-save"></i> Update';
           }
@@ -1739,7 +1739,7 @@
             
             listItem.innerHTML = `
               <div class="list-info">
-                <div class="list-icon">${list.icon || '📋'}</div>
+                <div class="list-icon">${list.icon || 'ðŸ“‹'}</div>
                 <div class="list-name">${list.title}</div>
               </div>
               <div class="list-actions">
@@ -1786,7 +1786,7 @@
               return;
             }
 
-            const selectedIcon = newListIconInput?.value || '📋';
+            const selectedIcon = newListIconInput?.value || 'ðŸ“‹';
             const existingList = state.listManager.customLists.find(list => 
               list.title?.toLowerCase() === listName.toLowerCase() && list.id !== editingListId
             );
@@ -1916,7 +1916,7 @@
       
       // ---------- EVENT LISTENERS ----------
       function setupEventListeners() {
-        console.log('🔧 Setting up event listeners...');
+        console.log('ðŸ”§ Setting up event listeners...');
         
         const searchInput = document.getElementById('search');
         const clearSearchBtn = document.getElementById('clearSearch');
@@ -2188,11 +2188,11 @@
       
       // ---------- OPTIMIZED INIT FUNCTION ----------
       async function init() {
-        console.log('🚀 Initializing restaurants page...');
+        console.log('ðŸš€ Initializing restaurants page...');
         
         // Wait for Supabase to load first
         if (!initSupabase()) {
-          console.warn('⚠️ Supabase not loaded yet, retrying...');
+          console.warn('âš ï¸ Supabase not loaded yet, retrying...');
           setTimeout(init, 100);
           return;
         }
@@ -2210,10 +2210,10 @@
             loadRestaurantsData()
           ]);
           
-          console.log('✅ Restaurants page initialization complete');
+          console.log('âœ… Restaurants page initialization complete');
           
         } catch (error) {
-          console.error('❌ Initialization error:', error);
+          console.error('âŒ Initialization error:', error);
           showNotification('Failed to initialize page', 'error');
           
           const grid = document.getElementById('restaurantGrid');

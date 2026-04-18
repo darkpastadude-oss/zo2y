@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <script src="/js/auth-gate.js?v=20260418i"></script>
+  <script src="/js/auth-gate.js?v=20260418j"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Sign Up</title>
 <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -82,7 +82,7 @@
   
   // Supabase configuration
   const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
+  const SUPABASE_KEY = 'sb_publishable_2J1YezYMq3A-lNP6sUIKPg_Kv5XFXx8';
   
   const STORAGE_KEY = 'zo2y-auth-v1';
   const LEGACY_STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
@@ -703,6 +703,8 @@
     if (!message && !code) return false;
     if (message.includes('refresh token already used') || message.includes('already been used')) return false;
     return (
+      message.includes('invalid api key') ||
+      (message.includes('apikey') && message.includes('invalid')) ||
       message.includes('invalid refresh token') ||
       message.includes('refresh token not found') ||
       message.includes('invalid grant') ||
@@ -777,6 +779,9 @@
       }
       await clearActiveAuthSessionForSwitch();
     } catch (error) {
+      if (shouldClearStoredAuthSnapshotsForError(error)) {
+        clearStoredAuthSnapshots();
+      }
       console.error('Session check error:', error);
     }
   })();
