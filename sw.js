@@ -247,6 +247,23 @@ async function navigationNetworkOnly(request) {
   }
 }
 
+async function navigationNetworkFirst(request, fallbackPath = '/index.html') {
+  try {
+    const response = await fetch(request, { cache: 'no-store' });
+    if (response && response.ok) {
+      const cache = await caches.open(PAGE_CACHE);
+      cache.put(request, response.clone()).catch(() => {});
+    }
+    return response;
+  } catch (_error) {
+    const cached = await caches.match(request, { ignoreSearch: true })
+      || await caches.match(fallbackPath)
+      || await caches.match('/')
+      || await caches.match('/index.html');
+    return cached || offlineResponse();
+  }
+}
+
 async function networkFirstWithTimeout(request, cacheName, fallbackPath = '', timeoutMs = 1400) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
@@ -408,7 +425,8 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     // Never serve cached HTML shells for app navigations. Fresh documents avoid stale auth/app-shell
     // combinations that can break session restore after login, reopen, or deploys.
-    event.respondWith(navigationNetworkOnly(request));
+    // But don't hard-fail refreshes with a 503 offline page when the network hiccups.
+    event.respondWith(navigationNetworkFirst(request, '/index.html'));
     return;
   }
 

@@ -6088,7 +6088,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         } else if (showEmptyRails) {
           renderOrDeferHomeRail(channel.railId, [], { ...(channel.opts || {}), allowEmptyState: true });
         } else {
-          setHomeRailDeferredPlaceholder(channel.railId);
+          // Avoid infinite skeletons after refresh: show fallbacks immediately when a channel is empty.
+          if (!renderHomeFallbackForRail(channel.railId, channel.opts || {})) {
+            setHomeRailDeferredPlaceholder(channel.railId);
+          }
         }
         if (items.length) activeChannels += 1;
       });
