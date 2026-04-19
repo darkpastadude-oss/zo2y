@@ -685,6 +685,31 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     let homeWeakFeedRetryTimer = null;
     let homeWeakFeedRetryCount = 0;
     let homeSupabaseSdkWaitPromise = null;
+    const homeChannelRetryState = new Map();
+
+    function shouldHomeRetryChannel(key, attempt) {
+      const k = String(key || '').trim();
+      if (!k) return false;
+      // Focus retries on the rails that historically “lock” after refresh.
+      if (!['travel', 'sports', 'car'].includes(k)) return false;
+      return Number(attempt || 0) < 2;
+    }
+
+    function scheduleHomeChannelRetry(channel, attempt = 0) {
+      const key = String(channel?.key || '').trim();
+      if (!key) return;
+      if (!shouldHomeRetryChannel(key, attempt)) return;
+      if (document.hidden) return;
+      const stateKey = `${key}:${homeFeedInitSeq}`;
+      if (homeChannelRetryState.get(stateKey) === true) return;
+      homeChannelRetryState.set(stateKey, true);
+      setTimeout(() => {
+        homeChannelRetryState.delete(stateKey);
+        if (document.hidden) return;
+        // Force a full refresh pass; this keeps the logic centralized and avoids partial-state bugs.
+        void initUniversalHome({ force: true });
+      }, 650 + attempt * 850);
+    }
 
     function waitForHomeSupabaseSdk(timeoutMs = 2200) {
       if (window.supabase?.createClient) return Promise.resolve(true);
@@ -9256,6 +9281,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     async function initUniversalHome(options = {}) {
       const now = Date.now();
       const force = !!options.force;
+      // Always expose a lightweight debug snapshot hook (panel still requires ?debug=1).
+      try {
+        if (!window.__ZO2Y_HOME_DEBUG) {
+          window.__ZO2Y_HOME_DEBUG = {
+            snapshot: () => buildHomeDebugSnapshot?.() || null
+          };
+        }
+      } catch (_err) {}
       if (!homeDebugState.enabled) {
         homeDebugState.enabled = isHomeDebugEnabled();
         if (homeDebugState.enabled) {
@@ -9363,6 +9396,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         const railId = String(channel?.railId || '').trim();
         const key = String(channel?.key || '').trim();
         const attemptStartedAt = Date.now();
+        const prevAttempt = Number(homeDebugState.channels.get(key)?.last?.attempt || 0) || 0;
+        const attempt = prevAttempt + 1;
         if (key) {
           homeDebugState.channels.set(key, {
             ...(homeDebugState.channels.get(key) || {}),
@@ -9370,7 +9405,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
               status: 'loading',
               startedAt: attemptStartedAt,
               timeoutMs: Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS) || 0,
-              railId
+              railId,
+              attempt
             }
           });
           scheduleHomeDebugRender();
@@ -9410,6 +9446,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             }
           });
           scheduleHomeDebugRender();
+        }
+
+        if (!items.length) {
+          scheduleHomeChannelRetry(channel, attempt - 1);
         }
 
         if (initSeq === homeFeedInitSeq && items.length) {
