@@ -1381,11 +1381,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const extraParts = [];
       if (subregion && subregion !== region) extraParts.push(subregion);
       if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
+      const scenicRaw = getSafeTravelScenicImage(resolvedBaseTitle, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
+      const scenicImage = isUsableHomeTravelScenicUrl(scenicRaw) ? scenicRaw : '';
       const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
-      // Homepage travel cards should be stable + local-first (avoid remote scenic hydration that can hang on refresh).
-      const heroImage = safeFallback;
+      const heroImage = scenicImage || safeFallback;
       if (!heroImage) return null;
-      const cachedSet = { scenic: heroImage, city: '', nature: '' };
+      if (heroImage) setHomeTravelPhotoCache(code, heroImage, 'scenic');
+      if (row?.photoCity) setHomeTravelPhotoCache(code, row.photoCity, 'city');
+      if (row?.photoNature) setHomeTravelPhotoCache(code, row.photoNature, 'nature');
+      const cachedSet = getHomeTravelPhotoSet(code);
       return {
         mediaType: 'travel',
         itemId: code,
@@ -1402,14 +1406,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         spotlightMediaFit: flagImage ? 'contain' : 'cover',
         spotlightMediaPosition: 'center center',
         spotlightMediaShape: 'square',
-        travelPhotos: [],
+        travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
         travelPhotoSet: {
-          scenic: heroImage || '',
-          city: '',
-          nature: ''
+          scenic: cachedSet.scenic || heroImage || '',
+          city: cachedSet.city || '',
+          nature: cachedSet.nature || ''
         },
         travelNeedsScenicHydration: false,
-        fallbackImage: heroImage,
+        fallbackImage: safeFallback || heroImage,
         href: `country.html?code=${encodeURIComponent(code)}`
       };
     }
@@ -5569,10 +5573,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     function getHomeInitialChannels(channels) {
       const list = Array.isArray(channels) ? channels.slice() : [];
-      const budget = isHomeSlowNetwork()
-        ? Math.min(4, list.length)
-        : (isHomeCompactViewport() ? Math.min(6, list.length) : Math.min(8, list.length));
       if (!list.length) return [];
+
+      // User request: load *everything* immediately (no viewport deferrals).
+      return list;
 
       const domOrdered = list.sort((left, right) => {
         const leftWrap = getHomeRailWrap(left?.railId);
@@ -5608,9 +5612,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     function getHomeInitialChannelConcurrency() {
-      if (isHomeSlowNetwork()) return 2;
-      if (isHomeCompactViewport()) return 3;
-      return 4;
+      // Aggressive: load all channels fast to avoid “skeleton forever” perceptions.
+      if (isHomeSlowNetwork()) return 3;
+      if (isHomeCompactViewport()) return 5;
+      return 6;
     }
 
     function getHomeRailViewportMarginPx() {
@@ -5812,24 +5817,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const normalizedItems = Array.isArray(items) ? items : [];
       const renderOpts = opts || {};
       if (!normalizedItems.length && renderOpts.allowEmptyState !== true) {
-        // Avoid “infinite skeleton” states on refresh: render fallbacks immediately when a channel is empty.
-        if (!renderHomeFallbackForRail(key, renderOpts)) {
-          setHomeRailDeferredPlaceholder(key);
-        }
+        setHomeRailDeferredPlaceholder(key);
         return;
       }
       homePendingRailRenderState.delete(key);
       clearHomeRailDeferredPlaceholder(key);
       renderRail(key, normalizedItems, renderOpts);
-    }
-
-    function primeHomeRailsWithFallbacks() {
-      try {
-        getHomeChannels().forEach((channel) => {
-          if (!channel?.railId) return;
-          renderHomeFallbackForRail(channel.railId, channel.opts || {});
-        });
-      } catch (_err) {}
     }
 
     function resetHomeViewportDeferrals() {
@@ -6113,10 +6106,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         } else if (showEmptyRails) {
           renderOrDeferHomeRail(channel.railId, [], { ...(channel.opts || {}), allowEmptyState: true });
         } else {
-          // Avoid infinite skeletons after refresh: show fallbacks immediately when a channel is empty.
-          if (!renderHomeFallbackForRail(channel.railId, channel.opts || {})) {
-            setHomeRailDeferredPlaceholder(channel.railId);
-          }
+          setHomeRailDeferredPlaceholder(channel.railId);
         }
         if (items.length) activeChannels += 1;
       });
@@ -9241,8 +9231,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       homeDebugEvent('home:init', { force, initSeq });
       ensureHomeInteractionWatch();
       resetHomeViewportDeferrals();
-      // Aggressive UX: always show *something* immediately on refresh so rails never “lock” on skeleton placeholders.
-      primeHomeRailsWithFallbacks();
       if (homeWeakFeedRetryTimer) {
         clearTimeout(homeWeakFeedRetryTimer);
         homeWeakFeedRetryTimer = null;
