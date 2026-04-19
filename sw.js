@@ -1,7 +1,7 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v213';
-const PAGE_CACHE = 'zo2y-pages-v176';
-const IMAGE_CACHE = 'zo2y-images-v33';
-const API_CACHE = 'zo2y-api-v13';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v214';
+const PAGE_CACHE = 'zo2y-pages-v177';
+const IMAGE_CACHE = 'zo2y-images-v34';
+const API_CACHE = 'zo2y-api-v14';
 const MOVIES_PAGE_VERSION = '20260418a';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
@@ -13,24 +13,24 @@ const STATIC_ASSETS = [
   '/credits.html',
   '/manifest.webmanifest',
   '/css/pages/index.css?v=20260329a',
-  '/css/pages/index-landing.css?v=20260406a',
+  '/css/pages/index-landing.css?v=20260413f',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260418a',
+  '/js/pages/index.js?v=20260419d',
   '/js/pages/index-home-heavy-loaders.js?v=20260329a',
-  '/js/home-desktop-rebrand.js?v=20260323c',
+  '/js/home-desktop-rebrand.js?v=20260416b',
   '/js/referral-utils.js?v=20260319a',
-  '/js/shared-header.js?v=20260415b',
+  '/js/shared-header.js?v=20260418c',
   '/js/review-interactions.js?v=20260308a',
-  '/js/list-utils.js?v=20260418b',
-  '/js/index-list-menu-adapter.js?v=20260324a',
+  '/js/list-utils.js?v=20260419a',
+  '/js/index-list-menu-adapter.js?v=20260317b',
   '/js/universal-search.js?v=20260323a',
-  '/js/auth-gate.js?v=20260418k',
+  '/js/auth-gate.js?v=20260418l',
   '/onboarding.html',
   '/js/production-runtime.js?v=20260307a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260406a',
+  '/js/mobile-webapp.js?v=20260407j',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260329b',
   '/favicon.ico',
@@ -43,14 +43,14 @@ const STATIC_ASSETS = [
   '/sports.html',
   '/sports-mobile.html',
   '/css/pages/sports.css?v=20260418a',
-  '/js/pages/sports.js?v=20260418a',
+  '/js/pages/sports.js?v=20260419a',
   '/fashion.html',
   '/food.html',
   '/cars.html',
   '/brand.html',
   '/css/pages/brands.css?v=20260322c',
   '/css/pages/brand.css?v=20260316b',
-  '/js/pages/brands.js?v=20260322e',
+  '/js/pages/brands.js?v=20260419a',
   '/js/pages/brand.js?v=20260322a',
   '/team.html',
   '/css/pages/team.css?v=20260314a',

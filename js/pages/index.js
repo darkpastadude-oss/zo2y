@@ -278,7 +278,6 @@ const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
     }
 
     function homeDebugEvent(type, payload = {}) {
-      if (!homeDebugState.enabled) return;
       const safe = payload && typeof payload === 'object' ? payload : { value: payload };
       homeDebugState.events.push({
         t: Date.now(),
@@ -288,7 +287,7 @@ const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
       if (homeDebugState.events.length > HOME_DEBUG_MAX_EVENTS) {
         homeDebugState.events.splice(0, homeDebugState.events.length - HOME_DEBUG_MAX_EVENTS);
       }
-      scheduleHomeDebugRender();
+      if (homeDebugState.enabled) scheduleHomeDebugRender();
     }
 
     function formatHomeDebugTime(ts) {
@@ -382,6 +381,31 @@ const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
         events: homeDebugState.events.slice(-80)
       };
     }
+
+    // Always expose a debug snapshot hook (even without `?debug=1`) so we can diagnose refresh-only failures.
+    try {
+      if (!window.__ZO2Y_HOME_DEBUG) window.__ZO2Y_HOME_DEBUG = {};
+      if (typeof window.__ZO2Y_HOME_DEBUG.snapshot !== 'function') {
+        window.__ZO2Y_HOME_DEBUG.snapshot = () => buildHomeDebugSnapshot();
+      }
+      if (typeof window.__ZO2Y_HOME_DEBUG.setEnabled !== 'function') {
+        window.__ZO2Y_HOME_DEBUG.setEnabled = (value) => {
+          const enabled = !!value;
+          setHomeDebugEnabled(enabled);
+          homeDebugState.enabled = enabled;
+          if (enabled) {
+            homeDebugEvent('debug:enabled', { via: 'api' });
+            ensureHomeDebugPanel();
+          }
+          scheduleHomeDebugRender();
+          return enabled;
+        };
+      }
+    } catch (_err) {}
+    homeDebugEvent('script:loaded', {
+      href: String(window.location?.href || ''),
+      sw: String(navigator?.serviceWorker?.controller?.scriptURL || '')
+    });
 
     function scheduleHomeDebugRender() {
       if (!homeDebugState.enabled) return;
@@ -692,7 +716,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       if (!k) return false;
       // Focus retries on the rails that historically “lock” after refresh.
       if (!['travel', 'sports', 'car'].includes(k)) return false;
-      return Number(attempt || 0) < 2;
+      return Number(attempt || 0) < 4;
     }
 
     function scheduleHomeChannelRetry(channel, attempt = 0) {
@@ -1407,6 +1431,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       }
     }
 
+    function writeHomeTravelCountryRowsCache(rows) {
+      try {
+        const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+        if (!list.length) return;
+        localStorage.setItem(HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          rows: list
+        }));
+      } catch (_err) {}
+    }
+
     function mapCachedTravelCountryRowToHomeItem(row) {
       const code = canonicalTravelCountryCode(row?.code || row?.cca2 || row?.cca3 || '');
       const baseTitle = String(row?.name || row?.title || '').trim();
@@ -1585,18 +1620,38 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     async function fetchSportsDb(endpoint, params = {}, options = {}) {
       const path = String(endpoint || '').trim().replace(/^\/+/, '');
       if (!path) return null;
-      const url = new URL(`${resolveSportsDbBase()}/${path}`);
+      const prefersDirect = window.ZO2Y_SPORTSDB_DIRECT === true || window.ZO2Y_SPORTSDB_DIRECT === '1';
+      const primaryBase = resolveSportsDbBase();
+      const url = new URL(`${primaryBase}/${path}`);
       Object.entries(params || {}).forEach(([key, value]) => {
         if (value === undefined || value === null || value === '') return;
         url.searchParams.set(key, String(value));
       });
       const cacheKey = `sportsdb:${url.toString()}`;
-      return fetchJsonWithPerfCache(url.toString(), {
+      const data = await fetchJsonWithPerfCache(url.toString(), {
         cacheKey,
         signal: options.signal,
         timeoutMs: Number(options.timeoutMs || 0) || 6500,
         retries: Number(options.retries || 0) || 1
       });
+      if (data || prefersDirect) return data;
+
+      // If the proxy endpoint is flaky (service worker / edge hiccups), fall back to direct SportsDB.
+      try {
+        const directUrl = new URL(`${SPORTSDB_DIRECT_BASE}/${path}`);
+        Object.entries(params || {}).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === '') return;
+          directUrl.searchParams.set(key, String(value));
+        });
+        return await fetchJsonWithPerfCache(directUrl.toString(), {
+          cacheKey: `sportsdb:direct:${directUrl.toString()}`,
+          signal: options.signal,
+          timeoutMs: Math.max(6500, Number(options.timeoutMs || 0) || 0),
+          retries: Math.max(1, Number(options.retries || 0) || 1)
+        });
+      } catch (_err) {
+        return null;
+      }
     }
 
     function resolveRestaurantImage(value) {
@@ -5685,6 +5740,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return rail.closest('.rail-wrap') || rail.parentElement || rail;
     }
 
+    function homeHasRealItems(items) {
+      return Array.isArray(items) && items.some((item) => item && typeof item === 'object' && item.isPlaceholder !== true);
+    }
+
     function isHomeRailNearViewport(railId) {
       if (!railId) return true;
       const wrap = getHomeRailWrap(railId);
@@ -8498,10 +8557,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
         void ensureHomeBrandBackgroundManifest();
-        const fallbackItems = stableShuffleHomeItems(
-          HOME_CAR_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'car', index)),
-          'car:fallback'
-        ).slice(0, target);
         if (!client) return [];
 
         const fetchLimit = Math.max(target * 4, target);
@@ -8509,7 +8564,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           .from('car_brands')
           .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
           .limit(fetchLimit);
-        if (error || !data || !data.length) return fallbackItems.slice(0, target);
+        if (error || !data || !data.length) return [];
         const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'car', index));
         return stableShuffleHomeItems(items, 'car:home').slice(0, target);
       }
@@ -9217,10 +9272,88 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     async function loadTravel(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
-      void ensureHomeCountryIndex(signal).catch(() => {});
       const cached = getCachedHomeTravelItems(targetCount);
       if (cached.length) return cached.slice(0, targetCount);
-      return getHomeTravelFallbackItems(targetCount);
+
+      void ensureHomeCountryIndex(signal).catch(() => {});
+
+      const seedCodes = [
+        'JP','FR','IT','ES','TH','TR','ID','US','GB','AE','MX','BR',
+        'EG','GR','PT','DE','MA','ZA','CH','AT','NL','BE','HR','IS',
+        'NO','SE','FI','DK','IE','CZ','HU','PL','RO','KE','TZ','VN',
+        'KR','IN','LK','AU','NZ','CA','AR','CL','PE','CR','PH','SG','MY'
+      ];
+
+      const [countryRows] = await Promise.all([
+        fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
+          signal,
+          cacheKey: 'restcountries:all:v3.1:home:travel',
+          ttlMs: 1000 * 60 * 60 * 12,
+          timeoutMs: 9500,
+          retries: 1
+        }).then((payload) => Array.isArray(payload) ? payload : []).catch(() => []),
+        // Try to hydrate scenic images from the Supabase storage manifest. If it lags, we still render with whatever we have.
+        withTimeout(hydrateHomeTravelBucketManifest(signal), 2200, false).catch(() => false)
+      ]);
+
+      const byCode = new Map();
+      countryRows.forEach((row) => {
+        const code = canonicalTravelCountryCode(row?.cca2 || row?.cca3 || '');
+        if (!code) return;
+        byCode.set(code, row);
+      });
+
+      const picked = [];
+      const seenCodes = new Set();
+      const pushRow = (row) => {
+        const code = canonicalTravelCountryCode(row?.cca2 || row?.cca3 || '');
+        if (!code || seenCodes.has(code)) return;
+        const name = String(row?.name?.common || row?.name?.official || '').trim();
+        if (!name || /\bisrael\b/i.test(name) || code === 'IL') return;
+        seenCodes.add(code);
+        picked.push(row);
+      };
+
+      seedCodes.forEach((code) => {
+        const row = byCode.get(canonicalTravelCountryCode(code));
+        if (row) pushRow(row);
+      });
+
+      if (picked.length < targetCount * 2) {
+        const remaining = countryRows.filter((row) => {
+          const code = canonicalTravelCountryCode(row?.cca2 || row?.cca3 || '');
+          if (!code || seenCodes.has(code)) return false;
+          const name = String(row?.name?.common || row?.name?.official || '').trim();
+          if (!name || /\bisrael\b/i.test(name) || code === 'IL') return false;
+          return true;
+        });
+        shuffleArray(remaining).slice(0, (targetCount * 3) - picked.length).forEach(pushRow);
+      }
+
+      const compactRows = picked.slice(0, Math.max(targetCount * 4, 72)).map((row) => {
+        const code = canonicalTravelCountryCode(row?.cca2 || row?.cca3 || '');
+        const capital = Array.isArray(row?.capital) ? String(row.capital[0] || '').trim() : String(row?.capital || '').trim();
+        const flag = toHttpsUrl(String(row?.flags?.png || row?.flags?.svg || '').trim());
+        return {
+          code,
+          cca2: String(row?.cca2 || '').trim(),
+          cca3: String(row?.cca3 || '').trim(),
+          name: String(row?.name?.common || row?.name?.official || code || '').trim(),
+          capital,
+          region: String(row?.region || '').trim(),
+          subregion: String(row?.subregion || '').trim(),
+          flag
+        };
+      }).filter((row) => row?.code && row?.name);
+
+      if (compactRows.length) writeHomeTravelCountryRowsCache(compactRows);
+
+      const items = compactRows
+        .map((row) => mapCachedTravelCountryRowToHomeItem(row))
+        .filter(Boolean)
+        .slice(0, targetCount);
+
+      return items;
     }
 
     async function loadSports(signal) {
@@ -9323,10 +9456,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           ensureHomeDebugPanel();
         }
       }
-      const hasExistingItems = Object.values(homeFeedState).some((items) => Array.isArray(items) && items.length);
+      const criticalKeys = [
+        'travel',
+        'sports',
+        ...(ENABLE_CARS ? ['car'] : [])
+      ];
+      const hasExistingRealItems = Object.values(homeFeedState).some((items) => homeHasRealItems(items));
+      const hasCriticalMissing = criticalKeys.some((key) => !homeHasRealItems(homeFeedState?.[key]));
       if (
         !force
-        && hasExistingItems
+        && hasExistingRealItems
+        && !hasCriticalMissing
         && homeLastGoodFeedAt
         && (now - homeLastGoodFeedAt) < HOME_RESUME_REFRESH_THROTTLE_MS
       ) {
@@ -9351,40 +9491,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const baselineFeed = cachedFeed || null;
 
       if (baselineFeed) {
-        const baselineActiveChannels = countActiveHomeChannels(baselineFeed);
-        const cacheHealthyFloor = Math.min(initialChannels.length, 3);
-        const cacheOnly = !force && baselineActiveChannels >= cacheHealthyFloor;
-        const cachedResult = cacheOnly
-          ? applyHomeFeedMap(baselineFeed, { refreshSecondary: false })
-          : applyHomeFeedMap(baselineFeed);
+        const cachedResult = applyHomeFeedMap(baselineFeed);
         if (cachedResult.scoredPool.length) {
           homeLastGoodFeedAt = Date.now();
-          setStatus(cacheOnly ? 'Feed ready from cache.' : 'Feed ready from cache. Syncing live data...', false);
+          setStatus('Feed ready from cache. Syncing live data...', false);
         }
-        if (cacheOnly && cachedResult.scoredPool.length) {
-          resetSpotlightTimer(true);
-          return;
-        }
-
-        // Fill any empty local rails with fallbacks so refreshes don't get stuck on placeholders.
-        try {
-          const normalized = normalizeHomeFeedMap(baselineFeed) || {};
-          const filled = { ...normalized };
-          channels.forEach((channel) => {
-            const existing = Array.isArray(filled?.[channel.key]) ? filled[channel.key] : [];
-            if (existing.length) return;
-            const fallback = getHomeRailFallbackItems(channel.key);
-            if (Array.isArray(fallback) && fallback.length) {
-              filled[channel.key] = fallback;
-            }
-          });
-          applyHomeFeedMap(filled, { refreshSecondary: false });
-        } catch (_err) {}
-      }
-
-      if (!baselineFeed) {
-        // Ensure local rails never stay on placeholders when remote loaders fail.
-        applyHomeFeedMap(buildInstantFallbackFeed(), { refreshSecondary: false });
       }
 
       const precomputedFeedPromise = loadPrecomputedHomeFeed().catch(() => null);
@@ -9415,16 +9526,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         let items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
         if (!Array.isArray(items)) items = [];
 
-        if (!items.length) {
-          const existing = Array.isArray(workingFeed?.[channel.key]) ? workingFeed[channel.key] : [];
-          if (!existing.length) {
-            const fallback = getHomeRailFallbackItems(channel.key);
-            if (Array.isArray(fallback) && fallback.length) {
-              items = fallback;
-            }
-          }
-        }
-
         if (key) {
           const last = homeDebugState.channels.get(key)?.last || {};
           const isPlaceholder = Array.isArray(items) ? items.every((it) => !!it?.isPlaceholder) : false;
@@ -9433,7 +9534,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           const timeoutMs = Number(last.timeoutMs || channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS) || 0;
           const status = (!items.length)
             ? (ms >= timeoutMs - 30 ? 'timeout' : 'empty')
-            : (isPlaceholder ? 'fallback' : 'ok');
+            : (isPlaceholder ? 'placeholder' : 'ok');
           homeDebugState.channels.set(key, {
             ...(homeDebugState.channels.get(key) || {}),
             last: {
@@ -9442,17 +9543,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
               endedAt,
               ms,
               items: items.length,
-              reason: !items.length ? 'No items returned.' : (isPlaceholder ? 'Rendered fallbacks (placeholder items).' : 'Live items rendered.')
+              reason: !items.length ? 'No items returned.' : (isPlaceholder ? 'Only placeholder items returned.' : 'Live items rendered.')
             }
           });
           scheduleHomeDebugRender();
         }
 
-        if (!items.length) {
+        const isPlaceholder = Array.isArray(items) ? items.every((it) => !!it?.isPlaceholder) : false;
+        if (!items.length || isPlaceholder) {
           scheduleHomeChannelRetry(channel, attempt - 1);
         }
 
-        if (initSeq === homeFeedInitSeq && items.length) {
+        if (initSeq === homeFeedInitSeq && items.length && !isPlaceholder) {
           freshLoadedKeys.add(channel.key);
           workingFeed = {
             ...workingFeed,
