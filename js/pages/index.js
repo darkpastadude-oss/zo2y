@@ -3302,6 +3302,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         clearHomeAuthParamsFromUrl();
         return true;
       } catch (error) {
+        const message = String(error?.message || '').toLowerCase();
+        if (message.includes('refresh token already used') || message.includes('already been used')) {
+          clearHomeAuthParamsFromUrl();
+          return true;
+        }
         console.error('Home OAuth completion failed:', error);
         showHomeToast('Could not complete sign-in. Please try again.', true);
         clearHomeAuthParamsFromUrl();
@@ -5851,6 +5856,35 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         renderOrDeferHomeRail('unifiedRail', [], { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true, allowEmptyState: true });
       } else {
         setHomeRailDeferredPlaceholder('unifiedRail');
+      }
+
+      const mixOptions = { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true };
+      const mixTarget = Math.max(10, Math.min(18, Number(getHomeUnifiedTargetItems() || 12)));
+      const mediaTypes = new Set(['movie', 'tv', 'anime', 'game', 'book', 'music']);
+      const lifestyleTypes = new Set(['travel', 'sports', 'fashion', 'food', 'car', 'restaurant']);
+
+      const mediaMix = buildUnifiedFeed(
+        scoredPool.filter((item) => mediaTypes.has(String(item?.mediaType || '').trim())),
+        mixTarget
+      );
+      if (mediaMix.length) {
+        renderOrDeferHomeRail('mediaMixRail', mediaMix, mixOptions);
+      } else if (showEmptyRails) {
+        renderOrDeferHomeRail('mediaMixRail', [], { ...mixOptions, allowEmptyState: true });
+      } else {
+        setHomeRailDeferredPlaceholder('mediaMixRail');
+      }
+
+      const lifestyleMix = buildUnifiedFeed(
+        scoredPool.filter((item) => lifestyleTypes.has(String(item?.mediaType || '').trim())),
+        mixTarget
+      );
+      if (lifestyleMix.length) {
+        renderOrDeferHomeRail('lifestyleMixRail', lifestyleMix, mixOptions);
+      } else if (showEmptyRails) {
+        renderOrDeferHomeRail('lifestyleMixRail', [], { ...mixOptions, allowEmptyState: true });
+      } else {
+        setHomeRailDeferredPlaceholder('lifestyleMixRail');
       }
       if (options.refreshSecondary !== false) {
         scheduleHomeNewReleasesRefresh(homeFeedState);
