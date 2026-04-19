@@ -684,6 +684,30 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     let homeFeedInitSeq = 0;
     let homeWeakFeedRetryTimer = null;
     let homeWeakFeedRetryCount = 0;
+    let homeSupabaseSdkWaitPromise = null;
+
+    function waitForHomeSupabaseSdk(timeoutMs = 2200) {
+      if (window.supabase?.createClient) return Promise.resolve(true);
+      if (homeSupabaseSdkWaitPromise) return homeSupabaseSdkWaitPromise;
+      homeSupabaseSdkWaitPromise = new Promise((resolve) => {
+        const startedAt = Date.now();
+        const tick = () => {
+          if (window.supabase?.createClient) {
+            homeSupabaseSdkWaitPromise = null;
+            resolve(true);
+            return;
+          }
+          if ((Date.now() - startedAt) >= timeoutMs) {
+            homeSupabaseSdkWaitPromise = null;
+            resolve(false);
+            return;
+          }
+          setTimeout(tick, 30);
+        };
+        tick();
+      });
+      return homeSupabaseSdkWaitPromise;
+    }
     let homeMixedRefreshScheduled = false;
     let homePendingMixedRefresh = false;
     let homePendingMixedRefreshArgs = null;
@@ -3456,7 +3480,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         homeSupabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
         return homeSupabaseClient;
       }
-      if (!window.supabase || !window.supabase.createClient) return null;
+      if (!window.supabase?.createClient) {
+        await waitForHomeSupabaseSdk();
+      }
+      if (!window.supabase?.createClient) return null;
       homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
           storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
@@ -8410,7 +8437,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           HOME_FASHION_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'fashion', index)),
           'fashion:fallback'
         ).slice(0, target);
-        if (!client) return fallbackItems.slice(0, target);
+        if (!client) return [];
 
         const fetchLimit = Math.max(target * 4, target);
         const { data, error } = await client
@@ -8430,7 +8457,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           HOME_FOOD_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'food', index)),
           'food:fallback'
         ).slice(0, target);
-        if (!client) return fallbackItems.slice(0, target);
+        if (!client) return [];
 
         const fetchLimit = Math.max(target * 4, target);
         const { data, error } = await client
@@ -8450,7 +8477,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           HOME_CAR_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'car', index)),
           'car:fallback'
         ).slice(0, target);
-        if (!client) return fallbackItems.slice(0, target);
+        if (!client) return [];
 
         const fetchLimit = Math.max(target * 4, target);
         const { data, error } = await client
@@ -9165,18 +9192,65 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     async function loadTravel(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
+      void ensureHomeCountryIndex(signal).catch(() => {});
       const cached = getCachedHomeTravelItems(targetCount);
       if (cached.length) return cached.slice(0, targetCount);
       return getHomeTravelFallbackItems(targetCount);
     }
 
     async function loadSports(signal) {
-      const loaders = await ensureHomeHeavyLoaders();
-      if (typeof loaders.loadSports === 'function') {
-        const items = await loaders.loadSports(signal).catch(() => []);
-        if (Array.isArray(items) && items.length) return items;
-      }
-      return getHomeRailFallbackItems('sports');
+      const target = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || 12)));
+      const seeds = [
+        'Real Madrid',
+        'Arsenal',
+        'Liverpool',
+        'Los Angeles Lakers',
+        'Boston Celtics',
+        'New York Yankees',
+        'Kansas City Chiefs',
+        'Golden State Warriors'
+      ];
+
+      try {
+        const queries = seeds.slice(0, target).map((name) => fetchSportsDb('searchteams.php', { t: name }, { signal, timeoutMs: 7000, retries: 1 }));
+        const results = await Promise.all(queries);
+        const rows = results
+          .flatMap((payload) => Array.isArray(payload?.teams) ? payload.teams : [])
+          .filter(Boolean);
+        const seen = new Set();
+        const items = [];
+        for (const row of rows) {
+          const id = String(row?.idTeam || row?.id || '').trim();
+          const title = String(row?.strTeam || row?.name || 'Team').trim() || 'Team';
+          const key = id || title.toLowerCase();
+          if (!key || seen.has(key)) continue;
+          seen.add(key);
+          const badge = toHttpsUrl(String(row?.strTeamBadge || row?.strBadge || '').trim());
+          const banner = toHttpsUrl(String(row?.strTeamBanner || row?.strBanner || '').trim());
+          const stadium = toHttpsUrl(String(row?.strStadiumThumb || '').trim());
+          const image = badge || banner || stadium || HOME_LOCAL_FALLBACK_IMAGE;
+          const league = String(row?.strLeague || '').trim();
+          items.push({
+            mediaType: 'sports',
+            itemId: id || title,
+            title,
+            subtitle: league || 'Sports',
+            extra: String(row?.strCountry || '').trim(),
+            image,
+            backgroundImage: banner || stadium || image,
+            spotlightImage: banner || stadium || image,
+            spotlightMediaImage: image,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'square',
+            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+            href: id ? `team.html?id=${encodeURIComponent(id)}` : 'sports.html'
+          });
+          if (items.length >= target) break;
+        }
+        if (items.length) return items;
+      } catch (_err) {}
+
+      return [];
     }
 
     async function initUniversalHome(options = {}) {
