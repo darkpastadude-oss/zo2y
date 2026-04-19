@@ -238,6 +238,219 @@ const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
     const PROFILE_USERNAME_MAX_LENGTH = 30;
     const HOME_RESUME_REFRESH_THROTTLE_MS = 1000 * 60 * 15;
     const HOME_PERSONALIZATION_THROTTLE_MS = 1000 * 60 * 5;
+
+    const HOME_DEBUG_STORAGE_KEY = 'zo2y_home_debug_v1';
+    const HOME_DEBUG_MAX_EVENTS = 160;
+
+    function isHomeDebugEnabled() {
+      try {
+        const params = new URLSearchParams(window.location.search || '');
+        if (params.get('debug') === '1') return true;
+      } catch (_err) {}
+      try {
+        return String(localStorage.getItem(HOME_DEBUG_STORAGE_KEY) || '') === '1';
+      } catch (_err) {
+        return false;
+      }
+    }
+
+    function setHomeDebugEnabled(enabled) {
+      try {
+        localStorage.setItem(HOME_DEBUG_STORAGE_KEY, enabled ? '1' : '0');
+      } catch (_err) {}
+    }
+
+    const homeDebugState = {
+      enabled: false,
+      channels: new Map(),
+      events: [],
+      panel: null,
+      panelBody: null,
+      lastRenderAt: 0
+    };
+
+    function homeDebugNow() {
+      try {
+        return typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
+      } catch (_err) {
+        return Date.now();
+      }
+    }
+
+    function homeDebugEvent(type, payload = {}) {
+      if (!homeDebugState.enabled) return;
+      const safe = payload && typeof payload === 'object' ? payload : { value: payload };
+      homeDebugState.events.push({
+        t: Date.now(),
+        type: String(type || 'event'),
+        ...safe
+      });
+      if (homeDebugState.events.length > HOME_DEBUG_MAX_EVENTS) {
+        homeDebugState.events.splice(0, homeDebugState.events.length - HOME_DEBUG_MAX_EVENTS);
+      }
+      scheduleHomeDebugRender();
+    }
+
+    function formatHomeDebugTime(ts) {
+      const d = new Date(ts);
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    function ensureHomeDebugPanel() {
+      if (!homeDebugState.enabled) return null;
+      if (homeDebugState.panel && homeDebugState.panelBody) return homeDebugState.panel;
+      try {
+        const panel = document.createElement('div');
+        panel.id = 'homeDebugPanel';
+        panel.style.cssText = [
+          'position:fixed',
+          'right:12px',
+          'bottom:12px',
+          'z-index:99999',
+          'width:min(520px, calc(100vw - 24px))',
+          'max-height:min(70vh, 520px)',
+          'overflow:hidden',
+          'border:1px solid rgba(255,255,255,0.14)',
+          'border-radius:14px',
+          'background:rgba(10, 18, 40, 0.92)',
+          'backdrop-filter: blur(10px)',
+          'box-shadow: 0 18px 60px rgba(0,0,0,0.45)',
+          'color:#e6edf3',
+          'font: 12px/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace'
+        ].join(';');
+
+        const head = document.createElement('div');
+        head.style.cssText = 'display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 10px;border-bottom:1px solid rgba(255,255,255,0.10)';
+        head.innerHTML = `
+          <div style="display:flex;gap:10px;align-items:center;min-width:0">
+            <strong style="font-weight:800;letter-spacing:0.2px">Home Debug</strong>
+            <span style="color:rgba(230,237,243,0.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">?debug=1 / localStorage:${HOME_DEBUG_STORAGE_KEY}</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button type="button" data-home-debug-action="copy" style="border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#e6edf3;border-radius:10px;padding:6px 8px;cursor:pointer">Copy</button>
+            <button type="button" data-home-debug-action="close" style="border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#e6edf3;border-radius:10px;padding:6px 8px;cursor:pointer">Close</button>
+          </div>
+        `;
+
+        const body = document.createElement('div');
+        body.style.cssText = 'padding:10px;overflow:auto;max-height:calc(min(70vh, 520px) - 44px)';
+
+        panel.appendChild(head);
+        panel.appendChild(body);
+        document.body.appendChild(panel);
+
+        panel.addEventListener('click', async (e) => {
+          const btn = e.target?.closest?.('button[data-home-debug-action]');
+          if (!btn) return;
+          const action = String(btn.getAttribute('data-home-debug-action') || '').trim();
+          if (action === 'close') {
+            setHomeDebugEnabled(false);
+            homeDebugState.enabled = false;
+            try { panel.remove(); } catch (_err) {}
+            return;
+          }
+          if (action === 'copy') {
+            try {
+              const text = JSON.stringify(buildHomeDebugSnapshot(), null, 2);
+              if (navigator?.clipboard?.writeText) {
+                await navigator.clipboard.writeText(text);
+              }
+            } catch (_err) {}
+          }
+        });
+
+        homeDebugState.panel = panel;
+        homeDebugState.panelBody = body;
+        return panel;
+      } catch (_err) {
+        return null;
+      }
+    }
+
+    function buildHomeDebugSnapshot() {
+      const channels = {};
+      homeDebugState.channels.forEach((value, key) => {
+        channels[key] = value;
+      });
+      return {
+        at: new Date().toISOString(),
+        authGate: (() => {
+          try { return getHomeAuthGateState(); } catch (_err) { return null; }
+        })(),
+        channels,
+        events: homeDebugState.events.slice(-80)
+      };
+    }
+
+    function scheduleHomeDebugRender() {
+      if (!homeDebugState.enabled) return;
+      const now = Date.now();
+      if (homeDebugState.lastRenderAt && (now - homeDebugState.lastRenderAt) < 120) return;
+      homeDebugState.lastRenderAt = now;
+      requestAnimationFrame(() => {
+        renderHomeDebugPanel();
+      });
+    }
+
+    function escapeHomeDebugHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderHomeDebugPanel() {
+      if (!homeDebugState.enabled) return;
+      ensureHomeDebugPanel();
+      const body = homeDebugState.panelBody;
+      if (!body) return;
+
+      const rows = [];
+      const sorted = Array.from(homeDebugState.channels.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+      sorted.forEach(([key, state]) => {
+        const last = state?.last || {};
+        const status = escapeHomeDebugHtml(last.status || 'unknown');
+        const ms = Number.isFinite(Number(last.ms)) ? `${Math.round(Number(last.ms))}ms` : '';
+        const items = Number.isFinite(Number(last.items)) ? `${Number(last.items)} items` : '';
+        const when = last.endedAt ? formatHomeDebugTime(Number(last.endedAt)) : '';
+        const reason = escapeHomeDebugHtml(last.reason || '');
+        rows.push(`<div style="display:grid;grid-template-columns: 92px 1fr;gap:10px;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,0.08)">
+          <div style="color:rgba(230,237,243,0.85)"><strong>${escapeHomeDebugHtml(key)}</strong></div>
+          <div style="color:rgba(230,237,243,0.72)">
+            <span style="color:${status === 'ok' ? '#34d399' : (status === 'timeout' ? '#f59e0b' : (status === 'error' ? '#fb7185' : '#93c5fd'))};font-weight:800">${status}</span>
+            <span style="margin-left:8px">${escapeHomeDebugHtml(items)}</span>
+            <span style="margin-left:8px">${escapeHomeDebugHtml(ms)}</span>
+            <span style="margin-left:8px">${escapeHomeDebugHtml(when)}</span>
+            ${reason ? `<div style="margin-top:4px;color:rgba(230,237,243,0.55)">${reason}</div>` : ''}
+          </div>
+        </div>`);
+      });
+
+      const tailEvents = homeDebugState.events.slice(-10).map((ev) => {
+        const time = formatHomeDebugTime(ev.t);
+        const line = `${time} ${String(ev.type || 'event')}`;
+        const detail = Object.entries(ev)
+          .filter(([k]) => k !== 't' && k !== 'type')
+          .map(([k, v]) => `${k}=${typeof v === 'string' ? v : JSON.stringify(v)}`)
+          .join(' ');
+        return `<div style="padding:2px 0;color:rgba(230,237,243,0.55)">${escapeHomeDebugHtml(line)} ${escapeHomeDebugHtml(detail)}</div>`;
+      }).join('');
+
+      body.innerHTML = `
+        <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="color:rgba(230,237,243,0.72)">Channels (last attempt)</div>
+          <div style="color:rgba(230,237,243,0.55)">Tip: open DevTools Console for stack traces.</div>
+        </div>
+        <div>${rows.join('') || '<div style="color:rgba(230,237,243,0.55)">No channel data yet.</div>'}</div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.10)">
+          <div style="color:rgba(230,237,243,0.72);margin-bottom:6px">Recent events</div>
+          ${tailEvents || '<div style="color:rgba(230,237,243,0.55)">No events yet.</div>'}
+        </div>
+      `;
+    }
     const HOME_TASTE_WEIGHTS_CACHE_MS = 1000 * 60 * 10;
 const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     const HOME_TRAVEL_VARIANT_SESSION_SEED = Math.floor(Math.random() * 2147483647);
@@ -5806,7 +6019,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     async function loadHomeChannelWithTimeout(loader, timeoutMs = HOME_CHANNEL_TIMEOUT_MS) {
       let timer = null;
       const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const startedAt = homeDebugNow();
+      const loaderName = String(loader?.name || '').trim() || 'anonymous';
       try {
+        homeDebugEvent('channel:start', { loader: loaderName, timeoutMs: Number(timeoutMs || 0) });
         const loaderPromise = Promise.resolve().then(() => loader(controller ? controller.signal : undefined));
         const value = await Promise.race([
           loaderPromise,
@@ -5817,8 +6033,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             }, timeoutMs);
           })
         ]);
-        return Array.isArray(value) ? value : [];
+        const endedAt = homeDebugNow();
+        const tookMs = endedAt - startedAt;
+        const items = Array.isArray(value) ? value : [];
+        homeDebugEvent('channel:done', { loader: loaderName, ms: Math.round(tookMs), items: items.length });
+        return items;
       } catch (_err) {
+        const endedAt = homeDebugNow();
+        const tookMs = endedAt - startedAt;
+        homeDebugEvent('channel:error', { loader: loaderName, ms: Math.round(tookMs), message: String(_err?.message || _err || '') });
         return [];
       } finally {
         if (controller) controller.abort();
@@ -8852,6 +9075,40 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     async function initUniversalHome(options = {}) {
       const now = Date.now();
       const force = !!options.force;
+      if (!homeDebugState.enabled) {
+        homeDebugState.enabled = isHomeDebugEnabled();
+        if (homeDebugState.enabled) {
+          homeDebugEvent('debug:enabled', { via: 'initUniversalHome' });
+          try {
+            window.__ZO2Y_HOME_DEBUG = {
+              get enabled() { return homeDebugState.enabled; },
+              setEnabled: (value) => {
+                setHomeDebugEnabled(!!value);
+                homeDebugState.enabled = !!value;
+                if (homeDebugState.enabled) {
+                  homeDebugEvent('debug:enabled', { via: 'setEnabled' });
+                }
+                scheduleHomeDebugRender();
+              },
+              snapshot: () => buildHomeDebugSnapshot()
+            };
+          } catch (_err) {}
+          try {
+            window.addEventListener('error', (ev) => {
+              homeDebugEvent('window:error', {
+                message: String(ev?.message || ''),
+                file: String(ev?.filename || ''),
+                line: Number(ev?.lineno || 0)
+              });
+            });
+            window.addEventListener('unhandledrejection', (ev) => {
+              const reason = ev?.reason;
+              homeDebugEvent('window:rejection', { message: String(reason?.message || reason || '') });
+            });
+          } catch (_err) {}
+          ensureHomeDebugPanel();
+        }
+      }
       const hasExistingItems = Object.values(homeFeedState).some((items) => Array.isArray(items) && items.length);
       if (
         !force
@@ -8864,6 +9121,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       }
       homeLastUniversalInitAt = now;
       const initSeq = ++homeFeedInitSeq;
+      homeDebugEvent('home:init', { force, initSeq });
       ensureHomeInteractionWatch();
       resetHomeViewportDeferrals();
       if (homeWeakFeedRetryTimer) {
@@ -8921,6 +9179,22 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       let workingFeed = normalizeHomeFeedMap(baselineFeed) || blankFeed;
 
       const loadChannel = async (channel) => {
+        const railId = String(channel?.railId || '').trim();
+        const key = String(channel?.key || '').trim();
+        const attemptStartedAt = Date.now();
+        if (key) {
+          homeDebugState.channels.set(key, {
+            ...(homeDebugState.channels.get(key) || {}),
+            last: {
+              status: 'loading',
+              startedAt: attemptStartedAt,
+              timeoutMs: Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS) || 0,
+              railId
+            }
+          });
+          scheduleHomeDebugRender();
+        }
+
         let items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
         if (!Array.isArray(items)) items = [];
 
@@ -8932,6 +9206,29 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
               items = fallback;
             }
           }
+        }
+
+        if (key) {
+          const last = homeDebugState.channels.get(key)?.last || {};
+          const isPlaceholder = Array.isArray(items) ? items.every((it) => !!it?.isPlaceholder) : false;
+          const endedAt = Date.now();
+          const ms = endedAt - attemptStartedAt;
+          const timeoutMs = Number(last.timeoutMs || channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS) || 0;
+          const status = (!items.length)
+            ? (ms >= timeoutMs - 30 ? 'timeout' : 'empty')
+            : (isPlaceholder ? 'fallback' : 'ok');
+          homeDebugState.channels.set(key, {
+            ...(homeDebugState.channels.get(key) || {}),
+            last: {
+              ...last,
+              status,
+              endedAt,
+              ms,
+              items: items.length,
+              reason: !items.length ? 'No items returned.' : (isPlaceholder ? 'Rendered fallbacks (placeholder items).' : 'Live items rendered.')
+            }
+          });
+          scheduleHomeDebugRender();
         }
 
         if (initSeq === homeFeedInitSeq && items.length) {
