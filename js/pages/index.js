@@ -5823,6 +5823,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       renderRail(key, normalizedItems, renderOpts);
     }
 
+    function primeHomeRailsWithFallbacks() {
+      try {
+        getHomeChannels().forEach((channel) => {
+          if (!channel?.railId) return;
+          renderHomeFallbackForRail(channel.railId, channel.opts || {});
+        });
+      } catch (_err) {}
+    }
+
     function resetHomeViewportDeferrals() {
       homePendingRailRenderState.clear();
       homeDeferredChannelState.clear();
@@ -9232,6 +9241,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       homeDebugEvent('home:init', { force, initSeq });
       ensureHomeInteractionWatch();
       resetHomeViewportDeferrals();
+      // Aggressive UX: always show *something* immediately on refresh so rails never “lock” on skeleton placeholders.
+      primeHomeRailsWithFallbacks();
       if (homeWeakFeedRetryTimer) {
         clearTimeout(homeWeakFeedRetryTimer);
         homeWeakFeedRetryTimer = null;
