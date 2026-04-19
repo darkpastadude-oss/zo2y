@@ -5919,12 +5919,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       try {
         const normalized = normalizeHomeFeedMap(feedMap);
         if (!normalized) return;
+        const scrubbed = { ...normalized };
+        // Same rule as home feed cache: never persist placeholder-only rails.
+        getHomeChannels().forEach((channel) => {
+          const items = Array.isArray(scrubbed?.[channel.key]) ? scrubbed[channel.key] : [];
+          scrubbed[channel.key] = stripHomePlaceholderItems(items);
+        });
         const savedAt = Number(options.savedAt || Date.now());
         const expiresAt = Number(options.expiresAt || (savedAt + HOME_PRECOMPUTED_FEED_MAX_AGE_MS));
         localStorage.setItem(HOME_PRECOMPUTED_FEED_CACHE_KEY, JSON.stringify({
           savedAt,
           expiresAt,
-          feed: normalized
+          feed: scrubbed
         }));
       } catch (_err) {}
     }
@@ -6000,6 +6006,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       }
     }
 
+    function stripHomePlaceholderItems(items) {
+      const list = Array.isArray(items) ? items : [];
+      if (!list.length) return [];
+      return list.filter((item) => !item?.isPlaceholder);
+    }
+
     function writeHomeFeedCache(feedMap) {
       try {
         const normalizedFeed = normalizeHomeFeedMap(feedMap);
@@ -6007,7 +6019,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         const channels = getHomeChannels();
         const payload = {};
         channels.forEach((channel) => {
-          payload[channel.key] = Array.isArray(normalizedFeed?.[channel.key]) ? normalizedFeed[channel.key] : [];
+          const items = Array.isArray(normalizedFeed?.[channel.key]) ? normalizedFeed[channel.key] : [];
+          // Never persist placeholder-only rails; they cause “stuck skeletons” after refresh when live loaders time out.
+          payload[channel.key] = stripHomePlaceholderItems(items);
         });
         localStorage.setItem(HOME_FEED_CACHE_KEY, JSON.stringify({
           savedAt: Date.now(),
