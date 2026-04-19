@@ -4922,6 +4922,29 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         return;
       }
       deferredImages.forEach((img) => observer.observe(img));
+
+      // Some browsers occasionally fail to dispatch the initial IntersectionObserver callback
+      // after a hard refresh. Proactively load any deferred images already in the viewport.
+      const flushVisible = () => {
+        const vw = Math.max(0, Number(window.innerWidth || 0));
+        const vh = Math.max(0, Number(window.innerHeight || 0));
+        if (!vw || !vh) return;
+        deferredImages.forEach((img) => {
+          if (!img || !img.hasAttribute('data-home-src')) return;
+          const rect = img.getBoundingClientRect?.();
+          if (!rect) return;
+          const visible = rect.bottom >= -120 && rect.right >= -120 && rect.top <= (vh + 120) && rect.left <= (vw + 120);
+          if (!visible) return;
+          try { observer.unobserve(img); } catch (_err) {}
+          loadHomeDeferredImage(img);
+        });
+      };
+
+      if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(() => flushVisible());
+      } else {
+        window.setTimeout(flushVisible, 0);
+      }
     }
 
     function buildHomeImageAttrs(src, loading, priority, fallbackImage = '', extra = {}) {
