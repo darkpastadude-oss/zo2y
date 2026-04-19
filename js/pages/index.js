@@ -8801,46 +8801,244 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return getHomeTravelFallbackItems(targetCount);
     }
 
+    const HOME_SPORTS_ASSET_BUCKET_NAME = 'sports-assets';
+    const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;
+    const HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_home_sports_asset_manifest_v3';
+    const HOME_SPORTS_ASSET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+    let homeSportsAssetManifestPromise = null;
+    const homeSportsAssetManifestRows = [];
+    const homeSportsAssetManifestById = new Map();
+    const homeSportsAssetManifestByName = new Map();
+
+    function normalizeHomeSportsName(value) {
+      return String(value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]+/g, '')
+        .replace(/[\u0027\u2019]/g, '')
+        .replace(/\b(fc|cf|sc|afc|club|the)\b/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+    }
+
+    function normalizeHomeSportsAssetManifestRows(payload) {
+      const rows = Array.isArray(payload?.teams) ? payload.teams : (Array.isArray(payload) ? payload : []);
+      return rows.map((row) => {
+        if (!row || typeof row !== 'object') return null;
+        const id = String(row.id || row.sportsDbId || '').trim();
+        const name = String(row.name || row.title || '').trim();
+        if (!id && !name) return null;
+        return {
+          id: id || name,
+          sportsDbId: id || '',
+          name,
+          league: String(row.league || '').trim(),
+          sport: String(row.sport || '').trim(),
+          country: String(row.country || '').trim(),
+          stadium: String(row.stadium || '').trim(),
+          badge: toHttpsUrl(row.badge || row.logo_url || ''),
+          banner: '',
+          fanart: '',
+          stadiumImage: '',
+          jersey: ''
+        };
+      }).filter(Boolean);
+    }
+
+    function mergeHomeSportsAssetManifestRows(rows = []) {
+      (Array.isArray(rows) ? rows : []).forEach((row) => {
+        const id = String(row?.sportsDbId || row?.id || '').trim();
+        const nameKey = normalizeHomeSportsName(row?.name || '');
+        const existing = (id && homeSportsAssetManifestById.get(id)) || (nameKey && homeSportsAssetManifestByName.get(nameKey)) || null;
+        const merged = existing ? {
+          ...existing,
+          ...row,
+          badge: row.badge || existing.badge || '',
+          banner: '',
+          fanart: '',
+          stadiumImage: '',
+          jersey: ''
+        } : row;
+        if (!existing) {
+          homeSportsAssetManifestRows.push(merged);
+        } else {
+          const index = homeSportsAssetManifestRows.indexOf(existing);
+          if (index >= 0) homeSportsAssetManifestRows[index] = merged;
+        }
+        if (id) homeSportsAssetManifestById.set(id, merged);
+        if (nameKey) homeSportsAssetManifestByName.set(nameKey, merged);
+      });
+    }
+
+    function readHomeSportsAssetManifestCache() {
+      try {
+        const raw = localStorage.getItem(HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed?.savedAt || 0);
+        if (!savedAt || (Date.now() - savedAt) > HOME_SPORTS_ASSET_MANIFEST_TTL_MS) return null;
+        const rows = normalizeHomeSportsAssetManifestRows(parsed);
+        return rows.length ? rows : null;
+      } catch (_err) {
+        return null;
+      }
+    }
+
+    function writeHomeSportsAssetManifestCache(rows = []) {
+      try {
+        localStorage.setItem(HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          teams: rows
+        }));
+      } catch (_err) {}
+    }
+
+    function loadHomeSportsAssetManifestFromStorage() {
+      const rows = readHomeSportsAssetManifestCache();
+      if (!rows) return [];
+      mergeHomeSportsAssetManifestRows(rows);
+      return homeSportsAssetManifestRows.slice();
+    }
+
+    async function ensureHomeSportsAssetManifest(signal) {
+      if (homeSportsAssetManifestRows.length) return homeSportsAssetManifestRows.slice();
+      loadHomeSportsAssetManifestFromStorage();
+      if (homeSportsAssetManifestRows.length) return homeSportsAssetManifestRows.slice();
+      if (homeSportsAssetManifestPromise) return homeSportsAssetManifestPromise;
+      homeSportsAssetManifestPromise = (async () => {
+        try {
+          const response = await fetch(HOME_SPORTS_ASSET_MANIFEST_URL, {
+            signal,
+            cache: 'force-cache',
+            credentials: 'omit'
+          });
+          if (!response.ok) throw new Error(`Manifest fetch failed (${response.status})`);
+          const payload = await response.json();
+          const rows = normalizeHomeSportsAssetManifestRows(payload);
+          if (rows.length) {
+            mergeHomeSportsAssetManifestRows(rows);
+            writeHomeSportsAssetManifestCache(rows);
+          }
+          return homeSportsAssetManifestRows.slice();
+        } catch (_err) {
+          return homeSportsAssetManifestRows.slice();
+        } finally {
+          homeSportsAssetManifestPromise = null;
+        }
+      })();
+      return homeSportsAssetManifestPromise;
+    }
+
+    function getHomeSportsAssetOverride(team) {
+      const id = String(team?.idTeam || team?.sportsDbId || team?.id || '').trim();
+      const nameKey = normalizeHomeSportsName(team?.strTeam || team?.name || '');
+      return (id && homeSportsAssetManifestById.get(id)) || (nameKey && homeSportsAssetManifestByName.get(nameKey)) || null;
+    }
+
     function mapSportsTeamToHomeItem(team) {
       if (!team || typeof team !== 'object') return null;
-      const id = String(team.idTeam || team.team_id || team.id || '').trim();
-      const name = String(team.strTeam || team.name || '').trim();
-      const badge = toHttpsUrl(String(team.strTeamBadge || team.strTeamLogo || team.badge || '').trim());
-      if (!id || !name || !badge) return null;
-      const sport = String(team.strSport || '').trim();
-      const league = String(team.strLeague || '').trim();
-      const country = String(team.strCountry || '').trim();
-      const stadium = String(team.strStadium || '').trim();
-      const subtitle = league || sport || 'Team';
-      const extra = [country, stadium].filter(Boolean).join(' | ');
+      const override = getHomeSportsAssetOverride(team);
+      const id = String(team.idTeam || override?.sportsDbId || override?.id || '').trim();
+      const title = String(override?.name || team.strTeam || team.name || '').trim();
+      if (!title) return null;
+      const sport = String(override?.sport || team.strSport || team.sport || '').trim();
+      const league = String(override?.league || team.strLeague || team.league || '').trim();
+      const stadium = String(override?.stadium || team.strStadium || team.stadium || '').trim();
+      const country = String(override?.country || team.strCountry || team.country || '').trim();
+      const badge = toHttpsUrl(override?.badge || team.strBadge || team.strTeamBadge || team.strTeamLogo || team.badge || '');
+      const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
+      if (!badge) return null;
+      const subtitle = [league, sport].filter(Boolean).join(' | ') || 'Team';
+      const extra = stadium ? `Stadium: ${stadium}` : (country || '');
+      const params = new URLSearchParams();
+      if (id) params.set('id', id);
+      if (title) params.set('team', title);
+      if (league) params.set('league', league);
+      if (sport) params.set('sport', sport);
+      if (country) params.set('country', country);
+      const query = params.toString();
+      const href = query ? `team.html?${query}` : 'team.html';
       return {
         mediaType: 'sports',
-        itemId: id,
-        title: name,
+        itemId: id || title,
+        title,
         subtitle,
         extra,
         image: badge,
-        backgroundImage: badge,
-        spotlightImage: badge,
-        spotlightMediaImage: badge,
-        spotlightMediaFit: 'cover',
+        listImage: badge,
+        mediaFit: 'contain',
+        backgroundImage: badge || fallbackImage,
+        spotlightImage: badge || fallbackImage,
+        spotlightMediaImage: badge || fallbackImage,
+        spotlightMediaFit: 'contain',
         spotlightMediaShape: 'square',
-        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-        href: `team.html?id=${encodeURIComponent(id)}`
+        sport,
+        league,
+        country,
+        stadium,
+        badge,
+        href
       };
     }
 
     async function loadSports(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
-      const cached = readHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS)
+
+      // Prefer the published sports asset manifest (Supabase storage) so the home feed
+      // stays stable even when SportsDB/API calls hiccup after refresh.
+      const cachedManifestItems = readHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS)
         .filter((item) => item && item.image);
-      if (cached.length) return cached.slice(0, targetCount);
+      if (cachedManifestItems.length) {
+        return stableShuffleHomeItems(cachedManifestItems, 'sports:home:cache').slice(0, targetCount);
+      }
+
+      void ensureHomeSportsAssetManifest(signal);
+      const localManifestRows = await ensureHomeSportsAssetManifest(signal).catch(() => []);
+      if (Array.isArray(localManifestRows) && localManifestRows.length) {
+        const localItems = stableShuffleHomeItems(
+          localManifestRows
+            .map((row) => mapSportsTeamToHomeItem({
+              idTeam: row.sportsDbId || row.id,
+              strTeam: row.name,
+              strSport: row.sport,
+              strLeague: row.league,
+              strStadium: row.stadium,
+              strCountry: row.country,
+              strBadge: row.badge
+            }))
+            .filter((item) => item && item.image),
+          'sports:home:manifest'
+        ).slice(0, targetCount);
+        if (localItems.length) {
+          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, localItems);
+          return localItems;
+        }
+      }
 
       const seeds = Array.isArray(HOME_SPORTS_SEEDS) ? HOME_SPORTS_SEEDS : [];
       if (!seeds.length) return getHomeRailFallbackItems('sports');
 
-      const requests = seeds.slice(0, Math.max(targetCount, 10)).map((seed) => {
-        return fetchSportsDb('searchteams.php', { t: seed }, { signal, timeoutMs: 6500, retries: 1 });
+      const fetchSportsDbDirect = (endpoint, params = {}, options = {}) => {
+        const path = String(endpoint || '').trim().replace(/^\/+/, '');
+        if (!path) return Promise.resolve(null);
+        const url = new URL(`${SPORTSDB_DIRECT_BASE.replace(/\/+$/, '')}/${path}`);
+        Object.entries(params || {}).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === '') return;
+          url.searchParams.set(key, String(value));
+        });
+        const cacheKey = `sportsdb:direct:${url.toString()}`;
+        return fetchJsonWithPerfCache(url.toString(), {
+          cacheKey,
+          signal: options.signal,
+          timeoutMs: Number(options.timeoutMs || 0) || 6500,
+          retries: Number(options.retries || 0) || 0
+        });
+      };
+
+      const requests = seeds.slice(0, Math.max(targetCount, 10)).map(async (seed) => {
+        const proxy = await fetchSportsDb('searchteams.php', { t: seed }, { signal, timeoutMs: 5200, retries: 1 }).catch(() => null);
+        if (proxy && Array.isArray(proxy?.teams) && proxy.teams.length) return proxy;
+        return fetchSportsDbDirect('searchteams.php', { t: seed }, { signal, timeoutMs: 5200, retries: 0 }).catch(() => null);
       });
       const responses = await Promise.allSettled(requests);
       const seen = new Set();
@@ -8861,8 +9059,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       });
 
       if (items.length) {
-        writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items.slice(0, targetCount));
-        return items.slice(0, targetCount);
+        const shuffled = stableShuffleHomeItems(items, 'sports:home:api').slice(0, targetCount);
+        writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, shuffled);
+        return shuffled;
       }
 
       return getHomeRailFallbackItems('sports');
