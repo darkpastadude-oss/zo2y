@@ -8146,6 +8146,29 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       return typeof loaders.loadAnime === 'function' ? loaders.loadAnime(signal) : [];
     }
 
+    let homeGamesSharedScriptPromise = null;
+
+    function ensureHomeGamesShared() {
+      if (window.__zo2yGamesShared) return Promise.resolve(window.__zo2yGamesShared);
+      if (homeGamesSharedScriptPromise) return homeGamesSharedScriptPromise;
+      homeGamesSharedScriptPromise = new Promise((resolve, reject) => {
+        const existing = document.querySelector('script[data-home-games-shared=\"1\"]');
+        if (existing) {
+          existing.addEventListener('load', () => resolve(window.__zo2yGamesShared || {}), { once: true });
+          existing.addEventListener('error', () => reject(new Error('Failed to load games loader.')), { once: true });
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'js/pages/games-shared.js?v=20260419a';
+        script.defer = true;
+        script.setAttribute('data-home-games-shared', '1');
+        script.onload = () => resolve(window.__zo2yGamesShared || {});
+        script.onerror = () => reject(new Error('Failed to load games loader.'));
+        document.head.appendChild(script);
+      });
+      return homeGamesSharedScriptPromise;
+    }
+
     function normalizeGameCoverUrl(value) {
       const raw = String(value || '').trim();
       if (!raw || raw === '[object Object]') return '';
@@ -8669,95 +8692,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     async function loadGames(signal, options = {}) {
       const targetCount = Math.max(getHomeChannelTargetItems(), isHomeSlowNetwork() ? 18 : 28);
-        const mapToItem = (row) => {
-          const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
-          const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
-          const cover = resolveHomeGameCover(row);
-          const hero = resolveHomeGameHero(row, '') || cover;
-          const presentation = getHomeGamePresentation(cover, hero);
-          const visual = cover || hero || '/newlogo.webp';
-          const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
-          const title = String(row?.title || row?.name || 'Game').trim() || 'Game';
-          const releaseDate = String(row?.release_date || row?.released || '').trim();
-          const ratingValue = Number(row?.rating || 0);
-          const genreText = genres.length
-            ? genres.slice(0, 2).map((entry) => String(entry?.name || entry || '').trim()).filter(Boolean).join(' | ')
-            : 'Video Game';
-          const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
-          return {
-            mediaType: 'game',
-            itemId: id,
-            title,
-            subtitle: releaseDate ? releaseDate.slice(0, 10) : '',
-            extra: [genreText, ratingText].filter(Boolean).join(' | '),
-            image: visual,
-            backgroundImage: hero || visual,
-            spotlightImage: hero || visual,
-            spotlightMediaImage: visual,
-            spotlightMediaFit: presentation.spotlightFit,
-            spotlightMediaShape: presentation.spotlightShape,
-            gameCardMode: presentation.plain ? 'plain' : 'hero',
-            fallbackImage: '',
-            href: id ? `game.html?id=${encodeURIComponent(String(id))}` : 'games.html'
-          };
-        };
-
       try {
-        const client = await ensureHomeSupabase();
-        if (!client) return [];
-        try {
-            const { data, error } = await client
-              .from('games')
-              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
-              .order('rating_count', { ascending: false, nullsFirst: false })
-              .order('rating', { ascending: false, nullsFirst: false })
-              .limit(Math.max(targetCount * 12, 192));
-          if (error) return [];
-          const primaryRows = Array.isArray(data) ? data : [];
-          const titlePool = Array.from(new Set(primaryRows.map((row) => String(row?.title || '').trim()).filter(Boolean))).slice(0, Math.max(targetCount * 3, 48));
-          const slugPool = Array.from(new Set(primaryRows.map((row) => String(row?.slug || '').trim()).filter(Boolean))).slice(0, Math.max(targetCount * 3, 48));
-          let combinedRows = primaryRows.slice();
-          if (titlePool.length) {
-              const { data: altRows, error: altError } = await client
-                .from('games')
-                .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
-                .in('title', titlePool);
-            if (!altError && Array.isArray(altRows) && altRows.length) {
-              combinedRows = primaryRows.concat(altRows);
-            }
-          }
-          if (slugPool.length) {
-              const { data: altSlugRows, error: altSlugError } = await client
-                .from('games')
-                .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,slug,source')
-                .in('slug', slugPool);
-            if (!altSlugError && Array.isArray(altSlugRows) && altSlugRows.length) {
-              combinedRows = combinedRows.concat(altSlugRows);
-            }
-          }
-            const dedupedRows = dedupeHomeGameRows(combinedRows, targetCount * 6);
-            const preferredRows = dedupedRows.filter((row) => isPreferredHomeGameRow(row));
-            const shuffledPreferred = stableShuffleHomeItems(preferredRows, 'games:home:preferred');
-            const shuffledAll = stableShuffleHomeItems(dedupedRows, 'games:home:all');
-            const selectedRows = [];
-            const seenRowIds = new Set();
-            [...shuffledPreferred, ...shuffledAll].forEach((row) => {
-              if (selectedRows.length >= targetCount * 4) return;
-              const rowKey = String(row?.id || row?.slug || row?.title || '').trim().toLowerCase();
-              if (!rowKey || seenRowIds.has(rowKey)) return;
-              seenRowIds.add(rowKey);
-              selectedRows.push(row);
-            });
-            const mappedItems = selectedRows
-              .map((row) => mapToItem(row))
-              .filter((item) => item && String(item.itemId || '').trim());
-            return mappedItems.slice(0, targetCount);
-        } catch (_localGamesError) {
-          return [];
+        const loader = await ensureHomeGamesShared().catch(() => ({}));
+        if (typeof loader.loadFeaturedGames === 'function') {
+          const items = await loader.loadFeaturedGames(signal, { limit: targetCount });
+          if (Array.isArray(items) && items.length) return items.slice(0, targetCount);
         }
-      } catch (_error) {
-        return [];
-      }
+      } catch (_err) {}
+      return [];
     }
 
     async function refreshHomeGamesRail() {
