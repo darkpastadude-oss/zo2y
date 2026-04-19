@@ -1105,9 +1105,24 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       if (homeBrandBackgroundManifest) return homeBrandBackgroundManifest;
       if (homeBrandBackgroundManifestPromise) return homeBrandBackgroundManifestPromise;
       homeBrandBackgroundManifestPromise = (async () => {
+        let timeoutId = null;
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
         try {
+          const mergedSignal = (() => {
+            if (!controller) return signal || undefined;
+            if (!signal) return controller.signal;
+            try {
+              if (signal.aborted) controller.abort();
+              signal.addEventListener('abort', () => controller.abort(), { once: true });
+            } catch (_err) {}
+            return controller.signal;
+          })();
+          // Avoid hanging the homepage on slow/blocked storage manifests.
+          timeoutId = setTimeout(() => {
+            try { controller?.abort(); } catch (_err) {}
+          }, 1400);
           const response = await fetch(HOME_BRAND_BACKGROUND_MANIFEST_URL, {
-            signal,
+            signal: mergedSignal,
             headers: { Accept: 'application/json' }
           });
           if (!response.ok) return null;
@@ -1117,6 +1132,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         } catch (_err) {
           return null;
         } finally {
+          if (timeoutId) clearTimeout(timeoutId);
           homeBrandBackgroundManifestPromise = null;
         }
       })();
@@ -8389,7 +8405,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       async function loadFashionBrands() {
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
-        const backgroundManifestPromise = ensureHomeBrandBackgroundManifest();
+        // Fire and forget: don't block the rail on storage manifest fetch.
+        void ensureHomeBrandBackgroundManifest();
         const fallbackItems = stableShuffleHomeItems(
           HOME_FASHION_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'fashion', index)),
           'fashion:fallback'
@@ -8402,7 +8419,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
           .limit(fetchLimit);
         if (error || !data || !data.length) return fallbackItems.slice(0, target);
-        await backgroundManifestPromise;
         const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'fashion', index));
         return stableShuffleHomeItems(items, 'fashion:home').slice(0, target);
       }
@@ -8410,7 +8426,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       async function loadFoodBrands() {
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
-        const backgroundManifestPromise = ensureHomeBrandBackgroundManifest();
+        void ensureHomeBrandBackgroundManifest();
         const fallbackItems = stableShuffleHomeItems(
           HOME_FOOD_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'food', index)),
           'food:fallback'
@@ -8423,7 +8439,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
           .limit(fetchLimit);
         if (error || !data || !data.length) return fallbackItems.slice(0, target);
-        await backgroundManifestPromise;
         const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'food', index));
         return stableShuffleHomeItems(items, 'food:home').slice(0, target);
       }
@@ -8431,7 +8446,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       async function loadCarBrands() {
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
-        const backgroundManifestPromise = ensureHomeBrandBackgroundManifest();
+        void ensureHomeBrandBackgroundManifest();
         const fallbackItems = stableShuffleHomeItems(
           HOME_CAR_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'car', index)),
           'car:fallback'
@@ -8444,7 +8459,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
           .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
           .limit(fetchLimit);
         if (error || !data || !data.length) return fallbackItems.slice(0, target);
-        await backgroundManifestPromise;
         const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'car', index));
         return stableShuffleHomeItems(items, 'car:home').slice(0, target);
       }
