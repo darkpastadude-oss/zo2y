@@ -67,7 +67,9 @@
     'users', 'zo2y'
   ]);
   var SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  var SUPABASE_KEY = 'sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd';
+  // Temporary test: use the anon key from commit b57da823 ("hey there dude (auth works here)").
+  // If this fixes homepage-only loading issues, we can follow up by rotating to the new key properly.
+  var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
 
   try {
     if (!window.__ZO2Y_SUPABASE_CONFIG) {
