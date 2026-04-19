@@ -1547,31 +1547,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         }
       }
       const typeKey = String(mediaType || '').toLowerCase();
-      // Home rails should not depend on favicons; use local category artwork by default.
+      // No favicons on home rails. If Supabase doesn't provide a logo_url, fall back to local category artwork.
       if (typeKey === 'fashion') return '/images/onboarding/onboard-fashion.svg';
       if (typeKey === 'food') return '/images/onboarding/onboard-food.svg';
       if (typeKey === 'car') return '/images/onboarding/onboard-interests.svg';
-      const title = String(row?.name || row?.title || '').trim();
-      const domainRaw = String(row?.domain || '').trim();
-      const logoOnly = ['fashion', 'food', 'car'].includes(String(mediaType || '').toLowerCase());
-      if (title) {
-        const params = new URLSearchParams();
-        params.set('title', title);
-        if (domainRaw) params.set('domain', domainRaw);
-        if (logoOnly) params.set('mode', 'logo');
-        return `/api/logo?${params.toString()}`;
-      }
-      const candidate = domainRaw;
-      if (!candidate) return '';
-      if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
-        return `/api/logo?domain=${encodeURIComponent(candidate)}&size=128${logoOnly ? '&mode=logo' : ''}`;
-      }
-      if (/^https?:\/\//i.test(candidate)) {
-        const match = candidate.match(/\/\/([^\/\?]+)/i);
-        if (match && match[1]) return `/api/logo?domain=${encodeURIComponent(match[1])}&size=128${logoOnly ? '&mode=logo' : ''}`;
-        return candidate;
-      }
-      return '';
+      return '/images/icons/star.svg';
     }
 
     function mapHomeBrandItem(row, type, fallbackIndex = 0) {
@@ -9026,15 +9006,89 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     async function loadGames(signal, options = {}) {
+      // Keep homepage games logic identical to the previously working implementation (commit b57da823).
+      // This version pulls from the existing `/api/igdb/games` aggregator instead of Supabase tables.
       const targetCount = Math.max(getHomeChannelTargetItems(), isHomeSlowNetwork() ? 18 : 28);
+      const cacheBust = options?.cacheBust ? Date.now() : 0;
+      const cacheParams = cacheBust ? { cache_bust: cacheBust } : {};
+
+      const mapToItem = (row) => {
+        const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
+        const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
+        const cover = resolveHomeGameCover(row);
+        const hero = resolveHomeGameHero(row, '');
+        if (!cover || cover.includes('/newlogo.webp')) return null;
+        const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
+        const title = String(row?.title || row?.name || 'Game').trim() || 'Game';
+        const releaseDate = String(row?.release_date || row?.released || '').trim();
+        const ratingValue = Number(row?.rating || 0);
+        const genreText = genres.length
+          ? genres.slice(0, 2).map((entry) => String(entry?.name || entry || '').trim()).filter(Boolean).join(' | ')
+          : 'Video Game';
+        const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
+        return {
+          mediaType: 'game',
+          itemId: id,
+          title,
+          subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
+          extra: [genreText, ratingText].filter(Boolean).join(' | '),
+          image: cover,
+          backgroundImage: hero || '',
+          spotlightImage: hero || '',
+          spotlightMediaImage: cover,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          fallbackImage: '',
+          href: id ? `game.html?id=${encodeURIComponent(String(id))}` : 'games.html'
+        };
+      };
+
       try {
-        const loader = await ensureHomeGamesShared().catch(() => ({}));
-        if (typeof loader.loadFeaturedGames === 'function') {
-          const items = await loader.loadFeaturedGames(signal, { limit: targetCount });
-          if (Array.isArray(items) && items.length) return items.slice(0, targetCount);
+        const providerList = ['wikipedia', 'igdb'];
+        for (const provider of providerList) {
+          const baseParams = {
+            page_size: Math.min(Math.max(targetCount * 6, 140), 220),
+            provider,
+            spotlight: 1,
+            cache: 1,
+            cache_pages: 1
+          };
+          const requests = [
+            { ...baseParams, page: 1, ordering: '-released' },
+            { ...baseParams, page: 2, ordering: '-released' },
+            { ...baseParams, page: 1, ordering: '-rating' },
+            { ...baseParams, page: 1, ordering: '-rating_count' },
+            { ...baseParams, page: 1, ordering: '-name' },
+            { ...baseParams, page: 1, popularity_type: 1 },
+            { ...baseParams, page: 2, popularity_type: 1 }
+          ];
+          const merged = [];
+          const seen = new Set();
+          for (const params of requests) {
+            if (signal?.aborted) break;
+            const payload = await homeIgdbFetch('/games', { ...params, ...cacheParams }, signal);
+            const rows = Array.isArray(payload?.results) ? payload.results : [];
+            rows.forEach((row) => {
+              const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
+              const title = String(row?.title || row?.name || '').trim().toLowerCase();
+              const key = id || title;
+              if (!key || seen.has(key)) return;
+              seen.add(key);
+              merged.push(row);
+            });
+            if (merged.length >= targetCount * 4) break;
+          }
+          if (!merged.length || signal?.aborted) continue;
+          const items = merged
+            .map((row) => mapToItem(row))
+            .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
+            .slice(0, targetCount);
+          if (items.length) return items;
         }
-      } catch (_err) {}
-      return [];
+        return [];
+      } catch (_error) {
+        return [];
+      }
     }
 
     async function refreshHomeGamesRail() {
