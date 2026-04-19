@@ -260,163 +260,72 @@
 
         </section>
 
-        <section class="section explore" aria-label="Explore your interests">
+        <section class="section category-section" aria-label="Media">
           <div class="section-head">
-            <h2>Explore</h2>
-            <p>A unified home. Switch between Media and Lifestyle, then dive deeper when something clicks.</p>
+            <h2>Media</h2>
+            <p>Movies, TV, anime, games, books, and music — all in one place.</p>
           </div>
 
-          <div class="explore-tabs" role="tablist" aria-label="Explore lanes">
-            <button
-              class="explore-tab is-active"
-              type="button"
-              role="tab"
-              id="exploreMediaTab"
-              aria-controls="exploreMediaPanel"
-              aria-selected="true"
-              data-explore-tab="media">
-              <i class="fa-solid fa-clapperboard"></i>
-              <span>Media</span>
-            </button>
-            <button
-              class="explore-tab"
-              type="button"
-              role="tab"
-              id="exploreLifestyleTab"
-              aria-controls="exploreLifestylePanel"
-              aria-selected="false"
-              data-explore-tab="lifestyle">
-              <i class="fa-solid fa-compass"></i>
-              <span>Lifestyle</span>
-            </button>
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-film"></i> Movies</span><a href="movies.html?v=20260322m">View all</a></div>
+            <div class="rail" id="moviesRail"></div>
           </div>
 
-          <div class="explore-panels">
-            <div class="explore-panel is-active" role="tabpanel" id="exploreMediaPanel" aria-labelledby="exploreMediaTab" data-explore-panel="media">
-              <div class="explore-grid" aria-label="Media categories">
-                <a class="explore-card" href="movies.html?v=20260322m" data-explore-card="movie">
-                  <div class="explore-card-top">
-                    <span class="explore-card-icon"><i class="fa-solid fa-film"></i></span>
-                    <span class="explore-card-title">Movies</span>
-                  </div>
-                  <p class="explore-card-sub">Top picks, new releases, and what people are saving.</p>
-                  <div class="explore-card-art"><img src="/images/onboarding/onboard-media.svg" alt="" loading="lazy" decoding="async"></div>
-                </a>
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-tv"></i> TV Shows</span><a href="tvshows.html">View all</a></div>
+            <div class="rail" id="tvRail"></div>
+          </div>
 
-                <a class="explore-card" href="tvshows.html" data-explore-card="tv">
-                  <div class="explore-card-top">
-                    <span class="explore-card-icon"><i class="fa-solid fa-tv"></i></span>
-                    <span class="explore-card-title">TV</span>
-                  </div>
-                  <p class="explore-card-sub">Shows, seasons, rewatches, and what’s trending now.</p>
-                  <div class="explore-card-art"><img src="/images/onboarding/onboard-profile.svg" alt="" loading="lazy" decoding="async"></div>
-                </a>
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-dragon"></i> Anime</span><a href="animes.html">View all</a></div>
+            <div class="rail" id="animeRail"></div>
+          </div>
 
-                <a class="explore-card" href="animes.html" data-explore-card="anime">
-                  <div class="explore-card-top">
-                    <span class="explore-card-icon"><i class="fa-solid fa-dragon"></i></span>
-                    <span class="explore-card-title">Anime</span>
-                  </div>
-                  <p class="explore-card-sub">Seasonal hits, classics, and your next binge.</p>
-                  <div class="explore-card-art"><img src="/images/onboarding/onboard-interests.svg" alt="" loading="lazy" decoding="async"></div>
-                </a>
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-gamepad"></i> Games</span><a href="games.html">View all</a></div>
+            <div class="rail" id="gamesRail"></div>
+          </div>
 
-                <a class="explore-card" href="games.html" data-explore-card="game">
-                  <div class="explore-card-top">
-                    <span class="explore-card-icon"><i class="fa-solid fa-gamepad"></i></span>
-                    <span class="explore-card-title">Games</span>
-                  </div>
-                  <p class="explore-card-sub">Backlogs, finished games, and award-winning picks.</p>
-                  <div class="explore-card-art"><img src="/images/onboarding/onboard-interests.svg" alt="" loading="lazy" decoding="async"></div>
-                </a>
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-book"></i> Books</span><a href="books.html">View all</a></div>
+            <div class="rail" id="booksRail"></div>
+          </div>
 
-                <a class="explore-card" href="books.html" data-explore-card="book">
-                  <div class="explore-card-top">
-                    <span class="explore-card-icon"><i class="fa-solid fa-book"></i></span>
-                    <span class="explore-card-title">Books</span>
-                  </div>
-                  <p class="explore-card-sub">TBR stacks, favorites, and curated lists.</p>
-                  <div class="explore-card-art"><img src="/images/onboarding/onboard-travel.svg" alt="" loading="lazy" decoding="async"></div>
-                </a>
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-music"></i> Music</span><a href="music.html">View all</a></div>
+            <div class="rail" id="musicRail"></div>
+          </div>
+        </section>
 
-                <a class="explore-card" href="music.html" data-explore-card="music">
-                  <div class="explore-card-top">
-                    <span class="explore-card-icon"><i class="fa-solid fa-music"></i></span>
-                    <span class="explore-card-title">Music</span>
-                  </div>
-                  <p class="explore-card-sub">Albums, tracks, and your next repeat.</p>
-                  <div class="explore-card-art"><img src="/images/onboarding/onboard-media.svg" alt="" loading="lazy" decoding="async"></div>
-                </a>
-              </div>
+        <section class="section category-section" aria-label="Lifestyle">
+          <div class="section-head">
+            <h2>Lifestyle</h2>
+            <p>Travel, sports, fashion, food, and cars — the stuff you live for.</p>
+          </div>
 
-              <div class="rail-wrap explore-rail-wrap" aria-label="Media pulse rail">
-                <div class="rail-title"><span><i class="fa-solid fa-bolt"></i> Media pulse</span><a href="movies.html?v=20260322m">Browse</a></div>
-                <div class="rail unified-rail" id="mediaMixRail"></div>
-              </div>
-            </div>
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-earth-americas"></i> Travel</span><a href="travel.html">View all</a></div>
+            <div class="rail" id="travelRail"></div>
+          </div>
 
-            <div class="explore-panel" role="tabpanel" id="exploreLifestylePanel" aria-labelledby="exploreLifestyleTab" data-explore-panel="lifestyle" hidden>
-              <div class="explore-grid" aria-label="Lifestyle categories">
-                <a class="explore-card" href="travel.html" data-explore-card="travel">
-                  <div class="explore-card-top">
-                    <span class="explore-card-icon"><i class="fa-solid fa-earth-americas"></i></span>
-                    <span class="explore-card-title">Travel</span>
-                  </div>
-                  <p class="explore-card-sub">Countries, trips, and a map of your bucket list.</p>
-                  <div class="explore-card-art"><img src="/images/onboarding/onboard-travel.svg" alt="" loading="lazy" decoding="async"></div>
-                </a>
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-futbol"></i> Sports</span><a href="sports.html">View all</a></div>
+            <div class="rail" id="sportsRail"></div>
+          </div>
 
-                <a class="explore-card" href="sports.html" data-explore-card="sports">
-                  <div class="explore-card-top">
-                    <span class="explore-card-icon"><i class="fa-solid fa-futbol"></i></span>
-                    <span class="explore-card-title">Sports</span>
-                  </div>
-                  <p class="explore-card-sub">Teams, leagues, and match-day energy.</p>
-                  <div class="explore-card-art"><img src="/images/onboarding/onboard-media.svg" alt="" loading="lazy" decoding="async"></div>
-                </a>
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-shirt"></i> Fashion</span><a href="fashion.html">View all</a></div>
+            <div class="rail" id="fashionRail"></div>
+          </div>
 
-                <a class="explore-card" href="fashion.html" data-explore-card="fashion">
-                  <div class="explore-card-top">
-                    <span class="explore-card-icon"><i class="fa-solid fa-shirt"></i></span>
-                    <span class="explore-card-title">Fashion</span>
-                  </div>
-                  <p class="explore-card-sub">Brands, styles, and your signature lane.</p>
-                  <div class="explore-card-art"><img src="/images/onboarding/onboard-fashion.svg" alt="" loading="lazy" decoding="async"></div>
-                </a>
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-utensils"></i> Food</span><a href="food.html">View all</a></div>
+            <div class="rail" id="foodRail"></div>
+          </div>
 
-                <a class="explore-card" href="food.html" data-explore-card="food">
-                  <div class="explore-card-top">
-                    <span class="explore-card-icon"><i class="fa-solid fa-utensils"></i></span>
-                    <span class="explore-card-title">Food</span>
-                  </div>
-                  <p class="explore-card-sub">Brands, cravings, and places to try next.</p>
-                  <div class="explore-card-art"><img src="/images/onboarding/onboard-food.svg" alt="" loading="lazy" decoding="async"></div>
-                </a>
-
-                <a class="explore-card" href="cars.html" data-explore-card="cars">
-                  <div class="explore-card-top">
-                    <span class="explore-card-icon"><i class="fa-solid fa-car"></i></span>
-                    <span class="explore-card-title">Cars</span>
-                  </div>
-                  <p class="explore-card-sub">Automakers, dream garages, and motorsport favorites.</p>
-                  <div class="explore-card-art"><img src="/images/onboarding/onboard-interests.svg" alt="" loading="lazy" decoding="async"></div>
-                </a>
-
-                <a class="explore-card" href="restraunts.html" data-explore-card="restaurant">
-                  <div class="explore-card-top">
-                    <span class="explore-card-icon"><i class="fa-solid fa-location-dot"></i></span>
-                    <span class="explore-card-title">Places</span>
-                  </div>
-                  <p class="explore-card-sub">Saved spots and community favorites.</p>
-                  <div class="explore-card-art"><img src="/images/onboarding/onboard-profile.svg" alt="" loading="lazy" decoding="async"></div>
-                </a>
-              </div>
-
-              <div class="rail-wrap explore-rail-wrap" aria-label="Lifestyle pulse rail">
-                <div class="rail-title"><span><i class="fa-solid fa-sparkles"></i> Lifestyle pulse</span><a href="travel.html">Browse</a></div>
-                <div class="rail unified-rail" id="lifestyleMixRail"></div>
-              </div>
-            </div>
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-car"></i> Cars</span><a href="cars.html">View all</a></div>
+            <div class="rail" id="carRail"></div>
           </div>
         </section>
       </main>
@@ -514,7 +423,6 @@
     })();
   </script>
   <script src="js/pages/index.js?v=20260419c" defer></script>
-  <script src="js/pages/index-explore-tabs.js?v=20260419a" defer></script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
   <script src="js/home-desktop-rebrand.js?v=20260416b" defer></script>
 </body>

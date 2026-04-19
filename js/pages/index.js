@@ -5340,11 +5340,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 5600 }] : []),
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 8500 },
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 },
-        ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 6200 }] : []),
-        ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 6200 }] : []),
-        ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 6200 }] : []),
-        { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 6800 },
-        { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: false }, timeoutMs: 6800 }
+        ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 12000 }] : []),
+        ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 12000 }] : []),
+        ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 12000 }] : []),
+        { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 12000 },
+        { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: false }, timeoutMs: 12000 }
       ];
     }
 
@@ -5858,34 +5858,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         setHomeRailDeferredPlaceholder('unifiedRail');
       }
 
-      const mixOptions = { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true };
-      const mixTarget = Math.max(10, Math.min(18, Number(getHomeUnifiedTargetItems() || 12)));
-      const mediaTypes = new Set(['movie', 'tv', 'anime', 'game', 'book', 'music']);
-      const lifestyleTypes = new Set(['travel', 'sports', 'fashion', 'food', 'car', 'restaurant']);
-
-      const mediaMix = buildUnifiedFeed(
-        scoredPool.filter((item) => mediaTypes.has(String(item?.mediaType || '').trim())),
-        mixTarget
-      );
-      if (mediaMix.length) {
-        renderOrDeferHomeRail('mediaMixRail', mediaMix, mixOptions);
-      } else if (showEmptyRails) {
-        renderOrDeferHomeRail('mediaMixRail', [], { ...mixOptions, allowEmptyState: true });
-      } else {
-        setHomeRailDeferredPlaceholder('mediaMixRail');
-      }
-
-      const lifestyleMix = buildUnifiedFeed(
-        scoredPool.filter((item) => lifestyleTypes.has(String(item?.mediaType || '').trim())),
-        mixTarget
-      );
-      if (lifestyleMix.length) {
-        renderOrDeferHomeRail('lifestyleMixRail', lifestyleMix, mixOptions);
-      } else if (showEmptyRails) {
-        renderOrDeferHomeRail('lifestyleMixRail', [], { ...mixOptions, allowEmptyState: true });
-      } else {
-        setHomeRailDeferredPlaceholder('lifestyleMixRail');
-      }
       if (options.refreshSecondary !== false) {
         scheduleHomeNewReleasesRefresh(homeFeedState);
         scheduleHomeMixedRefresh(homeFeedState, scoredPool);
