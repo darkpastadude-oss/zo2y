@@ -5254,6 +5254,37 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     function getHomeRailFallbackItems(_channelKey) {
       const key = String(_channelKey || '').trim().toLowerCase();
       const targetCount = getHomeChannelTargetItems();
+      if (key === 'game' && ENABLE_GAMES) {
+        return [
+          'Top Games',
+          'New Releases',
+          'Community Picks',
+          'Multiplayer Hits',
+          'Story Games'
+        ].slice(0, Math.max(3, Math.min(targetCount, 5))).map((title, index) => ({
+          mediaType: 'game',
+          itemId: `seed-game-${index + 1}`,
+          title,
+          subtitle: 'Loading live picks',
+          extra: 'Popular now',
+          image: HOME_LOCAL_FALLBACK_IMAGE,
+          backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
+          spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
+          spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+          href: 'games.html',
+          isPlaceholder: true
+        }));
+      }
+      if (key === 'fashion' && ENABLE_FASHION) {
+        return HOME_FASHION_FALLBACKS.slice(0, targetCount).map((row, index) => ({
+          ...mapHomeBrandItem(row, 'fashion', index),
+          subtitle: row.category || 'Fashion',
+          extra: row.domain || ''
+        }));
+      }
       if (key === 'travel') {
         const cached = getCachedHomeTravelItems(targetCount);
         return cached.length ? cached : getHomeTravelFallbackItems(targetCount);
@@ -5322,10 +5353,43 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     function getHomeInitialChannels(channels) {
-      const list = Array.isArray(channels) ? channels : [];
-      if (isHomeSlowNetwork()) return list.slice(0, Math.min(4, list.length));
-      if (isHomeCompactViewport()) return list.slice(0, Math.min(6, list.length));
-      return list.slice(0, Math.min(8, list.length));
+      const list = Array.isArray(channels) ? channels.slice() : [];
+      const budget = isHomeSlowNetwork()
+        ? Math.min(4, list.length)
+        : (isHomeCompactViewport() ? Math.min(6, list.length) : Math.min(8, list.length));
+      if (!list.length) return [];
+
+      const domOrdered = list.sort((left, right) => {
+        const leftWrap = getHomeRailWrap(left?.railId);
+        const rightWrap = getHomeRailWrap(right?.railId);
+        if (!leftWrap && !rightWrap) return 0;
+        if (!leftWrap) return 1;
+        if (!rightWrap) return -1;
+        if (leftWrap === rightWrap) return 0;
+        const position = leftWrap.compareDocumentPosition(rightWrap);
+        if (position & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+        if (position & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+        return 0;
+      });
+
+      const selected = [];
+      const seen = new Set();
+      const pushChannel = (channel) => {
+        const key = String(channel?.key || channel?.railId || '').trim();
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        selected.push(channel);
+      };
+
+      const visibleChannels = domOrdered.filter((channel) => isHomeRailNearViewport(channel?.railId));
+      visibleChannels.forEach(pushChannel);
+      const targetCount = Math.max(budget, visibleChannels.length);
+      domOrdered.forEach((channel) => {
+        if (selected.length >= targetCount) return;
+        pushChannel(channel);
+      });
+
+      return selected;
     }
 
     function getHomeInitialChannelConcurrency() {

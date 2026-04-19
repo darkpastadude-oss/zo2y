@@ -427,6 +427,9 @@ export default async function handler(req, res) {
         return res.status(503).json({
           ok: false,
           message: "Supabase admin not configured",
+          hint: "Set SUPABASE_SERVICE_ROLE_KEY (Supabase service_role key) as a Cloudflare Pages/Workers secret.",
+          required_env: ["SUPABASE_URL"],
+          required_secrets: ["SUPABASE_SERVICE_ROLE_KEY"],
           supabase_url_set: urlSet,
           supabase_service_role_set: serviceRoleSet
         });
