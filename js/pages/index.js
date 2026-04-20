@@ -9252,100 +9252,85 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
     async function loadTravel(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
-      const cached = getCachedHomeTravelItems(targetCount);
-      if (cached.length) return cached.slice(0, targetCount);
+      const cachedHomeItems = readHomeItemsCache(
+        HOME_TRAVEL_ITEMS_CACHE_KEY,
+        HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS,
+        sanitizeHomeTravelItem
+      );
+      if (cachedHomeItems.length) return cachedHomeItems.slice(0, targetCount);
 
-      // Homepage travel should behave like `travel.html`: fetch countries + hydrate the travel photo manifest,
-      // then render real cards (no placeholders).
-      const seedCodes = [
-        'JP','FR','IT','ES','TH','TR','ID','US','GB','AE','MX','BR',
-        'EG','GR','PT','DE','MA','ZA','CH','AT','NL','BE','HR','IS',
-        'NO','SE','FI','DK','IE','CZ','HU','PL','RO','KE','TZ','VN',
-        'KR','IN','LK','AU','NZ','CA','AR','CL','PE','CR','PH','SG','MY'
-      ];
+      const cachedRowItems = getCachedHomeTravelItems(targetCount);
+      if (cachedRowItems.length) return cachedRowItems.slice(0, targetCount);
 
-      const [manifestOk, countryRows] = await Promise.all([
-        withTimeout(hydrateHomeTravelBucketManifest(signal), 6500, false).catch(() => false),
-        fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
+      // Match the older "auth works here" home travel approach, but with only one scenic image:
+      // use the (fast + reliable) RestCountries dataset and a single banner per country.
+      // Hydrate the Supabase manifest in the background if available, but do not block rendering.
+      void hydrateHomeTravelBucketManifest(signal).catch(() => {});
+
+      try {
+        const payload = await fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
           signal,
-          cacheKey: 'restcountries:all:v3.1:home:travel',
+          cacheKey: 'restcountries:all:v3.1:home:travel:fast',
           ttlMs: 1000 * 60 * 60 * 12,
           timeoutMs: 11000,
           retries: 1
-        }).then((payload) => Array.isArray(payload) ? payload : []).catch(() => [])
-      ]);
-
-      // Prime the flag index in the background (for country detail views / spotlight).
-      void ensureHomeCountryIndex(signal).catch(() => {});
-
-      const byCode = new Map();
-      countryRows.forEach((row) => {
-        const code = canonicalTravelCountryCode(row?.cca2 || row?.cca3 || '');
-        if (!code) return;
-        byCode.set(code, row);
-      });
-
-      const picked = [];
-      const seenCodes = new Set();
-      const pushRow = (row) => {
-        const code = canonicalTravelCountryCode(row?.cca2 || row?.cca3 || '');
-        if (!code || seenCodes.has(code)) return;
-        const name = String(row?.name?.common || row?.name?.official || '').trim();
-        if (!name || /\bisrael\b/i.test(name) || code === 'IL') return;
-        seenCodes.add(code);
-        picked.push(row);
-      };
-
-      seedCodes.forEach((code) => {
-        const row = byCode.get(canonicalTravelCountryCode(code));
-        if (row) pushRow(row);
-      });
-
-      if (picked.length < targetCount * 2) {
-        const remaining = countryRows.filter((row) => {
-          const code = canonicalTravelCountryCode(row?.cca2 || row?.cca3 || '');
-          if (!code || seenCodes.has(code)) return false;
-          const name = String(row?.name?.common || row?.name?.official || '').trim();
-          if (!name || /\bisrael\b/i.test(name) || code === 'IL') return false;
-          return true;
         });
-        shuffleArray(remaining).slice(0, (targetCount * 3) - picked.length).forEach(pushRow);
-      }
+        if (signal?.aborted) return [];
+        const rows = Array.isArray(payload) ? payload : [];
+        if (!rows.length) return [];
+        primeHomeCountryIndex(rows);
 
-      const compactRows = picked.slice(0, Math.max(targetCount * 4, 72)).map((row) => {
-        const code = canonicalTravelCountryCode(row?.cca2 || row?.cca3 || '');
-        const capital = Array.isArray(row?.capital) ? String(row.capital[0] || '').trim() : String(row?.capital || '').trim();
-        const flag = toHttpsUrl(String(row?.flags?.png || row?.flags?.svg || '').trim());
-        return {
-          code,
-          cca2: String(row?.cca2 || '').trim(),
-          cca3: String(row?.cca3 || '').trim(),
-          name: String(row?.name?.common || row?.name?.official || code || '').trim(),
-          capital,
-          region: String(row?.region || '').trim(),
-          subregion: String(row?.subregion || '').trim(),
-          flag
-        };
-      }).filter((row) => row?.code && row?.name);
-
-      if (compactRows.length) writeHomeTravelCountryRowsCache(compactRows);
-
-      const items = compactRows
-        .map((row) => {
-          const code = canonicalTravelCountryCode(row?.code || row?.cca2 || row?.cca3 || '');
-          const cachedSet = code ? getHomeTravelPhotoSet(code) : { scenic: '', city: '', nature: '' };
-          return mapCachedTravelCountryRowToHomeItem({
-            ...row,
-            // Encourage scenic images when we have them; otherwise fall back to local travel art.
-            photo: cachedSet.scenic || HOME_TRAVEL_FALLBACK_IMAGE
+        const sortedRows = rows
+          .filter((row) => {
+            if (!row || !(row.cca2 || row.cca3) || !(row?.name?.common || row?.name?.official)) return false;
+            const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+            const name = String(row?.name?.common || row?.name?.official || '').trim();
+            if (code === 'IL') return false;
+            if (/\bisrael\b/i.test(name)) return false;
+            return true;
+          })
+          .sort((a, b) => {
+            const left = String(a?.name?.common || a?.name?.official || '').trim();
+            const right = String(b?.name?.common || b?.name?.official || '').trim();
+            return left.localeCompare(right);
           });
-        })
-        .filter(Boolean)
-        .slice(0, targetCount);
 
-      // If we couldn't produce real items, let the retry loop handle it (no placeholders).
-      if (items.length) return items;
-      if (!manifestOk) homeDebugEvent('travel:manifest_missing', {});
+        const shortlist = shuffleArray(sortedRows.slice(0, Math.max(targetCount * 5, 120)));
+        const seen = new Set();
+        const out = [];
+        const pushRow = (row) => {
+          const code = canonicalTravelCountryCode(row?.cca2 || row?.cca3 || '');
+          if (!code || seen.has(code)) return;
+          const name = String(row?.name?.common || row?.name?.official || code || '').trim();
+          if (!name) return;
+          const capital = Array.isArray(row?.capital) ? String(row.capital[0] || '').trim() : String(row?.capital || '').trim();
+          const flag = toHttpsUrl(String(row?.flags?.png || row?.flags?.svg || '').trim());
+          const scenic = normalizeHomeTravelPhotoEntry(getHomeTravelPhotoSet(code)).scenic || HOME_TRAVEL_FALLBACK_IMAGE;
+          const item = mapCachedTravelCountryRowToHomeItem({
+            code,
+            cca2: String(row?.cca2 || '').trim(),
+            cca3: String(row?.cca3 || '').trim(),
+            name,
+            capital,
+            region: String(row?.region || '').trim(),
+            subregion: String(row?.subregion || '').trim(),
+            flag,
+            photo: scenic
+          });
+          if (!item) return;
+          seen.add(code);
+          out.push(item);
+        };
+
+        shortlist.forEach(pushRow);
+        if (out.length < targetCount) sortedRows.forEach(pushRow);
+        const items = out.slice(0, targetCount);
+        if (items.length) {
+          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, items);
+          return items;
+        }
+      } catch (_err) {}
+
       return [];
     }
 
