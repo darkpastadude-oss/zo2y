@@ -1230,7 +1230,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         const region = String(entry?.region || '').trim();
         const subregion = String(entry?.subregion || '').trim();
         const flagImage = getHomeCountryFlagByCode(code) || `https://flagcdn.com/w160/${code.toLowerCase()}.png`;
-        const background = HOME_TRAVEL_FALLBACK_IMAGE;
+        const cachedSet = getHomeTravelPhotoSet(code);
+        const manifestCandidate = `${SUPABASE_URL}/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/${code}/scenic.jpg`;
+        const background = cachedSet.scenic
+          || (isUsableHomeTravelScenicUrl(manifestCandidate) ? manifestCandidate : '')
+          || HOME_TRAVEL_FALLBACK_IMAGE;
         const subtitle = [
           capital ? `Capital: ${capital}` : '',
           region
@@ -9277,9 +9281,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
 
       if (!homeTravelHydrationPromise) {
         homeTravelHydrationPromise = (async () => {
+          const backgroundController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+          let backgroundTimer = null;
           try {
             // Hydrate the Supabase manifest if possible (scenic photos); do not block too long.
-            await withTimeout(hydrateHomeTravelBucketManifest(signal), 2400, false).catch(() => false);
+            try {
+              if (backgroundController) {
+                backgroundTimer = setTimeout(() => backgroundController.abort(), 14000);
+              }
+              await withTimeout(hydrateHomeTravelBucketManifest(backgroundController ? backgroundController.signal : undefined), 5200, false).catch(() => false);
+            } catch (_err) {}
 
             const payload = await fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
               cacheKey: 'restcountries:all:v3.1:home:travel:hydrate',
@@ -9352,6 +9363,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             renderRail('travelRail', items, { mediaType: 'travel' });
           } catch (_err) {
             // Ignore; fallback cards remain visible.
+          } finally {
+            if (backgroundTimer) clearTimeout(backgroundTimer);
+            if (backgroundController) {
+              try { backgroundController.abort(); } catch (_err) {}
+            }
           }
         })().finally(() => {
           homeTravelHydrationPromise = null;
