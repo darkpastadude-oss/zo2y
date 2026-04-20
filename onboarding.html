@@ -165,6 +165,25 @@
     }
     .status.error{color:#ffb4b4}
     .status.success{color:#b9ffe4}
+
+    @media (prefers-reduced-motion: no-preference){
+      body::after{animation:zo2yDrift 16s linear infinite}
+      .shell{animation:zo2yEnter .46s cubic-bezier(.2,.9,.2,1) both}
+      .btn{transition:transform .18s ease, filter .18s ease}
+      .btn:not(:disabled):hover{transform:translateY(-1px);filter:saturate(1.08)}
+      .btn:not(:disabled):active{transform:translateY(0)}
+    }
+
+    @keyframes zo2yEnter{
+      from{opacity:0;transform:translateY(10px) scale(.99)}
+      to{opacity:1;transform:translateY(0) scale(1)}
+    }
+
+    @keyframes zo2yDrift{
+      0%{transform:translate3d(-2%, -1%, 0)}
+      50%{transform:translate3d(2%, 1%, 0)}
+      100%{transform:translate3d(-2%, -1%, 0)}
+    }
     @media (max-width: 520px){
       .row{grid-template-columns:1fr}
       .btn{width:100%}

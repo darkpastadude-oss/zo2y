@@ -172,6 +172,21 @@
       color: var(--muted);
     }
 
+    @media (prefers-reduced-motion: no-preference) {
+      .media-spotlight-shell { animation: zo2yFadeIn 420ms cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+      .card { animation: zo2yCardIn 420ms cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+    }
+
+    @keyframes zo2yFadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes zo2yCardIn {
+      from { opacity: 0; transform: translateY(6px) scale(0.995); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
     .media-spotlight {
       max-width: 1200px;
       margin: 18px auto 0;
@@ -1453,6 +1468,28 @@
           seen.add(key);
           merged.push(doc);
         });
+
+        if (merged.length < BOOKS_PER_PAGE) {
+          const needed = Math.max(1, BOOKS_PER_PAGE - merged.length);
+          const [popularPage2, googleDocs] = await Promise.allSettled([
+            fetchPopularBooks(2, Math.max(10, needed)),
+            fetchGoogleBooksDocs({ q: 'bestselling books', limit: Math.max(12, needed) })
+          ]);
+          const extraPopularDocs = popularPage2.status === 'fulfilled' && Array.isArray(popularPage2.value?.docs)
+            ? popularPage2.value.docs
+            : [];
+          const extraGoogleDocs = googleDocs.status === 'fulfilled' && Array.isArray(googleDocs.value)
+            ? googleDocs.value
+            : [];
+          [...extraPopularDocs, ...extraGoogleDocs].forEach((doc) => {
+            const title = normalizeBookSeedText(doc?.title || '');
+            const author = normalizeBookSeedText(Array.isArray(doc?.author_name) ? doc.author_name[0] : '');
+            const key = `${title}::${author}`;
+            if (!title || seen.has(key)) return;
+            seen.add(key);
+            merged.push(doc);
+          });
+        }
         return {
           docs: merged.slice(0, BOOKS_PER_PAGE),
           numFound: Math.max(Number(popular?.numFound || 0), Number(trending?.numFound || 0), merged.length, BOOKS_PER_PAGE * 2)
@@ -1509,7 +1546,7 @@
           if (!raw) return null;
           const parsed = JSON.parse(raw);
           const age = Date.now() - Number(parsed?.savedAt || 0);
-          if (!parsed || !Array.isArray(parsed?.docs) || age > BOOKS_PAGE_CACHE_TTL_MS) return null;
+          if (!parsed || !Array.isArray(parsed?.docs) || parsed.docs.length < Math.min(8, BOOKS_PER_PAGE) || age > BOOKS_PAGE_CACHE_TTL_MS) return null;
           return {
             docs: parsed.docs.map((entry, idx) => normalizeRemoteBookDoc(entry, idx)).filter((entry) => String(entry?.title || '').trim()),
             numFound: Number(parsed?.numFound || 0) || parsed.docs.length
@@ -1522,7 +1559,7 @@
       function writeCachedBooksPage(data) {
         try {
           const docs = Array.isArray(data?.docs) ? data.docs : [];
-          if (!docs.length) return;
+          if (docs.length < Math.min(8, BOOKS_PER_PAGE)) return;
           localStorage.setItem(BOOKS_PAGE_CACHE_KEY, JSON.stringify({
             savedAt: Date.now(),
             numFound: Number(data?.numFound || docs.length) || docs.length,
@@ -1939,6 +1976,44 @@
           data = { docs: [], numFound: 0 };
         }
 
+        if (!hasActiveFilters && Array.isArray(data?.docs) && data.docs.length > 0 && data.docs.length < BOOKS_PER_PAGE) {
+          const merged = [];
+          const seen = new Set();
+          const pushUnique = (doc) => {
+            const title = normalizeBookSeedText(doc?.title || '');
+            const author = normalizeBookSeedText(Array.isArray(doc?.author_name) ? doc.author_name[0] : '');
+            const key = `${title}::${author}`;
+            if (!title || seen.has(key)) return;
+            seen.add(key);
+            merged.push(doc);
+          };
+          data.docs.forEach(pushUnique);
+
+          const needed = Math.max(1, BOOKS_PER_PAGE - merged.length);
+          const currentPage = Math.max(1, Number(state.page || 1));
+          const [popularMore, trendingMore, googleMore] = await Promise.allSettled([
+            fetchPopularBooks(currentPage + 1, Math.max(10, needed)),
+            fetchTrendingBooks(Math.max(10, needed)),
+            fetchGoogleBooksDocs({ q: 'popular books', limit: Math.max(12, needed) })
+          ]);
+
+          const extraPopularDocs = popularMore.status === 'fulfilled' && Array.isArray(popularMore.value?.docs)
+            ? popularMore.value.docs
+            : [];
+          const extraTrendingDocs = trendingMore.status === 'fulfilled' && Array.isArray(trendingMore.value?.docs)
+            ? trendingMore.value.docs
+            : [];
+          const extraGoogleDocs = googleMore.status === 'fulfilled' && Array.isArray(googleMore.value)
+            ? googleMore.value
+            : [];
+
+          [...extraPopularDocs, ...extraTrendingDocs, ...extraGoogleDocs].forEach(pushUnique);
+          data = {
+            docs: merged.slice(0, BOOKS_PER_PAGE),
+            numFound: Math.max(Number(data?.numFound || 0) || 0, merged.length, BOOKS_PER_PAGE * 2)
+          };
+        }
+
         if (requestSeq !== state.requestSeq) return;
         if (isFirstPopularPage && Array.isArray(data?.docs) && data.docs.length) {
           writeCachedBooksPage(data);
@@ -1971,6 +2046,12 @@
           const desc = truncateText(item.title || '', 140) || 'No description available.';
           const thumb = getPreferredBookImage(item);
           const bookId = getBookEntryId(item, idx);
+          const eager = Number(state.page || 1) === 1
+            && idx < 6
+            && !state.query
+            && !state.author
+            && !state.activeCategory
+            && !state.year;
           const titleParam = encodeURIComponent(String(item?.title || '').trim());
           const authorParam = encodeURIComponent(String((Array.isArray(item?.author_name) ? item.author_name[0] : '') || '').trim());
           state.bookIndex.set(bookId, item);
@@ -1982,7 +2063,9 @@
             <img
               src="${thumb || FALLBACK_BOOK_IMAGE}"
               alt="${item.title || 'Book'}"
-              loading="lazy"
+              loading="${eager ? 'eager' : 'lazy'}"
+              decoding="async"
+              fetchpriority="${eager ? 'high' : 'auto'}"
               onerror="this.onerror=null;this.src='/newlogo.webp';">
             <div class="card-body">
               <h3 class="card-title">${item.title || 'Untitled'}</h3>

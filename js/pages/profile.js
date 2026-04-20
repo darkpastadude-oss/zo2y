@@ -521,35 +521,24 @@
                 return normalizedUsername;
             }
 
-            function maybeTriggerUsernameOnboarding() {
-                if (!isViewingOwnProfile) return;
-                if (!currentUser?.id) return;
-                if (!userProfile) return;
-                if (wasOnboardingShownThisSession(currentUser.id)) return;
+            function maybeRedirectUsernameOnboarding() {
+                if (!isViewingOwnProfile) return false;
+                if (!currentUser?.id) return false;
+                if (!userProfile) return false;
+                if (wasOnboardingShownThisSession(currentUser.id)) return false;
 
                 const needsUsername = isPlaceholderUsername(userProfile.username);
                 const pending = hasOnboardingPending(currentUser.id);
-                if (!needsUsername && !pending) return;
+                if (!needsUsername && !pending) return false;
 
-                // Clear "pending" once we show it; if they close without saving, it can reappear next visit
-                // due to `needsUsername` still being true.
-                clearOnboardingPending(currentUser.id);
                 markOnboardingShownThisSession(currentUser.id);
+                try { localStorage.setItem(getOnboardingPendingKey(currentUser.id), '1'); } catch (_err) {}
 
-                try {
-                    showModal('editProfileModal');
-                    setTimeout(() => {
-                        const input = document.getElementById('editUsername');
-                        if (input && typeof input.focus === 'function') {
-                            input.focus();
-                            try { input.select(); } catch (_err) {}
-                        }
-                        const hint = document.getElementById('editUsernameHint');
-                        if (hint) {
-                            hint.textContent = 'Choose a username to finish setting up your profile.';
-                        }
-                    }, 60);
-                } catch (_err) {}
+                const nextPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+                try { localStorage.setItem('postAuthRedirect', nextPath); } catch (_err2) {}
+
+                window.location.replace(`onboarding.html?onboarding=1&next=${encodeURIComponent(nextPath)}`);
+                return true;
             }
 
             function setupMobileTabsHint() {
@@ -977,8 +966,8 @@
                 }
                 
                 updateProfileUI();
-                // New accounts should be prompted immediately to pick a username.
-                maybeTriggerUsernameOnboarding();
+                // Enforce the dedicated onboarding username flow (no email-derived fallbacks).
+                if (maybeRedirectUsernameOnboarding()) return;
                 
                 // Load stats in background (don't block UI)
                 updateStats().catch(err => console.error('Stats error:', err));
@@ -1229,7 +1218,7 @@
                 }
                 renderProfileBadges(profile);
                 
-                const rawUsername = String(profile?.username || currentUser.email.split('@')[0] || 'user').replace(/^@+/, '').trim();
+                const rawUsername = String(profile?.username || '').replace(/^@+/, '').trim();
                 const normalizedUsername = rawUsername || 'user';
                 const displayIdentity = `@${normalizedUsername}`;
 
@@ -12842,10 +12831,10 @@
                     }
 
                     if (!saved) {
+                        const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
                         const usernameSeed = String(
                             userProfile?.username ||
-                            currentUser?.email?.split('@')[0] ||
-                            `user_${String(currentUser?.id || '').slice(0, 8)}`
+                            `user_${idSuffix}`
                         ).trim();
                         const usernameCandidates = buildProfileUsernameCandidates(usernameSeed, currentUser?.id);
                         const fullNameSeed = String(

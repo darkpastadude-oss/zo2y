@@ -6254,7 +6254,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function scheduleDeferredHomeStartupTasks() {
       const run = () => {
-        void maybeShowHomeOnboarding();
         void refreshHomePersonalization();
         scheduleHomeMenuCachePrime();
       };
@@ -10946,10 +10945,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         await setupHomeAuthListener();
         await completeHomeOAuthReturnIfNeeded();
         await initAuthUi();
-        const bootstrapApplied = await finishPendingPostAuthBootstrap();
-        if ((bootstrapApplied || isOnboardingPending(homeCurrentUser?.id)) && !hasSeenOnboarding(homeCurrentUser?.id)) {
-          void maybeShowHomeOnboarding();
-        }
+        await finishPendingPostAuthBootstrap();
         await initUniversalHome();
         scheduleDeferredHomeStartupTasks();
       })().catch((error) => {

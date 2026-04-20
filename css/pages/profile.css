@@ -35,6 +35,27 @@
             min-height: 100vh;
         }
 
+        @media (prefers-reduced-motion: no-preference) {
+            .profile-hero-card {
+                animation: zo2y-rise-in 520ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+            }
+
+            .collection-card,
+            .team-card {
+                animation: zo2y-fade-in 420ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+            }
+        }
+
+        @keyframes zo2y-rise-in {
+            from { opacity: 0; transform: translateY(10px) scale(0.995); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes zo2y-fade-in {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         body.profile-theme-navy {
             --bg: #0b1633;
             --card: #132347;

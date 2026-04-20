@@ -1156,7 +1156,6 @@
         if (finalAuthenticated && session && session.user && session.user.id) {
           try {
             var userId = session.user.id;
-            var isProfilePage = pageKey === 'profile';
             var isOnboardingPage = pageKey === 'onboarding';
             var onboardingParam = false;
             try {
@@ -1164,7 +1163,7 @@
               onboardingParam = params.get('onboarding') === '1';
             } catch (_errSearch) {}
 
-            if (!isProfilePage && !isOnboardingPage && !onboardingParam && !wasOnboardingEnforcedThisSession(userId)) {
+            if (!isOnboardingPage && !onboardingParam && !wasOnboardingEnforcedThisSession(userId)) {
               var cachedNeeds = readNeedsUsernameCache(userId);
               var pending = hasOnboardingPending(userId);
               if (cachedNeeds === true || pending) {
