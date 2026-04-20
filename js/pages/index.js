@@ -163,27 +163,7 @@
     const HOME_TRAVEL_BUCKET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
     const HOME_TRAVEL_BUCKET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/manifest/travel-photo-manifest.json`;
     const HOME_BRAND_BACKGROUND_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_BRAND_BACKGROUND_BUCKET_NAME}/manifest/brand-backgrounds.json`;
-    const HOME_TRAVEL_FALLBACK_IMAGE = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
-        <defs>
-          <linearGradient id='sky' x1='0' y1='0' x2='1' y2='1'>
-            <stop offset='0%' stop-color='#0b1c35'/>
-            <stop offset='45%' stop-color='#143a6a'/>
-            <stop offset='100%' stop-color='#0f274b'/>
-          </linearGradient>
-          <linearGradient id='glow' x1='0' y1='1' x2='1' y2='0'>
-            <stop offset='0%' stop-color='#1fb5ff' stop-opacity='0.2'/>
-            <stop offset='70%' stop-color='#f59e0b' stop-opacity='0.12'/>
-            <stop offset='100%' stop-color='#fef08a' stop-opacity='0.25'/>
-          </linearGradient>
-        </defs>
-        <rect width='1600' height='900' fill='url(#sky)'/>
-        <circle cx='1220' cy='180' r='180' fill='#f59e0b' opacity='0.18'/>
-        <path d='M0 620 C 260 520 520 640 800 560 C 1080 480 1320 580 1600 520 L1600 900 L0 900 Z' fill='#0a1a31'/>
-        <path d='M0 700 C 280 620 560 720 860 640 C 1120 570 1360 640 1600 600 L1600 900 L0 900 Z' fill='#101f3b'/>
-        <rect width='1600' height='900' fill='url(#glow)'/>
-      </svg>
-    `)}`;
+    const HOME_TRAVEL_FALLBACK_IMAGE = '/images/onboarding/onboard-travel.svg';
     const HOME_TRAVEL_FALLBACKS = [
       { code: 'US', name: 'United States', capital: 'Washington, D.C.', region: 'North America', subregion: 'Northern America' },
       { code: 'GB', name: 'United Kingdom', capital: 'London', region: 'Europe', subregion: 'Northern Europe' },
@@ -9275,8 +9255,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const cached = getCachedHomeTravelItems(targetCount);
       if (cached.length) return cached.slice(0, targetCount);
 
-      void ensureHomeCountryIndex(signal).catch(() => {});
-
+      // Homepage travel should behave like `travel.html`: fetch countries + hydrate the travel photo manifest,
+      // then render real cards (no placeholders).
       const seedCodes = [
         'JP','FR','IT','ES','TH','TR','ID','US','GB','AE','MX','BR',
         'EG','GR','PT','DE','MA','ZA','CH','AT','NL','BE','HR','IS',
@@ -9284,17 +9264,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         'KR','IN','LK','AU','NZ','CA','AR','CL','PE','CR','PH','SG','MY'
       ];
 
-      const [countryRows] = await Promise.all([
+      const [manifestOk, countryRows] = await Promise.all([
+        withTimeout(hydrateHomeTravelBucketManifest(signal), 6500, false).catch(() => false),
         fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
           signal,
           cacheKey: 'restcountries:all:v3.1:home:travel',
           ttlMs: 1000 * 60 * 60 * 12,
-          timeoutMs: 9500,
+          timeoutMs: 11000,
           retries: 1
-        }).then((payload) => Array.isArray(payload) ? payload : []).catch(() => []),
-        // Try to hydrate scenic images from the Supabase storage manifest. If it lags, we still render with whatever we have.
-        withTimeout(hydrateHomeTravelBucketManifest(signal), 2200, false).catch(() => false)
+        }).then((payload) => Array.isArray(payload) ? payload : []).catch(() => [])
       ]);
+
+      // Prime the flag index in the background (for country detail views / spotlight).
+      void ensureHomeCountryIndex(signal).catch(() => {});
 
       const byCode = new Map();
       countryRows.forEach((row) => {
@@ -9349,11 +9331,22 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       if (compactRows.length) writeHomeTravelCountryRowsCache(compactRows);
 
       const items = compactRows
-        .map((row) => mapCachedTravelCountryRowToHomeItem(row))
+        .map((row) => {
+          const code = canonicalTravelCountryCode(row?.code || row?.cca2 || row?.cca3 || '');
+          const cachedSet = code ? getHomeTravelPhotoSet(code) : { scenic: '', city: '', nature: '' };
+          return mapCachedTravelCountryRowToHomeItem({
+            ...row,
+            // Encourage scenic images when we have them; otherwise fall back to local travel art.
+            photo: cachedSet.scenic || HOME_TRAVEL_FALLBACK_IMAGE
+          });
+        })
         .filter(Boolean)
         .slice(0, targetCount);
 
-      return items;
+      // If we couldn't produce real items, let the retry loop handle it (no placeholders).
+      if (items.length) return items;
+      if (!manifestOk) homeDebugEvent('travel:manifest_missing', {});
+      return [];
     }
 
     async function loadSports(signal) {
