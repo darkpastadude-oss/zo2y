@@ -1,7 +1,7 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v215';
-const PAGE_CACHE = 'zo2y-pages-v178';
-const IMAGE_CACHE = 'zo2y-images-v35';
-const API_CACHE = 'zo2y-api-v15';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v217';
+const PAGE_CACHE = 'zo2y-pages-v180';
+const IMAGE_CACHE = 'zo2y-images-v37';
+const API_CACHE = 'zo2y-api-v17';
 const MOVIES_PAGE_VERSION = '20260418a';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
@@ -16,7 +16,7 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260413f',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260420a',
+  '/js/pages/index.js?v=20260420c',
   '/js/pages/index-home-heavy-loaders.js?v=20260329a',
   '/js/home-desktop-rebrand.js?v=20260416b',
   '/js/referral-utils.js?v=20260319a',
@@ -156,6 +156,16 @@ function offlineResponse() {
     }
   });
 }
+
+function offlineAssetResponse() {
+  return new Response('', {
+    status: 503,
+    statusText: 'Offline',
+    headers: {
+      'Cache-Control': 'no-store'
+    }
+  });
+}
 function isCacheableResponse(response) {
   return !!response && (response.ok || response.type === 'opaque');
 }
@@ -218,7 +228,7 @@ async function cacheFirst(request, cacheName) {
     queueCachePut(cacheName, request, networkResponse);
     return networkResponse;
   } catch (_error) {
-    return cached || offlineResponse();
+    return cached || offlineAssetResponse();
   }
 }
 
@@ -243,7 +253,7 @@ async function navigationNetworkOnly(request) {
   try {
     return await fetch(request, { cache: 'no-store' });
   } catch (_error) {
-    return offlineResponse();
+    return offlineAssetResponse();
   }
 }
 
@@ -260,7 +270,13 @@ async function navigationNetworkFirst(request, fallbackPath = '/index.html') {
       || await caches.match(fallbackPath)
       || await caches.match('/')
       || await caches.match('/index.html');
-    return cached || offlineResponse();
+    if (cached) return cached;
+    try {
+      const shell = await caches.open(APP_SHELL_CACHE);
+      const shellIndex = await shell.match('/index.html', { ignoreSearch: true }) || await shell.match('/');
+      if (shellIndex) return shellIndex;
+    } catch (_err) {}
+    return offlineResponse();
   }
 }
 
@@ -285,7 +301,7 @@ async function networkFirstWithTimeout(request, cacheName, fallbackPath = '', ti
       const fallback = await caches.match(fallbackPath);
       if (fallback) return fallback;
     }
-    return offlineResponse();
+    return offlineAssetResponse();
   }
 }
 
@@ -305,15 +321,22 @@ async function staleWhileRevalidate(request, cacheName) {
   }
 
   const networkResponse = await networkPromise;
-  return networkResponse || offlineResponse();
+  return networkResponse || offlineAssetResponse();
 }
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches
-      .open(APP_SHELL_CACHE)
-      .then((cache) => cache.addAll(STATIC_ASSETS))
-      .catch(() => Promise.resolve())
+    caches.open(APP_SHELL_CACHE).then(async (cache) => {
+      await Promise.allSettled(
+        STATIC_ASSETS.map(async (asset) => {
+          try {
+            await cache.add(asset);
+          } catch (_err) {}
+        })
+      );
+      try { await cache.add('/index.html'); } catch (_err) {}
+      try { await cache.add('/'); } catch (_err) {}
+    }).catch(() => Promise.resolve())
   );
   self.skipWaiting();
 });

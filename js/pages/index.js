@@ -176,7 +176,16 @@
       { code: 'BR', name: 'Brazil', capital: 'Brasilia', region: 'South America', subregion: 'South America' },
       { code: 'MX', name: 'Mexico', capital: 'Mexico City', region: 'North America', subregion: 'Central America' },
       { code: 'AU', name: 'Australia', capital: 'Canberra', region: 'Oceania', subregion: 'Australia and New Zealand' },
-      { code: 'ZA', name: 'South Africa', capital: 'Pretoria', region: 'Africa', subregion: 'Southern Africa' }
+      { code: 'ZA', name: 'South Africa', capital: 'Pretoria', region: 'Africa', subregion: 'Southern Africa' },
+      { code: 'ES', name: 'Spain', capital: 'Madrid', region: 'Europe', subregion: 'Southern Europe' },
+      { code: 'DE', name: 'Germany', capital: 'Berlin', region: 'Europe', subregion: 'Western Europe' },
+      { code: 'TR', name: 'Turkey', capital: 'Ankara', region: 'Asia', subregion: 'Western Asia' },
+      { code: 'TH', name: 'Thailand', capital: 'Bangkok', region: 'Asia', subregion: 'South-Eastern Asia' },
+      { code: 'ID', name: 'Indonesia', capital: 'Jakarta', region: 'Asia', subregion: 'South-Eastern Asia' },
+      { code: 'GR', name: 'Greece', capital: 'Athens', region: 'Europe', subregion: 'Southern Europe' },
+      { code: 'PT', name: 'Portugal', capital: 'Lisbon', region: 'Europe', subregion: 'Southern Europe' },
+      { code: 'NL', name: 'Netherlands', capital: 'Amsterdam', region: 'Europe', subregion: 'Western Europe' },
+      { code: 'CA', name: 'Canada', capital: 'Ottawa', region: 'North America', subregion: 'Northern America' }
     ];
     const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v1';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
@@ -9262,76 +9271,94 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
       const cachedRowItems = getCachedHomeTravelItems(targetCount);
       if (cachedRowItems.length) return cachedRowItems.slice(0, targetCount);
 
-      // Match the older "auth works here" home travel approach, but with only one scenic image:
-      // use the (fast + reliable) RestCountries dataset and a single banner per country.
-      // Hydrate the Supabase manifest in the background if available, but do not block rendering.
-      void hydrateHomeTravelBucketManifest(signal).catch(() => {});
+      // Make travel load instantly on home: render deterministic fallback cards immediately,
+      // then hydrate with real country rows (like the older working commit) in the background.
+      const fallbackItems = getHomeTravelFallbackItems(targetCount);
 
-      try {
-        const payload = await fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
-          signal,
-          cacheKey: 'restcountries:all:v3.1:home:travel:fast',
-          ttlMs: 1000 * 60 * 60 * 12,
-          timeoutMs: 11000,
-          retries: 1
+      if (!homeTravelHydrationPromise) {
+        homeTravelHydrationPromise = (async () => {
+          try {
+            // Hydrate the Supabase manifest if possible (scenic photos); do not block too long.
+            await withTimeout(hydrateHomeTravelBucketManifest(signal), 2400, false).catch(() => false);
+
+            const payload = await fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
+              cacheKey: 'restcountries:all:v3.1:home:travel:hydrate',
+              ttlMs: 1000 * 60 * 60 * 12,
+              timeoutMs: 9500,
+              retries: 1
+            });
+            const rows = Array.isArray(payload) ? payload : [];
+            if (!rows.length) return;
+            primeHomeCountryIndex(rows);
+
+            const sortedRows = rows
+              .filter((row) => {
+                if (!row || !(row.cca2 || row.cca3) || !(row?.name?.common || row?.name?.official)) return false;
+                const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+                const name = String(row?.name?.common || row?.name?.official || '').trim();
+                if (code === 'IL') return false;
+                if (/\bisrael\b/i.test(name)) return false;
+                return true;
+              })
+              .sort((a, b) => {
+                const left = String(a?.name?.common || a?.name?.official || '').trim();
+                const right = String(b?.name?.common || b?.name?.official || '').trim();
+                return left.localeCompare(right);
+              });
+
+            const shortlist = shuffleArray(sortedRows.slice(0, Math.max(targetCount * 5, 120)));
+            const seen = new Set();
+            const out = [];
+            const compactRows = [];
+            const pushRow = (row) => {
+              const code = canonicalTravelCountryCode(row?.cca2 || row?.cca3 || '');
+              if (!code || seen.has(code)) return;
+              const name = String(row?.name?.common || row?.name?.official || code || '').trim();
+              if (!name) return;
+              const capital = Array.isArray(row?.capital) ? String(row.capital[0] || '').trim() : String(row?.capital || '').trim();
+              const flag = toHttpsUrl(String(row?.flags?.png || row?.flags?.svg || '').trim());
+              const scenic = normalizeHomeTravelPhotoEntry(getHomeTravelPhotoSet(code)).scenic || HOME_TRAVEL_FALLBACK_IMAGE;
+              const compact = {
+                code,
+                cca2: String(row?.cca2 || '').trim(),
+                cca3: String(row?.cca3 || '').trim(),
+                name,
+                capital,
+                region: String(row?.region || '').trim(),
+                subregion: String(row?.subregion || '').trim(),
+                flag,
+                photo: scenic
+              };
+              const item = mapCachedTravelCountryRowToHomeItem(compact);
+              if (!item) return;
+              seen.add(code);
+              compactRows.push(compact);
+              out.push(item);
+            };
+
+            shortlist.forEach(pushRow);
+            if (out.length < targetCount) sortedRows.forEach(pushRow);
+            const items = out.slice(0, targetCount);
+            if (!items.length) return;
+
+            writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, items);
+            if (compactRows.length) writeHomeTravelCountryRowsCache(compactRows);
+
+            // If we're still on the home app shell, progressively update the rail.
+            if (document.hidden) return;
+            const rail = document.getElementById('travelRail');
+            if (!rail) return;
+            homeFeedState.travel = items;
+            renderRail('travelRail', items, { mediaType: 'travel' });
+          } catch (_err) {
+            // Ignore; fallback cards remain visible.
+          }
+        })().finally(() => {
+          homeTravelHydrationPromise = null;
         });
-        if (signal?.aborted) return [];
-        const rows = Array.isArray(payload) ? payload : [];
-        if (!rows.length) return [];
-        primeHomeCountryIndex(rows);
+      }
 
-        const sortedRows = rows
-          .filter((row) => {
-            if (!row || !(row.cca2 || row.cca3) || !(row?.name?.common || row?.name?.official)) return false;
-            const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
-            const name = String(row?.name?.common || row?.name?.official || '').trim();
-            if (code === 'IL') return false;
-            if (/\bisrael\b/i.test(name)) return false;
-            return true;
-          })
-          .sort((a, b) => {
-            const left = String(a?.name?.common || a?.name?.official || '').trim();
-            const right = String(b?.name?.common || b?.name?.official || '').trim();
-            return left.localeCompare(right);
-          });
-
-        const shortlist = shuffleArray(sortedRows.slice(0, Math.max(targetCount * 5, 120)));
-        const seen = new Set();
-        const out = [];
-        const pushRow = (row) => {
-          const code = canonicalTravelCountryCode(row?.cca2 || row?.cca3 || '');
-          if (!code || seen.has(code)) return;
-          const name = String(row?.name?.common || row?.name?.official || code || '').trim();
-          if (!name) return;
-          const capital = Array.isArray(row?.capital) ? String(row.capital[0] || '').trim() : String(row?.capital || '').trim();
-          const flag = toHttpsUrl(String(row?.flags?.png || row?.flags?.svg || '').trim());
-          const scenic = normalizeHomeTravelPhotoEntry(getHomeTravelPhotoSet(code)).scenic || HOME_TRAVEL_FALLBACK_IMAGE;
-          const item = mapCachedTravelCountryRowToHomeItem({
-            code,
-            cca2: String(row?.cca2 || '').trim(),
-            cca3: String(row?.cca3 || '').trim(),
-            name,
-            capital,
-            region: String(row?.region || '').trim(),
-            subregion: String(row?.subregion || '').trim(),
-            flag,
-            photo: scenic
-          });
-          if (!item) return;
-          seen.add(code);
-          out.push(item);
-        };
-
-        shortlist.forEach(pushRow);
-        if (out.length < targetCount) sortedRows.forEach(pushRow);
-        const items = out.slice(0, targetCount);
-        if (items.length) {
-          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, items);
-          return items;
-        }
-      } catch (_err) {}
-
-      return [];
+      return fallbackItems;
     }
 
     async function loadSports(signal) {
