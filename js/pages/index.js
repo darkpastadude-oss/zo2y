@@ -5658,7 +5658,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
-        ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 5600 }] : []),
+        ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 12000 }] : []),
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 8500 },
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 },
         ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 12000 }] : []),
@@ -9176,20 +9176,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             cache: 1,
             cache_pages: 1
           };
+          // Keep the same data source as the working commit, but reduce the request fanout so
+          // the rail doesn't time out under "load everything immediately".
           const requests = [
-            { ...baseParams, page: 1, ordering: '-released' },
-            { ...baseParams, page: 2, ordering: '-released' },
-            { ...baseParams, page: 1, ordering: '-rating' },
-            { ...baseParams, page: 1, ordering: '-rating_count' },
-            { ...baseParams, page: 1, ordering: '-name' },
             { ...baseParams, page: 1, popularity_type: 1 },
-            { ...baseParams, page: 2, popularity_type: 1 }
+            { ...baseParams, page: 2, popularity_type: 1 },
+            { ...baseParams, page: 1, ordering: '-rating_count' },
+            { ...baseParams, page: 1, ordering: '-released' }
           ];
           const merged = [];
           const seen = new Set();
-          for (const params of requests) {
-            if (signal?.aborted) break;
-            const payload = await homeIgdbFetch('/games', { ...params, ...cacheParams }, signal);
+          const settled = await Promise.allSettled(
+            requests.map((params) => homeIgdbFetch('/games', { ...params, ...cacheParams }, signal))
+          );
+          settled.forEach((result) => {
+            const payload = result.status === 'fulfilled' ? result.value : null;
             const rows = Array.isArray(payload?.results) ? payload.results : [];
             rows.forEach((row) => {
               const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
@@ -9199,8 +9200,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
               seen.add(key);
               merged.push(row);
             });
-            if (merged.length >= targetCount * 4) break;
-          }
+          });
           if (!merged.length || signal?.aborted) continue;
           const items = merged
             .map((row) => mapToItem(row))
