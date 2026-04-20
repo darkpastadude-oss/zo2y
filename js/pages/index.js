@@ -202,10 +202,10 @@
     const HOME_NEW_RELEASES_TARGET_ITEMS = 16;
     const HOME_NEW_RELEASES_TIMEOUT_MS = 5600;
     const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 45;
-const HOME_EAGER_IMAGE_COUNT = 1;
-const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
-    const HOME_PRELOAD_PER_CHANNEL = 0;
-    const HOME_PRELOAD_SPOTLIGHT_COUNT = 1;
+const HOME_EAGER_IMAGE_COUNT = 6;
+const HOME_HIGH_PRIORITY_IMAGE_COUNT = 3;
+    const HOME_PRELOAD_PER_CHANNEL = 3;
+    const HOME_PRELOAD_SPOTLIGHT_COUNT = 2;
     const HOME_UNIFIED_TARGET_ITEMS = 24;
     const HOME_BECAUSE_SIGNAL_CACHE_MS = 1000 * 60 * 3;
     const HOME_BECAUSE_MAX_FOLLOWED_USERS = 24;
@@ -465,7 +465,7 @@ const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
       `;
     }
     const HOME_TASTE_WEIGHTS_CACHE_MS = 1000 * 60 * 10;
-const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
+const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     const HOME_TRAVEL_VARIANT_SESSION_SEED = Math.floor(Math.random() * 2147483647);
     const HOME_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
@@ -5652,8 +5652,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
         ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 12000 }] : []),
-        { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 8500 },
-        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 },
+        { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 12000 },
+        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 12000 },
         ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 12000 }] : []),
@@ -5714,8 +5714,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     function getHomeInitialChannelConcurrency() {
       // Aggressive: load all channels fast to avoid “skeleton forever” perceptions.
       if (isHomeSlowNetwork()) return 3;
-      if (isHomeCompactViewport()) return 5;
-      return 6;
+      if (isHomeCompactViewport()) return 4;
+      return 5;
     }
 
     function getHomeRailViewportMarginPx() {
@@ -8578,6 +8578,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     let homeGamesSharedScriptPromise = null;
+    let homeGamesHydrationPromise = null;
 
     function ensureHomeGamesShared() {
       if (window.__zo2yGamesShared) return Promise.resolve(window.__zo2yGamesShared);
@@ -9199,7 +9200,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
             .map((row) => mapToItem(row))
             .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
             .slice(0, targetCount);
-          if (items.length) return items;
+          if (items.length) {
+            const minHealthy = Math.min(targetCount, 10);
+            if (items.length < minHealthy && !homeGamesHydrationPromise) {
+              homeGamesHydrationPromise = (async () => {
+                try {
+                  const rail = document.getElementById('gamesRail');
+                  if (!rail) return;
+                  const hydrated = await loadGames(null, { cacheBust: true });
+                  if (!Array.isArray(hydrated) || hydrated.length <= items.length) return;
+                  homeFeedState.game = hydrated;
+                  renderRail('gamesRail', hydrated, { mediaType: 'game' });
+                } catch (_err) {
+                  // Ignore; existing items stay visible.
+                }
+              })().finally(() => {
+                homeGamesHydrationPromise = null;
+              });
+            }
+            return items;
+          }
         }
         return [];
       } catch (_error) {
@@ -9231,6 +9251,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     let homeHeavyLoaderScriptPromise = null;
+    let homeBooksHydrationPromise = null;
 
     function ensureHomeHeavyLoaders() {
       if (window.__zo2yHomeHeavyLoaders) return Promise.resolve(window.__zo2yHomeHeavyLoaders);
@@ -9254,8 +9275,52 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '80px 0px';
     }
 
     async function loadBooks(signal) {
+      const targetCount = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
+      const minHealthy = Math.min(targetCount, 8);
       const loaders = await ensureHomeHeavyLoaders();
-      return typeof loaders.loadBooks === 'function' ? loaders.loadBooks(signal) : [];
+      if (typeof loaders.loadBooks !== 'function') return [];
+
+      let items = [];
+      try {
+        window.__zo2yHomeBooksDebug = { stage: 'loadBooks:primary:start', at: Date.now() };
+        const loaded = await loaders.loadBooks(signal);
+        items = Array.isArray(loaded) ? loaded : [];
+        window.__zo2yHomeBooksDebug = { stage: 'loadBooks:primary:done', at: Date.now(), items: items.length };
+      } catch (error) {
+        window.__zo2yHomeBooksDebug = { stage: 'loadBooks:primary:error', at: Date.now(), message: String(error?.message || error || '') };
+        items = [];
+      }
+
+      // If we got a short list, show it immediately but run a background hydration to fill the rail.
+      if (items.length > 0 && items.length < minHealthy && !homeBooksHydrationPromise) {
+        homeBooksHydrationPromise = (async () => {
+          const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+          let timer = null;
+          try {
+            window.__zo2yHomeBooksDebug = { stage: 'loadBooks:hydrate:start', at: Date.now(), prevItems: items.length };
+            if (controller) timer = setTimeout(() => controller.abort(), 14000);
+            const hydrated = await loaders.loadBooks(controller ? controller.signal : undefined);
+            const next = Array.isArray(hydrated) ? hydrated : [];
+            window.__zo2yHomeBooksDebug = { stage: 'loadBooks:hydrate:done', at: Date.now(), items: next.length };
+            if (!next.length || next.length <= items.length) return;
+            const rail = document.getElementById('booksRail');
+            if (!rail) return;
+            homeFeedState.book = next;
+            renderRail('booksRail', next, { mediaType: 'book' });
+          } catch (error) {
+            window.__zo2yHomeBooksDebug = { stage: 'loadBooks:hydrate:error', at: Date.now(), message: String(error?.message || error || '') };
+          } finally {
+            if (timer) clearTimeout(timer);
+            if (controller) {
+              try { controller.abort(); } catch (_err) {}
+            }
+          }
+        })().finally(() => {
+          homeBooksHydrationPromise = null;
+        });
+      }
+
+      return items;
     }
 
     async function loadMusic(signal) {
