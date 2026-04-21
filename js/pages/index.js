@@ -144,6 +144,8 @@
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
     const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v4';
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
+    const HOME_GAMES_ITEMS_CACHE_KEY = 'zo2y_home_games_items_v1';
+    const HOME_GAMES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_TRAVEL_BUCKET_NAME = 'travel-photos';
     const HOME_SPOTLIGHT_BUCKET_NAME = 'home-spotlights';
     const HOME_BRAND_BACKGROUND_BUCKET_NAME = 'brand-backgrounds';
@@ -177,6 +179,7 @@
     ];
     const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v1';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
+    const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
@@ -184,6 +187,14 @@
     const HOME_CHANNEL_TIMEOUT_MS = 8000;
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 2200;
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
+    const HOME_GAMES_FALLBACK_ITEMS = [
+      { id: '12766', title: 'The Witcher 3: Wild Hunt', release: '2015-05-19', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
+      { id: '26192', title: 'Red Dead Redemption 2', release: '2018-10-26', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg' },
+      { id: '1877', title: 'The Elder Scrolls V: Skyrim', release: '2011-11-11', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/skyrim.jpg' },
+      { id: '112875', title: 'Elden Ring', release: '2022-02-25', cover: 'https://upload.wikimedia.org/wikipedia/en/b/b9/Elden_Ring_Box_art.jpg' },
+      { id: '1942', title: 'Cyberpunk 2077', release: '2020-12-10', cover: 'https://upload.wikimedia.org/wikipedia/en/9/9f/Cyberpunk_2077_box_art.jpg' },
+      { id: '7346', title: 'Portal 2', release: '2011-04-18', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' }
+    ];
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 16;
     const HOME_SPOTLIGHT_POOL_SIZE = 20;
@@ -9115,6 +9126,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const targetCount = Math.max(getHomeChannelTargetItems(), isHomeSlowNetwork() ? 18 : 28);
       const cacheBust = options?.cacheBust ? Date.now() : 0;
       const cacheParams = cacheBust ? { cache_bust: cacheBust } : {};
+      const cachedGameItems = readHomeItemsCache(
+        HOME_GAMES_ITEMS_CACHE_KEY,
+        HOME_GAMES_ITEMS_CACHE_MAX_AGE_MS,
+        (item) => {
+          if (!item || typeof item !== 'object') return null;
+          const title = String(item.title || '').trim();
+          const image = String(item.image || '').trim();
+          if (!title || !image) return null;
+          return item;
+        }
+      );
 
       const mapToItem = (row) => {
         const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
@@ -9240,12 +9262,51 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
                 homeGamesHydrationPromise = null;
               });
             }
+            writeHomeItemsCache(HOME_GAMES_ITEMS_CACHE_KEY, rotatedItems);
             return rotatedItems;
           }
         }
-        return [];
+        if (cachedGameItems.length) return shuffleArray(cachedGameItems).slice(0, targetCount);
+        return HOME_GAMES_FALLBACK_ITEMS
+          .map((row) => ({
+            mediaType: 'game',
+            itemId: row.id,
+            title: row.title,
+            subtitle: String(row.release || '').slice(0, 4) || 'Game',
+            extra: 'Video Game',
+            image: row.cover,
+            listImage: row.cover,
+            backgroundImage: row.cover,
+            spotlightImage: row.cover,
+            spotlightMediaImage: row.cover,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            popularity: 0,
+            fallbackImage: '',
+            href: row.id ? `game.html?id=${encodeURIComponent(String(row.id))}` : 'games.html'
+          }))
+          .slice(0, targetCount);
       } catch (_error) {
-        return [];
+        if (cachedGameItems.length) return shuffleArray(cachedGameItems).slice(0, targetCount);
+        return HOME_GAMES_FALLBACK_ITEMS
+          .map((row) => ({
+            mediaType: 'game',
+            itemId: row.id,
+            title: row.title,
+            subtitle: String(row.release || '').slice(0, 4) || 'Game',
+            extra: 'Video Game',
+            image: row.cover,
+            listImage: row.cover,
+            backgroundImage: row.cover,
+            spotlightImage: row.cover,
+            spotlightMediaImage: row.cover,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            popularity: 0,
+            fallbackImage: '',
+            href: row.id ? `game.html?id=${encodeURIComponent(String(row.id))}` : 'games.html'
+          }))
+          .slice(0, targetCount);
       }
     }
 
@@ -9482,29 +9543,29 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
 
       try {
-        const seedPool = shuffleArray(HOME_SPORTS_SEEDS).slice(0, Math.min(HOME_SPORTS_SEEDS.length, 42));
-        const queries = seedPool.map((name) => fetchSportsDb('searchteams.php', { t: name }, { signal, timeoutMs: 7000, retries: 2 }));
-        const results = await Promise.allSettled(queries);
-        const rows = results
-          .flatMap((result) => (result.status === 'fulfilled' && Array.isArray(result.value?.teams)) ? result.value.teams : [])
-          .filter(Boolean);
+        const manifestPayload = await fetchJsonWithPerfCache(HOME_SPORTS_ASSET_MANIFEST_URL, {
+          signal,
+          cacheKey: 'sports-assets:manifest:home',
+          ttlMs: 1000 * 60 * 60 * 24,
+          timeoutMs: 9000,
+          retries: 1
+        });
+        const rows = Array.isArray(manifestPayload?.teams) ? manifestPayload.teams : [];
         const seen = new Set();
         const items = [];
         for (const row of rows) {
-          const id = String(row?.idTeam || row?.id || '').trim();
-          const title = String(row?.strTeam || row?.name || 'Team').trim() || 'Team';
+          const id = String(row?.sportsDbId || row?.id || '').trim();
+          const title = String(row?.name || 'Team').trim() || 'Team';
           const key = id || title.toLowerCase();
           if (!key || seen.has(key)) continue;
           seen.add(key);
-          const badge = toHttpsUrl(String(row?.strTeamBadge || row?.strBadge || '').trim());
-          const banner = toHttpsUrl(String(row?.strTeamBanner || row?.strBanner || '').trim());
-          const fanart = toHttpsUrl(String(row?.strTeamFanart1 || row?.strTeamFanart2 || row?.strTeamFanart3 || '').trim());
-          const stadium = toHttpsUrl(String(row?.strStadiumThumb || '').trim());
-          const sport = String(row?.strSport || '').trim();
-          const league = String(row?.strLeague || '').trim();
-          const country = String(row?.strCountry || '').trim();
-          const cardImage = banner || fanart || stadium || badge || HOME_LOCAL_FALLBACK_IMAGE;
-          const spotlightBackdrop = fanart || banner || stadium || cardImage;
+          const badge = toHttpsUrl(String(row?.badge || '').trim());
+          if (!badge) continue;
+          const sport = String(row?.sport || '').trim();
+          const league = String(row?.league || '').trim();
+          const country = String(row?.country || '').trim();
+          const cardImage = badge;
+          const spotlightBackdrop = badge;
           items.push({
             mediaType: 'sports',
             itemId: id || title,
@@ -9515,18 +9576,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             listImage: cardImage,
             backgroundImage: spotlightBackdrop,
             spotlightImage: spotlightBackdrop,
-            spotlightMediaImage: badge || cardImage,
+            spotlightMediaImage: badge,
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'square',
-            mediaFit: 'cover',
+            mediaFit: 'contain',
             fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
             href: id ? `team.html?id=${encodeURIComponent(id)}` : 'sports.html'
           });
-          if (items.length >= Math.max(target * 2, 24)) break;
         }
         if (items.length) {
-          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
-          return shuffleArray(items).slice(0, target);
+          const rotated = shuffleArray(items).slice(0, Math.max(target * 2, 24));
+          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, rotated);
+          return rotated.slice(0, target);
         }
       } catch (_err) {}
 
