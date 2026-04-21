@@ -1,4 +1,4 @@
-﻿    const ENABLE_GAMES = true;
+    const ENABLE_GAMES = true;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
     const ENABLE_FOOD = window.ZO2Y_DISABLE_FOOD !== true;
@@ -83,28 +83,16 @@
       'sabrina carpenter'
     ];
     const HOME_SPORTS_SEEDS = [
-      'Real Madrid',
-      'FC Barcelona',
-      'Liverpool',
-      'Manchester City',
-      'Arsenal',
-      'Bayern Munich',
-      'Paris Saint-Germain',
-      'Inter Miami',
-      'Los Angeles Lakers',
-      'Golden State Warriors',
-      'Boston Celtics',
-      'Chicago Bulls',
-      'Kansas City Chiefs',
-      'Dallas Cowboys',
-      'New York Yankees',
-      'Los Angeles Dodgers',
-      'Toronto Maple Leafs',
-      'Ferrari',
-      'Mercedes AMG Petronas',
-      'Red Bull Racing',
-      'Mumbai Indians',
-      'New Zealand All Blacks'
+      'Real Madrid', 'FC Barcelona', 'Arsenal', 'Liverpool', 'Manchester City', 'Manchester United', 'Chelsea', 'Bayern Munich', 'Paris Saint-Germain', 'Inter Milan',
+      'AC Milan', 'Juventus', 'Borussia Dortmund', 'Atletico Madrid', 'Ajax', 'Benfica', 'Porto', 'Napoli', 'Roma', 'Tottenham Hotspur',
+      'Newcastle United', 'Leicester City', 'Sevilla', 'Valencia', 'Villarreal', 'Inter Miami', 'LA Galaxy', 'Seattle Sounders', 'Atlanta United', 'Al Hilal',
+      'Los Angeles Lakers', 'Boston Celtics', 'Golden State Warriors', 'Chicago Bulls', 'Miami Heat', 'Milwaukee Bucks', 'Phoenix Suns', 'Denver Nuggets', 'Dallas Mavericks', 'Philadelphia 76ers',
+      'New York Knicks', 'Cleveland Cavaliers', 'San Antonio Spurs', 'Houston Rockets', 'Toronto Raptors', 'Los Angeles Clippers', 'Memphis Grizzlies', 'Sacramento Kings', 'New Orleans Pelicans', 'Utah Jazz',
+      'Kansas City Chiefs', 'Dallas Cowboys', 'San Francisco 49ers', 'Philadelphia Eagles', 'Buffalo Bills', 'Baltimore Ravens', 'Green Bay Packers', 'Pittsburgh Steelers', 'Miami Dolphins', 'Detroit Lions',
+      'Cincinnati Bengals', 'Seattle Seahawks', 'New York Giants', 'Las Vegas Raiders', 'Los Angeles Rams', 'New York Yankees', 'Los Angeles Dodgers', 'Boston Red Sox', 'Houston Astros', 'Chicago Cubs',
+      'Atlanta Braves', 'San Diego Padres', 'Toronto Blue Jays', 'St. Louis Cardinals', 'New York Mets', 'Toronto Maple Leafs', 'Montreal Canadiens', 'Boston Bruins', 'New York Rangers', 'Tampa Bay Lightning',
+      'Colorado Avalanche', 'Edmonton Oilers', 'Vegas Golden Knights', 'Pittsburgh Penguins', 'Ferrari', 'Red Bull Racing', 'Mercedes AMG Petronas', 'McLaren', 'Aston Martin', 'Scuderia AlphaTauri',
+      'Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore', 'Kolkata Knight Riders', 'Rajasthan Royals', 'New Zealand All Blacks', 'England Rugby', 'South Africa Rugby', 'Australia Rugby', 'Ireland Rugby'
     ];
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-clapperboard', accent: '#f59e0b' },
@@ -9071,7 +9059,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const bestHeroRow = list.slice().sort((a, b) => scoreHomeGameHeroRow(b) - scoreHomeGameHeroRow(a))[0] || baseRow;
       const merged = { ...baseRow };
       const mergedCover = resolveHomeGameCover(bestCoverRow) || resolveHomeGameCover(baseRow);
-      const mergedHero = resolveHomeGameHero(bestHeroRow, mergedCover || resolveHomeGameCover(baseRow));
+      const mergedHero = resolveHomeGameHero(bestHeroRow, '');
       if (mergedCover) merged.cover_url = mergedCover;
       if (mergedHero) merged.hero_url = mergedHero;
       const mergedGenres = list.find((row) => Array.isArray(row?.extra?.genres) && row.extra.genres.length)?.extra?.genres;
@@ -9138,6 +9126,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const title = String(row?.title || row?.name || 'Game').trim() || 'Game';
         const releaseDate = String(row?.release_date || row?.released || '').trim();
         const ratingValue = Number(row?.rating || 0);
+        const popularity = Number(row?.follows || row?.rating_count || 0);
+        const useHeroAsCard = !!hero && isLikelyLogoOnlyGameArt(cover);
+        const cardImage = useHeroAsCard ? hero : cover;
         const genreText = genres.length
           ? genres.slice(0, 2).map((entry) => String(entry?.name || entry || '').trim()).filter(Boolean).join(' | ')
           : 'Video Game';
@@ -9148,19 +9139,36 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           title,
           subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
           extra: [genreText, ratingText].filter(Boolean).join(' | '),
-          image: cover,
+          image: cardImage,
+          listImage: cardImage,
           backgroundImage: hero || '',
           spotlightImage: hero || '',
           spotlightMediaImage: cover,
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'poster',
+          popularity,
           fallbackImage: '',
           href: id ? `game.html?id=${encodeURIComponent(String(id))}` : 'games.html'
         };
       };
 
       try {
-        const providerList = ['wikipedia', 'igdb'];
+        const localRowsPromise = (async () => {
+          try {
+            const client = await ensureHomeSupabase();
+            if (!client) return [];
+            const { data } = await client
+              .from('games')
+              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra')
+              .order('rating_count', { ascending: false, nullsFirst: false })
+              .order('rating', { ascending: false, nullsFirst: false })
+              .limit(Math.min(Math.max(targetCount * 4, 80), 160));
+            return Array.isArray(data) ? data : [];
+          } catch (_err) {
+            return [];
+          }
+        })();
+        const providerList = ['igdb'];
         for (const provider of providerList) {
           const baseParams = {
             page_size: Math.min(Math.max(targetCount * 6, 140), 220),
@@ -9194,20 +9202,35 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               merged.push(row);
             });
           });
-          if (!merged.length || signal?.aborted) continue;
-          const items = merged
+          const localRows = await localRowsPromise;
+          const combinedRows = merged.concat(Array.isArray(localRows) ? localRows : []);
+          if (!combinedRows.length || signal?.aborted) continue;
+          const combinedSeen = new Set();
+          const uniqueCombinedRows = [];
+          combinedRows.forEach((row) => {
+            const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
+            const title = normalizeHomeGameTitleKey(row?.title || row?.name || '');
+            const key = id || title;
+            if (!key || combinedSeen.has(key)) return;
+            combinedSeen.add(key);
+            uniqueCombinedRows.push(row);
+          });
+          const items = uniqueCombinedRows
             .map((row) => mapToItem(row))
             .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
+            .sort((a, b) => Number(b?.popularity || 0) - Number(a?.popularity || 0))
+            .slice(0, Math.max(targetCount * 2, 24));
+          const rotatedItems = shuffleArray(items)
             .slice(0, targetCount);
-          if (items.length) {
+          if (rotatedItems.length) {
             const minHealthy = Math.min(targetCount, 10);
-            if (items.length < minHealthy && !homeGamesHydrationPromise) {
+            if (rotatedItems.length < minHealthy && !homeGamesHydrationPromise) {
               homeGamesHydrationPromise = (async () => {
                 try {
                   const rail = document.getElementById('gamesRail');
                   if (!rail) return;
                   const hydrated = await loadGames(null, { cacheBust: true });
-                  if (!Array.isArray(hydrated) || hydrated.length <= items.length) return;
+                  if (!Array.isArray(hydrated) || hydrated.length <= rotatedItems.length) return;
                   homeFeedState.game = hydrated;
                   renderRail('gamesRail', hydrated, { mediaType: 'game' });
                 } catch (_err) {
@@ -9217,7 +9240,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
                 homeGamesHydrationPromise = null;
               });
             }
-            return items;
+            return rotatedItems;
           }
         }
         return [];
@@ -9443,22 +9466,27 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function loadSports(signal) {
       const target = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || 12)));
-      const seeds = [
-        'Real Madrid',
-        'Arsenal',
-        'Liverpool',
-        'Los Angeles Lakers',
-        'Boston Celtics',
-        'New York Yankees',
-        'Kansas City Chiefs',
-        'Golden State Warriors'
-      ];
+      const cachedSportsItems = readHomeItemsCache(
+        HOME_SPORTS_ITEMS_CACHE_KEY,
+        HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS,
+        (item) => {
+          if (!item || typeof item !== 'object') return null;
+          const title = String(item.title || '').trim();
+          const image = String(item.image || '').trim();
+          if (!title || !image) return null;
+          return item;
+        }
+      );
+      if (cachedSportsItems.length >= Math.min(target, 8)) {
+        return shuffleArray(cachedSportsItems).slice(0, target);
+      }
 
       try {
-        const queries = seeds.slice(0, target).map((name) => fetchSportsDb('searchteams.php', { t: name }, { signal, timeoutMs: 7000, retries: 1 }));
-        const results = await Promise.all(queries);
+        const seedPool = shuffleArray(HOME_SPORTS_SEEDS).slice(0, Math.min(HOME_SPORTS_SEEDS.length, 42));
+        const queries = seedPool.map((name) => fetchSportsDb('searchteams.php', { t: name }, { signal, timeoutMs: 7000, retries: 2 }));
+        const results = await Promise.allSettled(queries);
         const rows = results
-          .flatMap((payload) => Array.isArray(payload?.teams) ? payload.teams : [])
+          .flatMap((result) => (result.status === 'fulfilled' && Array.isArray(result.value?.teams)) ? result.value.teams : [])
           .filter(Boolean);
         const seen = new Set();
         const items = [];
@@ -9470,30 +9498,39 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           seen.add(key);
           const badge = toHttpsUrl(String(row?.strTeamBadge || row?.strBadge || '').trim());
           const banner = toHttpsUrl(String(row?.strTeamBanner || row?.strBanner || '').trim());
+          const fanart = toHttpsUrl(String(row?.strTeamFanart1 || row?.strTeamFanart2 || row?.strTeamFanart3 || '').trim());
           const stadium = toHttpsUrl(String(row?.strStadiumThumb || '').trim());
-          const image = badge || banner || stadium || HOME_LOCAL_FALLBACK_IMAGE;
+          const sport = String(row?.strSport || '').trim();
           const league = String(row?.strLeague || '').trim();
+          const country = String(row?.strCountry || '').trim();
+          const cardImage = banner || fanart || stadium || badge || HOME_LOCAL_FALLBACK_IMAGE;
+          const spotlightBackdrop = fanart || banner || stadium || cardImage;
           items.push({
             mediaType: 'sports',
             itemId: id || title,
             title,
             subtitle: league || 'Sports',
-            extra: String(row?.strCountry || '').trim(),
-            image,
-            backgroundImage: banner || stadium || image,
-            spotlightImage: banner || stadium || image,
-            spotlightMediaImage: image,
+            extra: [sport, country].filter(Boolean).join(' | ').toLowerCase(),
+            image: cardImage,
+            listImage: cardImage,
+            backgroundImage: spotlightBackdrop,
+            spotlightImage: spotlightBackdrop,
+            spotlightMediaImage: badge || cardImage,
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'square',
+            mediaFit: 'cover',
             fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
             href: id ? `team.html?id=${encodeURIComponent(id)}` : 'sports.html'
           });
-          if (items.length >= target) break;
+          if (items.length >= Math.max(target * 2, 24)) break;
         }
-        if (items.length) return items;
+        if (items.length) {
+          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
+          return shuffleArray(items).slice(0, target);
+        }
       } catch (_err) {}
 
-      return [];
+      return cachedSportsItems.slice(0, target);
     }
 
     async function initUniversalHome(options = {}) {
