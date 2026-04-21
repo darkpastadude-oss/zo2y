@@ -9527,6 +9527,45 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function loadSports(signal) {
       const target = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || 12)));
+      const normalizeSportsName = (value) => String(value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]+/g, '')
+        .replace(/[\u0027\u2019]/g, '')
+        .replace(/\b(fc|cf|sc|afc|club|the)\b/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+      const seedSet = new Set(HOME_SPORTS_SEEDS.map((name) => normalizeSportsName(name)).filter(Boolean));
+      const priorityLeagues = new Set([
+        'premier league', 'la liga', 'serie a', 'bundesliga', 'ligue 1', 'uefa champions league',
+        'nba', 'nfl', 'mlb', 'nhl', 'formula 1', 'ipl', 'icc cricket world cup',
+        'united rugby championship', 'six nations', 'super rugby'
+      ]);
+      const toSportBucket = (sportValue) => {
+        const sport = String(sportValue || '').trim().toLowerCase();
+        if (sport.includes('soccer') || sport.includes('football')) return 'soccer';
+        if (sport.includes('basket')) return 'basketball';
+        if (sport.includes('baseball')) return 'baseball';
+        if (sport.includes('ice hockey') || sport.includes('hockey')) return 'hockey';
+        if (sport.includes('american football')) return 'american-football';
+        if (sport.includes('motor')) return 'motorsport';
+        if (sport.includes('cricket')) return 'cricket';
+        if (sport.includes('rugby')) return 'rugby';
+        return sport || 'other';
+      };
+      const scoreSportsRow = (row) => {
+        const titleNorm = normalizeSportsName(row?.name || '');
+        const leagueNorm = normalizeSportsName(row?.league || '');
+        const sportNorm = normalizeSportsName(row?.sport || '');
+        let score = 0;
+        if (seedSet.has(titleNorm)) score += 1200;
+        if (priorityLeagues.has(leagueNorm)) score += 800;
+        if (priorityLeagues.has(sportNorm)) score += 300;
+        if (leagueNorm.includes('premier') || leagueNorm.includes('champions')) score += 180;
+        if (leagueNorm.includes('nba') || leagueNorm.includes('nfl') || leagueNorm.includes('mlb') || leagueNorm.includes('nhl')) score += 220;
+        if (leagueNorm.includes('formula 1') || leagueNorm.includes('grand prix')) score += 190;
+        return score;
+      };
       const cachedSportsItems = readHomeItemsCache(
         HOME_SPORTS_ITEMS_CACHE_KEY,
         HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS,
@@ -9551,9 +9590,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           retries: 1
         });
         const rows = Array.isArray(manifestPayload?.teams) ? manifestPayload.teams : [];
+        const sortedRows = rows
+          .filter((row) => row && (row.badge || row.name))
+          .sort((a, b) => scoreSportsRow(b) - scoreSportsRow(a));
         const seen = new Set();
-        const items = [];
-        for (const row of rows) {
+        const bucketed = new Map();
+        for (const row of sortedRows) {
           const id = String(row?.sportsDbId || row?.id || '').trim();
           const title = String(row?.name || 'Team').trim() || 'Team';
           const key = id || title.toLowerCase();
@@ -9566,7 +9608,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const country = String(row?.country || '').trim();
           const cardImage = badge;
           const spotlightBackdrop = badge;
-          items.push({
+          const item = {
             mediaType: 'sports',
             itemId: id || title,
             title,
@@ -9582,7 +9624,27 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             mediaFit: 'contain',
             fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
             href: id ? `team.html?id=${encodeURIComponent(id)}` : 'sports.html'
+          };
+          const bucket = toSportBucket(sport);
+          if (!bucketed.has(bucket)) bucketed.set(bucket, []);
+          bucketed.get(bucket).push(item);
+        }
+        const bucketKeys = Array.from(bucketed.keys()).sort((a, b) => {
+          const aSeed = seedSet.has(normalizeSportsName(bucketed.get(a)?.[0]?.title || '')) ? 1 : 0;
+          const bSeed = seedSet.has(normalizeSportsName(bucketed.get(b)?.[0]?.title || '')) ? 1 : 0;
+          return bSeed - aSeed;
+        });
+        const items = [];
+        while (items.length < Math.max(target * 2, 24) && bucketKeys.length) {
+          let pushedInRound = 0;
+          bucketKeys.forEach((bucket) => {
+            if (items.length >= Math.max(target * 2, 24)) return;
+            const list = bucketed.get(bucket);
+            if (!Array.isArray(list) || !list.length) return;
+            items.push(list.shift());
+            pushedInRound += 1;
           });
+          if (!pushedInRound) break;
         }
         if (items.length) {
           const rotated = shuffleArray(items).slice(0, Math.max(target * 2, 24));
