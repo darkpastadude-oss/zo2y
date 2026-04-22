@@ -1288,31 +1288,9 @@
           url.searchParams.set(key, String(value));
         });
         url.searchParams.set('cb', BOOKS_CACHE_BUSTER);
-        const cacheBust = params?.cache_bust != null && params?.cache_bust !== false;
-        if (cacheBust) {
-          url.searchParams.set('_', String(params.cache_bust || Date.now()));
-        }
-        const cacheKey = cacheBust ? '' : `${BOOKS_API_CACHE_PREFIX}:${url.pathname}?${url.searchParams.toString()}`;
-        if (cacheKey) {
-          const memoryEntry = booksApiMemoryCache.get(cacheKey);
-          if (memoryEntry && (Date.now() - Number(memoryEntry.savedAt || 0)) < BOOKS_API_CACHE_TTL_MS) {
-            return JSON.parse(JSON.stringify(memoryEntry.payload || { books: [], numFound: 0 }));
-          }
-          try {
-            const rawCached = localStorage.getItem(cacheKey);
-            if (rawCached) {
-              const parsedCached = JSON.parse(rawCached);
-              if (parsedCached && (Date.now() - Number(parsedCached.savedAt || 0)) < BOOKS_API_CACHE_TTL_MS) {
-                booksApiMemoryCache.set(cacheKey, parsedCached);
-                return JSON.parse(JSON.stringify(parsedCached.payload || { books: [], numFound: 0 }));
-              }
-            }
-          } catch (_error) {}
-          if (booksApiInFlight.has(cacheKey)) {
-            return booksApiInFlight.get(cacheKey);
-          }
-        }
-        const requestTask = (async () => {
+        // Match the older "auth works" snapshot: always hit the network for books/search/pagination.
+        // This avoids persisting empty arrays into local caches when the network hiccups.
+        url.searchParams.set('_', String(Date.now()));
         const controller = new AbortController();
         const timeoutId = window.setTimeout(() => controller.abort(), 9000);
         let res;
@@ -1320,7 +1298,7 @@
           res = await fetch(url.toString(), {
             headers: { Accept: 'application/json' },
             signal: controller.signal,
-            cache: cacheBust ? 'no-store' : 'default'
+            cache: 'no-store'
           });
         } finally {
           window.clearTimeout(timeoutId);
@@ -1339,23 +1317,7 @@
           }))
           .filter((entry) => entry.title);
         const numFound = Number(json?.meta?.numFound || json?.numFound || json?.count || json?.totalItems || books.length) || books.length;
-          const payload = { books, numFound };
-          if (cacheKey) {
-            const cachedEntry = { savedAt: Date.now(), payload };
-            booksApiMemoryCache.set(cacheKey, cachedEntry);
-            try {
-              localStorage.setItem(cacheKey, JSON.stringify(cachedEntry));
-            } catch (_error) {}
-          }
-          return payload;
-        })();
-        if (!cacheKey) return requestTask;
-        booksApiInFlight.set(cacheKey, requestTask);
-        try {
-          return await requestTask;
-        } finally {
-          booksApiInFlight.delete(cacheKey);
-        }
+        return { books, numFound };
       }
 
       async function fetchPopularBooks(page = 1, limit = BOOKS_PER_PAGE) {
@@ -2492,7 +2454,6 @@
   <script src="js/production-runtime.js?v=20260422a" defer></script>
 </body>
 </html>
-
 
 
 
