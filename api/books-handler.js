@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { createClient } from "@supabase/supabase-js";
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
 
 dotenv.config();
@@ -394,6 +395,16 @@ function readPathParts(query) {
     .filter(Boolean);
 }
 
+function getBearerToken(req) {
+  const raw = String(
+    req?.headers?.authorization
+    || req?.headers?.Authorization
+    || ""
+  ).trim();
+  if (!/^bearer\s+/i.test(raw)) return "";
+  return raw.replace(/^bearer\s+/i, "").trim();
+}
+
 async function readJsonBody(req) {
   if (req.body && typeof req.body === "object") return req.body;
   const chunks = [];
@@ -420,24 +431,38 @@ export default async function handler(req, res) {
 
   if (section === "sync" && String(req.method || "").toUpperCase() === "POST") {
     try {
-      const client = getSupabaseAdminClient();
-      if (!client) {
-        const urlSet = Boolean(String(process.env.SUPABASE_URL || "").trim());
-        const serviceRoleSet = Boolean(String(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "").trim());
-        return res.status(503).json({
-          ok: false,
-          message: "Supabase admin not configured",
-          hint: "Set SUPABASE_SERVICE_ROLE_KEY (Supabase service_role key) as a Cloudflare Pages/Workers secret.",
-          required_env: ["SUPABASE_URL"],
-          required_secrets: ["SUPABASE_SERVICE_ROLE_KEY"],
-          supabase_url_set: urlSet,
-          supabase_service_role_set: serviceRoleSet
-        });
-      }
+      let client = getSupabaseAdminClient();
       const body = await readJsonBody(req);
       const payload = sanitizeBookPayload(body || {});
       if (!payload) {
         return res.status(400).json({ ok: false, message: "Missing book id" });
+      }
+
+      if (!client) {
+        const supabaseUrl = String(process.env.SUPABASE_URL || "").trim();
+        const supabaseAnonKey = String(process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
+        const bearerToken = getBearerToken(req);
+        if (supabaseUrl && supabaseAnonKey && bearerToken) {
+          client = createClient(supabaseUrl, supabaseAnonKey, {
+            global: { headers: { Authorization: `Bearer ${bearerToken}` } },
+            auth: { persistSession: false, autoRefreshToken: false }
+          });
+        } else {
+          const urlSet = Boolean(supabaseUrl);
+          const serviceRoleSet = Boolean(String(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "").trim());
+          const anonSet = Boolean(supabaseAnonKey);
+          return res.status(503).json({
+            ok: false,
+            message: "Supabase admin not configured",
+            hint: "Provide SUPABASE_SERVICE_ROLE_KEY, or send a logged-in Bearer token with SUPABASE_ANON_KEY configured.",
+            required_env: ["SUPABASE_URL"],
+            required_secrets: ["SUPABASE_SERVICE_ROLE_KEY"],
+            optional_fallback_env: ["SUPABASE_ANON_KEY"],
+            supabase_url_set: urlSet,
+            supabase_service_role_set: serviceRoleSet,
+            supabase_anon_set: anonSet
+          });
+        }
       }
 
       const { error } = await client

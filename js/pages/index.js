@@ -198,11 +198,11 @@
     const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v1';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`;
-    const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
+    const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 600;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
     const HOME_PUBLIC_FEED_ENDPOINT = '/api/home-feed';
-    const HOME_CHANNEL_TIMEOUT_MS = 8000;
+    const HOME_CHANNEL_TIMEOUT_MS = 5200;
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 2200;
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
     const HOME_GAMES_FALLBACK_ITEMS = [
@@ -219,8 +219,8 @@
     const HOME_NEW_RELEASES_TARGET_ITEMS = 16;
     const HOME_NEW_RELEASES_TIMEOUT_MS = 5600;
     const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 45;
-const HOME_EAGER_IMAGE_COUNT = 6;
-const HOME_HIGH_PRIORITY_IMAGE_COUNT = 3;
+const HOME_EAGER_IMAGE_COUNT = 4;
+const HOME_HIGH_PRIORITY_IMAGE_COUNT = 2;
     const HOME_PRELOAD_PER_CHANNEL = 3;
     const HOME_PRELOAD_SPOTLIGHT_COUNT = 2;
     const HOME_UNIFIED_TARGET_ITEMS = 24;

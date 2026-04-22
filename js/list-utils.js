@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   const LIST_CONFIG = {
     movie: {
       listTable: 'movie_lists',
@@ -981,13 +981,23 @@
     return false;
   }
 
-  async function syncBookRecordViaApi(payload) {
+  async function syncBookRecordViaApi(payload, client) {
     if (bookSyncSupported === false) return false;
     if (typeof fetch !== 'function') return false;
     try {
+      let bearerToken = '';
+      try {
+        if (client?.auth && typeof client.auth.getSession === 'function') {
+          const { data } = await client.auth.getSession();
+          bearerToken = String(data?.session?.access_token || '').trim();
+        }
+      } catch (_tokenErr) {}
       const response = await fetch(BOOK_SYNC_ENDPOINT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {})
+        },
         body: JSON.stringify(payload)
       });
       if (response.ok) {
@@ -1045,7 +1055,7 @@
       }
     }
 
-    const synced = await syncBookRecordViaApi(normalized);
+    const synced = await syncBookRecordViaApi(normalized, client);
     if (synced) return true;
 
     // If the API is reachable but failing, don't spam repeated direct attempts in the same session.

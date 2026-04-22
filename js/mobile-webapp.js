@@ -723,6 +723,7 @@ const APP_RUNTIME_VERSION = '20260406-security-feed-a';
   window.addEventListener('beforeinstallprompt', (event) => {
     deferredInstallPrompt = event;
     if (!ENABLE_MOBILE_INSTALL_PROMPT) return;
+    if (!shouldShowInstallPrompt()) return;
     event.preventDefault();
     showInstallPromptCard({ force: true });
   });
