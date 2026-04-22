@@ -298,6 +298,15 @@ async function networkFirstWithTimeout(request, cacheName, fallbackPath = '', ti
     return networkResponse;
   } catch (_error) {
     if (timer) clearTimeout(timer);
+    // If the network is merely slow (cold start, upstream latency), don't immediately return a
+    // fake 503 "Offline". Fall back to a full network-first attempt before giving up.
+    if (!_error || String(_error?.message || '') === 'network_timeout') {
+      try {
+        const networkResponse = await fetch(request, { cache: 'no-store' });
+        queueCachePut(cacheName, request, networkResponse);
+        return networkResponse;
+      } catch (_networkError) {}
+    }
     if (cached) return cached;
     if (fallbackPath) {
       const fallback = await caches.match(fallbackPath);
@@ -439,7 +448,7 @@ self.addEventListener('fetch', (event) => {
     // (stale-while-revalidate) can permanently lock the UI into "skeleton/empty" after refresh.
     // Prefer a fast network-first strategy with cached fallback for `/api/books/*`.
     if (url.pathname.startsWith('/api/books')) {
-      event.respondWith(networkFirstWithTimeout(request, API_CACHE, '', 2200));
+      event.respondWith(networkFirstWithTimeout(request, API_CACHE, '', 6000));
       return;
     }
     event.respondWith(staleWhileRevalidate(request, API_CACHE));

@@ -1271,7 +1271,7 @@
         }
         const requestTask = (async () => {
         const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), 4800);
+        const timeoutId = window.setTimeout(() => controller.abort(), 9000);
         let res;
         try {
           res = await fetch(url.toString(), {
@@ -1356,7 +1356,7 @@
         const desired = Math.max(limit, BOOKS_PER_PAGE);
         const pool = CURRENT_TOP_BOOK_SEEDS.slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, desired * 2));
         const results = await Promise.allSettled(pool.map(async (seed) => {
-          const payload = await booksFetch('/search.json', {
+          const payload = await booksFetch('/search', {
             q: `${seed.title} ${seed.author}`,
             limit: 5,
             page: 1
@@ -1897,7 +1897,7 @@
                 data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
               }
             } else {
-              data = await booksFetch('/search.json', params);
+        data = await booksFetch('/search', params);
             }
             updateBookPageSpotlight(data?.books || []);
           if (!Array.isArray(data?.books) || !data.books.length) {
@@ -2370,7 +2370,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
 
 
 

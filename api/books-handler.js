@@ -9,6 +9,7 @@ dotenv.config({ path: "backend/authRoutes/.env" });
 const GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1";
 const OPEN_LIBRARY_BASE = "https://openlibrary.org";
 const SUPABASE_KEY_HEADER = "x-zo2y-supabase-key";
+const DEFAULT_BOOK_COVER = "/images/patterns/open-book-01.svg";
 
 function getBooksKey() {
   return String(process.env.GOOGLE_BOOKS_KEY || "").trim();
@@ -42,7 +43,8 @@ function normalizeBook(input) {
   const author = authorCandidate || "Unknown author";
 
   const year = Number(input?.first_publish_year || input?.published_year || input?.year || 0) || null;
-  const cover = toHttpsUrl(input?.cover || input?.coverImage || input?.thumbnail || input?._googleThumbnail || "");
+  const coverCandidate = toHttpsUrl(input?.cover || input?.coverImage || input?.thumbnail || input?._googleThumbnail || "");
+  const cover = coverCandidate || DEFAULT_BOOK_COVER;
 
   const source = String(input?._source || input?.source || "").trim()
     || (googleId ? "google-books" : (rawKey ? "openlibrary" : "book"));
@@ -518,7 +520,8 @@ async function readJsonBody(req) {
 export default async function handler(req, res) {
   const query = readQuery(req);
   const pathParts = readPathParts(query);
-  const section = String(pathParts[0] || "").trim().toLowerCase();
+  const rawSection = String(pathParts[0] || "").trim().toLowerCase();
+  const section = rawSection.replace(/\.json$/i, "");
 
   if (!section) {
     return res.json({ ok: true, service: "books-proxy", configured: !!getBooksKey() });
@@ -691,7 +694,8 @@ export default async function handler(req, res) {
       }
 
       res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
-      const books = dedupeBooks(docs.map(normalizeBook).filter(Boolean), limit);
+      const enriched = await enrichMissingCoversWithGoogle(docs, 8);
+      const books = dedupeBooks(enriched.map(normalizeBook).filter(Boolean), limit);
       return res.json({
         ok: true,
         books,
@@ -733,7 +737,8 @@ export default async function handler(req, res) {
         });
         docs = Array.isArray(popular.docs) ? popular.docs : [];
         res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
-        const books = dedupeBooks(docs.map(normalizeBook).filter(Boolean), limit);
+        const enriched = await enrichMissingCoversWithGoogle(docs, 8);
+        const books = dedupeBooks(enriched.map(normalizeBook).filter(Boolean), limit);
         return res.json({
           ok: true,
           books,
@@ -747,7 +752,8 @@ export default async function handler(req, res) {
       }
 
       res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
-      const books = dedupeBooks(docs.map(normalizeBook).filter(Boolean), limit);
+      const enriched = await enrichMissingCoversWithGoogle(docs, 8);
+      const books = dedupeBooks(enriched.map(normalizeBook).filter(Boolean), limit);
       return res.json({
         ok: true,
         books,
