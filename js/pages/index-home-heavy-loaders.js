@@ -297,14 +297,25 @@ async function loadBooks(signal) {
         url.searchParams.set('cb', '20260325a');
         url.searchParams.set('_', String(Date.now()));
         const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), lightweightMode ? 4200 : 5200);
+        const timeoutId = window.setTimeout(() => controller.abort(), 12000);
         try {
           setBooksDebug('fetching', { path: normalizedPath, params });
-          const response = await fetch(url.toString(), {
-            headers: { Accept: 'application/json' },
-            signal: controller.signal,
-            cache: 'no-store'
-          });
+          let response;
+          try {
+            response = await fetch(url.toString(), {
+              headers: { Accept: 'application/json' },
+              signal: controller.signal,
+              cache: 'no-store'
+            });
+          } catch (error) {
+            const isAbort = error && (error.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('aborted'));
+            // If the first attempt timed out, retry once without an AbortController before failing.
+            if (isAbort) {
+              response = await fetch(url.toString(), { headers: { Accept: 'application/json' }, cache: 'no-store' });
+            } else {
+              throw error;
+            }
+          }
           if (!response.ok) {
             const error = new Error(`Books API error ${response.status}`);
             error.status = response.status;

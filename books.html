@@ -1909,6 +1909,10 @@
 
         let data;
         try {
+          // Treat 1-character queries as "no search" to avoid emptying the page while typing.
+          if (String(state.query || '').trim().length === 1) {
+            state.query = '';
+          }
           const params = {
             page: state.page,
             limit: BOOKS_PER_PAGE,
@@ -1937,7 +1941,10 @@
             data = { books: [], numFound: 0 };
           }
         } catch (e) {
+          const isAbort = e && (e.name === 'AbortError' || String(e?.message || '').toLowerCase().includes('aborted'));
           console.error('Books fetch error', e);
+          // If a request was aborted (timeout / rapid typing), don't hard-clear the UI to "No books found".
+          if (isAbort) return;
           data = { books: [], numFound: 0 };
         }
 
@@ -2454,7 +2461,6 @@
   <script src="js/production-runtime.js?v=20260422a" defer></script>
 </body>
 </html>
-
 
 
 
