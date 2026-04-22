@@ -1,7 +1,9 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v227';
-const PAGE_CACHE = 'zo2y-pages-v182';
-const IMAGE_CACHE = 'zo2y-images-v39';
-const API_CACHE = 'zo2y-api-v19';
+// Bump these versions any time you change precached asset URLs to ensure old cached
+// variants don't keep serving stale JS (especially the home heavy loaders).
+const APP_SHELL_CACHE = 'zo2y-app-shell-v228';
+const PAGE_CACHE = 'zo2y-pages-v183';
+const IMAGE_CACHE = 'zo2y-images-v40';
+const API_CACHE = 'zo2y-api-v20';
 const MOVIES_PAGE_VERSION = '20260418a';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
@@ -17,7 +19,7 @@ const STATIC_ASSETS = [
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
   '/js/pages/index.js?v=20260421g',
-  '/js/pages/index-home-heavy-loaders.js?v=20260329a',
+  '/js/pages/index-home-heavy-loaders.js?v=20260422a',
   '/js/home-desktop-rebrand.js?v=20260416b',
   '/js/referral-utils.js?v=20260319a',
   '/js/shared-header.js?v=20260422b',
@@ -433,6 +435,13 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (isMediaApiRequest(url)) {
+    // Books endpoints are used on both the home rail and books pages; serving a cached empty payload
+    // (stale-while-revalidate) can permanently lock the UI into "skeleton/empty" after refresh.
+    // Prefer a fast network-first strategy with cached fallback for `/api/books/*`.
+    if (url.pathname.startsWith('/api/books')) {
+      event.respondWith(networkFirstWithTimeout(request, API_CACHE, '', 2200));
+      return;
+    }
     event.respondWith(staleWhileRevalidate(request, API_CACHE));
     return;
   }

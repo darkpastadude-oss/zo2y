@@ -201,8 +201,7 @@ async function loadBooks(signal) {
               toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'M')),
               toHttpsUrl(normalized?.coverImage || '')
             ].filter(Boolean);
-          const cover = coverCandidates[0] || '';
-          if (!cover) return null;
+          const cover = coverCandidates[0] || '/images/landing-wall-poster.svg';
 
           const dedupeKey = `${title.toLowerCase()}::${author.toLowerCase()}`;
           if (seen.has(dedupeKey)) return null;
@@ -235,7 +234,7 @@ async function loadBooks(signal) {
             spotlightMediaImage: cover,
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
-            fallbackImage: '',
+            fallbackImage: '/images/landing-wall-poster.svg',
             maturityRating: String(normalized?.maturityRating || '').trim(),
             isbn,
             href
