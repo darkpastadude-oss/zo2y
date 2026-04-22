@@ -18,6 +18,7 @@
   let authHeaderProfileLabelUserId = '';
   let authHeaderProfileLabelValue = '';
   let authHeaderProfileLabelAt = 0;
+  let lastKnownHeaderSession = null;
   if (window.ZO2Y_SPORTS_LISTS == null) {
     window.ZO2Y_SPORTS_LISTS = true;
   }
@@ -350,6 +351,18 @@ const HEADER_HTML = `
     }
   }
 
+  function rememberHeaderSessionSnapshot(session) {
+    if (session?.access_token && session?.refresh_token) {
+      lastKnownHeaderSession = {
+        access_token: String(session.access_token || ''),
+        refresh_token: String(session.refresh_token || '')
+      };
+      persistHeaderSessionSnapshot(session);
+      return;
+    }
+    lastKnownHeaderSession = null;
+  }
+
   function teardownSharedHeader() {
     document.querySelectorAll('[data-shared-header="1"]').forEach((el) => el.remove());
     const desktopRail = document.getElementById('zo2yDesktopRail');
@@ -588,9 +601,7 @@ const HEADER_HTML = `
         authHeaderProfileLabelValue = '';
         authHeaderProfileLabelAt = 0;
       }
-      if (session?.access_token && session?.refresh_token) {
-        persistHeaderSessionSnapshot(session);
-      }
+      rememberHeaderSessionSnapshot(session);
       if (normalizedEvent === 'TOKEN_REFRESHED' || normalizedEvent === 'INITIAL_SESSION') {
         return;
       }
@@ -598,6 +609,9 @@ const HEADER_HTML = `
     });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
+        if (lastKnownHeaderSession?.access_token && lastKnownHeaderSession?.refresh_token) {
+          persistHeaderSessionSnapshot(lastKnownHeaderSession);
+        }
         void persistHeaderSession();
         return;
       }
@@ -610,7 +624,15 @@ const HEADER_HTML = `
       void syncAuthHeaderState();
     });
     window.addEventListener('pagehide', () => {
+      if (lastKnownHeaderSession?.access_token && lastKnownHeaderSession?.refresh_token) {
+        persistHeaderSessionSnapshot(lastKnownHeaderSession);
+      }
       void persistHeaderSession();
+    });
+    window.addEventListener('beforeunload', () => {
+      if (lastKnownHeaderSession?.access_token && lastKnownHeaderSession?.refresh_token) {
+        persistHeaderSessionSnapshot(lastKnownHeaderSession);
+      }
     });
     window.addEventListener('storage', (event) => {
       const key = String(event?.key || '').trim();
@@ -658,7 +680,7 @@ const HEADER_HTML = `
         refresh_token: storedSession.refresh_token
       });
       const session = result?.data?.session || null;
-      if (session?.access_token && session?.refresh_token) persistHeaderSessionSnapshot(session);
+      rememberHeaderSessionSnapshot(session);
       return !!session?.user;
     } catch (_err) {
       return false;

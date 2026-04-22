@@ -94,6 +94,24 @@
       'Colorado Avalanche', 'Edmonton Oilers', 'Vegas Golden Knights', 'Pittsburgh Penguins', 'Ferrari', 'Red Bull Racing', 'Mercedes AMG Petronas', 'McLaren', 'Aston Martin', 'Scuderia AlphaTauri',
       'Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore', 'Kolkata Knight Riders', 'Rajasthan Royals', 'New Zealand All Blacks', 'England Rugby', 'South Africa Rugby', 'Australia Rugby', 'Ireland Rugby'
     ];
+    const HOME_TOP_SOCCER_LEAGUES = new Set(['premier league', 'la liga', 'serie a', 'bundesliga', 'ligue 1']);
+    const HOME_TOP_SOCCER_CLUBS = new Set([
+      'real madrid', 'barcelona', 'atletico madrid', 'liverpool', 'manchester city',
+      'manchester united', 'arsenal', 'chelsea', 'tottenham hotspur', 'newcastle united',
+      'bayern munich', 'borussia dortmund', 'paris saint germain', 'inter milan', 'ac milan',
+      'juventus', 'napoli', 'roma', 'sevilla', 'valencia'
+    ]);
+    const HOME_TOP_BASKETBALL_TEAMS = new Set([
+      'los angeles lakers', 'boston celtics', 'golden state warriors', 'chicago bulls',
+      'miami heat', 'milwaukee bucks', 'new york knicks', 'phoenix suns'
+    ]);
+    const HOME_TOP_MOTORSPORT_TEAMS = new Set([
+      'ferrari', 'mercedes amg petronas', 'red bull racing', 'mclaren', 'aston martin'
+    ]);
+    const HOME_TOP_NFL_TEAMS = new Set([
+      'kansas city chiefs', 'dallas cowboys', 'san francisco 49ers',
+      'philadelphia eagles', 'buffalo bills', 'green bay packers'
+    ]);
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-clapperboard', accent: '#f59e0b' },
       fashion: { label: 'Fashion', icon: 'fa-shirt', accent: '#38bdf8' },
@@ -9142,6 +9160,25 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           return item;
         }
       );
+      const toFallbackGameItems = () => HOME_GAMES_FALLBACK_ITEMS
+        .map((row) => ({
+          mediaType: 'game',
+          itemId: row.id,
+          title: row.title,
+          subtitle: String(row.release || '').slice(0, 4) || 'Game',
+          extra: 'Video Game',
+          image: row.cover,
+          listImage: row.cover,
+          backgroundImage: row.cover,
+          spotlightImage: row.cover,
+          spotlightMediaImage: row.cover,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          popularity: 0,
+          fallbackImage: '',
+          href: row.id ? `game.html?id=${encodeURIComponent(String(row.id))}` : 'games.html'
+        }))
+        .slice(0, targetCount);
 
       const mapToItem = (row) => {
         const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
@@ -9195,6 +9232,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             return [];
           }
         })();
+        const localRows = await localRowsPromise;
+        const localItems = dedupeHomeGameRows(Array.isArray(localRows) ? localRows : [], Math.max(targetCount * 2, 40))
+          .map((row) => mapToItem(row))
+          .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
+          .sort((a, b) => Number(b?.popularity || 0) - Number(a?.popularity || 0))
+          .slice(0, Math.max(targetCount * 2, 24));
+        if (!options?.cacheBust && localItems.length >= Math.min(targetCount, 12)) {
+          const rotatedLocal = shuffleArray(localItems).slice(0, targetCount);
+          writeHomeItemsCache(HOME_GAMES_ITEMS_CACHE_KEY, rotatedLocal);
+          return rotatedLocal;
+        }
         const providerList = ['igdb'];
         for (const provider of providerList) {
           const baseParams = {
@@ -9229,7 +9277,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               merged.push(row);
             });
           });
-          const localRows = await localRowsPromise;
           const combinedRows = merged.concat(Array.isArray(localRows) ? localRows : []);
           if (!combinedRows.length || signal?.aborted) continue;
           const combinedSeen = new Set();
@@ -9272,46 +9319,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
         }
         if (cachedGameItems.length) return shuffleArray(cachedGameItems).slice(0, targetCount);
-        return HOME_GAMES_FALLBACK_ITEMS
-          .map((row) => ({
-            mediaType: 'game',
-            itemId: row.id,
-            title: row.title,
-            subtitle: String(row.release || '').slice(0, 4) || 'Game',
-            extra: 'Video Game',
-            image: row.cover,
-            listImage: row.cover,
-            backgroundImage: row.cover,
-            spotlightImage: row.cover,
-            spotlightMediaImage: row.cover,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            popularity: 0,
-            fallbackImage: '',
-            href: row.id ? `game.html?id=${encodeURIComponent(String(row.id))}` : 'games.html'
-          }))
-          .slice(0, targetCount);
+        return toFallbackGameItems();
       } catch (_error) {
         if (cachedGameItems.length) return shuffleArray(cachedGameItems).slice(0, targetCount);
-        return HOME_GAMES_FALLBACK_ITEMS
-          .map((row) => ({
-            mediaType: 'game',
-            itemId: row.id,
-            title: row.title,
-            subtitle: String(row.release || '').slice(0, 4) || 'Game',
-            extra: 'Video Game',
-            image: row.cover,
-            listImage: row.cover,
-            backgroundImage: row.cover,
-            spotlightImage: row.cover,
-            spotlightMediaImage: row.cover,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            popularity: 0,
-            fallbackImage: '',
-            href: row.id ? `game.html?id=${encodeURIComponent(String(row.id))}` : 'games.html'
-          }))
-          .slice(0, targetCount);
+        return toFallbackGameItems();
       }
     }
 
@@ -9590,6 +9601,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (leagueNorm.includes('formula 1') || leagueNorm.includes('grand prix')) score += 190;
         return score;
       };
+      const isPreferredSportsRow = (row) => {
+        const titleNorm = normalizeSportsName(row?.name || '');
+        const leagueNorm = normalizeSportsName(row?.league || '');
+        const sportBucket = toSportBucket(row?.sport || '');
+        if (!titleNorm) return false;
+        if (sportBucket === 'soccer') {
+          if (!HOME_TOP_SOCCER_CLUBS.has(titleNorm)) return false;
+          return !leagueNorm || HOME_TOP_SOCCER_LEAGUES.has(leagueNorm);
+        }
+        if (sportBucket === 'basketball') return HOME_TOP_BASKETBALL_TEAMS.has(titleNorm);
+        if (sportBucket === 'motorsport') return HOME_TOP_MOTORSPORT_TEAMS.has(titleNorm);
+        if (sportBucket === 'american-football') return HOME_TOP_NFL_TEAMS.has(titleNorm);
+        return false;
+      };
       const cachedSportsItems = readHomeItemsCache(
         HOME_SPORTS_ITEMS_CACHE_KEY,
         HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS,
@@ -9614,7 +9639,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           retries: 1
         });
         const rows = Array.isArray(manifestPayload?.teams) ? manifestPayload.teams : [];
-        const sortedRows = rows
+        const preferredRows = rows.filter((row) => isPreferredSportsRow(row));
+        const workingRows = preferredRows.length ? preferredRows : rows;
+        const sortedRows = workingRows
           .filter((row) => row && (row.badge || row.name))
           .sort((a, b) => scoreSportsRow(b) - scoreSportsRow(a));
         const seen = new Set();

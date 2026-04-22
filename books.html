@@ -886,7 +886,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
 <script src="/js/mobile-webapp.js?v=20260329b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-<script src="js/shared-header.js?v=20260418c" defer></script>
+<script src="js/shared-header.js?v=20260422a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
   <link rel="stylesheet" href="/css/pages/media-spotlight.css?v=20260418a">
 </head>
@@ -1471,17 +1471,17 @@
 
         if (merged.length < BOOKS_PER_PAGE) {
           const needed = Math.max(1, BOOKS_PER_PAGE - merged.length);
-          const [popularPage2, googleDocs] = await Promise.allSettled([
+          const [popularPage2, trendingPage2] = await Promise.allSettled([
             fetchPopularBooks(2, Math.max(10, needed)),
-            fetchGoogleBooksDocs({ q: 'bestselling books', limit: Math.max(12, needed) })
+            fetchTrendingBooks(Math.max(10, needed))
           ]);
           const extraPopularDocs = popularPage2.status === 'fulfilled' && Array.isArray(popularPage2.value?.docs)
             ? popularPage2.value.docs
             : [];
-          const extraGoogleDocs = googleDocs.status === 'fulfilled' && Array.isArray(googleDocs.value)
-            ? googleDocs.value
+          const extraTrendingDocs = trendingPage2.status === 'fulfilled' && Array.isArray(trendingPage2.value?.docs)
+            ? trendingPage2.value.docs
             : [];
-          [...extraPopularDocs, ...extraGoogleDocs].forEach((doc) => {
+          [...extraPopularDocs, ...extraTrendingDocs].forEach((doc) => {
             const title = normalizeBookSeedText(doc?.title || '');
             const author = normalizeBookSeedText(Array.isArray(doc?.author_name) ? doc.author_name[0] : '');
             const key = `${title}::${author}`;
@@ -1991,10 +1991,9 @@
 
           const needed = Math.max(1, BOOKS_PER_PAGE - merged.length);
           const currentPage = Math.max(1, Number(state.page || 1));
-          const [popularMore, trendingMore, googleMore] = await Promise.allSettled([
+          const [popularMore, trendingMore] = await Promise.allSettled([
             fetchPopularBooks(currentPage + 1, Math.max(10, needed)),
-            fetchTrendingBooks(Math.max(10, needed)),
-            fetchGoogleBooksDocs({ q: 'popular books', limit: Math.max(12, needed) })
+            fetchTrendingBooks(Math.max(10, needed))
           ]);
 
           const extraPopularDocs = popularMore.status === 'fulfilled' && Array.isArray(popularMore.value?.docs)
@@ -2003,11 +2002,7 @@
           const extraTrendingDocs = trendingMore.status === 'fulfilled' && Array.isArray(trendingMore.value?.docs)
             ? trendingMore.value.docs
             : [];
-          const extraGoogleDocs = googleMore.status === 'fulfilled' && Array.isArray(googleMore.value)
-            ? googleMore.value
-            : [];
-
-          [...extraPopularDocs, ...extraTrendingDocs, ...extraGoogleDocs].forEach(pushUnique);
+          [...extraPopularDocs, ...extraTrendingDocs].forEach(pushUnique);
           data = {
             docs: merged.slice(0, BOOKS_PER_PAGE),
             numFound: Math.max(Number(data?.numFound || 0) || 0, merged.length, BOOKS_PER_PAGE * 2)
@@ -2485,9 +2480,9 @@
         wireUI();
         syncSearchStateFromUrl();
         populateCategories();
-        await initAuth();
         renderFilters();
         loadBooks();
+        void initAuth().catch(() => {});
       })();
     })();
   </script>
