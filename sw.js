@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v222';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v223';
 const PAGE_CACHE = 'zo2y-pages-v182';
 const IMAGE_CACHE = 'zo2y-images-v39';
 const API_CACHE = 'zo2y-api-v19';
@@ -16,7 +16,7 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260413f',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260421c',
+  '/js/pages/index.js?v=20260421d',
   '/js/pages/index-home-heavy-loaders.js?v=20260329a',
   '/js/home-desktop-rebrand.js?v=20260416b',
   '/js/referral-utils.js?v=20260319a',

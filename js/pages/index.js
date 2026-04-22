@@ -2469,12 +2469,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const list = Array.isArray(rows) ? rows : [];
         const buildCover = (row) => {
           const directCover = toHttpsUrl(row?.coverImage || row?.image || row?.thumbnail || '');
-          if (directCover) return directCover;
+          const directHost = (() => {
+            try { return new URL(directCover).hostname.toLowerCase(); } catch (_err) { return ''; }
+          })();
+          // Avoid hotlinking Google Books content URLs on home feed because they frequently
+          // rate-limit with 429 when many cards load at once.
+          if (directCover && !directHost.includes('books.google.com')) return directCover;
           const coverId = Number(row?.cover_i || 0) || 0;
           if (coverId > 0) return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg`;
           const isbnRaw = Array.isArray(row?.isbn) ? String(row.isbn[0] || '').trim() : String(row?.isbn || '').trim();
           const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
           if (isbn) return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`;
+          if (directCover) return directCover;
           return '';
         };
         return list.slice(0, takeCount).map((row, idx) => {
@@ -3266,13 +3272,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function canUseHomeSpotlightItem(item) {
       if (!item || item.isPlaceholder) return false;
-      return !!String(
-        item?.spotlightImage
-        || item?.backgroundImage
-        || item?.spotlightMediaImage
-        || item?.image
-        || ''
-      ).trim();
+      const backdrop = String(item?.spotlightImage || item?.backgroundImage || '').trim();
+      if (!backdrop) return false;
+      const lowered = backdrop.toLowerCase();
+      if (!/^https?:\/\//i.test(backdrop) && !backdrop.startsWith('/')) return false;
+      if (lowered.includes('/newlogo.webp') || lowered.endsWith('.svg') || lowered.includes('.svg?')) return false;
+      return true;
     }
 
     function buildBalancedSpotlightShortlist(pool, limit = HOME_SPOTLIGHT_POOL_SIZE) {
@@ -9541,14 +9546,32 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         'nba', 'nfl', 'mlb', 'nhl', 'formula 1', 'ipl', 'icc cricket world cup',
         'united rugby championship', 'six nations', 'super rugby'
       ]);
+      const featuredTeamsPriority = [
+        'real madrid',
+        'liverpool',
+        'barcelona',
+        'manchester city',
+        'arsenal',
+        'los angeles lakers',
+        'boston celtics',
+        'golden state warriors',
+        'ferrari',
+        'mercedes amg petronas',
+        'red bull racing',
+        'kansas city chiefs',
+        'dallas cowboys',
+        'san francisco 49ers'
+      ];
+      const featuredTeamScore = new Map(featuredTeamsPriority.map((name, index) => [name, featuredTeamsPriority.length - index]));
       const toSportBucket = (sportValue) => {
         const sport = String(sportValue || '').trim().toLowerCase();
-        if (sport.includes('soccer') || sport.includes('football')) return 'soccer';
+        if (sport.includes('soccer')) return 'soccer';
+        if (sport.includes('american football')) return 'american-football';
+        if (sport.includes('football')) return 'soccer';
         if (sport.includes('basket')) return 'basketball';
         if (sport.includes('baseball')) return 'baseball';
         if (sport.includes('ice hockey') || sport.includes('hockey')) return 'hockey';
-        if (sport.includes('american football')) return 'american-football';
-        if (sport.includes('motor')) return 'motorsport';
+        if (sport.includes('motor') || sport.includes('formula')) return 'motorsport';
         if (sport.includes('cricket')) return 'cricket';
         if (sport.includes('rugby')) return 'rugby';
         return sport || 'other';
@@ -9558,6 +9581,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const leagueNorm = normalizeSportsName(row?.league || '');
         const sportNorm = normalizeSportsName(row?.sport || '');
         let score = 0;
+        score += Number(featuredTeamScore.get(titleNorm) || 0) * 500;
         if (seedSet.has(titleNorm)) score += 1200;
         if (priorityLeagues.has(leagueNorm)) score += 800;
         if (priorityLeagues.has(sportNorm)) score += 300;
@@ -9630,6 +9654,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           bucketed.get(bucket).push(item);
         }
         const bucketKeys = Array.from(bucketed.keys()).sort((a, b) => {
+          const order = ['soccer', 'basketball', 'motorsport', 'american-football', 'baseball', 'hockey', 'cricket', 'rugby', 'other'];
+          const ai = order.includes(a) ? order.indexOf(a) : order.length;
+          const bi = order.includes(b) ? order.indexOf(b) : order.length;
+          if (ai !== bi) return ai - bi;
           const aSeed = seedSet.has(normalizeSportsName(bucketed.get(a)?.[0]?.title || '')) ? 1 : 0;
           const bSeed = seedSet.has(normalizeSportsName(bucketed.get(b)?.[0]?.title || '')) ? 1 : 0;
           return bSeed - aSeed;
