@@ -1,4 +1,4 @@
-const APP_SHELL_CACHE = 'zo2y-app-shell-v224';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v225';
 const PAGE_CACHE = 'zo2y-pages-v182';
 const IMAGE_CACHE = 'zo2y-images-v39';
 const API_CACHE = 'zo2y-api-v19';
@@ -16,18 +16,18 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260413f',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260421e',
+  '/js/pages/index.js?v=20260421f',
   '/js/pages/index-home-heavy-loaders.js?v=20260329a',
   '/js/home-desktop-rebrand.js?v=20260416b',
   '/js/referral-utils.js?v=20260319a',
-  '/js/shared-header.js?v=20260422a',
+  '/js/shared-header.js?v=20260422b',
   '/js/review-interactions.js?v=20260308a',
   '/js/list-utils.js?v=20260419a',
   '/js/index-list-menu-adapter.js?v=20260317b',
   '/js/universal-search.js?v=20260421a',
   '/js/auth-gate.js?v=20260418l',
   '/onboarding.html',
-  '/js/production-runtime.js?v=20260307a',
+  '/js/production-runtime.js?v=20260422a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
   '/js/mobile-webapp.js?v=20260407j',

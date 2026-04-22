@@ -11053,7 +11053,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         authNotice.textContent = 'Sign in to continue into Zo2y.';
       }
 
-      void ensureHomeHeavyLoaders().catch(() => {});
+      scheduleHomeNonCritical(() => {
+        void ensureHomeHeavyLoaders().catch(() => {});
+      }, 1800);
 
       document.querySelectorAll('[data-auth-entry]').forEach((link) => {
         link.addEventListener('click', () => {
@@ -11194,7 +11196,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         initLandingExperience();
       });
 
-      void ensureHomeHeavyLoaders().catch(() => {});
+      scheduleHomeNonCritical(() => {
+        void ensureHomeHeavyLoaders().catch(() => {});
+      }, 1800);
 
       const itemMenuModal = document.getElementById('itemMenuModal');
       const createListModal = document.getElementById('createListModal');

@@ -886,7 +886,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
 <script src="/js/mobile-webapp.js?v=20260329b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-<script src="js/shared-header.js?v=20260422a" defer></script>
+<script src="js/shared-header.js?v=20260422b" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
   <link rel="stylesheet" href="/css/pages/media-spotlight.css?v=20260418a">
 </head>
@@ -2475,18 +2475,18 @@
       }
 
       (async function init() {
-        await initSupabase();
+        void initSupabase();
         clearLegacyBooksCache();
         wireUI();
         syncSearchStateFromUrl();
         populateCategories();
         renderFilters();
-        loadBooks();
+        void loadBooks();
         void initAuth().catch(() => {});
       })();
     })();
   </script>
-  <script src="js/production-runtime.js?v=20260307a" defer></script>
+  <script src="js/production-runtime.js?v=20260422a" defer></script>
 </body>
 </html>
 

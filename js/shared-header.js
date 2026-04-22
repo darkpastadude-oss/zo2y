@@ -941,6 +941,8 @@ const HEADER_HTML = `
     const canTrackPointer = !prefersReducedMotion
       && window.matchMedia
       && window.matchMedia('(pointer: fine)').matches;
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const shouldReduceEffects = !!(connection && (connection.saveData || ['slow-2g', '2g', '3g'].includes(String(connection.effectiveType || '').toLowerCase())));
 
     logos.forEach((logo) => {
       if (logo.dataset.zo2yLogoWired === '1') return;
@@ -980,7 +982,7 @@ const HEADER_HTML = `
         });
       }
 
-      if (prefersReducedMotion) return;
+      if (prefersReducedMotion || shouldReduceEffects) return;
 
       const minDelay = 3800;
       const maxDelay = 9200;
@@ -1004,7 +1006,7 @@ const HEADER_HTML = `
       scheduleBlink();
     });
 
-    if (canTrackPointer && !window.__ZO2Y_LOGO_TRACKING_BOUND) {
+    if (canTrackPointer && !shouldReduceEffects && !window.__ZO2Y_LOGO_TRACKING_BOUND) {
       window.__ZO2Y_LOGO_TRACKING_BOUND = true;
       let rafId = null;
 

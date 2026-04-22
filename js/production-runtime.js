@@ -666,9 +666,14 @@
   function setupDuplicateCardCleanup() {
     let scheduled = false;
     let debugRuns = 0;
+    let lastRunAt = 0;
 
     const run = () => {
       scheduled = false;
+      if (document.hidden) return;
+      const now = Date.now();
+      if (now - lastRunAt < 600) return;
+      lastRunAt = now;
       const removed = removeDuplicateCards(document);
       if (removed > 0) {
         debugRuns += 1;
@@ -697,6 +702,7 @@
 
     if ("MutationObserver" in window) {
       const observer = new MutationObserver((mutations) => {
+        if (document.hidden) return;
         for (const mutation of mutations) {
           if (mutation.type !== "childList") continue;
           if ((mutation.addedNodes?.length || 0) < 1) continue;
@@ -711,6 +717,9 @@
           if (document.body) observer.observe(document.body, { childList: true, subtree: true });
         }, { once: true });
       }
+      window.setTimeout(() => {
+        try { observer.disconnect(); } catch (_err) {}
+      }, 20000);
     }
   }
 
