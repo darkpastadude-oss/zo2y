@@ -996,7 +996,10 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {})
+          ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}),
+          ...(String(window?.__ZO2Y_SUPABASE_CONFIG?.key || '').trim()
+            ? { 'x-zo2y-supabase-key': String(window.__ZO2Y_SUPABASE_CONFIG.key).trim() }
+            : {})
         },
         body: JSON.stringify(payload)
       });
@@ -1046,6 +1049,12 @@
         }
         if (isBookWritePermissionError(error)) {
           bookDirectWriteSupported = false;
+          try {
+            if (!window.__ZO2Y_BOOKS_RLS_WARNED) {
+              window.__ZO2Y_BOOKS_RLS_WARNED = true;
+              console.warn('zo2y: books RLS blocked writes. Apply sql/books_rls_write_policy.sql in Supabase to allow authenticated inserts/updates on public.books.');
+            }
+          } catch (_warnErr) {}
         } else {
           // Non-RLS error: do not assume API can fix it (but try once).
           bookDirectWriteSupported = true;

@@ -137,21 +137,13 @@ function mapBooks(rows = []) {
     .map((row, index) => {
       const title = String(row?.title || "").trim();
       if (!title) return null;
-      const author = Array.isArray(row?.author_name) && row.author_name.length ? String(row.author_name[0] || "").trim() : "Book";
+      const author = String(row?.author || "").trim() || "Book";
       const key = `${title.toLowerCase()}::${author.toLowerCase()}`;
       if (seen.has(key)) return null;
       seen.add(key);
-      const coverId = Number(row?.cover_i || 0);
-      const isbnRaw = Array.isArray(row?.isbn) ? String(row.isbn[0] || "").trim() : "";
-      const isbn = isbnRaw.replace(/[^0-9Xx]/g, "");
-      const coverById = coverId ? `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg` : "";
-      const coverByIsbn = isbn ? `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg` : "";
-      const googleThumb = String(row?._googleThumbnail || row?.coverImage || "").trim().replace(/^http:\/\//i, "https://");
-      const primaryImage = googleThumb || coverById || coverByIsbn || "/newlogo.webp";
-      const workKey = String(row?.key || "").trim();
-      const googleVolumeId = String(row?._googleVolumeId || "").trim();
-      const itemId = googleVolumeId || workKey.replace(/^\/works\//i, "").trim() || `pre-book-${index + 1}`;
-      const year = Number(row?.first_publish_year || 0) || 0;
+      const primaryImage = String(row?.cover || "").trim().replace(/^http:\/\//i, "https://") || "/newlogo.webp";
+      const itemId = String(row?.id || `pre-book-${index + 1}`).trim() || `pre-book-${index + 1}`;
+      const year = Number(row?.year || 0) || 0;
       const subtitle = year ? `${author} | ${year}` : author;
       const href = itemId
         ? `book.html?id=${encodeURIComponent(itemId)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`
@@ -167,7 +159,7 @@ function mapBooks(rows = []) {
         spotlightMediaImage: primaryImage,
         spotlightMediaFit: "contain",
         spotlightMediaShape: "poster",
-        fallbackImage: coverByIsbn || coverById || primaryImage,
+        fallbackImage: primaryImage,
         href
       };
     })
@@ -236,8 +228,8 @@ export default async function handler(req, res) {
     ])
   ]);
   const booksRows = [
-    ...(Array.isArray(booksTrendingJson?.docs) ? booksTrendingJson.docs : []),
-    ...(Array.isArray(booksPopularJson?.docs) ? booksPopularJson.docs : [])
+    ...(Array.isArray(booksTrendingJson?.books) ? booksTrendingJson.books : []),
+    ...(Array.isArray(booksPopularJson?.books) ? booksPopularJson.books : [])
   ];
   const musicRows = (Array.isArray(musicBatches) ? musicBatches : []).flatMap((json) => (
     Array.isArray(json?.results) ? json.results : []

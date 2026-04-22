@@ -2486,32 +2486,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const mapBookRows = (rows, label, takeCount = 6) => {
         const list = Array.isArray(rows) ? rows : [];
         const buildCover = (row) => {
-          const directCover = toHttpsUrl(row?.coverImage || row?.image || row?.thumbnail || '');
-          const directHost = (() => {
-            try { return new URL(directCover).hostname.toLowerCase(); } catch (_err) { return ''; }
-          })();
-          // Avoid hotlinking Google Books content URLs on home feed because they frequently
-          // rate-limit with 429 when many cards load at once.
-          if (directCover && !directHost.includes('books.google.com')) return directCover;
-          const coverId = Number(row?.cover_i || 0) || 0;
-          if (coverId > 0) return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg`;
-          const isbnRaw = Array.isArray(row?.isbn) ? String(row.isbn[0] || '').trim() : String(row?.isbn || '').trim();
-          const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
-          if (isbn) return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`;
-          if (directCover) return directCover;
-          return '';
+          const directCover = toHttpsUrl(row?.cover || row?.image || row?.thumbnail || '');
+          return directCover || '';
         };
         return list.slice(0, takeCount).map((row, idx) => {
           const title = String(row?.title || row?.name || '').trim();
           if (!title) return null;
-          const author = Array.isArray(row?.author_name)
-            ? String(row.author_name[0] || '').trim()
-            : String(row?.author || '').trim();
-          const year = Number(row?.first_publish_year || row?.published_year || 0) || 0;
+          const author = String(row?.author || '').trim();
+          const year = Number(row?.year || 0) || 0;
           const cover = buildCover(row);
           if (!cover) return null;
-          const key = String(row?.key || row?.id || `book-${idx}`).trim();
-          const itemId = key.startsWith('/works/') ? key.replace('/works/', '').trim() : key;
+          const itemId = String(row?.id || `book-${idx}`).trim();
           const href = itemId
             ? `book.html?id=${encodeURIComponent(itemId)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(author || 'Unknown author')}`
             : 'books.html';
@@ -2527,7 +2512,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             spotlightMediaImage: cover,
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
-            maturityRating: String(row?.maturityRating || row?.volumeInfo?.maturityRating || '').trim(),
+            maturityRating: '',
             href,
             fallbackImage: ''
           };
@@ -2671,7 +2656,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             `/api/books/popular?limit=30&page=1&language=en&orderBy=newest&q=${bookReleaseQuery}`,
             { signal, cacheKey: `books:new-releases:newest:${recentBookMinYear}:${currentYear}` }
           )
-          : Promise.resolve({ docs: [] }),
+          : Promise.resolve({ books: [] }),
         includeExtendedSources
           ? fetchJsonWithPerfCache(
             '/api/music/top-50?limit=40&market=US',
@@ -2695,20 +2680,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const gameRows = ENABLE_GAMES && gamesRes.status === 'fulfilled'
         ? (Array.isArray(gamesRes.value?.results) ? gamesRes.value.results : (Array.isArray(gamesRes.value) ? gamesRes.value : []))
         : [];
-      const rawBookRows = booksRes.status === 'fulfilled'
-        ? (Array.isArray(booksRes.value?.docs) ? booksRes.value.docs : (Array.isArray(booksRes.value?.items) ? booksRes.value.items : []))
+      const rawBookRows = booksRes.status === 'fulfilled' && Array.isArray(booksRes.value?.books)
+        ? booksRes.value.books
         : [];
-      const strictBookRows = rawBookRows
-        .filter((row) => {
-          const year = Number(row?.first_publish_year || row?.published_year || 0) || 0;
-          return year >= recentBookMinYear;
-        })
-        .sort((a, b) => {
-          const yearA = Number(a?.first_publish_year || a?.published_year || 0) || 0;
-          const yearB = Number(b?.first_publish_year || b?.published_year || 0) || 0;
-          return yearB - yearA;
-        });
-      const bookRows = strictBookRows;
+      const bookRows = rawBookRows.slice().sort((a, b) => {
+        const yearA = Number(a?.year || 0) || 0;
+        const yearB = Number(b?.year || 0) || 0;
+        return yearB - yearA;
+      });
       const musicTrackRows = musicTrackRes.status === 'fulfilled' && Array.isArray(musicTrackRes.value?.results)
         ? musicTrackRes.value.results
         : [];

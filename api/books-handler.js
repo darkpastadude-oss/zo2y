@@ -8,6 +8,7 @@ dotenv.config({ path: "backend/authRoutes/.env" });
 
 const GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1";
 const OPEN_LIBRARY_BASE = "https://openlibrary.org";
+const SUPABASE_KEY_HEADER = "x-zo2y-supabase-key";
 
 function getBooksKey() {
   return String(process.env.GOOGLE_BOOKS_KEY || "").trim();
@@ -21,6 +22,49 @@ function clampInt(value, min, max, fallback) {
 
 function toHttpsUrl(value) {
   return String(value || "").replace(/^http:\/\//i, "https://").trim();
+}
+
+function normalizeBook(input) {
+  if (!input) return null;
+
+  const title = String(input?.title || input?.name || "").trim();
+  if (!title) return null;
+
+  const rawId = String(input?.id || "").trim();
+  const rawKey = String(input?.key || "").trim();
+  const googleId = String(input?._googleVolumeId || "").trim();
+  const idFromKey = rawKey.startsWith("/works/") ? rawKey.replace("/works/", "").trim() : rawKey;
+  const id = rawId || googleId || idFromKey || "";
+
+  const authorCandidate = Array.isArray(input?.author_name)
+    ? String(input.author_name[0] || "").trim()
+    : String(input?.author || input?.authors || "").trim();
+  const author = authorCandidate || "Unknown author";
+
+  const year = Number(input?.first_publish_year || input?.published_year || input?.year || 0) || null;
+  const cover = toHttpsUrl(input?.cover || input?.coverImage || input?.thumbnail || input?._googleThumbnail || "");
+
+  const source = String(input?._source || input?.source || "").trim()
+    || (googleId ? "google-books" : (rawKey ? "openlibrary" : "book"));
+
+  return { id, title, author, year, cover, source };
+}
+
+function dedupeBooks(rows = [], limit = 20) {
+  const seen = new Set();
+  const out = [];
+  for (const row of Array.isArray(rows) ? rows : []) {
+    if (!row) continue;
+    const title = String(row?.title || "").trim().toLowerCase();
+    const author = String(row?.author || "").trim().toLowerCase();
+    const id = String(row?.id || "").trim().toLowerCase();
+    const key = id || `${title}::${author}`;
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+    if (out.length >= limit) break;
+  }
+  return out;
 }
 
 function normalizePublishedDate(value) {
@@ -86,6 +130,57 @@ function sanitizeBookPayload(body = {}) {
     publisher: publisher || null,
     updated_at: new Date().toISOString()
   };
+}
+
+function getSupabasePublicKeyFromReq(req) {
+  const headerGetter = req && typeof req.get === "function" ? req : null;
+  const headersObj = req?.headers && typeof req.headers === "object" ? req.headers : {};
+  const direct = headerGetter ? String(headerGetter.get(SUPABASE_KEY_HEADER) || "").trim() : "";
+  const alt = headerGetter ? String(headerGetter.get("apikey") || headerGetter.get("x-supabase-anon-key") || "").trim() : "";
+  const fromObj =
+    String(headersObj[SUPABASE_KEY_HEADER] || headersObj[SUPABASE_KEY_HEADER.toLowerCase()] || "").trim()
+    || String(headersObj.apikey || headersObj["x-supabase-anon-key"] || "").trim();
+  return String(direct || alt || fromObj || "").trim();
+}
+
+async function testBooksWriteRls({ supabaseUrl, apikey, bearerToken }) {
+  if (!supabaseUrl || !apikey || !bearerToken) {
+    return { ok: false, configured: false, status: 0, message: "Missing SUPABASE_URL / apikey / bearer token" };
+  }
+
+  const id = `diag-${Date.now()}`;
+  const url = `${supabaseUrl.replace(/\/+$/, "")}/rest/v1/books`;
+  try {
+    const upstream = await fetch(url, {
+      method: "POST",
+      headers: {
+        apikey,
+        Authorization: `Bearer ${bearerToken}`,
+        Prefer: "return=minimal,tx=rollback",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id,
+        title: "diag",
+        authors: "diag",
+        updated_at: new Date().toISOString()
+      })
+    });
+
+    if (upstream.ok) {
+      return { ok: true, configured: true, status: upstream.status };
+    }
+
+    const text = await upstream.text().catch(() => "");
+    return {
+      ok: false,
+      configured: true,
+      status: upstream.status,
+      message: text || `Books write failed (${upstream.status})`
+    };
+  } catch (error) {
+    return { ok: false, configured: true, status: 0, message: error?.message || "Network error" };
+  }
 }
 
 function pushQueryParam(params, key, value) {
@@ -429,6 +524,31 @@ export default async function handler(req, res) {
     return res.json({ ok: true, service: "books-proxy", configured: !!getBooksKey() });
   }
 
+  if (section === "diagnostics") {
+    const supabaseUrl = String(process.env.SUPABASE_URL || "").trim();
+    const serviceRoleSet = Boolean(String(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "").trim());
+    const anonFromEnv = String(process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
+    const anonFromHeader = getSupabasePublicKeyFromReq(req);
+    const apikey = anonFromEnv || anonFromHeader;
+    const bearerToken = getBearerToken(req);
+
+    const rlsProbe = bearerToken && apikey && supabaseUrl
+      ? await testBooksWriteRls({ supabaseUrl, apikey, bearerToken })
+      : { ok: false, configured: false, status: 0, message: "Send Authorization + apikey to test RLS" };
+
+    return res.json({
+      ok: true,
+      supabase: {
+        url_set: Boolean(supabaseUrl),
+        service_role_set: serviceRoleSet,
+        anon_key_set: Boolean(anonFromEnv),
+        anon_key_from_header: Boolean(anonFromHeader)
+      },
+      rls_probe: rlsProbe,
+      hint_rls_fix_sql: "sql/books_rls_write_policy.sql"
+    });
+  }
+
   if (section === "sync" && String(req.method || "").toUpperCase() === "POST") {
     try {
       let client = getSupabaseAdminClient();
@@ -440,7 +560,8 @@ export default async function handler(req, res) {
 
       if (!client) {
         const supabaseUrl = String(process.env.SUPABASE_URL || "").trim();
-        const supabaseAnonKey = String(process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
+        const supabaseAnonKey = String(process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim()
+          || getSupabasePublicKeyFromReq(req);
         const bearerToken = getBearerToken(req);
         if (supabaseUrl && supabaseAnonKey && bearerToken) {
           client = createClient(supabaseUrl, supabaseAnonKey, {
@@ -454,7 +575,7 @@ export default async function handler(req, res) {
           return res.status(503).json({
             ok: false,
             message: "Supabase admin not configured",
-            hint: "Provide SUPABASE_SERVICE_ROLE_KEY, or send a logged-in Bearer token with SUPABASE_ANON_KEY configured.",
+            hint: `Provide SUPABASE_SERVICE_ROLE_KEY, or send Authorization + ${SUPABASE_KEY_HEADER} with a Supabase publishable/anon key.`,
             required_env: ["SUPABASE_URL"],
             required_secrets: ["SUPABASE_SERVICE_ROLE_KEY"],
             optional_fallback_env: ["SUPABASE_ANON_KEY"],
@@ -470,15 +591,19 @@ export default async function handler(req, res) {
         .upsert(payload, { onConflict: "id" });
 
       if (error) {
-        return res.status(500).json({
+        const isRls = String(error?.code || "").trim() === "42501"
+          || String(error?.message || "").toLowerCase().includes("row-level security")
+          || String(error?.message || "").toLowerCase().includes("permission");
+        return res.status(isRls ? 403 : 500).json({
           ok: false,
           message: error.message || "Book sync failed",
           code: error.code || null,
-          details: error.details || null
+          details: error.details || null,
+          hint: isRls ? "RLS blocked book upsert. Apply sql/books_rls_write_policy.sql" : null
         });
       }
 
-      return res.json({ ok: true, id: payload.id });
+      return res.json({ ok: true });
     } catch (error) {
       return res.status(500).json({ ok: false, message: error?.message || "Book sync error" });
     }
@@ -516,14 +641,16 @@ export default async function handler(req, res) {
       }
 
       const enriched = await enrichMissingCoversWithGoogle(docs, 8);
+      const books = dedupeBooks(enriched.map(normalizeBook).filter(Boolean), limit);
       return res.json({
         ok: true,
-        source,
-        page,
-        limit,
-        numFound: Math.max(numFound, enriched.length),
-        docs: enriched,
-        items: enriched
+        books,
+        meta: {
+          source,
+          page,
+          limit,
+          numFound: Math.max(numFound, books.length)
+        }
       });
     } catch (error) {
       return res.status(502).json({ message: error?.message || "Book search failed" });
@@ -564,15 +691,17 @@ export default async function handler(req, res) {
       }
 
       res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
+      const books = dedupeBooks(docs.map(normalizeBook).filter(Boolean), limit);
       return res.json({
         ok: true,
-        source,
-        query: q,
-        page,
-        limit,
-        numFound: Math.max(numFound, docs.length),
-        docs,
-        items: docs
+        books,
+        meta: {
+          source,
+          query: q,
+          page,
+          limit,
+          numFound: Math.max(numFound, books.length)
+        }
       });
     } catch (error) {
       return res.status(502).json({ message: error?.message || "Popular books request failed" });
@@ -604,26 +733,30 @@ export default async function handler(req, res) {
         });
         docs = Array.isArray(popular.docs) ? popular.docs : [];
         res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
+        const books = dedupeBooks(docs.map(normalizeBook).filter(Boolean), limit);
         return res.json({
           ok: true,
-          source: "google-books-fallback",
-          period,
-          limit,
-          numFound: docs.length,
-          docs,
-          items: docs
+          books,
+          meta: {
+            source: "google-books-fallback",
+            period,
+            limit,
+            numFound: books.length
+          }
         });
       }
 
       res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
+      const books = dedupeBooks(docs.map(normalizeBook).filter(Boolean), limit);
       return res.json({
         ok: true,
-        source: "openlibrary-trending",
-        period,
-        limit,
-        numFound: docs.length,
-        docs,
-        items: docs
+        books,
+        meta: {
+          source: "openlibrary-trending",
+          period,
+          limit,
+          numFound: books.length
+        }
       });
     } catch (error) {
       return res.status(502).json({ message: error?.message || "Trending books request failed" });

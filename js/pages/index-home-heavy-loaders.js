@@ -110,7 +110,7 @@ async function loadBooks(signal) {
       const targetCount = getHomeChannelTargetItems();
       const lightweightMode = shouldUseLightweightHomeBooksLoad();
       const currentYear = new Date().getUTCFullYear();
-      const recentFloor = Math.max(2010, currentYear - 8);
+      const recentFloor = 0;
       const setBooksDebug = (stage, detail = {}) => {
         try {
           window.__zo2yHomeBooksDebug = {
@@ -161,18 +161,18 @@ async function loadBooks(signal) {
         if (!title) return null;
         const author = Array.isArray(row?.author_name) && row.author_name.length
           ? String(row.author_name[0] || '').trim()
-          : 'Unknown author';
+          : (String(row?.author || '').trim() || 'Unknown author');
         const isbn = Array.isArray(row?.isbn)
           ? row.isbn.map((entry) => String(entry || '').replace(/[^0-9Xx]/g, '')).filter(Boolean)
           : (String(row?.isbn || '').trim() ? [String(row.isbn).trim().replace(/[^0-9Xx]/g, '')] : []);
         return {
-          key: String(row?.key || '').trim(),
+          key: String(row?.key || row?.id || '').trim(),
           title,
           author_name: [author],
-          first_publish_year: Number(row?.first_publish_year || 0) || null,
+          first_publish_year: Number(row?.first_publish_year || row?.year || 0) || null,
           isbn,
           cover_i: Number(row?.cover_i || 0) || null,
-          coverImage: toHttpsUrl(row?.coverImage || ''),
+          coverImage: toHttpsUrl(row?.coverImage || row?.cover || ''),
           _googleThumbnail: toHttpsUrl(row?._googleThumbnail || ''),
           _googleVolumeId: String(row?._googleVolumeId || '').trim(),
           maturityRating: String(row?.maturityRating || '').trim(),
@@ -315,6 +315,7 @@ async function loadBooks(signal) {
           const json = await response.json();
           setBooksDebug('fetched', {
             path: normalizedPath,
+            books: Array.isArray(json?.books) ? json.books.length : 0,
             docs: Array.isArray(json?.docs) ? json.docs.length : 0,
             items: Array.isArray(json?.items) ? json.items.length : 0
           });
@@ -332,9 +333,9 @@ async function loadBooks(signal) {
             limit: 5,
             page: 1
           });
-          const docs = Array.isArray(payload?.docs)
-            ? payload.docs
-            : (Array.isArray(payload?.items) ? payload.items : []);
+          const docs = Array.isArray(payload?.books)
+            ? payload.books
+            : (Array.isArray(payload?.docs) ? payload.docs : (Array.isArray(payload?.items) ? payload.items : []));
           if (!docs.length) return null;
           const normalizedDocs = docs
             .map((row, idx) => normalizeBookDoc(row, idx))
@@ -375,12 +376,12 @@ async function loadBooks(signal) {
         const seededDocs = seededResult.status === 'fulfilled' && Array.isArray(seededResult.value) ? seededResult.value : [];
         const popularPayload = popularResult.status === 'fulfilled' ? popularResult.value : null;
         const trendingPayload = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
-        const popularDocs = Array.isArray(popularPayload?.docs)
-          ? popularPayload.docs
-          : (Array.isArray(popularPayload?.items) ? popularPayload.items : []);
-        const trendingDocs = Array.isArray(trendingPayload?.docs)
-          ? trendingPayload.docs
-          : (Array.isArray(trendingPayload?.items) ? trendingPayload.items : []);
+        const popularDocs = Array.isArray(popularPayload?.books)
+          ? popularPayload.books
+          : (Array.isArray(popularPayload?.docs) ? popularPayload.docs : (Array.isArray(popularPayload?.items) ? popularPayload.items : []));
+        const trendingDocs = Array.isArray(trendingPayload?.books)
+          ? trendingPayload.books
+          : (Array.isArray(trendingPayload?.docs) ? trendingPayload.docs : (Array.isArray(trendingPayload?.items) ? trendingPayload.items : []));
         const allDocsRaw = [...seededDocs, ...trendingDocs, ...popularDocs];
         setBooksDebug('payload-merged', {
           limit,
@@ -395,8 +396,8 @@ async function loadBooks(signal) {
           trendingError: trendingResult.status === 'rejected' ? String(trendingResult.reason?.message || trendingResult.reason || '') : ''
         });
 
-        const strictModern = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: false });
-        const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: recentFloor, allowMissingYear: true });
+        const strictModern = mapDocsToRailItems(allDocsRaw, { minYear: 0, allowMissingYear: true });
+        const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: 0, allowMissingYear: true });
         const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 0, allowMissingYear: true });
         const merged = mergeUniqueItems(strictModern, modernWithUnknownYear, relaxedFallback);
         const safeMerged = filterHomeSafeItems(merged);

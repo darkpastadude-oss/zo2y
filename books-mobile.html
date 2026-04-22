@@ -1253,7 +1253,7 @@
         if (cacheKey) {
           const memoryEntry = booksApiMemoryCache.get(cacheKey);
           if (memoryEntry && (Date.now() - Number(memoryEntry.savedAt || 0)) < BOOKS_API_CACHE_TTL_MS) {
-            return JSON.parse(JSON.stringify(memoryEntry.payload || { docs: [], numFound: 0 }));
+            return JSON.parse(JSON.stringify(memoryEntry.payload || { books: [], numFound: 0 }));
           }
           try {
             const rawCached = localStorage.getItem(cacheKey);
@@ -1261,7 +1261,7 @@
               const parsedCached = JSON.parse(rawCached);
               if (parsedCached && (Date.now() - Number(parsedCached.savedAt || 0)) < BOOKS_API_CACHE_TTL_MS) {
                 booksApiMemoryCache.set(cacheKey, parsedCached);
-                return JSON.parse(JSON.stringify(parsedCached.payload || { docs: [], numFound: 0 }));
+                return JSON.parse(JSON.stringify(parsedCached.payload || { books: [], numFound: 0 }));
               }
             }
           } catch (_error) {}
@@ -1284,10 +1284,19 @@
         }
         if (!res.ok) throw new Error(`Books API error ${res.status}`);
         const json = await res.json();
-        const docsRaw = Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.items) ? json.items : []);
-        const docs = docsRaw.map((entry, idx) => normalizeRemoteBookDoc(entry, idx)).filter((entry) => String(entry?.title || '').trim());
-        const numFound = Number(json?.numFound || json?.count || json?.totalItems || docs.length) || docs.length;
-          const payload = { docs, numFound };
+        const booksRaw = Array.isArray(json?.books) ? json.books : [];
+        const books = booksRaw
+          .map((entry) => ({
+            id: String(entry?.id || '').trim(),
+            title: String(entry?.title || '').trim(),
+            author: String(entry?.author || '').trim(),
+            year: Number(entry?.year || 0) || null,
+            cover: toHttpsUrl(entry?.cover || ''),
+            source: String(entry?.source || '').trim()
+          }))
+          .filter((entry) => entry.title);
+        const numFound = Number(json?.meta?.numFound || json?.numFound || json?.count || json?.totalItems || books.length) || books.length;
+          const payload = { books, numFound };
           if (cacheKey) {
             const cachedEntry = { savedAt: Date.now(), payload };
             booksApiMemoryCache.set(cacheKey, cachedEntry);
@@ -1370,15 +1379,8 @@
       }
 
       function getPreferredBookImage(doc) {
-        const googleThumb = toHttpsUrl(doc?._googleThumbnail || '');
-        if (googleThumb) return googleThumb;
-        const byCoverId = toHttpsUrl(buildOpenLibraryCoverUrl(doc, 'L'));
-        if (byCoverId) return byCoverId;
-        const byIsbn = toHttpsUrl(buildOpenLibraryCoverUrl(doc, 'M'));
-        if (byIsbn) return byIsbn;
-        const coverImage = toHttpsUrl(doc?.coverImage || '');
-        if (coverImage && !/supabase\.co\/storage\/v1\/object\/public/i.test(coverImage)) return coverImage;
-        return null;
+        const cover = toHttpsUrl(doc?.cover || doc?.coverImage || doc?.thumbnail || '');
+        return cover || null;
       }
 
       function clearLegacyBooksMobileCache() {
@@ -1401,10 +1403,19 @@
           if (!raw) return null;
           const parsed = JSON.parse(raw);
           const age = Date.now() - Number(parsed?.savedAt || 0);
-          if (!parsed || !Array.isArray(parsed?.docs) || age > BOOKS_MOBILE_PAGE_CACHE_TTL_MS) return null;
+          if (!parsed || !Array.isArray(parsed?.books) || age > BOOKS_MOBILE_PAGE_CACHE_TTL_MS) return null;
           return {
-            docs: parsed.docs.map((entry, idx) => normalizeRemoteBookDoc(entry, idx)).filter((entry) => String(entry?.title || '').trim()),
-            numFound: Number(parsed?.numFound || 0) || parsed.docs.length
+            books: parsed.books
+              .map((entry) => ({
+                id: String(entry?.id || '').trim(),
+                title: String(entry?.title || '').trim(),
+                author: String(entry?.author || '').trim(),
+                year: Number(entry?.year || 0) || null,
+                cover: toHttpsUrl(entry?.cover || ''),
+                source: String(entry?.source || '').trim()
+              }))
+              .filter((entry) => entry.title),
+            numFound: Number(parsed?.numFound || 0) || parsed.books.length
           };
         } catch (_err) {
           return null;
@@ -1413,12 +1424,12 @@
 
       function writeCachedBooksPage(data) {
         try {
-          const docs = Array.isArray(data?.docs) ? data.docs : [];
-          if (!docs.length) return;
+          const books = Array.isArray(data?.books) ? data.books : [];
+          if (!books.length) return;
           localStorage.setItem(BOOKS_MOBILE_PAGE_CACHE_KEY, JSON.stringify({
             savedAt: Date.now(),
-            numFound: Number(data?.numFound || docs.length) || docs.length,
-            docs
+            numFound: Number(data?.numFound || books.length) || books.length,
+            books
           }));
         } catch (_err) {}
       }
@@ -1433,58 +1444,45 @@
       }
 
       function getBookEntryId(item, idx = 0) {
-        const googleVolumeId = String(item?._googleVolumeId || '').trim();
-        if (googleVolumeId) return googleVolumeId;
-        const workKey = String(item?.key || '').trim();
-        if (workKey.startsWith('/works/')) {
-          const workId = workKey.replace('/works/', '').trim();
-          if (workId) return workId;
-        }
+        const id = String(item?.id || '').trim();
+        if (id) return id;
         const titleSlug = slugifyBookPart(item?.title || `book-${idx}`);
-        const authorSlug = slugifyBookPart(Array.isArray(item?.author_name) ? item.author_name[0] : '');
-        const year = String(item?.first_publish_year || '').trim();
+        const authorSlug = slugifyBookPart(item?.author || '');
+        const year = String(item?.year || '').trim();
         return `search-${titleSlug}-${authorSlug || 'unknown'}-${year || 'na'}`;
       }
 
       async function loadCuratedPopularBooks() {
-        const [seededResult, trendingResult, popularResult] = await Promise.allSettled([
-          fetchCuratedTopBookSeeds(BOOKS_PER_PAGE * 2),
+        const [trendingResult, popularResult] = await Promise.allSettled([
           fetchTrendingBooks(BOOKS_PER_PAGE),
           fetchPopularBooks(1, BOOKS_PER_PAGE)
         ]);
-
-        const seededDocs = seededResult.status === 'fulfilled' ? seededResult.value.slice(0, BOOKS_PER_PAGE * 2) : [];
         const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
         const popular = popularResult.status === 'fulfilled' ? popularResult.value : null;
-        const trendingDocs = Array.isArray(trending?.docs) ? trending.docs.slice(0, BOOKS_PER_PAGE) : [];
-        const popularDocs = Array.isArray(popular?.docs) ? popular.docs.slice(0, BOOKS_PER_PAGE) : [];
+        const trendingBooks = Array.isArray(trending?.books) ? trending.books.slice(0, BOOKS_PER_PAGE) : [];
+        const popularBooks = Array.isArray(popular?.books) ? popular.books.slice(0, BOOKS_PER_PAGE) : [];
 
-        if (seededDocs.length || popularDocs.length || trendingDocs.length) {
-          const merged = [];
-          const seen = new Set();
-          [...seededDocs, ...trendingDocs, ...popularDocs].forEach((doc) => {
-            const title = normalizeBookSeedText(doc?.title || '');
-            const author = normalizeBookSeedText((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '');
-            const key = `${title}::${author}`;
-            if (!title || seen.has(key)) return;
-            seen.add(key);
-            merged.push(doc);
-          });
+        const merged = [];
+        const seen = new Set();
+        [...trendingBooks, ...popularBooks].forEach((book) => {
+          const title = normalizeBookSeedText(book?.title || '');
+          const author = normalizeBookSeedText(book?.author || '');
+          const key = `${title}::${author}`;
+          if (!title || seen.has(key)) return;
+          seen.add(key);
+          merged.push(book);
+        });
 
-          const docs = merged.slice(0, BOOKS_PER_PAGE);
-          return {
-            docs,
-            numFound: Math.max(
-              seededDocs.length,
-              Number(popular?.numFound || 0),
-              Number(trending?.numFound || 0),
-              docs.length,
-              BOOKS_PER_PAGE * 2
-            )
-          };
-        }
-
-        return { docs: [], numFound: 0 };
+        const books = merged.slice(0, BOOKS_PER_PAGE);
+        return {
+          books,
+          numFound: Math.max(
+            Number(popular?.numFound || 0),
+            Number(trending?.numFound || 0),
+            books.length,
+            BOOKS_PER_PAGE * 2
+          )
+        };
       }
 
       function stripHtml(html) {
@@ -1522,13 +1520,9 @@
         const categoryQuery = String(state.activeCategory || '').trim().toLowerCase();
         const yearQuery = String(state.year || '').trim();
         const title = String(item?.title || '').trim().toLowerCase();
-        const authors = Array.isArray(item?.author_name)
-          ? item.author_name.map((name) => String(name || '').trim().toLowerCase()).join(' ')
-          : '';
-        const subjects = Array.isArray(item?.subject)
-          ? item.subject.map((entry) => String(entry || '').trim().toLowerCase()).join(' ')
-          : '';
-        const publishYear = String(item?.first_publish_year || '').trim();
+        const authors = String(item?.author || '').trim().toLowerCase();
+        const subjects = '';
+        const publishYear = String(item?.year || '').trim();
         let score = 0;
 
         if (query) {
@@ -1832,8 +1826,8 @@
         if (!state.year) return items;
         const year = String(state.year);
         return (items || []).filter(item => {
-          const date = item.first_publish_year || '';
-          return String(date).startsWith(year);
+          const value = Number(item?.year || 0) || 0;
+          return value && String(value).startsWith(year);
         });
       }
 
@@ -1844,13 +1838,13 @@
         const payload = {
           id: safeId,
           title: book.title || '',
-          authors: (book.author_name || []).join(', '),
+          authors: String(book.author || '').trim(),
           thumbnail: getPreferredBookImage(book) || '',
-          published_date: book.first_publish_year ? `${book.first_publish_year}-01-01` : null,
-          categories: book.subject || [],
+          published_date: book.year ? `${book.year}-01-01` : null,
+          categories: [],
           description: '',
           page_count: null,
-          publisher: book.publisher ? book.publisher[0] : null,
+          publisher: null,
           updated_at: new Date().toISOString()
         };
         if (window.ListUtils && typeof ListUtils.ensureBookRecord === 'function') {
@@ -1873,9 +1867,9 @@
         const isFirstPopularPage = !hasActiveFilters && Number(state.page || 1) === 1;
         if (isFirstPopularPage) {
           const cachedPage = !options?.cacheBust ? readCachedBooksPage() : null;
-          if (cachedPage?.docs?.length) {
-            updateBookPageSpotlight(cachedPage.docs || []);
-            displayBookResults(cachedPage.docs || [], cachedPage.numFound || 0);
+          if (cachedPage?.books?.length) {
+            updateBookPageSpotlight(cachedPage.books || []);
+            displayBookResults(cachedPage.books || [], cachedPage.numFound || 0);
             return;
           }
         }
@@ -1905,30 +1899,30 @@
             } else {
               data = await booksFetch('/search.json', params);
             }
-            updateBookPageSpotlight(data?.docs || []);
-          if (!Array.isArray(data?.docs) || !data.docs.length) {
-            data = { docs: [], numFound: 0 };
+            updateBookPageSpotlight(data?.books || []);
+          if (!Array.isArray(data?.books) || !data.books.length) {
+            data = { books: [], numFound: 0 };
           }
         } catch (e) {
           console.error('Books fetch error', e);
           showNotification('Could not load books right now. Please try again.', 'error', 4000);
-          data = { docs: [], numFound: 0 };
+          data = { books: [], numFound: 0 };
         }
 
         if (requestSeq !== state.requestSeq) return;
-        if (isFirstPopularPage && Array.isArray(data?.docs) && data.docs.length) {
+        if (isFirstPopularPage && Array.isArray(data?.books) && data.books.length) {
           writeCachedBooksPage(data);
         }
-        displayBookResults(data.docs || [], data.numFound || 0);
+        displayBookResults(data.books || [], data.numFound || 0);
       }
 
-      function displayBookResults(docs, totalFound) {
+      function displayBookResults(books, totalFound) {
         const grid = document.getElementById('booksGrid');
         const empty = document.getElementById('emptyState');
         if (!grid) return;
-        const data = { docs: docs || [], numFound: totalFound || 0 };
+        const data = { books: books || [], numFound: totalFound || 0 };
 
-        let results = data.docs || [];
+        let results = data.books || [];
         results = filterByYear(results);
         results = sortBooksByAccuracy(results);
 
@@ -1941,13 +1935,13 @@
         const fragment = document.createDocumentFragment();
         state.bookIndex.clear();
         results.forEach((item, idx) => {
-          const authors = item.author_name ? item.author_name.join(', ') : 'Unknown author';
-          const year = item.first_publish_year || '';
+          const authors = String(item?.author || '').trim() || 'Unknown author';
+          const year = Number(item?.year || 0) || '';
           const desc = truncateText(item.title || '', 140) || 'No description available.';
           const thumb = getPreferredBookImage(item);
           const bookId = getBookEntryId(item, idx);
           const titleParam = encodeURIComponent(String(item?.title || '').trim());
-          const authorParam = encodeURIComponent(String((Array.isArray(item?.author_name) ? item.author_name[0] : '') || '').trim());
+          const authorParam = encodeURIComponent(String(item?.author || '').trim());
           state.bookIndex.set(bookId, item);
 
           const card = document.createElement('div');
@@ -2376,14 +2370,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
 
 
 
