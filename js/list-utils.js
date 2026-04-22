@@ -1258,8 +1258,9 @@
     if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return;
     if (userId) setTierSyncContext(client, userId);
     if (type === 'book' && itemPayload) {
-      const ok = await ensureBookRecord(client, itemPayload);
-      if (!ok) throw new Error('book_record_missing');
+      // Keep books aligned with other media flows: attempt catalog sync, but never
+      // block list writes if catalog enrichment fails due env/RLS differences.
+      await ensureBookRecord(client, itemPayload).catch(() => false);
     }
     if (type === 'music' && itemPayload) {
       await ensureTrackRecord(client, itemPayload);
