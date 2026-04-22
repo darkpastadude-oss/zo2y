@@ -1249,14 +1249,23 @@
         // This avoids persisting empty arrays into local caches when the network hiccups.
         url.searchParams.set('_', String(Date.now()));
         const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), 9000);
+        const timeoutId = window.setTimeout(() => controller.abort(), 12000);
         let res;
         try {
-          res = await fetch(url.toString(), {
-            headers: { Accept: 'application/json' },
-            cache: 'no-store',
-            signal: controller.signal
-          });
+          try {
+            res = await fetch(url.toString(), {
+              headers: { Accept: 'application/json' },
+              cache: 'no-store',
+              signal: controller.signal
+            });
+          } catch (error) {
+            const isAbort = error && (error.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('aborted'));
+            if (!isAbort) throw error;
+            res = await fetch(url.toString(), {
+              headers: { Accept: 'application/json' },
+              cache: 'no-store'
+            });
+          }
         } finally {
           window.clearTimeout(timeoutId);
         }
@@ -1296,7 +1305,7 @@
 
       function scoreCuratedTopBookDoc(doc, seed) {
         const normalizedTitle = normalizeBookSeedText(doc?.title || '');
-        const normalizedAuthor = normalizeBookSeedText(Array.isArray(doc?.author_name) ? doc.author_name[0] : '');
+        const normalizedAuthor = normalizeBookSeedText(Array.isArray(doc?.author_name) ? doc.author_name[0] : (doc?.author || ''));
         const seedTitle = normalizeBookSeedText(seed?.title || '');
         const seedAuthor = normalizeBookSeedText(seed?.author || '');
         let score = 0;
@@ -1310,7 +1319,7 @@
           else if (normalizedAuthor.includes(seedAuthor) || seedAuthor.includes(normalizedAuthor)) score += 42;
         }
         if (getPreferredBookImage(doc)) score += 16;
-        if (doc?.first_publish_year) score += 8;
+        if (doc?.first_publish_year || doc?.year) score += 8;
         return score;
       }
 
@@ -1323,7 +1332,7 @@
             limit: 5,
             page: 1
           });
-          const docs = Array.isArray(payload?.docs) ? payload.docs : [];
+          const docs = Array.isArray(payload?.books) ? payload.books : [];
           if (!docs.length) return null;
           return docs.slice().sort((a, b) => scoreCuratedTopBookDoc(b, seed) - scoreCuratedTopBookDoc(a, seed))[0] || null;
         }));
@@ -1332,7 +1341,7 @@
         results.forEach((result) => {
           if (result.status !== 'fulfilled' || !result.value) return;
           const doc = result.value;
-          const key = `${normalizeBookSeedText(doc?.title || '')}::${normalizeBookSeedText(Array.isArray(doc?.author_name) ? doc.author_name[0] : '')}`;
+          const key = `${normalizeBookSeedText(doc?.title || '')}::${normalizeBookSeedText(doc?.author || '')}`;
           if (!key || seen.has(key)) return;
           seen.add(key);
           docs.push(doc);
@@ -1827,14 +1836,6 @@
         const requestSeq = ++state.requestSeq;
         const hasActiveFilters = !!(state.query || state.author || state.activeCategory || state.year);
         const isFirstPopularPage = !hasActiveFilters && Number(state.page || 1) === 1;
-        if (isFirstPopularPage) {
-          const cachedPage = !options?.cacheBust ? readCachedBooksPage() : null;
-          if (cachedPage?.books?.length) {
-            updateBookPageSpotlight(cachedPage.books || []);
-            displayBookResults(cachedPage.books || [], cachedPage.numFound || 0);
-            return;
-          }
-        }
         if (Number(state.page || 1) === 1) {
           grid.innerHTML = '<div class="empty">Loading books...</div>';
         }
@@ -1879,9 +1880,6 @@
         }
 
         if (requestSeq !== state.requestSeq) return;
-        if (isFirstPopularPage && Array.isArray(data?.books) && data.books.length) {
-          writeCachedBooksPage(data);
-        }
         displayBookResults(data.books || [], data.numFound || 0);
       }
 
@@ -2339,9 +2337,6 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
 
 
 

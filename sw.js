@@ -389,7 +389,7 @@ self.addEventListener('fetch', (event) => {
     url.origin === self.location.origin &&
     (url.pathname === '/auth-callback.html' || url.searchParams.has('code') || url.searchParams.has('error') || url.searchParams.has('error_description'))
   ) {
-    event.respondWith(fetch(request));
+    event.respondWith(fetch(request, { cache: 'no-store' }).catch(() => Response.error()));
     return;
   }
   if (
@@ -400,14 +400,9 @@ self.addEventListener('fetch', (event) => {
     event.respondWith((async () => {
       try {
         const response = await fetch(request, { cache: 'no-store' });
-        if (response && response.ok) {
-          const cache = await caches.open(PAGE_CACHE);
-          cache.put(request, response.clone()).catch(() => {});
-        }
         return response;
       } catch (_error) {
-        const cached = await caches.match(request, { ignoreSearch: true }) || await caches.match(url.pathname);
-        return cached || Response.error();
+        return Response.error();
       }
     })());
     return;
@@ -420,17 +415,9 @@ self.addEventListener('fetch', (event) => {
     event.respondWith((async () => {
       try {
         const response = await fetch(request, { cache: 'no-store' });
-        if (response && response.ok) {
-          const cache = await caches.open(PAGE_CACHE);
-          cache.put(request, response.clone()).catch(() => {});
-        }
         return response;
       } catch (_error) {
-        const cached = await caches.match(request, { ignoreSearch: true })
-          || await caches.match(url.pathname || '/')
-          || await caches.match('/')
-          || await caches.match('/index.html');
-        return cached || offlineResponse();
+        return Response.error();
       }
     })());
     return;
@@ -444,11 +431,8 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (isMediaApiRequest(url)) {
-    // Books endpoints are used on both the home rail and books pages; serving a cached empty payload
-    // (stale-while-revalidate) can permanently lock the UI into "skeleton/empty" after refresh.
-    // Prefer a fast network-first strategy with cached fallback for `/api/books/*`.
     if (url.pathname.startsWith('/api/books')) {
-      event.respondWith(networkFirstWithTimeout(request, API_CACHE, '', 6000));
+      event.respondWith(fetch(request, { cache: 'no-store' }).catch(() => offlineAssetResponse()));
       return;
     }
     event.respondWith(staleWhileRevalidate(request, API_CACHE));

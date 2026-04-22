@@ -392,7 +392,29 @@ async function loadBooks(signal) {
         const trendingDocs = Array.isArray(trendingPayload?.books)
           ? trendingPayload.books
           : (Array.isArray(trendingPayload?.docs) ? trendingPayload.docs : (Array.isArray(trendingPayload?.items) ? trendingPayload.items : []));
-        const allDocsRaw = [...seededDocs, ...trendingDocs, ...popularDocs];
+        let allDocsRaw = [...seededDocs, ...trendingDocs, ...popularDocs];
+        if (!allDocsRaw.length) {
+          try {
+            const fallbackPayload = await fetchBooksPayload('/popular', {
+              page: 1,
+              limit: Math.max(limit, 24),
+              subject: 'fiction',
+              language: 'en',
+              orderBy: 'relevance'
+            });
+            const fallbackDocs = Array.isArray(fallbackPayload?.books)
+              ? fallbackPayload.books
+              : (Array.isArray(fallbackPayload?.docs) ? fallbackPayload.docs : (Array.isArray(fallbackPayload?.items) ? fallbackPayload.items : []));
+            if (fallbackDocs.length) {
+              allDocsRaw = fallbackDocs;
+              setBooksDebug('fallback-popular-hit', { count: fallbackDocs.length });
+            }
+          } catch (fallbackError) {
+            setBooksDebug('fallback-popular-failed', {
+              message: String(fallbackError?.message || fallbackError || '')
+            });
+          }
+        }
         setBooksDebug('payload-merged', {
           limit,
           seededStatus: seededResult.status,

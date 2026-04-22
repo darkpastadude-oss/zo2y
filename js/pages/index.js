@@ -3554,6 +3554,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         homeSupabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
         return homeSupabaseClient;
       }
+      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+        const sharedClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        if (sharedClient) {
+          homeSupabaseClient = sharedClient;
+          window.__ZO2Y_SUPABASE_CLIENT = sharedClient;
+          return homeSupabaseClient;
+        }
+      }
       if (!window.supabase?.createClient) {
         await waitForHomeSupabaseSdk();
       }

@@ -1292,14 +1292,23 @@
         // This avoids persisting empty arrays into local caches when the network hiccups.
         url.searchParams.set('_', String(Date.now()));
         const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), 9000);
+        const timeoutId = window.setTimeout(() => controller.abort(), 12000);
         let res;
         try {
-          res = await fetch(url.toString(), {
-            headers: { Accept: 'application/json' },
-            signal: controller.signal,
-            cache: 'no-store'
-          });
+          try {
+            res = await fetch(url.toString(), {
+              headers: { Accept: 'application/json' },
+              signal: controller.signal,
+              cache: 'no-store'
+            });
+          } catch (error) {
+            const isAbort = error && (error.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('aborted'));
+            if (!isAbort) throw error;
+            res = await fetch(url.toString(), {
+              headers: { Accept: 'application/json' },
+              cache: 'no-store'
+            });
+          }
         } finally {
           window.clearTimeout(timeoutId);
         }
@@ -1339,7 +1348,7 @@
 
       function scoreCuratedTopBookDoc(doc, seed) {
         const normalizedTitle = normalizeBookSeedText(doc?.title || '');
-        const normalizedAuthor = normalizeBookSeedText(Array.isArray(doc?.author_name) ? doc.author_name[0] : '');
+        const normalizedAuthor = normalizeBookSeedText(Array.isArray(doc?.author_name) ? doc.author_name[0] : (doc?.author || ''));
         const seedTitle = normalizeBookSeedText(seed?.title || '');
         const seedAuthor = normalizeBookSeedText(seed?.author || '');
         let score = 0;
@@ -1353,7 +1362,7 @@
           else if (normalizedAuthor.includes(seedAuthor) || seedAuthor.includes(normalizedAuthor)) score += 42;
         }
         if (getPreferredBookImage(doc)) score += 16;
-        if (doc?.first_publish_year) score += 8;
+        if (doc?.first_publish_year || doc?.year) score += 8;
         return score;
       }
 
@@ -1366,7 +1375,7 @@
             limit: 5,
             page: 1
           });
-          const docs = Array.isArray(payload?.docs) ? payload.docs : [];
+          const docs = Array.isArray(payload?.books) ? payload.books : [];
           if (!docs.length) return null;
           return docs.slice().sort((a, b) => scoreCuratedTopBookDoc(b, seed) - scoreCuratedTopBookDoc(a, seed))[0] || null;
         }));
@@ -1375,7 +1384,7 @@
         results.forEach((result) => {
           if (result.status !== 'fulfilled' || !result.value) return;
           const doc = result.value;
-          const key = `${normalizeBookSeedText(doc?.title || '')}::${normalizeBookSeedText(Array.isArray(doc?.author_name) ? doc.author_name[0] : '')}`;
+          const key = `${normalizeBookSeedText(doc?.title || '')}::${normalizeBookSeedText(doc?.author || '')}`;
           if (!key || seen.has(key)) return;
           seen.add(key);
           docs.push(doc);
@@ -1895,15 +1904,7 @@
         const requestSeq = ++state.requestSeq;
         const hasActiveFilters = !!(state.query || state.author || state.activeCategory || state.year);
         const isFirstPopularPage = !hasActiveFilters && Number(state.page || 1) === 1;
-        if (isFirstPopularPage) {
-          const cachedPage = !options?.cacheBust ? readCachedBooksPage() : null;
-          if (cachedPage?.books?.length) {
-            updateBookPageSpotlight(cachedPage.books || []);
-            displayBookResults(cachedPage.books || [], cachedPage.numFound || 0);
-          } else {
-            grid.innerHTML = '<div class="empty">Loading books...</div>';
-          }
-        } else if (Number(state.page || 1) === 1) {
+        if (Number(state.page || 1) === 1) {
           grid.innerHTML = '<div class="empty">Loading books...</div>';
         }
 
@@ -1929,13 +1930,8 @@
             } else {
               data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
             }
-            if (Number(state.page || 1) === 1) {
-              scheduleBooksBackgroundRefresh('books-trending-warmup', async () => {
-                await fetchTrendingBooks(Math.min(8, BOOKS_PER_PAGE));
-              });
-            }
           } else {
-        data = await booksFetch('/search', params);
+            data = await booksFetch('/search', params);
           }
           if (!Array.isArray(data?.books) || !data.books.length) {
             data = { books: [], numFound: 0 };
@@ -1948,43 +1944,7 @@
           data = { books: [], numFound: 0 };
         }
 
-        if (!hasActiveFilters && Array.isArray(data?.books) && data.books.length > 0 && data.books.length < BOOKS_PER_PAGE) {
-          const merged = [];
-          const seen = new Set();
-          const pushUnique = (book) => {
-            const title = normalizeBookSeedText(book?.title || '');
-            const author = normalizeBookSeedText(book?.author || '');
-            const key = `${title}::${author}`;
-            if (!title || seen.has(key)) return;
-            seen.add(key);
-            merged.push(book);
-          };
-          data.books.forEach(pushUnique);
-
-          const needed = Math.max(1, BOOKS_PER_PAGE - merged.length);
-          const currentPage = Math.max(1, Number(state.page || 1));
-          const [popularMore, trendingMore] = await Promise.allSettled([
-            fetchPopularBooks(currentPage + 1, Math.max(10, needed)),
-            fetchTrendingBooks(Math.max(10, needed))
-          ]);
-
-          const extraPopularBooks = popularMore.status === 'fulfilled' && Array.isArray(popularMore.value?.books)
-            ? popularMore.value.books
-            : [];
-          const extraTrendingBooks = trendingMore.status === 'fulfilled' && Array.isArray(trendingMore.value?.books)
-            ? trendingMore.value.books
-            : [];
-          [...extraPopularBooks, ...extraTrendingBooks].forEach(pushUnique);
-          data = {
-            books: merged.slice(0, BOOKS_PER_PAGE),
-            numFound: Math.max(Number(data?.numFound || 0) || 0, merged.length, BOOKS_PER_PAGE * 2)
-          };
-        }
-
         if (requestSeq !== state.requestSeq) return;
-        if (isFirstPopularPage && Array.isArray(data?.books) && data.books.length) {
-          writeCachedBooksPage(data);
-        }
         updateBookPageSpotlight(data.books || []);
         displayBookResults(data.books || [], data.numFound || 0);
       }
@@ -2461,8 +2421,6 @@
   <script src="js/production-runtime.js?v=20260422a" defer></script>
 </body>
 </html>
-
-
 
 
 
