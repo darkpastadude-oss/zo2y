@@ -1,13 +1,23 @@
 // Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v230';
-const PAGE_CACHE = 'zo2y-pages-v185';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v231';
+const PAGE_CACHE = 'zo2y-pages-v186';
 const IMAGE_CACHE = 'zo2y-images-v40';
 const API_CACHE = 'zo2y-api-v20';
 const MOVIES_PAGE_VERSION = '20260418a';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
-const AUTH_PAGE_PATHS = new Set(['/login.html', '/sign-up.html', '/update-password.html']);
+const AUTH_PAGE_PATHS = new Set([
+  '/login',
+  '/login.html',
+  '/sign-up',
+  '/sign-up.html',
+  '/signup',
+  '/update-password',
+  '/update-password.html',
+  '/onboarding',
+  '/onboarding.html'
+]);
 
 const STATIC_ASSETS = [
   '/',
@@ -27,12 +37,12 @@ const STATIC_ASSETS = [
   '/js/list-utils.js?v=20260424a',
   '/js/index-list-menu-adapter.js?v=20260317b',
   '/js/universal-search.js?v=20260421a',
-  '/js/auth-gate.js?v=20260424a',
+  '/js/auth-gate.js?v=20260424c',
   '/onboarding.html',
   '/js/production-runtime.js?v=20260422a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',
-  '/js/mobile-webapp.js?v=20260422a',
+  '/js/mobile-webapp.js?v=20260424b',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260329b',
   '/favicon.ico',

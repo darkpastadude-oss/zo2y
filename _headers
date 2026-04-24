@@ -10,6 +10,9 @@
 /manifest.webmanifest
   Cache-Control: public, max-age=3600
 
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
 /js/auth-gate.js
   Cache-Control: public, max-age=0, must-revalidate
 
@@ -18,9 +21,6 @@
 
 /js/universal-search.js
   Cache-Control: public, max-age=0, must-revalidate
-
-/js/*
-  Cache-Control: public, max-age=31536000, immutable
 
 /*
   X-Robots-Tag: max-image-preview:none, noimageindex

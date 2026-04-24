@@ -1,8 +1,17 @@
 (function () {
   'use strict';
 
+  var errorEl = document.getElementById('errorMessage');
+  var successEl = document.getElementById('successMessage');
   var auth = window.ZO2Y_AUTH;
-  if (!auth) return;
+  if (!auth) {
+    if (errorEl) {
+      errorEl.textContent = 'Login is temporarily unavailable. Please refresh and try again.';
+      errorEl.classList.add('show');
+    }
+    if (successEl) successEl.classList.remove('show');
+    return;
+  }
 
   var form = document.getElementById('authForm');
   var emailInput = document.getElementById('email');
@@ -11,8 +20,6 @@
   var forgotPassword = document.getElementById('forgotPassword');
   var googleButton = document.getElementById('googleAuthBtn');
   var submitButton = document.getElementById('submitBtn');
-  var errorEl = document.getElementById('errorMessage');
-  var successEl = document.getElementById('successMessage');
   var inviteBanner = document.getElementById('authInviteBanner');
   var signupLink = document.getElementById('altSignupLink');
 

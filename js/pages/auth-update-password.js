@@ -1,16 +1,24 @@
 (function () {
   'use strict';
 
+  var errorEl = document.getElementById('errorMessage');
+  var successEl = document.getElementById('successMessage');
+  var helperText = document.getElementById('helperText');
   var auth = window.ZO2Y_AUTH;
-  if (!auth) return;
+  if (!auth) {
+    if (errorEl) {
+      errorEl.textContent = 'Password reset is temporarily unavailable. Please refresh and try again.';
+      errorEl.classList.add('show');
+    }
+    if (successEl) successEl.classList.remove('show');
+    if (helperText) helperText.textContent = 'Request a new reset link if this page does not recover after refresh.';
+    return;
+  }
 
   var form = document.getElementById('resetForm');
   var passwordInput = document.getElementById('password');
   var confirmInput = document.getElementById('confirmPassword');
   var submitButton = document.getElementById('submitBtn');
-  var errorEl = document.getElementById('errorMessage');
-  var successEl = document.getElementById('successMessage');
-  var helperText = document.getElementById('helperText');
 
   if (!form || !passwordInput || !confirmInput || !submitButton || !errorEl || !successEl || !helperText) return;
 

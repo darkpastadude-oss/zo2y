@@ -1,12 +1,18 @@
 (function () {
   'use strict';
 
-  var auth = window.ZO2Y_AUTH;
-  if (!auth) return;
-
   var statusText = document.getElementById('statusText');
   var errorText = document.getElementById('errorText');
   var debugConsole = document.getElementById('debugConsole');
+  var auth = window.ZO2Y_AUTH;
+  if (!auth) {
+    document.body.classList.add('auth-callback-error');
+    if (statusText) statusText.textContent = 'Auth is temporarily unavailable.';
+    if (errorText) errorText.textContent = 'The sign-in runtime did not load. Refresh and try again.';
+    try { console.error('ZO2Y_AUTH missing on auth callback page'); } catch (_err) {}
+    return;
+  }
+
   var referralUtils = window.ZO2Y_REFERRALS || null;
   if (referralUtils) referralUtils.captureReferralFromLocation(window.location.search);
 

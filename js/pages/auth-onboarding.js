@@ -1,8 +1,15 @@
 (function () {
   'use strict';
 
+  var statusEl = document.getElementById('status');
   var auth = window.ZO2Y_AUTH;
-  if (!auth) return;
+  if (!auth) {
+    if (statusEl) {
+      statusEl.className = 'status error';
+      statusEl.textContent = 'Onboarding is temporarily unavailable. Please refresh and try again.';
+    }
+    return;
+  }
 
   var RESERVED = new Set([
     'admin', 'api', 'app', 'auth', 'authcallback', 'blog', 'book', 'books', 'country', 'edit', 'explore',
@@ -13,7 +20,6 @@
 
   var usernameInput = document.getElementById('usernameInput');
   var saveButton = document.getElementById('saveBtn');
-  var statusEl = document.getElementById('status');
   var signOutButton = document.getElementById('signOutBtn');
 
   if (!usernameInput || !saveButton || !statusEl || !signOutButton) return;
