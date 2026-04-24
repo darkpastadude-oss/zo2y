@@ -1,15 +1,27 @@
 (() => {
-  const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd';
-  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260315b';
+  const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+  const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+  const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+  const AUTH_STORAGE_KEY = 'zo2y-auth-v2';
+  const LEGACY_AUTH_STORAGE_KEY = 'zo2y-auth-v1';
+  const PERSIST_AUTH_STORAGE_KEY = 'zo2y-auth-persist-v2';
+  const DURABLE_AUTH_STORAGE_KEY = 'zo2y-auth-durable-v2';
+  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260421a';
+  const MOVIES_ROUTE = 'movies.html?v=20260322m';
+  const MOVIES_MOBILE_ROUTE = 'movies-mobile.html?v=20260322m';
   const DESKTOP_RAIL_COLLAPSE_KEY = 'zo2y_desktop_rail_collapsed';
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;
   let authStateListenerBound = false;
-  if (window.ZO2Y_DISABLE_GAMES !== false) {
-    window.ZO2Y_DISABLE_GAMES = true;
+  let authHeaderSyncPromise = null;
+  let authHeaderSyncQueued = false;
+  let authHeaderProfileLabelUserId = '';
+  let authHeaderProfileLabelValue = '';
+  let authHeaderProfileLabelAt = 0;
+  let lastKnownHeaderSession = null;
+  if (window.ZO2Y_SPORTS_LISTS == null) {
+    window.ZO2Y_SPORTS_LISTS = true;
   }
-  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
 
   const LOGO_HTML = `
 <span class="zo2y-logo-anim" data-zo2y-logo="1">
@@ -64,10 +76,10 @@ const HEADER_HTML = `
       <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
       <div class="zo2y-nav-group" data-nav-group="media">
         <button class="zo2y-shared-pill zo2y-nav-toggle" type="button" aria-expanded="false">
-          Media <i class="fa-solid fa-chevron-down"></i>
+          <i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> <span>Media</span>
         </button>
         <div class="zo2y-nav-menu" role="menu">
-          <a class="zo2y-nav-link" data-nav-page="movies" href="movies.html">Movies</a>
+          <a class="zo2y-nav-link" data-nav-page="movies" href="${MOVIES_ROUTE}">Movies</a>
           <a class="zo2y-nav-link" data-nav-page="tvshows" href="tvshows.html">TV Shows</a>
           <a class="zo2y-nav-link" data-nav-page="animes" href="animes.html">Anime</a>
           <a class="zo2y-nav-link" data-nav-page="games" href="games.html">Games</a>
@@ -77,13 +89,14 @@ const HEADER_HTML = `
       </div>
       <div class="zo2y-nav-group" data-nav-group="lifestyle">
         <button class="zo2y-shared-pill zo2y-nav-toggle" type="button" aria-expanded="false">
-          Lifestyle <i class="fa-solid fa-chevron-down"></i>
+          <i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> <span>Lifestyle</span>
         </button>
         <div class="zo2y-nav-menu" role="menu">
           <a class="zo2y-nav-link" data-nav-page="travel" href="travel.html">Travel</a>
           <a class="zo2y-nav-link" data-nav-page="sports" href="sports.html">Sports</a>
           <a class="zo2y-nav-link" data-nav-page="fashion" href="fashion.html">Fashion</a>
           <a class="zo2y-nav-link" data-nav-page="food" href="food.html">Food</a>
+          <a class="zo2y-nav-link" data-nav-page="cars" href="cars.html">Cars</a>
         </div>
       </div>
       <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
@@ -119,7 +132,7 @@ const HEADER_HTML = `
     <a class="zo2y-desktop-rail-link" data-nav-page="index" href="index.html"><i class="fa-solid fa-house"></i><span>home</span></a>
     <div class="zo2y-rail-section">
       <div class="zo2y-rail-section-title">media</div>
-      <a class="zo2y-desktop-rail-link" data-nav-page="movies" href="movies.html"><i class="fa-solid fa-film"></i><span>movies</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="movies" href="${MOVIES_ROUTE}"><i class="fa-solid fa-film"></i><span>movies</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="tvshows" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>tv shows</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="animes" href="animes.html"><i class="fa-solid fa-dragon"></i><span>anime</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="games" href="games.html"><i class="fa-solid fa-gamepad"></i><span>games</span></a>
@@ -132,6 +145,7 @@ const HEADER_HTML = `
       <a class="zo2y-desktop-rail-link" data-nav-page="sports" href="sports.html"><i class="fa-solid fa-futbol"></i><span>sports</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="fashion" href="fashion.html"><i class="fa-solid fa-shirt"></i><span>fashion</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="food" href="food.html"><i class="fa-solid fa-burger"></i><span>food</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="cars" href="cars.html"><i class="fa-solid fa-car"></i><span>cars</span></a>
     </div>
     <a class="zo2y-desktop-rail-link accent" data-nav-page="reviews" href="reviews.html"><i class="fa-solid fa-star"></i><span>reviews</span></a>
   </nav>
@@ -166,11 +180,10 @@ const HEADER_HTML = `
     <a class="zo2y-mobile-drawer-link" data-nav-page="index" href="index.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
     <div class="zo2y-mobile-accordion" data-accordion="media">
       <button class="zo2y-mobile-accordion-toggle" type="button" aria-expanded="false">
-        <span><i class="fa-solid fa-layer-group"></i> Media</span>
-        <i class="fa-solid fa-chevron-down"></i>
+        <span><i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> Media</span>
       </button>
       <div class="zo2y-mobile-accordion-panel">
-        <a class="zo2y-mobile-drawer-link" data-nav-page="movies" href="movies.html"><i class="fa-solid fa-film"></i><span>Movies</span></a>
+        <a class="zo2y-mobile-drawer-link" data-nav-page="movies" href="${MOVIES_ROUTE}"><i class="fa-solid fa-film"></i><span>Movies</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="tvshows" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>TV Shows</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="animes" href="animes.html"><i class="fa-solid fa-dragon"></i><span>Anime</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="games" href="games.html"><i class="fa-solid fa-gamepad"></i><span>Games</span></a>
@@ -180,14 +193,14 @@ const HEADER_HTML = `
     </div>
     <div class="zo2y-mobile-accordion" data-accordion="lifestyle">
       <button class="zo2y-mobile-accordion-toggle" type="button" aria-expanded="false">
-        <span><i class="fa-solid fa-sparkles"></i> Lifestyle</span>
-        <i class="fa-solid fa-chevron-down"></i>
+        <span><i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> Lifestyle</span>
       </button>
       <div class="zo2y-mobile-accordion-panel">
         <a class="zo2y-mobile-drawer-link" data-nav-page="travel" href="travel.html"><i class="fa-solid fa-earth-americas"></i><span>Travel</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="sports" href="sports.html"><i class="fa-solid fa-futbol"></i><span>Sports</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="fashion" href="fashion.html"><i class="fa-solid fa-shirt"></i><span>Fashion</span></a>
         <a class="zo2y-mobile-drawer-link" data-nav-page="food" href="food.html"><i class="fa-solid fa-burger"></i><span>Food</span></a>
+        <a class="zo2y-mobile-drawer-link" data-nav-page="cars" href="cars.html"><i class="fa-solid fa-car"></i><span>Cars</span></a>
       </div>
     </div>
     <a class="zo2y-mobile-drawer-link accent" data-nav-page="reviews" href="reviews.html"><i class="fa-solid fa-star"></i><span>Reviews</span></a>
@@ -211,6 +224,9 @@ const HEADER_HTML = `
       : [];
     queued.forEach((options) => {
       try {
+        if (options && options.fallbackRoute === 'movies.html') {
+          options = { ...options, fallbackRoute: MOVIES_ROUTE };
+        }
         window.initUniversalSearch(options || {});
       } catch (_err) {}
     });
@@ -277,6 +293,7 @@ const HEADER_HTML = `
     if (file.startsWith('sport')) return 'sports';
     if (file.startsWith('fashion')) return 'fashion';
     if (file.startsWith('food')) return 'food';
+    if (file.startsWith('cars') || file.startsWith('car')) return 'cars';
     if (file.startsWith('review')) return 'reviews';
     if (file.startsWith('profile')) return 'profile';
     return 'index';
@@ -298,6 +315,59 @@ const HEADER_HTML = `
     const landingNode = document.getElementById('homeLandingPage');
     const authed = document.documentElement?.dataset?.authenticated === '1' || document.body?.dataset?.authenticated === '1';
     return !!landingNode && !authed;
+  }
+
+  function getUserProfileLabelFallback(user) {
+    var fullName = '';
+    var email = '';
+    try {
+      fullName = String(
+        user && user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name) || ''
+      ).trim();
+    } catch (_err) {
+      fullName = '';
+    }
+    try {
+      email = String(user && user.email || '').trim();
+    } catch (_err2) {
+      email = '';
+    }
+    if (fullName) return fullName;
+    if (email && email.indexOf('@') !== -1) {
+      return email.split('@')[0];
+    }
+    return 'Profile';
+  }
+
+  function persistHeaderSessionSnapshot(session) {
+    if (!session?.access_token || !session?.refresh_token) return false;
+    if (typeof window.__ZO2Y_PERSIST_SESSION_SNAPSHOT === 'function') {
+      try {
+        return !!window.__ZO2Y_PERSIST_SESSION_SNAPSHOT(session);
+      } catch (_err) {}
+    }
+    if (!window.__ZO2Y_AUTH_STORAGE_BRIDGE) return false;
+    try {
+      const payload = JSON.stringify(session);
+      window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(AUTH_STORAGE_KEY, payload);
+      window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(LEGACY_AUTH_STORAGE_KEY, payload);
+      window.__ZO2Y_AUTH_STORAGE_BRIDGE.setItem(PERSIST_AUTH_STORAGE_KEY, payload);
+      return true;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function rememberHeaderSessionSnapshot(session) {
+    if (session?.access_token && session?.refresh_token) {
+      lastKnownHeaderSession = {
+        access_token: String(session.access_token || ''),
+        refresh_token: String(session.refresh_token || '')
+      };
+      persistHeaderSessionSnapshot(session);
+      return;
+    }
+    lastKnownHeaderSession = null;
   }
 
   function teardownSharedHeader() {
@@ -367,13 +437,7 @@ const HEADER_HTML = `
     const mobilePage = isMobileContentPage(window.location.pathname);
     document.body.setAttribute('data-zo2y-compact-header', mobilePage ? '1' : '0');
 
-    if (mobilePage || GAMES_DISABLED) {
-      document.querySelectorAll('[data-nav-page="games"]').forEach((gamesNavItem) => gamesNavItem.remove());
-    }
 
-    if (document.body) {
-      document.body.dataset.gamesDisabled = GAMES_DISABLED ? '1' : '0';
-    }
 
     const activePage = normalizePageName(window.location.pathname);
 
@@ -404,26 +468,102 @@ const HEADER_HTML = `
   }
 
   function ensureSupabaseClient() {
+    if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+      try {
+        window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+      } catch (_err) {}
+    }
     if (supabaseClient) return supabaseClient;
     if (window.__ZO2Y_SUPABASE_CLIENT) {
       supabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
       return supabaseClient;
     }
+    if (
+      typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function' &&
+      window.__ZO2Y_ENSURE_SUPABASE_CLIENT !== ensureSupabaseClient
+    ) {
+      try {
+        const sharedClient = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        if (sharedClient) {
+          supabaseClient = sharedClient;
+          window.__ZO2Y_SUPABASE_CLIENT = sharedClient;
+          return supabaseClient;
+        }
+      } catch (_err) {}
+    }
     if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+    const getAuthStorageKeys = (key) => {
+      const value = String(key || '').trim();
+      if (!value) return [];
+      if (value === AUTH_STORAGE_KEY || value === LEGACY_AUTH_STORAGE_KEY || value === PERSIST_AUTH_STORAGE_KEY) {
+        return [AUTH_STORAGE_KEY, LEGACY_AUTH_STORAGE_KEY, PERSIST_AUTH_STORAGE_KEY];
+      }
+      return [value];
+    };
+    const storageBridge = window.__ZO2Y_AUTH_STORAGE_BRIDGE || {
+      getItem(key) {
+        const keys = getAuthStorageKeys(key);
+        for (const candidate of keys) {
+          try {
+            const localValue = window.localStorage ? window.localStorage.getItem(candidate) : null;
+            if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
+          } catch (_err) {}
+        }
+        for (const candidate of keys) {
+          try {
+            const sessionValue = window.sessionStorage ? window.sessionStorage.getItem(candidate) : null;
+            if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
+          } catch (_err) {}
+        }
+        return null;
+      },
+      setItem(key, value) {
+        const keys = getAuthStorageKeys(key);
+        keys.forEach((candidate) => {
+          try {
+            if (window.localStorage) window.localStorage.setItem(candidate, value);
+          } catch (_err) {}
+        });
+        keys.forEach((candidate) => {
+          try {
+            if (window.sessionStorage) window.sessionStorage.setItem(candidate, value);
+          } catch (_err) {}
+        });
+      },
+      removeItem(key) {
+        const keys = getAuthStorageKeys(key);
+        keys.forEach((candidate) => {
+          try {
+            if (window.sessionStorage) window.sessionStorage.removeItem(candidate);
+          } catch (_err) {}
+        });
+        keys.forEach((candidate) => {
+          try {
+            if (window.localStorage) window.localStorage.removeItem(candidate);
+          } catch (_err) {}
+        });
+      }
+    };
+    window.__ZO2Y_AUTH_STORAGE_BRIDGE = storageBridge;
     try {
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
+          storage: storageBridge,
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: true
+          detectSessionInUrl: false,
+          storageKey: AUTH_STORAGE_KEY
         }
       });
       window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+      window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSupabaseClient;
       return supabaseClient;
     } catch (_err) {
       return null;
     }
   }
+
+  window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSupabaseClient;
 
   function readDesktopRailCollapsedPreference() {
     try {
@@ -457,19 +597,117 @@ const HEADER_HTML = `
     const client = ensureSupabaseClient();
     if (!client || !client.auth || typeof client.auth.onAuthStateChange !== 'function') return;
 
+    const persistHeaderSession = async () => {
+      if (lastKnownHeaderSession?.access_token && lastKnownHeaderSession?.refresh_token) {
+        persistHeaderSessionSnapshot(lastKnownHeaderSession);
+      }
+    };
+
     authStateListenerBound = true;
-    client.auth.onAuthStateChange(() => {
+    client.auth.onAuthStateChange((event, session) => {
+      const normalizedEvent = String(event || '').trim().toUpperCase();
+      const sessionUserId = String(session?.user?.id || '').trim();
+      if (sessionUserId && authHeaderProfileLabelUserId && authHeaderProfileLabelUserId !== sessionUserId) {
+        authHeaderProfileLabelUserId = '';
+        authHeaderProfileLabelValue = '';
+        authHeaderProfileLabelAt = 0;
+      } else if (!sessionUserId && normalizedEvent === 'SIGNED_OUT') {
+        authHeaderProfileLabelUserId = '';
+        authHeaderProfileLabelValue = '';
+        authHeaderProfileLabelAt = 0;
+      }
+      rememberHeaderSessionSnapshot(session);
+      if (normalizedEvent === 'TOKEN_REFRESHED' || normalizedEvent === 'INITIAL_SESSION') {
+        return;
+      }
       void syncAuthHeaderState();
     });
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) void syncAuthHeaderState();
+      if (document.hidden) {
+        if (lastKnownHeaderSession?.access_token && lastKnownHeaderSession?.refresh_token) {
+          persistHeaderSessionSnapshot(lastKnownHeaderSession);
+        }
+        void persistHeaderSession();
+        return;
+      }
+      void syncAuthHeaderState();
+    });
+    window.addEventListener('pageshow', () => {
+      void syncAuthHeaderState();
     });
     window.addEventListener('focus', () => {
       void syncAuthHeaderState();
     });
+    window.addEventListener('pagehide', () => {
+      if (lastKnownHeaderSession?.access_token && lastKnownHeaderSession?.refresh_token) {
+        persistHeaderSessionSnapshot(lastKnownHeaderSession);
+      }
+      void persistHeaderSession();
+    });
+    window.addEventListener('beforeunload', () => {
+      if (lastKnownHeaderSession?.access_token && lastKnownHeaderSession?.refresh_token) {
+        persistHeaderSessionSnapshot(lastKnownHeaderSession);
+      }
+    });
+    window.addEventListener('storage', (event) => {
+      const key = String(event?.key || '').trim();
+      if (
+        key === AUTH_STORAGE_KEY ||
+        key === LEGACY_AUTH_STORAGE_KEY ||
+        key === PERSIST_AUTH_STORAGE_KEY
+      ) {
+        void syncAuthHeaderState();
+      }
+    });
+  }
+
+  function readStoredHeaderSession() {
+    const bridge = window.__ZO2Y_AUTH_STORAGE_BRIDGE;
+    if (!bridge || typeof bridge.getItem !== 'function') return null;
+    const keys = [AUTH_STORAGE_KEY, LEGACY_AUTH_STORAGE_KEY, PERSIST_AUTH_STORAGE_KEY];
+    for (const key of keys) {
+      try {
+        const raw = bridge.getItem(key);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        const session = parsed?.currentSession || parsed?.session || parsed;
+        if (session?.access_token && session?.refresh_token) return session;
+      } catch (_err) {}
+    }
+    try {
+      const raw = window.localStorage ? window.localStorage.getItem(DURABLE_AUTH_STORAGE_KEY) : null;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const session = parsed?.session || parsed?.currentSession || parsed;
+        if (session?.access_token && session?.refresh_token) return session;
+      }
+    } catch (_err) {}
+    return null;
+  }
+
+  async function bootstrapHeaderSessionFromStorage(client) {
+    if (!client?.auth || typeof client.auth.setSession !== 'function') return false;
+    const storedSession = readStoredHeaderSession();
+    if (!storedSession?.access_token || !storedSession?.refresh_token) return false;
+    try {
+      const result = await client.auth.setSession({
+        access_token: storedSession.access_token,
+        refresh_token: storedSession.refresh_token
+      });
+      const session = result?.data?.session || null;
+      rememberHeaderSessionSnapshot(session);
+      return !!session?.user;
+    } catch (_err) {
+      return false;
+    }
   }
 
   async function syncAuthHeaderState() {
+    if (authHeaderSyncPromise) {
+      authHeaderSyncQueued = true;
+      return authHeaderSyncPromise;
+    }
+    authHeaderSyncPromise = (async () => {
     const loginBtn = document.getElementById('loginBtn');
     const signupBtn = document.getElementById('signupBtn');
     const profileBtn = document.getElementById('profileBtn');
@@ -485,8 +723,31 @@ const HEADER_HTML = `
     }
 
     try {
-      const { data } = await client.auth.getSession();
-      const session = data && data.session ? data.session : null;
+      const authRuntime = window.ZO2Y_AUTH || null;
+      let session = authRuntime && typeof authRuntime.getActiveSession === 'function'
+        ? await authRuntime.getActiveSession(client, { refreshIfNeeded: true, restore: true })
+        : null;
+      const hasStoredAuthSession =
+        typeof window.__ZO2Y_HAS_STORED_AUTH_SESSION === 'function'
+          ? !!window.__ZO2Y_HAS_STORED_AUTH_SESSION()
+          : !!readStoredHeaderSession();
+      if (!session && hasStoredAuthSession) {
+        if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
+          session = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
+        } else {
+          await bootstrapHeaderSessionFromStorage(client);
+        }
+        if (!session && authRuntime && typeof authRuntime.getActiveSession === 'function') {
+          session = await authRuntime.getActiveSession(client, { refreshIfNeeded: true, restore: true });
+        }
+        if (!session && typeof client.auth.refreshSession === 'function' && readStoredHeaderSession()?.refresh_token) {
+          try {
+            const refreshed = await client.auth.refreshSession();
+            session = refreshed?.data?.session || null;
+          } catch (_err) {}
+        }
+      }
+      if (session?.access_token && session?.refresh_token) persistHeaderSessionSnapshot(session);
       const loggedIn = !!session;
       const user = session && session.user ? session.user : null;
       const hiddenDisplay = 'none';
@@ -508,35 +769,55 @@ const HEADER_HTML = `
       if (loggedIn) {
         let label = 'Profile';
         try {
-          if (user && user.id && client.from) {
-            const { data: profile } = await client
-              .from('user_profiles')
-              .select('username, full_name')
-              .eq('id', user.id)
-              .single();
-            const raw = profile?.username || profile?.full_name || '';
-            const clean = String(raw || '').trim();
-            if (clean) label = clean.startsWith('@') ? clean : `@${clean}`;
+          const userId = String(user?.id || '').trim();
+          const cachedFresh =
+            userId &&
+            authHeaderProfileLabelUserId === userId &&
+            authHeaderProfileLabelValue &&
+            (Date.now() - authHeaderProfileLabelAt) < 30000;
+          if (cachedFresh) {
+            label = authHeaderProfileLabelValue;
+          } else {
+            label = getUserProfileLabelFallback(user);
+            if (label && label !== 'Profile') {
+              authHeaderProfileLabelUserId = userId;
+              authHeaderProfileLabelValue = label;
+              authHeaderProfileLabelAt = Date.now();
+            }
           }
         } catch (_profileErr) {
-          const fallback =
-            (user && user.user_metadata && (user.user_metadata.username || user.user_metadata.full_name || user.user_metadata.name)) ||
-            (user && user.email ? String(user.email).split('@')[0] : '');
-          const cleanFallback = String(fallback || '').trim();
-          if (cleanFallback) label = cleanFallback.startsWith('@') ? cleanFallback : `@${cleanFallback}`;
+          label = getUserProfileLabelFallback(user);
+          if (label && label !== 'Profile') {
+            authHeaderProfileLabelUserId = String(user?.id || '').trim();
+            authHeaderProfileLabelValue = label;
+            authHeaderProfileLabelAt = Date.now();
+          }
         }
 
         if (profileBtn) {
           profileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
+          profileBtn.title = label;
         }
         if (mobileProfileBtn) {
           mobileProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
+          mobileProfileBtn.title = label;
         }
         if (desktopRailProfileBtn) {
           desktopRailProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>${label}</span>`;
+          desktopRailProfileBtn.title = label;
         }
       }
     } catch (_err) {}
+    })();
+    try {
+      return await authHeaderSyncPromise;
+    } finally {
+      authHeaderSyncPromise = null;
+      if (authHeaderSyncQueued) {
+        authHeaderSyncQueued = false;
+        void syncAuthHeaderState();
+      }
+    }
   }
 
   function wireMobileDrawer() {
@@ -678,6 +959,8 @@ const HEADER_HTML = `
     const canTrackPointer = !prefersReducedMotion
       && window.matchMedia
       && window.matchMedia('(pointer: fine)').matches;
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const shouldReduceEffects = !!(connection && (connection.saveData || ['slow-2g', '2g', '3g'].includes(String(connection.effectiveType || '').toLowerCase())));
 
     logos.forEach((logo) => {
       if (logo.dataset.zo2yLogoWired === '1') return;
@@ -717,7 +1000,7 @@ const HEADER_HTML = `
         });
       }
 
-      if (prefersReducedMotion) return;
+      if (prefersReducedMotion || shouldReduceEffects) return;
 
       const minDelay = 3800;
       const maxDelay = 9200;
@@ -741,7 +1024,7 @@ const HEADER_HTML = `
       scheduleBlink();
     });
 
-    if (canTrackPointer && !window.__ZO2Y_LOGO_TRACKING_BOUND) {
+    if (canTrackPointer && !shouldReduceEffects && !window.__ZO2Y_LOGO_TRACKING_BOUND) {
       window.__ZO2Y_LOGO_TRACKING_BOUND = true;
       let rafId = null;
 
@@ -792,7 +1075,7 @@ const HEADER_HTML = `
       const init = () => {
         if (typeof window.initUniversalSearch !== 'function') return;
         try {
-          window.initUniversalSearch({ input, fallbackRoute: 'movies.html' });
+      window.initUniversalSearch({ input, fallbackRoute: MOVIES_ROUTE });
           input.dataset.zo2yUniversalWired = '1';
         } catch (_err) {}
       };
@@ -837,8 +1120,23 @@ const HEADER_HTML = `
 
   function boot() {
     if (isHeaderSuppressedPage(window.location.pathname)) return;
-    if (isLandingShell()) {
+    const currentPage = normalizePageName(window.location.pathname);
+    const currentShell = document.documentElement?.dataset?.authShell || document.body?.dataset?.authShell || '';
+    if (currentPage === 'index' && currentShell !== 'app') {
       teardownSharedHeader();
+      window.addEventListener('zo2y-auth-gate-verified', (event) => {
+        if (!event?.detail?.authenticated) return;
+        mountSharedHeader();
+        wireLogoAnim();
+        const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+        document.body.classList.toggle('zo2y-mobile-header-fixed', !!isMobile);
+        wireSearchButton();
+        wireMobileDrawer();
+        wireMobileAccordions();
+        wireDesktopRailCollapse();
+        wireAuthStateSync();
+        void syncAuthHeaderState();
+      }, { once: true });
       return;
     }
     mountSharedHeader();
@@ -854,6 +1152,9 @@ const HEADER_HTML = `
     wireMobileAccordions();
     wireDesktopRailCollapse();
     wireAuthStateSync();
+    window.addEventListener('zo2y-auth-gate-verified', () => {
+      void syncAuthHeaderState();
+    });
     void syncAuthHeaderState();
   }
 
@@ -863,3 +1164,4 @@ const HEADER_HTML = `
     boot();
   }
 })();
+

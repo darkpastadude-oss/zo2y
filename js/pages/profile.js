@@ -1,14 +1,17 @@
 // ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
             // Supabase configuration
-            const SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co";
-            const SUPABASE_KEY = "sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd";
+            const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+            const SUPABASE_URL = String(supabaseConfig.url || '').trim() || "https://gfkhjbztayjyojsgdpgk.supabase.co";
+            const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
             const TMDB_PROXY_BASE = "/api/tmdb";
             const IGDB_PROXY_BASE = "/api/igdb";
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
             const OPEN_LIBRARY_BASE = "https://openlibrary.org";
             const OPEN_LIBRARY_PROXY_BASE = "/api/openlibrary";
+            const GOOGLE_BOOKS_PROXY_BASE = "/api/books";
             const FALLBACK_BOOK_IMAGE = "/newlogo.webp";
+            const BOOKS_CACHE_BUSTER = "20260323-api-only-profile";
 
             async function igdbFetch(path, params = {}, signal = null) {
                 if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === "function") {
@@ -36,8 +39,11 @@
             let targetUserId = null;
             let isViewingOwnProfile = true;
             const ENABLE_RESTAURANTS = false;
-            const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
+            const GAMES_DISABLED = false;
             const DEFAULT_PROFILE_TAB = ENABLE_RESTAURANTS ? 'restaurants' : 'movies';
+            const VALID_PRIMARY_TABS = new Set(['lists', 'activity']);
+            let currentPrimaryTab = 'lists';
+            let lastMediaTab = DEFAULT_PROFILE_TAB;
             let restaurants = [];
             let customLists = [];
             let currentTab = DEFAULT_PROFILE_TAB;
@@ -61,6 +67,7 @@
             let travelCountryCache = new Map();
             let fashionBrandCache = new Map();
             let foodBrandCache = new Map();
+            let carBrandCache = new Map();
             let renderMoviesToken = 0;
             let renderTvToken = 0;
             let renderAnimeToken = 0;
@@ -70,6 +77,7 @@
             let renderTravelToken = 0;
             let renderFashionToken = 0;
             let renderFoodToken = 0;
+            let renderCarsToken = 0;
             let renderSportsToken = 0;
             let renderRestaurantsToken = 0;
             let editingMediaList = null;
@@ -82,6 +90,20 @@
             const tabRenderCache = new Map();
             const PREVIEW_ASSET_CACHE_TTL_MS = 10 * 60 * 1000;
             const previewAssetCache = new Map();
+
+            function clearLegacyProfileBookCaches() {
+                try {
+                    const keysToRemove = [];
+                    for (let index = 0; index < localStorage.length; index += 1) {
+                        const key = String(localStorage.key(index) || '');
+                        if (!key) continue;
+                        if (key.startsWith('profile_books_') || key.startsWith('zo2y_books_') || key.startsWith('books_search_v')) {
+                            keysToRemove.push(key);
+                        }
+                    }
+                    keysToRemove.forEach((key) => localStorage.removeItem(key));
+                } catch (_err) {}
+            }
             const PROFILE_THEME_KEYS = ['navy', 'ocean', 'sunset', 'forest'];
             const PROFILE_THEME_META = {
                 navy: { themeColor: '#0b1633' },
@@ -100,7 +122,8 @@
                 music: 'music_lists',
                 travel: 'travel_lists',
                 fashion: 'fashion_lists',
-                food: 'food_lists'
+                food: 'food_lists',
+                car: 'car_lists'
             };
             const MEDIA_ITEM_TABLES = {
                 movie: 'movie_list_items',
@@ -111,7 +134,8 @@
                 music: 'music_list_items',
                 travel: 'travel_list_items',
                 fashion: 'fashion_list_items',
-                food: 'food_list_items'
+                food: 'food_list_items',
+                car: 'car_list_items'
             };
             const MEDIA_ITEM_FIELDS = {
                 movie: 'movie_id',
@@ -122,7 +146,8 @@
                 music: 'track_id',
                 travel: 'country_code',
                 fashion: 'brand_id',
-                food: 'brand_id'
+                food: 'brand_id',
+                car: 'brand_id'
             };
             let manualProfileBadges = [];
             let profileStatsSnapshot = {
@@ -144,8 +169,8 @@
             const STATS_REALTIME_DEBOUNCE_MS = 220;
             const VALID_PROFILE_TABS = new Set(
                 ENABLE_RESTAURANTS
-                    ? ['restaurants', 'movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'community']
-                    : ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'community']
+                    ? ['restaurants', 'movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
+                    : ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
             );
             const VALID_COLLECTION_TYPES = new Set([
                 ...(ENABLE_RESTAURANTS ? ['restaurant'] : []),
@@ -157,7 +182,8 @@
                 'music',
                 'travel',
                 'fashion',
-                'food'
+                'food',
+                'car'
             ]);
             const COLLECTION_TO_TAB = {
                 ...(ENABLE_RESTAURANTS ? { restaurant: 'restaurants' } : {}),
@@ -169,7 +195,8 @@
                 music: 'music',
                 travel: 'travel',
                 fashion: 'fashion',
-                food: 'food'
+                food: 'food',
+                car: 'cars'
             };
             const COLLECTION_VIEW_STORAGE_KEY = 'zo2y_profile_collection_view_modes_v2';
             let collectionViewModes = loadCollectionViewModes();
@@ -183,18 +210,71 @@
                 "\u{2B50}", "\u{1F680}", "\u{1F3AF}", "\u{1F3C6}", "\u{2728}"
             ];
 
+            async function resolveAuthenticatedProfileUser(client) {
+                if (!client?.auth) return null;
+                for (let attempt = 0; attempt < 4; attempt += 1) {
+                    if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+                        try {
+                            window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+                        } catch (_err) {}
+                    }
+                    try {
+                        const { data: sessionData } = await client.auth.getSession();
+                        const session = sessionData?.session || null;
+                        if (session?.user) return session.user;
+                    } catch (_err) {}
+
+                    if (typeof client.auth.refreshSession === 'function') {
+                        try {
+                            const refreshed = await client.auth.refreshSession();
+                            const refreshedUser = refreshed?.data?.session?.user || null;
+                            if (refreshedUser) return refreshedUser;
+                        } catch (_err) {}
+                    }
+
+                    try {
+                        const { data, error } = await client.auth.getUser();
+                        if (!error && data?.user) return data.user;
+                    } catch (_err) {}
+
+                    if (attempt < 3) {
+                        await new Promise((resolve) => window.setTimeout(resolve, 120 * (attempt + 1)));
+                    }
+                }
+                return null;
+            }
+
             // ===== INITIALIZATION =====
             async function initialize() {
                 try {
+                    clearLegacyProfileBookCaches();
                     if (!window.supabase) {
                         console.error('Supabase library not loaded');
                         return;
                     }
                     
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    if (window.__ZO2Y_ENSURE_SUPABASE_CLIENT && typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+                        supabase = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+                    }
+                    if (!supabase) {
+                        if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+                            try {
+                                window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+                            } catch (_err) {}
+                        }
+                        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+                            auth: {
+                                storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
+                                storageKey: 'zo2y-auth-v2',
+                                persistSession: true,
+                                autoRefreshToken: true,
+                                detectSessionInUrl: false
+                            }
+                        });
+                    }
                     
-                    const { data: { user }, error } = await supabase.auth.getUser();
-                    if (error || !user) { 
+                    const user = await resolveAuthenticatedProfileUser(supabase);
+                    if (!user) { 
                         window.location.href = "login.html"; 
                         return; 
                     }
@@ -227,6 +307,7 @@
                     
                     // 2. FIX: Update setupEventListeners to prevent multiple bindings
                     setupEventListeners();
+                    showPrimaryTab('lists', { force: true, skipTabSync: true });
                     bindRouteListeners();
                     
                     if (window.innerWidth <= 768) {
@@ -238,11 +319,7 @@
                     updateCollectionViewToggleButtons();
 
                     if (!isCollectionRouteActive()) {
-                        Promise.allSettled([
-                            renderMovies(),
-                            renderTvShows(),
-                            renderAnimeShows()
-                        ]).catch(() => {});
+                        renderMovies().catch(() => {});
                     }
                     
                     // Handle click outside dropdown
@@ -343,12 +420,51 @@
                 'users', 'zo2y'
             ]);
 
+            const PROFILE_ONBOARDING_PENDING_PREFIX = 'zo2y_onboarding_pending_v1_';
+            const PROFILE_ONBOARDING_SESSION_PREFIX = 'zo2y_onboarding_session_v1_';
+
+            function getOnboardingPendingKey(userId) {
+                return `${PROFILE_ONBOARDING_PENDING_PREFIX}${String(userId || '').trim()}`;
+            }
+
+            function hasOnboardingPending(userId) {
+                try {
+                    const key = getOnboardingPendingKey(userId);
+                    return localStorage.getItem(key) === '1';
+                } catch (_err) {
+                    return false;
+                }
+            }
+
+            function clearOnboardingPending(userId) {
+                try {
+                    const key = getOnboardingPendingKey(userId);
+                    localStorage.removeItem(key);
+                } catch (_err) {}
+            }
+
+            function markOnboardingShownThisSession(userId) {
+                try {
+                    const key = `${PROFILE_ONBOARDING_SESSION_PREFIX}${String(userId || '').trim()}`;
+                    sessionStorage.setItem(key, '1');
+                } catch (_err) {}
+            }
+
+            function wasOnboardingShownThisSession(userId) {
+                try {
+                    const key = `${PROFILE_ONBOARDING_SESSION_PREFIX}${String(userId || '').trim()}`;
+                    return sessionStorage.getItem(key) === '1';
+                } catch (_err) {
+                    return false;
+                }
+            }
+
             function normalizeProfileUsername(value) {
                 const normalized = String(value || '')
                     .trim()
                     .replace(/^@+/, '')
                     .toLowerCase()
-                    .replace(/['’]/g, '')
+                    .replace(/['â€™]/g, '')
                     .replace(/[^a-z0-9_]+/g, '_')
                     .replace(/_+/g, '_')
                     .replace(/^_+|_+$/g, '')
@@ -358,6 +474,15 @@
 
             function isValidProfileUsername(value) {
                 return /^[a-z0-9_]{3,30}$/.test(String(value || ''));
+            }
+
+            function isPlaceholderUsername(value) {
+                const username = String(value || '').trim().toLowerCase();
+                if (!username) return true;
+                if (username === 'user') return true;
+                // Neutral placeholders we generate to avoid using email/OAuth-derived handles.
+                if (username.startsWith('user_')) return true;
+                return false;
             }
 
             function buildProfileUsernameCandidates(seed, userId) {
@@ -396,6 +521,10 @@
                 return normalizedUsername;
             }
 
+            function maybeRedirectUsernameOnboarding() {
+                return false;
+            }
+
             function setupMobileTabsHint() {
                 const tabs = document.querySelector('.mobile-tabs');
                 const hint = document.getElementById('mobileTabsSwipeHint');
@@ -423,17 +552,19 @@
                 const deferMs = window.innerWidth <= 768 ? 2200 : 1200;
                 setTimeout(() => {
                     if (document.hidden) return;
+                    const activeTab = String(currentTab || 'movies').trim().toLowerCase();
                     const preloadTasks = [];
-                    if (!hasFreshTabRender('movies')) preloadTasks.push(renderMovies());
-                    if (!hasFreshTabRender('tv')) preloadTasks.push(renderTvShows());
-                    if (!hasFreshTabRender('anime')) preloadTasks.push(renderAnimeShows());
-                    if (!GAMES_DISABLED && !hasFreshTabRender('games')) preloadTasks.push(renderGames());
-                    if (!hasFreshTabRender('books')) preloadTasks.push(renderBooks());
-                    if (!hasFreshTabRender('music')) preloadTasks.push(renderMusic());
-                    if (!hasFreshTabRender('sports')) preloadTasks.push(renderSports());
-                    if (!hasFreshTabRender('travel')) preloadTasks.push(renderTravel());
-                    if (!hasFreshTabRender('fashion')) preloadTasks.push(renderFashion());
-                    if (!hasFreshTabRender('food')) preloadTasks.push(renderFood());
+                    if (activeTab === 'movies' && !hasFreshTabRender('movies')) preloadTasks.push(renderMovies());
+                    if (activeTab === 'tv' && !hasFreshTabRender('tv')) preloadTasks.push(renderTvShows());
+                    if (activeTab === 'anime' && !hasFreshTabRender('anime')) preloadTasks.push(renderAnimeShows());
+                    if (activeTab === 'games' && !GAMES_DISABLED && !hasFreshTabRender('games')) preloadTasks.push(renderGames());
+                    if (activeTab === 'books' && !hasFreshTabRender('books')) preloadTasks.push(renderBooks());
+                    if (activeTab === 'music' && !hasFreshTabRender('music')) preloadTasks.push(renderMusic());
+                    if (activeTab === 'sports' && !hasFreshTabRender('sports')) preloadTasks.push(renderSports());
+                    if (activeTab === 'travel' && !hasFreshTabRender('travel')) preloadTasks.push(renderTravel());
+                    if (activeTab === 'fashion' && !hasFreshTabRender('fashion')) preloadTasks.push(renderFashion());
+                    if (activeTab === 'food' && !hasFreshTabRender('food')) preloadTasks.push(renderFood());
+                    if (activeTab === 'cars' && !hasFreshTabRender('cars')) preloadTasks.push(renderCars());
                     if (!preloadTasks.length) return;
                     Promise.allSettled(preloadTasks).catch(() => {});
                 }, deferMs);
@@ -488,9 +619,128 @@
                 }, duration);
             }
 
+            function closeProfileTabGroups() {
+                document.querySelectorAll('.profile-tab-group-row').forEach((row) => {
+                    row.classList.remove('open');
+                    row.style.display = 'none';
+                });
+                document.querySelectorAll('.profile-tab-group-toggle[aria-expanded="true"]').forEach((toggle) => {
+                    toggle.setAttribute('aria-expanded', 'false');
+                });
+            }
+
+            function resolveProfileGroupRow(group, toggle) {
+                if (!group) return null;
+                const isMobile = window.innerWidth <= 768;
+                const inMobileTabs = !!toggle?.closest?.('.mobile-tabs');
+                if (isMobile || inMobileTabs) {
+                    return document.querySelector(`.profile-tab-group-row.mobile[data-group="${group}"]`);
+                }
+                return document.querySelector(`.profile-tab-group-row[data-group="${group}"]:not(.mobile)`);
+            }
+
+            function wireProfileTabGroups() {
+                const toggles = Array.from(document.querySelectorAll('.profile-tab-group-toggle'));
+                if (!toggles.length) return;
+
+                toggles.forEach((toggle) => {
+                    if (toggle.dataset.wired === '1') return;
+                    toggle.dataset.wired = '1';
+                    toggle.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.stopImmediatePropagation();
+                        if (currentPrimaryTab !== 'lists') {
+                            showPrimaryTab('lists', { force: true, skipTabSync: true });
+                            const fallbackTab = lastMediaTab && lastMediaTab !== 'community'
+                                ? lastMediaTab
+                                : DEFAULT_PROFILE_TAB;
+                            showTab(fallbackTab, { skipUrlSync: true, skipPrimarySync: true, skipRender: true });
+                        }
+                        const group = toggle.getAttribute('data-group');
+                        if (!group) return;
+                        const row = resolveProfileGroupRow(group, toggle);
+                        const isOpen = row && (row.classList.contains('open') || row.style.display === 'flex');
+                        closeProfileTabGroups();
+                        if (row && !isOpen) {
+                            row.classList.add('open');
+                            row.style.display = 'flex';
+                            toggle.setAttribute('aria-expanded', 'true');
+                        }
+                    });
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (!(event.target instanceof Element)) return;
+                    if (event.target.closest('.profile-tab-group-row') || event.target.closest('.profile-tab-group-toggle')) return;
+                    closeProfileTabGroups();
+                });
+            }
+
+            function ensureProfileGroupRowVisible(tabName) {
+                const mediaTabs = new Set(['movies', 'tv', 'anime', 'books', 'music']);
+                const lifestyleTabs = new Set(['sports', 'travel', 'fashion', 'food', 'cars']);
+                let group = '';
+                if (mediaTabs.has(tabName)) group = 'media';
+                if (lifestyleTabs.has(tabName)) group = 'lifestyle';
+                if (!group) return;
+                const row = resolveProfileGroupRow(group, window.innerWidth <= 768 ? document.querySelector('.mobile-tabs') : null);
+                const toggle = document.querySelector(`.profile-tab-group-toggle[data-group="${group}"]`);
+                if (row && !row.classList.contains('open')) {
+                    row.classList.add('open');
+                    row.style.display = 'flex';
+                }
+                if (toggle) toggle.setAttribute('aria-expanded', 'true');
+            }
+
+            function normalizePrimaryTab(tabName) {
+                const safe = String(tabName || '').trim().toLowerCase();
+                return VALID_PRIMARY_TABS.has(safe) ? safe : 'lists';
+            }
+
+            function syncPrimaryTabUi(activeTab) {
+                document.body.dataset.profilePrimary = activeTab;
+                document.querySelectorAll('[data-primary-tab]').forEach((btn) => {
+                    const key = btn.getAttribute('data-primary-tab');
+                    btn.classList.toggle('active', key === activeTab);
+                });
+            }
+
+            function showPrimaryTab(tabName, options = {}) {
+                const safeTab = normalizePrimaryTab(tabName);
+                if (safeTab === currentPrimaryTab && options.force !== true) return;
+                currentPrimaryTab = safeTab;
+                syncPrimaryTabUi(safeTab);
+
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile && safeTab !== 'lists' && safeTab !== 'activity') {
+                    document.querySelectorAll('.mobile-section').forEach((section) => {
+                        const panel = section.getAttribute('data-profile-panel') || '';
+                        if (panel === safeTab) {
+                            section.style.display = 'block';
+                            section.classList.add('active');
+                        } else if (panel) {
+                            section.style.display = 'none';
+                            section.classList.remove('active');
+                        }
+                    });
+                }
+
+                if (!options.skipTabSync) {
+                    if (safeTab === 'lists') {
+                        const targetTab = lastMediaTab && lastMediaTab !== 'community'
+                            ? lastMediaTab
+                            : DEFAULT_PROFILE_TAB;
+                        showTab(targetTab, { skipUrlSync: true, skipPrimarySync: true });
+                    } else if (safeTab === 'activity') {
+                        showTab('community', { skipUrlSync: true, skipPrimarySync: true });
+                    }
+                }
+            }
+
             function getPreviewOrientationClass(contentType) {
                 const type = String(contentType || '').toLowerCase();
-                if (type === 'fashion' || type === 'food') return 'is-square';
+                if (type === 'fashion' || type === 'food' || type === 'car') return 'is-square';
                 return (type === 'restaurant' || type === 'travel') ? 'is-landscape' : 'is-portrait';
             }
 
@@ -601,7 +851,22 @@
                 try {
                     showToast('Logging out...', 'info');
                     await teardownStatsRealtimeSubscriptions();
+                    if (typeof window.__ZO2Y_MARK_EXPLICIT_SIGNOUT === 'function') {
+                        window.__ZO2Y_MARK_EXPLICIT_SIGNOUT();
+                    }
                     await supabase.auth.signOut();
+                    try {
+                        localStorage.removeItem('zo2y-auth-v2');
+                        localStorage.removeItem('zo2y-auth-v1');
+                        localStorage.removeItem('sb-gfkhjbztayjyojsgdpgk-auth-token');
+                        localStorage.removeItem('zo2y-auth-persist-v1');
+                        localStorage.removeItem('zo2y-auth-durable-v1');
+                        localStorage.removeItem('zo2y_post_auth_bootstrap_v1');
+                        sessionStorage.removeItem('zo2y-auth-v2');
+                        sessionStorage.removeItem('zo2y-auth-v1');
+                        sessionStorage.removeItem('sb-gfkhjbztayjyojsgdpgk-auth-token');
+                        sessionStorage.removeItem('zo2y-auth-persist-v1');
+                    } catch (_err) {}
                     setTimeout(() => {
                         window.location.href = 'login.html';
                     }, 1000);
@@ -687,6 +952,8 @@
                 }
                 
                 updateProfileUI();
+                // Enforce the dedicated onboarding username flow (no email-derived fallbacks).
+                if (maybeRedirectUsernameOnboarding()) return;
                 
                 // Load stats in background (don't block UI)
                 updateStats().catch(err => console.error('Stats error:', err));
@@ -790,19 +1057,13 @@
                 userProfile = profile || {};
                 if (profile) return;
 
-                const usernameCandidates = buildProfileUsernameCandidates(
-                    currentUser?.user_metadata?.username ||
-                    currentUser?.user_metadata?.full_name ||
-                    currentUser?.email?.split('@')[0] ||
-                    'user',
-                    currentUser?.id
-                );
-                const bootstrapUsername = usernameCandidates[0] || 'user';
+                const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
+                const bootstrapUsername = profileUsernameWithSuffix('user', idSuffix);
                 const bootstrapDisplayName = String(
                     currentUser?.user_metadata?.full_name ||
                     currentUser?.user_metadata?.name ||
-                    bootstrapUsername
-                ).trim().slice(0, 80) || bootstrapUsername;
+                    'User'
+                ).trim().slice(0, 80) || 'User';
 
                 const basePayload = {
                     id: currentUser.id,
@@ -849,6 +1110,11 @@
                     ...basePayload,
                     user_id: currentUser.id
                 };
+
+                // Mark onboarding pending so the username picker pops instantly for fresh profiles.
+                try {
+                    localStorage.setItem(getOnboardingPendingKey(currentUser.id), '1');
+                } catch (_err) {}
             }
 
             function normalizeProfileTheme(themeValue) {
@@ -887,21 +1153,8 @@
                 return theme;
             }
 
-            function getAutoProfileBadges(stats) {
-                const badgeList = [];
-                if ((stats?.listsCount || 0) >= 10) {
-                    badgeList.push({ label: 'Master Curator', icon: 'fa-layer-group', manual: false });
-                }
-                if ((stats?.followersCount || 0) >= 25) {
-                    badgeList.push({ label: 'Rising Creator', icon: 'fa-chart-line', manual: false });
-                }
-                if ((stats?.visitedCount || 0) >= 50) {
-                    badgeList.push({ label: 'Explorer', icon: 'fa-compass', manual: false });
-                }
-                if ((stats?.followingCount || 0) >= 20) {
-                    badgeList.push({ label: 'Connector', icon: 'fa-link', manual: false });
-                }
-                return badgeList;
+            function getAutoProfileBadges() {
+                return [];
             }
 
             function renderProfileBadges(profile = userProfile) {
@@ -951,22 +1204,39 @@
                 }
                 renderProfileBadges(profile);
                 
+                const rawUsername = String(profile?.username || '').replace(/^@+/, '').trim();
+                const displayName = String(profile?.full_name || rawUsername || 'User').trim();
+                const secondaryIdentity = rawUsername && !isPlaceholderUsername(rawUsername) ? `@${rawUsername}` : '';
+
                 if (isMobile) {
-                    document.getElementById('mobileProfileName').textContent = profile?.full_name || profile?.username || currentUser.email.split('@')[0];
-                    document.getElementById('mobileProfileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
+                    document.getElementById('mobileProfileName').textContent = displayName;
+                    document.getElementById('mobileProfileUsername').textContent = secondaryIdentity;
                     document.getElementById('mobileProfileBio').textContent = profile?.bio || "No bio yet. Tap edit to add one!";
                     document.getElementById('mobileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
+                    const mobileAboutBio = document.getElementById('mobileAboutBio');
+                    const mobileAboutLocation = document.getElementById('mobileAboutLocation');
+                    const mobileAboutMember = document.getElementById('mobileAboutMemberSince');
+                    if (mobileAboutBio) mobileAboutBio.textContent = profile?.bio || "No bio yet.";
+                    if (mobileAboutLocation) mobileAboutLocation.textContent = profile?.location || "Location not set";
+                    if (mobileAboutMember) mobileAboutMember.textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
                 } else {
-                    document.getElementById('profileName').textContent = profile?.full_name || profile?.username || currentUser.email.split('@')[0];
-                    document.getElementById('profileUsername').textContent = `@${profile?.username || currentUser.email.split('@')[0]}`;
+                    document.getElementById('profileName').textContent = displayName;
+                    document.getElementById('profileUsername').textContent = secondaryIdentity;
                     document.getElementById('profileBio').textContent = profile?.bio || "No bio yet. Click edit to add one!";
                     document.getElementById('profileLocation').textContent = profile?.location || "Location not set";
                     document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
                     document.getElementById('profileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
+                    const aboutBio = document.getElementById('aboutBio');
+                    const aboutLocation = document.getElementById('aboutLocation');
+                    const aboutMember = document.getElementById('aboutMemberSince');
+                    if (aboutBio) aboutBio.textContent = profile?.bio || "No bio yet.";
+                    if (aboutLocation) aboutLocation.textContent = profile?.location || "Location not set";
+                    if (aboutMember) aboutMember.textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
                 }
             }
 
             function updateTabTitlesForOtherUser(userName) {
+                const movieTabText = document.getElementById('movieTabText');
                 const journalTabText = document.getElementById('journalTabText');
                 const restaurantsTabText = document.getElementById('restaurantsTabText');
                 const tvTabText = document.getElementById('tvTabText');
@@ -975,6 +1245,11 @@
                 const booksTabText = document.getElementById('booksTabText');
                 const musicTabText = document.getElementById('musicTabText');
                 const sportsTabText = document.getElementById('sportsTabText');
+                const travelTabText = document.getElementById('travelTabText');
+                const fashionTabText = document.getElementById('fashionTabText');
+                const foodTabText = document.getElementById('foodTabText');
+                const carsTabText = document.getElementById('carsTabText');
+                const moviesTitle = document.getElementById('moviesTitle');
                 const journalTitle = document.getElementById('journalTitle');
                 const restaurantsTitle = document.getElementById('restaurantsTitle');
                 const tvTitle = document.getElementById('tvTitle');
@@ -983,19 +1258,31 @@
                 const booksTitle = document.getElementById('booksTitle');
                 const musicTitle = document.getElementById('musicTitle');
                 const sportsTitle = document.getElementById('sportsTitle');
+                const travelTitle = document.getElementById('travelTitle');
+                const fashionTitle = document.getElementById('fashionTitle');
+                const foodTitle = document.getElementById('foodTitle');
+                const carsTitle = document.getElementById('carsTitle');
                 const communityTitle = document.getElementById('communityTitle');
                 const journalSubtitle = document.getElementById('journalSubtitle');
                 const restaurantsSubtitle = document.getElementById('restaurantsSubtitle');
+                const moviesSubtitle = document.getElementById('moviesSubtitle');
                 const tvSubtitle = document.getElementById('tvSubtitle');
                 const animeSubtitle = document.getElementById('animeSubtitle');
                 const gamesSubtitle = document.getElementById('gamesSubtitle');
                 const booksSubtitle = document.getElementById('booksSubtitle');
                 const musicSubtitle = document.getElementById('musicSubtitle');
                 const sportsSubtitle = document.getElementById('sportsSubtitle');
+                const travelSubtitle = document.getElementById('travelSubtitle');
+                const fashionSubtitle = document.getElementById('fashionSubtitle');
+                const foodSubtitle = document.getElementById('foodSubtitle');
+                const carsSubtitle = document.getElementById('carsSubtitle');
                 const communitySubtitle = document.getElementById('communitySubtitle');
                 const followersSectionTitle = document.getElementById('followersSectionTitle');
                 const followingSectionTitle = document.getElementById('followingSectionTitle');
+                const viewingOtherProfileText = document.getElementById('viewingOtherProfileText');
+                const mobileViewingOtherProfileText = document.getElementById('mobileViewingOtherProfileText');
                 
+                if (movieTabText) movieTabText.textContent = `${userName}'s Movies`;
                 if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
                 if (restaurantsTabText) restaurantsTabText.textContent = `${userName}'s Collections`;
                 if (tvTabText) tvTabText.textContent = `${userName}'s TV Shows`;
@@ -1004,6 +1291,11 @@
                 if (booksTabText) booksTabText.textContent = `${userName}'s Books`;
                 if (musicTabText) musicTabText.textContent = `${userName}'s Music`;
                 if (sportsTabText) sportsTabText.textContent = `${userName}'s Sports`;
+                if (travelTabText) travelTabText.textContent = `${userName}'s Travel`;
+                if (fashionTabText) fashionTabText.textContent = `${userName}'s Fashion`;
+                if (foodTabText) foodTabText.textContent = `${userName}'s Food`;
+                if (carsTabText) carsTabText.textContent = `${userName}'s Cars`;
+                if (moviesTitle) moviesTitle.textContent = `${userName}'s Movies`;
                 if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
                 if (restaurantsTitle) restaurantsTitle.textContent = `${userName}'s Collections`;
                 if (tvTitle) tvTitle.textContent = `${userName}'s TV Shows`;
@@ -1012,19 +1304,31 @@
                 if (booksTitle) booksTitle.textContent = `${userName}'s Books`;
                 if (musicTitle) musicTitle.textContent = `${userName}'s Music`;
                 if (sportsTitle) sportsTitle.textContent = `${userName}'s Teams`;
+                if (travelTitle) travelTitle.textContent = `${userName}'s Travel`;
+                if (fashionTitle) fashionTitle.textContent = `${userName}'s Fashion`;
+                if (foodTitle) foodTitle.textContent = `${userName}'s Food`;
+                if (carsTitle) carsTitle.textContent = `${userName}'s Cars`;
                 if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
                 if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s featured collections`;
+                if (moviesSubtitle) moviesSubtitle.textContent = `${userName}'s favorite films`;
                 if (tvSubtitle) tvSubtitle.textContent = `${userName}'s favorite TV shows`;
                 if (animeSubtitle) animeSubtitle.textContent = `${userName}'s favorite anime`;
                 if (gamesSubtitle) gamesSubtitle.textContent = `${userName}'s favorite games`;
                 if (booksSubtitle) booksSubtitle.textContent = `${userName}'s favorite books`;
                 if (musicSubtitle) musicSubtitle.textContent = `${userName}'s favorite tracks`;
                 if (sportsSubtitle) sportsSubtitle.textContent = `${userName}'s favorite teams`;
-                if (communitySubtitle) communitySubtitle.textContent = `${userName}'s food community connections`;
+                if (travelSubtitle) travelSubtitle.textContent = `${userName}'s saved countries and travel goals`;
+                if (fashionSubtitle) fashionSubtitle.textContent = `${userName}'s favorite fashion brands`;
+                if (foodSubtitle) foodSubtitle.textContent = `${userName}'s favorite food brands`;
+                if (carsSubtitle) carsSubtitle.textContent = `${userName}'s favorite car brands`;
+                if (communitySubtitle) communitySubtitle.textContent = `${userName}'s community connections`;
                 if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
                 if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
+                if (viewingOtherProfileText) viewingOtherProfileText.textContent = `Viewing ${userName}'s profile`;
+                if (mobileViewingOtherProfileText) mobileViewingOtherProfileText.textContent = `${userName}'s profile`;
                 
+                const mobileTabMovies = document.getElementById('mobileTabMovies');
                 const mobileJournalTabText = document.getElementById('mobileJournalTabText');
                 const mobileTabJournal = document.getElementById('mobileTabJournal');
                 const mobileTabRestaurants = document.getElementById('mobileTabRestaurants');
@@ -1034,6 +1338,11 @@
                 const mobileTabBooks = document.getElementById('mobileTabBooks');
                 const mobileTabMusic = document.getElementById('mobileTabMusic');
                 const mobileTabSports = document.getElementById('mobileTabSports');
+                const mobileTabTravel = document.getElementById('mobileTabTravel');
+                const mobileTabFashion = document.getElementById('mobileTabFashion');
+                const mobileTabFood = document.getElementById('mobileTabFood');
+                const mobileTabCars = document.getElementById('mobileTabCars');
+                const mobileMoviesTitle = document.getElementById('mobileMoviesTitle');
                 const mobileJournalTitle = document.getElementById('mobileJournalTitle');
                 const mobileRestaurantsTitle = document.getElementById('mobileRestaurantsTitle');
                 const mobileAnimeTitle = document.getElementById('mobileAnimeTitle');
@@ -1041,16 +1350,26 @@
                 const mobileBooksTitle = document.getElementById('mobileBooksTitle');
                 const mobileMusicTitle = document.getElementById('mobileMusicTitle');
                 const mobileSportsTitle = document.getElementById('mobileSportsTitle');
+                const mobileTravelTitle = document.getElementById('mobileTravelTitle');
+                const mobileFashionTitle = document.getElementById('mobileFashionTitle');
+                const mobileFoodTitle = document.getElementById('mobileFoodTitle');
+                const mobileCarsTitle = document.getElementById('mobileCarsTitle');
                 const mobileCommunityTitle = document.getElementById('mobileCommunityTitle');
                 const mobileJournalSubtitle = document.getElementById('mobileJournalSubtitle');
                 const mobileRestaurantsSubtitle = document.getElementById('mobileRestaurantsSubtitle');
+                const mobileMoviesSubtitle = document.getElementById('mobileMoviesSubtitle');
                 const mobileAnimeSubtitle = document.getElementById('mobileAnimeSubtitle');
                 const mobileGamesSubtitle = document.getElementById('mobileGamesSubtitle');
                 const mobileBooksSubtitle = document.getElementById('mobileBooksSubtitle');
                 const mobileMusicSubtitle = document.getElementById('mobileMusicSubtitle');
                 const mobileSportsSubtitle = document.getElementById('mobileSportsSubtitle');
+                const mobileTravelSubtitle = document.getElementById('mobileTravelSubtitle');
+                const mobileFashionSubtitle = document.getElementById('mobileFashionSubtitle');
+                const mobileFoodSubtitle = document.getElementById('mobileFoodSubtitle');
+                const mobileCarsSubtitle = document.getElementById('mobileCarsSubtitle');
                 const mobileCommunitySubtitle = document.getElementById('mobileCommunitySubtitle');
                 
+                if (mobileTabMovies) mobileTabMovies.textContent = `${userName}'s Movies`;
                 if (mobileJournalTabText) mobileJournalTabText.textContent = `${userName}'s Journal`;
                 if (mobileTabJournal) mobileTabJournal.textContent = `${userName}'s Journal`;
                 if (mobileTabRestaurants) mobileTabRestaurants.textContent = `${userName}'s Collections`;
@@ -1060,6 +1379,11 @@
                 if (mobileTabBooks) mobileTabBooks.textContent = `${userName}'s Books`;
                 if (mobileTabMusic) mobileTabMusic.textContent = `${userName}'s Music`;
                 if (mobileTabSports) mobileTabSports.textContent = `${userName}'s Sports`;
+                if (mobileTabTravel) mobileTabTravel.textContent = `${userName}'s Travel`;
+                if (mobileTabFashion) mobileTabFashion.textContent = `${userName}'s Fashion`;
+                if (mobileTabFood) mobileTabFood.textContent = `${userName}'s Food`;
+                if (mobileTabCars) mobileTabCars.textContent = `${userName}'s Cars`;
+                if (mobileMoviesTitle) mobileMoviesTitle.textContent = `${userName}'s Movies`;
                 if (mobileJournalTitle) mobileJournalTitle.textContent = `${userName}'s Food Journal`;
                 if (mobileRestaurantsTitle) mobileRestaurantsTitle.textContent = `${userName}'s Collections`;
                 if (mobileAnimeTitle) mobileAnimeTitle.textContent = `${userName}'s Anime`;
@@ -1067,15 +1391,24 @@
                 if (mobileBooksTitle) mobileBooksTitle.textContent = `${userName}'s Books`;
                 if (mobileMusicTitle) mobileMusicTitle.textContent = `${userName}'s Music`;
                 if (mobileSportsTitle) mobileSportsTitle.textContent = `${userName}'s Teams`;
+                if (mobileTravelTitle) mobileTravelTitle.textContent = `${userName}'s Travel`;
+                if (mobileFashionTitle) mobileFashionTitle.textContent = `${userName}'s Fashion`;
+                if (mobileFoodTitle) mobileFoodTitle.textContent = `${userName}'s Food`;
+                if (mobileCarsTitle) mobileCarsTitle.textContent = `${userName}'s Cars`;
                 if (mobileCommunityTitle) mobileCommunityTitle.textContent = `${userName}'s Community`;
                 if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (mobileRestaurantsSubtitle) mobileRestaurantsSubtitle.textContent = `${userName}'s featured collections`;
+                if (mobileMoviesSubtitle) mobileMoviesSubtitle.textContent = `${userName}'s favorite films`;
                 if (mobileAnimeSubtitle) mobileAnimeSubtitle.textContent = `${userName}'s favorite anime`;
                 if (mobileGamesSubtitle) mobileGamesSubtitle.textContent = `${userName}'s favorite games`;
                 if (mobileBooksSubtitle) mobileBooksSubtitle.textContent = `${userName}'s favorite books`;
                 if (mobileMusicSubtitle) mobileMusicSubtitle.textContent = `${userName}'s favorite tracks`;
                 if (mobileSportsSubtitle) mobileSportsSubtitle.textContent = `${userName}'s favorite teams`;
-                if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s food community connections`;
+                if (mobileTravelSubtitle) mobileTravelSubtitle.textContent = `${userName}'s saved countries and travel goals`;
+                if (mobileFashionSubtitle) mobileFashionSubtitle.textContent = `${userName}'s favorite fashion brands`;
+                if (mobileFoodSubtitle) mobileFoodSubtitle.textContent = `${userName}'s favorite food brands`;
+                if (mobileCarsSubtitle) mobileCarsSubtitle.textContent = `${userName}'s favorite car brands`;
+                if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s community connections`;
             }
 
             // ===== FOLLOW SYSTEM =====
@@ -1565,7 +1898,7 @@
 
                 const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
                 const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
-                const summaryText = `${followersCount} followers · ${followingCount} following`;
+                const summaryText = `${followersCount} followers Â· ${followingCount} following`;
                 if (desktopMeta) desktopMeta.textContent = summaryText;
                 if (mobileMeta) mobileMeta.textContent = summaryText;
                 renderProfileBadges();
@@ -1643,7 +1976,7 @@
                 } finally {
                     const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
                     const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
-                    const summaryText = `${followersCount} followers · ${followingCount} following`;
+                    const summaryText = `${followersCount} followers Â· ${followingCount} following`;
                     if (desktopMeta) desktopMeta.textContent = summaryText;
                     if (mobileMeta) mobileMeta.textContent = summaryText;
                 }
@@ -2129,7 +2462,7 @@
                 
                 const title = document.getElementById('listName').value.trim();
                 const description = document.getElementById('listDescription').value.trim();
-                const icon = document.getElementById('selectedIcon').value;
+                const icon = getDefaultListIconForContext('restaurant');
                 const createListModal = document.getElementById('createListModal');
                 const tierState = window.ListUtils && createListModal
                     ? ListUtils.readTierCreateState(createListModal)
@@ -2324,7 +2657,7 @@
                     closeModal('createListModal');
                     
                     if (form) form.reset();
-                    document.getElementById('selectedIcon').value = 'heart';
+                    document.getElementById('selectedIcon').value = getDefaultListIconForContext('restaurant');
                     if (window.ListUtils && createListModal) {
                         ListUtils.resetTierCreateState(createListModal);
                     }
@@ -3142,7 +3475,7 @@
 
                             if (!follows || follows.length === 0) {
                                 const emptyText = isViewingOwnProfile ? 
-                                    'Discover and follow other food lovers!' :
+                                    'Discover and follow people you like!' :
                                     'This user isn\'t following anyone yet.';
                                 
                                 if (isMobile) {
@@ -3251,7 +3584,8 @@
                             book: { favorites: 'Favorites', read: 'Read', readlist: 'Readlist' },
                             music: { favorites: 'Favorites', listened: 'Listened', listenlist: 'Listenlist' },
                             fashion: { favorites: 'Favorites', owned: 'Owned', wishlist: 'Wishlist' },
-                            food: { favorites: 'Favorites', tried: 'Tried', want_to_try: 'Want to Try' }
+                            food: { favorites: 'Favorites', tried: 'Tried', want_to_try: 'Want to Try' },
+                            car: { favorites: 'Favorites', owned: 'Owned', wishlist: 'Wishlist' }
                         };
                         if (map[type] && map[type][key]) return map[type][key];
                         return key.replace(/_/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase());
@@ -3298,11 +3632,7 @@
                             } : null;
                         }
                         if (safeType === 'book') {
-                            const { data } = await supabase
-                                .from('books')
-                                .select('id, title, thumbnail')
-                                .eq('id', safeId)
-                                .maybeSingle();
+                            const data = await resolveProfileBookRecord(safeId);
                             return data ? {
                                 title: String(data.title || '').trim(),
                                 image: String(data.thumbnail || '').trim() || FALLBACK_BOOK_IMAGE
@@ -3871,6 +4201,9 @@
                             
                             const isMobile = window.innerWidth <= 768 || containerId.includes('mobile');
                             
+                            const savedItemsCount = user.saved_items_count ?? user.saved_count ?? user.visited_count ?? user.favorites_count ?? 0;
+                            const createdListsCount = user.created_lists_count ?? user.lists_count ?? 0;
+
                             if (isMobile) {
                                 const userCard = document.createElement('div');
                                 userCard.className = 'mobile-community-card';
@@ -3885,12 +4218,12 @@
                                     </div>
                                     <div class="mobile-community-stats">
                                         <div class="mobile-community-stat">
-                                            <span class="mobile-community-stat-number">${user.visited_count || 0}</span>
-                                            <span class="mobile-community-stat-label">Visited</span>
+                                            <span class="mobile-community-stat-number">${savedItemsCount}</span>
+                                            <span class="mobile-community-stat-label">Saved items</span>
                                         </div>
                                         <div class="mobile-community-stat">
-                                            <span class="mobile-community-stat-number">${user.favorites_count || 0}</span>
-                                            <span class="mobile-community-stat-label">Favorites</span>
+                                            <span class="mobile-community-stat-number">${createdListsCount}</span>
+                                            <span class="mobile-community-stat-label">Lists created</span>
                                         </div>
                                         <div class="mobile-community-stat">
                                             <span class="mobile-community-stat-number">${user.followers_count || 0}</span>
@@ -3927,12 +4260,12 @@
                                     </div>
                                     <div class="community-stats">
                                         <div class="community-stat">
-                                            <span class="community-stat-number">${user.visited_count || 0}</span>
-                                            <span class="community-stat-label">Visited</span>
+                                            <span class="community-stat-number">${savedItemsCount}</span>
+                                            <span class="community-stat-label">Saved items</span>
                                         </div>
                                         <div class="community-stat">
-                                            <span class="community-stat-number">${user.lists_count || 0}</span>
-                                            <span class="community-stat-label">Lists</span>
+                                            <span class="community-stat-number">${createdListsCount}</span>
+                                            <span class="community-stat-label">Lists created</span>
                                         </div>
                                         <div class="community-stat">
                                             <span class="community-stat-number">${user.followers_count || 0}</span>
@@ -4040,10 +4373,10 @@
                 
                 document.getElementById('listName').value = list.title;
                 document.getElementById('listDescription').value = list.description || '';
-                document.getElementById('selectedIcon').value = normalizeIconKey(list.icon, 'list');
+                document.getElementById('selectedIcon').value = getDefaultListIconForContext('restaurant');
                 
                 document.querySelectorAll('.list-icon-option').forEach(icon => {
-                    const isSelected = icon.getAttribute('data-icon') === normalizeIconKey(list.icon, 'list');
+                    const isSelected = icon.getAttribute('data-icon') === getDefaultListIconForContext('restaurant');
                     icon.classList.toggle('selected', isSelected);
                 });
                 
@@ -4101,6 +4434,7 @@
                     travel: 'fas fa-earth-americas',
                     fashion: 'fas fa-shirt',
                     food: 'fas fa-burger',
+                    car: 'fas fa-car',
                     camera: 'fas fa-camera',
                     soccer: 'fas fa-futbol'
                 };
@@ -4128,7 +4462,8 @@
                     music: 'M',
                     travel: 'T',
                     fashion: 'F',
-                    food: 'F'
+                    food: 'F',
+                    car: 'C'
                 };
                 return map[key] || map[fallback] || 'U';
             }
@@ -4161,7 +4496,8 @@
                         music: 'grid',
                         travel: 'grid',
                         fashion: 'grid',
-                        food: 'grid'
+                        food: 'grid',
+                        car: 'grid'
                     };
                     Object.keys(base).forEach((key) => {
                         const mode = parsed?.[key];
@@ -4241,11 +4577,12 @@
                     type === 'travel' ? 'country' :
                     type === 'fashion' ? 'brand' :
                     type === 'food' ? 'brand' :
+                    type === 'car' ? 'brand' :
                     'track'
                 );
                 if (count === 1) return `${count} ${singular}`;
                 if (type === 'travel') return `${count} countries`;
-                if (type === 'fashion' || type === 'food') return `${count} brands`;
+                if (type === 'fashion' || type === 'food' || type === 'car') return `${count} brands`;
                 if (type === 'tv') return `${count} TV shows`;
                 return `${count} ${singular}s`;
             }
@@ -4447,6 +4784,69 @@
                     isCollaborative
                 });
                 return data;
+            }
+
+            async function fetchCustomListById(contentType, listId) {
+                const safeType = String(contentType || '').trim().toLowerCase();
+                const safeListId = String(listId || '').trim();
+                if (!safeType || !safeListId) return null;
+
+                if (safeType === 'fashion' || safeType === 'food' || safeType === 'car') {
+                    const defaultMeta = safeType === 'fashion'
+                        ? {
+                            titles: { favorites: 'Favorites', owned: 'Owned', wishlist: 'Wishlist' },
+                            icons: { favorites: 'heart', owned: 'check', wishlist: 'bookmark' },
+                            descriptions: {
+                                favorites: 'Brands you love',
+                                owned: 'Brands you own',
+                                wishlist: 'Brands you want to try'
+                            },
+                            fallbackTitle: 'Fashion',
+                            fallbackIcon: 'fashion'
+                        }
+                        : safeType === 'food'
+                            ? {
+                                titles: { favorites: 'Favorites', tried: 'Tried', want_to_try: 'Want to Try' },
+                                icons: { favorites: 'heart', tried: 'check', want_to_try: 'bookmark' },
+                                descriptions: {
+                                    favorites: 'Brands you love',
+                                    tried: 'Places you tried',
+                                    want_to_try: 'Places you want to try'
+                                },
+                                fallbackTitle: 'Food',
+                                fallbackIcon: 'food'
+                            }
+                            : {
+                                titles: { favorites: 'Favorites', owned: 'Owned', wishlist: 'Wishlist' },
+                                icons: { favorites: 'heart', owned: 'check', wishlist: 'bookmark' },
+                                descriptions: {
+                                    favorites: 'Brands you love',
+                                    owned: 'Brands you own',
+                                    wishlist: 'Brands you want to try'
+                                },
+                                fallbackTitle: 'Cars',
+                                fallbackIcon: 'car'
+                            };
+                    if (Object.prototype.hasOwnProperty.call(defaultMeta.titles, safeListId)) {
+                        return {
+                            id: safeListId,
+                            title: defaultMeta.titles[safeListId] || defaultMeta.fallbackTitle,
+                            icon: defaultMeta.icons[safeListId] || defaultMeta.fallbackIcon,
+                            description: defaultMeta.descriptions[safeListId] || '',
+                            type: 'default'
+                        };
+                    }
+                }
+
+                const table = CUSTOM_LIST_TABLES[safeType];
+                if (!table || !supabase) return null;
+                const { data, error } = await supabase
+                    .from(table)
+                    .select('*')
+                    .eq('id', safeListId)
+                    .maybeSingle();
+                if (error || !data) return null;
+                return { ...data, type: 'custom' };
             }
 
             async function ensureCollaborativeAccessForList(contentType, list = null) {
@@ -4844,6 +5244,10 @@
                 }
                 if (contentType === 'food') {
                     await renderFood();
+                    return;
+                }
+                if (contentType === 'car') {
+                    await renderCars();
                 }
             }
 
@@ -4880,10 +5284,28 @@
                             list_type: safeListType,
                             sort_order: nextOrder
                         };
-                        const { error } = await supabase
+                        const { error: insertError } = await supabase
                             .from(PROFILE_PIN_TABLE)
-                            .upsert(payload, { onConflict: 'user_id,media_type,list_id,list_type' });
-                        if (error) throw error;
+                            .insert(payload);
+                        if (insertError) {
+                            const insertCode = String(insertError?.code || '').trim();
+                            const insertMessage = String(insertError?.message || '').toLowerCase();
+                            const isConflict =
+                                insertCode === '23505' ||
+                                insertMessage.includes('duplicate key') ||
+                                insertMessage.includes('unique constraint');
+                            if (!isConflict) {
+                                throw insertError;
+                            }
+                            const { error: updateError } = await supabase
+                                .from(PROFILE_PIN_TABLE)
+                                .update({ sort_order: nextOrder })
+                                .eq('user_id', currentUser.id)
+                                .eq('media_type', safeType)
+                                .eq('list_id', safeListId)
+                                .eq('list_type', safeListType);
+                            if (updateError) throw updateError;
+                        }
                         pinnedListsMap.set(key, { sort_order: nextOrder });
                         showToast('Pinned collection to top', 'success');
                     }
@@ -5028,6 +5450,8 @@
                     await showFashionDetail(listId, listType, isMobile);
                 } else if (mediaType === 'food') {
                     await showFoodDetail(listId, listType, isMobile);
+                } else if (mediaType === 'car') {
+                    await showCarDetail(listId, listType, isMobile);
                 }
             }
 
@@ -5078,25 +5502,81 @@
                 return data;
             }
 
-                        function normalizeGameImageSource(game) {
+            function normalizeGameImageUrl(url) {
+                const value = typeof url === 'string'
+                    ? url.trim()
+                    : (url && typeof url === 'object' && typeof url.url === 'string' ? url.url.trim() : '');
+                if (!value) return '';
+                if (value.startsWith('//')) return `https:${value}`;
+                if (value.startsWith('http://')) return value.replace(/^http:\/\//i, 'https://');
+                return value;
+            }
+
+            function isLikelyBackdropGameUrl(url) {
+                const value = String(url || '').trim().toLowerCase();
+                if (!value) return false;
+                return ['/heroes/', '/hero/', 'background', 'fanart', 'screenshot', 'screenshots', 'backdrop'].some((token) => value.includes(token));
+            }
+
+            function pickPreferredCoverUrl(candidates = []) {
+                const normalized = (Array.isArray(candidates) ? candidates : [])
+                    .map((candidate) => normalizeGameImageUrl(candidate))
+                    .filter(Boolean);
+                if (!normalized.length) return '';
+                const preferred = normalized.find((url) => !isLikelyBackdropGameUrl(url));
+                return preferred || normalized[0] || '';
+            }
+
+            function isLikelyLogoOnlyGameArt(url) {
+                const value = String(url || '').trim().toLowerCase();
+                if (!value) return false;
+                if (value.endsWith('.svg') || value.includes('.svg?')) return true;
+                return ['logo', 'wordmark', 'transparent', 'icon', 'banner'].some((token) => value.includes(token));
+            }
+
+            function normalizeGameImageSource(game) {
                 if (!game || typeof game !== 'object') return '/newlogo.webp';
-                const candidates = [
-                    game.cover,
-                    game.cover_url,
-                    game.hero,
-                    game.hero_url,
-                    game.background_image
-                ];
                 const screenshots = Array.isArray(game.screenshots) ? game.screenshots : [];
                 const shortScreens = Array.isArray(game.short_screenshots)
                     ? game.short_screenshots.map((entry) => entry?.image)
                     : [];
-                candidates.push(screenshots[0], shortScreens[0]);
-                for (const entry of candidates) {
-                    const url = String(entry || '').trim();
-                    if (url) return url;
-                }
-                return '/newlogo.webp';
+                const extra = game.extra && typeof game.extra === 'object' ? game.extra : {};
+                const cover = pickPreferredCoverUrl([
+                    game.cover_url,
+                    game.cover,
+                    game.cover?.url,
+                    game.poster,
+                    game.poster_url,
+                    game.image,
+                    game.image_url,
+                    game.thumbnail,
+                    game.thumbnail_url,
+                    ...(Array.isArray(extra.local_covers) ? extra.local_covers : []),
+                    ...(Array.isArray(extra.covers) ? extra.covers : []),
+                    ...(Array.isArray(extra.official_covers) ? extra.official_covers : []),
+                    ...(Array.isArray(extra.cover_candidates) ? extra.cover_candidates : []),
+                    ...(Array.isArray(extra.artworks) ? extra.artworks : []),
+                    extra.local_cover,
+                    extra.poster,
+                    extra.poster_url,
+                    extra.cover,
+                    game.hero_url,
+                    game.hero,
+                    game.background_image,
+                    ...screenshots,
+                    ...shortScreens
+                ]);
+                if (cover && !isLikelyLogoOnlyGameArt(cover)) return cover;
+                const hero = pickPreferredCoverUrl([
+                    game.hero_url,
+                    game.hero,
+                    game.background_image,
+                    ...(Array.isArray(extra.local_screenshots) ? extra.local_screenshots : []),
+                    ...(Array.isArray(extra.screenshots) ? extra.screenshots : []),
+                    ...screenshots,
+                    ...shortScreens
+                ]);
+                return hero || cover || '/newlogo.webp';
             }
 
             function normalizeSupabaseGameRecord(row, fallbackId = '') {
@@ -5105,7 +5585,25 @@
                 const title = String(row.title || row.name || row.slug || '').trim() || 'Untitled';
                 const ratingValue = Number(row.rating);
                 const ratingCountValue = Number(row.rating_count ?? row.ratings_count ?? 0);
-                const coverUrl = String(row.cover_url || row.cover || '').trim();
+                const extra = row.extra && typeof row.extra === 'object' ? row.extra : {};
+                const coverUrl = pickPreferredCoverUrl([
+                    row.cover_url,
+                    row.cover,
+                    row.cover?.url,
+                    ...(Array.isArray(extra.local_covers) ? extra.local_covers : []),
+                    ...(Array.isArray(extra.covers) ? extra.covers : []),
+                    ...(Array.isArray(extra.official_covers) ? extra.official_covers : []),
+                    ...(Array.isArray(extra.cover_candidates) ? extra.cover_candidates : [])
+                ]);
+                const heroUrl = pickPreferredCoverUrl([
+                    row.hero_url,
+                    row.hero,
+                    row.background_image,
+                    ...(Array.isArray(extra.local_screenshots) ? extra.local_screenshots : []),
+                    ...(Array.isArray(extra.screenshots) ? extra.screenshots : []),
+                    ...(Array.isArray(row.screenshots) ? row.screenshots : []),
+                    ...(Array.isArray(row.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
+                ]);
                 const releaseDate = String(row.release_date || row.released || '').trim();
                 return {
                     ...row,
@@ -5114,8 +5612,8 @@
                     title,
                     cover: coverUrl,
                     cover_url: coverUrl,
-                    hero: coverUrl,
-                    hero_url: coverUrl,
+                    hero: heroUrl || coverUrl,
+                    hero_url: heroUrl || coverUrl,
                     released: releaseDate,
                     release_date: releaseDate,
                     rating: Number.isFinite(ratingValue) ? ratingValue : null,
@@ -5205,12 +5703,13 @@
                 return `https://flagcdn.com/w640/${safeCode.toLowerCase()}.png`;
             }
 
-            function toHttpsUrl(url) {
+            function toHttpsUrl(url, options = null) {
                 const text = String(url || '').trim();
                 if (!text) return '';
-                if (text.startsWith('//')) return `https:${text}`;
-                if (text.startsWith('http://')) return text.replace(/^http:\/\//i, 'https://');
-                return text;
+                let normalized = text;
+                if (normalized.startsWith('//')) normalized = `https:${normalized}`;
+                if (normalized.startsWith('http://')) normalized = normalized.replace(/^http:\/\//i, 'https://');
+                return normalized;
             }
 
             async function fetchTravelCountriesByCodes(codes = []) {
@@ -5290,7 +5789,9 @@
                 ));
                 if (!normalizedIds.length) return new Map();
 
-                const cache = contentType === 'food' ? foodBrandCache : fashionBrandCache;
+                const cache = contentType === 'food'
+                    ? foodBrandCache
+                    : (contentType === 'car' ? carBrandCache : fashionBrandCache);
                 const byId = new Map();
                 const missing = [];
                 normalizedIds.forEach((id) => {
@@ -5302,18 +5803,31 @@
                 });
 
                 if (missing.length) {
-                    const table = contentType === 'food' ? 'food_brands' : 'fashion_brands';
+                    const table = contentType === 'food'
+                        ? 'food_brands'
+                        : (contentType === 'car' ? 'car_brands' : 'fashion_brands');
                     const { data } = await supabase
                         .from(table)
-                        .select('id, name, logo_url, category, description, country')
+                        .select('id, name, domain, logo_url, category, description, country')
                         .in('id', missing);
                     (data || []).forEach((row) => {
                         const id = String(row?.id || '').trim();
                         if (!id) return;
+                        const name = String(row?.name || '').trim();
+                        const wikiLogo = (() => {
+                            if (!name) return '';
+                            const params = new URLSearchParams();
+                            params.set('title', name);
+                            const domainRaw = String(row?.domain || '').trim();
+                            if (domainRaw) params.set('domain', domainRaw);
+                            params.set('mode', 'logo');
+                            return `/api/logo?${params.toString()}`;
+                        })();
+                        const localLogo = toHttpsUrl(row?.logo_url || '');
                         const brand = {
                             id,
-                            name: String(row?.name || '').trim(),
-                            logo: toHttpsUrl(row?.logo_url || ''),
+                            name,
+                            logo: localLogo || wikiLogo,
                             category: String(row?.category || '').trim(),
                             description: String(row?.description || '').trim(),
                             country: String(row?.country || '').trim()
@@ -5609,6 +6123,25 @@
                 await renderMovies();
             }
 
+            function getDefaultListIconForContext(type) {
+                const normalized = String(type || '').trim().toLowerCase();
+                const map = {
+                    restaurant: 'restaurant',
+                    movie: 'movie',
+                    tv: 'tv',
+                    anime: 'anime',
+                    game: 'game',
+                    book: 'book',
+                    music: 'music',
+                    travel: 'travel',
+                    fashion: 'fashion',
+                    food: 'food',
+                    car: 'car',
+                    cars: 'car'
+                };
+                return map[normalized] || 'list';
+            }
+
             function getMediaListConfig(type) {
                 const configMap = {
                     movie: { table: 'movie_lists', fallback: 'movie', label: 'Movie', rerender: renderMovies },
@@ -5619,7 +6152,8 @@
                     music: { table: 'music_lists', fallback: 'music', label: 'Music', rerender: renderMusic },
                     travel: { table: 'travel_lists', fallback: 'travel', label: 'Travel', rerender: renderTravel },
                     fashion: { table: 'fashion_lists', fallback: 'fashion', label: 'Fashion', rerender: renderFashion },
-                    food: { table: 'food_lists', fallback: 'food', label: 'Food', rerender: renderFood }
+                    food: { table: 'food_lists', fallback: 'food', label: 'Food', rerender: renderFood },
+                    car: { table: 'car_lists', fallback: 'car', label: 'Cars', rerender: renderCars }
                 };
                 return configMap[type] || null;
             }
@@ -5634,7 +6168,8 @@
                     music: ['favorites', 'listened', 'listenlist'],
                     travel: ['favorites', 'visited', 'bucket list', 'bucketlist'],
                     fashion: ['favorites', 'owned', 'wishlist'],
-                    food: ['favorites', 'tried', 'want to try', 'want_to_try']
+                    food: ['favorites', 'tried', 'want to try', 'want_to_try'],
+                    car: ['favorites', 'owned', 'wishlist']
                 };
                 return new Set(map[type] || []);
             }
@@ -5777,7 +6312,7 @@
                 if (listType !== 'custom') return baseTitle;
                 const tierMeta = getTierMetaForList(type, list, 0);
                 if (!tierMeta.isTier) return baseTitle;
-                return `${baseTitle} • Tier List`;
+                return `${baseTitle} â€¢ Tier List`;
             }
 
             function canReorderCollectionItems(contentType, listId, listType = 'custom', list = null) {
@@ -6289,7 +6824,7 @@
             }
 
             function setEditMediaListIcon(iconKey) {
-                const selected = normalizeIconKey(iconKey, 'list');
+                const selected = normalizeIconKey(iconKey, editingMediaList?.fallback || 'list');
                 const hiddenInput = document.getElementById('editMediaListSelectedIcon');
                 if (hiddenInput) hiddenInput.value = selected;
                 document.querySelectorAll('.edit-list-icon-option').forEach(option => {
@@ -6474,7 +7009,7 @@
 
                 const nameInput = document.getElementById('editMediaListName');
                 if (nameInput) nameInput.value = record.title || '';
-                setEditMediaListIcon(record.icon || config.fallback);
+                setEditMediaListIcon(config.fallback);
                 setEditMediaListModalMode(config, false);
                 showModal('editMediaListModal');
                 const editModal = document.getElementById('editMediaListModal');
@@ -6724,7 +7259,8 @@
                 const iconInput = document.getElementById('editMediaListSelectedIcon');
                 const editModal = document.getElementById('editMediaListModal');
                 const title = (nameInput?.value || '').trim();
-                const icon = normalizeIconKey(iconInput?.value || editingMediaList.fallback, editingMediaList.fallback);
+                const icon = normalizeIconKey(editingMediaList?.fallback || iconInput?.value || 'list', editingMediaList.fallback);
+                const enforcedIcon = editingMediaList?.fallback || icon;
                 const tierState = window.ListUtils && editModal
                     ? ListUtils.readTierCreateState(editModal)
                     : {
@@ -6741,7 +7277,7 @@
                     const created = await createMediaListRecord(
                         editingMediaList,
                         title,
-                        icon,
+                        enforcedIcon,
                         tierState.listKind,
                         tierState.maxRank
                     );
@@ -6769,7 +7305,7 @@
                     : null;
                 const updatePayload = {
                     title,
-                    icon,
+                    icon: enforcedIcon,
                     list_kind: normalizedKind === 'tier' ? 'tier' : editingMediaList.type
                 };
                 const hasListKindColumnError = (error) => {
@@ -7054,7 +7590,8 @@
                     ['music-tab', 'music-detail-view'],
                     ['travel-tab', 'travel-detail-view'],
                     ['fashion-tab', 'fashion-detail-view'],
-                    ['food-tab', 'food-detail-view']
+                    ['food-tab', 'food-detail-view'],
+                    ['cars-tab', 'cars-detail-view']
                 ];
                 desktopPairs.forEach(([mainId, detailId]) => {
                     const main = document.getElementById(mainId);
@@ -7076,7 +7613,8 @@
                     { main: 'mobileMusicSection', detail: 'mobileMusicDetailSection', grid: 'mobileMusicGrid' },
                     { main: 'mobileTravelSection', detail: 'mobileTravelDetailSection', grid: 'mobileTravelGrid' },
                     { main: 'mobileFashionSection', detail: 'mobileFashionDetailSection', grid: 'mobileFashionGrid' },
-                    { main: 'mobileFoodSection', detail: 'mobileFoodDetailSection', grid: 'mobileFoodGrid' }
+                    { main: 'mobileFoodSection', detail: 'mobileFoodDetailSection', grid: 'mobileFoodGrid' },
+                    { main: 'mobileCarsSection', detail: 'mobileCarsDetailSection', grid: 'mobileCarsGrid' }
                 ];
                 mobileConfigs.forEach((cfg) => {
                     const mainSection = document.getElementById(cfg.main);
@@ -7114,6 +7652,7 @@
                     travel: () => renderTravel(),
                     fashion: () => renderFashion(),
                     food: () => renderFood(),
+                    cars: () => renderCars(),
                     community: () => showCommunitySection('followers')
                 };
                 const handler = handlers[safeTab] || handlers[DEFAULT_PROFILE_TAB] || handlers.movies;
@@ -7138,6 +7677,18 @@
                 resetDetailPanels();
                 currentMediaDetail = null;
 
+                if (!options.skipPrimarySync) {
+                    if (safeTab === 'community') {
+                        showPrimaryTab('activity', { skipTabSync: true });
+                    } else {
+                        showPrimaryTab('lists', { skipTabSync: true });
+                    }
+                }
+
+                if (safeTab !== 'community') {
+                    lastMediaTab = safeTab;
+                }
+
                 if (!options.skipUrlSync) {
                     const nextUrl = buildProfileUrl({ tab: safeTab });
                     history.replaceState({}, '', nextUrl);
@@ -7152,6 +7703,7 @@
                     document.querySelectorAll('.mobile-tab').forEach(tab => {
                         tab.classList.remove('active');
                     });
+                    closeProfileTabGroups();
                     
                     const activeSection =
                         document.getElementById(`mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Section`) ||
@@ -7169,6 +7721,7 @@
                         const fallbackTab = document.querySelector(`.mobile-tab[data-tab="${DEFAULT_PROFILE_TAB}"]`);
                         if (fallbackTab) fallbackTab.classList.add('active');
                     }
+                    ensureProfileGroupRowVisible(safeTab);
                     scrollActiveMobileTabIntoView(safeTab);
                     const swipeHint = document.getElementById('mobileTabsSwipeHint');
                     if (swipeHint) swipeHint.classList.add('hidden');
@@ -7193,6 +7746,7 @@
                     document.querySelectorAll('.nav-tab').forEach(btn => {
                         btn.classList.remove('active');
                     });
+                    closeProfileTabGroups();
                     
                     const activeButton = document.querySelector(`.nav-tab[data-tab="${safeTab}"]`);
                     if (activeButton) {
@@ -7201,6 +7755,7 @@
                         const fallbackButton = document.querySelector(`.nav-tab[data-tab="${DEFAULT_PROFILE_TAB}"]`);
                         if (fallbackButton) fallbackButton.classList.add('active');
                     }
+                    ensureProfileGroupRowVisible(safeTab);
                     
                     currentTab = safeTab;
                     if (!options.skipRender) {
@@ -7770,6 +8325,53 @@
                 return normalizeBookImageUrl(coverById) || normalizeBookImageUrl(fallbackCover) || FALLBACK_BOOK_IMAGE;
             }
 
+            async function fetchGoogleBookVolume(volumeId) {
+                const cleanId = String(volumeId || '').trim();
+                if (!cleanId || cleanId.startsWith('search-')) return null;
+                try {
+                    const volumeUrl = new URL(`${GOOGLE_BOOKS_PROXY_BASE}/volumes/${encodeURIComponent(cleanId)}`, window.location.origin);
+                    volumeUrl.searchParams.set('cb', BOOKS_CACHE_BUSTER);
+                    volumeUrl.searchParams.set('_', String(Date.now()));
+                    const res = await fetch(volumeUrl.toString(), { headers: { Accept: 'application/json' }, cache: 'no-store' });
+                    if (!res.ok) return null;
+                    const json = await res.json();
+                    const info = json?.volumeInfo || {};
+                    const title = String(info?.title || '').trim();
+                    if (!title) return null;
+                    const authors = Array.isArray(info?.authors) ? info.authors.filter(Boolean).map((name) => String(name).trim()) : [];
+                    const publisher = String(info?.publisher || '').trim();
+                    const thumbnail = normalizeBookImageUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || '') || FALLBACK_BOOK_IMAGE;
+                    return {
+                        id: cleanId,
+                        title,
+                        authors: authors.join(', '),
+                        published_date: String(info?.publishedDate || '').trim(),
+                        thumbnail,
+                        publisher
+                    };
+                } catch (_err) {
+                    return null;
+                }
+            }
+
+            async function resolveProfileBookRecord(bookId) {
+                const safeId = String(bookId || '').trim();
+                if (!safeId) return null;
+                const workDetails = await fetchBookDetails(safeId);
+                if (workDetails) {
+                    const author = Array.isArray(workDetails?.authors) ? String(workDetails.authors[0] || '').trim() : '';
+                    return {
+                        id: safeId,
+                        title: String(workDetails?.title || '').trim() || `Book ${safeId}`,
+                        authors: author,
+                        published_date: String(workDetails?.first_publish_date || workDetails?.publishedDate || '').trim(),
+                        thumbnail: getBookThumbnail(workDetails),
+                        publisher: ''
+                    };
+                }
+                return await fetchGoogleBookVolume(safeId);
+            }
+
             async function renderBooks() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileBooksGrid') : document.getElementById('booksGrid');
@@ -7993,7 +8595,7 @@
                 const sport = String(team?.sport || team?.strSport || '').trim();
                 const stadium = String(team?.stadium || team?.strStadium || '').trim();
                 const logo = normalizeSportsImageUrl(team?.logo_url || team?.strTeamBadge || team?.strTeamLogo || '');
-                const subtitle = [league, sport].filter(Boolean).join(' • ') || 'Team';
+                const subtitle = [league, sport].filter(Boolean).join(' â€¢ ') || 'Team';
                 const logoImage = logo || FALLBACK_BOOK_IMAGE;
                 const canRemove = !!options?.canRemove && !!id;
 
@@ -8291,6 +8893,101 @@
                 }
             }
 
+            async function renderCars() {
+                const isMobile = window.innerWidth <= 768;
+                const grid = isMobile ? document.getElementById('mobileCarsGrid') : document.getElementById('carsGrid');
+                if (!grid) return;
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                const renderToken = ++renderCarsToken;
+
+                try {
+                    await ensurePinnedCollectionsLoaded(userId);
+                    const defaultLists = [
+                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Brands you love', type: 'default' },
+                        { id: 'owned', title: 'Owned', icon: 'check', description: 'Brands you own', type: 'default' },
+                        { id: 'wishlist', title: 'Wishlist', icon: 'bookmark', description: 'Brands you want to try', type: 'default' }
+                    ];
+
+                    let customLists = await loadCollaborativeCustomLists('car', userId);
+                    const allItems = await loadMediaListItems('car', userId, customLists.map((list) => list.id));
+
+                    if (renderToken !== renderCarsToken) return;
+
+                    const reservedTitles = new Set(['favorites', 'owned', 'wishlist']);
+                    const seenCustomIds = new Set();
+                    const normalizedCustomLists = [];
+
+                    for (const list of customLists) {
+                        const title = String(list.title || '').trim().toLowerCase();
+                        if (reservedTitles.has(title)) continue;
+                        const safeId = String(list.id || '').trim();
+                        if (safeId && !seenCustomIds.has(safeId)) {
+                            seenCustomIds.add(safeId);
+                            normalizedCustomLists.push(list);
+                        }
+                    }
+
+                    customLists = await hydrateListMetaByOwner('car', normalizedCustomLists, userId);
+                    if (renderToken !== renderCarsToken) return;
+
+                    for (const list of defaultLists) {
+                        list.brandIds = Array.from(new Set(
+                            allItems
+                                .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
+                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .filter(Boolean)
+                        ));
+                    }
+                    for (const list of customLists) {
+                        list.brandIds = Array.from(new Set(
+                            allItems
+                                .filter((row) => String(row.list_id || '') === String(list.id || ''))
+                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .filter(Boolean)
+                        ));
+                    }
+
+                    const allLists = applyPinnedListSorting('car', [...defaultLists, ...customLists]);
+                    if (!allLists.length) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Car Lists Yet</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save brands to see them here.</p>
+                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='cars.html'">
+                                    <i class="fas fa-car"></i> Explore Cars
+                                </button>
+                            </div>
+                        `;
+                        markTabRendered('cars');
+                        return;
+                    }
+
+                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
+                        list,
+                        'car',
+                        isMobile,
+                        String(list?.user_id || userId || '').trim() || userId
+                    )));
+                    grid.innerHTML = '';
+                    const fragment = document.createDocumentFragment();
+                    cards.forEach((card) => fragment.appendChild(card));
+                    grid.appendChild(fragment);
+                    markTabRendered('cars');
+                } catch (error) {
+                    console.error('Error loading cars:', error);
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Cars</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your car lists</p>
+                        </div>
+                    `;
+                }
+            }
+
             async function renderFood() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileFoodGrid') : document.getElementById('foodGrid');
@@ -8390,28 +9087,39 @@
                 const card = document.createElement('div');
                 card.className = 'collection-card';
 
-                let itemIds = [];
-                if (contentType === 'restaurant') itemIds = list.restaurantIds || [];
-                else if (contentType === 'movie') itemIds = list.movieIds || [];
-                else if (contentType === 'tv') itemIds = list.tvIds || [];
-                else if (contentType === 'anime') itemIds = list.animeIds || [];
-                else if (contentType === 'game') itemIds = list.gameIds || [];
-                else if (contentType === 'book') itemIds = list.bookIds || [];
-                else if (contentType === 'fashion' || contentType === 'food') itemIds = list.brandIds || [];
-                else if (contentType === 'travel') itemIds = list.countryCodes || [];
-                else itemIds = list.trackIds || [];
-                const resolvedListType = resolveCollectionListType(contentType, list);
+                const normalizedType = contentType === 'cars' ? 'car' : contentType;
+
+                                let itemIds = [];
+                if (normalizedType === 'restaurant') {
+                    itemIds = list.restaurantIds || [];
+                } else if (normalizedType === 'movie') {
+                    itemIds = list.movieIds || [];
+                } else if (normalizedType === 'tv') {
+                    itemIds = list.tvIds || [];
+                } else if (normalizedType === 'anime') {
+                    itemIds = list.animeIds || [];
+                } else if (normalizedType === 'game') {
+                    itemIds = list.gameIds || [];
+                } else if (normalizedType === 'book') {
+                    itemIds = list.bookIds || [];
+                } else if (normalizedType === 'fashion' || normalizedType === 'food' || normalizedType === 'car') {
+                    itemIds = list.brandIds || [];
+                } else if (normalizedType === 'travel') {
+                    itemIds = list.countryCodes || [];
+                } else {
+                    itemIds = list.trackIds || [];
+                }                const resolvedListType = resolveCollectionListType(normalizedType, list);
                 const routeListId = String(list.id || '');
-                const { tierMeta, orderedIds } = await resolveTierOrderedIds(contentType, list, routeListId, itemIds, {
+                const { tierMeta, orderedIds } = await resolveTierOrderedIds(normalizedType, list, routeListId, itemIds, {
                     listType: resolvedListType,
                     ownerUserId
                 });
                 const count = orderedIds.length;
-                const isCustom = contentType === 'restaurant' ? !list.is_default : list.type === 'custom';
+                const isCustom = normalizedType === 'restaurant' ? !list.is_default : list.type === 'custom';
                 const collabAccess = isCustom
-                    ? getCollaborativeAccess(contentType, routeListId, list)
+                    ? getCollaborativeAccess(normalizedType, routeListId, list)
                     : { isOwner: true, canEdit: true, isCollaborative: false };
-                const pinKey = getPinnedCollectionKey(contentType, routeListId, resolvedListType);
+                const pinKey = getPinnedCollectionKey(normalizedType, routeListId, resolvedListType);
                 const isPinned = !!pinnedListsMap.get(pinKey);
                 const tierBadgeHtml = (isCustom && tierMeta.isTier)
                     ? `<div class="tier-list-badge"><i class="fas fa-layer-group"></i> Tier List</div>`
@@ -8425,10 +9133,10 @@
                 const routeListType = String(resolvedListType || '');
                 const safeListId = routeListId.replace(/'/g, "\\'");
                 const safeListType = routeListType.replace(/'/g, "\\'");
-                const countLabel = getCollectionItemLabel(contentType, count);
+                const countLabel = getCollectionItemLabel(normalizedType, count);
 
                 const previewLimit = 3;
-                const travelPreviewIds = contentType === 'travel'
+                const travelPreviewIds = normalizedType === 'travel'
                     ? Array.from(new Set(
                         [
                             ...(Array.isArray(list?.countryCodes) ? list.countryCodes : []),
@@ -8438,45 +9146,50 @@
                             .filter(Boolean)
                     ))
                     : [];
-                const previewIds = contentType === 'travel'
+                const previewIds = normalizedType === 'travel'
                     ? travelPreviewIds.slice(0, previewLimit)
                     : orderedIds.slice(0, previewLimit);
-                const previewOrientationClass = getPreviewOrientationClass(contentType);
-                const fallbackPreviewIcon = contentType === 'restaurant'
+                const previewOrientationClass = getPreviewOrientationClass(normalizedType);
+                const fallbackPreviewIcon = normalizedType === 'restaurant'
                     ? 'restaurant'
-                    : contentType === 'movie'
+                    : normalizedType === 'movie'
                         ? 'movie'
-                        : contentType === 'tv'
+                        : normalizedType === 'tv'
                             ? 'tv'
-                            : contentType === 'anime'
+                            : normalizedType === 'anime'
                                 ? 'anime'
-                                : contentType === 'game'
+                                : normalizedType === 'game'
                                     ? 'game'
-                                    : contentType === 'book'
+                                    : normalizedType === 'book'
                                         ? 'book'
-                                        : contentType === 'fashion'
+                                        : normalizedType === 'fashion'
                                             ? 'fashion'
-                                            : contentType === 'food'
+                                            : normalizedType === 'food'
                                                 ? 'food'
-                                        : contentType === 'travel'
+                                                : normalizedType === 'car'
+                                                    ? 'car'
+                                        : normalizedType === 'travel'
                                             ? 'travel'
                                             : 'music';
+                const isBrandCollection = normalizedType === 'fashion' || normalizedType === 'food' || normalizedType === 'car';
                 const buildPreviewHtml = (previewItems = []) => {
                     let html = '';
                     for (let i = 0; i < previewLimit; i++) {
                         const overflowHtml = (i === previewLimit - 1 && count > previewLimit)
                             ? `<div class="collection-preview-overflow">+${count - previewLimit}</div>`
                             : '';
+                        const previewClass = `collection-preview-item ${previewOrientationClass}${isBrandCollection ? ' brand-logo-preview' : ''}`;
+                        const imageClass = isBrandCollection ? 'brand-logo-preview-image' : '';
                         if (previewItems[i]) {
                             html += `
-                                <div class="collection-preview-item ${previewOrientationClass}">
-                                    <img src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                                <div class="${previewClass}">
+                                    <img class="${imageClass}" src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                                     ${overflowHtml}
                                 </div>
                             `;
                         } else {
                             html += `
-                                <div class="collection-preview-item ${previewOrientationClass}">
+                                <div class="${previewClass}">
                                     <div class="collection-preview-item-empty">${iconGlyph(fallbackPreviewIcon)}</div>
                                     ${overflowHtml}
                                 </div>
@@ -8485,14 +9198,14 @@
                     }
                     return html;
                 };
-                const cachedPreviewItems = contentType === 'travel'
+                const cachedPreviewItems = normalizedType === 'travel'
                     ? previewIds.map((id) => {
                         const code = normalizeCountryCode(id);
                         const flagUrl = countryFlagFromCode(code || id);
-                        writePreviewAssetCache(contentType, code || id, flagUrl);
+                        writePreviewAssetCache(normalizedType, code || id, flagUrl);
                         return flagUrl;
                     })
-                    : previewIds.map((id) => readPreviewAssetCache(contentType, id));
+                    : previewIds.map((id) => readPreviewAssetCache(normalizedType, id));
                 const previewHtml = buildPreviewHtml(cachedPreviewItems);
 
                 const canEditCollection = isViewingOwnProfile && isCustom && !!collabAccess.canEdit;
@@ -8502,22 +9215,22 @@
                 const pinActionIcon = isPinned ? 'fa-thumbtack-slash' : 'fa-thumbtack';
                 const kebabHtml = (canEditCollection || canDeleteCollection || canPinCollection) ? `
                     <div class="collection-card-actions">
-                        <button class="collection-kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleCollectionMenu('${list.id}', '${contentType}')">
+                        <button class="collection-kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleCollectionMenu('${list.id}', '${normalizedType}')">
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
-                        <div class="collection-dropdown" id="collection-${contentType}-${list.id}">
+                        <div class="collection-dropdown" id="collection-${normalizedType}-${list.id}">
                             ${canPinCollection ? `
-                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.togglePinnedCollection('${safeListId}', '${contentType}', '${safeListType}')">
+                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.togglePinnedCollection('${safeListId}', '${normalizedType}', '${safeListType}')">
                                     <i class="fas ${pinActionIcon}"></i> ${pinActionLabel}
                                 </div>
                             ` : ''}
                             ${canEditCollection ? `
-                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.editCollection('${safeListId}', '${contentType}')">
+                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.editCollection('${safeListId}', '${normalizedType}')">
                                     <i class="fas fa-edit"></i> Edit
                                 </div>
                             ` : ''}
                             ${canDeleteCollection ? `
-                                <div class="collection-dropdown-item danger" onclick="event.stopPropagation(); ProfileManager.deleteCollection('${safeListId}', '${contentType}')">
+                                <div class="collection-dropdown-item danger" onclick="event.stopPropagation(); ProfileManager.deleteCollection('${safeListId}', '${normalizedType}')">
                                     <i class="fas fa-trash"></i> Delete
                                 </div>
                             ` : ''}
@@ -8529,7 +9242,7 @@
                     ${kebabHtml}
                     <div class="collection-card-header">
                         <div class="collection-card-title-group">
-                            <div class="collection-card-icon">${iconGlyph(list.icon, contentType === 'restaurant' ? 'restaurant' : (contentType === 'movie' ? 'movie' : (contentType === 'tv' ? 'tv' : (contentType === 'anime' ? 'anime' : (contentType === 'game' ? 'game' : (contentType === 'book' ? 'book' : (contentType === 'travel' ? 'travel' : 'music')))))))}</div>
+                            <div class="collection-card-icon">${iconGlyph(list.icon, normalizedType === 'restaurant' ? 'restaurant' : (normalizedType === 'movie' ? 'movie' : (normalizedType === 'tv' ? 'tv' : (normalizedType === 'anime' ? 'anime' : (normalizedType === 'game' ? 'game' : (normalizedType === 'book' ? 'book' : (normalizedType === 'travel' ? 'travel' : (normalizedType === 'car' ? 'car' : 'music'))))))))}</div>
                             <div class="collection-card-info">
                                 <div class="collection-card-title">${list.title}</div>
                                 <div class="collection-card-count">${countLabel}</div>
@@ -8549,13 +9262,13 @@
                                 ${list.created_at ? new Date(list.created_at).toLocaleDateString() : ''}
                             </div>
                         </div>
-                        <button class="collection-view-btn" onclick="event.stopPropagation(); ProfileManager.openCollectionPage('${safeListId}', '${contentType}', '${safeListType}')">
+                        <button class="collection-view-btn" onclick="event.stopPropagation(); ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
                             View all ->
                         </button>
                     </div>
                 `;
 
-                card.onclick = () => openCollectionPage(routeListId, contentType, routeListType);
+                card.onclick = () => openCollectionPage(routeListId, normalizedType, routeListType);
 
                 // Hydrate preview images in the background to keep first paint instant.
                 if (previewIds.length) {
@@ -8576,7 +9289,7 @@
             }
 
             function getPreviewAssetCacheKey(contentType, id) {
-                return `${String(contentType || '').toLowerCase()}:${String(id || '').trim()}`;
+                return `v2:${String(contentType || '').toLowerCase()}:${String(id || '').trim()}`;
             }
 
             function readPreviewAssetCache(contentType, id) {
@@ -8615,13 +9328,11 @@
                             if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
                         });
                     } else if (contentType === 'book') {
-                        const { data } = await supabase
-                            .from('books')
-                            .select('id, thumbnail')
-                            .in('id', missingIds);
-                        (data || []).forEach((row) => {
-                            const id = String(row.id || '').trim();
-                            const imageUrl = row.thumbnail || FALLBACK_BOOK_IMAGE;
+                        const rows = await Promise.all(missingIds.map((id) => resolveProfileBookRecord(id)));
+                        rows.forEach((row, index) => {
+                            const id = String(row?.id || missingIds[index] || '').trim();
+                            if (!id) return;
+                            const imageUrl = String(row?.thumbnail || '').trim() || FALLBACK_BOOK_IMAGE;
                             writePreviewAssetCache(contentType, id, imageUrl);
                         });
                     } else if (contentType === 'music') {
@@ -8634,16 +9345,32 @@
                             const imageUrl = row.image_url || '/newlogo.webp';
                             writePreviewAssetCache(contentType, id, imageUrl);
                         });
-                    } else if (contentType === 'fashion' || contentType === 'food') {
-                        const table = contentType === 'fashion' ? 'fashion_brands' : 'food_brands';
+                    } else if (contentType === 'fashion' || contentType === 'food' || contentType === 'car') {
+                        const table = contentType === 'fashion'
+                            ? 'fashion_brands'
+                            : (contentType === 'food' ? 'food_brands' : 'car_brands');
                         const { data } = await supabase
                             .from(table)
-                            .select('id, logo_url')
+                            .select('id, name, domain, logo_url')
                             .in('id', missingIds);
                         (data || []).forEach((row) => {
                             const id = String(row.id || '').trim();
-                            const imageUrl = row.logo_url || '/newlogo.webp';
-                            writePreviewAssetCache(contentType, id, imageUrl);
+                            const name = String(row?.name || '').trim();
+                            const domain = String(row?.domain || '').trim();
+                            let imageUrl = '';
+                            const localLogo = toHttpsUrl(row?.logo_url || '');
+                            if (localLogo) {
+                                imageUrl = localLogo;
+                            } else if (name) {
+                                const params = new URLSearchParams();
+                                params.set('title', name);
+                                if (domain) params.set('domain', domain);
+                                params.set('mode', 'logo');
+                                imageUrl = `/api/logo?${params.toString()}`;
+                            } else if (domain) {
+                                imageUrl = `/api/logo?domain=${encodeURIComponent(domain)}&size=256`;
+                            }
+                            writePreviewAssetCache(contentType, id, imageUrl || '/newlogo.webp');
                         });
                     } else if (contentType === 'travel') {
                         missingIds.forEach((id) => {
@@ -8654,7 +9381,7 @@
                     } else if (contentType === 'game') {
                         await Promise.all(missingIds.map(async (id) => {
                             const game = await fetchGameDetails(id);
-                            const imageUrl = game?.cover ? String(game.cover).trim() : null;
+                            const imageUrl = normalizeGameImageSource(game);
                             if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
                         }));
                     } else if (contentType === 'tv') {
@@ -8683,6 +9410,7 @@
                     if (cached) return cached;
                     if (contentType === 'book') return FALLBACK_BOOK_IMAGE;
                     if (contentType === 'music') return '/newlogo.webp';
+                    if (contentType === 'game') return '/newlogo.webp';
                     if (contentType === 'travel') return countryFlagFromCode(normalizeCountryCode(id) || id);
                     return null;
                 });
@@ -8707,6 +9435,8 @@
                     await showFashionDetail(listId, listType, isMobile);
                 } else if (contentType === 'food') {
                     await showFoodDetail(listId, listType, isMobile);
+                } else if (contentType === 'car') {
+                    await showCarDetail(listId, listType, isMobile);
                 } else if (contentType === 'music') {
                     await showMusicDetail(listId, listType, isMobile);
                 } else {
@@ -9801,33 +10531,9 @@
                 const canReorderList = canReorderCollectionItems('book', listId, listType, list);
                 const canEditItems = canEditCollectionItems('book', listId, listType, list);
 
-                // Check cache first
-                const cacheKey = `profile_books_${listId}_${rankedBookIds.join(',')}`;
-                const cached = localStorage.getItem(cacheKey);
-                let bookData = null;
-                
-                if (cached) {
-                    try {
-                        bookData = JSON.parse(cached);
-                    } catch (e) {
-                        console.warn('Cache parse error', e);
-                    }
-                }
-
-                // Show loading while fetching
-                if (!bookData) {
-                    container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
-                    
-                    // Fetch fresh data
-                    const { data } = await supabase
-                        .from('books')
-                        .select('id, title, authors, published_date, thumbnail, publisher')
-                        .in('id', rankedBookIds);
-                    
-                    bookData = data || [];
-                    // Cache the results
-                    localStorage.setItem(cacheKey, JSON.stringify(bookData));
-                }
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                const resolvedRows = await Promise.all(rankedBookIds.map((id) => resolveProfileBookRecord(id)));
+                const bookData = resolvedRows.filter(Boolean);
 
                 const bookMap = new Map();
                 (bookData || []).forEach(row => bookMap.set(row.id, row));
@@ -10443,7 +11149,7 @@
                     };
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <img class="collection-item-image brand-logo-stage" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${escapeHtml(title)}</h3>
                             ${canEditItems ? `
@@ -10471,6 +11177,182 @@
                 wireTierDragAndDrop(
                     container,
                     canReorderList ? 'fashion' : null,
+                    canReorderList ? listId : null,
+                    canReorderList ? listType : 'default'
+                );
+            }
+
+            async function showCarDetail(listId, listType, isMobile) {
+                if (isMobile) {
+                    const mainSection = document.getElementById('mobileCarsSection');
+                    const detailSection = document.getElementById('mobileCarsDetailSection');
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileCarsGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
+                    if (detailSection) {
+                        detailSection.style.display = 'block';
+                        detailSection.classList.add('active');
+                    }
+                } else {
+                    const mainTab = document.getElementById('cars-tab');
+                    const detailView = document.getElementById('cars-detail-view');
+                    if (mainTab) mainTab.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'block';
+                        detailView.classList.add('active');
+                    }
+                }
+
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                if (!supabase) supabase = ensureSupabaseClient();
+                if (!supabase) return;
+
+                let list = await fetchCustomListById('car', listId);
+                if (!list) return;
+
+                if (listType === 'custom' && window.ListUtils) {
+                    const [hydrated] = await ListUtils.hydrateListMetaForLists('car', [list], {
+                        client: supabase,
+                        userId: currentUser?.id,
+                        ownerUserId: list?.user_id || userId
+                    });
+                    if (hydrated) list = hydrated;
+                }
+                if (listType === 'custom') {
+                    await ensureCollaborativeAccessForList('car', list);
+                }
+
+                const listOwnerUserId = String(list?.user_id || userId || '').trim() || userId;
+                const brandIds = await fetchMediaCollectionItemIds('car', listOwnerUserId, listId, listType);
+                const tierMeta = getTierMetaForList('car', list, brandIds.length);
+                const detailTitle = getCollectionTitleWithKind('car', list, listType);
+                const detailDescription = tierMeta.isTier
+                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
+                    : (list.description || '');
+                const canEditList = listType === 'custom' && canEditCustomCollection('car', listId, list);
+                const canDeleteList = listType === 'custom' && canDeleteCustomCollection('car', listId, list);
+
+                if (isMobile) {
+                    const titleEl = document.getElementById('mobileCarsDetailTitle');
+                    const descEl = document.getElementById('mobileCarsDetailDescription');
+                    const actions = document.getElementById('mobileCarsDetailActions');
+                    const editBtn = document.getElementById('mobileCarsListEditBtn');
+                    const deleteBtn = document.getElementById('mobileCarsListDeleteBtn');
+                    if (titleEl) titleEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameCarList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteCarList(listId);
+                } else {
+                    const iconEl = document.getElementById('carsDetailIcon');
+                    const nameEl = document.getElementById('carsDetailName');
+                    const descEl = document.getElementById('carsDetailDescription');
+                    const actions = document.getElementById('carsDetailActions');
+                    const editBtn = document.getElementById('carsListEditBtn');
+                    const deleteBtn = document.getElementById('carsListDeleteBtn');
+                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'car');
+                    if (nameEl) nameEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameCarList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteCarList(listId);
+                }
+
+                currentMediaDetail = { mediaType: 'car', listId, listType, isMobile };
+                updateCollectionViewToggleButtons('car');
+                await renderCarItems(brandIds, listId, listType, isMobile, list, listOwnerUserId);
+            }
+
+            async function renderCarItems(brandIds, listId, listType, isMobile, list = null, ownerUserId = null) {
+                const container = isMobile ? document.getElementById('mobileCarsItems') : document.getElementById('carsItemsContainer');
+                if (!container) return;
+                applyCollectionViewToContainer(container, 'car');
+
+                if (!brandIds || brandIds.length === 0) {
+                    container.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('car')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Brands Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Add brands to this collection!</p>
+                        </div>
+                    `;
+                    wireTierDragAndDrop(container, null, null, 'default');
+                    return;
+                }
+
+                const { tierMeta, orderedIds } = await resolveTierOrderedIds('car', list, listId, brandIds, {
+                    listType,
+                    ownerUserId
+                });
+                const canReorderList = canReorderCollectionItems('car', listId, listType, list);
+                const canEditItems = canEditCollectionItems('car', listId, listType, list);
+                const brandMap = await fetchBrandMapByIds('car', orderedIds);
+                container.innerHTML = '';
+
+                for (let i = 0; i < orderedIds.length; i++) {
+                    const id = String(orderedIds[i] || '').trim();
+                    if (!id) continue;
+                    const brand = brandMap.get(id) || { id, name: 'Brand', logo: '/newlogo.webp', category: '' };
+                    const title = String(brand.name || 'Brand').trim();
+                    const category = String(brand.category || '').trim();
+                    const country = String(brand.country || '').trim();
+                    const meta = [category, country].filter(Boolean).join(' | ');
+                    const image = String(brand.logo || '').trim() || '/newlogo.webp';
+                    const rankMarkup = tierMeta.isTier
+                        ? buildTierRankControlMarkup(
+                            i + 1,
+                            orderedIds.length,
+                            canReorderList
+                        )
+                        : '';
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'collection-item-card';
+                    itemCard.onclick = () => {
+                        window.location.href = `brand.html?type=car&id=${encodeURIComponent(id)}`;
+                    };
+
+                    itemCard.innerHTML = `
+                        <img class="collection-item-image brand-logo-stage" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <div class="collection-item-body">
+                            <h3 class="collection-item-title">${escapeHtml(title)}</h3>
+                            ${canEditItems ? `
+                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'car', '${listType}')">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            ` : ''}
+                            <div class="collection-item-meta">
+                                <span><i class="fas fa-tag"></i> ${escapeHtml(meta || 'Brand details unavailable')}</span>
+                            </div>
+                            ${rankMarkup}
+                        </div>
+                        ${canEditItems ? `
+                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'car', '${listType}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    `;
+                    if (canReorderList) {
+                        itemCard.dataset.tierItemId = id;
+                    }
+                    container.appendChild(itemCard);
+                }
+
+                wireTierDragAndDrop(
+                    container,
+                    canReorderList ? 'car' : null,
                     canReorderList ? listId : null,
                     canReorderList ? listType : 'default'
                 );
@@ -10632,7 +11514,7 @@
                     };
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <img class="collection-item-image brand-logo-stage" src="${escapeHtml(image)}" alt="${escapeHtml(title)} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${escapeHtml(title)}</h3>
                             ${canEditItems ? `
@@ -10874,8 +11756,16 @@
                 await openMediaListCreator('food');
             }
 
+            async function createCarList() {
+                await openMediaListCreator('car');
+            }
+
             async function renameFoodList(listId) {
                 await openMediaListEditor('food', listId);
+            }
+
+            async function renameCarList(listId) {
+                await openMediaListEditor('car', listId);
             }
 
             async function deleteFoodList(listId) {
@@ -10906,6 +11796,38 @@
                     showToast('List deleted', 'success');
                 } catch (error) {
                     console.error('Error deleting food list:', error);
+                    showToast('Could not delete list', 'error');
+                }
+            }
+
+            async function deleteCarList(listId) {
+                if (!supabase || !currentUser || !isViewingOwnProfile) return;
+                const accessRecord = await fetchCustomListAccessRecord('car', listId);
+                if (!accessRecord || !canDeleteCustomCollection('car', listId, accessRecord)) {
+                    showToast('Only the list owner can delete this list', 'warning');
+                    return;
+                }
+                if (!confirm('Delete this car list? This cannot be undone.')) return;
+
+                try {
+                    const userId = currentUser.id;
+                    await supabase
+                        .from('car_list_items')
+                        .delete()
+                        .eq('user_id', userId)
+                        .eq('list_id', listId);
+                    const { error } = await supabase
+                        .from('car_lists')
+                        .delete()
+                        .eq('id', listId)
+                        .eq('user_id', userId);
+                    if (error) throw error;
+
+                    hideCarDetail();
+                    await renderCars();
+                    showToast('List deleted', 'success');
+                } catch (error) {
+                    console.error('Error deleting car list:', error);
                     showToast('Could not delete list', 'error');
                 }
             }
@@ -11041,6 +11963,35 @@
                 } else {
                     const detailView = document.getElementById('fashion-detail-view');
                     const mainTab = document.getElementById('fashion-tab');
+                    if (detailView) detailView.style.display = 'none';
+                    if (mainTab) {
+                        mainTab.style.display = 'block';
+                        mainTab.classList.add('active');
+                    }
+                }
+            }
+
+            function hideCarDetail() {
+                if (leaveCollectionRoute('car')) return;
+                currentMediaDetail = null;
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    const detailSection = document.getElementById('mobileCarsDetailSection');
+                    const mainSection = document.getElementById('mobileCarsSection');
+                    if (detailSection) detailSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileCarsGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
+                    }
+                } else {
+                    const detailView = document.getElementById('cars-detail-view');
+                    const mainTab = document.getElementById('cars-tab');
                     if (detailView) detailView.style.display = 'none';
                     if (mainTab) {
                         mainTab.style.display = 'block';
@@ -11214,6 +12165,9 @@
                     } else if (type === 'food') {
                         void showFoodDetail(collectionId, listType, window.innerWidth <= 768);
                         void renderFood();
+                    } else if (type === 'car') {
+                        void showCarDetail(collectionId, listType, window.innerWidth <= 768);
+                        void renderCars();
                     } else {
                         void showBookDetail(collectionId, listType, window.innerWidth <= 768);
                         void renderBooks();
@@ -11253,162 +12207,75 @@
                     }
 
                     if (type === 'restaurant') {
-                        await supabase
+                        const { error } = await supabase
                             .from('lists_restraunts')
                             .delete()
                             .eq('list_id', collectionId)
                             .eq('restraunt_id', itemId);
-
-                        showToast('Removed from collection', 'success');
+                        if (error) throw error;
                     } else if (type === 'movie') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('movie_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('movie_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('movie_list_items')
-                                .delete()
-                                .eq('movie_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('movie_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('movie_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('movie_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'tv') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('tv_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('tv_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('tv_list_items')
-                                .delete()
-                                .eq('tv_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('tv_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('tv_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('tv_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'anime') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('anime_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('anime_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('anime_list_items')
-                                .delete()
-                                .eq('anime_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('anime_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('anime_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('anime_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'game') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('game_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('game_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('game_list_items')
-                                .delete()
-                                .eq('game_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('game_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('game_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('game_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'music') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('music_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('track_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('music_list_items')
-                                .delete()
-                                .eq('track_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('music_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('track_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('track_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'travel') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('travel_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('country_code', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('travel_list_items')
-                                .delete()
-                                .eq('country_code', itemId)
-                                .eq('list_id', collectionId);
-                        }
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('travel_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('country_code', itemId).eq('list_type', collectionId)
+                            : await query.eq('country_code', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'fashion') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('fashion_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('brand_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('fashion_list_items')
-                                .delete()
-                                .eq('brand_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('fashion_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('brand_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('brand_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else if (type === 'food') {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('food_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('brand_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('food_list_items')
-                                .delete()
-                                .eq('brand_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('food_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('brand_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('brand_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
+                    } else if (type === 'car') {
+                        const query = supabase.from('car_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('brand_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('brand_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     } else {
-                        if (listType === 'default') {
-                            await supabase
-                                .from('book_list_items')
-                                .delete()
-                                .eq('user_id', userId)
-                                .eq('book_id', itemId)
-                                .eq('list_type', collectionId);
-                        } else {
-                            await supabase
-                                .from('book_list_items')
-                                .delete()
-                                .eq('book_id', itemId)
-                                .eq('list_id', collectionId);
-                        }
-                        showToast('Removed from collection', 'success');
+                        const query = supabase.from('book_list_items').delete();
+                        const { error } = listType === 'default'
+                            ? await query.eq('user_id', userId).eq('book_id', itemId).eq('list_type', collectionId)
+                            : await query.eq('book_id', itemId).eq('list_id', collectionId);
+                        if (error) throw error;
                     }
+
+                    showToast('Removed from collection', 'success');
                     refreshCollectionViews();
                 } catch (error) {
                     if (typeof restoreRemovedNode === 'function') {
@@ -11583,6 +12450,9 @@
                             } else if (type === 'food') {
                                 hideFoodDetail();
                                 await renderFood();
+                            } else if (type === 'car') {
+                                hideCarDetail();
+                                await renderCars();
                             } else {
                                 hideBookDetail();
                                 await renderBooks();
@@ -11746,7 +12616,7 @@
                     }
                     
                     if (modalId === 'createListModal') {
-                        const selectedValue = String(document.getElementById('selectedIcon')?.value || 'heart');
+                        const selectedValue = String(document.getElementById('selectedIcon')?.value || getDefaultListIconForContext('restaurant'));
                         document.querySelectorAll('.list-icon-option').forEach(icon => {
                             const isSelected = icon.getAttribute('data-icon') === selectedValue;
                             icon.classList.toggle('selected', isSelected);
@@ -11780,10 +12650,10 @@
                         const form = document.getElementById('createListForm');
                         if (form) form.reset();
                         const selectedInput = document.getElementById('selectedIcon');
-                        if (selectedInput) selectedInput.value = 'heart';
+                        if (selectedInput) selectedInput.value = getDefaultListIconForContext('restaurant');
 
                         document.querySelectorAll('.list-icon-option').forEach(icon => {
-                            const isSelected = icon.getAttribute('data-icon') === 'heart';
+                            const isSelected = icon.getAttribute('data-icon') === getDefaultListIconForContext('restaurant');
                             icon.classList.toggle('selected', isSelected);
                         });
                         
@@ -11796,7 +12666,7 @@
                         const form = document.getElementById('editMediaListForm');
                         if (form) form.reset();
                         const icon = document.getElementById('editMediaListSelectedIcon');
-                        if (icon) icon.value = 'list';
+                        if (icon) icon.value = editingMediaList?.fallback || 'list';
                         const titleEl = document.getElementById('editMediaListModalTitle');
                         if (titleEl) titleEl.textContent = 'Edit List';
                         const submitBtn = document.querySelector('#editMediaListForm button[type="submit"]');
@@ -11888,6 +12758,11 @@
                 if (normalized === 'food') {
                     showTab('food');
                     createFoodList();
+                    return;
+                }
+                if (normalized === 'cars') {
+                    showTab('cars');
+                    createCarList();
                 }
             }
 
@@ -11942,10 +12817,10 @@
                     }
 
                     if (!saved) {
+                        const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
                         const usernameSeed = String(
                             userProfile?.username ||
-                            currentUser?.email?.split('@')[0] ||
-                            `user_${String(currentUser?.id || '').slice(0, 8)}`
+                            `user_${idSuffix}`
                         ).trim();
                         const usernameCandidates = buildProfileUsernameCandidates(usernameSeed, currentUser?.id);
                         const fullNameSeed = String(
@@ -12116,7 +12991,7 @@
             // ===== SETUP EVENT LISTENERS =====
             function setupEventListeners() {
                 console.log('Setting up event listeners...');
-                setupCommunitySnapshotNavigation();
+                wireProfileTabGroups();
                 bindProfileModalViewportListeners();
                 
                 // Remove existing listener before adding new one
@@ -12132,8 +13007,10 @@
                 
                 // Rest of your event listeners...
                 document.querySelectorAll('.nav-tab').forEach(btn => {
+                    if (btn.classList.contains('profile-tab-group-toggle')) return;
                     btn.addEventListener('click', function() {
                         const tabName = this.getAttribute('data-tab');
+                        if (!tabName) return;
                         showTab(tabName);
                     });
                 });
@@ -12274,7 +13151,7 @@
             // ===== SAVE PROFILE CHANGES =====
             async function saveProfileChanges() {
                 const displayName = String(document.getElementById('editDisplayName')?.value || '').trim().slice(0, 80);
-                const rawUsername = document.getElementById('editUsername')?.value;
+                const rawUsername = String(document.getElementById('editUsername')?.value || '').trim();
                 const bio = String(document.getElementById('editBio')?.value || '').trim();
                 const location = String(document.getElementById('editLocation')?.value || '').trim();
                 const themeInput = document.getElementById('editProfileTheme');
@@ -12282,13 +13159,19 @@
                 const customBadges = normalizeProfileBadges(document.getElementById('editCustomBadges')?.value || '');
                 const isPrivate = document.getElementById('editIsPrivate')?.checked || false;
                 
-                if (!displayName || !rawUsername) {
-                    showToast('Please enter display name and username', 'error');
+                if (!displayName) {
+                    showToast('Please enter a display name', 'error');
                     return;
                 }
                 
                 try {
-                    const normalizedUsername = await ensureProfileUsernameAvailable(rawUsername, currentUser?.id);
+                    let normalizedUsername = String(userProfile?.username || '').trim();
+                    if (rawUsername) {
+                        normalizedUsername = await ensureProfileUsernameAvailable(rawUsername, currentUser?.id);
+                    } else if (!normalizedUsername) {
+                        const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
+                        normalizedUsername = profileUsernameWithSuffix('user', idSuffix);
+                    }
                     const updatePayload = {
                         full_name: displayName,
                         username: normalizedUsername,
@@ -12331,6 +13214,7 @@
                     const authMetadataResult = await supabase.auth.updateUser({
                         data: {
                             full_name: displayName,
+                            name: displayName,
                             username: normalizedUsername
                         }
                     });
@@ -12390,6 +13274,7 @@
             return {
                 initialize,
                 showTab,
+                showPrimaryTab,
                 goToMyProfile,
                 showCommunitySection,
                 viewUserProfile,
@@ -12422,6 +13307,8 @@
                 hideMobileFashionDetail: hideFashionDetail,
                 hideFoodDetail,
                 hideMobileFoodDetail: hideFoodDetail,
+                hideCarDetail,
+                hideMobileCarDetail: hideCarDetail,
                 toggleCollectionMenu,
                 createMovieList,
                 createTvList,
@@ -12432,6 +13319,7 @@
                 createTravelList,
                 createFashionList,
                 createFoodList,
+                createCarList,
                 addMediaListCollaborator,
                 removeMediaListCollaborator,
                 renameMovieList,
@@ -12452,6 +13340,8 @@
                 deleteFashionList,
                 renameFoodList,
                 deleteFoodList,
+                renameCarList,
+                deleteCarList,
                 removeFromCollection,
                 editCollection,
                 deleteCollection,
@@ -12469,7 +13359,17 @@
             };
         })();
 
+        window.ProfileManager = ProfileManager;
+
         // ===== INITIALIZE WHEN DOM IS LOADED =====
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
+
+
+
+
+
+
+
+
