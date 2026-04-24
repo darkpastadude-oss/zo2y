@@ -707,9 +707,7 @@
 
   function profileNeedsOnboarding(profile) {
     if (!profile) return true;
-    if (profileNeedsConcreteUsername(profile)) return true;
-    if (!String(profile.full_name || '').trim()) return true;
-    return !String(profile.onboarding_completed_at || '').trim();
+    return profileNeedsConcreteUsername(profile);
   }
 
   async function ensureAuthProfile(_client, user) {
@@ -748,7 +746,7 @@
           }
         }
         var needsUsername = profileNeedsConcreteUsername(profile, user);
-        var needsOnboarding = needsUsername || profileNeedsOnboarding(profile);
+        var needsOnboarding = profileNeedsOnboarding(profile);
         if (needsOnboarding) {
           markOnboardingPending(userId);
         } else {

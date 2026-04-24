@@ -3,7 +3,6 @@
 
   var statusEl = document.getElementById('status');
   var usernameInput = document.getElementById('usernameInput');
-  var displayNameInput = document.getElementById('displayNameInput');
   var saveButton = document.getElementById('saveBtn');
   var signOutButton = document.getElementById('signOutBtn');
   var auth = window.ZO2Y_AUTH;
@@ -18,7 +17,7 @@
     return;
   }
 
-  if (!statusEl || !usernameInput || !displayNameInput || !saveButton || !signOutButton) return;
+  if (!statusEl || !usernameInput || !saveButton || !signOutButton) return;
 
   function setStatus(message, type) {
     statusEl.className = 'status' + (type ? ' ' + type : '');
@@ -27,12 +26,6 @@
 
   function nextPath() {
     return auth.readRequestedNextPath(window.location.search);
-  }
-
-  function getFallbackName(user) {
-    var fullName = String(user && user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name) || '').trim();
-    if (fullName) return fullName;
-    return '';
   }
 
   function getFallbackUsername(user) {
@@ -62,46 +55,30 @@
   async function init() {
     setStatus('Loading your account...', '');
     var session = await loadSession();
-    // If user already completed onboarding on a previous session, skip onboarding.
-    // This guards against onboarding re-triggering on page refresh or direct navigation.
-    try {
-      if (session && session.user && session.user.user_metadata) {
-        var meta = session.user.user_metadata;
-        if (meta.onboarding_completed_at) {
-          // Already onboarded, proceed to post-auth target
-          var target = nextPath();
-          auth.redirectToPostAuthTarget(target);
-          return;
-        }
-      }
-    } catch (_err) {
-      // If anything goes wrong, continue with normal onboarding flow
-    }
     if (!session) {
       window.location.replace('login.html?next=' + encodeURIComponent('onboarding.html'));
       return;
     }
 
     activeUser = session.user;
+    try {
+      var profileResult = await auth.ensureProfileBootstrap(client, activeUser);
+      if (profileResult && profileResult.ok && !profileResult.needsOnboarding) {
+        auth.clearOnboardingPending(activeUser.id);
+        auth.redirectToPostAuthTarget(nextPath());
+        return;
+      }
+    } catch (_err) {}
+
     usernameInput.value = getFallbackUsername(activeUser);
-    displayNameInput.value = getFallbackName(activeUser);
-    if (usernameInput.value) {
-      displayNameInput.focus();
-    } else {
-      usernameInput.focus();
-    }
-    setStatus('Finish setting up your account so Zo2y can recognize you everywhere.', '');
+    usernameInput.focus();
+    setStatus('Choose the username Zo2y should use everywhere.', '');
   }
 
   async function completeOnboarding() {
     var username = auth.normalizeUsername(usernameInput.value || '');
-    var displayName = String(displayNameInput.value || '').trim().slice(0, 80);
     if (!auth.isValidUsername(username)) {
       setStatus('Choose a username with 3-30 letters, numbers, or underscores.', 'error');
-      return;
-    }
-    if (displayName.length < 2) {
-      setStatus('Enter the name you want shown across your account.', 'error');
       return;
     }
     if (!client || !activeUser || !activeUser.id) {
@@ -114,21 +91,14 @@
 
     try {
       username = await auth.ensureUsernameAvailable(client, username, activeUser.id);
-      var completedAt = new Date().toISOString();
       var profileRow = await auth.syncUserProfileRecord(client, activeUser, {
-        username: username,
-        full_name: displayName,
-        onboarding_completed_at: completedAt
+        username: username
       });
 
       var updateResult = await client.auth.updateUser({
         data: {
           username: username,
-          zo2y_username: username,
-          full_name: displayName,
-          name: displayName,
-          onboarding_completed_at: completedAt,
-          zo2y_onboarded_at: completedAt
+          zo2y_username: username
         }
       });
       if (updateResult && updateResult.error) throw updateResult.error;
@@ -139,12 +109,6 @@
       auth.clearOnboardingPending(activeUser.id);
       auth.clearPendingPostAuthBootstrap();
       setStatus('All set. Redirecting...', 'success');
-      // Persist an onboarding flag so we don't show onboarding again for this user/session
-      try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          window.localStorage.setItem('onboarded', 'true');
-        }
-      } catch (_e) {}
       auth.redirectToPostAuthTarget(nextPath());
     } catch (error) {
       setStatus(String(error && error.message || 'Could not finish onboarding.'), 'error');
@@ -153,13 +117,6 @@
   }
 
   usernameInput.addEventListener('keydown', function (event) {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      void completeOnboarding();
-    }
-  });
-
-  displayNameInput.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
       event.preventDefault();
       void completeOnboarding();

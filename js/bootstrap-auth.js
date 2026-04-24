@@ -7,6 +7,19 @@
   }
 
   var overlay = document.getElementById('authBootstrapOverlay');
+  function revealAppRoot() {
+    try {
+      var appRoot = document.getElementById('appRoot');
+      if (appRoot) appRoot.style.display = '';
+    } catch (_err) {}
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('zo2y-auth-ready', function () {
+      revealAppRoot();
+    });
+  }
+
   async function run() {
     if (typeof window.__ZO2Y_BOOTSTRAP_RESTORE_SESSION === 'function') {
       try {
@@ -23,6 +36,7 @@
       window.__ZO2Y_AUTH_STATE = null;
     }
     window.__AUTH_READY = true;
+    revealAppRoot();
     try {
       if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
     } catch (_e) {}
@@ -32,11 +46,4 @@
     } catch (_e2) {}
   }
   run();
-  // Listen for auth-ready to reveal app root if not already removed by bootstrap
-  if (typeof window !== 'undefined') {
-    window.addEventListener('zo2y-auth-ready', function () {
-      var appRoot = document.getElementById('appRoot');
-      if (appRoot) appRoot.style.display = '';
-    });
-  }
 })();
