@@ -1,7 +1,7 @@
 // Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v231';
-const PAGE_CACHE = 'zo2y-pages-v186';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v232';
+const PAGE_CACHE = 'zo2y-pages-v187';
 const IMAGE_CACHE = 'zo2y-images-v40';
 const API_CACHE = 'zo2y-api-v20';
 const MOVIES_PAGE_VERSION = '20260418a';
@@ -37,7 +37,7 @@ const STATIC_ASSETS = [
   '/js/list-utils.js?v=20260424a',
   '/js/index-list-menu-adapter.js?v=20260317b',
   '/js/universal-search.js?v=20260421a',
-  '/js/auth-gate.js?v=20260424c',
+  '/js/auth-gate.js?v=20260424d',
   '/onboarding.html',
   '/js/production-runtime.js?v=20260422a',
   '/js/igdb-client.js?v=20260311c',

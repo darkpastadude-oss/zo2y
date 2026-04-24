@@ -16,7 +16,7 @@
   var ONBOARDING_PENDING_PREFIX = 'zo2y_onboarding_pending_v1_';
   var ONBOARDING_SESSION_PREFIX = 'zo2y_onboarding_session_v1_';
   var AUTH_DEBUG_KEY = 'zo2y_auth_debug';
-  var AUTH_RETURN_VERSION = '20260424b';
+  var AUTH_RETURN_VERSION = '20260424d';
 
   var PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 8;
   var PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60;
@@ -434,22 +434,57 @@
     safeSetSessionStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim(), '1');
   }
 
-  function normalizeProfileUsername(value) {
-    var normalized = String(value || '')
-      .trim()
-      .replace(/^@+/, '')
-      .toLowerCase()
-      .replace(/[\u0027\u2019]/g, '')
-      .replace(/[^a-z0-9_]+/g, '_')
-      .replace(/_+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .slice(0, 30);
-    if (!normalized) return 'user';
-    if (normalized.length < 3) return normalizeProfileUsername('user_' + normalized);
-    if (RESERVED_PROFILE_USERNAMES.has(normalized.replace(/_/g, ''))) {
-      return (normalized.slice(0, 24) + '_user').slice(0, 30);
+  function normalizeProfileUsername(value, fallbackValue) {
+    function cleanUsernamePart(input) {
+      return String(input || '')
+        .trim()
+        .replace(/^@+/, '')
+        .toLowerCase()
+        .replace(/[\u0027\u2019]/g, '')
+        .replace(/[^a-z0-9_]+/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 30);
     }
-    return normalized;
+
+    var normalized = cleanUsernamePart(value);
+    if (!normalized) normalized = cleanUsernamePart(fallbackValue);
+    if (!normalized) normalized = 'user';
+    if (normalized.length < 3) normalized = cleanUsernamePart('user_' + normalized);
+    if (!normalized) normalized = 'user';
+    return normalized.slice(0, 30);
+  }
+
+  function isReservedProfileUsername(value) {
+    return RESERVED_PROFILE_USERNAMES.has(String(value || '').replace(/_/g, ''));
+  }
+
+  function getUserEmailPrefix(user) {
+    var email = String(user && user.email || '').trim().toLowerCase();
+    if (!email || email.indexOf('@') === -1) return '';
+    return email.split('@')[0] || '';
+  }
+
+  function buildPreferredProfileUsername(user) {
+    var userData = user && user.user_metadata ? user.user_metadata : {};
+    var emailPrefix = getUserEmailPrefix(user);
+    var userId = String(user && user.id || '').trim();
+    var fallback = emailPrefix || userId || 'user';
+    var base = normalizeProfileUsername(
+      userData.preferred_username ||
+      userData.zo2y_username ||
+      userData.username ||
+      userData.full_name ||
+      userData.name ||
+      emailPrefix ||
+      fallback,
+      fallback
+    );
+
+    if (isReservedProfileUsername(base)) {
+      return profileUsernameWithSuffix(base, userId || 'user');
+    }
+    return base;
   }
 
   function profileUsernameWithSuffix(base, suffix) {
@@ -463,39 +498,18 @@
     return /^[a-z0-9_]{3,30}$/.test(String(value || '').trim());
   }
 
-  function buildAutoAssignedUsernameCandidates(user) {
-    var userData = user && user.user_metadata ? user.user_metadata : {};
-    var emailPrefix = String(user && user.email || '').split('@')[0] || '';
-    var rawCandidates = [
-      userData.zo2y_username,
-      userData.username,
-      userData.preferred_username,
-      userData.user_name,
-      emailPrefix
-    ];
-    var out = [];
-    for (var i = 0; i < rawCandidates.length; i += 1) {
-      var normalized = normalizeProfileUsername(rawCandidates[i] || '');
-      if (!normalized) continue;
-      if (RESERVED_PROFILE_USERNAMES.has(normalized.replace(/_/g, ''))) continue;
-      if (out.indexOf(normalized) !== -1) continue;
-      out.push(normalized);
-    }
-    return out;
-  }
-
-  function isAutoAssignedUsernameForUser(profileUsername, user) {
+  function isPlaceholderProfileUsername(profileUsername) {
     var normalizedProfile = normalizeProfileUsername(profileUsername || '');
     if (!normalizedProfile) return true;
-    if (normalizedProfile === 'user' || normalizedProfile.indexOf('user_') === 0) return true;
-    return buildAutoAssignedUsernameCandidates(user).indexOf(normalizedProfile) !== -1;
+    if (!isValidProfileUsername(normalizedProfile)) return true;
+    if (normalizedProfile === 'user') return true;
+    return /^user_[a-z0-9]{1,8}$/i.test(normalizedProfile);
   }
 
   function profileNeedsUsername(profile, user) {
     var username = String(profile && profile.username || '').trim().toLowerCase();
     if (!username) return true;
-    if (username === 'user' || username.indexOf('user_') === 0) return true;
-    return isAutoAssignedUsernameForUser(username, user);
+    return isPlaceholderProfileUsername(username);
   }
 
   async function ensureAuthProfile(client, user) {
@@ -522,21 +536,6 @@
 
         var existingProfile = existingResult && existingResult.data ? existingResult.data : null;
         if (existingProfile && existingProfile.id) {
-          var needsUsername = profileNeedsUsername(existingProfile, user);
-          if (needsUsername && existingProfile.username && existingProfile.username.indexOf('user_') !== 0) {
-            try {
-              var placeholder = profileUsernameWithSuffix('user', userId.replace(/-/g, '').slice(0, 6) || 'user');
-              if (placeholder && placeholder !== existingProfile.username) {
-                var repairResult = await client
-                  .from('user_profiles')
-                  .update({ username: placeholder })
-                  .eq('id', userId)
-                  .select('id, username, full_name')
-                  .maybeSingle();
-                if (repairResult && repairResult.data) existingProfile = repairResult.data;
-              }
-            } catch (_repairErr) {}
-          }
           if (profileNeedsUsername(existingProfile, user)) {
             markOnboardingPending(userId);
           } else {
@@ -556,36 +555,55 @@
 
         var userData = user.user_metadata || {};
         var suffix = userId.replace(/-/g, '').slice(0, 6) || 'user';
-        var placeholderUsername = profileUsernameWithSuffix('user', suffix);
-        var displayName = String(userData.full_name || userData.name || 'User').trim().slice(0, 80) || 'User';
-        var createResult = await client
-          .from('user_profiles')
-          .insert({
-            id: userId,
-            username: placeholderUsername,
-            full_name: displayName
-          })
-          .select('id, username, full_name')
-          .maybeSingle();
+        var preferredUsername = buildPreferredProfileUsername(user);
+        var displayName = String(userData.full_name || userData.name || preferredUsername || 'User').trim().slice(0, 80) || 'User';
+        var usernameCandidates = [preferredUsername];
+        if (preferredUsername !== 'user') {
+          usernameCandidates.push(profileUsernameWithSuffix(preferredUsername, suffix));
+        } else {
+          usernameCandidates[0] = profileUsernameWithSuffix('user', suffix);
+        }
 
-        if (!createResult || !createResult.error) {
-          markOnboardingPending(userId);
+        var createResult = null;
+        var createdProfile = null;
+        for (var candidateIndex = 0; candidateIndex < usernameCandidates.length; candidateIndex += 1) {
+          var candidateUsername = normalizeProfileUsername(usernameCandidates[candidateIndex], suffix);
+          createResult = await client
+            .from('user_profiles')
+            .insert({
+              id: userId,
+              username: candidateUsername,
+              full_name: displayName
+            })
+            .select('id, username, full_name')
+            .maybeSingle();
+
+          if (!createResult || !createResult.error) {
+            createdProfile = createResult && createResult.data ? createResult.data : {
+              id: userId,
+              username: candidateUsername,
+              full_name: displayName
+            };
+            break;
+          }
+
+          var createMessage = String(createResult.error && createResult.error.message || '').toLowerCase();
+          var duplicate = createMessage.indexOf('duplicate') !== -1 || createMessage.indexOf('unique') !== -1;
+          if (!duplicate) {
+            return { ok: false, created: false, profile: null, needsUsername: false, error: createResult.error };
+          }
+        }
+
+        if (createdProfile) {
+          var createdNeedsUsername = profileNeedsUsername(createdProfile, user);
+          if (createdNeedsUsername) markOnboardingPending(userId);
+          else clearOnboardingPending(userId);
           return {
             ok: true,
             created: true,
-            profile: createResult && createResult.data ? createResult.data : {
-              id: userId,
-              username: placeholderUsername,
-              full_name: displayName
-            },
-            needsUsername: true
+            profile: createdProfile,
+            needsUsername: createdNeedsUsername
           };
-        }
-
-        var createMessage = String(createResult.error && createResult.error.message || '').toLowerCase();
-        var duplicate = createMessage.indexOf('duplicate') !== -1 || createMessage.indexOf('unique') !== -1;
-        if (!duplicate) {
-          return { ok: false, created: false, profile: null, needsUsername: false, error: createResult.error };
         }
 
         var raceResult = await client
@@ -1411,6 +1429,7 @@
       markOnboardingPending: markOnboardingPending,
       clearOnboardingPending: clearOnboardingPending,
       normalizeUsername: normalizeProfileUsername,
+      isPlaceholderUsername: isPlaceholderProfileUsername,
       isValidUsername: isValidProfileUsername,
       ensureUsernameAvailable: ensureUsernameAvailable,
       ensureProfileBootstrap: ensureAuthProfile,

@@ -1,5 +1,5 @@
 (() => {
-const APP_RUNTIME_VERSION = '20260424-auth-runtime-c';
+const APP_RUNTIME_VERSION = '20260424-auth-runtime-d';
   const isLocalhostRuntime = (() => {
     const hostname = String(window.location.hostname || '').trim().toLowerCase();
     return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
@@ -827,7 +827,7 @@ const APP_RUNTIME_VERSION = '20260424-auth-runtime-c';
         return;
       }
       void resetZo2yCachesIfNeeded().finally(() => {
-    navigator.serviceWorker.register('/sw.js?v=20260424c').catch(() => {
+    navigator.serviceWorker.register('/sw.js?v=20260424d').catch(() => {
         // silent fail to avoid runtime noise
         });
       });

@@ -18,6 +18,9 @@ function mapSupabaseSignupError(error) {
   if (normalized.includes("already registered") || normalized.includes("already been registered")) {
     return { status: 409, message: "This email is already registered. Please log in instead." };
   }
+  if (normalized.includes("invalid api key")) {
+    return { status: 503, message: "Signup is temporarily unavailable because the server auth key is invalid." };
+  }
   if (normalized.includes("password")) return { status: 400, message };
   if (normalized.includes("email")) return { status: 400, message };
   return { status: Number(error?.status || 500) || 500, message };

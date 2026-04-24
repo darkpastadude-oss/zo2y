@@ -89,7 +89,7 @@
       return;
     }
 
-    if (profileResult && profileResult.profile && profileResult.profile.username && !String(profileResult.profile.username).toLowerCase().startsWith('user_')) {
+    if (profileResult && profileResult.profile && profileResult.profile.username && !(auth.isPlaceholderUsername && auth.isPlaceholderUsername(profileResult.profile.username))) {
       usernameInput.value = String(profileResult.profile.username);
     }
 
