@@ -1732,6 +1732,215 @@ async function loadBooks(signal) {
       return [];
     }
 
+    // HOME BOOKS (override): keep this loader in lockstep with `books.html`.
+    // We intentionally redeclare `loadBooks` here so it wins over any older/broken implementation above.
+    async function loadBooks(signal) {
+      const targetCount = getHomeChannelTargetItems();
+      const minHealthy = Math.min(Number(targetCount || 0) || 0, 8) || 8;
+
+      const setBooksDebug = (stage, detail = {}) => {
+        try {
+          window.__zo2yHomeBooksDebug = {
+            stage: String(stage || '').trim() || 'unknown',
+            detail: detail && typeof detail === 'object' ? detail : {},
+            at: new Date().toISOString()
+          };
+        } catch (_error) {}
+      };
+
+      const BOOKS_CACHE_BUSTER = '20260325a';
+      const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
+      const FALLBACK_BOOK_IMAGE = '/images/landing-wall-poster.svg';
+
+      function normalizeBookSeedText(value) {
+        return String(value || '')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      function slugifyBookPart(value) {
+        return String(value || '')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 64);
+      }
+
+      function getBookEntryId(item, idx = 0) {
+        const id = String(item?.id || '').trim();
+        if (id) return id;
+        const titleSlug = slugifyBookPart(item?.title || `book-${idx}`);
+        const authorSlug = slugifyBookPart(item?.author || '');
+        const year = String(item?.year || '').trim();
+        return `search-${titleSlug}-${authorSlug || 'unknown'}-${year || 'na'}`;
+      }
+
+      async function booksFetch(path, params = {}) {
+        const normalizedPath = String(path || '').startsWith('/') ? String(path) : `/${String(path || '')}`;
+        const endpoint = normalizedPath === '/search.json'
+          ? `${GOOGLE_BOOKS_PROXY_BASE}/search`
+          : `${GOOGLE_BOOKS_PROXY_BASE}${normalizedPath}`;
+        const url = new URL(endpoint, window.location.origin);
+        Object.entries(params || {}).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === '') return;
+          if (Array.isArray(value)) {
+            value.forEach((entry) => {
+              if (entry === undefined || entry === null || entry === '') return;
+              url.searchParams.append(key, String(entry));
+            });
+            return;
+          }
+          url.searchParams.set(key, String(value));
+        });
+        url.searchParams.set('cb', BOOKS_CACHE_BUSTER);
+        // Match the older "auth works" snapshot: always hit the network for books/search/pagination.
+        // This avoids persisting empty arrays into local caches when the network hiccups.
+        url.searchParams.set('_', String(Date.now()));
+
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 12000);
+        let res;
+        try {
+          try {
+            res = await fetch(url.toString(), {
+              headers: { Accept: 'application/json' },
+              signal: signal || controller.signal,
+              cache: 'no-store'
+            });
+          } catch (error) {
+            const isAbort = error && (error.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('aborted'));
+            if (!isAbort) throw error;
+            res = await fetch(url.toString(), {
+              headers: { Accept: 'application/json' },
+              cache: 'no-store'
+            });
+          }
+        } finally {
+          window.clearTimeout(timeoutId);
+        }
+
+        if (!res.ok) throw new Error(`Books API error ${res.status}`);
+        const json = await res.json();
+        const booksRaw = Array.isArray(json?.books) ? json.books : [];
+        const books = booksRaw
+          .map((entry) => ({
+            id: String(entry?.id || '').trim(),
+            title: String(entry?.title || '').trim(),
+            author: String(entry?.author || '').trim(),
+            year: Number(entry?.year || 0) || null,
+            cover: toHttpsUrl(entry?.cover || ''),
+            source: String(entry?.source || '').trim()
+          }))
+          .filter((entry) => entry.title);
+        const numFound = Number(json?.meta?.numFound || json?.numFound || json?.count || json?.totalItems || books.length) || books.length;
+        return { books, numFound };
+      }
+
+      async function loadCuratedPopularBooks() {
+        const [popularResult, trendingResult] = await Promise.allSettled([
+          booksFetch('/popular', { page: 1, limit: targetCount, subject: 'fiction', language: 'en', orderBy: 'relevance' }),
+          booksFetch('/trending', { period: 'weekly', limit: targetCount })
+        ]);
+        const popular = popularResult.status === 'fulfilled' ? popularResult.value : null;
+        const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
+        const popularBooks = Array.isArray(popular?.books) ? popular.books.slice(0, targetCount) : [];
+        const trendingBooks = Array.isArray(trending?.books) ? trending.books.slice(0, targetCount) : [];
+        const merged = [];
+        const seen = new Set();
+        [...popularBooks, ...trendingBooks].forEach((book) => {
+          const title = normalizeBookSeedText(book?.title || '');
+          const author = normalizeBookSeedText(book?.author || '');
+          const key = `${title}::${author}`;
+          if (!title || seen.has(key)) return;
+          seen.add(key);
+          merged.push(book);
+        });
+        return {
+          books: merged.slice(0, targetCount),
+          numFound: Math.max(Number(popular?.numFound || 0), Number(trending?.numFound || 0), merged.length, targetCount * 2)
+        };
+      }
+
+      const sanitizeHomeBookItem = (item) => {
+        if (!item || String(item?.mediaType || '').trim().toLowerCase() !== 'book') return null;
+        const title = String(item?.title || '').trim();
+        const itemId = String(item?.itemId || '').trim();
+        const image = toHttpsUrl(String(item?.image || item?.listImage || item?.spotlightImage || '').trim());
+        if (!title || !itemId || !image) return null;
+        return {
+          ...item,
+          mediaType: 'book',
+          itemId,
+          title,
+          subtitle: String(item?.subtitle || '').trim(),
+          image,
+          listImage: image,
+          backgroundImage: toHttpsUrl(String(item?.backgroundImage || image).trim()) || image,
+          spotlightImage: toHttpsUrl(String(item?.spotlightImage || image).trim()) || image,
+          spotlightMediaImage: toHttpsUrl(String(item?.spotlightMediaImage || image).trim()) || image,
+          href: String(item?.href || '').trim() || 'books.html'
+        };
+      };
+
+      const cachedItems = readHomeItemsCache(
+        HOME_BOOKS_ITEMS_CACHE_KEY,
+        HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS,
+        sanitizeHomeBookItem
+      );
+      if (cachedItems.length) {
+        setBooksDebug('cache-hit', { count: cachedItems.length });
+        return cachedItems.slice(0, targetCount);
+      }
+
+      try {
+        setBooksDebug('fetch:start', { target: targetCount });
+        const data = await loadCuratedPopularBooks();
+        const books = Array.isArray(data?.books) ? data.books : [];
+        const items = books.map((book, idx) => {
+          const title = String(book?.title || '').trim();
+          if (!title) return null;
+          const author = String(book?.author || '').trim() || 'Unknown author';
+          const year = Number(book?.year || 0) || 0;
+          const cover = toHttpsUrl(book?.cover || '') || FALLBACK_BOOK_IMAGE;
+          const itemId = getBookEntryId(book, idx);
+          const titleParam = encodeURIComponent(title);
+          const authorParam = encodeURIComponent(author);
+          const href = `book.html?id=${encodeURIComponent(itemId)}&title=${titleParam}&author=${authorParam}`;
+          return sanitizeHomeBookItem({
+            mediaType: 'book',
+            itemId,
+            title,
+            subtitle: year ? `${author} | ${year}` : author,
+            image: cover,
+            backgroundImage: cover,
+            spotlightImage: cover,
+            spotlightMediaImage: cover,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            fallbackImage: FALLBACK_BOOK_IMAGE,
+            href
+          });
+        }).filter(Boolean);
+
+        const filtered = filterHomeSafeItems(items).slice(0, targetCount);
+        if (filtered.length) {
+          if (filtered.length >= minHealthy) writeHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, filtered);
+          setBooksDebug('success', { count: filtered.length });
+          return filtered;
+        }
+
+        setBooksDebug('empty', { books: books.length });
+      } catch (error) {
+        setBooksDebug('error', { message: String(error?.message || error || '') });
+      }
+
+      return [];
+    }
+
   window.__zo2yHomeHeavyLoaders = {
     loadMovies,
     loadTv,

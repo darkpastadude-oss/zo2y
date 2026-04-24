@@ -9351,7 +9351,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         const script = document.createElement('script');
       // Keep this in sync with `sw.js` precache list to avoid refresh loading stale home loaders.
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260422a';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260424a';
       script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
@@ -11135,6 +11135,28 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     let homeAppBootPromise = null;
+    let homeAuthGateVerifiedEvent = null;
+    let homeDomReady = false;
+
+    function handleHomeAuthGateVerified(event) {
+      const detail = event?.detail || null;
+      homeAuthGateVerifiedEvent = detail;
+      if (!homeDomReady) return;
+      const authenticated = !!detail?.authenticated;
+      if (authenticated) {
+        document.body?.classList.remove('landing-mode');
+        void bootAuthenticatedHome().catch((error) => {
+          console.error('Home boot failed after auth verification:', error);
+          setStatus('Could not load your home feed right now. Please refresh.', true);
+        });
+        return;
+      }
+      initLandingExperience();
+    }
+
+    // Attach this immediately so we never miss refresh-only auth verification events.
+    window.addEventListener('zo2y-auth-gate-verified', handleHomeAuthGateVerified);
+
     function scheduleHomeNonCritical(task, timeoutMs = 900) {
       if (typeof task !== 'function') return;
       if (typeof window.requestIdleCallback === 'function') {
@@ -11161,6 +11183,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      homeDomReady = true;
       const authGateState = getHomeAuthGateState();
       if (authGateState?.authShell === 'landing' && authGateState?.verified && !authGateState?.authenticated) {
         initLandingExperience();
@@ -11171,18 +11194,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         });
       }
 
-      window.addEventListener('zo2y-auth-gate-verified', (event) => {
-        const authenticated = !!event?.detail?.authenticated;
-        if (authenticated) {
-          document.body?.classList.remove('landing-mode');
-          void bootAuthenticatedHome().catch((error) => {
-            console.error('Home boot failed after auth verification:', error);
-            setStatus('Could not load your home feed right now. Please refresh.', true);
-          });
-          return;
-        }
-        initLandingExperience();
-      });
+      // If auth-gate verified before DOMContentLoaded (rare refresh timing), replay the latest event.
+      if (homeAuthGateVerifiedEvent) {
+        handleHomeAuthGateVerified({ detail: homeAuthGateVerifiedEvent });
+      }
 
       scheduleHomeNonCritical(() => {
         void ensureHomeHeavyLoaders().catch(() => {});

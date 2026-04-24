@@ -471,6 +471,19 @@ const HEADER_HTML = `
       supabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
       return supabaseClient;
     }
+    if (
+      typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function' &&
+      window.__ZO2Y_ENSURE_SUPABASE_CLIENT !== ensureSupabaseClient
+    ) {
+      try {
+        const sharedClient = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        if (sharedClient) {
+          supabaseClient = sharedClient;
+          window.__ZO2Y_SUPABASE_CLIENT = sharedClient;
+          return supabaseClient;
+        }
+      } catch (_err) {}
+    }
     if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
     const getAuthStorageKeys = (key) => {
       const value = String(key || '').trim();
