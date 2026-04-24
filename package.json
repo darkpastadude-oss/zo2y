@@ -9,7 +9,7 @@
     "dev": "cd backend && nodemon index.js",
     "cf:build": "node scripts/build-cloudflare-pages.mjs",
     "cf:dev": "wrangler pages dev dist",
-    "cf:deploy": "wrangler pages deploy dist --project-name zo2y",
+    "cf:deploy": "npm run cf:build && wrangler pages deploy",
     "import:books": "node scripts/import-books.mjs",
     "import:games:popular": "node scripts/import-popular-games.mjs",
     "import:games:franchises": "node scripts/import-game-franchises.mjs",

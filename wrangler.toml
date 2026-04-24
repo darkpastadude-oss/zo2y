@@ -1,3 +1,5 @@
+# Cloudflare Pages is the deploy source of truth for this project.
+# /api/* is served by the root /functions directory, not by vercel.json rewrites.
 name = "zo2y"
 compatibility_date = "2026-03-26"
 compatibility_flags = ["nodejs_compat"]
