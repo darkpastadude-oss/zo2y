@@ -3,24 +3,24 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260315d"></script>
-  <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
+<meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Sign Up</title>
 <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="css/pages/auth-entry.css?v=20260307a">
-  <meta name="theme-color" content="#0b1633" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Zo2y" />
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="/newlogo.webp" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+<meta name="theme-color" content="#0b1633" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Zo2y" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="apple-touch-icon" href="/newlogo.webp" />
+<link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
+<script src="/js/vercel-analytics.js?v=20260307a" defer></script>
+<script src="/js/auth-gate.js?v=20260424d"></script>
+<script src="/js/mobile-webapp.js?v=20260315e" defer></script>
+<link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body data-auth-variant="signup">
 <div class="auth-entry-shell auth-entry-shell-signup">
@@ -52,6 +52,7 @@
     <div class="auth-panel-card auth-panel-card-signup auth-card">
       <h2>Create account</h2>
       <p class="auth-panel-subtitle">Start with Google or sign up with email. The account you make here powers your profile, custom lists, reviews, and follow graph.</p>
+      <div id="authInviteBanner" class="auth-entry-banner" hidden></div>
       <div class="auth-inline-points">
         <div class="auth-inline-point">
           <strong>Save fast</strong>
@@ -97,7 +98,7 @@
       </form>
 
       <div class="alt-link">
-        Already have an account? <a href="login.html">Log in</a>
+        Already have an account? <a href="login.html" id="altLoginLink">Log in</a>
       </div>
 
       <div class="legal-strip">
@@ -108,305 +109,6 @@
     </div>
   </section>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-(function() {
-  'use strict';
-  
-  // Supabase configuration
-  const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s';
-  
-  const STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
-
-  // Initialize Supabase
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-    auth: {
-      storageKey: STORAGE_KEY,
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: false  // Important: Don't auto-detect on signup page
-    }
-  });
-  
-  // DOM Elements
-  const signupForm = document.getElementById('signupForm');
-  const fullNameInput = document.getElementById('fullName');
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const googleSignup = document.getElementById('googleSignup');
-  const submitBtn = document.getElementById('submitBtn');
-  const errorMessage = document.getElementById('errorMessage');
-  const successMessage = document.getElementById('successMessage');
-  const initialNextPath = sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || localStorage.getItem('postAuthRedirect') || 'index.html');
-
-  function analyticsTrack(eventName, properties = {}, essential = false) {
-    try {
-      if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
-        window.ZO2Y_ANALYTICS.track(eventName, properties, essential ? { essential: true } : {});
-      }
-    } catch (_err) {}
-  }
-
-  function analyticsMarkFirstAction(eventName, properties = {}) {
-    try {
-      if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
-        window.ZO2Y_ANALYTICS.markFirstAction(eventName, properties, { essential: true });
-      } else {
-        analyticsTrack(eventName, properties, true);
-      }
-    } catch (_err) {}
-  }
-
-  function sanitizeNextPath(raw) {
-    const value = String(raw || '').trim();
-    if (!value) return 'index.html';
-    if (/^https?:\/\//i.test(value) || value.startsWith('//')) return 'index.html';
-    if (value.startsWith('/')) return value.slice(1) || 'index.html';
-    return value;
-  }
-
-  function getPostAuthRedirect() {
-    return sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || localStorage.getItem('postAuthRedirect') || initialNextPath || 'index.html');
-  }
-
-  async function waitForStableSession(timeoutMs = 5000) {
-    const startedAt = Date.now();
-    while ((Date.now() - startedAt) < timeoutMs) {
-      const user = await getVerifiedUser();
-      if (user?.id) return user;
-      await new Promise((resolve) => setTimeout(resolve, 180));
-    }
-    return null;
-  }
-
-  async function finalizeAuthRedirect() {
-    await waitForStableSession(5000);
-    const nextPath = getPostAuthRedirect();
-    localStorage.removeItem('postAuthRedirect');
-    window.location.href = nextPath;
-  }
-
-  function getOnboardingPendingKey(userId) {
-    return `zo2y_onboarding_pending_v1_${String(userId || '').trim()}`;
-  }
-  
-  // Helper functions
-  function showError(msg) {
-    console.error('Error:', msg);
-    errorMessage.innerHTML = msg;
-    errorMessage.classList.add('show');
-    successMessage.classList.remove('show');
-    setTimeout(() => errorMessage.classList.remove('show'), 5000);
-  }
-  
-  function showSuccess(msg) {
-    console.log('Success:', msg);
-    successMessage.innerHTML = msg;
-    successMessage.classList.add('show');
-    errorMessage.classList.remove('show');
-  }
-  
-  function showLoading() {
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<div class="loading"></div>';
-  }
-  
-  function hideLoading() {
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> <span>Create Account</span>';
-  }
-
-  async function getVerifiedUser() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return null;
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (!userError && userData?.user) {
-      return userData.user;
-    }
-    const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
-    if (!refreshError && refreshed?.session?.user) return refreshed.session.user;
-    return null;
-  }
-  
-  // Check if already logged in
-  (async () => {
-    try {
-      const user = await getVerifiedUser();
-      if (user) {
-        console.log('User already logged in, redirecting...');
-        window.location.href = 'index.html';
-      }
-    } catch (error) {
-      console.error('Session check error:', error);
-    }
-  })();
-  
-  // Email signup
-  signupForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const fullName = fullNameInput.value.trim();
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-    
-    console.log('Signup attempt:', email);
-    
-    // Validation
-    if (!fullName || !email || !password) {
-      showError('All fields are required');
-      analyticsTrack('signup_validation_error', { reason: 'missing_fields', path: window.location.pathname });
-      return;
-    }
-    
-    if (password.length < 8) {
-      showError('Password must be at least 8 characters');
-      analyticsTrack('signup_validation_error', { reason: 'password_short', path: window.location.pathname });
-      return;
-    }
-    
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      showError('Please enter a valid email address');
-      analyticsTrack('signup_validation_error', { reason: 'invalid_email', path: window.location.pathname });
-      return;
-    }
-    
-    showLoading();
-    
-    try {
-      console.log('Calling Supabase signUp...');
-      
-      const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-        options: {
-          data: { 
-            full_name: fullName
-          },
-          emailRedirectTo: window.location.origin + '/auth-callback.html'
-        }
-      });
-      
-      if (error) {
-        console.error('Signup error:', error);
-        analyticsTrack('signup_error', { method: 'password', message: String(error.message || 'unknown').slice(0, 180) }, true);
-        
-        if (error.message.includes('already registered')) {
-          showError('This email is already registered. Please <a href="login.html">log in</a> instead.');
-        } else {
-          showError('Signup failed: ' + error.message);
-        }
-        hideLoading();
-        return;
-      }
-      
-      console.log('Signup response received');
-      console.log('User ID:', data.user?.id);
-      console.log('Session exists:', !!data.session);
-      
-      if (data.user && !data.session) {
-        // Email confirmation required
-        console.log('Email confirmation required');
-        analyticsTrack('signup_email_confirmation_required', { path: window.location.pathname }, true);
-        showSuccess('Success! Please check your email to confirm your account.');
-        signupForm.reset();
-        hideLoading();
-      } else if (data.session) {
-        // Auto-login after signup
-        console.log('Auto-login successful');
-        analyticsTrack('signup_success', { method: 'password', auto_login: true, path: window.location.pathname }, true);
-        analyticsMarkFirstAction('first_signup_success', { method: 'password' });
-        if (data.user?.id) {
-          localStorage.setItem(getOnboardingPendingKey(data.user.id), '1');
-        }
-        showSuccess('Account created! Redirecting...');
-        await finalizeAuthRedirect();
-      }
-      
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      analyticsTrack('signup_error', { method: 'password', message: String(error?.message || 'unknown').slice(0, 180) }, true);
-      showError('An unexpected error occurred. Please try again.');
-      hideLoading();
-    }
-  });
-  
-  // Google signup
-  googleSignup.addEventListener('click', async () => {
-    try {
-      const btn = googleSignup;
-      btn.disabled = true;
-      btn.innerHTML = '<div class="loading"></div> Signing up...';
-      
-      console.log('Starting Google OAuth...');
-      analyticsTrack('signup_google_start', { path: window.location.pathname }, true);
-      
-      // Store that this is a signup flow
-      const nextPath = getPostAuthRedirect();
-      const callbackUrl = new URL('/auth-callback.html', window.location.origin);
-      callbackUrl.searchParams.set('flow', 'signup');
-      callbackUrl.searchParams.set('next', nextPath);
-      localStorage.setItem('oauthFlow', 'signup');
-      localStorage.setItem('postAuthRedirect', nextPath);
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: callbackUrl.toString(),
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
-          }
-        }
-      });
-      
-      if (error) {
-        console.error('Google OAuth error:', error);
-        analyticsTrack('signup_google_error', { message: String(error.message || 'unknown').slice(0, 180) }, true);
-        showError('Google signup failed: ' + error.message);
-        btn.disabled = false;
-        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Sign up with Google';
-      }
-      
-    } catch (error) {
-      console.error('Google error:', error);
-      analyticsTrack('signup_google_error', { message: String(error?.message || 'unknown').slice(0, 180) }, true);
-      showError('Google signup failed. Please try again.');
-      googleSignup.disabled = false;
-      googleSignup.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Sign up with Google';
-    }
-  });
-  
-})();
-</script>
-  <script src="js/production-runtime.js?v=20260307a" defer></script>
+<script src="/js/pages/auth-signup.js?v=20260424d" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -150,7 +150,7 @@
     for (let i = 0; i < 20; i += 1) {
       if (window.supabase?.createClient) {
         client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
         });
         window.__ZO2Y_SUPABASE_CLIENT = client;
         return client;

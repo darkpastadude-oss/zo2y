@@ -3,24 +3,24 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <script src="/js/vercel-analytics.js?v=20260307a" defer></script>
-<script src="/js/auth-gate.js?v=20260315d"></script>
-  <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
+<meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
 <title>Zo2y - Login</title>
 <link rel="icon" href="/favicon.ico?v=20260307a" type="image/x-icon" />
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="css/pages/auth-entry.css?v=20260307a">
-  <meta name="theme-color" content="#0b1633" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Zo2y" />
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="/newlogo.webp" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260315e" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+<meta name="theme-color" content="#0b1633" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Zo2y" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="apple-touch-icon" href="/newlogo.webp" />
+<link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
+<script src="/js/vercel-analytics.js?v=20260307a" defer></script>
+<script src="/js/auth-gate.js?v=20260424d"></script>
+<script src="/js/mobile-webapp.js?v=20260315e" defer></script>
+<link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body data-auth-variant="login">
 <div class="auth-entry-shell auth-entry-shell-login">
@@ -52,7 +52,7 @@
     <div class="auth-panel-card auth-panel-card-login auth-card">
       <h2>Log in</h2>
       <p class="auth-panel-subtitle">Use your email or Google account to reopen the full app and continue where you left off.</p>
-
+      <div id="authInviteBanner" class="auth-entry-banner" hidden></div>
       <div id="errorMessage" class="message error"></div>
       <div id="successMessage" class="message success"></div>
 
@@ -84,7 +84,7 @@
         <button type="submit" class="submit-btn" id="submitBtn"><i class="fas fa-sign-in-alt"></i> Log In</button>
       </form>
 
-      <div class="alt-link">Need an account? <a href="sign-up.html">Create one</a></div>
+      <div class="alt-link">Need an account? <a href="sign-up.html" id="altSignupLink">Create one</a></div>
 
       <div class="legal-strip">
         <a href="privacy.html">Privacy</a>
@@ -98,306 +98,6 @@
     </div>
   </section>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-(function () {
-  'use strict';
-
-  const STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
-  const supabase = window.supabase.createClient(
-    'https://gfkhjbztayjyojsgdpgk.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.WUb2yDAwCeokdpWCPeH13FE8NhWF6G8e6ivTsgu6b2s',
-    {
-      auth: {
-        storageKey: STORAGE_KEY,
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: false  // Important: Don't auto-detect on login page
-      }
-    }
-  );
-
-  const form = document.getElementById('authForm');
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const remember = document.getElementById('remember');
-  const forgotPassword = document.getElementById('forgotPassword');
-  const googleBtn = document.getElementById('googleAuthBtn');
-  const submitBtn = document.getElementById('submitBtn');
-  const errorEl = document.getElementById('errorMessage');
-  const successEl = document.getElementById('successMessage');
-
-  const googleDefaultHtml = googleBtn.innerHTML;
-  const submitDefaultHtml = submitBtn.innerHTML;
-  const initialNextPath = sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || localStorage.getItem('postAuthRedirect') || 'index.html');
-
-  function analyticsTrack(eventName, properties = {}, essential = false) {
-    try {
-      if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
-        window.ZO2Y_ANALYTICS.track(eventName, properties, essential ? { essential: true } : {});
-      }
-    } catch (_err) {}
-  }
-
-  function analyticsMarkFirstAction(eventName, properties = {}) {
-    try {
-      if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
-        window.ZO2Y_ANALYTICS.markFirstAction(eventName, properties, { essential: true });
-      } else {
-        analyticsTrack(eventName, properties, true);
-      }
-    } catch (_err) {}
-  }
-
-  function sanitizeNextPath(raw) {
-    const value = String(raw || '').trim();
-    if (!value) return 'index.html';
-    if (/^https?:\/\//i.test(value) || value.startsWith('//')) return 'index.html';
-    if (value.startsWith('/')) return value.slice(1) || 'index.html';
-    return value;
-  }
-
-  function getPostAuthRedirect() {
-    return sanitizeNextPath(new URLSearchParams(window.location.search).get('next') || localStorage.getItem('postAuthRedirect') || initialNextPath || 'index.html');
-  }
-
-  async function waitForStableSession(timeoutMs = 5000) {
-    const startedAt = Date.now();
-    while ((Date.now() - startedAt) < timeoutMs) {
-      const user = await getVerifiedUser();
-      if (user?.id) return user;
-      await new Promise((resolve) => setTimeout(resolve, 180));
-    }
-    return null;
-  }
-
-  async function finalizeAuthRedirect() {
-    await waitForStableSession(5000);
-    const nextPath = getPostAuthRedirect();
-    localStorage.removeItem('postAuthRedirect');
-    window.location.href = nextPath;
-  }
-
-  function showError(msg) {
-    console.error('Error:', msg);
-    errorEl.textContent = msg;
-    errorEl.classList.add('show');
-    successEl.classList.remove('show');
-  }
-
-  function showSuccess(msg) {
-    console.log('Success:', msg);
-    successEl.textContent = msg;
-    successEl.classList.add('show');
-    errorEl.classList.remove('show');
-  }
-
-  function clearMessages() {
-    errorEl.classList.remove('show');
-    successEl.classList.remove('show');
-  }
-
-  function setSubmitLoading(loading) {
-    submitBtn.disabled = loading;
-    submitBtn.innerHTML = loading ? '<div class="loading"></div>' : submitDefaultHtml;
-  }
-
-  function setGoogleLoading(loading, text) {
-    googleBtn.disabled = loading;
-    googleBtn.innerHTML = loading ? `<div class="loading"></div> ${text}` : googleDefaultHtml;
-  }
-
-  async function withTimeout(promise, ms, timeoutMessage) {
-    let timerId;
-    const timeoutPromise = new Promise((_, reject) => {
-      timerId = setTimeout(() => reject(new Error(timeoutMessage)), ms);
-    });
-    try {
-      return await Promise.race([promise, timeoutPromise]);
-    } finally {
-      clearTimeout(timerId);
-    }
-  }
-
-  function getReadableAuthError(err, fallback) {
-    const msg = String(err?.message || '').toLowerCase();
-    if (!msg) return fallback;
-    if (msg.includes('failed to fetch') || msg.includes('network')) {
-      return 'Auth service is temporarily unreachable. Please try again in a minute.';
-    }
-    if (msg.includes('timed out')) {
-      return 'Auth request timed out. Please try again.';
-    }
-    return err.message || fallback;
-  }
-
-  async function getVerifiedUser() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return null;
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (!userError && userData?.user) {
-      return userData.user;
-    }
-    const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
-    if (!refreshError && refreshed?.session?.user) return refreshed.session.user;
-    return null;
-  }
-
-  // Check if already logged in
-  (async () => {
-    try {
-      const user = await getVerifiedUser();
-      if (user) {
-        console.log('User already logged in, redirecting...');
-        window.location.href = 'index.html';
-      }
-    } catch (error) {
-      console.error('Session check error:', error);
-    }
-  })();
-
-  const rememberedEmail = localStorage.getItem('rememberedEmail');
-  if (rememberedEmail) {
-    emailInput.value = rememberedEmail;
-    remember.checked = true;
-  }
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearMessages();
-
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-    if (!email || !password) {
-      showError('Email and password are required.');
-      analyticsTrack('login_validation_error', { reason: 'missing_credentials', path: window.location.pathname });
-      return;
-    }
-
-    setSubmitLoading(true);
-    try {
-      console.log('Attempting login...');
-      const { data, error } = await withTimeout(
-        supabase.auth.signInWithPassword({ email, password }),
-        12000,
-        'Auth request timed out'
-      );
-      
-      if (error) throw error;
-      
-      console.log('Login successful');
-      analyticsTrack('login_success', { method: 'password', path: window.location.pathname }, true);
-      analyticsMarkFirstAction('first_login_success', { method: 'password' });
-      if (remember.checked) localStorage.setItem('rememberedEmail', email);
-      else localStorage.removeItem('rememberedEmail');
-      
-      showSuccess('Login successful! Redirecting...');
-      await finalizeAuthRedirect();
-      
-    } catch (err) {
-      console.error('Login error:', err);
-      analyticsTrack('login_error', { method: 'password', message: String(err?.message || 'unknown').slice(0, 180) }, true);
-      showError(getReadableAuthError(err, 'Login failed.'));
-      setSubmitLoading(false);
-    }
-  });
-
-  googleBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    clearMessages();
-    setGoogleLoading(true, 'Signing in...');
-    
-    try {
-      console.log('Starting Google OAuth...');
-      analyticsTrack('login_google_start', { path: window.location.pathname }, true);
-      
-      // Store that this is a login flow
-      const nextPath = getPostAuthRedirect();
-      const callbackUrl = new URL('/auth-callback.html', window.location.origin);
-      callbackUrl.searchParams.set('flow', 'login');
-      callbackUrl.searchParams.set('next', nextPath);
-      localStorage.setItem('oauthFlow', 'login');
-      localStorage.setItem('postAuthRedirect', nextPath);
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: callbackUrl.toString(),
-          queryParams: { 
-            access_type: 'offline', 
-            prompt: 'consent' 
-          }
-        }
-      });
-      
-      if (error) {
-        console.error('Google OAuth error:', error);
-        throw error;
-      }
-      
-      // Browser will redirect, so button stays disabled
-      
-    } catch (err) {
-      console.error('Google login error:', err);
-      analyticsTrack('login_google_error', { message: String(err?.message || 'unknown').slice(0, 180) }, true);
-      showError(err?.message || 'Google login failed.');
-      setGoogleLoading(false);
-    }
-  });
-
-  forgotPassword.addEventListener('click', async (e) => {
-    e.preventDefault();
-    clearMessages();
-    const email = emailInput.value.trim();
-    if (!email) {
-      showError('Enter your email first.');
-      return;
-    }
-    try {
-      const { error } = await withTimeout(
-        supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin + '/update-password.html'
-        }),
-        12000,
-        'Password reset request timed out'
-      );
-      if (error) throw error;
-      analyticsTrack('password_reset_requested', { path: window.location.pathname }, true);
-      showSuccess('Reset email sent. Check your inbox.');
-    } catch (err) {
-      analyticsTrack('password_reset_error', { message: String(err?.message || 'unknown').slice(0, 180) }, true);
-      showError(getReadableAuthError(err, 'Failed to send reset email.'));
-    }
-  });
-})();
-</script>
-  <script src="js/production-runtime.js?v=20260307a" defer></script>
+<script src="/js/pages/auth-login.js?v=20260424d" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
