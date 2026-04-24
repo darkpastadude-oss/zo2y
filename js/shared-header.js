@@ -734,21 +734,28 @@ const HEADER_HTML = `
 
     try {
       const authRuntime = window.ZO2Y_AUTH || null;
-      let session = authRuntime && typeof authRuntime.getActiveSession === 'function'
-        ? await authRuntime.getActiveSession(client, { refreshIfNeeded: true, restore: true })
-        : null;
-      const hasStoredAuthSession =
-        typeof window.__ZO2Y_HAS_STORED_AUTH_SESSION === 'function'
-          ? !!window.__ZO2Y_HAS_STORED_AUTH_SESSION()
-          : !!readStoredHeaderSession();
-      if (!session && hasStoredAuthSession) {
-        if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
-          session = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
-        } else {
-          await bootstrapHeaderSessionFromStorage(client);
-        }
-        if (!session && authRuntime && typeof authRuntime.getActiveSession === 'function') {
-          session = await authRuntime.getActiveSession(client, { refreshIfNeeded: true, restore: true });
+      let session = null;
+      if (authRuntime && typeof authRuntime.getActiveSession === 'function') {
+        session = await authRuntime.getActiveSession(client, { refreshIfNeeded: true, restore: true });
+      } else {
+        const hasStoredAuthSession =
+          typeof window.__ZO2Y_HAS_STORED_AUTH_SESSION === 'function'
+            ? !!window.__ZO2Y_HAS_STORED_AUTH_SESSION()
+            : !!readStoredHeaderSession();
+        try {
+          const sessionResult = await client.auth.getSession();
+          session = sessionResult?.data?.session || null;
+        } catch (_err) {}
+        if (!session && hasStoredAuthSession) {
+          if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
+            session = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
+          } else {
+            await bootstrapHeaderSessionFromStorage(client);
+            try {
+              const retrySessionResult = await client.auth.getSession();
+              session = retrySessionResult?.data?.session || null;
+            } catch (_retryErr) {}
+          }
         }
       }
       if (session?.access_token && session?.refresh_token) persistHeaderSessionSnapshot(session);

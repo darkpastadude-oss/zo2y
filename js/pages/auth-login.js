@@ -195,6 +195,11 @@
       if (!result || !result.data || !result.data.session || !result.data.session.user) {
         throw new Error('Login did not return a usable session.');
       }
+      if (typeof auth.persistSessionSnapshot === 'function') {
+        try {
+          auth.persistSessionSnapshot(result.data.session);
+        } catch (_persistErr) {}
+      }
 
       if (rememberInput && rememberInput.checked) {
         try { window.localStorage.setItem('rememberedEmail', email); } catch (_errRemember) {}

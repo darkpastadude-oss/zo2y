@@ -26,6 +26,7 @@
   var OLD_ONBOARDING_SESSION_PREFIX = 'zo2y_onboarding_session_v1_';
   var AUTH_DEBUG_KEY = 'zo2y_auth_debug';
   var AUTH_RETURN_VERSION = '20260424e';
+  var AUTH_DEBUG_MAX_EVENTS = 120;
 
   var PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 8;
   var PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60;
@@ -93,6 +94,7 @@
   var profileBootstrapPromises = new Map();
   var profileLabelCache = new Map();
   var lastKnownSessionSnapshot = null;
+  var authDebugEvents = [];
 
   try {
     if (!window.__ZO2Y_SUPABASE_CONFIG) {
@@ -137,6 +139,51 @@
       return;
     }
     console.log('[ZO2Y AUTH]', label, payload);
+  }
+
+  function pushAuthDebugEvent(label, payload) {
+    var safeLabel = String(label || 'event');
+    var safePayload = payload && typeof payload === 'object'
+      ? payload
+      : (payload === undefined ? {} : { value: payload });
+    var event = {
+      t: Date.now(),
+      label: safeLabel,
+      payload: safePayload
+    };
+    authDebugEvents.push(event);
+    if (authDebugEvents.length > AUTH_DEBUG_MAX_EVENTS) {
+      authDebugEvents.splice(0, authDebugEvents.length - AUTH_DEBUG_MAX_EVENTS);
+    }
+    try {
+      window.__ZO2Y_AUTH_DEBUG_EVENTS = authDebugEvents.slice(-AUTH_DEBUG_MAX_EVENTS);
+    } catch (_errStore) {}
+    try {
+      window.dispatchEvent(new CustomEvent('zo2y-auth-debug', {
+        detail: event
+      }));
+    } catch (_errEvent) {}
+    authDebug(safeLabel, safePayload);
+    return event;
+  }
+
+  function getAuthDebugSnapshot() {
+    var snapshot = getStoredSessionSnapshot();
+    return {
+      pageKey: pageKey,
+      debugEnabled: authDebugEnabled(),
+      hasStoredSession: hasStoredSupabaseSession(),
+      hasRecentExplicitSignout: hasRecentExplicitSignout(),
+      verifyInFlight: !!verifyInFlight,
+      activeSessionInFlight: !!activeSessionPromise,
+      lastVerifyAt: lastVerifyAt || 0,
+      sessionPreview: snapshot ? {
+        userId: String(snapshot.user && snapshot.user.id || '').trim() || null,
+        email: String(snapshot.user && snapshot.user.email || '').trim() || null,
+        expiresAt: snapshot.expires_at || null
+      } : null,
+      recentEvents: authDebugEvents.slice(-40)
+    };
   }
 
   function getAuthStorageKeys(key) {
@@ -377,6 +424,10 @@
         savedAt: Date.now()
       }));
       clearExplicitSignoutMarker();
+      pushAuthDebugEvent('session:persist', {
+        userId: String(session.user && session.user.id || '').trim() || null,
+        expiresAt: session.expires_at || null
+      });
       return true;
     } catch (_err) {
       return false;
@@ -392,6 +443,7 @@
     removeStorageKeyEverywhere(OLD_PERSIST_STORAGE_KEY);
     removeStorageKeyEverywhere(DURABLE_STORAGE_KEY);
     removeStorageKeyEverywhere(OLD_DURABLE_STORAGE_KEY);
+    pushAuthDebugEvent('session:cleared');
   }
 
   function hasStoredSupabaseSession() {
@@ -829,6 +881,11 @@
       if (session && session.access_token && session.refresh_token) {
         persistSessionSnapshot(session);
       }
+      pushAuthDebugEvent('auth:event', {
+        event: normalizedEvent,
+        userId: String(session && session.user && session.user.id || '').trim() || null,
+        hasSession: !!(session && session.access_token && session.refresh_token)
+      });
       if (normalizedEvent === 'SIGNED_OUT') {
         if (hasRecentExplicitSignout()) {
           clearPersistedSessionSnapshots();
@@ -969,11 +1026,23 @@
 
     var storedSession = getStoredSessionSnapshot();
     if (!storedSession || !storedSession.access_token || !storedSession.refresh_token) return null;
+    pushAuthDebugEvent('session:restore:start', {
+      userId: String(storedSession.user && storedSession.user.id || '').trim() || null,
+      expiresAt: storedSession.expires_at || null
+    });
 
     var restoreResult = await tryRestore(storedSession);
-    if (restoreResult.session) return restoreResult.session;
+    if (restoreResult.session) {
+      pushAuthDebugEvent('session:restore:success', {
+        userId: String(restoreResult.session.user && restoreResult.session.user.id || '').trim() || null
+      });
+      return restoreResult.session;
+    }
 
     if (isRecoverableSessionRaceError(restoreResult.error)) {
+      pushAuthDebugEvent('session:restore:race', {
+        message: String(restoreResult.error && restoreResult.error.message || restoreResult.error || '')
+      });
       await wait(120);
       var latestStoredSession = getStoredSessionSnapshot();
       var changedTokens = !!(
@@ -988,7 +1057,13 @@
 
       if (changedTokens) {
         restoreResult = await tryRestore(latestStoredSession);
-        if (restoreResult.session) return restoreResult.session;
+        if (restoreResult.session) {
+          pushAuthDebugEvent('session:restore:success', {
+            userId: String(restoreResult.session.user && restoreResult.session.user.id || '').trim() || null,
+            source: 'rotated'
+          });
+          return restoreResult.session;
+        }
       }
 
       try {
@@ -996,6 +1071,10 @@
         var liveSession = liveSessionResult && liveSessionResult.data ? liveSessionResult.data.session : null;
         if (liveSession && liveSession.access_token && liveSession.refresh_token) {
           persistSessionSnapshot(liveSession);
+          pushAuthDebugEvent('session:restore:success', {
+            userId: String(liveSession.user && liveSession.user.id || '').trim() || null,
+            source: 'live'
+          });
           return liveSession;
         }
       } catch (_liveError) {}
@@ -1004,33 +1083,55 @@
     if (shouldClearPersistedSessionForError(restoreResult.error)) {
       clearPersistedSessionSnapshots();
     }
+    pushAuthDebugEvent('session:restore:failed', {
+      message: String(restoreResult.error && restoreResult.error.message || restoreResult.error || '')
+    });
     return null;
   }
 
   async function getActiveSession(client, options) {
-    if (activeSessionPromise) return activeSessionPromise;
+    if (activeSessionPromise) {
+      pushAuthDebugEvent('session:get:join');
+      return activeSessionPromise;
+    }
 
     var opts = options || {};
     var activeClient = client || ensureSharedSupabaseClient();
     if (!activeClient || !activeClient.auth || typeof activeClient.auth.getSession !== 'function') return null;
 
     activeSessionPromise = (async function () {
+      var startedAt = Date.now();
       try {
         var sessionResult = await activeClient.auth.getSession();
         var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
         if (session && session.access_token && session.refresh_token) {
           persistSessionSnapshot(session);
+          pushAuthDebugEvent('session:get:live', {
+            userId: String(session.user && session.user.id || '').trim() || null,
+            ms: Date.now() - startedAt
+          });
           return session;
         }
         if (sessionResult && sessionResult.error && shouldClearPersistedSessionForError(sessionResult.error)) {
           clearPersistedSessionSnapshots();
+          pushAuthDebugEvent('session:get:error', {
+            source: 'getSession',
+            message: String(sessionResult.error && sessionResult.error.message || sessionResult.error || ''),
+            ms: Date.now() - startedAt
+          });
           return null;
         }
       } catch (_err) {}
 
       if (opts.restore !== false) {
         var restored = await restoreClientSessionFromSnapshot(activeClient);
-        if (restored && restored.user) return restored;
+        if (restored && restored.user) {
+          pushAuthDebugEvent('session:get:restored', {
+            userId: String(restored.user && restored.user.id || '').trim() || null,
+            ms: Date.now() - startedAt
+          });
+          return restored;
+        }
       }
 
       if (opts.refreshIfNeeded !== false && typeof activeClient.auth.refreshSession === 'function' && hasStoredSupabaseSession() && !hasRecentExplicitSignout()) {
@@ -1039,6 +1140,10 @@
           var refreshed = refreshResult && refreshResult.data ? refreshResult.data.session : null;
           if (refreshed && refreshed.access_token && refreshed.refresh_token) {
             persistSessionSnapshot(refreshed);
+            pushAuthDebugEvent('session:get:refreshed', {
+              userId: String(refreshed.user && refreshed.user.id || '').trim() || null,
+              ms: Date.now() - startedAt
+            });
             return refreshed;
           }
           if (refreshResult && refreshResult.error && shouldClearPersistedSessionForError(refreshResult.error)) {
@@ -1051,6 +1156,11 @@
         }
       }
 
+      pushAuthDebugEvent('session:get:none', {
+        restore: opts.restore !== false,
+        refresh: opts.refreshIfNeeded !== false,
+        ms: Date.now() - startedAt
+      });
       return null;
     })();
 
@@ -1312,6 +1422,17 @@
     }
 
     persistSessionSnapshot(session);
+    pushAuthDebugEvent('redirect:finish:start', {
+      flow: flow,
+      userId: String(session.user && session.user.id || '').trim() || null,
+      next: nextPath
+    });
+    if (flow === 'login') {
+      void persistReferralMetadata(client, session.user);
+      void ensureAuthProfile(client, session.user);
+      redirectToPostAuthTarget(nextPath);
+      return true;
+    }
     if (flow === 'signup') {
       var bootstrapPayload = buildPostAuthBootstrapPayload(flow, session);
       if (bootstrapPayload) setPendingPostAuthBootstrap(bootstrapPayload);
@@ -1532,7 +1653,12 @@
     if (verifyInFlight) return verifyInFlight;
 
     verifyInFlight = (async function () {
+      var startedAt = Date.now();
       var authenticated = false;
+      pushAuthDebugEvent('verify:start', {
+        force: !!force,
+        pageKey: pageKey
+      });
       try {
         if (!(await waitForSupabase(7000))) {
           authenticated = hasStoredSupabaseSession();
@@ -1545,6 +1671,11 @@
             return false;
           }
           dispatchGateVerified(authenticated);
+          pushAuthDebugEvent('verify:done', {
+            authenticated: authenticated,
+            source: 'storage-only',
+            ms: Date.now() - startedAt
+          });
           return authenticated;
         }
 
@@ -1585,9 +1716,14 @@
 
         dispatchGateVerified(authenticated);
         lastVerifyAt = Date.now();
+        pushAuthDebugEvent('verify:done', {
+          authenticated: authenticated,
+          source: 'live',
+          ms: Date.now() - startedAt
+        });
         return authenticated;
       } catch (error) {
-        authDebug('verifyAndApplySession:error', {
+        pushAuthDebugEvent('verify:error', {
           message: String(error && error.message || error || '')
         });
         if (shouldClearPersistedSessionForError(error)) {
@@ -1605,6 +1741,11 @@
           redirectToLogin(window.location.pathname + window.location.search + window.location.hash);
           return false;
         }
+        pushAuthDebugEvent('verify:done', {
+          authenticated: authenticated,
+          source: 'error-fallback',
+          ms: Date.now() - startedAt
+        });
         return authenticated;
       } finally {
         verifyInFlight = null;
@@ -1686,26 +1827,20 @@
     window.__ZO2Y_MARK_EXPLICIT_SIGNOUT = markExplicitSignout;
     window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT = clearExplicitSignoutMarker;
     window.__ZO2Y_AUTH_DIAGNOSTICS = function () {
-      var snapshot = getStoredSessionSnapshot();
-      return {
-        pageKey: pageKey,
-        debugEnabled: authDebugEnabled(),
-        hasStoredSession: hasStoredSupabaseSession(),
-        hasRecentExplicitSignout: hasRecentExplicitSignout(),
-        oauthFlow: safeGetAnyLocalStorage([OAUTH_FLOW_KEY, OLD_OAUTH_FLOW_KEY]),
-        postAuthRedirect: safeGetAnyLocalStorage([POST_AUTH_REDIRECT_KEY, OLD_POST_AUTH_REDIRECT_KEY]),
-        pendingBootstrap: readPendingPostAuthBootstrap(),
-        sessionPreview: snapshot ? {
-          userId: String(snapshot.user && snapshot.user.id || '').trim() || null,
-          email: String(snapshot.user && snapshot.user.email || '').trim() || null,
-          expiresAt: snapshot.expires_at || null
-        } : null
-      };
+      var snapshot = getAuthDebugSnapshot();
+      snapshot.oauthFlow = safeGetAnyLocalStorage([OAUTH_FLOW_KEY, OLD_OAUTH_FLOW_KEY]);
+      snapshot.postAuthRedirect = safeGetAnyLocalStorage([POST_AUTH_REDIRECT_KEY, OLD_POST_AUTH_REDIRECT_KEY]);
+      snapshot.pendingBootstrap = readPendingPostAuthBootstrap();
+      return snapshot;
     };
     window.__ZO2Y_SET_AUTH_DEBUG = function (enabled) {
       if (enabled) return safeSetLocalStorage(AUTH_DEBUG_KEY, '1');
       safeRemoveLocalStorage(AUTH_DEBUG_KEY);
       return true;
+    };
+    window.__ZO2Y_AUTH_DEBUG = {
+      snapshot: getAuthDebugSnapshot,
+      setEnabled: window.__ZO2Y_SET_AUTH_DEBUG
     };
 
     window.ZO2Y_AUTH = {
@@ -1762,6 +1897,7 @@
       markExplicitSignout: markExplicitSignout,
       clearExplicitSignout: clearExplicitSignoutMarker,
       hasRecentExplicitSignout: hasRecentExplicitSignout,
+      getDebugSnapshot: getAuthDebugSnapshot,
       redirectToOnboarding: redirectToOnboarding,
       redirectToPostAuthTarget: redirectToPostAuthTarget
     };

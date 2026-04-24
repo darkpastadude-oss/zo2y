@@ -383,6 +383,17 @@ const HOME_HIGH_PRIORITY_IMAGE_COUNT = 2;
         authGate: (() => {
           try { return getHomeAuthGateState(); } catch (_err) { return null; }
         })(),
+        auth: (() => {
+          try {
+            if (window.__ZO2Y_AUTH_DEBUG && typeof window.__ZO2Y_AUTH_DEBUG.snapshot === 'function') {
+              return window.__ZO2Y_AUTH_DEBUG.snapshot();
+            }
+            if (typeof window.__ZO2Y_AUTH_DIAGNOSTICS === 'function') {
+              return window.__ZO2Y_AUTH_DIAGNOSTICS();
+            }
+          } catch (_err) {}
+          return null;
+        })(),
         channels,
         events: homeDebugState.events.slice(-80)
       };
@@ -411,6 +422,13 @@ const HOME_HIGH_PRIORITY_IMAGE_COUNT = 2;
     homeDebugEvent('script:loaded', {
       href: String(window.location?.href || ''),
       sw: String(navigator?.serviceWorker?.controller?.scriptURL || '')
+    });
+    window.addEventListener('zo2y-auth-debug', (event) => {
+      const detail = event?.detail || {};
+      const payload = detail.payload && typeof detail.payload === 'object'
+        ? detail.payload
+        : {};
+      homeDebugEvent(`auth:${String(detail.label || 'event')}`, payload);
     });
 
     function scheduleHomeDebugRender() {
@@ -6687,15 +6705,42 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function setupHomeAuthListener() {
       if (homeAuthListenerReady) return;
+      const startedAt = homeDebugNow();
       const client = await ensureHomeSupabase();
-      if (!client) return;
+      if (!client) {
+        homeDebugEvent('auth:listener:missing-client');
+        return;
+      }
       homeAuthListenerReady = true;
-      const {
-        data: { user }
-      } = await client.auth.getUser();
+      let user = null;
+      const authRuntime = window.ZO2Y_AUTH || null;
+      try {
+        if (authRuntime && typeof authRuntime.getActiveSession === 'function') {
+          const session = await authRuntime.getActiveSession(client, {
+            refreshIfNeeded: true,
+            restore: true
+          });
+          user = session?.user || null;
+        } else if (typeof client.auth.getSession === 'function') {
+          const sessionResult = await client.auth.getSession();
+          user = sessionResult?.data?.session?.user || null;
+        }
+        if (!user && typeof client.auth.getUser === 'function') {
+          const userResult = await client.auth.getUser();
+          user = userResult?.data?.user || null;
+        }
+      } catch (error) {
+        homeDebugEvent('auth:listener:error', {
+          message: String(error?.message || error || '')
+        });
+      }
       homeCurrentUser = user || null;
+      homeDebugEvent('auth:listener:ready', {
+        userId: String(homeCurrentUser?.id || '').trim() || null,
+        ms: Math.round(homeDebugNow() - startedAt)
+      });
       queueHomeAuthUiSync({ refreshPersonalization: true });
-      client.auth.onAuthStateChange((_event, session) => {
+      client.auth.onAuthStateChange((event, session) => {
         homeCurrentUser = session?.user || null;
         if (!homeCurrentUser) {
           resetHomeProfileLabelCache();
@@ -6705,11 +6750,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           homeLastPersonalizationAt = 0;
           homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
         }
+        homeDebugEvent('auth:listener:event', {
+          event: String(event || '').trim().toUpperCase(),
+          userId: String(homeCurrentUser?.id || '').trim() || null,
+          hasSession: !!(session?.access_token && session?.refresh_token)
+        });
         queueHomeAuthUiSync({ refreshPersonalization: true });
       });
     }
 
     async function ensureHomeActiveUser(client, options = {}) {
+      const startedAt = homeDebugNow();
       const activeClient = client || await ensureHomeSupabase();
       if (!activeClient?.auth) return homeCurrentUser || null;
 
@@ -6719,13 +6770,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const allowRefresh = options.allowRefresh === true;
 
       if (preferCached && homeCurrentUser?.id) {
+        homeDebugEvent('auth:user:cached', {
+          userId: String(homeCurrentUser.id || '').trim(),
+          ms: Math.round(homeDebugNow() - startedAt)
+        });
         return homeCurrentUser;
-      }
-
-      if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
-        try {
-          window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
-        } catch (_err) {}
       }
 
       let sessionUser = null;
@@ -6738,13 +6787,37 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             restore: true
           });
           sessionUser = activeSession?.user || null;
+          if (sessionUser?.id) {
+            homeDebugEvent('auth:user:session', {
+              userId: String(sessionUser.id || '').trim(),
+              refresh: !!allowRefresh,
+              ms: Math.round(homeDebugNow() - startedAt)
+            });
+          }
+        } catch (error) {
+          homeDebugEvent('auth:user:session-error', {
+            message: String(error?.message || error || ''),
+            refresh: !!allowRefresh
+          });
+        }
+      }
+
+      if (!sessionUser && !authRuntime && typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+        try {
+          window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
         } catch (_err) {}
       }
 
-      if (!sessionUser && typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
+      if (!sessionUser && !authRuntime && typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
         try {
           const restoredSession = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(activeClient);
           sessionUser = restoredSession?.user || restoredSession?.session?.user || null;
+          if (sessionUser?.id) {
+            homeDebugEvent('auth:user:restore-fallback', {
+              userId: String(sessionUser.id || '').trim(),
+              ms: Math.round(homeDebugNow() - startedAt)
+            });
+          }
         } catch (_err) {}
       }
 
@@ -6752,7 +6825,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         try {
           const userResult = await activeClient.auth.getUser();
           sessionUser = userResult?.data?.user || null;
-        } catch (_err) {}
+          if (sessionUser?.id) {
+            homeDebugEvent('auth:user:remote', {
+              userId: String(sessionUser.id || '').trim(),
+              ms: Math.round(homeDebugNow() - startedAt)
+            });
+          }
+        } catch (error) {
+          homeDebugEvent('auth:user:remote-error', {
+            message: String(error?.message || error || '')
+          });
+        }
       }
 
       if (sessionUser?.id) {
@@ -6764,16 +6847,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
 
       if (useCachedOnFail && homeCurrentUser?.id) {
+        homeDebugEvent('auth:user:cached-fallback', {
+          userId: String(homeCurrentUser.id || '').trim(),
+          ms: Math.round(homeDebugNow() - startedAt)
+        });
         return homeCurrentUser;
       }
 
       if (options.clearOnFail) {
         homeCurrentUser = null;
       }
+      homeDebugEvent('auth:user:none', {
+        refresh: !!allowRefresh,
+        clearOnFail: !!options.clearOnFail,
+        ms: Math.round(homeDebugNow() - startedAt)
+      });
       return null;
     }
 
     async function getVerifiedHomeUser(client) {
+      homeDebugEvent('auth:user:verify-start');
       for (let attempt = 0; attempt < 4; attempt += 1) {
         const sessionUser = await ensureHomeActiveUser(client, {
           preferCached: attempt === 0,
@@ -6782,11 +6875,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           allowRefresh: attempt >= 1,
           clearOnFail: attempt === 3
         });
-        if (sessionUser?.id) return sessionUser;
+        if (sessionUser?.id) {
+          homeDebugEvent('auth:user:verify-hit', {
+            attempt: attempt + 1,
+            userId: String(sessionUser.id || '').trim()
+          });
+          return sessionUser;
+        }
         if (attempt < 3) {
+          homeDebugEvent('auth:user:verify-retry', {
+            nextAttempt: attempt + 2
+          });
           await new Promise((resolve) => setTimeout(resolve, 250));
         }
       }
+      homeDebugEvent('auth:user:verify-miss');
       return null;
     }
     window.getVerifiedHomeUser = getVerifiedHomeUser;
@@ -6880,6 +6983,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const user = await getVerifiedHomeUser(client);
           homeCurrentUser = user;
           const isLoggedIn = !!user;
+          homeDebugEvent('auth:ui:resolved', {
+            loggedIn: isLoggedIn,
+            userId: String(user?.id || '').trim() || null
+          });
           if (isLoggedIn) {
             if (loginBtn) loginBtn.style.display = 'none';
             if (signupBtn) signupBtn.style.display = 'none';
@@ -6912,6 +7019,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             if (sidebarProfileBtn) sidebarProfileBtn.style.display = 'none';
           }
         } catch (_e) {
+          homeDebugEvent('auth:ui:error', {
+            message: String(_e?.message || _e || '')
+          });
           homeCurrentUser = null;
           resetHomeProfileLabelCache();
           if (loginBtn) loginBtn.style.display = 'inline-flex';
@@ -11284,17 +11394,32 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function bootAuthenticatedHome() {
       if (homeAppBootPromise) return homeAppBootPromise;
       homeAppBootPromise = (async () => {
+        homeDebugEvent('boot:start', {
+          authShell: String(getHomeAuthGateState()?.authShell || '').trim() || null
+        });
         await setupHomeAuthListener();
+        homeDebugEvent('boot:auth-listener-ready', {
+          userId: String(homeCurrentUser?.id || '').trim() || null
+        });
         await completeHomeOAuthReturnIfNeeded();
+        homeDebugEvent('boot:oauth-complete');
         if (hasHomeAuthReturnParams()) {
           clearHomeAuthParamsFromUrl();
         }
         await initAuthUi();
+        homeDebugEvent('boot:auth-ui-ready', {
+          userId: String(homeCurrentUser?.id || '').trim() || null
+        });
         await finishPendingPostAuthBootstrap();
+        homeDebugEvent('boot:post-auth-bootstrap-finished');
         await initUniversalHome();
+        homeDebugEvent('boot:home-ready');
         scheduleDeferredHomeStartupTasks();
       })().catch((error) => {
         homeAppBootPromise = null;
+        homeDebugEvent('boot:error', {
+          message: String(error?.message || error || '')
+        });
         throw error;
       });
       return homeAppBootPromise;
