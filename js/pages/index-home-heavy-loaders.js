@@ -1736,6 +1736,7 @@ async function loadBooks(signal) {
     // We intentionally redeclare `loadBooks` here so it wins over any older/broken implementation above.
     async function loadBooks(signal) {
       const targetCount = getHomeChannelTargetItems();
+      const BOOKS_PER_PAGE = Math.max(20, targetCount);
       const minHealthy = Math.min(Number(targetCount || 0) || 0, 8) || 8;
 
       const setBooksDebug = (stage, detail = {}) => {
@@ -1840,15 +1841,32 @@ async function loadBooks(signal) {
         return { books, numFound };
       }
 
+      async function fetchPopularBooks(page = 1, limit = BOOKS_PER_PAGE) {
+        return booksFetch('/popular', {
+          page,
+          limit,
+          subject: 'fiction',
+          language: 'en',
+          orderBy: 'relevance'
+        });
+      }
+
+      async function fetchTrendingBooks(limit = BOOKS_PER_PAGE) {
+        return booksFetch('/trending', {
+          period: 'weekly',
+          limit
+        });
+      }
+
       async function loadCuratedPopularBooks() {
         const [popularResult, trendingResult] = await Promise.allSettled([
-          booksFetch('/popular', { page: 1, limit: targetCount, subject: 'fiction', language: 'en', orderBy: 'relevance' }),
-          booksFetch('/trending', { period: 'weekly', limit: targetCount })
+          fetchPopularBooks(1, BOOKS_PER_PAGE),
+          fetchTrendingBooks(BOOKS_PER_PAGE)
         ]);
         const popular = popularResult.status === 'fulfilled' ? popularResult.value : null;
         const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
-        const popularBooks = Array.isArray(popular?.books) ? popular.books.slice(0, targetCount) : [];
-        const trendingBooks = Array.isArray(trending?.books) ? trending.books.slice(0, targetCount) : [];
+        const popularBooks = Array.isArray(popular?.books) ? popular.books.slice(0, BOOKS_PER_PAGE) : [];
+        const trendingBooks = Array.isArray(trending?.books) ? trending.books.slice(0, BOOKS_PER_PAGE) : [];
         const merged = [];
         const seen = new Set();
         [...popularBooks, ...trendingBooks].forEach((book) => {
@@ -1859,9 +1877,32 @@ async function loadBooks(signal) {
           seen.add(key);
           merged.push(book);
         });
+
+        if (merged.length < BOOKS_PER_PAGE) {
+          const needed = Math.max(1, BOOKS_PER_PAGE - merged.length);
+          const [popularPage2, trendingPage2] = await Promise.allSettled([
+            fetchPopularBooks(2, Math.max(10, needed)),
+            fetchTrendingBooks(Math.max(10, needed))
+          ]);
+          const extraPopular = popularPage2.status === 'fulfilled' && Array.isArray(popularPage2.value?.books)
+            ? popularPage2.value.books
+            : [];
+          const extraTrending = trendingPage2.status === 'fulfilled' && Array.isArray(trendingPage2.value?.books)
+            ? trendingPage2.value.books
+            : [];
+          [...extraPopular, ...extraTrending].forEach((book) => {
+            const title = normalizeBookSeedText(book?.title || '');
+            const author = normalizeBookSeedText(book?.author || '');
+            const key = `${title}::${author}`;
+            if (!title || seen.has(key)) return;
+            seen.add(key);
+            merged.push(book);
+          });
+        }
+
         return {
-          books: merged.slice(0, targetCount),
-          numFound: Math.max(Number(popular?.numFound || 0), Number(trending?.numFound || 0), merged.length, targetCount * 2)
+          books: merged.slice(0, BOOKS_PER_PAGE),
+          numFound: Math.max(Number(popular?.numFound || 0), Number(trending?.numFound || 0), merged.length, BOOKS_PER_PAGE * 2)
         };
       }
 

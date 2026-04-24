@@ -3720,10 +3720,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         showHomeToast('List service unavailable', true);
         return result;
       }
-      if (!homeCurrentUser?.id) {
+      const activeUser = await ensureHomeActiveUser(client, {
+        preferCached: false,
+        useCachedOnFail: false,
+        allowRemoteUser: true,
+        allowRefresh: true
+      });
+      if (!activeUser?.id) {
+        queueHomeAuthUiSync({ refreshPersonalization: true });
         window.location.href = 'login.html';
         return result;
       }
+      homeCurrentUser = activeUser;
 
       const mediaType = String(payload.mediaType || '').toLowerCase();
       const listType = payload.listType;
@@ -3740,7 +3748,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             return await ListUtils.ensureBookRecord(client, {
               id: String(itemId),
               title: payload.title || '',
-              authors: payload.subtitle || '',
+              authors: getHomeBookAuthorsText(payload.subtitle),
               thumbnail: payload.image || ''
             });
           }
@@ -3784,7 +3792,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const { data: existing } = await client
               .from('user_favorite_teams')
               .select('id')
-              .eq('user_id', homeCurrentUser.id)
+              .eq('user_id', activeUser.id)
               .eq('team_id', teamId)
               .maybeSingle();
             shouldSave = !existing?.id;
@@ -3794,7 +3802,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const { error: deleteError } = await client
               .from('user_favorite_teams')
               .delete()
-              .eq('user_id', homeCurrentUser.id)
+              .eq('user_id', activeUser.id)
               .eq('team_id', teamId);
             if (deleteError) {
               showHomeToast('Could not update list', true);
@@ -3817,7 +3825,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
           const { error: insertError } = await client
             .from('user_favorite_teams')
-            .upsert({ user_id: homeCurrentUser.id, team_id: teamId }, { onConflict: 'user_id,team_id' });
+            .upsert({ user_id: activeUser.id, team_id: teamId }, { onConflict: 'user_id,team_id' });
           if (insertError) {
             showHomeToast('Could not update list', true);
             return result;
@@ -3826,7 +3834,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             showHomeToast('Added to favorites');
             result.ok = true;
             result.saved = true;
-            markStartedHomeListFlow(homeCurrentUser?.id);
+            markStartedHomeListFlow(activeUser.id);
             invalidateActivitySignals();
             return result;
         }
@@ -3845,7 +3853,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const { error: deleteError } = await client
               .from(table)
               .delete()
-              .eq('user_id', homeCurrentUser.id)
+              .eq('user_id', activeUser.id)
               .eq(itemField, itemId)
               .eq('list_type', listType);
             if (deleteError) {
@@ -3865,7 +3873,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               showHomeToast('Book info is unavailable right now.', true);
               return result;
             }
-            const insertRow = { user_id: homeCurrentUser.id, list_type: listType };
+            const insertRow = { user_id: activeUser.id, list_type: listType };
             insertRow[itemField] = itemId;
             const { error: insertError } = await client.from(table).insert(insertRow);
             if (insertError && String(insertError.code || '') !== '23505') {
@@ -3875,7 +3883,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             showHomeToast('Added to list');
             result.ok = true;
             result.saved = true;
-            markStartedHomeListFlow(homeCurrentUser?.id);
+            markStartedHomeListFlow(activeUser.id);
             invalidateActivitySignals();
             return result;
           }
@@ -3883,7 +3891,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const { data: existing } = await client
             .from(table)
             .select('id')
-            .eq('user_id', homeCurrentUser.id)
+            .eq('user_id', activeUser.id)
             .eq(itemField, itemId)
             .eq('list_type', listType)
             .limit(1)
@@ -3902,7 +3910,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
 
           await ensureLinkedMediaRecord(itemId);
-          const insertRow = { user_id: homeCurrentUser.id, list_type: listType };
+          const insertRow = { user_id: activeUser.id, list_type: listType };
           insertRow[itemField] = itemId;
           const { error: insertError } = await client.from(table).insert(insertRow);
           if (insertError && String(insertError.code || '') !== '23505') {
@@ -3912,7 +3920,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           showHomeToast('Added to list');
           result.ok = true;
           result.saved = true;
-          markStartedHomeListFlow(homeCurrentUser?.id);
+          markStartedHomeListFlow(activeUser.id);
           invalidateActivitySignals();
           return result;
         }
@@ -3923,7 +3931,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             showHomeToast('Could not update list', true);
             return result;
           }
-          const listId = await ensureRestaurantList(homeCurrentUser.id, listType);
+          const listId = await ensureRestaurantList(activeUser.id, listType);
           if (!listId) {
             showHomeToast('Could not prepare list', true);
             return result;
@@ -3957,6 +3965,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             showHomeToast('Added to list');
             result.ok = true;
             result.saved = true;
+            markStartedHomeListFlow(activeUser.id);
             invalidateActivitySignals();
             return result;
           }
@@ -3990,6 +3999,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           showHomeToast('Added to list');
           result.ok = true;
           result.saved = true;
+          markStartedHomeListFlow(activeUser.id);
           invalidateActivitySignals();
           return result;
         }
@@ -4004,9 +4014,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       (listKeys || []).forEach((key) => {
         status[key] = false;
       });
-      if (!homeCurrentUser?.id || !listKeys?.length) return status;
+      if (!listKeys?.length) return status;
       const client = await ensureHomeSupabase();
       if (!client) return status;
+      const activeUser = await ensureHomeActiveUser(client, {
+        preferCached: false,
+        useCachedOnFail: false,
+        allowRemoteUser: true,
+        allowRefresh: false
+      });
+      if (!activeUser?.id) return status;
 
       try {
         if (mediaType === 'sports') {
@@ -4015,7 +4032,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const { data } = await client
             .from('user_favorite_teams')
             .select('team_id')
-            .eq('user_id', homeCurrentUser.id)
+            .eq('user_id', activeUser.id)
             .eq('team_id', teamId)
             .maybeSingle();
           if (data?.team_id && 'favorites' in status) status.favorites = true;
@@ -4030,7 +4047,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const { data } = await client
             .from(table)
             .select('list_type')
-            .eq('user_id', homeCurrentUser.id)
+            .eq('user_id', activeUser.id)
             .eq(itemField, normalizedItemId)
             .in('list_type', listKeys);
           (data || []).forEach((row) => {
@@ -4054,7 +4071,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const { data: lists } = await client
             .from('lists')
             .select('id,title')
-            .eq('user_id', homeCurrentUser.id)
+            .eq('user_id', activeUser.id)
             .in('title', titles);
 
           const listIdToKey = {};
@@ -4097,7 +4114,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (stateEl) stateEl.textContent = 'Add';
       });
 
-      if (!homeCurrentUser?.id) return;
       const status = await getHomeListStatusMap(mediaType, itemId, listKeys);
       menu.querySelectorAll('.rail-menu-item[data-action="save"]').forEach((btn) => {
         const key = String(btn.getAttribute('data-list') || '');
@@ -4221,15 +4237,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function primeHomeMenuCachesForType(mediaType) {
       const type = String(mediaType || '').toLowerCase();
-      if (!type || !homeCurrentUser?.id || !window.ListUtils || !supportsHomeLists(type)) return;
-      const scopeKey = `${homeCurrentUser.id}:${type}`;
+      if (!type || !window.ListUtils || !supportsHomeLists(type)) return;
+      const client = await ensureHomeSupabase();
+      if (!client) return;
+      const activeUser = await ensureHomeActiveUser(client, {
+        preferCached: false,
+        useCachedOnFail: false,
+        allowRemoteUser: true,
+        allowRefresh: false
+      });
+      if (!activeUser?.id) return;
+      const scopeKey = `${activeUser.id}:${type}`;
       if (homeItemMenuCache.primingScopes.has(scopeKey)) return;
       homeItemMenuCache.primingScopes.add(scopeKey);
 
       try {
-        const client = await ensureHomeSupabase();
-        if (!client) return;
-
         const cfg = getMediaListConfig(type);
         const quickRows = Array.isArray(cfg?.rows) ? cfg.rows : [];
         const listKeys = quickRows.map((row) => row.key).filter(Boolean);
@@ -4241,7 +4263,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const { data } = await client
             .from(table)
             .select(`${itemField},list_type`)
-            .eq('user_id', homeCurrentUser.id)
+            .eq('user_id', activeUser.id)
             .in(itemField, visibleItemIds)
             .in('list_type', listKeys);
           const grouped = new Map();
@@ -4267,7 +4289,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
         let customLists = readHomeMenuCustomListsCache(type);
         if (!customLists.length) {
-          customLists = await ListUtils.loadCustomLists(client, homeCurrentUser.id, type);
+          customLists = await ListUtils.loadCustomLists(client, activeUser.id, type);
           writeHomeMenuCustomListsCache(type, customLists);
         }
 
@@ -4431,7 +4453,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         return {
           id: item.itemId,
           title: item.title || '',
-          authors: item.subtitle || '',
+          authors: getHomeBookAuthorsText(item.subtitle),
           thumbnail: item.image || ''
         };
       }
@@ -4571,7 +4593,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function loadItemMenuData() {
       const item = homeItemMenuState.currentItem;
       if (!item) return;
-      const startedSavingKeySeen = hasStartedHomeListFlow(homeCurrentUser?.id);
+      const activeUser = await ensureHomeActiveUser(null, {
+        preferCached: false,
+        useCachedOnFail: true,
+        allowRemoteUser: true,
+        allowRefresh: false
+      });
+      const activeUserId = String(activeUser?.id || '').trim();
+      const startedSavingKeySeen = hasStartedHomeListFlow(activeUserId);
       homeItemMenuState.quickRows = getQuickRowsForMenu(item.mediaType);
       homeItemMenuState.pendingQuickKeys = new Set();
       homeItemMenuState.quickStatus = readHomeMenuQuickStatusCache(
@@ -4591,14 +4620,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         || homeItemMenuState.customLists.length > 0;
       if (hasCachedSaving) {
         homeItemMenuState.forceShowHelperOnce = false;
-        markStartedHomeListFlow(homeCurrentUser?.id);
+        markStartedHomeListFlow(activeUserId);
       }
       homeItemMenuState.hasStartedSaving = hasCachedSaving || (startedSavingKeySeen && !homeItemMenuState.forceShowHelperOnce);
       renderItemMenuQuickLists();
       renderItemMenuCustomLists();
 
       const cfg = getHomeListConfig(item.mediaType);
-      if (!homeCurrentUser?.id || !cfg || !window.ListUtils) {
+      if (!activeUserId || !cfg || !window.ListUtils) {
         homeItemMenuState.customLists = [];
         homeItemMenuState.selectedCustomLists = new Set();
         renderItemMenuQuickLists();
@@ -4610,7 +4639,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!client) return;
       const [statusMap, customLists] = await Promise.all([
         getHomeListStatusMap(item.mediaType, item.itemId, homeItemMenuState.quickRows.map((row) => row.key).filter(Boolean)),
-        ListUtils.loadCustomLists(client, homeCurrentUser.id, item.mediaType)
+        ListUtils.loadCustomLists(client, activeUserId, item.mediaType)
       ]);
       homeItemMenuState.quickStatus = statusMap;
       writeHomeMenuQuickStatusCache(item.mediaType, item.itemId, homeItemMenuState.quickStatus, homeItemMenuState.quickRows);
@@ -4619,7 +4648,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const listIds = homeItemMenuState.customLists.map((l) => l.id).filter(Boolean);
       homeItemMenuState.selectedCustomLists = await ListUtils.loadCustomListMembership(
         client,
-        homeCurrentUser.id,
+        activeUserId,
         item.mediaType,
         item.itemId,
         listIds
@@ -4631,7 +4660,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         || homeItemMenuState.customLists.length > 0
       ) {
         homeItemMenuState.hasStartedSaving = true;
-        markStartedHomeListFlow(homeCurrentUser?.id);
+        markStartedHomeListFlow(activeUserId);
       }
       renderItemMenuQuickLists();
       renderItemMenuCustomLists();
@@ -4704,10 +4733,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function toggleMenuCustomList(listId) {
       const item = homeItemMenuState.currentItem;
-      if (!item || !homeCurrentUser?.id || !window.ListUtils) {
+      const activeUser = await ensureHomeActiveUser(null, {
+        preferCached: false,
+        useCachedOnFail: false,
+        allowRemoteUser: true,
+        allowRefresh: true
+      });
+      if (!item || !activeUser?.id || !window.ListUtils) {
         window.location.href = 'login.html';
         return;
       }
+      homeCurrentUser = activeUser;
       const client = await ensureHomeSupabase();
       if (!client) return;
       const next = new Set(homeItemMenuState.selectedCustomLists);
@@ -4720,7 +4756,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       try {
         await ListUtils.saveCustomListChanges(
           client,
-          homeCurrentUser.id,
+          activeUser.id,
           item.mediaType,
           item.itemId,
           [...next],
@@ -4736,7 +4772,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (addedToList && window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
           window.ZO2Y_ANALYTICS.markFirstAction('first_list_item_saved', {
             media_type: item.mediaType,
-            user_id: homeCurrentUser?.id || ''
+            user_id: activeUser.id
           }, { essential: true });
         }
       } catch (_err) {
@@ -4747,12 +4783,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
     }
 
-    function openCreateListModalFromMenu() {
+    async function openCreateListModalFromMenu() {
       const item = homeItemMenuState.currentItem;
-      if (!item || !homeCurrentUser?.id) {
+      const activeUser = await ensureHomeActiveUser(null, {
+        preferCached: false,
+        useCachedOnFail: false,
+        allowRemoteUser: true,
+        allowRefresh: true
+      });
+      if (!item || !activeUser?.id) {
         window.location.href = 'login.html';
         return;
       }
+      homeCurrentUser = activeUser;
       const createModal = document.getElementById('createListModal');
       const itemModal = document.getElementById('itemMenuModal');
       const nameInput = document.getElementById('newListNameInput');
@@ -4779,10 +4822,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function saveNewCustomListFromMenu() {
       const item = homeItemMenuState.currentItem;
-      if (!item || !window.ListUtils || !homeCurrentUser?.id) {
+      const activeUser = await ensureHomeActiveUser(null, {
+        preferCached: false,
+        useCachedOnFail: false,
+        allowRemoteUser: true,
+        allowRefresh: true
+      });
+      if (!item || !window.ListUtils || !activeUser?.id) {
         window.location.href = 'login.html';
         return;
       }
+      homeCurrentUser = activeUser;
       const nameInput = document.getElementById('newListNameInput');
       const title = String(nameInput?.value || '').trim();
       if (!title) {
@@ -4795,7 +4845,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         : { listKind: 'standard', maxRank: null };
       const client = await ensureHomeSupabase();
       if (!client) return;
-      const created = await ListUtils.createCustomList(client, homeCurrentUser.id, item.mediaType, {
+      const created = await ListUtils.createCustomList(client, activeUser.id, item.mediaType, {
         title,
         icon: homeItemMenuState.selectedIcon || 'fas fa-list',
         listKind: tierState.listKind,
@@ -4812,7 +4862,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       ];
       homeItemMenuState.selectedCustomLists.add(created.id);
       homeItemMenuState.hasStartedSaving = true;
-      markStartedHomeListFlow(homeCurrentUser?.id);
+      markStartedHomeListFlow(activeUser.id);
       writeHomeMenuCustomListsCache(item.mediaType, homeItemMenuState.customLists);
       writeHomeMenuMembershipCache(item.mediaType, item.itemId, homeItemMenuState.selectedCustomLists);
       if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
@@ -4914,13 +4964,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function openHomeListsModal(item) {
-      if (!homeCurrentUser?.id) {
+      const client = await ensureHomeSupabase();
+      const activeUser = await ensureHomeActiveUser(client, {
+        preferCached: false,
+        useCachedOnFail: false,
+        allowRemoteUser: true,
+        allowRefresh: true
+      });
+      if (!activeUser?.id) {
         window.location.href = 'login.html';
         return;
       }
+      homeCurrentUser = activeUser;
       const cfg = getHomeListConfig(item.mediaType);
       if (!cfg) return;
-      const client = await ensureHomeSupabase();
       if (!client) return;
       homeCustomListState.mediaType = String(item.mediaType || '').toLowerCase();
       homeCustomListState.itemId = coerceHomeItemId(homeCustomListState.mediaType, item.itemId);
@@ -4936,13 +4993,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!modal || !container) return;
       container.innerHTML = '<div class="chip">Loading...</div>';
       homeCustomListState.customLists = window.ListUtils
-        ? await ListUtils.loadCustomLists(client, homeCurrentUser.id, homeCustomListState.mediaType)
+        ? await ListUtils.loadCustomLists(client, activeUser.id, homeCustomListState.mediaType)
         : [];
       const listIds = homeCustomListState.customLists.map(l => l.id);
       homeCustomListState.selectedLists = window.ListUtils
         ? await ListUtils.loadCustomListMembership(
           client,
-          homeCurrentUser.id,
+          activeUser.id,
           homeCustomListState.mediaType,
           homeCustomListState.itemId,
           listIds
@@ -4969,7 +5026,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function saveHomeListChanges() {
       const cfg = getHomeListConfig(homeCustomListState.mediaType);
       const client = await ensureHomeSupabase();
-      if (!cfg || !client || !homeCurrentUser?.id || !homeCustomListState.itemId) return;
+      const activeUser = await ensureHomeActiveUser(client, {
+        preferCached: false,
+        useCachedOnFail: false,
+        allowRemoteUser: true,
+        allowRefresh: true
+      });
+      if (!cfg || !client || !activeUser?.id || !homeCustomListState.itemId) return;
+      homeCurrentUser = activeUser;
       if (window.ListUtils) {
         const mediaType = String(homeCustomListState.mediaType || '').toLowerCase();
         let itemPayload = null;
@@ -4977,7 +5041,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           itemPayload = {
             id: homeCustomListState.itemId,
             title: homeCustomListState.title,
-            authors: homeCustomListState.subtitle,
+            authors: getHomeBookAuthorsText(homeCustomListState.subtitle),
             thumbnail: homeCustomListState.image
           };
         } else if (mediaType === 'music') {
@@ -4990,7 +5054,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         await ListUtils.saveCustomListChanges(
           client,
-          homeCurrentUser.id,
+          activeUser.id,
           homeCustomListState.mediaType,
           homeCustomListState.itemId,
           [...homeCustomListState.selectedLists],
@@ -5004,7 +5068,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function createHomeList() {
       const input = document.getElementById('newHomeListName');
       const client = await ensureHomeSupabase();
-      if (!input || !client || !homeCurrentUser?.id) return;
+      const activeUser = await ensureHomeActiveUser(client, {
+        preferCached: false,
+        useCachedOnFail: false,
+        allowRemoteUser: true,
+        allowRefresh: true
+      });
+      if (!input || !client || !activeUser?.id) return;
+      homeCurrentUser = activeUser;
       const title = input.value.trim();
       if (!title) return;
       const exists = homeCustomListState.customLists.some(
@@ -5021,7 +5092,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const data = window.ListUtils
         ? await ListUtils.createCustomList(
           client,
-          homeCurrentUser.id,
+          activeUser.id,
           homeCustomListState.mediaType,
           {
             title,
@@ -5045,11 +5116,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const nextTitle = prompt('Rename list', currentTitle || '');
       if (!nextTitle || !nextTitle.trim()) return;
       const client = await ensureHomeSupabase();
-      if (!client || !homeCurrentUser?.id) return;
+      const activeUser = await ensureHomeActiveUser(client, {
+        preferCached: false,
+        useCachedOnFail: false,
+        allowRemoteUser: true,
+        allowRefresh: true
+      });
+      if (!client || !activeUser?.id) return;
+      homeCurrentUser = activeUser;
       const ok = window.ListUtils
         ? await ListUtils.renameCustomList(
           client,
-          homeCurrentUser.id,
+          activeUser.id,
           homeCustomListState.mediaType,
           listId,
           nextTitle.trim()
@@ -6659,48 +6737,95 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       });
     }
 
+    async function ensureHomeActiveUser(client, options = {}) {
+      const activeClient = client || await ensureHomeSupabase();
+      if (!activeClient?.auth) return homeCurrentUser || null;
+
+      const preferCached = options.preferCached !== false;
+      const useCachedOnFail = options.useCachedOnFail !== false;
+      const allowRemoteUser = options.allowRemoteUser !== false;
+      const allowRefresh = options.allowRefresh === true;
+
+      if (preferCached && homeCurrentUser?.id) {
+        return homeCurrentUser;
+      }
+
+      if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+        try {
+          window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+        } catch (_err) {}
+      }
+
+      let sessionUser = null;
+
+      try {
+        const sessionResult = await activeClient.auth.getSession();
+        sessionUser = sessionResult?.data?.session?.user || null;
+      } catch (_err) {}
+
+      if (!sessionUser && typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
+        try {
+          const restoredSession = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(activeClient);
+          sessionUser = restoredSession?.user || restoredSession?.session?.user || null;
+        } catch (_err) {}
+      }
+
+      if (!sessionUser && allowRemoteUser && typeof activeClient.auth.getUser === 'function') {
+        try {
+          const userResult = await activeClient.auth.getUser();
+          sessionUser = userResult?.data?.user || null;
+        } catch (_err) {}
+      }
+
+      if (!sessionUser && allowRefresh && typeof activeClient.auth.refreshSession === 'function') {
+        try {
+          const refreshResult = await activeClient.auth.refreshSession();
+          sessionUser = refreshResult?.data?.session?.user || null;
+        } catch (_err) {}
+      }
+
+      if (sessionUser?.id) {
+        if (String(homeCurrentUser?.id || '').trim() !== String(sessionUser.id || '').trim()) {
+          resetHomeProfileLabelCache();
+        }
+        homeCurrentUser = sessionUser;
+        return sessionUser;
+      }
+
+      if (useCachedOnFail && homeCurrentUser?.id) {
+        return homeCurrentUser;
+      }
+
+      if (options.clearOnFail) {
+        homeCurrentUser = null;
+      }
+      return null;
+    }
+
     async function getVerifiedHomeUser(client) {
-      let refreshAttempted = false;
-      let remoteUserAttempted = false;
       for (let attempt = 0; attempt < 4; attempt += 1) {
-        const { data: sessionData } = await client.auth.getSession();
-        const session = sessionData?.session || null;
-        const sessionUser = session?.user || null;
-        if (sessionUser?.id) {
-          return sessionUser;
-        }
-        if (!session) {
-          if (attempt < 3) {
-            await new Promise((resolve) => setTimeout(resolve, 250));
-            continue;
-          }
-          return null;
-        }
-
-        if (!remoteUserAttempted && client?.auth && typeof client.auth.getUser === 'function') {
-          remoteUserAttempted = true;
-          const { data: userData, error: userError } = await client.auth.getUser();
-          if (!userError && userData?.user) {
-            return userData.user;
-          }
-        }
-
-        if (!refreshAttempted && client?.auth && typeof client.auth.refreshSession === 'function') {
-          refreshAttempted = true;
-          const { data: refreshed, error: refreshError } = await client.auth.refreshSession();
-          if (!refreshError && refreshed?.session?.user) {
-            return refreshed.session.user;
-          }
-        }
+        const sessionUser = await ensureHomeActiveUser(client, {
+          preferCached: attempt === 0,
+          useCachedOnFail: attempt === 0,
+          allowRemoteUser: true,
+          allowRefresh: attempt >= 1,
+          clearOnFail: attempt === 3
+        });
+        if (sessionUser?.id) return sessionUser;
         if (attempt < 3) {
           await new Promise((resolve) => setTimeout(resolve, 250));
-          continue;
         }
-        return null;
       }
       return null;
     }
     window.getVerifiedHomeUser = getVerifiedHomeUser;
+
+    function getHomeBookAuthorsText(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      const authorPart = raw.split('|')[0];
+      return String(authorPart || raw).trim();
+    }
 
     function getHomeProfileLabelFallback(user) {
       // Never fall back to Gmail/OAuth nicknames or email prefixes.
@@ -9351,7 +9476,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         const script = document.createElement('script');
       // Keep this in sync with `sw.js` precache list to avoid refresh loading stale home loaders.
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260424a';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260424b';
       script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
@@ -11220,7 +11345,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       document.getElementById('closeMenuModalBtn')?.addEventListener('click', closeItemMenuModal);
       document.getElementById('closeCreateModalBtn')?.addEventListener('click', closeAllItemMenuModals);
       document.getElementById('cancelCreateBtn')?.addEventListener('click', closeAllItemMenuModals);
-      document.getElementById('menuCreateListBtn')?.addEventListener('click', openCreateListModalFromMenu);
+      document.getElementById('menuCreateListBtn')?.addEventListener('click', () => {
+        void openCreateListModalFromMenu();
+      });
       document.getElementById('saveNewListBtn')?.addEventListener('click', () => {
         void saveNewCustomListFromMenu();
       });
