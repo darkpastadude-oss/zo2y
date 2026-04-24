@@ -1,21 +1,27 @@
-﻿(function () {
+(function () {
   'use strict';
 
   var PROJECT_REF = 'gfkhjbztayjyojsgdpgk';
+  var SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd';
+
   var STORAGE_KEY = 'zo2y-auth-v1';
   var LEGACY_STORAGE_KEY = 'sb-' + PROJECT_REF + '-auth-token';
   var PERSIST_STORAGE_KEY = 'zo2y-auth-persist-v1';
   var DURABLE_STORAGE_KEY = 'zo2y-auth-durable-v1';
   var EXPLICIT_SIGNOUT_KEY = 'zo2y-auth-explicit-signout-v1';
-  var NEEDS_USERNAME_CACHE_PREFIX = 'zo2y_needs_username_v1_';
+  var POST_AUTH_REDIRECT_KEY = 'postAuthRedirect';
+  var OAUTH_FLOW_KEY = 'oauthFlow';
+  var POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
   var ONBOARDING_PENDING_PREFIX = 'zo2y_onboarding_pending_v1_';
   var ONBOARDING_SESSION_PREFIX = 'zo2y_onboarding_session_v1_';
-  var USERNAME_CHECK_SESSION_PREFIX = 'zo2y_username_check_session_v1_';
-  var NEEDS_USERNAME_CACHE_TTL_MS = 1000 * 60 * 60 * 24; // 24h
   var AUTH_DEBUG_KEY = 'zo2y_auth_debug';
-  // Reduce background auth churn when users tab away/return (avoids refresh-token rate limits).
+  var AUTH_RETURN_VERSION = '20260424b';
+
   var PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 8;
   var PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60;
+  var EXPLICIT_SIGNOUT_TTL_MS = 1000 * 60 * 10;
+
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
     'login',
@@ -58,6 +64,7 @@
     'restraunts',
     'credits'
   ]);
+
   var RESERVED_PROFILE_USERNAMES = new Set([
     'admin', 'api', 'app', 'auth', 'authcallback', 'blog', 'book', 'books',
     'country', 'edit', 'explore', 'game', 'games', 'help', 'home', 'index',
@@ -66,8 +73,14 @@
     'terms', 'travel', 'tv', 'tvshow', 'tvshows', 'updatepassword', 'user',
     'users', 'zo2y'
   ]);
-  var SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  var SUPABASE_KEY = 'sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd';
+
+  var AUTH_ENTRY_PAGES = new Set(['login', 'sign-up', 'signup', 'auth-callback', 'update-password']);
+
+  var pageKey = normalizePageKey(window.location && window.location.pathname);
+  var verifyInFlight = null;
+  var lastVerifyAt = 0;
+  var authStateVerifyTimer = null;
+  var profileBootstrapPromises = new Map();
 
   try {
     if (!window.__ZO2Y_SUPABASE_CONFIG) {
@@ -84,377 +97,15 @@
     return file.replace(/\.html?$/i, '') || 'index';
   }
 
-  function getAuthStorageKeys(key) {
-    var value = String(key || '').trim();
-    if (!value) return [];
-    var keys = [value];
-    if (value === STORAGE_KEY || value === LEGACY_STORAGE_KEY || value === PERSIST_STORAGE_KEY) {
-      keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
-    }
-    return Array.from(new Set(keys));
-  }
-
-  function safeGetStorageItem(key) {
-    var keys = getAuthStorageKeys(key);
-    for (var i = 0; i < keys.length; i += 1) {
-      try {
-        var localValue = window.localStorage ? window.localStorage.getItem(keys[i]) : null;
-        if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
-      } catch (_err) {}
-    }
-    for (var j = 0; j < keys.length; j += 1) {
-      try {
-        var sessionValue = window.sessionStorage ? window.sessionStorage.getItem(keys[j]) : null;
-        if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') return sessionValue;
-      } catch (_err) {}
-    }
-    return null;
-  }
-
-  function safeSetStorageItem(key, value) {
-    var keys = getAuthStorageKeys(key);
-    var wroteAny = false;
-    for (var i = 0; i < keys.length; i += 1) {
-      try {
-        if (window.localStorage) {
-          var currentLocalValue = window.localStorage.getItem(keys[i]);
-          if (currentLocalValue !== value) {
-            window.localStorage.setItem(keys[i], value);
-            wroteAny = true;
-          }
-        }
-      } catch (_err) {}
-    }
-    for (var j = 0; j < keys.length; j += 1) {
-      try {
-        if (window.sessionStorage) {
-          var currentSessionValue = window.sessionStorage.getItem(keys[j]);
-          if (currentSessionValue !== value) {
-            window.sessionStorage.setItem(keys[j], value);
-            wroteAny = true;
-          }
-        }
-      } catch (_err) {}
-    }
-    return wroteAny;
-  }
-
-  function safeRemoveStorageItem(key) {
-    var keys = getAuthStorageKeys(key);
-    for (var i = 0; i < keys.length; i += 1) {
-      try {
-        if (window.sessionStorage) window.sessionStorage.removeItem(keys[i]);
-      } catch (_err) {}
-    }
-    for (var j = 0; j < keys.length; j += 1) {
-      try {
-        if (window.localStorage) window.localStorage.removeItem(keys[j]);
-      } catch (_err) {}
-    }
-  }
-
-  function safeGetLocalStorageItem(key) {
-    try {
-      return window.localStorage ? window.localStorage.getItem(key) : null;
-    } catch (_err) {
-      return null;
-    }
-  }
-
-  function safeSetLocalStorageItem(key, value) {
-    try {
-      if (window.localStorage) {
-        var currentValue = window.localStorage.getItem(key);
-        if (currentValue !== value) {
-          window.localStorage.setItem(key, value);
-          return true;
-        }
-        return false;
-      }
-    } catch (_err) {}
-    return false;
-  }
-
-  function getOnboardingPendingKey(userId) {
-    return ONBOARDING_PENDING_PREFIX + String(userId || '').trim();
-  }
-
-  function getNeedsUsernameCacheKey(userId) {
-    return NEEDS_USERNAME_CACHE_PREFIX + String(userId || '').trim();
-  }
-
-  function wasOnboardingEnforcedThisSession(userId) {
-    try {
-      var key = ONBOARDING_SESSION_PREFIX + String(userId || '').trim();
-      return window.sessionStorage ? window.sessionStorage.getItem(key) === '1' : false;
-    } catch (_err) {
-      return false;
-    }
-  }
-
-  function markOnboardingEnforcedThisSession(userId) {
-    try {
-      var key = ONBOARDING_SESSION_PREFIX + String(userId || '').trim();
-      if (window.sessionStorage) window.sessionStorage.setItem(key, '1');
-    } catch (_err) {}
-  }
-
-  function wasUsernameCheckedThisSession(userId) {
-    try {
-      var key = USERNAME_CHECK_SESSION_PREFIX + String(userId || '').trim();
-      return window.sessionStorage ? window.sessionStorage.getItem(key) === '1' : false;
-    } catch (_err) {
-      return false;
-    }
-  }
-
-  function markUsernameCheckedThisSession(userId) {
-    try {
-      var key = USERNAME_CHECK_SESSION_PREFIX + String(userId || '').trim();
-      if (window.sessionStorage) window.sessionStorage.setItem(key, '1');
-    } catch (_err) {}
-  }
-
-  function hasOnboardingPending(userId) {
-    try {
-      var key = getOnboardingPendingKey(userId);
-      return !!(window.localStorage && window.localStorage.getItem(key) === '1');
-    } catch (_err) {
-      return false;
-    }
-  }
-
-  function markOnboardingPending(userId) {
-    try {
-      var key = getOnboardingPendingKey(userId);
-      if (window.localStorage) window.localStorage.setItem(key, '1');
-    } catch (_err) {}
-  }
-
-  function readNeedsUsernameCache(userId) {
-    try {
-      if (!window.localStorage) return null;
-      var raw = window.localStorage.getItem(getNeedsUsernameCacheKey(userId));
-      if (!raw) return null;
-      var parsed = JSON.parse(raw);
-      var savedAt = Number(parsed && parsed.savedAt || 0);
-      if (!savedAt || (Date.now() - savedAt) > NEEDS_USERNAME_CACHE_TTL_MS) return null;
-      return !!(parsed && parsed.needsUsername);
-    } catch (_err) {
-      return null;
-    }
-  }
-
-  function writeNeedsUsernameCache(userId, needsUsername) {
-    try {
-      if (!window.localStorage) return;
-      window.localStorage.setItem(getNeedsUsernameCacheKey(userId), JSON.stringify({
-        savedAt: Date.now(),
-        needsUsername: !!needsUsername
-      }));
-    } catch (_err) {}
-  }
-
-  function getSupabaseStorageBridge() {
-    if (window.__ZO2Y_AUTH_STORAGE_BRIDGE) return window.__ZO2Y_AUTH_STORAGE_BRIDGE;
-    var bridge = {
-      getItem: function (key) {
-        return safeGetStorageItem(key);
-      },
-      setItem: function (key, value) {
-        safeSetStorageItem(key, value);
-      },
-      removeItem: function (key) {
-        safeRemoveStorageItem(key);
-      }
-    };
-    window.__ZO2Y_AUTH_STORAGE_BRIDGE = bridge;
-    return bridge;
-  }
-
-  function hasCanonicalSessionInStorage() {
-    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
-    for (var i = 0; i < keys.length; i += 1) {
-      var raw = safeGetStorageItem(keys[i]);
-      if (!raw) continue;
-      try {
-        var parsed = JSON.parse(raw);
-        var session = extractSessionFromPayload(parsed);
-        if (session && session.access_token && session.refresh_token) return true;
-      } catch (_err) {}
-    }
-    return false;
-  }
-
-  function getAuthErrorDetails(error) {
-    return {
-      status: Number(error && (error.status || error.statusCode) || 0),
-      code: String(error && error.code || '').trim().toLowerCase(),
-      message: String(error && error.message || '').trim().toLowerCase()
-    };
-  }
-
-  function shouldClearPersistedSessionForError(error) {
-    var details = getAuthErrorDetails(error);
-    var message = details.message;
-    var code = details.code;
-    if (!message && !code && !details.status) return false;
-    if (message.indexOf('refresh token already used') !== -1) return false;
-    if (message.indexOf('already been used') !== -1) return false;
-    if (message.indexOf('invalid refresh token') !== -1) return true;
-    if (message.indexOf('refresh token not found') !== -1) return true;
-    if (message.indexOf('invalid grant') !== -1) return true;
-    if (message.indexOf('session missing') !== -1) return true;
-    if (message.indexOf('session not found') !== -1) return true;
-    if (message.indexOf('user from sub claim in jwt does not exist') !== -1) return true;
-    if (message.indexOf('invalid api key') !== -1) return true;
-    if (message.indexOf('apikey') !== -1 && message.indexOf('invalid') !== -1) return true;
-    if (code === 'refresh_token_not_found' || code === 'session_not_found') return true;
-    return false;
-  }
-
-  function clearExplicitSignoutMarker() {
-    try {
-      if (window.localStorage) window.localStorage.removeItem(EXPLICIT_SIGNOUT_KEY);
-    } catch (_err) {}
-  }
-
-  function markExplicitSignout() {
-    return safeSetLocalStorageItem(EXPLICIT_SIGNOUT_KEY, String(Date.now()));
-  }
-
-  function hasRecentExplicitSignout() {
-    var raw = safeGetLocalStorageItem(EXPLICIT_SIGNOUT_KEY);
-    if (!raw) return false;
-    var timestamp = Number(raw || 0);
-    if (!timestamp) {
-      clearExplicitSignoutMarker();
-      return false;
-    }
-    if ((Date.now() - timestamp) > 1000 * 60 * 10) {
-      clearExplicitSignoutMarker();
-      return false;
-    }
-    return true;
-  }
-
-  function hydrateCanonicalAuthStorageFromDurable() {
-    if (hasCanonicalSessionInStorage()) return false;
-    var durableSession = getDurableSessionSnapshot();
-    if (!durableSession || !durableSession.access_token || !durableSession.refresh_token) return false;
-    try {
-      var payload = JSON.stringify(durableSession);
-      safeSetStorageItem(STORAGE_KEY, payload);
-      safeSetStorageItem(LEGACY_STORAGE_KEY, payload);
-      safeSetStorageItem(PERSIST_STORAGE_KEY, payload);
-      return true;
-    } catch (_err) {
-      return false;
-    }
-  }
-
-  function buildZo2yAuthOptions(options) {
-    var next = Object.assign({}, options || {});
-    var auth = Object.assign({}, next.auth || {});
-    var requestedStorageKey = String(auth.storageKey || '').trim();
-    var usesZo2yAuth =
-      !requestedStorageKey ||
-      requestedStorageKey === STORAGE_KEY ||
-      requestedStorageKey === LEGACY_STORAGE_KEY ||
-      requestedStorageKey === PERSIST_STORAGE_KEY;
-    if (usesZo2yAuth) {
-      auth.storage = getSupabaseStorageBridge();
-      auth.storageKey = STORAGE_KEY;
-      if (auth.persistSession === undefined) auth.persistSession = true;
-      // Many pages explicitly set autoRefreshToken=false. That causes silent breakage once the access token expires,
-      // which then cascades into a wall of PostgREST 401s. Keep auth pages quiet, but refresh everywhere else.
-      var currentPageKey = normalizePageKey(window.location && window.location.pathname);
-      var isAuthPage =
-        currentPageKey === 'login' ||
-        currentPageKey === 'sign-up' ||
-        currentPageKey === 'signup' ||
-        currentPageKey === 'update-password' ||
-        currentPageKey === 'auth-callback';
-      if (!isAuthPage) {
-        auth.autoRefreshToken = true;
-      } else if (auth.autoRefreshToken === undefined) {
-        auth.autoRefreshToken = true;
-      }
-    }
-    next.auth = auth;
-    return next;
-  }
-
-  function ensureSharedSupabaseClient(options) {
-    hydrateCanonicalAuthStorageFromDurable();
-    if (window.__ZO2Y_SUPABASE_CLIENT) return window.__ZO2Y_SUPABASE_CLIENT;
-    if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
-    var nextOptions = buildZo2yAuthOptions(options);
-    if (!nextOptions.auth) nextOptions.auth = {};
-    if (nextOptions.auth.detectSessionInUrl === undefined) {
-      nextOptions.auth.detectSessionInUrl = false;
-    }
-    window.__ZO2Y_SUPABASE_CLIENT = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, nextOptions);
-    return window.__ZO2Y_SUPABASE_CLIENT;
-  }
-
-  function installSupabaseCreateClientPatch() {
-    if (window.__ZO2Y_SUPABASE_CREATE_CLIENT_PATCHED) return;
-
-    function patchNow() {
-      if (!window.supabase || typeof window.supabase.createClient !== 'function') return false;
-      if (window.supabase.__zo2yCreateClientPatched) {
-        window.__ZO2Y_SUPABASE_CREATE_CLIENT_PATCHED = true;
-        return true;
-      }
-      var originalCreateClient = window.supabase.createClient.bind(window.supabase);
-      window.supabase.createClient = function (url, key, options) {
-        hydrateCanonicalAuthStorageFromDurable();
-        var normalizedUrl = String(url || '').trim();
-        var normalizedKey = String(key || '').trim();
-        var nextOptions = buildZo2yAuthOptions(options);
-        // Ensure every page only owns a single Supabase client for this project.
-        // Multiple clients in the same window can race refreshSession() and cause 429 + "lock stolen".
-        if (normalizedUrl === SUPABASE_URL && normalizedKey === SUPABASE_KEY) {
-          if (window.__ZO2Y_SUPABASE_CLIENT) return window.__ZO2Y_SUPABASE_CLIENT;
-          window.__ZO2Y_SUPABASE_CLIENT = originalCreateClient(url, key, nextOptions);
-          return window.__ZO2Y_SUPABASE_CLIENT;
-        }
-        return originalCreateClient(url, key, nextOptions);
-      };
-      window.supabase.__zo2yCreateClientPatched = true;
-      window.__ZO2Y_SUPABASE_CREATE_CLIENT_PATCHED = true;
-      return true;
-    }
-
-    if (patchNow()) return;
-
-    var attempts = 0;
-    var pollTimer = window.setInterval(function () {
-      attempts += 1;
-      if (patchNow() || attempts > 200) {
-        window.clearInterval(pollTimer);
-      }
-    }, 50);
-  }
-
-  function migrateLegacySessionStorage() {
-    var current = safeGetStorageItem(STORAGE_KEY);
-    if (current) return;
-    var legacy = safeGetStorageItem(LEGACY_STORAGE_KEY);
-    if (!legacy) return;
-    safeSetStorageItem(STORAGE_KEY, legacy);
-  }
-
-  function getHashParams() {
-    var rawHash = window.location.hash || '';
-    if (rawHash.charAt(0) === '#') rawHash = rawHash.slice(1);
-    return new URLSearchParams(rawHash);
+  function wait(ms) {
+    return new Promise(function (resolve) {
+      window.setTimeout(resolve, ms);
+    });
   }
 
   function authDebugEnabled() {
     try {
-      var params = new URLSearchParams(window.location.search);
+      var params = new URLSearchParams(window.location.search || '');
       if (params.get('debug_auth') === '1') {
         if (window.localStorage) window.localStorage.setItem(AUTH_DEBUG_KEY, '1');
         return true;
@@ -467,126 +118,137 @@
     }
   }
 
-  function previewSession(session) {
-    return session ? {
-      hasAccessToken: !!session.access_token,
-      hasRefreshToken: !!session.refresh_token,
-      userId: String(session.user && session.user.id || '').trim() || null,
-      email: String(session.user && session.user.email || '').trim() || null,
-      provider: String(session.user && session.user.app_metadata && session.user.app_metadata.provider || session.user && session.user.user_metadata && session.user.user_metadata.provider || '').trim() || null,
-      expiresAt: session.expires_at || null
-    } : null;
-  }
-
   function authDebug(label, payload) {
     if (!authDebugEnabled()) return;
     if (payload === undefined) {
-      console.log('[ZO2Y AUTH][gate]', label);
+      console.log('[ZO2Y AUTH]', label);
       return;
     }
-    console.log('[ZO2Y AUTH][gate]', label, payload);
+    console.log('[ZO2Y AUTH]', label, payload);
   }
 
-  function maybeRedirectOAuthCallback(pageKey) {
-    if (pageKey === 'auth-callback' || pageKey === 'update-password') return;
-    var search = new URLSearchParams(window.location.search);
-    var hashParams = getHashParams();
-    var inlineOauthReturn = search.get('native_oauth') === '1' && (pageKey === 'login' || pageKey === 'sign-up' || pageKey === 'signup');
-    var hasOauthCode = search.has('code') && (search.has('state') || search.has('provider') || search.has('flow'));
-    var hasOauthError = search.has('error') || search.has('error_description');
-    var hasHashTokens = hashParams.has('access_token') || hashParams.has('error') || hashParams.has('error_description');
-    var oauthFlow = safeGetStorageItem('oauthFlow');
-    if (inlineOauthReturn && (hasOauthCode || hasOauthError || hasHashTokens)) return;
-    if (!(hasOauthCode || hasOauthError || hasHashTokens || oauthFlow)) return;
-    if (!hasOauthCode && !hasOauthError && !hasHashTokens) return;
-
-    var callbackTarget = 'auth-callback.html';
-    if (oauthFlow === 'login') {
-      callbackTarget = 'login.html';
-    } else if (oauthFlow === 'signup') {
-      callbackTarget = 'sign-up.html';
+  function getAuthStorageKeys(key) {
+    var value = String(key || '').trim();
+    if (!value) return [];
+    if (value === STORAGE_KEY || value === LEGACY_STORAGE_KEY || value === PERSIST_STORAGE_KEY) {
+      return [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
     }
-    var callbackUrl = new URL(callbackTarget, window.location.origin);
-    if (window.location.search) {
-      callbackUrl.search = window.location.search;
-    }
-    if (window.location.hash) {
-      callbackUrl.hash = window.location.hash;
-    }
-    if (callbackTarget !== 'auth-callback.html') {
-      callbackUrl.searchParams.set('native_oauth', '1');
-    }
-    if (oauthFlow && !callbackUrl.searchParams.has('flow')) {
-      callbackUrl.searchParams.set('flow', oauthFlow);
-    }
-    var nextParam = search.get('next') || safeGetStorageItem('postAuthRedirect');
-    if (nextParam && !callbackUrl.searchParams.has('next')) {
-      callbackUrl.searchParams.set('next', nextParam);
-    }
-    authDebug('maybeRedirectOAuthCallback', {
-      pageKey: pageKey,
-      oauthFlow: oauthFlow,
-      callbackTarget: callbackTarget,
-      search: window.location.search,
-      hash: window.location.hash
-    });
-    window.location.replace(callbackUrl.toString());
+    return [value];
   }
 
-  function hasSessionPayload(value) {
-    if (!value) return false;
-    if (Array.isArray(value)) {
-      return value.some(hasSessionPayload);
-    }
-    if (typeof value === 'object') {
-      if (value.access_token || value.refresh_token) return true;
-      if (hasSessionPayload(value.currentSession)) return true;
-      if (hasSessionPayload(value.session)) return true;
-      if (hasSessionPayload(value.sessions)) return true;
-      if (hasSessionPayload(value.user)) return true;
-      return false;
-    }
-    return false;
-  }
-
-  function hasStoredSupabaseSession() {
-    hydrateCanonicalAuthStorageFromDurable();
-    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
-    for (var i = 0; i < keys.length; i += 1) {
-      var raw = safeGetStorageItem(keys[i]);
-      if (!raw) continue;
-      try {
-        if (hasSessionPayload(JSON.parse(raw))) return true;
-      } catch (_err) {
-        if (/access_token|refresh_token|currentSession|expires_at/i.test(String(raw))) return true;
-      }
-    }
-    var durableSession = getDurableSessionSnapshot();
-    if (durableSession && durableSession.access_token && durableSession.refresh_token) {
-      return true;
-    }
-    return false;
-  }
-
-  function extractSessionFromPayload(value) {
-    if (!value) return null;
-    if (Array.isArray(value)) {
-      for (var i = 0; i < value.length; i += 1) {
-        var nested = extractSessionFromPayload(value[i]);
-        if (nested) return nested;
-      }
+  function safeGetLocalStorage(key) {
+    try {
+      return window.localStorage ? window.localStorage.getItem(key) : null;
+    } catch (_err) {
       return null;
     }
-    if (typeof value !== 'object') return null;
-    if (value.access_token && value.refresh_token) return value;
-    if (value.currentSession) return extractSessionFromPayload(value.currentSession);
-    if (value.session) return extractSessionFromPayload(value.session);
-    if (value.sessions) return extractSessionFromPayload(value.sessions);
+  }
+
+  function safeSetLocalStorage(key, value) {
+    try {
+      if (!window.localStorage) return false;
+      window.localStorage.setItem(key, value);
+      return true;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function safeRemoveLocalStorage(key) {
+    try {
+      if (window.localStorage) window.localStorage.removeItem(key);
+    } catch (_err) {}
+  }
+
+  function safeGetSessionStorage(key) {
+    try {
+      return window.sessionStorage ? window.sessionStorage.getItem(key) : null;
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function safeSetSessionStorage(key, value) {
+    try {
+      if (window.sessionStorage) window.sessionStorage.setItem(key, value);
+    } catch (_err) {}
+  }
+
+  function safeRemoveSessionStorage(key) {
+    try {
+      if (window.sessionStorage) window.sessionStorage.removeItem(key);
+    } catch (_err) {}
+  }
+
+  function safeGetStorageItem(key) {
+    var keys = getAuthStorageKeys(key);
+    for (var i = 0; i < keys.length; i += 1) {
+      var localValue = safeGetLocalStorage(keys[i]);
+      if (localValue !== null && localValue !== undefined && localValue !== '') return localValue;
+    }
+    for (var j = 0; j < keys.length; j += 1) {
+      var sessionValue = safeGetSessionStorage(keys[j]);
+      if (sessionValue !== null && sessionValue !== undefined && sessionValue !== '') {
+        if (keys[j] === STORAGE_KEY || keys[j] === LEGACY_STORAGE_KEY || keys[j] === PERSIST_STORAGE_KEY) {
+          safeSetAuthStorage(keys[j], sessionValue);
+          safeRemoveSessionStorage(keys[j]);
+        }
+        return sessionValue;
+      }
+    }
+    return null;
+  }
+
+  function safeSetAuthStorage(key, value) {
+    var keys = getAuthStorageKeys(key);
+    var wrote = false;
+    for (var i = 0; i < keys.length; i += 1) {
+      wrote = safeSetLocalStorage(keys[i], value) || wrote;
+      safeRemoveSessionStorage(keys[i]);
+    }
+    return wrote;
+  }
+
+  function safeRemoveAuthStorage(key) {
+    var keys = getAuthStorageKeys(key);
+    for (var i = 0; i < keys.length; i += 1) {
+      safeRemoveLocalStorage(keys[i]);
+      safeRemoveSessionStorage(keys[i]);
+    }
+  }
+
+  function getAuthStorageBridge() {
+    if (window.__ZO2Y_AUTH_STORAGE_BRIDGE) return window.__ZO2Y_AUTH_STORAGE_BRIDGE;
+    window.__ZO2Y_AUTH_STORAGE_BRIDGE = {
+      getItem: function (key) {
+        return safeGetStorageItem(key);
+      },
+      setItem: function (key, value) {
+        safeSetAuthStorage(key, value);
+      },
+      removeItem: function (key) {
+        safeRemoveAuthStorage(key);
+      }
+    };
+    return window.__ZO2Y_AUTH_STORAGE_BRIDGE;
+  }
+
+  function getHashParams() {
+    var rawHash = window.location.hash || '';
+    if (rawHash.charAt(0) === '#') rawHash = rawHash.slice(1);
+    return new URLSearchParams(rawHash);
+  }
+
+  function extractSessionFromPayload(payload) {
+    if (!payload) return null;
+    if (payload.currentSession) return extractSessionFromPayload(payload.currentSession);
+    if (payload.session) return extractSessionFromPayload(payload.session);
+    if (payload.data && payload.data.session) return extractSessionFromPayload(payload.data.session);
+    if (payload.access_token || payload.refresh_token) return payload;
     return null;
   }
 
   function getStoredSessionSnapshot() {
-    hydrateCanonicalAuthStorageFromDurable();
     var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
     for (var i = 0; i < keys.length; i += 1) {
       var raw = safeGetStorageItem(keys[i]);
@@ -594,137 +256,182 @@
       try {
         var parsed = JSON.parse(raw);
         var session = extractSessionFromPayload(parsed);
-        if (session && session.access_token && session.refresh_token) {
-          return session;
-        }
+        if (session && session.access_token && session.refresh_token) return session;
       } catch (_err) {}
     }
-    var durableSession = getDurableSessionSnapshot();
-    if (durableSession && durableSession.access_token && durableSession.refresh_token) {
-      return durableSession;
-    }
+    var durableRaw = safeGetLocalStorage(DURABLE_STORAGE_KEY);
+    if (!durableRaw) return null;
+    try {
+      var durableParsed = JSON.parse(durableRaw);
+      var durableSession = extractSessionFromPayload(durableParsed);
+      if (durableSession && durableSession.access_token && durableSession.refresh_token) return durableSession;
+    } catch (_err2) {}
     return null;
-  }
-
-  function getDurableSessionSnapshot() {
-    var raw = safeGetLocalStorageItem(DURABLE_STORAGE_KEY);
-    if (!raw) return null;
-    try {
-      var parsed = JSON.parse(raw);
-      var session = extractSessionFromPayload(parsed && parsed.session ? parsed.session : parsed);
-      if (session && session.access_token && session.refresh_token) {
-        return session;
-      }
-    } catch (_err) {}
-    return null;
-  }
-
-  function clearPersistedSessionSnapshots() {
-    safeRemoveStorageItem(STORAGE_KEY);
-    safeRemoveStorageItem(LEGACY_STORAGE_KEY);
-    safeRemoveStorageItem(PERSIST_STORAGE_KEY);
-    try {
-      if (window.localStorage) window.localStorage.removeItem(DURABLE_STORAGE_KEY);
-    } catch (_err) {}
-  }
-
-  function buildDurableSessionPayload(session) {
-    if (!session || !session.access_token || !session.refresh_token) return '';
-    try {
-      return JSON.stringify({
-        session: session,
-        signature: getStoredSessionSignature(session),
-        userId: String(session.user && session.user.id || '').trim() || null,
-        expiresAt: Number(session.expires_at || 0) || null
-      });
-    } catch (_err) {
-      return '';
-    }
   }
 
   function persistSessionSnapshot(session) {
     if (!session || !session.access_token || !session.refresh_token) return false;
     try {
       var payload = JSON.stringify(session);
-      var durablePayload = buildDurableSessionPayload(session);
-      var wroteAny =
-        safeSetStorageItem(STORAGE_KEY, payload) ||
-        safeSetStorageItem(LEGACY_STORAGE_KEY, payload) ||
-        safeSetStorageItem(PERSIST_STORAGE_KEY, payload);
-      if (durablePayload) {
-        wroteAny = safeSetLocalStorageItem(DURABLE_STORAGE_KEY, durablePayload) || wroteAny;
-      }
+      safeSetAuthStorage(STORAGE_KEY, payload);
+      safeSetAuthStorage(LEGACY_STORAGE_KEY, payload);
+      safeSetAuthStorage(PERSIST_STORAGE_KEY, payload);
+      safeSetLocalStorage(DURABLE_STORAGE_KEY, JSON.stringify({
+        session: session,
+        savedAt: Date.now()
+      }));
       clearExplicitSignoutMarker();
-      authDebug('persistSessionSnapshot', {
-        wroteAny: wroteAny,
-        session: previewSession(session)
-      });
-      return wroteAny;
+      return true;
     } catch (_err) {
-      authDebug('persistSessionSnapshot:error', {
-        message: String(_err && _err.message || _err || '')
-      });
       return false;
     }
   }
 
-  async function restoreClientSessionFromSnapshot(client) {
-    if (hasRecentExplicitSignout()) return null;
-    if (!client || !client.auth || typeof client.auth.setSession !== 'function') return null;
-    var storedSession = getStoredSessionSnapshot();
-    if (!storedSession || !storedSession.access_token || !storedSession.refresh_token) return null;
-    authDebug('restoreClientSessionFromSnapshot:start', {
-      session: previewSession(storedSession)
-    });
-    try {
-      var setResult = await client.auth.setSession({
-        access_token: storedSession.access_token,
-        refresh_token: storedSession.refresh_token
-      });
-      var session = setResult && setResult.data ? setResult.data.session : null;
-      if (session && session.access_token && session.refresh_token) {
-        persistSessionSnapshot(session);
-        authDebug('restoreClientSessionFromSnapshot:success', {
-          session: previewSession(session)
-        });
-        return session;
-      }
-    } catch (_err) {
-      authDebug('restoreClientSessionFromSnapshot:error', {
-        message: String(_err && _err.message || _err || '')
-      });
-      if (shouldClearPersistedSessionForError(_err)) {
-        clearPersistedSessionSnapshots();
-      }
+  function clearPersistedSessionSnapshots() {
+    safeRemoveAuthStorage(STORAGE_KEY);
+    safeRemoveAuthStorage(LEGACY_STORAGE_KEY);
+    safeRemoveAuthStorage(PERSIST_STORAGE_KEY);
+    safeRemoveLocalStorage(DURABLE_STORAGE_KEY);
+  }
+
+  function hasStoredSupabaseSession() {
+    return !!getStoredSessionSnapshot();
+  }
+
+  function hydrateCanonicalAuthStorageFromDurable() {
+    var session = getStoredSessionSnapshot();
+    if (!session || !session.access_token || !session.refresh_token) return false;
+    return persistSessionSnapshot(session);
+  }
+
+  function getAuthErrorDetails(error) {
+    return {
+      status: Number(error && (error.status || error.statusCode) || 0),
+      code: String(error && error.code || '').trim().toLowerCase(),
+      message: String(error && error.message || '').trim().toLowerCase()
+    };
+  }
+
+  function shouldClearPersistedSessionForError(error) {
+    var details = getAuthErrorDetails(error);
+    if (!details.message && !details.code && !details.status) return false;
+    if (details.message.indexOf('refresh token already used') !== -1) return false;
+    if (details.message.indexOf('already been used') !== -1) return false;
+    return (
+      details.message.indexOf('invalid refresh token') !== -1 ||
+      details.message.indexOf('refresh token not found') !== -1 ||
+      details.message.indexOf('invalid grant') !== -1 ||
+      details.message.indexOf('session missing') !== -1 ||
+      details.message.indexOf('session not found') !== -1 ||
+      details.message.indexOf('user from sub claim in jwt does not exist') !== -1 ||
+      details.message.indexOf('invalid api key') !== -1 ||
+      (details.message.indexOf('apikey') !== -1 && details.message.indexOf('invalid') !== -1) ||
+      details.code === 'refresh_token_not_found' ||
+      details.code === 'session_not_found'
+    );
+  }
+
+  function markExplicitSignout() {
+    safeSetLocalStorage(EXPLICIT_SIGNOUT_KEY, String(Date.now()));
+  }
+
+  function clearExplicitSignoutMarker() {
+    safeRemoveLocalStorage(EXPLICIT_SIGNOUT_KEY);
+  }
+
+  function hasRecentExplicitSignout() {
+    var raw = safeGetLocalStorage(EXPLICIT_SIGNOUT_KEY);
+    if (!raw) return false;
+    var timestamp = Number(raw || 0);
+    if (!timestamp) {
+      clearExplicitSignoutMarker();
+      return false;
     }
-    return null;
+    if ((Date.now() - timestamp) > EXPLICIT_SIGNOUT_TTL_MS) {
+      clearExplicitSignoutMarker();
+      return false;
+    }
+    return true;
   }
 
-  function getStoredSessionSignature(session) {
-    if (!session || !session.access_token || !session.refresh_token) return '';
-    return String(session.access_token).slice(0, 24) + '|' + String(session.refresh_token).slice(0, 24);
-  }
-
-  function decodeJwtPayload(token) {
+  function sanitizeNextPath(raw) {
+    var value = String(raw || '').trim();
+    if (!value) return 'index.html';
+    if (/^https?:\/\//i.test(value) || value.indexOf('//') === 0) return 'index.html';
+    var normalized = value.charAt(0) === '/' ? (value.slice(1) || 'index.html') : value;
     try {
-      var parts = String(token || '').split('.');
-      if (parts.length < 2) return null;
-      var base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-      var padded = base64 + '==='.slice((base64.length + 3) % 4);
-      return JSON.parse(window.atob(padded));
+      var target = new URL(normalized, window.location.origin);
+      ['auth_return', 'authv', 'native_oauth', 'code', 'state', 'error', 'error_description'].forEach(function (key) {
+        target.searchParams.delete(key);
+      });
+      return (target.pathname.replace(/^\//, '') || 'index.html') + target.search + target.hash;
     } catch (_err) {
-      return null;
+      return normalized;
     }
   }
 
-  function getStoredSessionFutureWaitMs(session) {
-    var payload = decodeJwtPayload(session && session.access_token);
-    var issuedAt = Number(payload && payload.iat ? payload.iat : 0);
-    if (!issuedAt) return 0;
-    var now = Math.floor(Date.now() / 1000);
-    var skewSeconds = issuedAt - now;
-    if (skewSeconds <= 1) return 0;
-    return Math.min(4500, (skewSeconds + 1) * 1000);
+  function buildPostAuthRedirectTarget(rawNext) {
+    var safeNext = sanitizeNextPath(rawNext || 'index.html');
+    try {
+      var target = new URL(safeNext, window.location.origin);
+      target.searchParams.set('auth_return', '1');
+      target.searchParams.set('authv', AUTH_RETURN_VERSION);
+      return (target.pathname.replace(/^\//, '') || 'index.html') + target.search + target.hash;
+    } catch (_err) {
+      return safeNext;
+    }
+  }
+
+  function buildLoginRedirectTarget(rawNext) {
+    var next = sanitizeNextPath(rawNext || (window.location.pathname + window.location.search + window.location.hash));
+    safeSetLocalStorage(POST_AUTH_REDIRECT_KEY, next);
+    return 'login.html?next=' + encodeURIComponent(next);
+  }
+
+  function readRequestedNextPath(rawSearch) {
+    try {
+      var params = new URLSearchParams(String(rawSearch || window.location.search || ''));
+      var next = params.get('next') || safeGetLocalStorage(POST_AUTH_REDIRECT_KEY) || 'index.html';
+      return sanitizeNextPath(next);
+    } catch (_err) {
+      return 'index.html';
+    }
+  }
+
+  function setPostAuthIntent(flow, nextPath) {
+    var safeNext = sanitizeNextPath(nextPath || 'index.html');
+    safeSetLocalStorage(OAUTH_FLOW_KEY, String(flow || '').trim().toLowerCase());
+    safeSetLocalStorage(POST_AUTH_REDIRECT_KEY, safeNext);
+  }
+
+  function clearPostAuthIntent() {
+    safeRemoveLocalStorage(OAUTH_FLOW_KEY);
+    safeRemoveLocalStorage(POST_AUTH_REDIRECT_KEY);
+  }
+
+  function getOnboardingPendingKey(userId) {
+    return ONBOARDING_PENDING_PREFIX + String(userId || '').trim();
+  }
+
+  function hasOnboardingPending(userId) {
+    return safeGetLocalStorage(getOnboardingPendingKey(userId)) === '1';
+  }
+
+  function markOnboardingPending(userId) {
+    safeSetLocalStorage(getOnboardingPendingKey(userId), '1');
+  }
+
+  function clearOnboardingPending(userId) {
+    safeRemoveLocalStorage(getOnboardingPendingKey(userId));
+    safeRemoveSessionStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim());
+  }
+
+  function wasOnboardingRedirectedThisSession(userId) {
+    return safeGetSessionStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim()) === '1';
+  }
+
+  function markOnboardingRedirectedThisSession(userId) {
+    safeSetSessionStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim(), '1');
   }
 
   function normalizeProfileUsername(value) {
@@ -733,8 +440,7 @@
       .replace(/^@+/, '')
       .toLowerCase()
       .replace(/[\u0027\u2019]/g, '')
-      .replace(/\s+/g, '_')
-      .replace(/[^a-z0-9_]/g, '_')
+      .replace(/[^a-z0-9_]+/g, '_')
       .replace(/_+/g, '_')
       .replace(/^_+|_+$/g, '')
       .slice(0, 30);
@@ -753,10 +459,15 @@
     return (normalizedBase.slice(0, limit) + '_' + normalizedSuffix).slice(0, 30);
   }
 
+  function isValidProfileUsername(value) {
+    return /^[a-z0-9_]{3,30}$/.test(String(value || '').trim());
+  }
+
   function buildAutoAssignedUsernameCandidates(user) {
     var userData = user && user.user_metadata ? user.user_metadata : {};
     var emailPrefix = String(user && user.email || '').split('@')[0] || '';
     var rawCandidates = [
+      userData.zo2y_username,
       userData.username,
       userData.preferred_username,
       userData.user_name,
@@ -776,634 +487,973 @@
   function isAutoAssignedUsernameForUser(profileUsername, user) {
     var normalizedProfile = normalizeProfileUsername(profileUsername || '');
     if (!normalizedProfile) return true;
-    var candidates = buildAutoAssignedUsernameCandidates(user);
-    return candidates.indexOf(normalizedProfile) !== -1;
+    if (normalizedProfile === 'user' || normalizedProfile.indexOf('user_') === 0) return true;
+    return buildAutoAssignedUsernameCandidates(user).indexOf(normalizedProfile) !== -1;
+  }
+
+  function profileNeedsUsername(profile, user) {
+    var username = String(profile && profile.username || '').trim().toLowerCase();
+    if (!username) return true;
+    if (username === 'user' || username.indexOf('user_') === 0) return true;
+    return isAutoAssignedUsernameForUser(username, user);
   }
 
   async function ensureAuthProfile(client, user) {
     if (!client || typeof client.from !== 'function' || !user || !user.id) {
-      return { ok: false, created: false, profile: null };
+      return { ok: false, created: false, profile: null, needsUsername: false };
     }
 
-    try {
-      var existingResult = await client
-        .from('user_profiles')
-        .select('id, username, full_name')
-        .eq('id', user.id)
-        .maybeSingle();
-      var existingProfile = existingResult && existingResult.data ? existingResult.data : null;
-      if (existingProfile && existingProfile.id) {
-        var existingUsername = String(existingProfile.username || '').trim().toLowerCase();
-        var existingNeedsUsername =
-          !existingUsername
-          || existingUsername === 'user'
-          || existingUsername.indexOf('user_') === 0
-          || isAutoAssignedUsernameForUser(existingUsername, user);
+    var userId = String(user.id || '').trim();
+    if (!userId) {
+      return { ok: false, created: false, profile: null, needsUsername: false };
+    }
 
-        // If the profile has an auto-assigned username (google nickname/email prefix), replace it with a
-        // neutral placeholder so it doesn't keep showing as if it was user-chosen.
-        if (existingNeedsUsername && existingUsername && existingUsername.indexOf('user_') !== 0) {
-          try {
-            var idSuffix = String(user.id || '').replace(/-/g, '').slice(0, 6) || 'user';
-            var placeholder = profileUsernameWithSuffix('user', idSuffix);
-            if (placeholder && placeholder !== existingUsername) {
-              await client.from('user_profiles').update({ username: placeholder }).eq('id', user.id);
-              existingProfile.username = placeholder;
-            }
-          } catch (_updateErr) {}
-        }
+    if (profileBootstrapPromises.has(userId)) {
+      return profileBootstrapPromises.get(userId);
+    }
 
-        return { ok: true, created: false, profile: existingProfile, needsUsername: existingNeedsUsername };
-      }
-      if (existingResult && existingResult.error) {
-        return { ok: false, created: false, profile: null, error: existingResult.error };
-      }
-
-      var userData = user.user_metadata || {};
-      var idSuffix = String(user.id || '').replace(/-/g, '').slice(0, 6) || 'user';
-      // Do NOT derive username from email / OAuth metadata. Use a neutral placeholder and
-      // force users to choose their own handle during onboarding.
-      var placeholderUsername = profileUsernameWithSuffix('user', idSuffix);
-      var displayName = String(userData.full_name || userData.name || 'User').trim().slice(0, 80) || 'User';
-      var usernameCandidates = [placeholderUsername];
-
-      for (var i = 0; i < usernameCandidates.length; i += 1) {
-        var username = usernameCandidates[i];
-        var createResult = await client
+    var promise = (async function () {
+      try {
+        var existingResult = await client
           .from('user_profiles')
-          .insert({
-            id: user.id,
-            username: username,
-            full_name: displayName || username
-          })
           .select('id, username, full_name')
+          .eq('id', userId)
           .maybeSingle();
-        if (!createResult || !createResult.error) {
+
+        var existingProfile = existingResult && existingResult.data ? existingResult.data : null;
+        if (existingProfile && existingProfile.id) {
+          var needsUsername = profileNeedsUsername(existingProfile, user);
+          if (needsUsername && existingProfile.username && existingProfile.username.indexOf('user_') !== 0) {
+            try {
+              var placeholder = profileUsernameWithSuffix('user', userId.replace(/-/g, '').slice(0, 6) || 'user');
+              if (placeholder && placeholder !== existingProfile.username) {
+                var repairResult = await client
+                  .from('user_profiles')
+                  .update({ username: placeholder })
+                  .eq('id', userId)
+                  .select('id, username, full_name')
+                  .maybeSingle();
+                if (repairResult && repairResult.data) existingProfile = repairResult.data;
+              }
+            } catch (_repairErr) {}
+          }
+          if (profileNeedsUsername(existingProfile, user)) {
+            markOnboardingPending(userId);
+          } else {
+            clearOnboardingPending(userId);
+          }
           return {
             ok: true,
-            created: true,
-            needsUsername: true,
-            profile: createResult && createResult.data ? createResult.data : {
-              id: user.id,
-              username: username,
-              full_name: displayName || username
-            }
+            created: false,
+            profile: existingProfile,
+            needsUsername: profileNeedsUsername(existingProfile, user)
           };
         }
 
-        var message = String(createResult.error && createResult.error.message || '').toLowerCase();
-        var duplicate = message.indexOf('duplicate') !== -1 || message.indexOf('unique') !== -1;
+        if (existingResult && existingResult.error) {
+          return { ok: false, created: false, profile: null, needsUsername: false, error: existingResult.error };
+        }
+
+        var userData = user.user_metadata || {};
+        var suffix = userId.replace(/-/g, '').slice(0, 6) || 'user';
+        var placeholderUsername = profileUsernameWithSuffix('user', suffix);
+        var displayName = String(userData.full_name || userData.name || 'User').trim().slice(0, 80) || 'User';
+        var createResult = await client
+          .from('user_profiles')
+          .insert({
+            id: userId,
+            username: placeholderUsername,
+            full_name: displayName
+          })
+          .select('id, username, full_name')
+          .maybeSingle();
+
+        if (!createResult || !createResult.error) {
+          markOnboardingPending(userId);
+          return {
+            ok: true,
+            created: true,
+            profile: createResult && createResult.data ? createResult.data : {
+              id: userId,
+              username: placeholderUsername,
+              full_name: displayName
+            },
+            needsUsername: true
+          };
+        }
+
+        var createMessage = String(createResult.error && createResult.error.message || '').toLowerCase();
+        var duplicate = createMessage.indexOf('duplicate') !== -1 || createMessage.indexOf('unique') !== -1;
         if (!duplicate) {
-          return { ok: false, created: false, profile: null, error: createResult.error };
+          return { ok: false, created: false, profile: null, needsUsername: false, error: createResult.error };
         }
 
         var raceResult = await client
           .from('user_profiles')
           .select('id, username, full_name')
-          .eq('id', user.id)
+          .eq('id', userId)
           .maybeSingle();
         if (raceResult && raceResult.data && raceResult.data.id) {
-          var raceUsername = String(raceResult.data.username || '').trim().toLowerCase();
-          var raceNeedsUsername = !raceUsername || raceUsername === 'user' || raceUsername.indexOf('user_') === 0;
-          return { ok: true, created: false, profile: raceResult.data, needsUsername: raceNeedsUsername };
+          var raceNeedsUsername = profileNeedsUsername(raceResult.data, user);
+          if (raceNeedsUsername) markOnboardingPending(userId);
+          else clearOnboardingPending(userId);
+          return {
+            ok: true,
+            created: false,
+            profile: raceResult.data,
+            needsUsername: raceNeedsUsername
+          };
+        }
+      } catch (error) {
+        return { ok: false, created: false, profile: null, needsUsername: false, error: error };
+      }
+
+      return { ok: false, created: false, profile: null, needsUsername: false };
+    })();
+
+    profileBootstrapPromises.set(userId, promise);
+    try {
+      return await promise;
+    } finally {
+      profileBootstrapPromises.delete(userId);
+    }
+  }
+
+  async function ensureUsernameAvailable(client, username, currentProfileId) {
+    var normalizedUsername = normalizeProfileUsername(username);
+    if (!isValidProfileUsername(normalizedUsername)) {
+      throw new Error('Username must be 3-30 characters and use only letters, numbers, or underscores.');
+    }
+    if (RESERVED_PROFILE_USERNAMES.has(normalizedUsername.replace(/_/g, ''))) {
+      throw new Error('That username is reserved. Choose another one.');
+    }
+    var result = await client
+      .from('user_profiles')
+      .select('id')
+      .eq('username', normalizedUsername)
+      .limit(10);
+    if (result && result.error) throw result.error;
+    var isTaken = Array.isArray(result && result.data) && result.data.some(function (row) {
+      return String(row && row.id || '') !== String(currentProfileId || '');
+    });
+    if (isTaken) {
+      throw new Error('That username is already taken.');
+    }
+    return normalizedUsername;
+  }
+
+  function buildClientOptions(options) {
+    var next = Object.assign({}, options || {});
+    if (Object.prototype.hasOwnProperty.call(next, '__zo2yIsolated')) {
+      delete next.__zo2yIsolated;
+    }
+    var auth = Object.assign({}, next.auth || {});
+    auth.storage = getAuthStorageBridge();
+    auth.storageKey = STORAGE_KEY;
+    if (auth.persistSession === undefined) auth.persistSession = true;
+    if (auth.autoRefreshToken === undefined) auth.autoRefreshToken = true;
+    if (auth.detectSessionInUrl === undefined) auth.detectSessionInUrl = false;
+    if (auth.flowType === undefined) auth.flowType = 'pkce';
+    next.auth = auth;
+    return next;
+  }
+
+  function attachClientListeners(client) {
+    if (!client || client.__zo2yAuthListenersBound || !client.auth || typeof client.auth.onAuthStateChange !== 'function') {
+      return client;
+    }
+    client.__zo2yAuthListenersBound = true;
+    client.auth.onAuthStateChange(function (event, session) {
+      var normalizedEvent = String(event || '').trim().toUpperCase();
+      if (session && session.access_token && session.refresh_token) {
+        persistSessionSnapshot(session);
+      }
+      if (normalizedEvent === 'SIGNED_OUT') {
+        if (hasRecentExplicitSignout()) {
+          clearPersistedSessionSnapshots();
+          clearExplicitSignoutMarker();
         }
       }
-    } catch (_err) {
-      return { ok: false, created: false, profile: null, error: _err };
-    }
-
-    return { ok: false, created: false, profile: null };
+      if (client === window.__ZO2Y_SUPABASE_CLIENT) {
+        if (authStateVerifyTimer) window.clearTimeout(authStateVerifyTimer);
+        authStateVerifyTimer = window.setTimeout(function () {
+          void verifyAndApplySession(true);
+        }, normalizedEvent === 'SIGNED_IN' ? 0 : 80);
+      }
+    });
+    return client;
   }
 
-  function sanitizeNextPath(raw) {
-    var value = String(raw || '').trim();
-    if (!value) return 'index.html';
-    if (/^https?:\/\//i.test(value) || value.indexOf('//') === 0) return 'index.html';
-    var normalized = value.charAt(0) === '/' ? (value.slice(1) || 'index.html') : value;
+  function createClientWithFactory(factory, options) {
+    var createOptions = buildClientOptions(options);
+    var isolated = !!(options && options.__zo2yIsolated);
+    var shouldShare = !isolated && !(options && options.auth && options.auth.detectSessionInUrl === true);
+
+    hydrateCanonicalAuthStorageFromDurable();
+
+    if (shouldShare && window.__ZO2Y_SUPABASE_CLIENT) {
+      attachClientListeners(window.__ZO2Y_SUPABASE_CLIENT);
+      return window.__ZO2Y_SUPABASE_CLIENT;
+    }
+
+    var client = factory(SUPABASE_URL, SUPABASE_KEY, createOptions);
+    attachClientListeners(client);
+    if (shouldShare) {
+      window.__ZO2Y_SUPABASE_CLIENT = client;
+    }
+    return client;
+  }
+
+  function patchSupabaseNamespace(namespace) {
+    if (!namespace || typeof namespace.createClient !== 'function' || namespace.__zo2yCreateClientPatched) return false;
+
+    var originalCreateClient = namespace.createClient.bind(namespace);
+    namespace.createClient = function (url, key, options) {
+      var normalizedUrl = String(url || '').trim();
+      var normalizedKey = String(key || '').trim();
+      if (normalizedUrl === SUPABASE_URL && normalizedKey === SUPABASE_KEY) {
+        return createClientWithFactory(originalCreateClient, options || {});
+      }
+      return originalCreateClient(url, key, options);
+    };
+    namespace.__zo2yCreateClientPatched = true;
+    window.__ZO2Y_SUPABASE_CREATE_CLIENT_ORIGINAL = originalCreateClient;
+    return true;
+  }
+
+  function installSupabasePatch() {
+    var currentSupabase = window.supabase;
     try {
-      var target = new URL(normalized, window.location.origin);
-      ['auth_return', 'authv', 'native_oauth'].forEach(function (key) {
-        target.searchParams.delete(key);
+      Object.defineProperty(window, 'supabase', {
+        configurable: true,
+        enumerable: true,
+        get: function () {
+          return currentSupabase;
+        },
+        set: function (value) {
+          currentSupabase = value;
+          patchSupabaseNamespace(currentSupabase);
+        }
       });
-      return (target.pathname.replace(/^\//, '') || 'index.html') + target.search + target.hash;
+    } catch (_err) {}
+
+    if (currentSupabase) patchSupabaseNamespace(currentSupabase);
+
+    var attempts = 0;
+    var pollTimer = window.setInterval(function () {
+      attempts += 1;
+      if (patchSupabaseNamespace(window.supabase) || attempts > 200) {
+        window.clearInterval(pollTimer);
+      }
+    }, 50);
+  }
+
+  async function waitForSupabase(timeoutMs) {
+    var startedAt = Date.now();
+    var limit = Number(timeoutMs || 8000) || 8000;
+    while ((Date.now() - startedAt) < limit) {
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        patchSupabaseNamespace(window.supabase);
+        return true;
+      }
+      await wait(40);
+    }
+    return !!(window.supabase && typeof window.supabase.createClient === 'function');
+  }
+
+  function ensureSharedSupabaseClient(options) {
+    if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+    patchSupabaseNamespace(window.supabase);
+    if (window.__ZO2Y_SUPABASE_CLIENT) {
+      attachClientListeners(window.__ZO2Y_SUPABASE_CLIENT);
+      return window.__ZO2Y_SUPABASE_CLIENT;
+    }
+    var factory = window.__ZO2Y_SUPABASE_CREATE_CLIENT_ORIGINAL || window.supabase.createClient.bind(window.supabase);
+    return createClientWithFactory(factory, options || {});
+  }
+
+  function createIsolatedSupabaseClient(options) {
+    if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+    patchSupabaseNamespace(window.supabase);
+    var factory = window.__ZO2Y_SUPABASE_CREATE_CLIENT_ORIGINAL || window.supabase.createClient.bind(window.supabase);
+    return createClientWithFactory(factory, Object.assign({}, options || {}, { __zo2yIsolated: true }));
+  }
+
+  async function restoreClientSessionFromSnapshot(client) {
+    if (hasRecentExplicitSignout()) return null;
+    var activeClient = client || ensureSharedSupabaseClient();
+    if (!activeClient || !activeClient.auth || typeof activeClient.auth.setSession !== 'function') return null;
+    var storedSession = getStoredSessionSnapshot();
+    if (!storedSession || !storedSession.access_token || !storedSession.refresh_token) return null;
+    try {
+      var result = await activeClient.auth.setSession({
+        access_token: storedSession.access_token,
+        refresh_token: storedSession.refresh_token
+      });
+      var session = result && result.data ? result.data.session : null;
+      if (session && session.access_token && session.refresh_token) {
+        persistSessionSnapshot(session);
+        return session;
+      }
+      return null;
+    } catch (error) {
+      if (shouldClearPersistedSessionForError(error)) {
+        clearPersistedSessionSnapshots();
+      }
+      return null;
+    }
+  }
+
+  async function getActiveSession(client, options) {
+    var opts = options || {};
+    var activeClient = client || ensureSharedSupabaseClient();
+    if (!activeClient || !activeClient.auth || typeof activeClient.auth.getSession !== 'function') return null;
+
+    try {
+      var sessionResult = await activeClient.auth.getSession();
+      var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
+      if (session && session.access_token && session.refresh_token) {
+        persistSessionSnapshot(session);
+        return session;
+      }
+      if (sessionResult && sessionResult.error && shouldClearPersistedSessionForError(sessionResult.error)) {
+        clearPersistedSessionSnapshots();
+        return null;
+      }
+    } catch (_err) {}
+
+    if (opts.restore !== false) {
+      var restored = await restoreClientSessionFromSnapshot(activeClient);
+      if (restored && restored.user) return restored;
+    }
+
+    if (opts.refreshIfNeeded !== false && typeof activeClient.auth.refreshSession === 'function' && hasStoredSupabaseSession() && !hasRecentExplicitSignout()) {
+      try {
+        var refreshResult = await activeClient.auth.refreshSession();
+        var refreshed = refreshResult && refreshResult.data ? refreshResult.data.session : null;
+        if (refreshed && refreshed.access_token && refreshed.refresh_token) {
+          persistSessionSnapshot(refreshed);
+          return refreshed;
+        }
+        if (refreshResult && refreshResult.error && shouldClearPersistedSessionForError(refreshResult.error)) {
+          clearPersistedSessionSnapshots();
+        }
+      } catch (error) {
+        if (shouldClearPersistedSessionForError(error)) {
+          clearPersistedSessionSnapshots();
+        }
+      }
+    }
+
+    return null;
+  }
+
+  async function getVerifiedUser(client) {
+    var session = await getActiveSession(client, { refreshIfNeeded: true, restore: true });
+    if (session && session.user) return session.user;
+    return null;
+  }
+
+  async function signOut(client) {
+    markExplicitSignout();
+    clearPersistedSessionSnapshots();
+    clearPostAuthIntent();
+    safeRemoveLocalStorage(POST_AUTH_BOOTSTRAP_KEY);
+    var activeClient = client || ensureSharedSupabaseClient();
+    if (activeClient && activeClient.auth && typeof activeClient.auth.signOut === 'function') {
+      try {
+        await activeClient.auth.signOut({ scope: 'local' });
+      } catch (_err) {}
+    }
+    return true;
+  }
+
+  function buildPostAuthBootstrapPayload(flow, session) {
+    var user = session && session.user ? session.user : null;
+    if (!user || !user.id) return null;
+    return {
+      flow: String(flow || 'login').trim().toLowerCase() || 'login',
+      userId: user.id,
+      email: String(user.email || '').trim(),
+      fullName: String(user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name) || '').trim(),
+      createdAt: Date.now()
+    };
+  }
+
+  function setPendingPostAuthBootstrap(payload) {
+    if (!payload || !payload.userId) return false;
+    return safeSetLocalStorage(POST_AUTH_BOOTSTRAP_KEY, JSON.stringify(Object.assign({}, payload, {
+      createdAt: Number(payload.createdAt || Date.now())
+    })));
+  }
+
+  function readPendingPostAuthBootstrap() {
+    var raw = safeGetLocalStorage(POST_AUTH_BOOTSTRAP_KEY);
+    if (!raw) return null;
+    try {
+      var parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' ? parsed : null;
     } catch (_err) {
-      return normalized;
+      return null;
     }
   }
 
-  function buildRedirectTarget() {
-    var target = new URL('index.html', window.location.origin);
-    target.searchParams.set('auth', 'required');
-    var next = sanitizeNextPath(window.location.pathname + window.location.search + window.location.hash);
-    if (next && next !== 'index.html') {
-      target.searchParams.set('next', next);
-      safeSetStorageItem('postAuthRedirect', next);
-    }
-    return target.toString();
+  function clearPendingPostAuthBootstrap() {
+    safeRemoveLocalStorage(POST_AUTH_BOOTSTRAP_KEY);
   }
 
-  function applyShellState(authenticated, pageKey, options) {
+  async function triggerWelcomeEmail(session, flow) {
+    var accessToken = String(session && session.access_token || '').trim();
+    if (!accessToken) return false;
+    try {
+      var response = await fetch('/api/emails/welcome/trigger', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + accessToken
+        },
+        body: JSON.stringify({
+          appUrl: window.location.origin,
+          flow: flow || null
+        })
+      });
+      return response.ok;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  async function persistReferralMetadata(client, user) {
+    if (!client || !client.auth || typeof client.auth.updateUser !== 'function' || !window.ZO2Y_REFERRALS || !user || !user.id) {
+      return false;
+    }
+    var referral = String(window.ZO2Y_REFERRALS.getStoredReferral() || '').trim().toLowerCase();
+    if (!referral) return false;
+    if (String(user.user_metadata && user.user_metadata.referred_by_username || '').trim().toLowerCase() === referral) {
+      window.ZO2Y_REFERRALS.markReferralConsumed(user.id, referral);
+      return true;
+    }
+    if (window.ZO2Y_REFERRALS.getConsumedReferral(user.id) === referral) return true;
+    try {
+      var updateResult = await client.auth.updateUser({
+        data: {
+          referred_by_username: referral
+        }
+      });
+      if (updateResult && updateResult.error) return false;
+      window.ZO2Y_REFERRALS.markReferralConsumed(user.id, referral);
+      return true;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  async function updateAuthMetadataUsername(client, username) {
+    if (!client || !client.auth || typeof client.auth.updateUser !== 'function') return false;
+    try {
+      await client.auth.updateUser({
+        data: {
+          zo2y_username: username
+        }
+      });
+      return true;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function redirectToOnboarding(rawNext, userId) {
+    var next = sanitizeNextPath(rawNext || 'index.html');
+    if (userId) {
+      markOnboardingPending(userId);
+      markOnboardingRedirectedThisSession(userId);
+    }
+    safeSetLocalStorage(POST_AUTH_REDIRECT_KEY, next);
+    window.location.replace('onboarding.html?onboarding=1&next=' + encodeURIComponent(next));
+  }
+
+  function redirectToPostAuthTarget(rawNext) {
+    var next = sanitizeNextPath(rawNext || 'index.html');
+    clearPostAuthIntent();
+    window.location.replace(buildPostAuthRedirectTarget(next));
+  }
+
+  async function finishAuthRedirect(options) {
+    var opts = Object.assign({}, options || {});
+    var flow = String(opts.flow || 'login').trim().toLowerCase() || 'login';
+    var nextPath = sanitizeNextPath(opts.next || readRequestedNextPath(''));
+    var client = opts.client || ensureSharedSupabaseClient();
+    var session = opts.session || await getActiveSession(client, { refreshIfNeeded: true, restore: true });
+    if (!session || !session.access_token || !session.refresh_token || !session.user || !session.user.id) {
+      throw new Error('Authentication was not completed. Please try again.');
+    }
+
+    persistSessionSnapshot(session);
+    if (flow === 'signup') {
+      var bootstrapPayload = buildPostAuthBootstrapPayload(flow, session);
+      if (bootstrapPayload) setPendingPostAuthBootstrap(bootstrapPayload);
+      void triggerWelcomeEmail(session, flow);
+    }
+
+    void persistReferralMetadata(client, session.user);
+
+    var profileResult = await ensureAuthProfile(client, session.user);
+    if (profileResult && profileResult.ok && !profileResult.needsUsername) {
+      clearOnboardingPending(session.user.id);
+      redirectToPostAuthTarget(nextPath);
+      return true;
+    }
+
+    if (profileResult && profileResult.ok && profileResult.needsUsername) {
+      redirectToOnboarding(nextPath, session.user.id);
+      return true;
+    }
+
+    if (flow === 'signup') {
+      redirectToOnboarding(nextPath, session.user.id);
+      return true;
+    }
+
+    redirectToPostAuthTarget(nextPath);
+    return true;
+  }
+
+  async function startGoogleOAuth(options) {
+    var opts = Object.assign({}, options || {});
+    var flow = String(opts.flow || 'login').trim().toLowerCase() === 'signup' ? 'signup' : 'login';
+    var nextPath = sanitizeNextPath(opts.next || readRequestedNextPath(''));
+    var client = opts.client || ensureSharedSupabaseClient();
+    if (!client || !client.auth || typeof client.auth.signInWithOAuth !== 'function') {
+      throw new Error('Google sign-in is not available right now.');
+    }
+    setPostAuthIntent(flow, nextPath);
+    var callbackUrl = new URL('auth-callback.html', window.location.origin);
+    callbackUrl.searchParams.set('flow', flow);
+    callbackUrl.searchParams.set('next', nextPath);
+    var oauthResult = await client.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: callbackUrl.toString(),
+        queryParams: {
+          prompt: 'select_account'
+        }
+      }
+    });
+    if (oauthResult && oauthResult.error) throw oauthResult.error;
+    return true;
+  }
+
+  async function completeOAuthCallback(options) {
+    var opts = Object.assign({}, options || {});
+    var client = opts.client || ensureSharedSupabaseClient();
+    if (!client || !client.auth) {
+      throw new Error('Auth library unavailable.');
+    }
+
+    var params = new URLSearchParams(window.location.search || '');
+    var hashParams = getHashParams();
+    var oauthError = params.get('error_description') || params.get('error') || hashParams.get('error_description') || hashParams.get('error');
+    if (oauthError) {
+      throw new Error(String(oauthError).trim() || 'Google sign-in failed.');
+    }
+
+    var code = params.get('code');
+    var accessToken = hashParams.get('access_token');
+    var refreshToken = hashParams.get('refresh_token');
+    var session = null;
+
+    if (code && typeof client.auth.exchangeCodeForSession === 'function') {
+      var exchangeResult = await client.auth.exchangeCodeForSession(code);
+      if (exchangeResult && exchangeResult.error) throw exchangeResult.error;
+      session = exchangeResult && exchangeResult.data ? exchangeResult.data.session : null;
+    } else if (accessToken && refreshToken && typeof client.auth.setSession === 'function') {
+      var setResult = await client.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      });
+      if (setResult && setResult.error) throw setResult.error;
+      session = setResult && setResult.data ? setResult.data.session : null;
+    }
+
+    if (!session) {
+      session = await getActiveSession(client, { refreshIfNeeded: true, restore: true });
+    }
+    if (!session || !session.access_token || !session.refresh_token || !session.user || !session.user.id) {
+      throw new Error('Authentication was not completed. Please try again.');
+    }
+
+    persistSessionSnapshot(session);
+    return session;
+  }
+
+  async function bootstrapRecoverySession(client) {
+    var activeClient = client || createIsolatedSupabaseClient({
+      auth: {
+        detectSessionInUrl: false,
+        autoRefreshToken: false
+      }
+    });
+    if (!activeClient || !activeClient.auth) return null;
+
+    var params = new URLSearchParams(window.location.search || '');
+    var hashParams = getHashParams();
+    var code = params.get('code');
+    var accessToken = hashParams.get('access_token');
+    var refreshToken = hashParams.get('refresh_token');
+
+    if (code && typeof activeClient.auth.exchangeCodeForSession === 'function') {
+      try {
+        await activeClient.auth.exchangeCodeForSession(code);
+      } catch (_err) {}
+    } else if (accessToken && refreshToken && typeof activeClient.auth.setSession === 'function') {
+      try {
+        await activeClient.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+      } catch (_err2) {}
+    }
+
+    return getActiveSession(activeClient, { refreshIfNeeded: false, restore: true });
+  }
+
+  function applyShellState(authenticated, currentPageKey, options) {
     var opts = options || {};
     var verified = opts.verified !== false;
-    var shell = opts.shell || (pageKey === 'index' ? (authenticated ? 'app' : 'landing') : 'app');
+    var shell = opts.shell || (currentPageKey === 'index' ? (authenticated ? 'app' : 'landing') : 'app');
+
     document.documentElement.dataset.authenticated = authenticated ? '1' : '0';
     document.documentElement.dataset.authShell = shell;
     document.documentElement.dataset.authVerified = verified ? '1' : '0';
+
     if (document.body) {
       document.body.dataset.authenticated = authenticated ? '1' : '0';
       document.body.dataset.authShell = shell;
       document.body.dataset.authVerified = verified ? '1' : '0';
     }
+
     window.ZO2Y_AUTH_GATE = {
-      pageKey: pageKey,
+      pageKey: currentPageKey,
       authenticated: authenticated,
-      protectedPage: !PUBLIC_PAGE_KEYS.has(pageKey),
+      protectedPage: !PUBLIC_PAGE_KEYS.has(currentPageKey),
       authShell: shell,
       verified: verified
     };
-    document.addEventListener('DOMContentLoaded', function () {
-      if (document.body) {
-        document.body.dataset.authenticated = authenticated ? '1' : '0';
-        document.body.dataset.authShell = shell;
-        document.body.dataset.authVerified = verified ? '1' : '0';
-      }
-    }, { once: true });
   }
 
-  function redirectToLanding() {
-    window.location.replace(buildRedirectTarget());
+  function dispatchGateVerified(authenticated) {
+    window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
+      detail: {
+        authenticated: authenticated,
+        pageKey: pageKey,
+        protectedPage: !PUBLIC_PAGE_KEYS.has(pageKey),
+        verified: true
+      }
+    }));
   }
 
-  function scheduleSessionVerification(pageKey) {
-    if (typeof window === 'undefined') return;
-    hydrateCanonicalAuthStorageFromDurable();
-    migrateLegacySessionStorage();
-    var attempts = 0;
-    var client = null;
-    var protectedPage = !PUBLIC_PAGE_KEYS.has(pageKey);
-    var authStateVerifyTimer = null;
-    var lastVerifyAt = 0;
-    var verifyInFlight = null;
-    var verifyCooldownUntil = 0;
-    var refreshInFlight = null;
-    var lastRefreshAttemptAt = 0;
-    var refreshCooldownUntil = 0;
+  function redirectToLogin(rawNext) {
+    window.location.replace(buildLoginRedirectTarget(rawNext));
+  }
 
-    function persistLiveClientSession() {
-      // Tab switches should not trigger Supabase session refresh calls. Persist the latest snapshot we
-      // already have in storage instead of calling `auth.getSession()` (which can refresh tokens).
-      var storedSession = getStoredSessionSnapshot();
-      if (storedSession && storedSession.access_token && storedSession.refresh_token) {
-        persistSessionSnapshot(storedSession);
-      }
-      authDebug('persistLiveClientSession', {
-        session: previewSession(storedSession)
-      });
+  function shouldVerifyCurrentPage() {
+    return pageKey === 'index' || !PUBLIC_PAGE_KEYS.has(pageKey);
+  }
+
+  function maybeRedirectUnexpectedAuthCallback() {
+    if (pageKey === 'auth-callback' || pageKey === 'update-password') return false;
+    var params = new URLSearchParams(window.location.search || '');
+    var hashParams = getHashParams();
+    var hasPayload =
+      params.has('code') ||
+      params.has('error') ||
+      params.has('error_description') ||
+      hashParams.has('access_token') ||
+      hashParams.has('refresh_token') ||
+      hashParams.has('error') ||
+      hashParams.has('error_description');
+
+    if (!hasPayload) return false;
+
+    var flow = String(params.get('flow') || safeGetLocalStorage(OAUTH_FLOW_KEY) || '').trim().toLowerCase();
+    var recoveryType = String(params.get('type') || hashParams.get('type') || '').trim().toLowerCase();
+    var targetPage = recoveryType === 'recovery' ? 'update-password.html' : 'auth-callback.html';
+    var target = new URL(targetPage, window.location.origin);
+
+    if (window.location.search) target.search = window.location.search;
+    if (window.location.hash) target.hash = window.location.hash;
+    if (flow && !target.searchParams.has('flow')) target.searchParams.set('flow', flow);
+    if (!target.searchParams.has('next')) {
+      target.searchParams.set('next', readRequestedNextPath(''));
     }
+    window.location.replace(target.toString());
+    return true;
+  }
 
-    async function bootstrapClientSessionFromStorage() {
-      if (!client || !client.auth || typeof client.auth.setSession !== 'function') return false;
-      var storedSession = getStoredSessionSnapshot();
-      if (!storedSession || !storedSession.access_token || !storedSession.refresh_token) return false;
-      var sessionSignature = getStoredSessionSignature(storedSession);
-      if (!client.__zo2yStorageBootstrap) {
-        client.__zo2yStorageBootstrap = {
-          done: false,
-          attempts: 0,
-          signature: ''
-        };
-      }
-      if (client.__zo2yStorageBootstrap.done && client.__zo2yStorageBootstrap.signature === sessionSignature) {
-        return false;
-      }
-      if (client.__zo2yStorageBootstrap.signature !== sessionSignature) {
-        client.__zo2yStorageBootstrap.attempts = 0;
-        client.__zo2yStorageBootstrap.done = false;
-        client.__zo2yStorageBootstrap.signature = sessionSignature;
-      }
-      if (client.__zo2yStorageBootstrap.attempts >= 4) return false;
-      client.__zo2yStorageBootstrap.attempts += 1;
+  async function verifyAndApplySession(force) {
+    if (verifyInFlight) return verifyInFlight;
+
+    verifyInFlight = (async function () {
+      var authenticated = false;
       try {
-        var setResult = await client.auth.setSession({
-          access_token: storedSession.access_token,
-          refresh_token: storedSession.refresh_token
-        });
-        var authenticated = !!(setResult && setResult.data && setResult.data.session && setResult.data.session.user);
-        if (authenticated) {
-          persistSessionSnapshot(setResult.data.session);
-          client.__zo2yStorageBootstrap.done = true;
-          client.__zo2yFutureRetryWaitMs = 0;
-        }
-        return authenticated;
-      } catch (_err) {
-        var errorMessage = String((_err && _err.message) || '').toLowerCase();
-        if (shouldClearPersistedSessionForError(_err)) {
-          clearPersistedSessionSnapshots();
-        }
-        if (errorMessage.indexOf('issued in the future') !== -1 || errorMessage.indexOf('clock skew') !== -1 || errorMessage.indexOf('clock for skew') !== -1) {
-          client.__zo2yFutureRetryWaitMs = getStoredSessionFutureWaitMs(storedSession);
-        } else {
-          client.__zo2yFutureRetryWaitMs = 0;
-        }
-        return false;
-      }
-    }
-
-    async function tryRefreshSession(reason) {
-      if (!client || !client.auth || typeof client.auth.refreshSession !== 'function') return null;
-      var now = Date.now();
-      if (refreshCooldownUntil && now < refreshCooldownUntil) return null;
-      if (refreshInFlight) return refreshInFlight;
-      if (lastRefreshAttemptAt && (now - lastRefreshAttemptAt) < 1000 * 25) return null;
-      lastRefreshAttemptAt = now;
-
-      async function hardResetAuth(reasonLabel, err) {
-        try {
-          markExplicitSignout();
-          clearPersistedSessionSnapshots();
-          if (client && client.auth && typeof client.auth.signOut === 'function') {
-            await client.auth.signOut({ scope: 'local' });
-          }
-        } catch (_err) {}
-
-        authDebug('hardResetAuth', {
-          reason: String(reasonLabel || ''),
-          message: String(err && err.message || err || '')
-        });
-
-        // Avoid redirect loops on auth entry pages.
-        var isAuthEntry = pageKey === 'login' || pageKey === 'sign-up' || pageKey === 'signup' || pageKey === 'update-password' || pageKey === 'auth-callback';
-        if (isAuthEntry) return;
-        try {
-          var nextPath = sanitizeNextPath(window.location.pathname + window.location.search + window.location.hash);
-          window.location.replace('login.html?next=' + encodeURIComponent(nextPath));
-        } catch (_err2) {
-          window.location.replace('login.html');
-        }
-      }
-
-      refreshInFlight = (async function () {
-        try {
-          var refreshResult = await client.auth.refreshSession();
-          var refreshError = refreshResult ? refreshResult.error : null;
-          if (refreshError) throw refreshError;
-          var refreshedSession = refreshResult && refreshResult.data ? refreshResult.data.session : null;
-          if (refreshedSession && refreshedSession.access_token && refreshedSession.refresh_token) {
-            persistSessionSnapshot(refreshedSession);
-          }
-          authDebug('tryRefreshSession', {
-            reason: String(reason || ''),
-            session: previewSession(refreshedSession)
+        if (!(await waitForSupabase(7000))) {
+          authenticated = hasStoredSupabaseSession();
+          applyShellState(authenticated, pageKey, {
+            verified: !shouldVerifyCurrentPage(),
+            shell: pageKey === 'index' ? (authenticated ? 'app' : 'landing') : 'app'
           });
-          return refreshedSession || null;
-        } catch (_refreshErr) {
-          var statusCode = Number(_refreshErr && _refreshErr.status || 0);
-          var messageLower = String((_refreshErr && _refreshErr.message) || '').toLowerCase();
-          if (statusCode === 429 || messageLower.indexOf('rate limit') !== -1) {
-            refreshCooldownUntil = Date.now() + 1000 * 60 * 2;
-          } else if (shouldClearPersistedSessionForError(_refreshErr)) {
-            await hardResetAuth('refreshSession', _refreshErr);
-          }
-          authDebug('tryRefreshSession:error', {
-            reason: String(reason || ''),
-            status: statusCode,
-            message: String((_refreshErr && _refreshErr.message) || _refreshErr || '')
-          });
-          return null;
-        } finally {
-          refreshInFlight = null;
-        }
-      })();
-      return refreshInFlight;
-    }
-
-    async function verifyAndApply() {
-      if (!client || !client.auth || typeof client.auth.getSession !== 'function') return false;
-      if (verifyInFlight) return verifyInFlight;
-      var now = Date.now();
-      if (verifyCooldownUntil && now < verifyCooldownUntil) return false;
-      lastVerifyAt = now;
-      verifyInFlight = (async function () {
-      try {
-        var sessionResult = await client.auth.getSession();
-        if (sessionResult && sessionResult.error && shouldClearPersistedSessionForError(sessionResult.error)) {
-          try {
-            markExplicitSignout();
-            clearPersistedSessionSnapshots();
-            await client.auth.signOut({ scope: 'local' });
-          } catch (_err) {}
-          redirectToLanding();
-          return false;
-        }
-        var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
-        var hasStoredSnapshot = !!getStoredSessionSnapshot();
-        authDebug('verifyAndApply:getSession', {
-          pageKey: pageKey,
-          session: previewSession(session),
-          hasStoredSnapshot: hasStoredSnapshot
-        });
-        if (!session && hasStoredSnapshot) {
-          for (var bootstrapAttempt = 0; bootstrapAttempt < 4 && !session; bootstrapAttempt += 1) {
-            await bootstrapClientSessionFromStorage();
-            if (bootstrapAttempt > 0) {
-              await new Promise(function (resolve) {
-                window.setTimeout(resolve, 70);
-              });
-            }
-            sessionResult = await client.auth.getSession();
-            session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
-          }
-        } else if (!session) {
-          sessionResult = await client.auth.getSession();
-          session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
-        }
-        if (!session && hasStoredSnapshot) {
-          var publicRefreshedSession = await tryRefreshSession('verify');
-          if (publicRefreshedSession && publicRefreshedSession.user) {
-            session = publicRefreshedSession;
-          }
-        }
-        var authenticated = !!(session && session.user);
-        var finalAuthenticated = authenticated;
-        if (authenticated) persistSessionSnapshot(session);
-        authDebug('verifyAndApply:result', {
-          authenticated: authenticated,
-          session: previewSession(session),
-          protectedPage: protectedPage
-        });
-        if (!authenticated && hasStoredSnapshot && client.__zo2yFutureRetryWaitMs > 0 && pageKey === 'index') {
-          applyShellState(false, pageKey, { shell: 'pending', verified: false });
-          if (client.__zo2yFutureRetryTimer) window.clearTimeout(client.__zo2yFutureRetryTimer);
-          client.__zo2yFutureRetryTimer = window.setTimeout(function () {
-            client.__zo2yFutureRetryTimer = null;
-            client.__zo2yFutureRetryWaitMs = 0;
-            void verifyAndApply();
-          }, client.__zo2yFutureRetryWaitMs);
-          return false;
-        }
-        applyShellState(authenticated, pageKey, { verified: true });
-
-        if (!authenticated && protectedPage) {
-          // Retry once before redirect to avoid false negatives during token hydration.
-          var retryResult = await client.auth.getSession();
-          var retrySession = retryResult && retryResult.data ? retryResult.data.session : null;
-          var retryAuthenticated = !!(retrySession && retrySession.user);
-          if (!retryAuthenticated) {
-            var refreshedSession = await tryRefreshSession('protected-retry');
-            retryAuthenticated = !!(refreshedSession && refreshedSession.user);
-          }
-          finalAuthenticated = retryAuthenticated;
-          applyShellState(retryAuthenticated, pageKey, { verified: true });
-          if (!retryAuthenticated && !hasStoredSupabaseSession()) {
-            redirectToLanding();
+          if (!authenticated && !PUBLIC_PAGE_KEYS.has(pageKey) && !AUTH_ENTRY_PAGES.has(pageKey)) {
+            redirectToLogin(window.location.pathname + window.location.search + window.location.hash);
             return false;
           }
+          dispatchGateVerified(authenticated);
+          return authenticated;
         }
 
-        // Enforce username onboarding globally so accounts without a real username cannot slip through.
-        if (finalAuthenticated && session && session.user && session.user.id) {
-          try {
-            var userId = session.user.id;
-            var isOnboardingPage = pageKey === 'onboarding';
-            var onboardingParam = false;
-            try {
-              var params = new URLSearchParams(window.location.search);
-              onboardingParam = params.get('onboarding') === '1';
-            } catch (_errSearch) {}
-
-            if (!isOnboardingPage && !onboardingParam && !wasOnboardingEnforcedThisSession(userId)) {
-              var cachedNeeds = readNeedsUsernameCache(userId);
-              var pending = hasOnboardingPending(userId);
-              if (cachedNeeds === true || pending) {
-                markOnboardingEnforcedThisSession(userId);
-                var nextPath = sanitizeNextPath(window.location.pathname + window.location.search + window.location.hash);
-                safeSetStorageItem('postAuthRedirect', nextPath);
-                window.location.replace('onboarding.html?onboarding=1&next=' + encodeURIComponent(nextPath));
-                return true;
-              }
-
-              // Re-check at least once per browser session so stale "false" caches can't keep showing
-              // OAuth/Gmail-derived handles on pages like index.
-              var shouldRecheck = cachedNeeds === null || !wasUsernameCheckedThisSession(userId);
-              if (shouldRecheck) {
-                var profileCheck = await ensureAuthProfile(client, session.user);
-                var needs = !!(profileCheck && profileCheck.needsUsername);
-                writeNeedsUsernameCache(userId, needs);
-                markUsernameCheckedThisSession(userId);
-                if (needs) {
-                  markOnboardingPending(userId);
-                  markOnboardingEnforcedThisSession(userId);
-                  var nextPath2 = sanitizeNextPath(window.location.pathname + window.location.search + window.location.hash);
-                  safeSetStorageItem('postAuthRedirect', nextPath2);
-                  window.location.replace('onboarding.html?onboarding=1&next=' + encodeURIComponent(nextPath2));
-                  return true;
-                }
-              }
-            }
-          } catch (_enforceErr) {}
-        }
-
-        window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
-          detail: { authenticated: finalAuthenticated, pageKey: pageKey, verified: true }
-        }));
-        return true;
-      } catch (_err) {
-        var statusCode = Number(_err && _err.status || 0);
-        var messageLower = String((_err && _err.message) || '').toLowerCase();
-        if (statusCode === 429 || messageLower.indexOf('rate limit') !== -1) {
-          verifyCooldownUntil = Date.now() + 1000 * 60;
-        }
-        var fallbackAuthenticated = hasStoredSupabaseSession();
-        authDebug('verifyAndApply:error', {
-          message: String(_err && _err.message || _err || ''),
-          fallbackAuthenticated: fallbackAuthenticated
+        var client = ensureSharedSupabaseClient();
+        var session = await getActiveSession(client, {
+          refreshIfNeeded: true,
+          restore: true
         });
-        applyShellState(fallbackAuthenticated, pageKey, { verified: true });
-        window.dispatchEvent(new CustomEvent('zo2y-auth-gate-verified', {
-          detail: { authenticated: fallbackAuthenticated, pageKey: pageKey, verified: true }
-        }));
-        return false;
+        authenticated = !!(session && session.user);
+        if (authenticated) {
+          persistSessionSnapshot(session);
+        }
+
+        if (authenticated && !AUTH_ENTRY_PAGES.has(pageKey) && pageKey !== 'onboarding') {
+          var userId = String(session.user.id || '').trim();
+          var onboardingParam = false;
+          try {
+            onboardingParam = new URLSearchParams(window.location.search || '').get('onboarding') === '1';
+          } catch (_errSearch) {}
+          if (userId && !onboardingParam) {
+            var profileResult = await ensureAuthProfile(client, session.user);
+            if (profileResult && profileResult.ok && profileResult.needsUsername && !wasOnboardingRedirectedThisSession(userId)) {
+              redirectToOnboarding(window.location.pathname + window.location.search + window.location.hash, userId);
+              return true;
+            }
+          }
+        }
+
+        applyShellState(authenticated, pageKey, {
+          verified: true,
+          shell: pageKey === 'index' ? (authenticated ? 'app' : 'landing') : 'app'
+        });
+
+        if (!authenticated && !PUBLIC_PAGE_KEYS.has(pageKey) && !AUTH_ENTRY_PAGES.has(pageKey)) {
+          redirectToLogin(window.location.pathname + window.location.search + window.location.hash);
+          return false;
+        }
+
+        dispatchGateVerified(authenticated);
+        lastVerifyAt = Date.now();
+        return authenticated;
+      } catch (error) {
+        authDebug('verifyAndApplySession:error', {
+          message: String(error && error.message || error || '')
+        });
+        if (shouldClearPersistedSessionForError(error)) {
+          clearPersistedSessionSnapshots();
+          authenticated = false;
+        } else {
+          authenticated = hasStoredSupabaseSession();
+        }
+        applyShellState(authenticated, pageKey, {
+          verified: true,
+          shell: pageKey === 'index' ? (authenticated ? 'app' : 'landing') : 'app'
+        });
+        dispatchGateVerified(authenticated);
+        if (!authenticated && !PUBLIC_PAGE_KEYS.has(pageKey) && !AUTH_ENTRY_PAGES.has(pageKey)) {
+          redirectToLogin(window.location.pathname + window.location.search + window.location.hash);
+          return false;
+        }
+        return authenticated;
       } finally {
         verifyInFlight = null;
       }
-      })();
-      return verifyInFlight;
-    }
+    })();
 
-    function shouldThrottlePublicResumeVerification() {
-      if (!lastVerifyAt) return false;
-      var throttleMs = protectedPage ? PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS : PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS;
-      return (Date.now() - lastVerifyAt) < throttleMs;
-    }
+    return verifyInFlight;
+  }
 
-    function maybeVerifyAfterResume(force) {
-      if (!client) return;
-      if (verifyCooldownUntil && Date.now() < verifyCooldownUntil) return;
-      if (!force && shouldThrottlePublicResumeVerification()) return;
-      void verifyAndApply();
-    }
+  async function persistLiveClientSession() {
+    var client = ensureSharedSupabaseClient();
+    if (!client || !client.auth || typeof client.auth.getSession !== 'function') return false;
+    try {
+      var result = await client.auth.getSession();
+      var session = result && result.data ? result.data.session : null;
+      if (session && session.access_token && session.refresh_token) {
+        persistSessionSnapshot(session);
+        return true;
+      }
+    } catch (_err) {}
+    return false;
+  }
 
-    var timer = window.setInterval(async function () {
-      attempts += 1;
-      if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-        if (attempts > 30) {
-          window.clearInterval(timer);
-          if (protectedPage && !hasStoredSupabaseSession()) redirectToLanding();
-        }
+  function shouldThrottleResumeVerification() {
+    if (!lastVerifyAt) return false;
+    var throttleMs = PUBLIC_PAGE_KEYS.has(pageKey)
+      ? PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS
+      : PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS;
+    return (Date.now() - lastVerifyAt) < throttleMs;
+  }
+
+  function bindLifecycleListeners() {
+    if (window.__ZO2Y_AUTH_GATE_LIFECYCLE_BOUND) return;
+    window.__ZO2Y_AUTH_GATE_LIFECYCLE_BOUND = true;
+
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) {
+        void persistLiveClientSession();
         return;
       }
-      if (!client) {
-        try {
-          var detectSessionInUrl = pageKey !== 'auth-callback';
-          client = ensureSharedSupabaseClient({
-            auth: {
-              detectSessionInUrl: detectSessionInUrl
-            }
-          });
-        } catch (_clientErr) {
-          client = null;
-        }
+      if (!shouldThrottleResumeVerification()) {
+        void verifyAndApplySession(false);
       }
-      if (!client) return;
-      window.clearInterval(timer);
-      await bootstrapClientSessionFromStorage();
-      await verifyAndApply();
-      if (!window.__ZO2Y_AUTH_GATE_RESUME_BOUND) {
-        window.__ZO2Y_AUTH_GATE_RESUME_BOUND = true;
-        document.addEventListener('visibilitychange', function () {
-          if (document.hidden) {
-            void persistLiveClientSession();
-            return;
-          }
-          maybeVerifyAfterResume(false);
-        });
-        window.addEventListener('pageshow', function () {
-          maybeVerifyAfterResume(false);
-        });
-        window.addEventListener('focus', function () {
-          maybeVerifyAfterResume(false);
-        });
-        window.addEventListener('pagehide', function () {
-          void persistLiveClientSession();
-        });
-        window.addEventListener('beforeunload', function () {
-          void persistLiveClientSession();
-        });
+    });
+
+    window.addEventListener('focus', function () {
+      if (!shouldThrottleResumeVerification()) {
+        void verifyAndApplySession(false);
       }
-      if (!window.__ZO2Y_AUTH_GATE_LISTENER_BOUND && client.auth && typeof client.auth.onAuthStateChange === 'function') {
-        window.__ZO2Y_AUTH_GATE_LISTENER_BOUND = true;
-        client.auth.onAuthStateChange(function (event, session) {
-          authDebug('onAuthStateChange', {
-            event: event,
-            session: previewSession(session)
-          });
-          if (session && session.access_token && session.refresh_token) {
-            persistSessionSnapshot(session);
-          }
-          if (authStateVerifyTimer) window.clearTimeout(authStateVerifyTimer);
-          if (
-            !session &&
-            event === 'SIGNED_OUT' &&
-            !hasRecentExplicitSignout() &&
-            getStoredSessionSnapshot()
-          ) {
-            authStateVerifyTimer = window.setTimeout(async function () {
-              await restoreClientSessionFromSnapshot(client);
-              void verifyAndApply();
-            }, 40);
-            return;
-          }
-          if (event === 'SIGNED_OUT' && hasRecentExplicitSignout()) {
-            clearPersistedSessionSnapshots();
-            clearExplicitSignoutMarker();
-          }
-          authStateVerifyTimer = window.setTimeout(function () {
-            maybeVerifyAfterResume(true);
-          }, session && session.user ? 0 : 120);
-        });
+    });
+
+    window.addEventListener('pageshow', function () {
+      if (!shouldThrottleResumeVerification()) {
+        void verifyAndApplySession(false);
       }
-      if (!window.__ZO2Y_AUTH_GATE_STORAGE_BOUND) {
-        window.__ZO2Y_AUTH_GATE_STORAGE_BOUND = true;
-        window.addEventListener('storage', function (event) {
-          var key = String(event && event.key || '').trim();
-          if (key === STORAGE_KEY || key === LEGACY_STORAGE_KEY || key === PERSIST_STORAGE_KEY) {
-            maybeVerifyAfterResume(true);
-          }
-        });
+    });
+
+    window.addEventListener('pagehide', function () {
+      void persistLiveClientSession();
+    });
+
+    window.addEventListener('beforeunload', function () {
+      void persistLiveClientSession();
+    });
+
+    window.addEventListener('storage', function (event) {
+      var key = String(event && event.key || '').trim();
+      if (
+        key === STORAGE_KEY ||
+        key === LEGACY_STORAGE_KEY ||
+        key === PERSIST_STORAGE_KEY ||
+        key === DURABLE_STORAGE_KEY ||
+        key === EXPLICIT_SIGNOUT_KEY
+      ) {
+        void verifyAndApplySession(true);
       }
-    }, 90);
+    });
   }
 
-  window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE = hydrateCanonicalAuthStorageFromDurable;
-  window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT = restoreClientSessionFromSnapshot;
-  window.__ZO2Y_HAS_STORED_AUTH_SESSION = hasStoredSupabaseSession;
-  window.__ZO2Y_PERSIST_SESSION_SNAPSHOT = persistSessionSnapshot;
-  window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSharedSupabaseClient;
-  window.__ZO2Y_ENSURE_AUTH_PROFILE = ensureAuthProfile;
-  window.__ZO2Y_MARK_EXPLICIT_SIGNOUT = markExplicitSignout;
-  window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT = clearExplicitSignoutMarker;
-  window.__ZO2Y_AUTH_DIAGNOSTICS = function () {
-    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY, DURABLE_STORAGE_KEY];
-    var storage = {};
-    for (var i = 0; i < keys.length; i += 1) {
-      var key = keys[i];
-      storage[key] = {
-        local: !!safeGetLocalStorageItem(key),
-        shared: !!safeGetStorageItem(key)
+  function exposeAuthRuntime() {
+    window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE = hydrateCanonicalAuthStorageFromDurable;
+    window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT = restoreClientSessionFromSnapshot;
+    window.__ZO2Y_HAS_STORED_AUTH_SESSION = hasStoredSupabaseSession;
+    window.__ZO2Y_PERSIST_SESSION_SNAPSHOT = persistSessionSnapshot;
+    window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSharedSupabaseClient;
+    window.__ZO2Y_ENSURE_AUTH_PROFILE = ensureAuthProfile;
+    window.__ZO2Y_MARK_EXPLICIT_SIGNOUT = markExplicitSignout;
+    window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT = clearExplicitSignoutMarker;
+    window.__ZO2Y_AUTH_DIAGNOSTICS = function () {
+      var snapshot = getStoredSessionSnapshot();
+      return {
+        pageKey: pageKey,
+        debugEnabled: authDebugEnabled(),
+        hasStoredSession: hasStoredSupabaseSession(),
+        hasRecentExplicitSignout: hasRecentExplicitSignout(),
+        oauthFlow: safeGetLocalStorage(OAUTH_FLOW_KEY),
+        postAuthRedirect: safeGetLocalStorage(POST_AUTH_REDIRECT_KEY),
+        pendingBootstrap: readPendingPostAuthBootstrap(),
+        sessionPreview: snapshot ? {
+          userId: String(snapshot.user && snapshot.user.id || '').trim() || null,
+          email: String(snapshot.user && snapshot.user.email || '').trim() || null,
+          expiresAt: snapshot.expires_at || null
+        } : null
       };
-    }
-    var snapshot = getStoredSessionSnapshot();
-    return {
-      pageKey: pageKey,
-      debugEnabled: authDebugEnabled(),
-      location: {
-        search: window.location.search,
-        hash: window.location.hash
-      },
-      hasStoredSupabaseSession: hasStoredSupabaseSession(),
-      hasRecentExplicitSignout: hasRecentExplicitSignout(),
-      oauthFlow: safeGetStorageItem('oauthFlow'),
-      postAuthRedirect: safeGetStorageItem('postAuthRedirect'),
-      storage: storage,
-      sessionPreview: snapshot ? {
-        hasAccessToken: !!snapshot.access_token,
-        hasRefreshToken: !!snapshot.refresh_token,
-        userId: String(snapshot.user && snapshot.user.id || '').trim() || null,
-        expiresAt: snapshot.expires_at || null
-      } : null
     };
-  };
-  window.__ZO2Y_SET_AUTH_DEBUG = function (enabled) {
-    try {
-      if (!window.localStorage) return false;
-      if (enabled) {
-        window.localStorage.setItem(AUTH_DEBUG_KEY, '1');
-      } else {
-        window.localStorage.removeItem(AUTH_DEBUG_KEY);
-      }
+    window.__ZO2Y_SET_AUTH_DEBUG = function (enabled) {
+      if (enabled) return safeSetLocalStorage(AUTH_DEBUG_KEY, '1');
+      safeRemoveLocalStorage(AUTH_DEBUG_KEY);
       return true;
-    } catch (_err) {
-      return false;
-    }
-  };
-  installSupabaseCreateClientPatch();
-  var pageKey = normalizePageKey(window.location.pathname);
-  var AUTH_ENTRY_PAGES = new Set(['login', 'sign-up', 'signup', 'update-password']);
-  var isAuthEntryPage = AUTH_ENTRY_PAGES.has(pageKey);
-  if (!isAuthEntryPage) {
-    hydrateCanonicalAuthStorageFromDurable();
+    };
+
+    window.ZO2Y_AUTH = {
+      config: {
+        projectRef: PROJECT_REF,
+        url: SUPABASE_URL,
+        key: SUPABASE_KEY
+      },
+      keys: {
+        storage: STORAGE_KEY,
+        legacyStorage: LEGACY_STORAGE_KEY,
+        persistStorage: PERSIST_STORAGE_KEY,
+        durableStorage: DURABLE_STORAGE_KEY,
+        onboardingPendingPrefix: ONBOARDING_PENDING_PREFIX,
+        postAuthBootstrap: POST_AUTH_BOOTSTRAP_KEY
+      },
+      waitForSupabase: waitForSupabase,
+      ensureClient: ensureSharedSupabaseClient,
+      createClient: createIsolatedSupabaseClient,
+      getActiveSession: getActiveSession,
+      getVerifiedUser: getVerifiedUser,
+      persistSessionSnapshot: persistSessionSnapshot,
+      restoreSessionFromSnapshot: restoreClientSessionFromSnapshot,
+      clearPersistedSession: clearPersistedSessionSnapshots,
+      hasStoredSession: hasStoredSupabaseSession,
+      sanitizeNextPath: sanitizeNextPath,
+      readRequestedNextPath: readRequestedNextPath,
+      buildPostAuthRedirectTarget: buildPostAuthRedirectTarget,
+      setPostAuthIntent: setPostAuthIntent,
+      clearPostAuthIntent: clearPostAuthIntent,
+      getOnboardingPendingKey: getOnboardingPendingKey,
+      hasOnboardingPending: hasOnboardingPending,
+      markOnboardingPending: markOnboardingPending,
+      clearOnboardingPending: clearOnboardingPending,
+      normalizeUsername: normalizeProfileUsername,
+      isValidUsername: isValidProfileUsername,
+      ensureUsernameAvailable: ensureUsernameAvailable,
+      ensureProfileBootstrap: ensureAuthProfile,
+      updateAuthMetadataUsername: updateAuthMetadataUsername,
+      triggerWelcomeEmail: triggerWelcomeEmail,
+      persistReferralMetadata: persistReferralMetadata,
+      buildPostAuthBootstrapPayload: buildPostAuthBootstrapPayload,
+      setPendingPostAuthBootstrap: setPendingPostAuthBootstrap,
+      readPendingPostAuthBootstrap: readPendingPostAuthBootstrap,
+      clearPendingPostAuthBootstrap: clearPendingPostAuthBootstrap,
+      startGoogleOAuth: startGoogleOAuth,
+      completeOAuthCallback: completeOAuthCallback,
+      finishAuthRedirect: finishAuthRedirect,
+      bootstrapRecoverySession: bootstrapRecoverySession,
+      signOut: signOut,
+      markExplicitSignout: markExplicitSignout,
+      clearExplicitSignout: clearExplicitSignoutMarker,
+      hasRecentExplicitSignout: hasRecentExplicitSignout,
+      redirectToOnboarding: redirectToOnboarding,
+      redirectToPostAuthTarget: redirectToPostAuthTarget
+    };
   }
-  maybeRedirectOAuthCallback(pageKey);
-  var authenticated = !isAuthEntryPage && hasStoredSupabaseSession();
-  var initialShell = pageKey === 'index'
-    ? (authenticated ? 'app' : 'pending')
-    : 'app';
-  applyShellState(authenticated, pageKey, {
-    shell: initialShell,
-    verified: initialShell === 'app'
+
+  installSupabasePatch();
+  exposeAuthRuntime();
+
+  if (maybeRedirectUnexpectedAuthCallback()) {
+    return;
+  }
+
+  hydrateCanonicalAuthStorageFromDurable();
+
+  var initiallyAuthenticated = !AUTH_ENTRY_PAGES.has(pageKey) && hasStoredSupabaseSession();
+  applyShellState(initiallyAuthenticated, pageKey, {
+    verified: AUTH_ENTRY_PAGES.has(pageKey),
+    shell: pageKey === 'index'
+      ? (initiallyAuthenticated ? 'app' : 'pending')
+      : 'app'
   });
 
-  if (!isAuthEntryPage && (pageKey === 'index' || !PUBLIC_PAGE_KEYS.has(pageKey))) {
-    scheduleSessionVerification(pageKey);
+  bindLifecycleListeners();
+
+  if (shouldVerifyCurrentPage()) {
+    void verifyAndApplySession(false);
   }
 })();
