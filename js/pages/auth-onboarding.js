@@ -62,6 +62,21 @@
   async function init() {
     setStatus('Loading your account...', '');
     var session = await loadSession();
+    // If user already completed onboarding on a previous session, skip onboarding.
+    // This guards against onboarding re-triggering on page refresh or direct navigation.
+    try {
+      if (session && session.user && session.user.user_metadata) {
+        var meta = session.user.user_metadata;
+        if (meta.onboarding_completed_at) {
+          // Already onboarded, proceed to post-auth target
+          var target = nextPath();
+          auth.redirectToPostAuthTarget(target);
+          return;
+        }
+      }
+    } catch (_err) {
+      // If anything goes wrong, continue with normal onboarding flow
+    }
     if (!session) {
       window.location.replace('login.html?next=' + encodeURIComponent('onboarding.html'));
       return;
@@ -124,6 +139,12 @@
       auth.clearOnboardingPending(activeUser.id);
       auth.clearPendingPostAuthBootstrap();
       setStatus('All set. Redirecting...', 'success');
+      // Persist an onboarding flag so we don't show onboarding again for this user/session
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.setItem('onboarded', 'true');
+        }
+      } catch (_e) {}
       auth.redirectToPostAuthTarget(nextPath());
     } catch (error) {
       setStatus(String(error && error.message || 'Could not finish onboarding.'), 'error');

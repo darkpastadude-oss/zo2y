@@ -810,7 +810,8 @@
     var auth = Object.assign({}, next.auth || {});
     auth.storage = getAuthStorageBridge();
     auth.storageKey = STORAGE_KEY;
-    if (auth.persistSession === undefined) auth.persistSession = true;
+    // Always enable auth session persistence to avoid losing session on refresh
+    auth.persistSession = true;
     if (auth.autoRefreshToken === undefined) auth.autoRefreshToken = true;
     if (auth.detectSessionInUrl === undefined) auth.detectSessionInUrl = false;
     if (auth.flowType === undefined) auth.flowType = 'implicit';
@@ -1006,6 +1007,34 @@
     }
     return null;
   }
+
+  // Expose a bootstrap helper to attempt restoring a session on app load.
+  // This is used by a bootstrap script to prehydrate auth state before UI renders.
+  try {
+    if (typeof window !== 'undefined') {
+      window.__ZO2Y_BOOTSTRAP_RESTORE_SESSION = async function () {
+        try {
+          // Make sure Supabase client exists or is initializeable
+          var ok = await waitForSupabase(8000);
+          if (!ok) return null;
+          var client = ensureSharedSupabaseClient();
+          if (!client || !client.auth || typeof client.auth.getSession !== 'function') {
+            return null;
+          }
+          var res = await client.auth.getSession();
+          var session = res && res.data ? res.data.session : null;
+          if (session && session.access_token && session.refresh_token) {
+            persistSessionSnapshot(session);
+            return session;
+          }
+          // If no session in response, return null
+          return null;
+        } catch (_err) {
+          return null;
+        }
+      };
+    }
+  } catch (_e) {}
 
   async function getActiveSession(client, options) {
     if (activeSessionPromise) return activeSessionPromise;

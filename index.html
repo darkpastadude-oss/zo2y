@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
   <script src="/js/auth-gate.js?v=20260424f"></script>
+  <script src="/js/bootstrap-auth.js?v=20260424f" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y | All Your Interests in One Place</title>
 <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -27,6 +28,9 @@
     // (Kept for compatibility with legacy game pages.)
     window.ZO2Y_REQUIRE_IGDB = false;
   </script>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -76,6 +80,14 @@
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
+  <div id="appRoot" style="display:none;">
+  <!-- Boot overlay: visible until auth/bootstrap completes -->
+  <div id="authBootstrapOverlay" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;z-index:9999;font-family:system-ui, -apple-system, Segoe UI, Roboto;">
+    <div style="text-align:center; color:#555">
+      <div style="font-size:18px; font-weight:600; margin-bottom:8px;">Loading authentication...</div>
+      <div class="spinner" aria-label="loading" style="width:32px;height:32px;border:4px solid #ccc;border-top-color:#333;border-radius:50%;animation:spin 1s linear infinite"></div>
+    </div>
+  </div>
   <div class="landing-experience landing-v4" id="homeLandingPage" aria-label="Zo2y introduction">
     <header class="landing-v4-header">
       <a class="landing-v4-brand" href="index.html" aria-label="Zo2y home">
@@ -425,7 +437,8 @@
   <script src="js/pages/index.js?v=20260424a" defer></script>
   <script src="js/production-runtime.js?v=20260422a" defer></script>
   <script src="js/home-desktop-rebrand.js?v=20260416b" defer></script>
-</body>
+  </div>
+  </body>
 </html>
 
 
