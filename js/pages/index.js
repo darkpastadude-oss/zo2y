@@ -6792,13 +6792,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         } catch (_err) {}
       }
 
-      if (!sessionUser && allowRefresh && typeof activeClient.auth.refreshSession === 'function') {
-        try {
-          const refreshResult = await activeClient.auth.refreshSession();
-          sessionUser = refreshResult?.data?.session?.user || null;
-        } catch (_err) {}
-      }
-
       if (sessionUser?.id) {
         if (String(homeCurrentUser?.id || '').trim() !== String(sessionUser.id || '').trim()) {
           resetHomeProfileLabelCache();

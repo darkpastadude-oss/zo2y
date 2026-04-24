@@ -637,17 +637,17 @@
     if (existingUser?.id) return existingUser;
     const client = await ensureClient();
     if (!client?.auth) return null;
+    const authRuntime = window.ZO2Y_AUTH || null;
+    if (authRuntime && typeof authRuntime.getVerifiedUser === 'function') {
+      try {
+        const verifiedUser = await authRuntime.getVerifiedUser(client);
+        if (verifiedUser?.id) return verifiedUser;
+      } catch (_error) {}
+    }
     try {
       const sessionResult = await client.auth.getSession();
       const sessionUser = sessionResult?.data?.session?.user || null;
       if (sessionUser?.id) return sessionUser;
-    } catch (_error) {}
-    try {
-      const refreshResult = typeof client.auth.refreshSession === 'function'
-        ? await client.auth.refreshSession()
-        : null;
-      const refreshedUser = refreshResult?.data?.session?.user || null;
-      if (refreshedUser?.id) return refreshedUser;
     } catch (_error) {}
     try {
       const userResult = typeof client.auth.getUser === 'function'

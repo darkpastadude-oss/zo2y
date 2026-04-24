@@ -2,6 +2,7 @@
   'use strict';
 
   var statusEl = document.getElementById('status');
+  var usernameInput = document.getElementById('usernameInput');
   var displayNameInput = document.getElementById('displayNameInput');
   var saveButton = document.getElementById('saveBtn');
   var signOutButton = document.getElementById('signOutBtn');
@@ -17,7 +18,7 @@
     return;
   }
 
-  if (!statusEl || !displayNameInput || !saveButton || !signOutButton) return;
+  if (!statusEl || !usernameInput || !displayNameInput || !saveButton || !signOutButton) return;
 
   function setStatus(message, type) {
     statusEl.className = 'status' + (type ? ' ' + type : '');
@@ -31,9 +32,18 @@
   function getFallbackName(user) {
     var fullName = String(user && user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name) || '').trim();
     if (fullName) return fullName;
-    var email = String(user && user.email || '').trim();
-    if (email && email.indexOf('@') !== -1) return email.split('@')[0];
     return '';
+  }
+
+  function getFallbackUsername(user) {
+    var username = String(
+      user &&
+      user.user_metadata &&
+      (user.user_metadata.zo2y_username || user.user_metadata.username || user.user_metadata.preferred_username) ||
+      ''
+    ).trim();
+    if (!username) return '';
+    return auth.normalizeUsername(username);
   }
 
   async function loadSession() {
@@ -58,13 +68,23 @@
     }
 
     activeUser = session.user;
+    usernameInput.value = getFallbackUsername(activeUser);
     displayNameInput.value = getFallbackName(activeUser);
-    displayNameInput.focus();
+    if (usernameInput.value) {
+      displayNameInput.focus();
+    } else {
+      usernameInput.focus();
+    }
     setStatus('Finish setting up your account so Zo2y can recognize you everywhere.', '');
   }
 
   async function completeOnboarding() {
+    var username = auth.normalizeUsername(usernameInput.value || '');
     var displayName = String(displayNameInput.value || '').trim().slice(0, 80);
+    if (!auth.isValidUsername(username)) {
+      setStatus('Choose a username with 3-30 letters, numbers, or underscores.', 'error');
+      return;
+    }
     if (displayName.length < 2) {
       setStatus('Enter the name you want shown across your account.', 'error');
       return;
@@ -78,14 +98,28 @@
     setStatus('Saving your account...', '');
 
     try {
+      username = await auth.ensureUsernameAvailable(client, username, activeUser.id);
+      var completedAt = new Date().toISOString();
+      var profileRow = await auth.syncUserProfileRecord(client, activeUser, {
+        username: username,
+        full_name: displayName,
+        onboarding_completed_at: completedAt
+      });
+
       var updateResult = await client.auth.updateUser({
         data: {
+          username: username,
+          zo2y_username: username,
           full_name: displayName,
           name: displayName,
-          zo2y_onboarded_at: new Date().toISOString()
+          onboarding_completed_at: completedAt,
+          zo2y_onboarded_at: completedAt
         }
       });
       if (updateResult && updateResult.error) throw updateResult.error;
+      if (!profileRow || !String(profileRow.username || '').trim()) {
+        throw new Error('Could not finish saving your username.');
+      }
 
       auth.clearOnboardingPending(activeUser.id);
       auth.clearPendingPostAuthBootstrap();
@@ -96,6 +130,13 @@
       saveButton.disabled = false;
     }
   }
+
+  usernameInput.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      void completeOnboarding();
+    }
+  });
 
   displayNameInput.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {

@@ -15,6 +15,7 @@
 
   var form = document.getElementById('signupForm');
   var fullNameInput = document.getElementById('fullName');
+  var usernameInput = document.getElementById('username');
   var emailInput = document.getElementById('email');
   var passwordInput = document.getElementById('password');
   var googleButton = document.getElementById('googleSignup');
@@ -22,7 +23,7 @@
   var inviteBanner = document.getElementById('authInviteBanner');
   var loginLink = document.getElementById('altLoginLink');
 
-  if (!form || !fullNameInput || !emailInput || !passwordInput || !submitButton || !googleButton) return;
+  if (!form || !fullNameInput || !usernameInput || !emailInput || !passwordInput || !submitButton || !googleButton) return;
 
   var submitDefaultHtml = submitButton.innerHTML;
   var googleDefaultHtml = googleButton.innerHTML;
@@ -91,6 +92,10 @@
     });
   }
 
+  function normalizeUsername(value) {
+    return auth.normalizeUsername(String(value || '').trim());
+  }
+
   function decorateReferralLinks() {
     if (inviteBanner) {
       if (activeReferral) {
@@ -149,10 +154,11 @@
     clearMessages();
 
     var fullName = String(fullNameInput.value || '').trim();
+    var username = normalizeUsername(usernameInput.value || '');
     var email = String(emailInput.value || '').trim();
     var password = String(passwordInput.value || '');
 
-    if (!fullName || !email || !password) {
+    if (!fullName || !username || !email || !password) {
       showError('All fields are required.');
       track('signup_validation_error', { reason: 'missing_fields', path: window.location.pathname });
       return;
@@ -170,6 +176,12 @@
       return;
     }
 
+    if (!auth.isValidUsername(username)) {
+      showError('Username must be 3-30 characters and use only letters, numbers, or underscores.');
+      track('signup_validation_error', { reason: 'invalid_username', path: window.location.pathname });
+      return;
+    }
+
     setSubmitLoading(true);
 
     try {
@@ -180,6 +192,7 @@
         },
         body: JSON.stringify({
           fullName: fullName,
+          username: username,
           email: email,
           password: password
         })

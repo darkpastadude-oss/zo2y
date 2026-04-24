@@ -204,18 +204,23 @@
     </div>
 
     <h1>finish your setup</h1>
-    <p class="sub">tell us what name to show across Zo2y, then we will drop you back into the app.</p>
+    <p class="sub">pick the one username Zo2y should use everywhere, then confirm the name shown on your profile.</p>
 
-    <div class="row">
+    <div class="row" style="grid-template-columns:1fr;">
+      <input id="usernameInput" class="input" type="text" autocomplete="username" autocapitalize="off" spellcheck="false"
+        placeholder="your username" maxlength="30" aria-label="username" />
+    </div>
+
+    <div class="row" style="margin-top:12px;">
       <input id="displayNameInput" class="input" type="text" autocomplete="name" spellcheck="false"
-        placeholder="your display name" maxlength="80" aria-label="display name" />
+        placeholder="your full name" maxlength="80" aria-label="display name" />
       <button id="saveBtn" class="btn" type="button">
         <i class="fas fa-check"></i>
         <span>continue</span>
       </button>
     </div>
 
-    <div class="hint">Use the name you want other pages and account screens to recognize.</div>
+    <div class="hint">Your username is the one handle Zo2y will remember and use across login, profile, search, and invites.</div>
     <div id="status" class="status"></div>
   </div>
 

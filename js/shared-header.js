@@ -750,12 +750,6 @@ const HEADER_HTML = `
         if (!session && authRuntime && typeof authRuntime.getActiveSession === 'function') {
           session = await authRuntime.getActiveSession(client, { refreshIfNeeded: true, restore: true });
         }
-        if (!session && typeof client.auth.refreshSession === 'function' && readStoredHeaderSession()?.refresh_token) {
-          try {
-            const refreshed = await client.auth.refreshSession();
-            session = refreshed?.data?.session || null;
-          } catch (_err) {}
-        }
       }
       if (session?.access_token && session?.refresh_token) persistHeaderSessionSnapshot(session);
       const loggedIn = !!session;

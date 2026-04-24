@@ -212,35 +212,17 @@
 
             async function resolveAuthenticatedProfileUser(client) {
                 if (!client?.auth) return null;
-                for (let attempt = 0; attempt < 4; attempt += 1) {
-                    if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
-                        try {
-                            window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
-                        } catch (_err) {}
-                    }
+                const authRuntime = window.ZO2Y_AUTH || null;
+                if (authRuntime && typeof authRuntime.getVerifiedUser === 'function') {
                     try {
-                        const { data: sessionData } = await client.auth.getSession();
-                        const session = sessionData?.session || null;
-                        if (session?.user) return session.user;
+                        const verifiedUser = await authRuntime.getVerifiedUser(client);
+                        if (verifiedUser?.id) return verifiedUser;
                     } catch (_err) {}
-
-                    if (typeof client.auth.refreshSession === 'function') {
-                        try {
-                            const refreshed = await client.auth.refreshSession();
-                            const refreshedUser = refreshed?.data?.session?.user || null;
-                            if (refreshedUser) return refreshedUser;
-                        } catch (_err) {}
-                    }
-
-                    try {
-                        const { data, error } = await client.auth.getUser();
-                        if (!error && data?.user) return data.user;
-                    } catch (_err) {}
-
-                    if (attempt < 3) {
-                        await new Promise((resolve) => window.setTimeout(resolve, 120 * (attempt + 1)));
-                    }
                 }
+                try {
+                    const { data, error } = await client.auth.getUser();
+                    if (!error && data?.user) return data.user;
+                } catch (_err) {}
                 return null;
             }
 
@@ -252,16 +234,16 @@
                         console.error('Supabase library not loaded');
                         return;
                     }
-                    
+
+                    const authRuntime = window.ZO2Y_AUTH || null;
+                    if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+                        await authRuntime.waitForSupabase(8000);
+                    }
+
                     if (window.__ZO2Y_ENSURE_SUPABASE_CLIENT && typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
                         supabase = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
                     }
                     if (!supabase) {
-                        if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
-                            try {
-                                window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
-                            } catch (_err) {}
-                        }
                         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
                             auth: {
                                 storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
@@ -851,10 +833,15 @@
                 try {
                     showToast('Logging out...', 'info');
                     await teardownStatsRealtimeSubscriptions();
-                    if (typeof window.__ZO2Y_MARK_EXPLICIT_SIGNOUT === 'function') {
-                        window.__ZO2Y_MARK_EXPLICIT_SIGNOUT();
+                    const authRuntime = window.ZO2Y_AUTH || null;
+                    if (authRuntime && typeof authRuntime.signOut === 'function') {
+                        await authRuntime.signOut(supabase);
+                    } else {
+                        if (typeof window.__ZO2Y_MARK_EXPLICIT_SIGNOUT === 'function') {
+                            window.__ZO2Y_MARK_EXPLICIT_SIGNOUT();
+                        }
+                        await supabase.auth.signOut();
                     }
-                    await supabase.auth.signOut();
                     try {
                         localStorage.removeItem('zo2y-auth-v2');
                         localStorage.removeItem('zo2y-auth-v1');

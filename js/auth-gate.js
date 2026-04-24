@@ -579,16 +579,14 @@
 
   function buildPreferredProfileUsername(user) {
     var userData = user && user.user_metadata ? user.user_metadata : {};
-    var emailPrefix = getUserEmailPrefix(user);
     var userId = String(user && user.id || '').trim();
-    var fallback = emailPrefix || userId || 'user';
+    var fallback = userId || 'user';
     var base = normalizeProfileUsername(
       userData.preferred_username ||
       userData.zo2y_username ||
       userData.username ||
       userData.full_name ||
       userData.name ||
-      emailPrefix ||
       fallback,
       fallback
     );
@@ -678,9 +676,13 @@
       user && user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name) || ''
     ).trim();
     if (fullName) return fullName;
-    var emailPrefix = getUserEmailPrefix(user);
-    if (emailPrefix) return emailPrefix;
     return 'Profile';
+  }
+
+  function profileNeedsConcreteUsername(profile, user) {
+    var username = String(profile && profile.username || '').trim();
+    if (!username) return true;
+    return isPlaceholderProfileUsername(username, user);
   }
 
   async function resolveProfileLabel(client, user, options) {
@@ -705,6 +707,7 @@
 
   function profileNeedsOnboarding(profile) {
     if (!profile) return true;
+    if (profileNeedsConcreteUsername(profile)) return true;
     if (!String(profile.full_name || '').trim()) return true;
     return !String(profile.onboarding_completed_at || '').trim();
   }
@@ -744,7 +747,8 @@
             profile.username = authUsername;
           }
         }
-        var needsOnboarding = profileNeedsOnboarding(profile);
+        var needsUsername = profileNeedsConcreteUsername(profile, user);
+        var needsOnboarding = needsUsername || profileNeedsOnboarding(profile);
         if (needsOnboarding) {
           markOnboardingPending(userId);
         } else {
@@ -759,7 +763,7 @@
           ok: true,
           created: false,
           profile: profile,
-          needsUsername: false,
+          needsUsername: needsUsername,
           needsOnboarding: needsOnboarding
         };
       } catch (error) {
@@ -1175,6 +1179,110 @@
     } catch (_err) {
       return false;
     }
+  }
+
+  async function syncUserProfileRecord(client, user, profileUpdates) {
+    var safeUserId = String(user && user.id || '').trim();
+    if (!client || !safeUserId || !client.from) return null;
+
+    var payload = Object.assign({}, profileUpdates || {});
+    payload.id = safeUserId;
+    if (!Object.prototype.hasOwnProperty.call(payload, 'updated_at')) {
+      payload.updated_at = new Date().toISOString();
+    }
+
+    function shouldStripColumn(error, columnName) {
+      var message = String(error && error.message || '').toLowerCase();
+      return message.indexOf(String(columnName || '').toLowerCase()) !== -1;
+    }
+
+    function withoutOptionalColumns(source, error) {
+      var next = Object.assign({}, source);
+      if (shouldStripColumn(error, 'user_id')) delete next.user_id;
+      if (shouldStripColumn(error, 'onboarding_completed_at')) delete next.onboarding_completed_at;
+      return next;
+    }
+
+    try {
+      var byIdPayload = payload;
+      var byId = await client
+        .from('user_profiles')
+        .update(byIdPayload)
+        .eq('id', safeUserId)
+        .select('id, username, full_name, display_name, onboarding_completed_at')
+        .limit(1);
+      if (byId.error && (shouldStripColumn(byId.error, 'onboarding_completed_at'))) {
+        byIdPayload = withoutOptionalColumns(payload, byId.error);
+        byId = await client
+          .from('user_profiles')
+          .update(byIdPayload)
+          .eq('id', safeUserId)
+          .select('id, username, full_name, display_name')
+          .limit(1);
+      }
+      if (!byId.error && Array.isArray(byId.data) && byId.data[0]) {
+        return byId.data[0];
+      }
+      if (byId.error && String(byId.error.code || '') !== 'PGRST116') {
+        throw byId.error;
+      }
+    } catch (_byIdError) {}
+
+    try {
+      var byUserIdPayload = payload;
+      var byUserId = await client
+        .from('user_profiles')
+        .update(byUserIdPayload)
+        .eq('user_id', safeUserId)
+        .select('id, username, full_name, display_name, onboarding_completed_at')
+        .limit(1);
+      if (byUserId.error && (shouldStripColumn(byUserId.error, 'user_id') || shouldStripColumn(byUserId.error, 'onboarding_completed_at'))) {
+        byUserIdPayload = withoutOptionalColumns(payload, byUserId.error);
+        byUserId = await client
+          .from('user_profiles')
+          .update(byUserIdPayload)
+          .eq('user_id', safeUserId)
+          .select('id, username, full_name, display_name')
+          .limit(1);
+      }
+      if (!byUserId.error && Array.isArray(byUserId.data) && byUserId.data[0]) {
+        return byUserId.data[0];
+      }
+      if (byUserId.error && String(byUserId.error.code || '') !== 'PGRST116') {
+        throw byUserId.error;
+      }
+    } catch (_byUserIdError) {}
+
+    var insertPayload = Object.assign({
+      id: safeUserId,
+      user_id: safeUserId,
+      created_at: new Date().toISOString()
+    }, payload);
+
+    try {
+      var inserted = await client
+        .from('user_profiles')
+        .upsert(insertPayload, { onConflict: 'id' })
+        .select('id, username, full_name, display_name, onboarding_completed_at')
+        .limit(1);
+      if (inserted.error && (shouldStripColumn(inserted.error, 'user_id') || shouldStripColumn(inserted.error, 'onboarding_completed_at'))) {
+        insertPayload = withoutOptionalColumns(insertPayload, inserted.error);
+        var retry = await client
+          .from('user_profiles')
+          .upsert(insertPayload, { onConflict: 'id' })
+          .select('id, username, full_name, display_name')
+          .limit(1);
+        if (!retry.error && Array.isArray(retry.data) && retry.data[0]) {
+          return retry.data[0];
+        }
+        inserted = retry;
+      }
+      if (!inserted.error && Array.isArray(inserted.data) && inserted.data[0]) {
+        return inserted.data[0];
+      }
+    } catch (_insertError) {}
+
+    return readAuthProfileRow(client, safeUserId);
   }
 
   function redirectToOnboarding(rawNext, userId) {
@@ -1639,6 +1747,7 @@
       ensureProfileBootstrap: ensureAuthProfile,
       resolveProfileLabel: resolveProfileLabel,
       updateAuthMetadataUsername: updateAuthMetadataUsername,
+      syncUserProfileRecord: syncUserProfileRecord,
       triggerWelcomeEmail: triggerWelcomeEmail,
       persistReferralMetadata: persistReferralMetadata,
       buildPostAuthBootstrapPayload: buildPostAuthBootstrapPayload,
