@@ -3544,34 +3544,27 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function ensureHomeSupabase() {
-      if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
-        try {
-          window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
-        } catch (_err) {}
-      }
       if (homeSupabaseClient) return homeSupabaseClient;
       if (window.__ZO2Y_SUPABASE_CLIENT) {
         homeSupabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
         return homeSupabaseClient;
       }
+      if (typeof supabase === 'undefined') {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
       if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-        const sharedClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-        if (sharedClient) {
-          homeSupabaseClient = sharedClient;
-          window.__ZO2Y_SUPABASE_CLIENT = sharedClient;
-          return homeSupabaseClient;
-        }
+        homeSupabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
       }
-      if (!window.supabase?.createClient) {
-        await waitForHomeSupabaseSdk();
+      if (homeSupabaseClient) {
+        window.__ZO2Y_SUPABASE_CLIENT = homeSupabaseClient;
+        return homeSupabaseClient;
       }
-      if (!window.supabase?.createClient) return null;
+      if (typeof supabase === 'undefined') return null;
       homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
-          storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
+          storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE,
           persistSession: true,
           autoRefreshToken: true,
-          // OAuth callback is handled on auth-callback.html, keep homepage parser off.
           detectSessionInUrl: false,
           storageKey: 'zo2y-auth-v2'
         }
@@ -6697,52 +6690,22 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const client = await ensureHomeSupabase();
       if (!client) return;
       homeAuthListenerReady = true;
-
-      client.auth.onAuthStateChange(async (event, session) => {
-        const normalizedEvent = String(event || '').trim().toUpperCase();
-        const sessionUserId = String(session?.user?.id || '').trim();
-
-        if (normalizedEvent === 'SIGNED_OUT') {
+      const {
+        data: { user }
+      } = await client.auth.getUser();
+      homeCurrentUser = user || null;
+      queueHomeAuthUiSync({ refreshPersonalization: true });
+      client.auth.onAuthStateChange((_event, session) => {
+        homeCurrentUser = session?.user || null;
+        if (!homeCurrentUser) {
           resetHomeProfileLabelCache();
           homeOnboardingEvaluatedUserId = '';
           homeOnboardingUserId = null;
           homeTasteWeightsCache = { userId: '', savedAt: 0, weights: null };
           homeLastPersonalizationAt = 0;
-          if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
-            const restoredSession = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
-            if (restoredSession?.user) {
-              homeCurrentUser = restoredSession.user;
-              homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
-              queueHomeAuthUiSync({ refreshPersonalization: true });
-              return;
-            }
-          }
-          homeCurrentUser = null;
           homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
-          queueHomeAuthUiSync({ refreshPersonalization: true });
-          return;
         }
-
-        if (sessionUserId) {
-          if (String(homeCurrentUser?.id || '').trim() !== sessionUserId) {
-            resetHomeProfileLabelCache();
-            homeOnboardingEvaluatedUserId = '';
-          }
-          homeCurrentUser = session.user;
-        }
-
-        if (normalizedEvent === 'SIGNED_IN') {
-          homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
-          homeTasteWeightsCache = { userId: '', savedAt: 0, weights: null };
-          homeLastPersonalizationAt = 0;
-          queueHomeAuthUiSync({ refreshPersonalization: true });
-          return;
-        }
-
-        if (normalizedEvent === 'USER_UPDATED') {
-          resetHomeProfileLabelCache();
-          queueHomeAuthUiSync();
-        }
+        queueHomeAuthUiSync({ refreshPersonalization: true });
       });
     }
 
