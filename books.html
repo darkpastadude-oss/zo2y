@@ -1013,7 +1013,7 @@
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
       const BOOKS_PER_PAGE = 20;
-      const BOOKS_CACHE_BUSTER = '20260324-api-only-fast';
+      const BOOKS_CACHE_BUSTER = '20260424-title-fast';
       const BOOKS_PAGE_CACHE_KEY = 'zo2y_books_page_cache_v1';
       const BOOKS_PAGE_CACHE_TTL_MS = 1000 * 60 * 20;
       const BOOKS_API_CACHE_PREFIX = 'zo2y_books_api_cache_v1';
@@ -1068,56 +1068,63 @@
 
       let supabaseClient = null;
       const CURRENT_TOP_BOOK_SEEDS = [
-        { title: 'Heart the Lover', author: 'Lily King' },
-        { title: 'I Who Have Never Known Men', author: 'Jacqueline Harpman' },
-        { title: 'Small Things Like These', author: 'Claire Keegan' },
-        { title: "Mona's Eyes", author: 'Thomas Schlesser' },
-        { title: 'The Odyssey', author: 'Homer' },
-        { title: 'You Better Be Lightning', author: 'Andrea Gibson' },
-        { title: 'Culpability', author: 'Bruce Holsinger' },
-        { title: 'The Library of Amorlin', author: 'Kalyn Josephson' },
-        { title: 'Orbital', author: 'Samantha Harvey' },
-        { title: 'Foster', author: 'Claire Keegan' },
-        { title: 'Writers & Lovers', author: 'Lily King' },
-        { title: 'Hungerstone', author: 'Kat Dunn' },
-        { title: 'The Berry Pickers', author: 'Amanda Peters' },
-        { title: 'The True True Story of Raja the Gullible', author: 'Rabih Alameddine' },
-        { title: 'The Disappointment', author: 'Scott Broker' },
-        { title: 'My Brilliant Friend', author: 'Elena Ferrante' },
-        { title: 'The Overstory', author: 'Richard Powers' },
-        { title: 'Field Notes from an Extinction', author: 'Eoghan Walls' },
-        { title: 'The Land in Winter', author: 'Andrew Miller' },
-        { title: 'The Once and Future Queen', author: 'Paula Lafferty' },
-        { title: 'The Gales of November', author: 'John U. Bacon' },
-        { title: 'Braiding Sweetgrass', author: 'Robin Wall Kimmerer' },
-        { title: 'The Beginning Comes After the End', author: 'Rebecca Solnit' },
-        { title: 'The Glorians', author: 'Terry Tempest Williams' },
-        { title: 'On Democracy', author: 'Walt Whitman' },
-        { title: 'Mutual Aid', author: 'Dean Spade' },
-        { title: 'Guinness World Records 2026', author: 'Guinness World Records' },
-        { title: "I'm Just a Little Guy", author: 'Charlie James' },
-        { title: "Ursula K. Le Guin's Book of Cats", author: 'Ursula K. Le Guin' },
-        { title: "Man's Search for Meaning", author: 'Viktor E. Frankl' },
-        { title: 'The Road Less Triggered', author: 'Kelly Flanagan' },
-        { title: 'Stuff Every Bird Lover Should Know', author: 'Alice Sun' },
-        { title: 'Gathering Moss', author: 'Robin Wall Kimmerer' },
-        { title: 'A Philosophy of Walking', author: 'Frederic Gros' },
-        { title: 'The Company of Owls', author: 'Polly Atkin' },
-        { title: 'How to Relax', author: 'Thich Nhat Hanh' },
-        { title: 'How to Dream', author: 'Thich Nhat Hanh' },
-        { title: 'On Censorship', author: 'Ai Weiwei' },
-        { title: 'We the People', author: 'Jill Lepore' },
-        { title: 'Jesus and John Wayne', author: 'Kristin Kobes Du Mez' },
-        { title: 'The Hybrid Prince', author: 'Tui T. Sutherland' },
+        { title: 'Hope Rises', author: 'David Baldacci' },
         { title: 'Theo of Golden', author: 'Allen Levi' },
-        { title: 'Just Friends', author: 'Haley Pham' },
         { title: 'Project Hail Mary', author: 'Andy Weir' },
-        { title: 'Want to Know a Secret?', author: 'Freida McFadden' },
-        { title: 'You with the Sad Eyes', author: 'Christina Applegate' },
-        { title: 'Dear Debbie', author: 'Freida McFadden' },
+        { title: 'Revenge Prey', author: 'John Sandford' },
+        { title: 'Yesteryear', author: 'Caro Claire Burke' },
+        { title: 'Famesick', author: 'Lena Dunham' },
+        { title: 'Strangers', author: 'Belle Burden' },
+        { title: 'The Faith of Beasts', author: 'James S. A. Corey' },
+        { title: 'The Woman from Nowhere', author: 'Kristen Ashley' },
+        { title: 'The Keeper', author: 'Tana French' },
+        { title: 'The Correspondent', author: 'Virginia Evans' },
+        { title: 'Rites of the Starling', author: 'Devney Perry' },
+        { title: 'The Auction', author: 'Sadie Kincaid' },
+        { title: 'Starside', author: 'Alex Aster' },
+        { title: 'The Night We Met', author: 'Abby Jimenez' },
+        { title: 'Go Gentle', author: 'Maria Semple' },
+        { title: "My Husband's Wife", author: 'Alice Feeney' },
+        { title: 'West of Wicked', author: 'Nikki St. Crowe' },
+        { title: 'Between Two Fires', author: 'Christopher Buehlman' },
+        { title: "Through Mom's Eyes", author: 'Sheinelle Jones' },
+        { title: 'Poisoned Ivies', author: 'Elise Stefanik' },
+        { title: 'Drownproof', author: 'Andy Stumpf' },
         { title: 'The Let Them Theory', author: 'Mel Robbins' },
-        { title: 'Green Eggs and Ham', author: 'Dr. Seuss' },
-        { title: 'One Fish Two Fish Red Fish Blue Fish', author: 'Dr. Seuss' }
+        { title: 'Sunrise on the Reaping', author: 'Suzanne Collins' },
+        { title: 'Onyx Storm', author: 'Rebecca Yarros' },
+        { title: 'The Housemaid', author: 'Freida McFadden' },
+        { title: 'The Tenant', author: 'Freida McFadden' },
+        { title: 'Never Flinch', author: 'Stephen King' },
+        { title: 'Atmosphere', author: 'Taylor Jenkins Reid' },
+        { title: 'One Golden Summer', author: 'Carley Fortune' },
+        { title: 'The First Gentleman', author: 'James Patterson' },
+        { title: 'Butler', author: 'Salena Zito' },
+        { title: 'Original Sin', author: 'Jake Tapper' },
+        { title: 'The Body Keeps the Score', author: 'Bessel van der Kolk' },
+        { title: 'Atomic Habits', author: 'James Clear' },
+        { title: 'The Nightingale', author: 'Kristin Hannah' },
+        { title: 'Forgotten Home Apothecary', author: 'Dr. Nicole Apelian' },
+        { title: 'Inner Excellence', author: 'Jim Murphy' },
+        { title: 'Game On', author: 'Navessa Allen' },
+        { title: "It's Not Easy Being a Bunny", author: 'Marilyn Sadler' },
+        { title: "It's Better Being a Bunny", author: 'Marilyn Sadler' },
+        { title: 'The Meaning of Your Life', author: 'Arthur C. Brooks' },
+        { title: "Little Blue Truck's Springtime", author: 'Alice Schertle' },
+        { title: 'Why a Daughter Needs a Dad', author: 'Gregory E. Lang' },
+        { title: 'Why a Son Needs a Dad', author: 'Gregory E. Lang' },
+        { title: "Oh, the Places You'll Go!", author: 'Dr. Seuss' },
+        { title: 'Dad, I Want to Hear Your Story', author: 'Jeffrey Mason' },
+        { title: 'My First Library', author: 'Wonder House Books' },
+        { title: 'The Very Hungry Caterpillar', author: 'Eric Carle' },
+        { title: 'Judge Stone', author: 'James Patterson' },
+        { title: 'Alchemised', author: 'SenLinYu' },
+        { title: 'Cross and Sampson', author: 'James Patterson' },
+        { title: 'The Hard Line', author: 'Mark Greaney' },
+        { title: "The Devil's Bible", author: 'Steve Berry' },
+        { title: 'Cold Zero', author: 'Brad Thor' },
+        { title: "Nobody's Girl", author: 'Virginia Roberts Giuffre' },
+        { title: 'Heated Rivalry', author: 'Rachel Reid' }
       ];
 
       function toHttpsUrl(value) {
@@ -1288,45 +1295,58 @@
           url.searchParams.set(key, String(value));
         });
         url.searchParams.set('cb', BOOKS_CACHE_BUSTER);
-        // Match the older "auth works" snapshot: always hit the network for books/search/pagination.
-        // This avoids persisting empty arrays into local caches when the network hiccups.
-        url.searchParams.set('_', String(Date.now()));
-        const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), 12000);
-        let res;
-        try {
-          try {
-            res = await fetch(url.toString(), {
-              headers: { Accept: 'application/json' },
-              signal: controller.signal,
-              cache: 'no-store'
-            });
-          } catch (error) {
-            const isAbort = error && (error.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('aborted'));
-            if (!isAbort) throw error;
-            res = await fetch(url.toString(), {
-              headers: { Accept: 'application/json' },
-              cache: 'no-store'
-            });
-          }
-        } finally {
-          window.clearTimeout(timeoutId);
+        const cacheUrl = url.toString();
+        if (booksApiInFlight.has(cacheUrl)) {
+          return booksApiInFlight.get(cacheUrl);
         }
-        if (!res.ok) throw new Error(`Books API error ${res.status}`);
-        const json = await res.json();
-        const booksRaw = Array.isArray(json?.books) ? json.books : [];
-        const books = booksRaw
-          .map((entry) => ({
-            id: String(entry?.id || '').trim(),
-            title: String(entry?.title || '').trim(),
-            author: String(entry?.author || '').trim(),
-            year: Number(entry?.year || 0) || null,
-            cover: toHttpsUrl(entry?.cover || ''),
-            source: String(entry?.source || '').trim()
-          }))
-          .filter((entry) => entry.title);
-        const numFound = Number(json?.meta?.numFound || json?.numFound || json?.count || json?.totalItems || books.length) || books.length;
-        return { books, numFound };
+        const cached = readBooksApiCache(cacheUrl);
+        if (cached) return cached;
+
+        const requestPromise = (async () => {
+          const controller = new AbortController();
+          const timeoutId = window.setTimeout(() => controller.abort(), 12000);
+          let res;
+          try {
+            try {
+              res = await fetch(cacheUrl, {
+                headers: { Accept: 'application/json' },
+                signal: controller.signal,
+                cache: 'default'
+              });
+            } catch (error) {
+              const isAbort = error && (error.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('aborted'));
+              if (!isAbort) throw error;
+              res = await fetch(cacheUrl, {
+                headers: { Accept: 'application/json' },
+                cache: 'default'
+              });
+            }
+          } finally {
+            window.clearTimeout(timeoutId);
+          }
+          if (!res.ok) throw new Error(`Books API error ${res.status}`);
+          const json = await res.json();
+          const booksRaw = Array.isArray(json?.books) ? json.books : [];
+          const books = booksRaw
+            .map((entry) => ({
+              id: String(entry?.id || '').trim(),
+              title: String(entry?.title || '').trim(),
+              author: String(entry?.author || '').trim(),
+              year: Number(entry?.year || 0) || null,
+              cover: toHttpsUrl(entry?.cover || ''),
+              source: String(entry?.source || '').trim()
+            }))
+            .filter((entry) => entry.title);
+          const numFound = Number(json?.meta?.numFound || json?.numFound || json?.count || json?.totalItems || books.length) || books.length;
+          const payload = { books, numFound };
+          if (books.length) writeBooksApiCache(cacheUrl, payload);
+          return payload;
+        })().finally(() => {
+          booksApiInFlight.delete(cacheUrl);
+        });
+
+        booksApiInFlight.set(cacheUrl, requestPromise);
+        return requestPromise;
       }
 
       async function fetchPopularBooks(page = 1, limit = BOOKS_PER_PAGE) {
@@ -1371,7 +1391,8 @@
         const pool = CURRENT_TOP_BOOK_SEEDS.slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, desired * 2));
         const results = await Promise.allSettled(pool.map(async (seed) => {
           const payload = await booksFetch('/search', {
-            q: `${seed.title} ${seed.author}`,
+            title: seed.title,
+            author: seed.author,
             limit: 5,
             page: 1
           });
@@ -1413,6 +1434,42 @@
         const authorSlug = slugifyBookPart(item?.author || '');
         const year = String(item?.year || '').trim();
         return `search-${titleSlug}-${authorSlug || 'unknown'}-${year || 'na'}`;
+      }
+
+      function buildBooksApiCacheKey(url) {
+        return `${BOOKS_API_CACHE_PREFIX}:${String(url || '')}`;
+      }
+
+      function readBooksApiCache(url) {
+        const key = buildBooksApiCacheKey(url);
+        const now = Date.now();
+        const memoryEntry = booksApiMemoryCache.get(key);
+        if (memoryEntry && (now - Number(memoryEntry.savedAt || 0)) <= BOOKS_API_CACHE_TTL_MS) {
+          return memoryEntry.data || null;
+        }
+        try {
+          const raw = sessionStorage.getItem(key);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if ((now - Number(parsed?.savedAt || 0)) > BOOKS_API_CACHE_TTL_MS) {
+            sessionStorage.removeItem(key);
+            return null;
+          }
+          if (parsed?.data) {
+            booksApiMemoryCache.set(key, parsed);
+            return parsed.data;
+          }
+        } catch (_error) {}
+        return null;
+      }
+
+      function writeBooksApiCache(url, data) {
+        const key = buildBooksApiCacheKey(url);
+        const payload = { savedAt: Date.now(), data };
+        booksApiMemoryCache.set(key, payload);
+        try {
+          sessionStorage.setItem(key, JSON.stringify(payload));
+        } catch (_error) {}
       }
 
       async function loadCuratedPopularBooks() {
@@ -1571,16 +1628,23 @@
         let score = 0;
 
         if (query) {
-          if (title === query) score += 240;
-          else if (title.startsWith(query)) score += 180;
-          else if (title.includes(query)) score += 120;
-          if (authors.includes(query)) score += 80;
-          if (subjects.includes(query)) score += 36;
+          if (title === query) score += 420;
+          else if (title.startsWith(query)) score += 300;
+          else if (title.includes(query)) score += 180;
+          if (authors === query) score += 70;
+          else if (authors.includes(query)) score += 36;
           query.split(/\s+/).filter(Boolean).forEach((term) => {
-            if (title.includes(term)) score += 16;
-            if (authors.includes(term)) score += 11;
-            if (subjects.includes(term)) score += 6;
+            if (title === term) score += 80;
+            else if (title.startsWith(term)) score += 36;
+            else if (title.includes(term)) score += 18;
+            if (authors.includes(term)) score += 6;
           });
+          if (publishYear) {
+            const yearNum = Number(publishYear) || 0;
+            if (yearNum >= 2023) score += 18;
+            else if (yearNum >= 2018) score += 10;
+            else if (yearNum > 0 && yearNum < 1950) score -= 24;
+          }
         }
 
         if (authorQuery) {
@@ -1603,7 +1667,13 @@
         if (!hasQuery) return list;
         return list
           .map((item, index) => ({ item, index, score: scoreBookMatch(item) }))
-          .sort((a, b) => (Number(b.score || 0) - Number(a.score || 0)) || (a.index - b.index))
+          .sort((a, b) => {
+            const scoreDelta = (Number(b.score || 0) - Number(a.score || 0));
+            if (scoreDelta) return scoreDelta;
+            const yearDelta = (Number(b.item?.year || 0) || 0) - (Number(a.item?.year || 0) || 0);
+            if (yearDelta) return yearDelta;
+            return a.index - b.index;
+          })
           .map((entry) => entry.item);
       }
 
@@ -1905,7 +1975,15 @@
         const hasActiveFilters = !!(state.query || state.author || state.activeCategory || state.year);
         const isFirstPopularPage = !hasActiveFilters && Number(state.page || 1) === 1;
         if (Number(state.page || 1) === 1) {
-          grid.innerHTML = '<div class="empty">Loading books...</div>';
+          const canUseCachedFirstPage = !hasActiveFilters && !options?.cacheBust;
+          const cachedFirstPage = canUseCachedFirstPage ? readCachedBooksPage() : null;
+          if (cachedFirstPage?.books?.length) {
+            updateBookPageSpotlight(cachedFirstPage.books || []);
+            displayBookResults(cachedFirstPage.books || [], cachedFirstPage.numFound || 0);
+            scheduleBooksBackgroundRefresh('books:first-page-refresh', () => loadBooks({ cacheBust: true }));
+          } else {
+            grid.innerHTML = '<div class="empty">Loading books...</div>';
+          }
         }
 
         let data;
@@ -1919,7 +1997,10 @@
             limit: BOOKS_PER_PAGE,
             language: 'en'
           };
-          if (state.query) params.q = state.query;
+          if (state.query) {
+            params.title = state.query;
+            params.orderBy = 'relevance';
+          }
           if (state.author) params.author = state.author;
           if (state.activeCategory) params.subject = state.activeCategory;
           if (state.year) params.first_publish_year = state.year;
@@ -1945,6 +2026,9 @@
         }
 
         if (requestSeq !== state.requestSeq) return;
+        if (!hasActiveFilters && Number(state.page || 1) === 1 && Array.isArray(data?.books) && data.books.length) {
+          writeCachedBooksPage(data);
+        }
         updateBookPageSpotlight(data.books || []);
         displayBookResults(data.books || [], data.numFound || 0);
       }
@@ -2421,13 +2505,6 @@
   <script src="js/production-runtime.js?v=20260422a" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
 
 
 
