@@ -331,6 +331,14 @@
     );
   }
 
+  function isRecoverableSessionRaceError(error) {
+    var details = getAuthErrorDetails(error);
+    return (
+      details.message.indexOf('refresh token already used') !== -1 ||
+      details.message.indexOf('already been used') !== -1
+    );
+  }
+
   function markExplicitSignout() {
     safeSetLocalStorage(EXPLICIT_SIGNOUT_KEY, String(Date.now()));
   }
@@ -494,22 +502,28 @@
     return (normalizedBase.slice(0, limit) + '_' + normalizedSuffix).slice(0, 30);
   }
 
+  function getGeneratedPlaceholderProfileUsername(user) {
+    var userId = String(user && user.id || '').trim();
+    if (!userId) return 'user';
+    return profileUsernameWithSuffix('user', userId.replace(/-/g, '').slice(0, 6) || 'user');
+  }
+
   function isValidProfileUsername(value) {
     return /^[a-z0-9_]{3,30}$/.test(String(value || '').trim());
   }
 
-  function isPlaceholderProfileUsername(profileUsername) {
+  function isPlaceholderProfileUsername(profileUsername, user) {
     var normalizedProfile = normalizeProfileUsername(profileUsername || '');
     if (!normalizedProfile) return true;
     if (!isValidProfileUsername(normalizedProfile)) return true;
     if (normalizedProfile === 'user') return true;
-    return /^user_[a-z0-9]{1,8}$/i.test(normalizedProfile);
+    return normalizedProfile === getGeneratedPlaceholderProfileUsername(user);
   }
 
   function profileNeedsUsername(profile, user) {
     var username = String(profile && profile.username || '').trim().toLowerCase();
     if (!username) return true;
-    return isPlaceholderProfileUsername(username);
+    return isPlaceholderProfileUsername(username, user);
   }
 
   async function ensureAuthProfile(client, user) {
@@ -801,25 +815,67 @@
     if (hasRecentExplicitSignout()) return null;
     var activeClient = client || ensureSharedSupabaseClient();
     if (!activeClient || !activeClient.auth || typeof activeClient.auth.setSession !== 'function') return null;
+    async function tryRestore(storedSession) {
+      if (!storedSession || !storedSession.access_token || !storedSession.refresh_token) {
+        return { session: null, error: null };
+      }
+      try {
+        var result = await activeClient.auth.setSession({
+          access_token: storedSession.access_token,
+          refresh_token: storedSession.refresh_token
+        });
+        var session = result && result.data ? result.data.session : null;
+        if (session && session.access_token && session.refresh_token) {
+          persistSessionSnapshot(session);
+          return { session: session, error: null };
+        }
+        return {
+          session: null,
+          error: result && result.error ? result.error : null
+        };
+      } catch (error) {
+        return { session: null, error: error };
+      }
+    }
+
     var storedSession = getStoredSessionSnapshot();
     if (!storedSession || !storedSession.access_token || !storedSession.refresh_token) return null;
-    try {
-      var result = await activeClient.auth.setSession({
-        access_token: storedSession.access_token,
-        refresh_token: storedSession.refresh_token
-      });
-      var session = result && result.data ? result.data.session : null;
-      if (session && session.access_token && session.refresh_token) {
-        persistSessionSnapshot(session);
-        return session;
+
+    var restoreResult = await tryRestore(storedSession);
+    if (restoreResult.session) return restoreResult.session;
+
+    if (isRecoverableSessionRaceError(restoreResult.error)) {
+      await wait(120);
+      var latestStoredSession = getStoredSessionSnapshot();
+      var changedTokens = !!(
+        latestStoredSession &&
+        latestStoredSession.access_token &&
+        latestStoredSession.refresh_token &&
+        (
+          latestStoredSession.access_token !== storedSession.access_token ||
+          latestStoredSession.refresh_token !== storedSession.refresh_token
+        )
+      );
+
+      if (changedTokens) {
+        restoreResult = await tryRestore(latestStoredSession);
+        if (restoreResult.session) return restoreResult.session;
       }
-      return null;
-    } catch (error) {
-      if (shouldClearPersistedSessionForError(error)) {
-        clearPersistedSessionSnapshots();
-      }
-      return null;
+
+      try {
+        var liveSessionResult = await activeClient.auth.getSession();
+        var liveSession = liveSessionResult && liveSessionResult.data ? liveSessionResult.data.session : null;
+        if (liveSession && liveSession.access_token && liveSession.refresh_token) {
+          persistSessionSnapshot(liveSession);
+          return liveSession;
+        }
+      } catch (_liveError) {}
     }
+
+    if (shouldClearPersistedSessionForError(restoreResult.error)) {
+      clearPersistedSessionSnapshots();
+    }
+    return null;
   }
 
   async function getActiveSession(client, options) {
@@ -971,7 +1027,8 @@
     try {
       await client.auth.updateUser({
         data: {
-          zo2y_username: username
+          zo2y_username: username,
+          username: username
         }
       });
       return true;

@@ -6838,16 +6838,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function getHomeProfileLabelFallback(user) {
       // Never fall back to Gmail/OAuth nicknames or email prefixes.
-      // We only show a real chosen username (stored in user_metadata.username),
+      // We only show a real chosen username stored in auth metadata,
       // otherwise keep it neutral so onboarding can take over.
-      const raw = String(user?.user_metadata?.zo2y_username || '').trim();
+      const raw = String(user?.user_metadata?.zo2y_username || user?.user_metadata?.username || '').trim();
       const normalized = normalizeProfileUsername(raw);
       if (
         normalized &&
         isValidProfileUsername(normalized) &&
         !RESERVED_PROFILE_USERNAMES.has(normalized.replace(/_/g, '')) &&
-        normalized !== 'user' &&
-        !normalized.startsWith('user_')
+        !isHomePlaceholderProfileUsername(normalized, user)
       ) {
         return `@${normalized}`;
       }
@@ -7146,6 +7145,32 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return /^[a-z0-9_]{3,30}$/.test(String(value || ''));
     }
 
+    function getGeneratedHomePlaceholderUsername(user) {
+      const userId = String(user?.id || '').trim();
+      if (!userId) return 'user';
+      return normalizeProfileUsername(`user_${userId.replace(/-/g, '').slice(0, 6) || 'user'}`);
+    }
+
+    function isHomePlaceholderProfileUsername(username, user = homeCurrentUser) {
+      const authRuntime = window.ZO2Y_AUTH;
+      if (authRuntime && typeof authRuntime.isPlaceholderUsername === 'function') {
+        return !!authRuntime.isPlaceholderUsername(username, user);
+      }
+      const normalized = normalizeProfileUsername(username);
+      if (!normalized) return true;
+      if (!isValidProfileUsername(normalized)) return true;
+      if (normalized === 'user') return true;
+      return normalized === getGeneratedHomePlaceholderUsername(user);
+    }
+
+    function getStoredHomeMetadataUsername(user) {
+      return normalizeProfileUsername(
+        user?.user_metadata?.zo2y_username
+          || user?.user_metadata?.username
+          || ''
+      );
+    }
+
     async function ensureHomeUsernameAvailable(username, currentProfileId = '') {
       const normalizedUsername = normalizeProfileUsername(username);
       if (!isValidProfileUsername(normalizedUsername)) {
@@ -7168,9 +7193,22 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function ensureHomeProfileSeeded() {
-      if (!homeCurrentUser?.id) return { ok: false, created: false };
+      if (!homeCurrentUser?.id) return { ok: false, created: false, needsUsername: false };
       const client = await ensureHomeSupabase();
-      if (!client) return { ok: false, created: false };
+      if (!client) return { ok: false, created: false, needsUsername: false };
+
+      const authRuntime = window.ZO2Y_AUTH;
+      if (authRuntime && typeof authRuntime.ensureProfileBootstrap === 'function') {
+        const sharedResult = await authRuntime.ensureProfileBootstrap(client, homeCurrentUser);
+        if (sharedResult?.ok) {
+          return {
+            ok: true,
+            created: !!sharedResult.created,
+            profile: sharedResult.profile || null,
+            needsUsername: !!sharedResult.needsUsername
+          };
+        }
+      }
 
       const { data: existingProfile, error: lookupError } = await client
         .from('user_profiles')
@@ -7178,7 +7216,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         .eq('id', homeCurrentUser.id)
         .maybeSingle();
       if (existingProfile?.id) {
-        return { ok: true, created: false, profile: existingProfile };
+        return {
+          ok: true,
+          created: false,
+          profile: existingProfile,
+          needsUsername: isHomePlaceholderProfileUsername(existingProfile.username, homeCurrentUser)
+        };
       }
       if (lookupError) {
         throw lookupError;
@@ -7199,11 +7242,27 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (createError) {
         const message = String(createError?.message || '').toLowerCase();
         if (message.includes('duplicate') || message.includes('unique')) {
-          return { ok: true, created: false, profile: null };
+          const { data: duplicateProfile, error: duplicateLookupError } = await client
+            .from('user_profiles')
+            .select('id, username, full_name')
+            .eq('id', homeCurrentUser.id)
+            .maybeSingle();
+          if (duplicateLookupError) throw duplicateLookupError;
+          return {
+            ok: true,
+            created: false,
+            profile: duplicateProfile || null,
+            needsUsername: isHomePlaceholderProfileUsername(duplicateProfile?.username || '', homeCurrentUser)
+          };
         }
         throw createError;
       }
-      return { ok: true, created: true, profile: createdProfile || null };
+      return {
+        ok: true,
+        created: true,
+        profile: createdProfile || null,
+        needsUsername: isHomePlaceholderProfileUsername(createdProfile?.username || '', homeCurrentUser)
+      };
     }
 
     async function triggerHomeWelcomeEmail(session, flow = 'signup') {
@@ -7247,12 +7306,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       try {
         const seededProfile = await ensureHomeProfileSeeded();
         const pendingFlow = String(pending?.flow || '').trim().toLowerCase();
-        const seededUsername = String(seededProfile?.profile?.username || '').trim().toLowerCase();
-        const seededNeedsUsername = !seededUsername || seededUsername === 'user' || seededUsername.startsWith('user_');
-        const shouldShowOnboarding =
-          pendingFlow === 'signup' ||
-          !!seededProfile?.created ||
-          !!(seededProfile?.profile && seededNeedsUsername);
+        const seededNeedsUsername = typeof seededProfile?.needsUsername === 'boolean'
+          ? seededProfile.needsUsername
+          : isHomePlaceholderProfileUsername(seededProfile?.profile?.username || '', homeCurrentUser);
+        const shouldShowOnboarding = !!seededNeedsUsername;
 
         if (shouldShowOnboarding) {
           markOnboardingPending(homeCurrentUser.id);
@@ -8891,7 +8948,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!input) return;
 
       if (!homeOnboardingProfile.username) {
-        const fallbackSeed = homeCurrentUser?.user_metadata?.username
+        const fallbackSeed = getStoredHomeMetadataUsername(homeCurrentUser)
+          || homeCurrentUser?.user_metadata?.username
           || homeCurrentUser?.user_metadata?.full_name
           || homeCurrentUser?.user_metadata?.name
           || (homeCurrentUser?.email || '').split('@')[0]
@@ -8960,17 +9018,35 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const normalized = await ensureHomeUsernameAvailable(rawUsername, homeCurrentUser.id);
         homeOnboardingProfile.username = normalized;
         const client = await ensureHomeSupabase();
-        if (client) {
-          const fullName = homeCurrentUser?.user_metadata?.full_name || homeCurrentUser?.user_metadata?.name || '';
-          await client.from('user_profiles').upsert({
-            id: homeCurrentUser.id,
-            username: normalized,
-            full_name: fullName || null
-          }, { onConflict: 'id' });
+        if (!client) {
+          throw new Error('Unable to save username right now.');
+        }
+        const fullName = homeCurrentUser?.user_metadata?.full_name || homeCurrentUser?.user_metadata?.name || '';
+        const { error: profileError } = await client.from('user_profiles').upsert({
+          id: homeCurrentUser.id,
+          username: normalized,
+          full_name: fullName || null
+        }, { onConflict: 'id' });
+        if (profileError) throw profileError;
+
+        if (window.ZO2Y_AUTH?.updateAuthMetadataUsername) {
+          await window.ZO2Y_AUTH.updateAuthMetadataUsername(client, normalized);
+        } else if (client.auth?.updateUser) {
           try {
-            await client.auth.updateUser({ data: { username: normalized } });
+            await client.auth.updateUser({ data: { zo2y_username: normalized, username: normalized } });
           } catch (_err) {}
         }
+        homeCurrentUser = {
+          ...(homeCurrentUser || {}),
+          user_metadata: {
+            ...(homeCurrentUser?.user_metadata || {}),
+            zo2y_username: normalized,
+            username: normalized
+          }
+        };
+        clearOnboardingPending(homeCurrentUser.id);
+        resetHomeProfileLabelCache();
+        queueHomeAuthUiSync();
         homeOnboardingProfile.usernameStatus = 'ok';
         setHomeOnboardingUsernameStatus('Username saved.', 'ok');
         updateHomeOnboardingNextState();
