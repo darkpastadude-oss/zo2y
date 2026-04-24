@@ -339,6 +339,16 @@ const HEADER_HTML = `
     return 'Profile';
   }
 
+  async function resolveHeaderProfileLabel(client, user) {
+    const authRuntime = window.ZO2Y_AUTH || null;
+    if (authRuntime && typeof authRuntime.resolveProfileLabel === 'function') {
+      try {
+        return await authRuntime.resolveProfileLabel(client, user, { ttlMs: 60000 });
+      } catch (_err) {}
+    }
+    return getUserProfileLabelFallback(user);
+  }
+
   function persistHeaderSessionSnapshot(session) {
     if (!session?.access_token || !session?.refresh_token) return false;
     if (typeof window.__ZO2Y_PERSIST_SESSION_SNAPSHOT === 'function') {
@@ -778,7 +788,7 @@ const HEADER_HTML = `
           if (cachedFresh) {
             label = authHeaderProfileLabelValue;
           } else {
-            label = getUserProfileLabelFallback(user);
+            label = await resolveHeaderProfileLabel(client, user);
             if (label && label !== 'Profile') {
               authHeaderProfileLabelUserId = userId;
               authHeaderProfileLabelValue = label;
@@ -786,7 +796,7 @@ const HEADER_HTML = `
             }
           }
         } catch (_profileErr) {
-          label = getUserProfileLabelFallback(user);
+          label = await resolveHeaderProfileLabel(client, user);
           if (label && label !== 'Profile') {
             authHeaderProfileLabelUserId = String(user?.id || '').trim();
             authHeaderProfileLabelValue = label;

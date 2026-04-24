@@ -91,6 +91,7 @@
   var lastVerifyAt = 0;
   var authStateVerifyTimer = null;
   var profileBootstrapPromises = new Map();
+  var profileLabelCache = new Map();
   var lastKnownSessionSnapshot = null;
 
   try {
@@ -636,6 +637,72 @@
     };
   }
 
+  async function readAuthProfileRow(client, userId) {
+    var safeUserId = String(userId || '').trim();
+    if (!client || !safeUserId || !client.from) return null;
+    try {
+      var byId = await client
+        .from('user_profiles')
+        .select('id, username, full_name, display_name')
+        .eq('id', safeUserId)
+        .maybeSingle();
+      if (!byId || !byId.error) {
+        return byId && byId.data ? byId.data : null;
+      }
+      var byUserId = await client
+        .from('user_profiles')
+        .select('id, username, full_name, display_name')
+        .eq('user_id', safeUserId)
+        .maybeSingle();
+      if (!byUserId || !byUserId.error) {
+        return byUserId && byUserId.data ? byUserId.data : null;
+      }
+    } catch (_err) {}
+    return null;
+  }
+
+  function buildProfileLabelFromSources(user, profileRow) {
+    var rowUsername = String(profileRow && profileRow.username || '').trim();
+    if (rowUsername && !isPlaceholderProfileUsername(rowUsername, user)) {
+      return '@' + rowUsername;
+    }
+    var rowName = String(profileRow && (profileRow.display_name || profileRow.full_name) || '').trim();
+    if (rowName) return rowName;
+    var authUsername = normalizeProfileUsername(
+      user && user.user_metadata && (user.user_metadata.zo2y_username || user.user_metadata.username) || ''
+    );
+    if (authUsername && !isPlaceholderProfileUsername(authUsername, user)) {
+      return '@' + authUsername;
+    }
+    var fullName = String(
+      user && user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name) || ''
+    ).trim();
+    if (fullName) return fullName;
+    var emailPrefix = getUserEmailPrefix(user);
+    if (emailPrefix) return emailPrefix;
+    return 'Profile';
+  }
+
+  async function resolveProfileLabel(client, user, options) {
+    var userId = String(user && user.id || '').trim();
+    var fallbackLabel = buildProfileLabelFromSources(user, null);
+    if (!userId) return fallbackLabel;
+    var opts = options || {};
+    var ttlMs = Number(opts.ttlMs || 60000);
+    var cached = profileLabelCache.get(userId);
+    if (cached && cached.label && (Date.now() - Number(cached.savedAt || 0)) < ttlMs) {
+      return cached.label;
+    }
+    var profileRow = await readAuthProfileRow(client, userId);
+    var label = buildProfileLabelFromSources(user, profileRow);
+    profileLabelCache.set(userId, {
+      label: label,
+      savedAt: Date.now(),
+      profile: profileRow || null
+    });
+    return label;
+  }
+
   function profileNeedsOnboarding(profile) {
     if (!profile) return true;
     if (!String(profile.full_name || '').trim()) return true;
@@ -659,12 +726,35 @@
     var promise = (async function () {
       try {
         var profile = getAuthProfileSnapshot(user);
+        var profileRow = await readAuthProfileRow(_client, userId);
+        if (profileRow) {
+          var rowUsername = String(profileRow.username || '').trim();
+          var rowFullName = String(profileRow.display_name || profileRow.full_name || '').trim();
+          if (rowUsername && !isPlaceholderProfileUsername(rowUsername, user)) {
+            profile.username = rowUsername;
+          }
+          if (rowFullName) {
+            profile.full_name = rowFullName.slice(0, 80);
+          }
+        } else {
+          var authUsername = normalizeProfileUsername(
+            user && user.user_metadata && (user.user_metadata.zo2y_username || user.user_metadata.username) || ''
+          );
+          if (authUsername && !isPlaceholderProfileUsername(authUsername, user)) {
+            profile.username = authUsername;
+          }
+        }
         var needsOnboarding = profileNeedsOnboarding(profile);
         if (needsOnboarding) {
           markOnboardingPending(userId);
         } else {
           clearOnboardingPending(userId);
         }
+        profileLabelCache.set(userId, {
+          label: buildProfileLabelFromSources(user, profileRow || profile),
+          savedAt: Date.now(),
+          profile: profileRow || profile
+        });
         return {
           ok: true,
           created: false,
@@ -719,7 +809,7 @@
     if (auth.persistSession === undefined) auth.persistSession = true;
     if (auth.autoRefreshToken === undefined) auth.autoRefreshToken = true;
     if (auth.detectSessionInUrl === undefined) auth.detectSessionInUrl = false;
-    if (auth.flowType === undefined) auth.flowType = 'pkce';
+    if (auth.flowType === undefined) auth.flowType = 'implicit';
     next.auth = auth;
     return next;
   }
@@ -1194,7 +1284,11 @@
         session = exchangeResult && exchangeResult.data ? exchangeResult.data.session : null;
       } catch (exchangeError) {
         var exchangeMessage = String(exchangeError && exchangeError.message || '').toLowerCase();
-        if (exchangeMessage.indexOf('code verifier') === -1 && exchangeMessage.indexOf('pkce') === -1) {
+        if (
+          exchangeMessage.indexOf('code verifier') === -1 &&
+          exchangeMessage.indexOf('pkce') === -1 &&
+          exchangeMessage.indexOf('verifier') === -1
+        ) {
           throw exchangeError;
         }
         session = await getActiveSession(client, { refreshIfNeeded: true, restore: true });
@@ -1543,6 +1637,7 @@
       isValidUsername: isValidProfileUsername,
       ensureUsernameAvailable: ensureUsernameAvailable,
       ensureProfileBootstrap: ensureAuthProfile,
+      resolveProfileLabel: resolveProfileLabel,
       updateAuthMetadataUsername: updateAuthMetadataUsername,
       triggerWelcomeEmail: triggerWelcomeEmail,
       persistReferralMetadata: persistReferralMetadata,

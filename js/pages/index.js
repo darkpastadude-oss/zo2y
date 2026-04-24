@@ -6852,6 +6852,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return 'Profile';
     }
 
+    async function resolveHomeProfileLabel(client, user) {
+      const authRuntime = window.ZO2Y_AUTH || null;
+      if (authRuntime && typeof authRuntime.resolveProfileLabel === 'function') {
+        try {
+          return await authRuntime.resolveProfileLabel(client, user, { ttlMs: 60000 });
+        } catch (_err) {}
+      }
+      return getHomeProfileLabelFallback(user);
+    }
+
     async function getHomeProfileLabel(client, user) {
       const userId = String(user?.id || '').trim();
       const fallbackLabel = getHomeProfileLabelFallback(user);
@@ -6869,14 +6879,29 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         return homeProfileLabelCache.label;
       }
 
-      homeProfileLabelLookupPromise = null;
-      homeProfileLabelCache = {
-        userId,
-        label: fallbackLabel,
-        fetchedAt: Date.now(),
-        failedAt: 0
-      };
-      return fallbackLabel;
+      if (!homeProfileLabelLookupPromise) {
+        homeProfileLabelLookupPromise = (async () => {
+          const label = await resolveHomeProfileLabel(client, user);
+          homeProfileLabelCache = {
+            userId,
+            label: label || fallbackLabel,
+            fetchedAt: Date.now(),
+            failedAt: 0
+          };
+          return homeProfileLabelCache.label;
+        })().catch(() => {
+          homeProfileLabelCache = {
+            userId,
+            label: fallbackLabel,
+            fetchedAt: Date.now(),
+            failedAt: Date.now()
+          };
+          return fallbackLabel;
+        }).finally(() => {
+          homeProfileLabelLookupPromise = null;
+        });
+      }
+      return homeProfileLabelLookupPromise;
     }
 
     async function initAuthUi() {
