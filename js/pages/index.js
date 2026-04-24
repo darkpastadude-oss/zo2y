@@ -3562,25 +3562,31 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function ensureHomeSupabase() {
+      if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+        try {
+          window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+        } catch (_err) {}
+      }
       if (homeSupabaseClient) return homeSupabaseClient;
       if (window.__ZO2Y_SUPABASE_CLIENT) {
         homeSupabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
         return homeSupabaseClient;
       }
-      if (typeof supabase === 'undefined') {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
       if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-        homeSupabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        const sharedClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        if (sharedClient) {
+          homeSupabaseClient = sharedClient;
+          window.__ZO2Y_SUPABASE_CLIENT = sharedClient;
+          return homeSupabaseClient;
+        }
       }
-      if (homeSupabaseClient) {
-        window.__ZO2Y_SUPABASE_CLIENT = homeSupabaseClient;
-        return homeSupabaseClient;
+      if (!window.supabase?.createClient) {
+        await waitForHomeSupabaseSdk();
       }
-      if (typeof supabase === 'undefined') return null;
+      if (!window.supabase?.createClient) return null;
       homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
-          storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE,
+          storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: false,
@@ -6712,6 +6718,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         return;
       }
       homeAuthListenerReady = true;
+<<<<<<< HEAD
       let user = null;
       const authRuntime = window.ZO2Y_AUTH || null;
       try {
@@ -6743,19 +6750,63 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       client.auth.onAuthStateChange((event, session) => {
         homeCurrentUser = session?.user || null;
         if (!homeCurrentUser) {
+=======
+
+      client.auth.onAuthStateChange(async (event, session) => {
+        const normalizedEvent = String(event || '').trim().toUpperCase();
+        const sessionUserId = String(session?.user?.id || '').trim();
+
+        if (normalizedEvent === 'SIGNED_OUT') {
+>>>>>>> 4dedaa3826f0f8c41f0b2361f67be540dd3007be
           resetHomeProfileLabelCache();
           homeOnboardingEvaluatedUserId = '';
           homeOnboardingUserId = null;
           homeTasteWeightsCache = { userId: '', savedAt: 0, weights: null };
           homeLastPersonalizationAt = 0;
+          if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
+            const restoredSession = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
+            if (restoredSession?.user) {
+              homeCurrentUser = restoredSession.user;
+              homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
+              queueHomeAuthUiSync({ refreshPersonalization: true });
+              return;
+            }
+          }
+          homeCurrentUser = null;
           homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
+          queueHomeAuthUiSync({ refreshPersonalization: true });
+          return;
         }
+
+        if (sessionUserId) {
+          if (String(homeCurrentUser?.id || '').trim() !== sessionUserId) {
+            resetHomeProfileLabelCache();
+            homeOnboardingEvaluatedUserId = '';
+          }
+          homeCurrentUser = session.user;
+        }
+
+        if (normalizedEvent === 'SIGNED_IN') {
+          homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
+          homeTasteWeightsCache = { userId: '', savedAt: 0, weights: null };
+          homeLastPersonalizationAt = 0;
+          queueHomeAuthUiSync({ refreshPersonalization: true });
+          return;
+        }
+
+        if (normalizedEvent === 'USER_UPDATED') {
+          resetHomeProfileLabelCache();
+          queueHomeAuthUiSync();
+        }
+<<<<<<< HEAD
         homeDebugEvent('auth:listener:event', {
           event: String(event || '').trim().toUpperCase(),
           userId: String(homeCurrentUser?.id || '').trim() || null,
           hasSession: !!(session?.access_token && session?.refresh_token)
         });
         queueHomeAuthUiSync({ refreshPersonalization: true });
+=======
+>>>>>>> 4dedaa3826f0f8c41f0b2361f67be540dd3007be
       });
     }
 
