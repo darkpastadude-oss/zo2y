@@ -1,25 +1,20 @@
-    const ENABLE_GAMES = true;
+    const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
+    const ENABLE_GAMES = !GAMES_DISABLED;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
     const ENABLE_FOOD = window.ZO2Y_DISABLE_FOOD !== true;
-    const ENABLE_CARS = window.ZO2Y_DISABLE_CARS !== true;
     const HOME_BASE_MEDIA_TYPES = ENABLE_GAMES
       ? ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'sports']
       : ['movie', 'tv', 'anime', 'book', 'music', 'travel', 'sports'];
     const HOME_LIFESTYLE_MEDIA_TYPES = [
       ...(ENABLE_FASHION ? ['fashion'] : []),
       ...(ENABLE_FOOD ? ['food'] : []),
-      ...(ENABLE_CARS ? ['car'] : []),
       ...(ENABLE_RESTAURANTS ? ['restaurant'] : [])
     ];
     const HOME_ACTIVE_MEDIA_TYPES = [...HOME_BASE_MEDIA_TYPES, ...HOME_LIFESTYLE_MEDIA_TYPES];
-    if (window.ZO2Y_SPORTS_LISTS == null) {
-      window.ZO2Y_SPORTS_LISTS = true;
-    }
     const HOME_LIST_MEDIA_TYPES = HOME_ACTIVE_MEDIA_TYPES.filter((type) => type !== 'sports' || window.ZO2Y_SPORTS_LISTS !== false);
-    const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-    const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-    const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+    const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd';
     const IGDB_PROXY_BASE = '/api/igdb';
     const TMDB_PROXY_BASE = '/api/tmdb';
     const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
@@ -37,38 +32,28 @@
       { id: 'fallback-r5', name: 'Quick Bites', category: 'Casual', rating: '4.6' }
     ];
     const HOME_FASHION_FALLBACKS = [
-      { id: 'fab6ce34-9e00-4d2a-a4ad-ebb69a8a318c', name: 'Nike', category: 'Sportswear', domain: 'nike.com' },
-      { id: '1982d6c7-716d-4f92-8529-039e03d83b72', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com' },
-      { id: '520d0db2-1e34-4076-9db7-06b7dccc9643', name: 'Zara', category: 'Fast Fashion', domain: 'zara.com' },
-      { id: '1d7003d5-dcce-4506-8cb3-2da40b6e8f24', name: 'Uniqlo', category: 'Basics', domain: 'uniqlo.com' },
-      { id: '6c5bbaa5-7007-4c62-b143-e5f89926b649', name: 'H&M', category: 'Fast Fashion', domain: 'hm.com' },
-      { id: 'a733512f-2667-4e87-9486-ec2be20fc557', name: 'Gucci', category: 'Luxury', domain: 'gucci.com' },
-      { id: '0d44e575-c7d4-40fc-9489-1eaa69cb7663', name: 'Prada', category: 'Luxury', domain: 'prada.com' },
-      { id: 'dfe029f5-dee4-434a-bb6c-5015bc36c334', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com' },
-      { id: '12cc4be0-7adb-4d3a-95eb-dfa0f7304ba1', name: 'Off-White', category: 'Streetwear', domain: 'offwhite.com' },
-      { id: '290578ce-6e4c-4e90-9e89-355a36946174', name: 'Supreme', category: 'Streetwear', domain: 'supremenewyork.com' }
+      { id: 'fashion-nike', name: 'Nike', category: 'Sportswear', domain: 'nike.com', logo_url: 'https://logo.clearbit.com/nike.com' },
+      { id: 'fashion-adidas', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com', logo_url: 'https://logo.clearbit.com/adidas.com' },
+      { id: 'fashion-zara', name: 'Zara', category: 'Fast Fashion', domain: 'zara.com', logo_url: 'https://logo.clearbit.com/zara.com' },
+      { id: 'fashion-uniqlo', name: 'Uniqlo', category: 'Basics', domain: 'uniqlo.com', logo_url: 'https://logo.clearbit.com/uniqlo.com' },
+      { id: 'fashion-hm', name: 'H&M', category: 'Fast Fashion', domain: 'hm.com', logo_url: 'https://logo.clearbit.com/hm.com' },
+      { id: 'fashion-gucci', name: 'Gucci', category: 'Luxury', domain: 'gucci.com', logo_url: 'https://logo.clearbit.com/gucci.com' },
+      { id: 'fashion-prada', name: 'Prada', category: 'Luxury', domain: 'prada.com', logo_url: 'https://logo.clearbit.com/prada.com' },
+      { id: 'fashion-lv', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com', logo_url: 'https://logo.clearbit.com/louisvuitton.com' },
+      { id: 'fashion-offwhite', name: 'Off-White', category: 'Streetwear', domain: 'off---white.com', logo_url: 'https://logo.clearbit.com/off---white.com' },
+      { id: 'fashion-supreme', name: 'Supreme', category: 'Streetwear', domain: 'supremenewyork.com', logo_url: 'https://logo.clearbit.com/supremenewyork.com' }
     ];
     const HOME_FOOD_FALLBACKS = [
-      { id: 'b5be652a-1f9b-498c-90c8-325cb9e2d887', name: "McDonald's", category: 'Fast Food', domain: 'mcdonalds.com' },
-      { id: 'ae58f6af-fc0c-48bc-893b-22b8c9bea2f3', name: 'KFC', category: 'Fast Food', domain: 'kfc.com' },
-      { id: 'e89ab03c-f3eb-4e8a-9ac6-7a78dd8cfebf', name: 'Burger King', category: 'Fast Food', domain: 'burgerking.com' },
-      { id: 'e43b76c1-9592-4451-a376-beb5cadaead0', name: 'Subway', category: 'Fast Food', domain: 'subway.com' },
-      { id: 'dcbdebe1-e413-45f3-b73b-3680c7449687', name: 'Taco Bell', category: 'Fast Food', domain: 'tacobell.com' },
-      { id: '212ce36e-df31-4c8e-a8f1-8640b5b47602', name: 'Starbucks', category: 'Coffee', domain: 'starbucks.com' },
-      { id: '65836949-6f8c-4d12-9601-1b37030a8d4f', name: "Domino's", category: 'Pizza', domain: 'dominos.com' },
-      { id: 'e2e4a465-c9e9-4124-b600-4e587e973b52', name: 'Pizza Hut', category: 'Pizza', domain: 'pizzahut.com' },
-      { id: '52404f08-2659-45b4-995a-d2fcddcb262c', name: 'Chipotle', category: 'Fast Casual', domain: 'chipotle.com' },
-      { id: '86bfe99e-87a9-46ef-9606-92fe9127a120', name: 'Shake Shack', category: 'Fast Casual', domain: 'shakeshack.com' }
-    ];
-    const HOME_CAR_FALLBACKS = [
-      { id: 'b4bd539e-490f-406a-89b0-6d4c52043154', name: 'Toyota', category: 'Automaker', domain: 'toyota.com' },
-      { id: '8d466b94-2cde-446b-b17f-05160ce9c92a', name: 'Honda', category: 'Automaker', domain: 'honda.com' },
-      { id: '8a5091a6-a0b6-46ae-9adf-9ef96012fe1d', name: 'BMW', category: 'Luxury', domain: 'bmw.com' },
-      { id: 'd569b2c2-8738-4f3a-b2aa-066d6b7a303d', name: 'Mercedes-Benz', category: 'Luxury', domain: 'mercedes-benz.com' },
-      { id: '7125a959-48c6-458b-873f-3256ecba9813', name: 'Audi', category: 'Luxury', domain: 'audi.com' },
-      { id: '163c6005-e94b-4b0d-ae95-b9210bd20571', name: 'Ford', category: 'Automaker', domain: 'ford.com' },
-      { id: 'c65e5725-4f9a-40ab-97b1-51b17ecfd52a', name: 'Chevrolet', category: 'Automaker', domain: 'chevrolet.com' },
-      { id: 'ae7822a8-c2cc-462b-84bc-16f70c256992', name: 'Tesla', category: 'EV', domain: 'tesla.com' }
+      { id: 'food-mcd', name: "McDonald's", category: 'Fast Food', domain: 'mcdonalds.com', logo_url: 'https://logo.clearbit.com/mcdonalds.com' },
+      { id: 'food-kfc', name: 'KFC', category: 'Fast Food', domain: 'kfc.com', logo_url: 'https://logo.clearbit.com/kfc.com' },
+      { id: 'food-bk', name: 'Burger King', category: 'Fast Food', domain: 'burgerking.com', logo_url: 'https://logo.clearbit.com/burgerking.com' },
+      { id: 'food-subway', name: 'Subway', category: 'Fast Food', domain: 'subway.com', logo_url: 'https://logo.clearbit.com/subway.com' },
+      { id: 'food-taco', name: 'Taco Bell', category: 'Fast Food', domain: 'tacobell.com', logo_url: 'https://logo.clearbit.com/tacobell.com' },
+      { id: 'food-starbucks', name: 'Starbucks', category: 'Coffee', domain: 'starbucks.com', logo_url: 'https://logo.clearbit.com/starbucks.com' },
+      { id: 'food-dominos', name: "Domino's", category: 'Pizza', domain: 'dominos.com', logo_url: 'https://logo.clearbit.com/dominos.com' },
+      { id: 'food-pizzahut', name: 'Pizza Hut', category: 'Pizza', domain: 'pizzahut.com', logo_url: 'https://logo.clearbit.com/pizzahut.com' },
+      { id: 'food-chipotle', name: 'Chipotle', category: 'Fast Casual', domain: 'chipotle.com', logo_url: 'https://logo.clearbit.com/chipotle.com' },
+      { id: 'food-shakeshack', name: 'Shake Shack', category: 'Fast Casual', domain: 'shakeshack.com', logo_url: 'https://logo.clearbit.com/shakeshack.com' }
     ];
     const POPULAR_MUSIC_QUERIES = [
       'top 50 usa',
@@ -83,40 +68,33 @@
       'sabrina carpenter'
     ];
     const HOME_SPORTS_SEEDS = [
-      'Real Madrid', 'FC Barcelona', 'Arsenal', 'Liverpool', 'Manchester City', 'Manchester United', 'Chelsea', 'Bayern Munich', 'Paris Saint-Germain', 'Inter Milan',
-      'AC Milan', 'Juventus', 'Borussia Dortmund', 'Atletico Madrid', 'Ajax', 'Benfica', 'Porto', 'Napoli', 'Roma', 'Tottenham Hotspur',
-      'Newcastle United', 'Leicester City', 'Sevilla', 'Valencia', 'Villarreal', 'Inter Miami', 'LA Galaxy', 'Seattle Sounders', 'Atlanta United', 'Al Hilal',
-      'Los Angeles Lakers', 'Boston Celtics', 'Golden State Warriors', 'Chicago Bulls', 'Miami Heat', 'Milwaukee Bucks', 'Phoenix Suns', 'Denver Nuggets', 'Dallas Mavericks', 'Philadelphia 76ers',
-      'New York Knicks', 'Cleveland Cavaliers', 'San Antonio Spurs', 'Houston Rockets', 'Toronto Raptors', 'Los Angeles Clippers', 'Memphis Grizzlies', 'Sacramento Kings', 'New Orleans Pelicans', 'Utah Jazz',
-      'Kansas City Chiefs', 'Dallas Cowboys', 'San Francisco 49ers', 'Philadelphia Eagles', 'Buffalo Bills', 'Baltimore Ravens', 'Green Bay Packers', 'Pittsburgh Steelers', 'Miami Dolphins', 'Detroit Lions',
-      'Cincinnati Bengals', 'Seattle Seahawks', 'New York Giants', 'Las Vegas Raiders', 'Los Angeles Rams', 'New York Yankees', 'Los Angeles Dodgers', 'Boston Red Sox', 'Houston Astros', 'Chicago Cubs',
-      'Atlanta Braves', 'San Diego Padres', 'Toronto Blue Jays', 'St. Louis Cardinals', 'New York Mets', 'Toronto Maple Leafs', 'Montreal Canadiens', 'Boston Bruins', 'New York Rangers', 'Tampa Bay Lightning',
-      'Colorado Avalanche', 'Edmonton Oilers', 'Vegas Golden Knights', 'Pittsburgh Penguins', 'Ferrari', 'Red Bull Racing', 'Mercedes AMG Petronas', 'McLaren', 'Aston Martin', 'Scuderia AlphaTauri',
-      'Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore', 'Kolkata Knight Riders', 'Rajasthan Royals', 'New Zealand All Blacks', 'England Rugby', 'South Africa Rugby', 'Australia Rugby', 'Ireland Rugby'
+      'Liverpool',
+      'Real Madrid',
+      'FC Barcelona',
+      'Manchester City',
+      'Bayern Munich',
+      'Juventus',
+      'Al Ahly',
+      'Al Hilal',
+      'Raja Casablanca',
+      'Kaizer Chiefs',
+      'Boca Juniors',
+      'Flamengo',
+      'LA Galaxy',
+      'New Zealand All Blacks',
+      'Mumbai Indians',
+      'Chennai Super Kings',
+      'Los Angeles Lakers',
+      'Golden State Warriors',
+      'New York Yankees',
+      'Dallas Cowboys',
+      'Toronto Maple Leafs',
+      'New Zealand Warriors'
     ];
-    const HOME_TOP_SOCCER_LEAGUES = new Set(['premier league', 'la liga', 'serie a', 'bundesliga', 'ligue 1']);
-    const HOME_TOP_SOCCER_CLUBS = new Set([
-      'real madrid', 'barcelona', 'atletico madrid', 'liverpool', 'manchester city',
-      'manchester united', 'arsenal', 'chelsea', 'tottenham hotspur', 'newcastle united',
-      'bayern munich', 'borussia dortmund', 'paris saint germain', 'inter milan', 'ac milan',
-      'juventus', 'napoli', 'roma', 'sevilla', 'valencia'
-    ]);
-    const HOME_TOP_BASKETBALL_TEAMS = new Set([
-      'los angeles lakers', 'boston celtics', 'golden state warriors', 'chicago bulls',
-      'miami heat', 'milwaukee bucks', 'new york knicks', 'phoenix suns'
-    ]);
-    const HOME_TOP_MOTORSPORT_TEAMS = new Set([
-      'ferrari', 'mercedes amg petronas', 'red bull racing', 'mclaren', 'aston martin'
-    ]);
-    const HOME_TOP_NFL_TEAMS = new Set([
-      'kansas city chiefs', 'dallas cowboys', 'san francisco 49ers',
-      'philadelphia eagles', 'buffalo bills', 'green bay packers'
-    ]);
     const HOME_MEDIA_META = {
       restaurant: { label: 'Restaurant', icon: 'fa-clapperboard', accent: '#f59e0b' },
       fashion: { label: 'Fashion', icon: 'fa-shirt', accent: '#38bdf8' },
       food: { label: 'Food', icon: 'fa-burger', accent: '#f59e0b' },
-      car: { label: 'Cars', icon: 'fa-car', accent: '#ef4444' },
       movie: { label: 'Movie', icon: 'fa-film', accent: '#ef4444' },
       tv: { label: 'TV', icon: 'fa-tv', accent: '#22c55e' },
       anime: { label: 'Anime', icon: 'fa-dragon', accent: '#f97316' },
@@ -140,38 +118,39 @@
       music: { table: 'music_list_items', itemField: 'track_id' },
       travel: { table: 'travel_list_items', itemField: 'country_code' },
       ...(ENABLE_FASHION ? { fashion: { table: 'fashion_list_items', itemField: 'brand_id' } } : {}),
-      ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {}),
-      ...(ENABLE_CARS ? { car: { table: 'car_list_items', itemField: 'brand_id' } } : {})
-    };
-    const HOME_REVIEW_SIGNAL_TABLES = {
-      movie: { table: 'movie_reviews', itemField: 'movie_id' },
-      tv: { table: 'tv_reviews', itemField: 'tv_id' },
-      anime: { table: 'anime_reviews', itemField: 'anime_id' },
-      ...(ENABLE_GAMES ? { game: { table: 'game_reviews', itemField: 'game_id' } } : {}),
-      book: { table: 'book_reviews', itemField: 'book_id' },
-      music: { table: 'music_reviews', itemField: 'track_id' },
-      travel: { table: 'travel_reviews', itemField: 'country_code' }
+      ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {})
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v12';
-    const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 90;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v12';
+    const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 30;
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v11';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
-    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
+    const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v5';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
-    const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v4';
+    const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v2';
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
-    const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v4';
+    const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v2';
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_GAMES_ITEMS_CACHE_KEY = 'zo2y_home_games_items_v1';
-    const HOME_GAMES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_TRAVEL_BUCKET_NAME = 'travel-photos';
-    const HOME_SPOTLIGHT_BUCKET_NAME = 'home-spotlights';
-    const HOME_BRAND_BACKGROUND_BUCKET_NAME = 'brand-backgrounds';
-    const HOME_TRAVEL_BUCKET_MANIFEST_CACHE_KEY = 'zo2y_travel_bucket_manifest_v1';
-    const HOME_TRAVEL_BUCKET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
-    const HOME_TRAVEL_BUCKET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/manifest/travel-photo-manifest.json`;
-    const HOME_BRAND_BACKGROUND_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_BRAND_BACKGROUND_BUCKET_NAME}/manifest/brand-backgrounds.json`;
-    const HOME_TRAVEL_FALLBACK_IMAGE = '/images/onboarding/onboard-travel.svg';
+    const HOME_TRAVEL_FALLBACK_IMAGE = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
+        <defs>
+          <linearGradient id='sky' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0%' stop-color='#0b1c35'/>
+            <stop offset='45%' stop-color='#143a6a'/>
+            <stop offset='100%' stop-color='#0f274b'/>
+          </linearGradient>
+          <linearGradient id='glow' x1='0' y1='1' x2='1' y2='0'>
+            <stop offset='0%' stop-color='#1fb5ff' stop-opacity='0.2'/>
+            <stop offset='70%' stop-color='#f59e0b' stop-opacity='0.12'/>
+            <stop offset='100%' stop-color='#fef08a' stop-opacity='0.25'/>
+          </linearGradient>
+        </defs>
+        <rect width='1600' height='900' fill='url(#sky)'/>
+        <circle cx='1220' cy='180' r='180' fill='#f59e0b' opacity='0.18'/>
+        <path d='M0 620 C 260 520 520 640 800 560 C 1080 480 1320 580 1600 520 L1600 900 L0 900 Z' fill='#0a1a31'/>
+        <path d='M0 700 C 280 620 560 720 860 640 C 1120 570 1360 640 1600 600 L1600 900 L0 900 Z' fill='#101f3b'/>
+        <rect width='1600' height='900' fill='url(#glow)'/>
+      </svg>
+    `)}`;
     const HOME_TRAVEL_FALLBACKS = [
       { code: 'US', name: 'United States', capital: 'Washington, D.C.', region: 'North America', subregion: 'Northern America' },
       { code: 'GB', name: 'United Kingdom', capital: 'London', region: 'Europe', subregion: 'Northern Europe' },
@@ -184,318 +163,32 @@
       { code: 'BR', name: 'Brazil', capital: 'Brasilia', region: 'South America', subregion: 'South America' },
       { code: 'MX', name: 'Mexico', capital: 'Mexico City', region: 'North America', subregion: 'Central America' },
       { code: 'AU', name: 'Australia', capital: 'Canberra', region: 'Oceania', subregion: 'Australia and New Zealand' },
-      { code: 'ZA', name: 'South Africa', capital: 'Pretoria', region: 'Africa', subregion: 'Southern Africa' },
-      { code: 'ES', name: 'Spain', capital: 'Madrid', region: 'Europe', subregion: 'Southern Europe' },
-      { code: 'DE', name: 'Germany', capital: 'Berlin', region: 'Europe', subregion: 'Western Europe' },
-      { code: 'TR', name: 'Turkey', capital: 'Ankara', region: 'Asia', subregion: 'Western Asia' },
-      { code: 'TH', name: 'Thailand', capital: 'Bangkok', region: 'Asia', subregion: 'South-Eastern Asia' },
-      { code: 'ID', name: 'Indonesia', capital: 'Jakarta', region: 'Asia', subregion: 'South-Eastern Asia' },
-      { code: 'GR', name: 'Greece', capital: 'Athens', region: 'Europe', subregion: 'Southern Europe' },
-      { code: 'PT', name: 'Portugal', capital: 'Lisbon', region: 'Europe', subregion: 'Southern Europe' },
-      { code: 'NL', name: 'Netherlands', capital: 'Amsterdam', region: 'Europe', subregion: 'Western Europe' },
-      { code: 'CA', name: 'Canada', capital: 'Ottawa', region: 'North America', subregion: 'Northern America' }
+      { code: 'ZA', name: 'South Africa', capital: 'Pretoria', region: 'Africa', subregion: 'Southern Africa' }
     ];
     const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v1';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`;
-    const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 600;
+    const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 900;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
-    const HOME_PUBLIC_FEED_ENDPOINT = '/api/home-feed';
-    const HOME_CHANNEL_TIMEOUT_MS = 5200;
-    const HOME_BOOKS_FETCH_TIMEOUT_MS = 2200;
+    const HOME_CHANNEL_TIMEOUT_MS = 4200;
+    const HOME_BOOKS_FETCH_TIMEOUT_MS = 1200;
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
-    const HOME_GAMES_FALLBACK_ITEMS = [
-      { id: '12766', title: 'The Witcher 3: Wild Hunt', release: '2015-05-19', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
-      { id: '26192', title: 'Red Dead Redemption 2', release: '2018-10-26', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg' },
-      { id: '1877', title: 'The Elder Scrolls V: Skyrim', release: '2011-11-11', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/skyrim.jpg' },
-      { id: '112875', title: 'Elden Ring', release: '2022-02-25', cover: 'https://upload.wikimedia.org/wikipedia/en/b/b9/Elden_Ring_Box_art.jpg' },
-      { id: '1942', title: 'Cyberpunk 2077', release: '2020-12-10', cover: 'https://upload.wikimedia.org/wikipedia/en/9/9f/Cyberpunk_2077_box_art.jpg' },
-      { id: '7346', title: 'Portal 2', release: '2011-04-18', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' }
-    ];
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 16;
-    const HOME_SPOTLIGHT_POOL_SIZE = 20;
+    const HOME_SPOTLIGHT_POOL_SIZE = 16;
     const HOME_NEW_RELEASES_TARGET_ITEMS = 16;
     const HOME_NEW_RELEASES_TIMEOUT_MS = 5600;
-    const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 45;
-const HOME_EAGER_IMAGE_COUNT = 4;
-const HOME_HIGH_PRIORITY_IMAGE_COUNT = 2;
-    const HOME_PRELOAD_PER_CHANNEL = 3;
-    const HOME_PRELOAD_SPOTLIGHT_COUNT = 2;
+    const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 12;
+    const HOME_EAGER_IMAGE_COUNT = 8;
+    const HOME_HIGH_PRIORITY_IMAGE_COUNT = 4;
+    const HOME_PRELOAD_PER_CHANNEL = 2;
+    const HOME_PRELOAD_SPOTLIGHT_COUNT = 3;
     const HOME_UNIFIED_TARGET_ITEMS = 24;
     const HOME_BECAUSE_SIGNAL_CACHE_MS = 1000 * 60 * 3;
     const HOME_BECAUSE_MAX_FOLLOWED_USERS = 24;
     const HOME_BECAUSE_SIGNAL_RECENCY_HOURS = 24 * 21;
-    const HOME_TASTE_PROFILE_TOKEN_LIMIT = 56;
-    const HOME_TASTE_PROFILE_REVIEW_LIMIT = 84;
-    const HOME_TASTE_MIN_TOKEN_LENGTH = 3;
-    const HOME_TASTE_STOPWORDS = new Set([
-      'about', 'after', 'again', 'all', 'and', 'are', 'around', 'back', 'best', 'but',
-      'day', 'days', 'episode', 'film', 'for', 'from', 'game', 'gets', 'has', 'have',
-      'into', 'its', 'just', 'latest', 'live', 'more', 'movie', 'new', 'now', 'off',
-      'one', 'only', 'our', 'out', 'over', 'pick', 'picks', 'show', 'shows', 'song',
-      'still', 'that', 'the', 'their', 'them', 'this', 'title', 'top', 'track', 'tv',
-      'watch', 'with', 'your'
-    ]);
     const HOME_MENU_PRIME_IDLE_DELAY_MS = 2500;
-    const HOME_ONBOARDING_VERSION = 'v2';
-    const HOME_POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
-    const PROFILE_USERNAME_MAX_LENGTH = 30;
-    const HOME_RESUME_REFRESH_THROTTLE_MS = 1000 * 60 * 15;
-    const HOME_PERSONALIZATION_THROTTLE_MS = 1000 * 60 * 5;
-
-    const HOME_DEBUG_STORAGE_KEY = 'zo2y_home_debug_v1';
-    const HOME_DEBUG_MAX_EVENTS = 160;
-
-    function isHomeDebugEnabled() {
-      try {
-        const params = new URLSearchParams(window.location.search || '');
-        if (params.get('debug') === '1') return true;
-      } catch (_err) {}
-      try {
-        return String(localStorage.getItem(HOME_DEBUG_STORAGE_KEY) || '') === '1';
-      } catch (_err) {
-        return false;
-      }
-    }
-
-    function setHomeDebugEnabled(enabled) {
-      try {
-        localStorage.setItem(HOME_DEBUG_STORAGE_KEY, enabled ? '1' : '0');
-      } catch (_err) {}
-    }
-
-    const homeDebugState = {
-      enabled: false,
-      channels: new Map(),
-      events: [],
-      panel: null,
-      panelBody: null,
-      lastRenderAt: 0
-    };
-
-    function homeDebugNow() {
-      try {
-        return typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
-      } catch (_err) {
-        return Date.now();
-      }
-    }
-
-    function homeDebugEvent(type, payload = {}) {
-      const safe = payload && typeof payload === 'object' ? payload : { value: payload };
-      homeDebugState.events.push({
-        t: Date.now(),
-        type: String(type || 'event'),
-        ...safe
-      });
-      if (homeDebugState.events.length > HOME_DEBUG_MAX_EVENTS) {
-        homeDebugState.events.splice(0, homeDebugState.events.length - HOME_DEBUG_MAX_EVENTS);
-      }
-      if (homeDebugState.enabled) scheduleHomeDebugRender();
-    }
-
-    function formatHomeDebugTime(ts) {
-      const d = new Date(ts);
-      const pad = (n) => String(n).padStart(2, '0');
-      return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    }
-
-    function ensureHomeDebugPanel() {
-      if (!homeDebugState.enabled) return null;
-      if (homeDebugState.panel && homeDebugState.panelBody) return homeDebugState.panel;
-      try {
-        const panel = document.createElement('div');
-        panel.id = 'homeDebugPanel';
-        panel.style.cssText = [
-          'position:fixed',
-          'right:12px',
-          'bottom:12px',
-          'z-index:99999',
-          'width:min(520px, calc(100vw - 24px))',
-          'max-height:min(70vh, 520px)',
-          'overflow:hidden',
-          'border:1px solid rgba(255,255,255,0.14)',
-          'border-radius:14px',
-          'background:rgba(10, 18, 40, 0.92)',
-          'backdrop-filter: blur(10px)',
-          'box-shadow: 0 18px 60px rgba(0,0,0,0.45)',
-          'color:#e6edf3',
-          'font: 12px/1.35 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace'
-        ].join(';');
-
-        const head = document.createElement('div');
-        head.style.cssText = 'display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 10px;border-bottom:1px solid rgba(255,255,255,0.10)';
-        head.innerHTML = `
-          <div style="display:flex;gap:10px;align-items:center;min-width:0">
-            <strong style="font-weight:800;letter-spacing:0.2px">Home Debug</strong>
-            <span style="color:rgba(230,237,243,0.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">?debug=1 / localStorage:${HOME_DEBUG_STORAGE_KEY}</span>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button type="button" data-home-debug-action="copy" style="border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#e6edf3;border-radius:10px;padding:6px 8px;cursor:pointer">Copy</button>
-            <button type="button" data-home-debug-action="close" style="border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#e6edf3;border-radius:10px;padding:6px 8px;cursor:pointer">Close</button>
-          </div>
-        `;
-
-        const body = document.createElement('div');
-        body.style.cssText = 'padding:10px;overflow:auto;max-height:calc(min(70vh, 520px) - 44px)';
-
-        panel.appendChild(head);
-        panel.appendChild(body);
-        document.body.appendChild(panel);
-
-        panel.addEventListener('click', async (e) => {
-          const btn = e.target?.closest?.('button[data-home-debug-action]');
-          if (!btn) return;
-          const action = String(btn.getAttribute('data-home-debug-action') || '').trim();
-          if (action === 'close') {
-            setHomeDebugEnabled(false);
-            homeDebugState.enabled = false;
-            try { panel.remove(); } catch (_err) {}
-            return;
-          }
-          if (action === 'copy') {
-            try {
-              const text = JSON.stringify(buildHomeDebugSnapshot(), null, 2);
-              if (navigator?.clipboard?.writeText) {
-                await navigator.clipboard.writeText(text);
-              }
-            } catch (_err) {}
-          }
-        });
-
-        homeDebugState.panel = panel;
-        homeDebugState.panelBody = body;
-        return panel;
-      } catch (_err) {
-        return null;
-      }
-    }
-
-    function buildHomeDebugSnapshot() {
-      const channels = {};
-      homeDebugState.channels.forEach((value, key) => {
-        channels[key] = value;
-      });
-      return {
-        at: new Date().toISOString(),
-        authGate: (() => {
-          try { return getHomeAuthGateState(); } catch (_err) { return null; }
-        })(),
-        channels,
-        events: homeDebugState.events.slice(-80)
-      };
-    }
-
-    // Always expose a debug snapshot hook (even without `?debug=1`) so we can diagnose refresh-only failures.
-    try {
-      if (!window.__ZO2Y_HOME_DEBUG) window.__ZO2Y_HOME_DEBUG = {};
-      if (typeof window.__ZO2Y_HOME_DEBUG.snapshot !== 'function') {
-        window.__ZO2Y_HOME_DEBUG.snapshot = () => buildHomeDebugSnapshot();
-      }
-      if (typeof window.__ZO2Y_HOME_DEBUG.setEnabled !== 'function') {
-        window.__ZO2Y_HOME_DEBUG.setEnabled = (value) => {
-          const enabled = !!value;
-          setHomeDebugEnabled(enabled);
-          homeDebugState.enabled = enabled;
-          if (enabled) {
-            homeDebugEvent('debug:enabled', { via: 'api' });
-            ensureHomeDebugPanel();
-          }
-          scheduleHomeDebugRender();
-          return enabled;
-        };
-      }
-    } catch (_err) {}
-    homeDebugEvent('script:loaded', {
-      href: String(window.location?.href || ''),
-      sw: String(navigator?.serviceWorker?.controller?.scriptURL || '')
-    });
-
-    function scheduleHomeDebugRender() {
-      if (!homeDebugState.enabled) return;
-      const now = Date.now();
-      if (homeDebugState.lastRenderAt && (now - homeDebugState.lastRenderAt) < 120) return;
-      homeDebugState.lastRenderAt = now;
-      requestAnimationFrame(() => {
-        renderHomeDebugPanel();
-      });
-    }
-
-    function escapeHomeDebugHtml(value) {
-      return String(value || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    function renderHomeDebugPanel() {
-      if (!homeDebugState.enabled) return;
-      ensureHomeDebugPanel();
-      const body = homeDebugState.panelBody;
-      if (!body) return;
-
-      const rows = [];
-      const sorted = Array.from(homeDebugState.channels.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-      sorted.forEach(([key, state]) => {
-        const last = state?.last || {};
-        const status = escapeHomeDebugHtml(last.status || 'unknown');
-        const ms = Number.isFinite(Number(last.ms)) ? `${Math.round(Number(last.ms))}ms` : '';
-        const items = Number.isFinite(Number(last.items)) ? `${Number(last.items)} items` : '';
-        const when = last.endedAt ? formatHomeDebugTime(Number(last.endedAt)) : '';
-        const reason = escapeHomeDebugHtml(last.reason || '');
-        rows.push(`<div style="display:grid;grid-template-columns: 92px 1fr;gap:10px;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,0.08)">
-          <div style="color:rgba(230,237,243,0.85)"><strong>${escapeHomeDebugHtml(key)}</strong></div>
-          <div style="color:rgba(230,237,243,0.72)">
-            <span style="color:${status === 'ok' ? '#34d399' : (status === 'timeout' ? '#f59e0b' : (status === 'error' ? '#fb7185' : '#93c5fd'))};font-weight:800">${status}</span>
-            <span style="margin-left:8px">${escapeHomeDebugHtml(items)}</span>
-            <span style="margin-left:8px">${escapeHomeDebugHtml(ms)}</span>
-            <span style="margin-left:8px">${escapeHomeDebugHtml(when)}</span>
-            ${reason ? `<div style="margin-top:4px;color:rgba(230,237,243,0.55)">${reason}</div>` : ''}
-          </div>
-        </div>`);
-      });
-
-      const tailEvents = homeDebugState.events.slice(-10).map((ev) => {
-        const time = formatHomeDebugTime(ev.t);
-        const line = `${time} ${String(ev.type || 'event')}`;
-        const detail = Object.entries(ev)
-          .filter(([k]) => k !== 't' && k !== 'type')
-          .map(([k, v]) => `${k}=${typeof v === 'string' ? v : JSON.stringify(v)}`)
-          .join(' ');
-        return `<div style="padding:2px 0;color:rgba(230,237,243,0.55)">${escapeHomeDebugHtml(line)} ${escapeHomeDebugHtml(detail)}</div>`;
-      }).join('');
-
-      body.innerHTML = `
-        <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="color:rgba(230,237,243,0.72)">Channels (last attempt)</div>
-          <div style="color:rgba(230,237,243,0.55)">Tip: open DevTools Console for stack traces.</div>
-        </div>
-        <div>${rows.join('') || '<div style="color:rgba(230,237,243,0.55)">No channel data yet.</div>'}</div>
-        <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.10)">
-          <div style="color:rgba(230,237,243,0.72);margin-bottom:6px">Recent events</div>
-          ${tailEvents || '<div style="color:rgba(230,237,243,0.55)">No events yet.</div>'}
-        </div>
-      `;
-    }
-    const HOME_TASTE_WEIGHTS_CACHE_MS = 1000 * 60 * 10;
-const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
-    const HOME_TRAVEL_VARIANT_SESSION_SEED = Math.floor(Math.random() * 2147483647);
-    const HOME_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
-        <rect width='24' height='24' fill='#10224a'/>
-      </svg>
-    `)}`;
-    function getHomePublicBucketUrl(bucketName, filePath) {
-      const bucket = String(bucketName || '').trim();
-      const targetPath = String(filePath || '').trim().replace(/^\/+/, '');
-      if (!bucket || !targetPath) return '';
-      const encodedPath = targetPath.split('/').map((segment) => encodeURIComponent(segment)).join('/');
-      return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodedPath}`;
-    }
+    const HOME_ONBOARDING_VERSION = 'v1';
     const HOME_BOOK_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
         <defs>
@@ -533,9 +226,36 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         </g>
       </svg>
     `)}`;
-    const HOME_FASHION_SPOTLIGHT_BG = getHomePublicBucketUrl(HOME_SPOTLIGHT_BUCKET_NAME, 'fashion.jpg');
-    const HOME_FOOD_SPOTLIGHT_BG = getHomePublicBucketUrl(HOME_SPOTLIGHT_BUCKET_NAME, 'food.jpg');
-    const HOME_CAR_SPOTLIGHT_BG = getHomePublicBucketUrl(HOME_SPOTLIGHT_BUCKET_NAME, 'cars.jpg');
+    const HOME_FASHION_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
+        <defs>
+          <linearGradient id='fashionGrad' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0%' stop-color='#0b1633' />
+            <stop offset='55%' stop-color='#1b2f5a' />
+            <stop offset='100%' stop-color='#0a1a36' />
+          </linearGradient>
+        </defs>
+        <rect width='1600' height='900' fill='url(#fashionGrad)' />
+        <circle cx='1280' cy='180' r='220' fill='rgba(56,189,248,0.22)' />
+        <circle cx='300' cy='760' r='260' fill='rgba(245,158,11,0.18)' />
+        <path d='M420 640 L520 560 L640 620 L760 540 L900 600 L980 520 L1120 560' stroke='rgba(255,255,255,0.16)' stroke-width='18' fill='none' />
+      </svg>
+    `)}`;
+    const HOME_FOOD_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
+        <defs>
+          <linearGradient id='foodGrad' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0%' stop-color='#0b1b34' />
+            <stop offset='55%' stop-color='#14325a' />
+            <stop offset='100%' stop-color='#0a172e' />
+          </linearGradient>
+        </defs>
+        <rect width='1600' height='900' fill='url(#foodGrad)' />
+        <circle cx='1220' cy='210' r='230' fill='rgba(249,115,22,0.22)' />
+        <circle cx='320' cy='720' r='250' fill='rgba(34,197,94,0.16)' />
+        <rect x='520' y='620' width='560' height='60' rx='30' fill='rgba(245,158,11,0.18)' />
+      </svg>
+    `)}`;
     const HOME_SUGGESTIVE_TEXT_PATTERNS = [
       /\bhentai\b/i,
       /\becchi\b/i,
@@ -607,36 +327,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       { id: 'pizza', label: 'Pizza', kind: 'tag', tags: ['pizza'] },
       { id: 'burgers', label: 'Burgers', kind: 'tag', tags: ['burger', 'burgers'] }
     ];
-    const HOME_ONBOARDING_TAG_IDS = [
-      'action', 'comedy', 'drama', 'horror', 'romance', 'sci-fi',
-      'thriller', 'documentary', 'soccer', 'basketball', 'motorsport', 'streetwear'
-    ];
-    const HOME_INTEREST_CARD_META = {
-      movie: { icon: 'fas fa-film', hint: 'Watchlists and favorites', fallback: '/images/onboarding/onboard-media.svg' },
-      tv: { icon: 'fas fa-tv', hint: 'Series and rewatches', fallback: '/images/onboarding/onboard-profile.svg' },
-      anime: { icon: 'fas fa-dragon', hint: 'Shonen and classics', fallback: '/images/onboarding/onboard-interests.svg' },
-      game: { icon: 'fas fa-gamepad', hint: 'Backlogs and finishes', fallback: '/images/onboarding/onboard-interests.svg' },
-      book: { icon: 'fas fa-book', hint: 'Read piles and standouts', fallback: '/images/onboarding/onboard-travel.svg' },
-      music: { icon: 'fas fa-music', hint: 'Albums and tracks', fallback: '/images/onboarding/onboard-media.svg' },
-      travel: { icon: 'fas fa-earth-americas', hint: 'Trips and countries', fallback: '/images/onboarding/onboard-travel.svg' },
-      sports: { icon: 'fas fa-futbol', hint: 'Teams and leagues', fallback: '/images/onboarding/onboard-media.svg' },
-      fashion: { icon: 'fas fa-shirt', hint: 'Brands and style', fallback: '/images/onboarding/onboard-fashion.svg' },
-      food: { icon: 'fas fa-utensils', hint: 'Spots and cravings', fallback: '/images/onboarding/onboard-food.svg' },
-      action: { icon: 'fas fa-bolt', hint: 'Fast and intense', fallback: '/images/onboarding/onboard-media.svg' },
-      comedy: { icon: 'fas fa-face-laugh', hint: 'Light and fun', fallback: '/images/onboarding/onboard-food.svg' },
-      drama: { icon: 'fas fa-theater-masks', hint: 'Character driven', fallback: '/images/onboarding/onboard-profile.svg' },
-      horror: { icon: 'fas fa-ghost', hint: 'Dark and tense', fallback: '/images/onboarding/onboard-media.svg' },
-      romance: { icon: 'fas fa-heart', hint: 'Warm and emotional', fallback: '/images/onboarding/onboard-fashion.svg' },
-      'sci-fi': { icon: 'fas fa-rocket', hint: 'Big worlds and ideas', fallback: '/images/onboarding/onboard-interests.svg' },
-      thriller: { icon: 'fas fa-user-secret', hint: 'Suspense and twists', fallback: '/images/onboarding/onboard-media.svg' },
-      documentary: { icon: 'fas fa-camera-retro', hint: 'Real stories', fallback: '/images/onboarding/onboard-travel.svg' },
-      soccer: { icon: 'fas fa-futbol', hint: 'Club and country', fallback: '/images/onboarding/onboard-media.svg' },
-      basketball: { icon: 'fas fa-basketball', hint: 'NBA and beyond', fallback: '/images/onboarding/onboard-media.svg' },
-      motorsport: { icon: 'fas fa-flag-checkered', hint: 'F1 and racing', fallback: '/images/onboarding/onboard-interests.svg' },
-      streetwear: { icon: 'fas fa-shoe-prints', hint: 'Sneakers and drops', fallback: '/images/onboarding/onboard-fashion.svg' }
-    };
 
     async function homeIgdbFetch(path, params = {}, signal) {
+      if (GAMES_DISABLED) {
+        return { results: [] };
+      }
       const requestParams = { ...(params || {}) };
       if (requestParams.search) delete requestParams.ordering;
       if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
@@ -668,17 +363,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     let homeSupabaseClient = null;
     let homeCurrentUser = null;
     let homeAuthListenerReady = false;
-    let homeAuthUiSyncPromise = null;
-    let homeAuthUiSyncQueued = false;
-    let homeAuthSyncTimer = null;
-    let homeAuthSyncNeedsPersonalization = false;
     let homeSpotlightTimer = null;
     let homeSpotlightItems = [];
     let homeSpotlightIndex = 0;
     let homeSpotlightImageToken = 0;
     let homeOnboardingIndex = 0;
     let homeOnboardingUserId = null;
-    let homeOnboardingEvaluatedUserId = '';
     let homeOnboardingProfile = {
       username: '',
       types: new Set(),
@@ -701,103 +391,25 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       selectedLists: new Set()
     };
     const homePreloadedImageSet = new Set();
-    let homeDeferredImageObserver = null;
-    let homeRailViewportObserver = null;
     let homeEagerImageBudgetUsed = 0;
     let homeHighPriorityImageBudgetUsed = 0;
     let homeNewReleasesState = [];
     let homeNewReleasesLastFetchAt = 0;
     let homeNewReleasesRequestSeq = 0;
     let homeNewReleasesInFlight = null;
-    let homeNewReleasesRefreshScheduled = false;
-    let homePendingNewReleasesRefresh = false;
     let homeFeedInitSeq = 0;
     let homeWeakFeedRetryTimer = null;
     let homeWeakFeedRetryCount = 0;
-    let homeSupabaseSdkWaitPromise = null;
-    const homeChannelRetryState = new Map();
-
-    function shouldHomeRetryChannel(key, attempt) {
-      const k = String(key || '').trim();
-      if (!k) return false;
-      // Focus retries on the rails that historically “lock” after refresh.
-      if (!['travel', 'sports', 'car'].includes(k)) return false;
-      return Number(attempt || 0) < 4;
-    }
-
-    function scheduleHomeChannelRetry(channel, attempt = 0) {
-      const key = String(channel?.key || '').trim();
-      if (!key) return;
-      if (!shouldHomeRetryChannel(key, attempt)) return;
-      if (document.hidden) return;
-      const stateKey = `${key}:${homeFeedInitSeq}`;
-      if (homeChannelRetryState.get(stateKey) === true) return;
-      homeChannelRetryState.set(stateKey, true);
-      setTimeout(() => {
-        homeChannelRetryState.delete(stateKey);
-        if (document.hidden) return;
-        // Force a full refresh pass; this keeps the logic centralized and avoids partial-state bugs.
-        void initUniversalHome({ force: true });
-      }, 650 + attempt * 850);
-    }
-
-    function waitForHomeSupabaseSdk(timeoutMs = 2200) {
-      if (window.supabase?.createClient) return Promise.resolve(true);
-      if (homeSupabaseSdkWaitPromise) return homeSupabaseSdkWaitPromise;
-      homeSupabaseSdkWaitPromise = new Promise((resolve) => {
-        const startedAt = Date.now();
-        const tick = () => {
-          if (window.supabase?.createClient) {
-            homeSupabaseSdkWaitPromise = null;
-            resolve(true);
-            return;
-          }
-          if ((Date.now() - startedAt) >= timeoutMs) {
-            homeSupabaseSdkWaitPromise = null;
-            resolve(false);
-            return;
-          }
-          setTimeout(tick, 30);
-        };
-        tick();
-      });
-      return homeSupabaseSdkWaitPromise;
-    }
-    let homeMixedRefreshScheduled = false;
-    let homePendingMixedRefresh = false;
-    let homePendingMixedRefreshArgs = null;
     let homeMenuPrimeScheduled = false;
-    let homeUserInteracted = false;
-    let homeInteractionWatchBound = false;
     let homeBecauseRefreshSeq = 0;
     let homeBecauseSignalCache = {
       userId: '',
       savedAt: 0,
       payload: null
     };
-    let homeLastGoodFeedAt = 0;
-    let homeLastUniversalInitAt = 0;
-    let homeLastPersonalizationAt = 0;
-    let homeTasteWeightsCache = {
-      userId: '',
-      savedAt: 0,
-      weights: null
-    };
-    let homeProfileLabelLookupPromise = null;
-    let homeProfileLabelCache = {
-      userId: '',
-      label: '',
-      fetchedAt: 0,
-      failedAt: 0
-    };
     const homeTravelPhotoCache = new Map();
     let homeTravelPhotoCacheSaveTimer = null;
-    let homeTravelBucketManifestPromise = null;
-    let homeBrandBackgroundManifest = null;
-    let homeBrandBackgroundManifestPromise = null;
     let homeTravelHydrationPromise = null;
-    const homePendingRailRenderState = new Map();
-    const homeDeferredChannelState = new Map();
     const homeMusicPreviewState = {
       audio: null,
       btn: null
@@ -836,51 +448,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         .replace(/'/g, '&#039;');
     }
 
-    function unwrapCloudflareImageUrl(value) {
-      const raw = String(value || '').trim();
-      if (!raw) return '';
-      const marker = '/cdn-cgi/image/';
-      const markerIndex = raw.indexOf(marker);
-      if (markerIndex === -1) return raw;
-      const tail = raw.slice(markerIndex + marker.length);
-      const remoteMatch = tail.match(/(?:^|\/)(https?:\/\/.+)$/i);
-      if (!remoteMatch || !remoteMatch[1]) return raw;
-      let unwrapped = String(remoteMatch[1] || '').trim();
-      try {
-        unwrapped = decodeURI(unwrapped);
-      } catch (_err) {}
-      if (unwrapped.startsWith('//')) unwrapped = `https:${unwrapped}`;
-      return unwrapped.replace(/^http:\/\//i, 'https://');
-    }
-
-    function shouldProxyHomeImageThroughCloudflare(normalized) {
-      const src = String(normalized || '').trim();
-      if (!src) return false;
-      if (!/^https:\/\//i.test(src)) return false;
-      if (typeof window === 'undefined' || !window.location?.origin) return false;
-      return src.startsWith(window.location.origin);
-    }
-
-    function buildCloudflareImageUrl(value, options = {}) {
-      const raw = String(value || '').trim();
-      if (!raw) return '';
-      let normalized = unwrapCloudflareImageUrl(raw);
-      if (normalized.startsWith('//')) normalized = `https:${normalized}`;
-      normalized = normalized.replace(/^http:\/\//i, 'https://');
-      if (!/^https:\/\//i.test(normalized)) return normalized;
-      if (/\.svg(?:[?#].*)?$/i.test(normalized) || /\.gif(?:[?#].*)?$/i.test(normalized)) return normalized;
-      if (!shouldProxyHomeImageThroughCloudflare(normalized)) return normalized;
-      const width = Math.max(32, Number(options?.width || 520) || 520);
-      const quality = Math.max(30, Math.min(90, Number(options?.quality || 75) || 75));
-      const transforms = [`format=auto`, `quality=${quality}`, `width=${Math.round(width)}`];
-      if (options?.height) transforms.push(`height=${Math.max(32, Math.round(Number(options.height) || 0))}`);
-      if (options?.fit) transforms.push(`fit=${String(options.fit)}`);
-      if (options?.gravity) transforms.push(`gravity=${String(options.gravity)}`);
-      return `/cdn-cgi/image/${transforms.join(',')}/${encodeURI(normalized)}`;
-    }
-
-    function toHttpsUrl(value, options = null) {
-      return buildCloudflareImageUrl(value, options || undefined);
+    function toHttpsUrl(value) {
+      return String(value || '').replace(/^http:\/\//i, 'https://');
     }
 
     function normalizeCountryName(value) {
@@ -889,7 +458,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         .normalize('NFD')
         .replace(/[\u0300-\u036f]+/g, '')
         .replace(/&/g, ' and ')
-        .replace(/[\u0027\u2019]/g, '')
+        .replace(/['’]/g, '')
         .replace(/[^a-z0-9]+/g, ' ')
         .replace(/^the\s+/g, '')
         .trim();
@@ -1000,7 +569,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function formatTravelTitleWithFlag(titleRaw, codeRaw) {
       const title = String(titleRaw || '').trim();
-      return title;
+      if (!title) return title;
+      const flagEmoji = getHomeCountryFlagEmoji(codeRaw);
+      if (!flagEmoji) return title;
+      return title.startsWith(flagEmoji) ? title : `${flagEmoji} ${title}`;
     }
 
     function canonicalTravelCountryCode(value) {
@@ -1016,7 +588,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (raw.includes('/flags/')) return true;
       if (raw.includes('restcountries.com/data/')) return true;
       if (raw.includes('commons.wikimedia.org') && (raw.includes('flag_of_') || raw.includes('flag-of-'))) return true;
-      const blocked = ['coat_of_arms', 'coat-of-arms', 'emblem', 'seal', 'map_of_', 'map-of-', 'painting', 'illustration', 'drawing', 'watercolor', 'etching', 'engraving', 'lithograph', 'oil_on_canvas', 'cartoon', 'sketch', 'render', 'vector', 'banknote', 'stamp', 'crest', 'poster'];
+      const blocked = ['coat_of_arms', 'coat-of-arms', 'emblem', 'seal', 'map_of_', 'map-of-', 'painting', 'illustration', 'drawing', 'watercolor', 'etching', 'engraving', 'lithograph', 'oil_on_canvas'];
       if (blocked.some((token) => raw.includes(token))) return true;
       return false;
     }
@@ -1036,14 +608,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (lower.includes('/images/placeholder.jpg')) return false;
       if (lower.includes('source.unsplash.com/')) return false;
       return true;
-    }
-
-    function getTravelCommonsCategoryText(page) {
-      const categories = Array.isArray(page?.categories) ? page.categories : [];
-      return categories
-        .map((entry) => String(entry?.title || '').replace(/^Category:/i, '').trim().toLowerCase())
-        .filter(Boolean)
-        .join(' | ');
     }
 
     function normalizeHomeTravelPhotoEntry(entry) {
@@ -1075,168 +639,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return normalizeHomeTravelPhotoEntry(homeTravelPhotoCache.get(code));
     }
 
-    function normalizeHomeTravelBucketManifestEntries(payload) {
-      if (!payload || typeof payload !== 'object') return null;
-      const entries = payload.countries && typeof payload.countries === 'object'
-        ? payload.countries
-        : (payload.entries && typeof payload.entries === 'object' ? payload.entries : null);
-      return entries && typeof entries === 'object' ? entries : null;
-    }
-
-    function mergeHomeTravelBucketManifestEntries(entries) {
-      if (!entries || typeof entries !== 'object') return false;
-      let changed = false;
-      Object.entries(entries).forEach(([codeRaw, entry]) => {
-        const code = canonicalTravelCountryCode(codeRaw);
-        if (!code) return;
-        const normalized = normalizeHomeTravelPhotoEntry(entry);
-        if (!normalized.scenic && !normalized.city && !normalized.nature) return;
-        const current = normalizeHomeTravelPhotoEntry(homeTravelPhotoCache.get(code));
-        const merged = {
-          scenic: normalized.scenic || current.scenic || '',
-          city: normalized.city || current.city || '',
-          nature: normalized.nature || current.nature || ''
-        };
-        if (merged.scenic === current.scenic && merged.city === current.city && merged.nature === current.nature) return;
-        homeTravelPhotoCache.set(code, merged);
-        changed = true;
-      });
-      if (changed) scheduleHomeTravelPhotoCacheSave();
-      return changed;
-    }
-
-    function readHomeTravelBucketManifestCache() {
-      try {
-        const raw = localStorage.getItem(HOME_TRAVEL_BUCKET_MANIFEST_CACHE_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        const savedAt = Number(parsed?.savedAt || 0);
-        const entries = normalizeHomeTravelBucketManifestEntries(parsed);
-        if (!savedAt || !entries) return null;
-        if ((Date.now() - savedAt) > HOME_TRAVEL_BUCKET_MANIFEST_TTL_MS) return null;
-        return { savedAt, entries };
-      } catch (_err) {
-        return null;
-      }
-    }
-
-    function writeHomeTravelBucketManifestCache(entries) {
-      if (!entries || typeof entries !== 'object') return;
-      try {
-        localStorage.setItem(HOME_TRAVEL_BUCKET_MANIFEST_CACHE_KEY, JSON.stringify({
-          savedAt: Date.now(),
-          countries: entries
-        }));
-      } catch (_err) {}
-    }
-
-    function loadHomeTravelBucketManifestFromStorage() {
-      const cached = readHomeTravelBucketManifestCache();
-      if (!cached || !cached.entries) return false;
-      return mergeHomeTravelBucketManifestEntries(cached.entries);
-    }
-
-    async function hydrateHomeTravelBucketManifest(signal) {
-      if (homeTravelBucketManifestPromise) return homeTravelBucketManifestPromise;
-      homeTravelBucketManifestPromise = (async () => {
-        try {
-          const response = await fetch(HOME_TRAVEL_BUCKET_MANIFEST_URL, {
-            signal,
-            headers: { Accept: 'application/json' }
-          });
-          if (!response.ok) return false;
-          const payload = await response.json();
-          const entries = normalizeHomeTravelBucketManifestEntries(payload);
-          if (!entries) return false;
-          writeHomeTravelBucketManifestCache(entries);
-          return mergeHomeTravelBucketManifestEntries(entries);
-        } catch (_err) {
-          return false;
-        } finally {
-          homeTravelBucketManifestPromise = null;
-        }
-      })();
-      return homeTravelBucketManifestPromise;
-    }
-
-    function normalizeHomeBrandBackgroundManifest(payload) {
-      if (!payload || typeof payload !== 'object') return null;
-      const tables = ['fashion_brands', 'food_brands', 'car_brands'];
-      const normalized = {};
-      let hasEntries = false;
-      tables.forEach((table) => {
-        const source = payload?.[table];
-        if (!source || typeof source !== 'object') return;
-        const mapped = {};
-        Object.entries(source).forEach(([slugRaw, urlRaw]) => {
-          const slug = String(slugRaw || '').trim();
-          const url = toHttpsUrl(String(urlRaw || '').trim());
-          if (!slug || !url) return;
-          mapped[slug] = url;
-          hasEntries = true;
-        });
-        normalized[table] = mapped;
-      });
-      return hasEntries ? normalized : null;
-    }
-
-    async function ensureHomeBrandBackgroundManifest(signal) {
-      if (homeBrandBackgroundManifest) return homeBrandBackgroundManifest;
-      if (homeBrandBackgroundManifestPromise) return homeBrandBackgroundManifestPromise;
-      homeBrandBackgroundManifestPromise = (async () => {
-        let timeoutId = null;
-        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-        try {
-          const mergedSignal = (() => {
-            if (!controller) return signal || undefined;
-            if (!signal) return controller.signal;
-            try {
-              if (signal.aborted) controller.abort();
-              signal.addEventListener('abort', () => controller.abort(), { once: true });
-            } catch (_err) {}
-            return controller.signal;
-          })();
-          // Avoid hanging the homepage on slow/blocked storage manifests.
-          timeoutId = setTimeout(() => {
-            try { controller?.abort(); } catch (_err) {}
-          }, 1400);
-          const response = await fetch(HOME_BRAND_BACKGROUND_MANIFEST_URL, {
-            signal: mergedSignal,
-            headers: { Accept: 'application/json' }
-          });
-          if (!response.ok) return null;
-          const payload = await response.json();
-          homeBrandBackgroundManifest = normalizeHomeBrandBackgroundManifest(payload);
-          return homeBrandBackgroundManifest;
-        } catch (_err) {
-          return null;
-        } finally {
-          if (timeoutId) clearTimeout(timeoutId);
-          homeBrandBackgroundManifestPromise = null;
-        }
-      })();
-      return homeBrandBackgroundManifestPromise;
-    }
-
-    function getHomeBrandTableName(mediaType) {
-      const type = String(mediaType || '').trim().toLowerCase();
-      if (type === 'fashion') return 'fashion_brands';
-      if (type === 'food') return 'food_brands';
-      if (type === 'car') return 'car_brands';
-      return '';
-    }
-
-    function getHomeBrandBackgroundUrl(row, mediaType) {
-      const table = getHomeBrandTableName(mediaType);
-      if (!table) return '';
-      const slug = String(row?.slug || '').trim().toLowerCase();
-      const tableManifest = homeBrandBackgroundManifest?.[table];
-      if (slug && tableManifest && tableManifest[slug]) {
-        return String(tableManifest[slug] || '').trim();
-      }
-      return '';
-    }
-
     function getHomeTravelFallbackItems(limit = getHomeChannelTargetItems()) {
       const maxCount = Math.max(1, Number(limit || getHomeChannelTargetItems()));
       const items = HOME_TRAVEL_FALLBACKS.map((entry) => {
@@ -1247,11 +649,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const region = String(entry?.region || '').trim();
         const subregion = String(entry?.subregion || '').trim();
         const flagImage = getHomeCountryFlagByCode(code) || `https://flagcdn.com/w160/${code.toLowerCase()}.png`;
-        const cachedSet = getHomeTravelPhotoSet(code);
-        const manifestCandidate = `${SUPABASE_URL}/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/${code}/scenic.jpg`;
-        const background = cachedSet.scenic
-          || (isUsableHomeTravelScenicUrl(manifestCandidate) ? manifestCandidate : '')
-          || HOME_TRAVEL_FALLBACK_IMAGE;
+        const background = HOME_TRAVEL_FALLBACK_IMAGE;
         const subtitle = [
           capital ? `Capital: ${capital}` : '',
           region
@@ -1441,94 +839,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
     }
 
-    function writeHomeTravelCountryRowsCache(rows) {
-      try {
-        const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
-        if (!list.length) return;
-        localStorage.setItem(HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY, JSON.stringify({
-          savedAt: Date.now(),
-          rows: list
-        }));
-      } catch (_err) {}
-    }
-
-    function mapCachedTravelCountryRowToHomeItem(row) {
-      const code = canonicalTravelCountryCode(row?.code || row?.cca2 || row?.cca3 || '');
-      const baseTitle = String(row?.name || row?.title || '').trim();
-      if (!code || !baseTitle || /\bisrael\b/i.test(baseTitle)) return null;
-      const resolvedBaseTitle = code === 'PS' ? 'Palestine' : baseTitle;
-      const title = formatTravelTitleWithFlag(resolvedBaseTitle, code);
-      const capital = String(row?.capital || '').trim();
-      const region = String(row?.region || '').trim();
-      const subregion = String(row?.subregion || '').trim();
-      const cities = Array.isArray(row?.cities)
-        ? row.cities.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3)
-        : pickHomeCountryCities(code, capital);
-      const flagImage = toHttpsUrl(String(row?.flag || row?.flagImage || '').trim())
-        || getHomeCountryFlagByCode(code)
-        || getHomeCountryFlag(title)
-        || '';
-      const subtitle = [
-        capital ? `Capital: ${capital}` : '',
-        region
-      ].filter(Boolean).join(' | ') || 'Country';
-      const extraParts = [];
-      if (subregion && subregion !== region) extraParts.push(subregion);
-      if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
-      const scenicRaw = getSafeTravelScenicImage(resolvedBaseTitle, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
-      const scenicImage = isUsableHomeTravelScenicUrl(scenicRaw) ? scenicRaw : '';
-      const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
-      const heroImage = scenicImage || safeFallback;
-      if (!heroImage) return null;
-      if (heroImage) setHomeTravelPhotoCache(code, heroImage, 'scenic');
-      if (row?.photoCity) setHomeTravelPhotoCache(code, row.photoCity, 'city');
-      if (row?.photoNature) setHomeTravelPhotoCache(code, row.photoNature, 'nature');
-      const cachedSet = getHomeTravelPhotoSet(code);
-      return {
-        mediaType: 'travel',
-        itemId: code,
-        title,
-        subtitle,
-        extra: extraParts.join(' | ') || 'Travel',
-        cities,
-        flagImage,
-        listImage: heroImage,
-        image: heroImage,
-        backgroundImage: heroImage || '',
-        spotlightImage: heroImage || '',
-        spotlightMediaImage: flagImage || heroImage,
-        spotlightMediaFit: flagImage ? 'contain' : 'cover',
-        spotlightMediaPosition: 'center center',
-        spotlightMediaShape: 'square',
-        travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
-        travelPhotoSet: {
-          scenic: cachedSet.scenic || heroImage || '',
-          city: cachedSet.city || '',
-          nature: cachedSet.nature || ''
-        },
-        travelNeedsScenicHydration: false,
-        fallbackImage: safeFallback || heroImage,
-        href: `country.html?code=${encodeURIComponent(code)}`
-      };
-    }
-
-    function getCachedHomeTravelItems(limit = getHomeChannelTargetItems()) {
-      const rows = readHomeTravelCountryRowsCache();
-      if (!rows.length) return [];
-      const seenCodes = new Set();
-      const items = [];
-      rows.forEach((row) => {
-        const item = mapCachedTravelCountryRowToHomeItem(row);
-        const code = String(item?.itemId || '').trim().toUpperCase();
-        if (!item || !code || seenCodes.has(code)) return;
-        seenCodes.add(code);
-        items.push(item);
-      });
-      return shuffleArray(items).slice(0, Math.max(1, Number(limit || getHomeChannelTargetItems())));
-    }
-
     readHomeTravelPhotoCacheFromStorage();
-    loadHomeTravelBucketManifestFromStorage();
 
     function withTimeout(promise, timeoutMs, fallbackValue = null) {
       let timer = null;
@@ -1630,38 +941,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function fetchSportsDb(endpoint, params = {}, options = {}) {
       const path = String(endpoint || '').trim().replace(/^\/+/, '');
       if (!path) return null;
-      const prefersDirect = window.ZO2Y_SPORTSDB_DIRECT === true || window.ZO2Y_SPORTSDB_DIRECT === '1';
-      const primaryBase = resolveSportsDbBase();
-      const url = new URL(`${primaryBase}/${path}`);
+      const url = new URL(`${resolveSportsDbBase()}/${path}`);
       Object.entries(params || {}).forEach(([key, value]) => {
         if (value === undefined || value === null || value === '') return;
         url.searchParams.set(key, String(value));
       });
       const cacheKey = `sportsdb:${url.toString()}`;
-      const data = await fetchJsonWithPerfCache(url.toString(), {
+      return fetchJsonWithPerfCache(url.toString(), {
         cacheKey,
         signal: options.signal,
         timeoutMs: Number(options.timeoutMs || 0) || 6500,
         retries: Number(options.retries || 0) || 1
       });
-      if (data || prefersDirect) return data;
-
-      // If the proxy endpoint is flaky (service worker / edge hiccups), fall back to direct SportsDB.
-      try {
-        const directUrl = new URL(`${SPORTSDB_DIRECT_BASE}/${path}`);
-        Object.entries(params || {}).forEach(([key, value]) => {
-          if (value === undefined || value === null || value === '') return;
-          directUrl.searchParams.set(key, String(value));
-        });
-        return await fetchJsonWithPerfCache(directUrl.toString(), {
-          cacheKey: `sportsdb:direct:${directUrl.toString()}`,
-          signal: options.signal,
-          timeoutMs: Math.max(6500, Number(options.timeoutMs || 0) || 0),
-          retries: Math.max(1, Number(options.retries || 0) || 1)
-        });
-      } catch (_err) {
-        return null;
-      }
     }
 
     function resolveRestaurantImage(value) {
@@ -1673,37 +964,32 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return toHttpsUrl(`images/${normalized}`);
     }
 
-    function resolveBrandLogo(row, mediaType) {
-      const logoValue = String(row?.logo_url || row?.logo || '').trim();
-      if (logoValue) {
-        if (/^https?:\/\//i.test(logoValue) || logoValue.startsWith('/') || logoValue.startsWith('data:')) {
-          return logoValue;
-        }
+    function resolveBrandLogo(row) {
+      const directRaw = String(row?.logo_url || row?.logo || '').trim();
+      const domainRaw = String(row?.domain || '').trim();
+      const candidate = domainRaw || directRaw;
+      if (!candidate) return '';
+      if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
+        return `/api/logo?domain=${encodeURIComponent(candidate)}&size=128`;
       }
-      const typeKey = String(mediaType || '').toLowerCase();
-      // No favicons on home rails. If Supabase doesn't provide a logo_url, fall back to local category artwork.
-      if (typeKey === 'fashion') return '/images/onboarding/onboard-fashion.svg';
-      if (typeKey === 'food') return '/images/onboarding/onboard-food.svg';
-      if (typeKey === 'car') return '/images/onboarding/onboard-interests.svg';
-      return '/images/icons/star.svg';
+      if (/^https?:\/\//i.test(candidate)) {
+        const match = candidate.match(/\/\/([^\/\?]+)/i);
+        if (match && match[1]) return `/api/logo?domain=${encodeURIComponent(match[1])}&size=128`;
+        return candidate;
+      }
+      return '';
     }
 
     function mapHomeBrandItem(row, type, fallbackIndex = 0) {
       const safeType = String(type || '').toLowerCase();
       const title = String(row?.name || row?.title || '').trim() || 'Brand';
-      const category = String(row?.category || '').trim() || (
-        safeType === 'fashion'
-          ? 'Fashion'
-          : (safeType === 'food'
-            ? 'Food'
-            : (safeType === 'car' ? 'Cars' : 'Brand'))
-      );
+      const category = String(row?.category || '').trim() || (safeType === 'fashion' ? 'Fashion' : 'Food');
       const country = String(row?.country || '').trim();
       const founded = row?.founded ? String(row.founded) : '';
-      const logo = resolveBrandLogo(row, safeType);
-      const subtitle = `${category}${country ? ` \u00B7 ${country}` : ''}`;
+      const logo = resolveBrandLogo(row);
+      const subtitle = `${category}${country ? ` · ${country}` : ''}`;
       const extra = founded ? `Since ${founded}` : (row?.description ? String(row.description).trim() : '');
-      const background = getHomeBrandBackgroundUrl(row, safeType);
+      const background = getHomeSpotlightBackgroundByType(safeType);
       const itemId = String(row?.id || row?.slug || `${safeType}-${fallbackIndex}` || '').trim();
       return {
         mediaType: safeType,
@@ -1725,48 +1011,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         mediaFit: 'contain',
         href: itemId ? `brand.html?type=${encodeURIComponent(safeType)}&id=${encodeURIComponent(itemId)}` : `${safeType}.html`
       };
-    }
-
-    function dedupeHomeBrandRows(rows = []) {
-      const seen = new Set();
-      const out = [];
-      (Array.isArray(rows) ? rows : []).forEach((row) => {
-        const name = String(row?.name || row?.title || '').trim().toLowerCase();
-        const domain = String(row?.domain || '').trim().toLowerCase();
-        const slug = String(row?.slug || '').trim().toLowerCase();
-        const key = name || domain || slug;
-        if (!key || seen.has(key)) return;
-        seen.add(key);
-        out.push(row);
-      });
-      return out;
-    }
-
-    function getHomeSessionShuffleSeed(salt = '') {
-      const userSeed = String(homeCurrentUser?.id || '').trim();
-      const raw = `${HOME_TRAVEL_VARIANT_SESSION_SEED}:${userSeed}:${salt}`;
-      let hash = 2166136261;
-      for (let index = 0; index < raw.length; index += 1) {
-        hash ^= raw.charCodeAt(index);
-        hash = Math.imul(hash, 16777619);
-      }
-      return hash >>> 0;
-    }
-
-    function stableShuffleHomeItems(items = [], salt = '') {
-      const seedBase = getHomeSessionShuffleSeed(salt);
-      return [...(Array.isArray(items) ? items : [])]
-        .map((item, index) => {
-          const key = `${String(item?.itemId || '').trim()}:${String(item?.title || '').trim().toLowerCase()}:${index}`;
-          let hash = seedBase || 1;
-          for (let cursor = 0; cursor < key.length; cursor += 1) {
-            hash ^= key.charCodeAt(cursor);
-            hash = Math.imul(hash, 16777619);
-          }
-          return { item, order: hash >>> 0 };
-        })
-        .sort((a, b) => a.order - b.order)
-        .map((entry) => entry.item);
     }
 
     function showHomeToast(message, isError = false) {
@@ -1795,6 +1039,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const type = String(mediaType || '').toLowerCase();
       if (type === 'book') return HOME_BOOK_SPOTLIGHT_BG;
       if (type === 'music') return HOME_MUSIC_SPOTLIGHT_BG;
+      if (type === 'fashion') return HOME_FASHION_SPOTLIGHT_BG;
+      if (type === 'food') return HOME_FOOD_SPOTLIGHT_BG;
       return '';
     }
 
@@ -1853,7 +1099,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (type === 'restaurant') return 'Restaurants';
       if (type === 'fashion') return 'Fashion';
       if (type === 'food') return 'Food';
-      if (type === 'car') return 'Cars';
       return 'Discover';
     }
 
@@ -1962,16 +1207,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             ]
           };
         }
-        if (type === 'car') {
-          return {
-            customHref: 'cars.html',
-            rows: [
-              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-              { key: 'owned', label: 'Owned', icon: 'fas fa-check' },
-              { key: 'wishlist', label: 'Wishlist', icon: 'fas fa-bookmark' }
-            ]
-          };
-        }
         if (ENABLE_RESTAURANTS && type === 'restaurant') {
           return {
             customHref: 'restraunts.html',
@@ -2029,28 +1264,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return (hashString(`${value}|${dateKey}`) % 100) / 100;
     }
 
-    function getHomeTravelSpotlightVisual(item) {
-      const safeItem = item && typeof item === 'object' ? item : {};
-      const code = canonicalTravelCountryCode(safeItem.itemId || safeItem.code || '');
-      const title = String(safeItem.title || safeItem.name || '').trim();
-      const cachedSet = normalizeHomeTravelPhotoEntry(safeItem.travelPhotoSet || getHomeTravelPhotoSet(code));
-      const fallback = getSafeTravelScenicImage(
-        title,
-        code,
-        safeItem.spotlightImage || safeItem.backgroundImage || safeItem.image || cachedSet.scenic || cachedSet.city || ''
-      );
-      const choices = [
-        { kind: 'scenic', src: cachedSet.scenic || fallback },
-        { kind: 'city', src: cachedSet.city || '' }
-      ].filter((entry) => isUsableHomeTravelScenicUrl(entry.src));
-      if (!choices.length) {
-        return fallback ? { kind: 'scenic', src: fallback } : null;
-      }
-      const seedKey = `${HOME_TRAVEL_VARIANT_SESSION_SEED}:${code || title || 'travel'}`;
-      const index = hashString(seedKey) % choices.length;
-      return choices[index] || choices[0] || null;
-    }
-
     function getTrendLabel(item) {
       const buzz = Math.max(52, Math.min(99, Math.round((Number(item.discoveryScore) || 0.62) * 100)));
       return `<i class="fa-solid fa-fire"></i> Global buzz ${buzz}%`;
@@ -2097,34 +1310,25 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const title = document.getElementById('spotlightTitle');
       const kicker = document.getElementById('spotlightKicker');
       const summary = document.getElementById('spotlightSummary');
+      const reason = document.getElementById('spotlightReason');
+      const trend = document.getElementById('spotlightTrend');
       const openBtn = document.getElementById('spotlightOpenBtn');
       const spotlightInner = document.getElementById('spotlightInner');
-      if (!bg || !spotlightSection || !mediaWrap || !mediaImage || !title || !kicker || !summary || !openBtn) return;
+      if (!bg || !spotlightSection || !mediaWrap || !mediaImage || !title || !kicker || !summary || !reason || !trend || !openBtn) return;
 
       const mediaTypeKey = String(item.mediaType || '').toLowerCase();
       const meta = getHomeMediaMeta(mediaTypeKey);
       const isTravelSpotlight = mediaTypeKey === 'travel';
       const isGameSpotlight = mediaTypeKey === 'game';
-      const isBrandSpotlight = mediaTypeKey === 'fashion' || mediaTypeKey === 'food' || mediaTypeKey === 'car';
-      const travelSpotlightVisual = isTravelSpotlight
-        ? getHomeTravelSpotlightVisual(item)
-        : null;
       const travelScenicImage = isTravelSpotlight
-        ? String(travelSpotlightVisual?.src || getSafeTravelScenicImage(item.title, item.itemId, item.spotlightImage || item.backgroundImage || item.image)).trim()
-        : '';
-      const travelSpotlightBackground = isTravelSpotlight
-        ? getOptimizedHomeTravelImage(travelScenicImage, 1600)
+        ? getSafeTravelScenicImage(item.title, item.itemId, item.spotlightImage || item.backgroundImage || item.image)
         : '';
       const fallbackSpotlightBackground = isTravelSpotlight
-        ? (travelSpotlightBackground || travelScenicImage)
+        ? travelScenicImage
         : (isGameSpotlight
           ? String(item.spotlightImage || item.backgroundImage || '').trim()
-          : (isBrandSpotlight
-            ? String(item.spotlightImage || item.backgroundImage || '').trim()
-            : String(item.spotlightImage || item.backgroundImage || item.image || '').trim()));
+          : String(item.spotlightImage || item.backgroundImage || item.image || '').trim());
       const spotlightBackground = getHomeSpotlightBackgroundByType(mediaTypeKey) || fallbackSpotlightBackground;
-      const travelAccentA = '';
-      const travelAccentB = '';
       const travelFlagImage = String(item.flagImage || '').trim();
       let spotlightMediaImage = String(item.spotlightMediaImage || travelFlagImage || item.image || item.spotlightImage || item.backgroundImage || '').trim();
       if (isTravelSpotlight) {
@@ -2145,15 +1349,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const usesLandscapeMedia = spotlightMediaShape === 'landscape';
       const mediaToken = ++homeSpotlightImageToken;
 
-      spotlightSection.classList.remove('has-square-media', 'has-landscape-media', 'theme-music', 'theme-book', 'theme-travel', 'travel-single-visual');
+      spotlightSection.classList.remove('has-square-media', 'has-landscape-media', 'theme-music', 'theme-book');
       mediaWrap.classList.remove('square', 'landscape');
       if (mediaTypeKey === 'music') {
         spotlightSection.classList.add('theme-music');
       } else if (mediaTypeKey === 'book') {
         spotlightSection.classList.add('theme-book');
-      } else if (isTravelSpotlight) {
-        spotlightSection.classList.add('theme-travel');
-        spotlightSection.classList.add('travel-single-visual');
       }
       if (usesLandscapeMedia) {
         spotlightSection.classList.add('has-landscape-media');
@@ -2169,8 +1370,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         bg.style.backgroundImage = 'linear-gradient(120deg, #12203e 0%, #1b2f61 48%, #243b77 100%)';
       }
       bg.style.backgroundPosition = spotlightBackgroundPosition;
-      bg.style.setProperty('--spotlight-travel-accent-a', travelAccentA ? `url("${travelAccentA}")` : 'none');
-      bg.style.setProperty('--spotlight-travel-accent-b', travelAccentB ? `url("${travelAccentB}")` : 'none');
 
       if (spotlightMediaImage) {
         mediaImage.loading = 'eager';
@@ -2222,6 +1421,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       title.textContent = item.title || 'Spotlight';
       kicker.textContent = getSpotlightSectionLabel(item.mediaType);
       summary.textContent = getSpotlightSummary(item);
+      reason.innerHTML = getPersonalReason(item);
+      trend.innerHTML = getTrendLabel(item);
       openBtn.href = item.href || 'index.html';
       openBtn.onclick = null;
       spotlightSection.dataset.href = String(item.href || '').trim();
@@ -2347,21 +1548,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       };
     }
 
-    function buildNewReleasesFallback(feedMap = homeFeedState) {
-      const sourceOrder = ['movie', 'tv', 'anime', 'game', 'book', 'music'];
-      const seen = new Set();
-      const fallback = [];
-      sourceOrder.forEach((key) => {
-        const items = Array.isArray(feedMap?.[key]) ? feedMap[key] : [];
-        items.forEach((item) => {
-          if (!item || fallback.length >= 18) return;
-          const dedupeKey = `${String(item.mediaType || key).trim().toLowerCase()}:${String(item.itemId || item.title || '').trim().toLowerCase()}`;
-          if (!dedupeKey || seen.has(dedupeKey)) return;
-          seen.add(dedupeKey);
-          fallback.push(item);
-        });
-      });
-      return fallback;
+    function buildNewReleasesFallback() {
+      // Keep this rail strict: do not backfill with generic/trending content.
+      return [];
     }
 
     async function loadNewReleases(signal) {
@@ -2456,7 +1645,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const cover = resolveHomeGameCover(row);
           if (!cover) return null;
           const hero = resolveHomeGameHero(row, '');
-          const presentation = getHomeGamePresentation(cover, hero);
           const rowId = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
           const rowTitle = String(row?.name || row?.title || 'Game').trim() || 'Game';
           const genreText = Array.isArray(extra?.genres)
@@ -2467,15 +1655,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             mediaType: 'game',
             itemId: rowId,
             title: rowTitle,
-            subtitle: releaseDate ? releaseDate.slice(0, 10) : '',
+            subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
             extra: [genreText, Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : ''].filter(Boolean).join(' | '),
             image: cover,
-            backgroundImage: hero || cover,
-            spotlightImage: hero || cover,
+            backgroundImage: hero || '',
+            spotlightImage: hero || '',
             spotlightMediaImage: cover,
-            spotlightMediaFit: presentation.spotlightFit,
-            spotlightMediaShape: presentation.spotlightShape,
-            gameCardMode: presentation.plain ? 'plain' : 'hero',
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
             fallbackImage: '',
             href: rowId ? `game.html?id=${encodeURIComponent(rowId)}` : 'games.html'
           };
@@ -2486,17 +1673,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const mapBookRows = (rows, label, takeCount = 6) => {
         const list = Array.isArray(rows) ? rows : [];
         const buildCover = (row) => {
-          const directCover = toHttpsUrl(row?.cover || row?.image || row?.thumbnail || '');
-          return directCover || '';
+          const directCover = toHttpsUrl(row?.coverImage || row?.image || row?.thumbnail || '');
+          if (directCover) return directCover;
+          const coverId = Number(row?.cover_i || 0) || 0;
+          if (coverId > 0) return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg`;
+          const isbnRaw = Array.isArray(row?.isbn) ? String(row.isbn[0] || '').trim() : String(row?.isbn || '').trim();
+          const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
+          if (isbn) return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`;
+          return '';
         };
         return list.slice(0, takeCount).map((row, idx) => {
           const title = String(row?.title || row?.name || '').trim();
           if (!title) return null;
-          const author = String(row?.author || '').trim();
-          const year = Number(row?.year || 0) || 0;
+          const author = Array.isArray(row?.author_name)
+            ? String(row.author_name[0] || '').trim()
+            : String(row?.author || '').trim();
+          const year = Number(row?.first_publish_year || row?.published_year || 0) || 0;
           const cover = buildCover(row);
           if (!cover) return null;
-          const itemId = String(row?.id || `book-${idx}`).trim();
+          const key = String(row?.key || row?.id || `book-${idx}`).trim();
+          const itemId = key.startsWith('/works/') ? key.replace('/works/', '').trim() : key;
           const href = itemId
             ? `book.html?id=${encodeURIComponent(itemId)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(author || 'Unknown author')}`
             : 'books.html';
@@ -2512,7 +1708,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             spotlightMediaImage: cover,
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
-            maturityRating: '',
+            maturityRating: String(row?.maturityRating || row?.volumeInfo?.maturityRating || '').trim(),
             href,
             fallbackImage: ''
           };
@@ -2603,40 +1799,31 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         return mixed.slice(0, takeCount);
       };
 
-      const includeExtendedSources = !isHomeCompactViewport() && !isHomeSlowNetwork();
       const [movieNowRes, movieUpcomingRes, tvEpisodeRes, tvSeasonRes, animeEpisodeRes, animeSeasonRes, gamesRes, booksRes, musicTrackRes, musicAlbumRes] = await Promise.allSettled([
         fetchJsonWithPerfCache(
           `${TMDB_PROXY_BASE}/movie/now_playing?language=en-US&page=${movieNowPage}`,
           { signal, cacheKey: `tmdb:new-releases:movie-now:${movieNowPage}` }
         ),
-        includeExtendedSources
-          ? fetchJsonWithPerfCache(
-            `${TMDB_PROXY_BASE}/movie/upcoming?language=en-US&page=${movieUpcomingPage}`,
-            { signal, cacheKey: `tmdb:new-releases:movie-upcoming:${movieUpcomingPage}` }
-          )
-          : Promise.resolve({ results: [] }),
+        fetchJsonWithPerfCache(
+          `${TMDB_PROXY_BASE}/movie/upcoming?language=en-US&page=${movieUpcomingPage}`,
+          { signal, cacheKey: `tmdb:new-releases:movie-upcoming:${movieUpcomingPage}` }
+        ),
         fetchJsonWithPerfCache(
           `${TMDB_PROXY_BASE}/tv/airing_today?language=en-US&page=1`,
           { signal, cacheKey: 'tmdb:new-releases:tv-episode' }
         ),
-        includeExtendedSources
-          ? fetchJsonWithPerfCache(
-            `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=first_air_date.desc&page=1&first_air_date.gte=${recentSeasonDate}&first_air_date.lte=${todayDate}`,
-            { signal, cacheKey: `tmdb:new-releases:tv-season:${recentSeasonDate}:${todayDate}` }
-          )
-          : Promise.resolve({ results: [] }),
-        includeExtendedSources
-          ? fetchJsonWithPerfCache(
-            `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=popularity.desc&page=1&with_genres=16&with_original_language=ja&air_date.gte=${recentEpisodeDate}&air_date.lte=${todayDate}`,
-            { signal, cacheKey: `tmdb:new-releases:anime-episode:${recentEpisodeDate}:${todayDate}` }
-          )
-          : Promise.resolve({ results: [] }),
-        includeExtendedSources
-          ? fetchJsonWithPerfCache(
-            `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=first_air_date.desc&page=1&with_genres=16&with_original_language=ja&first_air_date.gte=${recentSeasonDate}`,
-            { signal, cacheKey: `tmdb:new-releases:anime-season:${recentSeasonDate}` }
-          )
-          : Promise.resolve({ results: [] }),
+        fetchJsonWithPerfCache(
+          `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=first_air_date.desc&page=1&first_air_date.gte=${recentSeasonDate}&first_air_date.lte=${todayDate}`,
+          { signal, cacheKey: `tmdb:new-releases:tv-season:${recentSeasonDate}:${todayDate}` }
+        ),
+        fetchJsonWithPerfCache(
+          `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=popularity.desc&page=1&with_genres=16&with_original_language=ja&air_date.gte=${recentEpisodeDate}&air_date.lte=${todayDate}`,
+          { signal, cacheKey: `tmdb:new-releases:anime-episode:${recentEpisodeDate}:${todayDate}` }
+        ),
+        fetchJsonWithPerfCache(
+          `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=first_air_date.desc&page=1&with_genres=16&with_original_language=ja&first_air_date.gte=${recentSeasonDate}`,
+          { signal, cacheKey: `tmdb:new-releases:anime-season:${recentSeasonDate}` }
+        ),
         ENABLE_GAMES
           ? (async () => {
             const client = await ensureHomeSupabase();
@@ -2651,24 +1838,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             return { results: Array.isArray(data) ? data : [] };
           })()
           : Promise.resolve({ results: [] }),
-        includeExtendedSources
-          ? fetchJsonWithPerfCache(
-            `/api/books/popular?limit=30&page=1&language=en&orderBy=newest&q=${bookReleaseQuery}`,
-            { signal, cacheKey: `books:new-releases:newest:${recentBookMinYear}:${currentYear}` }
-          )
-          : Promise.resolve({ books: [] }),
-        includeExtendedSources
-          ? fetchJsonWithPerfCache(
-            '/api/music/top-50?limit=40&market=US',
-            { signal, cacheKey: 'music:new-releases:top-50-us-40' }
-          )
-          : Promise.resolve({ results: [] }),
-        includeExtendedSources
-          ? fetchJsonWithPerfCache(
-            '/api/music/new-releases?limit=40&market=US&album_types=album',
-            { signal, cacheKey: 'music:new-releases:albums-us-40:album' }
-          )
-          : Promise.resolve({ results: [] })
+        fetchJsonWithPerfCache(
+          `/api/books/popular?limit=30&page=1&language=en&orderBy=newest&q=${bookReleaseQuery}`,
+          { signal, cacheKey: `books:new-releases:newest:${recentBookMinYear}:${currentYear}` }
+        ),
+        fetchJsonWithPerfCache(
+          '/api/music/top-50?limit=40&market=US',
+          { signal, cacheKey: 'music:new-releases:top-50-us-40' }
+        ),
+        fetchJsonWithPerfCache(
+          '/api/music/new-releases?limit=40&market=US&album_types=album',
+          { signal, cacheKey: 'music:new-releases:albums-us-40:album' }
+        )
       ]);
 
       const movieNowRows = movieNowRes.status === 'fulfilled' && Array.isArray(movieNowRes.value?.results) ? movieNowRes.value.results : [];
@@ -2680,14 +1861,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const gameRows = ENABLE_GAMES && gamesRes.status === 'fulfilled'
         ? (Array.isArray(gamesRes.value?.results) ? gamesRes.value.results : (Array.isArray(gamesRes.value) ? gamesRes.value : []))
         : [];
-      const rawBookRows = booksRes.status === 'fulfilled' && Array.isArray(booksRes.value?.books)
-        ? booksRes.value.books
+      const rawBookRows = booksRes.status === 'fulfilled'
+        ? (Array.isArray(booksRes.value?.docs) ? booksRes.value.docs : (Array.isArray(booksRes.value?.items) ? booksRes.value.items : []))
         : [];
-      const bookRows = rawBookRows.slice().sort((a, b) => {
-        const yearA = Number(a?.year || 0) || 0;
-        const yearB = Number(b?.year || 0) || 0;
-        return yearB - yearA;
-      });
+      const strictBookRows = rawBookRows
+        .filter((row) => {
+          const year = Number(row?.first_publish_year || row?.published_year || 0) || 0;
+          return year >= recentBookMinYear;
+        })
+        .sort((a, b) => {
+          const yearA = Number(a?.first_publish_year || a?.published_year || 0) || 0;
+          const yearB = Number(b?.first_publish_year || b?.published_year || 0) || 0;
+          return yearB - yearA;
+        });
+      const bookRows = strictBookRows;
       const musicTrackRows = musicTrackRes.status === 'fulfilled' && Array.isArray(musicTrackRes.value?.results)
         ? musicTrackRes.value.results
         : [];
@@ -2716,11 +1903,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function refreshHomeNewReleases(feedMap = homeFeedState, options = {}) {
       const railOptions = { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true };
+      const fallbackItems = filterHomeSafeItems(buildNewReleasesFallback(feedMap));
 
       if (homeNewReleasesState.length) {
-        renderOrDeferHomeRail('newReleasesRail', filterHomeSafeItems(homeNewReleasesState), railOptions);
-      } else {
-        setHomeRailDeferredPlaceholder('newReleasesRail');
+        renderRail('newReleasesRail', filterHomeSafeItems(homeNewReleasesState), railOptions);
+      } else if (fallbackItems.length) {
+        renderRail('newReleasesRail', fallbackItems, railOptions);
       }
 
       const force = options.force === true;
@@ -2742,9 +1930,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (safeLiveItems.length) {
           homeNewReleasesState = safeLiveItems;
           homeNewReleasesLastFetchAt = Date.now();
-          renderOrDeferHomeRail('newReleasesRail', homeNewReleasesState, railOptions);
-        } else if (!homeNewReleasesState.length) {
-          renderOrDeferHomeRail('newReleasesRail', [], { ...railOptions, allowEmptyState: true });
+          renderRail('newReleasesRail', homeNewReleasesState, railOptions);
+        } else if (!homeNewReleasesState.length && fallbackItems.length) {
+          renderRail('newReleasesRail', fallbackItems, railOptions);
         }
       })();
       homeNewReleasesInFlight = requestTask;
@@ -2780,235 +1968,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!Number.isFinite(ageHours) || ageHours < 0) return 0.35;
       if (ageHours > HOME_BECAUSE_SIGNAL_RECENCY_HOURS) return 0.1;
       return Math.max(0.2, 1 - (ageHours / HOME_BECAUSE_SIGNAL_RECENCY_HOURS));
-    }
-
-    function getReviewSignalWeight(rating) {
-      const value = Number(rating || 0);
-      if (value >= 5) return 0.95;
-      if (value >= 4) return 0.72;
-      if (value >= 3) return 0.42;
-      return 0.18;
-    }
-
-    function splitHomeTastePhrases(value) {
-      return String(value || '')
-        .split(/[|,/]+|&/g)
-        .map((part) => String(part || '').trim().toLowerCase())
-        .filter(Boolean);
-    }
-
-    function tokenizeHomeTasteText(value) {
-      return Array.from(new Set(
-        String(value || '')
-          .toLowerCase()
-          .replace(/[’']/g, '')
-          .split(/[^a-z0-9+#-]+/i)
-          .map((token) => String(token || '').trim())
-          .filter((token) => (
-            token.length >= HOME_TASTE_MIN_TOKEN_LENGTH &&
-            !HOME_TASTE_STOPWORDS.has(token) &&
-            !/^\d+$/.test(token)
-          ))
-      ));
-    }
-
-    function buildHomeItemTasteTokens(item) {
-      if (!item || typeof item !== 'object') return [];
-      const tokens = new Set();
-      const addToken = (token) => {
-        const text = String(token || '').trim().toLowerCase();
-        if (!text) return;
-        if (text.length < HOME_TASTE_MIN_TOKEN_LENGTH && !/[+#-]/.test(text)) return;
-        if (HOME_TASTE_STOPWORDS.has(text)) return;
-        tokens.add(text);
-      };
-      const addText = (text) => tokenizeHomeTasteText(text).forEach(addToken);
-      const addPhraseParts = (value) => {
-        splitHomeTastePhrases(value).forEach((part) => {
-          addToken(part);
-          addText(part);
-        });
-      };
-
-      addToken(item.mediaType);
-      addPhraseParts(item.genreText);
-      addPhraseParts(item.subtitle);
-      addPhraseParts(item.extra);
-      addPhraseParts(item.category);
-      addPhraseParts(item.country);
-      addPhraseParts(item.sport);
-      addPhraseParts(item.league);
-      addPhraseParts(item.maturityRating);
-      addText(item.title);
-      addText(item.overview);
-      addText(item.description);
-      if (Array.isArray(item.genres)) item.genres.forEach(addPhraseParts);
-      if (Array.isArray(item.tags)) item.tags.forEach(addPhraseParts);
-      return Array.from(tokens).slice(0, HOME_TASTE_PROFILE_TOKEN_LIMIT);
-    }
-
-    function getHomeRecommendationCandidateIndex(feedMap = homeFeedState) {
-      const index = new Map();
-      const addItems = (items) => {
-        (Array.isArray(items) ? items : []).forEach((item) => {
-          const key = getRecommendationItemKey(item?.mediaType, item?.itemId);
-          if (!key || !item) return;
-          const existing = index.get(key);
-          if (!existing || Number(item?.discoveryScore || 0) > Number(existing?.discoveryScore || 0)) {
-            index.set(key, item);
-          }
-        });
-      };
-      Object.values(feedMap || {}).forEach(addItems);
-      addItems(homeNewReleasesState);
-      addItems(homeSpotlightItems);
-      return index;
-    }
-
-    function getHomeRelatedTypeAffinity(mediaType, typeWeights) {
-      const type = String(mediaType || '').trim().toLowerCase();
-      if (!(typeWeights instanceof Map) || !type) return 0;
-      const relatedGroups = {
-        movie: ['tv', 'anime', 'book'],
-        tv: ['movie', 'anime', 'book'],
-        anime: ['tv', 'movie', 'game'],
-        game: ['anime', 'movie'],
-        book: ['movie', 'tv', 'anime'],
-        music: ['book'],
-        travel: ['sports'],
-        sports: ['travel']
-      };
-      const related = relatedGroups[type] || [];
-      return related.reduce((best, key) => Math.max(best, Number(typeWeights.get(key) || 0)), 0);
-    }
-
-    function humanizeHomeTasteToken(token) {
-      const value = String(token || '').trim().toLowerCase();
-      if (!value) return '';
-      const aliases = {
-        scifi: 'sci-fi',
-        'sci-fi': 'sci-fi',
-        romcom: 'rom-com',
-        'rom-com': 'rom-com',
-        truecrime: 'true crime',
-        'true-crime': 'true crime',
-        tv: 'tv',
-        anime: 'anime',
-        nba: 'nba',
-        nfl: 'nfl',
-        f1: 'f1'
-      };
-      return aliases[value] || value.replace(/-/g, ' ');
-    }
-
-    function buildHomeTasteProfile(signalEntries = [], feedMap = homeFeedState) {
-      const candidateIndex = getHomeRecommendationCandidateIndex(feedMap);
-      const tokenWeights = new Map();
-      const typeWeightsRaw = new Map();
-      const consumedKeys = new Set();
-
-      const addTokenWeight = (token, amount) => {
-        const key = String(token || '').trim().toLowerCase();
-        const weight = Number(amount || 0);
-        if (!key || !Number.isFinite(weight) || weight <= 0) return;
-        tokenWeights.set(key, Number((Number(tokenWeights.get(key) || 0) + weight).toFixed(4)));
-      };
-
-      (Array.isArray(signalEntries) ? signalEntries : []).forEach((entry) => {
-        const mediaType = String(entry?.mediaType || '').trim().toLowerCase();
-        const itemId = entry?.itemId;
-        const key = getRecommendationItemKey(mediaType, itemId);
-        const weight = Number(entry?.weight || 0);
-        if (!key || !mediaType || !Number.isFinite(weight) || weight <= 0) return;
-
-        if (entry?.isOwn) consumedKeys.add(key);
-        typeWeightsRaw.set(mediaType, Number((Number(typeWeightsRaw.get(mediaType) || 0) + weight).toFixed(4)));
-
-        const item = candidateIndex.get(key);
-        if (!item) return;
-        const tokens = buildHomeItemTasteTokens(item);
-        const tokenShare = weight / Math.max(4, Math.min(tokens.length || 1, 10));
-        tokens.forEach((token) => addTokenWeight(token, tokenShare));
-      });
-
-      (homeInterestProfile?.tags || []).forEach((tag) => {
-        splitHomeTastePhrases(tag).forEach((part) => addTokenWeight(part, 0.32));
-      });
-      (homeInterestProfile?.types || []).forEach((type) => {
-        const key = String(type || '').trim().toLowerCase();
-        if (!key) return;
-        typeWeightsRaw.set(key, Number((Number(typeWeightsRaw.get(key) || 0) + 0.42).toFixed(4)));
-      });
-
-      const typeWeights = new Map();
-      const maxTypeWeight = Math.max(0, ...Array.from(typeWeightsRaw.values()).map((value) => Number(value || 0)));
-      typeWeightsRaw.forEach((value, key) => {
-        const normalized = maxTypeWeight > 0 ? (value / maxTypeWeight) : 0;
-        typeWeights.set(key, Number(Math.min(1.12, 0.18 + (normalized * 0.94)).toFixed(4)));
-      });
-
-      const rankedTokens = Array.from(tokenWeights.entries())
-        .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))
-        .slice(0, HOME_TASTE_PROFILE_TOKEN_LIMIT);
-      const rankedTokenMap = new Map(rankedTokens);
-      const tokenNorm = Math.max(
-        0.9,
-        rankedTokens.reduce((sum, [, value]) => sum + Number(value || 0), 0) / Math.max(1, rankedTokens.length)
-      );
-
-      return {
-        candidateIndex,
-        consumedKeys,
-        tokenWeights: rankedTokenMap,
-        tokenNorm,
-        typeWeights,
-        signalCount: Array.isArray(signalEntries) ? signalEntries.length : 0
-      };
-    }
-
-    function scoreHomeTasteProfileMatch(item, tasteProfile) {
-      if (!item || typeof item !== 'object' || !tasteProfile) {
-        return { score: 0, reason: '', matchedTokens: [] };
-      }
-
-      const tokens = buildHomeItemTasteTokens(item);
-      const matched = [];
-      let tokenScore = 0;
-      tokens.forEach((token) => {
-        const weight = Number(tasteProfile?.tokenWeights?.get?.(token) || 0);
-        if (weight <= 0) return;
-        tokenScore += weight;
-        matched.push([token, weight]);
-      });
-      matched.sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0));
-
-      const mediaType = String(item.mediaType || '').trim().toLowerCase();
-      const typeAffinity = Number(tasteProfile?.typeWeights?.get?.(mediaType) || 0);
-      const relatedAffinity = getHomeRelatedTypeAffinity(mediaType, tasteProfile?.typeWeights);
-      const normalizedTokenScore = Math.min(1.75, tokenScore / Math.max(0.82, Number(tasteProfile?.tokenNorm || 1)));
-      const crossMediaBoost = typeAffinity < 0.4 && matched.length >= 2
-        ? Math.min(0.42, relatedAffinity * 0.5)
-        : Math.min(0.18, relatedAffinity * 0.18);
-      const score = Number((normalizedTokenScore * 1.18 + typeAffinity * 0.58 + crossMediaBoost).toFixed(4));
-
-      const matchedTokens = matched
-        .slice(0, 2)
-        .map(([token]) => humanizeHomeTasteToken(token))
-        .filter(Boolean);
-
-      let reason = '';
-      if (matchedTokens.length >= 2) {
-        reason = `Because you save ${matchedTokens[0]} and ${matchedTokens[1]}`;
-      } else if (matchedTokens.length === 1) {
-        reason = `Because you save a lot of ${matchedTokens[0]}`;
-      } else if (typeAffinity >= 0.95) {
-        const meta = getHomeMediaMeta(mediaType);
-        reason = `More ${meta.label.toLowerCase()} picks based on your saves`;
-      } else if (relatedAffinity >= 0.95) {
-        reason = 'Cross-media pick based on your taste';
-      }
-
-      return { score, reason, matchedTokens };
     }
 
     async function fetchBecauseYouLikedSignals() {
@@ -3064,25 +2023,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       });
 
       const batches = await Promise.all(queryTasks);
-      const reviewTasks = Object.entries(HOME_REVIEW_SIGNAL_TABLES).map(([mediaType, cfg]) => {
-        return client
-          .from(cfg.table)
-          .select(`${cfg.itemField}, rating, created_at`)
-          .eq('user_id', homeCurrentUser.id)
-          .gte('rating', 4)
-          .order('created_at', { ascending: false })
-          .limit(HOME_TASTE_PROFILE_REVIEW_LIMIT)
-          .then((res) => ({
-            mediaType,
-            itemField: cfg.itemField,
-            rows: Array.isArray(res?.data) ? res.data : []
-          }))
-          .catch(() => ({ mediaType, itemField: cfg.itemField, rows: [] }));
-      });
-      const reviewBatches = await Promise.all(reviewTasks);
       const signalMap = new Map();
       const reasonsMap = new Map();
-      const tasteSignalEntries = [];
 
       batches.forEach(({ mediaType, itemField, rows }) => {
         rows.forEach((row) => {
@@ -3097,17 +2039,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const recency = getRecencyWeight(row?.created_at);
           const listWeight = getListTypeWeight(row?.list_type);
           const score = (isOwn ? 2.2 : 1.3) * recency + listWeight;
-          const profileWeight = (isOwn ? 1.24 : 0.46) * (listWeight + (recency * 0.72));
 
           signalMap.set(key, Number((Number(signalMap.get(key) || 0) + score).toFixed(4)));
-          tasteSignalEntries.push({
-            mediaType,
-            itemId,
-            isOwn,
-            listType: row?.list_type,
-            createdAt: row?.created_at,
-            weight: Number(profileWeight.toFixed(4))
-          });
 
           const existingReason = reasonsMap.get(key) || { ownCount: 0, followingCount: 0, recentAt: '' };
           if (isOwn) existingReason.ownCount += 1;
@@ -3119,45 +2052,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         });
       });
 
-      reviewBatches.forEach(({ mediaType, itemField, rows }) => {
-        rows.forEach((row) => {
-          const rawItemId = row?.[itemField];
-          const itemId = normalizeHomeDefaultItemId(mediaType, rawItemId);
-          if (itemId === null || itemId === undefined) return;
-          const key = getRecommendationItemKey(mediaType, itemId);
-          if (!key) return;
-
-          const recency = getRecencyWeight(row?.created_at);
-          const reviewWeight = getReviewSignalWeight(row?.rating);
-          tasteSignalEntries.push({
-            mediaType,
-            itemId,
-            isOwn: true,
-            listType: Number(row?.rating || 0) >= 5 ? 'favorites' : 'review',
-            createdAt: row?.created_at,
-            weight: Number((reviewWeight * (0.92 + recency)).toFixed(4))
-          });
-
-          const reviewBoost = (reviewWeight * 0.34) + (recency * 0.18);
-          signalMap.set(key, Number((Number(signalMap.get(key) || 0) + reviewBoost).toFixed(4)));
-
-          const existingReason = reasonsMap.get(key) || { ownCount: 0, followingCount: 0, recentAt: '', reviewCount: 0 };
-          existingReason.ownCount += 1;
-          existingReason.reviewCount = Number(existingReason.reviewCount || 0) + 1;
-          if (!existingReason.recentAt || (row?.created_at && new Date(row.created_at).getTime() > new Date(existingReason.recentAt).getTime())) {
-            existingReason.recentAt = String(row?.created_at || '');
-          }
-          reasonsMap.set(key, existingReason);
-        });
-      });
-
-      const tasteProfile = buildHomeTasteProfile(tasteSignalEntries, homeFeedState);
-
       return {
         signalMap,
         reasonsMap,
-        followedCount: followedIds.length,
-        tasteProfile
+        followedCount: followedIds.length
       };
     }
 
@@ -3183,30 +2081,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function applyActivitySignalsToPool(scoredPool, signalPayload) {
       const signalMap = signalPayload?.signalMap instanceof Map ? signalPayload.signalMap : new Map();
       const reasonsMap = signalPayload?.reasonsMap instanceof Map ? signalPayload.reasonsMap : new Map();
-      const tasteProfile = signalPayload?.tasteProfile || null;
-      const consumedKeys = tasteProfile?.consumedKeys instanceof Set ? tasteProfile.consumedKeys : new Set();
       if (!Array.isArray(scoredPool) || !scoredPool.length) return [];
       return scoredPool
-        .filter((item) => {
-          const key = getRecommendationItemKey(item?.mediaType, item?.itemId);
-          return !key || !consumedKeys.has(key);
-        })
         .map((item) => {
           const key = getRecommendationItemKey(item?.mediaType, item?.itemId);
           const signal = Number(signalMap.get(key) || 0);
-          const reason = reasonsMap.get(key) || { ownCount: 0, followingCount: 0, reviewCount: 0 };
-          const tasteMatch = scoreHomeTasteProfileMatch(item, tasteProfile);
+          const reason = reasonsMap.get(key) || { ownCount: 0, followingCount: 0 };
           let reasonText = '';
-          if (tasteMatch.reason) reasonText = tasteMatch.reason;
-          else if (reason.ownCount > 0 && reason.followingCount > 0) reasonText = 'Saved by you and people you follow';
-          else if (reason.ownCount > 0 && Number(reason.reviewCount || 0) > 0) reasonText = 'Based on what you save and rate highly';
+          if (reason.ownCount > 0 && reason.followingCount > 0) reasonText = 'Saved by you and people you follow';
           else if (reason.ownCount > 0) reasonText = 'From your recent saves';
           else if (reason.followingCount > 0) reasonText = 'Popular with people you follow';
           return {
             ...item,
             extra: reasonText || item.extra || '',
-            recommendationReason: reasonText || '',
-            discoveryScore: Number(item.discoveryScore || 0) + Math.min(4.6, signal * 0.92) + Number(tasteMatch.score || 0)
+            discoveryScore: Number(item.discoveryScore || 0) + Math.min(4.6, signal * 0.92)
           };
         })
         .sort((a, b) => Number(b.discoveryScore || 0) - Number(a.discoveryScore || 0));
@@ -3219,11 +2107,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const fallbackItems = buildUnifiedFeed(localPool, getHomeUnifiedTargetItems());
 
       if (!homeCurrentUser?.id) {
-        if (fallbackItems.length) {
-          renderOrDeferHomeRail('unifiedRail', fallbackItems, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
-        } else {
-          setHomeRailDeferredPlaceholder('unifiedRail');
-        }
+        renderRail('unifiedRail', fallbackItems, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
         return;
       }
 
@@ -3231,27 +2115,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (seq !== homeBecauseRefreshSeq) return;
       const boostedPool = applyActivitySignalsToPool(localPool, signalPayload);
       const unified = buildUnifiedFeed(boostedPool, getHomeUnifiedTargetItems());
-      if (boostedPool.length) hydrateSpotlightFromPool(boostedPool);
-      if (unified.length) {
-        renderOrDeferHomeRail('unifiedRail', unified, {
-          mediaType: 'mixed',
-          uniformMedia: true,
-          restaurantComposite: true
-        });
-      } else if (fallbackItems.length) {
-        renderOrDeferHomeRail('unifiedRail', fallbackItems, {
-          mediaType: 'mixed',
-          uniformMedia: true,
-          restaurantComposite: true
-        });
-      } else {
-        renderOrDeferHomeRail('unifiedRail', [], {
-          mediaType: 'mixed',
-          uniformMedia: true,
-          restaurantComposite: true,
-          allowEmptyState: true
-        });
-      }
+      renderRail('unifiedRail', unified.length ? unified : fallbackItems, {
+        mediaType: 'mixed',
+        uniformMedia: true,
+        restaurantComposite: true
+      });
     }
 
     function invalidateActivitySignals() {
@@ -3267,21 +2135,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return `${type}:${id || title || image || index}`;
     }
 
-    function canUseHomeSpotlightItem(item) {
-      if (!item || item.isPlaceholder) return false;
-      const backdrop = String(item?.spotlightImage || item?.backgroundImage || '').trim();
-      if (!backdrop) return false;
-      const lowered = backdrop.toLowerCase();
-      if (!/^https?:\/\//i.test(backdrop) && !backdrop.startsWith('/')) return false;
-      if (lowered.includes('/newlogo.webp') || lowered.endsWith('.svg') || lowered.includes('.svg?')) return false;
-      return true;
-    }
-
     function buildBalancedSpotlightShortlist(pool, limit = HOME_SPOTLIGHT_POOL_SIZE) {
       const maxItems = Math.max(1, Number(limit || HOME_SPOTLIGHT_POOL_SIZE));
       const candidates = [];
       const usedCandidateKeys = new Set();
-      filterHomeSafeItems(Array.isArray(pool) ? pool : []).filter((item) => canUseHomeSpotlightItem(item)).forEach((item, index) => {
+      filterHomeSafeItems(Array.isArray(pool) ? pool : []).forEach((item, index) => {
         const key = getHomeSpotlightPoolKey(item, index);
         if (!key || usedCandidateKeys.has(key)) return;
         usedCandidateKeys.add(key);
@@ -3318,60 +2176,28 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         .map(([type]) => type);
       if (!activeTypes.length) return candidates.slice(0, maxItems);
 
-      const hasBackdrop = (item) => !!String(item?.spotlightImage || item?.backgroundImage || '').trim();
-      activeTypes.forEach((type) => {
-        const items = grouped.get(type);
-        if (!Array.isArray(items) || items.length < 2) return;
-        const withBackdrop = [];
-        const withoutBackdrop = [];
-        items.forEach((item) => (hasBackdrop(item) ? withBackdrop : withoutBackdrop).push(item));
-        grouped.set(type, withBackdrop.concat(withoutBackdrop));
-      });
-
       const allocation = new Map(activeTypes.map((type) => [type, 0]));
-      const PRIMARY_SPOTLIGHT_TYPES = ['game', 'movie', 'tv', 'anime'];
-      const primaryTypes = PRIMARY_SPOTLIGHT_TYPES.filter((type) => activeTypes.includes(type));
-      const secondaryTypes = activeTypes.filter((type) => !PRIMARY_SPOTLIGHT_TYPES.includes(type));
-      const primaryBudget = primaryTypes.length
-        ? Math.min(
-          maxItems,
-          Math.max(Math.floor(maxItems * 0.85), Math.min(maxItems, primaryTypes.length * 2))
-        )
-        : maxItems;
-
-      const basePrimary = primaryTypes.length ? Math.floor(primaryBudget / primaryTypes.length) : 0;
-      primaryTypes.forEach((type) => {
-        allocation.set(type, Math.min(basePrimary, grouped.get(type).length));
+      const baseCount = Math.floor(maxItems / activeTypes.length);
+      activeTypes.forEach((type) => {
+        allocation.set(type, Math.min(baseCount, grouped.get(type).length));
       });
 
       let used = [...allocation.values()].reduce((sum, value) => sum + Number(value || 0), 0);
-      while (used < primaryBudget) {
-        const nextType = [...primaryTypes]
+      while (used < maxItems) {
+        const nextType = [...activeTypes]
           .map((type) => {
             const allocated = Number(allocation.get(type) || 0);
             const remaining = grouped.get(type).length - allocated;
-            const baseWeight = Number(homeTasteWeights[type] || 1);
-            const focusBoost = (type === 'game' || type === 'movie' || type === 'tv') ? 0.6 : 0.25;
-            return { type, remaining, weight: baseWeight + focusBoost };
+            return {
+              type,
+              remaining,
+              weight: Number(homeTasteWeights[type] || 1)
+            };
           })
           .filter((entry) => entry.remaining > 0)
           .sort((a, b) => b.remaining - a.remaining || b.weight - a.weight || a.type.localeCompare(b.type))[0];
         if (!nextType) break;
         allocation.set(nextType.type, Number(allocation.get(nextType.type) || 0) + 1);
-        used += 1;
-      }
-
-      while (used < maxItems) {
-        const nextSecondary = [...secondaryTypes]
-          .map((type) => {
-            const allocated = Number(allocation.get(type) || 0);
-            const remaining = grouped.get(type).length - allocated;
-            return { type, remaining, weight: Number(homeTasteWeights[type] || 1) };
-          })
-          .filter((entry) => entry.remaining > 0)
-          .sort((a, b) => b.weight - a.weight || b.remaining - a.remaining || a.type.localeCompare(b.type))[0];
-        if (!nextSecondary) break;
-        allocation.set(nextSecondary.type, Number(allocation.get(nextSecondary.type) || 0) + 1);
         used += 1;
       }
 
@@ -3381,12 +2207,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         selectedByType.set(type, grouped.get(type).slice(0, takeCount));
       });
 
-      const roundRobinOrder = [...activeTypes].sort((a, b) => {
-        const aPrimary = primaryTypes.includes(a) ? 0 : 1;
-        const bPrimary = primaryTypes.includes(b) ? 0 : 1;
-        if (aPrimary !== bPrimary) return aPrimary - bPrimary;
-        return Number(homeTasteWeights[b] || 1) - Number(homeTasteWeights[a] || 1);
-      });
+      const roundRobinOrder = [...activeTypes].sort(
+        (a, b) => Number(homeTasteWeights[b] || 1) - Number(homeTasteWeights[a] || 1)
+      );
       const shortlist = [];
       let guard = 0;
       while (shortlist.length < maxItems && guard < (maxItems * 8)) {
@@ -3419,7 +2242,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function hydrateSpotlightFromPool(pool) {
-      const safePool = filterHomeSafeItems(Array.isArray(pool) ? pool : []).filter((item) => canUseHomeSpotlightItem(item));
+      const safePool = filterHomeSafeItems(Array.isArray(pool) ? pool : []);
       if (!safePool.length) {
         homeSpotlightItems = [];
         resetSpotlightTimer(false);
@@ -3443,6 +2266,25 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         homeSpotlightItems = [...shortlist.slice(offset), ...shortlist.slice(0, offset)];
       }
 
+      if (ENABLE_GAMES) {
+        const spotlightGames = safePool.filter((item) => {
+          const type = String(item?.mediaType || '').toLowerCase();
+          const cover = String(item?.spotlightMediaImage || '').trim();
+          const hero = String(item?.spotlightImage || '').trim();
+          return type === 'game' && cover && hero && cover !== hero;
+        });
+        const desiredGameCount = Math.min(3, spotlightGames.length);
+        const currentGameCount = homeSpotlightItems.filter((item) => String(item?.mediaType || '').toLowerCase() === 'game').length;
+        if (desiredGameCount > currentGameCount) {
+          const existingKeys = new Set(homeSpotlightItems.map((item, index) => getHomeSpotlightPoolKey(item, index)));
+          const needed = desiredGameCount - currentGameCount;
+          const additions = spotlightGames.filter((item, index) => !existingKeys.has(getHomeSpotlightPoolKey(item, index))).slice(0, needed);
+          if (additions.length) {
+            homeSpotlightItems = [...additions, ...homeSpotlightItems].slice(0, spotlightPoolSize);
+          }
+        }
+      }
+
       warmSpotlightImages(homeSpotlightItems);
       const preservedIndex = previousKey
         ? homeSpotlightItems.findIndex((item, index) => getHomeSpotlightPoolKey(item, index) === previousKey)
@@ -3458,15 +2300,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function loadTasteWeights() {
       const weights = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, 1]));
       if (!homeCurrentUser?.id) return weights;
-      const now = Date.now();
-      if (
-        homeTasteWeightsCache
-        && homeTasteWeightsCache.weights
-        && homeTasteWeightsCache.userId === homeCurrentUser.id
-        && (now - Number(homeTasteWeightsCache.savedAt || 0)) < HOME_TASTE_WEIGHTS_CACHE_MS
-      ) {
-        return homeTasteWeightsCache.weights;
-      }
 
       const client = await ensureHomeSupabase();
       if (!client) return weights;
@@ -3535,70 +2368,37 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           });
         }
       } catch (_err) {}
-      homeTasteWeightsCache = {
-        userId: homeCurrentUser.id,
-        savedAt: now,
-        weights
-      };
       return weights;
     }
 
     async function ensureHomeSupabase() {
-      if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
-        try {
-          window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
-        } catch (_err) {}
-      }
       if (homeSupabaseClient) return homeSupabaseClient;
       if (window.__ZO2Y_SUPABASE_CLIENT) {
         homeSupabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
         return homeSupabaseClient;
       }
-      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-        const sharedClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-        if (sharedClient) {
-          homeSupabaseClient = sharedClient;
-          window.__ZO2Y_SUPABASE_CLIENT = sharedClient;
-          return homeSupabaseClient;
-        }
-      }
-      if (!window.supabase?.createClient) {
-        await waitForHomeSupabaseSdk();
-      }
-      if (!window.supabase?.createClient) return null;
+      if (!window.supabase || !window.supabase.createClient) return null;
       homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
-          storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
           persistSession: true,
           autoRefreshToken: true,
           // OAuth callback is handled on auth-callback.html, keep homepage parser off.
-          detectSessionInUrl: false,
-          storageKey: 'zo2y-auth-v2'
+          detectSessionInUrl: false
         }
       });
       window.__ZO2Y_SUPABASE_CLIENT = homeSupabaseClient;
       return homeSupabaseClient;
     }
-    window.ensureHomeSupabase = ensureHomeSupabase;
 
     function clearHomeAuthParamsFromUrl() {
       const url = new URL(window.location.href);
-      const authParams = ['code', 'state', 'error', 'error_description', 'scope', 'authuser', 'prompt', 'auth_return', 'authv', 'native_oauth'];
+      const authParams = ['code', 'state', 'error', 'error_description', 'scope', 'authuser', 'prompt'];
       authParams.forEach((key) => url.searchParams.delete(key));
       if (/(access_token|refresh_token|expires_in|token_type|type)=/i.test(window.location.hash || '')) {
         url.hash = '';
       }
       const cleaned = `${url.pathname}${url.search}${url.hash}`;
       window.history.replaceState({}, document.title, cleaned || 'index.html');
-    }
-
-    function hasHomeAuthReturnParams() {
-      try {
-        const params = new URLSearchParams(window.location.search || '');
-        return params.get('auth_return') === '1' || params.has('authv') || params.get('native_oauth') === '1';
-      } catch (_err) {
-        return false;
-      }
     }
 
     async function completeHomeOAuthReturnIfNeeded() {
@@ -3634,42 +2434,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         clearHomeAuthParamsFromUrl();
         return true;
       } catch (error) {
-        const message = String(error?.message || '').toLowerCase();
-        if (message.includes('refresh token already used') || message.includes('already been used')) {
-          clearHomeAuthParamsFromUrl();
-          return true;
-        }
         console.error('Home OAuth completion failed:', error);
         showHomeToast('Could not complete sign-in. Please try again.', true);
         clearHomeAuthParamsFromUrl();
         return false;
       }
-    }
-
-    function resetHomeProfileLabelCache() {
-      homeProfileLabelLookupPromise = null;
-      homeProfileLabelCache = {
-        userId: '',
-        label: '',
-        fetchedAt: 0,
-        failedAt: 0
-      };
-    }
-
-    function queueHomeAuthUiSync(options = {}) {
-      if (options && options.refreshPersonalization) {
-        homeAuthSyncNeedsPersonalization = true;
-      }
-      if (homeAuthSyncTimer) return;
-      homeAuthSyncTimer = window.setTimeout(() => {
-        const shouldRefreshPersonalization = homeAuthSyncNeedsPersonalization;
-        homeAuthSyncTimer = null;
-        homeAuthSyncNeedsPersonalization = false;
-        void initAuthUi();
-        if (shouldRefreshPersonalization) {
-          void refreshHomePersonalization();
-        }
-      }, 90);
     }
 
     async function ensureRestaurantList(userId, listType) {
@@ -3729,18 +2498,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         showHomeToast('List service unavailable', true);
         return result;
       }
-      const activeUser = await ensureHomeActiveUser(client, {
-        preferCached: false,
-        useCachedOnFail: false,
-        allowRemoteUser: true,
-        allowRefresh: true
-      });
-      if (!activeUser?.id) {
-        queueHomeAuthUiSync({ refreshPersonalization: true });
+      if (!homeCurrentUser?.id) {
         window.location.href = 'login.html';
         return result;
       }
-      homeCurrentUser = activeUser;
 
       const mediaType = String(payload.mediaType || '').toLowerCase();
       const listType = payload.listType;
@@ -3757,7 +2518,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             return await ListUtils.ensureBookRecord(client, {
               id: String(itemId),
               title: payload.title || '',
-              authors: getHomeBookAuthorsText(payload.subtitle),
+              authors: payload.subtitle || '',
               thumbnail: payload.image || ''
             });
           }
@@ -3801,7 +2562,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const { data: existing } = await client
               .from('user_favorite_teams')
               .select('id')
-              .eq('user_id', activeUser.id)
+              .eq('user_id', homeCurrentUser.id)
               .eq('team_id', teamId)
               .maybeSingle();
             shouldSave = !existing?.id;
@@ -3811,7 +2572,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const { error: deleteError } = await client
               .from('user_favorite_teams')
               .delete()
-              .eq('user_id', activeUser.id)
+              .eq('user_id', homeCurrentUser.id)
               .eq('team_id', teamId);
             if (deleteError) {
               showHomeToast('Could not update list', true);
@@ -3834,18 +2595,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
           const { error: insertError } = await client
             .from('user_favorite_teams')
-            .upsert({ user_id: activeUser.id, team_id: teamId }, { onConflict: 'user_id,team_id' });
+            .upsert({ user_id: homeCurrentUser.id, team_id: teamId }, { onConflict: 'user_id,team_id' });
           if (insertError) {
             showHomeToast('Could not update list', true);
             return result;
           }
 
-            showHomeToast('Added to favorites');
-            result.ok = true;
-            result.saved = true;
-            markStartedHomeListFlow(activeUser.id);
-            invalidateActivitySignals();
-            return result;
+          showHomeToast('Added to favorites');
+          result.ok = true;
+          result.saved = true;
+          invalidateActivitySignals();
+          return result;
         }
 
         const defaultListTable = getHomeDefaultListTable(mediaType);
@@ -3862,7 +2622,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const { error: deleteError } = await client
               .from(table)
               .delete()
-              .eq('user_id', activeUser.id)
+              .eq('user_id', homeCurrentUser.id)
               .eq(itemField, itemId)
               .eq('list_type', listType);
             if (deleteError) {
@@ -3882,7 +2642,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               showHomeToast('Book info is unavailable right now.', true);
               return result;
             }
-            const insertRow = { user_id: activeUser.id, list_type: listType };
+            const insertRow = { user_id: homeCurrentUser.id, list_type: listType };
             insertRow[itemField] = itemId;
             const { error: insertError } = await client.from(table).insert(insertRow);
             if (insertError && String(insertError.code || '') !== '23505') {
@@ -3892,7 +2652,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             showHomeToast('Added to list');
             result.ok = true;
             result.saved = true;
-            markStartedHomeListFlow(activeUser.id);
             invalidateActivitySignals();
             return result;
           }
@@ -3900,7 +2659,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const { data: existing } = await client
             .from(table)
             .select('id')
-            .eq('user_id', activeUser.id)
+            .eq('user_id', homeCurrentUser.id)
             .eq(itemField, itemId)
             .eq('list_type', listType)
             .limit(1)
@@ -3919,7 +2678,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
 
           await ensureLinkedMediaRecord(itemId);
-          const insertRow = { user_id: activeUser.id, list_type: listType };
+          const insertRow = { user_id: homeCurrentUser.id, list_type: listType };
           insertRow[itemField] = itemId;
           const { error: insertError } = await client.from(table).insert(insertRow);
           if (insertError && String(insertError.code || '') !== '23505') {
@@ -3929,7 +2688,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           showHomeToast('Added to list');
           result.ok = true;
           result.saved = true;
-          markStartedHomeListFlow(activeUser.id);
           invalidateActivitySignals();
           return result;
         }
@@ -3940,7 +2698,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             showHomeToast('Could not update list', true);
             return result;
           }
-          const listId = await ensureRestaurantList(activeUser.id, listType);
+          const listId = await ensureRestaurantList(homeCurrentUser.id, listType);
           if (!listId) {
             showHomeToast('Could not prepare list', true);
             return result;
@@ -3974,7 +2732,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             showHomeToast('Added to list');
             result.ok = true;
             result.saved = true;
-            markStartedHomeListFlow(activeUser.id);
             invalidateActivitySignals();
             return result;
           }
@@ -4008,7 +2765,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           showHomeToast('Added to list');
           result.ok = true;
           result.saved = true;
-          markStartedHomeListFlow(activeUser.id);
           invalidateActivitySignals();
           return result;
         }
@@ -4023,16 +2779,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       (listKeys || []).forEach((key) => {
         status[key] = false;
       });
-      if (!listKeys?.length) return status;
+      if (!homeCurrentUser?.id || !listKeys?.length) return status;
       const client = await ensureHomeSupabase();
       if (!client) return status;
-      const activeUser = await ensureHomeActiveUser(client, {
-        preferCached: false,
-        useCachedOnFail: false,
-        allowRemoteUser: true,
-        allowRefresh: false
-      });
-      if (!activeUser?.id) return status;
 
       try {
         if (mediaType === 'sports') {
@@ -4041,7 +2790,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const { data } = await client
             .from('user_favorite_teams')
             .select('team_id')
-            .eq('user_id', activeUser.id)
+            .eq('user_id', homeCurrentUser.id)
             .eq('team_id', teamId)
             .maybeSingle();
           if (data?.team_id && 'favorites' in status) status.favorites = true;
@@ -4056,7 +2805,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const { data } = await client
             .from(table)
             .select('list_type')
-            .eq('user_id', activeUser.id)
+            .eq('user_id', homeCurrentUser.id)
             .eq(itemField, normalizedItemId)
             .in('list_type', listKeys);
           (data || []).forEach((row) => {
@@ -4080,7 +2829,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const { data: lists } = await client
             .from('lists')
             .select('id,title')
-            .eq('user_id', activeUser.id)
+            .eq('user_id', homeCurrentUser.id)
             .in('title', titles);
 
           const listIdToKey = {};
@@ -4123,6 +2872,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (stateEl) stateEl.textContent = 'Add';
       });
 
+      if (!homeCurrentUser?.id) return;
       const status = await getHomeListStatusMap(mediaType, itemId, listKeys);
       menu.querySelectorAll('.rail-menu-item[data-action="save"]').forEach((btn) => {
         const key = String(btn.getAttribute('data-list') || '');
@@ -4148,9 +2898,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       pendingQuickKeys: new Set(),
       customLists: [],
       selectedCustomLists: new Set(),
-      selectedIcon: 'fas fa-list',
-      hasStartedSaving: false,
-      forceShowHelperOnce: false
+      selectedIcon: 'fas fa-list'
     };
     const homeItemMenuCache = {
       quickStatusByItem: new Map(),
@@ -4246,21 +2994,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function primeHomeMenuCachesForType(mediaType) {
       const type = String(mediaType || '').toLowerCase();
-      if (!type || !window.ListUtils || !supportsHomeLists(type)) return;
-      const client = await ensureHomeSupabase();
-      if (!client) return;
-      const activeUser = await ensureHomeActiveUser(client, {
-        preferCached: false,
-        useCachedOnFail: false,
-        allowRemoteUser: true,
-        allowRefresh: false
-      });
-      if (!activeUser?.id) return;
-      const scopeKey = `${activeUser.id}:${type}`;
+      if (!type || !homeCurrentUser?.id || !window.ListUtils || !supportsHomeLists(type)) return;
+      const scopeKey = `${homeCurrentUser.id}:${type}`;
       if (homeItemMenuCache.primingScopes.has(scopeKey)) return;
       homeItemMenuCache.primingScopes.add(scopeKey);
 
       try {
+        const client = await ensureHomeSupabase();
+        if (!client) return;
+
         const cfg = getMediaListConfig(type);
         const quickRows = Array.isArray(cfg?.rows) ? cfg.rows : [];
         const listKeys = quickRows.map((row) => row.key).filter(Boolean);
@@ -4272,7 +3014,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const { data } = await client
             .from(table)
             .select(`${itemField},list_type`)
-            .eq('user_id', activeUser.id)
+            .eq('user_id', homeCurrentUser.id)
             .in(itemField, visibleItemIds)
             .in('list_type', listKeys);
           const grouped = new Map();
@@ -4298,7 +3040,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
         let customLists = readHomeMenuCustomListsCache(type);
         if (!customLists.length) {
-          customLists = await ListUtils.loadCustomLists(client, activeUser.id, type);
+          customLists = await ListUtils.loadCustomLists(client, homeCurrentUser.id, type);
           writeHomeMenuCustomListsCache(type, customLists);
         }
 
@@ -4423,7 +3165,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         itemModal.setAttribute('aria-hidden', 'true');
       }
       homeItemMenuState.pendingQuickKeys = new Set();
-      homeItemMenuState.forceShowHelperOnce = false;
       syncMenuModalBodyLock();
     }
 
@@ -4462,7 +3203,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         return {
           id: item.itemId,
           title: item.title || '',
-          authors: getHomeBookAuthorsText(item.subtitle),
+          authors: item.subtitle || '',
           thumbnail: item.image || ''
         };
       }
@@ -4494,13 +3235,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const quickContainer = document.getElementById('menuQuickLists');
       if (!quickContainer) return;
       if (!homeItemMenuState.quickRows.length) {
-        quickContainer.innerHTML = '<div class="menu-empty menu-empty-rich"><div class="menu-empty-title">No quick saves here yet</div><div class="menu-empty-copy">This item type does not have fast-save rows right now, but custom lists can still help you organize it.</div></div>';
+        quickContainer.innerHTML = '<div class="menu-empty">Lists are not available for this item.</div>';
         return;
       }
-      const hasStartedSaving = !homeCurrentUser?.id || !!homeItemMenuState.hasStartedSaving;
-      quickContainer.innerHTML = `
-        ${hasStartedSaving ? '' : '<div class="menu-helper">Tap once to save instantly. Use quick lists for speed, then build custom lists underneath.</div>'}
-        ${homeItemMenuState.quickRows.map((row) => {
+      quickContainer.innerHTML = homeItemMenuState.quickRows.map((row) => {
         const isActive = !!homeItemMenuState.quickStatus[row.key];
         const isBusy = homeItemMenuState.pendingQuickKeys.has(row.key);
         return `
@@ -4512,7 +3250,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             <span class="menu-quick-state">${isActive ? 'Saved' : 'Add'}</span>
           </div>
         `;
-      }).join('')}`;
+      }).join('');
 
       quickContainer.querySelectorAll('.menu-quick-item').forEach((node) => {
         node.addEventListener('click', async () => {
@@ -4549,23 +3287,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         return;
       }
       if (!homeItemMenuState.customLists.length) {
-        if (homeItemMenuState.hasStartedSaving) {
-          customContainer.innerHTML = '';
-          return;
-        }
-        customContainer.innerHTML = `
-          <div class="menu-empty menu-empty-rich">
-            <div class="menu-empty-title">Create your first custom list</div>
-            <div class="menu-empty-copy">Make something like “Weekend movies”, “Games to finish”, or “2026 favorites” and reuse it everywhere.</div>
-            <button class="menu-empty-cta" type="button">Create first list</button>
-          </div>
-        `;
-        const createBtn = customContainer.querySelector('.menu-empty-cta');
-        if (createBtn) {
-          createBtn.addEventListener('click', () => {
-            openCreateListModalFromMenu();
-          });
-        }
+        customContainer.innerHTML = '<div class="menu-empty">No custom lists yet. Create one.</div>';
         return;
       }
 
@@ -4602,14 +3324,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function loadItemMenuData() {
       const item = homeItemMenuState.currentItem;
       if (!item) return;
-      const activeUser = await ensureHomeActiveUser(null, {
-        preferCached: false,
-        useCachedOnFail: true,
-        allowRemoteUser: true,
-        allowRefresh: false
-      });
-      const activeUserId = String(activeUser?.id || '').trim();
-      const startedSavingKeySeen = hasStartedHomeListFlow(activeUserId);
       homeItemMenuState.quickRows = getQuickRowsForMenu(item.mediaType);
       homeItemMenuState.pendingQuickKeys = new Set();
       homeItemMenuState.quickStatus = readHomeMenuQuickStatusCache(
@@ -4623,20 +3337,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!homeItemMenuState.selectedCustomLists.size) {
         homeItemMenuState.selectedCustomLists = readHomeMenuMembershipCache(item.mediaType, item.itemId);
       }
-      const hasCachedSaving =
-        Object.values(homeItemMenuState.quickStatus || {}).some(Boolean)
-        || (homeItemMenuState.selectedCustomLists instanceof Set && homeItemMenuState.selectedCustomLists.size > 0)
-        || homeItemMenuState.customLists.length > 0;
-      if (hasCachedSaving) {
-        homeItemMenuState.forceShowHelperOnce = false;
-        markStartedHomeListFlow(activeUserId);
-      }
-      homeItemMenuState.hasStartedSaving = hasCachedSaving || (startedSavingKeySeen && !homeItemMenuState.forceShowHelperOnce);
       renderItemMenuQuickLists();
       renderItemMenuCustomLists();
 
       const cfg = getHomeListConfig(item.mediaType);
-      if (!activeUserId || !cfg || !window.ListUtils) {
+      if (!homeCurrentUser?.id || !cfg || !window.ListUtils) {
         homeItemMenuState.customLists = [];
         homeItemMenuState.selectedCustomLists = new Set();
         renderItemMenuQuickLists();
@@ -4648,7 +3353,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!client) return;
       const [statusMap, customLists] = await Promise.all([
         getHomeListStatusMap(item.mediaType, item.itemId, homeItemMenuState.quickRows.map((row) => row.key).filter(Boolean)),
-        ListUtils.loadCustomLists(client, activeUserId, item.mediaType)
+        ListUtils.loadCustomLists(client, homeCurrentUser.id, item.mediaType)
       ]);
       homeItemMenuState.quickStatus = statusMap;
       writeHomeMenuQuickStatusCache(item.mediaType, item.itemId, homeItemMenuState.quickStatus, homeItemMenuState.quickRows);
@@ -4657,20 +3362,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const listIds = homeItemMenuState.customLists.map((l) => l.id).filter(Boolean);
       homeItemMenuState.selectedCustomLists = await ListUtils.loadCustomListMembership(
         client,
-        activeUserId,
+        homeCurrentUser.id,
         item.mediaType,
         item.itemId,
         listIds
       );
       writeHomeMenuMembershipCache(item.mediaType, item.itemId, homeItemMenuState.selectedCustomLists);
-      if (
-        Object.values(homeItemMenuState.quickStatus || {}).some(Boolean)
-        || (homeItemMenuState.selectedCustomLists instanceof Set && homeItemMenuState.selectedCustomLists.size > 0)
-        || homeItemMenuState.customLists.length > 0
-      ) {
-        homeItemMenuState.hasStartedSaving = true;
-        markStartedHomeListFlow(activeUserId);
-      }
       renderItemMenuQuickLists();
       renderItemMenuCustomLists();
     }
@@ -4692,11 +3389,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         subtitle: card.getAttribute('data-subtitle') || '',
         image: card.getAttribute('data-list-image') || card.getAttribute('data-image') || ''
       };
-      const shouldShowHelperOnce = !!homeCurrentUser?.id && !hasStartedHomeListFlow(homeCurrentUser.id);
-      homeItemMenuState.forceShowHelperOnce = shouldShowHelperOnce;
-      if (shouldShowHelperOnce) {
-        markStartedHomeListFlow(homeCurrentUser.id);
-      }
       homeItemMenuState.quickRows = getQuickRowsForMenu(mediaType);
       homeItemMenuState.quickStatus = readHomeMenuQuickStatusCache(
         mediaType,
@@ -4742,17 +3434,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function toggleMenuCustomList(listId) {
       const item = homeItemMenuState.currentItem;
-      const activeUser = await ensureHomeActiveUser(null, {
-        preferCached: false,
-        useCachedOnFail: false,
-        allowRemoteUser: true,
-        allowRefresh: true
-      });
-      if (!item || !activeUser?.id || !window.ListUtils) {
+      if (!item || !homeCurrentUser?.id || !window.ListUtils) {
         window.location.href = 'login.html';
         return;
       }
-      homeCurrentUser = activeUser;
       const client = await ensureHomeSupabase();
       if (!client) return;
       const next = new Set(homeItemMenuState.selectedCustomLists);
@@ -4765,7 +3450,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       try {
         await ListUtils.saveCustomListChanges(
           client,
-          activeUser.id,
+          homeCurrentUser.id,
           item.mediaType,
           item.itemId,
           [...next],
@@ -4781,7 +3466,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (addedToList && window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
           window.ZO2Y_ANALYTICS.markFirstAction('first_list_item_saved', {
             media_type: item.mediaType,
-            user_id: activeUser.id
+            user_id: homeCurrentUser?.id || ''
           }, { essential: true });
         }
       } catch (_err) {
@@ -4792,19 +3477,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
     }
 
-    async function openCreateListModalFromMenu() {
+    function openCreateListModalFromMenu() {
       const item = homeItemMenuState.currentItem;
-      const activeUser = await ensureHomeActiveUser(null, {
-        preferCached: false,
-        useCachedOnFail: false,
-        allowRemoteUser: true,
-        allowRefresh: true
-      });
-      if (!item || !activeUser?.id) {
+      if (!item || !homeCurrentUser?.id) {
         window.location.href = 'login.html';
         return;
       }
-      homeCurrentUser = activeUser;
       const createModal = document.getElementById('createListModal');
       const itemModal = document.getElementById('itemMenuModal');
       const nameInput = document.getElementById('newListNameInput');
@@ -4815,10 +3493,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const icon = btn.getAttribute('data-icon') || '';
         btn.classList.toggle('selected', icon === homeItemMenuState.selectedIcon);
       });
-      if (itemModal) {
-        itemModal.classList.remove('active');
-        itemModal.setAttribute('aria-hidden', 'true');
-      }
+      if (itemModal) itemModal.classList.remove('active');
       if (createModal) {
         createModal.classList.add('active');
         createModal.setAttribute('aria-hidden', 'false');
@@ -4831,17 +3506,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function saveNewCustomListFromMenu() {
       const item = homeItemMenuState.currentItem;
-      const activeUser = await ensureHomeActiveUser(null, {
-        preferCached: false,
-        useCachedOnFail: false,
-        allowRemoteUser: true,
-        allowRefresh: true
-      });
-      if (!item || !window.ListUtils || !activeUser?.id) {
+      if (!item || !window.ListUtils || !homeCurrentUser?.id) {
         window.location.href = 'login.html';
         return;
       }
-      homeCurrentUser = activeUser;
       const nameInput = document.getElementById('newListNameInput');
       const title = String(nameInput?.value || '').trim();
       if (!title) {
@@ -4854,7 +3522,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         : { listKind: 'standard', maxRank: null };
       const client = await ensureHomeSupabase();
       if (!client) return;
-      const created = await ListUtils.createCustomList(client, activeUser.id, item.mediaType, {
+      const created = await ListUtils.createCustomList(client, homeCurrentUser.id, item.mediaType, {
         title,
         icon: homeItemMenuState.selectedIcon || 'fas fa-list',
         listKind: tierState.listKind,
@@ -4870,8 +3538,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         ...homeItemMenuState.customLists.filter((list) => String(list.id) !== String(created.id))
       ];
       homeItemMenuState.selectedCustomLists.add(created.id);
-      homeItemMenuState.hasStartedSaving = true;
-      markStartedHomeListFlow(activeUser.id);
       writeHomeMenuCustomListsCache(item.mediaType, homeItemMenuState.customLists);
       writeHomeMenuMembershipCache(item.mediaType, item.itemId, homeItemMenuState.selectedCustomLists);
       if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
@@ -4973,20 +3639,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function openHomeListsModal(item) {
-      const client = await ensureHomeSupabase();
-      const activeUser = await ensureHomeActiveUser(client, {
-        preferCached: false,
-        useCachedOnFail: false,
-        allowRemoteUser: true,
-        allowRefresh: true
-      });
-      if (!activeUser?.id) {
+      if (!homeCurrentUser?.id) {
         window.location.href = 'login.html';
         return;
       }
-      homeCurrentUser = activeUser;
       const cfg = getHomeListConfig(item.mediaType);
       if (!cfg) return;
+      const client = await ensureHomeSupabase();
       if (!client) return;
       homeCustomListState.mediaType = String(item.mediaType || '').toLowerCase();
       homeCustomListState.itemId = coerceHomeItemId(homeCustomListState.mediaType, item.itemId);
@@ -5002,13 +3661,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!modal || !container) return;
       container.innerHTML = '<div class="chip">Loading...</div>';
       homeCustomListState.customLists = window.ListUtils
-        ? await ListUtils.loadCustomLists(client, activeUser.id, homeCustomListState.mediaType)
+        ? await ListUtils.loadCustomLists(client, homeCurrentUser.id, homeCustomListState.mediaType)
         : [];
       const listIds = homeCustomListState.customLists.map(l => l.id);
       homeCustomListState.selectedLists = window.ListUtils
         ? await ListUtils.loadCustomListMembership(
           client,
-          activeUser.id,
+          homeCurrentUser.id,
           homeCustomListState.mediaType,
           homeCustomListState.itemId,
           listIds
@@ -5035,14 +3694,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function saveHomeListChanges() {
       const cfg = getHomeListConfig(homeCustomListState.mediaType);
       const client = await ensureHomeSupabase();
-      const activeUser = await ensureHomeActiveUser(client, {
-        preferCached: false,
-        useCachedOnFail: false,
-        allowRemoteUser: true,
-        allowRefresh: true
-      });
-      if (!cfg || !client || !activeUser?.id || !homeCustomListState.itemId) return;
-      homeCurrentUser = activeUser;
+      if (!cfg || !client || !homeCurrentUser?.id || !homeCustomListState.itemId) return;
       if (window.ListUtils) {
         const mediaType = String(homeCustomListState.mediaType || '').toLowerCase();
         let itemPayload = null;
@@ -5050,7 +3702,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           itemPayload = {
             id: homeCustomListState.itemId,
             title: homeCustomListState.title,
-            authors: getHomeBookAuthorsText(homeCustomListState.subtitle),
+            authors: homeCustomListState.subtitle,
             thumbnail: homeCustomListState.image
           };
         } else if (mediaType === 'music') {
@@ -5063,7 +3715,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         await ListUtils.saveCustomListChanges(
           client,
-          activeUser.id,
+          homeCurrentUser.id,
           homeCustomListState.mediaType,
           homeCustomListState.itemId,
           [...homeCustomListState.selectedLists],
@@ -5077,14 +3729,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function createHomeList() {
       const input = document.getElementById('newHomeListName');
       const client = await ensureHomeSupabase();
-      const activeUser = await ensureHomeActiveUser(client, {
-        preferCached: false,
-        useCachedOnFail: false,
-        allowRemoteUser: true,
-        allowRefresh: true
-      });
-      if (!input || !client || !activeUser?.id) return;
-      homeCurrentUser = activeUser;
+      if (!input || !client || !homeCurrentUser?.id) return;
       const title = input.value.trim();
       if (!title) return;
       const exists = homeCustomListState.customLists.some(
@@ -5101,7 +3746,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const data = window.ListUtils
         ? await ListUtils.createCustomList(
           client,
-          activeUser.id,
+          homeCurrentUser.id,
           homeCustomListState.mediaType,
           {
             title,
@@ -5125,18 +3770,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const nextTitle = prompt('Rename list', currentTitle || '');
       if (!nextTitle || !nextTitle.trim()) return;
       const client = await ensureHomeSupabase();
-      const activeUser = await ensureHomeActiveUser(client, {
-        preferCached: false,
-        useCachedOnFail: false,
-        allowRemoteUser: true,
-        allowRefresh: true
-      });
-      if (!client || !activeUser?.id) return;
-      homeCurrentUser = activeUser;
+      if (!client || !homeCurrentUser?.id) return;
       const ok = window.ListUtils
         ? await ListUtils.renameCustomList(
           client,
-          activeUser.id,
+          homeCurrentUser.id,
           homeCustomListState.mediaType,
           listId,
           nextTitle.trim()
@@ -5179,9 +3817,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function getHomeChannelTargetItems() {
-      if (isHomeSlowNetwork()) return Math.max(8, HOME_CHANNEL_TARGET_ITEMS - 8);
-      if (isHomeCompactViewport()) return Math.max(10, HOME_CHANNEL_TARGET_ITEMS - 4);
-      return HOME_CHANNEL_TARGET_ITEMS;
+      return isHomeSlowNetwork()
+        ? Math.max(8, HOME_CHANNEL_TARGET_ITEMS - 8)
+        : HOME_CHANNEL_TARGET_ITEMS;
     }
 
     function getHomeUnifiedTargetItems() {
@@ -5226,10 +3864,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function consumeHomeImageRequestBudget() {
       const onSlowNetwork = isHomeSlowNetwork();
       const eagerBudget = onSlowNetwork
-        ? Math.max(1, HOME_EAGER_IMAGE_COUNT - 1)
+        ? Math.max(2, HOME_EAGER_IMAGE_COUNT - 3)
         : HOME_EAGER_IMAGE_COUNT;
       const priorityBudget = onSlowNetwork
-        ? 1
+        ? Math.max(1, HOME_HIGH_PRIORITY_IMAGE_COUNT - 2)
         : HOME_HIGH_PRIORITY_IMAGE_COUNT;
       const useEager = homeEagerImageBudgetUsed < eagerBudget;
       const useHighPriority = homeHighPriorityImageBudgetUsed < priorityBudget;
@@ -5263,10 +3901,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function preloadImage(url) {
       const src = String(url || '').trim();
       if (!src) return;
-      const localBucketPrefix = `${SUPABASE_URL}/storage/v1/object/public/`;
-      const sameOrigin = typeof window !== 'undefined' && src.startsWith(window.location.origin);
-      const isLocalBucket = src.startsWith(localBucketPrefix);
-      if (!sameOrigin && !isLocalBucket && !src.startsWith('/')) return;
       if (homePreloadedImageSet.has(src)) return;
       homePreloadedImageSet.add(src);
       if (homePreloadedImageSet.size > 1200) {
@@ -5280,187 +3914,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       img.src = src;
     }
 
-    function shouldDeferHomeImageLoad(loading) {
-      return String(loading || '').toLowerCase() !== 'eager';
-    }
-
-    function getHomeImageWrapper(img) {
-      return img?.closest?.('.card-media, .game-card-media, .travel-photo-tile') || null;
-    }
-
-    function markHomeImageReady(img) {
-      if (!img) return;
-      img.setAttribute('data-image-ready', '1');
-      img.setAttribute('data-home-image-state', 'ready');
-      const wrapper = getHomeImageWrapper(img);
-      if (wrapper) wrapper.classList.remove('is-loading-media');
-    }
-
-    function loadHomeDeferredImage(img) {
-      if (!img || !img.hasAttribute('data-home-src')) return;
-      const nextSrc = String(img.getAttribute('data-home-src') || '').trim();
-      if (!nextSrc) {
-        img.removeAttribute('data-home-src');
-        markHomeImageReady(img);
-        return;
-      }
-      img.setAttribute('data-home-image-state', 'loading');
-      img.removeAttribute('data-home-src');
-      img.src = nextSrc;
-    }
-
-    function getHomeDeferredImageObserver() {
-      if (homeDeferredImageObserver || typeof window.IntersectionObserver !== 'function') {
-        return homeDeferredImageObserver;
-      }
-      homeDeferredImageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const img = entry.target;
-          observer.unobserve(img);
-          loadHomeDeferredImage(img);
-        });
-      }, {
-        rootMargin: HOME_DEFERRED_IMAGE_ROOT_MARGIN,
-        threshold: 0.01
-      });
-      return homeDeferredImageObserver;
-    }
-
-    function primeHomeDeferredImages(scope) {
-      if (!scope) return;
-      const deferredImages = Array.from(scope.querySelectorAll('img[data-home-src]'));
-      if (!deferredImages.length) return;
-      const observer = getHomeDeferredImageObserver();
-      if (!observer) {
-        deferredImages.forEach((img) => loadHomeDeferredImage(img));
-        return;
-      }
-      deferredImages.forEach((img) => observer.observe(img));
-
-      // Some browsers occasionally fail to dispatch the initial IntersectionObserver callback
-      // after a hard refresh. Proactively load any deferred images already in the viewport.
-      const flushVisible = () => {
-        const vw = Math.max(0, Number(window.innerWidth || 0));
-        const vh = Math.max(0, Number(window.innerHeight || 0));
-        if (!vw || !vh) return;
-        deferredImages.forEach((img) => {
-          if (!img || !img.hasAttribute('data-home-src')) return;
-          const rect = img.getBoundingClientRect?.();
-          if (!rect) return;
-          const visible = rect.bottom >= -120 && rect.right >= -120 && rect.top <= (vh + 120) && rect.left <= (vw + 120);
-          if (!visible) return;
-          try { observer.unobserve(img); } catch (_err) {}
-          loadHomeDeferredImage(img);
-        });
-      };
-
-      if (typeof window.requestAnimationFrame === 'function') {
-        window.requestAnimationFrame(() => flushVisible());
-      } else {
-        window.setTimeout(flushVisible, 0);
-      }
-    }
-
-    function buildHomeImageAttrs(src, loading, priority, fallbackImage = '', extra = {}) {
-      const actualSrc = String(src || '');
-      const fallbackSrc = String(fallbackImage || '');
-      const shouldDefer = shouldDeferHomeImageLoad(loading);
-      const attrs = [
-        `src="${shouldDefer ? HOME_IMAGE_PLACEHOLDER : actualSrc}"`,
-        shouldDefer ? `data-home-src="${actualSrc}"` : '',
-        `loading="${shouldDefer ? 'lazy' : loading}"`,
-        `fetchpriority="${shouldDefer ? 'low' : priority}"`,
-        'decoding="async"',
-        'referrerpolicy="no-referrer"',
-        'data-home-image="1"',
-        `data-home-image-state="${shouldDefer ? 'deferred' : 'loading'}"`,
-        'data-image-ready="0"',
-        `data-fallback-image="${fallbackSrc}"`,
-        'data-fallback-applied="0"',
-        extra.ariaHidden ? 'aria-hidden="true"' : '',
-        extra.altEmpty ? 'alt=""' : ''
-      ];
-      return attrs.filter(Boolean).join(' ');
-    }
-
-    function getOptimizedHomeTravelImage(url, width = 720) {
-      const src = toHttpsUrl(String(url || '').trim());
-      if (!src) return '';
-      const publicMarker = `/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/`;
-      const renderMarker = `/storage/v1/render/image/public/${HOME_TRAVEL_BUCKET_NAME}/`;
-      let path = '';
-      if (src.includes(publicMarker)) {
-        path = src.slice(src.indexOf(publicMarker) + publicMarker.length);
-      } else if (src.includes(renderMarker)) {
-        path = src.slice(src.indexOf(renderMarker) + renderMarker.length).split('?')[0];
-      } else {
-        return src;
-      }
-      if (!path) return src;
-      const encodedPath = path
-        .split('/')
-        .map((segment) => encodeURIComponent(segment))
-        .join('/');
-      return `${SUPABASE_URL}/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/${encodedPath}`;
-    }
-
-    function getHomeTravelVariants(itemData, landscape = false) {
-      const travelSet = itemData?.travelPhotoSet || {};
-      const candidates = [
-        { raw: travelSet.scenic || itemData?.image || '', label: 'Scenic', kind: 'scenic' },
-        { raw: travelSet.city || '', label: 'City life', kind: 'city' },
-        { raw: travelSet.nature || '', label: 'Nature', kind: 'nature' }
-      ];
-      const seen = new Set();
-      return candidates
-        .map((entry) => {
-          const src = getOptimizedHomeTravelImage(entry.raw, landscape ? 960 : 720);
-          return src ? { ...entry, src } : null;
-        })
-        .filter(Boolean)
-        .filter((entry) => {
-          if (seen.has(entry.src)) return false;
-          seen.add(entry.src);
-          return true;
-        });
-    }
-
-    function hashHomeTravelVariantSeed(value) {
-      const input = String(value || '');
-      let hash = 2166136261;
-      for (let index = 0; index < input.length; index += 1) {
-        hash ^= input.charCodeAt(index);
-        hash = Math.imul(hash, 16777619);
-      }
-      return hash >>> 0;
-    }
-
-    function getStableHomeTravelVariant(itemData, landscape = false) {
-      const variants = getHomeTravelVariants(itemData, landscape);
-      if (!variants.length) return null;
-      const itemKey = [
-        String(itemData?.itemId || '').trim(),
-        String(itemData?.title || '').trim(),
-        String(itemData?.subtitle || '').trim()
-      ].filter(Boolean).join('|');
-      const index = hashHomeTravelVariantSeed(`${HOME_TRAVEL_VARIANT_SESSION_SEED}:${itemKey}:${landscape ? 'landscape' : 'poster'}`) % variants.length;
-      return variants[index] || variants[0] || null;
-    }
-
     function warmHomeFeedImages(feedMap) {
-      if (isHomeSlowNetwork()) return;
       const perChannelBudget = getHomePreloadPerChannelBudget();
-      if (perChannelBudget <= 0) return;
-      const groups = Object.values(feedMap || {}).slice(0, 3);
+      const groups = Object.values(feedMap || {});
       groups.forEach((items) => {
         if (!Array.isArray(items)) return;
         items.slice(0, perChannelBudget).forEach((item) => {
-          const mediaType = String(item?.mediaType || '').toLowerCase();
-          const primaryImage = mediaType === 'travel'
-            ? getOptimizedHomeTravelImage(item.listImage || item.image || '', 720)
-            : (item.listImage || item.image || '');
-          preloadImage(primaryImage);
+          preloadImage(item.image);
+          preloadImage(item.backgroundImage || item.spotlightImage);
         });
       });
     }
@@ -5470,6 +3931,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const spotlightBudget = getHomeSpotlightPreloadBudget();
       items.slice(0, spotlightBudget).forEach((item) => {
         preloadImage(item.spotlightImage || item.backgroundImage || item.image);
+        preloadImage(item.spotlightMediaImage || item.image || item.spotlightImage || item.backgroundImage);
       });
     }
 
@@ -5542,7 +4004,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function getBookCoverFallback(item) {
-      return String(item?.listImage || item?.image || '').trim();
+      return '';
     }
 
     function setSpotlightImageWithFallback(imgEl, sources, token) {
@@ -5555,7 +4017,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
 
       const candidates = [...new Set((sources || [])
-        .map((value) => toHttpsUrl(String(value || '').trim()))
+        .map((value) => String(value || '').trim())
         .filter(Boolean))];
 
       if (!candidates.length) {
@@ -5588,7 +4050,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function buildInstantFallbackFeed() {
-      const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE;
+      const fallbackImage = '';
       const targetCount = getHomeChannelTargetItems();
       const instantTravelItems = getCachedHomeTravelItems(targetCount);
       const fallbackTravelItems = instantTravelItems.length
@@ -5629,116 +4091,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             isPlaceholder: true
           }))
         } : {}),
-        movie: [],
-        tv: [],
-        anime: [],
+        movie: makeSeedItems('movie', ['Popular Movies', 'Now in Theaters', 'Award Winners', 'Critics Picks', 'Weekend Watch'], 'movies.html'),
+        tv: makeSeedItems('tv', ['Top TV Shows', 'Binge Picks', 'New Seasons', 'Global Hits', 'Fan Favorites'], 'tvshows.html'),
+        anime: makeSeedItems('anime', ['Top Anime', 'Fan Favorites', 'Must Watch Series', 'Shonen Hits', 'Classic Anime'], 'animes.html'),
         ...(ENABLE_GAMES ? {
           game: makeSeedItems('game', ['Top Games', 'New Releases', 'Community Picks', 'Multiplayer Hits', 'Story Games'], 'games.html')
         } : {}),
-        music: [],
+        music: makeSeedItems('music', ['Global Hits', 'Viral Tracks', 'Fresh Releases', 'Chill Vibes', 'Late Night Mix'], 'music.html'),
         book: makeSeedItems('book', ['Bestselling Books', 'Popular Fiction', 'Book Club Picks', 'Page-Turners', 'Must Read Stories'], 'books.html'),
-        ...(ENABLE_FASHION ? {
-          fashion: HOME_FASHION_FALLBACKS.slice(0, targetCount).map((row, index) => ({
-            ...mapHomeBrandItem(row, 'fashion', index),
-            subtitle: row.category || 'Fashion',
-            extra: row.domain || '',
-            isPlaceholder: true
-          }))
-        } : {}),
-        ...(ENABLE_FOOD ? {
-          food: HOME_FOOD_FALLBACKS.slice(0, targetCount).map((row, index) => ({
-            ...mapHomeBrandItem(row, 'food', index),
-            subtitle: row.category || 'Food',
-            extra: row.domain || '',
-            isPlaceholder: true
-          }))
-        } : {}),
-        ...(ENABLE_CARS ? {
-          car: HOME_CAR_FALLBACKS.slice(0, targetCount).map((row, index) => ({
-            ...mapHomeBrandItem(row, 'car', index),
-            subtitle: row.category || 'Cars',
-            extra: row.domain || '',
-            isPlaceholder: true
-          }))
-        } : {}),
         travel: fallbackTravelItems,
         sports: makeSeedItems('sports', ['Top Teams', 'Fan Favorites', 'Legendary Clubs', 'Home Stadiums', 'Rivalry Picks'], 'sports.html')
       };
-    }
-
-    function getHomeRailFallbackItems(_channelKey) {
-      const key = String(_channelKey || '').trim().toLowerCase();
-      const targetCount = getHomeChannelTargetItems();
-      if (key === 'game' && ENABLE_GAMES) {
-        return [
-          'Top Games',
-          'New Releases',
-          'Community Picks',
-          'Multiplayer Hits',
-          'Story Games'
-        ].slice(0, Math.max(3, Math.min(targetCount, 5))).map((title, index) => ({
-          mediaType: 'game',
-          itemId: `seed-game-${index + 1}`,
-          title,
-          subtitle: 'Loading live picks',
-          extra: 'Popular now',
-          image: HOME_LOCAL_FALLBACK_IMAGE,
-          backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
-          spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
-          spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-          href: 'games.html',
-          isPlaceholder: true
-        }));
-      }
-      if (key === 'fashion' && ENABLE_FASHION) {
-        return HOME_FASHION_FALLBACKS.slice(0, targetCount).map((row, index) => ({
-          ...mapHomeBrandItem(row, 'fashion', index),
-          subtitle: row.category || 'Fashion',
-          extra: row.domain || ''
-        }));
-      }
-      if (key === 'travel') {
-        const cached = getCachedHomeTravelItems(targetCount);
-        return cached.length ? cached : getHomeTravelFallbackItems(targetCount);
-      }
-      if (key === 'food' && ENABLE_FOOD) {
-        return HOME_FOOD_FALLBACKS.slice(0, targetCount).map((row, index) => ({
-          ...mapHomeBrandItem(row, 'food', index),
-          subtitle: row.category || 'Food',
-          extra: row.domain || ''
-        }));
-      }
-      if (key === 'car' && ENABLE_CARS) {
-        return HOME_CAR_FALLBACKS.slice(0, targetCount).map((row, index) => ({
-          ...mapHomeBrandItem(row, 'car', index),
-          subtitle: row.category || 'Cars',
-          extra: row.domain || ''
-        }));
-      }
-      if (key === 'sports') {
-        const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE;
-        const titles = ['Top Teams', 'Fan Favorites', 'Legendary Clubs', 'Home Stadiums', 'Rivalry Picks'];
-        return titles.slice(0, Math.max(3, Math.min(targetCount, titles.length))).map((title, index) => ({
-          mediaType: 'sports',
-          itemId: `seed-sports-${index + 1}`,
-          title,
-          subtitle: 'Sports',
-          extra: 'Loading teams',
-          image: fallbackImage,
-          backgroundImage: fallbackImage,
-          spotlightImage: fallbackImage,
-          spotlightMediaImage: fallbackImage,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          fallbackImage,
-          href: 'sports.html',
-          isPlaceholder: true
-        }));
-      }
-      return [];
     }
 
     function getHomeChannels() {
@@ -5747,359 +4110,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
-        ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 12000 }] : []),
-        { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 12000 },
-        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 12000 },
-        ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 12000 }] : []),
-        ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 12000 }] : []),
-        ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 12000 }] : []),
-        { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 12000 },
-        { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: false }, timeoutMs: 12000 }
+        ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 5600 }] : []),
+        { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 8500 },
+        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 9000 },
+        ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 6200 }] : []),
+        ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 6200 }] : []),
+        { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 6800 },
+        { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: false }, timeoutMs: 6800 }
       ];
-    }
-
-    function isHomeCompactViewport() {
-      const width = Math.max(
-        window.innerWidth || 0,
-        document.documentElement?.clientWidth || 0,
-        0
-      );
-      return width > 0 && width <= 900;
-    }
-
-    function getHomeInitialChannels(channels) {
-      const list = Array.isArray(channels) ? channels.slice() : [];
-      if (!list.length) return [];
-
-      // User request: load *everything* immediately (no viewport deferrals).
-      return list;
-
-      const domOrdered = list.sort((left, right) => {
-        const leftWrap = getHomeRailWrap(left?.railId);
-        const rightWrap = getHomeRailWrap(right?.railId);
-        if (!leftWrap && !rightWrap) return 0;
-        if (!leftWrap) return 1;
-        if (!rightWrap) return -1;
-        if (leftWrap === rightWrap) return 0;
-        const position = leftWrap.compareDocumentPosition(rightWrap);
-        if (position & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
-        if (position & Node.DOCUMENT_POSITION_PRECEDING) return 1;
-        return 0;
-      });
-
-      const selected = [];
-      const seen = new Set();
-      const pushChannel = (channel) => {
-        const key = String(channel?.key || channel?.railId || '').trim();
-        if (!key || seen.has(key)) return;
-        seen.add(key);
-        selected.push(channel);
-      };
-
-      const visibleChannels = domOrdered.filter((channel) => isHomeRailNearViewport(channel?.railId));
-      visibleChannels.forEach(pushChannel);
-      const targetCount = Math.max(budget, visibleChannels.length);
-      domOrdered.forEach((channel) => {
-        if (selected.length >= targetCount) return;
-        pushChannel(channel);
-      });
-
-      return selected;
-    }
-
-    function getHomeInitialChannelConcurrency() {
-      // Aggressive: load all channels fast to avoid “skeleton forever” perceptions.
-      if (isHomeSlowNetwork()) return 3;
-      if (isHomeCompactViewport()) return 4;
-      return 5;
-    }
-
-    function getHomeRailViewportMarginPx() {
-      if (isHomeSlowNetwork()) return isHomeCompactViewport() ? 180 : 240;
-      return isHomeCompactViewport() ? 260 : 420;
-    }
-
-    function getHomeRailViewportRootMargin() {
-      return `${getHomeRailViewportMarginPx()}px 0px`;
-    }
-
-    function getHomeRailWrap(railId) {
-      const rail = document.getElementById(String(railId || '').trim());
-      if (!rail) return null;
-      return rail.closest('.rail-wrap') || rail.parentElement || rail;
-    }
-
-    function homeHasRealItems(items) {
-      return Array.isArray(items) && items.some((item) => item && typeof item === 'object' && item.isPlaceholder !== true);
-    }
-
-    function isHomeRailNearViewport(railId) {
-      if (!railId) return true;
-      const wrap = getHomeRailWrap(railId);
-      if (!wrap || typeof wrap.getBoundingClientRect !== 'function') return true;
-      const rect = wrap.getBoundingClientRect();
-      const viewportHeight = Math.max(window.innerHeight || 0, document.documentElement?.clientHeight || 0, 720);
-      const margin = getHomeRailViewportMarginPx();
-      return rect.top <= (viewportHeight + margin);
-    }
-
-    function flushHomeSecondaryQueues() {
-      if (homePendingNewReleasesRefresh) {
-        homePendingNewReleasesRefresh = false;
-        homeNewReleasesRefreshScheduled = false;
-        scheduleHomeNewReleasesRefresh(homeFeedState);
-      }
-      if (homePendingMixedRefresh) {
-        homePendingMixedRefresh = false;
-        homeMixedRefreshScheduled = false;
-        const args = homePendingMixedRefreshArgs || {};
-        homePendingMixedRefreshArgs = null;
-        scheduleHomeMixedRefresh(args.feedMap || homeFeedState, args.scoredPool);
-      }
-    }
-
-    function markHomeInteraction() {
-      if (homeUserInteracted) return;
-      homeUserInteracted = true;
-      flushHomeSecondaryQueues();
-    }
-
-    function ensureHomeInteractionWatch() {
-      if (homeInteractionWatchBound || typeof window === 'undefined') return;
-      homeInteractionWatchBound = true;
-      const opts = { once: true, passive: true };
-      ['pointerdown', 'keydown', 'touchstart', 'wheel'].forEach((eventName) => {
-        window.addEventListener(eventName, markHomeInteraction, opts);
-      });
-    }
-
-    function buildHomeRailDeferredMarkup(count = 4) {
-      const safeCount = Math.max(3, Math.min(6, Number(count) || 4));
-      return `
-        <div class="rail-placeholder" aria-hidden="true">
-          ${Array.from({ length: safeCount }).map(() => `
-            <div class="rail-placeholder-card">
-              <span class="rail-placeholder-media"></span>
-              <span class="rail-placeholder-line rail-placeholder-line-lg"></span>
-              <span class="rail-placeholder-line"></span>
-              <span class="rail-placeholder-line rail-placeholder-line-sm"></span>
-            </div>
-          `).join('')}
-        </div>
-      `;
-    }
-
-    function setHomeRailDeferredPlaceholder(railId) {
-      const rail = document.getElementById(String(railId || '').trim());
-      if (!rail) return;
-      if (rail.getAttribute('data-home-deferred-render') === '1') return;
-      rail.setAttribute('data-home-deferred-render', '1');
-      rail.innerHTML = buildHomeRailDeferredMarkup(isHomeCompactViewport() ? 3 : 4);
-    }
-
-    function getHomeChannelKeyByRailId(railId) {
-      const target = String(railId || '').trim();
-      if (!target) return '';
-      const channels = getHomeChannels();
-      for (const channel of channels) {
-        if (String(channel?.railId || '').trim() === target) return String(channel?.key || '').trim();
-      }
-      return '';
-    }
-
-    function renderHomeFallbackForRail(railId, opts = {}) {
-      const key = String(railId || '').trim();
-      if (!key) return false;
-      const channelKey = getHomeChannelKeyByRailId(key);
-      if (!channelKey) return false;
-      const fallback = getHomeRailFallbackItems(channelKey);
-      const renderOpts = opts && typeof opts === 'object' ? opts : {};
-      if (!Array.isArray(fallback) || !fallback.length) return false;
-      homePendingRailRenderState.delete(key);
-      clearHomeRailDeferredPlaceholder(key);
-      renderRail(key, fallback, renderOpts);
-      return true;
-    }
-
-    function clearHomeRailDeferredPlaceholder(railId) {
-      const rail = document.getElementById(String(railId || '').trim());
-      if (!rail) return;
-      rail.removeAttribute('data-home-deferred-render');
-    }
-
-    function flushPendingHomeRailRender(railId) {
-      const pending = homePendingRailRenderState.get(railId);
-      if (!pending) return false;
-      homePendingRailRenderState.delete(railId);
-      clearHomeRailDeferredPlaceholder(railId);
-      renderRail(railId, pending.items, pending.opts);
-      return true;
-    }
-
-    async function startHomeDeferredChannelLoad(railId) {
-      const key = String(railId || '').trim();
-      if (!key) return;
-      const state = homeDeferredChannelState.get(key);
-      if (!state) return;
-      if (state.status === 'loading' || state.status === 'loaded') return state.promise || Promise.resolve();
-      if (state.initSeq !== homeFeedInitSeq) {
-        homeDeferredChannelState.delete(key);
-        return;
-      }
-      state.status = 'loading';
-      state.promise = Promise.resolve()
-        .then(() => state.loadChannel(state.channel))
-        .catch(() => [])
-        .finally(() => {
-          const latest = homeDeferredChannelState.get(key);
-          if (latest === state) {
-            latest.status = 'loaded';
-          }
-        });
-      return state.promise;
-    }
-
-    function handleHomeRailViewportEntry(railId) {
-      const key = String(railId || '').trim();
-      if (!key) return;
-      flushPendingHomeRailRender(key);
-      void startHomeDeferredChannelLoad(key);
-      if (key === 'newReleasesRail' && homePendingNewReleasesRefresh) {
-        homePendingNewReleasesRefresh = false;
-        homeNewReleasesRefreshScheduled = false;
-        scheduleHomeNewReleasesRefresh(homeFeedState);
-      }
-      if (key === 'unifiedRail' && homePendingMixedRefresh) {
-        homePendingMixedRefresh = false;
-        homeMixedRefreshScheduled = false;
-        const args = homePendingMixedRefreshArgs || {};
-        homePendingMixedRefreshArgs = null;
-        scheduleHomeMixedRefresh(args.feedMap || homeFeedState, args.scoredPool);
-      }
-    }
-
-    function getHomeRailViewportObserver() {
-      if (homeRailViewportObserver || typeof window.IntersectionObserver !== 'function') return homeRailViewportObserver;
-      homeRailViewportObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const railId = String(entry.target?.getAttribute('data-home-rail-id') || '').trim();
-          observer.unobserve(entry.target);
-          handleHomeRailViewportEntry(railId);
-        });
-      }, {
-        rootMargin: getHomeRailViewportRootMargin(),
-        threshold: 0.01
-      });
-      return homeRailViewportObserver;
-    }
-
-    function observeHomeRailViewport(railId) {
-      const key = String(railId || '').trim();
-      if (!key) return;
-      const wrap = getHomeRailWrap(key);
-      if (!wrap) {
-        handleHomeRailViewportEntry(key);
-        return;
-      }
-      wrap.setAttribute('data-home-rail-id', key);
-      const observer = getHomeRailViewportObserver();
-      if (!observer) {
-        handleHomeRailViewportEntry(key);
-        return;
-      }
-      observer.observe(wrap);
-    }
-
-    function renderOrDeferHomeRail(railId, items, opts) {
-      const key = String(railId || '').trim();
-      if (!key) return;
-      const normalizedItems = Array.isArray(items) ? items : [];
-      const renderOpts = opts || {};
-      if (!normalizedItems.length && renderOpts.allowEmptyState !== true) {
-        setHomeRailDeferredPlaceholder(key);
-        return;
-      }
-      homePendingRailRenderState.delete(key);
-      clearHomeRailDeferredPlaceholder(key);
-      renderRail(key, normalizedItems, renderOpts);
-    }
-
-    function resetHomeViewportDeferrals() {
-      homePendingRailRenderState.clear();
-      homeDeferredChannelState.clear();
-      homePendingNewReleasesRefresh = false;
-      homeNewReleasesRefreshScheduled = false;
-      if (homeRailViewportObserver) {
-        homeRailViewportObserver.disconnect();
-        homeRailViewportObserver = null;
-      }
-    }
-
-    function queueHomeDeferredChannel(channel, loadChannel, initSeq) {
-      if (!channel || !channel.railId || typeof loadChannel !== 'function') return;
-      const key = String(channel.railId).trim();
-      homeDeferredChannelState.set(key, {
-        channel,
-        loadChannel,
-        initSeq,
-        status: 'idle',
-        promise: null
-      });
-      void startHomeDeferredChannelLoad(key);
-    }
-
-    function scheduleHomeMixedRefresh(feedMap, scoredPool) {
-      homePendingMixedRefresh = false;
-      homePendingMixedRefreshArgs = null;
-      if (homeMixedRefreshScheduled) return;
-      homeMixedRefreshScheduled = true;
-      const run = () => {
-        homeMixedRefreshScheduled = false;
-        void refreshMixedForYouFromActivity(feedMap, scoredPool);
-      };
-      if (typeof window.requestIdleCallback === 'function') {
-        window.requestIdleCallback(() => run(), { timeout: isHomeCompactViewport() ? 1800 : 1200 });
-      } else {
-        window.setTimeout(run, isHomeCompactViewport() ? 1100 : 700);
-      }
-    }
-
-    async function loadHomeChannelGroup(channels, loadChannel) {
-      const queue = Array.isArray(channels) ? channels.slice() : [];
-      if (!queue.length || typeof loadChannel !== 'function') return [];
-      const concurrency = Math.max(1, Math.min(getHomeInitialChannelConcurrency(), queue.length));
-      const results = [];
-      const workers = Array.from({ length: concurrency }, async () => {
-        while (queue.length) {
-          const channel = queue.shift();
-          if (!channel) return;
-          results.push(await loadChannel(channel));
-        }
-      });
-      await Promise.all(workers);
-      return results;
-    }
-
-    function scheduleHomeNewReleasesRefresh(feedMap = homeFeedState, options = {}) {
-      const railOptions = { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true };
-      if (homeNewReleasesState.length) {
-        renderOrDeferHomeRail('newReleasesRail', filterHomeSafeItems(homeNewReleasesState), railOptions);
-      } else {
-        setHomeRailDeferredPlaceholder('newReleasesRail');
-      }
-      homePendingNewReleasesRefresh = false;
-      if (homeNewReleasesRefreshScheduled) return;
-      homeNewReleasesRefreshScheduled = true;
-      const run = () => {
-        homeNewReleasesRefreshScheduled = false;
-        void refreshHomeNewReleases(feedMap, options);
-      };
-      if (typeof window.requestIdleCallback === 'function') {
-        window.requestIdleCallback(() => run(), { timeout: isHomeCompactViewport() ? 1800 : 1200 });
-      } else {
-        window.setTimeout(run, isHomeCompactViewport() ? 900 : 500);
-      }
     }
 
     function normalizeHomeFeedMap(feedMap) {
@@ -6145,18 +4163,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       try {
         const normalized = normalizeHomeFeedMap(feedMap);
         if (!normalized) return;
-        const scrubbed = { ...normalized };
-        // Same rule as home feed cache: never persist placeholder-only rails.
-        getHomeChannels().forEach((channel) => {
-          const items = Array.isArray(scrubbed?.[channel.key]) ? scrubbed[channel.key] : [];
-          scrubbed[channel.key] = stripHomePlaceholderItems(items);
-        });
         const savedAt = Number(options.savedAt || Date.now());
         const expiresAt = Number(options.expiresAt || (savedAt + HOME_PRECOMPUTED_FEED_MAX_AGE_MS));
         localStorage.setItem(HOME_PRECOMPUTED_FEED_CACHE_KEY, JSON.stringify({
           savedAt,
           expiresAt,
-          feed: scrubbed
+          feed: normalized
         }));
       } catch (_err) {}
     }
@@ -6190,30 +4202,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return feed;
     }
 
-    async function fetchPrecomputedHomeFeedFromApi() {
-      const payload = await fetchJsonWithPerfCache(HOME_PUBLIC_FEED_ENDPOINT, {
-        cacheKey: 'home-public-feed',
-        ttlMs: 1000 * 60,
-        timeoutMs: 2400,
-        retries: 2
-      });
-      const feed = normalizeHomeFeedMap(payload?.feed);
-      if (!feed || countActiveHomeChannels(feed) === 0) return null;
-
-      const generatedAtMs = payload?.generatedAt ? new Date(payload.generatedAt).getTime() : Date.now();
-      const expiresAtMs = payload?.expiresAt ? new Date(payload.expiresAt).getTime() : (generatedAtMs + HOME_PRECOMPUTED_FEED_MAX_AGE_MS);
-      writePrecomputedHomeFeedCache(feed, {
-        savedAt: generatedAtMs,
-        expiresAt: expiresAtMs
-      });
-      return feed;
-    }
-
     async function loadPrecomputedHomeFeed() {
       const cached = readPrecomputedHomeFeedCache();
       if (cached && countActiveHomeChannels(cached) > 0) return cached;
-      const apiFeed = await fetchPrecomputedHomeFeedFromApi();
-      if (apiFeed && countActiveHomeChannels(apiFeed) > 0) return apiFeed;
       return fetchPrecomputedHomeFeedFromSupabase();
     }
 
@@ -6232,12 +4223,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
     }
 
-    function stripHomePlaceholderItems(items) {
-      const list = Array.isArray(items) ? items : [];
-      if (!list.length) return [];
-      return list.filter((item) => !item?.isPlaceholder);
-    }
-
     function writeHomeFeedCache(feedMap) {
       try {
         const normalizedFeed = normalizeHomeFeedMap(feedMap);
@@ -6245,9 +4230,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const channels = getHomeChannels();
         const payload = {};
         channels.forEach((channel) => {
-          const items = Array.isArray(normalizedFeed?.[channel.key]) ? normalizedFeed[channel.key] : [];
-          // Never persist placeholder-only rails; they cause “stuck skeletons” after refresh when live loaders time out.
-          payload[channel.key] = stripHomePlaceholderItems(items);
+          payload[channel.key] = Array.isArray(normalizedFeed?.[channel.key]) ? normalizedFeed[channel.key] : [];
         });
         localStorage.setItem(HOME_FEED_CACHE_KEY, JSON.stringify({
           savedAt: Date.now(),
@@ -6259,10 +4242,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function loadHomeChannelWithTimeout(loader, timeoutMs = HOME_CHANNEL_TIMEOUT_MS) {
       let timer = null;
       const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      const startedAt = homeDebugNow();
-      const loaderName = String(loader?.name || '').trim() || 'anonymous';
       try {
-        homeDebugEvent('channel:start', { loader: loaderName, timeoutMs: Number(timeoutMs || 0) });
         const loaderPromise = Promise.resolve().then(() => loader(controller ? controller.signal : undefined));
         const value = await Promise.race([
           loaderPromise,
@@ -6273,15 +4253,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             }, timeoutMs);
           })
         ]);
-        const endedAt = homeDebugNow();
-        const tookMs = endedAt - startedAt;
-        const items = Array.isArray(value) ? value : [];
-        homeDebugEvent('channel:done', { loader: loaderName, ms: Math.round(tookMs), items: items.length });
-        return items;
+        return Array.isArray(value) ? value : [];
       } catch (_err) {
-        const endedAt = homeDebugNow();
-        const tookMs = endedAt - startedAt;
-        homeDebugEvent('channel:error', { loader: loaderName, ms: Math.round(tookMs), message: String(_err?.message || _err || '') });
         return [];
       } finally {
         if (controller) controller.abort();
@@ -6294,107 +4267,66 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         getHomeChannels().map((channel) => [channel.key, []])
       );
       const channels = getHomeChannels();
-      const showEmptyRails = options.showEmptyRails === true;
       resetHomeImageRequestBudget();
       warmHomeFeedImages(normalizedFeed);
       let activeChannels = 0;
       channels.forEach((channel) => {
         const items = Array.isArray(normalizedFeed?.[channel.key]) ? normalizedFeed[channel.key] : [];
         homeFeedState[channel.key] = items;
-        if (items.length) {
-          renderOrDeferHomeRail(channel.railId, items, channel.opts);
-        } else if (showEmptyRails) {
-          renderOrDeferHomeRail(channel.railId, [], { ...(channel.opts || {}), allowEmptyState: true });
-        } else {
-          setHomeRailDeferredPlaceholder(channel.railId);
-        }
+        renderRail(channel.railId, items, channel.opts);
         if (items.length) activeChannels += 1;
       });
 
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
-      if (unified.length) {
-        renderOrDeferHomeRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
-      } else if (showEmptyRails) {
-        renderOrDeferHomeRail('unifiedRail', [], { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true, allowEmptyState: true });
-      } else {
-        setHomeRailDeferredPlaceholder('unifiedRail');
-      }
-
+      renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
       if (options.refreshSecondary !== false) {
-        scheduleHomeNewReleasesRefresh(homeFeedState);
-        scheduleHomeMixedRefresh(homeFeedState, scoredPool);
+        void refreshHomeNewReleases(homeFeedState);
+        void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
       }
       hydrateSpotlightFromPool(scoredPool);
 
       return { activeChannels, scoredPool, channelsCount: channels.length };
     }
 
-    async function refreshHomePersonalization(options = {}) {
+    async function refreshHomePersonalization() {
       const hasItems = Object.values(homeFeedState).some((items) => Array.isArray(items) && items.length);
       if (!hasItems) return;
-      const now = Date.now();
-      const force = !!options.force;
-      if (!force && homeLastPersonalizationAt && (now - homeLastPersonalizationAt) < HOME_PERSONALIZATION_THROTTLE_MS) {
-        return;
-      }
-      homeLastPersonalizationAt = now;
       homeTasteWeights = await loadTasteWeights();
       const scoredPool = buildScoredDiscoveryPool(homeFeedState);
       const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
-      renderOrDeferHomeRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
-      scheduleHomeMixedRefresh(homeFeedState, scoredPool);
+      renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+      void refreshHomeNewReleases(homeFeedState);
+      void refreshMixedForYouFromActivity(homeFeedState, scoredPool);
       hydrateSpotlightFromPool(scoredPool);
       scheduleHomeMenuCachePrime();
     }
 
     function scheduleDeferredHomeStartupTasks() {
       const run = () => {
+        void maybeShowHomeOnboarding();
         void refreshHomePersonalization();
         scheduleHomeMenuCachePrime();
       };
-      const scheduleRun = () => {
-        if (isHomeSlowNetwork()) {
-          scheduleHomeNonCritical(() => setTimeout(run, 1800), 2600);
-          return;
+      if (isHomeSlowNetwork()) {
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(() => {
+            setTimeout(run, 1800);
+          }, { timeout: 2600 });
+        } else {
+          setTimeout(run, 1800);
         }
-        scheduleHomeNonCritical(run, 1400);
-      };
-      if (homeUserInteracted) {
-        scheduleRun();
         return;
       }
-      ensureHomeInteractionWatch();
-      let released = false;
-      const release = () => {
-        if (released) return;
-        released = true;
-        window.removeEventListener('pointerdown', release);
-        window.removeEventListener('keydown', release);
-        window.removeEventListener('scroll', release, true);
-        scheduleRun();
-      };
-      window.addEventListener('pointerdown', release, { once: true, passive: true });
-      window.addEventListener('keydown', release, { once: true });
-      window.addEventListener('scroll', release, { once: true, passive: true, capture: true });
-      window.setTimeout(release, isHomeSlowNetwork() ? 5200 : 3200);
+      run();
     }
 
     function renderRail(railId, items, opts) {
       const rail = document.getElementById(railId);
       if (!rail) return;
-      rail.classList.remove('games-rail');
+      rail.classList.toggle('games-rail', String(opts?.mediaType || '').toLowerCase() === 'game');
 
       if (!items || !items.length) {
-        if (railId === 'booksRail') {
-          const debug = window.__zo2yHomeBooksDebug || null;
-          if (debug) {
-            console.error('[home books] books rail rendered empty', debug);
-            const stage = escapeHtml(String(debug?.stage || 'unknown'));
-            rail.innerHTML = `<div class="empty">Books failed to load. Check console. Stage: ${stage}</div>`;
-            return;
-          }
-        }
         rail.innerHTML = '<div class="empty">No items right now.</div>';
         return;
       }
@@ -6409,20 +4341,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const uniformMedia = !!opts?.uniformMedia;
         const landscape = !uniformMedia && (!!opts?.landscape || mediaTypeRaw === 'restaurant');
         const restaurantComposite = !!opts?.restaurantComposite && mediaTypeRaw === 'restaurant';
-        const rawTitle = String(itemData.title || 'Untitled');
-        const cleanedTitle = mediaTypeRaw === 'travel'
-          ? rawTitle.replace(/^\uD83C[\uDDE6-\uDDFF]\uD83C[\uDDE6-\uDDFF]\s*/u, '')
-          : rawTitle;
-        const title = escapeHtml(cleanedTitle);
+        const title = escapeHtml(itemData.title || 'Untitled');
         const subtitle = escapeHtml(itemData.subtitle || media.label);
         const extra = escapeHtml(itemData.extra || '');
         const image = escapeHtml(itemData.image || '');
-        const flagImage = escapeHtml(itemData.flagImage || '');
+        const flagImage = '';
         const listImage = escapeHtml(itemData.listImage || itemData.image || '');
         const logo = escapeHtml(itemData.logo || '');
-        const fallbackImage = escapeHtml(itemData.fallbackImage || HOME_LOCAL_FALLBACK_IMAGE);
-        const safeImage = image || listImage || fallbackImage;
-        const coverImage = image || listImage || logo;
+        const fallbackImage = escapeHtml(itemData.fallbackImage || '');
+        const coverImage = image || logo;
         const hrefRaw = itemData.href || '#';
         const href = escapeHtml(hrefRaw);
         const mediaType = escapeHtml(mediaTypeRaw);
@@ -6435,12 +4362,40 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const previewControl = previewUrlRaw
           ? `<button class="card-preview-btn" data-preview="${escapeHtml(previewUrlRaw)}" aria-label="Play preview"><i class="fas fa-play"></i></button>`
           : '';
-        const hasVisualImage = restaurantComposite ? !!coverImage || !!logo : !!safeImage;
+        const hasVisualImage = restaurantComposite ? !!coverImage || !!logo : !!image;
         const imagePolicy = hasVisualImage
           ? consumeHomeImageRequestBudget()
           : { loading: 'lazy', priority: 'low' };
         const imageLoading = imagePolicy.loading;
         const imagePriority = imagePolicy.priority;
+
+        if (mediaTypeRaw === 'game' && String(opts?.mediaType || '').toLowerCase() === 'game') {
+          if (!image) return '';
+          const desc = extra || 'Video game';
+          const gameBg = escapeHtml(itemData.backgroundImage || itemData.spotlightImage || '');
+          const bgStyle = gameBg ? ` style="background-image:url('${gameBg}')" ` : '';
+          const trailingControl = supportsLists
+            ? `<button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>`
+            : `<a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>`;
+          return `
+            <article class="card game-card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${image}">
+              <div class="game-card-media"${bgStyle}>
+                <img class="game-card-img" src="${image}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="" data-fallback-applied="0">
+              </div>
+              <div class="card-body">
+                <h3 class="card-title">${title}</h3>
+                <div class="card-meta-row">
+                  <div class="card-meta">${subtitle}</div>
+                  <div class="card-menu-wrap">
+                    ${previewControl}
+                    ${trailingControl}
+                  </div>
+                </div>
+                <div class="card-desc">${desc}</div>
+              </div>
+            </article>
+          `;
+        }
 
         const mediaClasses = ['card-media'];
         const mediaFit = String(itemData.mediaFit || '').trim().toLowerCase();
@@ -6449,43 +4404,39 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
         if (mediaTypeRaw === 'music') mediaClasses.push('music-cover');
         if (mediaTypeRaw === 'travel') mediaClasses.push('travel-photo');
-        if (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food' || mediaTypeRaw === 'car' || mediaTypeRaw === 'sports') mediaClasses.push('brand-cover');
+        if (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food') mediaClasses.push('brand-cover');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
-        if (hasVisualImage) mediaClasses.push('is-loading-media');
         if (restaurantComposite && !coverImage && !logo) return '';
+        const safeImage = image || (mediaTypeRaw === 'travel' ? fallbackImage : '');
         if (!restaurantComposite && !safeImage) return '';
-        const optimizedTravelImage = mediaTypeRaw === 'travel'
-          ? getOptimizedHomeTravelImage(safeImage, landscape ? 960 : 720)
-          : '';
         let mediaHtml = restaurantComposite
           ? `
-              ${coverImage ? `<img class="restaurant-cover" ${buildHomeImageAttrs(coverImage, imageLoading, imagePriority, fallbackImage)} alt="${title}">` : '<i class="fa-solid fa-image"></i>'}
-              ${logo ? `<span class="restaurant-logo-badge"><img ${buildHomeImageAttrs(logo, 'lazy', 'low', fallbackImage)} alt="${title} logo"></span>` : ''}
+              ${coverImage ? `<img class="restaurant-cover" src="${coverImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}
+              ${logo ? `<span class="restaurant-logo-badge"><img src="${logo}" alt="${title} logo" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0"></span>` : ''}
             `
-          : `${safeImage ? `<img ${buildHomeImageAttrs(mediaTypeRaw === 'travel' ? optimizedTravelImage : safeImage, imageLoading, imagePriority, fallbackImage)} alt="${title}">` : '<i class="fa-solid fa-image"></i>'}`;
+          : `${safeImage ? `<img src="${safeImage}" alt="${title}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">` : '<i class="fa-solid fa-image"></i>'}`;
 
         if (mediaTypeRaw === 'travel') {
-          const initialTravelVariant = getStableHomeTravelVariant(itemData, landscape);
-          if (initialTravelVariant?.src) {
+          const travelSet = itemData.travelPhotoSet || {};
+          const travelTiles = [];
+          if (travelSet.city) travelTiles.push({ url: travelSet.city, label: 'City life', kind: 'city' });
+          if (travelSet.nature) travelTiles.push({ url: travelSet.nature, label: 'Nature', kind: 'nature' });
+          if (!travelTiles.length && safeImage) travelTiles.push({ url: safeImage, label: 'Scenic', kind: 'scenic' });
+          if (travelTiles.length) {
             mediaHtml = `
-              <div class="travel-photo-stage is-loading-media">
-                <img ${buildHomeImageAttrs(initialTravelVariant.src, imageLoading, imagePriority, fallbackImage)} alt="${title}">
-                <div class="travel-photo-badges" aria-hidden="true">
-                  <span class="travel-photo-label" data-kind="${escapeHtml(initialTravelVariant.kind || 'scenic')}">${escapeHtml(initialTravelVariant.label || 'Scenic')}</span>
-                </div>
+              <div class="travel-photo-grid${travelTiles.length > 1 ? '' : ' single'}">
+                ${travelTiles.map((tile) => `
+                  <div class="travel-photo-tile" data-kind="${escapeHtml(tile.kind)}">
+                    <img src="${escapeHtml(tile.url)}" alt="${escapeHtml(tile.label)}" loading="${imageLoading}" fetchpriority="${imagePriority}" decoding="async" referrerpolicy="no-referrer" data-fallback-image="${fallbackImage}" data-fallback-applied="0">
+                    <span class="travel-photo-label">${escapeHtml(tile.label)}</span>
+                  </div>
+                `).join('')}
               </div>
             `;
           }
         }
         const extraMarkup = extra ? `<p class="card-extra">${extra}</p>` : '<p class="card-extra placeholder">&nbsp;</p>';
-        const titleMarkup = (mediaTypeRaw === 'travel' && flagImage)
-          ? `
-            <span class="country-title-wrap">
-              <img class="country-inline-flag" ${buildHomeImageAttrs(flagImage, 'lazy', 'low', '', { ariaHidden: true, altEmpty: true })}>
-              <span class="country-title-text">${title}</span>
-            </span>
-          `
-          : title;
+        const titleMarkup = title;
         const trailingControl = supportsLists
           ? `
             <div class="card-menu-wrap">
@@ -6524,82 +4475,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       wireHomeCardMenus(rail);
       wireHomeRailImageFallbacks(rail);
-      primeHomeDeferredImages(rail);
-    }
-
-    const BRAND_RAIL_MEDIA_TYPES = new Set(['fashion', 'food', 'car', 'sports']);
-    const LOGO_PLACEHOLDER_TOKENS = ['logo-placeholder.svg', 'newlogo.webp'];
-
-    function isLogoPlaceholder(url) {
-      const src = String(url || '').toLowerCase();
-      return LOGO_PLACEHOLDER_TOKENS.some((token) => src.includes(token));
-    }
-
-    function markLogoMissing(card, img) {
-      if (!card || card.dataset.logoMissing === '1') return;
-      card.dataset.logoMissing = '1';
-      if (img) {
-        img.style.visibility = 'hidden';
-        img.style.opacity = '0';
-      }
-      const rail = card.parentElement;
-      if (rail) rail.appendChild(card);
     }
 
     function wireHomeRailImageFallbacks(scope) {
       scope.querySelectorAll('img[data-fallback-image]').forEach((img) => {
-        const card = img.closest('.card');
-        const mediaType = String(card?.getAttribute('data-media-type') || '').toLowerCase();
-        const isBrandRail = BRAND_RAIL_MEDIA_TYPES.has(mediaType);
-
-        const handleMissing = () => {
-          if (isBrandRail) {
-            markLogoMissing(card, img);
-            return;
-          }
-          const directSrc = unwrapCloudflareImageUrl(img.currentSrc || img.src || '');
-          const currentSrc = String(img.currentSrc || img.src || '').trim();
-          if (directSrc && directSrc !== currentSrc && img.getAttribute('data-cf-direct-retry') !== '1') {
-            img.setAttribute('data-cf-direct-retry', '1');
-            img.setAttribute('data-image-ready', '0');
-            img.setAttribute('data-home-image-state', 'loading');
-            const wrapper = getHomeImageWrapper(img);
-            if (wrapper) wrapper.classList.add('is-loading-media');
-            img.src = directSrc;
-            return;
-          }
+        img.addEventListener('error', () => {
           const fallback = String(img.getAttribute('data-fallback-image') || '').trim();
           const applied = String(img.getAttribute('data-fallback-applied') || '');
           if (fallback && applied !== '1') {
             img.setAttribute('data-fallback-applied', '1');
-            img.setAttribute('data-image-ready', '0');
-            img.setAttribute('data-home-image-state', 'loading');
-            const wrapper = getHomeImageWrapper(img);
-            if (wrapper) wrapper.classList.add('is-loading-media');
             img.src = fallback;
             return;
           }
-          img.setAttribute('data-image-ready', '1');
-          img.setAttribute('data-home-image-state', 'ready');
-          img.src = HOME_LOCAL_FALLBACK_IMAGE;
-          const wrapper = getHomeImageWrapper(img);
-          if (wrapper) wrapper.classList.remove('is-loading-media');
-        };
-
-        const handleLoaded = () => {
-          if (img.hasAttribute('data-home-src')) return;
-          markHomeImageReady(img);
-          if (isBrandRail && isLogoPlaceholder(img.currentSrc || img.src)) {
-            handleMissing();
+          const card = img.closest('.card');
+          if (!card) return;
+          const rail = card.parentElement;
+          card.remove();
+          if (rail && !rail.querySelector('.card')) {
+            rail.innerHTML = '<div class="empty">No items right now.</div>';
           }
-        };
-
-        img.addEventListener('load', handleLoaded);
-        img.addEventListener('error', handleMissing);
-
-        if (img.complete && !img.hasAttribute('data-home-src')) {
-          handleLoaded();
-        }
+        });
       });
     }
 
@@ -6698,241 +4593,114 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!client) return;
       homeAuthListenerReady = true;
 
-      client.auth.onAuthStateChange(async (event, session) => {
-        const normalizedEvent = String(event || '').trim().toUpperCase();
-        const sessionUserId = String(session?.user?.id || '').trim();
-
-        if (normalizedEvent === 'SIGNED_OUT') {
-          resetHomeProfileLabelCache();
-          homeOnboardingEvaluatedUserId = '';
-          homeOnboardingUserId = null;
-          homeTasteWeightsCache = { userId: '', savedAt: 0, weights: null };
-          homeLastPersonalizationAt = 0;
-          if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
-            const restoredSession = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
-            if (restoredSession?.user) {
-              homeCurrentUser = restoredSession.user;
-              homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
-              queueHomeAuthUiSync({ refreshPersonalization: true });
-              return;
-            }
-          }
+      client.auth.onAuthStateChange((event, session) => {
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+          homeCurrentUser = session.user;
+          homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
+        } else if (event === 'SIGNED_OUT') {
           homeCurrentUser = null;
           homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
-          queueHomeAuthUiSync({ refreshPersonalization: true });
-          return;
-        }
-
-        if (sessionUserId) {
-          if (String(homeCurrentUser?.id || '').trim() !== sessionUserId) {
-            resetHomeProfileLabelCache();
-            homeOnboardingEvaluatedUserId = '';
+        } else if (event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            homeCurrentUser = session.user;
           }
-          homeCurrentUser = session.user;
         }
 
-        if (normalizedEvent === 'SIGNED_IN') {
-          homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
-          homeTasteWeightsCache = { userId: '', savedAt: 0, weights: null };
-          homeLastPersonalizationAt = 0;
-          queueHomeAuthUiSync({ refreshPersonalization: true });
-          return;
-        }
-
-        if (normalizedEvent === 'USER_UPDATED') {
-          resetHomeProfileLabelCache();
-          queueHomeAuthUiSync();
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
+          void initAuthUi();
+          void refreshHomePersonalization();
         }
       });
     }
 
-    async function ensureHomeActiveUser(client, options = {}) {
-      const activeClient = client || await ensureHomeSupabase();
-      if (!activeClient?.auth) return homeCurrentUser || null;
-
-      const preferCached = options.preferCached !== false;
-      const useCachedOnFail = options.useCachedOnFail !== false;
-      const allowRemoteUser = options.allowRemoteUser !== false;
-      const allowRefresh = options.allowRefresh === true;
-
-      if (preferCached && homeCurrentUser?.id) {
-        return homeCurrentUser;
-      }
-
-      if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
-        try {
-          window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
-        } catch (_err) {}
-      }
-
-      let sessionUser = null;
-      const authRuntime = window.ZO2Y_AUTH || null;
-
-      if (authRuntime && typeof authRuntime.getActiveSession === 'function') {
-        try {
-          const activeSession = await authRuntime.getActiveSession(activeClient, {
-            refreshIfNeeded: allowRefresh,
-            restore: true
-          });
-          sessionUser = activeSession?.user || null;
-        } catch (_err) {}
-      }
-
-      if (!sessionUser && typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
-        try {
-          const restoredSession = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(activeClient);
-          sessionUser = restoredSession?.user || restoredSession?.session?.user || null;
-        } catch (_err) {}
-      }
-
-      if (!sessionUser && allowRemoteUser && typeof activeClient.auth.getUser === 'function') {
-        try {
-          const userResult = await activeClient.auth.getUser();
-          sessionUser = userResult?.data?.user || null;
-        } catch (_err) {}
-      }
-
-      if (!sessionUser && allowRefresh && typeof activeClient.auth.refreshSession === 'function') {
-        try {
-          const refreshResult = await activeClient.auth.refreshSession();
-          sessionUser = refreshResult?.data?.session?.user || null;
-        } catch (_err) {}
-      }
-
-      if (sessionUser?.id) {
-        if (String(homeCurrentUser?.id || '').trim() !== String(sessionUser.id || '').trim()) {
-          resetHomeProfileLabelCache();
-        }
-        homeCurrentUser = sessionUser;
-        return sessionUser;
-      }
-
-      if (useCachedOnFail && homeCurrentUser?.id) {
-        return homeCurrentUser;
-      }
-
-      if (options.clearOnFail) {
-        homeCurrentUser = null;
-      }
-      return null;
-    }
-
     async function getVerifiedHomeUser(client) {
+      // Short retry window to avoid race right after OAuth redirect.
+      let refreshAttempted = false;
       for (let attempt = 0; attempt < 4; attempt += 1) {
-        const sessionUser = await ensureHomeActiveUser(client, {
-          preferCached: attempt === 0,
-          useCachedOnFail: attempt === 0,
-          allowRemoteUser: true,
-          allowRefresh: attempt >= 1,
-          clearOnFail: attempt === 3
-        });
-        if (sessionUser?.id) return sessionUser;
+        const { data: sessionData } = await client.auth.getSession();
+        const session = sessionData?.session || null;
+        if (!session) {
+          if (attempt < 3) {
+            await new Promise((resolve) => setTimeout(resolve, 250));
+            continue;
+          }
+          return null;
+        }
+
+        const { data: userData, error: userError } = await client.auth.getUser();
+        if (!userError && userData?.user) {
+          return userData.user;
+        }
+
+        const errorMessage = String(userError?.message || '').toLowerCase();
+        const invalidSession =
+          userError?.status === 401 ||
+          errorMessage.includes('jwt') ||
+          errorMessage.includes('token') ||
+          errorMessage.includes('session') ||
+          errorMessage.includes('unauthorized');
+
+        if (invalidSession) {
+          if (!refreshAttempted) {
+            refreshAttempted = true;
+            const { data: refreshed, error: refreshError } = await client.auth.refreshSession();
+            if (!refreshError && refreshed?.session?.user) {
+              return refreshed.session.user;
+            }
+          }
+        }
         if (attempt < 3) {
           await new Promise((resolve) => setTimeout(resolve, 250));
+          continue;
         }
+        return null;
       }
       return null;
-    }
-    window.getVerifiedHomeUser = getVerifiedHomeUser;
-
-    function getHomeBookAuthorsText(value) {
-      const raw = String(value || '').trim();
-      if (!raw) return '';
-      const authorPart = raw.split('|')[0];
-      return String(authorPart || raw).trim();
-    }
-
-    function getHomeProfileLabelFallback(user) {
-      const fullName = String(user?.user_metadata?.full_name || user?.user_metadata?.name || '').trim();
-      if (fullName) return fullName;
-      const email = String(user?.email || '').trim();
-      if (email && email.includes('@')) {
-        return email.split('@')[0];
-      }
-      return 'Profile';
-    }
-
-    async function getHomeProfileLabel(client, user) {
-      const userId = String(user?.id || '').trim();
-      const fallbackLabel = getHomeProfileLabelFallback(user);
-      if (!userId) {
-        return fallbackLabel;
-      }
-
-      const now = Date.now();
-      const cacheMatchesUser = homeProfileLabelCache.userId === userId;
-      if (
-        cacheMatchesUser &&
-        homeProfileLabelCache.label &&
-        (now - homeProfileLabelCache.fetchedAt) < 60000
-        ) {
-        return homeProfileLabelCache.label;
-      }
-
-      homeProfileLabelLookupPromise = null;
-      homeProfileLabelCache = {
-        userId,
-        label: fallbackLabel,
-        fetchedAt: Date.now(),
-        failedAt: 0
-      };
-      return fallbackLabel;
     }
 
     async function initAuthUi() {
-      if (homeAuthUiSyncPromise) {
-        homeAuthUiSyncQueued = true;
-        return homeAuthUiSyncPromise;
-      }
-
-      homeAuthUiSyncPromise = (async () => {
-        const client = await ensureHomeSupabase();
-        if (!client) return;
-        const loginBtn = document.getElementById('loginBtn');
-        const signupBtn = document.getElementById('signupBtn');
-        const profileBtn = document.getElementById('profileBtn');
-        const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-        const mobileSignupBtn = document.getElementById('mobileSignupBtn');
-        const mobileProfileBtn = document.getElementById('mobileProfileBtn');
-        const sidebarProfileBtn = document.getElementById('sidebarProfileBtn');
-        try {
-          const user = await getVerifiedHomeUser(client);
-          homeCurrentUser = user;
-          const isLoggedIn = !!user;
-          if (isLoggedIn) {
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (signupBtn) signupBtn.style.display = 'none';
-            if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
-            if (mobileSignupBtn) mobileSignupBtn.style.display = 'none';
-            const label = await getHomeProfileLabel(client, user);
-            if (profileBtn) {
-              profileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
-              profileBtn.title = label;
-              profileBtn.style.display = 'inline-flex';
-            }
-            if (mobileProfileBtn) {
-              mobileProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
-              mobileProfileBtn.title = label;
-              mobileProfileBtn.style.display = 'inline-flex';
-            }
-            if (sidebarProfileBtn) {
-              sidebarProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
-              sidebarProfileBtn.title = label;
-              sidebarProfileBtn.style.display = 'inline-flex';
-            }
-          } else {
-            resetHomeProfileLabelCache();
-            if (loginBtn) loginBtn.style.display = 'inline-flex';
-            if (signupBtn) signupBtn.style.display = 'inline-flex';
-            if (mobileLoginBtn) mobileLoginBtn.style.display = 'inline-flex';
-            if (mobileSignupBtn) mobileSignupBtn.style.display = 'inline-flex';
-            if (profileBtn) profileBtn.style.display = 'none';
-            if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
-            if (sidebarProfileBtn) sidebarProfileBtn.style.display = 'none';
+      const client = await ensureHomeSupabase();
+      if (!client) return;
+      const loginBtn = document.getElementById('loginBtn');
+      const signupBtn = document.getElementById('signupBtn');
+      const profileBtn = document.getElementById('profileBtn');
+      const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+      const mobileSignupBtn = document.getElementById('mobileSignupBtn');
+      const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+      const sidebarProfileBtn = document.getElementById('sidebarProfileBtn');
+      try {
+        const user = await getVerifiedHomeUser(client);
+        homeCurrentUser = user;
+        const isLoggedIn = !!user;
+        if (isLoggedIn) {
+          if (loginBtn) loginBtn.style.display = 'none';
+          if (signupBtn) signupBtn.style.display = 'none';
+          if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
+          if (mobileSignupBtn) mobileSignupBtn.style.display = 'none';
+          let label = 'Profile';
+          try {
+            const { data: profile } = await client
+              .from('user_profiles')
+              .select('username, full_name')
+              .eq('id', user.id)
+              .single();
+            const raw = profile?.username || profile?.full_name || '';
+            const clean = String(raw || '').trim();
+            if (clean) label = clean.startsWith('@') ? clean : `@${clean}`;
+          } catch (_profileErr) {}
+          if (profileBtn) {
+            profileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+            profileBtn.style.display = 'inline-flex';
           }
-        } catch (_e) {
-          homeCurrentUser = null;
-          resetHomeProfileLabelCache();
+          if (mobileProfileBtn) {
+            mobileProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+            mobileProfileBtn.style.display = 'inline-flex';
+          }
+          if (sidebarProfileBtn) {
+            sidebarProfileBtn.innerHTML = `<i class=\"fas fa-user\"></i><span>${label}</span>`;
+            sidebarProfileBtn.style.display = 'inline-flex';
+          }
+        } else {
           if (loginBtn) loginBtn.style.display = 'inline-flex';
           if (signupBtn) signupBtn.style.display = 'inline-flex';
           if (mobileLoginBtn) mobileLoginBtn.style.display = 'inline-flex';
@@ -6941,134 +4709,44 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
           if (sidebarProfileBtn) sidebarProfileBtn.style.display = 'none';
         }
-      })();
-
-      try {
-        return await homeAuthUiSyncPromise;
-      } finally {
-        homeAuthUiSyncPromise = null;
-        if (homeAuthUiSyncQueued) {
-          homeAuthUiSyncQueued = false;
-          void initAuthUi();
-        }
+      } catch (_e) {
+        homeCurrentUser = null;
+        if (loginBtn) loginBtn.style.display = 'inline-flex';
+        if (signupBtn) signupBtn.style.display = 'inline-flex';
+        if (mobileLoginBtn) mobileLoginBtn.style.display = 'inline-flex';
+        if (mobileSignupBtn) mobileSignupBtn.style.display = 'inline-flex';
+        if (profileBtn) profileBtn.style.display = 'none';
+        if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
+        if (sidebarProfileBtn) sidebarProfileBtn.style.display = 'none';
       }
     }
 
-    function hasStoredLocalFlag(keys) {
-      return (Array.isArray(keys) ? keys : []).some((key) => {
-        if (!key) return false;
-        try {
-          return localStorage.getItem(key) === '1';
-        } catch (_err) {
-          return false;
-        }
-      });
-    }
-
-    function writeStoredLocalFlags(keys) {
-      (Array.isArray(keys) ? keys : []).forEach((key) => {
-        if (!key) return;
-        try {
-          localStorage.setItem(key, '1');
-        } catch (_err) {}
-      });
-    }
-
-    function clearStoredLocalFlags(keys) {
-      (Array.isArray(keys) ? keys : []).forEach((key) => {
-        if (!key) return;
-        try {
-          localStorage.removeItem(key);
-        } catch (_err) {}
-      });
-    }
-
-    function getOnboardingStorageKeys(userId) {
-      const safeUserId = String(userId || '').trim();
-      if (!safeUserId) return [];
-      return [
-        `zo2y_onboarding_seen_once_v1_${safeUserId}`,
-        `zo2y_onboarding_seen_${HOME_ONBOARDING_VERSION}_${safeUserId}`,
-        `zo2y_onboarding_seen_v1_${safeUserId}`
-      ];
-    }
-
     function getOnboardingStorageKey(userId) {
-      return getOnboardingStorageKeys(userId)[0] || '';
-    }
-
-    function getListHelperDismissKey(userId) {
-      return `zo2y_list_helper_seen_v1_${String(userId || '').trim()}`;
-    }
-
-    function getListHelperDismissKeys(userId) {
-      const key = getListHelperDismissKey(userId);
-      return key ? [key] : [];
-    }
-
-    function getOnboardingPendingKeys(userId) {
-      const safeUserId = String(userId || '').trim();
-      if (!safeUserId) return [];
-      return [
-        `zo2y_onboarding_pending_${HOME_ONBOARDING_VERSION}_${safeUserId}`,
-        `zo2y_onboarding_pending_v1_${safeUserId}`
-      ];
+      return `zo2y_onboarding_seen_${HOME_ONBOARDING_VERSION}_${String(userId || '').trim()}`;
     }
 
     function getOnboardingPendingKey(userId) {
-      return getOnboardingPendingKeys(userId)[0] || '';
+      return `zo2y_onboarding_pending_${HOME_ONBOARDING_VERSION}_${String(userId || '').trim()}`;
     }
 
     function hasSeenOnboarding(userId) {
       if (!userId) return true;
-      return hasStoredLocalFlag(getOnboardingStorageKeys(userId));
+      return localStorage.getItem(getOnboardingStorageKey(userId)) === '1';
     }
 
     function isOnboardingPending(userId) {
       if (!userId) return false;
-      return hasStoredLocalFlag(getOnboardingPendingKeys(userId));
+      return localStorage.getItem(getOnboardingPendingKey(userId)) === '1';
     }
 
     function markOnboardingSeen(userId) {
       if (!userId) return;
-      writeStoredLocalFlags(getOnboardingStorageKeys(userId));
-    }
-
-    function markOnboardingPending(userId) {
-      if (!userId) return;
-      writeStoredLocalFlags(getOnboardingPendingKeys(userId));
+      localStorage.setItem(getOnboardingStorageKey(userId), '1');
     }
 
     function clearOnboardingPending(userId) {
       if (!userId) return;
-      clearStoredLocalFlags(getOnboardingPendingKeys(userId));
-    }
-
-    function hasStartedHomeListFlow(userId) {
-      if (!userId) return false;
-      return hasStoredLocalFlag(getListHelperDismissKeys(userId));
-    }
-
-    function markStartedHomeListFlow(userId) {
-      if (!userId) return;
-      writeStoredLocalFlags(getListHelperDismissKeys(userId));
-    }
-
-    function readPendingHomePostAuthBootstrap() {
-      try {
-        const raw = localStorage.getItem(HOME_POST_AUTH_BOOTSTRAP_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        return parsed && typeof parsed === 'object' ? parsed : null;
-      } catch (_err) {
-        return null;
-      }
-    }
-
-    function clearPendingHomePostAuthBootstrap() {
-      try {
-        localStorage.removeItem(HOME_POST_AUTH_BOOTSTRAP_KEY);
-      } catch (_err) {}
+      localStorage.removeItem(getOnboardingPendingKey(userId));
     }
 
     function homeMediaLabel(type) {
@@ -7085,35 +4763,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return map[key] || 'Pick';
     }
 
-    function getHomeOnboardingInterestImage(option, index = 0) {
-      const pool = getHomeOnboardingPreviewItems(10);
-      const fallback = HOME_INTEREST_CARD_META[option?.id]?.fallback || '/images/onboarding/onboard-media.svg';
-      if (!pool.length) return fallback;
-      if (option?.kind === 'type') {
-        const match = pool.find((item) => String(item?.mediaType || '').toLowerCase() === String(option.id || '').toLowerCase());
-        return match?.image || fallback;
-      }
-      return pool[index % pool.length]?.image || fallback;
-    }
-
     function buildHomeInterestOptionsMarkup(kind = '') {
-      let filtered = HOME_INTEREST_OPTIONS.filter((option) => !kind || option.kind === kind);
-      if (kind === 'tag') {
-        filtered = filtered.filter((option) => HOME_ONBOARDING_TAG_IDS.includes(option.id));
-      }
-      return filtered.map((option, index) => `
-        <button type="button" class="onboarding-chip onboarding-interest-card ${escapeHtml(option.kind)}" data-interest-id="${escapeHtml(option.id)}" data-interest-kind="${escapeHtml(option.kind)}">
-          <span class="onboarding-interest-thumb">
-            <img src="${escapeHtml(getHomeOnboardingInterestImage(option, index))}" alt="${escapeHtml(option.label)}" loading="lazy">
-          </span>
-          <span class="onboarding-interest-scrim"></span>
-          <span class="onboarding-interest-copy">
-            <span class="onboarding-interest-icon"><i class="${escapeHtml(HOME_INTEREST_CARD_META[option.id]?.icon || 'fas fa-star')}"></i></span>
-            <span class="onboarding-interest-text">
-              <strong>${escapeHtml(option.label)}</strong>
-              <small>${escapeHtml(HOME_INTEREST_CARD_META[option.id]?.hint || 'Pick what fits your taste')}</small>
-            </span>
-          </span>
+      const filtered = HOME_INTEREST_OPTIONS.filter((option) => !kind || option.kind === kind);
+      return filtered.map((option) => `
+        <button type="button" class="onboarding-chip" data-interest-id="${escapeHtml(option.id)}" data-interest-kind="${escapeHtml(option.kind)}">
+          ${escapeHtml(option.label)}
         </button>
       `).join('');
     }
@@ -7132,7 +4786,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         .trim()
         .replace(/^@+/, '')
         .toLowerCase()
-        .replace(/[\u0027\u2019]/g, '')
+        .replace(/['â€™]/g, '')
         .replace(/[^a-z0-9_]+/g, '_')
         .replace(/_+/g, '_')
         .replace(/^_+|_+$/g, '')
@@ -7142,32 +4796,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function isValidProfileUsername(value) {
       return /^[a-z0-9_]{3,30}$/.test(String(value || ''));
-    }
-
-    function getGeneratedHomePlaceholderUsername(user) {
-      const userId = String(user?.id || '').trim();
-      if (!userId) return 'user';
-      return normalizeProfileUsername(`user_${userId.replace(/-/g, '').slice(0, 6) || 'user'}`);
-    }
-
-    function isHomePlaceholderProfileUsername(username, user = homeCurrentUser) {
-      const authRuntime = window.ZO2Y_AUTH;
-      if (authRuntime && typeof authRuntime.isPlaceholderUsername === 'function') {
-        return !!authRuntime.isPlaceholderUsername(username, user);
-      }
-      const normalized = normalizeProfileUsername(username);
-      if (!normalized) return true;
-      if (!isValidProfileUsername(normalized)) return true;
-      if (normalized === 'user') return true;
-      return normalized === getGeneratedHomePlaceholderUsername(user);
-    }
-
-    function getStoredHomeMetadataUsername(user) {
-      return normalizeProfileUsername(
-        user?.user_metadata?.zo2y_username
-          || user?.user_metadata?.username
-          || ''
-      );
     }
 
     async function ensureHomeUsernameAvailable(username, currentProfileId = '') {
@@ -7189,95 +4817,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const isTaken = Array.isArray(data) && data.some((row) => String(row?.id || '') !== String(currentProfileId || homeCurrentUser?.id || ''));
       if (isTaken) throw new Error('That username is already taken.');
       return normalizedUsername;
-    }
-
-    async function ensureHomeProfileSeeded() {
-      if (!homeCurrentUser?.id) return { ok: false, created: false, needsUsername: false };
-      const client = await ensureHomeSupabase();
-      if (!client) return { ok: false, created: false, needsUsername: false };
-
-      const authRuntime = window.ZO2Y_AUTH;
-      if (authRuntime && typeof authRuntime.ensureProfileBootstrap === 'function') {
-        const sharedResult = await authRuntime.ensureProfileBootstrap(client, homeCurrentUser);
-        if (sharedResult?.ok) {
-          return {
-            ok: true,
-            created: !!sharedResult.created,
-            profile: sharedResult.profile || null,
-            needsUsername: false
-          };
-        }
-      }
-
-      return {
-        ok: true,
-        created: false,
-        profile: {
-          id: homeCurrentUser.id,
-          username: '',
-          full_name: String(homeCurrentUser?.user_metadata?.full_name || homeCurrentUser?.user_metadata?.name || '').trim()
-        },
-        needsUsername: false
-      };
-    }
-
-    async function triggerHomeWelcomeEmail(session, flow = 'signup') {
-      const accessToken = String(session?.access_token || '').trim();
-      if (!accessToken) return false;
-      try {
-        const response = await fetch('/api/emails/welcome/trigger', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
-          },
-          body: JSON.stringify({
-            appUrl: window.location.origin,
-            flow
-          })
-        });
-        return response.ok;
-      } catch (_err) {
-        return false;
-      }
-    }
-
-    async function finishPendingPostAuthBootstrap() {
-      if (!homeCurrentUser?.id) return false;
-      const pending = readPendingHomePostAuthBootstrap();
-      if (!pending) return false;
-
-      const pendingUserId = String(pending?.userId || '').trim();
-      if (pendingUserId && pendingUserId !== String(homeCurrentUser.id)) {
-        clearPendingHomePostAuthBootstrap();
-        return false;
-      }
-
-      const createdAt = Number(pending?.createdAt || 0);
-      if (createdAt && (Date.now() - createdAt) > (1000 * 60 * 60 * 24 * 3)) {
-        clearPendingHomePostAuthBootstrap();
-        return false;
-      }
-
-      try {
-        const seededProfile = await ensureHomeProfileSeeded();
-        const pendingFlow = String(pending?.flow || '').trim().toLowerCase();
-        const shouldShowOnboarding = false;
-        clearOnboardingPending(homeCurrentUser.id);
-        clearPendingHomePostAuthBootstrap();
-        if (pendingFlow === 'signup') {
-          const client = await ensureHomeSupabase();
-          const authRuntime = window.ZO2Y_AUTH || null;
-          const sessionData = authRuntime && typeof authRuntime.getActiveSession === 'function'
-            ? await authRuntime.getActiveSession(client, { refreshIfNeeded: true, restore: true })
-            : null;
-          void triggerHomeWelcomeEmail(sessionData || null, 'signup');
-        }
-        return shouldShowOnboarding;
-      } catch (error) {
-        console.warn('Pending auth bootstrap failed:', error);
-        return false;
-      }
     }
 
     async function loadHomeInterestProfile(client) {
@@ -7410,150 +4949,169 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return raw.filter((item) => !item?.isPlaceholder && String(item?.title || '').trim());
     }
 
-    function getHomeOnboardingPreviewItems(limit = 6) {
-      const liveItems = Array.from(document.querySelectorAll('.card[data-media-type][data-item-id]'))
-        .map((card) => {
-          const image = String(card.getAttribute('data-list-image') || card.getAttribute('data-image') || '').trim();
-          const title = String(card.getAttribute('data-title') || '').trim();
-          const subtitle = String(card.getAttribute('data-subtitle') || '').trim();
-          const mediaType = String(card.getAttribute('data-media-type') || '').trim().toLowerCase();
-          const itemId = String(card.getAttribute('data-item-id') || '').trim();
-          if (!image || !title || !itemId) return null;
-          return { image, title, subtitle, mediaType, itemId };
-        })
-        .filter(Boolean);
-
-      const unique = [];
-      const seen = new Set();
-      liveItems.forEach((item) => {
-        const key = `${item.mediaType}:${String(item.itemId || item.title || '').toLowerCase()}`;
-        if (seen.has(key)) return;
-        seen.add(key);
-        unique.push(item);
-      });
-
-      const fallback = [
-        { title: 'Movies', subtitle: 'Save watchlists and favorites.', image: '/images/onboarding/onboard-media.svg', mediaType: 'movie', itemId: 'onboarding-movie' },
-        { title: 'Games', subtitle: 'Build backlogs and finish lists.', image: '/images/onboarding/onboard-interests.svg', mediaType: 'game', itemId: 'onboarding-game' },
-        { title: 'TV Shows', subtitle: 'Track what you are watching next.', image: '/images/onboarding/onboard-profile.svg', mediaType: 'tv', itemId: 'onboarding-tv' },
-        { title: 'Books', subtitle: 'Keep read piles in one place.', image: '/images/onboarding/onboard-travel.svg', mediaType: 'book', itemId: 'onboarding-book' }
-      ];
-
-      return (unique.length ? unique : fallback).slice(0, limit);
-    }
-
-    function buildHomeOnboardingShelfMarkup(limit = 6) {
-      const items = getHomeOnboardingPreviewItems(limit);
-      if (!items.length) return '';
-      return `
-        <div class="onboarding-shelf">
-          ${items.map((item) => `
-            <figure class="onboarding-shelf-card">
-              <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy">
-              <figcaption>${escapeHtml(item.title)}</figcaption>
-            </figure>
-          `).join('')}
-        </div>
-      `;
-    }
-
-    function getHomeOnboardingPrimaryCard() {
-      return Array.from(document.querySelectorAll('.card[data-media-type][data-item-id]'))
-        .find((card) => !!card.querySelector('.card-menu-btn'));
-    }
-
-    function getHomeOnboardingPrimaryItem() {
-      const card = getHomeOnboardingPrimaryCard();
-      if (card) {
-        return {
-          image: String(card.getAttribute('data-list-image') || card.getAttribute('data-image') || '').trim(),
-          title: String(card.getAttribute('data-title') || '').trim(),
-          subtitle: String(card.getAttribute('data-subtitle') || '').trim(),
-          mediaType: String(card.getAttribute('data-media-type') || '').trim().toLowerCase()
-        };
-      }
-      return getHomeOnboardingPreviewItems(1)[0] || null;
-    }
-
-    function buildHomeOnboardingSaveDemoMarkup() {
-      const item = getHomeOnboardingPrimaryItem();
-      const mediaLabels = {
-        movie: 'Movie card',
-        tv: 'TV show card',
-        anime: 'Anime card',
-        game: 'Game card',
-        book: 'Book card',
-        music: 'Music card',
-        sport: 'Sports card',
-        travel: 'Travel card',
-        fashion: 'Fashion card',
-        food: 'Food card',
-        car: 'Car card'
-      };
-      const image = item?.image || '/images/onboarding/onboard-media.svg';
-      const title = item?.title || 'Your next save';
-      const subtitle = item?.subtitle || 'Use the menu to send this into favorites or a custom list.';
-      const label = mediaLabels[item?.mediaType] || 'Card menu';
-      return `
-        <div class="onboarding-save-demo">
-          <div class="onboarding-save-card">
-            <div class="onboarding-save-poster">
-              <img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy">
-            </div>
-            <div class="onboarding-save-meta">
-              <span class="photo-label">${escapeHtml(label)}</span>
-              <strong>${escapeHtml(title)}</strong>
-              <span>${escapeHtml(subtitle)}</span>
-            </div>
-            <div class="onboarding-save-kebab" aria-hidden="true"><i class="fas fa-ellipsis-v"></i></div>
-          </div>
-          <div class="onboarding-save-panel">
-            <div class="onboarding-save-step"><span>1</span><div><strong>Open the three-dot menu</strong><small>Every card uses the same save entry point.</small></div></div>
-            <div class="onboarding-save-step"><span>2</span><div><strong>Use a quick list first</strong><small>Favorites, watched, played, owned, or want to try are one tap away.</small></div></div>
-            <div class="onboarding-save-step"><span>3</span><div><strong>Create your own list</strong><small>Make collections like “2026 favorites” or “Games to finish”.</small></div></div>
-          </div>
-        </div>
-      `;
-    }
-
-    function launchHomeOnboardingSaveDemo() {
-      const card = getHomeOnboardingPrimaryCard();
-      const menuBtn = card ? card.querySelector('.card-menu-btn') : null;
-      if (!card || !menuBtn) {
-        showHomeToast('Cards are still loading. Try the save menu in a moment.', true);
-        return;
-      }
-      closeHomeOnboarding(true);
-      try {
-        card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      } catch (_err) {}
-      window.setTimeout(() => {
-        menuBtn.click();
-        showHomeToast('Start with a quick save, or tap New to create your first custom list.');
-      }, 220);
-    }
-
     function getHomeOnboardingSteps() {
       return [
         {
           id: 'welcome',
-          title: 'Make Zo2y feel like yours',
-          body: 'Save a few favorites and Zo2y starts learning your taste.',
-          art: `
-            ${buildHomeOnboardingShelfMarkup(5)}
-            <div class="onboarding-photo-caption">Start with movies, TV, games, or books. Everything lands in one profile.</div>
-          `,
+          title: 'Welcome to Zo2y',
+          body: 'A quick tour to personalize your feed, save to lists, and keep everything in one clean profile.',
+            art: `
+              <div class="onboarding-photo-grid">
+                <img src="/images/onboarding/onboard-media.svg" alt="Media mix" loading="lazy">
+                <img src="/images/onboarding/onboard-food.svg" alt="Food finds" loading="lazy">
+                <img src="/images/onboarding/onboard-travel.svg" alt="Travel spots" loading="lazy">
+                <img src="/images/onboarding/onboard-fashion.svg" alt="Fashion brands" loading="lazy">
+              </div>
+              <div class="onboarding-photo-caption">Save what you love across fashion, food, travel, movies, music, and more.</div>
+            `,
           actionLabel: null,
           action: null
         },
         {
-          id: 'save-first',
-          title: 'Save your first pick from a card',
-          body: 'Use the three-dot menu to save fast, then build your own lists when you want more control.',
-          art: buildHomeOnboardingSaveDemoMarkup(),
-          actionLabel: 'Try it on a card',
-          action: () => launchHomeOnboardingSaveDemo(),
-          nextLabel: 'Finish'
+          id: 'username-setup',
+          title: 'Claim Your Username',
+          body: 'Pick a unique @username. This is your profile link everywhere on Zo2y.',
+          art: `
+            <div class="onboarding-split">
+                <div class="onboarding-photo-card">
+                  <div class="onboarding-photo-frame">
+                    <img src="/images/onboarding/onboard-profile.svg" alt="Profile preview" loading="lazy">
+                  </div>
+                  <div class="onboarding-photo-meta">
+                  <span class="photo-label">Profile preview</span>
+                  <strong>@yourname</strong>
+                  <span>Your lists and reviews live here.</span>
+                </div>
+              </div>
+              <div class="onboarding-form">
+                <label class="onboarding-label" for="homeOnboardingUsernameInput">Username</label>
+                <div class="onboarding-input-wrap">
+                  <span class="onboarding-at">@</span>
+                  <input id="homeOnboardingUsernameInput" class="onboarding-input" type="text" autocomplete="off" placeholder="your_name" />
+                </div>
+                <div id="homeOnboardingUsernameStatus" class="onboarding-status">Choose a username to continue.</div>
+              </div>
+            </div>
+          `,
+          nextLabel: 'Save Username',
+          requiresSave: true
+        },
+        {
+          id: 'interests-setup',
+          title: 'Tune Your Feed',
+          body: 'Choose formats and genres so the “For You” feed starts on the right note.',
+          art: `
+              <div class="onboarding-interest-layout">
+                <div class="onboarding-interest-photos">
+                  <div class="onboarding-photo-grid compact">
+                    <img src="/images/onboarding/onboard-interests.svg" alt="Interest picks" loading="lazy">
+                    <img src="/images/onboarding/onboard-media.svg" alt="Media formats" loading="lazy">
+                    <img src="/images/onboarding/onboard-fashion.svg" alt="Fashion vibes" loading="lazy">
+                    <img src="/images/onboarding/onboard-food.svg" alt="Food finds" loading="lazy">
+                  </div>
+                  <div class="onboarding-photo-caption">Pick what you want more of. You can edit this later.</div>
+                </div>
+              <div class="onboarding-interest-panel">
+                <div class="onboarding-label">Formats</div>
+                <div class="onboarding-chip-grid">
+                  ${buildHomeInterestOptionsMarkup('type')}
+                </div>
+                <div class="onboarding-label">Genres & Vibes</div>
+                <div class="onboarding-chip-grid">
+                  ${buildHomeInterestOptionsMarkup('tag')}
+                </div>
+                <div id="homeOnboardingInterestStatus" class="onboarding-status">Pick at least one interest to continue.</div>
+              </div>
+            </div>
+          `,
+          nextLabel: 'Save Interests',
+          requiresSave: true
+        },
+        {
+          id: 'lists',
+          title: 'Add Places To Lists',
+          body: 'On any card, tap the three-dot menu. Use quick list buttons, or choose Custom Lists to organize it your way.',
+          art: `
+              <div class="onboarding-illustration">
+                <div class="mini-card">
+                  <div class="mini-photo">
+                    <img src="/images/onboarding/onboard-food.svg" alt="List demo" loading="lazy">
+                  </div>
+                <div class="mini-card-head">
+                  <span><i class="fas fa-clapperboard"></i> Spotlight Pick</span>
+                  <i class="fas fa-ellipsis-v"></i>
+                </div>
+                <div class="mini-tags">
+                  <span>Favorites</span>
+                  <span>Want To Go</span>
+                  <span>Custom Lists</span>
+                </div>
+              </div>
+            </div>
+          `,
+          actionLabel: 'Open A Card Menu',
+          action: () => {
+            const menuBtn = document.querySelector('.card-menu-btn');
+            if (!menuBtn) {
+              showHomeToast('Cards are still loading. Try again in a moment.', true);
+              return;
+            }
+            closeHomeOnboarding(false);
+            menuBtn.click();
+          }
+        },
+        {
+          id: 'custom-lists',
+          title: 'Create Your Own Lists',
+          body: 'In the Custom Lists modal, enter a list name, pick an icon, then press Create.',
+          art: `
+              <div class="onboarding-illustration">
+                <div class="mini-card">
+                  <div class="mini-photo">
+                    <img src="/images/onboarding/onboard-fashion.svg" alt="Custom list demo" loading="lazy">
+                  </div>
+                <div class="mini-input"><i class="fas fa-pen"></i> Date Night Spots</div>
+                <div class="mini-icons">
+                  <span><i class="fas fa-heart"></i></span>
+                  <span><i class="fas fa-star"></i></span>
+                  <span><i class="fas fa-bookmark"></i></span>
+                </div>
+                <div class="mini-create-btn">Create List</div>
+              </div>
+            </div>
+          `,
+          actionLabel: 'Open Custom Lists',
+          action: () => {
+            const firstCard = document.querySelector('.card[data-media-type][data-item-id]');
+            if (!firstCard) {
+              showHomeToast('Cards are still loading. Try again in a moment.', true);
+              return;
+            }
+            closeHomeOnboarding(false);
+            void openItemMenu(firstCard);
+          }
+        },
+        {
+          id: 'profile',
+          title: 'View Your Profile',
+          body: 'Head to your profile to see every list, rating, and save in one place.',
+          art: `
+              <div class="onboarding-illustration">
+                <div class="mini-card">
+                  <div class="mini-photo">
+                    <img src="/images/onboarding/onboard-profile.svg" alt="Profile overview" loading="lazy">
+                  </div>
+                <div class="friend-row"><span><i class="fas fa-user-circle"></i> Your lists</span><span class="friend-pill">Open</span></div>
+                <div class="friend-row"><span><i class="fas fa-star"></i> Reviews</span><span class="friend-pill">View</span></div>
+                <div class="friend-row"><span><i class="fas fa-heart"></i> Favorites</span><span class="friend-pill">See all</span></div>
+              </div>
+            </div>
+          `,
+          actionLabel: 'Go To My Profile',
+          action: () => {
+            closeHomeOnboarding(true);
+            window.location.href = 'profile.html';
+          }
         }
       ];
     }
@@ -7584,12 +5142,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
                 linear-gradient(180deg, rgba(15,30,61,0.98), rgba(8,18,42,0.98));
               border: 1px solid rgba(255,255,255,0.12);
               border-radius: 16px;
-              box-shadow: 0 28px 72px rgba(0,0,0,0.42);
-              padding: 28px;
+              box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+              padding: 24px;
               color: #fff;
               display: flex;
               flex-direction: column;
-              gap: 16px;
+              gap: 12px;
               max-height: min(92vh, 860px);
               overflow: auto;
               overscroll-behavior: contain;
@@ -7599,10 +5157,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            margin-bottom: 4px;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
+            margin-bottom: 12px;
+            font-size: 13px;
             color: rgba(255,255,255,0.78);
           }
           .home-onboarding-skip {
@@ -7614,75 +5170,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
           .home-onboarding-skip:hover { color: #fff; }
           .home-onboarding-title {
-            margin: 2px 0 0;
-            font-size: clamp(28px, 3vw, 36px);
-            line-height: 1.08;
-            letter-spacing: -0.03em;
+            margin: 6px 0 8px;
+            font-size: clamp(24px, 3vw, 32px);
+            line-height: 1.2;
           }
           .home-onboarding-body {
             color: rgba(255,255,255,0.88);
-            font-size: 14px;
+            font-size: 16px;
             line-height: 1.55;
-            min-height: 0;
-            max-width: 54ch;
-          }
-          .onboarding-kicker {
-            display: inline-flex;
-            align-items: center;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: rgba(245, 158, 11, 0.9);
-            margin-bottom: 12px;
-          }
-          .onboarding-shelf {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 12px;
-          }
-          .onboarding-shelf-card {
-            margin: 0;
-            display: grid;
-            gap: 8px;
-          }
-          .onboarding-shelf-card img {
-            width: 100%;
-            aspect-ratio: 0.72;
-            object-fit: cover;
-            border-radius: 14px;
-            display: block;
-            background: rgba(10, 22, 50, 0.72);
-            border: 1px solid rgba(255,255,255,0.12);
-            box-shadow: 0 16px 32px rgba(0,0,0,0.28);
-          }
-          .onboarding-shelf-card figcaption {
-            font-size: 12px;
-            color: rgba(226,236,255,0.74);
-            line-height: 1.3;
-          }
-          .onboarding-bento {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 12px;
-            margin-top: 16px;
-          }
-          .onboarding-bento-card {
-            display: grid;
-            gap: 6px;
-            padding: 14px;
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.04);
-          }
-          .onboarding-bento-card strong {
-            font-size: 15px;
-            color: #fff;
-          }
-          .onboarding-bento-card span {
-            font-size: 13px;
-            line-height: 1.5;
-            color: rgba(226,236,255,0.76);
+            min-height: 56px;
           }
           .onboarding-photo-grid {
             display: grid;
@@ -7705,28 +5201,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             margin-top: 10px;
             font-size: 13px;
             color: rgba(226,236,255,0.7);
-          }
-          .onboarding-identity-card {
-            display: grid;
-            grid-template-columns: 84px minmax(0, 1fr);
-            gap: 14px;
-            align-items: center;
-            padding: 16px;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.14);
-            background: rgba(255,255,255,0.04);
-          }
-          .onboarding-avatar-preview {
-            width: 84px;
-            height: 84px;
-            border-radius: 24px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(145deg, rgba(245, 158, 11, 0.95), rgba(249, 115, 22, 0.9));
-            color: #0b1633;
-            font-size: 28px;
-            box-shadow: 0 18px 30px rgba(245, 158, 11, 0.2);
           }
           .onboarding-split {
             display: grid;
@@ -7774,21 +5248,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
           .onboarding-interest-layout {
             display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            gap: 12px;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+            gap: 18px;
             align-items: start;
           }
           .onboarding-interest-panel {
-            background: rgba(10,20,40,0.55);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 18px;
-            padding: 16px;
+            background: rgba(10,20,40,0.65);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 14px;
+            padding: 14px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
           }
           .onboarding-interest-panel .onboarding-chip-grid {
-            max-height: 260px;
+            max-height: 170px;
             overflow-y: auto;
             padding-right: 4px;
           }
@@ -7833,181 +5307,33 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           .onboarding-status.ok { color: #34d399; }
           .onboarding-status.bad { color: #fca5a5; }
           .onboarding-chip-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
           }
           .onboarding-chip {
-            border-radius: 16px;
-            padding: 0;
+            border-radius: 999px;
+            padding: 6px 12px;
             font-size: 12px;
             color: rgba(226,236,255,0.8);
             background: rgba(15, 23, 42, 0.7);
             border: 1px solid rgba(255,255,255,0.12);
             cursor: pointer;
-            overflow: hidden;
-            position: relative;
-            min-height: 110px;
           }
           .onboarding-chip:hover {
             border-color: rgba(255,255,255,0.3);
           }
           .onboarding-chip.selected {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(249, 115, 22, 0.35));
             border-color: rgba(245, 158, 11, 0.75);
             color: #fff7ed;
-            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.22);
-          }
-          .onboarding-interest-card {
-            display: block;
-          }
-          .onboarding-interest-thumb,
-          .onboarding-interest-thumb img,
-          .onboarding-interest-scrim {
-            position: absolute;
-            inset: 0;
-          }
-          .onboarding-interest-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-          }
-          .onboarding-interest-scrim {
-            background: linear-gradient(180deg, rgba(7,14,32,0.14) 0%, rgba(7,14,32,0.45) 42%, rgba(7,14,32,0.95) 100%);
-          }
-          .onboarding-interest-copy {
-            position: relative;
-            z-index: 1;
-            min-height: 110px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 10px;
-          }
-          .onboarding-interest-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.14);
-            border: 1px solid rgba(255,255,255,0.18);
-            color: #fff;
-            font-size: 14px;
-          }
-          .onboarding-interest-text {
-            display: grid;
-            gap: 3px;
-            text-align: left;
-          }
-          .onboarding-interest-text strong {
-            font-size: 15px;
-            line-height: 1.1;
-            color: #fff;
-          }
-          .onboarding-interest-text small {
-            font-size: 11px;
-            line-height: 1.35;
-            color: rgba(226,236,255,0.74);
-          }
-          .onboarding-save-demo {
-            display: grid;
-            grid-template-columns: minmax(0, 0.96fr) minmax(0, 1.04fr);
-            gap: 16px;
-            align-items: stretch;
-          }
-          .onboarding-save-card {
-            display: grid;
-            grid-template-columns: 112px minmax(0, 1fr) auto;
-            gap: 14px;
-            padding: 14px;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.14);
-            background: rgba(255,255,255,0.04);
-            align-items: center;
-          }
-          .onboarding-save-poster img {
-            width: 112px;
-            aspect-ratio: 0.72;
-            object-fit: cover;
-            display: block;
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.14);
-            background: rgba(10, 22, 50, 0.72);
-          }
-          .onboarding-save-meta {
-            display: grid;
-            gap: 6px;
-            min-width: 0;
-          }
-          .onboarding-save-meta strong {
-            font-size: 18px;
-            line-height: 1.15;
-            color: #fff;
-          }
-          .onboarding-save-meta span:last-child {
-            color: rgba(226,236,255,0.74);
-            font-size: 13px;
-            line-height: 1.45;
-          }
-          .onboarding-save-kebab {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            border: 1px solid rgba(245,158,11,0.4);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(245,158,11,0.95);
-            background: rgba(245,158,11,0.12);
-            font-size: 16px;
-          }
-          .onboarding-save-panel {
-            display: grid;
-            gap: 10px;
-          }
-          .onboarding-save-step {
-            display: grid;
-            grid-template-columns: 32px minmax(0, 1fr);
-            gap: 12px;
-            align-items: start;
-            padding: 12px 14px;
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.04);
-          }
-          .onboarding-save-step span {
-            width: 32px;
-            height: 32px;
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            color: #0b1633;
-            background: linear-gradient(145deg, rgba(245, 158, 11, 0.95), rgba(249, 115, 22, 0.9));
-          }
-          .onboarding-save-step strong {
-            display: block;
-            font-size: 14px;
-            margin-bottom: 2px;
-            color: #fff;
-          }
-          .onboarding-save-step small {
-            display: block;
-            font-size: 12px;
-            line-height: 1.45;
-            color: rgba(226,236,255,0.7);
           }
             .home-onboarding-art {
               margin-top: 4px;
               border: 1px solid rgba(255,255,255,0.12);
-              border-radius: 18px;
-              padding: 18px;
-              background: linear-gradient(145deg, rgba(14,28,58,0.94), rgba(8,18,42,0.92));
+              border-radius: 14px;
+              padding: 14px;
+              background: linear-gradient(145deg, rgba(14,28,58,0.9), rgba(8,18,42,0.9));
               min-height: 160px;
             }
           .onboarding-hero-badge {
@@ -8137,8 +5463,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             padding: 5px 9px;
           }
           .home-onboarding-progress {
-            margin-top: 4px;
-            margin-bottom: 0;
+            margin-top: 14px;
+            margin-bottom: 20px;
             display: flex;
             gap: 8px;
           }
@@ -8153,7 +5479,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
-            gap: 12px;
+            gap: 10px;
           }
           .home-onboarding-left, .home-onboarding-right {
             display: flex;
@@ -8181,162 +5507,56 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           @media (max-width: 720px) {
             .home-onboarding-overlay {
               align-items: flex-end;
-              padding: 10px;
+              padding: 12px;
             }
             .home-onboarding-card {
               width: 100%;
               max-width: 520px;
-              padding: 16px;
-              border-radius: 20px;
-              max-height: 90vh;
-              display: grid;
-              grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+              padding: 18px;
+              border-radius: 22px;
+              max-height: 92vh;
               gap: 10px;
               box-shadow: 0 18px 46px rgba(0,0,0,0.4);
-              overflow: hidden;
-            }
-            .home-onboarding-top {
-              margin-bottom: 4px;
-              font-size: 11px;
             }
             .home-onboarding-title {
-              font-size: 18px;
-              margin: 0;
-            }
-            .home-onboarding-body {
-              font-size: 12px;
-              line-height: 1.45;
-              min-height: 0;
-              max-width: none;
-            }
-            .onboarding-shelf {
-              grid-template-columns: repeat(3, minmax(0, 1fr));
-              gap: 10px;
-            }
-            .onboarding-shelf-card:nth-child(n+4) {
-              display: none;
-            }
-            .onboarding-bento,
-            .onboarding-save-demo {
-              grid-template-columns: minmax(0, 1fr);
-            }
-            .onboarding-photo-caption {
-              margin-top: 8px;
-              font-size: 12px;
-              line-height: 1.4;
-            }
-            .onboarding-identity-card {
-              grid-template-columns: 64px minmax(0, 1fr);
-              padding: 12px;
-            }
-            .onboarding-avatar-preview {
-              width: 64px;
-              height: 64px;
-              border-radius: 18px;
               font-size: 22px;
             }
-            .onboarding-save-card {
-              grid-template-columns: 88px minmax(0, 1fr) auto;
-              gap: 10px;
-              padding: 12px;
-            }
-            .onboarding-save-poster img {
-              width: 88px;
-              border-radius: 12px;
-            }
-            .onboarding-save-meta strong {
-              font-size: 16px;
-            }
-            .onboarding-save-step {
-              padding: 10px 12px;
+            .home-onboarding-body {
+              font-size: 14px;
+              min-height: 0;
             }
             .home-onboarding-art {
-              padding: 10px;
-              min-height: 0;
-              overflow-y: auto;
+              padding: 12px;
             }
             .home-onboarding-actions {
-              position: static;
-              padding-top: 0;
-              background: none;
-              margin-top: 0;
-              display: grid;
-              grid-template-columns: 1fr;
-              gap: 8px;
+              position: sticky;
+              bottom: 0;
+              padding-top: 10px;
+              background: linear-gradient(180deg, rgba(8,18,42,0) 0%, rgba(8,18,42,0.88) 35%, rgba(8,18,42,0.98) 100%);
+              margin-top: auto;
             }
             .home-onboarding-left,
             .home-onboarding-right {
-              flex: initial;
-              width: 100%;
-            }
-            .home-onboarding-left {
-              justify-content: flex-start;
+              flex: 1;
             }
             .home-onboarding-right {
-              justify-content: stretch;
-              display: grid;
-              grid-template-columns: 1fr;
-              gap: 8px;
+              justify-content: flex-end;
             }
-            .onboarding-photo-grid,
-            .onboarding-photo-card,
-            .onboarding-interest-photos,
-            .onboarding-illustration {
-              display: none !important;
-            }
-            .onboarding-photo-caption {
-              display: none;
+            .onboarding-photo-grid {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
             }
             .onboarding-split,
             .onboarding-interest-layout {
               grid-template-columns: minmax(0, 1fr);
-              gap: 12px;
             }
-            .onboarding-interest-panel,
-            .onboarding-form {
-              gap: 10px;
+            .onboarding-photo-frame img {
+              height: 150px;
             }
-            .onboarding-interest-panel {
-              padding: 12px;
+            .onboarding-photo-grid img {
+              height: 96px;
             }
-            .onboarding-chip-grid {
-              display: grid;
-              grid-template-columns: repeat(2, minmax(0, 1fr));
-              gap: 8px;
-              max-height: 240px;
-              overflow-y: auto;
-            }
-            .onboarding-chip {
-              width: 100%;
-              text-align: center;
-              padding: 0;
-              font-size: 12px;
-              min-height: 96px;
-            }
-            .onboarding-interest-copy {
-              min-height: 96px;
-              padding: 10px;
-              gap: 8px;
-            }
-            .onboarding-interest-text strong {
-              font-size: 13px;
-            }
-            .onboarding-interest-text small {
-              font-size: 10px;
-            }
-            .onboarding-input-wrap {
-              padding: 10px 12px;
-            }
-            .onboarding-input {
-              font-size: 16px;
-            }
-            .home-onboarding-btn {
-              min-height: 40px;
-              padding: 10px 14px;
-            }
-            .home-onboarding-left .home-onboarding-btn,
-            .home-onboarding-right .home-onboarding-btn {
-              width: 100%;
+            .mini-photo img {
+              height: 96px;
             }
           }
         `;
@@ -8462,7 +5682,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             if (!ok) return;
             if (homeOnboardingIndex >= steps.length - 1) {
               closeHomeOnboarding(true);
-              showHomeToast('You are set. Use the three-dot menu on any card to save your first pick.');
+              showHomeToast('Tour completed. You can start saving now.');
               return;
             }
             homeOnboardingIndex += 1;
@@ -8475,7 +5695,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             if (!ok) return;
             if (homeOnboardingIndex >= steps.length - 1) {
               closeHomeOnboarding(true);
-              showHomeToast('You are set. Use the three-dot menu on any card to save your first pick.');
+              showHomeToast('Tour completed. You can start saving now.');
               return;
             }
             homeOnboardingIndex += 1;
@@ -8485,7 +5705,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         if (homeOnboardingIndex >= steps.length - 1) {
           closeHomeOnboarding(true);
-          showHomeToast('You are set. Use the three-dot menu on any card to save your first pick.');
+          showHomeToast('Tour completed. You can start saving now.');
           return;
         }
         homeOnboardingIndex += 1;
@@ -8501,38 +5721,51 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function maybeShowHomeOnboarding() {
       const userId = homeCurrentUser?.id;
       if (!userId) return;
-      const overlay = document.getElementById('homeOnboardingOverlay');
-      const pendingOnboarding = isOnboardingPending(userId);
-      const alreadyStartedSaving = hasStartedHomeListFlow(userId);
-
-      if (homeOnboardingEvaluatedUserId === userId) {
-        if (overlay?.classList.contains('active') && homeOnboardingUserId === userId) {
-          return;
-        }
-        if (hasSeenOnboarding(userId) || !pendingOnboarding || alreadyStartedSaving) {
-          return;
-        }
-      }
-      homeOnboardingEvaluatedUserId = userId;
-
-      const unseenOnboarding = !hasSeenOnboarding(userId);
-      const shouldShow = unseenOnboarding && pendingOnboarding && !alreadyStartedSaving;
-
-      if (!shouldShow) {
-        if (!hasSeenOnboarding(userId) && (!pendingOnboarding || alreadyStartedSaving)) {
-          markOnboardingSeen(userId);
-        }
+      if (hasSeenOnboarding(userId)) {
         clearOnboardingPending(userId);
         return;
       }
-
-      markOnboardingSeen(userId);
-      clearOnboardingPending(userId);
+      let shouldShow = isOnboardingPending(userId);
+      if (!shouldShow) {
+        try {
+          const client = await ensureHomeSupabase();
+          if (!client) return;
+          const { data: profile } = await client
+            .from('user_profiles')
+            .select('username')
+            .eq('id', userId)
+            .maybeSingle();
+          const username = String(profile?.username || '').trim();
+          if (!username) {
+            shouldShow = true;
+          } else {
+            const { data: interestRow } = await client
+              .from('user_interest_profiles')
+              .select('interest_types, interest_tags')
+              .eq('user_id', userId)
+              .maybeSingle();
+            const types = Array.isArray(interestRow?.interest_types) ? interestRow.interest_types.filter(Boolean) : [];
+            const tags = Array.isArray(interestRow?.interest_tags) ? interestRow.interest_tags.filter(Boolean) : [];
+            if (!types.length && !tags.length) {
+              shouldShow = true;
+            }
+          }
+        } catch (_err) {
+          return;
+        }
+        if (shouldShow) {
+          localStorage.setItem(getOnboardingPendingKey(userId), '1');
+        }
+      }
+      if (!shouldShow) return;
       homeOnboardingUserId = userId;
       homeOnboardingIndex = 0;
+      // Ensure this is shown only once on first sign-in.
+      clearOnboardingPending(userId);
       ensureHomeOnboardingUi();
       attachHomeOnboardingEvents();
       renderHomeOnboardingStep();
+      const overlay = document.getElementById('homeOnboardingOverlay');
       if (overlay) overlay.classList.add('active');
       document.body.style.overflow = 'hidden';
     }
@@ -8631,97 +5864,173 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       async function loadFashionBrands() {
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
-        // Fire and forget: don't block the rail on storage manifest fetch.
-        void ensureHomeBrandBackgroundManifest();
-        const fallbackItems = stableShuffleHomeItems(
-          HOME_FASHION_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'fashion', index)),
-          'fashion:fallback'
-        ).slice(0, target);
-        if (!client) return [];
+        const fallbackItems = HOME_FASHION_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'fashion', index));
+        if (!client) return fallbackItems.slice(0, target);
 
-        const fetchLimit = Math.max(target * 4, target);
+        const fetchLimit = Math.max(target * 2, target);
         const { data, error } = await client
           .from('fashion_brands')
           .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
+          .order('name', { ascending: true })
           .limit(fetchLimit);
         if (error || !data || !data.length) return fallbackItems.slice(0, target);
-        const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'fashion', index));
-        return stableShuffleHomeItems(items, 'fashion:home').slice(0, target);
+        return (data || []).map((row, index) => mapHomeBrandItem(row, 'fashion', index)).slice(0, target);
       }
 
       async function loadFoodBrands() {
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
-        void ensureHomeBrandBackgroundManifest();
-        const fallbackItems = stableShuffleHomeItems(
-          HOME_FOOD_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'food', index)),
-          'food:fallback'
-        ).slice(0, target);
-        if (!client) return [];
+        const fallbackItems = HOME_FOOD_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'food', index));
+        if (!client) return fallbackItems.slice(0, target);
 
-        const fetchLimit = Math.max(target * 4, target);
+        const fetchLimit = Math.max(target * 2, target);
         const { data, error } = await client
           .from('food_brands')
           .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
+          .order('name', { ascending: true })
           .limit(fetchLimit);
         if (error || !data || !data.length) return fallbackItems.slice(0, target);
-        const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'food', index));
-        return stableShuffleHomeItems(items, 'food:home').slice(0, target);
+        return (data || []).map((row, index) => mapHomeBrandItem(row, 'food', index)).slice(0, target);
       }
 
-      async function loadCarBrands() {
-        const client = await ensureHomeSupabase();
-        const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
-        void ensureHomeBrandBackgroundManifest();
-        if (!client) return [];
-
-        const fetchLimit = Math.max(target * 4, target);
-        const { data, error } = await client
-          .from('car_brands')
-          .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
-          .limit(fetchLimit);
-        if (error || !data || !data.length) return [];
-        const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'car', index));
-        return stableShuffleHomeItems(items, 'car:home').slice(0, target);
+      async function loadMovies(signal) {
+        const targetCount = getHomeChannelTargetItems();
+        const interestBuilders = buildHomeTmdbInterestSources('movie');
+      const sourceBuilders = shuffleArray([
+        ...interestBuilders,
+        () => `${TMDB_PROXY_BASE}/movie/popular?language=en-US&page=${randomInt(1, 5)}`,
+        () => `${TMDB_PROXY_BASE}/movie/top_rated?language=en-US&page=${randomInt(1, 5)}`,
+        () => `${TMDB_PROXY_BASE}/movie/now_playing?language=en-US&page=${randomInt(1, 4)}`,
+        () => `${TMDB_PROXY_BASE}/trending/movie/week?page=${randomInt(1, 3)}`
+      ]).slice(0, getHomeTmdbSourceCount() + (interestBuilders.length ? 1 : 0));
+      const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
+        try {
+          const url = buildUrl();
+          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `tmdb:${url}` });
+          if (!json) return [];
+          return Array.isArray(json.results) ? json.results : [];
+        } catch (_err) {
+          return [];
+        }
+      }));
+      const collected = shuffleArray(batches.flat());
+      const seen = new Set();
+      const results = [];
+      for (const item of collected) {
+        const key = String(item?.id || '').trim();
+        if (!key || seen.has(key)) continue;
+        if (isLikelyAnimeMovieEntry(item)) continue;
+        if (!item?.poster_path && !item?.backdrop_path) continue;
+        seen.add(key);
+        results.push(item);
+        if (results.length >= targetCount) break;
       }
-
-    async function loadMovies(signal) {
-      const loaders = await ensureHomeHeavyLoaders();
-      return typeof loaders.loadMovies === 'function' ? loaders.loadMovies(signal) : [];
+      return results.map(m => ({
+        mediaType: 'movie',
+        itemId: String(m.id || ''),
+        title: m.title || 'Movie',
+        subtitle: m.release_date ? m.release_date.slice(0, 4) : 'Movie',
+        image: m.poster_path ? `${TMDB_POSTER}${m.poster_path}` : '',
+        backgroundImage: m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : '',
+        spotlightImage: m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : '',
+        spotlightMediaImage: m.poster_path ? `${TMDB_SPOT_POSTER}${m.poster_path}` : (m.backdrop_path ? `${TMDB_BACKDROP}${m.backdrop_path}` : ''),
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
+        isAdult: m?.adult === true,
+        href: m.id ? `movie.html?id=${encodeURIComponent(m.id)}` : 'movies.html'
+      })).filter((item) => isHomeSafeContentItem(item));
     }
 
     async function loadTv(signal) {
-      const loaders = await ensureHomeHeavyLoaders();
-      return typeof loaders.loadTv === 'function' ? loaders.loadTv(signal) : [];
+      const targetCount = getHomeChannelTargetItems();
+      const interestBuilders = buildHomeTmdbInterestSources('tv');
+      const sourceBuilders = shuffleArray([
+        ...interestBuilders,
+        () => `${TMDB_PROXY_BASE}/tv/popular?language=en-US&page=${randomInt(1, 5)}`,
+        () => `${TMDB_PROXY_BASE}/tv/top_rated?language=en-US&page=${randomInt(1, 5)}`,
+        () => `${TMDB_PROXY_BASE}/tv/airing_today?language=en-US&page=${randomInt(1, 4)}`,
+        () => `${TMDB_PROXY_BASE}/trending/tv/week?page=${randomInt(1, 3)}`
+      ]).slice(0, getHomeTmdbSourceCount() + (interestBuilders.length ? 1 : 0));
+      const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
+        try {
+          const url = buildUrl();
+          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `tmdb:${url}` });
+          if (!json) return [];
+          return Array.isArray(json.results) ? json.results : [];
+        } catch (_err) {
+          return [];
+        }
+      }));
+      const collected = shuffleArray(batches.flat());
+      const seen = new Set();
+      const results = [];
+      for (const item of collected) {
+        const key = String(item?.id || '').trim();
+        if (!key || seen.has(key)) continue;
+        if (isLikelyAnimeTvEntry(item)) continue;
+        if (!item?.poster_path && !item?.backdrop_path) continue;
+        seen.add(key);
+        results.push(item);
+        if (results.length >= targetCount) break;
+      }
+      return results.map(t => ({
+        mediaType: 'tv',
+        itemId: String(t.id || ''),
+        title: t.name || 'TV Show',
+        subtitle: t.first_air_date ? t.first_air_date.slice(0, 4) : 'TV Show',
+        image: t.poster_path ? `${TMDB_POSTER}${t.poster_path}` : '',
+        backgroundImage: t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : '',
+        spotlightImage: t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : '',
+        spotlightMediaImage: t.poster_path ? `${TMDB_SPOT_POSTER}${t.poster_path}` : (t.backdrop_path ? `${TMDB_BACKDROP}${t.backdrop_path}` : ''),
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
+        isAdult: t?.adult === true,
+        href: t.id ? `tvshow.html?id=${encodeURIComponent(t.id)}` : 'tvshows.html'
+      })).filter((item) => isHomeSafeContentItem(item));
     }
 
     async function loadAnime(signal) {
-      const loaders = await ensureHomeHeavyLoaders();
-      return typeof loaders.loadAnime === 'function' ? loaders.loadAnime(signal) : [];
-    }
-
-    let homeGamesSharedScriptPromise = null;
-    let homeGamesHydrationPromise = null;
-
-    function ensureHomeGamesShared() {
-      if (window.__zo2yGamesShared) return Promise.resolve(window.__zo2yGamesShared);
-      if (homeGamesSharedScriptPromise) return homeGamesSharedScriptPromise;
-      homeGamesSharedScriptPromise = new Promise((resolve, reject) => {
-        const existing = document.querySelector('script[data-home-games-shared=\"1\"]');
-        if (existing) {
-          existing.addEventListener('load', () => resolve(window.__zo2yGamesShared || {}), { once: true });
-          existing.addEventListener('error', () => reject(new Error('Failed to load games loader.')), { once: true });
-          return;
+      const targetCount = getHomeChannelTargetItems();
+      const sourceBuilders = shuffleArray([
+        () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=popularity.desc&page=${randomInt(1, 5)}&with_genres=16&with_original_language=ja`,
+        () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=vote_count.desc&page=${randomInt(1, 5)}&with_genres=16&with_original_language=ja`,
+        () => `${TMDB_PROXY_BASE}/discover/tv?language=en-US&sort_by=vote_average.desc&page=${randomInt(1, 4)}&with_genres=16&with_original_language=ja&vote_count.gte=120`
+      ]).slice(0, getHomeTmdbSourceCount());
+      const batches = await Promise.all(sourceBuilders.map(async (buildUrl) => {
+        try {
+          const url = buildUrl();
+          const json = await fetchJsonWithPerfCache(url, { signal, cacheKey: `tmdb:${url}` });
+          if (!json) return [];
+          return Array.isArray(json.results) ? json.results : [];
+        } catch (_err) {
+          return [];
         }
-        const script = document.createElement('script');
-        script.src = 'js/pages/games-shared.js?v=20260419a';
-        script.defer = true;
-        script.setAttribute('data-home-games-shared', '1');
-        script.onload = () => resolve(window.__zo2yGamesShared || {});
-        script.onerror = () => reject(new Error('Failed to load games loader.'));
-        document.head.appendChild(script);
-      });
-      return homeGamesSharedScriptPromise;
+      }));
+      const collected = shuffleArray(batches.flat());
+      const seen = new Set();
+      const results = [];
+      for (const item of collected) {
+        const key = String(item?.id || '').trim();
+        if (!key || seen.has(key)) continue;
+        if (!item?.poster_path && !item?.backdrop_path) continue;
+        seen.add(key);
+        results.push(item);
+        if (results.length >= targetCount) break;
+      }
+      return results.map((show) => ({
+        mediaType: 'anime',
+        itemId: String(show.id || ''),
+        title: show.name || 'Anime',
+        subtitle: show.first_air_date ? show.first_air_date.slice(0, 4) : 'Anime',
+        image: show.poster_path ? `${TMDB_POSTER}${show.poster_path}` : '',
+        backgroundImage: show.backdrop_path ? `${TMDB_BACKDROP}${show.backdrop_path}` : '',
+        spotlightImage: show.backdrop_path ? `${TMDB_BACKDROP}${show.backdrop_path}` : '',
+        spotlightMediaImage: show.poster_path ? `${TMDB_SPOT_POSTER}${show.poster_path}` : (show.backdrop_path ? `${TMDB_BACKDROP}${show.backdrop_path}` : ''),
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
+        isAdult: show?.adult === true,
+        href: show.id ? `anime.html?id=${encodeURIComponent(show.id)}` : 'animes.html'
+      })).filter((item) => isHomeSafeContentItem(item));
     }
 
     function normalizeGameCoverUrl(value) {
@@ -8803,7 +6112,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const normalized = normalizeProfileUsername(value);
       if (!isValidProfileUsername(normalized)) {
         homeOnboardingProfile.usernameStatus = 'bad';
-        setHomeOnboardingUsernameStatus(`Use 3-${PROFILE_USERNAME_MAX_LENGTH} letters, numbers, or underscores.`, 'bad');
+        setHomeOnboardingUsernameStatus('Use 3-30 letters, numbers, or underscores.', 'bad');
         updateHomeOnboardingNextState();
         return false;
       }
@@ -8813,7 +6122,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         updateHomeOnboardingNextState();
         return false;
       }
-      setHomeOnboardingUsernameStatus('Checking availability\u2026');
+      setHomeOnboardingUsernameStatus('Checking availability…');
       homeOnboardingProfile.usernameStatus = 'checking';
       updateHomeOnboardingNextState();
       try {
@@ -8872,8 +6181,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!input) return;
 
       if (!homeOnboardingProfile.username) {
-        const fallbackSeed = getStoredHomeMetadataUsername(homeCurrentUser)
-          || homeCurrentUser?.user_metadata?.username
+        const fallbackSeed = homeCurrentUser?.user_metadata?.username
           || homeCurrentUser?.user_metadata?.full_name
           || homeCurrentUser?.user_metadata?.name
           || (homeCurrentUser?.email || '').split('@')[0]
@@ -8942,35 +6250,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const normalized = await ensureHomeUsernameAvailable(rawUsername, homeCurrentUser.id);
         homeOnboardingProfile.username = normalized;
         const client = await ensureHomeSupabase();
-        if (!client) {
-          throw new Error('Unable to save username right now.');
-        }
-        const fullName = homeCurrentUser?.user_metadata?.full_name || homeCurrentUser?.user_metadata?.name || '';
-        const { error: profileError } = await client.from('user_profiles').upsert({
-          id: homeCurrentUser.id,
-          username: normalized,
-          full_name: fullName || null
-        }, { onConflict: 'id' });
-        if (profileError) throw profileError;
-
-        if (window.ZO2Y_AUTH?.updateAuthMetadataUsername) {
-          await window.ZO2Y_AUTH.updateAuthMetadataUsername(client, normalized);
-        } else if (client.auth?.updateUser) {
+        if (client) {
+          const fullName = homeCurrentUser?.user_metadata?.full_name || homeCurrentUser?.user_metadata?.name || '';
+          await client.from('user_profiles').upsert({
+            id: homeCurrentUser.id,
+            username: normalized,
+            full_name: fullName || null
+          }, { onConflict: 'id' });
           try {
-            await client.auth.updateUser({ data: { zo2y_username: normalized, username: normalized } });
+            await client.auth.updateUser({ data: { username: normalized } });
           } catch (_err) {}
         }
-        homeCurrentUser = {
-          ...(homeCurrentUser || {}),
-          user_metadata: {
-            ...(homeCurrentUser?.user_metadata || {}),
-            zo2y_username: normalized,
-            username: normalized
-          }
-        };
-        clearOnboardingPending(homeCurrentUser.id);
-        resetHomeProfileLabelCache();
-        queueHomeAuthUiSync();
         homeOnboardingProfile.usernameStatus = 'ok';
         setHomeOnboardingUsernameStatus('Username saved.', 'ok');
         updateHomeOnboardingNextState();
@@ -9021,86 +6311,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
     }
 
-    function isLikelyBackdropGameUrl(url) {
-      const value = String(url || '').trim().toLowerCase();
-      if (!value) return false;
-      return ['/heroes/', '/hero/', 'background', 'fanart', 'screenshot', 'screenshots', 'backdrop'].some((token) => value.includes(token));
-    }
-
     function pickPreferredGameCoverUrl(candidates = []) {
       const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
-      const likelyCovers = cleaned.filter((url) => !isLikelyBackdropGameUrl(url));
-      const pool = likelyCovers.length ? likelyCovers : cleaned;
-      return pool.find((url) => /\/game-assets\/covers-official\//.test(url))
-        || pool.find((url) => /\/game-assets\/covers\//.test(url))
-        || pool.find((url) => /wikimedia|wikipedia/.test(url))
-        || pool.find((url) => /igdb|images\.igdb\.com/.test(url))
-        || pool.find((url) => /\/game-assets\//.test(url))
-        || pool.find((url) => /rawg|media\.rawg/.test(url))
-        || pool[0]
-        || '';
-    }
-
-    function getHomeGameImportedFrom(row) {
-      return String(row?.extra?.imported_from || row?.source || '').trim().toLowerCase();
-    }
-
-    function hasPosterOfficialGameCover(row) {
-      const cover = normalizeGameCoverUrl(row?.cover_url || row?.cover?.url || row?.cover);
-      if (!cover || !/\/game-assets\/covers-official\//.test(cover)) return false;
-      return Boolean(row?.extra?.official_cover_is_poster);
-    }
-
-    function isOfficialGameProviderRow(row) {
-      const importedFrom = getHomeGameImportedFrom(row);
-      return importedFrom.includes('wikipedia') || importedFrom.includes('igdb');
-    }
-
-    function pickOfficialPosterGameUrl(candidates = []) {
-      const cleaned = candidates.map(normalizeGameCoverUrl).filter(Boolean);
-      const pool = cleaned.filter((url) => !isLikelyBackdropGameUrl(url));
-      return pool.find((url) => /\/game-assets\/covers-official\//.test(url))
-        || pool.find((url) => /wikimedia|wikipedia/.test(url))
-        || '';
-    }
-
-    function normalizeHomeGameTitleKey(title) {
-      return String(title || '')
-        .toLowerCase()
-        .replace(/[^\p{L}\p{N}]+/gu, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-    }
-
-    const HOME_UNOFFICIAL_GAME_PATTERNS = [
-      /\bprototype\b/i,
-      /\btech demo\b/i,
-      /\bdemo\b/i,
-      /\bfan\s?game\b/i,
-      /\bfanmade\b/i,
-      /\brom hack\b/i,
-      /\bmod\b/i,
-      /\bmodded\b/i,
-      /\bpictures pack\b/i,
-      /\bimages pack\b/i,
-      /\bwallpaper pack\b/i,
-      /\bsoundtrack\b/i,
-      /\bost\b/i,
-      /\bupdate\s*\d+\b/i,
-      /\bfield trip\b/i,
-      /\bcreepy red\b/i,
-      /\bradical red\b/i,
-      /\bmeta fire\s?red\b/i,
-      /\bace ?dragon\b/i
-    ];
-
-    function isLikelyRealHomeGameRow(row) {
-      const title = String(row?.title || row?.name || row?.slug || '').trim();
-      if (!title) return false;
-      if (HOME_UNOFFICIAL_GAME_PATTERNS.some((pattern) => pattern.test(title))) return false;
-      const importedFrom = getHomeGameImportedFrom(row);
-      if (/[[(][^)]+[)\]]/.test(title) && importedFrom.includes('rawg')) return false;
-      return true;
+      return cleaned.find((url) => /wikimedia|wikipedia/.test(url)) || cleaned[0] || '';
     }
 
     function pickBackdropGameUrl(candidates = [], fallback = '') {
@@ -9114,22 +6327,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function resolveHomeGameCover(row) {
-      if (!row) return '';
-      if (hasPosterOfficialGameCover(row)) {
-        return pickOfficialPosterGameUrl([row?.cover_url, row?.cover?.url, row?.cover]);
-      }
       return pickPreferredGameCoverUrl([
-        row?.cover_url,
-        row?.cover?.url,
         row?.cover,
-        ...(Array.isArray(row?.extra?.local_covers) ? row.extra.local_covers : []),
-        ...(Array.isArray(row?.extra?.covers) ? row.extra.covers : []),
-        ...(Array.isArray(row?.extra?.official_covers) ? row.extra.official_covers : []),
-        ...(Array.isArray(row?.extra?.cover_candidates) ? row.extra.cover_candidates : []),
-        isOfficialGameProviderRow(row) ? '' : row?.hero_url,
-        isOfficialGameProviderRow(row) ? '' : row?.hero,
-        ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
-        ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
+        row?.cover?.url,
+        row?.cover_url
       ]);
     }
 
@@ -9144,176 +6345,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return hero || fallback || '';
     }
 
-    function isLikelyLogoOnlyGameArt(url) {
-      const value = String(url || '').trim().toLowerCase();
-      if (!value) return false;
-      if (value.endsWith('.svg') || value.includes('.svg?')) return true;
-      return ['logo', 'wordmark', 'transparent', 'icon'].some((token) => value.includes(token));
-    }
-
-    function scoreHomeGameCoverRow(row, hasPreferredAlternatives = false) {
-      const cover = resolveHomeGameCover(row);
-      const hero = resolveHomeGameHero(row, '');
-      const importedFrom = getHomeGameImportedFrom(row);
-      if (!cover) return Number.NEGATIVE_INFINITY;
-      let score = 0;
-      if (/\/game-assets\/covers-official\//.test(cover)) score += 700;
-      if (/wikimedia|wikipedia/.test(cover)) score += 420;
-      if (importedFrom.includes('igdb') || importedFrom.includes('wikipedia')) score += 220;
-      if (/game-assets\/covers\//.test(cover)) score += 80;
-      if (hero && hero !== cover) score += 70;
-      if (hero && hero === cover) score -= 60;
-      if (isLikelyLogoOnlyGameArt(cover)) score += 55;
-      if (hasPreferredAlternatives && importedFrom.includes('rawg')) score -= 180;
-      return score;
-    }
-
-    function scoreHomeGameBaseRow(row, hasPreferredAlternatives = false) {
-      if (!row) return Number.NEGATIVE_INFINITY;
-      let score = 0;
-      score += scoreHomeGameCoverRow(row, hasPreferredAlternatives) * 2.5;
-      score += scoreHomeGameHeroRow(row) * 0.35;
-      score += Math.min(Number(row?.rating_count || 0), 5000) / 20;
-      score += Number(row?.rating || 0) * 8;
-      return score;
-    }
-
-    function scoreHomeGameHeroRow(row) {
-      const cover = resolveHomeGameCover(row);
-      const hero = resolveHomeGameHero(row, '');
-      const importedFrom = getHomeGameImportedFrom(row);
-      if (!hero) return Number.NEGATIVE_INFINITY;
-      let score = 0;
-      if (/game-assets\/heroes\//.test(hero)) score += 260;
-      if (hero && hero !== cover) score += 160;
-      if (importedFrom.includes('rawg')) score += 90;
-      if (/background|hero|fanart|screenshot/.test(hero)) score += 40;
-      if (/wikimedia|wikipedia/.test(hero) && hero === cover) score -= 120;
-      return score;
-    }
-
-    function mergeHomeGameRows(rows) {
-      const list = Array.isArray(rows) ? rows.filter((row) => row && isLikelyRealHomeGameRow(row)) : [];
-      if (!list.length) return null;
-      if (list.length === 1) return list[0];
-      const hasPreferredAlternatives = list.some((row) => {
-        const importedFrom = getHomeGameImportedFrom(row);
-        return importedFrom.includes('igdb') || importedFrom.includes('wikipedia');
-      });
-      const sortedBaseRows = list.slice().sort((a, b) => {
-        const scoreDiff = scoreHomeGameBaseRow(b, hasPreferredAlternatives) - scoreHomeGameBaseRow(a, hasPreferredAlternatives);
-        if (scoreDiff !== 0) return scoreDiff;
-        const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
-        if (countDiff !== 0) return countDiff;
-        const ratingDiff = Number(b?.rating || 0) - Number(a?.rating || 0);
-        if (ratingDiff !== 0) return ratingDiff;
-        return String(a?.title || a?.name || '').localeCompare(String(b?.title || b?.name || ''));
-      });
-      const baseRow = sortedBaseRows[0];
-      const bestCoverRow = list.slice().sort((a, b) => scoreHomeGameCoverRow(b, hasPreferredAlternatives) - scoreHomeGameCoverRow(a, hasPreferredAlternatives))[0] || baseRow;
-      const bestHeroRow = list.slice().sort((a, b) => scoreHomeGameHeroRow(b) - scoreHomeGameHeroRow(a))[0] || baseRow;
-      const merged = { ...baseRow };
-      const mergedCover = resolveHomeGameCover(bestCoverRow) || resolveHomeGameCover(baseRow);
-      const mergedHero = resolveHomeGameHero(bestHeroRow, '');
-      if (mergedCover) merged.cover_url = mergedCover;
-      if (mergedHero) merged.hero_url = mergedHero;
-      const mergedGenres = list.find((row) => Array.isArray(row?.extra?.genres) && row.extra.genres.length)?.extra?.genres;
-      if (mergedGenres?.length) {
-        merged.extra = {
-          ...(baseRow?.extra && typeof baseRow.extra === 'object' ? baseRow.extra : {}),
-          genres: mergedGenres
-        };
-      }
-      return merged;
-    }
-
-    function dedupeHomeGameRows(rows, targetCount = 0) {
-      const list = Array.isArray(rows) ? rows.filter((row) => row && isLikelyRealHomeGameRow(row)) : [];
-      if (!list.length) return [];
-      const groups = new Map();
-      list.forEach((row) => {
-        const titleKey = normalizeHomeGameTitleKey(row?.title || row?.name || '');
-        const key = titleKey || String(row?.id || row?.igdb_id || row?.rawg_id || Math.random());
-        if (!groups.has(key)) groups.set(key, []);
-        groups.get(key).push(row);
-      });
-      const merged = Array.from(groups.values()).map((group) => mergeHomeGameRows(group)).filter(Boolean);
-      merged.sort((a, b) => {
-        const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
-        if (countDiff !== 0) return countDiff;
-        const ratingDiff = Number(b?.rating || 0) - Number(a?.rating || 0);
-        if (ratingDiff !== 0) return ratingDiff;
-        return String(a?.title || a?.name || '').localeCompare(String(b?.title || b?.name || ''));
-      });
-      const limit = Number(targetCount || 0);
-      return limit > 0 ? merged.slice(0, limit) : merged;
-    }
-
-    function getHomeGamePresentation(cover, hero) {
-      const plain = isLikelyLogoOnlyGameArt(cover) || !hero || hero === cover;
-      return {
-        plain,
-        spotlightShape: plain ? 'landscape' : 'poster',
-        spotlightFit: 'contain'
-      };
-    }
-
-    function isPreferredHomeGameRow(row) {
-      const cover = resolveHomeGameCover(row);
-      if (!cover) return false;
-      return hasPosterOfficialGameCover(row) || isOfficialGameProviderRow(row);
-    }
-
     async function loadGames(signal, options = {}) {
-      // Keep homepage games logic identical to the previously working implementation (commit b57da823).
-      // This version pulls from the existing `/api/igdb/games` aggregator instead of Supabase tables.
       const targetCount = Math.max(getHomeChannelTargetItems(), isHomeSlowNetwork() ? 18 : 28);
       const cacheBust = options?.cacheBust ? Date.now() : 0;
       const cacheParams = cacheBust ? { cache_bust: cacheBust } : {};
-      const cachedGameItems = readHomeItemsCache(
-        HOME_GAMES_ITEMS_CACHE_KEY,
-        HOME_GAMES_ITEMS_CACHE_MAX_AGE_MS,
-        (item) => {
-          if (!item || typeof item !== 'object') return null;
-          const title = String(item.title || '').trim();
-          const image = String(item.image || '').trim();
-          if (!title || !image) return null;
-          return item;
-        }
-      );
-      const toFallbackGameItems = () => HOME_GAMES_FALLBACK_ITEMS
-        .map((row) => ({
-          mediaType: 'game',
-          itemId: row.id,
-          title: row.title,
-          subtitle: String(row.release || '').slice(0, 4) || 'Game',
-          extra: 'Video Game',
-          image: row.cover,
-          listImage: row.cover,
-          backgroundImage: row.cover,
-          spotlightImage: row.cover,
-          spotlightMediaImage: row.cover,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          popularity: 0,
-          fallbackImage: '',
-          href: row.id ? `game.html?id=${encodeURIComponent(String(row.id))}` : 'games.html'
-        }))
-        .slice(0, targetCount);
-
       const mapToItem = (row) => {
         const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
         const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
         const cover = resolveHomeGameCover(row);
         const hero = resolveHomeGameHero(row, '');
+        // Drop games that don't have a real cover image.
         if (!cover || cover.includes('/newlogo.webp')) return null;
         const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
         const title = String(row?.title || row?.name || 'Game').trim() || 'Game';
         const releaseDate = String(row?.release_date || row?.released || '').trim();
         const ratingValue = Number(row?.rating || 0);
-        const popularity = Number(row?.follows || row?.rating_count || 0);
-        const useHeroAsCard = !!hero && isLikelyLogoOnlyGameArt(cover);
-        const cardImage = useHeroAsCard ? hero : cover;
         const genreText = genres.length
           ? genres.slice(0, 2).map((entry) => String(entry?.name || entry || '').trim()).filter(Boolean).join(' | ')
           : 'Video Game';
@@ -9324,47 +6370,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           title,
           subtitle: releaseDate ? releaseDate.slice(0, 4) : 'Game',
           extra: [genreText, ratingText].filter(Boolean).join(' | '),
-          image: cardImage,
-          listImage: cardImage,
+          image: cover,
           backgroundImage: hero || '',
           spotlightImage: hero || '',
           spotlightMediaImage: cover,
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'poster',
-          popularity,
           fallbackImage: '',
           href: id ? `game.html?id=${encodeURIComponent(String(id))}` : 'games.html'
         };
       };
 
       try {
-        const localRowsPromise = (async () => {
-          try {
-            const client = await ensureHomeSupabase();
-            if (!client) return [];
-            const { data } = await client
-              .from('games')
-              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra')
-              .order('rating_count', { ascending: false, nullsFirst: false })
-              .order('rating', { ascending: false, nullsFirst: false })
-              .limit(Math.min(Math.max(targetCount * 4, 80), 160));
-            return Array.isArray(data) ? data : [];
-          } catch (_err) {
-            return [];
-          }
-        })();
-        const localRows = await localRowsPromise;
-        const localItems = dedupeHomeGameRows(Array.isArray(localRows) ? localRows : [], Math.max(targetCount * 2, 40))
-          .map((row) => mapToItem(row))
-          .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
-          .sort((a, b) => Number(b?.popularity || 0) - Number(a?.popularity || 0))
-          .slice(0, Math.max(targetCount * 2, 24));
-        if (!options?.cacheBust && localItems.length >= Math.min(targetCount, 12)) {
-          const rotatedLocal = shuffleArray(localItems).slice(0, targetCount);
-          writeHomeItemsCache(HOME_GAMES_ITEMS_CACHE_KEY, rotatedLocal);
-          return rotatedLocal;
-        }
-        const providerList = ['igdb'];
+        const providerList = ['wikipedia', 'igdb'];
         for (const provider of providerList) {
           const baseParams = {
             page_size: Math.min(Math.max(targetCount * 6, 140), 220),
@@ -9373,21 +6391,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             cache: 1,
             cache_pages: 1
           };
-          // Keep the same data source as the working commit, but reduce the request fanout so
-          // the rail doesn't time out under "load everything immediately".
           const requests = [
-            { ...baseParams, page: 1, popularity_type: 1 },
-            { ...baseParams, page: 2, popularity_type: 1 },
+            { ...baseParams, page: 1, ordering: '-released' },
+            { ...baseParams, page: 2, ordering: '-released' },
+            { ...baseParams, page: 1, ordering: '-rating' },
             { ...baseParams, page: 1, ordering: '-rating_count' },
-            { ...baseParams, page: 1, ordering: '-released' }
+            { ...baseParams, page: 1, ordering: '-name' },
+            { ...baseParams, page: 1, popularity_type: 1 },
+            { ...baseParams, page: 2, popularity_type: 1 }
           ];
           const merged = [];
           const seen = new Set();
-          const settled = await Promise.allSettled(
-            requests.map((params) => homeIgdbFetch('/games', { ...params, ...cacheParams }, signal))
-          );
-          settled.forEach((result) => {
-            const payload = result.status === 'fulfilled' ? result.value : null;
+          for (const params of requests) {
+            if (signal?.aborted) break;
+            const payload = await homeIgdbFetch('/games', { ...params, ...cacheParams }, signal);
             const rows = Array.isArray(payload?.results) ? payload.results : [];
             rows.forEach((row) => {
               const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
@@ -9397,53 +6414,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               seen.add(key);
               merged.push(row);
             });
-          });
-          const combinedRows = merged.concat(Array.isArray(localRows) ? localRows : []);
-          if (!combinedRows.length || signal?.aborted) continue;
-          const combinedSeen = new Set();
-          const uniqueCombinedRows = [];
-          combinedRows.forEach((row) => {
-            const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
-            const title = normalizeHomeGameTitleKey(row?.title || row?.name || '');
-            const key = id || title;
-            if (!key || combinedSeen.has(key)) return;
-            combinedSeen.add(key);
-            uniqueCombinedRows.push(row);
-          });
-          const items = uniqueCombinedRows
+            if (merged.length >= targetCount * 4) break;
+          }
+          if (!merged.length || signal?.aborted) continue;
+          const items = merged
             .map((row) => mapToItem(row))
             .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
-            .sort((a, b) => Number(b?.popularity || 0) - Number(a?.popularity || 0))
-            .slice(0, Math.max(targetCount * 2, 24));
-          const rotatedItems = shuffleArray(items)
             .slice(0, targetCount);
-          if (rotatedItems.length) {
-            const minHealthy = Math.min(targetCount, 10);
-            if (rotatedItems.length < minHealthy && !homeGamesHydrationPromise) {
-              homeGamesHydrationPromise = (async () => {
-                try {
-                  const rail = document.getElementById('gamesRail');
-                  if (!rail) return;
-                  const hydrated = await loadGames(null, { cacheBust: true });
-                  if (!Array.isArray(hydrated) || hydrated.length <= rotatedItems.length) return;
-                  homeFeedState.game = hydrated;
-                  renderRail('gamesRail', hydrated, { mediaType: 'game' });
-                } catch (_err) {
-                  // Ignore; existing items stay visible.
-                }
-              })().finally(() => {
-                homeGamesHydrationPromise = null;
-              });
-            }
-            writeHomeItemsCache(HOME_GAMES_ITEMS_CACHE_KEY, rotatedItems);
-            return rotatedItems;
-          }
+          if (items.length) return items;
         }
-        if (cachedGameItems.length) return shuffleArray(cachedGameItems).slice(0, targetCount);
-        return toFallbackGameItems();
+        return [];
       } catch (_error) {
-        if (cachedGameItems.length) return shuffleArray(cachedGameItems).slice(0, targetCount);
-        return toFallbackGameItems();
+        return [];
       }
     }
 
@@ -9467,439 +6449,1102 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const rail = document.getElementById('gamesRail');
       if (!rail) return;
       const wrap = rail.closest('.rail-wrap') || rail;
+      if (GAMES_DISABLED) {
+        wrap.style.display = 'none';
+        return;
+      }
       wrap.style.display = '';
     }
 
-    let homeHeavyLoaderScriptPromise = null;
-    let homeBooksHydrationPromise = null;
-
-    function ensureHomeHeavyLoaders() {
-      if (window.__zo2yHomeHeavyLoaders) return Promise.resolve(window.__zo2yHomeHeavyLoaders);
-      if (homeHeavyLoaderScriptPromise) return homeHeavyLoaderScriptPromise;
-      homeHeavyLoaderScriptPromise = new Promise((resolve, reject) => {
-        const existing = document.querySelector('script[data-home-heavy-loaders="1"]');
-        if (existing) {
-          existing.addEventListener('load', () => resolve(window.__zo2yHomeHeavyLoaders || {}), { once: true });
-          existing.addEventListener('error', () => reject(new Error('Failed to load homepage loaders.')), { once: true });
-          return;
-        }
-        const script = document.createElement('script');
-      // Keep this in sync with `sw.js` precache list to avoid refresh loading stale home loaders.
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260424b';
-      script.defer = true;
-        script.setAttribute('data-home-heavy-loaders', '1');
-        script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
-        script.onerror = () => reject(new Error('Failed to load homepage loaders.'));
-        document.head.appendChild(script);
-      });
-      return homeHeavyLoaderScriptPromise;
-    }
-
     async function loadBooks(signal) {
-      const targetCount = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
-      const minHealthy = Math.min(targetCount, 8);
-      const loaders = await ensureHomeHeavyLoaders();
-      if (typeof loaders.loadBooks !== 'function') return [];
+      const targetCount = getHomeChannelTargetItems();
+      const lightweightMode = shouldUseLightweightHomeBooksLoad();
+      const buildOpenLibraryCoverUrl = (doc, size = 'L') => {
+        const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
+          ? String(size || 'L').toUpperCase()
+          : 'L';
+        const coverId = Number(doc?.cover_i || 0) || 0;
+        if (coverId > 0) {
+          return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-${safeSize}.jpg`;
+        }
+        const isbnRaw = Array.isArray(doc?.isbn) ? String(doc.isbn[0] || '').trim() : String(doc?.isbn || '').trim();
+        const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
+        if (isbn) {
+          return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-${safeSize}.jpg`;
+        }
+        return '';
+      };
 
-      let items = [];
-      try {
-        window.__zo2yHomeBooksDebug = { stage: 'loadBooks:primary:start', at: Date.now() };
-        const loaded = await loaders.loadBooks(signal);
-        items = Array.isArray(loaded) ? loaded : [];
-        window.__zo2yHomeBooksDebug = { stage: 'loadBooks:primary:done', at: Date.now(), items: items.length };
-      } catch (error) {
-        window.__zo2yHomeBooksDebug = { stage: 'loadBooks:primary:error', at: Date.now(), message: String(error?.message || error || '') };
-        items = [];
-      }
+      const normalizeBookDoc = (row, idx = 0) => {
+        if (!row) return null;
+        if (row.volumeInfo) {
+          const info = row.volumeInfo || {};
+          const title = String(info?.title || '').trim();
+          if (!title) return null;
+          const author = Array.isArray(info?.authors) && info.authors.length ? String(info.authors[0] || '').trim() : 'Unknown author';
+          const identifiers = Array.isArray(info?.industryIdentifiers) ? info.industryIdentifiers : [];
+          const isbn = identifiers
+            .map((entry) => String(entry?.identifier || '').replace(/[^0-9Xx]/g, ''))
+            .filter(Boolean);
+          const published = String(info?.publishedDate || '').trim();
+          const yearMatch = published.match(/\d{4}/);
+          return {
+            key: '',
+            title,
+            author_name: [author],
+            first_publish_year: yearMatch ? Number(yearMatch[0]) : null,
+            isbn,
+            cover_i: null,
+            coverImage: toHttpsUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || ''),
+            _googleThumbnail: toHttpsUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || ''),
+            _googleVolumeId: String(row?.id || '').trim(),
+            maturityRating: String(info?.maturityRating || '').trim(),
+            _source: 'google-books'
+          };
+        }
+        const title = String(row?.title || '').trim();
+        if (!title) return null;
+        const author = Array.isArray(row?.author_name) && row.author_name.length
+          ? String(row.author_name[0] || '').trim()
+          : 'Unknown author';
+        const isbn = Array.isArray(row?.isbn)
+          ? row.isbn.map((entry) => String(entry || '').replace(/[^0-9Xx]/g, '')).filter(Boolean)
+          : (String(row?.isbn || '').trim() ? [String(row.isbn).trim().replace(/[^0-9Xx]/g, '')] : []);
+        return {
+          key: String(row?.key || '').trim(),
+          title,
+          author_name: [author],
+          first_publish_year: Number(row?.first_publish_year || 0) || null,
+          isbn,
+          cover_i: Number(row?.cover_i || 0) || null,
+          coverImage: toHttpsUrl(row?.coverImage || ''),
+          _googleThumbnail: toHttpsUrl(row?._googleThumbnail || ''),
+          _googleVolumeId: String(row?._googleVolumeId || '').trim(),
+          maturityRating: String(row?.maturityRating || '').trim(),
+          _source: String(row?._source || '').trim() || 'book'
+        };
+      };
 
-      // If we got a short list, show it immediately but run a background hydration to fill the rail.
-      if (items.length > 0 && items.length < minHealthy && !homeBooksHydrationPromise) {
-        homeBooksHydrationPromise = (async () => {
-          const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-          let timer = null;
-          try {
-            window.__zo2yHomeBooksDebug = { stage: 'loadBooks:hydrate:start', at: Date.now(), prevItems: items.length };
-            if (controller) timer = setTimeout(() => controller.abort(), 14000);
-            const hydrated = await loaders.loadBooks(controller ? controller.signal : undefined);
-            const next = Array.isArray(hydrated) ? hydrated : [];
-            window.__zo2yHomeBooksDebug = { stage: 'loadBooks:hydrate:done', at: Date.now(), items: next.length };
-            if (!next.length || next.length <= items.length) return;
-            const rail = document.getElementById('booksRail');
-            if (!rail) return;
-            homeFeedState.book = next;
-            renderRail('booksRail', next, { mediaType: 'book' });
-          } catch (error) {
-            window.__zo2yHomeBooksDebug = { stage: 'loadBooks:hydrate:error', at: Date.now(), message: String(error?.message || error || '') };
-          } finally {
-            if (timer) clearTimeout(timer);
-            if (controller) {
-              try { controller.abort(); } catch (_err) {}
-            }
+      const mapDocsToRailItems = (docs, options = {}) => {
+        const minYear = Number(options.minYear || 0);
+        const allowMissingYear = !!options.allowMissingYear;
+        const seen = new Set();
+        return (Array.isArray(docs) ? docs : []).map((doc, idx) => {
+          const normalized = normalizeBookDoc(doc, idx);
+          if (!normalized) return null;
+          const title = String(normalized.title || '').trim();
+          const author = String((Array.isArray(normalized.author_name) ? normalized.author_name[0] : '') || '').trim() || 'Unknown author';
+          const year = Number(normalized?.first_publish_year || 0) || 0;
+
+          if (!allowMissingYear && !year) return null;
+          if (minYear && year && year < minYear) return null;
+
+          const coverCandidates = [
+            toHttpsUrl(normalized?._googleThumbnail || ''),
+            toHttpsUrl(normalized?.coverImage || ''),
+            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'L')),
+            toHttpsUrl(buildOpenLibraryCoverUrl(normalized, 'M'))
+          ].filter(Boolean);
+          const cover = coverCandidates[0] || '';
+          if (!cover) return null;
+
+          const dedupeKey = `${title.toLowerCase()}::${author.toLowerCase()}`;
+          if (seen.has(dedupeKey)) return null;
+          seen.add(dedupeKey);
+
+          const subtitle = year ? `${author} | ${year}` : author;
+          const googleVolumeId = String(normalized?._googleVolumeId || '').trim();
+          const workKey = String(normalized?.key || '').trim();
+          let itemId = '';
+          if (googleVolumeId) itemId = googleVolumeId;
+          if (!itemId && workKey.startsWith('/works/')) itemId = workKey.replace('/works/', '').trim();
+          if (!itemId) {
+            itemId = `search-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `book-${idx}`}`;
           }
-        })().finally(() => {
-          homeBooksHydrationPromise = null;
-        });
-      }
+          const isbnRaw = Array.isArray(normalized?.isbn) ? String(normalized.isbn[0] || '').trim() : '';
+          const isbn = isbnRaw.replace(/[^0-9Xx]/g, '');
+          const titleParam = encodeURIComponent(title);
+          const authorParam = encodeURIComponent(author);
+          const href = `book.html?id=${encodeURIComponent(itemId)}&title=${titleParam}&author=${authorParam}`;
 
-      return items;
+          return {
+            mediaType: 'book',
+            itemId,
+            title,
+            subtitle,
+            image: cover,
+            backgroundImage: cover,
+            spotlightImage: cover,
+            spotlightMediaImage: cover,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            fallbackImage: '',
+            maturityRating: String(normalized?.maturityRating || '').trim(),
+            isbn,
+            href
+          };
+        }).filter(Boolean);
+      };
+
+      const mergeUniqueItems = (...batches) => {
+        const seen = new Set();
+        const out = [];
+        batches.forEach((batch) => {
+          (Array.isArray(batch) ? batch : []).forEach((item) => {
+            const key = `${String(item?.title || '').trim().toLowerCase()}::${String(item?.subtitle || '').trim().toLowerCase()}`;
+            if (!key || seen.has(key)) return;
+            seen.add(key);
+            out.push(item);
+          });
+        });
+        return out;
+      };
+
+      try {
+        const limit = lightweightMode ? Math.max(targetCount, 16) : Math.max(targetCount, 24);
+        const booksRequestOptions = { signal, timeoutMs: 4200, retries: 1 };
+        const queryUrls = [
+          `/api/books/popular?q=${encodeURIComponent('subject:fiction bestseller 2023 2024 2025')}&limit=${limit}&page=1&orderBy=relevance`,
+          `/api/books/popular?q=${encodeURIComponent('subject:fantasy bestseller')}&limit=${limit}&page=1&orderBy=relevance`,
+          `/api/books/popular?q=${encodeURIComponent('subject:romance bestseller')}&limit=${limit}&page=1&orderBy=relevance`,
+          `/api/books/popular?q=${encodeURIComponent('bestseller popular books')}&limit=${limit}&page=1&orderBy=relevance`,
+          `/api/books/trending?period=weekly&limit=${limit}`
+        ].slice(0, lightweightMode ? 3 : 5);
+        const results = await Promise.allSettled(queryUrls.map((url) => (
+          fetchJsonWithPerfCache(url, { ...booksRequestOptions, cacheKey: `books:${url}` })
+        )));
+
+        const allDocsRaw = [];
+        results.forEach((result) => {
+          if (result.status !== 'fulfilled') return;
+          const payload = result.value;
+          const docs = Array.isArray(payload?.docs)
+            ? payload.docs
+            : (Array.isArray(payload?.items) ? payload.items : []);
+          if (docs.length) allDocsRaw.push(...docs);
+        });
+
+        const strictModern = mapDocsToRailItems(allDocsRaw, { minYear: 2005, allowMissingYear: false });
+        const modernWithUnknownYear = mapDocsToRailItems(allDocsRaw, { minYear: 2005, allowMissingYear: true });
+        const relaxedFallback = mapDocsToRailItems(allDocsRaw, { minYear: 1995, allowMissingYear: true });
+        const merged = mergeUniqueItems(strictModern, modernWithUnknownYear, relaxedFallback);
+        const safeMerged = filterHomeSafeItems(merged);
+        if (safeMerged.length) {
+          const shuffled = shuffleArray(safeMerged);
+          return shuffled.slice(0, targetCount);
+        }
+      } catch (_e) {}
+
+      return [];
     }
 
     async function loadMusic(signal) {
-      const loaders = await ensureHomeHeavyLoaders();
-      return typeof loaders.loadMusic === 'function' ? loaders.loadMusic(signal) : [];
+      const targetCount = getHomeChannelTargetItems();
+      const lightweightMode = shouldUseLightweightHomeMusicLoad();
+      const market = 'US';
+      const HOME_MUSIC_MIN_ITEMS = lightweightMode
+        ? Math.max(5, Math.min(targetCount, 8))
+        : Math.max(8, Math.min(targetCount, 12));
+      const getTrackContainerLabel = (track = {}) => {
+        const title = String(track?.name || '').trim().toLowerCase();
+        const albumName = String(track?.album?.name || track?.album_name || '').trim();
+        const albumType = String(track?.album?.album_type || track?.album_type || '').trim().toLowerCase();
+        const totalTracks = Number(track?.album?.total_tracks || track?.total_tracks || 0);
+        const sameName = !!title && !!albumName && title === albumName.toLowerCase();
+        if (albumType === 'single' && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
+        if (/\bsingle\b/i.test(albumName) && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
+        return 'Album';
+      };
+      const mapTracksToHomeItems = (tracks = []) => tracks.map((track) => {
+        if (String(track?.kind || '').trim().toLowerCase() === 'album') return null;
+        const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
+        const title = String(track?.name || 'Track').trim() || 'Track';
+        const albumName = String(track?.album?.name || track?.album_name || '').trim() || 'Unknown Album';
+        const containerLabel = getTrackContainerLabel(track);
+        const popularity = Number(track?.popularity || 0);
+        const image = String(track?.image || '').trim();
+        return {
+          mediaType: 'music',
+          itemId: String(track?.id || ''),
+          title,
+          subtitle: artists || 'Artist',
+          extra: `Song | ${containerLabel}: ${albumName}${popularity ? ` | Popularity ${popularity}/100` : ''}`,
+          image,
+          backgroundImage: image,
+          spotlightImage: image,
+          spotlightMediaImage: image,
+          previewUrl: String(track?.preview_url || '').trim(),
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          explicit: track?.explicit === true,
+          href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
+        };
+      }).filter((item) => item && String(item?.itemId || '').trim());
+
+      const mapAlbumsToHomeItems = (albums = []) => albums.map((album, idx) => {
+        const albumIdRaw = String(album?.id || '').trim();
+        const albumId = albumIdRaw.startsWith('album:') ? albumIdRaw.slice(6) : albumIdRaw;
+        const albumType = String(album?.album_type || 'album').trim().toLowerCase();
+        if (albumType && albumType !== 'album') return null;
+        if (!albumId) return null;
+        const source = String(album?.source || '').trim().toLowerCase() || (/^[0-9]+$/.test(albumId) ? 'itunes' : 'spotify');
+        const artists = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : 'Artist';
+        const image = String(album?.image || '').trim();
+        const releaseDate = String(album?.release_date || '').trim();
+        const totalTracks = Number(album?.total_tracks || 0);
+        const detail = [
+          releaseDate ? `Released ${releaseDate}` : '',
+          totalTracks > 0 ? `${totalTracks} tracks` : '',
+          albumType || ''
+        ].filter(Boolean).join(' | ');
+        const href = `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(source)}`;
+        return {
+          mediaType: 'music',
+          itemId: `album:${albumId}`,
+          title: String(album?.name || 'Album').trim() || 'Album',
+          subtitle: artists || 'Artist',
+          extra: `Album${detail ? ` | ${detail}` : ''}`,
+          image,
+          backgroundImage: image,
+          spotlightImage: image,
+          spotlightMediaImage: image,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          href,
+          isMusicAlbum: true
+        };
+      }).filter((item) => !!item && String(item?.itemId || '').trim());
+
+      const dedupeMusicTrackRows = (rows = []) => {
+        const seenIds = new Set();
+        const seenTrackKeys = new Set();
+        const deduped = [];
+        rows.forEach((row) => {
+          const id = String(row?.id || '').trim();
+          const trackName = String(row?.name || '').trim().toLowerCase();
+          const firstArtist = Array.isArray(row?.artists) && row.artists.length
+            ? String(row.artists[0] || '').trim().toLowerCase()
+            : '';
+          const trackKey = `${trackName}::${firstArtist}`;
+          if (!trackName || !firstArtist) return;
+          if (id && seenIds.has(id)) return;
+          if (seenTrackKeys.has(trackKey)) return;
+          if (id) seenIds.add(id);
+          seenTrackKeys.add(trackKey);
+          deduped.push(row);
+        });
+        return deduped;
+      };
+
+      const dedupeMusicAlbumRows = (rows = []) => {
+        const seenIds = new Set();
+        const seenAlbumKeys = new Set();
+        const deduped = [];
+        rows.forEach((row) => {
+          const id = String(row?.id || '').trim();
+          const albumName = String(row?.name || '').trim().toLowerCase();
+          const firstArtist = Array.isArray(row?.artists) && row.artists.length
+            ? String(row.artists[0] || '').trim().toLowerCase()
+            : '';
+          const albumKey = `${albumName}::${firstArtist}`;
+          if (!albumName || !firstArtist) return;
+          if (id && seenIds.has(id)) return;
+          if (seenAlbumKeys.has(albumKey)) return;
+          if (id) seenIds.add(id);
+          seenAlbumKeys.add(albumKey);
+          deduped.push(row);
+        });
+        return deduped;
+      };
+
+      const mixMusicItems = (trackItems = [], albumItems = [], takeCount = targetCount) => {
+        const trackQueue = [...(Array.isArray(trackItems) ? trackItems : [])];
+        const albumQueue = [...(Array.isArray(albumItems) ? albumItems : [])];
+        const mixed = [];
+        while (mixed.length < takeCount && (trackQueue.length || albumQueue.length)) {
+          if (albumQueue.length) mixed.push(albumQueue.shift());
+          if (trackQueue.length && mixed.length < takeCount) mixed.push(trackQueue.shift());
+          if (albumQueue.length && mixed.length < takeCount) mixed.push(albumQueue.shift());
+        }
+        while (mixed.length < takeCount && trackQueue.length) mixed.push(trackQueue.shift());
+        while (mixed.length < takeCount && albumQueue.length) mixed.push(albumQueue.shift());
+        return mixed.slice(0, takeCount);
+      };
+
+      const buildMixedMusicItems = (trackRows = [], albumRows = [], takeCount = targetCount) => {
+        const dedupedTracks = dedupeMusicTrackRows(trackRows);
+        const dedupedAlbums = dedupeMusicAlbumRows(albumRows);
+        const tracksWithArtwork = dedupedTracks.filter((track) => String(track?.image || '').trim());
+        const albumsWithArtwork = dedupedAlbums.filter((album) => String(album?.image || '').trim());
+        const trackPool = tracksWithArtwork.length ? tracksWithArtwork : dedupedTracks;
+        const albumPool = albumsWithArtwork.length ? albumsWithArtwork : dedupedAlbums;
+        const selectedTracks = shuffleArray(trackPool).slice(0, Math.max(takeCount, 16));
+        const selectedAlbums = shuffleArray(albumPool).slice(0, Math.max(takeCount * 2, 24));
+        const mappedTracks = mapTracksToHomeItems(selectedTracks);
+        const mappedAlbums = mapAlbumsToHomeItems(selectedAlbums);
+        const mixed = mixMusicItems(mappedTracks, mappedAlbums, takeCount);
+        return dedupeHomeItemsByMediaAndId(mixed).slice(0, takeCount);
+      };
+      const hasAlbumItems = (items = []) => (Array.isArray(items) ? items : [])
+        .some((item) => item?.isMusicAlbum === true || String(item?.itemId || '').startsWith('album:'));
+      const hasTrackItems = (items = []) => (Array.isArray(items) ? items : [])
+        .some((item) => item && !item?.isMusicAlbum && !String(item?.itemId || '').startsWith('album:'));
+      const isHealthyMusicBatch = (items = []) => {
+        const list = Array.isArray(items) ? items : [];
+        return list.length >= HOME_MUSIC_MIN_ITEMS && hasAlbumItems(list) && hasTrackItems(list);
+      };
+      const collectedTrackRows = [];
+      const collectedAlbumRows = [];
+      const collectMusicRows = ({ tracks = [], albums = [] } = {}) => {
+        if (Array.isArray(tracks) && tracks.length) collectedTrackRows.push(...tracks);
+        if (Array.isArray(albums) && albums.length) collectedAlbumRows.push(...albums);
+      };
+      const getCollectedTrackRows = () => dedupeMusicTrackRows(collectedTrackRows);
+      const getCollectedAlbumRows = () => dedupeMusicAlbumRows(collectedAlbumRows);
+
+      const top50Limit = lightweightMode ? Math.max(targetCount * 3, 28) : Math.max(targetCount * 4, 64);
+      const newReleaseLimit = lightweightMode ? Math.max(targetCount * 2, 18) : Math.max(targetCount * 3, 36);
+      const musicFetchOptions = { signal, timeoutMs: 3600, retries: 1 };
+      const [top50Res, topAlbumsRes, topReleaseAlbumsRes] = await Promise.allSettled([
+        fetchJsonWithPerfCache(
+          `/api/music/top-50?limit=${top50Limit}&market=${market}`,
+          { ...musicFetchOptions, cacheKey: `music:top-50:${top50Limit}:${market}` }
+        ),
+        fetchJsonWithPerfCache(
+          `/api/music/popular-albums?limit=${newReleaseLimit}&market=${market}&album_types=album`,
+          { ...musicFetchOptions, cacheKey: `music:popular-albums:${newReleaseLimit}:${market}:album` }
+        ),
+        fetchJsonWithPerfCache(
+          `/api/music/new-releases?limit=${newReleaseLimit}&market=${market}&album_types=album`,
+          { ...musicFetchOptions, cacheKey: `music:new-releases:${newReleaseLimit}:${market}:album` }
+        )
+      ]);
+      const top50Rows = top50Res.status === 'fulfilled' && Array.isArray(top50Res.value?.results) ? top50Res.value.results : [];
+      const topAlbumRows = [
+        ...(topAlbumsRes.status === 'fulfilled' && Array.isArray(topAlbumsRes.value?.results) ? topAlbumsRes.value.results : []),
+        ...(topReleaseAlbumsRes.status === 'fulfilled' && Array.isArray(topReleaseAlbumsRes.value?.results) ? topReleaseAlbumsRes.value.results : [])
+      ];
+      collectMusicRows({ tracks: top50Rows, albums: topAlbumRows });
+      const topBatch = filterHomeSafeItems(buildMixedMusicItems(top50Rows, topAlbumRows, targetCount));
+      if (isHealthyMusicBatch(topBatch)) return topBatch;
+      if (lightweightMode && topBatch.length >= Math.min(6, HOME_MUSIC_MIN_ITEMS)) return topBatch;
+
+      const [popularRes, popularAlbumsRes, popularReleaseAlbumsRes] = await Promise.allSettled([
+        fetchJsonWithPerfCache(
+          `/api/music/popular?limit=50&market=${market}`,
+          { ...musicFetchOptions, cacheKey: `music:popular:50:${market}` }
+        ),
+        fetchJsonWithPerfCache(
+          `/api/music/popular-albums?limit=36&market=${market}&album_types=album`,
+          { ...musicFetchOptions, cacheKey: `music:popular-albums:36:${market}:album` }
+        ),
+        fetchJsonWithPerfCache(
+          `/api/music/new-releases?limit=24&market=${market}&album_types=album`,
+          { ...musicFetchOptions, cacheKey: `music:new-releases:24:${market}:album` }
+        )
+      ]);
+      const popularRows = popularRes.status === 'fulfilled' && Array.isArray(popularRes.value?.results) ? popularRes.value.results : [];
+      const popularAlbumRows = [
+        ...(popularAlbumsRes.status === 'fulfilled' && Array.isArray(popularAlbumsRes.value?.results)
+          ? popularAlbumsRes.value.results
+          : []),
+        ...(popularReleaseAlbumsRes.status === 'fulfilled' && Array.isArray(popularReleaseAlbumsRes.value?.results)
+          ? popularReleaseAlbumsRes.value.results
+          : [])
+      ];
+      collectMusicRows({ tracks: popularRows, albums: popularAlbumRows });
+      const popularBatch = filterHomeSafeItems(buildMixedMusicItems(popularRows, popularAlbumRows, targetCount));
+      if (isHealthyMusicBatch(popularBatch)) return popularBatch;
+      if (lightweightMode && popularBatch.length >= Math.min(6, HOME_MUSIC_MIN_ITEMS)) return popularBatch;
+
+      if (lightweightMode) {
+        const bestEffortLightBatch = filterHomeSafeItems(
+          buildMixedMusicItems(
+            getCollectedTrackRows(),
+            getCollectedAlbumRows(),
+            Math.max(targetCount, HOME_MUSIC_MIN_ITEMS)
+          )
+        );
+        return bestEffortLightBatch.slice(0, targetCount);
+      }
+
+      const searchFallbackTerms = ['top albums and songs', 'new music albums and songs'];
+      for (const term of searchFallbackTerms) {
+        try {
+          const fallbackSearch = await fetchJsonWithPerfCache(
+            `/api/music/search?q=${encodeURIComponent(term)}&limit=40&market=${market}&type=track,album&album_types=album`,
+            { ...musicFetchOptions, cacheKey: `music:search-fallback:${market}:${term}` }
+          );
+          const fallbackTracks = Array.isArray(fallbackSearch?.tracks) ? fallbackSearch.tracks : [];
+          const fallbackAlbums = Array.isArray(fallbackSearch?.albums) ? fallbackSearch.albums : [];
+          collectMusicRows({ tracks: fallbackTracks, albums: fallbackAlbums });
+          const searchBatch = filterHomeSafeItems(buildMixedMusicItems(fallbackTracks, fallbackAlbums, targetCount));
+          if (isHealthyMusicBatch(searchBatch)) return searchBatch;
+        } catch (_err) {}
+      }
+
+      const minimumTrackRows = Math.max(4, Math.ceil(HOME_MUSIC_MIN_ITEMS / 2));
+      const minimumAlbumRows = Math.max(4, Math.ceil(HOME_MUSIC_MIN_ITEMS / 2));
+      if (getCollectedAlbumRows().length < minimumAlbumRows) {
+        try {
+          const albumSearch = await fetchJsonWithPerfCache(
+            `/api/music/search?q=${encodeURIComponent('top albums')}&limit=48&market=${market}&type=album&album_types=album`,
+            { ...musicFetchOptions, cacheKey: `music:album-search-backfill:${market}` }
+          );
+          collectMusicRows({ albums: Array.isArray(albumSearch?.albums) ? albumSearch.albums : [] });
+        } catch (_err) {}
+      }
+      if (getCollectedTrackRows().length < minimumTrackRows) {
+        try {
+          const trackSearch = await fetchJsonWithPerfCache(
+            `/api/music/search?q=${encodeURIComponent('top songs')}&limit=48&market=${market}&type=track`,
+            { ...musicFetchOptions, cacheKey: `music:track-search-backfill:${market}` }
+          );
+          collectMusicRows({ tracks: Array.isArray(trackSearch?.tracks) ? trackSearch.tracks : [] });
+        } catch (_err) {}
+      }
+
+      const bestEffortBatch = filterHomeSafeItems(
+        buildMixedMusicItems(
+          getCollectedTrackRows(),
+          getCollectedAlbumRows(),
+          Math.max(targetCount, HOME_MUSIC_MIN_ITEMS)
+        )
+      );
+      if (bestEffortBatch.length) {
+        const mixedEnough = hasAlbumItems(bestEffortBatch) && hasTrackItems(bestEffortBatch);
+        if (isHealthyMusicBatch(bestEffortBatch) || (mixedEnough && bestEffortBatch.length >= Math.min(6, HOME_MUSIC_MIN_ITEMS))) {
+          return bestEffortBatch;
+        }
+      }
+
+      return [];
+    }
+
+    function normalizeTravelSearchText(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+\(country\)\s*$/i, '')
+        .replace(/[^a-z0-9 ]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function pickHomeCountryCities(code, capital) {
+      const safeCode = String(code || '').trim().toUpperCase();
+      const seeded = Array.isArray(homeCountryCityHints[safeCode]) ? homeCountryCityHints[safeCode] : [];
+      const out = [];
+      const firstCapital = Array.isArray(capital)
+        ? String(capital[0] || '').trim()
+        : String(capital || '').trim();
+      if (firstCapital) out.push(firstCapital);
+      seeded.forEach((city) => {
+        const clean = String(city || '').trim();
+        if (!clean) return;
+        if (out.some((entry) => entry.toLowerCase() === clean.toLowerCase())) return;
+        out.push(clean);
+      });
+      return out.slice(0, 3);
+    }
+
+    function isBlockedTravelCommonsTitle(title, countryName, capital, cityHints = []) {
+      const raw = String(title || '').toLowerCase();
+      if (!raw) return true;
+      const blocked = [
+        'flag',
+        'coat of arms',
+        'emblem',
+        'seal',
+        'map of',
+        'locator map',
+        'location map',
+        'orthographic',
+        'equirectangular',
+        'blank map',
+        'administrative map',
+        'province map',
+        'political map',
+        'banner',
+        'painting',
+        'artwork',
+        'illustration',
+        'drawing',
+        'poster',
+        'watercolor',
+        'etching',
+        'engraving',
+        'lithograph',
+        'oil on canvas'
+      ];
+      if (blocked.some((token) => raw.includes(token))) return true;
+      const countryNeedle = normalizeTravelSearchText(countryName);
+      const capitalNeedle = normalizeTravelSearchText(capital);
+      const cityNeedles = (Array.isArray(cityHints) ? cityHints : [])
+        .map((value) => normalizeTravelSearchText(value))
+        .filter(Boolean);
+      if (!countryNeedle && !capitalNeedle && !cityNeedles.length) return false;
+      const normalizedTitle = normalizeTravelSearchText(title);
+      const hasCountry = countryNeedle && normalizedTitle.includes(countryNeedle);
+      const hasCapital = capitalNeedle && normalizedTitle.includes(capitalNeedle);
+      const hasCity = cityNeedles.some((needle) => normalizedTitle.includes(needle));
+      return !(hasCountry || hasCapital || hasCity);
+    }
+
+    function isTravelCommonsPhotoMime(mime) {
+      const value = String(mime || '').toLowerCase().trim();
+      return value === 'image/jpeg' || value === 'image/jpg' || value === 'image/webp';
+    }
+
+    function buildHomeTravelPhotoQueries(kind, name, capital, cities = []) {
+      const primaryCity = String(capital || cities[0] || '').trim();
+      if (kind === 'city') {
+        return [
+          primaryCity ? `${primaryCity} skyline` : '',
+          primaryCity ? `${primaryCity} downtown` : '',
+          `${name} city skyline`,
+          `${name} city center`,
+          `${name} street`
+        ].map((value) => String(value || '').trim()).filter(Boolean);
+      }
+      if (kind === 'nature') {
+        return [
+          `${name} landscape`,
+          `${name} nature`,
+          `${name} national park`,
+          `${name} mountains`,
+          `${name} coast`
+        ].map((value) => String(value || '').trim()).filter(Boolean);
+      }
+      return [
+        `${name} landscape`,
+        `${name} travel photography`,
+        `${name} scenic`,
+        `${name} nature`,
+        `${primaryCity ? `${primaryCity} skyline` : ''}`
+      ].map((value) => String(value || '').trim()).filter(Boolean);
+    }
+
+    async function fetchTravelCommonsPhotoByKind(kind, name, code, capital, cities, signal) {
+      const safeCode = String(code || '').trim().toUpperCase();
+      if (!safeCode) return '';
+      const queries = buildHomeTravelPhotoQueries(kind, name, capital, cities);
+      for (const query of queries) {
+        if (signal?.aborted) break;
+        const endpoint = `https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=8&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=1200`;
+        try {
+          const payload = await fetchJsonWithPerfCache(endpoint, {
+            signal,
+            cacheKey: `commons:travel:home:${safeCode}:${kind}:${query.toLowerCase()}`,
+            ttlMs: 1000 * 60 * 60 * 24 * 7,
+            timeoutMs: 7600,
+            retries: 1
+          });
+          const pages = Array.isArray(payload?.query?.pages) ? payload.query.pages : [];
+          const preferred = pages.find((page) => {
+            const title = String(page?.title || '');
+            const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
+            if (!isTravelCommonsPhotoMime(mime)) return false;
+            if (isBlockedTravelCommonsTitle(title, name, capital, cities)) return false;
+            return true;
+          }) || pages.find((page) => {
+            const title = String(page?.title || '').toLowerCase();
+            const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
+            if (!isTravelCommonsPhotoMime(mime)) return false;
+            const blocked = ['flag', 'coat of arms', 'emblem', 'seal', 'map of', 'locator map', 'location map', 'orthographic', 'equirectangular', 'blank map', 'administrative map', 'province map', 'political map', 'banner'];
+            return !blocked.some((token) => title.includes(token));
+          });
+          const image = toHttpsUrl(preferred?.imageinfo?.[0]?.thumburl || preferred?.imageinfo?.[0]?.url || '');
+          if (isUsableHomeTravelScenicUrl(image)) return image;
+        } catch (_error) {
+          // continue with next query
+        }
+      }
+      return '';
+    }
+
+    async function fetchTravelCommonsPhoto(name, code, capital, cities, signal) {
+      const safeCode = String(code || '').trim().toUpperCase();
+      if (!safeCode) return '';
+      const cached = getHomeTravelPhotoSet(safeCode);
+      if (cached.scenic) return cached.scenic;
+      const scenic = await fetchTravelCommonsPhotoByKind('scenic', name, safeCode, capital, cities, signal);
+      if (scenic) setHomeTravelPhotoCache(safeCode, scenic, 'scenic');
+      return scenic;
+    }
+
+    async function fetchTravelCommonsPhotos(rows = [], signal, opts = {}) {
+      const list = Array.isArray(rows) ? rows : [];
+      const includeLifestyle = !!opts.includeLifestyle && !isHomeSlowNetwork();
+      const unresolved = list.filter((row) => {
+        const rawCode = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+        if (rawCode === 'IL') return false;
+        const code = canonicalTravelCountryCode(rawCode);
+        const name = String(row?.name?.common || row?.name?.official || '').trim();
+        if (/\bisrael\b/i.test(name)) return false;
+        const cached = getHomeTravelPhotoSet(code);
+        if (!code || !name) return false;
+        if (!cached.scenic) return true;
+        if (includeLifestyle && (!cached.city || !cached.nature)) return true;
+        return false;
+      });
+      if (!unresolved.length) return homeTravelPhotoCache;
+
+      const queue = unresolved.slice(0, 100);
+      const workerCount = Math.min(includeLifestyle ? 4 : 6, queue.length);
+      let cursor = 0;
+      const workers = Array.from({ length: workerCount }, async () => {
+        while (cursor < queue.length) {
+          const index = cursor;
+          cursor += 1;
+          const row = queue[index];
+          if (!row || signal?.aborted) return;
+          const rawCode = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+          if (rawCode === 'IL') continue;
+          const code = canonicalTravelCountryCode(rawCode);
+          const name = String(row?.name?.common || row?.name?.official || '').trim();
+          if (/\bisrael\b/i.test(name)) continue;
+          const capital = Array.isArray(row?.capital)
+            ? String(row.capital[0] || '').trim()
+            : String(row?.capital || '').trim();
+          if (!code || !name) continue;
+          const cities = pickHomeCountryCities(code, capital);
+          const cached = getHomeTravelPhotoSet(code);
+          if (!cached.scenic) {
+            const scenic = await fetchTravelCommonsPhoto(name, code, capital, cities, signal);
+            if (scenic) setHomeTravelPhotoCache(code, scenic, 'scenic');
+          }
+          if (includeLifestyle) {
+            const nextCached = getHomeTravelPhotoSet(code);
+            if (!nextCached.city) {
+              const cityPhoto = await fetchTravelCommonsPhotoByKind('city', name, code, capital, cities, signal);
+              if (cityPhoto) setHomeTravelPhotoCache(code, cityPhoto, 'city');
+            }
+            const afterCity = getHomeTravelPhotoSet(code);
+            if (!afterCity.nature) {
+              const naturePhoto = await fetchTravelCommonsPhotoByKind('nature', name, code, capital, cities, signal);
+              if (naturePhoto) setHomeTravelPhotoCache(code, naturePhoto, 'nature');
+            }
+          }
+        }
+      });
+      await Promise.all(workers);
+
+      return homeTravelPhotoCache;
+    }
+
+    function mapTravelCountryToHomeItem(row, photoMap = null) {
+      const rawCode = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+      if (!rawCode || rawCode === 'IL') return null;
+      const code = canonicalTravelCountryCode(rawCode);
+      const baseTitle = String(row?.name?.common || row?.name?.official || '').trim();
+      if (/\bisrael\b/i.test(baseTitle)) return null;
+      const resolvedBaseTitle = code === 'PS' ? 'Palestine' : baseTitle;
+      const title = formatTravelTitleWithFlag(resolvedBaseTitle, code);
+      if (!code || !title) return null;
+      const capital = Array.isArray(row?.capital)
+        ? String(row.capital[0] || '').trim()
+        : String(row?.capital || '').trim();
+      const region = String(row?.region || '').trim();
+      const subregion = String(row?.subregion || '').trim();
+      const cities = pickHomeCountryCities(code, capital);
+      const flagImage = toHttpsUrl(String(row?.flags?.png || row?.flags?.svg || '').trim())
+        || getHomeCountryFlagByCode(code)
+        || getHomeCountryFlag(title)
+        || '';
+      const subtitle = [
+        capital ? `Capital: ${capital}` : '',
+        region
+      ].filter(Boolean).join(' | ') || 'Country';
+      const extraParts = [];
+      if (subregion && subregion !== region) extraParts.push(subregion);
+      if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
+      const photoFromCommons = photoMap instanceof Map ? normalizeHomeTravelPhotoEntry(photoMap.get(code)) : { scenic: '', city: '', nature: '' };
+      if (photoFromCommons.scenic) setHomeTravelPhotoCache(code, photoFromCommons.scenic, 'scenic');
+      if (photoFromCommons.city) setHomeTravelPhotoCache(code, photoFromCommons.city, 'city');
+      if (photoFromCommons.nature) setHomeTravelPhotoCache(code, photoFromCommons.nature, 'nature');
+      const photoImageRaw = getSafeTravelScenicImage(resolvedBaseTitle, code, photoFromCommons.scenic || '');
+      const scenicImage = isUsableHomeTravelScenicUrl(photoImageRaw) ? photoImageRaw : '';
+      const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
+      const heroImage = scenicImage || safeFallback;
+      if (!heroImage) return null;
+      const cachedSet = getHomeTravelPhotoSet(code);
+      return {
+        mediaType: 'travel',
+        itemId: code,
+        title,
+        subtitle,
+        extra: extraParts.join(' | ') || 'Travel',
+        cities,
+        flagImage,
+        listImage: heroImage,
+        image: heroImage,
+        backgroundImage: heroImage || '',
+        spotlightImage: heroImage || '',
+        spotlightMediaImage: flagImage || heroImage,
+        spotlightMediaFit: flagImage ? 'contain' : 'cover',
+        spotlightMediaPosition: 'center center',
+        spotlightMediaShape: 'square',
+        travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
+        travelPhotoSet: {
+          scenic: cachedSet.scenic || heroImage || '',
+          city: cachedSet.city || '',
+          nature: cachedSet.nature || ''
+        },
+        travelNeedsScenicHydration: false,
+        fallbackImage: safeFallback || heroImage,
+        href: `country.html?code=${encodeURIComponent(code)}`
+      };
+    }
+
+    function mapCachedTravelCountryRowToHomeItem(row) {
+      const code = canonicalTravelCountryCode(row?.code || row?.cca2 || row?.cca3 || '');
+      const baseTitle = String(row?.name || row?.title || '').trim();
+      if (!code || !baseTitle || /\bisrael\b/i.test(baseTitle)) return null;
+      const resolvedBaseTitle = code === 'PS' ? 'Palestine' : baseTitle;
+      const title = formatTravelTitleWithFlag(resolvedBaseTitle, code);
+      const capital = String(row?.capital || '').trim();
+      const region = String(row?.region || '').trim();
+      const subregion = String(row?.subregion || '').trim();
+      const cities = Array.isArray(row?.cities)
+        ? row.cities.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3)
+        : pickHomeCountryCities(code, capital);
+      const flagImage = toHttpsUrl(String(row?.flag || row?.flagImage || '').trim())
+        || getHomeCountryFlagByCode(code)
+        || getHomeCountryFlag(title)
+        || '';
+      const subtitle = [
+        capital ? `Capital: ${capital}` : '',
+        region
+      ].filter(Boolean).join(' | ') || 'Country';
+      const extraParts = [];
+      if (subregion && subregion !== region) extraParts.push(subregion);
+      if (cities.length) extraParts.push(`Cities: ${cities.join(', ')}`);
+      const scenicRaw = getSafeTravelScenicImage(resolvedBaseTitle, code, row?.photo || row?.image || row?.backgroundImage || row?.spotlightImage || '');
+      const scenicImage = isUsableHomeTravelScenicUrl(scenicRaw) ? scenicRaw : '';
+      const safeFallback = isUsableHomeTravelScenicUrl(HOME_TRAVEL_FALLBACK_IMAGE) ? HOME_TRAVEL_FALLBACK_IMAGE : '';
+      const heroImage = scenicImage || safeFallback;
+      if (!heroImage) return null;
+      if (heroImage) setHomeTravelPhotoCache(code, heroImage, 'scenic');
+      if (row?.photoCity) setHomeTravelPhotoCache(code, row.photoCity, 'city');
+      if (row?.photoNature) setHomeTravelPhotoCache(code, row.photoNature, 'nature');
+      const cachedSet = getHomeTravelPhotoSet(code);
+      return {
+        mediaType: 'travel',
+        itemId: code,
+        title,
+        subtitle,
+        extra: extraParts.join(' | ') || 'Travel',
+        cities,
+        flagImage,
+        listImage: heroImage,
+        image: heroImage,
+        backgroundImage: heroImage || '',
+        spotlightImage: heroImage || '',
+        spotlightMediaImage: flagImage || heroImage,
+        spotlightMediaFit: flagImage ? 'contain' : 'cover',
+        spotlightMediaPosition: 'center center',
+        spotlightMediaShape: 'square',
+        travelPhotos: [cachedSet.city, cachedSet.nature].filter(Boolean),
+        travelPhotoSet: {
+          scenic: cachedSet.scenic || heroImage || '',
+          city: cachedSet.city || '',
+          nature: cachedSet.nature || ''
+        },
+        travelNeedsScenicHydration: false,
+        fallbackImage: safeFallback || heroImage,
+        href: `country.html?code=${encodeURIComponent(code)}`
+      };
+    }
+
+    function getCachedHomeTravelItems(limit = getHomeChannelTargetItems()) {
+      const rows = readHomeTravelCountryRowsCache();
+      if (!rows.length) return [];
+      const seenCodes = new Set();
+      const items = [];
+      rows.forEach((row) => {
+        const item = mapCachedTravelCountryRowToHomeItem(row);
+        const code = String(item?.itemId || '').trim().toUpperCase();
+        if (!item || !code || seenCodes.has(code)) return;
+        seenCodes.add(code);
+        items.push(item);
+      });
+      return shuffleArray(items).slice(0, Math.max(1, Number(limit || getHomeChannelTargetItems())));
     }
 
     async function loadTravel(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
+      const cachedRowItems = getCachedHomeTravelItems(targetCount);
       const cachedHomeItems = readHomeItemsCache(
         HOME_TRAVEL_ITEMS_CACHE_KEY,
         HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS,
         sanitizeHomeTravelItem
       );
-      if (cachedHomeItems.length) return cachedHomeItems.slice(0, targetCount);
 
-      const cachedRowItems = getCachedHomeTravelItems(targetCount);
-      if (cachedRowItems.length) return cachedRowItems.slice(0, targetCount);
-
-      // Make travel load instantly on home: render deterministic fallback cards immediately,
-      // then hydrate with real country rows (like the older working commit) in the background.
-      const fallbackItems = getHomeTravelFallbackItems(targetCount);
-
-      if (!homeTravelHydrationPromise) {
-        homeTravelHydrationPromise = (async () => {
-          const backgroundController = typeof AbortController !== 'undefined' ? new AbortController() : null;
-          let backgroundTimer = null;
-          try {
-            // Hydrate the Supabase manifest if possible (scenic photos); do not block too long.
-            try {
-              if (backgroundController) {
-                backgroundTimer = setTimeout(() => backgroundController.abort(), 14000);
-              }
-              await withTimeout(hydrateHomeTravelBucketManifest(backgroundController ? backgroundController.signal : undefined), 5200, false).catch(() => false);
-            } catch (_err) {}
-
-            const payload = await fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
-              cacheKey: 'restcountries:all:v3.1:home:travel:hydrate',
-              ttlMs: 1000 * 60 * 60 * 12,
-              timeoutMs: 9500,
-              retries: 1
-            });
-            const rows = Array.isArray(payload) ? payload : [];
-            if (!rows.length) return;
-            primeHomeCountryIndex(rows);
-
-            const sortedRows = rows
-              .filter((row) => {
-                if (!row || !(row.cca2 || row.cca3) || !(row?.name?.common || row?.name?.official)) return false;
-                const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
-                const name = String(row?.name?.common || row?.name?.official || '').trim();
-                if (code === 'IL') return false;
-                if (/\bisrael\b/i.test(name)) return false;
-                return true;
-              })
-              .sort((a, b) => {
-                const left = String(a?.name?.common || a?.name?.official || '').trim();
-                const right = String(b?.name?.common || b?.name?.official || '').trim();
-                return left.localeCompare(right);
-              });
-
-            const shortlist = shuffleArray(sortedRows.slice(0, Math.max(targetCount * 5, 120)));
-            const seen = new Set();
-            const out = [];
-            const compactRows = [];
-            const pushRow = (row) => {
-              const code = canonicalTravelCountryCode(row?.cca2 || row?.cca3 || '');
-              if (!code || seen.has(code)) return;
-              const name = String(row?.name?.common || row?.name?.official || code || '').trim();
-              if (!name) return;
-              const capital = Array.isArray(row?.capital) ? String(row.capital[0] || '').trim() : String(row?.capital || '').trim();
-              const flag = toHttpsUrl(String(row?.flags?.png || row?.flags?.svg || '').trim());
-              const scenic = normalizeHomeTravelPhotoEntry(getHomeTravelPhotoSet(code)).scenic || HOME_TRAVEL_FALLBACK_IMAGE;
-              const compact = {
-                code,
-                cca2: String(row?.cca2 || '').trim(),
-                cca3: String(row?.cca3 || '').trim(),
-                name,
-                capital,
-                region: String(row?.region || '').trim(),
-                subregion: String(row?.subregion || '').trim(),
-                flag,
-                photo: scenic
-              };
-              const item = mapCachedTravelCountryRowToHomeItem(compact);
-              if (!item) return;
-              seen.add(code);
-              compactRows.push(compact);
-              out.push(item);
-            };
-
-            shortlist.forEach(pushRow);
-            if (out.length < targetCount) sortedRows.forEach(pushRow);
-            const items = out.slice(0, targetCount);
-            if (!items.length) return;
-
-            writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, items);
-            if (compactRows.length) writeHomeTravelCountryRowsCache(compactRows);
-
-            // If we're still on the home app shell, progressively update the rail.
-            if (document.hidden) return;
-            const rail = document.getElementById('travelRail');
-            if (!rail) return;
-            homeFeedState.travel = items;
-            renderRail('travelRail', items, { mediaType: 'travel' });
-          } catch (_err) {
-            // Ignore; fallback cards remain visible.
-          } finally {
-            if (backgroundTimer) clearTimeout(backgroundTimer);
-            if (backgroundController) {
-              try { backgroundController.abort(); } catch (_err) {}
-            }
-          }
-        })().finally(() => {
-          homeTravelHydrationPromise = null;
-        });
+      if (cachedHomeItems.length) {
+        return cachedHomeItems.slice(0, targetCount);
       }
 
-      return fallbackItems;
+      if (cachedRowItems.length) {
+        return cachedRowItems.slice(0, targetCount);
+      }
+
+      try {
+        const payload = await fetchJsonWithPerfCache(REST_COUNTRIES_ALL_URL, {
+          signal,
+          cacheKey: 'restcountries:all:v3.1:home',
+          ttlMs: 1000 * 60 * 60 * 12,
+          timeoutMs: 9500,
+          retries: 1
+        });
+        if (signal?.aborted) return [];
+        const rows = Array.isArray(payload) ? payload : [];
+        if (!rows.length) return getHomeTravelFallbackItems(targetCount);
+        primeHomeCountryIndex(rows);
+
+        const sortedRows = rows
+          .filter((row) => {
+            if (!row || !(row.cca2 || row.cca3) || !(row?.name?.common || row?.name?.official)) return false;
+            const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
+            const name = String(row?.name?.common || row?.name?.official || '').trim();
+            if (code === 'IL') return false;
+            if (/\bisrael\b/i.test(name)) return false;
+            return true;
+          })
+          .sort((a, b) => {
+            const left = String(a?.name?.common || a?.name?.official || '').trim();
+            const right = String(b?.name?.common || b?.name?.official || '').trim();
+            return left.localeCompare(right);
+          });
+
+        const shortlist = shuffleArray(sortedRows.slice(0, Math.max(targetCount * 5, 120)));
+        const collectTravelItems = (photoMap) => {
+          const seenCodes = new Set();
+          const out = [];
+          const pushRow = (row) => {
+            const item = mapTravelCountryToHomeItem(row, photoMap);
+            if (!item) return;
+            const code = String(item.itemId || '').trim().toUpperCase();
+            if (!code || seenCodes.has(code)) return;
+            seenCodes.add(code);
+            out.push(item);
+          };
+          shortlist.forEach(pushRow);
+          if (out.length < targetCount) sortedRows.forEach(pushRow);
+          return out;
+        };
+
+        const cachedCandidates = collectTravelItems(homeTravelPhotoCache).slice(0, targetCount);
+        if (cachedCandidates.length >= Math.min(targetCount, 6)) {
+          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, cachedCandidates);
+          const photoCandidates = sortedRows.slice(0, Math.max(targetCount * 3, 60));
+          if (!homeTravelHydrationPromise) {
+            homeTravelHydrationPromise = (async () => {
+              const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+              const timer = setTimeout(() => controller?.abort(), 12000);
+              try {
+                const photoMap = await fetchTravelCommonsPhotos(
+                  photoCandidates,
+                  controller?.signal,
+                  { includeLifestyle: !isHomeSlowNetwork() }
+                );
+                const hydrated = collectTravelItems(photoMap).slice(0, targetCount);
+                if (hydrated.length) {
+                  writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, hydrated);
+                  homeFeedState.travel = hydrated;
+                  renderRail('travelRail', hydrated, { mediaType: 'travel' });
+                  const scoredPool = buildScoredDiscoveryPool(homeFeedState);
+                  const unified = buildUnifiedFeed(scoredPool, getHomeUnifiedTargetItems());
+                  renderRail('unifiedRail', unified, { mediaType: 'mixed', uniformMedia: true, restaurantComposite: true });
+                  hydrateSpotlightFromPool(scoredPool);
+                }
+              } finally {
+                clearTimeout(timer);
+                homeTravelHydrationPromise = null;
+              }
+            })();
+          }
+          return cachedCandidates;
+        }
+
+        const photoCandidates = sortedRows.slice(0, Math.max(targetCount * 3, 60));
+        const photoMap = await withTimeout(
+          fetchTravelCommonsPhotos(
+            photoCandidates,
+            signal,
+            { includeLifestyle: !isHomeSlowNetwork() }
+          ),
+          isHomeSlowNetwork() ? 2200 : 3600,
+          homeTravelPhotoCache
+        ).catch(() => homeTravelPhotoCache);
+
+        const hydrated = collectTravelItems(photoMap).slice(0, targetCount);
+        if (hydrated.length) {
+          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, hydrated);
+          return hydrated;
+        }
+        if (cachedCandidates.length) {
+          writeHomeItemsCache(HOME_TRAVEL_ITEMS_CACHE_KEY, cachedCandidates);
+          return cachedCandidates;
+        }
+        if (cachedRowItems.length) return cachedRowItems;
+      } catch (_err) {}
+
+      return cachedRowItems.length ? cachedRowItems : getHomeTravelFallbackItems(targetCount);
     }
 
-    async function loadSports(signal) {
-      const target = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || 12)));
-      const normalizeSportsName = (value) => String(value || '')
+    function getHomeSportEmoji(sportRaw = '') {
+      const sport = String(sportRaw || '').trim().toLowerCase();
+      if (!sport) return '';
+      if (sport.includes('soccer')) return '⚽';
+      if (sport.includes('american football')) return '🏈';
+      if (sport.includes('football')) return '⚽';
+      if (sport.includes('basketball')) return '🏀';
+      if (sport.includes('baseball')) return '⚾';
+      if (sport.includes('ice hockey') || sport.includes('hockey')) return '🏒';
+      if (sport.includes('cricket')) return '🏏';
+      if (sport.includes('rugby')) return '🏉';
+      if (sport.includes('golf')) return '⛳';
+      if (sport.includes('tennis')) return '🎾';
+      if (sport.includes('volleyball')) return '🏐';
+      if (sport.includes('handball')) return '🤾';
+      if (sport.includes('boxing')) return '🥊';
+      if (sport.includes('mma') || sport.includes('mixed martial')) return '🥋';
+      if (sport.includes('motorsport') || sport.includes('racing')) return '🏎️';
+      if (sport.includes('cycling')) return '🚴';
+      if (sport.includes('snooker') || sport.includes('billiard')) return '🎱';
+      if (sport.includes('darts')) return '🎯';
+      if (sport.includes('table tennis') || sport.includes('ping pong')) return '🏓';
+      return '🏟️';
+    }
+
+    function mapSportsTeamToHomeItem(team) {
+      if (!team || typeof team !== 'object') return null;
+      const id = String(team.idTeam || '').trim();
+      const title = String(team.strTeam || '').trim();
+      if (!title) return null;
+      const sport = String(team.strSport || '').trim();
+      const league = String(team.strLeague || '').trim();
+      const stadium = String(team.strStadium || '').trim();
+      const country = String(team.strCountry || '').trim();
+      const badge = toHttpsUrl(team.strBadge || team.strTeamBadge || team.strTeamLogo || team.strLogo || '');
+      const banner = toHttpsUrl(team.strBanner || team.strTeamBanner || '');
+      const fanart = toHttpsUrl(
+        team.strFanart1 || team.strFanart2 || team.strFanart3 || team.strFanart4 ||
+        team.strTeamFanart1 || team.strTeamFanart2 || team.strTeamFanart3 || ''
+      );
+      const stadiumImage = toHttpsUrl(team.strStadiumThumb || '');
+      const jersey = toHttpsUrl(team.strEquipment || team.strTeamJersey || '');
+      const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
+      if (!badge) return null;
+      const background = fanart || stadiumImage || banner || badge || fallbackImage;
+      const image = badge;
+      const subtitle = [league, sport].filter(Boolean).join(' | ') || 'Team';
+      const sportIcon = getHomeSportEmoji(sport);
+      const subtitleWithIcon = sportIcon ? `${sportIcon} ${subtitle}` : subtitle;
+      const flagImage = getHomeCountryFlag(country);
+      const spotlightMedia = badge || flagImage || jersey || background;
+      const spotlightMediaFit = (badge || flagImage || jersey) ? 'contain' : 'cover';
+      const params = new URLSearchParams();
+      if (id) params.set('id', id);
+      if (title) params.set('team', title);
+      if (league) params.set('league', league);
+      if (sport) params.set('sport', sport);
+      if (country) params.set('country', country);
+      const query = params.toString();
+      const href = query ? `team.html?${query}` : 'team.html';
+      return {
+        mediaType: 'sports',
+        itemId: id || title,
+        title,
+        subtitle: subtitleWithIcon,
+        extra: stadium ? `Stadium: ${stadium}` : '',
+        image,
+        listImage: badge || flagImage || image,
+        mediaFit: 'contain',
+        backgroundImage: background,
+        spotlightImage: background,
+        spotlightMediaImage: spotlightMedia,
+        spotlightMediaFit,
+        spotlightMediaShape: 'square',
+        sport,
+        league,
+        country,
+        flagImage,
+        stadium,
+        badge,
+        banner,
+        fanart,
+        jersey,
+        stadiumImage,
+        href
+      };
+    }
+
+    function normalizeHomeSportsName(value) {
+      return String(value || '')
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]+/g, '')
-        .replace(/[\u0027\u2019]/g, '')
+        .replace(/['â€™]/g, '')
         .replace(/\b(fc|cf|sc|afc|club|the)\b/g, '')
         .replace(/[^a-z0-9]+/g, ' ')
         .trim();
-      const seedSet = new Set(HOME_SPORTS_SEEDS.map((name) => normalizeSportsName(name)).filter(Boolean));
-      const priorityLeagues = new Set([
-        'premier league', 'la liga', 'serie a', 'bundesliga', 'ligue 1', 'uefa champions league',
-        'nba', 'nfl', 'mlb', 'nhl', 'formula 1', 'ipl', 'icc cricket world cup',
-        'united rugby championship', 'six nations', 'super rugby'
-      ]);
-      const featuredTeamsPriority = [
-        'real madrid',
-        'liverpool',
-        'barcelona',
-        'manchester city',
-        'arsenal',
-        'los angeles lakers',
-        'boston celtics',
-        'golden state warriors',
-        'ferrari',
-        'mercedes amg petronas',
-        'red bull racing',
-        'kansas city chiefs',
-        'dallas cowboys',
-        'san francisco 49ers'
-      ];
-      const featuredTeamScore = new Map(featuredTeamsPriority.map((name, index) => [name, featuredTeamsPriority.length - index]));
-      const toSportBucket = (sportValue) => {
-        const sport = String(sportValue || '').trim().toLowerCase();
-        if (sport.includes('soccer')) return 'soccer';
-        if (sport.includes('american football')) return 'american-football';
-        if (sport.includes('football')) return 'soccer';
-        if (sport.includes('basket')) return 'basketball';
-        if (sport.includes('baseball')) return 'baseball';
-        if (sport.includes('ice hockey') || sport.includes('hockey')) return 'hockey';
-        if (sport.includes('motor') || sport.includes('formula')) return 'motorsport';
-        if (sport.includes('cricket')) return 'cricket';
-        if (sport.includes('rugby')) return 'rugby';
-        return sport || 'other';
-      };
-      const scoreSportsRow = (row) => {
-        const titleNorm = normalizeSportsName(row?.name || '');
-        const leagueNorm = normalizeSportsName(row?.league || '');
-        const sportNorm = normalizeSportsName(row?.sport || '');
-        let score = 0;
-        score += Number(featuredTeamScore.get(titleNorm) || 0) * 500;
-        if (seedSet.has(titleNorm)) score += 1200;
-        if (priorityLeagues.has(leagueNorm)) score += 800;
-        if (priorityLeagues.has(sportNorm)) score += 300;
-        if (leagueNorm.includes('premier') || leagueNorm.includes('champions')) score += 180;
-        if (leagueNorm.includes('nba') || leagueNorm.includes('nfl') || leagueNorm.includes('mlb') || leagueNorm.includes('nhl')) score += 220;
-        if (leagueNorm.includes('formula 1') || leagueNorm.includes('grand prix')) score += 190;
-        return score;
-      };
-      const isPreferredSportsRow = (row) => {
-        const titleNorm = normalizeSportsName(row?.name || '');
-        const leagueNorm = normalizeSportsName(row?.league || '');
-        const sportBucket = toSportBucket(row?.sport || '');
-        if (!titleNorm) return false;
-        if (sportBucket === 'soccer') {
-          if (!HOME_TOP_SOCCER_CLUBS.has(titleNorm)) return false;
-          return !leagueNorm || HOME_TOP_SOCCER_LEAGUES.has(leagueNorm);
-        }
-        if (sportBucket === 'basketball') return HOME_TOP_BASKETBALL_TEAMS.has(titleNorm);
-        if (sportBucket === 'motorsport') return HOME_TOP_MOTORSPORT_TEAMS.has(titleNorm);
-        if (sportBucket === 'american-football') return HOME_TOP_NFL_TEAMS.has(titleNorm);
-        return false;
-      };
-      const cachedSportsItems = readHomeItemsCache(
-        HOME_SPORTS_ITEMS_CACHE_KEY,
-        HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS,
-        (item) => {
-          if (!item || typeof item !== 'object') return null;
-          const title = String(item.title || '').trim();
-          const image = String(item.image || '').trim();
-          if (!title || !image) return null;
-          return item;
-        }
-      );
-      if (cachedSportsItems.length >= Math.min(target, 8)) {
-        return shuffleArray(cachedSportsItems).slice(0, target);
-      }
-
-      try {
-        const manifestPayload = await fetchJsonWithPerfCache(HOME_SPORTS_ASSET_MANIFEST_URL, {
-          signal,
-          cacheKey: 'sports-assets:manifest:home',
-          ttlMs: 1000 * 60 * 60 * 24,
-          timeoutMs: 9000,
-          retries: 1
-        });
-        const rows = Array.isArray(manifestPayload?.teams) ? manifestPayload.teams : [];
-        const preferredRows = rows.filter((row) => isPreferredSportsRow(row));
-        const workingRows = preferredRows.length ? preferredRows : rows;
-        const sortedRows = workingRows
-          .filter((row) => row && (row.badge || row.name))
-          .sort((a, b) => scoreSportsRow(b) - scoreSportsRow(a));
-        const seen = new Set();
-        const bucketed = new Map();
-        for (const row of sortedRows) {
-          const id = String(row?.sportsDbId || row?.id || '').trim();
-          const title = String(row?.name || 'Team').trim() || 'Team';
-          const key = id || title.toLowerCase();
-          if (!key || seen.has(key)) continue;
-          seen.add(key);
-          const badge = toHttpsUrl(String(row?.badge || '').trim());
-          if (!badge) continue;
-          const sport = String(row?.sport || '').trim();
-          const league = String(row?.league || '').trim();
-          const country = String(row?.country || '').trim();
-          const cardImage = badge;
-          const spotlightBackdrop = badge;
-          const item = {
-            mediaType: 'sports',
-            itemId: id || title,
-            title,
-            subtitle: league || 'Sports',
-            extra: [sport, country].filter(Boolean).join(' | ').toLowerCase(),
-            image: cardImage,
-            listImage: cardImage,
-            backgroundImage: spotlightBackdrop,
-            spotlightImage: spotlightBackdrop,
-            spotlightMediaImage: badge,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'square',
-            mediaFit: 'contain',
-            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-            href: id ? `team.html?id=${encodeURIComponent(id)}` : 'sports.html'
-          };
-          const bucket = toSportBucket(sport);
-          if (!bucketed.has(bucket)) bucketed.set(bucket, []);
-          bucketed.get(bucket).push(item);
-        }
-        const bucketKeys = Array.from(bucketed.keys()).sort((a, b) => {
-          const order = ['soccer', 'basketball', 'motorsport', 'american-football', 'baseball', 'hockey', 'cricket', 'rugby', 'other'];
-          const ai = order.includes(a) ? order.indexOf(a) : order.length;
-          const bi = order.includes(b) ? order.indexOf(b) : order.length;
-          if (ai !== bi) return ai - bi;
-          const aSeed = seedSet.has(normalizeSportsName(bucketed.get(a)?.[0]?.title || '')) ? 1 : 0;
-          const bSeed = seedSet.has(normalizeSportsName(bucketed.get(b)?.[0]?.title || '')) ? 1 : 0;
-          return bSeed - aSeed;
-        });
-        const items = [];
-        while (items.length < Math.max(target * 2, 24) && bucketKeys.length) {
-          let pushedInRound = 0;
-          bucketKeys.forEach((bucket) => {
-            if (items.length >= Math.max(target * 2, 24)) return;
-            const list = bucketed.get(bucket);
-            if (!Array.isArray(list) || !list.length) return;
-            items.push(list.shift());
-            pushedInRound += 1;
-          });
-          if (!pushedInRound) break;
-        }
-        if (items.length) {
-          const rotated = shuffleArray(items).slice(0, Math.max(target * 2, 24));
-          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, rotated);
-          return rotated.slice(0, target);
-        }
-      } catch (_err) {}
-
-      return cachedSportsItems.slice(0, target);
     }
 
-    async function initUniversalHome(options = {}) {
-      const now = Date.now();
-      const force = !!options.force;
-      // Always expose a lightweight debug snapshot hook (panel still requires ?debug=1).
-      try {
-        if (!window.__ZO2Y_HOME_DEBUG) {
-          window.__ZO2Y_HOME_DEBUG = {
-            snapshot: () => buildHomeDebugSnapshot?.() || null
-          };
-        }
-      } catch (_err) {}
-      if (!homeDebugState.enabled) {
-        homeDebugState.enabled = isHomeDebugEnabled();
-        if (homeDebugState.enabled) {
-          homeDebugEvent('debug:enabled', { via: 'initUniversalHome' });
-          try {
-            window.__ZO2Y_HOME_DEBUG = {
-              get enabled() { return homeDebugState.enabled; },
-              setEnabled: (value) => {
-                setHomeDebugEnabled(!!value);
-                homeDebugState.enabled = !!value;
-                if (homeDebugState.enabled) {
-                  homeDebugEvent('debug:enabled', { via: 'setEnabled' });
-                }
-                scheduleHomeDebugRender();
-              },
-              snapshot: () => buildHomeDebugSnapshot()
-            };
-          } catch (_err) {}
-          try {
-            window.addEventListener('error', (ev) => {
-              homeDebugEvent('window:error', {
-                message: String(ev?.message || ''),
-                file: String(ev?.filename || ''),
-                line: Number(ev?.lineno || 0)
-              });
-            });
-            window.addEventListener('unhandledrejection', (ev) => {
-              const reason = ev?.reason;
-              homeDebugEvent('window:rejection', { message: String(reason?.message || reason || '') });
-            });
-          } catch (_err) {}
-          ensureHomeDebugPanel();
-        }
+    async function loadSports(signal) {
+      const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
+      const cachedItemsRaw = readHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS)
+        .filter((item) => item && item.image);
+      if (cachedItemsRaw.length) {
+        const dedupedCached = [];
+        const seenCached = new Set();
+        cachedItemsRaw.forEach((item) => {
+          const key = String(item?.itemId || item?.title || '').toLowerCase().trim();
+          const nameKey = normalizeHomeSportsName(item?.title || '');
+          const dedupeKey = [key, nameKey].filter(Boolean).join('|');
+          if (!dedupeKey || seenCached.has(dedupeKey)) return;
+          seenCached.add(dedupeKey);
+          dedupedCached.push(item);
+        });
+        if (dedupedCached.length) return dedupedCached.slice(0, targetCount);
       }
-      const criticalKeys = [
-        'travel',
-        'sports',
-        ...(ENABLE_CARS ? ['car'] : [])
-      ];
-      const hasExistingRealItems = Object.values(homeFeedState).some((items) => homeHasRealItems(items));
-      const hasCriticalMissing = criticalKeys.some((key) => !homeHasRealItems(homeFeedState?.[key]));
-      if (
-        !force
-        && hasExistingRealItems
-        && !hasCriticalMissing
-        && homeLastGoodFeedAt
-        && (now - homeLastGoodFeedAt) < HOME_RESUME_REFRESH_THROTTLE_MS
-      ) {
-        resetSpotlightTimer(true);
-        return;
+
+      const seedTeams = shuffleArray([...HOME_SPORTS_SEEDS]).slice(0, Math.max(targetCount, 12));
+      const items = [];
+      const seen = new Set();
+      void ensureHomeCountryIndex(signal);
+
+      const requests = seedTeams.map((seed) => fetchSportsDb('searchteams.php', { t: seed }, { signal, timeoutMs: 5200 }));
+      const responses = await Promise.allSettled(requests);
+      responses.forEach((result) => {
+        if (items.length >= targetCount) return;
+        if (!result || result.status !== 'fulfilled') return;
+        const payload = result.value;
+        const teams = Array.isArray(payload?.teams) ? payload.teams : [];
+        teams.forEach((team) => {
+          if (items.length >= targetCount) return;
+          const item = mapSportsTeamToHomeItem(team);
+          if (!item) return;
+          const key = String(item.itemId || item.title || '').toLowerCase().trim();
+          const nameKey = normalizeHomeSportsName(item.title || '');
+          const dedupeKey = [key, nameKey].filter(Boolean).join('|');
+          if (!dedupeKey || seen.has(dedupeKey)) return;
+          seen.add(dedupeKey);
+          items.push(item);
+        });
+      });
+
+      if (items.length) {
+        writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
+        return items;
       }
-      homeLastUniversalInitAt = now;
+
+      return cachedItems.slice(0, targetCount);
+    }
+
+    async function initUniversalHome() {
       const initSeq = ++homeFeedInitSeq;
-      homeDebugEvent('home:init', { force, initSeq });
-      ensureHomeInteractionWatch();
-      resetHomeViewportDeferrals();
       if (homeWeakFeedRetryTimer) {
         clearTimeout(homeWeakFeedRetryTimer);
         homeWeakFeedRetryTimer = null;
@@ -9907,93 +7552,57 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       setStatus('Loading spotlight and live feed...', false);
       resetSpotlightTimer(false);
       const channels = getHomeChannels();
-      const initialChannels = getHomeInitialChannels(channels);
-      const deferredChannels = channels.filter((channel) => !initialChannels.includes(channel));
+      const initialChannels = channels;
       const cachedFeed = readHomeFeedCache();
       const baselineFeed = cachedFeed || null;
-
-      if (baselineFeed) {
-        const cachedResult = applyHomeFeedMap(baselineFeed);
-        if (cachedResult.scoredPool.length) {
-          homeLastGoodFeedAt = Date.now();
-          setStatus('Feed ready from cache. Syncing live data...', false);
-        }
-      }
-
+      let quickFallbackFeed = null;
       const precomputedFeedPromise = loadPrecomputedHomeFeed().catch(() => null);
       const blankFeed = Object.fromEntries(initialChannels.map((channel) => [channel.key, []]));
       const freshLoadedKeys = new Set();
       let workingFeed = normalizeHomeFeedMap(baselineFeed) || blankFeed;
 
-      const loadChannel = async (channel) => {
-        const railId = String(channel?.railId || '').trim();
-        const key = String(channel?.key || '').trim();
-        const attemptStartedAt = Date.now();
-        const prevAttempt = Number(homeDebugState.channels.get(key)?.last?.attempt || 0) || 0;
-        const attempt = prevAttempt + 1;
-        if (key) {
-          homeDebugState.channels.set(key, {
-            ...(homeDebugState.channels.get(key) || {}),
-            last: {
-              status: 'loading',
-              startedAt: attemptStartedAt,
-              timeoutMs: Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS) || 0,
-              railId,
-              attempt
-            }
-          });
-          scheduleHomeDebugRender();
+      if (!baselineFeed) {
+        quickFallbackFeed = buildInstantFallbackFeed();
+        const quickResult = applyHomeFeedMap(quickFallbackFeed);
+        if (quickResult.scoredPool.length) {
+          setStatus('Quick feed ready. Syncing live data...', false);
         }
+        workingFeed = normalizeHomeFeedMap(quickFallbackFeed) || blankFeed;
+      }
 
-        let items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
-        if (!Array.isArray(items)) items = [];
-
-        if (key) {
-          const last = homeDebugState.channels.get(key)?.last || {};
-          const isPlaceholder = Array.isArray(items) ? items.every((it) => !!it?.isPlaceholder) : false;
-          const endedAt = Date.now();
-          const ms = endedAt - attemptStartedAt;
-          const timeoutMs = Number(last.timeoutMs || channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS) || 0;
-          const status = (!items.length)
-            ? (ms >= timeoutMs - 30 ? 'timeout' : 'empty')
-            : (isPlaceholder ? 'placeholder' : 'ok');
-          homeDebugState.channels.set(key, {
-            ...(homeDebugState.channels.get(key) || {}),
-            last: {
-              ...last,
-              status,
-              endedAt,
-              ms,
-              items: items.length,
-              reason: !items.length ? 'No items returned.' : (isPlaceholder ? 'Only placeholder items returned.' : 'Live items rendered.')
-            }
-          });
-          scheduleHomeDebugRender();
+      if (baselineFeed) {
+        const cachedResult = applyHomeFeedMap(baselineFeed);
+        if (cachedResult.scoredPool.length) {
+          setStatus(cachedFeed ? 'Feed ready from cache. Syncing live data...' : 'Feed ready. Syncing live data...', false);
         }
+      }
 
-        const isPlaceholder = Array.isArray(items) ? items.every((it) => !!it?.isPlaceholder) : false;
-        if (!items.length || isPlaceholder) {
-          scheduleHomeChannelRetry(channel, attempt - 1);
-        }
-
-        if (initSeq === homeFeedInitSeq && items.length && !isPlaceholder) {
+      if (!isHomeSlowNetwork()) {
+        const tastePromise = loadTasteWeights().catch(() => homeTasteWeights);
+        void tastePromise.then((weights) => {
+          if (weights && typeof weights === 'object') {
+            homeTasteWeights = weights;
+          }
+        }).catch(() => {});
+      }
+      const loadedPromise = Promise.all(initialChannels.map(async (channel) => {
+        const items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
+        if (initSeq === homeFeedInitSeq && Array.isArray(items) && items.length) {
           freshLoadedKeys.add(channel.key);
           workingFeed = {
             ...workingFeed,
             [channel.key]: items
           };
           const progressive = applyHomeFeedMap(workingFeed, { refreshSecondary: false });
-          if (progressive.scoredPool.length && freshLoadedKeys.size < channels.length) {
-            setStatus(`Loading live feed... ${freshLoadedKeys.size}/${channels.length} channels ready.`, false);
+          if (progressive.scoredPool.length) {
+            setStatus(`Loading live feed... ${freshLoadedKeys.size}/${initialChannels.length} channels ready.`, false);
           }
         }
         return { ...channel, items };
-      };
-
-      const loadedPromise = loadHomeChannelGroup(initialChannels, loadChannel);
-      const precomputedFeed = await withTimeout(precomputedFeedPromise, 1200, null);
+      }));
+      const precomputedFeed = await withTimeout(precomputedFeedPromise, 220, null);
       if (initSeq !== homeFeedInitSeq) return;
-        if (precomputedFeed) {
+      if (precomputedFeed) {
         const precomputedActiveChannels = countActiveHomeChannels(precomputedFeed);
         const baselineActiveChannels = countActiveHomeChannels(baselineFeed);
         if (precomputedActiveChannels > baselineActiveChannels) {
@@ -10001,7 +7610,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             ...workingFeed
           };
           const normalizedPrecomputedFeed = normalizeHomeFeedMap(precomputedFeed) || blankFeed;
-          channels.forEach((channel) => {
+          initialChannels.forEach((channel) => {
             if (freshLoadedKeys.has(channel.key)) return;
             const items = Array.isArray(normalizedPrecomputedFeed[channel.key]) ? normalizedPrecomputedFeed[channel.key] : [];
             if (items.length) {
@@ -10019,22 +7628,31 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       await loadedPromise;
       if (initSeq !== homeFeedInitSeq) return;
 
-      deferredChannels.forEach((channel) => queueHomeDeferredChannel(channel, loadChannel, initSeq));
-
       const mergedFeed = normalizeHomeFeedMap(workingFeed) || blankFeed;
-      const initialChannelsCount = initialChannels.length;
-      const healthyChannelFloor = Math.min(initialChannelsCount, 3);
 
-      const hasWeakFeed = countActiveHomeChannels(mergedFeed) < healthyChannelFloor;
-      const { scoredPool } = applyHomeFeedMap(mergedFeed, { showEmptyRails: !hasWeakFeed });
+      const { scoredPool } = applyHomeFeedMap(mergedFeed);
 
       if (!scoredPool.length) {
+        homeSpotlightItems = [{
+          mediaType: 'movie',
+          title: 'No live spotlight yet',
+          subtitle: 'We are refreshing your feed',
+          extra: 'Try again in a moment.',
+          image: '',
+          spotlightImage: '',
+          spotlightMediaImage: '',
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          href: 'movies.html',
+          discoveryScore: 0.5
+        }];
+        showSpotlightByIndex(0, false);
         resetSpotlightTimer(false);
         setStatus('Could not load live feeds right now. Try again shortly.', true);
         return;
       }
-      homeLastGoodFeedAt = Date.now();
 
+      const initialChannelsCount = initialChannels.length;
       const freshActiveChannels = freshLoadedKeys.size;
       if (freshActiveChannels > 0) {
         writeHomeFeedCache(mergedFeed);
@@ -10055,1143 +7673,45 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         setStatus(`Live feed ready. ${freshActiveChannels}/${initialChannelsCount} core channels live.`, false);
       }
 
+      const healthyChannelFloor = Math.min(initialChannelsCount, 3);
       if (freshActiveChannels >= healthyChannelFloor) {
         if (homeWeakFeedRetryTimer) {
           clearTimeout(homeWeakFeedRetryTimer);
           homeWeakFeedRetryTimer = null;
         }
         homeWeakFeedRetryCount = 0;
-        } else if (homeWeakFeedRetryCount < 2 && !homeWeakFeedRetryTimer && !document.hidden) {
-          homeWeakFeedRetryTimer = setTimeout(() => {
-            homeWeakFeedRetryTimer = null;
-            homeWeakFeedRetryCount += 1;
-            void initUniversalHome({ force: true });
-          }, 1800);
-        }
+      } else if (homeWeakFeedRetryCount < 1 && !homeWeakFeedRetryTimer) {
+        homeWeakFeedRetryTimer = setTimeout(() => {
+          homeWeakFeedRetryTimer = null;
+          homeWeakFeedRetryCount += 1;
+          void initUniversalHome();
+        }, 1600);
+      }
 
       scheduleHomeMenuCachePrime();
     }
 
-    let landingExperienceInitialized = false;
-    let landingPreviewHydrated = false;
-    let landingReviewHydrated = false;
-    let landingWallHydrated = false;
-    let landingSavePromptTimer = null;
-    const landingWallRowStates = new Map();
-    const landingWallRowRotators = new Map();
-    const landingReviewUsers = new Map();
-    const landingReviewMeta = new Map();
-    const LANDING_REVIEW_LIMIT = 6;
-    const LANDING_WALL_SLOT_COUNT = 8;
-    const LANDING_WALL_FALLBACK_GAMES = [
-      { title: 'Portal 2', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' },
-      { title: 'Persona 5', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/persona-5.jpg' },
-      { title: 'Titanfall 2', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/titanfall-2.jpg' },
-      { title: 'The Witcher 3: Wild Hunt', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
-      { title: 'Red Dead Redemption 2', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg' },
-      { title: 'Resident Evil Village', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/resident-evil-village.png' },
-      { title: 'Sifu', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/sifu.jpg' },
-      { title: 'Warframe', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/warframe.png' },
-      { title: 'Hades', image: 'https://upload.wikimedia.org/wikipedia/en/c/cc/Hades_cover_art.jpg' },
-      { title: 'Cyberpunk 2077', image: 'https://upload.wikimedia.org/wikipedia/en/9/9f/Cyberpunk_2077_box_art.jpg' },
-      { title: 'Elden Ring', image: 'https://upload.wikimedia.org/wikipedia/en/b/b9/Elden_Ring_Box_art.jpg' },
-      { title: 'Baldur\'s Gate 3', image: 'https://upload.wikimedia.org/wikipedia/en/1/12/Baldur%27s_Gate_3_cover_art.jpg' }
-    ];
-    const LANDING_WALL_FALLBACK_LOGOS = {
-      sports: [
-        { title: 'Real Madrid', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133738/real-madrid-badge.png' },
-        { title: 'Arsenal', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133604/arsenal-badge.png' },
-        { title: 'Liverpool', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133602/liverpool-badge.png' },
-        { title: 'Los Angeles Lakers', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134867/los-angeles-lakers-badge.png' },
-        { title: 'Boston Celtics', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134860/boston-celtics-badge.png' },
-        { title: 'New York Yankees', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/135260/new-york-yankees-badge.png' },
-        { title: 'Kansas City Chiefs', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134931/kansas-city-chiefs-badge.png' },
-        { title: 'Golden State Warriors', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134865/golden-state-warriors-badge.png' }
-      ],
-      food: [
-        { title: 'McDonald\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/mcdonalds-com.svg' },
-        { title: 'KFC', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/kfc-com.svg' },
-        { title: 'Starbucks', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/starbucks-com.png' },
-        { title: 'Taco Bell', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/tacobell-com.jpg' },
-        { title: 'Burger King', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/burgerking-com.svg' },
-        { title: 'Domino\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/dominos-com.svg' },
-        { title: 'Subway', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/subway-com.svg' },
-        { title: 'Chipotle', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/chipotle-com.svg' },
-        { title: 'Popeyes', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/popeyes-com.svg' },
-        { title: 'Wendy\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/wendys-com.svg' },
-        { title: 'Pizza Hut', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/pizzahut-com.svg' },
-        { title: 'Shake Shack', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/shakeshack-com.svg' }
-      ],
-      fashion: [
-        { title: 'Nike', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/nike-com.svg' },
-        { title: 'Adidas', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/adidas-com.svg' },
-        { title: 'Zara', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zara-com.jpeg' },
-        { title: 'Uniqlo', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/uniqlo-com.svg' },
-        { title: 'H&M', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hm-com.svg' },
-        { title: 'Gucci', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/gucci-com.svg' },
-        { title: 'Louis Vuitton', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/louisvuitton-com.svg' },
-        { title: 'Prada', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/prada-com.svg' },
-        { title: 'Dior', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/dior-com.svg' },
-        { title: 'Chanel', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/chanel-com.svg' },
-        { title: 'Burberry', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/burberry-com.svg' },
-        { title: 'Supreme', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/supremenewyork-com.svg' }
-      ]
-    };
-    const LANDING_REVIEW_SOURCES = [
-      { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id' },
-      { mediaType: 'tv', table: 'tv_reviews', idField: 'tv_id' },
-      { mediaType: 'anime', table: 'anime_reviews', idField: 'anime_id' },
-      { mediaType: 'game', table: 'game_reviews', idField: 'game_id' },
-      { mediaType: 'book', table: 'book_reviews', idField: 'book_id' },
-      { mediaType: 'music', table: 'music_reviews', idField: 'track_id' },
-      { mediaType: 'travel', table: 'travel_reviews', idField: 'country_code' }
-    ];
-
-    function normalizeLandingImageUrl(value) {
-      const raw = unwrapCloudflareImageUrl(String(value || '').trim());
-      if (!raw) return '';
-      if (raw.startsWith('//')) return `https:${raw}`;
-      if (/^http:\/\//i.test(raw)) return raw.replace(/^http:\/\//i, 'https://');
-      return raw;
-    }
-
-    function isRenderableLandingImage(value) {
-      const normalized = normalizeLandingImageUrl(value);
-      if (!normalized) return false;
-      return !isLogoPlaceholder(normalized);
-    }
-
-    function getLandingWallTile(slot) {
-      const key = String(slot || '').trim();
-      if (!key) return null;
-      return document.querySelector(`[data-wall-slot="${key}"] img`);
-    }
-
-    function getLandingWallFigure(slot) {
-      const key = String(slot || '').trim();
-      if (!key) return null;
-      return document.querySelector(`[data-wall-slot="${key}"]`);
-    }
-
-    function getLandingWallSlots(prefix) {
-      const base = String(prefix || '').trim();
-      if (!base) return [];
-      return Array.from({ length: LANDING_WALL_SLOT_COUNT }, (_value, index) => `${base}-${index + 1}`);
-    }
-
-    function getLandingWallVisibleCount() {
-      return window.matchMedia && window.matchMedia('(max-width: 760px)').matches ? 4 : LANDING_WALL_SLOT_COUNT;
-    }
-
-    function isMobileLandingWall() {
-      return Boolean(window.matchMedia && window.matchMedia('(max-width: 760px)').matches);
-    }
-
-    function getLandingWallMinimumCount(kind) {
-      if (isMobileLandingWall()) return kind === 'poster' ? 18 : 16;
-      const visibleCount = getLandingWallVisibleCount();
-      return kind === 'poster' ? visibleCount * 4 : visibleCount * 3;
-    }
-
-    function getLandingWallTrackCount(kind) {
-      if (isMobileLandingWall()) return kind === 'poster' ? 18 : 16;
-      return kind === 'poster' ? 18 : 14;
-    }
-
-    function getLandingWallEagerCount(kind) {
-      if (isMobileLandingWall()) return kind === 'poster' ? 3 : 4;
-      return kind === 'poster' ? 5 : 6;
-    }
-
-    function getLandingWallRow(prefix) {
-      const key = String(prefix || '').trim();
-      const existing = document.querySelector(`.landing-v4-wall-row[data-wall-prefix="${key}"]`);
-      if (existing) return existing;
-      const anchor = document.querySelector(`[data-wall-slot="${key}-1"]`);
-      return anchor ? anchor.closest('.landing-v4-wall-row') : null;
-    }
-
-    function getLandingWallRowKind(prefix) {
-      const key = String(prefix || '').trim().toLowerCase();
-      return key === 'sports' || key === 'food' || key === 'fashion' ? 'logo' : 'poster';
-    }
-
-    function getLandingWallRowDirection(prefix) {
-      const key = String(prefix || '').trim().toLowerCase();
-      return key === 'tv' || key === 'game' || key === 'food' ? 'right' : 'left';
-    }
-
-    function buildLandingWallLoopEntries(entries, minimumCount) {
-      const seed = Array.isArray(entries) ? entries.filter(Boolean) : [];
-      if (!seed.length) return [];
-      const targetCount = Math.max(Number(minimumCount) || 0, seed.length);
-      const loop = [];
-      while (loop.length < targetCount) {
-        loop.push(...seed);
-      }
-      return loop.slice(0, targetCount);
-    }
-
-    function stopLandingWallRowRotation(prefix) {
-      const key = String(prefix || '').trim();
-      const existing = landingWallRowRotators.get(key);
-      if (!existing) return;
-      if (existing.interval) window.clearInterval(existing.interval);
-      landingWallRowRotators.delete(key);
-    }
-
-    function startLandingWallRowRotation(_row, prefix) {
-      stopLandingWallRowRotation(prefix);
-    }
-
-    function setLandingPosterBackground(figure, image) {
-      if (!figure) return;
-      const normalized = normalizeLandingImageUrl(image);
-      if (!normalized) {
-        figure.style.removeProperty('--landing-poster-image');
-        return;
-      }
-      figure.style.setProperty('--landing-poster-image', `url("${String(normalized).replace(/"/g, '%22')}")`);
-    }
-
-    function setLandingLogoTileFallback(figure, label) {
-      if (!figure) return;
-      const cleanLabel = String(label || '').trim() || 'brand';
-      figure.classList.add('landing-v4-tile--text-fallback');
-      figure.setAttribute('data-logo-text', cleanLabel);
-      const image = figure.querySelector('img');
-      if (image) {
-        image.style.visibility = 'hidden';
-        image.style.opacity = '0';
-      }
-    }
-
-    function clearLandingLogoTileFallback(figure) {
-      if (!figure) return;
-      figure.classList.remove('landing-v4-tile--text-fallback');
-      figure.removeAttribute('data-logo-text');
-      const image = figure.querySelector('img');
-      if (image) {
-        image.style.visibility = '';
-        image.style.opacity = '';
-      }
-    }
-
-    function looksLikeLandingPlaceholder(url) {
-      const normalized = normalizeLandingImageUrl(url);
-      if (!normalized) return true;
-      return isLogoPlaceholder(normalized)
-        || normalized.includes('logo-placeholder.svg')
-        || normalized.includes('/newlogo.webp');
-    }
-
-    function buildLandingWallLogoEntry(input) {
-      const source = input && typeof input === 'object'
-        ? input
-        : { title: String(input || '').trim() };
-      const cleanTitle = String(source.title || '').trim();
-      const cleanDomain = String(source.domain || '').trim();
-      const preferred = normalizeLandingImageUrl(source.image || '');
-      if (!cleanTitle) return null;
-      return {
-        image: preferred || `/api/logo?mode=logo&${cleanDomain ? `domain=${encodeURIComponent(cleanDomain)}` : `title=${encodeURIComponent(cleanTitle)}`}&size=256`,
-        fallback: cleanDomain
-          ? `/api/logo?mode=logo&title=${encodeURIComponent(cleanTitle)}&size=256`
-          : '',
-        alt: cleanTitle
-      };
-    }
-
-    function dedupeLandingWallEntries(entries) {
-      const deduped = [];
-      const seen = new Set();
-      (Array.isArray(entries) ? entries : []).forEach((entry) => {
-        const image = normalizeLandingImageUrl(entry?.image || '');
-        const fallback = normalizeLandingImageUrl(entry?.fallback || '');
-        const alt = String(entry?.alt || '').trim();
-        if (!isRenderableLandingImage(image)) return;
-        const key = `${image}::${alt.toLowerCase()}`;
-        if (seen.has(key)) return;
-        seen.add(key);
-        deduped.push({ image, fallback, alt });
-      });
-      return deduped;
-    }
-
-    function buildLandingWallEntries(items) {
-      return dedupeLandingWallEntries(
-        filterHomeSafeItems(Array.isArray(items) ? items : []).map((item) => ({
-          image: getLandingPreviewPoster(item),
-          alt: String(item?.title || item?.name || '').trim()
-        }))
-      );
-    }
-
-    function mergeLandingWallEntries(primary, fallback) {
-      return dedupeLandingWallEntries([...(Array.isArray(primary) ? primary : []), ...(Array.isArray(fallback) ? fallback : [])]);
-    }
-
-    function animateLandingWallTile(slot, direction, index) {
-      const tile = getLandingWallFigure(slot);
-      if (!tile) return;
-      const slideClass = direction === 'right' ? 'landing-v4-tile--slide-right' : 'landing-v4-tile--slide-left';
-      tile.classList.remove('landing-v4-tile--slide-left', 'landing-v4-tile--slide-right');
-      tile.style.setProperty('--landing-tile-delay', `${Math.min(Number(index) || 0, LANDING_WALL_SLOT_COUNT) * 32}ms`);
-      void tile.offsetWidth;
-      tile.classList.add(slideClass);
-      if (tile.__landingSlideTimer) window.clearTimeout(tile.__landingSlideTimer);
-      tile.__landingSlideTimer = window.setTimeout(() => {
-        tile.classList.remove('landing-v4-tile--slide-left', 'landing-v4-tile--slide-right');
-        tile.style.removeProperty('--landing-tile-delay');
-      }, LANDING_WALL_ANIMATION_MS + 260);
-    }
-
-    function setLandingWallTile(slot, image, alt) {
-      const node = getLandingWallTile(slot);
-      const normalized = normalizeLandingImageUrl(image);
-      if (!node || !isRenderableLandingImage(normalized)) return false;
-      const figure = node.closest('.landing-v4-tile');
-      if (!node.dataset.fallbackSrc) {
-        node.dataset.fallbackSrc = String(node.getAttribute('src') || '').trim();
-      }
-      node.onload = () => {
-        if (figure && figure.classList.contains('landing-v4-tile--logo')) {
-          const current = String(node.currentSrc || node.src || '').trim();
-          if (looksLikeLandingPlaceholder(current)) {
-            setLandingLogoTileFallback(figure, alt);
-          } else {
-            clearLandingLogoTileFallback(figure);
-          }
-        }
-      };
-      node.onerror = () => {
-        const fallback = normalizeLandingImageUrl(node.dataset.fallbackSrc || '');
-        if (fallback && node.src !== fallback) {
-          node.onerror = null;
-          node.src = fallback;
-          if (figure && figure.classList.contains('landing-v4-tile--poster')) {
-            setLandingPosterBackground(figure, fallback);
-          }
-        } else if (figure && figure.classList.contains('landing-v4-tile--logo')) {
-          setLandingLogoTileFallback(figure, alt);
-        }
-      };
-      node.src = normalized;
-      node.alt = String(alt || '').trim();
-      node.loading = 'eager';
-      node.decoding = 'async';
-      node.referrerPolicy = 'no-referrer';
-      if (figure && figure.classList.contains('landing-v4-tile--poster')) {
-        setLandingPosterBackground(figure, normalized);
-      }
-      return true;
-    }
-
-    function createLandingWallTileFigure(entry, kind, eager = false) {
-      const figure = document.createElement('figure');
-      figure.className = kind === 'logo'
-        ? 'landing-v4-tile landing-v4-tile--logo landing-v4-tile--light'
-        : 'landing-v4-tile landing-v4-tile--poster';
-
-      const img = document.createElement('img');
-      const normalized = normalizeLandingImageUrl(entry?.image || '');
-      const fallback = normalizeLandingImageUrl(entry?.fallback || '');
-      img.src = normalized || fallback || '/images/landing-wall-poster.svg';
-      img.alt = String(entry?.alt || '').trim();
-      img.decoding = 'async';
-      img.referrerPolicy = 'no-referrer';
-      img.loading = eager ? 'eager' : 'lazy';
-      img.fetchPriority = eager ? 'high' : 'low';
-      img.onload = () => {
-        if (kind === 'logo') {
-          const current = String(img.currentSrc || img.src || '').trim();
-          if (looksLikeLandingPlaceholder(current)) {
-            setLandingLogoTileFallback(figure, entry?.alt);
-          } else {
-            clearLandingLogoTileFallback(figure);
-          }
-        }
-      };
-      img.onerror = () => {
-        if (fallback && img.src !== fallback) {
-          img.onerror = null;
-          img.src = fallback;
-          if (kind === 'poster') setLandingPosterBackground(figure, fallback);
-        } else if (kind === 'logo') {
-          setLandingLogoTileFallback(figure, entry?.alt);
-        }
-      };
-      figure.appendChild(img);
-
-      const caption = document.createElement('figcaption');
-      caption.textContent = kind === 'logo' ? 'logo' : 'poster';
-      figure.appendChild(caption);
-
-      if (kind === 'poster') {
-        setLandingPosterBackground(figure, normalized || fallback);
-      }
-
-      return figure;
-    }
-
-    function renderLandingWallRowTrack(prefix, entries) {
-      const row = getLandingWallRow(prefix);
-      if (!row) return;
-
-      const kind = getLandingWallRowKind(prefix);
-      const direction = getLandingWallRowDirection(prefix);
-      const minimumCount = getLandingWallMinimumCount(kind);
-      const trackCount = getLandingWallTrackCount(kind);
-      const eagerCount = getLandingWallEagerCount(kind);
-      const baseEntries = dedupeLandingWallEntries(entries);
-      if (!baseEntries.length) return;
-      const displayEntries = baseEntries.slice(0, Math.max(minimumCount, Math.min(trackCount, baseEntries.length)));
-      if (!displayEntries.length) return;
-
-      row.dataset.rowKind = kind;
-      row.dataset.direction = direction;
-      row.dataset.wallPrefix = prefix;
-      const rowDuration = isMobileLandingWall()
-        ? (kind === 'poster' ? 48 : 42)
-        : Math.max(38, displayEntries.length * (kind === 'poster' ? 4.6 : 4.0));
-      row.style.setProperty('--landing-row-duration', `${rowDuration}s`);
-      row.replaceChildren();
-
-      const track = document.createElement('div');
-      track.className = 'landing-v4-wall-track';
-      const buildStrip = (sourceEntries, eager) => {
-        const strip = document.createElement('div');
-        strip.className = 'landing-v4-wall-strip';
-        sourceEntries.forEach((entry, index) => {
-          strip.appendChild(createLandingWallTileFigure(entry, kind, eager && index < eagerCount));
-        });
-        return strip;
-      };
-
-      const desktopEntries = buildLandingWallLoopEntries(baseEntries, Math.max(trackCount, minimumCount));
-      track.appendChild(buildStrip(desktopEntries, true));
-      track.appendChild(buildStrip(desktopEntries, false));
-      row.appendChild(track);
-      startLandingWallRowRotation(row, prefix);
-    }
-
-    function setLandingWallRowEntries(prefix, entries) {
-      const normalized = dedupeLandingWallEntries(entries);
-      if (!normalized.length) return;
-      landingWallRowStates.set(prefix, { entries: normalized });
-      renderLandingWallRowTrack(prefix, normalized);
-    }
-
-    async function hydrateLandingSetupWall() {
-      if (landingWallHydrated) return;
-      landingWallHydrated = true;
-      const hasWallTargets = Boolean(getLandingWallTile('movie-1')
-        || getLandingWallTile('tv-1')
-        || getLandingWallTile('anime-1')
-        || getLandingWallTile('game-1')
-        || getLandingWallTile('sports-1'));
-      if (!hasWallTargets) return;
-
-      const updateWallRow = async (prefix, loader, fallbackEntries = []) => {
-        let liveEntries = [];
-        try {
-          const result = await loader();
-          liveEntries = buildLandingWallEntries(result);
-        } catch (_error) {
-          liveEntries = [];
-        }
-        const merged = mergeLandingWallEntries(liveEntries, fallbackEntries);
-        if (merged.length) setLandingWallRowEntries(prefix, merged);
-      };
-
-      void updateWallRow('movie', () => loadMovies(null));
-      void updateWallRow('tv', () => loadTv(null));
-      void updateWallRow('anime', () => loadAnime(null));
-      void updateWallRow(
-        'game',
-        () => loadGames(null),
-        LANDING_WALL_FALLBACK_GAMES.map((entry) => ({
-          image: entry.image,
-          alt: entry.title
-        }))
-      );
-      void updateWallRow(
-        'sports',
-        () => loadSports(null),
-        LANDING_WALL_FALLBACK_LOGOS.sports.map(buildLandingWallLogoEntry)
-      );
-      void updateWallRow(
-        'food',
-        () => loadFoodBrands(),
-        LANDING_WALL_FALLBACK_LOGOS.food.map(buildLandingWallLogoEntry)
-      );
-      void updateWallRow(
-        'fashion',
-        () => loadFashionBrands(),
-        LANDING_WALL_FALLBACK_LOGOS.fashion.map(buildLandingWallLogoEntry)
-      );
-    }
-
-    function truncateLandingText(value, maxLength = 120) {
-      const normalized = String(value || '').replace(/\s+/g, ' ').trim();
-      if (!normalized) return '';
-      if (normalized.length <= maxLength) return normalized;
-      return `${normalized.slice(0, Math.max(0, maxLength - 3)).trim()}...`;
-    }
-
-    function getLandingBrowsePath(mediaType) {
-      switch (String(mediaType || '').toLowerCase()) {
-        case 'movie': return 'movies.html';
-        case 'tv': return 'tvshows.html';
-        case 'anime': return 'animes.html';
-        case 'game': return 'games.html';
-        case 'book': return 'books.html';
-        case 'music': return 'music.html';
-        case 'travel': return 'travel.html';
-        case 'sports': return 'sports.html';
-        case 'fashion': return 'fashion.html';
-        case 'food': return 'food.html';
-        case 'car': return 'cars.html';
-        default: return 'index.html';
-      }
-    }
-
-    function getLandingItemNextPath(item) {
-      const href = String(item?.href || '').trim();
-      return sanitizeHomeNextPath(href || getLandingBrowsePath(item?.mediaType));
-    }
-
-    function buildLandingAuthHref(nextPath = 'index.html') {
-      const safeNext = sanitizeHomeNextPath(nextPath || 'index.html');
-      return `sign-up.html?next=${encodeURIComponent(safeNext)}`;
-    }
-
-    function getLandingPreviewPoster(item) {
-      if (!item || typeof item !== 'object') return '';
-      const type = String(item.mediaType || '').toLowerCase();
-      const cover = type === 'game'
-        ? resolveHomeGameCover(item)
-        : (type === 'book'
-          ? (item.spotlightMediaImage || item.image || getBookCoverFallback(item))
-          : (type === 'sports'
-            ? (item.logo || item.badge || item.flagImage || item.image || item.spotlightMediaImage)
-            : (item.spotlightMediaImage || item.image || item.listImage || item.logo || item.badge || item.flagImage)));
-      const normalized = normalizeLandingImageUrl(cover);
-      return isRenderableLandingImage(normalized) ? normalized : '';
-    }
-
-    function getLandingPreviewBackdrop(item) {
-      if (!item || typeof item !== 'object') return '';
-      const type = String(item.mediaType || '').toLowerCase();
-      const backdrop = type === 'game'
-        ? pickBackdropGameUrl([
-          item.spotlightImage,
-          item.backgroundImage,
-          item.hero_url,
-          item.hero,
-          ...(Array.isArray(item?.screenshots) ? item.screenshots : [])
-        ], getLandingPreviewPoster(item))
-        : (type === 'travel'
-          ? (item.spotlightImage || item.backgroundImage || getSafeTravelScenicImage(item.title, item.itemId, item.image))
-          : (item.spotlightImage || item.backgroundImage || item.image || item.listImage));
-      return normalizeLandingImageUrl(backdrop);
-    }
-
-    function getLandingPreviewMeta(item) {
-      const meta = getHomeMediaMeta(item?.mediaType);
-      const detail = String(item?.subtitle || item?.extra || '').trim();
-      return truncateLandingText(detail || `${meta.label} pick from the live feed.`, 72);
-    }
-
-    function rotateLandingList(items, offset = 0) {
-      const list = Array.isArray(items) ? items.filter(Boolean) : [];
-      if (list.length <= 1) return list;
-      const safeOffset = ((Number(offset) || 0) % list.length + list.length) % list.length;
-      return list.slice(safeOffset).concat(list.slice(0, safeOffset));
-    }
-
-    function getLandingRailItems(items, offset = 0, limit = 10) {
-      const rotated = rotateLandingList(items, offset);
-      if (!rotated.length) return [];
-      const preferred = [];
-      const fallback = [];
-      rotated.forEach((item) => {
-        if (!item) return;
-        if (isRenderableLandingImage(getLandingPreviewPoster(item))) preferred.push(item);
-        else fallback.push(item);
-      });
-      return preferred.concat(fallback).slice(0, limit);
-    }
-
-    function buildLandingPreviewCard(item) {
-      const safeItem = item && typeof item === 'object' ? item : {};
-      const meta = getHomeMediaMeta(safeItem.mediaType);
-      const nextPath = getLandingItemNextPath(safeItem);
-      const href = buildLandingAuthHref(nextPath);
-      const image = escapeHtml(getLandingPreviewPoster(safeItem) || HOME_IMAGE_PLACEHOLDER);
-      const title = escapeHtml(String(safeItem.title || meta.label || 'Item').trim() || 'Item');
-      const subtitle = escapeHtml(getLandingPreviewMeta(safeItem));
-      return `
-        <a class="landing-preview-card" href="${href}" data-auth-entry="signup" data-auth-next="${escapeHtml(nextPath)}" aria-label="Unlock ${title}">
-          <div class="landing-preview-card-media">
-            <img src="${image}" alt="${title}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
-          </div>
-          <div class="landing-preview-card-body">
-            <span class="landing-preview-card-label">${escapeHtml(meta.label)}</span>
-            <strong class="landing-preview-card-title">${title}</strong>
-            <span class="landing-preview-card-meta">${subtitle}</span>
-          </div>
-        </a>
-      `;
-    }
-
-    function buildLandingReviewCard(item) {
-      const safeItem = item && typeof item === 'object' ? item : {};
-      const meta = getHomeMediaMeta(safeItem.mediaType);
-      const image = escapeHtml(getLandingPreviewPoster(safeItem));
-      const title = escapeHtml(String(safeItem.title || meta.label || 'Item').trim() || 'Item');
-      const summary = escapeHtml(truncateLandingText(getSpotlightSummary(safeItem), 120) || 'Fresh signal from the live discovery engine.');
-      return `
-        <article class="landing-review-card">
-          <div class="landing-review-card-head">
-            <div class="landing-review-card-thumb">
-              <img src="${image}" alt="${title}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
-            </div>
-            <div class="landing-review-card-meta">
-              <span>${escapeHtml(meta.label)} review</span>
-              <strong>${title}</strong>
-            </div>
-          </div>
-          <p>${summary}</p>
-        </article>
-      `;
-    }
-
-    function wireLandingAuthNextLinks(scope = document) {
-      if (!scope || typeof scope.querySelectorAll !== 'function') return;
-      scope.querySelectorAll('[data-auth-next]').forEach((link) => {
-        if (link.dataset.authNextWired === '1') return;
-        link.dataset.authNextWired = '1';
-        link.addEventListener('click', () => {
-          const next = sanitizeHomeNextPath(link.getAttribute('data-auth-next') || 'index.html');
-          localStorage.setItem('postAuthRedirect', next);
-        });
-      });
-    }
-
-    function hideLandingSavePrompt() {
-      const prompt = document.getElementById('landingSavePrompt');
-      if (!prompt) return;
-      prompt.hidden = true;
-      if (landingSavePromptTimer) {
-        clearTimeout(landingSavePromptTimer);
-        landingSavePromptTimer = null;
-      }
-    }
-
-    function showLandingSavePrompt(message, nextPath = 'index.html') {
-      const prompt = document.getElementById('landingSavePrompt');
-      const text = document.getElementById('landingSavePromptText');
-      const cta = document.getElementById('landingSavePromptCta');
-      if (!prompt || !text || !cta) return;
-      const safeNext = sanitizeHomeNextPath(nextPath || 'index.html');
-      text.textContent = String(message || 'Sign up required to start saving titles, building lists, and shaping your feed.');
-      cta.href = buildLandingAuthHref(safeNext);
-      cta.setAttribute('data-auth-next', safeNext);
-      prompt.hidden = false;
-      wireLandingAuthNextLinks(prompt);
-      if (landingSavePromptTimer) clearTimeout(landingSavePromptTimer);
-      landingSavePromptTimer = window.setTimeout(() => {
-        hideLandingSavePrompt();
-      }, 4200);
-    }
-
-    function lockLandingRailInteractions(scope) {
-      if (!scope) return;
-      scope.querySelectorAll('.card').forEach((card) => {
-        const nextPath = sanitizeHomeNextPath(card.getAttribute('data-href') || 'index.html');
-        card.onclick = (event) => {
-          if (event.target.closest('.card-menu-btn') || event.target.closest('.card-open-link') || event.target.closest('.card-preview-btn')) return;
-          localStorage.setItem('postAuthRedirect', nextPath);
-          window.location.href = buildLandingAuthHref(nextPath);
-        };
-      });
-
-      scope.querySelectorAll('.card-menu-btn').forEach((btn) => {
-        const replacement = btn.cloneNode(true);
-        btn.replaceWith(replacement);
-        replacement.addEventListener('click', (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          const card = replacement.closest('.card');
-          const nextPath = sanitizeHomeNextPath(card?.getAttribute('data-href') || 'index.html');
-          showLandingSavePrompt('Sign up required to start saving, building lists, and tracking your taste.', nextPath);
-        });
-      });
-
-      scope.querySelectorAll('.card-open-link').forEach((link) => {
-        const nextPath = sanitizeHomeNextPath(link.closest('.card')?.getAttribute('data-href') || 'index.html');
-        link.setAttribute('href', buildLandingAuthHref(nextPath));
-        link.setAttribute('data-auth-next', nextPath);
-        link.removeAttribute('target');
-        link.removeAttribute('rel');
-      });
-
-      wireLandingAuthNextLinks(scope);
-    }
-
-    function getLandingReviewKey(mediaType, itemId) {
-      const media = String(mediaType || '').trim().toLowerCase();
-      const id = String(itemId || '').trim();
-      return media && id ? `${media}:${id}` : '';
-    }
-
-    function getLandingReviewFallbackMeta(row) {
-      const mediaType = String(row?.mediaType || '').trim().toLowerCase();
-      const itemId = String(row?.itemId || '').trim();
-      const media = getHomeMediaMeta(mediaType);
-      let href = getLandingBrowsePath(mediaType);
-      if (itemId) {
-        if (mediaType === 'movie') href = `movie.html?id=${encodeURIComponent(itemId)}`;
-        else if (mediaType === 'tv') href = `tvshow.html?id=${encodeURIComponent(itemId)}`;
-        else if (mediaType === 'anime') href = `anime.html?id=${encodeURIComponent(itemId)}`;
-        else if (mediaType === 'game') href = `game.html?id=${encodeURIComponent(itemId)}`;
-        else if (mediaType === 'book') href = `book.html?id=${encodeURIComponent(itemId)}`;
-        else if (mediaType === 'music') href = `song.html?id=${encodeURIComponent(itemId)}`;
-        else if (mediaType === 'travel') href = `country.html?code=${encodeURIComponent(itemId.toUpperCase())}`;
-      }
-      return {
-        title: media.label,
-        subtitle: `${media.label} review`,
-        image: '/newlogo.webp',
-        href
-      };
-    }
-
-    function getLandingReviewMeta(row) {
-      return landingReviewMeta.get(getLandingReviewKey(row?.mediaType, row?.itemId)) || getLandingReviewFallbackMeta(row);
-    }
-
-    function getLandingReviewUserLabel(userId) {
-      const profile = landingReviewUsers.get(String(userId || '').trim());
-      if (!profile) return 'Zo2y member';
-      if (profile.username) return `@${profile.username}`;
-      return profile.fullName || 'Zo2y member';
-    }
-
-    async function fetchLandingReviewRows() {
-      const client = await ensureHomeSupabase();
-      if (!client) return [];
-      const results = await Promise.allSettled(
-        LANDING_REVIEW_SOURCES.map(async (source) => {
-          const { data, error } = await client
-            .from(source.table)
-            .select(`id,user_id,rating,comment,created_at,${source.idField}`)
-            .order('created_at', { ascending: false })
-            .limit(5);
-          if (error || !Array.isArray(data)) return [];
-          return data
-            .map((row) => {
-              const itemId = String(row?.[source.idField] || '').trim();
-              const comment = String(row?.comment || '').trim();
-              if (!itemId || !comment) return null;
-              return {
-                id: `${source.mediaType}:${String(row?.id || itemId)}`,
-                mediaType: source.mediaType,
-                itemId,
-                userId: String(row?.user_id || '').trim(),
-                rating: Math.max(0, Math.min(5, Number(row?.rating || 0))),
-                comment,
-                createdAt: row?.created_at || ''
-              };
-            })
-            .filter(Boolean);
-        })
-      );
-
-      return results
-        .flatMap((entry) => entry.status === 'fulfilled' ? entry.value : [])
-        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-        .slice(0, LANDING_REVIEW_LIMIT);
-    }
-
-    async function loadLandingReviewUsers(rows) {
-      const client = await ensureHomeSupabase();
-      if (!client) return;
-      const ids = [...new Set((Array.isArray(rows) ? rows : []).map((row) => String(row?.userId || '').trim()).filter(Boolean))];
-      if (!ids.length) return;
-      const { data, error } = await client
-        .from('user_profiles')
-        .select('id, username, full_name')
-        .in('id', ids);
-      if (error || !Array.isArray(data)) return;
-      data.forEach((row) => {
-        const id = String(row?.id || '').trim();
-        if (!id) return;
-        landingReviewUsers.set(id, {
-          username: String(row?.username || '').trim(),
-          fullName: String(row?.full_name || '').trim()
-        });
-      });
-    }
-
-    async function hydrateLandingReviewLocalMeta(rows) {
-      const client = await ensureHomeSupabase();
-      if (!client) return;
-      const safeRows = Array.isArray(rows) ? rows : [];
-      const bookIds = [...new Set(safeRows.filter((row) => row.mediaType === 'book').map((row) => row.itemId).filter(Boolean))];
-      const trackIds = [...new Set(safeRows.filter((row) => row.mediaType === 'music').map((row) => row.itemId).filter(Boolean))];
-
-      if (bookIds.length) {
-        const { data } = await client
-          .from('books')
-          .select('id,title,authors,thumbnail')
-          .in('id', bookIds.slice(0, 40));
-        (Array.isArray(data) ? data : []).forEach((row) => {
-          const id = String(row?.id || '').trim();
-          if (!id) return;
-          landingReviewMeta.set(getLandingReviewKey('book', id), {
-            title: String(row?.title || 'Book').trim(),
-            subtitle: String(row?.authors || 'Book').trim(),
-            image: normalizeLandingImageUrl(row?.thumbnail || '') || '/newlogo.webp',
-            href: `book.html?id=${encodeURIComponent(id)}`
-          });
-        });
-      }
-
-      if (trackIds.length) {
-        const { data } = await client
-          .from('tracks')
-          .select('id,name,artists,image_url,album_name')
-          .in('id', trackIds.slice(0, 40));
-        (Array.isArray(data) ? data : []).forEach((row) => {
-          const id = String(row?.id || '').trim();
-          if (!id) return;
-          landingReviewMeta.set(getLandingReviewKey('music', id), {
-            title: String(row?.name || 'Track').trim(),
-            subtitle: String(row?.artists || row?.album_name || 'Music').trim(),
-            image: normalizeLandingImageUrl(row?.image_url || '') || '/newlogo.webp',
-            href: `song.html?id=${encodeURIComponent(id)}`
-          });
-        });
-      }
-    }
-
-    async function fetchLandingReviewJson(url, timeoutMs = 8000) {
-      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      let timer = null;
-      try {
-        if (controller) timer = setTimeout(() => controller.abort(), timeoutMs);
-        const response = await fetch(url, {
-          headers: { Accept: 'application/json' },
-          signal: controller ? controller.signal : undefined
-        });
-        if (!response.ok) return null;
-        return await response.json();
-      } catch (_error) {
-        return null;
-      } finally {
-        if (timer) clearTimeout(timer);
-      }
-    }
-
-    async function hydrateLandingReviewRemoteMeta(rows) {
-      const uniqueRows = new Map();
-      (Array.isArray(rows) ? rows : []).forEach((row) => {
-        const key = getLandingReviewKey(row?.mediaType, row?.itemId);
-        if (!key || uniqueRows.has(key)) return;
-        uniqueRows.set(key, row);
-      });
-
-      const tasks = [...uniqueRows.values()].map(async (row) => {
-        const mediaType = String(row?.mediaType || '').toLowerCase();
-        const itemId = String(row?.itemId || '').trim();
-        if (!itemId) return;
-
-        if (mediaType === 'movie') {
-          const json = await fetchLandingReviewJson(`/api/tmdb/movie/${encodeURIComponent(itemId)}?language=en-US`, 7000);
-          if (!json?.title) return;
-          landingReviewMeta.set(getLandingReviewKey('movie', itemId), {
-            title: String(json.title || 'Movie').trim(),
-            subtitle: String(json.release_date || '').slice(0, 4) || 'Movie',
-            image: json.poster_path ? `${TMDB_POSTER}${json.poster_path}` : '/newlogo.webp',
-            href: `movie.html?id=${encodeURIComponent(itemId)}`
-          });
-          return;
-        }
-
-        if (mediaType === 'tv' || mediaType === 'anime') {
-          const json = await fetchLandingReviewJson(`/api/tmdb/tv/${encodeURIComponent(itemId)}?language=en-US`, 7000);
-          if (!json?.name) return;
-          landingReviewMeta.set(getLandingReviewKey(mediaType, itemId), {
-            title: String(json.name || 'Series').trim(),
-            subtitle: String(json.first_air_date || '').slice(0, 4) || (mediaType === 'anime' ? 'Anime' : 'TV Show'),
-            image: json.poster_path ? `${TMDB_POSTER}${json.poster_path}` : '/newlogo.webp',
-            href: `${mediaType === 'anime' ? 'anime' : 'tvshow'}.html?id=${encodeURIComponent(itemId)}`
-          });
-          return;
-        }
-
-        if (mediaType === 'game') {
-          const json = await fetchLandingReviewJson(`/api/igdb/games/${encodeURIComponent(itemId)}`, 8000);
-          if (!json?.name) return;
-          landingReviewMeta.set(getLandingReviewKey('game', itemId), {
-            title: String(json.name || 'Game').trim(),
-            subtitle: String(json.released || '').slice(0, 4) || 'Game',
-            image: normalizeLandingImageUrl(json.cover || json.hero || json.background_image || '') || '/newlogo.webp',
-            href: `game.html?id=${encodeURIComponent(itemId)}`
-          });
-          return;
-        }
-
-        if (mediaType === 'travel') {
-          const code = itemId.toUpperCase();
-          const json = await fetchLandingReviewJson(`https://restcountries.com/v3.1/alpha?codes=${encodeURIComponent(code)}&fields=name,capital,region,flags`, 9000);
-          const country = Array.isArray(json) ? json[0] : null;
-          if (!country) return;
-          const capital = Array.isArray(country?.capital) ? String(country.capital[0] || '').trim() : String(country?.capital || '').trim();
-          landingReviewMeta.set(getLandingReviewKey('travel', code), {
-            title: String(country?.name?.common || code).trim(),
-            subtitle: [capital, String(country?.region || '').trim()].filter(Boolean).join(' | ') || 'Travel',
-            image: normalizeLandingImageUrl(country?.flags?.png || country?.flags?.svg || '') || '/newlogo.webp',
-            href: `country.html?code=${encodeURIComponent(code)}`
-          });
-        }
-      });
-
-      await Promise.allSettled(tasks);
-    }
-
-    function buildLandingLiveReviewCard(review) {
-      const meta = getLandingReviewMeta(review);
-      const media = getHomeMediaMeta(review?.mediaType);
-      const title = escapeHtml(String(meta?.title || media.label || 'Item').trim() || 'Item');
-      const subtitle = escapeHtml(String(meta?.subtitle || `${media.label} review`).trim() || `${media.label} review`);
-      const image = escapeHtml(normalizeLandingImageUrl(meta?.image || '') || '/newlogo.webp');
-      const comment = escapeHtml(truncateLandingText(review?.comment || 'Fresh review from the Zo2y community.', 180));
-      const reviewer = escapeHtml(getLandingReviewUserLabel(review?.userId));
-      const rating = Number(review?.rating || 0);
-      const nextPath = sanitizeHomeNextPath(meta?.href || getLandingBrowsePath(review?.mediaType));
-      return `
-        <a class="landing-review-card" href="${buildLandingAuthHref(nextPath)}" data-auth-entry="signup" data-auth-next="${escapeHtml(nextPath)}" aria-label="Read ${title}">
-          <div class="landing-review-card-head">
-            <div class="landing-review-card-thumb">
-              <img src="${image}" alt="${title}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
-            </div>
-            <div class="landing-review-card-meta">
-              <div class="landing-review-card-topline">
-                <span>${escapeHtml(media.label)} review</span>
-                <span class="landing-review-card-user">${reviewer}</span>
-                ${rating > 0 ? `<span class="landing-review-card-rating"><i class="fa-solid fa-star"></i>${rating.toFixed(1)}</span>` : ''}
-              </div>
-              <strong>${title}</strong>
-              <span>${subtitle}</span>
-            </div>
-          </div>
-          <p>${comment}</p>
-        </a>
-      `;
-    }
-
-    function renderLandingHeroStrip(items) {
-      const strip = document.getElementById('landingHeroStrip');
-      if (!strip) return;
-      const safeItems = (Array.isArray(items) ? items : [])
-        .filter((item) => item && isRenderableLandingImage(getLandingPreviewPoster(item)))
-        .slice(0, 6);
-      if (!safeItems.length) return;
-      strip.innerHTML = safeItems.map((item) => {
-        const nextPath = getLandingItemNextPath(item);
-        const image = escapeHtml(getLandingPreviewPoster(item) || HOME_IMAGE_PLACEHOLDER);
-        const title = escapeHtml(String(item?.title || 'Title').trim() || 'Title');
-        return `
-          <a class="landing-hero-poster" href="${buildLandingAuthHref(nextPath)}" data-auth-entry="signup" data-auth-next="${escapeHtml(nextPath)}" aria-label="Open ${title}">
-            <img src="${image}" alt="${title}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
-          </a>
-        `;
-      }).join('');
-      wireLandingAuthNextLinks(strip);
-    }
-
-    async function loadLandingLiveFeed() {
-      const apiPayload = await fetchJsonWithPerfCache(HOME_PUBLIC_FEED_ENDPOINT, {
-        cacheKey: 'landing-public-feed',
-        ttlMs: 1000 * 30,
-        timeoutMs: 3200,
-        retries: 3
-      });
-      const apiFeed = normalizeHomeFeedMap(apiPayload?.feed);
-      if (apiFeed && countActiveHomeChannels(apiFeed) > 0) {
-        return {
-          movie: filterHomeSafeItems(apiFeed.movie || []),
-          tv: filterHomeSafeItems(apiFeed.tv || []),
-          game: filterHomeSafeItems(apiFeed.game || [])
-        };
-      }
-      const [movieRes, tvRes, gameRes] = await Promise.allSettled([
-        loadMovies(null),
-        loadTv(null),
-        loadGames(null)
-      ]);
-      const toItems = (entry) => filterHomeSafeItems(entry?.status === 'fulfilled' ? entry.value : []);
-      return {
-        movie: toItems(movieRes),
-        tv: toItems(tvRes),
-        game: toItems(gameRes)
-      };
-    }
-
-    async function hydrateLandingLiveReviews() {
-      if (landingReviewHydrated) return;
-      landingReviewHydrated = true;
-      const reviewGrid = document.getElementById('landingPreviewReviews');
-      if (!reviewGrid) return;
-
-      const rows = await fetchLandingReviewRows();
-      if (!rows.length) {
-        reviewGrid.innerHTML = '<article class="landing-review-card"><p>Reviews will show up here as soon as the live feed responds.</p></article>';
-        return;
-      }
-
-      await Promise.allSettled([
-        loadLandingReviewUsers(rows),
-        hydrateLandingReviewLocalMeta(rows),
-        hydrateLandingReviewRemoteMeta(rows)
-      ]);
-
-      reviewGrid.innerHTML = rows.map((row) => buildLandingLiveReviewCard(row)).join('');
-      wireLandingAuthNextLinks(reviewGrid);
-    }
-
-    function renderLandingFeedPreview(feedMap) {
-      const normalized = normalizeHomeFeedMap(feedMap);
-      if (!normalized || countActiveHomeChannels(normalized) === 0) return false;
-
-      const movies = getLandingRailItems(normalized.movie, 1, 10);
-      const games = getLandingRailItems(normalized.game, 2, 10);
-      const tv = getLandingRailItems(normalized.tv, 3, 10);
-      const sports = getLandingRailItems(normalized.sports, 3, 3);
-      const heroStripItems = [
-        ...movies.filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item))).slice(0, 2),
-        ...tv.filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item))).slice(0, 2),
-        ...games.filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item))).slice(0, 2)
-      ];
-      renderLandingHeroStrip([
-        ...heroStripItems
-      ]);
-
-      const spotlight = [
-        ...movies.slice(0, 2),
-        ...games.slice(0, 2),
-        ...(Array.isArray(normalized.tv) ? rotateLandingList(normalized.tv, 1).slice(0, 1) : []),
-        ...(Array.isArray(normalized.anime) ? rotateLandingList(normalized.anime, 2).slice(0, 1) : []),
-        ...sports.slice(0, 1)
-      ].find(Boolean) || Object.values(normalized).flat().find(Boolean);
-
-      const spotlightLink = document.getElementById('landingPreviewSpotlightLink');
-      const spotlightBackdrop = document.getElementById('landingPreviewSpotlightBackdrop');
-      const spotlightPoster = document.getElementById('landingPreviewSpotlightPoster');
-      const spotlightType = document.getElementById('landingPreviewSpotlightType');
-      const spotlightTitle = document.getElementById('landingPreviewSpotlightTitle');
-      const spotlightMeta = document.getElementById('landingPreviewSpotlightMeta');
-      const spotlightSummary = document.getElementById('landingPreviewSpotlightSummary');
-
-      if (spotlight && spotlightLink && spotlightBackdrop && spotlightPoster && spotlightType && spotlightTitle && spotlightMeta && spotlightSummary) {
-        const nextPath = getLandingItemNextPath(spotlight);
-        const meta = getHomeMediaMeta(spotlight.mediaType);
-        const poster = getLandingPreviewPoster(spotlight);
-        const backdrop = getLandingPreviewBackdrop(spotlight);
-        spotlightLink.href = buildLandingAuthHref(nextPath);
-        spotlightLink.setAttribute('data-auth-next', nextPath);
-        spotlightType.textContent = meta.label;
-        spotlightTitle.textContent = String(spotlight.title || `${meta.label} pick`).trim() || `${meta.label} pick`;
-        spotlightMeta.textContent = getLandingPreviewMeta(spotlight);
-        spotlightSummary.textContent = truncateLandingText(getSpotlightSummary(spotlight), 140) || 'Live pick from the Zo2y feed.';
-        spotlightPoster.src = poster || HOME_IMAGE_PLACEHOLDER;
-        spotlightPoster.alt = String(spotlight.title || meta.label || 'Item').trim() || meta.label;
-        spotlightBackdrop.style.backgroundImage = backdrop
-          ? `linear-gradient(90deg, rgba(6, 11, 27, 0.88) 0%, rgba(6, 11, 27, 0.58) 52%, rgba(6, 11, 27, 0.12) 100%), url("${String(backdrop).replace(/"/g, '%22')}")`
-          : 'linear-gradient(90deg, rgba(6, 11, 27, 0.88) 0%, rgba(6, 11, 27, 0.58) 52%, rgba(6, 11, 27, 0.12) 100%), linear-gradient(150deg, rgba(14, 27, 60, 0.94), rgba(9, 17, 36, 0.9))';
-      }
-
-      renderRail('landingMoviesRail', movies, { mediaType: 'movie' });
-      renderRail('landingGamesRail', games, { mediaType: 'game' });
-      renderRail('landingTvRail', tv, { mediaType: 'tv' });
-      lockLandingRailInteractions(document.getElementById('landingMoviesRail'));
-      lockLandingRailInteractions(document.getElementById('landingGamesRail'));
-      lockLandingRailInteractions(document.getElementById('landingTvRail'));
-      wireLandingAuthNextLinks(document.getElementById('landingAppShell'));
-      return true;
-    }
-
-    async function hydrateLandingFeedPreview() {
-      if (landingPreviewHydrated) return;
-      landingPreviewHydrated = true;
-      const hasLandingPreviewTargets =
-        !!document.getElementById('landingPreviewSpotlightLink') ||
-        !!document.getElementById('landingHeroStrip') ||
-        !!document.getElementById('landingMoviesRail') ||
-        !!document.getElementById('landingGamesRail') ||
-        !!document.getElementById('landingTvRail');
-      if (!hasLandingPreviewTargets) return;
-      let rendered = false;
-      let feed = null;
-      try {
-        feed = await loadPrecomputedHomeFeed();
-      } catch (_err) {}
-      if (!feed || countActiveHomeChannels(feed) === 0) {
-        feed = readHomeFeedCache() || readPrecomputedHomeFeedCache();
-      }
-      if (feed && countActiveHomeChannels(feed) > 0) {
-        rendered = renderLandingFeedPreview(feed);
-      }
-
-      try {
-        const liveFeed = await loadLandingLiveFeed();
-        if (countActiveHomeChannels(liveFeed) > 0) {
-          renderLandingFeedPreview(liveFeed);
-          rendered = true;
-        }
-      } catch (_err) {}
-
-      if (!rendered) {
-        renderLandingFeedPreview(feed || {});
-      }
-    }
-
     function initLandingExperience() {
-      if (landingExperienceInitialized) return;
-      landingExperienceInitialized = true;
       document.body?.classList.add('landing-mode');
       const authNotice = document.getElementById('landingAuthNotice');
       const revealNodes = Array.from(document.querySelectorAll('[data-landing-reveal]'));
       const params = new URLSearchParams(window.location.search || '');
+      const next = sanitizeHomeNextPath(params.get('next') || localStorage.getItem('postAuthRedirect') || 'index.html');
       const authRequired = params.get('auth') === 'required';
-      const savePromptDismiss = document.getElementById('landingSavePromptDismiss');
-      const savePromptClose = document.getElementById('landingSavePromptClose');
 
       if (authRequired && authNotice) {
+        const readableNext = next && next !== 'index.html'
+          ? next.replace(/\.html?$/i, '').replace(/[?#].*$/, '').replace(/[-_/]+/g, ' ').trim()
+          : 'the app';
         authNotice.hidden = false;
-        authNotice.textContent = 'Sign in to continue into Zo2y.';
+        authNotice.textContent = `Sign in to continue to ${readableNext || 'the app'}.`;
       }
-
-      scheduleHomeNonCritical(() => {
-        void ensureHomeHeavyLoaders().catch(() => {});
-      }, 1800);
 
       document.querySelectorAll('[data-auth-entry]').forEach((link) => {
         link.addEventListener('click', () => {
-          localStorage.setItem('postAuthRedirect', 'index.html');
+          localStorage.setItem('postAuthRedirect', next || 'index.html');
         });
       });
-
-      savePromptDismiss?.addEventListener('click', hideLandingSavePrompt);
-      savePromptClose?.addEventListener('click', hideLandingSavePrompt);
-
-      wireLandingAuthNextLinks(document);
-      void hydrateLandingSetupWall();
-      void hydrateLandingFeedPreview();
-      void hydrateLandingLiveReviews();
 
       if (!revealNodes.length || typeof window.IntersectionObserver !== 'function') {
         revealNodes.forEach((node) => node.classList.add('is-visible'));
@@ -11215,82 +7735,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       });
     }
 
-    function initLandingMascot() {
-      const hero = document.querySelector('.landing-hero');
-      const mascot = document.getElementById('landingMascot');
-      const shell = mascot?.querySelector?.('.landing-mascot-shell');
-      if (!hero || !mascot || !shell || mascot.dataset.wired === '1') return;
-      mascot.dataset.wired = '1';
-
-      let moveFrame = 0;
-      const applyPointer = (clientX, clientY) => {
-        const rect = hero.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
-        const px = ((clientX - rect.left) / rect.width) - 0.5;
-        const py = ((clientY - rect.top) / rect.height) - 0.5;
-        const offsetX = Math.max(-14, Math.min(14, px * 28));
-        const offsetY = Math.max(-10, Math.min(10, py * 20));
-        const tilt = Math.max(-6, Math.min(6, px * 12));
-        shell.style.setProperty('--landing-mascot-x', `${offsetX.toFixed(1)}px`);
-        shell.style.setProperty('--landing-mascot-y', `${offsetY.toFixed(1)}px`);
-        shell.style.setProperty('--landing-mascot-tilt', `${tilt.toFixed(1)}deg`);
-      };
-      const resetPointer = () => {
-        shell.style.setProperty('--landing-mascot-x', '0px');
-        shell.style.setProperty('--landing-mascot-y', '0px');
-        shell.style.setProperty('--landing-mascot-tilt', '0deg');
-      };
-      const queuePointerUpdate = (clientX, clientY) => {
-        if (moveFrame) cancelAnimationFrame(moveFrame);
-        moveFrame = requestAnimationFrame(() => {
-          moveFrame = 0;
-          applyPointer(clientX, clientY);
-        });
-      };
-
-      hero.addEventListener('pointermove', (event) => {
-        queuePointerUpdate(event.clientX, event.clientY);
-      });
-      hero.addEventListener('pointerleave', resetPointer);
-      hero.addEventListener('touchmove', (event) => {
-        const touch = event.touches && event.touches[0];
-        if (!touch) return;
-        queuePointerUpdate(touch.clientX, touch.clientY);
-      }, { passive: true });
-      hero.addEventListener('touchend', resetPointer, { passive: true });
-
-      const blink = () => {
-        mascot.classList.add('is-blinking');
-        window.setTimeout(() => mascot.classList.remove('is-blinking'), 120);
-        window.setTimeout(blink, 2300 + Math.round(Math.random() * 1900));
-      };
-      window.setTimeout(blink, 1200);
-      resetPointer();
-    }
-
     let homeAppBootPromise = null;
-    let homeAuthGateVerifiedEvent = null;
-    let homeDomReady = false;
-
-    function handleHomeAuthGateVerified(event) {
-      const detail = event?.detail || null;
-      homeAuthGateVerifiedEvent = detail;
-      if (!homeDomReady) return;
-      const authenticated = !!detail?.authenticated;
-      if (authenticated) {
-        document.body?.classList.remove('landing-mode');
-        void bootAuthenticatedHome().catch((error) => {
-          console.error('Home boot failed after auth verification:', error);
-          setStatus('Could not load your home feed right now. Please refresh.', true);
-        });
-        return;
-      }
-      initLandingExperience();
-    }
-
-    // Attach this immediately so we never miss refresh-only auth verification events.
-    window.addEventListener('zo2y-auth-gate-verified', handleHomeAuthGateVerified);
-
     function scheduleHomeNonCritical(task, timeoutMs = 900) {
       if (typeof task !== 'function') return;
       if (typeof window.requestIdleCallback === 'function') {
@@ -11305,11 +7750,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       homeAppBootPromise = (async () => {
         await setupHomeAuthListener();
         await completeHomeOAuthReturnIfNeeded();
-        if (hasHomeAuthReturnParams()) {
-          clearHomeAuthParamsFromUrl();
-        }
         await initAuthUi();
-        await finishPendingPostAuthBootstrap();
         await initUniversalHome();
         scheduleDeferredHomeStartupTasks();
       })().catch((error) => {
@@ -11320,25 +7761,29 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      homeDomReady = true;
+      if (GAMES_DISABLED) {
+        document.querySelectorAll('.popular-games-wrap, #gamesRail').forEach((el) => el.remove());
+        document.querySelectorAll('[data-nav-page="games"], a[href="games.html"], a[href="/games.html"], a[href^="game.html"]').forEach((el) => el.remove());
+      }
       const authGateState = getHomeAuthGateState();
-      if (authGateState?.authShell === 'landing' && authGateState?.verified && !authGateState?.authenticated) {
+      if (isHomeLandingMode() && !authGateState?.authenticated) {
         initLandingExperience();
-      } else if (authGateState?.authShell === 'app' && authGateState?.authenticated) {
+      } else {
         void bootAuthenticatedHome().catch((error) => {
           console.error('Home boot failed:', error);
           setStatus('Could not load your home feed right now. Please refresh.', true);
         });
       }
 
-      // If auth-gate verified before DOMContentLoaded (rare refresh timing), replay the latest event.
-      if (homeAuthGateVerifiedEvent) {
-        handleHomeAuthGateVerified({ detail: homeAuthGateVerifiedEvent });
-      }
-
-      scheduleHomeNonCritical(() => {
-        void ensureHomeHeavyLoaders().catch(() => {});
-      }, 1800);
+      window.addEventListener('zo2y-auth-gate-verified', (event) => {
+        const authenticated = !!event?.detail?.authenticated;
+        if (!authenticated) return;
+        document.body?.classList.remove('landing-mode');
+        void bootAuthenticatedHome().catch((error) => {
+          console.error('Home boot failed after auth verification:', error);
+          setStatus('Could not load your home feed right now. Please refresh.', true);
+        });
+      });
 
       const itemMenuModal = document.getElementById('itemMenuModal');
       const createListModal = document.getElementById('createListModal');
@@ -11357,9 +7802,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       document.getElementById('closeMenuModalBtn')?.addEventListener('click', closeItemMenuModal);
       document.getElementById('closeCreateModalBtn')?.addEventListener('click', closeAllItemMenuModals);
       document.getElementById('cancelCreateBtn')?.addEventListener('click', closeAllItemMenuModals);
-      document.getElementById('menuCreateListBtn')?.addEventListener('click', () => {
-        void openCreateListModalFromMenu();
-      });
+      document.getElementById('menuCreateListBtn')?.addEventListener('click', openCreateListModalFromMenu);
       document.getElementById('saveNewListBtn')?.addEventListener('click', () => {
         void saveNewCustomListFromMenu();
       });
@@ -11477,10 +7920,4 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
-
-
-
-
-
-
 

@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
@@ -18,7 +19,9 @@ const __dirname = path.dirname(__filename);
 
 // Load env from backend/.env regardless of current working directory.
 dotenv.config({ path: path.join(__dirname, ".env") });
-
+dotenv.config({ path: path.join(__dirname, "authRoutes/.env") });
+// Optional fallback if someone also keeps a repo-root .env.
+dotenv.config();
 
 const app = express();
 
@@ -32,9 +35,7 @@ function parseCorsOrigins() {
     "https://zo2y.com",
     "https://www.zo2y.com",
     "http://localhost:3000",
-    "http://localhost:5000",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5000"
+    "http://localhost:5000"
   ].filter(Boolean);
   return new Set([...defaults, ...raw]);
 }
@@ -69,6 +70,39 @@ app.use("/api", createRateLimiter({
 
 // Serve static files from frontend (main folder)
 app.use(express.static(path.join(__dirname, '../')));
+
+function normalizeMongoUri(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^['"]+|['"]+$/g, "");
+}
+
+function hasValidMongoScheme(uri) {
+  return uri.startsWith("mongodb://") || uri.startsWith("mongodb+srv://");
+}
+
+// Connect to MongoDB
+const connectDB = async () => {
+  const mongoUri = normalizeMongoUri(process.env.MONGO_URI);
+  if (!mongoUri) {
+    console.log('[WARN] MONGO_URI is empty. Skipping MongoDB connection.');
+    console.log('[WARN] Set MONGO_URI in backend/.env to mongodb://... or mongodb+srv://...');
+    return;
+  }
+  if (!hasValidMongoScheme(mongoUri)) {
+    console.log('[WARN] MONGO_URI has an invalid scheme. Expected mongodb:// or mongodb+srv://');
+    console.log('[WARN] Current value in backend/.env is malformed. Fix it and restart the server.');
+    return;
+  }
+
+  try {
+    await mongoose.connect(mongoUri);
+    console.log('Connected to MongoDB Atlas');
+  } catch (err) {
+    console.log('MongoDB connection error:', err.message);
+  }
+};
+connectDB();
 
 // Import auth routes
 import authRoutes from "./routes/auth.js";

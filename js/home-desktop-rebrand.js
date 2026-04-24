@@ -2,13 +2,12 @@
   const DESKTOP_BREAKPOINT = 1025;
   const SIDEBAR_STORAGE_KEY = 'zo2y_home_sidebar_collapsed_v1';
   const REVIEW_ROTATE_MS = 6200;
-const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-const SUPABASE_URL = String(supabaseConfig.url || '').trim();
-const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+  const SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd';
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
   const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
   const REVIEW_LIMIT = 22;
-  const GAMES_DISABLED = false;
+  const GAMES_DISABLED = window.ZO2Y_DISABLE_GAMES !== false;
 
   const REVIEW_SOURCES = [
     { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id', label: 'Movie' },
@@ -62,10 +61,6 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
 
   const SOURCE_BY_MEDIA = Object.fromEntries(REVIEW_SOURCES.map((source) => [source.mediaType, source]));
   let lastLiveReviewSlides = [];
-  let sidebarPreviewPromise = null;
-  let sidebarPreviewQueued = false;
-  let sidebarPreviewTimer = null;
-  let sidebarPreviewLastUserId = '';
 
   const imdbTopMovies = [
     {
@@ -407,21 +402,6 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
   async function ensureSupabaseClient() {
     if (supabaseClient) return supabaseClient;
 
-    if (window.__ZO2Y_SUPABASE_CLIENT) {
-      supabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
-      return supabaseClient;
-    }
-
-    if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-      try {
-        const client = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-        if (client) {
-          supabaseClient = client;
-          return supabaseClient;
-        }
-      } catch (_err) {}
-    }
-
     if (typeof window.ensureHomeSupabase === 'function') {
       try {
         const client = await window.ensureHomeSupabase();
@@ -435,15 +415,8 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
     for (let i = 0; i < 20; i += 1) {
       if (window.supabase?.createClient) {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-          auth: {
-            storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: false,
-            storageKey: 'zo2y-auth-v2'
-          }
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
         });
-        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
         return supabaseClient;
       }
       await wait(120);
@@ -464,6 +437,10 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
     try {
       const { data: sessionData } = await client.auth.getSession();
       const sessionUser = sessionData?.session?.user || null;
+      if (!sessionUser) return null;
+
+      const { data: userData, error: userError } = await client.auth.getUser();
+      if (!userError && userData?.user) return userData.user;
       return sessionUser;
     } catch (_err) {
       return null;
@@ -970,28 +947,7 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
     restartAutoRotate();
   }
 
-  function queueSidebarCustomListPreview(delayMs = 0) {
-    if (sidebarPreviewTimer) {
-      window.clearTimeout(sidebarPreviewTimer);
-      sidebarPreviewTimer = null;
-    }
-    if (delayMs > 0) {
-      sidebarPreviewTimer = window.setTimeout(() => {
-        sidebarPreviewTimer = null;
-        void loadSidebarCustomListPreview();
-      }, delayMs);
-      return;
-    }
-    void loadSidebarCustomListPreview();
-  }
-
   async function loadSidebarCustomListPreview() {
-    if (sidebarPreviewPromise) {
-      sidebarPreviewQueued = true;
-      return sidebarPreviewPromise;
-    }
-
-    sidebarPreviewPromise = (async () => {
     const listContainer = document.getElementById('sidebarCustomListItems');
     if (!listContainer) return;
 
@@ -1015,11 +971,9 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
       }
     }
     if (!user?.id) {
-      sidebarPreviewLastUserId = '';
       listContainer.innerHTML = '<div class="sidebar-list-empty">Sign in to preview your custom lists.</div>';
       return;
     }
-    sidebarPreviewLastUserId = String(user.id || '').trim();
 
     const perType = await Promise.all(SIDEBAR_MEDIA_TYPES.map(async (mediaType) => {
       try {
@@ -1070,17 +1024,6 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
         </a>
       `;
     }).join('');
-    })();
-
-    try {
-      return await sidebarPreviewPromise;
-    } finally {
-      sidebarPreviewPromise = null;
-      if (sidebarPreviewQueued) {
-        sidebarPreviewQueued = false;
-        queueSidebarCustomListPreview(120);
-      }
-    }
   }
 
   async function bindSidebarListAuthRefresh() {
@@ -1089,16 +1032,8 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
     if (bindSidebarListAuthRefresh.bound) return;
 
     bindSidebarListAuthRefresh.bound = true;
-    client.auth.onAuthStateChange((event, session) => {
-      const normalizedEvent = String(event || '').trim().toUpperCase();
-      if (normalizedEvent === 'INITIAL_SESSION' || normalizedEvent === 'TOKEN_REFRESHED') {
-        return;
-      }
-      const nextUserId = String(session?.user?.id || '').trim();
-      if (!nextUserId && !sidebarPreviewLastUserId && normalizedEvent !== 'SIGNED_OUT') {
-        return;
-      }
-      queueSidebarCustomListPreview(120);
+    client.auth.onAuthStateChange(() => {
+      void loadSidebarCustomListPreview();
     });
   }
 
@@ -1130,15 +1065,13 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
     syncDesktopSidebarDocking();
     void initReviewSlideshow();
     renderCuratedRails();
-    queueSidebarCustomListPreview(240);
+    void loadSidebarCustomListPreview();
     void bindSidebarListAuthRefresh();
-    window.addEventListener('zo2y-auth-gate-verified', () => {
-      queueSidebarCustomListPreview(120);
-    });
+    window.setTimeout(() => { void loadSidebarCustomListPreview(); }, 1200);
+    window.setTimeout(() => { void loadSidebarCustomListPreview(); }, 3600);
     window.addEventListener('resize', syncDesktopSidebarDocking, { passive: true });
     window.addEventListener('orientationchange', syncDesktopSidebarDocking, { passive: true });
     window.addEventListener('pageshow', syncDesktopSidebarDocking);
   });
 })();
-
 
