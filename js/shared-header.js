@@ -598,14 +598,9 @@ const HEADER_HTML = `
     if (!client || !client.auth || typeof client.auth.onAuthStateChange !== 'function') return;
 
     const persistHeaderSession = async () => {
-      const activeClient = ensureSupabaseClient();
-      if (!activeClient?.auth || typeof activeClient.auth.getSession !== 'function' || !window.__ZO2Y_AUTH_STORAGE_BRIDGE) return;
-      try {
-        const { data } = await activeClient.auth.getSession();
-        const session = data?.session || null;
-        if (!session?.access_token || !session?.refresh_token) return;
-        persistHeaderSessionSnapshot(session);
-      } catch (_err) {}
+      if (lastKnownHeaderSession?.access_token && lastKnownHeaderSession?.refresh_token) {
+        persistHeaderSessionSnapshot(lastKnownHeaderSession);
+      }
     };
 
     authStateListenerBound = true;
@@ -728,8 +723,10 @@ const HEADER_HTML = `
     }
 
     try {
-      let { data } = await client.auth.getSession();
-      let session = data && data.session ? data.session : null;
+      const authRuntime = window.ZO2Y_AUTH || null;
+      let session = authRuntime && typeof authRuntime.getActiveSession === 'function'
+        ? await authRuntime.getActiveSession(client, { refreshIfNeeded: true, restore: true })
+        : null;
       const hasStoredAuthSession =
         typeof window.__ZO2Y_HAS_STORED_AUTH_SESSION === 'function'
           ? !!window.__ZO2Y_HAS_STORED_AUTH_SESSION()
@@ -740,8 +737,9 @@ const HEADER_HTML = `
         } else {
           await bootstrapHeaderSessionFromStorage(client);
         }
-        ({ data } = await client.auth.getSession());
-        session = session || (data && data.session ? data.session : null);
+        if (!session && authRuntime && typeof authRuntime.getActiveSession === 'function') {
+          session = await authRuntime.getActiveSession(client, { refreshIfNeeded: true, restore: true });
+        }
         if (!session && typeof client.auth.refreshSession === 'function' && readStoredHeaderSession()?.refresh_token) {
           try {
             const refreshed = await client.auth.refreshSession();

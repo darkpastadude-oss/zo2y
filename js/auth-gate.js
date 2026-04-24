@@ -87,9 +87,11 @@
 
   var pageKey = normalizePageKey(window.location && window.location.pathname);
   var verifyInFlight = null;
+  var activeSessionPromise = null;
   var lastVerifyAt = 0;
   var authStateVerifyTimer = null;
   var profileBootstrapPromises = new Map();
+  var lastKnownSessionSnapshot = null;
 
   try {
     if (!window.__ZO2Y_SUPABASE_CONFIG) {
@@ -365,6 +367,7 @@
   function persistSessionSnapshot(session) {
     if (!session || !session.access_token || !session.refresh_token) return false;
     try {
+      lastKnownSessionSnapshot = session;
       var payload = JSON.stringify(session);
       safeSetAuthStorage(STORAGE_KEY, payload);
       safeSetAuthStorage(PERSIST_STORAGE_KEY, payload);
@@ -380,6 +383,7 @@
   }
 
   function clearPersistedSessionSnapshots() {
+    lastKnownSessionSnapshot = null;
     safeRemoveAuthStorage(STORAGE_KEY);
     removeStorageKeyEverywhere(LEGACY_STORAGE_KEY);
     removeStorageKeyEverywhere(PERSIST_STORAGE_KEY);
@@ -727,6 +731,7 @@
     client.__zo2yAuthListenersBound = true;
     client.auth.onAuthStateChange(function (event, session) {
       var normalizedEvent = String(event || '').trim().toUpperCase();
+      lastKnownSessionSnapshot = session && session.access_token && session.refresh_token ? session : null;
       if (session && session.access_token && session.refresh_token) {
         persistSessionSnapshot(session);
       }
@@ -909,47 +914,57 @@
   }
 
   async function getActiveSession(client, options) {
+    if (activeSessionPromise) return activeSessionPromise;
+
     var opts = options || {};
     var activeClient = client || ensureSharedSupabaseClient();
     if (!activeClient || !activeClient.auth || typeof activeClient.auth.getSession !== 'function') return null;
 
-    try {
-      var sessionResult = await activeClient.auth.getSession();
-      var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
-      if (session && session.access_token && session.refresh_token) {
-        persistSessionSnapshot(session);
-        return session;
-      }
-      if (sessionResult && sessionResult.error && shouldClearPersistedSessionForError(sessionResult.error)) {
-        clearPersistedSessionSnapshots();
-        return null;
-      }
-    } catch (_err) {}
-
-    if (opts.restore !== false) {
-      var restored = await restoreClientSessionFromSnapshot(activeClient);
-      if (restored && restored.user) return restored;
-    }
-
-    if (opts.refreshIfNeeded !== false && typeof activeClient.auth.refreshSession === 'function' && hasStoredSupabaseSession() && !hasRecentExplicitSignout()) {
+    activeSessionPromise = (async function () {
       try {
-        var refreshResult = await activeClient.auth.refreshSession();
-        var refreshed = refreshResult && refreshResult.data ? refreshResult.data.session : null;
-        if (refreshed && refreshed.access_token && refreshed.refresh_token) {
-          persistSessionSnapshot(refreshed);
-          return refreshed;
+        var sessionResult = await activeClient.auth.getSession();
+        var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
+        if (session && session.access_token && session.refresh_token) {
+          persistSessionSnapshot(session);
+          return session;
         }
-        if (refreshResult && refreshResult.error && shouldClearPersistedSessionForError(refreshResult.error)) {
+        if (sessionResult && sessionResult.error && shouldClearPersistedSessionForError(sessionResult.error)) {
           clearPersistedSessionSnapshots();
+          return null;
         }
-      } catch (error) {
-        if (shouldClearPersistedSessionForError(error)) {
-          clearPersistedSessionSnapshots();
+      } catch (_err) {}
+
+      if (opts.restore !== false) {
+        var restored = await restoreClientSessionFromSnapshot(activeClient);
+        if (restored && restored.user) return restored;
+      }
+
+      if (opts.refreshIfNeeded !== false && typeof activeClient.auth.refreshSession === 'function' && hasStoredSupabaseSession() && !hasRecentExplicitSignout()) {
+        try {
+          var refreshResult = await activeClient.auth.refreshSession();
+          var refreshed = refreshResult && refreshResult.data ? refreshResult.data.session : null;
+          if (refreshed && refreshed.access_token && refreshed.refresh_token) {
+            persistSessionSnapshot(refreshed);
+            return refreshed;
+          }
+          if (refreshResult && refreshResult.error && shouldClearPersistedSessionForError(refreshResult.error)) {
+            clearPersistedSessionSnapshots();
+          }
+        } catch (error) {
+          if (shouldClearPersistedSessionForError(error)) {
+            clearPersistedSessionSnapshots();
+          }
         }
       }
-    }
 
-    return null;
+      return null;
+    })();
+
+    try {
+      return await activeSessionPromise;
+    } finally {
+      activeSessionPromise = null;
+    }
   }
 
   async function getVerifiedUser(client) {
@@ -1173,9 +1188,20 @@
     var session = null;
 
     if (code && typeof client.auth.exchangeCodeForSession === 'function') {
-      var exchangeResult = await client.auth.exchangeCodeForSession(code);
-      if (exchangeResult && exchangeResult.error) throw exchangeResult.error;
-      session = exchangeResult && exchangeResult.data ? exchangeResult.data.session : null;
+      try {
+        var exchangeResult = await client.auth.exchangeCodeForSession(code);
+        if (exchangeResult && exchangeResult.error) throw exchangeResult.error;
+        session = exchangeResult && exchangeResult.data ? exchangeResult.data.session : null;
+      } catch (exchangeError) {
+        var exchangeMessage = String(exchangeError && exchangeError.message || '').toLowerCase();
+        if (exchangeMessage.indexOf('code verifier') === -1 && exchangeMessage.indexOf('pkce') === -1) {
+          throw exchangeError;
+        }
+        session = await getActiveSession(client, { refreshIfNeeded: true, restore: true });
+        if (!session || !session.user || !session.user.id) {
+          throw exchangeError;
+        }
+      }
     } else if (accessToken && refreshToken && typeof client.auth.setSession === 'function') {
       var setResult = await client.auth.setSession({
         access_token: accessToken,
@@ -1387,17 +1413,9 @@
   }
 
   async function persistLiveClientSession() {
-    var client = ensureSharedSupabaseClient();
-    if (!client || !client.auth || typeof client.auth.getSession !== 'function') return false;
-    try {
-      var result = await client.auth.getSession();
-      var session = result && result.data ? result.data.session : null;
-      if (session && session.access_token && session.refresh_token) {
-        persistSessionSnapshot(session);
-        return true;
-      }
-    } catch (_err) {}
-    return false;
+    var session = lastKnownSessionSnapshot || getStoredSessionSnapshot();
+    if (!session || !session.access_token || !session.refresh_token) return false;
+    return persistSessionSnapshot(session);
   }
 
   function shouldThrottleResumeVerification() {

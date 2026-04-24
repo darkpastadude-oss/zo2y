@@ -265,7 +265,7 @@
                         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
                             auth: {
                                 storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
-                                storageKey: 'zo2y-auth-v1',
+                                storageKey: 'zo2y-auth-v2',
                                 persistSession: true,
                                 autoRefreshToken: true,
                                 detectSessionInUrl: false
@@ -856,11 +856,13 @@
                     }
                     await supabase.auth.signOut();
                     try {
+                        localStorage.removeItem('zo2y-auth-v2');
                         localStorage.removeItem('zo2y-auth-v1');
                         localStorage.removeItem('sb-gfkhjbztayjyojsgdpgk-auth-token');
                         localStorage.removeItem('zo2y-auth-persist-v1');
                         localStorage.removeItem('zo2y-auth-durable-v1');
                         localStorage.removeItem('zo2y_post_auth_bootstrap_v1');
+                        sessionStorage.removeItem('zo2y-auth-v2');
                         sessionStorage.removeItem('zo2y-auth-v1');
                         sessionStorage.removeItem('sb-gfkhjbztayjyojsgdpgk-auth-token');
                         sessionStorage.removeItem('zo2y-auth-persist-v1');

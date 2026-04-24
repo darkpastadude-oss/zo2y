@@ -3573,7 +3573,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           autoRefreshToken: true,
           // OAuth callback is handled on auth-callback.html, keep homepage parser off.
           detectSessionInUrl: false,
-          storageKey: 'zo2y-auth-v1'
+          storageKey: 'zo2y-auth-v2'
         }
       });
       window.__ZO2Y_SUPABASE_CLIENT = homeSupabaseClient;
@@ -6766,11 +6766,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
 
       let sessionUser = null;
+      const authRuntime = window.ZO2Y_AUTH || null;
 
-      try {
-        const sessionResult = await activeClient.auth.getSession();
-        sessionUser = sessionResult?.data?.session?.user || null;
-      } catch (_err) {}
+      if (authRuntime && typeof authRuntime.getActiveSession === 'function') {
+        try {
+          const activeSession = await authRuntime.getActiveSession(activeClient, {
+            refreshIfNeeded: allowRefresh,
+            restore: true
+          });
+          sessionUser = activeSession?.user || null;
+        } catch (_err) {}
+      }
 
       if (!sessionUser && typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
         try {
@@ -7198,63 +7204,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             ok: true,
             created: !!sharedResult.created,
             profile: sharedResult.profile || null,
-            needsUsername: !!sharedResult.needsUsername
+            needsUsername: false
           };
         }
       }
 
-      const { data: existingProfile, error: lookupError } = await client
-        .from('user_profiles')
-        .select('id, username, full_name')
-        .eq('id', homeCurrentUser.id)
-        .maybeSingle();
-      if (existingProfile?.id) {
-        return {
-          ok: true,
-          created: false,
-          profile: existingProfile,
-          needsUsername: isHomePlaceholderProfileUsername(existingProfile.username, homeCurrentUser)
-        };
-      }
-      if (lookupError) {
-        throw lookupError;
-      }
-
-      const suffixSeed = String(homeCurrentUser.id || '').replace(/-/g, '').slice(0, 6) || 'user';
-      const username = `user_${suffixSeed}`.slice(0, PROFILE_USERNAME_MAX_LENGTH);
-
-      const { data: createdProfile, error: createError } = await client
-        .from('user_profiles')
-        .insert({
-          id: homeCurrentUser.id,
-          username,
-          full_name: null
-        })
-        .select('id, username, full_name')
-        .maybeSingle();
-      if (createError) {
-        const message = String(createError?.message || '').toLowerCase();
-        if (message.includes('duplicate') || message.includes('unique')) {
-          const { data: duplicateProfile, error: duplicateLookupError } = await client
-            .from('user_profiles')
-            .select('id, username, full_name')
-            .eq('id', homeCurrentUser.id)
-            .maybeSingle();
-          if (duplicateLookupError) throw duplicateLookupError;
-          return {
-            ok: true,
-            created: false,
-            profile: duplicateProfile || null,
-            needsUsername: isHomePlaceholderProfileUsername(duplicateProfile?.username || '', homeCurrentUser)
-          };
-        }
-        throw createError;
-      }
       return {
         ok: true,
-        created: true,
-        profile: createdProfile || null,
-        needsUsername: isHomePlaceholderProfileUsername(createdProfile?.username || '', homeCurrentUser)
+        created: false,
+        profile: {
+          id: homeCurrentUser.id,
+          username: '',
+          full_name: String(homeCurrentUser?.user_metadata?.full_name || homeCurrentUser?.user_metadata?.name || '').trim()
+        },
+        needsUsername: false
       };
     }
 
@@ -7299,21 +7262,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       try {
         const seededProfile = await ensureHomeProfileSeeded();
         const pendingFlow = String(pending?.flow || '').trim().toLowerCase();
-        const seededNeedsUsername = typeof seededProfile?.needsUsername === 'boolean'
-          ? seededProfile.needsUsername
-          : isHomePlaceholderProfileUsername(seededProfile?.profile?.username || '', homeCurrentUser);
-        const shouldShowOnboarding = !!seededNeedsUsername;
-
-        if (shouldShowOnboarding) {
-          markOnboardingPending(homeCurrentUser.id);
-        } else {
-          clearOnboardingPending(homeCurrentUser.id);
-        }
+        const shouldShowOnboarding = false;
+        clearOnboardingPending(homeCurrentUser.id);
         clearPendingHomePostAuthBootstrap();
         if (pendingFlow === 'signup') {
           const client = await ensureHomeSupabase();
-          const { data: sessionData } = client ? await client.auth.getSession() : { data: { session: null } };
-          void triggerHomeWelcomeEmail(sessionData?.session || null, 'signup');
+          const authRuntime = window.ZO2Y_AUTH || null;
+          const sessionData = authRuntime && typeof authRuntime.getActiveSession === 'function'
+            ? await authRuntime.getActiveSession(client, { refreshIfNeeded: true, restore: true })
+            : null;
+          void triggerHomeWelcomeEmail(sessionData || null, 'signup');
         }
         return shouldShowOnboarding;
       } catch (error) {
@@ -7587,33 +7545,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           `,
           actionLabel: null,
           action: null
-        },
-        {
-          id: 'username-setup',
-          title: 'Claim your profile name',
-          body: 'Pick the @username that will sit on your profile.',
-          art: `
-            <div class="onboarding-split">
-              <div class="onboarding-identity-card">
-                <div class="onboarding-avatar-preview"><i class="fas fa-user"></i></div>
-                <div class="onboarding-photo-meta">
-                  <span class="photo-label">Profile preview</span>
-                  <strong>@yourname</strong>
-                  <span>People will find your lists, reviews, and saves here.</span>
-                </div>
-              </div>
-              <div class="onboarding-form">
-                <label class="onboarding-label" for="homeOnboardingUsernameInput">Username</label>
-                <div class="onboarding-input-wrap">
-                  <span class="onboarding-at">@</span>
-                  <input id="homeOnboardingUsernameInput" class="onboarding-input" type="text" autocomplete="off" placeholder="your_name" maxlength="${PROFILE_USERNAME_MAX_LENGTH}" />
-                </div>
-                <div id="homeOnboardingUsernameStatus" class="onboarding-status">Choose a username to continue.</div>
-              </div>
-            </div>
-          `,
-          nextLabel: 'Save Username',
-          requiresSave: true
         },
         {
           id: 'save-first',

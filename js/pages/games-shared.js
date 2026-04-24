@@ -48,7 +48,7 @@
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: false,
-        storageKey: 'zo2y-auth-v1'
+        storageKey: 'zo2y-auth-v2'
       }
     });
     window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
@@ -124,4 +124,3 @@
     loadFeaturedGames
   };
 })();
-
