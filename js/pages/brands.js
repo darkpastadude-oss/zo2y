@@ -49,7 +49,7 @@
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: false
+        detectSessionInUrl: true
       }
     });
     window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
