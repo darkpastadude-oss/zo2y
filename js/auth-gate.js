@@ -1128,6 +1128,7 @@
 
     activeSessionPromise = (async function () {
       var startedAt = Date.now();
+      var initialSessionError = null;
       try {
         var sessionResult = await activeClient.auth.getSession();
         var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
@@ -1139,16 +1140,22 @@
           });
           return session;
         }
-        if (sessionResult && sessionResult.error && shouldClearPersistedSessionForError(sessionResult.error)) {
-          clearPersistedSessionSnapshots();
+        if (sessionResult && sessionResult.error) {
+          initialSessionError = sessionResult.error;
           pushAuthDebugEvent('session:get:error', {
             source: 'getSession',
             message: String(sessionResult.error && sessionResult.error.message || sessionResult.error || ''),
             ms: Date.now() - startedAt
           });
-          return null;
         }
-      } catch (_err) {}
+      } catch (_err) {
+        initialSessionError = _err;
+        pushAuthDebugEvent('session:get:error', {
+          source: 'getSession:throw',
+          message: String(_err && _err.message || _err || ''),
+          ms: Date.now() - startedAt
+        });
+      }
 
       if (opts.restore !== false) {
         var restored = await restoreClientSessionFromSnapshot(activeClient);
@@ -1183,9 +1190,14 @@
         }
       }
 
+      if (initialSessionError && shouldClearPersistedSessionForError(initialSessionError) && opts.restore === false) {
+        clearPersistedSessionSnapshots();
+      }
+
       pushAuthDebugEvent('session:get:none', {
         restore: opts.restore !== false,
         refresh: opts.refreshIfNeeded !== false,
+        hadInitialError: !!initialSessionError,
         ms: Date.now() - startedAt
       });
       return null;

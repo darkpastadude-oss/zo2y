@@ -6718,7 +6718,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         return;
       }
       homeAuthListenerReady = true;
-<<<<<<< HEAD
       let user = null;
       const authRuntime = window.ZO2Y_AUTH || null;
       try {
@@ -6747,33 +6746,23 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         ms: Math.round(homeDebugNow() - startedAt)
       });
       queueHomeAuthUiSync({ refreshPersonalization: true });
-      client.auth.onAuthStateChange((event, session) => {
-        homeCurrentUser = session?.user || null;
-        if (!homeCurrentUser) {
-=======
-
       client.auth.onAuthStateChange(async (event, session) => {
         const normalizedEvent = String(event || '').trim().toUpperCase();
         const sessionUserId = String(session?.user?.id || '').trim();
 
         if (normalizedEvent === 'SIGNED_OUT') {
->>>>>>> 4dedaa3826f0f8c41f0b2361f67be540dd3007be
+          homeCurrentUser = null;
           resetHomeProfileLabelCache();
           homeOnboardingEvaluatedUserId = '';
           homeOnboardingUserId = null;
           homeTasteWeightsCache = { userId: '', savedAt: 0, weights: null };
           homeLastPersonalizationAt = 0;
-          if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
-            const restoredSession = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
-            if (restoredSession?.user) {
-              homeCurrentUser = restoredSession.user;
-              homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
-              queueHomeAuthUiSync({ refreshPersonalization: true });
-              return;
-            }
-          }
-          homeCurrentUser = null;
           homeBecauseSignalCache = { userId: '', savedAt: 0, payload: null };
+          homeDebugEvent('auth:listener:event', {
+            event: normalizedEvent,
+            userId: null,
+            hasSession: false
+          });
           queueHomeAuthUiSync({ refreshPersonalization: true });
           return;
         }
@@ -6798,15 +6787,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           resetHomeProfileLabelCache();
           queueHomeAuthUiSync();
         }
-<<<<<<< HEAD
         homeDebugEvent('auth:listener:event', {
-          event: String(event || '').trim().toUpperCase(),
+          event: normalizedEvent,
           userId: String(homeCurrentUser?.id || '').trim() || null,
           hasSession: !!(session?.access_token && session?.refresh_token)
         });
         queueHomeAuthUiSync({ refreshPersonalization: true });
-=======
->>>>>>> 4dedaa3826f0f8c41f0b2361f67be540dd3007be
       });
     }
 
