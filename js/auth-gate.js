@@ -879,8 +879,16 @@
     var value = String(raw || '').trim();
     if (!value) return 'index.html';
     if (/^https?:\/\//i.test(value) || value.indexOf('//') === 0) return 'index.html';
-    if (value.charAt(0) === '/') return value.slice(1) || 'index.html';
-    return value;
+    var normalized = value.charAt(0) === '/' ? (value.slice(1) || 'index.html') : value;
+    try {
+      var target = new URL(normalized, window.location.origin);
+      ['auth_return', 'authv', 'native_oauth'].forEach(function (key) {
+        target.searchParams.delete(key);
+      });
+      return (target.pathname.replace(/^\//, '') || 'index.html') + target.search + target.hash;
+    } catch (_err) {
+      return normalized;
+    }
   }
 
   function buildRedirectTarget() {

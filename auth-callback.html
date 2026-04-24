@@ -298,8 +298,14 @@
         const value = String(raw || '').trim();
         if (!value) return 'index.html';
         if (/^https?:\/\//i.test(value) || value.startsWith('//')) return 'index.html';
-        if (value.startsWith('/')) return value.slice(1) || 'index.html';
-        return value;
+        const normalized = value.startsWith('/') ? (value.slice(1) || 'index.html') : value;
+        try {
+          const targetUrl = new URL(normalized, window.location.origin);
+          ['auth_return', 'authv', 'native_oauth'].forEach((key) => targetUrl.searchParams.delete(key));
+          return `${targetUrl.pathname.replace(/^\//, '') || 'index.html'}${targetUrl.search}${targetUrl.hash}`;
+        } catch (_err) {
+          return normalized;
+        }
       }
 
       function getHashParams() {

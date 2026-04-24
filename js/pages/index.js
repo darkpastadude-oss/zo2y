@@ -3583,13 +3583,22 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function clearHomeAuthParamsFromUrl() {
       const url = new URL(window.location.href);
-      const authParams = ['code', 'state', 'error', 'error_description', 'scope', 'authuser', 'prompt'];
+      const authParams = ['code', 'state', 'error', 'error_description', 'scope', 'authuser', 'prompt', 'auth_return', 'authv', 'native_oauth'];
       authParams.forEach((key) => url.searchParams.delete(key));
       if (/(access_token|refresh_token|expires_in|token_type|type)=/i.test(window.location.hash || '')) {
         url.hash = '';
       }
       const cleaned = `${url.pathname}${url.search}${url.hash}`;
       window.history.replaceState({}, document.title, cleaned || 'index.html');
+    }
+
+    function hasHomeAuthReturnParams() {
+      try {
+        const params = new URLSearchParams(window.location.search || '');
+        return params.get('auth_return') === '1' || params.has('authv') || params.get('native_oauth') === '1';
+      } catch (_err) {
+        return false;
+      }
     }
 
     async function completeHomeOAuthReturnIfNeeded() {
@@ -11296,6 +11305,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       homeAppBootPromise = (async () => {
         await setupHomeAuthListener();
         await completeHomeOAuthReturnIfNeeded();
+        if (hasHomeAuthReturnParams()) {
+          clearHomeAuthParamsFromUrl();
+        }
         await initAuthUi();
         await finishPendingPostAuthBootstrap();
         await initUniversalHome();
