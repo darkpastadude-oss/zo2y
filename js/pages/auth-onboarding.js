@@ -2,7 +2,13 @@
   'use strict';
 
   var statusEl = document.getElementById('status');
+  var displayNameInput = document.getElementById('displayNameInput');
+  var saveButton = document.getElementById('saveBtn');
+  var signOutButton = document.getElementById('signOutBtn');
   var auth = window.ZO2Y_AUTH;
+  var client = null;
+  var activeUser = null;
+
   if (!auth) {
     if (statusEl) {
       statusEl.className = 'status error';
@@ -11,18 +17,7 @@
     return;
   }
 
-  var RESERVED = new Set([
-    'admin', 'api', 'app', 'auth', 'authcallback', 'blog', 'book', 'books', 'country', 'edit', 'explore',
-    'game', 'games', 'help', 'home', 'index', 'login', 'movie', 'movies', 'music', 'new', 'privacy',
-    'profile', 'resetpassword', 'reviews', 'search', 'settings', 'signup', 'support', 'terms', 'travel',
-    'tv', 'tvshow', 'tvshows', 'updatepassword', 'user', 'users', 'zo2y'
-  ]);
-
-  var usernameInput = document.getElementById('usernameInput');
-  var saveButton = document.getElementById('saveBtn');
-  var signOutButton = document.getElementById('signOutBtn');
-
-  if (!usernameInput || !saveButton || !statusEl || !signOutButton) return;
+  if (!statusEl || !displayNameInput || !saveButton || !signOutButton) return;
 
   function setStatus(message, type) {
     statusEl.className = 'status' + (type ? ' ' + type : '');
@@ -33,139 +28,84 @@
     return auth.readRequestedNextPath(window.location.search);
   }
 
-  function normalizeUsername(value) {
-    var normalized = auth.normalizeUsername(value);
-    if (!normalized) return '';
-    return normalized;
+  function getFallbackName(user) {
+    var fullName = String(user && user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name) || '').trim();
+    if (fullName) return fullName;
+    var email = String(user && user.email || '').trim();
+    if (email && email.indexOf('@') !== -1) return email.split('@')[0];
+    return '';
   }
 
-  function isReservedUsername(value) {
-    return RESERVED.has(String(value || '').replace(/_/g, ''));
-  }
+  async function loadSession() {
+    await auth.waitForSupabase(8000);
+    client = auth.ensureClient();
+    if (!client) throw new Error('Could not load auth. Refresh and try again.');
 
-  async function getAuthenticatedUser(client) {
     var session = await auth.getActiveSession(client, {
       refreshIfNeeded: true,
       restore: true
     });
-    return session && session.user ? session.user : null;
-  }
-
-  async function redirectIfAlreadyComplete(client, user, profileResult) {
-    var result = profileResult;
-    if (!result) result = await auth.ensureProfileBootstrap(client, user);
-    if (result && result.ok && !result.needsUsername) {
-      auth.clearOnboardingPending(user.id);
-      auth.clearPendingPostAuthBootstrap();
-      auth.redirectToPostAuthTarget(nextPath());
-      return true;
-    }
-    return false;
+    if (!session || !session.user || !session.user.id) return null;
+    return session;
   }
 
   async function init() {
-    setStatus('loading...', '');
-    await auth.waitForSupabase(8000);
-    var client = auth.ensureClient();
-    if (!client) {
-      setStatus('Could not load auth. Refresh and try again.', 'error');
-      return;
-    }
-
-    var user = await getAuthenticatedUser(client);
-    if (!user || !user.id) {
+    setStatus('Loading your account...', '');
+    var session = await loadSession();
+    if (!session) {
       window.location.replace('login.html?next=' + encodeURIComponent('onboarding.html'));
       return;
     }
 
-    var profileResult = await auth.ensureProfileBootstrap(client, user);
-    window.__ZO2Y_ONBOARDING_DEBUG = {
-      userId: user.id,
-      next: nextPath(),
-      profile: profileResult
-    };
-
-    if (await redirectIfAlreadyComplete(client, user, profileResult)) {
-      return;
-    }
-
-    if (profileResult && profileResult.profile && profileResult.profile.username && !(auth.isPlaceholderUsername && auth.isPlaceholderUsername(profileResult.profile.username))) {
-      usernameInput.value = String(profileResult.profile.username);
-    }
-
-    setStatus('', '');
-    usernameInput.focus();
-
-    saveButton.addEventListener('click', async function () {
-      var normalized = normalizeUsername(usernameInput.value);
-      if (!normalized) {
-        setStatus('Enter a username.', 'error');
-        return;
-      }
-      if (!auth.isValidUsername(normalized)) {
-        setStatus('Use 3-30 chars: letters, numbers, underscore.', 'error');
-        return;
-      }
-      if (isReservedUsername(normalized)) {
-        setStatus('That username is reserved.', 'error');
-        return;
-      }
-
-      saveButton.disabled = true;
-      try {
-        setStatus('Checking username...', '');
-        var availableUsername = await auth.ensureUsernameAvailable(client, normalized, user.id);
-        setStatus('Saving...', '');
-        var updateResult = await client
-          .from('user_profiles')
-          .update({ username: availableUsername })
-          .eq('id', user.id)
-          .select('id, username')
-          .maybeSingle();
-
-        if (updateResult && updateResult.error) throw updateResult.error;
-
-        auth.clearOnboardingPending(user.id);
-        auth.clearPendingPostAuthBootstrap();
-        await auth.updateAuthMetadataUsername(client, availableUsername);
-        setStatus('Saved. Redirecting...', 'success');
-        auth.redirectToPostAuthTarget(nextPath());
-      } catch (error) {
-        setStatus(String(error && error.message || 'Could not save username.'), 'error');
-      } finally {
-        saveButton.disabled = false;
-      }
-    });
+    activeUser = session.user;
+    displayNameInput.value = getFallbackName(activeUser);
+    displayNameInput.focus();
+    setStatus('Finish setting up your account so Zo2y can recognize you everywhere.', '');
   }
 
-  usernameInput.addEventListener('keydown', function (event) {
-    if (event.key === ' ') {
-      event.preventDefault();
+  async function completeOnboarding() {
+    var displayName = String(displayNameInput.value || '').trim().slice(0, 80);
+    if (displayName.length < 2) {
+      setStatus('Enter the name you want shown across your account.', 'error');
       return;
     }
+    if (!client || !activeUser || !activeUser.id) {
+      setStatus('Your session expired. Please log in again.', 'error');
+      return;
+    }
+
+    saveButton.disabled = true;
+    setStatus('Saving your account...', '');
+
+    try {
+      var updateResult = await client.auth.updateUser({
+        data: {
+          full_name: displayName,
+          name: displayName,
+          zo2y_onboarded_at: new Date().toISOString()
+        }
+      });
+      if (updateResult && updateResult.error) throw updateResult.error;
+
+      auth.clearOnboardingPending(activeUser.id);
+      auth.clearPendingPostAuthBootstrap();
+      setStatus('All set. Redirecting...', 'success');
+      auth.redirectToPostAuthTarget(nextPath());
+    } catch (error) {
+      setStatus(String(error && error.message || 'Could not finish onboarding.'), 'error');
+      saveButton.disabled = false;
+    }
+  }
+
+  displayNameInput.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
       event.preventDefault();
-      saveButton.click();
+      void completeOnboarding();
     }
   });
 
-  usernameInput.addEventListener('input', function () {
-    var before = String(usernameInput.value || '');
-    var after = normalizeUsername(before);
-    if (after !== before) usernameInput.value = after;
-    if (!after) {
-      setStatus('', '');
-      return;
-    }
-    if (!auth.isValidUsername(after)) {
-      setStatus('Letters, numbers, underscore only.', 'error');
-      return;
-    }
-    if (isReservedUsername(after)) {
-      setStatus('That username is reserved.', 'error');
-      return;
-    }
-    setStatus('', '');
+  saveButton.addEventListener('click', function () {
+    void completeOnboarding();
   });
 
   signOutButton.addEventListener('click', async function () {

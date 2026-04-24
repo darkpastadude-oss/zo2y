@@ -2,10 +2,10 @@
   const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
   const SUPABASE_URL = String(supabaseConfig.url || '').trim();
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
-  const AUTH_STORAGE_KEY = 'zo2y-auth-v1';
-  const LEGACY_AUTH_STORAGE_KEY = 'sb-gfkhjbztayjyojsgdpgk-auth-token';
-  const PERSIST_AUTH_STORAGE_KEY = 'zo2y-auth-persist-v1';
-  const DURABLE_AUTH_STORAGE_KEY = 'zo2y-auth-durable-v1';
+  const AUTH_STORAGE_KEY = 'zo2y-auth-v2';
+  const LEGACY_AUTH_STORAGE_KEY = 'zo2y-auth-v1';
+  const PERSIST_AUTH_STORAGE_KEY = 'zo2y-auth-persist-v2';
+  const DURABLE_AUTH_STORAGE_KEY = 'zo2y-auth-durable-v2';
   const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260421a';
   const MOVIES_ROUTE = 'movies.html?v=20260322m';
   const MOVIES_MOBILE_ROUTE = 'movies-mobile.html?v=20260322m';
@@ -318,18 +318,25 @@ const HEADER_HTML = `
   }
 
   function getUserProfileLabelFallback(user) {
-    // Only trust a Zo2y-chosen handle (set by our onboarding flow), never OAuth/Gmail nicknames.
-    var raw = '';
+    var fullName = '';
+    var email = '';
     try {
-      raw = String(user && user.user_metadata && user.user_metadata.zo2y_username || '').trim();
+      fullName = String(
+        user && user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name) || ''
+      ).trim();
     } catch (_err) {
-      raw = '';
+      fullName = '';
     }
-    var normalized = raw.replace(/^@+/, '').toLowerCase();
-    if (/^[a-z0-9_]{3,30}$/.test(normalized) && normalized !== 'user' && normalized.indexOf('user_') !== 0) {
-      return '@' + normalized;
+    try {
+      email = String(user && user.email || '').trim();
+    } catch (_err2) {
+      email = '';
     }
-    return '@set username';
+    if (fullName) return fullName;
+    if (email && email.indexOf('@') !== -1) {
+      return email.split('@')[0];
+    }
+    return 'Profile';
   }
 
   function persistHeaderSessionSnapshot(session) {

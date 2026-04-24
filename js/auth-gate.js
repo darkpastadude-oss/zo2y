@@ -5,18 +5,27 @@
   var SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   var SUPABASE_KEY = 'sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd';
 
-  var STORAGE_KEY = 'zo2y-auth-v1';
-  var LEGACY_STORAGE_KEY = 'sb-' + PROJECT_REF + '-auth-token';
-  var PERSIST_STORAGE_KEY = 'zo2y-auth-persist-v1';
-  var DURABLE_STORAGE_KEY = 'zo2y-auth-durable-v1';
-  var EXPLICIT_SIGNOUT_KEY = 'zo2y-auth-explicit-signout-v1';
-  var POST_AUTH_REDIRECT_KEY = 'postAuthRedirect';
-  var OAUTH_FLOW_KEY = 'oauthFlow';
-  var POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
-  var ONBOARDING_PENDING_PREFIX = 'zo2y_onboarding_pending_v1_';
-  var ONBOARDING_SESSION_PREFIX = 'zo2y_onboarding_session_v1_';
+  var STORAGE_KEY = 'zo2y-auth-v2';
+  var LEGACY_STORAGE_KEY = 'zo2y-auth-v1';
+  var SUPABASE_SDK_STORAGE_KEY = 'sb-' + PROJECT_REF + '-auth-token';
+  var PERSIST_STORAGE_KEY = 'zo2y-auth-persist-v2';
+  var OLD_PERSIST_STORAGE_KEY = 'zo2y-auth-persist-v1';
+  var DURABLE_STORAGE_KEY = 'zo2y-auth-durable-v2';
+  var OLD_DURABLE_STORAGE_KEY = 'zo2y-auth-durable-v1';
+  var EXPLICIT_SIGNOUT_KEY = 'zo2y-auth-explicit-signout-v2';
+  var OLD_EXPLICIT_SIGNOUT_KEY = 'zo2y-auth-explicit-signout-v1';
+  var POST_AUTH_REDIRECT_KEY = 'zo2y-auth-post-auth-redirect-v2';
+  var OLD_POST_AUTH_REDIRECT_KEY = 'postAuthRedirect';
+  var OAUTH_FLOW_KEY = 'zo2y-auth-oauth-flow-v2';
+  var OLD_OAUTH_FLOW_KEY = 'oauthFlow';
+  var POST_AUTH_BOOTSTRAP_KEY = 'zo2y-post-auth-bootstrap-v2';
+  var OLD_POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
+  var ONBOARDING_PENDING_PREFIX = 'zo2y-auth-onboarding-pending-v2-';
+  var OLD_ONBOARDING_PENDING_PREFIX = 'zo2y_onboarding_pending_v1_';
+  var ONBOARDING_SESSION_PREFIX = 'zo2y-auth-onboarding-session-v2-';
+  var OLD_ONBOARDING_SESSION_PREFIX = 'zo2y_onboarding_session_v1_';
   var AUTH_DEBUG_KEY = 'zo2y_auth_debug';
-  var AUTH_RETURN_VERSION = '20260424d';
+  var AUTH_RETURN_VERSION = '20260424e';
 
   var PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 8;
   var PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60;
@@ -130,10 +139,85 @@
   function getAuthStorageKeys(key) {
     var value = String(key || '').trim();
     if (!value) return [];
-    if (value === STORAGE_KEY || value === LEGACY_STORAGE_KEY || value === PERSIST_STORAGE_KEY) {
-      return [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
+    if (
+      value === STORAGE_KEY ||
+      value === LEGACY_STORAGE_KEY ||
+      value === SUPABASE_SDK_STORAGE_KEY ||
+      value === PERSIST_STORAGE_KEY ||
+      value === OLD_PERSIST_STORAGE_KEY
+    ) {
+      return [STORAGE_KEY];
+    }
+    if (value === DURABLE_STORAGE_KEY || value === OLD_DURABLE_STORAGE_KEY) {
+      return [DURABLE_STORAGE_KEY];
+    }
+    if (value === EXPLICIT_SIGNOUT_KEY || value === OLD_EXPLICIT_SIGNOUT_KEY) {
+      return [EXPLICIT_SIGNOUT_KEY];
+    }
+    if (value === POST_AUTH_REDIRECT_KEY || value === OLD_POST_AUTH_REDIRECT_KEY) {
+      return [POST_AUTH_REDIRECT_KEY];
+    }
+    if (value === OAUTH_FLOW_KEY || value === OLD_OAUTH_FLOW_KEY) {
+      return [OAUTH_FLOW_KEY];
+    }
+    if (value === POST_AUTH_BOOTSTRAP_KEY || value === OLD_POST_AUTH_BOOTSTRAP_KEY) {
+      return [POST_AUTH_BOOTSTRAP_KEY];
     }
     return [value];
+  }
+
+  function removeStorageKeyEverywhere(key) {
+    safeRemoveLocalStorage(key);
+    safeRemoveSessionStorage(key);
+  }
+
+  function purgeLegacyAuthArtifacts() {
+    removeStorageKeyEverywhere(LEGACY_STORAGE_KEY);
+    removeStorageKeyEverywhere(SUPABASE_SDK_STORAGE_KEY);
+    removeStorageKeyEverywhere(OLD_PERSIST_STORAGE_KEY);
+    removeStorageKeyEverywhere(OLD_DURABLE_STORAGE_KEY);
+    removeStorageKeyEverywhere(OLD_EXPLICIT_SIGNOUT_KEY);
+    removeStorageKeyEverywhere(OLD_POST_AUTH_REDIRECT_KEY);
+    removeStorageKeyEverywhere(OLD_OAUTH_FLOW_KEY);
+    removeStorageKeyEverywhere(OLD_POST_AUTH_BOOTSTRAP_KEY);
+    try {
+      if (!window.localStorage) return;
+      var keysToRemove = [];
+      for (var i = 0; i < window.localStorage.length; i += 1) {
+        var key = String(window.localStorage.key(i) || '');
+        if (!key) continue;
+        if (
+          key.indexOf(OLD_ONBOARDING_PENDING_PREFIX) === 0 ||
+          key.indexOf(OLD_ONBOARDING_SESSION_PREFIX) === 0 ||
+          key.indexOf('zo2y_onboarding_pending_v2_') === 0 ||
+          key.indexOf('zo2y_onboarding_seen_v2_') === 0 ||
+          key.indexOf('zo2y_onboarding_seen_once_v1_') === 0 ||
+          key.indexOf('zo2y_onboarding_seen_v1_') === 0
+        ) {
+          keysToRemove.push(key);
+        }
+      }
+      for (var j = 0; j < keysToRemove.length; j += 1) {
+        window.localStorage.removeItem(keysToRemove[j]);
+      }
+    } catch (_err) {}
+    try {
+      if (!window.sessionStorage) return;
+      var sessionKeysToRemove = [];
+      for (var k = 0; k < window.sessionStorage.length; k += 1) {
+        var sessionKey = String(window.sessionStorage.key(k) || '');
+        if (!sessionKey) continue;
+        if (
+          sessionKey.indexOf(OLD_ONBOARDING_SESSION_PREFIX) === 0 ||
+          sessionKey.indexOf('zo2y_onboarding_session_v2_') === 0
+        ) {
+          sessionKeysToRemove.push(sessionKey);
+        }
+      }
+      for (var m = 0; m < sessionKeysToRemove.length; m += 1) {
+        window.sessionStorage.removeItem(sessionKeysToRemove[m]);
+      }
+    } catch (_err2) {}
   }
 
   function safeGetLocalStorage(key) {
@@ -142,6 +226,15 @@
     } catch (_err) {
       return null;
     }
+  }
+
+  function safeGetAnyLocalStorage(keys) {
+    var list = Array.isArray(keys) ? keys : [keys];
+    for (var i = 0; i < list.length; i += 1) {
+      var value = safeGetLocalStorage(list[i]);
+      if (value !== null && value !== undefined && value !== '') return value;
+    }
+    return null;
   }
 
   function safeSetLocalStorage(key, value) {
@@ -274,7 +367,6 @@
     try {
       var payload = JSON.stringify(session);
       safeSetAuthStorage(STORAGE_KEY, payload);
-      safeSetAuthStorage(LEGACY_STORAGE_KEY, payload);
       safeSetAuthStorage(PERSIST_STORAGE_KEY, payload);
       safeSetLocalStorage(DURABLE_STORAGE_KEY, JSON.stringify({
         session: session,
@@ -289,9 +381,12 @@
 
   function clearPersistedSessionSnapshots() {
     safeRemoveAuthStorage(STORAGE_KEY);
-    safeRemoveAuthStorage(LEGACY_STORAGE_KEY);
-    safeRemoveAuthStorage(PERSIST_STORAGE_KEY);
-    safeRemoveLocalStorage(DURABLE_STORAGE_KEY);
+    removeStorageKeyEverywhere(LEGACY_STORAGE_KEY);
+    removeStorageKeyEverywhere(PERSIST_STORAGE_KEY);
+    removeStorageKeyEverywhere(SUPABASE_SDK_STORAGE_KEY);
+    removeStorageKeyEverywhere(OLD_PERSIST_STORAGE_KEY);
+    removeStorageKeyEverywhere(DURABLE_STORAGE_KEY);
+    removeStorageKeyEverywhere(OLD_DURABLE_STORAGE_KEY);
   }
 
   function hasStoredSupabaseSession() {
@@ -399,7 +494,7 @@
   function readRequestedNextPath(rawSearch) {
     try {
       var params = new URLSearchParams(String(rawSearch || window.location.search || ''));
-      var next = params.get('next') || safeGetLocalStorage(POST_AUTH_REDIRECT_KEY) || 'index.html';
+      var next = params.get('next') || safeGetAnyLocalStorage([POST_AUTH_REDIRECT_KEY, OLD_POST_AUTH_REDIRECT_KEY]) || 'index.html';
       return sanitizeNextPath(next);
     } catch (_err) {
       return 'index.html';
@@ -409,12 +504,16 @@
   function setPostAuthIntent(flow, nextPath) {
     var safeNext = sanitizeNextPath(nextPath || 'index.html');
     safeSetLocalStorage(OAUTH_FLOW_KEY, String(flow || '').trim().toLowerCase());
+    safeSetLocalStorage(OLD_OAUTH_FLOW_KEY, String(flow || '').trim().toLowerCase());
     safeSetLocalStorage(POST_AUTH_REDIRECT_KEY, safeNext);
+    safeSetLocalStorage(OLD_POST_AUTH_REDIRECT_KEY, safeNext);
   }
 
   function clearPostAuthIntent() {
     safeRemoveLocalStorage(OAUTH_FLOW_KEY);
+    safeRemoveLocalStorage(OLD_OAUTH_FLOW_KEY);
     safeRemoveLocalStorage(POST_AUTH_REDIRECT_KEY);
+    safeRemoveLocalStorage(OLD_POST_AUTH_REDIRECT_KEY);
   }
 
   function getOnboardingPendingKey(userId) {
@@ -520,20 +619,33 @@
     return normalizedProfile === getGeneratedPlaceholderProfileUsername(user);
   }
 
-  function profileNeedsUsername(profile, user) {
-    var username = String(profile && profile.username || '').trim().toLowerCase();
-    if (!username) return true;
-    return isPlaceholderProfileUsername(username, user);
+  function getAuthProfileSnapshot(user) {
+    var userData = user && user.user_metadata ? user.user_metadata : {};
+    var fullName = String(userData.full_name || userData.name || '').trim().slice(0, 80);
+    return {
+      id: String(user && user.id || '').trim() || null,
+      email: String(user && user.email || '').trim() || null,
+      full_name: fullName || null,
+      avatar_icon: String(userData.avatar_icon || '').trim() || null,
+      onboarding_completed_at: String(userData.zo2y_onboarded_at || userData.onboarding_completed_at || '').trim() || null,
+      username: null
+    };
   }
 
-  async function ensureAuthProfile(client, user) {
-    if (!client || typeof client.from !== 'function' || !user || !user.id) {
-      return { ok: false, created: false, profile: null, needsUsername: false };
+  function profileNeedsOnboarding(profile) {
+    if (!profile) return true;
+    if (!String(profile.full_name || '').trim()) return true;
+    return !String(profile.onboarding_completed_at || '').trim();
+  }
+
+  async function ensureAuthProfile(_client, user) {
+    if (!user || !user.id) {
+      return { ok: false, created: false, profile: null, needsUsername: false, needsOnboarding: false };
     }
 
     var userId = String(user.id || '').trim();
     if (!userId) {
-      return { ok: false, created: false, profile: null, needsUsername: false };
+      return { ok: false, created: false, profile: null, needsUsername: false, needsOnboarding: false };
     }
 
     if (profileBootstrapPromises.has(userId)) {
@@ -542,105 +654,23 @@
 
     var promise = (async function () {
       try {
-        var existingResult = await client
-          .from('user_profiles')
-          .select('id, username, full_name')
-          .eq('id', userId)
-          .maybeSingle();
-
-        var existingProfile = existingResult && existingResult.data ? existingResult.data : null;
-        if (existingProfile && existingProfile.id) {
-          if (profileNeedsUsername(existingProfile, user)) {
-            markOnboardingPending(userId);
-          } else {
-            clearOnboardingPending(userId);
-          }
-          return {
-            ok: true,
-            created: false,
-            profile: existingProfile,
-            needsUsername: profileNeedsUsername(existingProfile, user)
-          };
-        }
-
-        if (existingResult && existingResult.error) {
-          return { ok: false, created: false, profile: null, needsUsername: false, error: existingResult.error };
-        }
-
-        var userData = user.user_metadata || {};
-        var suffix = userId.replace(/-/g, '').slice(0, 6) || 'user';
-        var preferredUsername = buildPreferredProfileUsername(user);
-        var displayName = String(userData.full_name || userData.name || preferredUsername || 'User').trim().slice(0, 80) || 'User';
-        var usernameCandidates = [preferredUsername];
-        if (preferredUsername !== 'user') {
-          usernameCandidates.push(profileUsernameWithSuffix(preferredUsername, suffix));
+        var profile = getAuthProfileSnapshot(user);
+        var needsOnboarding = profileNeedsOnboarding(profile);
+        if (needsOnboarding) {
+          markOnboardingPending(userId);
         } else {
-          usernameCandidates[0] = profileUsernameWithSuffix('user', suffix);
+          clearOnboardingPending(userId);
         }
-
-        var createResult = null;
-        var createdProfile = null;
-        for (var candidateIndex = 0; candidateIndex < usernameCandidates.length; candidateIndex += 1) {
-          var candidateUsername = normalizeProfileUsername(usernameCandidates[candidateIndex], suffix);
-          createResult = await client
-            .from('user_profiles')
-            .insert({
-              id: userId,
-              username: candidateUsername,
-              full_name: displayName
-            })
-            .select('id, username, full_name')
-            .maybeSingle();
-
-          if (!createResult || !createResult.error) {
-            createdProfile = createResult && createResult.data ? createResult.data : {
-              id: userId,
-              username: candidateUsername,
-              full_name: displayName
-            };
-            break;
-          }
-
-          var createMessage = String(createResult.error && createResult.error.message || '').toLowerCase();
-          var duplicate = createMessage.indexOf('duplicate') !== -1 || createMessage.indexOf('unique') !== -1;
-          if (!duplicate) {
-            return { ok: false, created: false, profile: null, needsUsername: false, error: createResult.error };
-          }
-        }
-
-        if (createdProfile) {
-          var createdNeedsUsername = profileNeedsUsername(createdProfile, user);
-          if (createdNeedsUsername) markOnboardingPending(userId);
-          else clearOnboardingPending(userId);
-          return {
-            ok: true,
-            created: true,
-            profile: createdProfile,
-            needsUsername: createdNeedsUsername
-          };
-        }
-
-        var raceResult = await client
-          .from('user_profiles')
-          .select('id, username, full_name')
-          .eq('id', userId)
-          .maybeSingle();
-        if (raceResult && raceResult.data && raceResult.data.id) {
-          var raceNeedsUsername = profileNeedsUsername(raceResult.data, user);
-          if (raceNeedsUsername) markOnboardingPending(userId);
-          else clearOnboardingPending(userId);
-          return {
-            ok: true,
-            created: false,
-            profile: raceResult.data,
-            needsUsername: raceNeedsUsername
-          };
-        }
+        return {
+          ok: true,
+          created: false,
+          profile: profile,
+          needsUsername: false,
+          needsOnboarding: needsOnboarding
+        };
       } catch (error) {
-        return { ok: false, created: false, profile: null, needsUsername: false, error: error };
+        return { ok: false, created: false, profile: null, needsUsername: false, needsOnboarding: false, error: error };
       }
-
-      return { ok: false, created: false, profile: null, needsUsername: false };
     })();
 
     profileBootstrapPromises.set(userId, promise);
@@ -933,6 +963,7 @@
     clearPersistedSessionSnapshots();
     clearPostAuthIntent();
     safeRemoveLocalStorage(POST_AUTH_BOOTSTRAP_KEY);
+    safeRemoveLocalStorage(OLD_POST_AUTH_BOOTSTRAP_KEY);
     var activeClient = client || ensureSharedSupabaseClient();
     if (activeClient && activeClient.auth && typeof activeClient.auth.signOut === 'function') {
       try {
@@ -956,13 +987,16 @@
 
   function setPendingPostAuthBootstrap(payload) {
     if (!payload || !payload.userId) return false;
-    return safeSetLocalStorage(POST_AUTH_BOOTSTRAP_KEY, JSON.stringify(Object.assign({}, payload, {
+    var raw = JSON.stringify(Object.assign({}, payload, {
       createdAt: Number(payload.createdAt || Date.now())
-    })));
+    }));
+    var wrotePrimary = safeSetLocalStorage(POST_AUTH_BOOTSTRAP_KEY, raw);
+    var wroteLegacy = safeSetLocalStorage(OLD_POST_AUTH_BOOTSTRAP_KEY, raw);
+    return wrotePrimary || wroteLegacy;
   }
 
   function readPendingPostAuthBootstrap() {
-    var raw = safeGetLocalStorage(POST_AUTH_BOOTSTRAP_KEY);
+    var raw = safeGetAnyLocalStorage([POST_AUTH_BOOTSTRAP_KEY, OLD_POST_AUTH_BOOTSTRAP_KEY]);
     if (!raw) return null;
     try {
       var parsed = JSON.parse(raw);
@@ -974,6 +1008,7 @@
 
   function clearPendingPostAuthBootstrap() {
     safeRemoveLocalStorage(POST_AUTH_BOOTSTRAP_KEY);
+    safeRemoveLocalStorage(OLD_POST_AUTH_BOOTSTRAP_KEY);
   }
 
   async function triggerWelcomeEmail(session, flow) {
@@ -1073,13 +1108,13 @@
     void persistReferralMetadata(client, session.user);
 
     var profileResult = await ensureAuthProfile(client, session.user);
-    if (profileResult && profileResult.ok && !profileResult.needsUsername) {
+    if (profileResult && profileResult.ok && !profileResult.needsOnboarding && flow !== 'signup') {
       clearOnboardingPending(session.user.id);
       redirectToPostAuthTarget(nextPath);
       return true;
     }
 
-    if (profileResult && profileResult.ok && profileResult.needsUsername) {
+    if (profileResult && profileResult.ok && profileResult.needsOnboarding) {
       redirectToOnboarding(nextPath, session.user.id);
       return true;
     }
@@ -1250,7 +1285,7 @@
 
     if (!hasPayload) return false;
 
-    var flow = String(params.get('flow') || safeGetLocalStorage(OAUTH_FLOW_KEY) || '').trim().toLowerCase();
+    var flow = String(params.get('flow') || safeGetAnyLocalStorage([OAUTH_FLOW_KEY, OLD_OAUTH_FLOW_KEY]) || '').trim().toLowerCase();
     var recoveryType = String(params.get('type') || hashParams.get('type') || '').trim().toLowerCase();
     var targetPage = recoveryType === 'recovery' ? 'update-password.html' : 'auth-callback.html';
     var target = new URL(targetPage, window.location.origin);
@@ -1303,7 +1338,7 @@
           } catch (_errSearch) {}
           if (userId && !onboardingParam) {
             var profileResult = await ensureAuthProfile(client, session.user);
-            if (profileResult && profileResult.ok && profileResult.needsUsername && !wasOnboardingRedirectedThisSession(userId)) {
+            if (profileResult && profileResult.ok && profileResult.needsOnboarding && !wasOnboardingRedirectedThisSession(userId)) {
               redirectToOnboarding(window.location.pathname + window.location.search + window.location.hash, userId);
               return true;
             }
@@ -1437,8 +1472,8 @@
         debugEnabled: authDebugEnabled(),
         hasStoredSession: hasStoredSupabaseSession(),
         hasRecentExplicitSignout: hasRecentExplicitSignout(),
-        oauthFlow: safeGetLocalStorage(OAUTH_FLOW_KEY),
-        postAuthRedirect: safeGetLocalStorage(POST_AUTH_REDIRECT_KEY),
+        oauthFlow: safeGetAnyLocalStorage([OAUTH_FLOW_KEY, OLD_OAUTH_FLOW_KEY]),
+        postAuthRedirect: safeGetAnyLocalStorage([POST_AUTH_REDIRECT_KEY, OLD_POST_AUTH_REDIRECT_KEY]),
         pendingBootstrap: readPendingPostAuthBootstrap(),
         sessionPreview: snapshot ? {
           userId: String(snapshot.user && snapshot.user.id || '').trim() || null,
@@ -1517,6 +1552,7 @@
     return;
   }
 
+  purgeLegacyAuthArtifacts();
   hydrateCanonicalAuthStorageFromDurable();
 
   var initiallyAuthenticated = !AUTH_ENTRY_PAGES.has(pageKey) && hasStoredSupabaseSession();

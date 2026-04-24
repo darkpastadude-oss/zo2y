@@ -522,23 +522,7 @@
             }
 
             function maybeRedirectUsernameOnboarding() {
-                if (!isViewingOwnProfile) return false;
-                if (!currentUser?.id) return false;
-                if (!userProfile) return false;
-                if (wasOnboardingShownThisSession(currentUser.id)) return false;
-
-                const needsUsername = isPlaceholderUsername(userProfile.username);
-                const pending = hasOnboardingPending(currentUser.id);
-                if (!needsUsername && !pending) return false;
-
-                markOnboardingShownThisSession(currentUser.id);
-                try { localStorage.setItem(getOnboardingPendingKey(currentUser.id), '1'); } catch (_err) {}
-
-                const nextPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-                try { localStorage.setItem('postAuthRedirect', nextPath); } catch (_err2) {}
-
-                window.location.replace(`onboarding.html?onboarding=1&next=${encodeURIComponent(nextPath)}`);
-                return true;
+                return false;
             }
 
             function setupMobileTabsHint() {
@@ -1031,7 +1015,7 @@
 
                 targetUser = profile;
                 updateProfileUI(profile);
-                updateTabTitlesForOtherUser(profile.username || profile.full_name || 'User');
+                updateTabTitlesForOtherUser(profile.full_name || profile.username || 'User');
                 await updateFollowButton();
                 await updateStats(targetUserId);
             }
@@ -1219,12 +1203,12 @@
                 renderProfileBadges(profile);
                 
                 const rawUsername = String(profile?.username || '').replace(/^@+/, '').trim();
-                const normalizedUsername = rawUsername || 'user';
-                const displayIdentity = `@${normalizedUsername}`;
+                const displayName = String(profile?.full_name || rawUsername || 'User').trim();
+                const secondaryIdentity = rawUsername && !isPlaceholderUsername(rawUsername) ? `@${rawUsername}` : '';
 
                 if (isMobile) {
-                    document.getElementById('mobileProfileName').textContent = displayIdentity;
-                    document.getElementById('mobileProfileUsername').textContent = '';
+                    document.getElementById('mobileProfileName').textContent = displayName;
+                    document.getElementById('mobileProfileUsername').textContent = secondaryIdentity;
                     document.getElementById('mobileProfileBio').textContent = profile?.bio || "No bio yet. Tap edit to add one!";
                     document.getElementById('mobileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
                     const mobileAboutBio = document.getElementById('mobileAboutBio');
@@ -1234,8 +1218,8 @@
                     if (mobileAboutLocation) mobileAboutLocation.textContent = profile?.location || "Location not set";
                     if (mobileAboutMember) mobileAboutMember.textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
                 } else {
-                    document.getElementById('profileName').textContent = displayIdentity;
-                    document.getElementById('profileUsername').textContent = '';
+                    document.getElementById('profileName').textContent = displayName;
+                    document.getElementById('profileUsername').textContent = secondaryIdentity;
                     document.getElementById('profileBio').textContent = profile?.bio || "No bio yet. Click edit to add one!";
                     document.getElementById('profileLocation').textContent = profile?.location || "Location not set";
                     document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
@@ -13165,7 +13149,7 @@
             // ===== SAVE PROFILE CHANGES =====
             async function saveProfileChanges() {
                 const displayName = String(document.getElementById('editDisplayName')?.value || '').trim().slice(0, 80);
-                const rawUsername = document.getElementById('editUsername')?.value;
+                const rawUsername = String(document.getElementById('editUsername')?.value || '').trim();
                 const bio = String(document.getElementById('editBio')?.value || '').trim();
                 const location = String(document.getElementById('editLocation')?.value || '').trim();
                 const themeInput = document.getElementById('editProfileTheme');
@@ -13173,13 +13157,19 @@
                 const customBadges = normalizeProfileBadges(document.getElementById('editCustomBadges')?.value || '');
                 const isPrivate = document.getElementById('editIsPrivate')?.checked || false;
                 
-                if (!displayName || !rawUsername) {
-                    showToast('Please enter display name and username', 'error');
+                if (!displayName) {
+                    showToast('Please enter a display name', 'error');
                     return;
                 }
                 
                 try {
-                    const normalizedUsername = await ensureProfileUsernameAvailable(rawUsername, currentUser?.id);
+                    let normalizedUsername = String(userProfile?.username || '').trim();
+                    if (rawUsername) {
+                        normalizedUsername = await ensureProfileUsernameAvailable(rawUsername, currentUser?.id);
+                    } else if (!normalizedUsername) {
+                        const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
+                        normalizedUsername = profileUsernameWithSuffix('user', idSuffix);
+                    }
                     const updatePayload = {
                         full_name: displayName,
                         username: normalizedUsername,
@@ -13222,6 +13212,7 @@
                     const authMetadataResult = await supabase.auth.updateUser({
                         data: {
                             full_name: displayName,
+                            name: displayName,
                             username: normalizedUsername
                         }
                     });

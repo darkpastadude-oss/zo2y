@@ -6837,20 +6837,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function getHomeProfileLabelFallback(user) {
-      // Never fall back to Gmail/OAuth nicknames or email prefixes.
-      // We only show a real chosen username stored in auth metadata,
-      // otherwise keep it neutral so onboarding can take over.
-      const raw = String(user?.user_metadata?.zo2y_username || user?.user_metadata?.username || '').trim();
-      const normalized = normalizeProfileUsername(raw);
-      if (
-        normalized &&
-        isValidProfileUsername(normalized) &&
-        !RESERVED_PROFILE_USERNAMES.has(normalized.replace(/_/g, '')) &&
-        !isHomePlaceholderProfileUsername(normalized, user)
-      ) {
-        return `@${normalized}`;
+      const fullName = String(user?.user_metadata?.full_name || user?.user_metadata?.name || '').trim();
+      if (fullName) return fullName;
+      const email = String(user?.email || '').trim();
+      if (email && email.includes('@')) {
+        return email.split('@')[0];
       }
-      return '@set username';
+      return 'Profile';
     }
 
     async function getHomeProfileLabel(client, user) {
