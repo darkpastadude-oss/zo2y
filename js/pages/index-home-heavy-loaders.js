@@ -6,7 +6,7 @@
   const HOME_LOCAL_FALLBACK_IMAGE = String(window.HOME_LOCAL_FALLBACK_IMAGE || '').trim();
   const HOME_SPORTS_SEEDS = Array.isArray(window.ZO2Y_HOME_SPORTS_SEEDS) ? window.ZO2Y_HOME_SPORTS_SEEDS : [];
 
-const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v5';
+const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v6';
 const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
 const CURRENT_TOP_BOOK_SEEDS = Array.isArray(window.ZO2Y_CURATED_BOOK_SEEDS) && window.ZO2Y_CURATED_BOOK_SEEDS.length
   ? window.ZO2Y_CURATED_BOOK_SEEDS.slice()
@@ -1368,7 +1368,7 @@ async function loadBooks(signal) {
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;
     const HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_home_sports_asset_manifest_v3';
     const HOME_SPORTS_ASSET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
-      const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v4';
+const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v5';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     let homeSportsAssetManifestPromise = null;
     const homeSportsAssetManifestRows = [];

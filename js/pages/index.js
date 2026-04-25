@@ -85,6 +85,10 @@
     const HOME_SPORTS_SEEDS = Array.isArray(window.ZO2Y_HOME_SPORTS_SEEDS) && window.ZO2Y_HOME_SPORTS_SEEDS.length
       ? window.ZO2Y_HOME_SPORTS_SEEDS.slice()
       : [];
+    const HOME_CURATED_TRAVEL_DESTINATIONS = Array.isArray(window.ZO2Y_CURATED_TRAVEL_DESTINATIONS) && window.ZO2Y_CURATED_TRAVEL_DESTINATIONS.length
+      ? window.ZO2Y_CURATED_TRAVEL_DESTINATIONS.slice()
+      : [];
+    const HOME_CURATED_TRAVEL_PRIORITY = new Map(HOME_CURATED_TRAVEL_DESTINATIONS.map((entry, index) => [String(entry?.code || '').trim().toUpperCase(), index + 1]).filter((entry) => entry[0]));
     const HOME_TOP_SOCCER_LEAGUES = new Set(['premier league', 'la liga', 'serie a', 'bundesliga', 'ligue 1']);
     const HOME_TOP_SOCCER_CLUBS = new Set([
       'real madrid', 'barcelona', 'atletico madrid', 'liverpool', 'manchester city',
@@ -143,15 +147,15 @@
       music: { table: 'music_reviews', itemField: 'track_id' },
       travel: { table: 'travel_reviews', itemField: 'country_code' }
     };
-    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v12';
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v13';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 90;
     const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v12';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
-    const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v4';
+    const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v5';
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
-    const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v4';
+    const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v5';
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_GAMES_ITEMS_CACHE_KEY = 'zo2y_home_games_items_v1';
     const HOME_GAMES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
@@ -163,7 +167,7 @@
     const HOME_TRAVEL_BUCKET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_TRAVEL_BUCKET_NAME}/manifest/travel-photo-manifest.json`;
     const HOME_BRAND_BACKGROUND_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_BRAND_BACKGROUND_BUCKET_NAME}/manifest/brand-backgrounds.json`;
     const HOME_TRAVEL_FALLBACK_IMAGE = '/images/onboarding/onboard-travel.svg';
-    const HOME_TRAVEL_FALLBACKS = [
+    const HOME_TRAVEL_FALLBACKS = (HOME_CURATED_TRAVEL_DESTINATIONS.length ? HOME_CURATED_TRAVEL_DESTINATIONS : [
       { code: 'US', name: 'United States', capital: 'Washington, D.C.', region: 'North America', subregion: 'Northern America' },
       { code: 'GB', name: 'United Kingdom', capital: 'London', region: 'Europe', subregion: 'Northern Europe' },
       { code: 'FR', name: 'France', capital: 'Paris', region: 'Europe', subregion: 'Western Europe' },
@@ -185,8 +189,8 @@
       { code: 'PT', name: 'Portugal', capital: 'Lisbon', region: 'Europe', subregion: 'Southern Europe' },
       { code: 'NL', name: 'Netherlands', capital: 'Amsterdam', region: 'Europe', subregion: 'Western Europe' },
       { code: 'CA', name: 'Canada', capital: 'Ottawa', region: 'North America', subregion: 'Northern America' }
-    ];
-    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v1';
+    ]).slice();
+    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v2';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 600;
@@ -1290,6 +1294,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         };
       }).filter(Boolean);
       return items.slice(0, maxCount);
+    }
+
+    function getHomeCuratedTravelPriority(code) {
+      const safeCountryCode = canonicalTravelCountryCode(code);
+      if (!safeCountryCode) return 0;
+      return Number(HOME_CURATED_TRAVEL_PRIORITY.get(safeCountryCode) || 0) || 0;
+    }
+
+    function sortHomeTravelRowsByPriority(rows = []) {
+      const list = Array.isArray(rows) ? rows.slice() : [];
+      return list.sort((a, b) => {
+        const leftPriority = getHomeCuratedTravelPriority(a?.cca2 || a?.cca3 || a?.code);
+        const rightPriority = getHomeCuratedTravelPriority(b?.cca2 || b?.cca3 || b?.code);
+        if (leftPriority && rightPriority && leftPriority !== rightPriority) return leftPriority - rightPriority;
+        if (leftPriority && !rightPriority) return -1;
+        if (!leftPriority && rightPriority) return 1;
+        const left = String(a?.name?.common || a?.name?.official || a?.name || '').trim();
+        const right = String(b?.name?.common || b?.name?.official || b?.name || '').trim();
+        return left.localeCompare(right);
+      });
     }
 
     function readHomeTravelPhotoCacheFromStorage() {
@@ -9638,7 +9662,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         const script = document.createElement('script');
       // Keep this in sync with `sw.js` precache list to avoid refresh loading stale home loaders.
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260425b';
+          script.src = 'js/pages/index-home-heavy-loaders.js?v=20260425e';
       script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
@@ -9741,7 +9765,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             if (!rows.length) return;
             primeHomeCountryIndex(rows);
 
-            const sortedRows = rows
+            const sortedRows = sortHomeTravelRowsByPriority(rows
               .filter((row) => {
                 if (!row || !(row.cca2 || row.cca3) || !(row?.name?.common || row?.name?.official)) return false;
                 const code = String(row?.cca2 || row?.cca3 || '').trim().toUpperCase();
@@ -9749,12 +9773,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
                 if (code === 'IL') return false;
                 if (/\bisrael\b/i.test(name)) return false;
                 return true;
-              })
-              .sort((a, b) => {
-                const left = String(a?.name?.common || a?.name?.official || '').trim();
-                const right = String(b?.name?.common || b?.name?.official || '').trim();
-                return left.localeCompare(right);
-              });
+              }));
 
             const shortlist = shuffleArray(sortedRows.slice(0, Math.max(targetCount * 5, 120)));
             const seen = new Set();

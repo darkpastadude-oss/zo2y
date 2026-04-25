@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   
-  <script src="/js/auth-gate.js?v=20260425c"></script>
+  <script src="/js/auth-gate.js?v=20260425e"></script>
+  <script src="js/data/curated-media.js?v=20260425e"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex">
   <title>Zo2y - Travel</title>
   <meta name="description" content="Browse countries, save travel lists, and open country pages with reviews.">
@@ -535,7 +536,7 @@
     }
   </style>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-<script src="js/shared-header.js?v=20260425c" defer></script>
+<script src="js/shared-header.js?v=20260425e" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -618,10 +619,12 @@
       const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim() || 'sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd';
     const COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
+    const CURATED_TRAVEL_DESTINATIONS = Array.isArray(window.ZO2Y_CURATED_TRAVEL_DESTINATIONS) ? window.ZO2Y_CURATED_TRAVEL_DESTINATIONS.slice() : [];
+    const CURATED_TRAVEL_PRIORITY = new Map(CURATED_TRAVEL_DESTINATIONS.map((entry, index) => [String(entry?.code || '').trim().toUpperCase(), index + 1]).filter((entry) => entry[0]));
     const TRAVEL_RENDER_DEBOUNCE_MS = 180;
     const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
     const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
-    const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v4';
+    const TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v5';
     const TRAVEL_COUNTRY_ROWS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
     const TRAVEL_BUCKET_NAME = 'travel-photos';
     const TRAVEL_VARIANT_SESSION_SEED = Math.floor(Math.random() * 2147483647);
@@ -692,6 +695,24 @@
       const rows = Array.isArray(list) ? list.filter(Boolean) : [];
       if (!rows.length) return [];
       return shuffleArray(rows.slice(0, 24)).concat(rows.slice(24));
+    }
+
+    function getCuratedTravelPriority(code) {
+      const safeCountryCode = safeCode(code);
+      if (!safeCountryCode) return 0;
+      return Number(CURATED_TRAVEL_PRIORITY.get(safeCountryCode) || 0) || 0;
+    }
+
+    function sortTravelRowsByPriority(list) {
+      const rows = Array.isArray(list) ? list.slice() : [];
+      return rows.sort((a, b) => {
+        const leftPriority = getCuratedTravelPriority(a?.code);
+        const rightPriority = getCuratedTravelPriority(b?.code);
+        if (leftPriority && rightPriority && leftPriority !== rightPriority) return leftPriority - rightPriority;
+        if (leftPriority && !rightPriority) return -1;
+        if (!leftPriority && rightPriority) return 1;
+        return String(a?.name || '').localeCompare(String(b?.name || ''));
+      });
     }
     const countryPhotoCache = new Map();
     const countryPhotoPending = new Set();
@@ -1111,9 +1132,11 @@
 
       state.rows = state.rows.map((item) => {
         const score = Number(normalizedScores[item.code] || 0);
+        const curatedPriority = getCuratedTravelPriority(item.code);
+        const curatedBoost = curatedPriority ? Math.max(0, 1500000 - (curatedPriority * 18000)) : 0;
         return {
           ...item,
-          popularityScore: score,
+          popularityScore: score + curatedBoost,
           popularityRank: rankMap.get(item.code) || null
         };
       });
@@ -1830,7 +1853,7 @@
       if (!force && !state.rows.length) {
         const cachedRows = readCountryRowsCache();
         if (Array.isArray(cachedRows) && cachedRows.length) {
-          state.rows = cachedRows.sort((a, b) => a.name.localeCompare(b.name));
+          state.rows = sortTravelRowsByPriority(cachedRows);
           const cachedPopularity = readTravelPopularityCache();
           if (cachedPopularity?.scores) {
             applyTravelPopularityScores(cachedPopularity.scores);
@@ -1883,8 +1906,7 @@
             })
             .catch(() => {});
         }
-        state.rows = state.rows
-          .sort((a, b) => a.name.localeCompare(b.name));
+        state.rows = sortTravelRowsByPriority(state.rows);
         hydrateRegionOptions();
         writeCountryRowsCache(state.rows);
         startCountryPhotoBackfill();
