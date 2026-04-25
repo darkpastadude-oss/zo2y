@@ -25,7 +25,8 @@ SPAs Routing and Auth Persistence Guidance
   - Ensure the server routes all paths to index.html so the SPA can handle client-side routing
 - If using Vite + React Router, enable history API fallback (development and production environments)
 - Nginx: add try_files $uri /index.html;
-- Not using Netlify/Vercel. For other hosts, configure a catch-all route to serve /index.html so SPA routing works on refresh.
+- Cloudflare Pages: use root-level Functions or `_routes.json`/middleware as needed so unknown app routes still resolve to the built app entry.
+- For other hosts, configure a catch-all route to serve /index.html so SPA routing works on refresh.
 
 - Direct URL Access Example Mappings
   - /dashboard -> index.html (client handles route)
@@ -34,7 +35,7 @@ SPAs Routing and Auth Persistence Guidance
 - Quick Implementation Checklist (in this repo)
   1. Auth persistence: enforced in code (see patches to js/auth-gate.js)
   2. Onboarding persistence: skip onboarding if onboarding_completed_at exists or onboarded flag is set
-  3. SPA routing: provide server config templates (NGINX, Netlify, Vercel) in docs
+  3. SPA routing: provide server config guidance for Cloudflare Pages and other static hosts
   4. Test: refresh, direct URL navigation, and new tab reopen should preserve session and onboarding state
 
 - Notes
