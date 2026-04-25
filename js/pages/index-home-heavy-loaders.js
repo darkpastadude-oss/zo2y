@@ -6,7 +6,7 @@
   const HOME_LOCAL_FALLBACK_IMAGE = String(window.HOME_LOCAL_FALLBACK_IMAGE || '').trim();
   const HOME_SPORTS_SEEDS = Array.isArray(window.ZO2Y_HOME_SPORTS_SEEDS) ? window.ZO2Y_HOME_SPORTS_SEEDS : [];
 
-const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v6';
+const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v7';
 const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
 const CURRENT_TOP_BOOK_SEEDS = Array.isArray(window.ZO2Y_CURATED_BOOK_SEEDS) && window.ZO2Y_CURATED_BOOK_SEEDS.length
   ? window.ZO2Y_CURATED_BOOK_SEEDS.slice()
@@ -1368,7 +1368,7 @@ async function loadBooks(signal) {
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;
     const HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_home_sports_asset_manifest_v3';
     const HOME_SPORTS_ASSET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
-const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v5';
+const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v6';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     let homeSportsAssetManifestPromise = null;
     const homeSportsAssetManifestRows = [];
@@ -1582,10 +1582,13 @@ const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v5';
     function scoreHomeSportsPriority(item) {
       const title = normalizeHomeSportsName(item?.title || '');
       const league = normalizeHomeSportsName(item?.league || '');
+      const sport = normalizeHomeSportsName(item?.sport || item?.subtitle || '');
       let score = 0;
       if (HOME_SPORTS_SEEDS.some((seed) => normalizeHomeSportsName(seed) === title)) score += 500;
       if (isHomeSportsPriorityLeague(league)) score += 220;
-      if (league.includes('premier league') || league.includes('nba') || league.includes('nfl')) score += 80;
+      if (sport.includes('soccer') || sport === 'football') score += 180;
+      if (league.includes('premier league') || league.includes('la liga') || league.includes('serie a') || league.includes('bundesliga') || league.includes('champions league')) score += 180;
+      if (league.includes('nba') || league.includes('nfl')) score += 80;
       return score;
     }
 
@@ -1605,9 +1608,7 @@ const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v5';
         if (scoreDiff) return scoreDiff;
         return String(a?.title || '').localeCompare(String(b?.title || ''));
       });
-      const featuredPool = sorted.slice(0, Math.max(targetCount * 2, 16));
-      const shuffledFeatured = stableShuffleHomeItems(featuredPool, 'sports:home-priority').slice(0, targetCount);
-      return shuffledFeatured.length ? shuffledFeatured : sorted.slice(0, targetCount);
+      return sorted.slice(0, targetCount);
     }
 
     async function loadSports(signal) {
@@ -1810,18 +1811,71 @@ const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v5';
         });
       }
 
+      function scoreCuratedTopBookDoc(doc, seed) {
+        const normalizedTitle = normalizeBookSeedText(doc?.title || '');
+        const normalizedAuthor = normalizeBookSeedText(doc?.author || '');
+        const seedTitle = normalizeBookSeedText(seed?.title || '');
+        const seedAuthor = normalizeBookSeedText(seed?.author || '');
+        const seedYear = Number(seed?.year || 0) || 0;
+        const docYear = Number(doc?.year || 0) || 0;
+        let score = 0;
+        if (normalizedTitle && seedTitle) {
+          if (normalizedTitle === seedTitle) score += 120;
+          else if (normalizedTitle.startsWith(seedTitle) || seedTitle.startsWith(normalizedTitle)) score += 80;
+          else if (normalizedTitle.includes(seedTitle) || seedTitle.includes(normalizedTitle)) score += 48;
+        }
+        if (normalizedAuthor && seedAuthor) {
+          if (normalizedAuthor === seedAuthor) score += 70;
+          else if (normalizedAuthor.includes(seedAuthor) || seedAuthor.includes(normalizedAuthor)) score += 42;
+        }
+        if (String(doc?.cover || '').trim()) score += 24;
+        if (docYear >= 2020) score += 16;
+        if (seedYear && docYear === seedYear) score += 24;
+        return score;
+      }
+
+      async function fetchSeededTopBooks(limit = BOOKS_PER_PAGE) {
+        const pool = shuffleArray(CURRENT_TOP_BOOK_SEEDS).slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, Math.max(limit * 3, 24)));
+        const results = await Promise.allSettled(pool.map(async (seed) => {
+          const payload = await booksFetch('/search', Object.assign({
+            title: seed.title,
+            author: seed.author,
+            limit: 5,
+            page: 1
+          }, seed?.year ? { first_publish_year: seed.year } : {}));
+          const docs = Array.isArray(payload?.books) ? payload.books : [];
+          if (!docs.length) return null;
+          return docs.slice().sort((a, b) => scoreCuratedTopBookDoc(b, seed) - scoreCuratedTopBookDoc(a, seed))[0] || null;
+        }));
+        const seen = new Set();
+        const docs = [];
+        results.forEach((result) => {
+          if (result.status !== 'fulfilled' || !result.value) return;
+          const doc = result.value;
+          const key = `${normalizeBookSeedText(doc?.title || '')}::${normalizeBookSeedText(doc?.author || '')}`;
+          if (!key || seen.has(key)) return;
+          seen.add(key);
+          docs.push(doc);
+        });
+        return docs;
+      }
+
       async function loadCuratedPopularBooks() {
-        const [popularResult, trendingResult] = await Promise.allSettled([
+        const [seededResult, popularResult, trendingResult] = await Promise.allSettled([
+          fetchSeededTopBooks(BOOKS_PER_PAGE),
           fetchPopularBooks(1, BOOKS_PER_PAGE),
           fetchTrendingBooks(BOOKS_PER_PAGE)
         ]);
+        const seededBooks = seededResult.status === 'fulfilled' && Array.isArray(seededResult.value)
+          ? seededResult.value
+          : [];
         const popular = popularResult.status === 'fulfilled' ? popularResult.value : null;
         const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
         const popularBooks = Array.isArray(popular?.books) ? popular.books.slice(0, BOOKS_PER_PAGE) : [];
         const trendingBooks = Array.isArray(trending?.books) ? trending.books.slice(0, BOOKS_PER_PAGE) : [];
         const merged = [];
         const seen = new Set();
-        [...popularBooks, ...trendingBooks].forEach((book) => {
+        [...seededBooks, ...popularBooks, ...trendingBooks].forEach((book) => {
           const title = normalizeBookSeedText(book?.title || '');
           const author = normalizeBookSeedText(book?.author || '');
           const key = `${title}::${author}`;
@@ -1854,7 +1908,7 @@ const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v5';
 
         return {
           books: merged.slice(0, BOOKS_PER_PAGE),
-          numFound: Math.max(Number(popular?.numFound || 0), Number(trending?.numFound || 0), merged.length, BOOKS_PER_PAGE * 2)
+          numFound: Math.max(seededBooks.length, Number(popular?.numFound || 0), Number(trending?.numFound || 0), merged.length, BOOKS_PER_PAGE * 2)
         };
       }
 
@@ -1886,7 +1940,7 @@ const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v5';
       );
       if (cachedItems.length) {
         setBooksDebug('cache-hit', { count: cachedItems.length });
-        return cachedItems.slice(0, targetCount);
+        return shuffleArray(cachedItems).slice(0, targetCount);
       }
 
       try {
@@ -1919,7 +1973,7 @@ const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v5';
           });
         }).filter(Boolean);
 
-        const filtered = filterHomeSafeItems(items).slice(0, targetCount);
+        const filtered = shuffleArray(filterHomeSafeItems(items)).slice(0, targetCount);
         if (filtered.length) {
           if (filtered.length >= minHealthy) writeHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, filtered);
           setBooksDebug('success', { count: filtered.length });

@@ -5217,7 +5217,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const key = String(railId || '').trim();
       const list = Array.isArray(items) ? items.filter(Boolean) : [];
       if (!list.length) return [];
-      if (!['booksRail', 'travelRail', 'sportsRail'].includes(key)) return list;
+      if (!['travelRail', 'sportsRail'].includes(key)) return list;
       return shuffleArray(list);
     }
 
@@ -6078,7 +6078,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function refreshShufflableHomeRails() {
       const channels = [
-        { key: 'book', railId: 'booksRail', opts: { mediaType: 'book' } },
         { key: 'travel', railId: 'travelRail', opts: { mediaType: 'travel' } },
         { key: 'sports', railId: 'sportsRail', opts: { mediaType: 'sports', landscape: false } }
       ];
@@ -9672,7 +9671,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         const script = document.createElement('script');
       // Keep this in sync with `sw.js` precache list to avoid refresh loading stale home loaders.
-          script.src = 'js/pages/index-home-heavy-loaders.js?v=20260425e';
+          script.src = 'js/pages/index-home-heavy-loaders.js?v=20260425h';
       script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
