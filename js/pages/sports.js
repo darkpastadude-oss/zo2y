@@ -375,14 +375,33 @@
   }
 
   function rankFeaturedTeams(teams, limit = FEATURED_TEAMS_LIMIT) {
-    return dedupeTeams(Array.isArray(teams) ? teams : [])
+    const ranked = dedupeTeams(Array.isArray(teams) ? teams : [])
       .filter((team) => team && team.name && team.badge)
       .sort((a, b) => {
         const diff = scoreFeaturedPriority(b) - scoreFeaturedPriority(a);
         if (diff) return diff;
         return String(a?.name || '').localeCompare(String(b?.name || ''));
       })
-      .slice(0, limit);
+      .slice(0, limit * 2);
+    const buckets = new Map();
+    ranked.forEach((team) => {
+      const sportKey = normalizeSearchText(team?.sport || 'other') || 'other';
+      if (!buckets.has(sportKey)) buckets.set(sportKey, []);
+      buckets.get(sportKey).push(team);
+    });
+    const sportOrder = shuffleArray(Array.from(buckets.keys()));
+    const balanced = [];
+    while (balanced.length < limit && sportOrder.length) {
+      let addedInPass = false;
+      sportOrder.forEach((sportKey) => {
+        const bucket = buckets.get(sportKey);
+        if (!bucket || !bucket.length || balanced.length >= limit) return;
+        balanced.push(bucket.shift());
+        addedInPass = true;
+      });
+      if (!addedInPass) break;
+    }
+    return balanced.length ? balanced.slice(0, limit) : ranked.slice(0, limit);
   }
 
   function stripSearchStopwords(tokens) {

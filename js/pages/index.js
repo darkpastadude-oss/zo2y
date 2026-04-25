@@ -3466,7 +3466,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function loadTasteWeights() {
       const weights = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, 1]));
-      if (!homeCurrentUser?.id) return weights;
+      if (!homeCurrentUser?.id) {
+        homeTasteWeightsCache = null;
+        return weights;
+      }
       const now = Date.now();
       if (
         homeTasteWeightsCache
@@ -5178,6 +5181,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return arr;
     }
 
+    function getHomeRailShuffleItems(railId, items) {
+      const key = String(railId || '').trim();
+      const list = Array.isArray(items) ? items.filter(Boolean) : [];
+      if (!list.length) return [];
+      if (!['booksRail', 'travelRail', 'sportsRail'].includes(key)) return list;
+      return shuffleArray(list);
+    }
+
     function isHomeSlowNetwork() {
       const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
       if (!connection) return false;
@@ -6022,7 +6033,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function renderOrDeferHomeRail(railId, items, opts) {
       const key = String(railId || '').trim();
       if (!key) return;
-      const normalizedItems = Array.isArray(items) ? items : [];
+      const normalizedItems = getHomeRailShuffleItems(key, items);
       const renderOpts = opts || {};
       if (!normalizedItems.length && renderOpts.allowEmptyState !== true) {
         setHomeRailDeferredPlaceholder(key);

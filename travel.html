@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   
-  <script src="/js/auth-gate.js?v=20260425b"></script>
+  <script src="/js/auth-gate.js?v=20260425c"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex">
   <title>Zo2y - Travel</title>
   <meta name="description" content="Browse countries, save travel lists, and open country pages with reviews.">
@@ -535,7 +535,7 @@
     }
   </style>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-<script src="js/shared-header.js?v=20260425b" defer></script>
+<script src="js/shared-header.js?v=20260425c" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -679,6 +679,20 @@
       heroCursor: 0,
       heroRotationTimer: null
     };
+    function shuffleArray(list) {
+      const arr = Array.isArray(list) ? [...list] : [];
+      for (let i = arr.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function mixTravelRowsByPopularity(list) {
+      const rows = Array.isArray(list) ? list.filter(Boolean) : [];
+      if (!rows.length) return [];
+      return shuffleArray(rows.slice(0, 24)).concat(rows.slice(24));
+    }
     const countryPhotoCache = new Map();
     const countryPhotoPending = new Set();
     const countryLifestylePending = new Set();
@@ -1908,6 +1922,9 @@
           if (rankDiff !== 0) return rankDiff;
           return a.name.localeCompare(b.name);
         });
+        if (!query && !region) {
+          output = mixTravelRowsByPopularity(output);
+        }
       }
       state.filtered = output;
     }

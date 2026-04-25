@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-<script src="/js/auth-gate.js?v=20260425b"></script>
+<script src="/js/auth-gate.js?v=20260425c"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Books</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://covers.openlibrary.org" crossorigin>
   <link rel="preconnect" href="https://books.googleusercontent.com" crossorigin>
-  <script src="js/data/curated-media.js?v=20260425b"></script>
+  <script src="js/data/curated-media.js?v=20260425c"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/list-utils.js?v=20260422b"></script>
@@ -890,7 +890,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
 <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-<script src="js/shared-header.js?v=20260425b" defer></script>
+<script src="js/shared-header.js?v=20260425c" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
   <link rel="stylesheet" href="/css/pages/media-spotlight.css?v=20260418a">
 </head>
@@ -1077,6 +1077,22 @@
 
       function toHttpsUrl(value) {
         return String(value || '').replace(/^http:\/\//i, 'https://').trim();
+      }
+
+      function shuffleArray(list) {
+        const arr = Array.isArray(list) ? [...list] : [];
+        for (let i = arr.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
+      function getBooksDisplayOrder(list) {
+        const items = Array.isArray(list) ? [...list] : [];
+        const shouldShuffle = !state.query && !state.author && !state.activeCategory && !state.year && Number(state.page || 1) === 1;
+        if (!shouldShuffle) return items;
+        return shuffleArray(items);
       }
 
       function buildOpenLibraryCoverUrl(doc, size = 'L') {
@@ -2001,6 +2017,7 @@
         let results = data.books || [];
         results = filterByYear(results);
         results = sortBooksByAccuracy(results);
+        results = getBooksDisplayOrder(results);
 
         if (!results.length) {
           if (empty) empty.style.display = 'block';
@@ -2464,8 +2481,6 @@
   <script src="js/production-runtime.js?v=20260422a" defer></script>
 </body>
 </html>
-
-
 
 
 

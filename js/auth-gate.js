@@ -772,7 +772,7 @@
     try {
       var byId = await client
         .from('user_profiles')
-        .select('id, username, full_name, display_name')
+        .select('id, username, full_name')
         .eq('id', safeUserId)
         .maybeSingle();
       if (!byId || !byId.error) {
@@ -780,7 +780,7 @@
       }
       var byUserId = await client
         .from('user_profiles')
-        .select('id, username, full_name, display_name')
+        .select('id, username, full_name')
         .eq('user_id', safeUserId)
         .maybeSingle();
       if (!byUserId || !byUserId.error) {
@@ -855,7 +855,7 @@
         var profileRow = await readAuthProfileRow(_client, userId);
         if (profileRow) {
           var rowUsername = String(profileRow.username || '').trim();
-          var rowFullName = String(profileRow.display_name || profileRow.full_name || '').trim();
+          var rowFullName = String(profileRow.full_name || '').trim();
           if (rowUsername && !isPlaceholderProfileUsername(rowUsername, user)) {
             profile.username = rowUsername;
           }
@@ -1431,7 +1431,7 @@
         .from('user_profiles')
         .update(byIdPayload)
         .eq('id', safeUserId)
-        .select('id, username, full_name, display_name, onboarding_completed_at')
+        .select('id, username, full_name, onboarding_completed_at')
         .limit(1);
       if (byId.error && (shouldStripColumn(byId.error, 'onboarding_completed_at'))) {
         byIdPayload = withoutOptionalColumns(payload, byId.error);
@@ -1439,7 +1439,7 @@
           .from('user_profiles')
           .update(byIdPayload)
           .eq('id', safeUserId)
-          .select('id, username, full_name, display_name')
+          .select('id, username, full_name')
           .limit(1);
       }
       if (!byId.error && Array.isArray(byId.data) && byId.data[0]) {
@@ -1456,7 +1456,7 @@
         .from('user_profiles')
         .update(byUserIdPayload)
         .eq('user_id', safeUserId)
-        .select('id, username, full_name, display_name, onboarding_completed_at')
+        .select('id, username, full_name, onboarding_completed_at')
         .limit(1);
       if (byUserId.error && (shouldStripColumn(byUserId.error, 'user_id') || shouldStripColumn(byUserId.error, 'onboarding_completed_at'))) {
         byUserIdPayload = withoutOptionalColumns(payload, byUserId.error);
@@ -1464,7 +1464,7 @@
           .from('user_profiles')
           .update(byUserIdPayload)
           .eq('user_id', safeUserId)
-          .select('id, username, full_name, display_name')
+          .select('id, username, full_name')
           .limit(1);
       }
       if (!byUserId.error && Array.isArray(byUserId.data) && byUserId.data[0]) {
@@ -1485,14 +1485,14 @@
       var inserted = await client
         .from('user_profiles')
         .upsert(insertPayload, { onConflict: 'id' })
-        .select('id, username, full_name, display_name, onboarding_completed_at')
+        .select('id, username, full_name, onboarding_completed_at')
         .limit(1);
       if (inserted.error && (shouldStripColumn(inserted.error, 'user_id') || shouldStripColumn(inserted.error, 'onboarding_completed_at'))) {
         insertPayload = withoutOptionalColumns(insertPayload, inserted.error);
         var retry = await client
           .from('user_profiles')
           .upsert(insertPayload, { onConflict: 'id' })
-          .select('id, username, full_name, display_name')
+          .select('id, username, full_name')
           .limit(1);
         if (!retry.error && Array.isArray(retry.data) && retry.data[0]) {
           return retry.data[0];
