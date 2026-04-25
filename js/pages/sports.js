@@ -364,12 +364,15 @@
   function scoreFeaturedPriority(team) {
     const name = normalizePriorityName(team?.name || team?.strTeam || '');
     const league = normalizePriorityName(team?.league || team?.strLeague || '');
+    const sport = normalizePriorityName(team?.sport || team?.strSport || '');
     let score = 0;
     const relevantIndex = CURRENT_RELEVANT_TEAMS.findIndex((seed) => normalizePriorityName(seed) === name);
     if (relevantIndex >= 0) score += Math.max(900 - (relevantIndex * 6), 240);
     else if (SEED_TEAMS.some((seed) => normalizePriorityName(seed) === name)) score += 500;
     if (isPriorityLeagueName(league)) score += 220;
-    if (league.includes('premier league') || league.includes('nba') || league.includes('nfl')) score += 80;
+    if (sport.includes('soccer') || sport === 'football') score += 180;
+    if (league.includes('premier league') || league.includes('la liga') || league.includes('serie a') || league.includes('bundesliga') || league.includes('champions league')) score += 140;
+    if (league.includes('nba') || league.includes('nfl')) score += 80;
     if (team?.badge) score += 24;
     return score;
   }
