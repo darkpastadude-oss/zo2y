@@ -973,10 +973,23 @@ const HEADER_HTML = `
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     const shouldReduceEffects = !!(connection && (connection.saveData || ['slow-2g', '2g', '3g'].includes(String(connection.effectiveType || '').toLowerCase())));
 
+    if (!(window.__ZO2Y_LOGO_TRACKED_ELEMENTS instanceof Set)) {
+      window.__ZO2Y_LOGO_TRACKED_ELEMENTS = new Set();
+    }
+    const trackedLogos = window.__ZO2Y_LOGO_TRACKED_ELEMENTS;
+
+    const collectTrackedLogos = () => {
+      Array.from(trackedLogos).forEach((logo) => {
+        if (!logo || !logo.isConnected) trackedLogos.delete(logo);
+      });
+      return Array.from(trackedLogos);
+    };
+
     logos.forEach((logo) => {
       if (logo.dataset.zo2yLogoWired === '1') return;
       logo.dataset.zo2yLogoWired = '1';
       logo.classList.toggle('is-idle', !prefersReducedMotion);
+      trackedLogos.add(logo);
 
       const triggerTongue = () => {
         logo.classList.remove('is-tongue');
@@ -1025,13 +1038,13 @@ const HEADER_HTML = `
 
       const scheduleBlink = () => {
         const delay = Math.round(minDelay + Math.random() * (maxDelay - minDelay));
-        window.setTimeout(() => {
+        logo._blinkTimer = window.setTimeout(() => {
           runBlink();
           scheduleBlink();
         }, delay);
       };
 
-      window.setTimeout(runBlink, 700 + Math.random() * 500);
+      logo._initialBlinkTimer = window.setTimeout(runBlink, 700 + Math.random() * 500);
       scheduleBlink();
     });
 
@@ -1040,7 +1053,7 @@ const HEADER_HTML = `
       let rafId = null;
 
       const applyOffsets = (clientX, clientY) => {
-        logos.forEach((logo) => {
+        collectTrackedLogos().forEach((logo) => {
           const rect = logo.getBoundingClientRect();
           if (!rect.width || !rect.height) return;
           const cx = rect.left + rect.width / 2;
@@ -1058,20 +1071,27 @@ const HEADER_HTML = `
       };
 
       const resetOffsets = () => {
-        logos.forEach((logo) => {
+        collectTrackedLogos().forEach((logo) => {
           logo.style.setProperty('--pupil-offset-x', '0');
           logo.style.setProperty('--pupil-offset-y', '0');
         });
       };
 
-      document.addEventListener('mousemove', (event) => {
+      const handlePointerMove = (event) => {
         if (rafId) cancelAnimationFrame(rafId);
         const { clientX, clientY } = event;
         rafId = requestAnimationFrame(() => applyOffsets(clientX, clientY));
-      }, { passive: true });
+      };
+
+      document.addEventListener('pointermove', handlePointerMove, { passive: true });
+      document.addEventListener('mousemove', handlePointerMove, { passive: true });
 
       document.addEventListener('mouseleave', resetOffsets);
+      document.addEventListener('pointerleave', resetOffsets);
       window.addEventListener('blur', resetOffsets);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) resetOffsets();
+      });
     }
   }
 
