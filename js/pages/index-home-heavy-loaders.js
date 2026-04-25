@@ -6,67 +6,11 @@
   const HOME_LOCAL_FALLBACK_IMAGE = String(window.HOME_LOCAL_FALLBACK_IMAGE || '').trim();
   const HOME_SPORTS_SEEDS = Array.isArray(window.ZO2Y_HOME_SPORTS_SEEDS) ? window.ZO2Y_HOME_SPORTS_SEEDS : [];
 
-const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v3';
-const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 20;
-const CURRENT_TOP_BOOK_SEEDS = [
-  { title: 'Hope Rises', author: 'David Baldacci' },
-  { title: 'Theo of Golden', author: 'Allen Levi' },
-  { title: 'Project Hail Mary', author: 'Andy Weir' },
-  { title: 'Revenge Prey', author: 'John Sandford' },
-  { title: 'Yesteryear', author: 'Caro Claire Burke' },
-  { title: 'Famesick', author: 'Lena Dunham' },
-  { title: 'Strangers', author: 'Belle Burden' },
-  { title: 'The Faith of Beasts', author: 'James S. A. Corey' },
-  { title: 'The Woman from Nowhere', author: 'Kristen Ashley' },
-  { title: 'The Keeper', author: 'Tana French' },
-  { title: 'The Correspondent', author: 'Virginia Evans' },
-  { title: 'Rites of the Starling', author: 'Devney Perry' },
-  { title: 'The Auction', author: 'Sadie Kincaid' },
-  { title: 'Starside', author: 'Alex Aster' },
-  { title: 'The Night We Met', author: 'Abby Jimenez' },
-  { title: 'Go Gentle', author: 'Maria Semple' },
-  { title: "My Husband's Wife", author: 'Alice Feeney' },
-  { title: 'West of Wicked', author: 'Nikki St. Crowe' },
-  { title: 'Between Two Fires', author: 'Christopher Buehlman' },
-  { title: "Through Mom's Eyes", author: 'Sheinelle Jones' },
-  { title: 'Poisoned Ivies', author: 'Elise Stefanik' },
-  { title: 'Drownproof', author: 'Andy Stumpf' },
-  { title: 'The Let Them Theory', author: 'Mel Robbins' },
-  { title: 'Sunrise on the Reaping', author: 'Suzanne Collins' },
-  { title: 'Onyx Storm', author: 'Rebecca Yarros' },
-  { title: 'The Housemaid', author: 'Freida McFadden' },
-  { title: 'The Tenant', author: 'Freida McFadden' },
-  { title: 'Never Flinch', author: 'Stephen King' },
-  { title: 'Atmosphere', author: 'Taylor Jenkins Reid' },
-  { title: 'One Golden Summer', author: 'Carley Fortune' },
-  { title: 'The First Gentleman', author: 'James Patterson' },
-  { title: 'Butler', author: 'Salena Zito' },
-  { title: 'Original Sin', author: 'Jake Tapper' },
-  { title: 'The Body Keeps the Score', author: 'Bessel van der Kolk' },
-  { title: 'Atomic Habits', author: 'James Clear' },
-  { title: 'The Nightingale', author: 'Kristin Hannah' },
-  { title: 'Forgotten Home Apothecary', author: 'Dr. Nicole Apelian' },
-  { title: 'Inner Excellence', author: 'Jim Murphy' },
-  { title: 'Game On', author: 'Navessa Allen' },
-  { title: "It's Not Easy Being a Bunny", author: 'Marilyn Sadler' },
-  { title: "It's Better Being a Bunny", author: 'Marilyn Sadler' },
-  { title: 'The Meaning of Your Life', author: 'Arthur C. Brooks' },
-  { title: "Little Blue Truck's Springtime", author: 'Alice Schertle' },
-  { title: 'Why a Daughter Needs a Dad', author: 'Gregory E. Lang' },
-  { title: 'Why a Son Needs a Dad', author: 'Gregory E. Lang' },
-  { title: "Oh, the Places You'll Go!", author: 'Dr. Seuss' },
-  { title: 'Dad, I Want to Hear Your Story', author: 'Jeffrey Mason' },
-  { title: 'My First Library', author: 'Wonder House Books' },
-  { title: 'The Very Hungry Caterpillar', author: 'Eric Carle' },
-  { title: 'Judge Stone', author: 'James Patterson' },
-  { title: 'Alchemised', author: 'SenLinYu' },
-  { title: 'Cross and Sampson', author: 'James Patterson' },
-  { title: 'The Hard Line', author: 'Mark Greaney' },
-  { title: "The Devil's Bible", author: 'Steve Berry' },
-  { title: 'Cold Zero', author: 'Brad Thor' },
-  { title: "Nobody's Girl", author: 'Virginia Roberts Giuffre' },
-  { title: 'Heated Rivalry', author: 'Rachel Reid' }
-];
+const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v4';
+const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
+const CURRENT_TOP_BOOK_SEEDS = Array.isArray(window.ZO2Y_CURATED_BOOK_SEEDS) && window.ZO2Y_CURATED_BOOK_SEEDS.length
+  ? window.ZO2Y_CURATED_BOOK_SEEDS.slice()
+  : [];
 
 function buildOpenLibraryCoverUrl(doc, size = 'L') {
   const safeSize = String(size || 'L').trim().toUpperCase() || 'L';

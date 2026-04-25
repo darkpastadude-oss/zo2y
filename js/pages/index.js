@@ -82,18 +82,9 @@
       'the weeknd',
       'sabrina carpenter'
     ];
-    const HOME_SPORTS_SEEDS = [
-      'Real Madrid', 'FC Barcelona', 'Arsenal', 'Liverpool', 'Manchester City', 'Manchester United', 'Chelsea', 'Bayern Munich', 'Paris Saint-Germain', 'Inter Milan',
-      'AC Milan', 'Juventus', 'Borussia Dortmund', 'Atletico Madrid', 'Ajax', 'Benfica', 'Porto', 'Napoli', 'Roma', 'Tottenham Hotspur',
-      'Newcastle United', 'Leicester City', 'Sevilla', 'Valencia', 'Villarreal', 'Inter Miami', 'LA Galaxy', 'Seattle Sounders', 'Atlanta United', 'Al Hilal',
-      'Los Angeles Lakers', 'Boston Celtics', 'Golden State Warriors', 'Chicago Bulls', 'Miami Heat', 'Milwaukee Bucks', 'Phoenix Suns', 'Denver Nuggets', 'Dallas Mavericks', 'Philadelphia 76ers',
-      'New York Knicks', 'Cleveland Cavaliers', 'San Antonio Spurs', 'Houston Rockets', 'Toronto Raptors', 'Los Angeles Clippers', 'Memphis Grizzlies', 'Sacramento Kings', 'New Orleans Pelicans', 'Utah Jazz',
-      'Kansas City Chiefs', 'Dallas Cowboys', 'San Francisco 49ers', 'Philadelphia Eagles', 'Buffalo Bills', 'Baltimore Ravens', 'Green Bay Packers', 'Pittsburgh Steelers', 'Miami Dolphins', 'Detroit Lions',
-      'Cincinnati Bengals', 'Seattle Seahawks', 'New York Giants', 'Las Vegas Raiders', 'Los Angeles Rams', 'New York Yankees', 'Los Angeles Dodgers', 'Boston Red Sox', 'Houston Astros', 'Chicago Cubs',
-      'Atlanta Braves', 'San Diego Padres', 'Toronto Blue Jays', 'St. Louis Cardinals', 'New York Mets', 'Toronto Maple Leafs', 'Montreal Canadiens', 'Boston Bruins', 'New York Rangers', 'Tampa Bay Lightning',
-      'Colorado Avalanche', 'Edmonton Oilers', 'Vegas Golden Knights', 'Pittsburgh Penguins', 'Ferrari', 'Red Bull Racing', 'Mercedes AMG Petronas', 'McLaren', 'Aston Martin', 'Scuderia AlphaTauri',
-      'Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore', 'Kolkata Knight Riders', 'Rajasthan Royals', 'New Zealand All Blacks', 'England Rugby', 'South Africa Rugby', 'Australia Rugby', 'Ireland Rugby'
-    ];
+    const HOME_SPORTS_SEEDS = Array.isArray(window.ZO2Y_HOME_SPORTS_SEEDS) && window.ZO2Y_HOME_SPORTS_SEEDS.length
+      ? window.ZO2Y_HOME_SPORTS_SEEDS.slice()
+      : [];
     const HOME_TOP_SOCCER_LEAGUES = new Set(['premier league', 'la liga', 'serie a', 'bundesliga', 'ligue 1']);
     const HOME_TOP_SOCCER_CLUBS = new Set([
       'real madrid', 'barcelona', 'atletico madrid', 'liverpool', 'manchester city',
