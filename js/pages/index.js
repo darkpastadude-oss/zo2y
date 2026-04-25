@@ -190,7 +190,7 @@
       { code: 'NL', name: 'Netherlands', capital: 'Amsterdam', region: 'Europe', subregion: 'Western Europe' },
       { code: 'CA', name: 'Canada', capital: 'Ottawa', region: 'North America', subregion: 'Northern America' }
     ]).slice();
-    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v2';
+    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v3';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 600;
@@ -6077,23 +6077,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function refreshShufflableHomeRails() {
-      const channels = [
-        { key: 'travel', railId: 'travelRail', opts: { mediaType: 'travel' } },
-        { key: 'sports', railId: 'sportsRail', opts: { mediaType: 'sports', landscape: false } }
-      ];
-      channels.forEach((channel) => {
-        const items = Array.isArray(homeFeedState?.[channel.key]) ? homeFeedState[channel.key].filter(Boolean) : [];
-        if (!items.length || items.every((item) => item?.isPlaceholder)) return;
-        renderOrDeferHomeRail(channel.railId, items, channel.opts);
-      });
+      return;
     }
 
     function startHomeRailShuffleLoop() {
-      if (homeRailShuffleTimer) return;
-      homeRailShuffleTimer = window.setInterval(() => {
-        if (document.hidden) return;
-        refreshShufflableHomeRails();
-      }, 9000);
+      if (homeRailShuffleTimer) {
+        window.clearInterval(homeRailShuffleTimer);
+        homeRailShuffleTimer = null;
+      }
     }
 
     function resetHomeViewportDeferrals() {
@@ -9671,7 +9662,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         const script = document.createElement('script');
       // Keep this in sync with `sw.js` precache list to avoid refresh loading stale home loaders.
-          script.src = 'js/pages/index-home-heavy-loaders.js?v=20260425h';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260425i';
       script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
@@ -9857,29 +9848,63 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const seedSet = new Set(HOME_SPORTS_SEEDS.map((name) => normalizeSportsName(name)).filter(Boolean));
       const priorityLeagues = new Set([
         'premier league', 'la liga', 'serie a', 'bundesliga', 'ligue 1', 'uefa champions league',
-        'nba', 'nfl', 'mlb', 'nhl', 'formula 1', 'ipl', 'icc cricket world cup',
+        'saudi pro league', 'egyptian premier league', 'major league soccer',
+        'formula 1', 'mma', 'ufc', 'motogp', 'ipl', 'icc cricket world cup',
         'united rugby championship', 'six nations', 'super rugby'
       ]);
       const featuredTeamsPriority = [
         'real madrid',
-        'liverpool',
         'barcelona',
-        'manchester city',
+        'liverpool',
         'arsenal',
+        'manchester city',
+        'bayern munich',
+        'paris saint germain',
+        'al nassr',
+        'al ahly',
         'los angeles lakers',
+        'ferrari',
+        'mclaren',
+        'red bull racing',
+        'mercedes amg petronas',
+        'ufc',
         'boston celtics',
         'golden state warriors',
-        'ferrari',
-        'mercedes amg petronas',
-        'red bull racing',
         'kansas city chiefs',
         'dallas cowboys',
         'san francisco 49ers'
       ];
       const featuredTeamScore = new Map(featuredTeamsPriority.map((name, index) => [name, featuredTeamsPriority.length - index]));
+      const createShowcaseSportsItem = ({
+        title = 'Sports',
+        sport = 'Sports',
+        league = '',
+        country = 'Global',
+        subtitle = ''
+      } = {}) => ({
+        mediaType: 'sports',
+        itemId: title,
+        title,
+        subtitle: String(subtitle || [league, sport].filter(Boolean).join(' | ') || 'Global sport').trim(),
+        extra: country ? `Global focus | ${country}` : 'Global focus',
+        image: HOME_LOCAL_FALLBACK_IMAGE,
+        listImage: HOME_LOCAL_FALLBACK_IMAGE,
+        backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
+        spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
+        spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'square',
+        mediaFit: 'contain',
+        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+        sport,
+        league,
+        country,
+        href: 'sports.html'
+      });
       const toSportBucket = (sportValue) => {
         const sport = String(sportValue || '').trim().toLowerCase();
         if (sport.includes('soccer')) return 'soccer';
+        if (sport.includes('mma') || sport.includes('ufc') || sport.includes('boxing') || sport.includes('martial')) return 'mma';
         if (sport.includes('american football')) return 'american-football';
         if (sport.includes('football')) return 'soccer';
         if (sport.includes('basket')) return 'basketball';
@@ -9899,9 +9924,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (seedSet.has(titleNorm)) score += 1200;
         if (priorityLeagues.has(leagueNorm)) score += 800;
         if (priorityLeagues.has(sportNorm)) score += 300;
-        if (leagueNorm.includes('premier') || leagueNorm.includes('champions')) score += 180;
-        if (leagueNorm.includes('nba') || leagueNorm.includes('nfl') || leagueNorm.includes('mlb') || leagueNorm.includes('nhl')) score += 220;
-        if (leagueNorm.includes('formula 1') || leagueNorm.includes('grand prix')) score += 190;
+        if (sportNorm.includes('soccer') || sportNorm === 'football') score += 720;
+        if (sportNorm.includes('mma') || sportNorm.includes('ufc') || sportNorm.includes('martial')) score += 540;
+        if (sportNorm.includes('formula') || sportNorm.includes('motor')) score += 520;
+        if (sportNorm.includes('cricket') || sportNorm.includes('rugby')) score += 260;
+        if (leagueNorm.includes('premier') || leagueNorm.includes('champions') || leagueNorm.includes('la liga') || leagueNorm.includes('serie a') || leagueNorm.includes('bundesliga')) score += 420;
+        if (leagueNorm.includes('ufc')) score += 400;
+        if (leagueNorm.includes('formula 1') || leagueNorm.includes('grand prix') || leagueNorm.includes('motogp')) score += 420;
+        if (leagueNorm.includes('nba') || leagueNorm.includes('nfl') || leagueNorm.includes('mlb') || leagueNorm.includes('nhl')) score += 120;
         return score;
       };
       const isPreferredSportsRow = (row) => {
@@ -9930,7 +9960,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
       );
       if (cachedSportsItems.length >= Math.min(target, 8)) {
-        return shuffleArray(cachedSportsItems).slice(0, target);
+        return cachedSportsItems.slice(0, target);
       }
 
       try {
@@ -9984,7 +10014,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           bucketed.get(bucket).push(item);
         }
         const bucketKeys = Array.from(bucketed.keys()).sort((a, b) => {
-          const order = ['soccer', 'basketball', 'motorsport', 'american-football', 'baseball', 'hockey', 'cricket', 'rugby', 'other'];
+          const order = ['soccer', 'motorsport', 'mma', 'cricket', 'rugby', 'basketball', 'american-football', 'baseball', 'hockey', 'other'];
           const ai = order.includes(a) ? order.indexOf(a) : order.length;
           const bi = order.includes(b) ? order.indexOf(b) : order.length;
           if (ai !== bi) return ai - bi;
@@ -10004,10 +10034,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           });
           if (!pushedInRound) break;
         }
+        if (!items.some((item) => toSportBucket(item?.sport || item?.subtitle || '') === 'mma')) {
+          items.splice(Math.min(2, items.length), 0, createShowcaseSportsItem({
+            title: 'UFC',
+            sport: 'MMA',
+            league: 'UFC',
+            subtitle: 'MMA | UFC'
+          }));
+        }
         if (items.length) {
-          const rotated = shuffleArray(items).slice(0, Math.max(target * 2, 24));
-          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, rotated);
-          return rotated.slice(0, target);
+          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
+          return items.slice(0, target);
         }
       } catch (_err) {}
 

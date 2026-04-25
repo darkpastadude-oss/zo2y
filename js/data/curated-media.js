@@ -238,7 +238,8 @@
     'Sauber',
     'Racing Bulls',
     'Ducati Lenovo Team',
-    'Aprilia Racing'
+    'Aprilia Racing',
+    'UFC'
   ];
 
   const curatedTravelDestinations = [
@@ -365,5 +366,5 @@
   window.ZO2Y_SPORTS_FALLBACK_LEAGUES = fallbackSportsLeagues.slice();
   window.ZO2Y_CURATED_TRAVEL_DESTINATIONS = curatedTravelDestinations.slice();
   window.ZO2Y_CURATED_TRAVEL_SOURCE_NOTE = 'Curated from Condé Nast Traveler and Forbes/Tripadvisor destination lists for 2026 plus consistently high-demand global travel hubs.';
-  window.ZO2Y_CURATED_MEDIA_VERSION = '20260425e';
+  window.ZO2Y_CURATED_MEDIA_VERSION = '20260425f';
 })();

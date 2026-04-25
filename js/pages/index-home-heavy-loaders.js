@@ -1368,7 +1368,7 @@ async function loadBooks(signal) {
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;
     const HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_home_sports_asset_manifest_v3';
     const HOME_SPORTS_ASSET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
-const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v6';
+    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v7';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     let homeSportsAssetManifestPromise = null;
     const homeSportsAssetManifestRows = [];
@@ -1586,16 +1586,76 @@ const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v6';
       let score = 0;
       if (HOME_SPORTS_SEEDS.some((seed) => normalizeHomeSportsName(seed) === title)) score += 500;
       if (isHomeSportsPriorityLeague(league)) score += 220;
-      if (sport.includes('soccer') || sport === 'football') score += 180;
-      if (league.includes('premier league') || league.includes('la liga') || league.includes('serie a') || league.includes('bundesliga') || league.includes('champions league')) score += 180;
+      if (sport.includes('soccer') || sport === 'football') score += 520;
+      if (sport.includes('formula') || sport.includes('motor')) score += 360;
+      if (sport.includes('mma') || sport.includes('ufc') || sport.includes('martial')) score += 340;
+      if (sport.includes('cricket') || sport.includes('rugby')) score += 180;
+      if (league.includes('premier league') || league.includes('la liga') || league.includes('serie a') || league.includes('bundesliga') || league.includes('champions league') || league.includes('saudi pro league')) score += 280;
+      if (league.includes('formula 1') || league.includes('grand prix') || league.includes('motogp')) score += 260;
+      if (league.includes('ufc')) score += 240;
       if (league.includes('nba') || league.includes('nfl')) score += 80;
       return score;
     }
 
+    function getHomeSportsBucket(item) {
+      const sport = normalizeHomeSportsName(item?.sport || item?.subtitle || '');
+      const league = normalizeHomeSportsName(item?.league || '');
+      if (sport.includes('soccer') || sport === 'football') return 'soccer';
+      if (sport.includes('formula') || sport.includes('motor') || league.includes('formula 1') || league.includes('motogp')) return 'motorsport';
+      if (sport.includes('mma') || sport.includes('ufc') || sport.includes('martial') || league.includes('ufc')) return 'mma';
+      if (sport.includes('cricket')) return 'cricket';
+      if (sport.includes('rugby')) return 'rugby';
+      if (sport.includes('basket')) return 'basketball';
+      if (sport.includes('american football')) return 'american-football';
+      if (sport.includes('baseball')) return 'baseball';
+      if (sport.includes('hockey')) return 'hockey';
+      return 'other';
+    }
+
+    function createHomeSportsShowcaseItem({
+      title = 'Sports',
+      sport = 'Sports',
+      league = '',
+      country = 'Global',
+      subtitle = ''
+    } = {}) {
+      const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
+      const subtitleText = String(subtitle || [league, sport].filter(Boolean).join(' | ') || 'Global sport').trim();
+      const backdrop = fallbackImage;
+      return {
+        mediaType: 'sports',
+        itemId: title,
+        title,
+        subtitle: subtitleText,
+        extra: country ? `Global focus | ${country}` : 'Global focus',
+        image: fallbackImage,
+        listImage: fallbackImage,
+        mediaFit: 'contain',
+        backgroundImage: backdrop,
+        spotlightImage: backdrop,
+        spotlightMediaImage: fallbackImage,
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'square',
+        sport,
+        league,
+        country,
+        href: 'sports.html'
+      };
+    }
+
+    const HOME_SPORTS_SHOWCASE_ITEMS = [
+      createHomeSportsShowcaseItem({
+        title: 'UFC',
+        sport: 'MMA',
+        league: 'UFC',
+        subtitle: 'MMA | UFC'
+      })
+    ];
+
     function prioritizeHomeSportsItems(items = [], targetCount = 16) {
       const deduped = [];
       const seen = new Set();
-      (Array.isArray(items) ? items : []).forEach((item) => {
+      [...HOME_SPORTS_SHOWCASE_ITEMS, ...(Array.isArray(items) ? items : [])].forEach((item) => {
         const key = [String(item?.itemId || '').trim().toLowerCase(), normalizeHomeSportsName(item?.title || '')]
           .filter(Boolean)
           .join('|');
@@ -1608,7 +1668,32 @@ const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v6';
         if (scoreDiff) return scoreDiff;
         return String(a?.title || '').localeCompare(String(b?.title || ''));
       });
-      return sorted.slice(0, targetCount);
+      const buckets = new Map();
+      sorted.forEach((item) => {
+        const bucket = getHomeSportsBucket(item);
+        if (!buckets.has(bucket)) buckets.set(bucket, []);
+        buckets.get(bucket).push(item);
+      });
+      const selected = [];
+      const takeNext = (bucket) => {
+        const list = buckets.get(bucket);
+        if (!Array.isArray(list) || !list.length) return false;
+        selected.push(list.shift());
+        return true;
+      };
+      ['soccer', 'motorsport', 'mma'].forEach((bucket) => {
+        if (selected.length < targetCount) takeNext(bucket);
+      });
+      const roundRobinOrder = ['soccer', 'motorsport', 'mma', 'cricket', 'rugby', 'basketball', 'american-football', 'baseball', 'hockey', 'other'];
+      while (selected.length < targetCount) {
+        let picked = false;
+        roundRobinOrder.forEach((bucket) => {
+          if (selected.length >= targetCount) return;
+          picked = takeNext(bucket) || picked;
+        });
+        if (!picked) break;
+      }
+      return selected.slice(0, targetCount);
     }
 
     async function loadSports(signal) {

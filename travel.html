@@ -1967,12 +1967,7 @@
         window.clearInterval(state.heroRotationTimer);
         state.heroRotationTimer = null;
       }
-      const source = state.filtered.length ? state.filtered : state.rows;
-      if (source.length < 4) return;
-      state.heroRotationTimer = window.setInterval(() => {
-        state.heroCursor += 1;
-        updateHero();
-      }, 4200);
+      return;
     }
 
     function updateHero() {
@@ -1996,7 +1991,7 @@
       }
       spotlight.innerHTML = featured.map((item, index) => {
         const thumb = getStableTravelSpotlightVariant(item)?.src || getOptimizedTravelBucketImage(item.photo || item.photoCity || item.photoNature || '', 320);
-        const rankLabel = index === 0 ? 'Trending now' : `Rotating pick ${index + 1}`;
+        const rankLabel = index === 0 ? 'Trending now' : `Featured pick ${index + 1}`;
         const subtitleBits = [
           item.capital ? `Capital: ${item.capital}` : '',
           item.region || '',
