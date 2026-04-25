@@ -92,13 +92,16 @@
     try {
       username = await auth.ensureUsernameAvailable(client, username, activeUser.id);
       var profileRow = await auth.syncUserProfileRecord(client, activeUser, {
-        username: username
+        username: username,
+        full_name: username
       });
 
       var updateResult = await client.auth.updateUser({
         data: {
           username: username,
-          zo2y_username: username
+          zo2y_username: username,
+          full_name: username,
+          name: username
         }
       });
       if (updateResult && updateResult.error) throw updateResult.error;

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-<script src="/js/auth-gate.js?v=20260424f"></script>
+<script src="/js/auth-gate.js?v=20260425b"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Books</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://covers.openlibrary.org" crossorigin>
   <link rel="preconnect" href="https://books.googleusercontent.com" crossorigin>
-  <script src="js/data/curated-media.js?v=20260425a"></script>
+  <script src="js/data/curated-media.js?v=20260425b"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/list-utils.js?v=20260422b"></script>
@@ -890,7 +890,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
 <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-<script src="js/shared-header.js?v=20260424f" defer></script>
+<script src="js/shared-header.js?v=20260425b" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
   <link rel="stylesheet" href="/css/pages/media-spotlight.css?v=20260418a">
 </head>
@@ -1017,10 +1017,10 @@
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
       const BOOKS_PER_PAGE = 20;
-      const BOOKS_CACHE_BUSTER = '20260424-title-fast';
-      const BOOKS_PAGE_CACHE_KEY = 'zo2y_books_page_cache_v1';
+      const BOOKS_CACHE_BUSTER = '20260425-curated-top-100';
+      const BOOKS_PAGE_CACHE_KEY = 'zo2y_books_page_cache_v2';
       const BOOKS_PAGE_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
-      const BOOKS_API_CACHE_PREFIX = 'zo2y_books_api_cache_v1';
+      const BOOKS_API_CACHE_PREFIX = 'zo2y_books_api_cache_v2';
       const BOOKS_API_CACHE_TTL_MS = 1000 * 60 * 10;
       const BOOKS_SESSION_RECOVERY_RETRY_MS = 350;
       const booksApiMemoryCache = new Map();
@@ -1421,17 +1421,22 @@
       }
 
       async function loadCuratedPopularBooks() {
-        const [popularResult, trendingResult] = await Promise.allSettled([
+        const seededLimit = Math.max(BOOKS_PER_PAGE * 2, 40);
+        const [seededResult, popularResult, trendingResult] = await Promise.allSettled([
+          fetchCuratedTopBookSeeds(seededLimit),
           fetchPopularBooks(1, BOOKS_PER_PAGE),
           fetchTrendingBooks(BOOKS_PER_PAGE)
         ]);
+        const seededBooks = seededResult.status === 'fulfilled' && Array.isArray(seededResult.value?.books)
+          ? seededResult.value.books
+          : [];
         const popular = popularResult.status === 'fulfilled' ? popularResult.value : null;
         const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
         const popularBooks = Array.isArray(popular?.books) ? popular.books.slice(0, BOOKS_PER_PAGE) : [];
         const trendingBooks = Array.isArray(trending?.books) ? trending.books.slice(0, BOOKS_PER_PAGE) : [];
         const merged = [];
         const seen = new Set();
-        [...popularBooks, ...trendingBooks].forEach((book) => {
+        [...seededBooks, ...popularBooks, ...trendingBooks].forEach((book) => {
           const title = normalizeBookSeedText(book?.title || '');
           const author = normalizeBookSeedText(book?.author || '');
           const key = `${title}::${author}`;
@@ -1463,7 +1468,13 @@
         }
         return {
           books: merged.slice(0, BOOKS_PER_PAGE),
-          numFound: Math.max(Number(popular?.numFound || 0), Number(trending?.numFound || 0), merged.length, BOOKS_PER_PAGE * 2)
+          numFound: Math.max(
+            Number(seededResult.status === 'fulfilled' ? seededResult.value?.numFound || 0 : 0),
+            Number(popular?.numFound || 0),
+            Number(trending?.numFound || 0),
+            merged.length,
+            BOOKS_PER_PAGE * 5
+          )
         };
       }
 
@@ -2453,8 +2464,6 @@
   <script src="js/production-runtime.js?v=20260422a" defer></script>
 </body>
 </html>
-
-
 
 
 

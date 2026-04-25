@@ -1080,17 +1080,48 @@ const HEADER_HTML = `
       const handlePointerMove = (event) => {
         if (rafId) cancelAnimationFrame(rafId);
         const { clientX, clientY } = event;
+        window.__ZO2Y_LOGO_LAST_POINTER = { clientX, clientY };
         rafId = requestAnimationFrame(() => applyOffsets(clientX, clientY));
+      };
+
+      const reapplyLastPointer = () => {
+        const point = window.__ZO2Y_LOGO_LAST_POINTER;
+        if (!point || typeof point.clientX !== 'number' || typeof point.clientY !== 'number') return;
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => applyOffsets(point.clientX, point.clientY));
       };
 
       document.addEventListener('pointermove', handlePointerMove, { passive: true });
       document.addEventListener('mousemove', handlePointerMove, { passive: true });
+      window.addEventListener('resize', reapplyLastPointer, { passive: true });
+      window.addEventListener('scroll', reapplyLastPointer, { passive: true });
 
-      document.addEventListener('mouseleave', resetOffsets);
-      document.addEventListener('pointerleave', resetOffsets);
+      window.addEventListener('mouseleave', resetOffsets);
+      window.addEventListener('pointerleave', resetOffsets);
       window.addEventListener('blur', resetOffsets);
       document.addEventListener('visibilitychange', () => {
         if (document.hidden) resetOffsets();
+      });
+    }
+
+    const lastPointer = window.__ZO2Y_LOGO_LAST_POINTER;
+    if (lastPointer && typeof lastPointer.clientX === 'number' && typeof lastPointer.clientY === 'number') {
+      requestAnimationFrame(() => {
+        collectTrackedLogos().forEach((logo) => {
+          const rect = logo.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dx = lastPointer.clientX - cx;
+          const dy = lastPointer.clientY - cy;
+          const distance = Math.hypot(dx, dy) || 1;
+          const maxOffset = Math.min(rect.width, rect.height) * 0.12;
+          const strength = Math.min(1, distance / 160);
+          const offsetX = (dx / distance) * maxOffset * strength;
+          const offsetY = (dy / distance) * maxOffset * strength;
+          logo.style.setProperty('--pupil-offset-x', offsetX.toFixed(2));
+          logo.style.setProperty('--pupil-offset-y', offsetY.toFixed(2));
+        });
       });
     }
   }

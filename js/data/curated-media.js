@@ -266,4 +266,5 @@
   window.ZO2Y_SPORTS_CURRENT_RELEVANT_TEAMS = curatedSportsSeeds.slice();
   window.ZO2Y_SPORTS_FEATURED_LEAGUES = featuredSportsLeagues.slice();
   window.ZO2Y_SPORTS_FALLBACK_LEAGUES = fallbackSportsLeagues.slice();
+  window.ZO2Y_CURATED_MEDIA_VERSION = '20260425b';
 })();

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   
-  <script src="/js/auth-gate.js?v=20260424f"></script>
+  <script src="/js/auth-gate.js?v=20260425b"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex">
   <title>Zo2y - Travel</title>
   <meta name="description" content="Browse countries, save travel lists, and open country pages with reviews.">
@@ -535,7 +535,7 @@
     }
   </style>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-<script src="js/shared-header.js?v=20260424f" defer></script>
+<script src="js/shared-header.js?v=20260425b" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
@@ -634,7 +634,7 @@
     const TRAVEL_BUCKET_MANIFEST_CACHE_KEY = 'zo2y_travel_bucket_manifest_v1';
     const TRAVEL_BUCKET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
     const TRAVEL_BUCKET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${TRAVEL_BUCKET_NAME}/manifest/travel-photo-manifest.json`;
-    const TRAVEL_POPULARITY_CACHE_KEY = 'zo2y_travel_popularity_v1';
+    const TRAVEL_POPULARITY_CACHE_KEY = 'zo2y_travel_popularity_v2';
     const TRAVEL_POPULARITY_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
     const TRAVEL_POPULARITY_WINDOW_DAYS = 7;
     const TRAVEL_POPULARITY_CODES = [
@@ -675,7 +675,9 @@
       listStatus: new Map(),
       pending: new Set(),
       scenicHydrationStarted: false,
-      lifestyleHydrationStarted: false
+      lifestyleHydrationStarted: false,
+      heroCursor: 0,
+      heroRotationTimer: null
     };
     const countryPhotoCache = new Map();
     const countryPhotoPending = new Set();
@@ -1910,11 +1912,35 @@
       state.filtered = output;
     }
 
+    function getHeroFeaturedDestinations() {
+      const source = state.filtered.length ? state.filtered : state.rows;
+      const popularPool = source
+        .filter((item) => Number(item?.popularityScore || 0) > 0)
+        .slice(0, 12);
+      const pool = (popularPool.length ? popularPool : source.slice(0, 12));
+      if (!pool.length) return [];
+      const cursor = ((Number(state.heroCursor || 0) % pool.length) + pool.length) % pool.length;
+      return pool.slice(cursor).concat(pool.slice(0, cursor)).slice(0, 3);
+    }
+
+    function scheduleHeroRotation() {
+      if (state.heroRotationTimer) {
+        window.clearInterval(state.heroRotationTimer);
+        state.heroRotationTimer = null;
+      }
+      const source = state.filtered.length ? state.filtered : state.rows;
+      if (source.length < 4) return;
+      state.heroRotationTimer = window.setInterval(() => {
+        state.heroCursor += 1;
+        updateHero();
+      }, 4200);
+    }
+
     function updateHero() {
       const hero = document.getElementById('travelHero');
       const spotlight = document.getElementById('travelHeroSpotlight');
       if (!hero || !spotlight) return;
-      const featured = state.filtered.slice(0, 3);
+      const featured = getHeroFeaturedDestinations();
       const primary = featured[0] || state.rows[0] || null;
       const primaryPhoto = primary
         ? (getStableTravelSpotlightVariant(primary)?.src || getOptimizedTravelBucketImage(primary.photo || primary.photoCity || primary.photoNature || '', 1600))
@@ -1931,7 +1957,7 @@
       }
       spotlight.innerHTML = featured.map((item, index) => {
         const thumb = getStableTravelSpotlightVariant(item)?.src || getOptimizedTravelBucketImage(item.photo || item.photoCity || item.photoNature || '', 320);
-        const rankLabel = index === 0 ? 'Trending now' : `Top pick ${index + 1}`;
+        const rankLabel = index === 0 ? 'Trending now' : `Rotating pick ${index + 1}`;
         const subtitleBits = [
           item.capital ? `Capital: ${item.capital}` : '',
           item.region || '',
@@ -1953,6 +1979,7 @@
           </article>
         `;
       }).join('');
+      scheduleHeroRotation();
     }
 
     function syncCardStatus(card) {

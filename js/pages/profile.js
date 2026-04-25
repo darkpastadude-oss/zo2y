@@ -1004,7 +1004,7 @@
 
                 targetUser = profile;
                 updateProfileUI(profile);
-                updateTabTitlesForOtherUser(profile.full_name || profile.username || 'User');
+                updateTabTitlesForOtherUser(profile.username || profile.full_name || 'User');
                 await updateFollowButton();
                 await updateStats(targetUserId);
             }
@@ -1192,11 +1192,11 @@
                 renderProfileBadges(profile);
                 
                 const rawUsername = String(profile?.username || '').replace(/^@+/, '').trim();
-                const displayName = String(profile?.full_name || rawUsername || 'User').trim();
-                const secondaryIdentity = rawUsername && !isPlaceholderUsername(rawUsername) ? `@${rawUsername}` : '';
+                const primaryIdentity = rawUsername && !isPlaceholderUsername(rawUsername) ? `@${rawUsername}` : '@user';
+                const secondaryIdentity = '';
 
                 if (isMobile) {
-                    document.getElementById('mobileProfileName').textContent = displayName;
+                    document.getElementById('mobileProfileName').textContent = primaryIdentity;
                     document.getElementById('mobileProfileUsername').textContent = secondaryIdentity;
                     document.getElementById('mobileProfileBio').textContent = profile?.bio || "No bio yet. Tap edit to add one!";
                     document.getElementById('mobileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
@@ -1207,7 +1207,7 @@
                     if (mobileAboutLocation) mobileAboutLocation.textContent = profile?.location || "Location not set";
                     if (mobileAboutMember) mobileAboutMember.textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
                 } else {
-                    document.getElementById('profileName').textContent = displayName;
+                    document.getElementById('profileName').textContent = primaryIdentity;
                     document.getElementById('profileUsername').textContent = secondaryIdentity;
                     document.getElementById('profileBio').textContent = profile?.bio || "No bio yet. Click edit to add one!";
                     document.getElementById('profileLocation').textContent = profile?.location || "Location not set";
@@ -3998,7 +3998,7 @@
                                             const isCurrentActor = String(row?.actor_id || '').trim() === String(currentUser?.id || '').trim();
                                             const actorName = isCurrentActor
                                                 ? 'YOU'
-                                                : escapeHtml(profile.full_name || profile.username || 'User');
+                                                : escapeHtml(profile.username || profile.full_name || 'User');
                                             const ratingText = row?.rating ? `Rated ${Number(row.rating).toFixed(1)}/5` : '';
                                             const noteText = escapeHtml(String(row?.review_text || '').trim());
                                             const listText = String(row?.__activityListTitle || '').trim();
@@ -4042,7 +4042,7 @@
                                             const isCurrentActor = String(row?.actor_id || '').trim() === String(currentUser?.id || '').trim();
                                             const actorName = isCurrentActor
                                                 ? 'YOU'
-                                                : escapeHtml(profile.full_name || profile.username || 'User');
+                                                : escapeHtml(profile.username || profile.full_name || 'User');
                                             const ratingText = row?.rating ? `Rated ${Number(row.rating).toFixed(1)}/5` : '';
                                             const noteText = escapeHtml(String(row?.review_text || '').trim());
                                             const listText = String(row?.__activityListTitle || '').trim();
@@ -4129,7 +4129,7 @@
                             const { data: users, error } = await supabase
                                 .from('user_profiles')
                                 .select('*')
-                                .or(`username.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%`)
+                                .ilike('username', `%${searchTerm}%`)
                                 .neq('id', currentUser.id)
                                 .limit(20);
 
@@ -4199,7 +4199,7 @@
                                     <div class="mobile-community-header" onclick="ProfileManager.viewUserProfile('${user.id}')" style="cursor: pointer;">
                                         <div class="mobile-community-avatar">${user.avatar_icon || iconGlyph('user')}</div>
                                         <div class="mobile-community-info">
-                                            <div class="mobile-community-name">${user.full_name || user.username || 'Unknown User'}</div>
+                                            <div class="mobile-community-name">@${user.username || 'user'}</div>
                                             <div class="mobile-community-username">@${user.username || 'user'}</div>
                                         </div>
                                     </div>
@@ -4241,7 +4241,7 @@
                                     <div class="community-header" onclick="ProfileManager.viewUserProfile('${user.id}')" style="cursor: pointer;">
                                         <div class="community-avatar">${user.avatar_icon || iconGlyph('user')}</div>
                                         <div class="community-info">
-                                            <div class="community-name">${user.full_name || user.username || 'Unknown User'}</div>
+                                            <div class="community-name">@${user.username || 'user'}</div>
                                             <div class="community-username">@${user.username || 'user'}</div>
                                         </div>
                                     </div>
@@ -12559,7 +12559,6 @@
                     }
                     
                     if (modalId === 'editProfileModal' && userProfile) {
-                        document.getElementById('editDisplayName').value = userProfile.full_name || '';
                         document.getElementById('editUsername').value = userProfile.username || '';
                         document.getElementById('editBio').value = userProfile.bio || '';
                         document.getElementById('editLocation').value = userProfile.location || '';
@@ -13137,7 +13136,6 @@
 
             // ===== SAVE PROFILE CHANGES =====
             async function saveProfileChanges() {
-                const displayName = String(document.getElementById('editDisplayName')?.value || '').trim().slice(0, 80);
                 const rawUsername = String(document.getElementById('editUsername')?.value || '').trim();
                 const bio = String(document.getElementById('editBio')?.value || '').trim();
                 const location = String(document.getElementById('editLocation')?.value || '').trim();
@@ -13146,21 +13144,15 @@
                 const customBadges = normalizeProfileBadges(document.getElementById('editCustomBadges')?.value || '');
                 const isPrivate = document.getElementById('editIsPrivate')?.checked || false;
                 
-                if (!displayName) {
-                    showToast('Please enter a display name', 'error');
+                if (!rawUsername) {
+                    showToast('Please enter a username', 'error');
                     return;
                 }
                 
                 try {
-                    let normalizedUsername = String(userProfile?.username || '').trim();
-                    if (rawUsername) {
-                        normalizedUsername = await ensureProfileUsernameAvailable(rawUsername, currentUser?.id);
-                    } else if (!normalizedUsername) {
-                        const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
-                        normalizedUsername = profileUsernameWithSuffix('user', idSuffix);
-                    }
+                    const normalizedUsername = await ensureProfileUsernameAvailable(rawUsername, currentUser?.id);
                     const updatePayload = {
-                        full_name: displayName,
+                        full_name: normalizedUsername,
                         username: normalizedUsername,
                         bio: bio,
                         location: location,
@@ -13188,7 +13180,7 @@
 
                     userProfile = {
                         ...(userProfile || {}),
-                        full_name: displayName,
+                        full_name: normalizedUsername,
                         username: normalizedUsername,
                         bio: bio,
                         location: location,
@@ -13200,8 +13192,8 @@
 
                     const authMetadataResult = await supabase.auth.updateUser({
                         data: {
-                            full_name: displayName,
-                            name: displayName,
+                            full_name: normalizedUsername,
+                            name: normalizedUsername,
                             username: normalizedUsername
                         }
                     });

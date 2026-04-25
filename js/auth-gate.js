@@ -795,18 +795,12 @@
     if (rowUsername && !isPlaceholderProfileUsername(rowUsername, user)) {
       return '@' + rowUsername;
     }
-    var rowName = String(profileRow && (profileRow.display_name || profileRow.full_name) || '').trim();
-    if (rowName) return rowName;
     var authUsername = normalizeProfileUsername(
       user && user.user_metadata && (user.user_metadata.zo2y_username || user.user_metadata.username) || ''
     );
     if (authUsername && !isPlaceholderProfileUsername(authUsername, user)) {
       return '@' + authUsername;
     }
-    var fullName = String(
-      user && user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name) || ''
-    ).trim();
-    if (fullName) return fullName;
     return 'Profile';
   }
 
