@@ -1,7 +1,7 @@
 // Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v234';
-const PAGE_CACHE = 'zo2y-pages-v189';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v235';
+const PAGE_CACHE = 'zo2y-pages-v190';
 const IMAGE_CACHE = 'zo2y-images-v40';
 const API_CACHE = 'zo2y-api-v20';
 const MOVIES_PAGE_VERSION = '20260418a';
@@ -28,7 +28,7 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260413f',
   '/css/shared-header.css?v=20260319b',
   '/css/global-lowercase.css?v=20260308a',
-  '/js/pages/index.js?v=20260425c',
+  '/js/pages/index.js?v=20260425d',
   '/js/pages/index-home-heavy-loaders.js?v=20260425b',
   '/js/home-desktop-rebrand.js?v=20260416b',
   '/js/referral-utils.js?v=20260319a',

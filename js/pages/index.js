@@ -682,6 +682,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     let homeAuthSyncTimer = null;
     let homeAuthSyncNeedsPersonalization = false;
     let homeSpotlightTimer = null;
+    let homeRailShuffleTimer = null;
     let homeSpotlightItems = [];
     let homeSpotlightIndex = 0;
     let homeSpotlightImageToken = 0;
@@ -6044,6 +6045,27 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       renderRail(key, normalizedItems, renderOpts);
     }
 
+    function refreshShufflableHomeRails() {
+      const channels = [
+        { key: 'book', railId: 'booksRail', opts: { mediaType: 'book' } },
+        { key: 'travel', railId: 'travelRail', opts: { mediaType: 'travel' } },
+        { key: 'sports', railId: 'sportsRail', opts: { mediaType: 'sports', landscape: false } }
+      ];
+      channels.forEach((channel) => {
+        const items = Array.isArray(homeFeedState?.[channel.key]) ? homeFeedState[channel.key].filter(Boolean) : [];
+        if (!items.length || items.every((item) => item?.isPlaceholder)) return;
+        renderOrDeferHomeRail(channel.railId, items, channel.opts);
+      });
+    }
+
+    function startHomeRailShuffleLoop() {
+      if (homeRailShuffleTimer) return;
+      homeRailShuffleTimer = window.setInterval(() => {
+        if (document.hidden) return;
+        refreshShufflableHomeRails();
+      }, 9000);
+    }
+
     function resetHomeViewportDeferrals() {
       homePendingRailRenderState.clear();
       homeDeferredChannelState.clear();
@@ -6344,6 +6366,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         scheduleHomeNewReleasesRefresh(homeFeedState);
         scheduleHomeMixedRefresh(homeFeedState, scoredPool);
       }
+      startHomeRailShuffleLoop();
       hydrateSpotlightFromPool(scoredPool);
 
       return { activeChannels, scoredPool, channelsCount: channels.length };
@@ -9657,7 +9680,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const rail = document.getElementById('booksRail');
             if (!rail) return;
             homeFeedState.book = next;
-            renderRail('booksRail', next, { mediaType: 'book' });
+            renderOrDeferHomeRail('booksRail', next, { mediaType: 'book' });
           } catch (error) {
             window.__zo2yHomeBooksDebug = { stage: 'loadBooks:hydrate:error', at: Date.now(), message: String(error?.message || error || '') };
           } finally {
@@ -9776,7 +9799,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const rail = document.getElementById('travelRail');
             if (!rail) return;
             homeFeedState.travel = items;
-            renderRail('travelRail', items, { mediaType: 'travel' });
+            renderOrDeferHomeRail('travelRail', items, { mediaType: 'travel' });
           } catch (_err) {
             // Ignore; fallback cards remain visible.
           } finally {
