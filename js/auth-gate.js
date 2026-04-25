@@ -27,6 +27,8 @@
   var AUTH_DEBUG_KEY = 'zo2y_auth_debug';
   var AUTH_RETURN_VERSION = '20260424e';
   var AUTH_DEBUG_MAX_EVENTS = 120;
+  var PRIMARY_DOMAIN = 'zo2y.com';
+  var LEGACY_WWW_DOMAIN = 'www.zo2y.com';
 
   var PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 8;
   var PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60;
@@ -85,6 +87,24 @@
   ]);
 
   var AUTH_ENTRY_PAGES = new Set(['login', 'sign-up', 'signup', 'auth-callback', 'update-password']);
+
+  function enforcePrimaryDomainRedirect() {
+    var hostname = String(window.location && window.location.hostname || '').trim().toLowerCase();
+    if (hostname !== LEGACY_WWW_DOMAIN) return false;
+    try {
+      var target = new URL(window.location.href);
+      target.protocol = 'https:';
+      target.hostname = PRIMARY_DOMAIN;
+      window.location.replace(target.toString());
+      return true;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  if (enforcePrimaryDomainRedirect()) {
+    return;
+  }
 
   var pageKey = normalizePageKey(window.location && window.location.pathname);
   var verifyInFlight = null;
@@ -528,6 +548,65 @@
     } catch (_err) {
       return normalized;
     }
+  }
+
+  function getSanitizedCurrentPath() {
+    return sanitizeNextPath(
+      (window.location.pathname || '/')
+      + (window.location.search || '')
+      + (window.location.hash || '')
+    );
+  }
+
+  function buildCleanAuthReturnUrl(rawNext) {
+    var safeNext = sanitizeNextPath(rawNext || getSanitizedCurrentPath());
+    var target = new URL(safeNext, window.location.origin);
+    [
+      'flow',
+      'next',
+      'code',
+      'state',
+      'error',
+      'error_description',
+      'scope',
+      'authuser',
+      'prompt',
+      'native_oauth',
+      'auth_return',
+      'authv'
+    ].forEach(function (key) {
+      target.searchParams.delete(key);
+    });
+
+    var hashParams = new URLSearchParams((target.hash || '').replace(/^#/, ''));
+    [
+      'access_token',
+      'refresh_token',
+      'expires_at',
+      'expires_in',
+      'provider_token',
+      'provider_refresh_token',
+      'token_type',
+      'type',
+      'error',
+      'error_description'
+    ].forEach(function (key) {
+      hashParams.delete(key);
+    });
+    var cleanHash = hashParams.toString();
+    target.hash = cleanHash ? ('#' + cleanHash) : '';
+    return target;
+  }
+
+  function replaceCurrentUrlAfterAuth(rawNext) {
+    clearPostAuthIntent();
+    var cleanTarget = buildCleanAuthReturnUrl(rawNext);
+    if (window.history && typeof window.history.replaceState === 'function') {
+      window.history.replaceState({}, document.title, cleanTarget.pathname + cleanTarget.search + cleanTarget.hash);
+      return true;
+    }
+    window.location.replace(cleanTarget.toString());
+    return true;
   }
 
   function buildPostAuthRedirectTarget(rawNext) {
@@ -1444,10 +1523,15 @@
     window.location.replace('onboarding.html?onboarding=1&next=' + encodeURIComponent(next));
   }
 
-  function redirectToPostAuthTarget(rawNext) {
+  function redirectToPostAuthTarget(rawNext, options) {
+    var opts = options || {};
     var next = sanitizeNextPath(rawNext || 'index.html');
+    if (opts.inPlace === true && getSanitizedCurrentPath() === next) {
+      return replaceCurrentUrlAfterAuth(next);
+    }
     clearPostAuthIntent();
     window.location.replace(buildPostAuthRedirectTarget(next));
+    return true;
   }
 
   async function finishAuthRedirect(options) {
@@ -1469,7 +1553,9 @@
     if (flow === 'login') {
       void persistReferralMetadata(client, session.user);
       void ensureAuthProfile(client, session.user);
-      redirectToPostAuthTarget(nextPath);
+      redirectToPostAuthTarget(nextPath, {
+        inPlace: opts.inPlace === true
+      });
       return true;
     }
     if (flow === 'signup') {
@@ -1483,7 +1569,9 @@
     var profileResult = await ensureAuthProfile(client, session.user);
     if (profileResult && profileResult.ok && !profileResult.needsOnboarding && flow !== 'signup') {
       clearOnboardingPending(session.user.id);
-      redirectToPostAuthTarget(nextPath);
+      redirectToPostAuthTarget(nextPath, {
+        inPlace: opts.inPlace === true
+      });
       return true;
     }
 
@@ -1497,7 +1585,9 @@
       return true;
     }
 
-    redirectToPostAuthTarget(nextPath);
+    redirectToPostAuthTarget(nextPath, {
+      inPlace: opts.inPlace === true
+    });
     return true;
   }
 
@@ -1510,7 +1600,7 @@
       throw new Error('Google sign-in is not available right now.');
     }
     setPostAuthIntent(flow, nextPath);
-    var callbackUrl = new URL('auth-callback.html', window.location.origin);
+    var callbackUrl = new URL(nextPath || 'index.html', window.location.origin);
     callbackUrl.searchParams.set('flow', flow);
     callbackUrl.searchParams.set('next', nextPath);
     var oauthResult = await client.auth.signInWithOAuth({
@@ -1673,9 +1763,11 @@
 
     if (!hasPayload) return false;
 
-    var flow = String(params.get('flow') || safeGetAnyLocalStorage([OAUTH_FLOW_KEY, OLD_OAUTH_FLOW_KEY]) || '').trim().toLowerCase();
     var recoveryType = String(params.get('type') || hashParams.get('type') || '').trim().toLowerCase();
-    var targetPage = recoveryType === 'recovery' ? 'update-password.html' : 'auth-callback.html';
+    if (recoveryType !== 'recovery') return false;
+
+    var flow = String(params.get('flow') || safeGetAnyLocalStorage([OAUTH_FLOW_KEY, OLD_OAUTH_FLOW_KEY]) || '').trim().toLowerCase();
+    var targetPage = 'update-password.html';
     var target = new URL(targetPage, window.location.origin);
 
     if (window.location.search) target.search = window.location.search;
@@ -1685,6 +1777,65 @@
       target.searchParams.set('next', readRequestedNextPath(''));
     }
     window.location.replace(target.toString());
+    return true;
+  }
+
+  function maybeHandleInlineOAuthReturn() {
+    if (pageKey === 'auth-callback' || pageKey === 'update-password') return false;
+
+    var params = new URLSearchParams(window.location.search || '');
+    var hashParams = getHashParams();
+    var hasPayload =
+      params.has('code') ||
+      params.has('error') ||
+      params.has('error_description') ||
+      hashParams.has('access_token') ||
+      hashParams.has('refresh_token') ||
+      hashParams.has('error') ||
+      hashParams.has('error_description');
+
+    if (!hasPayload) return false;
+
+    var recoveryType = String(params.get('type') || hashParams.get('type') || '').trim().toLowerCase();
+    if (recoveryType === 'recovery') return false;
+
+    var flow = String(params.get('flow') || safeGetAnyLocalStorage([OAUTH_FLOW_KEY, OLD_OAUTH_FLOW_KEY]) || 'login').trim().toLowerCase();
+    if (flow !== 'signup') flow = 'login';
+    var nextPath = sanitizeNextPath(params.get('next') || readRequestedNextPath('') || getSanitizedCurrentPath());
+
+    pushAuthDebugEvent('oauth:inline:start', {
+      pageKey: pageKey,
+      flow: flow,
+      next: nextPath
+    });
+
+    void (async function () {
+      try {
+        await waitForSupabase(8000);
+        var client = ensureSharedSupabaseClient();
+        if (!client) throw new Error('Google sign-in is unavailable right now.');
+        var session = await completeOAuthCallback({
+          client: client
+        });
+        await finishAuthRedirect({
+          client: client,
+          session: session,
+          flow: flow,
+          next: nextPath,
+          inPlace: true
+        });
+      } catch (error) {
+        pushAuthDebugEvent('oauth:inline:error', {
+          pageKey: pageKey,
+          flow: flow,
+          message: String(error && error.message || error || '').slice(0, 180)
+        });
+        var fallback = new URL(flow === 'signup' ? 'sign-up.html' : 'login.html', window.location.origin);
+        fallback.searchParams.set('next', nextPath);
+        window.location.replace(fallback.toString());
+      }
+    })();
+
     return true;
   }
 
@@ -1946,6 +2097,10 @@
   exposeAuthRuntime();
 
   if (maybeRedirectUnexpectedAuthCallback()) {
+    return;
+  }
+
+  if (maybeHandleInlineOAuthReturn()) {
     return;
   }
 
