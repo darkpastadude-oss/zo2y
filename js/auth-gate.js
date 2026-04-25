@@ -1167,6 +1167,11 @@
     if (typeof window !== 'undefined') {
       window.__ZO2Y_BOOTSTRAP_RESTORE_SESSION = async function () {
         try {
+          // If the user explicitly signed out recently, do not attempt session restore.
+          if (hasRecentExplicitSignout()) {
+            clearPersistedSessionSnapshots();
+            return null;
+          }
           // Make sure Supabase client exists or is initializeable
           var ok = await waitForSupabase(8000);
           if (!ok) return null;

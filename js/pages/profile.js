@@ -830,36 +830,83 @@
 
             // ===== LOGOUT FUNCTION =====
             async function logout() {
+                function clearAuthStorageNuclear() {
+                    const knownKeys = [
+                        'zo2y-auth-v2',
+                        'zo2y-auth-v1',
+                        'zo2y-auth-persist-v2',
+                        'zo2y-auth-persist-v1',
+                        'zo2y-auth-durable-v2',
+                        'zo2y-auth-durable-v1',
+                        'zo2y-auth-explicit-signout-v2',
+                        'zo2y-auth-explicit-signout-v1',
+                        'zo2y-auth-post-auth-redirect-v2',
+                        'postAuthRedirect',
+                        'zo2y-auth-oauth-flow-v2',
+                        'oauthFlow',
+                        'zo2y-post-auth-bootstrap-v2',
+                        'zo2y_post_auth_bootstrap_v1',
+                        'sb-gfkhjbztayjyojsgdpgk-auth-token'
+                    ];
+
+                    const removeEverywhere = (key) => {
+                        try { localStorage.removeItem(key); } catch (_err) {}
+                        try { sessionStorage.removeItem(key); } catch (_err2) {}
+                    };
+
+                    knownKeys.forEach(removeEverywhere);
+
+                    // Also remove any Supabase auth token keys, even if the project ref changes.
+                    try {
+                        for (let i = localStorage.length - 1; i >= 0; i -= 1) {
+                            const k = localStorage.key(i);
+                            if (!k) continue;
+                            if (/^sb-[a-z0-9]+-auth-token$/i.test(k)) localStorage.removeItem(k);
+                            if (k.indexOf('zo2y-auth-onboarding-') === 0 || k.indexOf('zo2y_onboarding_') === 0) {
+                                localStorage.removeItem(k);
+                            }
+                        }
+                    } catch (_err3) {}
+
+                    try {
+                        for (let j = sessionStorage.length - 1; j >= 0; j -= 1) {
+                            const k2 = sessionStorage.key(j);
+                            if (!k2) continue;
+                            if (/^sb-[a-z0-9]+-auth-token$/i.test(k2)) sessionStorage.removeItem(k2);
+                            if (k2.indexOf('zo2y-auth-onboarding-') === 0 || k2.indexOf('zo2y_onboarding_') === 0) {
+                                sessionStorage.removeItem(k2);
+                            }
+                        }
+                    } catch (_err4) {}
+                }
+
                 try {
-                    showToast('Logging out...', 'info');
                     await teardownStatsRealtimeSubscriptions();
                     const authRuntime = window.ZO2Y_AUTH || null;
+                    // Prevent any "helpful" session restore on the next reload.
+                    if (typeof window.__ZO2Y_MARK_EXPLICIT_SIGNOUT === 'function') {
+                        window.__ZO2Y_MARK_EXPLICIT_SIGNOUT();
+                    } else if (authRuntime && typeof authRuntime.markExplicitSignout === 'function') {
+                        authRuntime.markExplicitSignout();
+                    }
                     if (authRuntime && typeof authRuntime.signOut === 'function') {
                         await authRuntime.signOut(supabase);
                     } else {
-                        if (typeof window.__ZO2Y_MARK_EXPLICIT_SIGNOUT === 'function') {
-                            window.__ZO2Y_MARK_EXPLICIT_SIGNOUT();
+                        // Prefer a server-side revoke when possible.
+                        try {
+                            await supabase.auth.signOut({ scope: 'global' });
+                        } catch (_err) {
+                            await supabase.auth.signOut();
                         }
-                        await supabase.auth.signOut();
                     }
-                    try {
-                        localStorage.removeItem('zo2y-auth-v2');
-                        localStorage.removeItem('zo2y-auth-v1');
-                        localStorage.removeItem('sb-gfkhjbztayjyojsgdpgk-auth-token');
-                        localStorage.removeItem('zo2y-auth-persist-v1');
-                        localStorage.removeItem('zo2y-auth-durable-v1');
-                        localStorage.removeItem('zo2y_post_auth_bootstrap_v1');
-                        sessionStorage.removeItem('zo2y-auth-v2');
-                        sessionStorage.removeItem('zo2y-auth-v1');
-                        sessionStorage.removeItem('sb-gfkhjbztayjyojsgdpgk-auth-token');
-                        sessionStorage.removeItem('zo2y-auth-persist-v1');
-                    } catch (_err) {}
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 1000);
+
+                    clearAuthStorageNuclear();
+                    window.location.replace('login.html');
                 } catch (error) {
                     console.error('Error logging out:', error);
-                    showToast('Error logging out', 'error');
+                    // Even if network/logout fails, make sure we don't get stuck in an auth restore loop.
+                    try { clearAuthStorageNuclear(); } catch (_err) {}
+                    window.location.replace('login.html');
                 }
             }
 
