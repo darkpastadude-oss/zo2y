@@ -965,7 +965,7 @@ const HEADER_HTML = `
 
   function wireLogoAnim() {
     const logos = Array.from(document.querySelectorAll('[data-zo2y-logo="1"]'));
-    if (!logos.length) return;
+    if (!logos.length) return false;
     const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const canTrackPointer = !prefersReducedMotion
       && window.matchMedia
@@ -1124,6 +1124,46 @@ const HEADER_HTML = `
         });
       });
     }
+    return true;
+  }
+
+  function ensureLogoAnimWired() {
+    // Some pages mount the shared header after auth verification (index) or can replace DOM on viewport changes.
+    // Retry a few times and also install a lightweight observer to catch late mounts.
+    if (window.__ZO2Y_LOGO_WIRE_GUARD) return;
+    window.__ZO2Y_LOGO_WIRE_GUARD = true;
+
+    let attempts = 0;
+    const maxAttempts = 6;
+    const retry = () => {
+      attempts += 1;
+      const ok = wireLogoAnim();
+      if (ok) return;
+      if (attempts >= maxAttempts) return;
+      setTimeout(retry, 120 * attempts);
+    };
+
+    // Try now + next frame.
+    retry();
+    requestAnimationFrame(retry);
+
+    if (window.__ZO2Y_LOGO_MOUNT_OBSERVER) return;
+    try {
+      const observer = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+          if (!m || !m.addedNodes || !m.addedNodes.length) continue;
+          for (const node of m.addedNodes) {
+            if (!node) continue;
+            if (node.nodeType === 1 && (node.matches?.('[data-zo2y-logo="1"]') || node.querySelector?.('[data-zo2y-logo="1"]'))) {
+              wireLogoAnim();
+              return;
+            }
+          }
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+      window.__ZO2Y_LOGO_MOUNT_OBSERVER = observer;
+    } catch (_err) {}
   }
 
   function wireSearchButton() {
@@ -1189,7 +1229,7 @@ const HEADER_HTML = `
       window.addEventListener('zo2y-auth-gate-verified', (event) => {
         if (!event?.detail?.authenticated) return;
         mountSharedHeader();
-        wireLogoAnim();
+        ensureLogoAnimWired();
         const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
         document.body.classList.toggle('zo2y-mobile-header-fixed', !!isMobile);
         wireSearchButton();
@@ -1202,7 +1242,7 @@ const HEADER_HTML = `
       return;
     }
     mountSharedHeader();
-    wireLogoAnim();
+    ensureLogoAnimWired();
     const applyMobileHeaderState = () => {
       const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
       document.body.classList.toggle('zo2y-mobile-header-fixed', !!isMobile);

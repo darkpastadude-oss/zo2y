@@ -1994,7 +1994,11 @@
             displayBookResults(cachedFirstPage.books || [], cachedFirstPage.numFound || 0);
             scheduleBooksBackgroundRefresh('books:first-page-refresh', () => loadBooks({ cacheBust: true }));
           } else {
-            grid.innerHTML = '<div class="empty">Loading books...</div>';
+            // Don't wipe existing results while typing/searching (aborted fetches can leave the UI stuck).
+            const hasAnyCards = grid.querySelector('.card') || grid.childElementCount > 0;
+            if (!hasActiveFilters || !hasAnyCards) {
+              grid.innerHTML = '<div class="empty">Loading books...</div>';
+            }
           }
         }
 
@@ -2017,7 +2021,7 @@
           if (state.activeCategory) params.subject = state.activeCategory;
           if (state.year) params.first_publish_year = state.year;
           if (options?.cacheBust) params.cache_bust = Date.now();
-          if (!params.q && !params.author && !params.subject && !params.first_publish_year) {
+          if (!params.title && !params.author && !params.subject && !params.first_publish_year) {
             if (isFirstPopularPage) {
               data = await loadCuratedPopularBooks();
             } else {
@@ -2033,7 +2037,20 @@
           const isAbort = e && (e.name === 'AbortError' || String(e?.message || '').toLowerCase().includes('aborted'));
           console.error('Books fetch error', e);
           // If a request was aborted (timeout / rapid typing), don't hard-clear the UI to "No books found".
-          if (isAbort) return;
+          if (isAbort) {
+            // If we're in a transient state and the grid is still showing the initial loading placeholder,
+            // try to fall back to cached popular books instead of getting stuck.
+            try {
+              const placeholder = grid.querySelector('.empty');
+              const hasPlaceholder = !!(placeholder && /loading books/i.test(String(placeholder.textContent || '')));
+              const cached = readCachedBooksPage();
+              if (hasPlaceholder && cached?.books?.length) {
+                updateBookPageSpotlight(cached.books || []);
+                displayBookResults(cached.books || [], cached.numFound || 0);
+              }
+            } catch (_err) {}
+            return;
+          }
           data = { books: [], numFound: 0 };
         }
 
@@ -2518,9 +2535,6 @@
   <script src="js/production-runtime.js?v=20260422a" defer></script>
 </body>
 </html>
-
-
-
 
 
 

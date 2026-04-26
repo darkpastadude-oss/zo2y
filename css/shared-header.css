@@ -867,6 +867,87 @@ body.zo2y-mobile-menu-open {
   color: var(--zo2y-header-accent);
 }
 
+/* Universal search suggestions (shared header) */
+.zo2y-shared-search .search-suggest,
+.zo2y-shared-suggest.search-suggest {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: rgba(19, 35, 71, 0.98);
+  border: 1px solid var(--zo2y-header-border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
+  z-index: 1400;
+  display: none;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.zo2y-shared-search .search-suggest.open,
+.zo2y-shared-suggest.search-suggest.open {
+  display: block;
+}
+
+.zo2y-shared-search .search-suggest-item,
+.search-suggest-item {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  padding: 9px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.zo2y-shared-search .search-suggest-item:last-child,
+.search-suggest-item:last-child {
+  border-bottom: 0;
+}
+
+.zo2y-shared-search .search-suggest-item:hover,
+.zo2y-shared-search .search-suggest-item.active,
+.search-suggest-item:hover,
+.search-suggest-item.active {
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.zo2y-shared-search .search-suggest-thumb,
+.search-suggest-thumb {
+  width: 38px;
+  height: 52px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: rgba(15, 31, 64, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.zo2y-shared-search .search-suggest-title,
+.search-suggest-title {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zo2y-shared-search .search-suggest-sub,
+.search-suggest-sub {
+  font-size: 12px;
+  color: var(--zo2y-header-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .zo2y-shared-nav {
   display: inline-flex;
   align-items: center;
