@@ -918,10 +918,10 @@
     }).join('');
 
     quickContainer.querySelectorAll('.menu-quick-item').forEach((node) => {
-      node.addEventListener('click', () => {
+      node.addEventListener('click', async () => {
         const key = node.getAttribute('data-quick-key');
         if (!key || STATE.pendingQuickKeys.has(key)) return;
-        const user = getCurrentUser();
+        const user = await resolveAuthenticatedUser();
         if (!user?.id) {
           window.location.href = 'login.html';
           return;
