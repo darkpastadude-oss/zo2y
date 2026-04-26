@@ -10317,14 +10317,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     ];
     const LANDING_WALL_FALLBACK_LOGOS = {
       sports: [
-        { title: 'Real Madrid', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133738/real-madrid-badge.png' },
-        { title: 'Arsenal', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133604/arsenal-badge.png' },
-        { title: 'Liverpool', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133602/liverpool-badge.png' },
-        { title: 'Los Angeles Lakers', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134867/los-angeles-lakers-badge.png' },
-        { title: 'Boston Celtics', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134860/boston-celtics-badge.png' },
-        { title: 'New York Yankees', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/135260/new-york-yankees-badge.png' },
-        { title: 'Kansas City Chiefs', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134931/kansas-city-chiefs-badge.png' },
-        { title: 'Golden State Warriors', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134865/golden-state-warriors-badge.png' }
+        // Wikimedia-hosted crests/logos (no local seeding, no Supabase storage required).
+        { title: 'Real Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg' },
+        { title: 'Barcelona', image: 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg' },
+        { title: 'Atletico Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg' },
+        { title: 'Manchester City', image: 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg' },
+        { title: 'Liverpool', image: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg' },
+        { title: 'Arsenal', image: 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg' },
+        { title: 'Paris Saint-Germain', image: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg' },
+        { title: 'Al Ahly', image: 'https://upload.wikimedia.org/wikipedia/en/2/2f/Al_Ahly_SC_logo.svg' },
+        { title: 'Los Angeles Lakers', image: 'https://upload.wikimedia.org/wikipedia/en/3/3c/Los_Angeles_Lakers_logo.svg' },
+        { title: 'Golden State Warriors', image: 'https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg' },
+        { title: 'Kansas City Chiefs', image: 'https://upload.wikimedia.org/wikipedia/en/e/e1/Kansas_City_Chiefs_logo.svg' },
+        { title: 'UFC', image: 'https://upload.wikimedia.org/wikipedia/en/9/92/Ultimate_Fighting_Championship_logo.svg' }
       ],
       food: [
         { title: 'McDonald\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/mcdonalds-com.svg' },

@@ -85,11 +85,20 @@
       'United Rugby Championship',
       'National Rugby League',
       'AFL',
-      'Formula 1'
+      'Formula 1',
+      'Ultimate Fighting Championship'
     ];
   const CURRENT_RELEVANT_TEAMS = Array.isArray(window.ZO2Y_SPORTS_CURRENT_RELEVANT_TEAMS) && window.ZO2Y_SPORTS_CURRENT_RELEVANT_TEAMS.length
     ? window.ZO2Y_SPORTS_CURRENT_RELEVANT_TEAMS.slice()
-    : [];
+    : [
+      'Real Madrid',
+      'Barcelona',
+      'Liverpool',
+      'Manchester City',
+      'Al Ahly',
+      'Zamalek',
+      'UFC'
+    ];
   const SEED_TEAMS = CURRENT_RELEVANT_TEAMS.slice();
   const DEMONYM_MAP = {
     egyptian: 'egypt',
@@ -119,6 +128,8 @@
     baseball: ['MLB', 'NPB', 'KBO League', 'Mexican League Baseball'],
     cricket: ['Indian Premier League', 'Big Bash League', 'Pakistan Super League', 'The Hundred'],
     rugby: ['Super Rugby', 'National Rugby League', 'NRL'],
+    mma: ['UFC', 'Ultimate Fighting Championship'],
+    combat: ['UFC', 'Ultimate Fighting Championship'],
     soccer: [
       'English Premier League',
       'English Championship',
@@ -210,6 +221,8 @@
     'nfl': ['NFL'],
     'mlb': ['MLB'],
     'nhl': ['NHL'],
+    'ufc': ['UFC', 'Ultimate Fighting Championship'],
+    'ultimate fighting championship': ['UFC', 'Ultimate Fighting Championship'],
     'f1': ['Formula 1'],
     'formula 1': ['Formula 1'],
     'formula one': ['Formula 1'],
@@ -273,6 +286,21 @@
   const sportsAssetManifestById = new Map();
   const sportsAssetManifestByName = new Map();
   let sportsImageObserver = null;
+
+  // Built-in overrides for teams/leagues we want to guarantee have a logo even without Supabase storage.
+  // Uses Wikimedia-hosted images only (no local seeding).
+  const BUILTIN_SPORTS_ASSET_OVERRIDES = [
+    {
+      id: 'ufc',
+      sportsDbId: '',
+      name: 'UFC',
+      sport: 'MMA',
+      league: 'Ultimate Fighting Championship',
+      country: 'United States',
+      stadium: '',
+      badge: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/92/Ultimate_Fighting_Championship_logo.svg/320px-Ultimate_Fighting_Championship_logo.svg.png'
+    }
+  ];
 
   const ui = {
     hero: document.getElementById('sportsHero'),
@@ -804,6 +832,9 @@
       if (mirror.value !== value) mirror.value = value;
     });
   }
+
+  // Make sure built-in overrides are always present (even if the manifest fetch fails).
+  mergeSportsAssetManifestRows(BUILTIN_SPORTS_ASSET_OVERRIDES);
 
   function updateFilterOptions(teams) {
     const sports = new Set();

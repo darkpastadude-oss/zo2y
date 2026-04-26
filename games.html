@@ -1319,6 +1319,187 @@
         return isSlowNetwork() ? 18 : 24;
       }
 
+      const WIKI_COVER_CACHE_KEY = 'zo2y_game_wiki_cover_cache_v1';
+      const WIKI_COVER_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 21;
+
+      function readWikiCoverCache() {
+        try {
+          const raw = localStorage.getItem(WIKI_COVER_CACHE_KEY);
+          const parsed = raw ? JSON.parse(raw) : null;
+          return parsed && typeof parsed === 'object' ? parsed : { items: {} };
+        } catch (_err) {
+          return { items: {} };
+        }
+      }
+
+      function writeWikiCoverCache(cache) {
+        try {
+          localStorage.setItem(WIKI_COVER_CACHE_KEY, JSON.stringify(cache || { items: {} }));
+        } catch (_err) {}
+      }
+
+      function normalizeWikiTitleKey(value) {
+        return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+      }
+
+      async function fetchWikipediaCoverUrl(title) {
+        const cleaned = String(title || '').trim();
+        if (!cleaned) return '';
+        const slug = cleaned.replace(/\s+/g, '_');
+        const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(slug)}`;
+        try {
+          const res = await fetch(url, { headers: { Accept: 'application/json' }, credentials: 'omit' });
+          if (!res.ok) return '';
+          const json = await res.json().catch(() => null);
+          const src = String(json?.originalimage?.source || json?.thumbnail?.source || '').trim();
+          return normalizeGameImageUrl(src);
+        } catch (_err) {
+          return '';
+        }
+      }
+
+      function isFallbackGameCoverUrl(url) {
+        const value = String(url || '').trim();
+        if (!value) return true;
+        if (value === IGDB_FALLBACK_IMAGE) return true;
+        if (value.includes('/newlogo.webp')) return true;
+        if (value.includes('/images/onboarding/')) return true;
+        return false;
+      }
+
+      function queueWikipediaCoverBackfill(gridEl) {
+        const grid = gridEl || document.getElementById('gamesGrid');
+        if (!grid) return;
+        const cards = Array.from(grid.querySelectorAll('.card'));
+        if (!cards.length) return;
+
+        const cache = readWikiCoverCache();
+        const now = Date.now();
+        const items = cache.items && typeof cache.items === 'object' ? cache.items : {};
+        let inflight = 0;
+        const limit = isSlowNetwork() ? 2 : 4;
+        const queue = [];
+
+        cards.forEach((card) => {
+          const img = card.querySelector('.card-media img');
+          const titleEl = card.querySelector('.card-title');
+          const title = String(titleEl ? titleEl.textContent : '').trim();
+          if (!img || !title) return;
+          if (!isFallbackGameCoverUrl(img.getAttribute('src') || img.src)) return;
+          const key = normalizeWikiTitleKey(title);
+          if (!key) return;
+
+          const cached = items[key];
+          if (cached && cached.url && Number(cached.savedAt || 0) + WIKI_COVER_CACHE_TTL_MS > now) {
+            img.src = cached.url;
+            return;
+          }
+          queue.push({ key, title, img });
+        });
+
+        if (!queue.length) return;
+
+        const runNext = async () => {
+          if (!queue.length) return;
+          if (inflight >= limit) return;
+          const job = queue.shift();
+          if (!job) return;
+          inflight += 1;
+          try {
+            const url = await fetchWikipediaCoverUrl(job.title);
+            if (url && !isFallbackGameCoverUrl(url)) {
+              job.img.src = url;
+              items[job.key] = { url, savedAt: Date.now() };
+              cache.items = items;
+              writeWikiCoverCache(cache);
+            } else {
+              items[job.key] = { url: '', savedAt: Date.now() };
+              cache.items = items;
+              writeWikiCoverCache(cache);
+            }
+          } finally {
+            inflight -= 1;
+            if (queue.length) {
+              if (typeof requestIdleCallback === 'function') {
+                requestIdleCallback(runNext, { timeout: 1200 });
+              } else {
+                setTimeout(runNext, 120);
+              }
+            }
+          }
+        };
+
+        // Kick a few workers in the background without blocking render.
+        const kick = () => {
+          for (let i = 0; i < limit; i += 1) void runNext();
+        };
+        if (typeof requestIdleCallback === 'function') requestIdleCallback(kick, { timeout: 1200 });
+        else setTimeout(kick, 220);
+      }
+
+      function getDailyShuffleSeed() {
+        try {
+          const d = new Date();
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return Number(`${y}${m}${day}`) || 0;
+        } catch (_err) {
+          return 0;
+        }
+      }
+
+      function mulberry32(seed) {
+        let a = Number(seed || 0) || 0;
+        return function () {
+          a |= 0;
+          a = (a + 0x6D2B79F5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function shuffleInPlace(list, rand) {
+        const arr = Array.isArray(list) ? list : [];
+        const r = typeof rand === 'function' ? rand : Math.random;
+        for (let i = arr.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(r() * (i + 1));
+          const tmp = arr[i];
+          arr[i] = arr[j];
+          arr[j] = tmp;
+        }
+        return arr;
+      }
+
+      function shufflePopularGamesPool(rows, pageSize) {
+        const pool = Array.isArray(rows) ? rows.slice() : [];
+        const size = Math.max(1, Number(pageSize || 24)) || 24;
+        if (pool.length <= size) return pool;
+
+        const seed = getDailyShuffleSeed();
+        const rand = mulberry32(seed);
+
+        // Keep the list "popular-first" by shuffling within small top tiers only.
+        const tiers = [
+          Math.min(pool.length, Math.max(16, Math.floor(size * 1.25))),
+          Math.min(pool.length, Math.max(48, Math.floor(size * 3))),
+          Math.min(pool.length, Math.max(96, Math.floor(size * 5)))
+        ];
+
+        const out = [];
+        let cursor = 0;
+        tiers.forEach((end) => {
+          if (end <= cursor) return;
+          const chunk = pool.slice(cursor, end);
+          shuffleInPlace(chunk, rand);
+          out.push(...chunk);
+          cursor = end;
+        });
+        if (cursor < pool.length) out.push(...pool.slice(cursor));
+        return out;
+      }
+
       function schedulePrefetch(nextPage, params = {}) {
         if (!Number.isFinite(nextPage) || nextPage <= 0) return;
         const key = JSON.stringify({ ...params, page: nextPage });
@@ -2135,10 +2316,37 @@
             populateGenreSelect();
             return true;
           }
-          const ready = await ensureGamesCatalogLoaded();
-          if (!ready) return false;
-          writeCachedGenres(state.genres);
-          return state.genres.length > 0;
+
+          // Fast UX: show a small default genre set immediately, then build the real catalog on idle.
+          state.genres = [
+            { name: 'Action', slug: 'action' },
+            { name: 'Adventure', slug: 'adventure' },
+            { name: 'RPG', slug: 'rpg' },
+            { name: 'Shooter', slug: 'shooter' },
+            { name: 'Strategy', slug: 'strategy' },
+            { name: 'Sports', slug: 'sports' },
+            { name: 'Racing', slug: 'racing' },
+            { name: 'Indie', slug: 'indie' }
+          ];
+          populateGenreSelect();
+
+          const build = async () => {
+            const ready = await ensureGamesCatalogLoaded();
+            if (!ready) return false;
+            writeCachedGenres(state.genres);
+            populateGenreSelect();
+            return state.genres.length > 0;
+          };
+
+          if (!isSlowNetwork()) {
+            if (typeof requestIdleCallback === 'function') {
+              requestIdleCallback(() => { void build(); }, { timeout: 4500 });
+            } else {
+              setTimeout(() => { void build(); }, 2200);
+            }
+          }
+
+          return true;
         } catch (_err) {
           return false;
         }
@@ -2230,7 +2438,8 @@
         const deduped = applyStrictGameFranchiseLimits(sortGamesPosterFirst(dedupeRowsByTitleEdition(collected.filter((row) => isLikelyRealGameRow(row)))));
         if (!deduped.length) return null;
         const payload = {
-          rows: deduped.slice(0, pageSize),
+          // Return a bigger pool so we can shuffle within "popular-first" tiers on the client.
+          rows: deduped.slice(0, Math.max(pageSize * 5, 96)),
           count: Number(count || deduped.length),
           source: 'supabase-fast'
         };
@@ -2645,15 +2854,20 @@
 
         if (cachedFeaturedPage?.rows?.length) {
           state.catalogSource = cachedFeaturedPage.source || 'supabase-fast-cache';
-          updateGamePageSpotlight(cachedFeaturedPage.rows);
+          const pool = Array.isArray(cachedFeaturedPage.rows) ? cachedFeaturedPage.rows.filter(Boolean) : [];
+          const shuffledPool = (isPopularGamesBrowseState() && Math.max(1, Number(state.page || 1)) === 1)
+            ? shufflePopularGamesPool(pool, pageSize)
+            : pool;
+          updateGamePageSpotlight(shuffledPool);
           grid.innerHTML = '';
           const cachedFragment = document.createDocumentFragment();
-          cachedFeaturedPage.rows.slice(0, pageSize).forEach((item, idx) => {
+          shuffledPool.slice(0, pageSize).forEach((item, idx) => {
             const card = createGameCard(item, idx);
             if (card) cachedFragment.appendChild(card);
           });
           const renderedCount = cachedFragment.childNodes.length;
           grid.appendChild(cachedFragment);
+          queueWikipediaCoverBackfill(grid);
           if (empty) empty.style.display = renderedCount ? 'none' : 'block';
           const totalMatches = Number(cachedFeaturedPage.count || renderedCount) || renderedCount;
           state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
@@ -2681,8 +2895,12 @@
         if (requestId !== state.requestId) return;
         if (localPayload?.rows?.length) {
           state.catalogSource = localPayload.source || 'supabase';
-          const results = Array.isArray(localPayload.rows) ? localPayload.rows.filter(Boolean).slice(0, pageSize) : [];
-          updateGamePageSpotlight(localPayload.rows || results);
+          const pool = Array.isArray(localPayload.rows) ? localPayload.rows.filter(Boolean) : [];
+          const shuffledPool = (isPopularGamesBrowseState() && Math.max(1, Number(state.page || 1)) === 1)
+            ? shufflePopularGamesPool(pool, pageSize)
+            : pool;
+          const results = shuffledPool.slice(0, pageSize);
+          updateGamePageSpotlight(shuffledPool.length ? shuffledPool : results);
           grid.innerHTML = '';
           const fragment = document.createDocumentFragment();
           results.forEach((item, idx) => {
@@ -2691,6 +2909,7 @@
           });
           const renderedCount = fragment.childNodes.length;
           grid.appendChild(fragment);
+          queueWikipediaCoverBackfill(grid);
           if (empty) empty.style.display = renderedCount ? 'none' : 'block';
           const totalMatches = Number(localPayload.count || renderedCount) || renderedCount;
           state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
@@ -3083,7 +3302,6 @@
         renderFilters();
         void loadGames();
         loadGenreCatalog().catch(() => {});
-        void ensureGamesCatalogLoaded().catch(() => false);
         void initAuth().catch(() => {});
       })();
     })();
@@ -3091,11 +3309,6 @@
   <script src="js/production-runtime.js?v=20260422a" defer></script>
 </body>
 </html>
-
-
-
-
-
 
 
 
