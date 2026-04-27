@@ -838,8 +838,6 @@
                         'zo2y-auth-persist-v1',
                         'zo2y-auth-durable-v2',
                         'zo2y-auth-durable-v1',
-                        'zo2y-auth-explicit-signout-v2',
-                        'zo2y-auth-explicit-signout-v1',
                         'zo2y-auth-post-auth-redirect-v2',
                         'postAuthRedirect',
                         'zo2y-auth-oauth-flow-v2',
@@ -901,11 +899,18 @@
                     }
 
                     clearAuthStorageNuclear();
+                    // Keep an explicit signout marker so auth-gate doesn't immediately restore the previous session.
+                    try {
+                        localStorage.setItem('zo2y-auth-explicit-signout-v2', String(Date.now()));
+                    } catch (_err) {}
                     window.location.replace('login.html');
                 } catch (error) {
                     console.error('Error logging out:', error);
                     // Even if network/logout fails, make sure we don't get stuck in an auth restore loop.
                     try { clearAuthStorageNuclear(); } catch (_err) {}
+                    try {
+                        localStorage.setItem('zo2y-auth-explicit-signout-v2', String(Date.now()));
+                    } catch (_err2) {}
                     window.location.replace('login.html');
                 }
             }
