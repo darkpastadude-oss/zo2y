@@ -907,7 +907,7 @@
   </div>
 
   <script src="js/list-utils.js?v=20260419a"></script>
-  <script src="js/index-list-menu-adapter.js?v=20260427c"></script>
+  <script src="js/index-list-menu-adapter.js?v=20260427d"></script>
   <script>
     (function () {
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
@@ -1596,7 +1596,11 @@
             const { error } = await supabaseClient
               .from('movie_list_items')
               .insert({ user_id: activeUser.id, movie_id: movieId, list_type: listType });
-            if (error) throw error;
+            if (error) {
+              const duplicate = Number(error?.status || error?.statusCode || 0) === 409
+                || /duplicate|already exists|unique|conflict/i.test(String(error?.message || ''));
+              if (!duplicate) throw error;
+            }
             showNotification('Saved to list', 'success');
           } else {
             const { error } = await supabaseClient
@@ -1614,7 +1618,7 @@
           state.listStatusMap.set(movieId, status);
           if (card) updateCardMenuUI(card, movieId);
           showNotification('Could not update list', 'error');
-          return { ok: false, saved: previousSaved };
+          return { ok: false, saved: previousSaved, error: _err };
         } finally {
           state.pendingDefaultOps.delete(opKey);
         }
@@ -1899,6 +1903,7 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
 
 
 

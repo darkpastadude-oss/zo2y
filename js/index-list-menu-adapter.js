@@ -28,6 +28,7 @@
   let authClient = null;
   let authClientPromise = null;
   let cachedUser = null;
+  let lastFocusedTrigger = null;
 
   const QUICK_ROWS_BY_TYPE = {
     movie: [
@@ -783,6 +784,16 @@
     window.location.href = 'login.html';
   }
 
+  function isConflictLikeError(error) {
+    const status = Number(error?.status || error?.statusCode || error?.code || 0);
+    const message = String(error?.message || error?.details || '').toLowerCase();
+    return status === 409
+      || message.includes('duplicate')
+      || message.includes('already exists')
+      || message.includes('unique')
+      || message.includes('conflict');
+  }
+
   function authBootstrapReady() {
     try {
       if (window.__AUTH_READY === true) return true;
@@ -894,6 +905,10 @@
         });
         if (result && typeof result.ok === 'boolean') {
           if (result.ok) return result;
+          if (isConflictLikeError(result?.error)) {
+            return { ok: true, saved: !!nextSaved };
+          }
+          return result;
         }
       }
     } catch (_error) {}
@@ -1172,6 +1187,12 @@
 
   function closeItemMenuModal() {
     const itemModal = document.getElementById('itemMenuModal');
+    const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    if (itemModal && activeElement && itemModal.contains(activeElement)) {
+      try {
+        activeElement.blur();
+      } catch (_error) {}
+    }
     if (itemModal) {
       itemModal.classList.remove('active');
       itemModal.setAttribute('aria-hidden', 'true');
@@ -1181,10 +1202,27 @@
     STATE.pendingCustomListIds = new Set();
     STATE.customMutationVersion = 0;
     syncMenuModalBodyLock();
+    if (lastFocusedTrigger && typeof lastFocusedTrigger.focus === 'function' && document.contains(lastFocusedTrigger)) {
+      window.setTimeout(() => {
+        try {
+          lastFocusedTrigger.focus({ preventScroll: true });
+        } catch (_error) {
+          try {
+            lastFocusedTrigger.focus();
+          } catch (_error2) {}
+        }
+      }, 0);
+    }
   }
 
   function closeCreateListModal() {
     const createModal = document.getElementById('createListModal');
+    const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    if (createModal && activeElement && createModal.contains(activeElement)) {
+      try {
+        activeElement.blur();
+      } catch (_error) {}
+    }
     if (createModal) {
       createModal.classList.remove('active');
       createModal.setAttribute('aria-hidden', 'true');
@@ -1416,6 +1454,7 @@
 
   async function openItemMenuFromCard(card) {
     if (!bridge || !card) return;
+    lastFocusedTrigger = card.querySelector('.menu-btn') || card;
     const mediaType = getMediaType();
     if (!mediaType) return;
     const item = getCardItem(card);

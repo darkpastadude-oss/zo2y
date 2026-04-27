@@ -958,7 +958,7 @@
   </div>
 
 <script src="js/list-utils.js?v=20260422b"></script>
-<script src="js/index-list-menu-adapter.js?v=20260427c"></script>
+<script src="js/index-list-menu-adapter.js?v=20260427d"></script>
     <script>
     (function () {
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
@@ -2103,7 +2103,12 @@
             const { error } = await supabaseClient
               .from('book_list_items')
               .insert({ user_id: activeUser.id, book_id: bookId, list_type: listType });
-            if (error && String(error.code || '') !== '23505') throw error;
+            if (error) {
+              const duplicate = String(error.code || '') === '23505'
+                || Number(error?.status || error?.statusCode || 0) === 409
+                || /duplicate|already exists|unique|conflict/i.test(String(error?.message || ''));
+              if (!duplicate) throw error;
+            }
             showNotification('Saved to list', 'success');
           } else {
             const { error } = await supabaseClient
@@ -2121,7 +2126,7 @@
           state.listStatusMap.set(bookId, status);
           if (card) updateCardMenuUI(card, bookId);
           showNotification('Could not update list', 'error');
-          return { ok: false, saved: previousSaved };
+          return { ok: false, saved: previousSaved, error: _err };
         } finally {
           state.pendingDefaultOps.delete(opKey);
         }
@@ -2419,6 +2424,7 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
 
 
 
