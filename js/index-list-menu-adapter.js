@@ -199,8 +199,23 @@
         min-height: 48px;
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
+        position: relative;
+        overflow: hidden;
         transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease, opacity 0.18s ease;
         will-change: transform;
+      }
+      .menu-quick-item::after {
+        content: "";
+        position: absolute;
+        inset: -35%;
+        pointer-events: none;
+        opacity: 0;
+        transform: scale(0.4);
+        background:
+          radial-gradient(circle at 30% 30%, rgba(245, 158, 11, 0.35), rgba(245, 158, 11, 0) 55%),
+          radial-gradient(circle at 70% 40%, rgba(255, 184, 77, 0.28), rgba(255, 184, 77, 0) 60%),
+          radial-gradient(circle at 50% 80%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 55%);
+        filter: blur(0px);
       }
       .menu-quick-item:hover {
         border-color: var(--accent, #f59e0b);
@@ -212,6 +227,49 @@
       .menu-quick-item:focus-visible {
         outline: none;
         box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.22);
+      }
+      @keyframes zo2yQuickSaved {
+        0% { transform: scale(0.985); box-shadow: 0 0 0 rgba(245,158,11,0); }
+        45% { transform: scale(1.02); box-shadow: 0 0 0 6px rgba(245,158,11,0.18); }
+        100% { transform: scale(1); box-shadow: 0 0 0 rgba(245,158,11,0); }
+      }
+      @keyframes zo2yQuickSparkle {
+        0% { opacity: 0; transform: scale(0.35); }
+        30% { opacity: 1; transform: scale(1.02); }
+        100% { opacity: 0; transform: scale(1.25); }
+      }
+      @keyframes zo2yQuickRemoved {
+        0% { transform: scale(0.99); box-shadow: 0 0 0 rgba(140,163,199,0); }
+        55% { transform: scale(1.012); box-shadow: 0 0 0 6px rgba(140,163,199,0.12); }
+        100% { transform: scale(1); box-shadow: 0 0 0 rgba(140,163,199,0); }
+      }
+      @keyframes zo2yQuickError {
+        0% { transform: translateX(0); }
+        20% { transform: translateX(-6px); }
+        40% { transform: translateX(6px); }
+        60% { transform: translateX(-4px); }
+        80% { transform: translateX(4px); }
+        100% { transform: translateX(0); }
+      }
+      @keyframes zo2yStatePop {
+        0% { transform: scale(0.92); opacity: 0.75; }
+        60% { transform: scale(1.06); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      .menu-quick-item.zo2y-anim-saved {
+        animation: zo2yQuickSaved 420ms cubic-bezier(.2,.9,.2,1);
+      }
+      .menu-quick-item.zo2y-anim-saved::after {
+        animation: zo2yQuickSparkle 520ms cubic-bezier(.2,.9,.2,1);
+      }
+      .menu-quick-item.zo2y-anim-removed {
+        animation: zo2yQuickRemoved 360ms cubic-bezier(.2,.9,.2,1);
+      }
+      .menu-quick-item.zo2y-anim-error {
+        animation: zo2yQuickError 360ms ease-in-out;
+      }
+      .menu-quick-state.zo2y-anim-state {
+        animation: zo2yStatePop 280ms cubic-bezier(.2,.9,.2,1);
       }
       .menu-quick-item.active {
         border-color: var(--accent, #f59e0b);
@@ -448,6 +506,18 @@
         .menu-modal-close {
           width: 44px;
           height: 44px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .menu-quick-item,
+        .menu-custom-item {
+          transition: none !important;
+          animation: none !important;
+        }
+        .menu-quick-state,
+        .menu-custom-state {
+          transition: none !important;
+          animation: none !important;
         }
       }
     `;
@@ -713,6 +783,49 @@
     window.location.href = 'login.html';
   }
 
+  function authBootstrapReady() {
+    try {
+      if (window.__AUTH_READY === true) return true;
+      if (window.__ZO2Y_AUTH_STATE === true || window.__ZO2Y_AUTH_STATE === false) return true;
+    } catch (_error) {}
+    return false;
+  }
+
+  async function waitForAuthBootstrap(timeoutMs = 1200) {
+    if (authBootstrapReady()) return true;
+    const waitMs = Math.max(50, Number(timeoutMs) || 1200);
+    return await new Promise((resolve) => {
+      let settled = false;
+      const done = (value) => {
+        if (settled) return;
+        settled = true;
+        try {
+          window.removeEventListener('zo2y-auth-ready', onReady);
+        } catch (_error) {}
+        resolve(!!value);
+      };
+      const onReady = () => done(true);
+      try {
+        window.addEventListener('zo2y-auth-ready', onReady, { once: true });
+      } catch (_error) {}
+      window.setTimeout(() => done(false), waitMs);
+    });
+  }
+
+  async function attemptSessionRecovery(client) {
+    if (!client?.auth) return;
+    try {
+      if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+        window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+      }
+    } catch (_error) {}
+    try {
+      if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
+        await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
+      }
+    } catch (_error) {}
+  }
+
   async function resolveAuthenticatedUser() {
     const existingUser = getCurrentUser();
     if (existingUser?.id) {
@@ -723,33 +836,45 @@
     if (!client?.auth) return null;
 
     const authRuntime = window.ZO2Y_AUTH || null;
-    if (authRuntime && typeof authRuntime.getVerifiedUser === 'function') {
+
+    const tryResolve = async () => {
+      if (authRuntime && typeof authRuntime.getVerifiedUser === 'function') {
+        try {
+          const verifiedUser = await authRuntime.getVerifiedUser(client);
+          if (verifiedUser?.id) return verifiedUser;
+        } catch (_error) {}
+      }
       try {
-        const verifiedUser = await authRuntime.getVerifiedUser(client);
-        if (verifiedUser?.id) {
-          cachedUser = verifiedUser;
-          return verifiedUser;
-        }
+        const sessionResult = await client.auth.getSession();
+        const sessionUser = sessionResult?.data?.session?.user || null;
+        if (sessionUser?.id) return sessionUser;
       } catch (_error) {}
+      try {
+        const userResult = typeof client.auth.getUser === 'function'
+          ? await client.auth.getUser()
+          : null;
+        const user = userResult?.data?.user || null;
+        if (user?.id) return user;
+      } catch (_error) {}
+      return null;
+    };
+
+    let resolved = await tryResolve();
+    if (resolved?.id) {
+      cachedUser = resolved;
+      return resolved;
     }
-    try {
-      const sessionResult = await client.auth.getSession();
-      const sessionUser = sessionResult?.data?.session?.user || null;
-      if (sessionUser?.id) {
-        cachedUser = sessionUser;
-        return sessionUser;
-      }
-    } catch (_error) {}
-    try {
-      const userResult = typeof client.auth.getUser === 'function'
-        ? await client.auth.getUser()
-        : null;
-      const user = userResult?.data?.user || null;
-      if (user?.id) {
-        cachedUser = user;
-        return user;
-      }
-    } catch (_error) {}
+
+    // Mobile users can open the menu before bootstrap-auth finishes; try a light recovery before redirecting.
+    if (!authBootstrapReady()) {
+      await waitForAuthBootstrap(1200);
+    }
+    await attemptSessionRecovery(client);
+    resolved = await tryResolve();
+    if (resolved?.id) {
+      cachedUser = resolved;
+      return resolved;
+    }
     return null;
   }
 
@@ -804,6 +929,36 @@
 
     if (error) return { ok: false, saved: true, error };
     return { ok: true, saved: false };
+  }
+
+  function maybeVibrate(durationMs) {
+    try {
+      if (!durationMs) return;
+      if (!window.matchMedia || !window.matchMedia('(pointer: coarse)').matches) return;
+      if (navigator && typeof navigator.vibrate === 'function') {
+        navigator.vibrate(Math.max(1, Number(durationMs) || 0));
+      }
+    } catch (_error) {}
+  }
+
+  function animateQuickNode(key, kind) {
+    const node = DOM.quickNodesByKey.get(String(key || '').trim());
+    if (!node) return;
+    const stateNode = node.querySelector('.menu-quick-state');
+    node.classList.remove('zo2y-anim-saved', 'zo2y-anim-removed', 'zo2y-anim-error');
+    if (stateNode) stateNode.classList.remove('zo2y-anim-state');
+    void node.offsetWidth;
+    const className = kind === 'saved'
+      ? 'zo2y-anim-saved'
+      : (kind === 'removed' ? 'zo2y-anim-removed' : 'zo2y-anim-error');
+    node.classList.add(className);
+    if (stateNode) {
+      void stateNode.offsetWidth;
+      stateNode.classList.add('zo2y-anim-state');
+    }
+    if (kind === 'saved') maybeVibrate(12);
+    else if (kind === 'removed') maybeVibrate(8);
+    else maybeVibrate(18);
   }
 
   function getCardItem(card) {
@@ -1087,6 +1242,7 @@
           if (!item) return;
           const previousSaved = !!STATE.quickStatus[key];
           const nextSaved = !previousSaved;
+          animateQuickNode(key, nextSaved ? 'saved' : 'removed');
           const listKeys = STATE.quickRows.map((row) => row.key).filter(Boolean);
           const nextVersion = Number(STATE.quickMutationVersions[key] || 0) + 1;
           STATE.quickMutationVersions[key] = nextVersion;
@@ -1106,6 +1262,7 @@
 
             if (!saveResult?.ok) {
               STATE.quickStatus[key] = previousSaved;
+              animateQuickNode(key, 'error');
             } else if (typeof saveResult.saved === 'boolean') {
               STATE.quickStatus[key] = saveResult.saved;
             }
