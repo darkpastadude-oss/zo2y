@@ -1072,6 +1072,7 @@
       };
 
       let supabaseClient = null;
+      const BOOKS_LANGUAGE = 'eng';
       const CURRENT_TOP_BOOK_SEEDS = Array.isArray(window.ZO2Y_CURATED_BOOK_SEEDS) && window.ZO2Y_CURATED_BOOK_SEEDS.length
         ? window.ZO2Y_CURATED_BOOK_SEEDS.slice()
         : [];
@@ -1090,10 +1091,7 @@
       }
 
       function getBooksDisplayOrder(list) {
-        const items = Array.isArray(list) ? [...list] : [];
-        const shouldShuffle = !state.query && !state.author && !state.activeCategory && !state.year && Number(state.page || 1) === 1;
-        if (!shouldShuffle) return items;
-        return shuffleArray(items);
+        return Array.isArray(list) ? [...list] : [];
       }
 
       function buildOpenLibraryCoverUrl(doc, size = 'L') {
@@ -1319,7 +1317,7 @@
           page,
           limit,
           subject: state.activeCategory || 'fiction',
-          language: 'en',
+          language: BOOKS_LANGUAGE,
           orderBy: 'relevance'
         });
       }
@@ -1356,25 +1354,39 @@
         return score;
       }
 
-      async function fetchCuratedTopBookSeeds(limit = BOOKS_PER_PAGE * 2) {
-        const desired = Math.max(limit, BOOKS_PER_PAGE);
-        const pool = CURRENT_TOP_BOOK_SEEDS.slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, desired * 3));
-        const results = await Promise.allSettled(pool.map(async (seed) => {
-          const payload = await booksFetch('/search', Object.assign({
-            title: seed.title,
-            author: seed.author,
-            limit: 5,
-            page: 1
-          }, seed?.year ? { first_publish_year: seed.year } : {}));
-          const docs = Array.isArray(payload?.books) ? payload.books : [];
-          if (!docs.length) return null;
-          return docs.slice().sort((a, b) => scoreCuratedTopBookDoc(b, seed) - scoreCuratedTopBookDoc(a, seed))[0] || null;
-        }));
+      async function fetchCuratedTopBookSeeds(limit = 18) {
+        const desired = Math.max(1, Math.min(Number(limit) || 0, 24));
+        const pool = CURRENT_TOP_BOOK_SEEDS.slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, desired * 2));
+        const results = [];
+
+        const concurrency = 4;
+        let index = 0;
+        const workers = new Array(concurrency).fill(0).map(async () => {
+          while (index < pool.length) {
+            const seed = pool[index++];
+            try {
+              const payload = await booksFetch('/search', Object.assign({
+                q: `${seed.title} ${seed.author || ''}`.trim(),
+                author: seed.author,
+                language: BOOKS_LANGUAGE,
+                limit: 6,
+                page: 1,
+                orderBy: 'relevance'
+              }, seed?.year ? { first_publish_year: seed.year } : {}));
+              const docs = Array.isArray(payload?.books) ? payload.books : [];
+              if (!docs.length) continue;
+              const best = docs.slice().sort((a, b) => scoreCuratedTopBookDoc(b, seed) - scoreCuratedTopBookDoc(a, seed))[0] || null;
+              if (best) results.push(best);
+              if (results.length >= desired) return;
+            } catch (_error) {}
+          }
+        });
+
+        await Promise.allSettled(workers);
         const seen = new Set();
         const docs = [];
-        results.forEach((result) => {
-          if (result.status !== 'fulfilled' || !result.value) return;
-          const doc = result.value;
+        results.forEach((doc) => {
+          if (!doc) return;
           const key = `${normalizeBookSeedText(doc?.title || '')}::${normalizeBookSeedText(doc?.author || '')}`;
           if (!key || seen.has(key)) return;
           seen.add(key);
@@ -1385,7 +1397,11 @@
 
       function getPreferredBookImage(doc) {
         const cover = toHttpsUrl(doc?.cover || doc?.coverImage || doc?.thumbnail || '');
-        return cover || null;
+        const raw = String(cover || '').trim();
+        if (!raw) return null;
+        if (raw.includes('/images/patterns/open-book') || raw.includes('open-book')) return null;
+        if (raw.includes('/newlogo.webp')) return null;
+        return raw;
       }
 
       function getBookVisualPriority(doc) {
@@ -1398,7 +1414,7 @@
         if (year >= 2025) score += 26;
         else if (year >= 2023) score += 18;
         else if (year >= 2020) score += 10;
-        else if (year > 0 && year < 1970) score -= 30;
+        else if (year > 0 && year < 1980) score -= 70;
         return score;
       }
 
@@ -1468,28 +1484,43 @@
       }
 
       async function loadCuratedPopularBooks() {
-        const seededLimit = Math.max(BOOKS_PER_PAGE * 3, 100);
-        const [seededResult, popularResult, trendingResult] = await Promise.allSettled([
-          fetchCuratedTopBookSeeds(seededLimit),
+        const [popularResult, trendingResult] = await Promise.allSettled([
           fetchPopularBooks(1, BOOKS_PER_PAGE),
           fetchTrendingBooks(BOOKS_PER_PAGE)
         ]);
-        const seededBooks = seededResult.status === 'fulfilled' && Array.isArray(seededResult.value)
-          ? seededResult.value
-          : [];
         const popular = popularResult.status === 'fulfilled' ? popularResult.value : null;
         const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : null;
         const popularBooks = Array.isArray(popular?.books) ? popular.books.slice(0, BOOKS_PER_PAGE) : [];
         const trendingBooks = Array.isArray(trending?.books) ? trending.books.slice(0, BOOKS_PER_PAGE) : [];
         const merged = [];
         const seen = new Set();
-        [...seededBooks, ...popularBooks, ...trendingBooks].forEach((book) => {
+        [...trendingBooks, ...popularBooks].forEach((book) => {
           const title = normalizeBookSeedText(book?.title || '');
           const author = normalizeBookSeedText(book?.author || '');
           const key = `${title}::${author}`;
           if (!title || seen.has(key)) return;
           seen.add(key);
           merged.push(book);
+        });
+
+        scheduleBooksBackgroundRefresh('books:curated-seeds', async () => {
+          const seededBooks = await fetchCuratedTopBookSeeds(Math.min(BOOKS_PER_PAGE, 18));
+          if (!seededBooks.length) return;
+          if (state.query || state.author || state.activeCategory || state.year || Number(state.page || 1) !== 1) return;
+          const next = [];
+          const nextSeen = new Set();
+          [...seededBooks, ...merged].forEach((book) => {
+            const title = normalizeBookSeedText(book?.title || '');
+            const author = normalizeBookSeedText(book?.author || '');
+            const key = `${title}::${author}`;
+            if (!title || nextSeen.has(key)) return;
+            nextSeen.add(key);
+            next.push(book);
+          });
+          const payload = { books: next.slice(0, BOOKS_PER_PAGE), numFound: Math.max(Number(popular?.numFound || 0), Number(trending?.numFound || 0), next.length) };
+          writeCachedBooksPage(payload);
+          updateBookPageSpotlight(payload.books || []);
+          displayBookResults(payload.books || [], payload.numFound || 0);
         });
 
         if (merged.length < BOOKS_PER_PAGE) {
@@ -1516,8 +1547,6 @@
         return {
           books: merged.slice(0, BOOKS_PER_PAGE),
           numFound: Math.max(
-            Number(seededResult.status === 'fulfilled' ? seededResult.value?.numFound || 0 : 0),
-            seededBooks.length,
             Number(popular?.numFound || 0),
             Number(trending?.numFound || 0),
             merged.length,
@@ -1648,9 +1677,12 @@
           });
           if (publishYear) {
             const yearNum = Number(publishYear) || 0;
-            if (yearNum >= 2023) score += 18;
-            else if (yearNum >= 2018) score += 10;
-            else if (yearNum > 0 && yearNum < 1950) score -= 24;
+            if (yearNum >= 2025) score += 34;
+            else if (yearNum >= 2023) score += 24;
+            else if (yearNum >= 2020) score += 18;
+            else if (yearNum >= 2015) score += 10;
+            else if (yearNum > 0 && yearNum < 1950) score -= 70;
+            else if (yearNum > 0 && yearNum < 1980) score -= 40;
           }
         }
 
@@ -1663,6 +1695,7 @@
         if (yearQuery && publishYear.startsWith(yearQuery)) score += 30;
         if (isCuratedTopBook(item)) score += 85;
         score += getBookVisualPriority(item);
+        if (!getPreferredBookImage(item)) score -= 14;
         return score;
       }
 
@@ -2012,11 +2045,12 @@
           const params = {
             page: state.page,
             limit: BOOKS_PER_PAGE,
-            language: 'en'
+            language: BOOKS_LANGUAGE
           };
           if (state.query) {
-            params.title = state.query;
-            params.orderBy = 'relevance';
+            params.q = state.query;
+            const termCount = String(state.query || '').trim().split(/\s+/).filter(Boolean).length;
+            params.orderBy = termCount <= 2 ? 'newest' : 'relevance';
           }
           if (state.author) params.author = state.author;
           if (state.activeCategory) params.subject = state.activeCategory;

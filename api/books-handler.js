@@ -616,6 +616,8 @@ export default async function handler(req, res) {
     try {
       const limit = clampInt(query.limit, 1, 40, 20);
       const page = clampInt(query.page, 1, 1000, 1);
+      const orderByRaw = String(query.orderBy || "").trim().toLowerCase();
+      const orderBy = orderByRaw === "newest" ? "newest" : "relevance";
       const params = {
         q: query.q,
         title: query.title,
@@ -626,7 +628,7 @@ export default async function handler(req, res) {
         language: query.language,
         limit,
         page,
-        orderBy: "relevance"
+        orderBy
       };
 
       const google = await fetchGoogleDocs(params);

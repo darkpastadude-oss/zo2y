@@ -1020,6 +1020,7 @@
       };
 
       let supabaseClient = null;
+      const BOOKS_LANGUAGE = 'eng';
 
       function normalizeBookText(value) {
         return String(value || '')
@@ -1292,7 +1293,7 @@
           page,
           limit,
           subject: state.activeCategory || 'fiction',
-          language: 'en',
+          language: BOOKS_LANGUAGE,
           orderBy: 'relevance'
         });
       }
@@ -1352,7 +1353,11 @@
 
       function getPreferredBookImage(doc) {
         const cover = toHttpsUrl(doc?.cover || doc?.coverImage || doc?.thumbnail || '');
-        return cover || null;
+        const raw = String(cover || '').trim();
+        if (!raw) return null;
+        if (raw.includes('/images/patterns/open-book') || raw.includes('open-book')) return null;
+        if (raw.includes('/newlogo.webp')) return null;
+        return raw;
       }
 
       function clearLegacyBooksMobileCache() {
@@ -1508,6 +1513,14 @@
             if (authors.includes(term)) score += 11;
             if (subjects.includes(term)) score += 6;
           });
+          if (publishYear) {
+            const yearNum = Number(publishYear) || 0;
+            if (yearNum >= 2025) score += 26;
+            else if (yearNum >= 2023) score += 18;
+            else if (yearNum >= 2020) score += 12;
+            else if (yearNum > 0 && yearNum < 1950) score -= 60;
+            else if (yearNum > 0 && yearNum < 1980) score -= 32;
+          }
         }
 
         if (authorQuery) {
@@ -1517,6 +1530,8 @@
 
         if (categoryQuery && subjects.includes(categoryQuery)) score += 42;
         if (yearQuery && publishYear.startsWith(yearQuery)) score += 30;
+        if (getPreferredBookImage(item)) score += 24;
+        else score -= 10;
         return score;
       }
 
@@ -1850,9 +1865,13 @@
           const params = {
             page: state.page,
             limit: BOOKS_PER_PAGE,
-            language: 'en'
+            language: BOOKS_LANGUAGE
           };
-            if (state.query) params.q = state.query;
+            if (state.query) {
+              params.q = state.query;
+              const termCount = String(state.query || '').trim().split(/\s+/).filter(Boolean).length;
+              params.orderBy = termCount <= 2 ? 'newest' : 'relevance';
+            }
             if (state.author) params.author = state.author;
             if (state.activeCategory) params.subject = state.activeCategory;
             if (state.year) params.first_publish_year = state.year;

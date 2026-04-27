@@ -18,6 +18,10 @@
     customMembershipByItem: new Map(),
     primingScopes: new Set()
   };
+  const DOM = {
+    quickContainer: null,
+    quickNodesByKey: new Map()
+  };
 
   let bridge = null;
   let listenersBound = false;
@@ -192,11 +196,22 @@
         border: 1px solid var(--border, rgba(255,255,255,0.12));
         border-radius: 12px;
         cursor: pointer;
-        transition: all 0.2s ease;
+        min-height: 48px;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+        will-change: transform;
       }
       .menu-quick-item:hover {
         border-color: var(--accent, #f59e0b);
         background: rgba(245, 158, 11, 0.1);
+      }
+      .menu-quick-item:active {
+        transform: scale(0.985);
+      }
+      .menu-quick-item:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.22);
       }
       .menu-quick-item.active {
         border-color: var(--accent, #f59e0b);
@@ -220,6 +235,10 @@
         color: var(--accent, #f59e0b);
         font-size: 13px;
         font-weight: 600;
+        transition: transform 0.18s ease, opacity 0.18s ease;
+      }
+      .menu-quick-item.active .menu-quick-state {
+        transform: translateY(-0.5px);
       }
       .menu-custom-section {
         border-top: 1px solid var(--border, rgba(255,255,255,0.12));
@@ -419,6 +438,16 @@
           min-height: 44px;
           font-size: 15px;
           border-radius: 12px;
+        }
+      }
+      @media (pointer: coarse) {
+        .menu-quick-item,
+        .menu-custom-item {
+          min-height: 56px;
+        }
+        .menu-modal-close {
+          width: 44px;
+          height: 44px;
         }
       }
     `;
@@ -1018,63 +1047,94 @@
     if (!quickContainer) return;
     if (!STATE.quickRows.length) {
       quickContainer.innerHTML = '<div class="menu-empty">Lists are not available for this item.</div>';
+      DOM.quickContainer = quickContainer;
+      DOM.quickNodesByKey.clear();
       return;
     }
 
-    quickContainer.innerHTML = STATE.quickRows.map((row) => {
-      const isActive = !!STATE.quickStatus[row.key];
-      const isBusy = STATE.pendingQuickKeys.has(row.key);
-      return `
-        <div class="menu-quick-item ${isActive ? 'active' : ''}" data-quick-key="${row.key}" aria-busy="${isBusy ? 'true' : 'false'}">
+    const nextKeys = STATE.quickRows.map((row) => String(row?.key || '')).filter(Boolean);
+    const hasSameKeys = DOM.quickContainer === quickContainer
+      && DOM.quickNodesByKey.size === nextKeys.length
+      && nextKeys.every((key) => DOM.quickNodesByKey.has(key));
+
+    if (!hasSameKeys) {
+      DOM.quickContainer = quickContainer;
+      DOM.quickNodesByKey.clear();
+
+      quickContainer.innerHTML = STATE.quickRows.map((row) => `
+        <div class="menu-quick-item" data-quick-key="${row.key}" aria-busy="false" role="button" tabindex="0">
           <div class="menu-quick-left">
             <i class="${row.icon}"></i>
-            <span>${row.label}</span>
+            <span>${escapeHtml(row.label)}</span>
           </div>
-          <span class="menu-quick-state">${isActive ? 'Saved' : 'Add'}</span>
+          <span class="menu-quick-state"></span>
         </div>
-      `;
-    }).join('');
+      `).join('');
 
-    quickContainer.querySelectorAll('.menu-quick-item').forEach((node) => {
-      node.addEventListener('click', async () => {
-        const key = node.getAttribute('data-quick-key');
-        if (!key || STATE.pendingQuickKeys.has(key)) return;
-        const user = await resolveAuthenticatedUser();
-        if (!user?.id) {
-          redirectToLogin();
-          return;
-        }
-        const item = STATE.currentItem;
-        if (!item) return;
-        const previousSaved = !!STATE.quickStatus[key];
-        const nextSaved = !previousSaved;
-        const listKeys = STATE.quickRows.map((row) => row.key).filter(Boolean);
-        const nextVersion = Number(STATE.quickMutationVersions[key] || 0) + 1;
-        STATE.quickMutationVersions[key] = nextVersion;
-        STATE.pendingQuickKeys.add(key);
-        STATE.quickStatus[key] = nextSaved;
-        writeCachedQuickStatus(item.itemId, STATE.quickStatus, listKeys);
-        renderItemMenuQuickLists();
+      quickContainer.querySelectorAll('.menu-quick-item').forEach((node) => {
+        const key = String(node.getAttribute('data-quick-key') || '').trim();
+        if (!key) return;
+        DOM.quickNodesByKey.set(key, node);
 
-        void (async () => {
-          let saveResult = null;
-          try {
-            saveResult = await toggleDefaultListWithFallback(user, item, key, nextSaved);
-          } catch (_err) {}
-
-          const isLatest = Number(STATE.quickMutationVersions[key] || 0) === nextVersion;
-          if (!isLatest) return;
-
-          if (!saveResult?.ok) {
-            STATE.quickStatus[key] = previousSaved;
-          } else if (typeof saveResult.saved === 'boolean') {
-            STATE.quickStatus[key] = saveResult.saved;
+        const runToggle = async () => {
+          if (STATE.pendingQuickKeys.has(key)) return;
+          const user = await resolveAuthenticatedUser();
+          if (!user?.id) {
+            redirectToLogin();
+            return;
           }
+          const item = STATE.currentItem;
+          if (!item) return;
+          const previousSaved = !!STATE.quickStatus[key];
+          const nextSaved = !previousSaved;
+          const listKeys = STATE.quickRows.map((row) => row.key).filter(Boolean);
+          const nextVersion = Number(STATE.quickMutationVersions[key] || 0) + 1;
+          STATE.quickMutationVersions[key] = nextVersion;
+          STATE.pendingQuickKeys.add(key);
+          STATE.quickStatus[key] = nextSaved;
           writeCachedQuickStatus(item.itemId, STATE.quickStatus, listKeys);
-          STATE.pendingQuickKeys.delete(key);
           renderItemMenuQuickLists();
-        })();
+
+          void (async () => {
+            let saveResult = null;
+            try {
+              saveResult = await toggleDefaultListWithFallback(user, item, key, nextSaved);
+            } catch (_err) {}
+
+            const isLatest = Number(STATE.quickMutationVersions[key] || 0) === nextVersion;
+            if (!isLatest) return;
+
+            if (!saveResult?.ok) {
+              STATE.quickStatus[key] = previousSaved;
+            } else if (typeof saveResult.saved === 'boolean') {
+              STATE.quickStatus[key] = saveResult.saved;
+            }
+            writeCachedQuickStatus(item.itemId, STATE.quickStatus, listKeys);
+            STATE.pendingQuickKeys.delete(key);
+            renderItemMenuQuickLists();
+          })();
+        };
+
+        node.addEventListener('click', () => void runToggle());
+        node.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            void runToggle();
+          }
+        });
       });
+    }
+
+    STATE.quickRows.forEach((row) => {
+      const key = String(row?.key || '').trim();
+      const node = DOM.quickNodesByKey.get(key);
+      if (!node) return;
+      const isActive = !!STATE.quickStatus[key];
+      const isBusy = STATE.pendingQuickKeys.has(key);
+      node.classList.toggle('active', isActive);
+      node.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+      const stateNode = node.querySelector('.menu-quick-state');
+      if (stateNode) stateNode.textContent = isActive ? 'Saved' : 'Add';
     });
   }
 
