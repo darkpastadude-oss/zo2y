@@ -17,7 +17,7 @@
   </script>
   <script src="js/igdb-client.js?v=20260311c"></script>
   <script src="js/list-utils.js?v=20260422a"></script>
-<script src="js/index-list-menu-adapter.js?v=20260427e"></script>
+<script src="js/index-list-menu-adapter.js?v=20260428a"></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -2417,12 +2417,14 @@
       async function fetchFastFeaturedGamesPage(pageSize) {
         if (!supabaseClient) return null;
         const page = Math.max(1, Number(state.page || 1));
-        const from = (page - 1) * pageSize;
-        const chunkSize = Math.max(pageSize * 3, 24);
+        const featuredPoolTarget = Math.max(100, pageSize * 4);
+        const from = (page - 1) * featuredPoolTarget;
+        const chunkSize = Math.max(60, Math.ceil(featuredPoolTarget / 2), pageSize * 3, 24);
         let cursor = from;
         let count = 0;
         const collected = [];
-        for (let attempt = 0; attempt < 4 && collected.length < pageSize; attempt += 1) {
+        let deduped = [];
+        for (let attempt = 0; attempt < 6 && deduped.length < featuredPoolTarget; attempt += 1) {
           const { data, error, count: totalCount } = await supabaseClient
             .from('games')
             .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug', { count: 'exact' })
@@ -2433,14 +2435,15 @@
           if (error || !Array.isArray(data) || !data.length) break;
           count = Number(totalCount || count || 0);
           collected.push(...data);
+          deduped = applyStrictGameFranchiseLimits(
+            sortGamesPosterFirst(dedupeRowsByTitleEdition(collected.filter((row) => isLikelyRealGameRow(row))))
+          );
           if (data.length < chunkSize) break;
           cursor += data.length;
         }
-        const deduped = applyStrictGameFranchiseLimits(sortGamesPosterFirst(dedupeRowsByTitleEdition(collected.filter((row) => isLikelyRealGameRow(row)))));
         if (!deduped.length) return null;
         const payload = {
-          // Return a bigger pool so we can shuffle within "popular-first" tiers on the client.
-          rows: deduped.slice(0, Math.max(pageSize * 5, 96)),
+          rows: deduped.slice(0, featuredPoolTarget),
           count: Number(count || deduped.length),
           source: 'supabase-fast'
         };

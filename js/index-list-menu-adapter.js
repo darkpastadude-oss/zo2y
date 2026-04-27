@@ -724,10 +724,39 @@
     }
   }
 
-  function getCurrentUser() {
+  function getBridgeDeclaredCurrentUser() {
     if (!bridge || typeof bridge.getCurrentUser !== 'function') return null;
-    const user = bridge.getCurrentUser();
-    if (user?.id) return user;
+    try {
+      const user = bridge.getCurrentUser();
+      if (user?.id) return user;
+    } catch (_error) {}
+    return null;
+  }
+
+  function syncBridgeCurrentUser(user) {
+    const nextUser = user?.id ? user : null;
+    cachedUser = nextUser;
+    if (!bridge) return nextUser;
+    try {
+      bridge.__zo2yResolvedUser = nextUser;
+    } catch (_error) {}
+    if (typeof bridge.setCurrentUser === 'function') {
+      try {
+        bridge.setCurrentUser(nextUser);
+      } catch (_error) {}
+    }
+    return nextUser;
+  }
+
+  function bridgeCanUseResolvedUser() {
+    return !!(getBridgeDeclaredCurrentUser()?.id || typeof bridge?.setCurrentUser === 'function');
+  }
+
+  function getCurrentUser() {
+    const bridgeUser = getBridgeDeclaredCurrentUser();
+    if (bridgeUser?.id) return bridgeUser;
+    const syncedUser = bridge?.__zo2yResolvedUser;
+    if (syncedUser?.id) return syncedUser;
     return cachedUser;
   }
 
@@ -847,7 +876,7 @@
   async function resolveAuthenticatedUser() {
     const existingUser = getCurrentUser();
     if (existingUser?.id) {
-      cachedUser = existingUser;
+      syncBridgeCurrentUser(existingUser);
       return existingUser;
     }
     const client = await ensureClient();
@@ -879,7 +908,7 @@
 
     let resolved = await tryResolve();
     if (resolved?.id) {
-      cachedUser = resolved;
+      syncBridgeCurrentUser(resolved);
       return resolved;
     }
 
@@ -890,7 +919,7 @@
     await attemptSessionRecovery(client);
     resolved = await tryResolve();
     if (resolved?.id) {
-      cachedUser = resolved;
+      syncBridgeCurrentUser(resolved);
       return resolved;
     }
     return null;
@@ -900,10 +929,14 @@
     if (!user?.id || !item?.itemId) return { ok: false, saved: false };
     const mediaType = getMediaType();
     const table = DEFAULT_TABLE_BY_MEDIA[mediaType];
-    if (!table?.table || !table?.itemField) return { ok: false, saved: false };
+    syncBridgeCurrentUser(user);
 
     try {
-      if (bridge && typeof bridge.toggleDefaultList === 'function') {
+      if (
+        bridge &&
+        typeof bridge.toggleDefaultList === 'function' &&
+        (!table?.table || !table?.itemField || bridgeCanUseResolvedUser())
+      ) {
         const result = await bridge.toggleDefaultList({
           itemId: item.itemId,
           listType,
@@ -920,6 +953,8 @@
         }
       }
     } catch (_error) {}
+
+    if (!table?.table || !table?.itemField) return { ok: false, saved: false };
 
     const client = await ensureClient();
     if (!client) return { ok: false, saved: false };
