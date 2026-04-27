@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="/js/auth-gate.js?v=20260424f"></script>
+  <script src="/js/auth-gate.js?v=20260428a"></script>
   <script src="/js/bootstrap-auth.js?v=20260425a" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Games</title>
@@ -915,7 +915,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
 <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-<script src="js/shared-header.js?v=20260424f" defer></script>
+<script src="js/shared-header.js?v=20260428a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
   <link rel="stylesheet" href="/css/pages/media-spotlight.css?v=20260418a">
 </head>
@@ -1438,17 +1438,16 @@
         else setTimeout(kick, 220);
       }
 
-      function getDailyShuffleSeed() {
+      const POPULAR_GAMES_LOAD_SEED = (() => {
         try {
-          const d = new Date();
-          const y = d.getFullYear();
-          const m = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          return Number(`${y}${m}${day}`) || 0;
-        } catch (_err) {
-          return 0;
-        }
-      }
+          if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+            const seedBuffer = new Uint32Array(1);
+            window.crypto.getRandomValues(seedBuffer);
+            return Number(seedBuffer[0] || 0) >>> 0;
+          }
+        } catch (_err) {}
+        return ((Date.now() & 0xffffffff) ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+      })();
 
       function mulberry32(seed) {
         let a = Number(seed || 0) || 0;
@@ -1478,8 +1477,7 @@
         const size = Math.max(1, Number(pageSize || 24)) || 24;
         if (pool.length <= size) return pool;
 
-        const seed = getDailyShuffleSeed();
-        const rand = mulberry32(seed);
+        const rand = mulberry32(POPULAR_GAMES_LOAD_SEED);
 
         // Keep the list "popular-first" by shuffling within small top tiers only.
         const tiers = [
@@ -2423,8 +2421,7 @@
         let cursor = from;
         let count = 0;
         const collected = [];
-        let deduped = [];
-        for (let attempt = 0; attempt < 6 && deduped.length < featuredPoolTarget; attempt += 1) {
+        for (let attempt = 0; attempt < 4 && collected.length < featuredPoolTarget; attempt += 1) {
           const { data, error, count: totalCount } = await supabaseClient
             .from('games')
             .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug', { count: 'exact' })
@@ -2434,13 +2431,15 @@
             .range(cursor, cursor + chunkSize - 1);
           if (error || !Array.isArray(data) || !data.length) break;
           count = Number(totalCount || count || 0);
-          collected.push(...data);
-          deduped = applyStrictGameFranchiseLimits(
-            sortGamesPosterFirst(dedupeRowsByTitleEdition(collected.filter((row) => isLikelyRealGameRow(row))))
-          );
+          data.forEach((row) => {
+            const title = String(row?.title || row?.name || row?.slug || '').trim();
+            if (!title) return;
+            collected.push(row);
+          });
           if (data.length < chunkSize) break;
           cursor += data.length;
         }
+        const deduped = dedupeRowsById(collected).slice(0, featuredPoolTarget);
         if (!deduped.length) return null;
         const payload = {
           rows: deduped.slice(0, featuredPoolTarget),
@@ -2599,8 +2598,26 @@
 
       async function initSupabase() {
         if (supabaseClient) return supabaseClient;
+        const authRuntime = window.ZO2Y_AUTH || null;
+        if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+          await authRuntime.waitForSupabase(8000);
+        } else {
+          const startedAt = Date.now();
+          while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+        }
         if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
           supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+          if (supabaseClient) return supabaseClient;
+        }
+        if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+          supabaseClient = window.supabase.createClient(
+            window.__ZO2Y_SUPABASE_CONFIG.url,
+            window.__ZO2Y_SUPABASE_CONFIG.key,
+            { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+          );
+          window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
           return supabaseClient;
         }
         return null;

@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-<script src="/js/auth-gate.js?v=20260424f"></script>
+<script src="/js/auth-gate.js?v=20260428a"></script>
   <script src="/js/bootstrap-auth.js?v=20260425a" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Books</title>
@@ -843,7 +843,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
 <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-<script src="js/shared-header.js?v=20260424f" defer></script>
+<script src="js/shared-header.js?v=20260428a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
   <link rel="stylesheet" href="/css/pages/media-spotlight.css?v=20260418a">
 </head>
@@ -1558,8 +1558,26 @@
 
       async function initSupabase() {
         if (supabaseClient) return supabaseClient;
+        const authRuntime = window.ZO2Y_AUTH || null;
+        if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+          await authRuntime.waitForSupabase(8000);
+        } else {
+          const startedAt = Date.now();
+          while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+        }
         if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
           supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+          if (supabaseClient) return supabaseClient;
+        }
+        if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+          supabaseClient = window.supabase.createClient(
+            window.__ZO2Y_SUPABASE_CONFIG.url,
+            window.__ZO2Y_SUPABASE_CONFIG.key,
+            { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+          );
+          window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
           return supabaseClient;
         }
         return null;

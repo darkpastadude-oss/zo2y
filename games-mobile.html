@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="/js/auth-gate.js?v=20260424f"></script>
+  <script src="/js/auth-gate.js?v=20260428a"></script>
   <script src="/js/bootstrap-auth.js?v=20260425a" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Games</title>
@@ -774,7 +774,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
 <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-<script src="js/shared-header.js?v=20260424f" defer></script>
+<script src="js/shared-header.js?v=20260428a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
   <link rel="stylesheet" href="/css/pages/media-spotlight.css?v=20260418a">
 </head>
@@ -1912,6 +1912,64 @@
       const GENRE_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
       const GAMES_PAGE_CACHE_KEY = 'zo2y_games_featured_pages_cache_v1';
       const GAMES_PAGE_CACHE_TTL_MS = 1000 * 60 * 20;
+      const POPULAR_GAMES_LOAD_SEED = (() => {
+        try {
+          if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+            const seedBuffer = new Uint32Array(1);
+            window.crypto.getRandomValues(seedBuffer);
+            return Number(seedBuffer[0] || 0) >>> 0;
+          }
+        } catch (_err) {}
+        return ((Date.now() & 0xffffffff) ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+      })();
+
+      function mulberry32(seed) {
+        let a = Number(seed || 0) || 0;
+        return function () {
+          a |= 0;
+          a = (a + 0x6D2B79F5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function shuffleInPlace(list, rand) {
+        const arr = Array.isArray(list) ? list : [];
+        const r = typeof rand === 'function' ? rand : Math.random;
+        for (let i = arr.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(r() * (i + 1));
+          const tmp = arr[i];
+          arr[i] = arr[j];
+          arr[j] = tmp;
+        }
+        return arr;
+      }
+
+      function shufflePopularGamesPool(rows, pageSize) {
+        const pool = Array.isArray(rows) ? rows.slice() : [];
+        const size = Math.max(1, Number(pageSize || 20)) || 20;
+        if (pool.length <= size) return pool;
+
+        const rand = mulberry32(POPULAR_GAMES_LOAD_SEED);
+        const tiers = [
+          Math.min(pool.length, Math.max(16, Math.floor(size * 1.25))),
+          Math.min(pool.length, Math.max(48, Math.floor(size * 3))),
+          Math.min(pool.length, Math.max(96, Math.floor(size * 5)))
+        ];
+
+        const out = [];
+        let cursor = 0;
+        tiers.forEach((end) => {
+          if (end <= cursor) return;
+          const chunk = pool.slice(cursor, end);
+          shuffleInPlace(chunk, rand);
+          out.push(...chunk);
+          cursor = end;
+        });
+        if (cursor < pool.length) out.push(...pool.slice(cursor));
+        return out;
+      }
 
       function readCachedGenres() {
         try {
@@ -2071,8 +2129,7 @@
         let cursor = from;
         let count = 0;
         const collected = [];
-        let deduped = [];
-        for (let attempt = 0; attempt < 6 && deduped.length < featuredPoolTarget; attempt += 1) {
+        for (let attempt = 0; attempt < 4 && collected.length < featuredPoolTarget; attempt += 1) {
           const { data, error, count: totalCount } = await supabaseClient
             .from('games')
             .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug', { count: 'exact' })
@@ -2082,13 +2139,15 @@
             .range(cursor, cursor + chunkSize - 1);
           if (error || !Array.isArray(data) || !data.length) break;
           count = Number(totalCount || count || 0);
-          collected.push(...data);
-          deduped = applyStrictGameFranchiseLimits(
-            sortGamesPosterFirst(dedupeRowsByTitleEdition(collected.filter((row) => isLikelyRealGameRow(row))))
-          );
+          data.forEach((row) => {
+            const title = String(row?.title || row?.name || row?.slug || '').trim();
+            if (!title) return;
+            collected.push(row);
+          });
           if (data.length < chunkSize) break;
           cursor += data.length;
         }
+        const deduped = dedupeRowsById(collected).slice(0, featuredPoolTarget);
         if (!deduped.length) return null;
         const payload = {
           rows: deduped.slice(0, featuredPoolTarget),
@@ -2246,8 +2305,26 @@
 
       async function initSupabase() {
         if (supabaseClient) return supabaseClient;
+        const authRuntime = window.ZO2Y_AUTH || null;
+        if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+          await authRuntime.waitForSupabase(8000);
+        } else {
+          const startedAt = Date.now();
+          while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+        }
         if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
           supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+          if (supabaseClient) return supabaseClient;
+        }
+        if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+          supabaseClient = window.supabase.createClient(
+            window.__ZO2Y_SUPABASE_CONFIG.url,
+            window.__ZO2Y_SUPABASE_CONFIG.key,
+            { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+          );
+          window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
           return supabaseClient;
         }
         return null;
@@ -2539,10 +2616,14 @@
 
         if (cachedFeaturedPage?.rows?.length) {
           state.catalogSource = cachedFeaturedPage.source || 'supabase-fast-cache';
-          updateGamePageSpotlight(cachedFeaturedPage.rows);
+          const pool = Array.isArray(cachedFeaturedPage.rows) ? cachedFeaturedPage.rows.filter(Boolean) : [];
+          const shuffledPool = (isPopularGamesBrowseState() && Math.max(1, Number(state.page || 1)) === 1)
+            ? shufflePopularGamesPool(pool, pageSize)
+            : pool;
+          updateGamePageSpotlight(shuffledPool);
           grid.innerHTML = '';
           const cachedFragment = document.createDocumentFragment();
-          cachedFeaturedPage.rows.slice(0, pageSize).forEach((item, idx) => {
+          shuffledPool.slice(0, pageSize).forEach((item, idx) => {
             const card = createGameCard(item, idx);
             if (card) cachedFragment.appendChild(card);
           });
@@ -2574,8 +2655,12 @@
         if (requestId !== state.requestId) return;
         if (localPayload?.rows?.length) {
           state.catalogSource = localPayload.source || 'supabase';
-          const results = Array.isArray(localPayload.rows) ? localPayload.rows.filter(Boolean).slice(0, pageSize) : [];
-          updateGamePageSpotlight(localPayload.rows || results);
+          const pool = Array.isArray(localPayload.rows) ? localPayload.rows.filter(Boolean) : [];
+          const shuffledPool = (isPopularGamesBrowseState() && Math.max(1, Number(state.page || 1)) === 1)
+            ? shufflePopularGamesPool(pool, pageSize)
+            : pool;
+          const results = shuffledPool.slice(0, pageSize);
+          updateGamePageSpotlight(shuffledPool.length ? shuffledPool : results);
           grid.innerHTML = '';
           const fragment = document.createDocumentFragment();
           results.forEach((item, idx) => {
