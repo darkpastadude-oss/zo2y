@@ -21,6 +21,9 @@
 
   let bridge = null;
   let listenersBound = false;
+  let authClient = null;
+  let authClientPromise = null;
+  let cachedUser = null;
 
   const QUICK_ROWS_BY_TYPE = {
     movie: [
@@ -616,12 +619,61 @@
 
   function getCurrentUser() {
     if (!bridge || typeof bridge.getCurrentUser !== 'function') return null;
-    return bridge.getCurrentUser();
+    const user = bridge.getCurrentUser();
+    if (user?.id) return user;
+    return cachedUser;
   }
 
   async function ensureClient() {
-    if (!bridge || typeof bridge.ensureClient !== 'function') return null;
-    return bridge.ensureClient();
+    try {
+      if (bridge && typeof bridge.ensureClient === 'function') {
+        const client = await bridge.ensureClient();
+        if (client?.auth) {
+          if (client.__zo2yAuthListenersBound) return client;
+          if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT !== 'function' && !(window.ZO2Y_AUTH && typeof window.ZO2Y_AUTH.ensureClient === 'function')) {
+            return client;
+          }
+        }
+      }
+    } catch (_error) {}
+
+    if (authClient?.auth) return authClient;
+    if (authClientPromise) return authClientPromise;
+
+    authClientPromise = (async () => {
+      try {
+        const runtime = window.ZO2Y_AUTH || null;
+        if (runtime && typeof runtime.waitForSupabase === 'function') {
+          await runtime.waitForSupabase(8000);
+        } else {
+          const startedAt = Date.now();
+          while (!window.supabase && (Date.now() - startedAt) < 8000) {
+            await new Promise((resolve) => window.setTimeout(resolve, 40));
+          }
+        }
+      } catch (_error) {}
+
+      try {
+        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+          const client = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+          if (client?.auth) return client;
+        }
+      } catch (_error) {}
+
+      try {
+        const runtime = window.ZO2Y_AUTH || null;
+        if (runtime && typeof runtime.ensureClient === 'function') {
+          const client = runtime.ensureClient();
+          if (client?.auth) return client;
+        }
+      } catch (_error) {}
+
+      return null;
+    })();
+
+    authClient = await authClientPromise;
+    authClientPromise = null;
+    return authClient;
   }
 
   function redirectToLogin() {
@@ -634,29 +686,95 @@
 
   async function resolveAuthenticatedUser() {
     const existingUser = getCurrentUser();
-    if (existingUser?.id) return existingUser;
+    if (existingUser?.id) {
+      cachedUser = existingUser;
+      return existingUser;
+    }
     const client = await ensureClient();
     if (!client?.auth) return null;
+
     const authRuntime = window.ZO2Y_AUTH || null;
     if (authRuntime && typeof authRuntime.getVerifiedUser === 'function') {
       try {
         const verifiedUser = await authRuntime.getVerifiedUser(client);
-        if (verifiedUser?.id) return verifiedUser;
+        if (verifiedUser?.id) {
+          cachedUser = verifiedUser;
+          return verifiedUser;
+        }
       } catch (_error) {}
     }
     try {
       const sessionResult = await client.auth.getSession();
       const sessionUser = sessionResult?.data?.session?.user || null;
-      if (sessionUser?.id) return sessionUser;
+      if (sessionUser?.id) {
+        cachedUser = sessionUser;
+        return sessionUser;
+      }
     } catch (_error) {}
     try {
       const userResult = typeof client.auth.getUser === 'function'
         ? await client.auth.getUser()
         : null;
       const user = userResult?.data?.user || null;
-      if (user?.id) return user;
+      if (user?.id) {
+        cachedUser = user;
+        return user;
+      }
     } catch (_error) {}
     return null;
+  }
+
+  async function toggleDefaultListWithFallback(user, item, listType, nextSaved) {
+    if (!user?.id || !item?.itemId) return { ok: false, saved: false };
+    const mediaType = getMediaType();
+    const table = DEFAULT_TABLE_BY_MEDIA[mediaType];
+    if (!table?.table || !table?.itemField) return { ok: false, saved: false };
+
+    try {
+      if (bridge && typeof bridge.toggleDefaultList === 'function') {
+        const result = await bridge.toggleDefaultList({
+          itemId: item.itemId,
+          listType,
+          card: STATE.currentCard,
+          nextSaved
+        });
+        if (result && typeof result.ok === 'boolean') {
+          if (result.ok) return result;
+        }
+      }
+    } catch (_error) {}
+
+    const client = await ensureClient();
+    if (!client) return { ok: false, saved: false };
+
+    const payload = { user_id: user.id, list_type: listType };
+    payload[table.itemField] = item.itemId;
+
+    if (nextSaved) {
+      const { error } = await client.from(table.table).insert(payload);
+      if (error) {
+        const message = String(error.message || '').toLowerCase();
+        if (
+          message.includes('duplicate') ||
+          message.includes('already exists') ||
+          message.includes('unique')
+        ) {
+          return { ok: true, saved: true };
+        }
+        return { ok: false, saved: false, error };
+      }
+      return { ok: true, saved: true };
+    }
+
+    const { error } = await client
+      .from(table.table)
+      .delete()
+      .eq('user_id', user.id)
+      .eq(table.itemField, item.itemId)
+      .eq('list_type', listType);
+
+    if (error) return { ok: false, saved: true, error };
+    return { ok: true, saved: false };
   }
 
   function getCardItem(card) {
@@ -711,7 +829,7 @@
     (listKeys || []).forEach((key) => {
       status[key] = false;
     });
-    const user = getCurrentUser();
+    const user = await resolveAuthenticatedUser();
     if (!user?.id || !listKeys?.length) return status;
     const client = await ensureClient();
     if (!client) return status;
@@ -751,7 +869,7 @@
   async function primeScopeCaches() {
     const scopeKey = getScopeKey();
     const mediaType = getMediaType();
-    const user = getCurrentUser();
+    const user = await resolveAuthenticatedUser();
     if (!scopeKey || !mediaType || !user?.id) return;
     if (CACHE.primingScopes.has(scopeKey)) return;
     CACHE.primingScopes.add(scopeKey);
@@ -923,7 +1041,7 @@
         if (!key || STATE.pendingQuickKeys.has(key)) return;
         const user = await resolveAuthenticatedUser();
         if (!user?.id) {
-          window.location.href = 'login.html';
+          redirectToLogin();
           return;
         }
         const item = STATE.currentItem;
@@ -941,14 +1059,7 @@
         void (async () => {
           let saveResult = null;
           try {
-            if (bridge && typeof bridge.toggleDefaultList === 'function') {
-              saveResult = await bridge.toggleDefaultList({
-                itemId: item.itemId,
-                listType: key,
-                card: STATE.currentCard,
-                nextSaved
-              });
-            }
+            saveResult = await toggleDefaultListWithFallback(user, item, key, nextSaved);
           } catch (_err) {}
 
           const isLatest = Number(STATE.quickMutationVersions[key] || 0) === nextVersion;
@@ -1034,7 +1145,7 @@
     renderItemMenuQuickLists();
     renderItemMenuCustomLists();
 
-    const user = getCurrentUser();
+    const user = await resolveAuthenticatedUser();
     const mediaType = getMediaType();
     if (!customListsEnabled()) {
       STATE.customLists = [];
