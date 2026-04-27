@@ -1786,12 +1786,12 @@
       if (client) return client;
       for (let i = 0; i < 20; i += 1) {
         if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-          client = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+          client = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
           if (client) return client;
         }
         if (window.supabase && typeof window.supabase.createClient === 'function') {
           client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: { storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'zo2y-auth-v1' }
+            auth: { storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'zo2y-auth-v2' }
           });
           return client;
         }

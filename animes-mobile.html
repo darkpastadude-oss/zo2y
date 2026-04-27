@@ -969,7 +969,7 @@
         }
         if (typeof supabase === 'undefined') return null;
         if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-          supabaseClient = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+          supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
         }
         if (!supabaseClient) {
           supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -978,7 +978,7 @@
               persistSession: true,
               autoRefreshToken: true,
               detectSessionInUrl: false,
-              storageKey: 'zo2y-auth-v1'
+              storageKey: 'zo2y-auth-v2'
             }
           });
         }
