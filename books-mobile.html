@@ -958,7 +958,7 @@
   </div>
 
 <script src="js/list-utils.js?v=20260422b"></script>
-<script src="js/index-list-menu-adapter.js?v=20260427b"></script>
+<script src="js/index-list-menu-adapter.js?v=20260427c"></script>
     <script>
     (function () {
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
@@ -1595,22 +1595,84 @@
         });
       }
 
+      function authBootstrapReady() {
+        try {
+          if (window.__AUTH_READY === true) return true;
+          if (window.__ZO2Y_AUTH_STATE === true || window.__ZO2Y_AUTH_STATE === false) return true;
+        } catch (_error) {}
+        return false;
+      }
+
+      async function waitForAuthBootstrap(timeoutMs = 1200) {
+        if (authBootstrapReady()) return true;
+        const waitMs = Math.max(50, Number(timeoutMs) || 1200);
+        return await new Promise((resolve) => {
+          let settled = false;
+          const done = (value) => {
+            if (settled) return;
+            settled = true;
+            try {
+              window.removeEventListener('zo2y-auth-ready', onReady);
+            } catch (_error) {}
+            resolve(!!value);
+          };
+          const onReady = () => done(true);
+          try {
+            window.addEventListener('zo2y-auth-ready', onReady, { once: true });
+          } catch (_error) {}
+          window.setTimeout(() => done(false), waitMs);
+        });
+      }
+
+      async function recoverSessionSnapshot() {
+        if (!supabaseClient?.auth) return;
+        try {
+          if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+            window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+          }
+        } catch (_error) {}
+        try {
+          if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
+            await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(supabaseClient);
+          }
+        } catch (_error) {}
+      }
+
       async function ensureBooksUserSession() {
         if (!supabaseClient?.auth) return state.currentUser || null;
         if (state.currentUser?.id) return state.currentUser;
-        try {
-          const sessionResult = await supabaseClient.auth.getSession();
-          const sessionUser = sessionResult?.data?.session?.user || null;
-          if (sessionUser?.id) return sessionUser;
-        } catch (_error) {}
-        try {
-          const userResult = typeof supabaseClient.auth.getUser === 'function'
-            ? await supabaseClient.auth.getUser()
-            : null;
-          return userResult?.data?.user || null;
-        } catch (_error) {
-          return null;
+
+        const tryResolveUser = async () => {
+          const authRuntime = window.ZO2Y_AUTH || null;
+          if (authRuntime && typeof authRuntime.getVerifiedUser === 'function') {
+            try {
+              const verified = await authRuntime.getVerifiedUser(supabaseClient);
+              if (verified?.id) return verified;
+            } catch (_error) {}
+          }
+          try {
+            const sessionResult = await supabaseClient.auth.getSession();
+            const sessionUser = sessionResult?.data?.session?.user || null;
+            if (sessionUser?.id) return sessionUser;
+          } catch (_error) {}
+          try {
+            const userResult = typeof supabaseClient.auth.getUser === 'function'
+              ? await supabaseClient.auth.getUser()
+              : null;
+            return userResult?.data?.user || null;
+          } catch (_error) {
+            return null;
+          }
+        };
+
+        let user = await tryResolveUser();
+        if (user?.id) return user;
+        if (!authBootstrapReady()) {
+          await waitForAuthBootstrap(1200);
         }
+        await recoverSessionSnapshot();
+        user = await tryResolveUser();
+        return user?.id ? user : null;
       }
 
       async function loadUserListStatus() {
@@ -2357,6 +2419,7 @@
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
+
 
 
 
