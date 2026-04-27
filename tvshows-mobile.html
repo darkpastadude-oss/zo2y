@@ -914,7 +914,7 @@
   </div>
 
   <script src="js/list-utils.js?v=20260419a"></script>
-  <script src="js/index-list-menu-adapter.js?v=20260427d"></script>
+  <script src="js/index-list-menu-adapter.js?v=20260427e"></script>
   <script>
     (function () {
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
@@ -1152,8 +1152,31 @@
         });
       }
 
-      async function recoverSessionSnapshot() {
-        if (!supabaseClient?.auth) return;
+      async function resolveSharedAuthClient() {
+        try {
+          if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+            const sharedClient = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+            if (sharedClient?.auth) {
+              supabaseClient = sharedClient;
+              return sharedClient;
+            }
+          }
+        } catch (_error) {}
+        try {
+          const authRuntime = window.ZO2Y_AUTH || null;
+          if (authRuntime && typeof authRuntime.ensureClient === 'function') {
+            const sharedClient = await authRuntime.ensureClient();
+            if (sharedClient?.auth) {
+              supabaseClient = sharedClient;
+              return sharedClient;
+            }
+          }
+        } catch (_error) {}
+        return supabaseClient;
+      }
+
+      async function recoverSessionSnapshot(client = supabaseClient) {
+        if (!client?.auth) return;
         try {
           if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
             window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
@@ -1161,31 +1184,32 @@
         } catch (_error) {}
         try {
           if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
-            await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(supabaseClient);
+            await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
           }
         } catch (_error) {}
       }
 
       async function ensureMediaUserSession() {
-        if (!supabaseClient?.auth) return state.currentUser || null;
+        const activeClient = await resolveSharedAuthClient();
+        if (!activeClient?.auth) return state.currentUser || null;
         if (state.currentUser?.id) return state.currentUser;
 
         const tryResolveUser = async () => {
           const authRuntime = window.ZO2Y_AUTH || null;
           if (authRuntime && typeof authRuntime.getVerifiedUser === 'function') {
             try {
-              const verified = await authRuntime.getVerifiedUser(supabaseClient);
+              const verified = await authRuntime.getVerifiedUser(activeClient);
               if (verified?.id) return verified;
             } catch (_error) {}
           }
           try {
-            const sessionResult = await supabaseClient.auth.getSession();
+            const sessionResult = await activeClient.auth.getSession();
             const sessionUser = sessionResult?.data?.session?.user || null;
             if (sessionUser?.id) return sessionUser;
           } catch (_error) {}
           try {
-            const userResult = typeof supabaseClient.auth.getUser === 'function'
-              ? await supabaseClient.auth.getUser()
+            const userResult = typeof activeClient.auth.getUser === 'function'
+              ? await activeClient.auth.getUser()
               : null;
             return userResult?.data?.user || null;
           } catch (_error) {
@@ -1198,7 +1222,7 @@
         if (!authBootstrapReady()) {
           await waitForAuthBootstrap(1200);
         }
-        await recoverSessionSnapshot();
+        await recoverSessionSnapshot(activeClient);
         user = await tryResolveUser();
         return user?.id ? user : null;
       }
@@ -1559,22 +1583,26 @@
         hideListMenuBackdrop();
       }
 
-      async function toggleDefaultList(movieId, listType, card, forcedNextSaved) {
-        const activeUser = await ensureMediaUserSession();
-        state.currentUser = activeUser || null;
-        if (!activeUser) {
-          showNotification('Please sign in to save TV shows', 'info');
-          return { ok: false, saved: false };
-        }
-        if (!supabaseClient) return { ok: false, saved: false };
+      async function toggleDefaultList(movieId, listType, card, forcedNextSaved, providedUser = null) {
+        const opKey = `${movieId}:${listType}`;
         const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };
         const previousSaved = !!status[listType];
-        const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
-        const opKey = `${movieId}:${listType}`;
         if (state.pendingDefaultOps.has(opKey)) {
           return { ok: false, saved: previousSaved };
         }
         state.pendingDefaultOps.add(opKey);
+        const activeUser = providedUser?.id ? providedUser : await ensureMediaUserSession();
+        state.currentUser = activeUser || null;
+        if (!activeUser) {
+          if (!providedUser?.id) showNotification('Please sign in to save TV shows', 'info');
+          state.pendingDefaultOps.delete(opKey);
+          return { ok: false, saved: previousSaved };
+        }
+        if (!supabaseClient) {
+          state.pendingDefaultOps.delete(opKey);
+          return { ok: false, saved: previousSaved };
+        }
+        const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
 
         status[listType] = nextSaved;
         state.listStatusMap.set(movieId, status);
@@ -1874,8 +1902,8 @@
           },
           getCurrentUser: () => state.currentUser,
           notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
-          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
-            toggleDefaultList(itemId, listType, card, nextSaved)
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved, user }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved, user || null)
         });
       }
 

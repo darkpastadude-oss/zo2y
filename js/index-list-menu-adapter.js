@@ -192,14 +192,21 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        width: 100%;
         padding: 12px 16px;
         background: var(--card-2, #172b58);
         border: 1px solid var(--border, rgba(255,255,255,0.12));
         border-radius: 12px;
+        color: var(--text, #fff);
         cursor: pointer;
+        font: inherit;
+        text-align: left;
+        appearance: none;
+        -webkit-appearance: none;
         min-height: 48px;
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
+        user-select: none;
         position: relative;
         overflow: hidden;
         transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease, opacity 0.18s ease;
@@ -901,7 +908,8 @@
           itemId: item.itemId,
           listType,
           card: STATE.currentCard,
-          nextSaved
+          nextSaved,
+          user
         });
         if (result && typeof result.ok === 'boolean') {
           if (result.ok) return result;
@@ -1255,13 +1263,13 @@
       DOM.quickNodesByKey.clear();
 
       quickContainer.innerHTML = STATE.quickRows.map((row) => `
-        <div class="menu-quick-item" data-quick-key="${row.key}" aria-busy="false" role="button" tabindex="0">
+        <button type="button" class="menu-quick-item" data-quick-key="${row.key}" aria-busy="false">
           <div class="menu-quick-left">
             <i class="${row.icon}"></i>
             <span>${escapeHtml(row.label)}</span>
           </div>
           <span class="menu-quick-state"></span>
-        </div>
+        </button>
       `).join('');
 
       quickContainer.querySelectorAll('.menu-quick-item').forEach((node) => {
@@ -1271,20 +1279,27 @@
 
         const runToggle = async () => {
           if (STATE.pendingQuickKeys.has(key)) return;
+          STATE.pendingQuickKeys.add(key);
+          renderItemMenuQuickLists();
           const user = await resolveAuthenticatedUser();
           if (!user?.id) {
+            STATE.pendingQuickKeys.delete(key);
+            renderItemMenuQuickLists();
             redirectToLogin();
             return;
           }
           const item = STATE.currentItem;
-          if (!item) return;
+          if (!item) {
+            STATE.pendingQuickKeys.delete(key);
+            renderItemMenuQuickLists();
+            return;
+          }
           const previousSaved = !!STATE.quickStatus[key];
           const nextSaved = !previousSaved;
           animateQuickNode(key, nextSaved ? 'saved' : 'removed');
           const listKeys = STATE.quickRows.map((row) => row.key).filter(Boolean);
           const nextVersion = Number(STATE.quickMutationVersions[key] || 0) + 1;
           STATE.quickMutationVersions[key] = nextVersion;
-          STATE.pendingQuickKeys.add(key);
           STATE.quickStatus[key] = nextSaved;
           writeCachedQuickStatus(item.itemId, STATE.quickStatus, listKeys);
           renderItemMenuQuickLists();
@@ -1328,6 +1343,7 @@
       const isBusy = STATE.pendingQuickKeys.has(key);
       node.classList.toggle('active', isActive);
       node.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+      if ('disabled' in node) node.disabled = isBusy;
       const stateNode = node.querySelector('.menu-quick-state');
       if (stateNode) stateNode.textContent = isActive ? 'Saved' : 'Add';
     });
