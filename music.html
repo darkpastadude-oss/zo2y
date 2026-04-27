@@ -776,20 +776,9 @@
       if (supabaseClient) return supabaseClient;
       if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
         supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-        if (supabaseClient) return supabaseClient;
+        return supabaseClient;
       }
-      if (!window.supabase || !window.supabase.createClient) return null;
-      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: {
-          storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE,
-          flowType: 'pkce',
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: false,
-          storageKey: 'zo2y-auth-v2'
-        }
-      });
-      return supabaseClient;
+      return null;
     }
 
     async function initAuthUi() {

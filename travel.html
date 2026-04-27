@@ -1789,12 +1789,6 @@
           client = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
           if (client) return client;
         }
-        if (window.supabase && typeof window.supabase.createClient === 'function') {
-          client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: { storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'zo2y-auth-v2' }
-          });
-          return client;
-        }
         await new Promise((resolve) => setTimeout(resolve, 120));
       }
       return null;
