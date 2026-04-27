@@ -1583,15 +1583,8 @@
         state.currentUser = await ensureBooksUserSession();
         await loadUserListStatus();
         supabaseClient.auth.onAuthStateChange((_event, session) => {
-          if (session?.user) {
-            state.currentUser = session.user;
-            void loadUserListStatus();
-            return;
-          }
-          window.setTimeout(async () => {
-            state.currentUser = await ensureBooksUserSession();
-            await loadUserListStatus();
-          }, BOOKS_SESSION_RECOVERY_RETRY_MS);
+          state.currentUser = session?.user || null;
+          loadUserListStatus();
         });
       }
 
@@ -1624,79 +1617,15 @@
         });
       }
 
-      async function resolveSharedAuthClient() {
-        try {
-          if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-            const sharedClient = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-            if (sharedClient?.auth) {
-              supabaseClient = sharedClient;
-              return sharedClient;
-            }
-          }
-        } catch (_error) {}
-        try {
-          const authRuntime = window.ZO2Y_AUTH || null;
-          if (authRuntime && typeof authRuntime.ensureClient === 'function') {
-            const sharedClient = await authRuntime.ensureClient();
-            if (sharedClient?.auth) {
-              supabaseClient = sharedClient;
-              return sharedClient;
-            }
-          }
-        } catch (_error) {}
-        return supabaseClient;
-      }
-
-      async function recoverSessionSnapshot(client = supabaseClient) {
-        if (!client?.auth) return;
-        try {
-          if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
-            window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
-          }
-        } catch (_error) {}
-        try {
-          if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
-            await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
-          }
-        } catch (_error) {}
-      }
-
       async function ensureBooksUserSession() {
-        const activeClient = await resolveSharedAuthClient();
-        if (!activeClient?.auth) return state.currentUser || null;
-        if (state.currentUser?.id) return state.currentUser;
-
-        const tryResolveUser = async () => {
-          const authRuntime = window.ZO2Y_AUTH || null;
-          if (authRuntime && typeof authRuntime.getVerifiedUser === 'function') {
-            try {
-              const verified = await authRuntime.getVerifiedUser(activeClient);
-              if (verified?.id) return verified;
-            } catch (_error) {}
-          }
-          try {
-            const sessionResult = await activeClient.auth.getSession();
-            const sessionUser = sessionResult?.data?.session?.user || null;
-            if (sessionUser?.id) return sessionUser;
-          } catch (_error) {}
-          try {
-            const userResult = typeof activeClient.auth.getUser === 'function'
-              ? await activeClient.auth.getUser()
-              : null;
-            return userResult?.data?.user || null;
-          } catch (_error) {
-            return null;
-          }
-        };
-
-        let user = await tryResolveUser();
-        if (user?.id) return user;
-        if (!authBootstrapReady()) {
-          await waitForAuthBootstrap(1200);
+        if (!supabaseClient?.auth) return state.currentUser || null;
+        try {
+          const { data: { user } } = await supabaseClient.auth.getUser();
+          state.currentUser = user || null;
+          return state.currentUser;
+        } catch (_error) {
+          return state.currentUser || null;
         }
-        await recoverSessionSnapshot(activeClient);
-        user = await tryResolveUser();
-        return user?.id ? user : null;
       }
 
       async function loadUserListStatus() {
@@ -2100,6 +2029,12 @@
       }
 
       async function toggleDefaultList(bookId, listType, card, forcedNextSaved, providedUser = null) {
+        if (providedUser?.id) {
+          state.currentUser = providedUser;
+        }
+        if (!state.currentUser) {
+          await ensureBooksUserSession();
+        }
         const opKey = `${bookId}:${listType}`;
         const status = state.listStatusMap.get(bookId) || { favorites: false, read: false, readlist: false };
         const previousSaved = !!status[listType];
@@ -2107,10 +2042,8 @@
           return { ok: false, saved: previousSaved };
         }
         state.pendingDefaultOps.add(opKey);
-        const activeUser = providedUser?.id ? providedUser : await ensureBooksUserSession();
-        state.currentUser = activeUser || null;
-        if (!activeUser) {
-          if (!providedUser?.id) showNotification('Please sign in to save books', 'info');
+        if (!state.currentUser) {
+          showNotification('Please sign in to save books', 'info');
           state.pendingDefaultOps.delete(opKey);
           return { ok: false, saved: previousSaved };
         }
@@ -2130,19 +2063,14 @@
             if (!ensured) throw new Error('book_record_missing');
             const { error } = await supabaseClient
               .from('book_list_items')
-              .insert({ user_id: activeUser.id, book_id: bookId, list_type: listType });
-            if (error) {
-              const duplicate = String(error.code || '') === '23505'
-                || Number(error?.status || error?.statusCode || 0) === 409
-                || /duplicate|already exists|unique|conflict/i.test(String(error?.message || ''));
-              if (!duplicate) throw error;
-            }
+              .insert({ user_id: state.currentUser.id, book_id: bookId, list_type: listType });
+            if (error) throw error;
             showNotification('Saved to list', 'success');
           } else {
             const { error } = await supabaseClient
               .from('book_list_items')
               .delete()
-              .eq('user_id', activeUser.id)
+              .eq('user_id', state.currentUser.id)
               .eq('book_id', bookId)
               .eq('list_type', listType);
             if (error) throw error;
@@ -2154,7 +2082,7 @@
           state.listStatusMap.set(bookId, status);
           if (card) updateCardMenuUI(card, bookId);
           showNotification('Could not update list', 'error');
-          return { ok: false, saved: previousSaved, error: _err };
+          return { ok: false, saved: previousSaved };
         } finally {
           state.pendingDefaultOps.delete(opKey);
         }
