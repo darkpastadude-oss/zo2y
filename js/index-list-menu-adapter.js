@@ -809,6 +809,22 @@
 
     authClient = await authClientPromise;
     authClientPromise = null;
+    
+    // On mobile, ensure the client has time to restore session before returning
+    if (authClient?.auth) {
+      try {
+        // Trigger session restoration if available
+        if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+          window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+        }
+        if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
+          await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(authClient);
+          // Give token refresh time to complete
+          await new Promise((resolve) => window.setTimeout(resolve, 80));
+        }
+      } catch (_error) {}
+    }
+    
     return authClient;
   }
 
@@ -871,6 +887,9 @@
         await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
       }
     } catch (_error) {}
+    
+    // Give Supabase time to restore the session from storage and refresh token
+    await new Promise((resolve) => window.setTimeout(resolve, 100));
   }
 
   async function resolveAuthenticatedUser() {
