@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <script src="/js/auth-gate.js?v=20260428a"></script>
+  <script src="/js/bootstrap-auth.js?v=20260425a" defer></script>
+  <title>Auth Test Page</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #0b1633; color: white; }
+    .test-result { margin: 10px 0; padding: 10px; border: 1px solid #333; }
+    .success { background: #10b981; }
+    .error { background: #ef4444; }
+    .info { background: #3b82f6; }
+  </style>
+</head>
+<body>
+  <h1>Authentication Test</h1>
+  <div id="testResults"></div>
+  
+  <script>
+    function addResult(message, type = 'info') {
+      const div = document.createElement('div');
+      div.className = `test-result ${type}`;
+      div.textContent = message;
+      document.getElementById('testResults').appendChild(div);
+    }
+
+    function testAuth() {
+      addResult('Starting authentication test...', 'info');
+      
+      // Test 1: Check if auth-gate loaded
+      if (typeof window.ZO2Y_AUTH !== 'undefined') {
+        addResult('Auth gate loaded successfully', 'success');
+      } else {
+        addResult('Auth gate failed to load', 'error');
+      }
+      
+      // Test 2: Check if Supabase is available
+      setTimeout(() => {
+        if (typeof window.supabase !== 'undefined') {
+          addResult('Supabase loaded successfully', 'success');
+        } else {
+          addResult('Supabase failed to load', 'error');
+        }
+        
+        // Test 3: Check auth state
+        if (window.__ZO2Y_AUTH_STATE !== null) {
+          const state = window.__ZO2Y_AUTH_STATE ? 'Authenticated' : 'Not authenticated';
+          addResult(`Auth state: ${state}`, 'info');
+        } else {
+          addResult('Auth state still loading...', 'info');
+        }
+      }, 2000);
+    }
+
+    // Wait for auth to be ready
+    window.addEventListener('zo2y-auth-ready', () => {
+      addResult('Auth system ready event fired', 'success');
+      testAuth();
+    });
+
+    // Fallback timeout
+    setTimeout(() => {
+      if (document.getElementById('testResults').children.length === 0) {
+        addResult('Auth ready event timeout - testing anyway', 'error');
+        testAuth();
+      }
+    }, 5000);
+  </script>
+</body>
+</html>
