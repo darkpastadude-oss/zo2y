@@ -1802,6 +1802,64 @@
                 }
             }
 
+            async function getUserStats(userId) {
+                const targetId = userId;
+                
+                try {
+                    const [
+                        movieSavedCount,
+                        tvSavedCount,
+                        animeSavedCount,
+                        gameSavedCount,
+                        bookSavedCount,
+                        musicSavedCount,
+                        restaurantSavedCount,
+                        movieListsCount,
+                        tvListsCount,
+                        animeListsCount,
+                        gameListsCount,
+                        bookListsCount,
+                        musicListsCount,
+                        restaurantListsCount
+                    ] = await Promise.all([
+                        safeCountByUser('movie_list_items', targetId),
+                        safeCountByUser('tv_list_items', targetId),
+                        safeCountByUser('anime_list_items', targetId),
+                        safeCountByUser('game_list_items', targetId),
+                        safeCountByUser('book_list_items', targetId),
+                        safeCountByUser('music_list_items', targetId),
+                        countRestaurantSavedItems(targetId),
+                        safeCountByUser('movie_lists', targetId),
+                        safeCountByUser('tv_lists', targetId),
+                        safeCountByUser('anime_lists', targetId),
+                        safeCountByUser('game_lists', targetId),
+                        safeCountByUser('book_lists', targetId),
+                        safeCountByUser('music_lists', targetId),
+                        countRestaurantListsCreated(targetId)
+                    ]);
+
+                    const savedItemsCount = Number(movieSavedCount || 0)
+                        + Number(tvSavedCount || 0)
+                        + Number(animeSavedCount || 0)
+                        + Number(gameSavedCount || 0)
+                        + Number(bookSavedCount || 0)
+                        + Number(musicSavedCount || 0)
+                        + Number(restaurantSavedCount || 0);
+                    const listsCount = Number(movieListsCount || 0)
+                        + Number(tvListsCount || 0)
+                        + Number(animeListsCount || 0)
+                        + Number(gameListsCount || 0)
+                        + Number(bookListsCount || 0)
+                        + Number(musicListsCount || 0)
+                        + Number(restaurantListsCount || 0);
+
+                    return { savedItemsCount, listsCount };
+                } catch (error) {
+                    console.error('Error getting user stats:', error);
+                    return { savedItemsCount: 0, listsCount: 0 };
+                }
+            }
+
             async function updateStats(userId = null) {
                 const targetId = userId || currentUser.id;
                 
@@ -3489,7 +3547,19 @@
                                 .in('id', uniqueFollowerIds);
 
                             if (!usersError) {
-                                this.displayUsers(users, isMobile ? 'mobileFollowersList' : 'followersList');
+                                // Fetch actual stats for each user
+                                const usersWithStats = await Promise.all(
+                                    (users || []).map(async (user) => {
+                                        const stats = await getUserStats(user.id);
+                                        return {
+                                            ...user,
+                                            savedItemsCount: stats.savedItemsCount,
+                                            createdListsCount: stats.listsCount
+                                        };
+                                    })
+                                );
+
+                                this.displayUsers(usersWithStats, isMobile ? 'mobileFollowersList' : 'followersList');
                             }
                         } catch (error) {
                             console.error('Error loading followers:', error);
@@ -3547,7 +3617,19 @@
                                 .in('id', uniqueFollowingIds);
 
                             if (!usersError) {
-                                this.displayUsers(users, isMobile ? 'mobileFollowingList' : 'followingList');
+                                // Fetch actual stats for each user
+                                const usersWithStats = await Promise.all(
+                                    (users || []).map(async (user) => {
+                                        const stats = await getUserStats(user.id);
+                                        return {
+                                            ...user,
+                                            savedItemsCount: stats.savedItemsCount,
+                                            createdListsCount: stats.listsCount
+                                        };
+                                    })
+                                );
+
+                                this.displayUsers(usersWithStats, isMobile ? 'mobileFollowingList' : 'followingList');
                             }
                         } catch (error) {
                             console.error('Error loading following:', error);
@@ -4187,7 +4269,19 @@
 
                             if (error) throw error;
 
-                            this.displayUsers(users, 'searchResults');
+                            // Fetch actual stats for each user
+                            const usersWithStats = await Promise.all(
+                                (users || []).map(async (user) => {
+                                    const stats = await getUserStats(user.id);
+                                    return {
+                                        ...user,
+                                        savedItemsCount: stats.savedItemsCount,
+                                        createdListsCount: stats.listsCount
+                                    };
+                                })
+                            );
+
+                            this.displayUsers(usersWithStats, 'searchResults');
                             
                         } catch (error) {
                             console.error('Error searching users:', error);
@@ -4240,8 +4334,8 @@
                             
                             const isMobile = window.innerWidth <= 768 || containerId.includes('mobile');
                             
-                            const savedItemsCount = user.saved_items_count ?? user.saved_count ?? user.visited_count ?? user.favorites_count ?? 0;
-                            const createdListsCount = user.created_lists_count ?? user.lists_count ?? 0;
+                            const savedItemsCount = user.savedItemsCount ?? user.saved_items_count ?? user.saved_count ?? user.visited_count ?? user.favorites_count ?? 0;
+                            const createdListsCount = user.createdListsCount ?? user.created_lists_count ?? user.lists_count ?? 0;
 
                             if (isMobile) {
                                 const userCard = document.createElement('div');
@@ -4262,7 +4356,7 @@
                                         </div>
                                         <div class="mobile-community-stat">
                                             <span class="mobile-community-stat-number">${createdListsCount}</span>
-                                            <span class="mobile-community-stat-label">Lists created</span>
+                                            <span class="mobile-community-stat-label">Custom lists</span>
                                         </div>
                                         <div class="mobile-community-stat">
                                             <span class="mobile-community-stat-number">${user.followers_count || 0}</span>
@@ -4304,7 +4398,7 @@
                                         </div>
                                         <div class="community-stat">
                                             <span class="community-stat-number">${createdListsCount}</span>
-                                            <span class="community-stat-label">Lists created</span>
+                                            <span class="community-stat-label">Custom lists</span>
                                         </div>
                                         <div class="community-stat">
                                             <span class="community-stat-number">${user.followers_count || 0}</span>

@@ -2022,82 +2022,65 @@
       async function loadBooks(options = {}) {
         const grid = document.getElementById('booksGrid');
         if (!grid) return;
-        const requestSeq = ++state.requestSeq;
+        
+        // Clear grid immediately, no loading message
+        grid.innerHTML = '';
+        
         const hasActiveFilters = !!(state.query || state.author || state.activeCategory || state.year);
-        const isFirstPopularPage = !hasActiveFilters && Number(state.page || 1) === 1;
-        if (Number(state.page || 1) === 1) {
-          const canUseCachedFirstPage = !hasActiveFilters && !options?.cacheBust;
-          const cachedFirstPage = canUseCachedFirstPage ? readCachedBooksPage() : null;
-          if (cachedFirstPage?.books?.length) {
-            updateBookPageSpotlight(cachedFirstPage.books || []);
-            displayBookResults(cachedFirstPage.books || [], cachedFirstPage.numFound || 0);
-            scheduleBooksBackgroundRefresh('books:first-page-refresh', () => loadBooks({ cacheBust: true }));
-          } else {
-            // Don't wipe existing results while typing/searching (aborted fetches can leave the UI stuck).
-            const hasAnyCards = grid.querySelector('.card') || grid.childElementCount > 0;
-            if (!hasActiveFilters || !hasAnyCards) {
-              grid.innerHTML = '<div class="empty">Loading books...</div>';
-            }
-          }
-        }
-
+        
         let data;
         try {
-          // Treat 1-character queries as "no search" to avoid emptying the page while typing.
-          if (String(state.query || '').trim().length === 1) {
-            state.query = '';
-          }
           const params = {
             page: state.page,
             limit: BOOKS_PER_PAGE,
             language: BOOKS_LANGUAGE
           };
+          
           if (state.query) {
             params.q = state.query;
-            const termCount = String(state.query || '').trim().split(/\s+/).filter(Boolean).length;
-            params.orderBy = termCount <= 2 ? 'newest' : 'relevance';
+            params.orderBy = 'newest';
           }
           if (state.author) params.author = state.author;
           if (state.activeCategory) params.subject = state.activeCategory;
           if (state.year) params.first_publish_year = state.year;
-          if (options?.cacheBust) params.cache_bust = Date.now();
-          if (!params.title && !params.author && !params.subject && !params.first_publish_year) {
-            if (isFirstPopularPage) {
-              data = await loadCuratedPopularBooks();
-            } else {
-              data = await fetchPopularBooks(state.page, BOOKS_PER_PAGE);
-            }
+          
+          if (!hasActiveFilters) {
+            // Load trending books for first page
+            data = await booksFetch('/trending', {
+              ...params,
+              period: 'weekly',
+              subject: state.activeCategory || 'fiction'
+            });
           } else {
+            // Search with filters
             data = await booksFetch('/search', params);
           }
+          
           if (!Array.isArray(data?.books) || !data.books.length) {
             data = { books: [], numFound: 0 };
+          } else {
+            // Filter for books with covers and from recent years
+            data.books = data.books
+              .filter(book => {
+                const hasCover = book.cover && 
+                                book.cover !== FALLBACK_BOOK_IMAGE && 
+                                !book.cover.includes('fallback') &&
+                                !book.cover.includes('placeholder');
+                const isRecent = book.year && book.year >= 2018;
+                return hasCover && isRecent;
+              })
+              .sort((a, b) => {
+                // Prioritize newer books first
+                const aYear = a.year || 0;
+                const bYear = b.year || 0;
+                return bYear - aYear;
+              });
           }
         } catch (e) {
-          const isAbort = e && (e.name === 'AbortError' || String(e?.message || '').toLowerCase().includes('aborted'));
           console.error('Books fetch error', e);
-          // If a request was aborted (timeout / rapid typing), don't hard-clear the UI to "No books found".
-          if (isAbort) {
-            // If we're in a transient state and the grid is still showing the initial loading placeholder,
-            // try to fall back to cached popular books instead of getting stuck.
-            try {
-              const placeholder = grid.querySelector('.empty');
-              const hasPlaceholder = !!(placeholder && /loading books/i.test(String(placeholder.textContent || '')));
-              const cached = readCachedBooksPage();
-              if (hasPlaceholder && cached?.books?.length) {
-                updateBookPageSpotlight(cached.books || []);
-                displayBookResults(cached.books || [], cached.numFound || 0);
-              }
-            } catch (_err) {}
-            return;
-          }
           data = { books: [], numFound: 0 };
         }
-
-        if (requestSeq !== state.requestSeq) return;
-        if (!hasActiveFilters && Number(state.page || 1) === 1 && Array.isArray(data?.books) && data.books.length) {
-          writeCachedBooksPage(data);
-        }
+        
         updateBookPageSpotlight(data.books || []);
         displayBookResults(data.books || [], data.numFound || 0);
       }
