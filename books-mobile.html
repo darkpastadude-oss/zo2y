@@ -1607,35 +1607,6 @@
         }
       }
 
-      function authBootstrapReady() {
-        try {
-          if (window.__AUTH_READY === true) return true;
-          if (window.__ZO2Y_AUTH_STATE === true || window.__ZO2Y_AUTH_STATE === false) return true;
-        } catch (_error) {}
-        return false;
-      }
-
-      async function waitForAuthBootstrap(timeoutMs = 1200) {
-        if (authBootstrapReady()) return true;
-        const waitMs = Math.max(50, Number(timeoutMs) || 1200);
-        return await new Promise((resolve) => {
-          let settled = false;
-          const done = (value) => {
-            if (settled) return;
-            settled = true;
-            try {
-              window.removeEventListener('zo2y-auth-ready', onReady);
-            } catch (_error) {}
-            resolve(!!value);
-          };
-          const onReady = () => done(true);
-          try {
-            window.addEventListener('zo2y-auth-ready', onReady, { once: true });
-          } catch (_error) {}
-          window.setTimeout(() => done(false), waitMs);
-        });
-      }
-
       async function ensureBooksUserSession() {
         if (!supabaseClient?.auth) return state.currentUser || null;
         if (state.currentUser?.id) return state.currentUser;
