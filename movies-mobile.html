@@ -1092,56 +1092,6 @@
         return icon;
       }
 
-      async function ensureSupabase() {
-        if (supabaseClient) return supabaseClient;
-        const authRuntime = window.ZO2Y_AUTH || null;
-        if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
-          await authRuntime.waitForSupabase(8000);
-        } else {
-          const startedAt = Date.now();
-          while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
-            await new Promise((resolve) => setTimeout(resolve, 40));
-          }
-        }
-        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-          supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-          if (supabaseClient) return supabaseClient;
-        }
-        if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
-          supabaseClient = window.supabase.createClient(
-            window.__ZO2Y_SUPABASE_CONFIG.url,
-            window.__ZO2Y_SUPABASE_CONFIG.key,
-            { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
-          );
-          window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
-          return supabaseClient;
-        }
-        return null;
-      }
-
-      async function initAuthUi() {
-        const client = await ensureSupabase();
-        if (!client) return;
-        const loginBtn = document.getElementById('loginBtn');
-        const signupBtn = document.getElementById('signupBtn');
-        const profileBtn = document.getElementById('profileBtn');
-        const { data } = await client.auth.getUser();
-        state.currentUser = data?.user || null;
-
-        if (state.currentUser) {
-          if (loginBtn) loginBtn.style.display = 'none';
-          if (signupBtn) signupBtn.style.display = 'none';
-          if (profileBtn) {
-            profileBtn.style.display = 'inline-flex';
-            profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
-          }
-        } else {
-          if (loginBtn) loginBtn.style.display = 'inline-flex';
-          if (signupBtn) signupBtn.style.display = 'inline-flex';
-          if (profileBtn) profileBtn.style.display = 'none';
-        }
-      }
-
       async function loadUserListStatus() {
         state.listStatusMap = new Map();
         if (!supabaseClient || !state.currentUser) return;
@@ -1506,13 +1456,6 @@
         if (providedUser?.id) {
           state.currentUser = providedUser;
         }
-        if (!state.currentUser) {
-          const client = await ensureSupabase();
-          if (client) {
-            const { data } = await client.auth.getUser();
-            state.currentUser = data?.user || null;
-          }
-        }
         const opKey = `${movieId}:${listType}`;
         const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };
         const previousSaved = !!status[listType];
@@ -1831,10 +1774,9 @@
       }
 
       (async function init() {
-        await ensureSupabase();
         wireUI();
         syncSearchStateFromUrl();
-        await Promise.all([loadGenres(), initAuthUi()]);
+        await loadGenres();
         renderFilters();
         loadMovies();
       })();
