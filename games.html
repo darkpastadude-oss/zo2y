@@ -2859,7 +2859,7 @@
         const empty = document.getElementById('emptyState');
         if (!grid) return;
         if (!supabaseClient) {
-          await initSupabase();
+          await ensureSupabase();
         }
         const requestId = ++state.requestId;
         if (igdbAbortController) {
@@ -3306,7 +3306,7 @@
           },
           ensureClient: async () => {
             if (supabaseClient) return supabaseClient;
-            await initSupabase();
+            await ensureSupabase();
             return supabaseClient;
           },
           getCurrentUser: () => state.currentUser,
