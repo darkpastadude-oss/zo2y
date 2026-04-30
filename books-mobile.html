@@ -1591,22 +1591,80 @@
         return icon;
       }
 
+      async function initSupabase() {
+        if (supabaseClient) return supabaseClient;
+        const authRuntime = window.ZO2Y_AUTH || null;
+        if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+          await authRuntime.waitForSupabase(8000);
+        } else {
+          const startedAt = Date.now();
+          while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+        }
+        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+          supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+          if (supabaseClient) return supabaseClient;
+        }
+        if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+          supabaseClient = window.supabase.createClient(
+            window.__ZO2Y_SUPABASE_CONFIG.url,
+            window.__ZO2Y_SUPABASE_CONFIG.key,
+            { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+          );
+        }
+        return supabaseClient;
+      }
+
       async function ensureBooksUserSession() {
         if (!supabaseClient?.auth) return state.currentUser || null;
         if (state.currentUser?.id) return state.currentUser;
         try {
-          const sessionResult = await supabaseClient.auth.getSession();
-          const sessionUser = sessionResult?.data?.session?.user || null;
-          if (sessionUser?.id) return sessionUser;
-        } catch (_error) {}
-        try {
-          const userResult = typeof supabaseClient.auth.getUser === 'function'
-            ? await supabaseClient.auth.getUser()
-            : null;
-          return userResult?.data?.user || null;
+          const { data: { user } } = await supabaseClient.auth.getUser();
+          state.currentUser = user || null;
+          return state.currentUser;
         } catch (_error) {
-          return null;
+          return state.currentUser || null;
         }
+      }
+
+      async function initAuth() {
+        if (!supabaseClient) return;
+        state.currentUser = await ensureBooksUserSession();
+        await loadUserListStatus();
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+          state.currentUser = session?.user || null;
+          loadUserListStatus();
+        });
+      }
+
+      function authBootstrapReady() {
+        try {
+          if (window.__AUTH_READY === true) return true;
+          if (window.__ZO2Y_AUTH_STATE === true || window.__ZO2Y_AUTH_STATE === false) return true;
+        } catch (_error) {}
+        return false;
+      }
+
+      async function waitForAuthBootstrap(timeoutMs = 1200) {
+        if (authBootstrapReady()) return true;
+        const waitMs = Math.max(50, Number(timeoutMs) || 1200);
+        return await new Promise((resolve) => {
+          let settled = false;
+          const done = (value) => {
+            if (settled) return;
+            settled = true;
+            try {
+              window.removeEventListener('zo2y-auth-ready', onReady);
+            } catch (_error) {}
+            resolve(!!value);
+          };
+          const onReady = () => done(true);
+          try {
+            window.addEventListener('zo2y-auth-ready', onReady, { once: true });
+          } catch (_error) {}
+          window.setTimeout(() => done(false), waitMs);
+        });
       }
 
       async function loadUserListStatus() {
@@ -2378,9 +2436,11 @@
       }
 
       (async function init() {
+        await initSupabase();
         clearLegacyBooksMobileCache();
         wireUI();
         populateCategories();
+        await initAuth();
         renderFilters();
         loadBooks();
       })();

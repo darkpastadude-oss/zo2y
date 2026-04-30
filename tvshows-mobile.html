@@ -1102,6 +1102,83 @@
         return icon;
       }
 
+      async function initSupabase() {
+        if (supabaseClient) return supabaseClient;
+        const authRuntime = window.ZO2Y_AUTH || null;
+        if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+          await authRuntime.waitForSupabase(8000);
+        } else {
+          const startedAt = Date.now();
+          while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+        }
+        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+          supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+          if (supabaseClient) return supabaseClient;
+        }
+        if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+          supabaseClient = window.supabase.createClient(
+            window.__ZO2Y_SUPABASE_CONFIG.url,
+            window.__ZO2Y_SUPABASE_CONFIG.key,
+            { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+          );
+          window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+          return supabaseClient;
+        }
+        return null;
+      }
+
+      function authBootstrapReady() {
+        try {
+          if (window.__AUTH_READY === true) return true;
+          if (window.__ZO2Y_AUTH_STATE === true || window.__ZO2Y_AUTH_STATE === false) return true;
+        } catch (_error) {}
+        return false;
+      }
+
+      async function waitForAuthBootstrap(timeoutMs = 1200) {
+        if (authBootstrapReady()) return true;
+        const waitMs = Math.max(50, Number(timeoutMs) || 1200);
+        return await new Promise((resolve) => {
+          let settled = false;
+          const done = (value) => {
+            if (settled) return;
+            settled = true;
+            try {
+              window.removeEventListener('zo2y-auth-ready', onReady);
+            } catch (_error) {}
+            resolve(!!value);
+          };
+          const onReady = () => done(true);
+          try {
+            window.addEventListener('zo2y-auth-ready', onReady, { once: true });
+          } catch (_error) {}
+          window.setTimeout(() => done(false), waitMs);
+        });
+      }
+
+      async function ensureMediaUserSession() {
+        if (!supabaseClient?.auth) return state.currentUser || null;
+        try {
+          const { data: { user } } = await supabaseClient.auth.getUser();
+          state.currentUser = user || null;
+          return state.currentUser;
+        } catch (_error) {
+          return state.currentUser || null;
+        }
+      }
+
+      async function initAuth() {
+        if (!supabaseClient) return;
+        state.currentUser = await ensureMediaUserSession();
+        await loadUserListStatus();
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+          state.currentUser = session?.user || null;
+          loadUserListStatus();
+        });
+      }
+
       async function loadUserListStatus() {
         state.listStatusMap = new Map();
         if (!supabaseClient || !state.currentUser) return;
@@ -1445,6 +1522,9 @@
         if (providedUser?.id) {
           state.currentUser = providedUser;
         }
+        if (!state.currentUser) {
+          await ensureMediaUserSession();
+        }
         const opKey = `${movieId}:${listType}`;
         const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };
         const previousSaved = !!status[listType];
@@ -1763,9 +1843,10 @@
       }
 
       (async function init() {
+        await initSupabase();
         wireUI();
         syncSearchStateFromUrl();
-        await loadGenres();
+        await Promise.all([loadGenres(), initAuth()]);
         renderFilters();
         loadTvShows();
       })();
