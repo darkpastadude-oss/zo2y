@@ -101,7 +101,8 @@ const APP_RUNTIME_VERSION = '20260424-auth-runtime-d';
     if (AUTH_PAGE_KEYS.has(pageKey)) return false;
     if (hasOAuthParams()) return false;
     if (isStandaloneMode()) return false;
-    if (!deferredInstallPrompt) return false;
+    const isIos = isIosDevice();
+    if (!isIos && !deferredInstallPrompt) return false;
     if (localStorage.getItem(INSTALL_DONE_KEY) === '1') return false;
     const dismissedAt = Number(localStorage.getItem(INSTALL_DISMISS_KEY) || 0);
     if (dismissedAt && (Date.now() - dismissedAt) < INSTALL_REPROMPT_MS) return false;
@@ -369,7 +370,8 @@ const APP_RUNTIME_VERSION = '20260424-auth-runtime-d';
     const force = options.force === true;
     if (installCardVisible && !force) return;
     const canPromptInstall = !!deferredInstallPrompt;
-    if (!canPromptInstall) return;
+    const isIos = isIosDevice();
+    if (!isIos && !canPromptInstall) return;
 
     ensureInstallPromptStyle();
     let overlay = document.getElementById('zo2yInstallPrompt');
@@ -388,7 +390,26 @@ const APP_RUNTIME_VERSION = '20260424-auth-runtime-d';
       }
     };
 
-    if (canPromptInstall) {
+    if (isIos) {
+      overlay.innerHTML = `
+        <div class="zo2y-install-prompt" role="dialog" aria-modal="true" aria-label="Install app">
+          <button type="button" class="zo2y-install-close" id="zo2yInstallCloseBtn" aria-label="Close">&times;</button>
+          <p class="zo2y-install-title">Install App</p>
+          <p class="zo2y-install-copy">Install the mobile web app for faster launch, full-screen mode, and app-style navigation.</p>
+          <div class="zo2y-install-actions">
+            <button type="button" class="zo2y-install-btn primary" id="zo2yInstallNowBtn">Got it</button>
+            <button type="button" class="zo2y-install-btn" id="zo2yInstallLaterBtn">Maybe later</button>
+          </div>
+          <p class="zo2y-install-help">Tap Share in your browser, then "Add to Home Screen".</p>
+        </div>
+      `;
+      overlay.querySelector('#zo2yInstallNowBtn')?.addEventListener('click', () => {
+        markInstallComplete();
+      });
+      overlay.querySelector('#zo2yInstallLaterBtn')?.addEventListener('click', () => {
+        dismissInstallPrompt({ persist: true, delayMs: 1000 * 60 * 60 * 4 });
+      });
+    } else if (canPromptInstall) {
       overlay.innerHTML = `
         <div class="zo2y-install-prompt" role="dialog" aria-modal="true" aria-label="Install app">
           <button type="button" class="zo2y-install-close" id="zo2yInstallCloseBtn" aria-label="Close">&times;</button>

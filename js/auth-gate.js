@@ -1574,6 +1574,41 @@
       return true;
     }
 
+    // Auto-generate username from email for Google sign-ups
+    if (flow === 'signup' && profileResult && profileResult.ok && profileResult.needsOnboarding) {
+      var emailPrefix = getUserEmailPrefix(session.user);
+      if (emailPrefix) {
+        var autoUsername = normalizeProfileUsername(emailPrefix);
+        if (isValidProfileUsername(autoUsername) && !isReservedProfileUsername(autoUsername)) {
+          try {
+            autoUsername = await ensureUsernameAvailable(client, autoUsername, session.user.id);
+            var profileRow = await syncUserProfileRecord(client, session.user, {
+              username: autoUsername,
+              full_name: autoUsername
+            });
+            var updateResult = await client.auth.updateUser({
+              data: {
+                username: autoUsername,
+                zo2y_username: autoUsername,
+                full_name: autoUsername,
+                name: autoUsername
+              }
+            });
+            if (!updateResult || !updateResult.error) {
+              clearOnboardingPending(session.user.id);
+              clearPendingPostAuthBootstrap();
+              redirectToPostAuthTarget(nextPath, {
+                inPlace: opts.inPlace === true
+              });
+              return true;
+            }
+          } catch (_autoError) {
+            // Fall through to onboarding if auto-generation fails
+          }
+        }
+      }
+    }
+
     if (profileResult && profileResult.ok && profileResult.needsOnboarding) {
       redirectToOnboarding(nextPath, session.user.id);
       return true;
